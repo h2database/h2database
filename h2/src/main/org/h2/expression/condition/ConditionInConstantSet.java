@@ -18,7 +18,7 @@ import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.value.ExtTypeInfo;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
@@ -36,8 +36,7 @@ public class ConditionInConstantSet extends Condition {
     private final ArrayList<Expression> valueList;
     private final TreeSet<Value> valueSet;
     private boolean hasNull;
-    private final int type;
-    private ExtTypeInfo extTypeInfo;
+    private final TypeInfo type;
 
     /**
      * Create a new IN(..) condition.
@@ -54,17 +53,10 @@ public class ConditionInConstantSet extends Condition {
         this.valueList = valueList;
         Database database = session.getDatabase();
         this.valueSet = new TreeSet<>(database.getCompareMode());
-        type = left.getType().getValueType();
+        type = left.getType();
         Mode mode = database.getMode();
-        if (type == Value.ENUM) {
-            extTypeInfo = ((ExpressionColumn) left).getColumn().getType().getExtTypeInfo();
-            for (Expression expression : valueList) {
-                add(extTypeInfo.cast(expression.getValue(session)));
-            }
-        } else {
-            for (Expression expression : valueList) {
-                add(expression.getValue(session).convertTo(type, mode));
-            }
+        for (Expression expression : valueList) {
+            add(expression.getValue(session).convertTo(type, mode, null));
         }
     }
 
@@ -173,11 +165,7 @@ public class ConditionInConstantSet extends Condition {
         if (add != null) {
             if (add.isConstant()) {
                 valueList.add(add);
-                if (type == Value.ENUM) {
-                    add(add.getValue(session).convertToEnum(extTypeInfo));
-                } else {
-                    add(add.getValue(session).convertTo(type, session.getDatabase().getMode()));
-                }
+                add(add.getValue(session).convertTo(type, session.getDatabase().getMode(), null));
                 return this;
             }
         }

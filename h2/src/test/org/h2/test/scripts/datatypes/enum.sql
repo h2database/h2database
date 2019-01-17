@@ -284,5 +284,20 @@ CREATE TABLE TEST(E ENUM('a', 'b'));
 EXPLAIN SELECT * FROM TEST WHERE E = 'a';
 >> SELECT TEST.E FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ WHERE E = 'a'
 
+INSERT INTO TEST VALUES ('a');
+> update count: 1
+
+(SELECT * FROM TEST A) UNION ALL (SELECT * FROM TEST A);
+> E
+> -
+> a
+> a
+> rows: 2
+
+(SELECT * FROM TEST A) MINUS (SELECT * FROM TEST A);
+> E
+> -
+> rows: 0
+
 DROP TABLE TEST;
 > ok

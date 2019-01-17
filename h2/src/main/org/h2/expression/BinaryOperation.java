@@ -202,7 +202,6 @@ public class BinaryOperation extends Expression {
                 int dataType = Value.getHigherOrder(l, r);
                 if (dataType == Value.ENUM) {
                     type = TypeInfo.TYPE_INT;
-                    dataType = Value.INT;
                 } else {
                     type = TypeInfo.getTypeInfo(dataType);
                     if (DataType.isStringType(dataType) && session.getDatabase().getMode().allowPlusForStringConcat) {

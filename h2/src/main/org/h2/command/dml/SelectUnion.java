@@ -27,7 +27,6 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.ColumnNamer;
-import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
@@ -122,7 +121,7 @@ public class SelectUnion extends Query {
         Mode mode = session.getDatabase().getMode();
         for (int i = 0; i < columnCount; i++) {
             Expression e = expressions.get(i);
-            newValues[i] = values[i].convertTo(e.getType().getValueType(), mode);
+            newValues[i] = values[i].convertTo(e.getType(), mode, null);
         }
         return newValues;
     }
@@ -329,13 +328,8 @@ public class SelectUnion extends Query {
         for (int i = 0; i < len; i++) {
             Expression l = le.get(i);
             Expression r = re.get(i);
-            TypeInfo lType = l.getType(), rType = r.getType();
-            int type = Value.getHigherOrder(lType.getValueType(), rType.getValueType());
-            long prec = Math.max(lType.getPrecision(), rType.getPrecision());
-            int scale = Math.max(lType.getScale(), rType.getScale());
-            int displaySize = Math.max(lType.getDisplaySize(), rType.getDisplaySize());
-            String columnName = columnNamer.getColumnName(l,i,l.getAlias());
-            Column col = new Column(columnName, type, prec, scale, displaySize);
+            String columnName = columnNamer.getColumnName(l, i, l.getAlias());
+            Column col = new Column(columnName, Value.getHigherType(l.getType(), r.getType()));
             Expression e = new ExpressionColumn(session.getDatabase(), col);
             expressions.add(e);
         }

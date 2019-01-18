@@ -7247,10 +7247,8 @@ public class Parser {
                 command.setNewColumnName(newName);
                 return command;
             } else if (readIf("DROP")) {
-                // PostgreSQL compatibility
                 if (readIf("DEFAULT")) {
-                    AlterTableAlterColumn command = new AlterTableAlterColumn(
-                            session, schema);
+                    AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
                     command.setTableName(tableName);
                     command.setIfTableExists(ifTableExists);
                     command.setOldColumn(column);

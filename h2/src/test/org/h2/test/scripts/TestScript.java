@@ -122,6 +122,9 @@ public class TestScript extends TestDb {
         reconnectOften = !config.memory && config.big;
 
         testScript("testScript.sql");
+        if (!config.memory && !config.big && !config.networked) {
+            testScript("testSimple.sql");
+        }
         testScript("comments.sql");
         testScript("derived-column-names.sql");
         testScript("distinct.sql");

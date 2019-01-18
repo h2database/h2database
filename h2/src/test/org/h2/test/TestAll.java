@@ -125,7 +125,6 @@ import org.h2.test.poweroff.TestReorderWrites;
 import org.h2.test.recover.RecoverLobTest;
 import org.h2.test.rowlock.TestRowLocks;
 import org.h2.test.scripts.TestScript;
-import org.h2.test.scripts.TestScriptSimple;
 import org.h2.test.server.TestAutoServer;
 import org.h2.test.server.TestInit;
 import org.h2.test.server.TestNestedLoop;
@@ -742,7 +741,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         beforeTest();
 
         // db
-        addTest(new TestScriptSimple());
         addTest(new TestScript());
         addTest(new TestAlter());
         addTest(new TestAlterSchemaRename());

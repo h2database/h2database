@@ -129,6 +129,7 @@ import org.h2.command.ddl.TruncateTable;
 import org.h2.command.dml.AlterTableSet;
 import org.h2.command.dml.BackupCommand;
 import org.h2.command.dml.Call;
+import org.h2.command.dml.CommandWithValues;
 import org.h2.command.dml.Delete;
 import org.h2.command.dml.ExecuteProcedure;
 import org.h2.command.dml.Explain;
@@ -253,7 +254,8 @@ import org.h2.value.ValueTimestampTimeZone;
 public class Parser {
 
     private static final String WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS =
-            "WITH statement supports only SELECT, TABLE, CREATE TABLE, INSERT, UPDATE, MERGE or DELETE statements";
+            "WITH statement supports only SELECT, TABLE, VALUES, " +
+            "CREATE TABLE, INSERT, UPDATE, MERGE or DELETE statements";
 
     // used during the tokenizer phase
     private static final int CHAR_END = 1, CHAR_VALUE = 2, CHAR_QUOTED = 3;
@@ -755,11 +757,8 @@ public class Parser {
         case FROM:
         case SELECT:
         case TABLE:
-            c = parseSelect();
-            break;
         case VALUES:
-            read();
-            c = parseValues();
+            c = parseSelect();
             break;
         case WITH:
             read();
@@ -1450,6 +1449,7 @@ public class Parser {
         switch (currentTokenType) {
         case FROM:
         case SELECT:
+        case VALUES:
         case WITH:
             select = true;
             break;
@@ -1492,10 +1492,7 @@ public class Parser {
             command.setKeys(keys);
         }
         if (readIf(VALUES)) {
-            do {
-                read(OPEN_PAREN);
-                command.addRow(parseValuesForInsert());
-            } while (readIf(COMMA));
+            parseValuesForCommand(command);
         } else {
             command.setQuery(parseSelect());
         }
@@ -1682,11 +1679,7 @@ public class Parser {
             Expression[] expr = {};
             command.addRow(expr);
         } else if (readIf(VALUES)) {
-            read(OPEN_PAREN);
-            do {
-                command.addRow(parseValuesForInsert());
-                // the following condition will allow (..),; and (..);
-            } while (readIf(COMMA) && readIf(OPEN_PAREN));
+            parseValuesForCommand(command);
         } else if (readIf("SET")) {
             if (columns != null) {
                 throw getSyntaxError();
@@ -1725,28 +1718,35 @@ public class Parser {
             command.setColumns(columns);
         }
         if (readIf(VALUES)) {
-            do {
-                read(OPEN_PAREN);
-                command.addRow(parseValuesForInsert());
-            } while (readIf(COMMA));
+            parseValuesForCommand(command);
         } else {
             command.setQuery(parseSelect());
         }
         return command;
     }
 
-    private Expression[] parseValuesForInsert() {
+    private void parseValuesForCommand(CommandWithValues command) {
         ArrayList<Expression> values = Utils.newSmallArrayList();
-        if (!readIf(CLOSE_PAREN)) {
-            do {
-                if (readIf("DEFAULT")) {
-                    values.add(null);
-                } else {
-                    values.add(readExpression());
+        do {
+            values.clear();
+            boolean multiColumn;
+            if (readIf(ROW)) {
+                read(OPEN_PAREN);
+                multiColumn = true;
+            } else {
+                multiColumn = readIf(OPEN_PAREN);
+            }
+            if (multiColumn) {
+                if (!readIf(CLOSE_PAREN)) {
+                    do {
+                        values.add(readIf("DEFAULT") ? null : readExpression());
+                    } while (readIfMore(false));
                 }
-            } while (readIfMore(false));
-        }
-        return values.toArray(new Expression[0]);
+            } else {
+                values.add(readIf("DEFAULT") ? null : readExpression());
+            }
+            command.addRow(values.toArray(new Expression[0]));
+        } while (readIf(COMMA));
     }
 
     private TableFilter readTableFilter() {
@@ -2350,6 +2350,7 @@ public class Parser {
         case FROM:
         case SELECT:
         case TABLE:
+        case VALUES:
         case WITH:
         case OPEN_PAREN:
             Query query = parseSelect();
@@ -2696,6 +2697,8 @@ public class Parser {
             command.setExpressions(expressions);
             setSQL(command, "TABLE", start);
             return command;
+        } else if (readIf(VALUES)) {
+            return parseValues();
         } else {
             throw getSyntaxError();
         }
@@ -3936,8 +3939,12 @@ public class Parser {
             read();
             break;
         case VALUES:
-            read();
-            r = readKeywordFunction("VALUES");
+            if (database.getMode().onDuplicateKeyUpdate) {
+                read();
+                r = readKeywordFunction("VALUES");
+            } else {
+                r = new Subquery(parseSelect());
+            }
             break;
         case CASE:
             read();
@@ -5823,20 +5830,24 @@ public class Parser {
         TableFilter filter = parseValuesTable(0);
         command.setWildcard();
         command.addTableFilter(filter, true);
-        command.init();
         return command;
     }
 
     private TableFilter parseValuesTable(int orderInFrom) {
         Schema mainSchema = database.getSchema(Constants.SCHEMA_MAIN);
-        TableFunction tf = (TableFunction) Function.getFunction(database,
-                "TABLE");
+        TableFunction tf = (TableFunction) Function.getFunction(database, "TABLE");
         ArrayList<Column> columns = Utils.newSmallArrayList();
         ArrayList<ArrayList<Expression>> rows = Utils.newSmallArrayList();
         do {
             int i = 0;
             ArrayList<Expression> row = Utils.newSmallArrayList();
-            boolean multiColumn = readIf(OPEN_PAREN);
+            boolean multiColumn;
+            if (readIf(ROW)) {
+                read(OPEN_PAREN);
+                multiColumn = true;
+            } else {
+                multiColumn = readIf(OPEN_PAREN);
+            }
             do {
                 Expression expr = readExpression();
                 expr = expr.optimize(session);
@@ -5885,9 +5896,7 @@ public class Parser {
         tf.setColumns(columns);
         tf.doneWithParameters();
         Table table = new FunctionTable(mainSchema, session, tf, tf);
-        return new TableFilter(session, table, null,
-                rightsChecked, currentSelect, orderInFrom,
-                null);
+        return new TableFilter(session, table, null, rightsChecked, currentSelect, orderInFrom, null);
     }
 
     private Call parseCall() {
@@ -6163,7 +6172,7 @@ public class Parser {
         while (readIf(OPEN_PAREN)) {
             parentheses++;
         }
-        if (isToken(SELECT)) {
+        if (isToken(SELECT) || isToken(VALUES)) {
             p = parseWithQuery();
         } else if (isToken(TABLE)) {
             int index = lastParseIndex;

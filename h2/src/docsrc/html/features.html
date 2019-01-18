@@ -415,11 +415,13 @@ To keep the content of an in-memory database as long as the virtual machine is a
 <p>
 The database files can be encrypted.
 Three encryption algorithms are supported:
+</p>
 <ul>
 <li>"AES" - also known as Rijndael, only AES-128 is implemented.</li>
 <li>"XTEA" - the 32 round version.</li>
 <li>"FOG" - pseudo-encryption only useful for hiding data from a text editor.</li>
 </ul>
+<p>
 To use file encryption, you need to specify the encryption algorithm (the 'cipher')
 and the file password (in addition to the user password) when connecting to the database.
 </p>
@@ -906,8 +908,10 @@ or the SQL statement <code>SET MODE MySQL</code>. Use this mode for compatibilit
     digits are not truncated, but the value is rounded.
 </li><li>Concatenating <code>NULL</code> with another value
     results in the other value.
-</li><li>ON DUPLICATE KEY UPDATE is supported in INSERT statements.
-</li><li>INSERT IGNORE is partially supported and may be used to skip rows with duplicate keys if ON DUPLICATE KEY UPDATE is not specified.
+</li><li>ON DUPLICATE KEY UPDATE is supported in INSERT statements, due to this feature VALUES has special non-standard
+    meaning is some contexts.
+</li><li>INSERT IGNORE is partially supported and may be used to skip rows with duplicate keys if ON DUPLICATE KEY
+    UPDATE is not specified.
 </li><li>REGEXP_REPLACE() uses \ for back-references for compatibility with MariaDB.
 </li><li>Datetime value functions return the same value within a command.
 </li></ul>
@@ -1467,6 +1471,7 @@ For some examples, have a look at the code in <code>org.h2.test.db.TestTableEngi
 <p>
 In order to create your own TableEngine, you need to implement the <code>org.h2.api.TableEngine</code> interface e.g.
 something like this:
+</p>
 <pre>
 package acme;
 public static class MyTableEngine implements org.h2.api.TableEngine {
@@ -1480,12 +1485,13 @@ public static class MyTableEngine implements org.h2.api.TableEngine {
     }
 }
 </pre>
+<p>
 and then create the table from SQL like this:
+</p>
 <pre>
 CREATE TABLE TEST(ID INT, NAME VARCHAR)
     ENGINE "acme.MyTableEngine";
 </pre>
-</p>
 <p>
 It is also possible to pass in parameters to the table engine, like so:
 </p>

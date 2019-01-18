@@ -509,3 +509,31 @@ SELECT RAND() A, RAND() + 1 B, RAND() + 1 C, RAND() D, RAND() + 2 E, RAND() + 3 
 > rows: 1
 
 @reconnect on
+
+CREATE TABLE TEST (A INT, B INT, C INT);
+> ok
+
+INSERT INTO TEST VALUES (11, 12, 13), (21, 22, 23), (31, 32, 33);
+> update count: 3
+
+SELECT * FROM TEST WHERE (A, B) IN (VALUES (11, 12), (21, 22), (41, 42));
+> A  B  C
+> -- -- --
+> 11 12 13
+> 21 22 23
+> rows: 2
+
+SELECT * FROM TEST WHERE (A, B) = (VALUES (11, 12));
+> A  B  C
+> -- -- --
+> 11 12 13
+> rows: 1
+
+DROP TABLE TEST;
+> ok
+
+VALUES (1, 2);
+> C1 C2
+> -- --
+> 1  2
+> rows: 1

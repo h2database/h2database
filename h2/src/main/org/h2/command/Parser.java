@@ -253,7 +253,8 @@ import org.h2.value.ValueTimestampTimeZone;
 public class Parser {
 
     private static final String WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS =
-            "WITH statement supports only SELECT, TABLE, CREATE TABLE, INSERT, UPDATE, MERGE or DELETE statements";
+            "WITH statement supports only SELECT, TABLE, VALUES, " +
+            "CREATE TABLE, INSERT, UPDATE, MERGE or DELETE statements";
 
     // used during the tokenizer phase
     private static final int CHAR_END = 1, CHAR_VALUE = 2, CHAR_QUOTED = 3;
@@ -755,11 +756,8 @@ public class Parser {
         case FROM:
         case SELECT:
         case TABLE:
-            c = parseSelect();
-            break;
         case VALUES:
-            read();
-            c = parseValues();
+            c = parseSelect();
             break;
         case WITH:
             read();
@@ -1450,6 +1448,7 @@ public class Parser {
         switch (currentTokenType) {
         case FROM:
         case SELECT:
+        case VALUES:
         case WITH:
             select = true;
             break;
@@ -2350,6 +2349,7 @@ public class Parser {
         case FROM:
         case SELECT:
         case TABLE:
+        case VALUES:
         case WITH:
         case OPEN_PAREN:
             Query query = parseSelect();
@@ -2696,6 +2696,8 @@ public class Parser {
             command.setExpressions(expressions);
             setSQL(command, "TABLE", start);
             return command;
+        } else if (readIf(VALUES)) {
+            return parseValues();
         } else {
             throw getSyntaxError();
         }
@@ -3936,8 +3938,12 @@ public class Parser {
             read();
             break;
         case VALUES:
-            read();
-            r = readKeywordFunction("VALUES");
+            if (database.getMode().onDuplicateKeyUpdate) {
+                read();
+                r = readKeywordFunction("VALUES");
+            } else {
+                r = new Subquery(parseSelect());
+            }
             break;
         case CASE:
             read();
@@ -5823,14 +5829,12 @@ public class Parser {
         TableFilter filter = parseValuesTable(0);
         command.setWildcard();
         command.addTableFilter(filter, true);
-        command.init();
         return command;
     }
 
     private TableFilter parseValuesTable(int orderInFrom) {
         Schema mainSchema = database.getSchema(Constants.SCHEMA_MAIN);
-        TableFunction tf = (TableFunction) Function.getFunction(database,
-                "TABLE");
+        TableFunction tf = (TableFunction) Function.getFunction(database, "TABLE");
         ArrayList<Column> columns = Utils.newSmallArrayList();
         ArrayList<ArrayList<Expression>> rows = Utils.newSmallArrayList();
         do {
@@ -5885,9 +5889,7 @@ public class Parser {
         tf.setColumns(columns);
         tf.doneWithParameters();
         Table table = new FunctionTable(mainSchema, session, tf, tf);
-        return new TableFilter(session, table, null,
-                rightsChecked, currentSelect, orderInFrom,
-                null);
+        return new TableFilter(session, table, null, rightsChecked, currentSelect, orderInFrom, null);
     }
 
     private Call parseCall() {
@@ -6163,7 +6165,7 @@ public class Parser {
         while (readIf(OPEN_PAREN)) {
             parentheses++;
         }
-        if (isToken(SELECT)) {
+        if (isToken(SELECT) || isToken(VALUES)) {
             p = parseWithQuery();
         } else if (isToken(TABLE)) {
             int index = lastParseIndex;

@@ -7277,14 +7277,11 @@ public class Parser {
                 return command;
             } else if (readIf("TYPE")) {
                 // PostgreSQL compatibility
-                return parseAlterTableAlterColumnType(schema, tableName,
-                        columnName, ifTableExists);
+                return parseAlterTableAlterColumnDataType(schema, tableName, columnName, ifTableExists);
             } else if (readIf("SET")) {
                 if (readIf("DATA")) {
-                    // Derby compatibility
                     read("TYPE");
-                    return parseAlterTableAlterColumnType(schema, tableName, columnName,
-                            ifTableExists);
+                    return parseAlterTableAlterColumnDataType(schema, tableName, columnName, ifTableExists);
                 }
                 AlterTableAlterColumn command = new AlterTableAlterColumn(
                         session, schema);
@@ -7341,8 +7338,7 @@ public class Parser {
                 command.setSelectivity(readExpression());
                 return command;
             } else {
-                return parseAlterTableAlterColumnType(schema, tableName,
-                        columnName, ifTableExists);
+                return parseAlterTableAlterColumnType(schema, tableName, columnName, ifTableExists);
             }
         }
         throw getSyntaxError();
@@ -7374,8 +7370,48 @@ public class Parser {
         Column oldColumn = columnIfTableExists(schema, tableName, columnName, ifTableExists);
         Column newColumn = parseColumnForTable(columnName,
                 oldColumn == null ? true : oldColumn.isNullable(), true);
-        AlterTableAlterColumn command = new AlterTableAlterColumn(session,
-                schema);
+        if (readIf(CHECK)) {
+            Expression expr = readExpression();
+            newColumn.addCheckConstraint(session, expr);
+        }
+        AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
+        command.setTableName(tableName);
+        command.setIfTableExists(ifTableExists);
+        command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_CHANGE_TYPE);
+        command.setOldColumn(oldColumn);
+        command.setNewColumn(newColumn);
+        return command;
+    }
+
+    private AlterTableAlterColumn parseAlterTableAlterColumnDataType(Schema schema,
+            String tableName, String columnName, boolean ifTableExists) {
+        Column oldColumn = columnIfTableExists(schema, tableName, columnName, ifTableExists);
+        Column newColumn = parseColumnWithType(columnName, true);
+        if (oldColumn != null) {
+            if (!oldColumn.isNullable()) {
+                newColumn.setNullable(false);
+            }
+            if (!oldColumn.getVisible()) {
+                newColumn.setVisible(false);
+            }
+            Expression e = oldColumn.getDefaultExpression();
+            if (e != null) {
+                newColumn.setDefaultExpression(session, e);
+            }
+            e = oldColumn.getOnUpdateExpression();
+            if (e != null) {
+                newColumn.setOnUpdateExpression(session, e);
+            }
+            e = oldColumn.getCheckConstraint(session, columnName);
+            if (e != null) {
+                newColumn.addCheckConstraint(session, e);
+            }
+            String c = oldColumn.getComment();
+            if (c != null) {
+                newColumn.setComment(c);
+            }
+        }
+        AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
         command.setTableName(tableName);
         command.setIfTableExists(ifTableExists);
         command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_CHANGE_TYPE);

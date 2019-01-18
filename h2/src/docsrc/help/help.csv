@@ -359,6 +359,7 @@ ALTER TABLE [ IF EXISTS ] tableName ALTER COLUMN columnName
     | { SET ON UPDATE expression }
     | { SET NOT NULL }
     | { DROP NOT NULL } | { SET NULL }
+    | { SET DATA TYPE dataType }
     | { SET { VISIBLE | INVISIBLE } }
     | { DROP ON UPDATE } }
 ","
@@ -385,6 +386,8 @@ SET ON UPDATE changes the value that is set on update if value for this column i
 SET NOT NULL sets a column to not allow NULL. Rows may not contains NULL in this column.
 
 DROP NOT NULL and SET NULL set a column to allow NULL. The row may not be part of a primary key.
+
+SET DATA TYPE changes the data type of a column.
 
 SET INVISIBLE makes the column hidden, i.e. it will not appear in SELECT * results.
 SET VISIBLE has the reverse effect.

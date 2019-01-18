@@ -7216,7 +7216,7 @@ public class Parser {
                 Column column = columnIfTableExists(schema, tableName, columnName, ifTableExists);
                 command.setOldColumn(column);
                 if (nullConstraint == NullConstraintType.NULL_IS_ALLOWED) {
-                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_NULL);
+                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_DROP_NOT_NULL);
                 } else {
                     command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_NOT_NULL);
                 }
@@ -7273,7 +7273,7 @@ public class Parser {
                 command.setTableName(tableName);
                 command.setIfTableExists(ifTableExists);
                 command.setOldColumn(column);
-                command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_NULL);
+                command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_DROP_NOT_NULL);
                 return command;
             } else if (readIf("TYPE")) {
                 // PostgreSQL compatibility
@@ -7294,7 +7294,7 @@ public class Parser {
                 NullConstraintType nullConstraint = parseNotNullConstraint();
                 switch (nullConstraint) {
                 case NULL_IS_ALLOWED:
-                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_NULL);
+                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_DROP_NOT_NULL);
                     break;
                 case NULL_IS_NOT_ALLOWED:
                     command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_NOT_NULL);

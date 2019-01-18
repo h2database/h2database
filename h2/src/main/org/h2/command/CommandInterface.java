@@ -63,9 +63,9 @@ public interface CommandInterface {
     int ALTER_TABLE_ALTER_COLUMN_NOT_NULL = 8;
 
     /**
-     * The type of a ALTER TABLE ALTER COLUMN SET NULL statement.
+     * The type of a ALTER TABLE ALTER COLUMN DROP NOT NULL statement.
      */
-    int ALTER_TABLE_ALTER_COLUMN_NULL = 9;
+    int ALTER_TABLE_ALTER_COLUMN_DROP_NOT_NULL = 9;
 
     /**
      * The type of a ALTER TABLE ALTER COLUMN SET DEFAULT and ALTER TABLE ALTER

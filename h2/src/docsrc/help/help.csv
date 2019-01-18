@@ -357,8 +357,8 @@ ALTER TABLE [ IF EXISTS ] tableName ALTER COLUMN columnName
     | { SET DEFAULT expression }
     | { DROP DEFAULT }
     | { SET ON UPDATE expression }
-    | { SET NULL }
     | { SET NOT NULL }
+    | { DROP NOT NULL } | { SET NULL }
     | { SET { VISIBLE | INVISIBLE } }
     | { DROP ON UPDATE } }
 ","
@@ -382,10 +382,9 @@ DROP DEFAULT removes the default value of a column.
 
 SET ON UPDATE changes the value that is set on update if value for this column is not specified in update statement.
 
-SET NULL sets a column to allow NULL. The row may not be part of a primary key.
-Single column indexes on this column are dropped.
-
 SET NOT NULL sets a column to not allow NULL. Rows may not contains NULL in this column.
+
+DROP NOT NULL and SET NULL set a column to allow NULL. The row may not be part of a primary key.
 
 SET INVISIBLE makes the column hidden, i.e. it will not appear in SELECT * results.
 SET VISIBLE has the reverse effect.

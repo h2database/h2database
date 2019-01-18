@@ -215,7 +215,7 @@ public class TestFileSystem extends TestDb {
     }
 
     private void testClasspath() throws IOException {
-        String resource = "org/h2/test/scripts/testSimple.in.txt";
+        String resource = "org/h2/test/scripts/testSimple.sql";
         InputStream in;
         in = getClass().getResourceAsStream("/" + resource);
         assertNotNull(in);

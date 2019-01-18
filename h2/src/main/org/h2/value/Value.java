@@ -489,16 +489,7 @@ public abstract class Value extends VersionedValue {
      */
     public static TypeInfo getHigherType(TypeInfo type1, TypeInfo type2) {
         int t1 = type1.getValueType(), t2 = type2.getValueType();
-        if (t1 == Value.UNKNOWN || t2 == Value.UNKNOWN) {
-            if (t1 == t2) {
-                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "?, ?");
-            } else if (t1 == Value.NULL) {
-                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "NULL, ?");
-            } else if (t2 == Value.NULL) {
-                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "?, NULL");
-            }
-        }
-        int dataType =  getOrder(t1) > getOrder(t2) ? t1 : t2;
+        int dataType = getHigherOrder(t1, t2);
         long precision = Math.max(type1.getPrecision(), type2.getPrecision());
         int scale = Math.max(type1.getScale(), type2.getScale());
         ExtTypeInfo ext1 = type1.getExtTypeInfo();

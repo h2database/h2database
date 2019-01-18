@@ -129,6 +129,7 @@ import org.h2.command.ddl.TruncateTable;
 import org.h2.command.dml.AlterTableSet;
 import org.h2.command.dml.BackupCommand;
 import org.h2.command.dml.Call;
+import org.h2.command.dml.CommandWithValues;
 import org.h2.command.dml.Delete;
 import org.h2.command.dml.ExecuteProcedure;
 import org.h2.command.dml.Explain;
@@ -1491,10 +1492,7 @@ public class Parser {
             command.setKeys(keys);
         }
         if (readIf(VALUES)) {
-            do {
-                read(OPEN_PAREN);
-                command.addRow(parseValuesForInsert());
-            } while (readIf(COMMA));
+            parseValuesForCommand(command);
         } else {
             command.setQuery(parseSelect());
         }
@@ -1681,11 +1679,7 @@ public class Parser {
             Expression[] expr = {};
             command.addRow(expr);
         } else if (readIf(VALUES)) {
-            read(OPEN_PAREN);
-            do {
-                command.addRow(parseValuesForInsert());
-                // the following condition will allow (..),; and (..);
-            } while (readIf(COMMA) && readIf(OPEN_PAREN));
+            parseValuesForCommand(command);
         } else if (readIf("SET")) {
             if (columns != null) {
                 throw getSyntaxError();
@@ -1724,28 +1718,35 @@ public class Parser {
             command.setColumns(columns);
         }
         if (readIf(VALUES)) {
-            do {
-                read(OPEN_PAREN);
-                command.addRow(parseValuesForInsert());
-            } while (readIf(COMMA));
+            parseValuesForCommand(command);
         } else {
             command.setQuery(parseSelect());
         }
         return command;
     }
 
-    private Expression[] parseValuesForInsert() {
+    private void parseValuesForCommand(CommandWithValues command) {
         ArrayList<Expression> values = Utils.newSmallArrayList();
-        if (!readIf(CLOSE_PAREN)) {
-            do {
-                if (readIf("DEFAULT")) {
-                    values.add(null);
-                } else {
-                    values.add(readExpression());
+        do {
+            values.clear();
+            boolean multiColumn;
+            if (readIf(ROW)) {
+                read(OPEN_PAREN);
+                multiColumn = true;
+            } else {
+                multiColumn = readIf(OPEN_PAREN);
+            }
+            if (multiColumn) {
+                if (!readIf(CLOSE_PAREN)) {
+                    do {
+                        values.add(readIf("DEFAULT") ? null : readExpression());
+                    } while (readIfMore(false));
                 }
-            } while (readIfMore(false));
-        }
-        return values.toArray(new Expression[0]);
+            } else {
+                values.add(readIf("DEFAULT") ? null : readExpression());
+            }
+            command.addRow(values.toArray(new Expression[0]));
+        } while (readIf(COMMA));
     }
 
     private TableFilter readTableFilter() {
@@ -5840,7 +5841,13 @@ public class Parser {
         do {
             int i = 0;
             ArrayList<Expression> row = Utils.newSmallArrayList();
-            boolean multiColumn = readIf(OPEN_PAREN);
+            boolean multiColumn;
+            if (readIf(ROW)) {
+                read(OPEN_PAREN);
+                multiColumn = true;
+            } else {
+                multiColumn = readIf(OPEN_PAREN);
+            }
             do {
                 Expression expr = readExpression();
                 expr = expr.optimize(session);

@@ -6,8 +6,8 @@
 package org.h2.command.dml;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.TreeMap;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
@@ -278,7 +278,7 @@ public class MergeUsing extends Prepared {
     private String queryAlias;
     private int countUpdatedRows;
     private Select targetMatchQuery;
-    private final HashMap<Value, Integer> targetRowidsRemembered = new HashMap<>();
+    private final TreeMap<Value, Integer> targetRowidsRemembered;
     private int sourceQueryRowNumber;
 
 
@@ -286,6 +286,7 @@ public class MergeUsing extends Prepared {
         super(session);
         this.targetTable = targetTableFilter.getTable();
         this.targetTableFilter = targetTableFilter;
+        targetRowidsRemembered = new TreeMap<>(session.getDatabase().getCompareMode());
     }
 
     @Override

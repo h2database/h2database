@@ -355,11 +355,13 @@ ALTER TABLE [ IF EXISTS ] tableName ALTER COLUMN columnName
     | { RESTART WITH long }
     | { SELECTIVITY int }
     | { SET DEFAULT expression }
+    | { DROP DEFAULT }
     | { SET ON UPDATE expression }
-    | { SET NULL }
+    | { DROP ON UPDATE }
     | { SET NOT NULL }
-    | { SET { VISIBLE | INVISIBLE } }
-    | { DROP { DEFAULT | ON UPDATE } } }
+    | { DROP NOT NULL } | { SET NULL }
+    | { SET DATA TYPE dataType }
+    | { SET { VISIBLE | INVISIBLE } } }
 ","
 Changes the data type of a column, rename a column,
 change the identity value, or change the selectivity.
@@ -377,19 +379,20 @@ Selectivity 100 means values are unique, 10 means every distinct value appears 1
 
 SET DEFAULT changes the default value of a column.
 
+DROP DEFAULT removes the default value of a column.
+
 SET ON UPDATE changes the value that is set on update if value for this column is not specified in update statement.
 
-SET NULL sets a column to allow NULL. The row may not be part of a primary key.
-Single column indexes on this column are dropped.
+DROP ON UPDATE removes the value that is set on update of a column.
 
 SET NOT NULL sets a column to not allow NULL. Rows may not contains NULL in this column.
 
+DROP NOT NULL and SET NULL set a column to allow NULL. The row may not be part of a primary key.
+
+SET DATA TYPE changes the data type of a column.
+
 SET INVISIBLE makes the column hidden, i.e. it will not appear in SELECT * results.
 SET VISIBLE has the reverse effect.
-
-DROP DEFAULT removes the default value of a column.
-
-DROP ON UPDATE removes the value that is set on update of a column.
 
 This command commits an open transaction in this connection.
 ","

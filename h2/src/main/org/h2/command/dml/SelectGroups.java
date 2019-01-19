@@ -51,7 +51,7 @@ public abstract class SelectGroups {
         /**
          * Map of group-by key to group-by expression data e.g. AggregateData
          */
-        private HashMap<ValueArray, Object[]> groupByData;
+        private TreeMap<ValueArray, Object[]> groupByData;
 
         /**
          * Key into groupByData that produces currentGroupByExprData. Not used
@@ -72,7 +72,7 @@ public abstract class SelectGroups {
         @Override
         public void reset() {
             super.reset();
-            groupByData = new HashMap<>();
+            groupByData = new TreeMap<>(session.getDatabase().getCompareMode());
             currentGroupsKey = null;
             cursor = null;
         }

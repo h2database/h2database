@@ -11,12 +11,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.analysis.DataAnalysisOperation;
 import org.h2.expression.analysis.PartitionData;
-import org.h2.util.ValueHashMap;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 
@@ -223,7 +223,7 @@ public abstract class SelectGroups {
     /**
      * Maps an partitioned window expression object to its data.
      */
-    private final HashMap<DataAnalysisOperation, ValueHashMap<PartitionData>> windowPartitionData = new HashMap<>();
+    private final HashMap<DataAnalysisOperation, TreeMap<Value, PartitionData>> windowPartitionData = new HashMap<>();
 
     /**
      * The id of the current group.
@@ -324,7 +324,7 @@ public abstract class SelectGroups {
         if (partitionKey == null) {
             return windowData.get(expr);
         } else {
-            ValueHashMap<PartitionData> map = windowPartitionData.get(expr);
+            TreeMap<Value, PartitionData> map = windowPartitionData.get(expr);
             return map != null ? map.get(partitionKey) : null;
         }
     }
@@ -344,9 +344,9 @@ public abstract class SelectGroups {
             Object old = windowData.put(expr, obj);
             assert old == null;
         } else {
-            ValueHashMap<PartitionData> map = windowPartitionData.get(expr);
+            TreeMap<Value, PartitionData> map = windowPartitionData.get(expr);
             if (map == null) {
-                map = new ValueHashMap<>();
+                map = new TreeMap<>(session.getDatabase().getCompareMode());
                 windowPartitionData.put(expr, map);
             }
             map.put(partitionKey, obj);

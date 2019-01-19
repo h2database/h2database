@@ -16,7 +16,7 @@ import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
+import org.h2.value.ValueRow;
 
 /**
  * Window clause.
@@ -206,7 +206,7 @@ public final class Window {
                 Expression expr = partitionBy.get(i);
                 keyValues[i] = expr.getValue(session);
             }
-            return ValueArray.get(keyValues);
+            return ValueRow.get(keyValues);
         }
     }
 

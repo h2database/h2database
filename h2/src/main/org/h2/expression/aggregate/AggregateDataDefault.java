@@ -21,19 +21,22 @@ import org.h2.value.ValueNull;
 class AggregateDataDefault extends AggregateData {
 
     private final AggregateType aggregateType;
+    private final int dataType;
     private long count;
     private Value value;
     private double m2, mean;
 
     /**
      * @param aggregateType the type of the aggregate operation
+     * @param dataType the data type of the computed result
      */
-    AggregateDataDefault(AggregateType aggregateType) {
+    AggregateDataDefault(AggregateType aggregateType, int dataType) {
         this.aggregateType = aggregateType;
+        this.dataType = dataType;
     }
 
     @Override
-    void add(Database database, int dataType, Value v) {
+    void add(Database database, Value v) {
         if (v == ValueNull.INSTANCE) {
             return;
         }

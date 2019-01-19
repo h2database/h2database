@@ -193,7 +193,7 @@ public class JavaAggregate extends AbstractAggregate {
                     arg = arg.convertTo(argTypes[i]);
                     argValues[i] = arg;
                 }
-                data.add(session.getDatabase(), dataType, args.length == 1 ? arg : ValueArray.get(argValues));
+                data.add(session.getDatabase(), args.length == 1 ? arg : ValueArray.get(argValues));
             } else {
                 Aggregate agg = (Aggregate) aggregateData;
                 Object[] argValues = new Object[args.length];

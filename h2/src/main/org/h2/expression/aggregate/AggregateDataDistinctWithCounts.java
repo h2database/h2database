@@ -37,7 +37,7 @@ class AggregateDataDistinctWithCounts extends AggregateData {
     }
 
     @Override
-    void add(Database database, int dataType, Value v) {
+    void add(Database database, Value v) {
         if (ignoreNulls && v == ValueNull.INSTANCE) {
             return;
         }

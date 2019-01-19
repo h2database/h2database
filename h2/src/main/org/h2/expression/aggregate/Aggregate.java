@@ -303,7 +303,7 @@ public class Aggregate extends AbstractAggregate {
                 v = updateCollecting(session, v, remembered);
             }
         }
-        data.add(session.getDatabase(), type.getValueType(), v);
+        data.add(session.getDatabase(), v);
     }
 
     @Override
@@ -376,7 +376,7 @@ public class Aggregate extends AbstractAggregate {
 
     @Override
     protected Object createAggregateData() {
-        return AggregateData.create(aggregateType, distinct);
+        return AggregateData.create(aggregateType, distinct, type.getValueType());
     }
 
     @Override
@@ -440,11 +440,11 @@ public class Aggregate extends AbstractAggregate {
                 if (c.getCount() == 0) {
                     return ValueNull.INSTANCE;
                 }
-                AggregateDataDefault d = new AggregateDataDefault(aggregateType);
+                AggregateDataDefault d = new AggregateDataDefault(aggregateType, type.getValueType());
                 Database db = session.getDatabase();
                 int dataType = type.getValueType();
                 for (Value v : c) {
-                    d.add(db, dataType, v);
+                    d.add(db, v);
                 }
                 return d.getValue(db, dataType);
             }

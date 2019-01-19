@@ -41,7 +41,7 @@ class AggregateDataCollecting extends AggregateData implements Iterable<Value> {
     }
 
     @Override
-    void add(Database database, int dataType, Value v) {
+    void add(Database database, Value v) {
         if (v == ValueNull.INSTANCE) {
             return;
         }

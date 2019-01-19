@@ -320,7 +320,9 @@ public class LocalResultImpl implements LocalResult {
         if (isAnyDistinct()) {
             if (distinctRows != null) {
                 ValueRow array = getDistinctRow(values);
-                distinctRows.putIfAbsent(array, values);
+                if (!distinctRows.containsKey(array)) {
+                    distinctRows.put(array, values);
+                }
                 rowCount = distinctRows.size();
                 if (rowCount > maxMemoryRows) {
                     createExternalResult();

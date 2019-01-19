@@ -51,8 +51,8 @@ import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueRow;
 
 /**
  * This class represents a simple SELECT statement.
@@ -499,7 +499,7 @@ public class Select extends Query {
     }
 
     private void processGroupResult(int columnCount, LocalResult result, long offset, boolean quickOffset) {
-        for (ValueArray currentGroupsKey; (currentGroupsKey = groupData.next()) != null;) {
+        for (ValueRow currentGroupsKey; (currentGroupsKey = groupData.next()) != null;) {
             Value[] keyValues = currentGroupsKey.getList();
             Value[] row = new Value[columnCount];
             for (int j = 0; groupIndex != null && j < groupIndex.length; j++) {

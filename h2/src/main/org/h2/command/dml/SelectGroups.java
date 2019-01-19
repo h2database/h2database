@@ -18,7 +18,7 @@ import org.h2.expression.Expression;
 import org.h2.expression.analysis.DataAnalysisOperation;
 import org.h2.expression.analysis.PartitionData;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
+import org.h2.value.ValueRow;
 
 /**
  * Grouped data for aggregates.
@@ -51,18 +51,18 @@ public abstract class SelectGroups {
         /**
          * Map of group-by key to group-by expression data e.g. AggregateData
          */
-        private TreeMap<ValueArray, Object[]> groupByData;
+        private TreeMap<ValueRow, Object[]> groupByData;
 
         /**
          * Key into groupByData that produces currentGroupByExprData. Not used
          * in lazy mode.
          */
-        private ValueArray currentGroupsKey;
+        private ValueRow currentGroupsKey;
 
         /**
          * Cursor for {@link #next()} method.
          */
-        private Iterator<Entry<ValueArray, Object[]>> cursor;
+        private Iterator<Entry<ValueRow, Object[]>> cursor;
 
         Grouped(Session session, ArrayList<Expression> expressions, int[] groupIndex) {
             super(session, expressions);
@@ -80,7 +80,7 @@ public abstract class SelectGroups {
         @Override
         public void nextSource() {
             if (groupIndex == null) {
-                currentGroupsKey = ValueArray.getEmpty();
+                currentGroupsKey = ValueRow.getEmpty();
             } else {
                 Value[] keyValues = new Value[groupIndex.length];
                 // update group
@@ -89,7 +89,7 @@ public abstract class SelectGroups {
                     Expression expr = expressions.get(idx);
                     keyValues[i] = expr.getValue(session);
                 }
-                currentGroupsKey = ValueArray.get(keyValues);
+                currentGroupsKey = ValueRow.get(keyValues);
             }
             Object[] values = groupByData.get(currentGroupsKey);
             if (values == null) {
@@ -114,15 +114,15 @@ public abstract class SelectGroups {
         public void done() {
             super.done();
             if (groupIndex == null && groupByData.size() == 0) {
-                groupByData.put(ValueArray.getEmpty(), createRow());
+                groupByData.put(ValueRow.getEmpty(), createRow());
             }
             cursor = groupByData.entrySet().iterator();
         }
 
         @Override
-        public ValueArray next() {
+        public ValueRow next() {
             if (cursor.hasNext()) {
-                Map.Entry<ValueArray, Object[]> entry = cursor.next();
+                Map.Entry<ValueRow, Object[]> entry = cursor.next();
                 currentGroupByExprData = entry.getValue();
                 currentGroupRowId++;
                 return entry.getKey();
@@ -184,11 +184,11 @@ public abstract class SelectGroups {
         }
 
         @Override
-        public ValueArray next() {
+        public ValueRow next() {
             if (cursor.hasNext()) {
                 currentGroupByExprData = cursor.next();
                 currentGroupRowId++;
-                return ValueArray.getEmpty();
+                return ValueRow.getEmpty();
             }
             return null;
         }
@@ -397,7 +397,7 @@ public abstract class SelectGroups {
      *
      * @return the key of the next group, or null
      */
-    public abstract ValueArray next();
+    public abstract ValueRow next();
 
     /**
      * Removes the data for the current key.

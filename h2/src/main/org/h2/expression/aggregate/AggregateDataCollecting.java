@@ -8,8 +8,8 @@ package org.h2.expression.aggregate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.TreeSet;
 
 import org.h2.engine.Database;
 import org.h2.value.Value;
@@ -47,7 +47,7 @@ class AggregateDataCollecting extends AggregateData implements Iterable<Value> {
         }
         Collection<Value> c = values;
         if (c == null) {
-            values = c = distinct ? new HashSet<Value>() : new ArrayList<Value>();
+            values = c = distinct ? new TreeSet<>(database.getCompareMode()) : new ArrayList<Value>();
         }
         c.add(v);
     }

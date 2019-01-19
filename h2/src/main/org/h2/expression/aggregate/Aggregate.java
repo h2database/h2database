@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 import org.h2.api.ErrorCode;
 import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectOrderBy;
@@ -32,7 +33,6 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.StatementBuilder;
-import org.h2.util.ValueHashMap;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
@@ -512,13 +512,13 @@ public class Aggregate extends AbstractAggregate {
     }
 
     private Value getHistogram(Session session, AggregateData data) {
-        ValueHashMap<LongDataCounter> distinctValues = ((AggregateDataDistinctWithCounts) data).getValues();
+        TreeMap<Value, LongDataCounter> distinctValues = ((AggregateDataDistinctWithCounts) data).getValues();
         if (distinctValues == null) {
             return ValueArray.getEmpty();
         }
         ValueArray[] values = new ValueArray[distinctValues.size()];
         int i = 0;
-        for (Entry<Value, LongDataCounter> entry : distinctValues.entries()) {
+        for (Entry<Value, LongDataCounter> entry : distinctValues.entrySet()) {
             LongDataCounter d = entry.getValue();
             values[i] = ValueArray.get(new Value[] { entry.getKey(), ValueLong.get(distinct ? 1L : d.count) });
             i++;
@@ -539,14 +539,14 @@ public class Aggregate extends AbstractAggregate {
 
     private Value getMode(Session session, AggregateData data) {
         Value v = ValueNull.INSTANCE;
-        ValueHashMap<LongDataCounter> distinctValues = ((AggregateDataDistinctWithCounts) data).getValues();
+        TreeMap<Value, LongDataCounter> distinctValues = ((AggregateDataDistinctWithCounts) data).getValues();
         if (distinctValues == null) {
             return v;
         }
         long count = 0L;
         if (orderByList != null) {
             boolean desc = (orderByList.get(0).sortType & SortOrder.DESCENDING) != 0;
-            for (Entry<Value, LongDataCounter> entry : distinctValues.entries()) {
+            for (Entry<Value, LongDataCounter> entry : distinctValues.entrySet()) {
                 long c = entry.getValue().count;
                 if (c > count) {
                     v = entry.getKey();
@@ -565,7 +565,7 @@ public class Aggregate extends AbstractAggregate {
                 }
             }
         } else {
-            for (Entry<Value, LongDataCounter> entry : distinctValues.entries()) {
+            for (Entry<Value, LongDataCounter> entry : distinctValues.entrySet()) {
                 long c = entry.getValue().count;
                 if (c > count) {
                     v = entry.getKey();

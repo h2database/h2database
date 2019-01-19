@@ -5,8 +5,8 @@
  */
 package org.h2.expression.aggregate;
 
+import java.util.TreeMap;
 import org.h2.engine.Database;
-import org.h2.util.ValueHashMap;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -20,7 +20,7 @@ class AggregateDataDistinctWithCounts extends AggregateData {
 
     private final int maxDistinctCount;
 
-    private ValueHashMap<LongDataCounter> values;
+    private TreeMap<Value, LongDataCounter> values;
 
     /**
      * Creates new instance of data for aggregate that needs distinct values
@@ -42,7 +42,7 @@ class AggregateDataDistinctWithCounts extends AggregateData {
             return;
         }
         if (values == null) {
-            values = new ValueHashMap<>();
+            values = new TreeMap<>(database.getCompareMode());
         }
         LongDataCounter a = values.get(v);
         if (a == null) {
@@ -65,7 +65,7 @@ class AggregateDataDistinctWithCounts extends AggregateData {
      *
      * @return map with values and their counts
      */
-    ValueHashMap<LongDataCounter> getValues() {
+    TreeMap<Value, LongDataCounter> getValues() {
         return values;
     }
 

@@ -229,7 +229,6 @@ import org.h2.test.unit.TestTools;
 import org.h2.test.unit.TestTraceSystem;
 import org.h2.test.unit.TestUtils;
 import org.h2.test.unit.TestValue;
-import org.h2.test.unit.TestValueHashMap;
 import org.h2.test.unit.TestValueMemory;
 import org.h2.test.utils.OutputCatcher;
 import org.h2.test.utils.SelfDestructor;
@@ -994,7 +993,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestStringUtils());
         addTest(new TestTraceSystem());
         addTest(new TestUtils());
-        addTest(new TestValueHashMap());
         addTest(new TestLocalResultFactory());
 
         runAddedTests();

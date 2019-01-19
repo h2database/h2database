@@ -13,7 +13,7 @@ import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVMap.Builder;
 import org.h2.result.ResultExternal;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
+import org.h2.value.ValueRow;
 
 /**
  * Plain temporary result.
@@ -23,7 +23,7 @@ class MVPlainTempResult extends MVTempResult {
     /**
      * Map with identities of rows as keys rows as values.
      */
-    private final MVMap<Long, ValueArray> map;
+    private final MVMap<Long, ValueRow> map;
 
     /**
      * Counter for the identities of rows. A separate counter is used instead of
@@ -35,7 +35,7 @@ class MVPlainTempResult extends MVTempResult {
     /**
      * Cursor for the {@link #next()} method.
      */
-    private Cursor<Long, ValueArray> cursor;
+    private Cursor<Long, ValueRow> cursor;
 
     /**
      * Creates a shallow copy of the result.
@@ -61,7 +61,7 @@ class MVPlainTempResult extends MVTempResult {
     MVPlainTempResult(Database database, Expression[] expressions, int visibleColumnCount) {
         super(database, expressions.length, visibleColumnCount);
         ValueDataType valueType = new ValueDataType(database, new int[columnCount]);
-        Builder<Long, ValueArray> builder = new MVMap.Builder<Long, ValueArray>()
+        Builder<Long, ValueRow> builder = new MVMap.Builder<Long, ValueRow>()
                                                 .valueType(valueType).singleWriter();
         map = store.openMap("tmp", builder);
     }
@@ -69,7 +69,7 @@ class MVPlainTempResult extends MVTempResult {
     @Override
     public int addRow(Value[] values) {
         assert parent == null;
-        map.append(counter++, ValueArray.get(values));
+        map.append(counter++, ValueRow.get(values));
         return ++rowCount;
     }
 

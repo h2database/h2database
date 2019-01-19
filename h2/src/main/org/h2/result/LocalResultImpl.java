@@ -17,7 +17,7 @@ import org.h2.util.Utils;
 import org.h2.util.ValueHashMap;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
+import org.h2.value.ValueRow;
 
 /**
  * A local result set contains all row data of a result set.
@@ -179,7 +179,7 @@ public class LocalResultImpl implements LocalResult {
         }
         assert values.length == visibleColumnCount;
         if (distinctRows != null) {
-            ValueArray array = ValueArray.get(values);
+            ValueRow array = ValueRow.get(values);
             distinctRows.remove(array);
             rowCount = distinctRows.size();
         } else {
@@ -202,11 +202,11 @@ public class LocalResultImpl implements LocalResult {
         if (distinctRows == null) {
             distinctRows = new ValueHashMap<>();
             for (Value[] row : rows) {
-                ValueArray array = getArrayOfDistinct(row);
+                ValueRow array = getDistinctRow(row);
                 distinctRows.put(array, array.getList());
             }
         }
-        ValueArray array = ValueArray.get(values);
+        ValueRow array = ValueRow.get(values);
         return distinctRows.get(array) != null;
     }
 
@@ -284,7 +284,7 @@ public class LocalResultImpl implements LocalResult {
         }
     }
 
-    private ValueArray getArrayOfDistinct(Value[] values) {
+    private ValueRow getDistinctRow(Value[] values) {
         if (distinctIndexes != null) {
             int cnt = distinctIndexes.length;
             Value[] newValues = new Value[cnt];
@@ -295,7 +295,7 @@ public class LocalResultImpl implements LocalResult {
         } else if (values.length > visibleColumnCount) {
             values = Arrays.copyOf(values, visibleColumnCount);
         }
-        return ValueArray.get(values);
+        return ValueRow.get(values);
     }
 
     private void createExternalResult() {
@@ -317,7 +317,7 @@ public class LocalResultImpl implements LocalResult {
         cloneLobs(values);
         if (isAnyDistinct()) {
             if (distinctRows != null) {
-                ValueArray array = getArrayOfDistinct(values);
+                ValueRow array = getDistinctRow(values);
                 distinctRows.putIfAbsent(array, values);
                 rowCount = distinctRows.size();
                 if (rowCount > maxMemoryRows) {

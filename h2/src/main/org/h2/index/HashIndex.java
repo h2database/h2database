@@ -5,6 +5,9 @@
  */
 package org.h2.index;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
@@ -15,7 +18,7 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
 import org.h2.table.TableFilter;
-import org.h2.util.ValueHashMap;
+import org.h2.value.DataType;
 import org.h2.value.Value;
 
 /**
@@ -27,20 +30,21 @@ public class HashIndex extends BaseIndex {
      * The index of the indexed column.
      */
     private final int indexColumn;
-
+    private final boolean totalOrdering;
     private final RegularTable tableData;
-    private ValueHashMap<Long> rows;
+    private Map<Value, Long> rows;
 
-    public HashIndex(RegularTable table, int id, String indexName,
-            IndexColumn[] columns, IndexType indexType) {
+    public HashIndex(RegularTable table, int id, String indexName, IndexColumn[] columns, IndexType indexType) {
         super(table, id, indexName, columns, indexType);
-        this.indexColumn = columns[0].column.getColumnId();
+        Column column = columns[0].column;
+        indexColumn = column.getColumnId();
+        totalOrdering = DataType.hasTotalOrdering(column.getType().getValueType());
         this.tableData = table;
         reset();
     }
 
     private void reset() {
-        rows = new ValueHashMap<>();
+        rows = totalOrdering ? new HashMap<Value, Long>() : new TreeMap<Value, Long>(database.getCompareMode());
     }
 
     @Override

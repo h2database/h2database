@@ -6,6 +6,9 @@
 package org.h2.index;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Session;
@@ -18,7 +21,7 @@ import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
 import org.h2.table.TableFilter;
 import org.h2.util.Utils;
-import org.h2.util.ValueHashMap;
+import org.h2.value.DataType;
 import org.h2.value.Value;
 
 /**
@@ -32,20 +35,24 @@ public class NonUniqueHashIndex extends BaseIndex {
      * The index of the indexed column.
      */
     private final int indexColumn;
-    private ValueHashMap<ArrayList<Long>> rows;
+    private final boolean totalOrdering;
+    private Map<Value, ArrayList<Long>> rows;
     private final RegularTable tableData;
     private long rowCount;
 
     public NonUniqueHashIndex(RegularTable table, int id, String indexName,
             IndexColumn[] columns, IndexType indexType) {
         super(table, id, indexName, columns, indexType);
-        this.indexColumn = columns[0].column.getColumnId();
-        this.tableData = table;
+        Column column = columns[0].column;
+        indexColumn = column.getColumnId();
+        totalOrdering = DataType.hasTotalOrdering(column.getType().getValueType());
+        tableData = table;
         reset();
     }
 
     private void reset() {
-        rows = new ValueHashMap<>();
+        rows = totalOrdering ? new HashMap<Value, ArrayList<Long>>()
+                : new TreeMap<Value, ArrayList<Long>>(database.getCompareMode());
         rowCount = 0;
     }
 

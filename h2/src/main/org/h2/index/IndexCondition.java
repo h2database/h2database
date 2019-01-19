@@ -7,8 +7,8 @@ package org.h2.index;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
+import java.util.TreeSet;
 import org.h2.command.dml.Query;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -123,8 +123,8 @@ public class IndexCondition {
      * @return the index condition
      */
     public static IndexCondition getInQuery(ExpressionColumn column, Query query) {
-        IndexCondition cond = new IndexCondition(Comparison.IN_QUERY, column,
-                null);
+        assert query.isRandomAccessResult();
+        IndexCondition cond = new IndexCondition(Comparison.IN_QUERY, column, null);
         cond.expressionQuery = query;
         return cond;
     }
@@ -147,7 +147,7 @@ public class IndexCondition {
      * @return the value list
      */
     public Value[] getCurrentValueList(Session session) {
-        HashSet<Value> valueSet = new HashSet<>();
+        TreeSet<Value> valueSet = new TreeSet<>(session.getDatabase().getCompareMode());
         for (Expression e : expressionList) {
             Value v = e.getValue(session);
             v = column.convert(v);

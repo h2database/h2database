@@ -550,3 +550,62 @@ VALUES 1, 2;
 > 1
 > 2
 > rows: 2
+
+SELECT * FROM (VALUES (1::BIGINT, 2)) T (A, B) WHERE (A, B) IN (VALUES(1, 2));
+> A B
+> - -
+> 1 2
+> rows: 1
+
+SELECT * FROM (VALUES (1000000000000, 2)) T (A, B) WHERE (A, B) IN (VALUES(1, 2));
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM (VALUES (1, 2)) T (A, B) WHERE (A, B) IN (VALUES(1::BIGINT, 2));
+> A B
+> - -
+> 1 2
+> rows: 1
+
+SELECT * FROM (VALUES (1, 2)) T (A, B) WHERE (A, B) IN (VALUES(1000000000000, 2));
+> A B
+> - -
+> rows: 0
+
+CREATE TABLE TEST(A BIGINT, B INT) AS VALUES (1::BIGINT, 2);
+> ok
+
+SELECT * FROM TEST WHERE (A, B) IN ((1, 2), (3, 4));
+> A B
+> - -
+> 1 2
+> rows: 1
+
+UPDATE TEST SET A = 1000000000000;
+> update count: 1
+
+SELECT * FROM TEST WHERE (A, B) IN ((1, 2), (3, 4));
+> A B
+> - -
+> rows: 0
+
+DROP TABLE TEST;
+> ok
+
+CREATE TABLE TEST(A BIGINT, B INT) AS VALUES (1, 2);
+> ok
+
+SELECT * FROM TEST WHERE (A, B) IN ((1::BIGINT, 2), (3, 4));
+> A B
+> - -
+> 1 2
+> rows: 1
+
+SELECT * FROM TEST WHERE (A, B) IN ((1000000000000, 2), (3, 4));
+> A B
+> - -
+> rows: 0
+
+DROP TABLE TEST;
+> ok

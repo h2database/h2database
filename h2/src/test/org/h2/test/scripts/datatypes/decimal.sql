@@ -8,3 +8,24 @@ CREATE TABLE TEST(I NUMERIC(-1));
 
 CREATE TABLE TEST(I NUMERIC(-1, -1));
 > exception INVALID_VALUE_2
+
+CREATE TABLE TEST (N NUMERIC) AS VALUES (0), (0.0), (NULL);
+> ok
+
+SELECT * FROM TEST;
+> N
+> ----
+> 0
+> 0.0
+> null
+> rows: 3
+
+SELECT DISTINCT * FROM TEST;
+> N
+> ----
+> 0
+> null
+> rows: 2
+
+DROP TABLE TEST;
+> ok

@@ -7,7 +7,7 @@ package org.h2.mvstore.db;
 
 import java.io.IOException;
 import java.lang.ref.Reference;
-import java.util.ArrayList;
+import java.util.Collection;
 
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -178,7 +178,7 @@ public abstract class MVTempResult implements ResultExternal {
     }
 
     @Override
-    public int addRows(ArrayList<Value[]> rows) {
+    public int addRows(Collection<Value[]> rows) {
         for (Value[] row : rows) {
             addRow(row);
         }

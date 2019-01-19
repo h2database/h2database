@@ -7,6 +7,7 @@ package org.h2.result;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.TreeMap;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.engine.SessionInterface;
@@ -14,7 +15,6 @@ import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.mvstore.db.MVTempResult;
 import org.h2.util.Utils;
-import org.h2.util.ValueHashMap;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueRow;
@@ -34,7 +34,9 @@ public class LocalResultImpl implements LocalResult {
     private int rowId, rowCount;
     private ArrayList<Value[]> rows;
     private SortOrder sort;
-    private ValueHashMap<Value[]> distinctRows;
+    // HashSet cannot be used here, because we need to compare values of
+    // different type or scale properly.
+    private TreeMap<Value, Value[]> distinctRows;
     private Value[] currentRow;
     private int offset;
     private int limit = -1;
@@ -145,7 +147,7 @@ public class LocalResultImpl implements LocalResult {
     public void setDistinct() {
         assert distinctIndexes == null;
         distinct = true;
-        distinctRows = new ValueHashMap<>();
+        distinctRows = new TreeMap<>(session.getDatabase().getCompareMode());
     }
 
     /**
@@ -157,7 +159,7 @@ public class LocalResultImpl implements LocalResult {
     public void setDistinct(int[] distinctIndexes) {
         assert !distinct;
         this.distinctIndexes = distinctIndexes;
-        distinctRows = new ValueHashMap<>();
+        distinctRows = new TreeMap<>(session.getDatabase().getCompareMode());
     }
 
     /**
@@ -200,7 +202,7 @@ public class LocalResultImpl implements LocalResult {
             return external.contains(values);
         }
         if (distinctRows == null) {
-            distinctRows = new ValueHashMap<>();
+            distinctRows = new TreeMap<>(session.getDatabase().getCompareMode());
             for (Value[] row : rows) {
                 ValueRow array = getDistinctRow(row);
                 distinctRows.put(array, array.getList());
@@ -359,7 +361,7 @@ public class LocalResultImpl implements LocalResult {
             addRowsToDisk();
         } else {
             if (isAnyDistinct()) {
-                rows = distinctRows.values();
+                rows = new ArrayList<>(distinctRows.values());
             }
             if (sort != null && limit != 0 && !limitsWereApplied) {
                 boolean withLimit = limit > 0 && withTiesSortOrder == null;

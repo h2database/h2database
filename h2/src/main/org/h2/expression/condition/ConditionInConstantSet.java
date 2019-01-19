@@ -26,14 +26,13 @@ import org.h2.value.ValueNull;
 /**
  * Used for optimised IN(...) queries where the contents of the IN list are all
  * constant and of the same type.
- * <p>
- * Checking using a HashSet is has time complexity O(1), instead of O(n) for
- * checking using an array.
  */
 public class ConditionInConstantSet extends Condition {
 
     private Expression left;
     private final ArrayList<Expression> valueList;
+    // HashSet cannot be used here, because we need to compare values of
+    // different type or scale properly.
     private final TreeSet<Value> valueSet;
     private boolean hasNull;
     private final TypeInfo type;

@@ -1455,6 +1455,51 @@ public class DataType {
     }
 
     /**
+     * Check if the given type has total ordering.
+     *
+     * @param type the value type
+     * @return true if the value type has total ordering
+     */
+    public static boolean hasTotalOrdering(int type) {
+        switch (type) {
+        case Value.BOOLEAN:
+        case Value.BYTE:
+        case Value.SHORT:
+        case Value.INT:
+        case Value.LONG:
+        // Negative zeroes and NaNs are normalized
+        case Value.DOUBLE:
+        case Value.FLOAT:
+        case Value.TIME:
+        case Value.DATE:
+        case Value.TIMESTAMP:
+        case Value.BYTES:
+        // Serialized data is compared
+        case Value.JAVA_OBJECT:
+        case Value.UUID:
+        // EWKB is used
+        case Value.GEOMETRY:
+        case Value.ENUM:
+        case Value.INTERVAL_YEAR:
+        case Value.INTERVAL_MONTH:
+        case Value.INTERVAL_DAY:
+        case Value.INTERVAL_HOUR:
+        case Value.INTERVAL_MINUTE:
+        case Value.INTERVAL_SECOND:
+        case Value.INTERVAL_YEAR_TO_MONTH:
+        case Value.INTERVAL_DAY_TO_HOUR:
+        case Value.INTERVAL_DAY_TO_MINUTE:
+        case Value.INTERVAL_DAY_TO_SECOND:
+        case Value.INTERVAL_HOUR_TO_MINUTE:
+        case Value.INTERVAL_HOUR_TO_SECOND:
+        case Value.INTERVAL_MINUTE_TO_SECOND:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    /**
      * Check if the given value type supports the add operation.
      *
      * @param type the value type

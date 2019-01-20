@@ -6,7 +6,6 @@
 package org.h2.index;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 
 import org.h2.engine.Session;
 import org.h2.expression.condition.Comparison;
@@ -45,7 +44,6 @@ public class IndexCursor implements Cursor {
     private int inListIndex;
     private Value[] inList;
     private ResultInterface inResult;
-    private HashSet<Value> inResultTested;
 
     public IndexCursor(TableFilter filter) {
         this.tableFilter = filter;
@@ -79,7 +77,6 @@ public class IndexCursor implements Cursor {
         inList = null;
         inColumn = null;
         inResult = null;
-        inResultTested = null;
         intersects = null;
         for (IndexCondition condition : indexConditions) {
             if (condition.isAlwaysFalse()) {
@@ -311,13 +308,8 @@ public class IndexCursor implements Cursor {
             while (inResult.next()) {
                 Value v = inResult.currentRow()[0];
                 if (v != ValueNull.INSTANCE) {
-                    if (inResultTested == null) {
-                        inResultTested = new HashSet<>();
-                    }
-                    if (inResultTested.add(v)) {
-                        find(v);
-                        break;
-                    }
+                    find(v);
+                    break;
                 }
             }
         }

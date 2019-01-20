@@ -320,6 +320,15 @@ public abstract class Query extends Prepared {
     }
 
     /**
+     * Returns whether results support random access.
+     *
+     * @return whether results support random access
+     */
+    public boolean isRandomAccessResult() {
+        return randomAccessResult;
+    }
+
+    /**
      * Whether results need to support random access.
      *
      * @param b the new value

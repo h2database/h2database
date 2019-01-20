@@ -20,9 +20,9 @@ import org.h2.table.TableFilter;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueRow;
 
 /**
  * This class wraps a user-defined aggregate.
@@ -152,7 +152,7 @@ public class JavaAggregate extends AbstractAggregate {
                         if (args.length == 1) {
                             agg.add(value.getObject());
                         } else {
-                            Value[] values = ((ValueArray) value).getList();
+                            Value[] values = ((ValueRow) value).getList();
                             Object[] argValues = new Object[args.length];
                             for (int i = 0, len = args.length; i < len; i++) {
                                 argValues[i] = values[i].getObject();
@@ -193,7 +193,7 @@ public class JavaAggregate extends AbstractAggregate {
                     arg = arg.convertTo(argTypes[i]);
                     argValues[i] = arg;
                 }
-                data.add(session.getDatabase(), dataType, args.length == 1 ? arg : ValueArray.get(argValues));
+                data.add(session.getDatabase(), args.length == 1 ? arg : ValueRow.get(argValues));
             } else {
                 Aggregate agg = (Aggregate) aggregateData;
                 Object[] argValues = new Object[args.length];

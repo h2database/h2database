@@ -21,9 +21,10 @@ abstract class AggregateData {
      *
      * @param aggregateType the type of the aggregate operation
      * @param distinct if the calculation should be distinct
+     * @param dataType the data type of the computed result
      * @return the aggregate data object of the specified type
      */
-    static AggregateData create(AggregateType aggregateType, boolean distinct) {
+    static AggregateData create(AggregateType aggregateType, boolean distinct, int dataType) {
         switch (aggregateType) {
         case COUNT_ALL:
             return new AggregateDataCount(true);
@@ -42,7 +43,7 @@ abstract class AggregateData {
         case BIT_AND:
         case ANY:
         case EVERY:
-            return new AggregateDataDefault(aggregateType);
+            return new AggregateDataDefault(aggregateType, dataType);
         case SUM:
         case AVG:
         case STDDEV_POP:
@@ -50,7 +51,7 @@ abstract class AggregateData {
         case VAR_POP:
         case VAR_SAMP:
             if (!distinct) {
-                return new AggregateDataDefault(aggregateType);
+                return new AggregateDataDefault(aggregateType, dataType);
             }
             break;
         case SELECTIVITY:
@@ -71,10 +72,9 @@ abstract class AggregateData {
      * Add a value to this aggregate.
      *
      * @param database the database
-     * @param dataType the datatype of the computed result
      * @param v the value
      */
-    abstract void add(Database database, int dataType, Value v);
+    abstract void add(Database database, Value v);
 
     /**
      * Get the aggregate result.

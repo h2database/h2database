@@ -1433,19 +1433,16 @@ public class Function extends Expression implements FunctionCall {
             }
             break;
         case TO_DATE:
-            result = ToDateParser.toDate(v0.getString(),
-                    v1 == null ? null : v1.getString());
+            result = ToDateParser.toDate(session, v0.getString(), v1 == null ? null : v1.getString());
             break;
         case TO_TIMESTAMP:
-            result = ToDateParser.toTimestamp(v0.getString(),
-                    v1 == null ? null : v1.getString());
+            result = ToDateParser.toTimestamp(session, v0.getString(), v1 == null ? null : v1.getString());
             break;
         case ADD_MONTHS:
             result = DateTimeFunctions.dateadd("MONTH", v1.getInt(), v0);
             break;
         case TO_TIMESTAMP_TZ:
-            result = ToDateParser.toTimestampTz(v0.getString(),
-                    v1 == null ? null : v1.getString());
+            result = ToDateParser.toTimestampTz(session, v0.getString(), v1 == null ? null : v1.getString());
             break;
         case TRANSLATE: {
             String matching = v1.getString();

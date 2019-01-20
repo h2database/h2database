@@ -7,11 +7,10 @@ package org.h2.expression.function;
 
 import static java.lang.String.format;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.TimeZone;
 
+import org.h2.engine.Session;
 import org.h2.util.DateTimeUtils;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
@@ -21,6 +20,8 @@ import org.h2.value.ValueTimestampTimeZone;
  * This class holds and handles the input data form the TO_DATE-method
  */
 public class ToDateParser {
+    private final Session session;
+
     private final String unmodifiedInputStr;
     private final String unmodifiedFormatStr;
     private final ConfigParam functionName;
@@ -52,12 +53,14 @@ public class ToDateParser {
     private int currentYear, currentMonth;
 
     /**
-     * @param input the input date with the date-time info
-     * @param format the format of date-time info
+     * @param session the database session
      * @param functionName one of [TO_DATE, TO_TIMESTAMP] (both share the same
      *            code)
+     * @param input the input date with the date-time info
+     * @param format the format of date-time info
      */
-    private ToDateParser(ConfigParam functionName, String input, String format) {
+    private ToDateParser(Session session, ConfigParam functionName, String input, String format) {
+        this.session = session;
         this.functionName = functionName;
         inputStr = input.trim();
         // Keep a copy
@@ -72,8 +75,8 @@ public class ToDateParser {
         unmodifiedFormatStr = formatStr;
     }
 
-    private static ToDateParser getTimestampParser(ConfigParam param, String input, String format) {
-        ToDateParser result = new ToDateParser(param, input, format);
+    private static ToDateParser getTimestampParser(Session session, ConfigParam param, String input, String format) {
+        ToDateParser result = new ToDateParser(session, param, input, format);
         parse(result);
         return result;
     }
@@ -145,10 +148,10 @@ public class ToDateParser {
     }
 
     private void queryCurrentYearAndMonth() {
-        GregorianCalendar gc = DateTimeUtils.getCalendar();
-        gc.setTimeInMillis(System.currentTimeMillis());
-        currentYear = gc.get(Calendar.YEAR);
-        currentMonth = gc.get(Calendar.MONTH) + 1;
+        long dateValue = (session.getDatabase().getMode().dateTimeValueWithinTransaction
+                ? session.getTransactionStart() : session.getCurrentCommandStart()).getDateValue();
+        currentYear = DateTimeUtils.yearFromDateValue(dateValue);
+        currentMonth = DateTimeUtils.monthFromDateValue(dateValue);
     }
 
     int getCurrentYear() {
@@ -319,36 +322,39 @@ public class ToDateParser {
     /**
      * Parse a string as a timestamp with the given format.
      *
+     * @param session the database session
      * @param input the input
      * @param format the format
      * @return the timestamp
      */
-    public static ValueTimestamp toTimestamp(String input, String format) {
-        ToDateParser parser = getTimestampParser(ConfigParam.TO_TIMESTAMP, input, format);
+    public static ValueTimestamp toTimestamp(Session session, String input, String format) {
+        ToDateParser parser = getTimestampParser(session, ConfigParam.TO_TIMESTAMP, input, format);
         return parser.getResultingValue();
     }
 
     /**
      * Parse a string as a timestamp with the given format.
      *
+     * @param session the database session
      * @param input the input
      * @param format the format
      * @return the timestamp
      */
-    public static ValueTimestampTimeZone toTimestampTz(String input, String format) {
-        ToDateParser parser = getTimestampParser(ConfigParam.TO_TIMESTAMP_TZ, input, format);
+    public static ValueTimestampTimeZone toTimestampTz(Session session, String input, String format) {
+        ToDateParser parser = getTimestampParser(session, ConfigParam.TO_TIMESTAMP_TZ, input, format);
         return parser.getResultingValueWithTimeZone();
     }
 
     /**
      * Parse a string as a date with the given format.
      *
+     * @param session the database session
      * @param input the input
      * @param format the format
      * @return the date as a timestamp
      */
-    public static ValueTimestamp toDate(String input, String format) {
-        ToDateParser parser = getTimestampParser(ConfigParam.TO_DATE, input, format);
+    public static ValueTimestamp toDate(Session session, String input, String format) {
+        ToDateParser parser = getTimestampParser(session, ConfigParam.TO_DATE, input, format);
         return parser.getResultingValue();
     }
 

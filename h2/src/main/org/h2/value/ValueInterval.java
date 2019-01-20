@@ -330,7 +330,7 @@ public class ValueInterval extends Value {
         if (leading == 0L && remaining == 0L) {
             return this;
         }
-        return from(getQualifier(), !negative, leading, remaining);
+        return Value.cache(new ValueInterval(valueType, !negative, leading, remaining));
     }
 
 }

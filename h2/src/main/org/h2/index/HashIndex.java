@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import org.h2.command.dml.AllColumnsForPlan;
+import org.h2.engine.Mode.UniqueIndexNullsHandling;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.Row;
@@ -58,7 +59,8 @@ public class HashIndex extends BaseIndex {
     @Override
     public void add(Session session, Row row) {
         Value key = row.getValue(indexColumn);
-        if (key != ValueNull.INSTANCE) {
+        if (key != ValueNull.INSTANCE
+                || database.getMode().uniqueIndexNullsHandling == UniqueIndexNullsHandling.FORBID_ANY_DUPLICATES) {
             Object old = rows.get(key);
             if (old != null) {
                 // TODO index duplicate key for hash indexes: is this allowed?
@@ -73,7 +75,8 @@ public class HashIndex extends BaseIndex {
     @Override
     public void remove(Session session, Row row) {
         Value key = row.getValue(indexColumn);
-        if (key != ValueNull.INSTANCE) {
+        if (key != ValueNull.INSTANCE
+                || database.getMode().uniqueIndexNullsHandling == UniqueIndexNullsHandling.FORBID_ANY_DUPLICATES) {
             rows.remove(key);
         } else {
             nullRows.remove(row.getKey());
@@ -87,7 +90,8 @@ public class HashIndex extends BaseIndex {
             throw DbException.throwInternalError(first + " " + last);
         }
         Value v = first.getValue(indexColumn);
-        if (v == ValueNull.INSTANCE) {
+        if (v == ValueNull.INSTANCE
+                && database.getMode().uniqueIndexNullsHandling != UniqueIndexNullsHandling.FORBID_ANY_DUPLICATES) {
             return new NonUniqueHashCursor(session, tableData, nullRows);
         }
         /*

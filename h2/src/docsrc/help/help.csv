@@ -641,10 +641,12 @@ ON tableName ( indexColumn [,...] )
 Creates a new index.
 This command commits an open transaction in this connection.
 
-Hash indexes are meant for in-memory databases and memory tables (CREATE MEMORY TABLE).
+Hash indexes are meant for in-memory databases and memory tables (CREATE MEMORY TABLE) when PageStore engine is used.
 For other tables, or if the index contains multiple columns, the HASH keyword is ignored.
-Hash indexes can only test for equality, and do not support range queries (similar to a hash table).
+Hash indexes can only test for equality, do not support range queries (similar to a hash table), use more memory,
+but can perform lookups faster.
 Non-unique keys are supported.
+
 Spatial indexes are supported only on Geometry columns.
 ","
 CREATE INDEX IDXNAME ON TEST(NAME)

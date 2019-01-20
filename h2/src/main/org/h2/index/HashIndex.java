@@ -5,6 +5,7 @@
  */
 package org.h2.index;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -20,6 +21,7 @@ import org.h2.table.RegularTable;
 import org.h2.table.TableFilter;
 import org.h2.value.DataType;
 import org.h2.value.Value;
+import org.h2.value.ValueNull;
 
 /**
  * An unique index based on an in-memory hash map.
@@ -33,6 +35,7 @@ public class HashIndex extends BaseIndex {
     private final boolean totalOrdering;
     private final RegularTable tableData;
     private Map<Value, Long> rows;
+    private final ArrayList<Long> nullRows = new ArrayList<>();
 
     public HashIndex(RegularTable table, int id, String indexName, IndexColumn[] columns, IndexType indexType) {
         super(table, id, indexName, columns, indexType);
@@ -55,17 +58,26 @@ public class HashIndex extends BaseIndex {
     @Override
     public void add(Session session, Row row) {
         Value key = row.getValue(indexColumn);
-        Object old = rows.get(key);
-        if (old != null) {
-            // TODO index duplicate key for hash indexes: is this allowed?
-            throw getDuplicateKeyException(key.toString());
+        if (key != ValueNull.INSTANCE) {
+            Object old = rows.get(key);
+            if (old != null) {
+                // TODO index duplicate key for hash indexes: is this allowed?
+                throw getDuplicateKeyException(key.toString());
+            }
+            rows.put(key, row.getKey());
+        } else {
+            nullRows.add(row.getKey());
         }
-        rows.put(key, row.getKey());
     }
 
     @Override
     public void remove(Session session, Row row) {
-        rows.remove(row.getValue(indexColumn));
+        Value key = row.getValue(indexColumn);
+        if (key != ValueNull.INSTANCE) {
+            rows.remove(key);
+        } else {
+            nullRows.remove(row.getKey());
+        }
     }
 
     @Override
@@ -75,6 +87,9 @@ public class HashIndex extends BaseIndex {
             throw DbException.throwInternalError(first + " " + last);
         }
         Value v = first.getValue(indexColumn);
+        if (v == ValueNull.INSTANCE) {
+            return new NonUniqueHashCursor(session, tableData, nullRows);
+        }
         /*
          * Sometimes the incoming search is a similar, but not the same type
          * e.g. the search value is INT, but the index column is LONG. In which
@@ -94,12 +109,12 @@ public class HashIndex extends BaseIndex {
 
     @Override
     public long getRowCount(Session session) {
-        return rows.size();
+        return getRowCountApproximation();
     }
 
     @Override
     public long getRowCountApproximation() {
-        return rows.size();
+        return rows.size() + nullRows.size();
     }
 
     @Override

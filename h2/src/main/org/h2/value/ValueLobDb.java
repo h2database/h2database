@@ -205,14 +205,13 @@ public class ValueLobDb extends Value {
      * except when converting to BLOB or CLOB.
      *
      * @param t the new type
-     * @param precision the precision
      * @param mode the mode
      * @param column the column (if any), used for to improve the error message if conversion fails
      * @param extTypeInfo the extended data type information, or null
      * @return the converted value
      */
     @Override
-    public Value convertTo(int t, int precision, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
+    public Value convertTo(int t, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
         if (t == valueType) {
             return this;
         } else if (t == Value.CLOB) {
@@ -230,7 +229,7 @@ public class ValueLobDb extends Value {
                 return ValueLobDb.createSmallLob(t, small);
             }
         }
-        return super.convertTo(t, precision, mode, column, null);
+        return super.convertTo(t, mode, column, null);
     }
 
     @Override

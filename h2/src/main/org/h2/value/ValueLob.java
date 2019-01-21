@@ -367,16 +367,13 @@ public class ValueLob extends Value {
      * except when converting to BLOB or CLOB.
      *
      * @param t the new type
-     * @param precision the precision of the column to convert this value to.
-     *        The special constant <code>-1</code> is used to indicate that
-     *        the precision plays no role when converting the value
      * @param mode the database mode
      * @param column the column (if any), used for to improve the error message if conversion fails
      * @param extTypeInfo the extended data type information, or null
      * @return the converted value
      */
     @Override
-    public Value convertTo(int t, int precision, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
+    public Value convertTo(int t, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
         if (t == valueType) {
             return this;
         } else if (t == Value.CLOB) {
@@ -384,7 +381,7 @@ public class ValueLob extends Value {
         } else if (t == Value.BLOB) {
             return ValueLobDb.createTempBlob(getInputStream(), -1, handler);
         }
-        return super.convertTo(t, precision, mode, column, null);
+        return super.convertTo(t, mode, column, null);
     }
 
     @Override

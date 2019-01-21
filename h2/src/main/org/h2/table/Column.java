@@ -164,8 +164,7 @@ public class Column {
      */
     public Value convert(Value v, Mode mode) {
         try {
-            return v.convertTo(type.getValueType(), MathUtils.convertLongToInt(type.getPrecision()), mode, this,
-                    type.getExtTypeInfo());
+            return v.convertTo(type.getValueType(), mode, this, type.getExtTypeInfo());
         } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.DATA_CONVERSION_ERROR_1) {
                 String target = (table == null ? "" : table.getName() + ": ") +

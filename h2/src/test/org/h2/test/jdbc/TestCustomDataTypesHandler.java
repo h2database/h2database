@@ -391,7 +391,7 @@ public class TestCustomDataTypesHandler extends TestDb {
         }
 
         @Override
-        public Value convertTo(int targetType, int precision, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
+        public Value convertTo(int targetType, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
             if (getValueType() == targetType) {
                 return this;
             }

@@ -21,7 +21,6 @@ import org.h2.message.DbException;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.util.MathUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueGeometry;
@@ -234,8 +233,8 @@ public class Comparison extends Condition {
                     if (constType != resType) {
                         Column column = ((ExpressionColumn) left).getColumn();
                         right = ValueExpression.get(r.convertTo(resType,
-                                MathUtils.convertLongToInt(left.getType().getPrecision()),
-                                session.getDatabase().getMode(), column, column.getType().getExtTypeInfo()));
+                                session.getDatabase().getMode(),
+                                column, column.getType().getExtTypeInfo()));
                     }
                 } else if (right instanceof Parameter) {
                     ((Parameter) right).setColumn(

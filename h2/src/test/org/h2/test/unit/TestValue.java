@@ -414,7 +414,11 @@ public class TestValue extends TestDb {
 
         ValueJavaObject voString = ValueJavaObject.getNoCopy(
                 new String("This is not a ValueUuid object"), null, null);
-        assertThrows(DbException.class, voString).convertTo(Value.UUID);
+        try {
+            voString.convertTo(Value.UUID);
+            fail();
+        } catch (DbException expected) {
+        }
     }
 
     private void testModulusDouble() {

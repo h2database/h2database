@@ -65,7 +65,7 @@ public class ResultWithPaddedStrings implements ResultInterface {
                     precision = 1;
                 }
                 String s = row[i].getString();
-                if (s.length() < precision) {
+                if (s != null && s.length() < precision) {
                     /*
                      * Use ValueString to avoid truncation of spaces. There is
                      * no difference between ValueStringFixed and ValueString

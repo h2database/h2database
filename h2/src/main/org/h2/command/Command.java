@@ -18,6 +18,7 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultWithGeneratedKeys;
+import org.h2.result.ResultWithPaddedStrings;
 import org.h2.util.MathUtils;
 
 /**
@@ -200,6 +201,9 @@ public abstract class Command implements CommandInterface {
                     try {
                         ResultInterface result = query(maxrows);
                         callStop = !result.isLazy();
+                        if (database.getMode().padFixedLengthStrings) {
+                            return ResultWithPaddedStrings.get(result);
+                        }
                         return result;
                     } catch (DbException e) {
                         start = filterConcurrentUpdate(e, start);

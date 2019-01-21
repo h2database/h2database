@@ -788,7 +788,7 @@ public abstract class Value extends VersionedValue {
             case STRING_IGNORECASE:
                 return convertToStringIgnoreCase(mode);
             case STRING_FIXED:
-                return convertToStringFixed(precision, mode);
+                return convertToStringFixed(mode);
             case JAVA_OBJECT:
                 return convertToJavaObject();
             case ENUM:
@@ -1177,14 +1177,14 @@ public abstract class Value extends VersionedValue {
         return ValueStringIgnoreCase.get(s);
     }
 
-    private ValueString convertToStringFixed(int precision, Mode mode) {
+    private ValueString convertToStringFixed(Mode mode) {
         String s;
         if (getValueType() == BYTES && mode != null && mode.charToBinaryInUtf8) {
             s = new String(getBytesNoCopy(), StandardCharsets.UTF_8);
         } else {
             s = getString();
         }
-        return ValueStringFixed.get(s, precision, mode);
+        return ValueStringFixed.get(s);
     }
 
     private ValueJavaObject convertToJavaObject() {

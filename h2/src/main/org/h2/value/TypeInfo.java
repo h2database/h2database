@@ -287,8 +287,15 @@ public class TypeInfo {
             //$FALL-THROUGH$
         case Value.STRING_FIXED:
         case Value.STRING_IGNORECASE:
+            if (precision < 0) {
+                precision = Integer.MAX_VALUE;
+            }
+            return new TypeInfo(type, precision, 0, MathUtils.convertLongToInt(precision), null);
         case Value.BLOB:
         case Value.CLOB:
+            if (precision < 0) {
+                precision = Long.MAX_VALUE;
+            }
             return new TypeInfo(type, precision, 0, MathUtils.convertLongToInt(precision), null);
         case Value.GEOMETRY:
             if (extTypeInfo instanceof ExtTypeInfoGeometry) {

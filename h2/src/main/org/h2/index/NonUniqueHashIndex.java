@@ -105,10 +105,10 @@ public class NonUniqueHashIndex extends BaseIndex {
         /*
          * Sometimes the incoming search is a similar, but not the same type
          * e.g. the search value is INT, but the index column is LONG. In which
-         * case we need to convert, otherwise the ValueHashMap will not find the
+         * case we need to convert, otherwise the HashMap will not find the
          * result.
          */
-        v = v.convertTo(tableData.getColumn(indexColumn).getType().getValueType(), database.getMode());
+        v = v.convertTo(tableData.getColumn(indexColumn).getType(), database.getMode(), null);
         ArrayList<Long> positions = rows.get(v);
         return new NonUniqueHashCursor(session, tableData, positions);
     }

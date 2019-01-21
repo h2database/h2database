@@ -19,6 +19,7 @@ import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
@@ -72,8 +73,8 @@ public class ConditionInSelect extends Condition {
                 return ValueBoolean.TRUE;
             }
         } else {
-            int dataType = rows.getColumnType(0).getValueType();
-            if (dataType == Value.NULL) {
+            TypeInfo colType = rows.getColumnType(0);
+            if (colType.getValueType() == Value.NULL) {
                 return ValueBoolean.FALSE;
             }
             if (l.getValueType() == Value.ROW) {
@@ -83,7 +84,7 @@ public class ConditionInSelect extends Condition {
                 }
                 l = leftList[0];
             }
-            l = l.convertTo(dataType, database.getMode());
+            l = l.convertTo(colType, database.getMode(), null);
             if (rows.containsDistinct(new Value[] { l })) {
                 return ValueBoolean.TRUE;
             }

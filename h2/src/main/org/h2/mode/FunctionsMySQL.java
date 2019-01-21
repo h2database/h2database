@@ -202,8 +202,7 @@ public class FunctionsMySQL extends FunctionsBase {
         if (allConst) {
             return ValueExpression.get(getValue(session));
         }
-        dataType = info.returnDataType;
-        type = TypeInfo.getTypeInfo(dataType);
+        type = TypeInfo.getTypeInfo(info.returnDataType);
         return this;
     }
 

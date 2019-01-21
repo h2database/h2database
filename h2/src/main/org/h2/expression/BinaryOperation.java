@@ -99,11 +99,10 @@ public class BinaryOperation extends Expression {
     @Override
     public Value getValue(Session session) {
         Mode mode = session.getDatabase().getMode();
-        int dataType = type.getValueType();
-        Value l = left.getValue(session).convertTo(dataType, mode);
+        Value l = left.getValue(session).convertTo(type, mode, null);
         Value r = right.getValue(session);
         if (convertRight) {
-            r = r.convertTo(dataType, mode);
+            r = r.convertTo(type, mode, null);
         }
         switch (opType) {
         case CONCAT: {

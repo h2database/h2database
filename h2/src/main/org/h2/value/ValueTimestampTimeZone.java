@@ -46,16 +46,6 @@ public class ValueTimestampTimeZone extends Value {
     static final int MAXIMUM_SCALE = ValueTimestamp.MAXIMUM_SCALE;
 
     /**
-     * Get display size for the specified scale.
-     *
-     * @param scale scale
-     * @return display size
-     */
-    public static int getDisplaySize(int scale) {
-        return scale == 0 ? 25 : 26 + scale;
-    }
-
-    /**
      * A bit field with bits for the year, month, and day (see DateTimeUtils for
      * encoding)
      */

@@ -216,7 +216,6 @@ import org.h2.table.TableFilter;
 import org.h2.table.TableFilter.TableFilterVisitor;
 import org.h2.table.TableView;
 import org.h2.util.IntervalUtils;
-import org.h2.util.MathUtils;
 import org.h2.util.ParserUtil;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
@@ -5351,7 +5350,6 @@ public class Parser {
             regular = true;
         }
         long precision = -1;
-        int displaySize = -1;
         ExtTypeInfo extTypeInfo = null;
         int scale = -1;
         String comment = null;
@@ -5368,7 +5366,6 @@ public class Parser {
             comment = templateColumn.getComment();
             original = forTable ? domain.getSQL() : templateColumn.getOriginalSQL();
             precision = type.getPrecision();
-            displaySize = type.getDisplaySize();
             scale = type.getScale();
             extTypeInfo = type.getExtTypeInfo();
         } else {
@@ -5388,8 +5385,6 @@ public class Parser {
             read();
         }
         precision = precision == -1 ? dataType.defaultPrecision : precision;
-        displaySize = displaySize == -1 ? dataType.defaultDisplaySize
-                : displaySize;
         scale = scale == -1 ? dataType.defaultScale : scale;
         if (dataType.supportsPrecision || dataType.supportsScale) {
             int t = dataType.type;
@@ -5403,7 +5398,6 @@ public class Parser {
                         } else {
                             original = original + '(' + originalScale + ')';
                         }
-                        precision = displaySize = ValueTime.getDisplaySize(originalScale);
                         break;
                     case Value.TIMESTAMP:
                         if (original.equals("TIMESTAMP WITHOUT TIME ZONE")) {
@@ -5411,11 +5405,9 @@ public class Parser {
                         } else {
                             original = original + '(' + originalScale + ')';
                         }
-                        precision = displaySize = ValueTimestamp.getDisplaySize(originalScale);
                         break;
                     case Value.TIMESTAMP_TZ:
                         original = "TIMESTAMP(" + originalScale + ") WITH TIME ZONE";
-                        precision = displaySize = ValueTimestampTimeZone.getDisplaySize(originalScale);
                         break;
                     }
                 } else if (original.equals("DATETIME") || original.equals("DATETIME2")) {
@@ -5428,11 +5420,9 @@ public class Parser {
                         read(CLOSE_PAREN);
                         scale = originalScale;
                         original = original + '(' + originalScale + ')';
-                        precision = displaySize = ValueTimestamp.getDisplaySize(originalScale);
                     }
                 } else if (original.equals("SMALLDATETIME")) {
                     scale = 0;
-                    precision = displaySize = ValueTimestamp.getDisplaySize(0);
                 }
             } else if (DataType.isIntervalType(t)) {
                 if (originalPrecision >= 0 || originalScale >= 0) {
@@ -5466,7 +5456,6 @@ public class Parser {
                         }
                     }
                     precision = p;
-                    displaySize = MathUtils.convertLongToInt(precision);
                     original += ")";
                 }
                 read(CLOSE_PAREN);
@@ -5547,13 +5536,13 @@ public class Parser {
         // MySQL compatibility
         readIf("UNSIGNED");
         int type = dataType.type;
-        if (scale > precision && !DataType.isIntervalType(type)) {
+        if (scale > precision && dataType.supportsPrecision && dataType.supportsScale
+                && !DataType.isIntervalType(type)) {
             throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION,
                     Integer.toString(scale), Long.toString(precision));
         }
 
-        Column column = new Column(columnName, type, precision, scale,
-            displaySize, extTypeInfo);
+        Column column = new Column(columnName, TypeInfo.getTypeInfo(type, precision, scale, extTypeInfo));
         if (templateColumn != null) {
             column.setNullable(templateColumn.isNullable());
             column.setDefaultExpression(session,
@@ -5883,7 +5872,7 @@ public class Parser {
         for (int i = 0; i < columnCount; i++) {
             Column c = columns.get(i);
             if (c.getType().getValueType() == Value.UNKNOWN) {
-                c = new Column(c.getName(), Value.STRING, 0, 0, 0);
+                c = new Column(c.getName(), Value.STRING);
                 columns.set(i, c);
             }
             Expression[] array = new Expression[rowCount];

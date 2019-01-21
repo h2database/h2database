@@ -257,29 +257,36 @@ public class TypeInfo {
             if (scale < 0) {
                 scale = ValueDecimal.DEFAULT_SCALE;
             }
+            if (precision < scale) {
+                precision = scale;
+            }
             return new TypeInfo(Value.DECIMAL, precision, scale, MathUtils.convertLongToInt(precision + 2), null);
-        case Value.TIME:
+        case Value.TIME: {
             if (scale < 0 || scale >= ValueTime.MAXIMUM_SCALE) {
                 return TYPE_TIME;
             }
-            return new TypeInfo(Value.TIME, ValueTime.MAXIMUM_PRECISION, scale, ValueTime.DEFAULT_PRECISION, null);
-        case Value.TIMESTAMP:
+            int d = scale == 0 ? 8 : 9 + scale;
+            return new TypeInfo(Value.TIME, d, scale, d, null);
+        }
+        case Value.TIMESTAMP: {
             if (scale < 0 || scale >= ValueTimestamp.MAXIMUM_SCALE) {
                 return TYPE_TIMESTAMP;
             }
-            return new TypeInfo(Value.TIMESTAMP, ValueTimestamp.MAXIMUM_PRECISION, scale,
-                    ValueTimestamp.MAXIMUM_PRECISION, null);
-        case Value.TIMESTAMP_TZ:
+            int d = scale == 0 ? 19 : 20 + scale;
+            return new TypeInfo(Value.TIMESTAMP, d, scale, d, null);
+        }
+        case Value.TIMESTAMP_TZ: {
             if (scale < 0 || scale >= ValueTimestampTimeZone.MAXIMUM_SCALE) {
                 return TYPE_TIMESTAMP_TZ;
             }
-            return new TypeInfo(Value.TIMESTAMP_TZ, ValueTimestampTimeZone.MAXIMUM_PRECISION, scale,
-                    ValueTimestampTimeZone.MAXIMUM_PRECISION, null);
+            int d = scale == 0 ? 25 : 26 + scale;
+            return new TypeInfo(Value.TIMESTAMP_TZ, d, scale, d, null);
+        }
         case Value.BYTES:
             if (precision < 0) {
                 precision = Integer.MAX_VALUE;
             }
-            return new TypeInfo(Value.BYTES, precision, scale, MathUtils.convertLongToInt(precision) * 2, null);
+            return new TypeInfo(Value.BYTES, precision, 0, MathUtils.convertLongToInt(precision) * 2, null);
         case Value.STRING:
             if (precision < 0) {
                 return TYPE_STRING_DEFAULT;
@@ -287,19 +294,28 @@ public class TypeInfo {
             //$FALL-THROUGH$
         case Value.STRING_FIXED:
         case Value.STRING_IGNORECASE:
+            if (precision < 0) {
+                precision = Integer.MAX_VALUE;
+            }
+            return new TypeInfo(type, precision, 0, MathUtils.convertLongToInt(precision), null);
         case Value.BLOB:
         case Value.CLOB:
+            if (precision < 0) {
+                precision = Long.MAX_VALUE;
+            }
             return new TypeInfo(type, precision, 0, MathUtils.convertLongToInt(precision), null);
         case Value.GEOMETRY:
-            if (extTypeInfo == null) {
+            if (extTypeInfo instanceof ExtTypeInfoGeometry) {
+                return new TypeInfo(Value.GEOMETRY, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, extTypeInfo);
+            } else {
                 return TYPE_GEOMETRY;
             }
-            return new TypeInfo(Value.GEOMETRY, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, extTypeInfo);
         case Value.ENUM:
-            if (extTypeInfo == null) {
+            if (extTypeInfo instanceof ExtTypeInfoEnum) {
+                return new TypeInfo(Value.ENUM, ValueEnum.PRECISION, 0, ValueEnum.DISPLAY_SIZE, extTypeInfo);
+            } else {
                 return TYPE_ENUM_UNDEFINED;
             }
-            return new TypeInfo(Value.ENUM, ValueEnum.PRECISION, 0, ValueEnum.DISPLAY_SIZE, extTypeInfo);
         case Value.INTERVAL_YEAR:
         case Value.INTERVAL_MONTH:
         case Value.INTERVAL_DAY:

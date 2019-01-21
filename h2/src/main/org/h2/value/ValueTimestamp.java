@@ -41,16 +41,6 @@ public class ValueTimestamp extends Value {
     public static final int MAXIMUM_SCALE = 9;
 
     /**
-     * Get display size for the specified scale.
-     *
-     * @param scale scale
-     * @return display size
-     */
-    public static int getDisplaySize(int scale) {
-        return scale == 0 ? 19 : 20 + scale;
-    }
-
-    /**
      * A bit field with bits for the year, month, and day (see DateTimeUtils for
      * encoding)
      */

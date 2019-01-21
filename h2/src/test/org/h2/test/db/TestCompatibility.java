@@ -337,6 +337,7 @@ public class TestCompatibility extends TestDb {
         ResultSet rs = stat.executeQuery("SELECT B FROM TEST2");
         assertTrue(rs.next());
         assertEquals(bytes, rs.getBytes(1));
+        assertEquals(bytes, rs.getBytes("B"));
         assertEquals(1, stat.executeUpdate("UPDATE TEST2 SET C = B"));
         testMySQLBytesCheck(stat, string, bytes);
         PreparedStatement prep = conn.prepareStatement("UPDATE TEST2 SET C = ?");
@@ -452,6 +453,7 @@ public class TestCompatibility extends TestDb {
         assertTrue(rs.next());
         assertEquals(string, rs.getString(1));
         assertEquals(bytes, rs.getBytes(1));
+        assertEquals(bytes, rs.getBytes("C"));
     }
 
     private void testSybaseAndMSSQLServer() throws SQLException {

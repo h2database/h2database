@@ -696,9 +696,7 @@ public abstract class Value extends VersionedValue {
      * @return the converted value
      */
     public final Value convertTo(int targetType) {
-        // Use -1 to indicate "default behaviour" where value conversion should not
-        // depend on any datatype precision.
-        return convertTo(targetType, null);
+        return convertTo(targetType, null, null, null);
     }
 
     /**
@@ -706,10 +704,8 @@ public abstract class Value extends VersionedValue {
      * @param enumerators the extended type information for the ENUM data type
      * @return value represented as ENUM
      */
-    public final Value convertToEnum(ExtTypeInfo enumerators) {
-        // Use -1 to indicate "default behaviour" where value conversion should not
-        // depend on any datatype precision.
-        return convertTo(ENUM, -1, null, null, enumerators);
+    private Value convertToEnum(ExtTypeInfo enumerators) {
+        return convertTo(ENUM, null, null, enumerators);
     }
 
     /**
@@ -720,7 +716,7 @@ public abstract class Value extends VersionedValue {
      * @return the converted value
      */
     public final Value convertTo(int targetType, Mode mode) {
-        return convertTo(targetType, -1, mode, null, null);
+        return convertTo(targetType, mode, null, null);
     }
 
     /**
@@ -731,23 +727,20 @@ public abstract class Value extends VersionedValue {
      * @param column the column (if any), used for to improve the error message if conversion fails
      * @return the converted value
      */
-    public Value convertTo(TypeInfo targetType, Mode mode, Object column) {
-        return convertTo(targetType.getValueType(), -1, mode, column, targetType.getExtTypeInfo());
+    public final Value convertTo(TypeInfo targetType, Mode mode, Object column) {
+        return convertTo(targetType.getValueType(), mode, column, targetType.getExtTypeInfo());
     }
 
     /**
      * Convert a value to the specified type.
      *
      * @param targetType the type of the returned value
-     * @param precision the precision of the column to convert this value to.
-     *        The special constant <code>-1</code> is used to indicate that
-     *        the precision plays no role when converting the value
      * @param mode the conversion mode
      * @param column the column (if any), used for to improve the error message if conversion fails
      * @param extTypeInfo the extended data type information, or null
      * @return the converted value
      */
-    public Value convertTo(int targetType, int precision, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
+    protected Value convertTo(int targetType, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
         // converting NULL is done in ValueNull
         // converting BLOB to CLOB and vice versa is done in ValueLob
         if (getValueType() == targetType) {
@@ -788,7 +781,7 @@ public abstract class Value extends VersionedValue {
             case STRING_IGNORECASE:
                 return convertToStringIgnoreCase(mode);
             case STRING_FIXED:
-                return convertToStringFixed(precision, mode);
+                return convertToStringFixed(mode);
             case JAVA_OBJECT:
                 return convertToJavaObject();
             case ENUM:
@@ -1177,14 +1170,14 @@ public abstract class Value extends VersionedValue {
         return ValueStringIgnoreCase.get(s);
     }
 
-    private ValueString convertToStringFixed(int precision, Mode mode) {
+    private ValueString convertToStringFixed(Mode mode) {
         String s;
         if (getValueType() == BYTES && mode != null && mode.charToBinaryInUtf8) {
             s = new String(getBytesNoCopy(), StandardCharsets.UTF_8);
         } else {
             s = getString();
         }
-        return ValueStringFixed.get(s, precision, mode);
+        return ValueStringFixed.get(s);
     }
 
     private ValueJavaObject convertToJavaObject() {

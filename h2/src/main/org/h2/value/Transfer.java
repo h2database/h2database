@@ -14,7 +14,6 @@ import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.sql.Timestamp;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.Constants;
@@ -26,7 +25,6 @@ import org.h2.security.SHA256;
 import org.h2.store.Data;
 import org.h2.store.DataReader;
 import org.h2.util.Bits;
-import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
@@ -348,31 +346,17 @@ public class Transfer {
             break;
         case Value.TIME:
             writeInt(Value.TIME);
-            if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
-                writeLong(((ValueTime) v).getNanos());
-            } else {
-                writeLong(DateTimeUtils.getTimeLocalWithoutDst(v.getTime()));
-            }
+            writeLong(((ValueTime) v).getNanos());
             break;
         case Value.DATE:
             writeInt(Value.DATE);
-            if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
-                writeLong(((ValueDate) v).getDateValue());
-            } else {
-                writeLong(DateTimeUtils.getTimeLocalWithoutDst(v.getDate()));
-            }
+            writeLong(((ValueDate) v).getDateValue());
             break;
         case Value.TIMESTAMP: {
             writeInt(Value.TIMESTAMP);
-            if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
-                ValueTimestamp ts = (ValueTimestamp) v;
-                writeLong(ts.getDateValue());
-                writeLong(ts.getTimeNanos());
-            } else {
-                Timestamp ts = v.getTimestamp();
-                writeLong(DateTimeUtils.getTimeLocalWithoutDst(ts));
-                writeInt(ts.getNanos() % 1_000_000);
-            }
+            ValueTimestamp ts = (ValueTimestamp) v;
+            writeLong(ts.getDateValue());
+            writeLong(ts.getTimeNanos());
             break;
         }
         case Value.TIMESTAMP_TZ: {
@@ -608,30 +592,13 @@ public class Transfer {
         case Value.BYTE:
             return ValueByte.get(readByte());
         case Value.DATE:
-            if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
-                return ValueDate.fromDateValue(readLong());
-            } else {
-                return ValueDate.fromMillis(DateTimeUtils.getTimeUTCWithoutDst(readLong()));
-            }
+            return ValueDate.fromDateValue(readLong());
         case Value.TIME:
-            if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
-                return ValueTime.fromNanos(readLong());
-            } else {
-                return ValueTime.fromMillis(DateTimeUtils.getTimeUTCWithoutDst(readLong()));
-            }
-        case Value.TIMESTAMP: {
-            if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
-                return ValueTimestamp.fromDateValueAndNanos(
-                        readLong(), readLong());
-            } else {
-                return ValueTimestamp.fromMillisNanos(
-                        DateTimeUtils.getTimeUTCWithoutDst(readLong()),
-                        readInt() % 1_000_000);
-            }
-        }
+            return ValueTime.fromNanos(readLong());
+        case Value.TIMESTAMP:
+            return ValueTimestamp.fromDateValueAndNanos(readLong(), readLong());
         case Value.TIMESTAMP_TZ: {
-            return ValueTimestampTimeZone.fromDateValueAndNanos(readLong(),
-                    readLong(), (short) readInt());
+            return ValueTimestampTimeZone.fromDateValueAndNanos(readLong(), readLong(), (short) readInt());
         }
         case Value.DECIMAL:
             return ValueDecimal.get(new BigDecimal(readString()));
@@ -655,7 +622,7 @@ public class Transfer {
         case Value.STRING_IGNORECASE:
             return ValueStringIgnoreCase.get(readString());
         case Value.STRING_FIXED:
-            return ValueStringFixed.get(readString(), ValueStringFixed.PRECISION_DO_NOT_TRIM, null);
+            return ValueStringFixed.get(readString());
         case Value.BLOB: {
             long length = readLong();
             if (version >= Constants.TCP_PROTOCOL_VERSION_11) {

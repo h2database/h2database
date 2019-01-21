@@ -346,13 +346,13 @@ public class ValueGeometry extends Value {
     }
 
     @Override
-    public Value convertTo(int targetType, int precision, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
+    protected Value convertTo(int targetType, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
         if (targetType == Value.GEOMETRY) {
             return extTypeInfo != null ? extTypeInfo.cast(this) : this;
         } else if (targetType == Value.JAVA_OBJECT) {
             return this;
         }
-        return super.convertTo(targetType, precision, mode, column, null);
+        return super.convertTo(targetType, mode, column, null);
     }
 
 }

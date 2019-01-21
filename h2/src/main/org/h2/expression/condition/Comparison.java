@@ -21,7 +21,7 @@ import org.h2.message.DbException;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.util.MathUtils;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueGeometry;
@@ -225,17 +225,17 @@ public class Comparison extends Condition {
                             return ValueExpression.getNull();
                         }
                     }
-                    int colType = left.getType().getValueType();
-                    int constType = r.getValueType();
-                    int resType = Value.getHigherOrder(colType, constType);
-                    // If not, the column values will need to be promoted
-                    // to constant type, but vise versa, then let's do this here
-                    // once.
-                    if (constType != resType) {
-                        Column column = ((ExpressionColumn) left).getColumn();
-                        right = ValueExpression.get(r.convertTo(resType,
-                                MathUtils.convertLongToInt(left.getType().getPrecision()),
-                                session.getDatabase().getMode(), column, column.getType().getExtTypeInfo()));
+                    TypeInfo colType = left.getType(), constType = r.getType();
+                    int constValueType = constType.getValueType();
+                    if (constValueType != colType.getValueType()) {
+                        TypeInfo resType = Value.getHigherType(colType, constType);
+                        // If not, the column values will need to be promoted
+                        // to constant type, but vise versa, then let's do this here
+                        // once.
+                        if (constValueType != resType.getValueType()) {
+                            Column column = ((ExpressionColumn) left).getColumn();
+                            right = ValueExpression.get(r.convertTo(resType, session.getDatabase().getMode(), column));
+                        }
                     }
                 } else if (right instanceof Parameter) {
                     ((Parameter) right).setColumn(

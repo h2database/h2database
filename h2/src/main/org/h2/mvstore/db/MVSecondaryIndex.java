@@ -30,7 +30,6 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableFilter;
 import org.h2.value.CompareMode;
-import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueLong;
@@ -289,8 +288,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
             int idx = c.getColumnId();
             Value v = r.getValue(idx);
             if (v != null) {
-                TypeInfo type = c.getType();
-                array[i] = v.convertTo(type.getValueType(), -1, database.getMode(), null, type.getExtTypeInfo());
+                array[i] = v.convertTo(c.getType(), database.getMode(), null);
             }
         }
         array[keyColumns - 1] = key != null ? key : ValueLong.get(r.getKey());

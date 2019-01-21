@@ -38,8 +38,6 @@ import org.h2.util.ColumnNamer;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
-import org.h2.value.DataType;
-import org.h2.value.ExtTypeInfo;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
@@ -182,29 +180,19 @@ public class TableView extends Table {
             for (int i = 0; i < count; i++) {
                 Expression expr = expressions.get(i);
                 String name = null;
-                int valueType = Value.UNKNOWN;
+                TypeInfo type = TypeInfo.TYPE_UNKNOWN;
                 if (columnTemplates != null && columnTemplates.length > i) {
                     name = columnTemplates[i].getName();
-                    valueType = columnTemplates[i].getType().getValueType();
+                    type = columnTemplates[i].getType();
                 }
                 if (name == null) {
                     name = expr.getAlias();
                 }
                 name = columnNamer.getColumnName(expr, i, name);
-                if (valueType == Value.UNKNOWN) {
-                    valueType = expr.getType().getValueType();
+                if (type.getValueType() == Value.UNKNOWN) {
+                    type = expr.getType();
                 }
-                TypeInfo type = expr.getType();
-                long precision = type.getPrecision();
-                int scale = type.getScale();
-                int displaySize = type.getDisplaySize();
-                ExtTypeInfo extTypeInfo = null;
-                if (DataType.isExtInfoType(valueType)) {
-                    if (expr instanceof ExpressionColumn) {
-                        extTypeInfo = ((ExpressionColumn) expr).getColumn().getType().getExtTypeInfo();
-                    }
-                }
-                Column col = new Column(name, valueType, precision, scale, displaySize, extTypeInfo);
+                Column col = new Column(name, type);
                 col.setTable(this, i);
                 // Fetch check constraint from view column source
                 ExpressionColumn fromColumn = null;

@@ -18,6 +18,7 @@ import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableType;
 import org.h2.table.TableView;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
 /**
@@ -110,7 +111,7 @@ public class CreateView extends SchemaCommand {
             columnTemplatesAsStrings = new Column[columnNames.length];
             for (int i = 0; i < columnNames.length; ++i) {
                 // non table expressions are fine to use unknown column type
-                columnTemplatesAsUnknowns[i] = new Column(columnNames[i], Value.UNKNOWN);
+                columnTemplatesAsUnknowns[i] = new Column(columnNames[i], TypeInfo.TYPE_UNKNOWN);
                 // table expressions can't have unknown types - so we use string instead
                 columnTemplatesAsStrings[i] = new Column(columnNames[i], Value.STRING);
             }

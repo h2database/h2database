@@ -291,15 +291,17 @@ public class TypeInfo {
         case Value.CLOB:
             return new TypeInfo(type, precision, 0, MathUtils.convertLongToInt(precision), null);
         case Value.GEOMETRY:
-            if (extTypeInfo == null) {
+            if (extTypeInfo instanceof ExtTypeInfoGeometry) {
+                return new TypeInfo(Value.GEOMETRY, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, extTypeInfo);
+            } else {
                 return TYPE_GEOMETRY;
             }
-            return new TypeInfo(Value.GEOMETRY, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, extTypeInfo);
         case Value.ENUM:
-            if (extTypeInfo == null) {
+            if (extTypeInfo instanceof ExtTypeInfoEnum) {
+                return new TypeInfo(Value.ENUM, ValueEnum.PRECISION, 0, ValueEnum.DISPLAY_SIZE, extTypeInfo);
+            } else {
                 return TYPE_ENUM_UNDEFINED;
             }
-            return new TypeInfo(Value.ENUM, ValueEnum.PRECISION, 0, ValueEnum.DISPLAY_SIZE, extTypeInfo);
         case Value.INTERVAL_YEAR:
         case Value.INTERVAL_MONTH:
         case Value.INTERVAL_DAY:

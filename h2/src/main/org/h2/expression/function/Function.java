@@ -61,7 +61,6 @@ import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
-import org.h2.value.ExtTypeInfo;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -164,9 +163,6 @@ public class Function extends Expression implements FunctionCall {
     protected final FunctionInfo info;
     private ArrayList<Expression> varArgs;
     protected TypeInfo type;
-    protected int dataType;
-
-    protected ExtTypeInfo extTypeInfo;
 
     private final Database database;
 
@@ -931,7 +927,7 @@ public class Function extends Expression implements FunctionCall {
             if (v0 == ValueNull.INSTANCE) {
                 result = getNullOrValue(session, args, values, 1);
             }
-            result = result.convertTo(dataType, database.getMode());
+            result = result.convertTo(type, database.getMode(), null);
             break;
         }
         case CASEWHEN: {
@@ -941,7 +937,7 @@ public class Function extends Expression implements FunctionCall {
             } else {
                 v = getNullOrValue(session, args, values, 1);
             }
-            result = v.convertTo(dataType);
+            result = v.convertTo(type, database.getMode(), null);
             break;
         }
         case DECODE: {
@@ -958,7 +954,7 @@ public class Function extends Expression implements FunctionCall {
             }
             Value v = index < 0 ? ValueNull.INSTANCE :
                     getNullOrValue(session, args, values, index);
-            result = v.convertTo(dataType);
+            result = v.convertTo(type, database.getMode(), null);
             break;
         }
         case NVL2: {
@@ -968,7 +964,7 @@ public class Function extends Expression implements FunctionCall {
             } else {
                 v = getNullOrValue(session, args, values, 1);
             }
-            result = v.convertTo(dataType);
+            result = v.convertTo(type, database.getMode(), null);
             break;
         }
         case COALESCE: {
@@ -976,7 +972,7 @@ public class Function extends Expression implements FunctionCall {
             for (int i = 0; i < args.length; i++) {
                 Value v = getNullOrValue(session, args, values, i);
                 if (v != ValueNull.INSTANCE) {
-                    result = v.convertTo(dataType);
+                    result = v.convertTo(type, database.getMode(), null);
                     break;
                 }
             }
@@ -988,7 +984,7 @@ public class Function extends Expression implements FunctionCall {
             for (int i = 0; i < args.length; i++) {
                 Value v = getNullOrValue(session, args, values, i);
                 if (v != ValueNull.INSTANCE) {
-                    v = v.convertTo(dataType);
+                    v = v.convertTo(type, database.getMode(), null);
                     if (result == ValueNull.INSTANCE) {
                         result = v;
                     } else {
@@ -1039,7 +1035,7 @@ public class Function extends Expression implements FunctionCall {
                 then = args[args.length - 1];
             }
             Value v = then == null ? ValueNull.INSTANCE : then.getValue(session);
-            result = v.convertTo(dataType);
+            result = v.convertTo(type, database.getMode(), null);
             break;
         }
         case ARRAY_GET: {
@@ -2159,7 +2155,7 @@ public class Function extends Expression implements FunctionCall {
 
     @Override
     public int getValueType() {
-        return dataType;
+        return type.getValueType();
     }
 
     @Override
@@ -2296,8 +2292,6 @@ public class Function extends Expression implements FunctionCall {
     public void setDataType(Column col) {
         TypeInfo type = col.getType();
         this.type = type;
-        dataType = type.getValueType();
-        extTypeInfo = type.getExtTypeInfo();
     }
 
     @Override
@@ -2474,7 +2468,7 @@ public class Function extends Expression implements FunctionCall {
         case TRUNCATE_VALUE:
             if (type != null) {
                 // data type, precision and scale is already set
-                t = dataType;
+                t = type.getValueType();
                 p = type.getPrecision();
                 s = type.getScale();
             } else {
@@ -2630,8 +2624,7 @@ public class Function extends Expression implements FunctionCall {
             p = type.maxPrecision;
             s = type.defaultScale;
         }
-        type = TypeInfo.getTypeInfo(t, p, s, extTypeInfo);
-        dataType = t;
+        type = TypeInfo.getTypeInfo(t, p, s, type != null ? type.getExtTypeInfo() : null);
         if (allConst) {
             Value v = getValue(session);
             if (v == ValueNull.INSTANCE) {

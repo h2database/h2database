@@ -696,9 +696,7 @@ public abstract class Value extends VersionedValue {
      * @return the converted value
      */
     public final Value convertTo(int targetType) {
-        // Use -1 to indicate "default behaviour" where value conversion should not
-        // depend on any datatype precision.
-        return convertTo(targetType, null);
+        return convertTo(targetType, null, null, null);
     }
 
     /**
@@ -706,9 +704,7 @@ public abstract class Value extends VersionedValue {
      * @param enumerators the extended type information for the ENUM data type
      * @return value represented as ENUM
      */
-    public final Value convertToEnum(ExtTypeInfo enumerators) {
-        // Use -1 to indicate "default behaviour" where value conversion should not
-        // depend on any datatype precision.
+    private Value convertToEnum(ExtTypeInfo enumerators) {
         return convertTo(ENUM, null, null, enumerators);
     }
 
@@ -731,7 +727,7 @@ public abstract class Value extends VersionedValue {
      * @param column the column (if any), used for to improve the error message if conversion fails
      * @return the converted value
      */
-    public Value convertTo(TypeInfo targetType, Mode mode, Object column) {
+    public final Value convertTo(TypeInfo targetType, Mode mode, Object column) {
         return convertTo(targetType.getValueType(), mode, column, targetType.getExtTypeInfo());
     }
 
@@ -744,7 +740,7 @@ public abstract class Value extends VersionedValue {
      * @param extTypeInfo the extended data type information, or null
      * @return the converted value
      */
-    public Value convertTo(int targetType, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
+    protected Value convertTo(int targetType, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
         // converting NULL is done in ValueNull
         // converting BLOB to CLOB and vice versa is done in ValueLob
         if (getValueType() == targetType) {

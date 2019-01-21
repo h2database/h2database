@@ -211,7 +211,7 @@ public class ValueLobDb extends Value {
      * @return the converted value
      */
     @Override
-    public Value convertTo(int t, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
+    protected Value convertTo(int t, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
         if (t == valueType) {
             return this;
         } else if (t == Value.CLOB) {

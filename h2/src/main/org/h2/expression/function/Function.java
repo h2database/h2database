@@ -902,7 +902,7 @@ public class Function extends Expression implements FunctionCall {
         case CONVERT: {
             Mode mode = database.getMode();
             TypeInfo type = this.type;
-            v0 = v0.convertTo(dataType, mode, null, extTypeInfo);
+            v0 = v0.convertTo(type, mode, null);
             v0 = v0.convertScale(mode.convertOnlyToSmallerScale, type.getScale());
             v0 = v0.convertPrecision(type.getPrecision(), false);
             result = v0;

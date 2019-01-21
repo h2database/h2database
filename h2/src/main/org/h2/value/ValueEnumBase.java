@@ -137,7 +137,7 @@ public class ValueEnumBase extends Value {
     }
 
     @Override
-    public Value convertTo(int targetType, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
+    protected Value convertTo(int targetType, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
         if (targetType == Value.ENUM) {
             return extTypeInfo.cast(this);
         }

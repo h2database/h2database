@@ -60,6 +60,7 @@ import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
+import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -2546,8 +2547,14 @@ public class Function extends Expression implements FunctionCall {
         type = typeInfo;
         if (allConst) {
             Value v = getValue(session);
-            if (v == ValueNull.INSTANCE) {
-                if (info.type == CAST || info.type == CONVERT) {
+            if (info.type == CAST || info.type == CONVERT) {
+                if (v == ValueNull.INSTANCE) {
+                    return this;
+                }
+                DataType dt = DataType.getDataType(type.getValueType());
+                TypeInfo vt = v.getType();
+                if (dt.supportsPrecision && type.getPrecision() != vt.getPrecision()
+                        || dt.supportsScale && type.getScale() != vt.getScale()) {
                     return this;
                 }
             }

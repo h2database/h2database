@@ -40,16 +40,6 @@ public class ValueTime extends Value {
     public static final int MAXIMUM_SCALE = 9;
 
     /**
-     * Get display size for the specified scale.
-     *
-     * @param scale scale
-     * @return display size
-     */
-    public static int getDisplaySize(int scale) {
-        return scale == 0 ? 8 : 9 + scale;
-    }
-
-    /**
      * Nanoseconds since midnight
      */
     private final long nanos;

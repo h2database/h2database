@@ -356,7 +356,7 @@ public class TestCases extends TestDb {
         Statement stat = conn.createStatement();
         stat.execute("create table test as select cast(0 as dec(10, 2)) x");
         ResultSetMetaData meta = stat.executeQuery("select * from test").getMetaData();
-        assertEquals(2, meta.getPrecision(1));
+        assertEquals(10, meta.getPrecision(1));
         assertEquals(2, meta.getScale(1));
         stat.execute("alter table test add column y int");
         stat.execute("drop table test");

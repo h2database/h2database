@@ -6084,18 +6084,18 @@ SELECT ID FROM TEST WHERE XVI LIKE 'abc%';
 > 3
 > rows: 1
 
-SELECT 'abc', 'Papa Joe''s', CAST(-1 AS SMALLINT), CAST(2 AS BIGINT), CAST(0 AS DOUBLE), CAST('0a0f' AS BINARY), CAST(125 AS TINYINT), TRUE, FALSE FROM TEST WHERE ID=1;
-> 'abc' 'Papa Joe''s' -1 2 0.0 X'0a0f' 125 TRUE FALSE
-> ----- ------------- -- - --- ------- --- ---- -----
-> abc   Papa Joe's    -1 2 0.0 0a0f    125 TRUE FALSE
+SELECT 'abc', 'Papa Joe''s', CAST(-1 AS SMALLINT), CAST(2 AS BIGINT), CAST(0 AS DOUBLE), CAST('0a0f' AS BINARY) B, CAST(125 AS TINYINT), TRUE, FALSE FROM TEST WHERE ID=1;
+> 'abc' 'Papa Joe''s' -1 2 0.0 B    125 TRUE FALSE
+> ----- ------------- -- - --- ---- --- ---- -----
+> abc   Papa Joe's    -1 2 0.0 0a0f 125 TRUE FALSE
 > rows: 1
 
 -- ' This apostrophe is here to fix syntax highlighting in the text editors.
 
-SELECT CAST('abcd' AS VARCHAR(255)), CAST('ef_gh' AS VARCHAR(3));
-> 'abcd' 'ef_'
-> ------ -----
-> abcd   ef_
+SELECT CAST('abcd' AS VARCHAR(255)) C1, CAST('ef_gh' AS VARCHAR(3)) C2;
+> C1   C2
+> ---- ---
+> abcd ef_
 > rows: 1
 
 DROP TABLE TEST;

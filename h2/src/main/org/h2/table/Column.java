@@ -27,7 +27,6 @@ import org.h2.schema.Sequence;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
-import org.h2.value.ExtTypeInfo;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
@@ -88,22 +87,7 @@ public class Column {
     private Domain domain;
 
     public Column(String name, int valueType) {
-        this(name, valueType, -1, -1, -1, null);
-    }
-
-    public Column(String name, int valueType, long precision, int scale, int displaySize) {
-        this(name, valueType, precision, scale, displaySize, null);
-    }
-
-    public Column(String name, int valueType, long precision, int scale, int displaySize, ExtTypeInfo extTypeInfo) {
-        this.name = name;
-        if (precision == -1 && scale == -1 && displaySize == -1 && valueType != Value.UNKNOWN) {
-            DataType dt = DataType.getDataType(valueType);
-            precision = dt.defaultPrecision;
-            scale = dt.defaultScale;
-            displaySize = dt.defaultDisplaySize;
-        }
-        this.type = new TypeInfo(valueType, precision, scale, displaySize, extTypeInfo);
+        this(name, TypeInfo.getTypeInfo(valueType));
     }
 
     public Column(String name, TypeInfo type) {

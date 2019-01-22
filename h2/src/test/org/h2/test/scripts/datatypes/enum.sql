@@ -26,6 +26,11 @@ select * from card;
 > 4    null
 > rows: 3
 
+@reconnect
+
+select suit from card where rank = 0;
+>> clubs
+
 alter table card alter column suit enum('a', 'b', 'c', 'd');
 > exception ENUM_VALUE_NOT_PERMITTED
 

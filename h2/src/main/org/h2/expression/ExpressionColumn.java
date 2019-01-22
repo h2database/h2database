@@ -216,6 +216,9 @@ public class ExpressionColumn extends Expression {
                 throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
             }
         }
+        /*
+         * ENUM values are stored as integers.
+         */
         if (value != ValueNull.INSTANCE) {
             ExtTypeInfo extTypeInfo = column.getType().getExtTypeInfo();
             if (extTypeInfo != null) {

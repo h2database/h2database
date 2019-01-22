@@ -21,9 +21,11 @@ import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.value.ExtTypeInfo;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
+import org.h2.value.ValueNull;
 
 /**
  * A expression that represents a column of a table or view.
@@ -212,6 +214,15 @@ public class ExpressionColumn extends Expression {
                 throw DbException.get(ErrorCode.NULL_NOT_ALLOWED, getSQL());
             } else {
                 throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
+            }
+        }
+        /*
+         * ENUM values are stored as integers.
+         */
+        if (value != ValueNull.INSTANCE) {
+            ExtTypeInfo extTypeInfo = column.getType().getExtTypeInfo();
+            if (extTypeInfo != null) {
+                return extTypeInfo.cast(value);
             }
         }
         return value;

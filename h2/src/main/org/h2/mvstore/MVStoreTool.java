@@ -699,8 +699,8 @@ public class MVStoreTool {
 
         @Override
         public void write(WriteBuffer buff, Object[] obj, int len, boolean key) {
-            for (Object o : obj) {
-                write(buff, o);
+            for (int i = 0; i < len; i++) {
+                write(buff, obj[i]);
             }
         }
 
@@ -717,12 +717,9 @@ public class MVStoreTool {
 
         @Override
         public void read(ByteBuffer buff, Object[] obj, int len, boolean key) {
-            for (int i = 0; i < obj.length; i++) {
+            for (int i = 0; i < len; i++) {
                 obj[i] = read(buff);
             }
         }
-
     }
-
-
 }

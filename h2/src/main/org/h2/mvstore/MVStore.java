@@ -505,9 +505,12 @@ public class MVStore implements AutoCloseable {
         M map;
         if (id >= 0) {
             map = openMap(id, builder);
+            assert builder.getKeyType() == null || map.getKeyType().getClass().equals(builder.getKeyType().getClass());
+            assert builder.getValueType() == null || map.getValueType().getClass().equals(builder.getValueType().getClass());
         } else {
             HashMap<String, Object> c = new HashMap<>();
             id = lastMapId.incrementAndGet();
+            assert getMap(id) == null;
             c.put("id", id);
             c.put("createVersion", currentVersion);
             map = builder.create(this, c);
@@ -1250,7 +1253,7 @@ public class MVStore implements AutoCloseable {
         ArrayList<Page> changed = new ArrayList<>();
         for (Iterator<MVMap<?, ?>> iter = maps.values().iterator(); iter.hasNext(); ) {
             MVMap<?, ?> map = iter.next();
-            MVMap.RootReference rootReference = map.setWriteVersion(version);
+            RootReference rootReference = map.setWriteVersion(version);
             if (rootReference == null) {
                 assert map.isClosed();
                 assert map.getVersion() < getOldestVersionToKeep();
@@ -1289,7 +1292,7 @@ public class MVStore implements AutoCloseable {
             }
         }
         applyFreedSpace();
-        MVMap.RootReference metaRootReference = meta.setWriteVersion(version);
+        RootReference metaRootReference = meta.setWriteVersion(version);
         assert metaRootReference != null;
         assert metaRootReference.version == version : metaRootReference.version + " != " + version;
         metaChanged = false;
@@ -1445,9 +1448,9 @@ public class MVStore implements AutoCloseable {
         try {
             ChunkIdsCollector collector = new ChunkIdsCollector(meta.getId());
             long oldestVersionToKeep = getOldestVersionToKeep();
-            MVMap.RootReference rootReference = meta.flushAndGetRoot();
+            RootReference rootReference = meta.flushAndGetRoot();
             if (fast) {
-                MVMap.RootReference previous;
+                RootReference previous;
                 while (rootReference.version >= oldestVersionToKeep && (previous = rootReference.previous) != null) {
                     rootReference = previous;
                 }
@@ -1482,7 +1485,7 @@ public class MVStore implements AutoCloseable {
      * @param inspectedRoots set of page positions for map's roots already inspected
      *                      or null if not to be used
      */
-    private void inspectVersion(MVMap.RootReference rootReference, ChunkIdsCollector collector,
+    private void inspectVersion(RootReference rootReference, ChunkIdsCollector collector,
                                 ThreadPoolExecutor executorService,
                                 AtomicInteger executingThreadCounter,
                                 Set<Long> inspectedRoots) {
@@ -2683,7 +2686,7 @@ public class MVStore implements AutoCloseable {
             DataUtils.checkArgument(map != meta,
                     "Removing the meta map is not allowed");
             map.close();
-            MVMap.RootReference rootReference = map.getRoot();
+            RootReference rootReference = map.getRoot();
             updateCounter += rootReference.updateCounter;
             updateAttemptCounter += rootReference.updateAttemptCounter;
 
@@ -2983,11 +2986,11 @@ public class MVStore implements AutoCloseable {
     public double getUpdateFailureRatio() {
         long updateCounter = this.updateCounter;
         long updateAttemptCounter = this.updateAttemptCounter;
-        MVMap.RootReference rootReference = meta.getRoot();
+        RootReference rootReference = meta.getRoot();
         updateCounter += rootReference.updateCounter;
         updateAttemptCounter += rootReference.updateAttemptCounter;
         for (MVMap<?, ?> map : maps.values()) {
-            MVMap.RootReference root = map.getRoot();
+            RootReference root = map.getRoot();
             updateCounter += root.updateCounter;
             updateAttemptCounter += root.updateAttemptCounter;
         }

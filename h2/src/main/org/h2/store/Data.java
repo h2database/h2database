@@ -96,7 +96,7 @@ public class Data {
     private static final int LOCAL_TIME = 132;
     private static final int LOCAL_DATE = 133;
     private static final int LOCAL_TIMESTAMP = 134;
-    private static final byte CUSTOM_DATA_TYPE = (byte)135;
+    private static final int CUSTOM_DATA_TYPE = 135;
 
     private static final long MILLIS_PER_MINUTE = 1000 * 60;
 

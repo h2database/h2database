@@ -200,6 +200,7 @@ import org.h2.test.unit.TestJmx;
 import org.h2.test.unit.TestKeywords;
 import org.h2.test.unit.TestLocalResultFactory;
 import org.h2.test.unit.TestLocale;
+import org.h2.test.unit.TestMVTempResult;
 import org.h2.test.unit.TestMathUtils;
 import org.h2.test.unit.TestMemoryUnmapper;
 import org.h2.test.unit.TestMode;
@@ -960,6 +961,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestSpinLock());
         addTest(new TestStreamStore());
         addTest(new TestTransactionStore());
+        addTest(new TestMVTempResult());
 
         // unit
         addTest(new TestAnsCompression());

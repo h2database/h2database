@@ -301,12 +301,8 @@ public class LocalResultImpl implements LocalResult {
     }
 
     private void createExternalResult() {
-        Database database = session.getDatabase();
-        external = database.isMVStore()
-                || /* not supported by ResultTempTable */ distinct && expressions.length != visibleColumnCount
-                || distinctIndexes != null
-                ? MVTempResult.of(database, expressions, distinct, distinctIndexes, visibleColumnCount, sort)
-                        : new ResultTempTable(session, expressions, distinct, sort);
+        external = MVTempResult.of(session.getDatabase(), expressions, distinct, distinctIndexes, visibleColumnCount,
+                sort);
     }
 
     /**

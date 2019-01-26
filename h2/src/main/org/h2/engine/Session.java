@@ -411,7 +411,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         boolean wasLocked = database.lockMeta(this);
         try {
             modificationId++;
-            localTempTables.remove(table.getName());
+            if (localTempTables != null) {
+                localTempTables.remove(table.getName());
+            }
             synchronized (database) {
                 table.removeChildrenAndResources(this);
             }

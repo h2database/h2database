@@ -1232,6 +1232,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                         }
                     }
                 } else {
+                    tip = tip.parent;
                     page = Page.createLeaf(this,
                             Arrays.copyOf(keysBuffer, keyCount),
                             Arrays.copyOf(valuesBuffer, keyCount),
@@ -1323,6 +1324,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param value to be appended
      */
     public void append(K key, V value) {
+        beforeWrite();
         RootReference rootReference = lockRoot(getRoot(), 1);
         int appendCounter = rootReference.getAppendCounter();
         try {

@@ -20,7 +20,7 @@ import org.h2.tools.DeleteDbFiles;
  */
 public class TestMVTempResult extends TestBase {
 
-    private static final int MEMORY = 128;
+    private static final int MEMORY = 64;
 
     private static final int ROWS = 1_000_000;
 

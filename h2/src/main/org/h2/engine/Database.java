@@ -1391,10 +1391,7 @@ public class Database implements DataHandler {
         for (Session s : all) {
             if (s != except) {
                 try {
-                    // must roll back, otherwise the session is removed and
-                    // the transaction log that contains its uncommitted
-                    // operations as well
-                    s.rollback();
+                    // this will rollback outstanding transaction
                     s.close();
                 } catch (DbException e) {
                     trace.error(e, "disconnecting session #{0}", s.getId());

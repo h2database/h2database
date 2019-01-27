@@ -1337,18 +1337,19 @@ public abstract class Value extends VersionedValue {
         return ValueArray.get(a);
     }
 
-    private ValueRow convertToRow() {
+    private Value convertToRow() {
         Value[] a;
-        switch (getValueType()) {
-        case ARRAY:
-            a = ((ValueArray) this).getList();
-            break;
-        case BLOB:
-        case CLOB:
-        case RESULT_SET:
-            a = new Value[] { ValueString.get(getString()) };
-            break;
-        default:
+        if (getValueType() == RESULT_SET) {
+            ResultInterface result = ((ValueResultSet) this).getResult();
+            if (result.hasNext()) {
+                a = result.currentRow();
+                if (result.hasNext()) {
+                    throw DbException.get(ErrorCode.SCALAR_SUBQUERY_CONTAINS_MORE_THAN_ONE_ROW);
+                }
+            } else {
+                return ValueNull.INSTANCE;
+            }
+        } else {
             a = new Value[] { this };
         }
         return ValueRow.get(a);

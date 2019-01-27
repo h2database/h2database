@@ -84,5 +84,13 @@ SELECT ARRAY[1, NULL] IN (SELECT A FROM TEST);
 SELECT ROW (ARRAY[1, NULL]) IN (SELECT A FROM TEST);
 >> null
 
+-- Compatibility with H2 1.4.197 and older
+SELECT A FROM TEST WHERE A = (1, 2);
+>> [1, 2]
+
+-- Compatibility with H2 1.4.197 and older
+INSERT INTO TEST VALUES ((1, 3));
+> update count: 1
+
 DROP TABLE TEST;
 > ok

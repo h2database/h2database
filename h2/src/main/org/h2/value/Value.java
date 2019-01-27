@@ -435,13 +435,13 @@ public abstract class Value extends VersionedValue {
             return 43_000;
         case GEOMETRY:
             return 44_000;
+        case ENUM:
+            return 45_000;
         case ARRAY:
             return 50_000;
         case ROW:
-            return 50_500;
-        case RESULT_SET:
             return 51_000;
-        case ENUM:
+        case RESULT_SET:
             return 52_000;
         default:
             if (JdbcUtils.customDataTypesHandler != null) {

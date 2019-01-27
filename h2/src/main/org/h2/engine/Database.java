@@ -1082,9 +1082,11 @@ public class Database implements DataHandler {
      * @param session the session
      */
     public void unlockMeta(Session session) {
-        unlockMetaDebug(session);
-        meta.unlock(session);
-        session.unlock(meta);
+        if (meta != null) {
+            unlockMetaDebug(session);
+            meta.unlock(session);
+            session.unlock(meta);
+        }
     }
 
     /**
@@ -1888,7 +1890,7 @@ public class Database implements DataHandler {
                 }
             }
         } else {
-            lockMeta(session);
+            boolean metaWasLocked = lockMeta(session);
             synchronized (this) {
                 int id = obj.getId();
                 removeMeta(session, id);
@@ -1897,6 +1899,9 @@ public class Database implements DataHandler {
                 if(id > 0) {
                     objectIds.set(id);
                 }
+            }
+            if (!metaWasLocked) {
+                unlockMeta(session);
             }
         }
     }

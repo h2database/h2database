@@ -1226,14 +1226,16 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             return;
         }
         State prevState = this.state.get();
-        lastThrottle = time + throttleNs;
-        try {
-            state.set(State.SLEEP);
-            Thread.sleep(TimeUnit.NANOSECONDS.toMillis(throttleNs));
-        } catch (Exception e) {
-            // ignore InterruptedException
-        } finally {
-            state.set(prevState);
+        if (prevState != State.CLOSED) {
+            lastThrottle = time + throttleNs;
+            try {
+                state.compareAndSet(prevState, State.SLEEP);
+                Thread.sleep(TimeUnit.NANOSECONDS.toMillis(throttleNs));
+            } catch (Exception e) {
+                // ignore InterruptedException
+            } finally {
+                state.compareAndSet(State.SLEEP, prevState);
+            }
         }
     }
 
@@ -1250,7 +1252,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      *            from
      */
     public void setCurrentCommand(Command command, Object generatedKeysRequest) {
-        this.currentCommand = command;
+        currentCommand = command;
         // Preserve generated keys in case of a new query due to possible nested
         // queries in update
         if (command != null && !command.isQuery()) {
@@ -1265,7 +1267,10 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                 currentCommandStart = null;
             }
         }
-        state.set(command == null ? State.SLEEP : State.RUNNING);
+        State currentState = state.get();
+        if(currentState != State.CLOSED) {
+            state.compareAndSet(currentState, command == null ? State.SLEEP : State.RUNNING);
+        }
     }
 
     /**

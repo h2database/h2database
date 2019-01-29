@@ -3084,6 +3084,12 @@ public class Parser {
             }
             break;
         }
+        case PERCENTILE_DISC: {
+            Expression num = readExpression();
+            read(CLOSE_PAREN);
+            r = readWithinGroup(aggregateType, num);
+            break;
+        }
         case MODE: {
             if (readIf(CLOSE_PAREN)) {
                 r = readWithinGroup(AggregateType.MODE, null);

@@ -34,6 +34,7 @@ abstract class AggregateData {
             break;
         case GROUP_CONCAT:
         case ARRAY_AGG:
+        case PERCENTILE_DISC:
         case MEDIAN:
             break;
         case MIN:

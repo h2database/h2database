@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.h2.api.IntervalQualifier;
+import org.h2.command.dml.SelectOrderBy;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
@@ -41,25 +42,26 @@ import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
 
 /**
- * MEDIAN aggregate.
+ * PERCENTILE_DISC and MEDIAN inverse distribution functions.
  */
-final class AggregateMedian {
+final class Percentile {
 
     private static boolean isNullsLast(Index index) {
         IndexColumn ic = index.getIndexColumns()[0];
         int sortType = ic.sortType;
         return (sortType & SortOrder.NULLS_LAST) != 0
                 || (sortType & SortOrder.NULLS_FIRST) == 0
-                        && ((sortType & SortOrder.DESCENDING) != 0 ^ SysProperties.SORT_NULLS_HIGH);
+                        && (sortType & SortOrder.DESCENDING) != 0 ^ SysProperties.SORT_NULLS_HIGH;
     }
 
     /**
-     * Get the index (if any) for the column specified in the median aggregate.
+     * Get the index (if any) for the column specified in the inverse
+     * distribution function.
      *
      * @param on the expression (usually a column expression)
      * @return the index, or null
      */
-    static Index getMedianColumnIndex(Expression on) {
+    static Index getColumnIndex(Expression on) {
         if (on instanceof ExpressionColumn) {
             ExpressionColumn col = (ExpressionColumn) on;
             Column column = col.getColumn();
@@ -92,35 +94,64 @@ final class AggregateMedian {
     }
 
     /**
-     * Get the median from the array of values.
+     * Get the result from the array of values.
      *
      * @param database the database
      * @param array array with values
      * @param dataType the data type
+     * @param orderByList ORDER BY list
+     * @param percentile argument of percentile function, or 0.5d for median
+     * @param interpolate whether value should be interpolated
      * @return the result
      */
-    static Value median(Database database, Value[] array, int dataType) {
+    static Value getValue(Database database, Value[] array, int dataType, ArrayList<SelectOrderBy> orderByList,
+            double percentile, boolean interpolate) {
         final CompareMode compareMode = database.getCompareMode();
         Arrays.sort(array, compareMode);
-        int len = array.length;
-        int idx = len / 2;
-        Value v1 = array[idx];
-        if ((len & 1) == 1) {
-            return v1.convertTo(dataType);
+        int count = array.length;
+        boolean reverseIndex = orderByList != null && (orderByList.get(0).sortType & SortOrder.DESCENDING) != 0;
+        double fpRow = (count - 1) * percentile;
+        int rowIdx1 = (int) fpRow;
+        double factor = fpRow - rowIdx1;
+        int rowIdx2;
+        if (factor == 0d) {
+            interpolate = false;
+            rowIdx2 = rowIdx1;
+        } else {
+            rowIdx2 = rowIdx1 + 1;
+            if (!interpolate) {
+                if (factor > 0.5d) {
+                    rowIdx1 = rowIdx2;
+                } else {
+                    rowIdx2 = rowIdx1;
+                }
+            }
         }
-        return getMedian(array[idx - 1], v1, dataType, database.getMode(), compareMode);
+        if (reverseIndex) {
+            rowIdx1 = count - 1 - rowIdx1;
+            rowIdx2 = count - 1 - rowIdx2;
+        }
+        Value v = array[rowIdx1];
+        if (!interpolate) {
+            return v.convertTo(dataType);
+        }
+        return getMedian(v, array[rowIdx2], dataType, database.getMode(), compareMode);
     }
 
     /**
-     * Get the median from the index.
+     * Get the result from the index.
      *
      * @param session the session
-     * @param on the expression
+     * @param expression the expression
      * @param dataType the data type
+     * @param orderByList ORDER BY list
+     * @param percentile argument of percentile function, or 0.5d for median
+     * @param interpolate whether value should be interpolated
      * @return the result
      */
-    static Value medianFromIndex(Session session, Expression on, int dataType) {
-        Index index = getMedianColumnIndex(on);
+    static Value getFromIndex(Session session, Expression expression, int dataType,
+            ArrayList<SelectOrderBy> orderByList, double percentile, boolean interpolate) {
+        Index index = getColumnIndex(expression);
         long count = index.getRowCount(session);
         if (count == 0) {
             return ValueNull.INSTANCE;
@@ -128,7 +159,7 @@ final class AggregateMedian {
         Cursor cursor = index.find(session, null, null);
         cursor.next();
         int columnId = index.getColumns()[0].getColumnId();
-        ExpressionColumn expr = (ExpressionColumn) on;
+        ExpressionColumn expr = (ExpressionColumn) expression;
         if (expr.getColumn().isNullable()) {
             boolean hasNulls = false;
             SearchRow row;
@@ -165,7 +196,26 @@ final class AggregateMedian {
                 }
             }
         }
-        long skip = (count - 1) / 2;
+        boolean reverseIndex = (orderByList != null ? orderByList.get(0).sortType & SortOrder.DESCENDING : 0)
+                != (index.getIndexColumns()[0].sortType & SortOrder.DESCENDING);
+        double fpRow = (count - 1) * percentile;
+        long rowIdx1 = (long) fpRow;
+        double factor = fpRow - rowIdx1;
+        long rowIdx2;
+        if (factor == 0d) {
+            interpolate = false;
+            rowIdx2 = rowIdx1;
+        } else {
+            rowIdx2 = rowIdx1 + 1;
+            if (!interpolate) {
+                if (factor > 0.5d) {
+                    rowIdx1 = rowIdx2;
+                } else {
+                    rowIdx2 = rowIdx1;
+                }
+            }
+        }
+        long skip = reverseIndex ? count - 1 - rowIdx2 : rowIdx1;
         for (int i = 0; i < skip; i++) {
             cursor.next();
         }
@@ -177,7 +227,7 @@ final class AggregateMedian {
         if (v == ValueNull.INSTANCE) {
             return v;
         }
-        if ((count & 1) == 0) {
+        if (interpolate) {
             cursor.next();
             row = cursor.getSearchRow();
             if (row == null) {
@@ -188,14 +238,18 @@ final class AggregateMedian {
                 return v;
             }
             Database database = session.getDatabase();
+            if (reverseIndex) {
+                Value t = v;
+                v = v2;
+                v2 = t;
+            }
             return getMedian(v, v2, dataType, database.getMode(), database.getCompareMode());
         }
         return v;
     }
 
     private static Value getMedian(Value v0, Value v1, int dataType, Mode databaseMode, CompareMode compareMode) {
-        int cmp = v0.compareTo(v1, databaseMode, compareMode);
-        if (cmp == 0) {
+        if (v0.compareTo(v1, databaseMode, compareMode) == 0) {
             return v0.convertTo(dataType);
         }
         switch (dataType) {
@@ -273,12 +327,12 @@ final class AggregateMedian {
                     IntervalUtils.intervalToAbsolute((ValueInterval) v0)
                             .add(IntervalUtils.intervalToAbsolute((ValueInterval) v1)).shiftRight(1));
         default:
-            // Just return smaller
-            return (cmp < 0 ? v0 : v1).convertTo(dataType);
+            // Just return first
+            return v0.convertTo(dataType);
         }
     }
 
-    private AggregateMedian() {
+    private Percentile() {
     }
 
 }

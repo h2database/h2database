@@ -13,14 +13,26 @@ create index test_idx on test(v asc);
 insert into test values (20), (20), (10);
 > update count: 3
 
-select median(v) from test;
->> 20
+select
+    percentile_disc(0.5) within group (order by v) d50a,
+    percentile_disc(0.5) within group (order by v desc) d50d,
+    median(v) m from test;
+> D50A D50D M
+> ---- ---- --
+> 20   20   20
+> rows: 1
 
 insert into test values (null);
 > update count: 1
 
-select median(v) from test;
->> 20
+select
+    percentile_disc(0.5) within group (order by v) d50a,
+    percentile_disc(0.5) within group (order by v desc) d50d,
+    median(v) m from test;
+> D50A D50D M
+> ---- ---- --
+> 20   20   20
+> rows: 1
 
 select median(distinct v) from test;
 >> 15
@@ -28,8 +40,14 @@ select median(distinct v) from test;
 insert into test values (10);
 > update count: 1
 
-select median(v) from test;
->> 15
+select
+    percentile_disc(0.5) within group (order by v) d50a,
+    percentile_disc(0.5) within group (order by v desc) d50d,
+    median(v) m from test;
+> D50A D50D M
+> ---- ---- --
+> 10   20   15
+> rows: 1
 
 drop table test;
 > ok
@@ -44,14 +62,26 @@ create index test_idx on test(v asc nulls first);
 insert into test values (20), (20), (10);
 > update count: 3
 
-select median(v) from test;
->> 20
+select
+    percentile_disc(0.5) within group (order by v) d50a,
+    percentile_disc(0.5) within group (order by v desc) d50d,
+    median(v) m from test;
+> D50A D50D M
+> ---- ---- --
+> 20   20   20
+> rows: 1
 
 insert into test values (null);
 > update count: 1
 
-select median(v) from test;
->> 20
+select
+    percentile_disc(0.5) within group (order by v) d50a,
+    percentile_disc(0.5) within group (order by v desc) d50d,
+    median(v) m from test;
+> D50A D50D M
+> ---- ---- --
+> 20   20   20
+> rows: 1
 
 select median(distinct v) from test;
 >> 15
@@ -59,8 +89,14 @@ select median(distinct v) from test;
 insert into test values (10);
 > update count: 1
 
-select median(v) from test;
->> 15
+select
+    percentile_disc(0.5) within group (order by v) d50a,
+    percentile_disc(0.5) within group (order by v desc) d50d,
+    median(v) m from test;
+> D50A D50D M
+> ---- ---- --
+> 10   20   15
+> rows: 1
 
 drop table test;
 > ok
@@ -75,14 +111,26 @@ create index test_idx on test(v asc nulls last);
 insert into test values (20), (20), (10);
 > update count: 3
 
-select median(v) from test;
->> 20
+select
+    percentile_disc(0.5) within group (order by v) d50a,
+    percentile_disc(0.5) within group (order by v desc) d50d,
+    median(v) m from test;
+> D50A D50D M
+> ---- ---- --
+> 20   20   20
+> rows: 1
 
 insert into test values (null);
 > update count: 1
 
-select median(v) from test;
->> 20
+select
+    percentile_disc(0.5) within group (order by v) d50a,
+    percentile_disc(0.5) within group (order by v desc) d50d,
+    median(v) m from test;
+> D50A D50D M
+> ---- ---- --
+> 20   20   20
+> rows: 1
 
 select median(distinct v) from test;
 >> 15
@@ -90,8 +138,14 @@ select median(distinct v) from test;
 insert into test values (10);
 > update count: 1
 
-select median(v) from test;
->> 15
+select
+    percentile_disc(0.5) within group (order by v) d50a,
+    percentile_disc(0.5) within group (order by v desc) d50d,
+    median(v) m from test;
+> D50A D50D M
+> ---- ---- --
+> 10   20   15
+> rows: 1
 
 drop table test;
 > ok
@@ -106,14 +160,26 @@ create index test_idx on test(v desc);
 insert into test values (20), (20), (10);
 > update count: 3
 
-select median(v) from test;
->> 20
+select
+    percentile_disc(0.5) within group (order by v) d50a,
+    percentile_disc(0.5) within group (order by v desc) d50d,
+    median(v) m from test;
+> D50A D50D M
+> ---- ---- --
+> 20   20   20
+> rows: 1
 
 insert into test values (null);
 > update count: 1
 
-select median(v) from test;
->> 20
+select
+    percentile_disc(0.5) within group (order by v) d50a,
+    percentile_disc(0.5) within group (order by v desc) d50d,
+    median(v) m from test;
+> D50A D50D M
+> ---- ---- --
+> 20   20   20
+> rows: 1
 
 select median(distinct v) from test;
 >> 15
@@ -121,8 +187,14 @@ select median(distinct v) from test;
 insert into test values (10);
 > update count: 1
 
-select median(v) from test;
->> 15
+select
+    percentile_disc(0.5) within group (order by v) d50a,
+    percentile_disc(0.5) within group (order by v desc) d50d,
+    median(v) m from test;
+> D50A D50D M
+> ---- ---- --
+> 10   20   15
+> rows: 1
 
 drop table test;
 > ok
@@ -137,14 +209,26 @@ create index test_idx on test(v desc nulls first);
 insert into test values (20), (20), (10);
 > update count: 3
 
-select median(v) from test;
->> 20
+select
+    percentile_disc(0.5) within group (order by v) d50a,
+    percentile_disc(0.5) within group (order by v desc) d50d,
+    median(v) m from test;
+> D50A D50D M
+> ---- ---- --
+> 20   20   20
+> rows: 1
 
 insert into test values (null);
 > update count: 1
 
-select median(v) from test;
->> 20
+select
+    percentile_disc(0.5) within group (order by v) d50a,
+    percentile_disc(0.5) within group (order by v desc) d50d,
+    median(v) m from test;
+> D50A D50D M
+> ---- ---- --
+> 20   20   20
+> rows: 1
 
 select median(distinct v) from test;
 >> 15
@@ -152,8 +236,14 @@ select median(distinct v) from test;
 insert into test values (10);
 > update count: 1
 
-select median(v) from test;
->> 15
+select
+    percentile_disc(0.5) within group (order by v) d50a,
+    percentile_disc(0.5) within group (order by v desc) d50d,
+    median(v) m from test;
+> D50A D50D M
+> ---- ---- --
+> 10   20   15
+> rows: 1
 
 drop table test;
 > ok
@@ -168,14 +258,26 @@ create index test_idx on test(v desc nulls last);
 insert into test values (20), (20), (10);
 > update count: 3
 
-select median(v) from test;
->> 20
+select
+    percentile_disc(0.5) within group (order by v) d50a,
+    percentile_disc(0.5) within group (order by v desc) d50d,
+    median(v) m from test;
+> D50A D50D M
+> ---- ---- --
+> 20   20   20
+> rows: 1
 
 insert into test values (null);
 > update count: 1
 
-select median(v) from test;
->> 20
+select
+    percentile_disc(0.5) within group (order by v) d50a,
+    percentile_disc(0.5) within group (order by v desc) d50d,
+    median(v) m from test;
+> D50A D50D M
+> ---- ---- --
+> 20   20   20
+> rows: 1
 
 select median(distinct v) from test;
 >> 15
@@ -183,8 +285,14 @@ select median(distinct v) from test;
 insert into test values (10);
 > update count: 1
 
-select median(v) from test;
->> 15
+select
+    percentile_disc(0.5) within group (order by v) d50a,
+    percentile_disc(0.5) within group (order by v desc) d50d,
+    median(v) m from test;
+> D50A D50D M
+> ---- ---- --
+> 10   20   15
+> rows: 1
 
 drop table test;
 > ok
@@ -662,6 +770,102 @@ select dept, median(amount) filter (where amount >= 20) from test
 > Second 21
 > Third  150
 > rows (ordered): 3
+
+drop table test;
+> ok
+
+create table test(g int, v int);
+> ok
+
+insert into test values (1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8), (1, 9), (1, 10),
+    (2, 10), (2, 20), (2, 30), (2, 100);
+> update count: 14
+
+select
+    percentile_disc(0.05) within group (order by v) d05a,
+    percentile_disc(0.05) within group (order by v desc) d05d,
+    percentile_disc(0.5) within group (order by v) d50,
+    percentile_disc(0.5) within group (order by v desc) d50d,
+    percentile_disc(0.95) within group (order by v) d95a,
+    percentile_disc(0.95) within group (order by v desc) d95d,
+    g from test group by g;
+> D05A D05D D50 D50D D95A D95D G
+> ---- ---- --- ---- ---- ---- -
+> 1    10   5   6    10   1    1
+> 10   100  20  30   100  10   2
+> rows: 2
+
+select
+    percentile_disc(0.05) within group (order by v) over (partition by g order by v) d05a,
+    percentile_disc(0.05) within group (order by v desc) over (partition by g order by v) d05d,
+    percentile_disc(0.5) within group (order by v) over (partition by g order by v) d50,
+    percentile_disc(0.5) within group (order by v desc) over (partition by g order by v) d50d,
+    percentile_disc(0.95) within group (order by v) over (partition by g order by v) d95a,
+    percentile_disc(0.95) within group (order by v desc) over (partition by g order by v) d95d,
+    g, v from test order by g, v;
+> D05A D05D D50 D50D D95A D95D G V
+> ---- ---- --- ---- ---- ---- - ---
+> 1    1    1   1    1    1    1 1
+> 1    2    1   2    2    1    1 2
+> 1    3    2   2    3    1    1 3
+> 1    4    2   3    4    1    1 4
+> 1    5    3   3    5    1    1 5
+> 1    6    3   4    6    1    1 6
+> 1    7    4   4    7    1    1 7
+> 1    8    4   5    8    1    1 8
+> 1    9    5   5    9    1    1 9
+> 1    10   5   6    10   1    1 10
+> 10   10   10  10   10   10   2 10
+> 10   20   10  20   20   10   2 20
+> 10   30   20  20   30   10   2 30
+> 10   100  20  30   100  10   2 100
+> rows (ordered): 14
+
+delete from test where g <> 1;
+> update count: 4
+
+create index test_idx on test(v);
+> ok
+
+select
+    percentile_disc(0.05) within group (order by v) d05a,
+    percentile_disc(0.05) within group (order by v desc) d05d,
+    percentile_disc(0.5) within group (order by v) d50,
+    percentile_disc(0.5) within group (order by v desc) d50d,
+    percentile_disc(0.95) within group (order by v) d95a,
+    percentile_disc(0.95) within group (order by v desc) d95d
+    from test;
+> D05A D05D D50 D50D D95A D95D
+> ---- ---- --- ---- ---- ----
+> 1    10   5   6    10   1
+> rows: 1
+
+SELECT percentile_disc(null) within group (order by v) from test;
+>> null
+
+SELECT percentile_disc(-0.01) within group (order by v) from test;
+> exception INVALID_VALUE_2
+
+SELECT percentile_disc(1.01) within group (order by v) from test;
+> exception INVALID_VALUE_2
+
+SELECT percentile_disc(v) within group (order by v) from test;
+> exception INVALID_VALUE_2
+
+drop index test_idx;
+> ok
+
+SELECT percentile_disc(null) within group (order by v) from test;
+>> null
+
+SELECT percentile_disc(-0.01) within group (order by v) from test;
+> exception INVALID_VALUE_2
+
+SELECT percentile_disc(1.01) within group (order by v) from test;
+> exception INVALID_VALUE_2
+
+SELECT percentile_disc(v) within group (order by v) from test;
+> exception INVALID_VALUE_2
 
 drop table test;
 > ok

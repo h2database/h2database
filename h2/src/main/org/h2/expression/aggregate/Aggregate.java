@@ -111,6 +111,7 @@ public class Aggregate extends AbstractAggregate {
         addAggregate("HISTOGRAM", AggregateType.HISTOGRAM);
         addAggregate("BIT_OR", AggregateType.BIT_OR);
         addAggregate("BIT_AND", AggregateType.BIT_AND);
+        addAggregate("PERCENTILE_DISC", AggregateType.PERCENTILE_DISC);
         addAggregate("MEDIAN", AggregateType.MEDIAN);
         addAggregate("ARRAY_AGG", AggregateType.ARRAY_AGG);
         addAggregate("MODE", AggregateType.MODE);
@@ -197,6 +198,10 @@ public class Aggregate extends AbstractAggregate {
             if (v != ValueNull.INSTANCE) {
                 v = updateCollecting(session, v, remembered);
             }
+            break;
+        case PERCENTILE_DISC:
+            ((AggregateDataCollecting) data).setSharedArgument(v);
+            v = remembered != null ? remembered[1] : orderByList.get(0).expression.getValue(session);
             break;
         case MODE:
             v = remembered != null ? remembered[0] : orderByList.get(0).expression.getValue(session);
@@ -309,8 +314,21 @@ public class Aggregate extends AbstractAggregate {
             }
             return v;
         }
+        case PERCENTILE_DISC: {
+            Value v = on.getValue(session);
+            if (v == ValueNull.INSTANCE) {
+                return ValueNull.INSTANCE;
+            }
+            double arg = v.getDouble();
+            if (arg >= 0d && arg <= 1d) {
+                return Percentile.getFromIndex(session, orderByList.get(0).expression, type.getValueType(),
+                        orderByList, arg, false);
+            } else {
+                throw DbException.getInvalidValueException("PERCENTILE_DISC argument", arg);
+            }
+        }
         case MEDIAN:
-            return AggregateMedian.medianFromIndex(session, on, type.getValueType());
+            return Percentile.getFromIndex(session, on, type.getValueType(), orderByList, 0.5d, true);
         case ENVELOPE:
             return ((MVSpatialIndex) AggregateDataEnvelope.getGeometryColumnIndex(on)).getBounds(session);
         default:
@@ -369,12 +387,29 @@ public class Aggregate extends AbstractAggregate {
             }
             return ValueArray.get(array);
         }
+        case PERCENTILE_DISC: {
+            AggregateDataCollecting collectingData = (AggregateDataCollecting) data;
+            Value[] array = collectingData.getArray();
+            if (array == null) {
+                return ValueNull.INSTANCE;
+            }
+            Value v = collectingData.getSharedArgument();
+            if (v == ValueNull.INSTANCE) {
+                return ValueNull.INSTANCE;
+            }
+            double arg = v.getDouble();
+            if (arg >= 0d && arg <= 1d) {
+                return Percentile.getValue(session.getDatabase(), array, type.getValueType(), orderByList, arg, false);
+            } else {
+                throw DbException.getInvalidValueException("PERCENTILE_DISC argument", arg);
+            }
+        }
         case MEDIAN: {
             Value[] array = ((AggregateDataCollecting) data).getArray();
             if (array == null) {
                 return ValueNull.INSTANCE;
             }
-            return AggregateMedian.median(session.getDatabase(), array, type.getValueType());
+            return Percentile.getValue(session.getDatabase(), array, type.getValueType(), orderByList, 0.5d, true);
         }
         case MODE:
             return getMode(session, data);
@@ -549,6 +584,7 @@ public class Aggregate extends AbstractAggregate {
         case MAX:
         case MEDIAN:
             break;
+        case PERCENTILE_DISC:
         case MODE:
             type = orderByList.get(0).expression.getType();
             break;
@@ -675,6 +711,9 @@ public class Aggregate extends AbstractAggregate {
         case BIT_OR:
             text = "BIT_OR";
             break;
+        case PERCENTILE_DISC:
+            text = "PERCENTILE_DISC";
+            break;
         case MEDIAN:
             text = "MEDIAN";
             break;
@@ -746,11 +785,13 @@ public class Aggregate extends AbstractAggregate {
             case MAX:
                 Index index = getMinMaxColumnIndex();
                 return index != null;
+            case PERCENTILE_DISC:
+                return on.isConstant() && Percentile.getColumnIndex(orderByList.get(0).expression) != null;
             case MEDIAN:
                 if (distinct) {
                     return false;
                 }
-                return AggregateMedian.getMedianColumnIndex(on) != null;
+                return Percentile.getColumnIndex(on) != null;
             case ENVELOPE:
                 return AggregateDataEnvelope.getGeometryColumnIndex(on) != null;
             default:

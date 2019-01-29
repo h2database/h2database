@@ -662,6 +662,11 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         rs.next();
         int fileSize = rs.getInt(1);
         assertTrue(fileSize > 0);
+        rs = stat.executeQuery("SELECT LENGTH(FILE_READ('https://github.com')) LEN");
+        rs.next();
+        int webResourceSize = rs.getInt(1);
+        assertTrue(webResourceSize > 0);
+        conn.close();
         conn.close();
     }
 

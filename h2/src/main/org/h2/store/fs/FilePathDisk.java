@@ -62,7 +62,12 @@ public class FilePathDisk extends FilePath {
                 return 0;
             }
         }
-        return new File(name).length();
+        File localResource = new File(name);
+        if (localResource.exists()){
+            return localResource.length();
+        } else {
+            return -1;
+        }
     }
 
     /**

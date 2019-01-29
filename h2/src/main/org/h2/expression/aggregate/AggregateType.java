@@ -96,6 +96,11 @@ public enum AggregateType {
     HISTOGRAM,
 
     /**
+     * The aggregate type for PERCENTILE_CONT(expression).
+     */
+    PERCENTILE_CONT,
+
+    /**
      * The aggregate type for PERCENTILE_DISC(expression).
      */
     PERCENTILE_DISC,

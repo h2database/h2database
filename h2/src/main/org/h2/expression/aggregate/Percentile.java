@@ -6,6 +6,7 @@
 package org.h2.expression.aggregate;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -42,7 +43,7 @@ import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
 
 /**
- * PERCENTILE_DISC and MEDIAN inverse distribution functions.
+ * PERCENTILE_CONT, PERCENTILE_DISC, and MEDIAN inverse distribution functions.
  */
 final class Percentile {
 
@@ -135,7 +136,7 @@ final class Percentile {
         if (!interpolate) {
             return v.convertTo(dataType);
         }
-        return getMedian(v, array[rowIdx2], dataType, database.getMode(), compareMode);
+        return interpolate(v, array[rowIdx2], factor, dataType, database.getMode(), compareMode);
     }
 
     /**
@@ -243,12 +244,13 @@ final class Percentile {
                 v = v2;
                 v2 = t;
             }
-            return getMedian(v, v2, dataType, database.getMode(), database.getCompareMode());
+            return interpolate(v, v2, factor, dataType, database.getMode(), database.getCompareMode());
         }
         return v;
     }
 
-    private static Value getMedian(Value v0, Value v1, int dataType, Mode databaseMode, CompareMode compareMode) {
+    private static Value interpolate(Value v0, Value v1, double factor, int dataType, Mode databaseMode,
+            CompareMode compareMode) {
         if (v0.compareTo(v1, databaseMode, compareMode) == 0) {
             return v0.convertTo(dataType);
         }
@@ -256,59 +258,71 @@ final class Percentile {
         case Value.BYTE:
         case Value.SHORT:
         case Value.INT:
-            return ValueInt.get((v0.getInt() + v1.getInt()) / 2).convertTo(dataType);
+            return ValueInt.get((int) (v0.getInt() * (1 - factor) + v1.getInt() * factor)).convertTo(dataType);
         case Value.LONG:
-            return ValueLong.get((v0.getLong() + v1.getLong()) / 2);
+            return ValueLong
+                    .get(interpolateDecimal(BigDecimal.valueOf(v0.getLong()), BigDecimal.valueOf(v1.getLong()), factor)
+                            .longValue());
         case Value.DECIMAL:
-            return ValueDecimal.get(v0.getBigDecimal().add(v1.getBigDecimal()).divide(BigDecimal.valueOf(2)));
+            return ValueDecimal.get(interpolateDecimal(v0.getBigDecimal(), v1.getBigDecimal(), factor));
         case Value.FLOAT:
-            return ValueFloat.get((v0.getFloat() + v1.getFloat()) / 2);
+            return ValueFloat.get(
+                    interpolateDecimal(BigDecimal.valueOf(v0.getFloat()), BigDecimal.valueOf(v1.getFloat()), factor)
+                            .floatValue());
         case Value.DOUBLE:
-            return ValueDouble.get((v0.getFloat() + v1.getDouble()) / 2);
+            return ValueDouble.get(
+                    interpolateDecimal(BigDecimal.valueOf(v0.getDouble()), BigDecimal.valueOf(v1.getDouble()), factor)
+                            .doubleValue());
         case Value.TIME: {
             ValueTime t0 = (ValueTime) v0.convertTo(Value.TIME), t1 = (ValueTime) v1.convertTo(Value.TIME);
-            return ValueTime.fromNanos((t0.getNanos() + t1.getNanos()) / 2);
+            BigDecimal n0 = BigDecimal.valueOf(t0.getNanos());
+            BigDecimal n1 = BigDecimal.valueOf(t1.getNanos());
+            return ValueTime.fromNanos(interpolateDecimal(n0, n1, factor).longValue());
         }
         case Value.DATE: {
             ValueDate d0 = (ValueDate) v0.convertTo(Value.DATE), d1 = (ValueDate) v1.convertTo(Value.DATE);
+            BigDecimal a0 = BigDecimal.valueOf(DateTimeUtils.absoluteDayFromDateValue(d0.getDateValue()));
+            BigDecimal a1 = BigDecimal.valueOf(DateTimeUtils.absoluteDayFromDateValue(d1.getDateValue()));
             return ValueDate.fromDateValue(
-                    DateTimeUtils.dateValueFromAbsoluteDay((DateTimeUtils.absoluteDayFromDateValue(d0.getDateValue())
-                            + DateTimeUtils.absoluteDayFromDateValue(d1.getDateValue())) / 2));
+                    DateTimeUtils.dateValueFromAbsoluteDay(interpolateDecimal(a0, a1, factor).longValue()));
         }
         case Value.TIMESTAMP: {
             ValueTimestamp ts0 = (ValueTimestamp) v0.convertTo(Value.TIMESTAMP),
                     ts1 = (ValueTimestamp) v1.convertTo(Value.TIMESTAMP);
-            long dateSum = DateTimeUtils.absoluteDayFromDateValue(ts0.getDateValue())
-                    + DateTimeUtils.absoluteDayFromDateValue(ts1.getDateValue());
-            long nanos = (ts0.getTimeNanos() + ts1.getTimeNanos()) / 2;
-            if ((dateSum & 1) != 0) {
-                nanos += DateTimeUtils.NANOS_PER_DAY / 2;
-                if (nanos >= DateTimeUtils.NANOS_PER_DAY) {
-                    nanos -= DateTimeUtils.NANOS_PER_DAY;
-                    dateSum++;
-                }
+            BigDecimal a0 = timestampToDecimal(ts0.getDateValue(), ts0.getTimeNanos());
+            BigDecimal a1 = timestampToDecimal(ts1.getDateValue(), ts1.getTimeNanos());
+            BigInteger[] dr = interpolateDecimal(a0, a1, factor).toBigInteger()
+                    .divideAndRemainder(IntervalUtils.NANOS_PER_DAY_BI);
+            long absoluteDay = dr[0].longValue();
+            long timeNanos = dr[1].longValue();
+            if (timeNanos < 0) {
+                timeNanos += DateTimeUtils.NANOS_PER_DAY;
+                absoluteDay--;
             }
-            return ValueTimestamp.fromDateValueAndNanos(DateTimeUtils.dateValueFromAbsoluteDay(dateSum / 2), nanos);
+            return ValueTimestamp.fromDateValueAndNanos(
+                    DateTimeUtils.dateValueFromAbsoluteDay(absoluteDay), timeNanos);
         }
         case Value.TIMESTAMP_TZ: {
             ValueTimestampTimeZone ts0 = (ValueTimestampTimeZone) v0.convertTo(Value.TIMESTAMP_TZ),
                     ts1 = (ValueTimestampTimeZone) v1.convertTo(Value.TIMESTAMP_TZ);
-            long dateSum = DateTimeUtils.absoluteDayFromDateValue(ts0.getDateValue())
-                    + DateTimeUtils.absoluteDayFromDateValue(ts1.getDateValue());
-            long nanos = (ts0.getTimeNanos() + ts1.getTimeNanos()) / 2;
-            int offset = ts0.getTimeZoneOffsetMins() + ts1.getTimeZoneOffsetMins();
-            if ((dateSum & 1) != 0) {
-                nanos += DateTimeUtils.NANOS_PER_DAY / 2;
+            BigDecimal a0 = timestampToDecimal(ts0.getDateValue(), ts0.getTimeNanos());
+            BigDecimal a1 = timestampToDecimal(ts1.getDateValue(), ts1.getTimeNanos());
+            double offset = ts0.getTimeZoneOffsetMins() * (1 - factor) + ts1.getTimeZoneOffsetMins() * factor;
+            short sOffset = (short) offset;
+            BigDecimal bd = interpolateDecimal(a0, a1, factor);
+            if (offset != sOffset) {
+                bd = bd.add(BigDecimal.valueOf(offset - sOffset)
+                        .multiply(BigDecimal.valueOf(DateTimeUtils.NANOS_PER_MINUTE)));
             }
-            if ((offset & 1) != 0) {
-                nanos += 30_000_000_000L;
+            BigInteger[] dr = bd.toBigInteger().divideAndRemainder(IntervalUtils.NANOS_PER_DAY_BI);
+            long absoluteDay = dr[0].longValue();
+            long timeNanos = dr[1].longValue();
+            if (timeNanos < 0) {
+                timeNanos += DateTimeUtils.NANOS_PER_DAY;
+                absoluteDay--;
             }
-            if (nanos >= DateTimeUtils.NANOS_PER_DAY) {
-                nanos -= DateTimeUtils.NANOS_PER_DAY;
-                dateSum++;
-            }
-            return ValueTimestampTimeZone.fromDateValueAndNanos(DateTimeUtils.dateValueFromAbsoluteDay(dateSum / 2),
-                    nanos, (short) (offset / 2));
+            return ValueTimestampTimeZone.fromDateValueAndNanos(DateTimeUtils.dateValueFromAbsoluteDay(absoluteDay),
+                    timeNanos, sOffset);
         }
         case Value.INTERVAL_YEAR:
         case Value.INTERVAL_MONTH:
@@ -324,12 +338,22 @@ final class Percentile {
         case Value.INTERVAL_HOUR_TO_SECOND:
         case Value.INTERVAL_MINUTE_TO_SECOND:
             return IntervalUtils.intervalFromAbsolute(IntervalQualifier.valueOf(dataType - Value.INTERVAL_YEAR),
-                    IntervalUtils.intervalToAbsolute((ValueInterval) v0)
-                            .add(IntervalUtils.intervalToAbsolute((ValueInterval) v1)).shiftRight(1));
+                    interpolateDecimal(new BigDecimal(IntervalUtils.intervalToAbsolute((ValueInterval) v0)),
+                            new BigDecimal(IntervalUtils.intervalToAbsolute((ValueInterval) v1)), factor)
+                                    .toBigInteger());
         default:
-            // Just return first
-            return v0.convertTo(dataType);
+            // Use the same rules as PERCENTILE_DISC
+            return (factor > 0.5d ? v1 : v0).convertTo(dataType);
         }
+    }
+
+    private static BigDecimal timestampToDecimal(long dateValue, long timeNanos) {
+        return new BigDecimal(BigInteger.valueOf(DateTimeUtils.absoluteDayFromDateValue(dateValue))
+                .multiply(IntervalUtils.NANOS_PER_DAY_BI).add(BigInteger.valueOf(timeNanos)));
+    }
+
+    private static BigDecimal interpolateDecimal(BigDecimal d0, BigDecimal d1, double factor) {
+        return d0.multiply(BigDecimal.valueOf(1 - factor)).add(d1.multiply(BigDecimal.valueOf(factor)));
     }
 
     private Percentile() {

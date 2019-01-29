@@ -3084,6 +3084,7 @@ public class Parser {
             }
             break;
         }
+        case PERCENTILE_CONT:
         case PERCENTILE_DISC: {
             Expression num = readExpression();
             read(CLOSE_PAREN);

@@ -573,6 +573,12 @@ insert into test values ('2000-01-20 20:00:00'), ('2000-01-21 20:00:00');
 select median(v) from test;
 >> 2000-01-21 08:00:00
 
+insert into test values ('-2000-01-10 10:00:00'), ('-2000-01-10 10:00:01');
+> update count: 2
+
+select percentile_cont(0.16) within group (order by v) from test;
+>> -2000-01-10 10:00:00.48
+
 drop table test;
 > ok
 
@@ -608,6 +614,15 @@ insert into test values ('2000-01-20 20:00:00+10:15'), ('2000-01-21 20:00:00-09'
 
 select median(v) from test;
 >> 2000-01-21 08:00:30+00:37
+
+delete from test;
+> update count: 2
+
+insert into test values ('-2000-01-20 20:00:00+10:15'), ('-2000-01-21 20:00:00-09');
+> update count: 2
+
+select median(v) from test;
+>> -2000-01-21 08:00:30+00:37
 
 drop table test;
 > ok
@@ -780,6 +795,20 @@ create table test(g int, v int);
 insert into test values (1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8), (1, 9), (1, 10),
     (2, 10), (2, 20), (2, 30), (2, 100);
 > update count: 14
+
+select
+    percentile_cont(0.05) within group (order by v) c05a,
+    percentile_cont(0.05) within group (order by v desc) c05d,
+    percentile_cont(0.5) within group (order by v) c50,
+    percentile_cont(0.5) within group (order by v desc) c50d,
+    percentile_cont(0.95) within group (order by v) c95a,
+    percentile_cont(0.95) within group (order by v desc) c95d,
+    g from test group by g;
+> C05A C05D C50 C50D C95A C95D G
+> ---- ---- --- ---- ---- ---- -
+> 1    9    5   5    9    1    1
+> 11   89   25  25   89   11   2
+> rows: 2
 
 select
     percentile_disc(0.05) within group (order by v) d05a,

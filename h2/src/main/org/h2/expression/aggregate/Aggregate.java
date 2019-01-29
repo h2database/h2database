@@ -111,6 +111,7 @@ public class Aggregate extends AbstractAggregate {
         addAggregate("HISTOGRAM", AggregateType.HISTOGRAM);
         addAggregate("BIT_OR", AggregateType.BIT_OR);
         addAggregate("BIT_AND", AggregateType.BIT_AND);
+        addAggregate("PERCENTILE_CONT", AggregateType.PERCENTILE_CONT);
         addAggregate("PERCENTILE_DISC", AggregateType.PERCENTILE_DISC);
         addAggregate("MEDIAN", AggregateType.MEDIAN);
         addAggregate("ARRAY_AGG", AggregateType.ARRAY_AGG);
@@ -199,6 +200,7 @@ public class Aggregate extends AbstractAggregate {
                 v = updateCollecting(session, v, remembered);
             }
             break;
+        case PERCENTILE_CONT:
         case PERCENTILE_DISC:
             ((AggregateDataCollecting) data).setSharedArgument(v);
             v = remembered != null ? remembered[1] : orderByList.get(0).expression.getValue(session);
@@ -314,6 +316,7 @@ public class Aggregate extends AbstractAggregate {
             }
             return v;
         }
+        case PERCENTILE_CONT:
         case PERCENTILE_DISC: {
             Value v = on.getValue(session);
             if (v == ValueNull.INSTANCE) {
@@ -322,9 +325,10 @@ public class Aggregate extends AbstractAggregate {
             double arg = v.getDouble();
             if (arg >= 0d && arg <= 1d) {
                 return Percentile.getFromIndex(session, orderByList.get(0).expression, type.getValueType(),
-                        orderByList, arg, false);
+                        orderByList, arg, aggregateType == AggregateType.PERCENTILE_CONT);
             } else {
-                throw DbException.getInvalidValueException("PERCENTILE_DISC argument", arg);
+                throw DbException.getInvalidValueException(aggregateType == AggregateType.PERCENTILE_CONT ?
+                        "PERCENTILE_CONT argument" : "PERCENTILE_DISC argument", arg);
             }
         }
         case MEDIAN:
@@ -387,6 +391,7 @@ public class Aggregate extends AbstractAggregate {
             }
             return ValueArray.get(array);
         }
+        case PERCENTILE_CONT:
         case PERCENTILE_DISC: {
             AggregateDataCollecting collectingData = (AggregateDataCollecting) data;
             Value[] array = collectingData.getArray();
@@ -399,9 +404,11 @@ public class Aggregate extends AbstractAggregate {
             }
             double arg = v.getDouble();
             if (arg >= 0d && arg <= 1d) {
-                return Percentile.getValue(session.getDatabase(), array, type.getValueType(), orderByList, arg, false);
+                return Percentile.getValue(session.getDatabase(), array, type.getValueType(), orderByList, arg,
+                        aggregateType == AggregateType.PERCENTILE_CONT);
             } else {
-                throw DbException.getInvalidValueException("PERCENTILE_DISC argument", arg);
+                throw DbException.getInvalidValueException(aggregateType == AggregateType.PERCENTILE_CONT ?
+                        "PERCENTILE_CONT argument" : "PERCENTILE_DISC argument", arg);
             }
         }
         case MEDIAN: {
@@ -584,6 +591,7 @@ public class Aggregate extends AbstractAggregate {
         case MAX:
         case MEDIAN:
             break;
+        case PERCENTILE_CONT:
         case PERCENTILE_DISC:
         case MODE:
             type = orderByList.get(0).expression.getType();
@@ -711,6 +719,9 @@ public class Aggregate extends AbstractAggregate {
         case BIT_OR:
             text = "BIT_OR";
             break;
+        case PERCENTILE_CONT:
+            text = "PERCENTILE_CONT";
+            break;
         case PERCENTILE_DISC:
             text = "PERCENTILE_DISC";
             break;
@@ -785,6 +796,7 @@ public class Aggregate extends AbstractAggregate {
             case MAX:
                 Index index = getMinMaxColumnIndex();
                 return index != null;
+            case PERCENTILE_CONT:
             case PERCENTILE_DISC:
                 return on.isConstant() && Percentile.getColumnIndex(orderByList.get(0).expression) != null;
             case MEDIAN:

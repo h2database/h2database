@@ -841,16 +841,16 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     /**
      * Use the new root page from now on.
-     * @param expectedRootRefrence expected current root reference
+     * @param expectedRootReference expected current root reference
      * @param newRootPage the new root page
      * @param attemptUpdateCounter how many attempt (including current)
      *                             were made to update root
      * @return new RootReference or null if update failed
      */
-    protected final boolean updateRoot(RootReference expectedRootRefrence, Page newRootPage,
-                                       int attemptUpdateCounter) {
+    protected final boolean updateRoot(RootReference expectedRootReference, Page newRootPage, int attemptUpdateCounter)
+    {
         RootReference currentRoot = flushAndGetRoot();
-        return currentRoot == expectedRootRefrence &&
+        return currentRoot == expectedRootReference &&
                 !currentRoot.lockedForUpdate &&
                 root.compareAndSet(currentRoot,
                                     new RootReference(currentRoot, newRootPage, attemptUpdateCounter));

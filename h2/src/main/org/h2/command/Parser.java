@@ -3086,14 +3086,7 @@ public class Parser {
         }
         case MODE: {
             if (readIf(CLOSE_PAREN)) {
-                read("WITHIN");
-                read(GROUP);
-                read(OPEN_PAREN);
-                read(ORDER);
-                read("BY");
-                Expression expr = readExpression();
-                r = new Aggregate(AggregateType.MODE, null, currentSelect, false);
-                setModeAggOrder(r, expr, true);
+                r = readWithinGroup(AggregateType.MODE, null);
             } else {
                 Expression expr = readExpression();
                 r = new Aggregate(aggregateType, null, currentSelect, false);
@@ -3105,9 +3098,9 @@ public class Parser {
                         throw DbException.getSyntaxError(ErrorCode.IDENTICAL_EXPRESSIONS_SHOULD_BE_USED, sqlCommand,
                                 lastParseIndex, sql, sql2);
                     }
-                    setModeAggOrder(r, expr, true);
+                    readAggregateOrder(r, expr, true);
                 } else {
-                    setModeAggOrder(r, expr, false);
+                    readAggregateOrder(r, expr, false);
                 }
             }
             break;
@@ -3122,7 +3115,20 @@ public class Parser {
         return r;
     }
 
-    private void setModeAggOrder(Aggregate r, Expression expr, boolean parseSortType) {
+    private Aggregate readWithinGroup(AggregateType aggregateType, Expression argument) {
+        Aggregate r;
+        read("WITHIN");
+        read(GROUP);
+        read(OPEN_PAREN);
+        read(ORDER);
+        read("BY");
+        Expression expr = readExpression();
+        r = new Aggregate(aggregateType, argument, currentSelect, false);
+        readAggregateOrder(r, expr, true);
+        return r;
+    }
+
+    private void readAggregateOrder(Aggregate r, Expression expr, boolean parseSortType) {
         ArrayList<SelectOrderBy> orderList = new ArrayList<>(1);
         SelectOrderBy order = new SelectOrderBy();
         order.expression = expr;

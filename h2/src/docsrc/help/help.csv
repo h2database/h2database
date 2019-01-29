@@ -3690,7 +3690,7 @@ MEDIAN(X)
 
 "Functions (Aggregate)","MODE","
 { MODE( value ) [ ORDER BY expression [ ASC | DESC ] ] }
-    | { MODE() WITHIN GROUP(ORDER BY expression [ ASC | DESC ]) }
+    | { MODE() WITHIN GROUP (ORDER BY expression [ ASC | DESC ]) }
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Returns the value that occurs with the greatest frequency.
@@ -3706,7 +3706,7 @@ Aggregates are only allowed in select statements.
 ","
 MODE(X)
 MODE(X ORDER BY X)
-MODE() WITHIN GROUP(ORDER BY X)
+MODE() WITHIN GROUP (ORDER BY X)
 "
 
 "Functions (Aggregate)","ENVELOPE","

@@ -3095,11 +3095,11 @@ public class Parser {
                 read(ORDER);
                 read("BY");
                 Expression expr = readExpression();
-                r = new Aggregate(AggregateType.MODE, expr, currentSelect, false);
-                setModeAggOrder(r, expr);
+                r = new Aggregate(AggregateType.MODE, null, currentSelect, false);
+                setModeAggOrder(r, expr, true);
             } else {
                 Expression expr = readExpression();
-                r = new Aggregate(aggregateType, expr, currentSelect, false);
+                r = new Aggregate(aggregateType, null, currentSelect, false);
                 if (readIf(ORDER)) {
                     read("BY");
                     Expression expr2 = readExpression();
@@ -3108,7 +3108,9 @@ public class Parser {
                         throw DbException.getSyntaxError(ErrorCode.IDENTICAL_EXPRESSIONS_SHOULD_BE_USED, sqlCommand,
                                 lastParseIndex, sql, sql2);
                     }
-                    setModeAggOrder(r, expr);
+                    setModeAggOrder(r, expr, true);
+                } else {
+                    setModeAggOrder(r, expr, false);
                 }
             }
             break;
@@ -3125,11 +3127,13 @@ public class Parser {
         return r;
     }
 
-    private void setModeAggOrder(Aggregate r, Expression expr) {
+    private void setModeAggOrder(Aggregate r, Expression expr, boolean parseSortType) {
         ArrayList<SelectOrderBy> orderList = new ArrayList<>(1);
         SelectOrderBy order = new SelectOrderBy();
         order.expression = expr;
-        order.sortType = parseSimpleSortType();
+        if (parseSortType) {
+            order.sortType = parseSimpleSortType();
+        }
         orderList.add(order);
         r.setOrderByList(orderList);
     }

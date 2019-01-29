@@ -21,10 +21,16 @@ SELECT MODE(V) FROM TEST;
 INSERT INTO TEST VALUES (1), (2), (3), (1), (2), (1);
 > update count: 6
 
-SELECT MODE(V), MODE(V) FILTER (WHERE (V > 1)), MODE(V) FILTER (WHERE (V < 0)) FROM TEST;
-> MODE(V) MODE(V) FILTER (WHERE (V > 1)) MODE(V) FILTER (WHERE (V < 0))
-> ------- ------------------------------ ------------------------------
-> 1       2                              null
+SELECT MODE(V), MODE() WITHIN GROUP (ORDER BY V DESC) FROM TEST;
+> MODE() WITHIN GROUP (ORDER BY V) MODE() WITHIN GROUP (ORDER BY V DESC)
+> -------------------------------- -------------------------------------
+> 1                                1
+> rows: 1
+
+SELECT MODE(V) FILTER (WHERE (V > 1)), MODE(V) FILTER (WHERE (V < 0)) FROM TEST;
+> MODE() WITHIN GROUP (ORDER BY V) FILTER (WHERE (V > 1)) MODE() WITHIN GROUP (ORDER BY V) FILTER (WHERE (V < 0))
+> ------------------------------------------------------- -------------------------------------------------------
+> 2                                                       null
 > rows: 1
 
 -- Oracle compatibility

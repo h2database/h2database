@@ -294,14 +294,22 @@ public class Aggregate extends AbstractAggregate {
     }
 
     private void updateData(Session session, AggregateData data, Value v, Value[] remembered) {
-        if (aggregateType == AggregateType.GROUP_CONCAT) {
+        switch (aggregateType) {
+        case GROUP_CONCAT:
             if (v != ValueNull.INSTANCE) {
                 v = updateCollecting(session, v.convertTo(Value.STRING), remembered);
             }
-        } else if (aggregateType == AggregateType.ARRAY_AGG) {
+            break;
+        case ARRAY_AGG:
             if (v != ValueNull.INSTANCE) {
                 v = updateCollecting(session, v, remembered);
             }
+            break;
+        case MODE:
+            v = orderByList.get(0).expression.getValue(session);
+            break;
+        default:
+            // Use argument as is
         }
         data.add(session.getDatabase(), v);
     }
@@ -647,7 +655,9 @@ public class Aggregate extends AbstractAggregate {
         case MIN:
         case MAX:
         case MEDIAN:
+            break;
         case MODE:
+            type = orderByList.get(0).expression.getType();
             break;
         case STDDEV_POP:
         case STDDEV_SAMP:
@@ -792,11 +802,18 @@ public class Aggregate extends AbstractAggregate {
             on.getSQL(builder).append(')');
         } else {
             builder.append('(');
-            if (on instanceof Subquery) {
-                on.getSQL(builder);
-            } else {
-                on.getUnenclosedSQL(builder);
+            if (on != null) {
+                if (on instanceof Subquery) {
+                    on.getSQL(builder);
+                } else {
+                    on.getUnenclosedSQL(builder);
+                }
             }
+            builder.append(')');
+        }
+        if (orderByList != null) {
+            builder.append(" WITHIN GROUP (");
+            Window.appendOrderBy(builder, orderByList);
             builder.append(')');
         }
         return appendTailConditions(builder);

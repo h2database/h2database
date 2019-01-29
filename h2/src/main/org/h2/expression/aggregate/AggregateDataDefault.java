@@ -6,7 +6,6 @@
 package org.h2.expression.aggregate;
 
 import org.h2.engine.Database;
-import org.h2.expression.aggregate.Aggregate.AggregateType;
 import org.h2.message.DbException;
 import org.h2.value.DataType;
 import org.h2.value.Value;

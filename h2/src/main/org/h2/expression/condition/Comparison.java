@@ -15,7 +15,7 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.aggregate.Aggregate;
-import org.h2.expression.aggregate.Aggregate.AggregateType;
+import org.h2.expression.aggregate.AggregateType;
 import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
 import org.h2.table.Column;

@@ -177,7 +177,7 @@ import org.h2.expression.Variable;
 import org.h2.expression.Wildcard;
 import org.h2.expression.aggregate.AbstractAggregate;
 import org.h2.expression.aggregate.Aggregate;
-import org.h2.expression.aggregate.Aggregate.AggregateType;
+import org.h2.expression.aggregate.AggregateType;
 import org.h2.expression.aggregate.JavaAggregate;
 import org.h2.expression.analysis.DataAnalysisOperation;
 import org.h2.expression.analysis.Window;
@@ -3055,18 +3055,9 @@ public class Parser {
             break;
         case GROUP_CONCAT: {
             boolean distinct = readDistinctAgg();
-            if (equalsToken("GROUP_CONCAT", aggregateName)) {
-                r = new Aggregate(AggregateType.GROUP_CONCAT, readExpression(), currentSelect, distinct);
-                if (readIf(ORDER)) {
-                    read("BY");
-                    r.setOrderByList(parseSimpleOrderList());
-                }
-                if (readIf("SEPARATOR")) {
-                    r.setGroupConcatSeparator(readExpression());
-                }
-            } else if (equalsToken("STRING_AGG", aggregateName)) {
+            r = new Aggregate(AggregateType.GROUP_CONCAT, readExpression(), currentSelect, distinct);
+            if (equalsToken("STRING_AGG", aggregateName)) {
                 // PostgreSQL compatibility: string_agg(expression, delimiter)
-                r = new Aggregate(AggregateType.GROUP_CONCAT, readExpression(), currentSelect, distinct);
                 read(COMMA);
                 r.setGroupConcatSeparator(readExpression());
                 if (readIf(ORDER)) {
@@ -3074,7 +3065,13 @@ public class Parser {
                     r.setOrderByList(parseSimpleOrderList());
                 }
             } else {
-                r = null;
+                if (readIf(ORDER)) {
+                    read("BY");
+                    r.setOrderByList(parseSimpleOrderList());
+                }
+                if (readIf("SEPARATOR")) {
+                    r.setGroupConcatSeparator(readExpression());
+                }
             }
             break;
         }
@@ -3087,19 +3084,19 @@ public class Parser {
             }
             break;
         }
+        case PERCENTILE_CONT:
+        case PERCENTILE_DISC: {
+            Expression num = readExpression();
+            read(CLOSE_PAREN);
+            r = readWithinGroup(aggregateType, num);
+            break;
+        }
         case MODE: {
             if (readIf(CLOSE_PAREN)) {
-                read("WITHIN");
-                read(GROUP);
-                read(OPEN_PAREN);
-                read(ORDER);
-                read("BY");
-                Expression expr = readExpression();
-                r = new Aggregate(AggregateType.MODE, expr, currentSelect, false);
-                setModeAggOrder(r, expr);
+                r = readWithinGroup(AggregateType.MODE, null);
             } else {
                 Expression expr = readExpression();
-                r = new Aggregate(aggregateType, expr, currentSelect, false);
+                r = new Aggregate(aggregateType, null, currentSelect, false);
                 if (readIf(ORDER)) {
                     read("BY");
                     Expression expr2 = readExpression();
@@ -3108,7 +3105,9 @@ public class Parser {
                         throw DbException.getSyntaxError(ErrorCode.IDENTICAL_EXPRESSIONS_SHOULD_BE_USED, sqlCommand,
                                 lastParseIndex, sql, sql2);
                     }
-                    setModeAggOrder(r, expr);
+                    readAggregateOrder(r, expr, true);
+                } else {
+                    readAggregateOrder(r, expr, false);
                 }
             }
             break;
@@ -3119,17 +3118,30 @@ public class Parser {
             break;
         }
         read(CLOSE_PAREN);
-        if (r != null) {
-            readFilterAndOver(r);
-        }
+        readFilterAndOver(r);
         return r;
     }
 
-    private void setModeAggOrder(Aggregate r, Expression expr) {
+    private Aggregate readWithinGroup(AggregateType aggregateType, Expression argument) {
+        Aggregate r;
+        read("WITHIN");
+        read(GROUP);
+        read(OPEN_PAREN);
+        read(ORDER);
+        read("BY");
+        Expression expr = readExpression();
+        r = new Aggregate(aggregateType, argument, currentSelect, false);
+        readAggregateOrder(r, expr, true);
+        return r;
+    }
+
+    private void readAggregateOrder(Aggregate r, Expression expr, boolean parseSortType) {
         ArrayList<SelectOrderBy> orderList = new ArrayList<>(1);
         SelectOrderBy order = new SelectOrderBy();
         order.expression = expr;
-        order.sortType = parseSimpleSortType();
+        if (parseSortType) {
+            order.sortType = parseSimpleSortType();
+        }
         orderList.add(order);
         r.setOrderByList(orderList);
     }

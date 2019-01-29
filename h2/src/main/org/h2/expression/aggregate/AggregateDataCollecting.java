@@ -11,7 +11,9 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.TreeSet;
 
+import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
+import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -30,6 +32,8 @@ class AggregateDataCollecting extends AggregateData implements Iterable<Value> {
     private final boolean distinct;
 
     Collection<Value> values;
+
+    private Value shared;
 
     /**
      * Creates new instance of data for collecting aggregates.
@@ -82,6 +86,29 @@ class AggregateDataCollecting extends AggregateData implements Iterable<Value> {
     @Override
     public Iterator<Value> iterator() {
         return values != null ? values.iterator() : Collections.<Value>emptyIterator();
+    }
+
+    /**
+     * Sets value of a shared argument.
+     *
+     * @param shared the shared value
+     */
+    void setSharedArgument(Value shared) {
+        if (this.shared == null) {
+            this.shared = shared;
+        } else if (!this.shared.equals(shared)) {
+            throw DbException.get(ErrorCode.INVALID_VALUE_2, "Inverse distribution function argument",
+                    this.shared.getTraceSQL() + "<>" + shared.getTraceSQL());
+        }
+    }
+
+    /**
+     * Returns value of a shared argument.
+     *
+     * @return value of a shared argument
+     */
+    Value getSharedArgument() {
+        return shared;
     }
 
 }

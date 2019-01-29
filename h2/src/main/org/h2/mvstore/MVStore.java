@@ -506,7 +506,8 @@ public class MVStore implements AutoCloseable {
         if (id >= 0) {
             map = openMap(id, builder);
             assert builder.getKeyType() == null || map.getKeyType().getClass().equals(builder.getKeyType().getClass());
-            assert builder.getValueType() == null || map.getValueType().getClass().equals(builder.getValueType().getClass());
+            assert builder.getValueType() == null || map.getValueType().getClass().equals(builder.getValueType()
+                    .getClass());
         } else {
             HashMap<String, Object> c = new HashMap<>();
             id = lastMapId.incrementAndGet();

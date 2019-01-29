@@ -48,113 +48,6 @@ import org.h2.value.ValueString;
  */
 public class Aggregate extends AbstractAggregate {
 
-    public enum AggregateType {
-        /**
-         * The aggregate type for COUNT(*).
-         */
-        COUNT_ALL,
-
-        /**
-         * The aggregate type for COUNT(expression).
-         */
-        COUNT,
-
-        /**
-         * The aggregate type for GROUP_CONCAT(...).
-         */
-        GROUP_CONCAT,
-
-        /**
-         * The aggregate type for SUM(expression).
-         */
-        SUM,
-
-        /**
-         * The aggregate type for MIN(expression).
-         */
-        MIN,
-
-        /**
-         * The aggregate type for MAX(expression).
-         */
-        MAX,
-
-        /**
-         * The aggregate type for AVG(expression).
-         */
-        AVG,
-
-        /**
-         * The aggregate type for STDDEV_POP(expression).
-         */
-        STDDEV_POP,
-
-        /**
-         * The aggregate type for STDDEV_SAMP(expression).
-         */
-        STDDEV_SAMP,
-
-        /**
-         * The aggregate type for VAR_POP(expression).
-         */
-        VAR_POP,
-
-        /**
-         * The aggregate type for VAR_SAMP(expression).
-         */
-        VAR_SAMP,
-
-        /**
-         * The aggregate type for ANY(expression).
-         */
-        ANY,
-
-        /**
-         * The aggregate type for EVERY(expression).
-         */
-        EVERY,
-
-        /**
-         * The aggregate type for BOOL_OR(expression).
-         */
-        BIT_OR,
-
-        /**
-         * The aggregate type for BOOL_AND(expression).
-         */
-        BIT_AND,
-
-        /**
-         * The aggregate type for SELECTIVITY(expression).
-         */
-        SELECTIVITY,
-
-        /**
-         * The aggregate type for HISTOGRAM(expression).
-         */
-        HISTOGRAM,
-
-        /**
-         * The aggregate type for MEDIAN(expression).
-         */
-        MEDIAN,
-
-        /**
-         * The aggregate type for ARRAY_AGG(expression).
-         */
-        ARRAY_AGG,
-
-        /**
-         * The aggregate type for MODE(expression).
-         */
-        MODE,
-
-        /**
-         * The aggregate type for ENVELOPE(expression).
-         */
-        ENVELOPE,
-    }
-
     private static final HashMap<String, AggregateType> AGGREGATES = new HashMap<>(64);
 
     private final AggregateType aggregateType;
@@ -218,6 +111,8 @@ public class Aggregate extends AbstractAggregate {
         addAggregate("HISTOGRAM", AggregateType.HISTOGRAM);
         addAggregate("BIT_OR", AggregateType.BIT_OR);
         addAggregate("BIT_AND", AggregateType.BIT_AND);
+        addAggregate("PERCENTILE_CONT", AggregateType.PERCENTILE_CONT);
+        addAggregate("PERCENTILE_DISC", AggregateType.PERCENTILE_DISC);
         addAggregate("MEDIAN", AggregateType.MEDIAN);
         addAggregate("ARRAY_AGG", AggregateType.ARRAY_AGG);
         addAggregate("MODE", AggregateType.MODE);
@@ -294,14 +189,27 @@ public class Aggregate extends AbstractAggregate {
     }
 
     private void updateData(Session session, AggregateData data, Value v, Value[] remembered) {
-        if (aggregateType == AggregateType.GROUP_CONCAT) {
+        switch (aggregateType) {
+        case GROUP_CONCAT:
             if (v != ValueNull.INSTANCE) {
                 v = updateCollecting(session, v.convertTo(Value.STRING), remembered);
             }
-        } else if (aggregateType == AggregateType.ARRAY_AGG) {
+            break;
+        case ARRAY_AGG:
             if (v != ValueNull.INSTANCE) {
                 v = updateCollecting(session, v, remembered);
             }
+            break;
+        case PERCENTILE_CONT:
+        case PERCENTILE_DISC:
+            ((AggregateDataCollecting) data).setSharedArgument(v);
+            v = remembered != null ? remembered[1] : orderByList.get(0).expression.getValue(session);
+            break;
+        case MODE:
+            v = remembered != null ? remembered[0] : orderByList.get(0).expression.getValue(session);
+            break;
+        default:
+            // Use argument as is
         }
         data.add(session.getDatabase(), v);
     }
@@ -408,8 +316,23 @@ public class Aggregate extends AbstractAggregate {
             }
             return v;
         }
+        case PERCENTILE_CONT:
+        case PERCENTILE_DISC: {
+            Value v = on.getValue(session);
+            if (v == ValueNull.INSTANCE) {
+                return ValueNull.INSTANCE;
+            }
+            double arg = v.getDouble();
+            if (arg >= 0d && arg <= 1d) {
+                return Percentile.getFromIndex(session, orderByList.get(0).expression, type.getValueType(),
+                        orderByList, arg, aggregateType == AggregateType.PERCENTILE_CONT);
+            } else {
+                throw DbException.getInvalidValueException(aggregateType == AggregateType.PERCENTILE_CONT ?
+                        "PERCENTILE_CONT argument" : "PERCENTILE_DISC argument", arg);
+            }
+        }
         case MEDIAN:
-            return AggregateMedian.medianFromIndex(session, on, type.getValueType());
+            return Percentile.getFromIndex(session, on, type.getValueType(), orderByList, 0.5d, true);
         case ENVELOPE:
             return ((MVSpatialIndex) AggregateDataEnvelope.getGeometryColumnIndex(on)).getBounds(session);
         default:
@@ -468,12 +391,32 @@ public class Aggregate extends AbstractAggregate {
             }
             return ValueArray.get(array);
         }
+        case PERCENTILE_CONT:
+        case PERCENTILE_DISC: {
+            AggregateDataCollecting collectingData = (AggregateDataCollecting) data;
+            Value[] array = collectingData.getArray();
+            if (array == null) {
+                return ValueNull.INSTANCE;
+            }
+            Value v = collectingData.getSharedArgument();
+            if (v == ValueNull.INSTANCE) {
+                return ValueNull.INSTANCE;
+            }
+            double arg = v.getDouble();
+            if (arg >= 0d && arg <= 1d) {
+                return Percentile.getValue(session.getDatabase(), array, type.getValueType(), orderByList, arg,
+                        aggregateType == AggregateType.PERCENTILE_CONT);
+            } else {
+                throw DbException.getInvalidValueException(aggregateType == AggregateType.PERCENTILE_CONT ?
+                        "PERCENTILE_CONT argument" : "PERCENTILE_DISC argument", arg);
+            }
+        }
         case MEDIAN: {
             Value[] array = ((AggregateDataCollecting) data).getArray();
             if (array == null) {
                 return ValueNull.INSTANCE;
             }
-            return AggregateMedian.median(session.getDatabase(), array, type.getValueType());
+            return Percentile.getValue(session.getDatabase(), array, type.getValueType(), orderByList, 0.5d, true);
         }
         case MODE:
             return getMode(session, data);
@@ -647,7 +590,11 @@ public class Aggregate extends AbstractAggregate {
         case MIN:
         case MAX:
         case MEDIAN:
+            break;
+        case PERCENTILE_CONT:
+        case PERCENTILE_DISC:
         case MODE:
+            type = orderByList.get(0).expression.getType();
             break;
         case STDDEV_POP:
         case STDDEV_SAMP:
@@ -772,6 +719,12 @@ public class Aggregate extends AbstractAggregate {
         case BIT_OR:
             text = "BIT_OR";
             break;
+        case PERCENTILE_CONT:
+            text = "PERCENTILE_CONT";
+            break;
+        case PERCENTILE_DISC:
+            text = "PERCENTILE_DISC";
+            break;
         case MEDIAN:
             text = "MEDIAN";
             break;
@@ -792,11 +745,18 @@ public class Aggregate extends AbstractAggregate {
             on.getSQL(builder).append(')');
         } else {
             builder.append('(');
-            if (on instanceof Subquery) {
-                on.getSQL(builder);
-            } else {
-                on.getUnenclosedSQL(builder);
+            if (on != null) {
+                if (on instanceof Subquery) {
+                    on.getSQL(builder);
+                } else {
+                    on.getUnenclosedSQL(builder);
+                }
             }
+            builder.append(')');
+        }
+        if (orderByList != null) {
+            builder.append(" WITHIN GROUP (");
+            Window.appendOrderBy(builder, orderByList);
             builder.append(')');
         }
         return appendTailConditions(builder);
@@ -836,11 +796,14 @@ public class Aggregate extends AbstractAggregate {
             case MAX:
                 Index index = getMinMaxColumnIndex();
                 return index != null;
+            case PERCENTILE_CONT:
+            case PERCENTILE_DISC:
+                return on.isConstant() && Percentile.getColumnIndex(orderByList.get(0).expression) != null;
             case MEDIAN:
                 if (distinct) {
                     return false;
                 }
-                return AggregateMedian.getMedianColumnIndex(on) != null;
+                return Percentile.getColumnIndex(on) != null;
             case ENVELOPE:
                 return AggregateDataEnvelope.getGeometryColumnIndex(on) != null;
             default:

@@ -7,7 +7,6 @@ package org.h2.expression.aggregate;
 
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
-import org.h2.expression.aggregate.Aggregate.AggregateType;
 import org.h2.message.DbException;
 import org.h2.value.Value;
 
@@ -35,6 +34,8 @@ abstract class AggregateData {
             break;
         case GROUP_CONCAT:
         case ARRAY_AGG:
+        case PERCENTILE_CONT:
+        case PERCENTILE_DISC:
         case MEDIAN:
             break;
         case MIN:

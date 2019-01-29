@@ -3674,6 +3674,38 @@ Aggregates are only allowed in select statements.
 VAR_SAMP(X)
 "
 
+"Functions (Aggregate)","PERCENTILE_CONT","
+PERCENTILE_CONT(numeric) WITHIN GROUP (ORDER BY value [ASC|DESC])
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Return percentile of values from the group with interpolation.
+Interpolation is only supported for numeric, date-time, and interval data types.
+Argument must be between 0 and 1 inclusive.
+Argument must be the same for all rows in the same group.
+If argument is NULL, the result is NULL.
+NULL values are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY V)
+"
+
+"Functions (Aggregate)","PERCENTILE_DISC","
+PERCENTILE_DISC(numeric) WITHIN GROUP (ORDER BY value [ASC|DESC])
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Return percentile of values from the group.
+Interpolation is not performed.
+Argument must be between 0 and 1 inclusive.
+Argument must be the same for all rows in the same group.
+If argument is NULL, the result is NULL.
+NULL values are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY V)
+"
+
 "Functions (Aggregate)","MEDIAN","
 MEDIAN( [ DISTINCT|ALL ] value )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
@@ -3690,7 +3722,7 @@ MEDIAN(X)
 
 "Functions (Aggregate)","MODE","
 { MODE( value ) [ ORDER BY expression [ ASC | DESC ] ] }
-    | { MODE() WITHIN GROUP(ORDER BY expression [ ASC | DESC ]) }
+    | { MODE() WITHIN GROUP (ORDER BY expression [ ASC | DESC ]) }
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Returns the value that occurs with the greatest frequency.
@@ -3706,7 +3738,7 @@ Aggregates are only allowed in select statements.
 ","
 MODE(X)
 MODE(X ORDER BY X)
-MODE() WITHIN GROUP(ORDER BY X)
+MODE() WITHIN GROUP (ORDER BY X)
 "
 
 "Functions (Aggregate)","ENVELOPE","

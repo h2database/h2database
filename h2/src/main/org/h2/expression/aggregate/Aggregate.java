@@ -199,7 +199,7 @@ public class Aggregate extends AbstractAggregate {
             }
             break;
         case MODE:
-            v = orderByList.get(0).expression.getValue(session);
+            v = remembered != null ? remembered[0] : orderByList.get(0).expression.getValue(session);
             break;
         default:
             // Use argument as is

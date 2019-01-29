@@ -3055,18 +3055,9 @@ public class Parser {
             break;
         case GROUP_CONCAT: {
             boolean distinct = readDistinctAgg();
-            if (equalsToken("GROUP_CONCAT", aggregateName)) {
-                r = new Aggregate(AggregateType.GROUP_CONCAT, readExpression(), currentSelect, distinct);
-                if (readIf(ORDER)) {
-                    read("BY");
-                    r.setOrderByList(parseSimpleOrderList());
-                }
-                if (readIf("SEPARATOR")) {
-                    r.setGroupConcatSeparator(readExpression());
-                }
-            } else if (equalsToken("STRING_AGG", aggregateName)) {
+            r = new Aggregate(AggregateType.GROUP_CONCAT, readExpression(), currentSelect, distinct);
+            if (equalsToken("STRING_AGG", aggregateName)) {
                 // PostgreSQL compatibility: string_agg(expression, delimiter)
-                r = new Aggregate(AggregateType.GROUP_CONCAT, readExpression(), currentSelect, distinct);
                 read(COMMA);
                 r.setGroupConcatSeparator(readExpression());
                 if (readIf(ORDER)) {
@@ -3074,7 +3065,13 @@ public class Parser {
                     r.setOrderByList(parseSimpleOrderList());
                 }
             } else {
-                r = null;
+                if (readIf(ORDER)) {
+                    read("BY");
+                    r.setOrderByList(parseSimpleOrderList());
+                }
+                if (readIf("SEPARATOR")) {
+                    r.setGroupConcatSeparator(readExpression());
+                }
             }
             break;
         }
@@ -3121,9 +3118,7 @@ public class Parser {
             break;
         }
         read(CLOSE_PAREN);
-        if (r != null) {
-            readFilterAndOver(r);
-        }
+        readFilterAndOver(r);
         return r;
     }
 

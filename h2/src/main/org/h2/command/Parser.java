@@ -177,7 +177,7 @@ import org.h2.expression.Variable;
 import org.h2.expression.Wildcard;
 import org.h2.expression.aggregate.AbstractAggregate;
 import org.h2.expression.aggregate.Aggregate;
-import org.h2.expression.aggregate.Aggregate.AggregateType;
+import org.h2.expression.aggregate.AggregateType;
 import org.h2.expression.aggregate.JavaAggregate;
 import org.h2.expression.analysis.DataAnalysisOperation;
 import org.h2.expression.analysis.Window;

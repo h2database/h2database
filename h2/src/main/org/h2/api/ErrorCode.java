@@ -414,7 +414,7 @@ public class ErrorCode {
     /**
      * The error with code <code>42131</code> is thrown when
      * identical expressions should be used, but different
-     * exceptions were found.
+     * expressions were found.
      * Example:
      * <pre>
      * SELECT MODE(A ORDER BY B) FROM TEST;

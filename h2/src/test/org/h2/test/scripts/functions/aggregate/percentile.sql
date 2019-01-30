@@ -35,7 +35,7 @@ select
 > rows: 1
 
 select median(distinct v) from test;
->> 15
+>> 15.0
 
 insert into test values (10);
 > update count: 1
@@ -45,8 +45,8 @@ select
     percentile_disc(0.5) within group (order by v desc) d50d,
     median(v) m from test;
 > D50A D50D M
-> ---- ---- --
-> 10   20   15
+> ---- ---- ----
+> 10   20   15.0
 > rows: 1
 
 drop table test;
@@ -84,7 +84,7 @@ select
 > rows: 1
 
 select median(distinct v) from test;
->> 15
+>> 15.0
 
 insert into test values (10);
 > update count: 1
@@ -94,8 +94,8 @@ select
     percentile_disc(0.5) within group (order by v desc) d50d,
     median(v) m from test;
 > D50A D50D M
-> ---- ---- --
-> 10   20   15
+> ---- ---- ----
+> 10   20   15.0
 > rows: 1
 
 drop table test;
@@ -133,7 +133,7 @@ select
 > rows: 1
 
 select median(distinct v) from test;
->> 15
+>> 15.0
 
 insert into test values (10);
 > update count: 1
@@ -143,8 +143,8 @@ select
     percentile_disc(0.5) within group (order by v desc) d50d,
     median(v) m from test;
 > D50A D50D M
-> ---- ---- --
-> 10   20   15
+> ---- ---- ----
+> 10   20   15.0
 > rows: 1
 
 drop table test;
@@ -182,7 +182,7 @@ select
 > rows: 1
 
 select median(distinct v) from test;
->> 15
+>> 15.0
 
 insert into test values (10);
 > update count: 1
@@ -192,8 +192,8 @@ select
     percentile_disc(0.5) within group (order by v desc) d50d,
     median(v) m from test;
 > D50A D50D M
-> ---- ---- --
-> 10   20   15
+> ---- ---- ----
+> 10   20   15.0
 > rows: 1
 
 drop table test;
@@ -231,7 +231,7 @@ select
 > rows: 1
 
 select median(distinct v) from test;
->> 15
+>> 15.0
 
 insert into test values (10);
 > update count: 1
@@ -241,8 +241,8 @@ select
     percentile_disc(0.5) within group (order by v desc) d50d,
     median(v) m from test;
 > D50A D50D M
-> ---- ---- --
-> 10   20   15
+> ---- ---- ----
+> 10   20   15.0
 > rows: 1
 
 drop table test;
@@ -280,7 +280,7 @@ select
 > rows: 1
 
 select median(distinct v) from test;
->> 15
+>> 15.0
 
 insert into test values (10);
 > update count: 1
@@ -290,8 +290,8 @@ select
     percentile_disc(0.5) within group (order by v desc) d50d,
     median(v) m from test;
 > D50A D50D M
-> ---- ---- --
-> 10   20   15
+> ---- ---- ----
+> 10   20   15.0
 > rows: 1
 
 drop table test;
@@ -313,13 +313,13 @@ select median(v) from test;
 >> 20
 
 select median(distinct v) from test;
->> 15
+>> 15.0
 
 insert into test values (10);
 > update count: 1
 
 select median(v) from test;
->> 15
+>> 15.0
 
 drop table test;
 > ok
@@ -340,13 +340,13 @@ select median(v) from test;
 >> 20
 
 select median(distinct v) from test;
->> 15
+>> 15.0
 
 insert into test values (10);
 > update count: 1
 
 select median(v) from test;
->> 15
+>> 15.0
 
 drop table test;
 > ok
@@ -367,13 +367,13 @@ select median(v) from test;
 >> 20
 
 select median(distinct v) from test;
->> 15
+>> 15.0
 
 insert into test values (10);
 > update count: 1
 
 select median(v) from test;
->> 15
+>> 15.0
 
 drop table test;
 > ok
@@ -394,13 +394,13 @@ select median(v) from test;
 >> 20
 
 select median(distinct v) from test;
->> 15
+>> 15.0
 
 insert into test values (10);
 > update count: 1
 
 select median(v) from test;
->> 15
+>> 15.0
 
 drop table test;
 > ok
@@ -421,13 +421,13 @@ select median(v) from test;
 >> 2.0
 
 select median(distinct v) from test;
->> 1.5
+>> 1.50
 
 insert into test values (1);
 > update count: 1
 
 select median(v) from test;
->> 1.5
+>> 1.50
 
 drop table test;
 > ok
@@ -448,13 +448,13 @@ select median(v) from test;
 >> 2.0
 
 select median(distinct v) from test;
->> 1.5
+>> 1.50
 
 insert into test values (1);
 > update count: 1
 
 select median(v) from test;
->> 1.5
+>> 1.50
 
 drop table test;
 > ok
@@ -650,7 +650,7 @@ insert into test values ('Group 2A', 10), ('Group 2A', 10), ('Group 2A', 20),
 select name, median(value) from test group by name order by name;
 > NAME     MEDIAN(VALUE)
 > -------- -------------
-> Group 1X 45
+> Group 1X 45.0
 > Group 2A 10
 > Group 3B null
 > rows (ordered): 3
@@ -707,7 +707,7 @@ insert into test values (10), (20);
 > update count: 2
 
 select median(v) from test;
->> 15
+>> 15.0
 
 insert into test values (20), (10), (20);
 > update count: 3
@@ -729,7 +729,7 @@ insert into test values (10), (20), (30), (40), (50), (60), (70), (80), (90), (1
 select median(v), median(v) filter (where v >= 40) from test where v <= 100;
 > MEDIAN(V) MEDIAN(V) FILTER (WHERE (V >= 40))
 > --------- ----------------------------------
-> 55        70
+> 55.0      70
 > rows: 1
 
 create index test_idx on test(v);
@@ -738,13 +738,13 @@ create index test_idx on test(v);
 select median(v), median(v) filter (where v >= 40) from test where v <= 100;
 > MEDIAN(V) MEDIAN(V) FILTER (WHERE (V >= 40))
 > --------- ----------------------------------
-> 55        70
+> 55.0      70
 > rows: 1
 
 select median(v), median(v) filter (where v >= 40) from test;
 > MEDIAN(V) MEDIAN(V) FILTER (WHERE (V >= 40))
 > --------- ----------------------------------
-> 65        80
+> 65.0      80
 > rows: 1
 
 drop table test;
@@ -774,7 +774,7 @@ select dept, median(amount) filter (where amount >= 20) from test group by dept 
 > ------ --------------------------------------------
 > First  30
 > Second 22
-> Third  160
+> Third  160.0
 > rows (ordered): 3
 
 select dept, median(amount) filter (where amount >= 20) from test
@@ -782,7 +782,7 @@ select dept, median(amount) filter (where amount >= 20) from test
 > DEPT   MEDIAN(AMOUNT) FILTER (WHERE (AMOUNT >= 20))
 > ------ --------------------------------------------
 > First  30
-> Second 21
+> Second 21.0
 > Third  150
 > rows (ordered): 3
 
@@ -804,10 +804,10 @@ select
     percentile_cont(0.95) within group (order by v) c95a,
     percentile_cont(0.95) within group (order by v desc) c95d,
     g from test group by g;
-> C05A C05D C50 C50D C95A C95D G
-> ---- ---- --- ---- ---- ---- -
-> 1    9    5   5    9    1    1
-> 11   89   25  25   89   11   2
+> C05A  C05D  C50  C50D C95A  C95D  G
+> ----- ----- ---- ---- ----- ----- -
+> 1.45  9.55  5.5  5.5  9.55  1.45  1
+> 11.50 89.50 25.0 25.0 89.50 11.50 2
 > rows: 2
 
 select

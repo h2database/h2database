@@ -181,6 +181,10 @@ public class Aggregate extends AbstractAggregate {
             if (v != ValueNull.INSTANCE) {
                 v = updateCollecting(session, v.convertTo(Value.STRING), remembered);
             }
+            if (args.length >= 2) {
+                ((AggregateDataCollecting) data).setSharedArgument(
+                        remembered != null ? remembered[1] : args[1].getValue(session));
+            }
             break;
         case ARRAY_AGG:
             if (v != ValueNull.INSTANCE) {
@@ -415,7 +419,8 @@ public class Aggregate extends AbstractAggregate {
     }
 
     private Value getGroupConcat(Session session, AggregateData data) {
-        Value[] array = ((AggregateDataCollecting) data).getArray();
+        AggregateDataCollecting collectingData = (AggregateDataCollecting) data;
+        Value[] array = collectingData.getArray();
         if (array == null) {
             return ValueNull.INSTANCE;
         }
@@ -423,7 +428,7 @@ public class Aggregate extends AbstractAggregate {
             sortWithOrderBy(array);
         }
         StatementBuilder buff = new StatementBuilder();
-        String sep = args.length < 2 ? "," : args[1].getValue(session).getString();
+        String sep = args.length < 2 ? "," : collectingData.getSharedArgument().getString();
         for (Value val : array) {
             String s;
             if (val.getValueType() == Value.ARRAY) {

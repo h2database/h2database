@@ -67,3 +67,32 @@ select group_concat(distinct v order by v desc) from test;
 
 drop table test;
 > ok
+
+create table test(g varchar, v int) as values ('-', 1), ('-', 2), ('-', 3), ('|', 4), ('|', 5), ('|', 6), ('*', null);
+> ok
+
+select g, group_concat(v separator g) from test group by g;
+> G GROUP_CONCAT(V SEPARATOR G)
+> - ---------------------------
+> * null
+> - 1-2-3
+> | 4|5|6
+> rows: 3
+
+select g, group_concat(v separator g) over (partition by g) from test order by v;
+> G GROUP_CONCAT(V SEPARATOR G) OVER (PARTITION BY G)
+> - -------------------------------------------------
+> * null
+> - 1-2-3
+> - 1-2-3
+> - 1-2-3
+> | 4|5|6
+> | 4|5|6
+> | 4|5|6
+> rows (ordered): 7
+
+select g, group_concat(v separator v) from test group by g;
+> exception INVALID_VALUE_2
+
+drop table test;
+> ok

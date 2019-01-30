@@ -3545,6 +3545,7 @@ GROUP_CONCAT ( [ DISTINCT|ALL ] string
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Concatenates strings with a separator.
+Separator must be the same for all rows in the same group.
 The default separator is a ',' (without space).
 This method returns a string.
 If no rows are selected, the result is NULL.

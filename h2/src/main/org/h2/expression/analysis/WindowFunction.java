@@ -196,14 +196,14 @@ public class WindowFunction extends DataAnalysisOperation {
             getRank(result, ordered, rowIdColumn);
             break;
         case CUME_DIST:
-            getCumeDist(session, result, ordered, rowIdColumn);
+            getCumeDist(result, ordered, rowIdColumn);
             break;
         case NTILE:
-            getNtile(session, result, ordered, rowIdColumn);
+            getNtile(result, ordered, rowIdColumn);
             break;
         case LEAD:
         case LAG:
-            getLeadLag(session, result, ordered, rowIdColumn);
+            getLeadLag(result, ordered, rowIdColumn);
             break;
         case FIRST_VALUE:
         case LAST_VALUE:
@@ -211,7 +211,7 @@ public class WindowFunction extends DataAnalysisOperation {
             getNth(session, result, ordered, rowIdColumn);
             break;
         case RATIO_TO_REPORT:
-            getRatioToReport(session, result, ordered, rowIdColumn);
+            getRatioToReport(result, ordered, rowIdColumn);
             break;
         default:
             throw DbException.throwInternalError("type=" + type);
@@ -243,8 +243,7 @@ public class WindowFunction extends DataAnalysisOperation {
         }
     }
 
-    private void getCumeDist(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> orderedData,
-            int last) {
+    private void getCumeDist(HashMap<Integer, Value> result, ArrayList<Value[]> orderedData, int rowIdColumn) {
         int size = orderedData.size();
         for (int start = 0; start < size;) {
             Value[] array = orderedData.get(start);
@@ -254,15 +253,14 @@ public class WindowFunction extends DataAnalysisOperation {
             }
             ValueDouble v = ValueDouble.get((double) end / size);
             for (int i = start; i < end; i++) {
-                int rowId = orderedData.get(i)[last].getInt();
+                int rowId = orderedData.get(i)[rowIdColumn].getInt();
                 result.put(rowId, v);
             }
             start = end;
         }
     }
 
-    private static void getNtile(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> orderedData,
-            int last) {
+    private static void getNtile(HashMap<Integer, Value> result, ArrayList<Value[]> orderedData, int rowIdColumn) {
         int size = orderedData.size();
         for (int i = 0; i < size; i++) {
             Value[] array = orderedData.get(i);
@@ -279,12 +277,11 @@ public class WindowFunction extends DataAnalysisOperation {
             } else {
                 v = i / (perTile + 1) + 1;
             }
-            result.put(orderedData.get(i)[last].getInt(), ValueLong.get(v));
+            result.put(orderedData.get(i)[rowIdColumn].getInt(), ValueLong.get(v));
         }
     }
 
-    private void getLeadLag(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,
-            int rowIdColumn) {
+    private void getLeadLag(HashMap<Integer, Value> result, ArrayList<Value[]> ordered, int rowIdColumn) {
         int size = ordered.size();
         int numExpressions = getNumExpressions();
         int dataType = args[0].getType().getValueType();
@@ -381,8 +378,7 @@ public class WindowFunction extends DataAnalysisOperation {
         }
     }
 
-    private static void getRatioToReport(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,
-            int rowIdColumn) {
+    private static void getRatioToReport(HashMap<Integer, Value> result, ArrayList<Value[]> ordered, int rowIdColumn) {
         int size = ordered.size();
         Value value = null;
         for (int i = 0; i < size; i++) {

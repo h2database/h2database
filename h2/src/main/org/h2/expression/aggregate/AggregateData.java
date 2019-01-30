@@ -34,6 +34,10 @@ abstract class AggregateData {
             break;
         case GROUP_CONCAT:
         case ARRAY_AGG:
+        case RANK:
+        case DENSE_RANK:
+        case PERCENT_RANK:
+        case CUME_DIST:
         case PERCENTILE_CONT:
         case PERCENTILE_DISC:
         case MEDIAN:

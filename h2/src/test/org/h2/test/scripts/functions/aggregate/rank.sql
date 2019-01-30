@@ -90,18 +90,30 @@ SELECT
     RANK(1) WITHIN GROUP (ORDER BY V) OVER (ORDER BY V) R1,
     RANK(3) WITHIN GROUP (ORDER BY V) OVER (ORDER BY V) R3,
     RANK(7) WITHIN GROUP (ORDER BY V) OVER (ORDER BY V) R7,
+    RANK(7) WITHIN GROUP (ORDER BY V) FILTER (WHERE V <> 2) OVER (ORDER BY V) F7,
     V
     FROM TEST ORDER BY V;
-> R1 R3 R7 V
-> -- -- -- -
-> 1  2  2  1
-> 1  3  3  2
-> 1  3  5  3
-> 1  3  5  3
-> 1  3  6  4
-> 1  3  7  5
-> 1  3  8  6
+> R1 R3 R7 F7 V
+> -- -- -- -- -
+> 1  2  2  2  1
+> 1  3  3  2  2
+> 1  3  5  4  3
+> 1  3  5  4  3
+> 1  3  6  5  4
+> 1  3  7  6  5
+> 1  3  8  7  6
 > rows (ordered): 7
+
+SELECT
+    RANK(1) WITHIN GROUP (ORDER BY V) FILTER (WHERE FALSE) R,
+    DENSE_RANK(1) WITHIN GROUP (ORDER BY V) FILTER (WHERE FALSE) D,
+    PERCENT_RANK(1) WITHIN GROUP (ORDER BY V) FILTER (WHERE FALSE) P,
+    CUME_DIST(1) WITHIN GROUP (ORDER BY V) FILTER (WHERE FALSE) C
+    FROM VALUES (1) T(V);
+> R D P   C
+> - - --- ---
+> 1 1 0.0 1.0
+> rows: 1
 
 SELECT RANK(1) WITHIN GROUP (ORDER BY V, V) FROM TEST;
 > exception SYNTAX_ERROR_2

@@ -42,6 +42,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueDouble;
+import org.h2.value.ValueInt;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueRow;
@@ -453,6 +454,19 @@ public class Aggregate extends AbstractAggregate {
     private Value getHypotheticalSet(Session session, AggregateData data) {
         AggregateDataCollecting collectingData = (AggregateDataCollecting) data;
         Value arg = collectingData.getSharedArgument();
+        if (arg == null) {
+            switch (aggregateType) {
+            case RANK:
+            case DENSE_RANK:
+                return ValueInt.get(1);
+            case PERCENT_RANK:
+                return ValueDouble.ZERO;
+            case CUME_DIST:
+                return ValueDouble.ONE;
+            default:
+                throw DbException.getUnsupportedException("aggregateType=" + aggregateType);
+            }
+        }
         collectingData.add(session.getDatabase(), arg);
         Value[] array = collectingData.getArray();
         Comparator<Value> sort = orderBySort.getRowValueComparator();

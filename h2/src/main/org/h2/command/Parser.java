@@ -3041,43 +3041,50 @@ public class Parser {
         switch (aggregateType) {
         case COUNT:
             if (readIf(ASTERISK)) {
-                r = new Aggregate(AggregateType.COUNT_ALL, null, currentSelect, false);
+                r = new Aggregate(AggregateType.COUNT_ALL, new Expression[0], currentSelect, false);
             } else {
                 boolean distinct = readDistinctAgg();
                 Expression on = readExpression();
                 if (on instanceof Wildcard && !distinct) {
                     // PostgreSQL compatibility: count(t.*)
-                    r = new Aggregate(AggregateType.COUNT_ALL, null, currentSelect, false);
+                    r = new Aggregate(AggregateType.COUNT_ALL, new Expression[0], currentSelect, false);
                 } else {
-                    r = new Aggregate(AggregateType.COUNT, on, currentSelect, distinct);
+                    r = new Aggregate(AggregateType.COUNT, new Expression[] { on }, currentSelect, distinct);
                 }
             }
             break;
         case GROUP_CONCAT: {
             boolean distinct = readDistinctAgg();
-            r = new Aggregate(AggregateType.GROUP_CONCAT, readExpression(), currentSelect, distinct);
+            Expression arg = readExpression(), separator = null;
+            ArrayList<SelectOrderBy> orderByList = null;
             if (equalsToken("STRING_AGG", aggregateName)) {
                 // PostgreSQL compatibility: string_agg(expression, delimiter)
                 read(COMMA);
-                r.setGroupConcatSeparator(readExpression());
+                separator = readExpression();
                 if (readIf(ORDER)) {
                     read("BY");
-                    r.setOrderByList(parseSimpleOrderList());
+                    orderByList = parseSimpleOrderList();
                 }
             } else {
                 if (readIf(ORDER)) {
                     read("BY");
-                    r.setOrderByList(parseSimpleOrderList());
+                    orderByList = parseSimpleOrderList();
                 }
                 if (readIf("SEPARATOR")) {
-                    r.setGroupConcatSeparator(readExpression());
+                    separator = readExpression();
                 }
+            }
+            r = new Aggregate(AggregateType.GROUP_CONCAT,
+                    separator == null ? new Expression[] { arg } : new Expression[] { arg, separator },
+                            currentSelect, distinct);
+            if (orderByList != null) {
+                r.setOrderByList(orderByList);
             }
             break;
         }
         case ARRAY_AGG: {
             boolean distinct = readDistinctAgg();
-            r = new Aggregate(AggregateType.ARRAY_AGG, readExpression(), currentSelect, distinct);
+            r = new Aggregate(AggregateType.ARRAY_AGG, new Expression[] { readExpression() }, currentSelect, distinct);
             if (readIf(ORDER)) {
                 read("BY");
                 r.setOrderByList(parseSimpleOrderList());
@@ -3088,15 +3095,15 @@ public class Parser {
         case PERCENTILE_DISC: {
             Expression num = readExpression();
             read(CLOSE_PAREN);
-            r = readWithinGroup(aggregateType, num);
+            r = readWithinGroup(aggregateType, new Expression[] { num });
             break;
         }
         case MODE: {
             if (readIf(CLOSE_PAREN)) {
-                r = readWithinGroup(AggregateType.MODE, null);
+                r = readWithinGroup(AggregateType.MODE, new Expression[0]);
             } else {
                 Expression expr = readExpression();
-                r = new Aggregate(aggregateType, null, currentSelect, false);
+                r = new Aggregate(aggregateType, new Expression[0], currentSelect, false);
                 if (readIf(ORDER)) {
                     read("BY");
                     Expression expr2 = readExpression();
@@ -3114,7 +3121,7 @@ public class Parser {
         }
         default:
             boolean distinct = readDistinctAgg();
-            r = new Aggregate(aggregateType, readExpression(), currentSelect, distinct);
+            r = new Aggregate(aggregateType, new Expression[] { readExpression() }, currentSelect, distinct);
             break;
         }
         read(CLOSE_PAREN);
@@ -3122,7 +3129,7 @@ public class Parser {
         return r;
     }
 
-    private Aggregate readWithinGroup(AggregateType aggregateType, Expression argument) {
+    private Aggregate readWithinGroup(AggregateType aggregateType, Expression[] args) {
         Aggregate r;
         read("WITHIN");
         read(GROUP);
@@ -3130,7 +3137,7 @@ public class Parser {
         read(ORDER);
         read("BY");
         Expression expr = readExpression();
-        r = new Aggregate(aggregateType, argument, currentSelect, false);
+        r = new Aggregate(aggregateType, args, currentSelect, false);
         readAggregateOrder(r, expr, true);
         return r;
     }

@@ -22,6 +22,7 @@ import org.h2.expression.analysis.WindowFrameExclusion;
 import org.h2.expression.analysis.WindowFrameUnits;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
 /**
@@ -35,12 +36,23 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
     protected final boolean distinct;
 
     /**
+     * The arguments.
+     */
+    protected final Expression[] args;
+
+    /**
      * FILTER condition for aggregate
      */
     protected Expression filterCondition;
 
-    AbstractAggregate(Select select, boolean distinct) {
+    /**
+     * The type of the result.
+     */
+    protected TypeInfo type;
+
+    AbstractAggregate(Select select, Expression[] args, boolean distinct) {
         super(select);
+        this.args = args;
         this.distinct = distinct;
     }
 
@@ -60,7 +72,15 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
     }
 
     @Override
+    public TypeInfo getType() {
+        return type;
+    }
+
+    @Override
     public void mapColumnsAnalysis(ColumnResolver resolver, int level, int innerState) {
+        for (Expression arg : args) {
+            arg.mapColumns(resolver, level, innerState);
+        }
         if (filterCondition != null) {
             filterCondition.mapColumns(resolver, level, innerState);
         }
@@ -69,6 +89,9 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
 
     @Override
     public Expression optimize(Session session) {
+        for (int i = 0; i < args.length; i++) {
+            args[i] = args[i].optimize(session);
+        }
         if (filterCondition != null) {
             filterCondition = filterCondition.optimize(session);
         }
@@ -77,6 +100,9 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
 
     @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
+        for (Expression arg : args) {
+            arg.setEvaluatable(tableFilter, b);
+        }
         if (filterCondition != null) {
             filterCondition.setEvaluatable(tableFilter, b);
         }

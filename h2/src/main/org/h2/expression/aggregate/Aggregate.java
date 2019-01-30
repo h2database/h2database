@@ -53,10 +53,8 @@ public class Aggregate extends AbstractAggregate {
 
     private final AggregateType aggregateType;
 
-    private final Expression[] args;
     private ArrayList<SelectOrderBy> orderByList;
     private SortOrder orderBySort;
-    private TypeInfo type;
 
     /**
      * Create a new aggregate object.
@@ -71,12 +69,11 @@ public class Aggregate extends AbstractAggregate {
      *            if distinct is used
      */
     public Aggregate(AggregateType aggregateType, Expression[] args, Select select, boolean distinct) {
-        super(select, distinct);
+        super(select, args, distinct);
         if (distinct && aggregateType == AggregateType.COUNT_ALL) {
             throw DbException.throwInternalError();
         }
         this.aggregateType = aggregateType;
-        this.args = args;
     }
 
     static {
@@ -511,15 +508,7 @@ public class Aggregate extends AbstractAggregate {
     }
 
     @Override
-    public TypeInfo getType() {
-        return type;
-    }
-
-    @Override
     public void mapColumnsAnalysis(ColumnResolver resolver, int level, int innerState) {
-        for (Expression arg : args) {
-            arg.mapColumns(resolver, level, innerState);
-        }
         if (orderByList != null) {
             for (SelectOrderBy o : orderByList) {
                 o.expression.mapColumns(resolver, level, innerState);
@@ -531,9 +520,6 @@ public class Aggregate extends AbstractAggregate {
     @Override
     public Expression optimize(Session session) {
         super.optimize(session);
-        for (int i = 0; i < args.length; i++) {
-            args[i] = args[i].optimize(session);
-        }
         if (args.length == 1) {
             type = args[0].getType();
         }
@@ -627,9 +613,6 @@ public class Aggregate extends AbstractAggregate {
 
     @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        for (Expression arg : args) {
-            arg.setEvaluatable(tableFilter, b);
-        }
         if (orderByList != null) {
             for (SelectOrderBy o : orderByList) {
                 o.expression.setEvaluatable(tableFilter, b);

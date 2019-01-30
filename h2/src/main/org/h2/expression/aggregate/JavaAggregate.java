@@ -15,8 +15,6 @@ import org.h2.engine.UserAggregate;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.message.DbException;
-import org.h2.table.ColumnResolver;
-import org.h2.table.TableFilter;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -30,16 +28,13 @@ import org.h2.value.ValueRow;
 public class JavaAggregate extends AbstractAggregate {
 
     private final UserAggregate userAggregate;
-    private final Expression[] args;
     private int[] argTypes;
-    private TypeInfo type;
     private int dataType;
     private Connection userConnection;
 
     public JavaAggregate(UserAggregate userAggregate, Expression[] args, Select select, boolean distinct) {
-        super(select, distinct);
+        super(select, args, distinct);
         this.userAggregate = userAggregate;
-        this.args = args;
     }
 
     @Override
@@ -60,11 +55,6 @@ public class JavaAggregate extends AbstractAggregate {
         writeExpressions(builder, args);
         builder.append(')');
         return appendTailConditions(builder);
-    }
-
-    @Override
-    public TypeInfo getType() {
-        return type;
     }
 
     @Override
@@ -93,23 +83,13 @@ public class JavaAggregate extends AbstractAggregate {
     }
 
     @Override
-    public void mapColumnsAnalysis(ColumnResolver resolver, int level, int innerState) {
-        for (Expression arg : args) {
-            arg.mapColumns(resolver, level, innerState);
-        }
-        super.mapColumnsAnalysis(resolver, level, innerState);
-    }
-
-    @Override
     public Expression optimize(Session session) {
         super.optimize(session);
         userConnection = session.createConnection(false);
         int len = args.length;
         argTypes = new int[len];
         for (int i = 0; i < len; i++) {
-            Expression expr = args[i];
-            args[i] = expr.optimize(session);
-            int type = expr.getType().getValueType();
+            int type = args[i].getType().getValueType();
             argTypes[i] = type;
         }
         try {
@@ -120,14 +100,6 @@ public class JavaAggregate extends AbstractAggregate {
             throw DbException.convert(e);
         }
         return this;
-    }
-
-    @Override
-    public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        for (Expression e : args) {
-            e.setEvaluatable(tableFilter, b);
-        }
-        super.setEvaluatable(tableFilter, b);
     }
 
     private Aggregate getInstance() {

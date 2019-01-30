@@ -3055,24 +3055,30 @@ public class Parser {
             break;
         case GROUP_CONCAT: {
             boolean distinct = readDistinctAgg();
-            r = new Aggregate(AggregateType.GROUP_CONCAT, new Expression[] { readExpression() }, currentSelect,
-                    distinct);
+            Expression arg = readExpression(), separator = null;
+            ArrayList<SelectOrderBy> orderByList = null;
             if (equalsToken("STRING_AGG", aggregateName)) {
                 // PostgreSQL compatibility: string_agg(expression, delimiter)
                 read(COMMA);
-                r.setGroupConcatSeparator(readExpression());
+                separator = readExpression();
                 if (readIf(ORDER)) {
                     read("BY");
-                    r.setOrderByList(parseSimpleOrderList());
+                    orderByList = parseSimpleOrderList();
                 }
             } else {
                 if (readIf(ORDER)) {
                     read("BY");
-                    r.setOrderByList(parseSimpleOrderList());
+                    orderByList = parseSimpleOrderList();
                 }
                 if (readIf("SEPARATOR")) {
-                    r.setGroupConcatSeparator(readExpression());
+                    separator = readExpression();
                 }
+            }
+            r = new Aggregate(AggregateType.GROUP_CONCAT,
+                    separator == null ? new Expression[] { arg } : new Expression[] { arg, separator },
+                            currentSelect, distinct);
+            if (orderByList != null) {
+                r.setOrderByList(orderByList);
             }
             break;
         }

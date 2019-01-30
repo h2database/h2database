@@ -12,6 +12,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectOrderBy;
@@ -40,8 +41,11 @@ import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
+import org.h2.value.ValueDouble;
+import org.h2.value.ValueInt;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueRow;
 import org.h2.value.ValueString;
 
 /**
@@ -108,9 +112,16 @@ public class Aggregate extends AbstractAggregate {
         addAggregate("HISTOGRAM", AggregateType.HISTOGRAM);
         addAggregate("BIT_OR", AggregateType.BIT_OR);
         addAggregate("BIT_AND", AggregateType.BIT_AND);
+
+        addAggregate("RANK", AggregateType.RANK);
+        addAggregate("DENSE_RANK", AggregateType.DENSE_RANK);
+        addAggregate("PERCENT_RANK", AggregateType.PERCENT_RANK);
+        addAggregate("CUME_DIST", AggregateType.CUME_DIST);
+
         addAggregate("PERCENTILE_CONT", AggregateType.PERCENTILE_CONT);
         addAggregate("PERCENTILE_DISC", AggregateType.PERCENTILE_DISC);
         addAggregate("MEDIAN", AggregateType.MEDIAN);
+
         addAggregate("ARRAY_AGG", AggregateType.ARRAY_AGG);
         addAggregate("MODE", AggregateType.MODE);
         // Oracle compatibility
@@ -191,6 +202,23 @@ public class Aggregate extends AbstractAggregate {
                 v = updateCollecting(session, v, remembered);
             }
             break;
+        case RANK:
+        case DENSE_RANK:
+        case PERCENT_RANK:
+        case CUME_DIST: {
+            int count = args.length;
+            Value[] a = new Value[count];
+            for (int i = 0; i < count; i++) {
+                a[i] = remembered != null ? remembered[i] : args[i].getValue(session);
+            }
+            ((AggregateDataCollecting) data).setSharedArgument(ValueRow.get(a));
+            a = new Value[count];
+            for (int i = 0; i < count; i++) {
+                a[i] = remembered != null ? remembered[count + i] :orderByList.get(i).expression.getValue(session);
+            }
+            v = ValueRow.get(a);
+            break;
+        }
         case PERCENTILE_CONT:
         case PERCENTILE_DISC:
             ((AggregateDataCollecting) data).setSharedArgument(v);
@@ -382,6 +410,11 @@ public class Aggregate extends AbstractAggregate {
             }
             return ValueArray.get(array);
         }
+        case RANK:
+        case DENSE_RANK:
+        case PERCENT_RANK:
+        case CUME_DIST:
+            return getHypotheticalSet(session, data);
         case PERCENTILE_CONT:
         case PERCENTILE_DISC: {
             AggregateDataCollecting collectingData = (AggregateDataCollecting) data;
@@ -416,6 +449,76 @@ public class Aggregate extends AbstractAggregate {
             // Avoid compiler warning
         }
         return data.getValue(session.getDatabase(), type.getValueType());
+    }
+
+    private Value getHypotheticalSet(Session session, AggregateData data) {
+        AggregateDataCollecting collectingData = (AggregateDataCollecting) data;
+        Value arg = collectingData.getSharedArgument();
+        if (arg == null) {
+            switch (aggregateType) {
+            case RANK:
+            case DENSE_RANK:
+                return ValueInt.get(1);
+            case PERCENT_RANK:
+                return ValueDouble.ZERO;
+            case CUME_DIST:
+                return ValueDouble.ONE;
+            default:
+                throw DbException.getUnsupportedException("aggregateType=" + aggregateType);
+            }
+        }
+        collectingData.add(session.getDatabase(), arg);
+        Value[] array = collectingData.getArray();
+        Comparator<Value> sort = orderBySort.getRowValueComparator();
+        Arrays.sort(array, sort);
+        return aggregateType == AggregateType.CUME_DIST ? getCumeDist(array, arg, sort) : getRank(array, arg, sort);
+    }
+
+    private Value getRank(Value[] ordered, Value arg, Comparator<Value> sort) {
+        int size = ordered.length;
+        int number = 0;
+        for (int i = 0; i < size; i++) {
+            Value row = ordered[i];
+            if (i == 0) {
+                number = 1;
+            } else if (sort.compare(ordered[i - 1], row) != 0) {
+                if (aggregateType == AggregateType.DENSE_RANK) {
+                    number++;
+                } else {
+                    number = i + 1;
+                }
+            }
+            Value v;
+            if (aggregateType == AggregateType.PERCENT_RANK) {
+                int nm = number - 1;
+                v = nm == 0 ? ValueDouble.ZERO : ValueDouble.get((double) nm / (size - 1));
+            } else {
+                v = ValueLong.get(number);
+            }
+            if (sort.compare(row, arg) == 0) {
+                return v;
+            }
+        }
+        throw DbException.throwInternalError();
+    }
+
+    private static Value getCumeDist(Value[] ordered, Value arg, Comparator<Value> sort) {
+        int size = ordered.length;
+        for (int start = 0; start < size;) {
+            Value array = ordered[start];
+            int end = start + 1;
+            while (end < size && sort.compare(array, ordered[end]) == 0) {
+                end++;
+            }
+            ValueDouble v = ValueDouble.get((double) end / size);
+            for (int i = start; i < end; i++) {
+                if (sort.compare(ordered[i], arg) == 0) {
+                    return v;
+                }
+            }
+            start = end;
+        }
+        throw DbException.throwInternalError();
     }
 
     private Value getGroupConcat(Session session, AggregateData data) {
@@ -532,7 +635,16 @@ public class Aggregate extends AbstractAggregate {
             for (SelectOrderBy o : orderByList) {
                 o.expression = o.expression.optimize(session);
             }
-            orderBySort = createOrder(session, orderByList, 1);
+            int offset;
+            switch (aggregateType) {
+            case ARRAY_AGG:
+            case GROUP_CONCAT:
+                offset = 1;
+                break;
+            default:
+                offset = 0;
+            }
+            orderBySort = createOrder(session, orderByList, offset);
         }
         switch (aggregateType) {
         case GROUP_CONCAT:
@@ -567,6 +679,14 @@ public class Aggregate extends AbstractAggregate {
             break;
         case MIN:
         case MAX:
+            break;
+        case RANK:
+        case DENSE_RANK:
+            type = TypeInfo.TYPE_LONG;
+            break;
+        case PERCENT_RANK:
+        case CUME_DIST:
+            type = TypeInfo.TYPE_DOUBLE;
             break;
         case PERCENTILE_CONT:
             type = orderByList.get(0).expression.getType();
@@ -704,6 +824,18 @@ public class Aggregate extends AbstractAggregate {
             break;
         case BIT_OR:
             text = "BIT_OR";
+            break;
+        case RANK:
+            text = "RANK";
+            break;
+        case DENSE_RANK:
+            text = "DENSE_RANK";
+            break;
+        case PERCENT_RANK:
+            text = "PERCENT_RANK";
+            break;
+        case CUME_DIST:
+            text = "CUME_DIST";
             break;
         case PERCENTILE_CONT:
             text = "PERCENTILE_CONT";

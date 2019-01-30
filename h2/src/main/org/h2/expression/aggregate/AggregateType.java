@@ -96,6 +96,26 @@ public enum AggregateType {
     HISTOGRAM,
 
     /**
+     * The type for RANK() hypothetical set function.
+     */
+    RANK,
+
+    /**
+     * The type for DENSE_RANK() hypothetical set function.
+     */
+    DENSE_RANK,
+
+    /**
+     * The type for PERCENT_RANK() hypothetical set function.
+     */
+    PERCENT_RANK,
+
+    /**
+     * The type for CUME_DIST() hypothetical set function.
+     */
+    CUME_DIST,
+
+    /**
      * The aggregate type for PERCENTILE_CONT(expression).
      */
     PERCENTILE_CONT,

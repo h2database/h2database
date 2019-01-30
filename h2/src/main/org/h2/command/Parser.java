@@ -3091,16 +3091,30 @@ public class Parser {
             }
             break;
         }
+        case RANK:
+        case DENSE_RANK:
+        case PERCENT_RANK:
+        case CUME_DIST: {
+            if (isToken(CLOSE_PAREN)) {
+                return readWindowFunction(aggregateName);
+            }
+            ArrayList<Expression> expressions = Utils.newSmallArrayList();
+            do {
+                expressions.add(readExpression());
+            } while (readIfMore(true));
+            r = readWithinGroup(aggregateType, expressions.toArray(new Expression[0]), true);
+            break;
+        }
         case PERCENTILE_CONT:
         case PERCENTILE_DISC: {
             Expression num = readExpression();
             read(CLOSE_PAREN);
-            r = readWithinGroup(aggregateType, new Expression[] { num });
+            r = readWithinGroup(aggregateType, new Expression[] { num }, false);
             break;
         }
         case MODE: {
             if (readIf(CLOSE_PAREN)) {
-                r = readWithinGroup(AggregateType.MODE, new Expression[0]);
+                r = readWithinGroup(AggregateType.MODE, new Expression[0], false);
             } else {
                 Expression expr = readExpression();
                 r = new Aggregate(aggregateType, new Expression[0], currentSelect, false);
@@ -3129,16 +3143,29 @@ public class Parser {
         return r;
     }
 
-    private Aggregate readWithinGroup(AggregateType aggregateType, Expression[] args) {
-        Aggregate r;
+    private Aggregate readWithinGroup(AggregateType aggregateType, Expression[] args, boolean forHypotheticalSet) {
         read("WITHIN");
         read(GROUP);
         read(OPEN_PAREN);
         read(ORDER);
         read("BY");
-        Expression expr = readExpression();
-        r = new Aggregate(aggregateType, args, currentSelect, false);
-        readAggregateOrder(r, expr, true);
+        Aggregate r = new Aggregate(aggregateType, args, currentSelect, false);
+        if (forHypotheticalSet) {
+            int count = args.length;
+            ArrayList<SelectOrderBy> orderList = new ArrayList<>(count);
+            for (int i = 0; i < count; i++) {
+                if (i > 0) {
+                    read(COMMA);
+                }
+                SelectOrderBy order = new SelectOrderBy();
+                order.expression = readExpression();
+                order.sortType = parseSimpleSortType();
+                orderList.add(order);
+            }
+            r.setOrderByList(orderList);
+        } else {
+            readAggregateOrder(r, readExpression(), true);
+        }
         return r;
     }
 

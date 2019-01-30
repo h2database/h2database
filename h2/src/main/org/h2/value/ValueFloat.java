@@ -131,6 +131,11 @@ public class ValueFloat extends Value {
     }
 
     @Override
+    public double getDouble() {
+        return value;
+    }
+
+    @Override
     public String getString() {
         return Float.toString(value);
     }

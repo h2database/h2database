@@ -32,11 +32,7 @@ import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDecimal;
-import org.h2.value.ValueDouble;
-import org.h2.value.ValueFloat;
-import org.h2.value.ValueInt;
 import org.h2.value.ValueInterval;
-import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
@@ -46,6 +42,11 @@ import org.h2.value.ValueTimestampTimeZone;
  * PERCENTILE_CONT, PERCENTILE_DISC, and MEDIAN inverse distribution functions.
  */
 final class Percentile {
+
+    /**
+     * BigDecimal value of 0.5.
+     */
+    static final BigDecimal HALF = BigDecimal.valueOf(0.5d);
 
     private static boolean isNullsLast(Index index) {
         IndexColumn ic = index.getIndexColumns()[0];
@@ -106,22 +107,22 @@ final class Percentile {
      * @return the result
      */
     static Value getValue(Database database, Value[] array, int dataType, ArrayList<SelectOrderBy> orderByList,
-            double percentile, boolean interpolate) {
+            BigDecimal percentile, boolean interpolate) {
         final CompareMode compareMode = database.getCompareMode();
         Arrays.sort(array, compareMode);
         int count = array.length;
         boolean reverseIndex = orderByList != null && (orderByList.get(0).sortType & SortOrder.DESCENDING) != 0;
-        double fpRow = (count - 1) * percentile;
-        int rowIdx1 = (int) fpRow;
-        double factor = fpRow - rowIdx1;
+        BigDecimal fpRow = BigDecimal.valueOf(count - 1).multiply(percentile);
+        int rowIdx1 = fpRow.intValue();
+        BigDecimal factor = fpRow.subtract(BigDecimal.valueOf(rowIdx1));
         int rowIdx2;
-        if (factor == 0d) {
+        if (factor.signum() == 0) {
             interpolate = false;
             rowIdx2 = rowIdx1;
         } else {
             rowIdx2 = rowIdx1 + 1;
             if (!interpolate) {
-                if (factor > 0.5d) {
+                if (factor.compareTo(HALF) > 0) {
                     rowIdx1 = rowIdx2;
                 } else {
                     rowIdx2 = rowIdx1;
@@ -151,7 +152,7 @@ final class Percentile {
      * @return the result
      */
     static Value getFromIndex(Session session, Expression expression, int dataType,
-            ArrayList<SelectOrderBy> orderByList, double percentile, boolean interpolate) {
+            ArrayList<SelectOrderBy> orderByList, BigDecimal percentile, boolean interpolate) {
         Index index = getColumnIndex(expression);
         long count = index.getRowCount(session);
         if (count == 0) {
@@ -199,17 +200,17 @@ final class Percentile {
         }
         boolean reverseIndex = (orderByList != null ? orderByList.get(0).sortType & SortOrder.DESCENDING : 0)
                 != (index.getIndexColumns()[0].sortType & SortOrder.DESCENDING);
-        double fpRow = (count - 1) * percentile;
-        long rowIdx1 = (long) fpRow;
-        double factor = fpRow - rowIdx1;
+        BigDecimal fpRow = BigDecimal.valueOf(count - 1).multiply(percentile);
+        long rowIdx1 = fpRow.longValue();
+        BigDecimal factor = fpRow.subtract(BigDecimal.valueOf(rowIdx1));
         long rowIdx2;
-        if (factor == 0d) {
+        if (factor.signum() == 0) {
             interpolate = false;
             rowIdx2 = rowIdx1;
         } else {
             rowIdx2 = rowIdx1 + 1;
             if (!interpolate) {
-                if (factor > 0.5d) {
+                if (factor.compareTo(HALF) > 0) {
                     rowIdx1 = rowIdx2;
                 } else {
                     rowIdx2 = rowIdx1;
@@ -246,10 +247,10 @@ final class Percentile {
             }
             return interpolate(v, v2, factor, dataType, database.getMode(), database.getCompareMode());
         }
-        return v;
+        return v.convertTo(dataType);
     }
 
-    private static Value interpolate(Value v0, Value v1, double factor, int dataType, Mode databaseMode,
+    private static Value interpolate(Value v0, Value v1, BigDecimal factor, int dataType, Mode databaseMode,
             CompareMode compareMode) {
         if (v0.compareTo(v1, databaseMode, compareMode) == 0) {
             return v0.convertTo(dataType);
@@ -258,21 +259,18 @@ final class Percentile {
         case Value.BYTE:
         case Value.SHORT:
         case Value.INT:
-            return ValueInt.get((int) (v0.getInt() * (1 - factor) + v1.getInt() * factor)).convertTo(dataType);
+            return ValueDecimal.get(
+                    interpolateDecimal(BigDecimal.valueOf(v0.getInt()), BigDecimal.valueOf(v1.getInt()), factor));
         case Value.LONG:
-            return ValueLong
-                    .get(interpolateDecimal(BigDecimal.valueOf(v0.getLong()), BigDecimal.valueOf(v1.getLong()), factor)
-                            .longValue());
+            return ValueDecimal.get(
+                    interpolateDecimal(BigDecimal.valueOf(v0.getLong()), BigDecimal.valueOf(v1.getLong()), factor));
         case Value.DECIMAL:
             return ValueDecimal.get(interpolateDecimal(v0.getBigDecimal(), v1.getBigDecimal(), factor));
         case Value.FLOAT:
-            return ValueFloat.get(
-                    interpolateDecimal(BigDecimal.valueOf(v0.getFloat()), BigDecimal.valueOf(v1.getFloat()), factor)
-                            .floatValue());
         case Value.DOUBLE:
-            return ValueDouble.get(
-                    interpolateDecimal(BigDecimal.valueOf(v0.getDouble()), BigDecimal.valueOf(v1.getDouble()), factor)
-                            .doubleValue());
+            return ValueDecimal.get(
+                    interpolateDecimal(
+                            BigDecimal.valueOf(v0.getDouble()), BigDecimal.valueOf(v1.getDouble()), factor));
         case Value.TIME: {
             ValueTime t0 = (ValueTime) v0.convertTo(Value.TIME), t1 = (ValueTime) v1.convertTo(Value.TIME);
             BigDecimal n0 = BigDecimal.valueOf(t0.getNanos());
@@ -307,12 +305,15 @@ final class Percentile {
                     ts1 = (ValueTimestampTimeZone) v1.convertTo(Value.TIMESTAMP_TZ);
             BigDecimal a0 = timestampToDecimal(ts0.getDateValue(), ts0.getTimeNanos());
             BigDecimal a1 = timestampToDecimal(ts1.getDateValue(), ts1.getTimeNanos());
-            double offset = ts0.getTimeZoneOffsetMins() * (1 - factor) + ts1.getTimeZoneOffsetMins() * factor;
-            short sOffset = (short) offset;
+            BigDecimal offset = BigDecimal.valueOf(ts0.getTimeZoneOffsetMins())
+                    .multiply(BigDecimal.ONE.subtract(factor))
+                    .add(BigDecimal.valueOf(ts1.getTimeZoneOffsetMins()).multiply(factor));
+            short shortOffset = offset.shortValue();
+            BigDecimal shortOffsetBD = BigDecimal.valueOf(shortOffset);
             BigDecimal bd = interpolateDecimal(a0, a1, factor);
-            if (offset != sOffset) {
-                bd = bd.add(BigDecimal.valueOf(offset - sOffset)
-                        .multiply(BigDecimal.valueOf(DateTimeUtils.NANOS_PER_MINUTE)));
+            if (offset.compareTo(shortOffsetBD) != 0) {
+                bd = bd.add(
+                        offset.subtract(shortOffsetBD).multiply(BigDecimal.valueOf(DateTimeUtils.NANOS_PER_MINUTE)));
             }
             BigInteger[] dr = bd.toBigInteger().divideAndRemainder(IntervalUtils.NANOS_PER_DAY_BI);
             long absoluteDay = dr[0].longValue();
@@ -322,7 +323,7 @@ final class Percentile {
                 absoluteDay--;
             }
             return ValueTimestampTimeZone.fromDateValueAndNanos(DateTimeUtils.dateValueFromAbsoluteDay(absoluteDay),
-                    timeNanos, sOffset);
+                    timeNanos, shortOffset);
         }
         case Value.INTERVAL_YEAR:
         case Value.INTERVAL_MONTH:
@@ -343,7 +344,7 @@ final class Percentile {
                                     .toBigInteger());
         default:
             // Use the same rules as PERCENTILE_DISC
-            return (factor > 0.5d ? v1 : v0).convertTo(dataType);
+            return (factor.compareTo(HALF) > 0 ? v1 : v0).convertTo(dataType);
         }
     }
 
@@ -352,8 +353,8 @@ final class Percentile {
                 .multiply(IntervalUtils.NANOS_PER_DAY_BI).add(BigInteger.valueOf(timeNanos)));
     }
 
-    private static BigDecimal interpolateDecimal(BigDecimal d0, BigDecimal d1, double factor) {
-        return d0.multiply(BigDecimal.valueOf(1 - factor)).add(d1.multiply(BigDecimal.valueOf(factor)));
+    private static BigDecimal interpolateDecimal(BigDecimal d0, BigDecimal d1, BigDecimal factor) {
+        return d0.multiply(BigDecimal.ONE.subtract(factor)).add(d1.multiply(factor));
     }
 
     private Percentile() {

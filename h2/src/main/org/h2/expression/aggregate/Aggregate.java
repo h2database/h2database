@@ -5,6 +5,7 @@
  */
 package org.h2.expression.aggregate;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -322,8 +323,8 @@ public class Aggregate extends AbstractAggregate {
             if (v == ValueNull.INSTANCE) {
                 return ValueNull.INSTANCE;
             }
-            double arg = v.getDouble();
-            if (arg >= 0d && arg <= 1d) {
+            BigDecimal arg = v.getBigDecimal();
+            if (arg.signum() >= 0 && arg.compareTo(BigDecimal.ONE) <= 0) {
                 return Percentile.getFromIndex(session, orderByList.get(0).expression, type.getValueType(),
                         orderByList, arg, aggregateType == AggregateType.PERCENTILE_CONT);
             } else {
@@ -332,7 +333,7 @@ public class Aggregate extends AbstractAggregate {
             }
         }
         case MEDIAN:
-            return Percentile.getFromIndex(session, on, type.getValueType(), orderByList, 0.5d, true);
+            return Percentile.getFromIndex(session, on, type.getValueType(), orderByList, Percentile.HALF, true);
         case ENVELOPE:
             return ((MVSpatialIndex) AggregateDataEnvelope.getGeometryColumnIndex(on)).getBounds(session);
         default:
@@ -402,8 +403,8 @@ public class Aggregate extends AbstractAggregate {
             if (v == ValueNull.INSTANCE) {
                 return ValueNull.INSTANCE;
             }
-            double arg = v.getDouble();
-            if (arg >= 0d && arg <= 1d) {
+            BigDecimal arg = v.getBigDecimal();
+            if (arg.signum() >= 0 && arg.compareTo(BigDecimal.ONE) <= 0) {
                 return Percentile.getValue(session.getDatabase(), array, type.getValueType(), orderByList, arg,
                         aggregateType == AggregateType.PERCENTILE_CONT);
             } else {
@@ -416,7 +417,8 @@ public class Aggregate extends AbstractAggregate {
             if (array == null) {
                 return ValueNull.INSTANCE;
             }
-            return Percentile.getValue(session.getDatabase(), array, type.getValueType(), orderByList, 0.5d, true);
+            return Percentile.getValue(session.getDatabase(), array, type.getValueType(), orderByList, Percentile.HALF,
+                    true);
         }
         case MODE:
             return getMode(session, data);
@@ -589,9 +591,23 @@ public class Aggregate extends AbstractAggregate {
             break;
         case MIN:
         case MAX:
-        case MEDIAN:
             break;
         case PERCENTILE_CONT:
+            type = orderByList.get(0).expression.getType();
+            //$FALL-THROUGH$
+        case MEDIAN:
+            switch (type.getValueType()) {
+            case Value.BYTE:
+            case Value.SHORT:
+            case Value.INT:
+            case Value.LONG:
+            case Value.DECIMAL:
+            case Value.DOUBLE:
+            case Value.FLOAT:
+                type = TypeInfo.TYPE_DECIMAL_DEFAULT;
+                break;
+            }
+            break;
         case PERCENTILE_DISC:
         case MODE:
             type = orderByList.get(0).expression.getType();

@@ -11,6 +11,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.BitSet;
 
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
@@ -53,16 +54,25 @@ public class TestMVTempResult extends TestBase {
         DeleteDbFiles.execute(dir, name, true);
         try (Connection c = DriverManager.getConnection("jdbc:h2:" + dir + '/' + name)) {
             Statement s = c.createStatement();
-            try (ResultSet rs = s.executeQuery("SELECT X, RAND() R FROM SYSTEM_RANGE(1, " + ROWS + ") ORDER BY R")) {
-                for (int i = 1; i <= ROWS; i++) {
-                    assertTrue(rs.next());
-                }
-            }
-            try (ResultSet rs = s.executeQuery("SELECT X, RAND() FROM SYSTEM_RANGE(1, " + ROWS + ')')) {
-                for (int i = 1; i <= ROWS; i++) {
+            s.execute("CREATE TABLE TEST(I BIGINT, E ENUM('a', 'b'))" //
+                    + " AS SELECT X, 'a' FROM SYSTEM_RANGE(1, " + ROWS + ')');
+            try (ResultSet rs = s.executeQuery("SELECT I, E FROM TEST ORDER BY I DESC")) {
+                for (int i = ROWS; i > 0; i--) {
                     assertTrue(rs.next());
                     assertEquals(i, rs.getLong(1));
+                    assertEquals("a", rs.getString(2));
                 }
+                assertFalse(rs.next());
+            }
+            BitSet set = new BitSet(ROWS);
+            try (ResultSet rs = s.executeQuery("SELECT I, E FROM TEST")) {
+                for (int i = 1; i <= ROWS; i++) {
+                    assertTrue(rs.next());
+                    set.set((int) rs.getLong(1));
+                    assertEquals("a", rs.getString(2));
+                }
+                assertFalse(rs.next());
+                assertEquals(ROWS, set.cardinality());
             }
         }
         DeleteDbFiles.execute(dir, name, true);

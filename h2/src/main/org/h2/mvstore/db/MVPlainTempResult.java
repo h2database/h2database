@@ -59,8 +59,8 @@ class MVPlainTempResult extends MVTempResult {
      *            count of visible columns
      */
     MVPlainTempResult(Database database, Expression[] expressions, int visibleColumnCount) {
-        super(database, expressions.length, visibleColumnCount);
-        ValueDataType valueType = new ValueDataType(database, new int[columnCount]);
+        super(database, expressions, visibleColumnCount);
+        ValueDataType valueType = new ValueDataType(database, new int[expressions.length]);
         Builder<Long, ValueRow> builder = new MVMap.Builder<Long, ValueRow>()
                                                 .valueType(valueType).singleWriter();
         map = store.openMap("tmp", builder);
@@ -99,7 +99,11 @@ class MVPlainTempResult extends MVTempResult {
             return null;
         }
         cursor.next();
-        return cursor.getValue().getList();
+        Value[] currentRow = cursor.getValue().getList();
+        if (hasEnum) {
+            fixEnum(currentRow);
+        }
+        return currentRow;
     }
 
     @Override

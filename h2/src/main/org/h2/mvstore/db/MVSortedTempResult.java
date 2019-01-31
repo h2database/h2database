@@ -109,10 +109,10 @@ class MVSortedTempResult extends MVTempResult {
      */
     MVSortedTempResult(Database database, Expression[] expressions, boolean distinct, int[] distinctIndexes,
             int visibleColumnCount, SortOrder sort) {
-        super(database, expressions.length, visibleColumnCount);
+        super(database, expressions, visibleColumnCount);
         this.distinct = distinct;
         this.distinctIndexes = distinctIndexes;
-        int length = columnCount;
+        int length = expressions.length;
         int[] sortTypes = new int[length];
         int[] indexes;
         if (sort != null) {
@@ -192,7 +192,7 @@ class MVSortedTempResult extends MVTempResult {
                 if (index.putIfAbsent(distinctRow, true) != null) {
                     return rowCount;
                 }
-            } else if (columnCount != visibleColumnCount) {
+            } else if (expressions.length != visibleColumnCount) {
                 ValueRow distinctRow = ValueRow.get(Arrays.copyOf(values, visibleColumnCount));
                 if (index.putIfAbsent(distinctRow, true) != null) {
                     return rowCount;
@@ -221,7 +221,7 @@ class MVSortedTempResult extends MVTempResult {
             return parent.contains(values);
         }
         assert distinct;
-        if (columnCount != visibleColumnCount) {
+        if (expressions.length != visibleColumnCount) {
             return index.containsKey(ValueRow.get(values));
         }
         return map.containsKey(getKey(values));
@@ -297,6 +297,9 @@ class MVSortedTempResult extends MVTempResult {
         }
         // Read the next row
         current = getValue(cursor.next().getList());
+        if (hasEnum) {
+            fixEnum(current);
+        }
         /*
          * If valueCount is greater than 1 that is possible for non-distinct results the
          * following invocations of next() will use this.current and this.valueCount.
@@ -308,7 +311,7 @@ class MVSortedTempResult extends MVTempResult {
     @Override
     public int removeRow(Value[] values) {
         assert parent == null && distinct;
-        if (columnCount != visibleColumnCount) {
+        if (expressions.length != visibleColumnCount) {
             throw DbException.getUnsupportedException("removeRow()");
         }
         // If an entry was removed decrement the counter

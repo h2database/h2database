@@ -136,9 +136,9 @@ public class ValueDataType implements DataType {
         if (a == b) {
             return 0;
         }
-        if (a instanceof ValueArray && b instanceof ValueArray) {
-            Value[] ax = ((ValueArray) a).getList();
-            Value[] bx = ((ValueArray) b).getList();
+        if (a instanceof ValueCollectionBase && b instanceof ValueCollectionBase) {
+            Value[] ax = ((ValueCollectionBase) a).getList();
+            Value[] bx = ((ValueCollectionBase) b).getList();
             int al = ax.length;
             int bl = bx.length;
             int len = Math.min(al, bl);

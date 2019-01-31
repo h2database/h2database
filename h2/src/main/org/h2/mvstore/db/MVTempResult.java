@@ -19,6 +19,7 @@ import org.h2.result.ResultExternal;
 import org.h2.result.SortOrder;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.TempFileDeleter;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
 /**
@@ -87,14 +88,16 @@ public abstract class MVTempResult implements ResultExternal {
     final MVStore store;
 
     /**
-     * Count of columns.
+     * Column expressions.
      */
-    final int columnCount;
+    final Expression[] expressions;
 
     /**
      * Count of visible columns.
      */
     final int visibleColumnCount;
+
+    final boolean hasEnum;
 
     /**
      * Count of rows. Used only in a root results, copies always have 0 value.
@@ -140,8 +143,9 @@ public abstract class MVTempResult implements ResultExternal {
     MVTempResult(MVTempResult parent) {
         this.parent = parent;
         this.store = parent.store;
-        this.columnCount = parent.columnCount;
+        this.expressions = parent.expressions;
         this.visibleColumnCount = parent.visibleColumnCount;
+        this.hasEnum = parent.hasEnum;
         this.tempFileDeleter = null;
         this.closeable = null;
         this.fileRef = null;
@@ -152,12 +156,12 @@ public abstract class MVTempResult implements ResultExternal {
      *
      * @param database
      *            database
-     * @param columnCount
-     *            count of columns
+     * @param expressions
+     *            column expressions
      * @param visibleColumnCount
      *            count of visible columns
      */
-    MVTempResult(Database database, int columnCount, int visibleColumnCount) {
+    MVTempResult(Database database, Expression[] expressions, int visibleColumnCount) {
         try {
             String fileName = FileUtils.createTempFile("h2tmp", Constants.SUFFIX_TEMP_FILE, true);
             Builder builder = new MVStore.Builder().fileName(fileName).cacheSize(0).autoCommitDisabled();
@@ -166,8 +170,16 @@ public abstract class MVTempResult implements ResultExternal {
                 builder.encryptionKey(MVTableEngine.decodePassword(key));
             }
             store = builder.open();
-            this.columnCount = columnCount;
+            this.expressions = expressions;
             this.visibleColumnCount = visibleColumnCount;
+            boolean hasEnum = false;
+            for (Expression e : expressions) {
+                if (e.getType().getValueType() == Value.ENUM) {
+                    hasEnum = true;
+                    break;
+                }
+            }
+            this.hasEnum = hasEnum;
             tempFileDeleter = database.getTempFileDeleter();
             closeable = new CloseImpl(store, fileName);
             fileRef = tempFileDeleter.addFile(closeable, this);
@@ -208,6 +220,15 @@ public abstract class MVTempResult implements ResultExternal {
 
     private void delete() {
         tempFileDeleter.deleteFile(fileRef, closeable);
+    }
+
+    final void fixEnum(Value[] row) {
+        for (int i = 0, l = expressions.length; i < l; i++) {
+            TypeInfo type = expressions[i].getType();
+            if (type.getValueType() == Value.ENUM) {
+                row[i] = type.getExtTypeInfo().cast(row[i]);
+            }
+        }
     }
 
 }

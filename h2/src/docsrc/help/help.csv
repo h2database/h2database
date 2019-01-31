@@ -739,7 +739,7 @@ CREATE SEQUENCE SEQ_ID
 "Commands (DDL)","CREATE TABLE","
 CREATE [ CACHED | MEMORY ] [ TEMP | [ GLOBAL | LOCAL ] TEMPORARY ]
 TABLE [ IF NOT EXISTS ] name
-[ ( { columnName columnDefinition | constraint } [,...] ) ]
+[ ( { columnName [columnDefinition] | constraint } [,...] ) ]
 [ ENGINE tableEngineName ]
 [ WITH tableEngineParamName [,...] ]
 [ NOT PERSISTENT ] [ TRANSACTIONAL ]
@@ -769,7 +769,7 @@ in CREATE TABLE, then the engine specified by DEFAULT_TABLE_ENGINE option of dat
 Tables with the NOT PERSISTENT modifier are kept fully in memory, and all
 rows are lost when the database is closed.
 
-The column definition is optional if a query is specified.
+The column definitions are optional if a query is specified.
 In that case the column list of the query is used.
 If the query is specified its results are inserted into created table unless WITH NO DATA is specified.
 

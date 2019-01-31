@@ -21,6 +21,7 @@ import org.h2.schema.Sequence;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.util.ColumnNamer;
+import org.h2.value.Value;
 
 /**
  * This class represents the statement
@@ -89,6 +90,14 @@ public class CreateTable extends CommandWithColumns {
                 generateColumnsFromQuery();
             } else if (data.columns.size() != asQuery.getColumnCount()) {
                 throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
+            } else {
+                ArrayList<Column> columns = data.columns;
+                for (int i = 0; i < columns.size(); i++) {
+                    Column column = columns.get(i);
+                    if (column.getType().getValueType() == Value.UNKNOWN) {
+                        columns.set(i, new Column(column.getName(), asQuery.getExpressions().get(i).getType()));
+                    }
+                }
             }
         }
         changePrimaryKeysToNotNull(data.columns);

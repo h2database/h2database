@@ -7466,12 +7466,12 @@ public class Parser {
         if (readIf(OPEN_PAREN)) {
             command.setIfNotExists(false);
             do {
-                parseTableColumnDefinition(command, schema, tableName);
+                parseTableColumnDefinition(command, schema, tableName, false);
             } while (readIfMore(true));
         } else {
             boolean ifNotExists = readIfNotExists();
             command.setIfNotExists(ifNotExists);
-            parseTableColumnDefinition(command, schema, tableName);
+            parseTableColumnDefinition(command, schema, tableName, false);
         }
         if (readIf("BEFORE")) {
             command.setAddBefore(readColumnIdentifier());
@@ -7717,7 +7717,7 @@ public class Parser {
         if (readIf(OPEN_PAREN)) {
             if (!readIf(CLOSE_PAREN)) {
                 do {
-                    parseTableColumnDefinition(command, schema, tableName);
+                    parseTableColumnDefinition(command, schema, tableName, true);
                 } while (readIfMore(false));
             }
         }
@@ -7806,13 +7806,17 @@ public class Parser {
         return command;
     }
 
-    private void parseTableColumnDefinition(CommandWithColumns command, Schema schema, String tableName) {
-        DefineCommand c = parseAlterTableAddConstraintIf(tableName,
-                schema, false);
+    private void parseTableColumnDefinition(CommandWithColumns command, Schema schema, String tableName,
+            boolean forCreateTable) {
+        DefineCommand c = parseAlterTableAddConstraintIf(tableName, schema, false);
         if (c != null) {
             command.addConstraintCommand(c);
         } else {
             String columnName = readColumnIdentifier();
+            if (forCreateTable && (currentTokenType == COMMA || currentTokenType == CLOSE_PAREN)) {
+                command.addColumn(new Column(columnName, TypeInfo.TYPE_UNKNOWN));
+                return;
+            }
             Column column = parseColumnForTable(columnName, true, true);
             if (column.isAutoIncrement() && column.isPrimaryKey()) {
                 column.setPrimaryKey(false);

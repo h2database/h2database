@@ -667,7 +667,6 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         int webResourceSize = rs.getInt(1);
         assertTrue(webResourceSize > 0);
         conn.close();
-        conn.close();
     }
 
 

@@ -928,7 +928,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestCluster());
         addTest(new TestFileLockSerialized());
         addTest(new TestFileLockProcess());
-        addTest(new TestFileSystem());
         addTest(new TestDefrag());
         addTest(new TestTools());
         addTest(new TestSampleApps());
@@ -973,6 +972,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestDateIso8601());
         addTest(new TestDbException());
         addTest(new TestFile());
+        addTest(new TestFileSystem());
         addTest(new TestFtp());
         addTest(new TestGeometryUtils());
         addTest(new TestInterval());

@@ -413,7 +413,7 @@ public class Select extends Query {
         initGroupData(columnCount);
         try {
             gatherGroup(columnCount, DataAnalysisOperation.STAGE_WINDOW);
-            processGroupResult(columnCount, result, offset, quickOffset);
+            processGroupResult(columnCount, result, offset, quickOffset, false);
         } finally {
             groupData.reset();
         }
@@ -433,7 +433,7 @@ public class Select extends Query {
                     }
                 }
                 groupData.done();
-                processGroupResult(columnCount, result, offset, quickOffset);
+                processGroupResult(columnCount, result, offset, quickOffset, /* Having was performed earlier */ false);
             } finally {
                 isGroupWindowStage2 = false;
             }
@@ -446,7 +446,7 @@ public class Select extends Query {
         initGroupData(columnCount);
         try {
             gatherGroup(columnCount, DataAnalysisOperation.STAGE_GROUP);
-            processGroupResult(columnCount, result, offset, quickOffset);
+            processGroupResult(columnCount, result, offset, quickOffset, true);
         } finally {
             groupData.reset();
         }
@@ -498,7 +498,8 @@ public class Select extends Query {
         }
     }
 
-    private void processGroupResult(int columnCount, LocalResult result, long offset, boolean quickOffset) {
+    private void processGroupResult(int columnCount, LocalResult result, long offset, boolean quickOffset,
+            boolean withHaving) {
         for (ValueRow currentGroupsKey; (currentGroupsKey = groupData.next()) != null;) {
             Value[] keyValues = currentGroupsKey.getList();
             Value[] row = new Value[columnCount];
@@ -519,7 +520,7 @@ public class Select extends Query {
                 Expression expr = expressions.get(j);
                 row[j] = expr.getValue(session);
             }
-            if (isHavingNullOrFalse(row)) {
+            if (withHaving && isHavingNullOrFalse(row)) {
                 continue;
             }
             if (quickOffset && offset > 0) {

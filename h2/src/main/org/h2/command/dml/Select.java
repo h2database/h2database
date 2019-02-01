@@ -1251,14 +1251,9 @@ public class Select extends Query {
                 }
             }
         }
-        if (isGroupQuery && groupIndex == null &&
-                havingIndex < 0 && filters.size() == 1) {
-            if (condition == null) {
-                Table t = filters.get(0).getTable();
-                ExpressionVisitor optimizable = ExpressionVisitor.
-                        getOptimizableVisitor(t);
-                isQuickAggregateQuery = isEverything(optimizable);
-            }
+        if (isGroupQuery && groupIndex == null && havingIndex < 0 && qualifyIndex < 0 && condition == null
+                && filters.size() == 1) {
+            isQuickAggregateQuery = isEverything(ExpressionVisitor.getOptimizableVisitor(filters.get(0).getTable()));
         }
         cost = preparePlan(session.isParsingCreateView());
         if (distinct && session.getDatabase().getSettings().optimizeDistinct &&

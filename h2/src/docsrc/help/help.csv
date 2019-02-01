@@ -6,10 +6,12 @@
 SELECT [ TOP term [ PERCENT ] [ WITH TIES ] ]
 [ DISTINCT [ ON ( expression [,...] ) ] | ALL ]
 selectExpression [,...]
-FROM tableExpression [,...] [ WHERE expression ]
+[ FROM tableExpression [,...] ]
+[ WHERE expression ]
 [ GROUP BY expression [,...] ] [ HAVING expression ]
+[ QUALIFY expression ]
 [ WINDOW { { windowName AS windowSpecification } [,...] } ]
-[ { UNION [ ALL ] | MINUS | EXCEPT | INTERSECT } select ]
+[ { UNION [ ALL ] | EXCEPT | MINUS | INTERSECT } select ]
 [ ORDER BY order [,...] ]
 [ LIMIT expression [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] ]
 [ [ OFFSET expression { ROW | ROWS } ]
@@ -18,26 +20,35 @@ FROM tableExpression [,...] [ WHERE expression ]
 [ FOR UPDATE ]
 ","
 Selects data from a table or multiple tables.
+WHERE filters rows before other operations.
+
 GROUP BY groups the result by the given expression(s).
-HAVING filters rows after grouping.
+If GROUP BY clause is not specified, but non-window aggregate functions are used or HAVING is specified
+all rows are grouped together.
+Aggregate functions are evaluated, SAMPLE_SIZE limits the number of rows read.
+HAVING filters rows after grouping and evaluation of aggregate functions.
+
+Window functions are evaluated.
+QUALIFY filters rows after evaluation of window functions.
+
+DISTINCT removes duplicates.
+
+UNION, EXCEPT (MINUS), and INTERSECT combine the result of this query with the results of another query.
+Multiple set operators (UNION, INTERSECT, MINUS, EXCEPT) are evaluated from left to right.
+For compatibility with other databases and future versions of H2 please use parentheses.
+
 ORDER BY sorts the result by the given column(s) or expression(s).
-UNION combines the result of this query with the results of another query.
 
 Number of rows in output can be limited either with standard OFFSET / FETCH,
 with non-standard LIMIT / OFFSET, or with non-standard TOP clauses.
 Different clauses cannot be used together.
+OFFSET specifies how many rows to skip.
+Please note that queries with high offset values can be slow.
 FETCH FIRST/NEXT, LIMIT or TOP limits the number of rows returned by the query (no limit if null or smaller than zero).
 If PERCENT is specified number of rows is specified as a percent of the total number of rows
 and should be an integer value between 0 and 100 inclusive.
 WITH TIES can be used only together with ORDER BY and means that all additional rows that have the same sorting position
 as the last row will be also returned.
-OFFSET specifies how many rows to skip.
-Please note that queries with high offset values can be slow.
-SAMPLE_SIZE limits the number of rows read for aggregate queries.
-
-Multiple set operators (UNION, INTERSECT, MINUS, EXCEPT) are evaluated
-from left to right. For compatibility with other databases and future versions
-of H2 please use parentheses.
 
 If FOR UPDATE is specified, the tables or rows are locked for writing.
 This clause is not allowed in DISTINCT queries and in queries with non-window aggregates, GROUP BY, or HAVING clauses.
@@ -246,7 +257,7 @@ Selects data from a table.
 
 This command is an equivalent to SELECT * FROM tableName.
 
-FROM, WHERE, GROUP BY, HAVING, and WINDOW clauses from the SELECT command are not allowed.
+FROM, WHERE, GROUP BY, HAVING, QUALIFY, and WINDOW clauses from the SELECT command are not allowed.
 ","
 TABLE TEST;
 TABLE TEST ORDER BY ID FETCH FIRST ROW ONLY;

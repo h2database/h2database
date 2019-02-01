@@ -1542,7 +1542,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * table/column/index name, in addition to the SQL-2003 keywords. The list
      * returned is:
      * <pre>
-     * INTERSECTS,LIMIT,MINUS,OFFSET,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY,TOP
+     * INTERSECTS,LIMIT,MINUS,OFFSET,QUALIFY,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY,TOP
      * </pre>
      * The complete list of keywords (including SQL-2003 keywords) is:
      * <pre>
@@ -1551,9 +1551,9 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * EXISTS, FALSE, FETCH, FOR, FOREIGN, FROM, FULL, GROUP, HAVING,
      * IF, INNER, INTERSECT, INTERSECTS, INTERVAL, IS, JOIN, LIKE,
      * LIMIT, LOCALTIME, LOCALTIMESTAMP, MINUS, NATURAL, NOT, NULL,
-     * OFFSET, ON, ORDER, PRIMARY, ROW, ROWNUM, SELECT, SYSDATE,
-     * SYSTIME, SYSTIMESTAMP, TABLE, TODAY, TOP, TRUE, UNION, UNIQUE,
-     * VALUES, WHERE, WINDOW, WITH
+     * OFFSET, ON, ORDER, PRIMARY, QUALIFY, ROW, ROWNUM, SELECT,
+     * SYSDATE, SYSTIME, SYSTIMESTAMP, TABLE, TODAY, TOP, TRUE, UNION,
+     * UNIQUE, VALUES, WHERE, WINDOW, WITH
      * </pre>
      *
      * @return a list of additional the keywords
@@ -1561,7 +1561,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public String getSQLKeywords() {
         debugCodeCall("getSQLKeywords");
-        return "IF,INTERSECTS,LIMIT,MINUS,OFFSET,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY,TOP";
+        return "IF,INTERSECTS,LIMIT,MINUS,OFFSET,QUALIFY,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY,TOP";
     }
 
     /**

@@ -49,6 +49,7 @@ import static org.h2.util.ParserUtil.OFFSET;
 import static org.h2.util.ParserUtil.ON;
 import static org.h2.util.ParserUtil.ORDER;
 import static org.h2.util.ParserUtil.PRIMARY;
+import static org.h2.util.ParserUtil.QUALIFY;
 import static org.h2.util.ParserUtil.ROW;
 import static org.h2.util.ParserUtil.ROWNUM;
 import static org.h2.util.ParserUtil.SELECT;
@@ -507,6 +508,8 @@ public class Parser {
             "ORDER",
             // PRIMARY
             "PRIMARY",
+            // QUALIFY
+            "QUALIFY",
             // ROW
             "ROW",
             // ROWNUM
@@ -2747,6 +2750,11 @@ public class Parser {
             command.setGroupQuery();
             Expression condition = readExpression();
             command.setHaving(condition);
+        }
+        if (readIf(QUALIFY)) {
+            command.setWindowQuery();
+            Expression condition = readExpression();
+            command.setQualify(condition);
         }
         if (readIf(WINDOW)) {
             do {

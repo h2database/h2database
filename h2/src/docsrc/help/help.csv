@@ -8,6 +8,7 @@ SELECT [ TOP term [ PERCENT ] [ WITH TIES ] ]
 selectExpression [,...]
 FROM tableExpression [,...] [ WHERE expression ]
 [ GROUP BY expression [,...] ] [ HAVING expression ]
+[ QUALIFY expression ]
 [ WINDOW { { windowName AS windowSpecification } [,...] } ]
 [ { UNION [ ALL ] | MINUS | EXCEPT | INTERSECT } select ]
 [ ORDER BY order [,...] ]
@@ -19,7 +20,8 @@ FROM tableExpression [,...] [ WHERE expression ]
 ","
 Selects data from a table or multiple tables.
 GROUP BY groups the result by the given expression(s).
-HAVING filters rows after grouping.
+HAVING filters rows after grouping and evaluation of aggregate functions.
+QUALIFY filters rows after evaluation of window functions.
 ORDER BY sorts the result by the given column(s) or expression(s).
 UNION combines the result of this query with the results of another query.
 

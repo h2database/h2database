@@ -218,9 +218,14 @@ public class ParserUtil {
     public static final int PRIMARY = ORDER + 1;
 
     /**
+     * The token "QUALIFY".
+     */
+    public static final int QUALIFY = PRIMARY + 1;
+
+    /**
      * The token "ROW".
      */
-    public static final int ROW = PRIMARY + 1;
+    public static final int ROW = QUALIFY + 1;
 
     /**
      * The token "ROWNUM".
@@ -474,6 +479,11 @@ public class ParserUtil {
         case 'P':
             if (eq("PRIMARY", s, ignoreCase, start, end)) {
                 return PRIMARY;
+            }
+            return IDENTIFIER;
+        case 'Q':
+            if (eq("QUALIFY", s, ignoreCase, start, end)) {
+                return QUALIFY;
             }
             return IDENTIFIER;
         case 'R':

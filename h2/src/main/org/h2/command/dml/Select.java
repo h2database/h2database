@@ -77,8 +77,20 @@ public class Select extends Query {
     private final ArrayList<TableFilter> filters = Utils.newSmallArrayList();
     private final ArrayList<TableFilter> topFilters = Utils.newSmallArrayList();
 
-    private Expression having;
+    /**
+     * WHERE condition.
+     */
     private Expression condition;
+
+    /**
+     * HAVING condition.
+     */
+    private Expression having;
+
+    /**
+     * QUALIFY condition.
+     */
+    private Expression qualify;
 
     /**
      * The visible columns (the ones required in the result).
@@ -111,6 +123,8 @@ public class Select extends Query {
     SelectGroups groupData;
 
     private int havingIndex;
+
+    private int qualifyIndex;
 
     private int[] groupByCopies;
 
@@ -521,6 +535,9 @@ public class Select extends Query {
                 row[j] = expr.getValue(session);
             }
             if (withHaving && isHavingNullOrFalse(row)) {
+                continue;
+            }
+            if (qualifyIndex >= 0 && !row[qualifyIndex].getBoolean()) {
                 continue;
             }
             if (quickOffset && offset > 0) {
@@ -1064,6 +1081,13 @@ public class Select extends Query {
         } else {
             havingIndex = -1;
         }
+        if (qualify != null) {
+            expressions.add(qualify);
+            qualifyIndex = expressions.size() - 1;
+            qualify = null;
+        } else {
+            qualifyIndex = -1;
+        }
 
         if (withTies && !hasOrder()) {
             throw DbException.get(ErrorCode.WITH_TIES_WITHOUT_ORDER_BY);
@@ -1131,12 +1155,17 @@ public class Select extends Query {
         for (TableFilter f : filters) {
             mapColumns(f, 0);
         }
-        if (havingIndex >= 0) {
-            Expression expr = expressions.get(havingIndex);
+        mapCondition(havingIndex);
+        mapCondition(qualifyIndex);
+        checkInit = true;
+    }
+
+    private void mapCondition(int index) {
+        if (index >= 0) {
+            Expression expr = expressions.get(index);
             SelectListColumnResolver res = new SelectListColumnResolver(this);
             expr.mapColumns(res, 0, Expression.MAP_INITIAL);
         }
-        checkInit = true;
     }
 
     private int mergeGroupByExpressions(Database db, int index, ArrayList<String> expressionSQL, boolean scanPrevious)
@@ -1505,18 +1534,8 @@ public class Select extends Query {
                 g.getUnenclosedSQL(buff.builder());
             }
         }
-        if (having != null) {
-            // could be set in addGlobalCondition
-            // in this case the query is not run directly, just getPlanSQL is
-            // called
-            Expression h = having;
-            buff.append("\nHAVING ");
-            h.getUnenclosedSQL(buff.builder());
-        } else if (havingIndex >= 0) {
-            Expression h = exprList[havingIndex];
-            buff.append("\nHAVING ");
-            h.getUnenclosedSQL(buff.builder());
-        }
+        getFilterSQL(buff, "\nHAVING ", exprList, having, havingIndex);
+        getFilterSQL(buff, "\nQUALIFY ", exprList, qualify, qualifyIndex);
         if (sort != null) {
             buff.append("\nORDER BY ").append(
                     sort.getSQL(exprList, visibleColumnCount));
@@ -1555,12 +1574,31 @@ public class Select extends Query {
         return buff.toString();
     }
 
+    private static void getFilterSQL(StatementBuilder buff, String sql, Expression[] exprList, Expression condition,
+            int conditionIndex) {
+        if (condition != null) {
+            buff.append(sql);
+            condition.getUnenclosedSQL(buff.builder());
+        } else if (conditionIndex >= 0) {
+            buff.append(sql);
+            exprList[conditionIndex].getUnenclosedSQL(buff.builder());
+        }
+    }
+
     public void setHaving(Expression having) {
         this.having = having;
     }
 
     public Expression getHaving() {
         return having;
+    }
+
+    public void setQualify(Expression qualify) {
+        this.qualify = qualify;
+    }
+
+    public Expression getQualify() {
+        return qualify;
     }
 
     @Override
@@ -1697,6 +1735,9 @@ public class Select extends Query {
         if (having != null) {
             having.updateAggregate(s, stage);
         }
+        if (qualify != null) {
+            qualify.updateAggregate(s, stage);
+        }
     }
 
     @Override
@@ -1746,6 +1787,9 @@ public class Select extends Query {
             return false;
         }
         if (having != null && !having.isEverything(v2)) {
+            return false;
+        }
+        if (qualify != null && !qualify.isEverything(v2)) {
             return false;
         }
         return true;

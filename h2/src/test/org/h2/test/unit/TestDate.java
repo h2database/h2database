@@ -143,7 +143,7 @@ public class TestDate extends TestBase {
         assertEquals((int) ((nanos >>> 32) ^ nanos), t1.hashCode());
         // Literals return maximum precision
         TypeInfo type = t1.getType();
-        assertEquals(ValueTime.DEFAULT_PRECISION, type.getDisplaySize());
+        assertEquals(ValueTime.MAXIMUM_PRECISION, type.getDisplaySize());
         assertEquals(ValueTime.MAXIMUM_PRECISION, type.getPrecision());
         assertEquals("java.sql.Time", t1.getObject().getClass().getName());
         ValueTime t1b = ValueTime.parse("11:11:11");
@@ -221,7 +221,7 @@ public class TestDate extends TestBase {
                 t1.hashCode());
         // Literals return maximum precision
         TypeInfo type = t1.getType();
-        assertEquals(ValueTimestamp.DEFAULT_PRECISION, type.getDisplaySize());
+        assertEquals(ValueTimestamp.MAXIMUM_PRECISION, type.getDisplaySize());
         assertEquals(ValueTimestamp.MAXIMUM_PRECISION, type.getPrecision());
         assertEquals(9, type.getScale());
         assertEquals("java.sql.Timestamp", t1.getObject().getClass().getName());

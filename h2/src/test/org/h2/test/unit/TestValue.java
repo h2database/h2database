@@ -45,6 +45,7 @@ import org.h2.value.ValueDecimal;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueFloat;
 import org.h2.value.ValueInt;
+import org.h2.value.ValueInterval;
 import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueLobDb;
 import org.h2.value.ValueNull;
@@ -83,6 +84,7 @@ public class TestValue extends TestDb {
         testModulusDecimal();
         testModulusOperator();
         testLobComparison();
+        testTypeInfo();
     }
 
     private void testResultSetOperations() throws SQLException {
@@ -500,6 +502,120 @@ public class TestValue extends TestDb {
         } else {
             return dh.getLobStorage().createClob(new InputStreamReader(in, StandardCharsets.UTF_8), -1);
         }
+    }
+
+    private void testTypeInfo() {
+        testTypeInfoCheck(Value.UNKNOWN, -1, -1, -1, TypeInfo.TYPE_UNKNOWN);
+        try {
+            TypeInfo.getTypeInfo(Value.UNKNOWN);
+            fail();
+        } catch (DbException ex) {
+            assertEquals(ErrorCode.UNKNOWN_DATA_TYPE_1, ex.getErrorCode());
+        }
+
+        testTypeInfoCheck(Value.NULL, 1, 0, 4, TypeInfo.TYPE_NULL, TypeInfo.getTypeInfo(Value.NULL));
+
+        testTypeInfoCheck(Value.BOOLEAN, 1, 0, 5, TypeInfo.TYPE_BOOLEAN, TypeInfo.getTypeInfo(Value.BOOLEAN));
+
+        testTypeInfoCheck(Value.BYTE, 3, 0, 4, TypeInfo.TYPE_BYTE, TypeInfo.getTypeInfo(Value.BYTE));
+        testTypeInfoCheck(Value.SHORT, 5, 0, 6, TypeInfo.TYPE_SHORT, TypeInfo.getTypeInfo(Value.SHORT));
+        testTypeInfoCheck(Value.INT, 10, 0, 11, TypeInfo.TYPE_INT, TypeInfo.getTypeInfo(Value.INT));
+        testTypeInfoCheck(Value.LONG, 19, 0, 20, TypeInfo.TYPE_LONG, TypeInfo.getTypeInfo(Value.LONG));
+
+        testTypeInfoCheck(Value.FLOAT, 7, 0, 15, TypeInfo.TYPE_FLOAT, TypeInfo.getTypeInfo(Value.FLOAT));
+        testTypeInfoCheck(Value.DOUBLE, 17, 0, 24, TypeInfo.TYPE_DOUBLE, TypeInfo.getTypeInfo(Value.DOUBLE));
+        testTypeInfoCheck(Value.DECIMAL, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE,
+                TypeInfo.TYPE_DECIMAL, TypeInfo.getTypeInfo(Value.DECIMAL));
+        testTypeInfoCheck(Value.DECIMAL, 65_535, 32_767, 65_537, TypeInfo.TYPE_DECIMAL_DEFAULT);
+
+        testTypeInfoCheck(Value.TIME, 18, 9, 18, TypeInfo.TYPE_TIME, TypeInfo.getTypeInfo(Value.TIME));
+        for (int s = 0; s <= 9; s++) {
+            int d = s > 0 ? s + 9 : 8;
+            testTypeInfoCheck(Value.TIME, d, s, d, TypeInfo.getTypeInfo(Value.TIME, 0, s, null));
+        }
+        testTypeInfoCheck(Value.DATE, 10, 0, 10, TypeInfo.TYPE_DATE, TypeInfo.getTypeInfo(Value.DATE));
+        testTypeInfoCheck(Value.TIMESTAMP, 29, 9, 29, TypeInfo.TYPE_TIMESTAMP, TypeInfo.getTypeInfo(Value.TIMESTAMP));
+        for (int s = 0; s <= 9; s++) {
+            int d = s > 0 ? s + 20 : 19;
+            testTypeInfoCheck(Value.TIMESTAMP, d, s, d, TypeInfo.getTypeInfo(Value.TIMESTAMP, 0, s, null));
+        }
+        testTypeInfoCheck(Value.TIMESTAMP_TZ, 35, 9, 35, TypeInfo.TYPE_TIMESTAMP_TZ,
+                TypeInfo.getTypeInfo(Value.TIMESTAMP_TZ));
+        for (int s = 0; s <= 9; s++) {
+            int d = s > 0 ? s + 26 : 25;
+            testTypeInfoCheck(Value.TIMESTAMP_TZ, d, s, d, TypeInfo.getTypeInfo(Value.TIMESTAMP_TZ, 0, s, null));
+        }
+
+        testTypeInfoCheck(Value.BYTES, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, TypeInfo.getTypeInfo(Value.BYTES));
+        testTypeInfoCheck(Value.BLOB, Long.MAX_VALUE, 0, Integer.MAX_VALUE, TypeInfo.getTypeInfo(Value.BLOB));
+        testTypeInfoCheck(Value.CLOB, Long.MAX_VALUE, 0, Integer.MAX_VALUE, TypeInfo.getTypeInfo(Value.CLOB));
+
+        testTypeInfoCheck(Value.STRING, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, TypeInfo.TYPE_STRING,
+                TypeInfo.getTypeInfo(Value.STRING));
+        testTypeInfoCheck(Value.STRING_FIXED, Integer.MAX_VALUE, 0, Integer.MAX_VALUE,
+                TypeInfo.getTypeInfo(Value.STRING_FIXED));
+        testTypeInfoCheck(Value.STRING_IGNORECASE, Integer.MAX_VALUE, 0, Integer.MAX_VALUE,
+                TypeInfo.getTypeInfo(Value.STRING_IGNORECASE));
+
+        testTypeInfoCheck(Value.ARRAY, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, TypeInfo.TYPE_ARRAY,
+                TypeInfo.getTypeInfo(Value.ARRAY));
+        testTypeInfoCheck(Value.RESULT_SET, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE,
+                TypeInfo.TYPE_RESULT_SET, TypeInfo.getTypeInfo(Value.RESULT_SET));
+        testTypeInfoCheck(Value.ROW, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, TypeInfo.TYPE_ROW,
+                TypeInfo.getTypeInfo(Value.ROW));
+
+        testTypeInfoCheck(Value.JAVA_OBJECT, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, TypeInfo.TYPE_JAVA_OBJECT,
+                TypeInfo.getTypeInfo(Value.JAVA_OBJECT));
+        testTypeInfoCheck(Value.UUID, 16, 0, 36, TypeInfo.TYPE_UUID, TypeInfo.getTypeInfo(Value.UUID));
+        testTypeInfoCheck(Value.GEOMETRY, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, TypeInfo.TYPE_GEOMETRY,
+                TypeInfo.getTypeInfo(Value.GEOMETRY));
+        testTypeInfoCheck(Value.ENUM, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, TypeInfo.TYPE_ENUM_UNDEFINED,
+                TypeInfo.getTypeInfo(Value.ENUM));
+
+        testTypeInfoInterval1(Value.INTERVAL_YEAR);
+        testTypeInfoInterval1(Value.INTERVAL_MONTH);
+        testTypeInfoInterval1(Value.INTERVAL_DAY);
+        testTypeInfoInterval1(Value.INTERVAL_HOUR);
+        testTypeInfoInterval1(Value.INTERVAL_MINUTE);
+        testTypeInfoInterval2(Value.INTERVAL_SECOND);
+        testTypeInfoInterval1(Value.INTERVAL_YEAR_TO_MONTH);
+        testTypeInfoInterval1(Value.INTERVAL_DAY_TO_HOUR);
+        testTypeInfoInterval1(Value.INTERVAL_DAY_TO_MINUTE);
+        testTypeInfoInterval2(Value.INTERVAL_DAY_TO_SECOND);
+        testTypeInfoInterval1(Value.INTERVAL_HOUR_TO_MINUTE);
+        testTypeInfoInterval2(Value.INTERVAL_HOUR_TO_SECOND);
+        testTypeInfoInterval2(Value.INTERVAL_MINUTE_TO_SECOND);
+    }
+
+    private void testTypeInfoInterval1(int type) {
+        testTypeInfoCheck(type, 18, 0, ValueInterval.getDisplaySize(type, 18, 0), TypeInfo.getTypeInfo(type));
+        for (int p = 1; p <= 18; p++) {
+            testTypeInfoCheck(type, p, 0, ValueInterval.getDisplaySize(type, p, 0),
+                    TypeInfo.getTypeInfo(type, p, 0, null));
+        }
+    }
+
+    private void testTypeInfoInterval2(int type) {
+        testTypeInfoCheck(type, 18, 9, ValueInterval.getDisplaySize(type, 18, 9), TypeInfo.getTypeInfo(type));
+        for (int p = 1; p <= 18; p++) {
+            for (int s = 0; s <= 9; s++) {
+                testTypeInfoCheck(type, p, s, ValueInterval.getDisplaySize(type, p, s),
+                        TypeInfo.getTypeInfo(type, p, s, null));
+            }
+        }
+    }
+
+    private void testTypeInfoCheck(int valueType, long precision, int scale, int displaySize, TypeInfo... typeInfos) {
+        for (TypeInfo typeInfo : typeInfos) {
+            testTypeInfoCheck(valueType, precision, scale, displaySize, typeInfo);
+        }
+    }
+
+    private void testTypeInfoCheck(int valueType, long precision, int scale, int displaySize, TypeInfo typeInfo) {
+        assertEquals(valueType, typeInfo.getValueType());
+        assertEquals(precision, typeInfo.getPrecision());
+        assertEquals(scale, typeInfo.getScale());
+        assertEquals(displaySize, typeInfo.getDisplaySize());
     }
 
 }

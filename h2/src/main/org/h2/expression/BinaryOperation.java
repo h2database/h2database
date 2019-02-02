@@ -172,7 +172,7 @@ public class BinaryOperation extends Expression {
                     break;
                 }
             }
-            type = TypeInfo.TYPE_STRING_DEFAULT;
+            type = TypeInfo.TYPE_STRING;
             break;
         }
         case PLUS:
@@ -188,7 +188,7 @@ public class BinaryOperation extends Expression {
                 // string when text concatenation with + is enabled
                 if (opType == OpType.PLUS && session.getDatabase().
                         getMode().allowPlusForStringConcat) {
-                    type = TypeInfo.TYPE_STRING_DEFAULT;
+                    type = TypeInfo.TYPE_STRING;
                     opType = OpType.CONCAT;
                 } else {
                     type = TypeInfo.TYPE_DECIMAL_DEFAULT;

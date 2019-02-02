@@ -5899,7 +5899,7 @@ public class Parser {
                 String columnName = "C" + (i + 1);
                 if (rows.isEmpty()) {
                     if (type.getValueType() == Value.UNKNOWN) {
-                        type = TypeInfo.TYPE_STRING_DEFAULT;
+                        type = TypeInfo.TYPE_STRING;
                     }
                     column = new Column(columnName, type);
                     columns.add(column);

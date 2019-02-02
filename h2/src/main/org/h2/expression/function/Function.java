@@ -2374,7 +2374,7 @@ public class Function extends Expression implements FunctionCall {
                 }
             }
             if (typeInfo.getValueType() == Value.UNKNOWN) {
-                typeInfo = TypeInfo.TYPE_STRING_DEFAULT;
+                typeInfo = TypeInfo.TYPE_STRING;
             }
             break;
         }
@@ -2406,7 +2406,7 @@ public class Function extends Expression implements FunctionCall {
                 }
             }
             if (typeInfo.getValueType() == Value.UNKNOWN) {
-                typeInfo = TypeInfo.TYPE_STRING_DEFAULT;
+                typeInfo = TypeInfo.TYPE_STRING;
             }
             break;
         }

@@ -7,6 +7,7 @@ package org.h2.value;
 
 import org.h2.api.CustomDataTypesHandler;
 import org.h2.api.ErrorCode;
+import org.h2.api.IntervalQualifier;
 import org.h2.message.DbException;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
@@ -52,6 +53,11 @@ public class TypeInfo {
     public static final TypeInfo TYPE_LONG;
 
     /**
+     * DECIMAL type with maximum parameters.
+     */
+    public static final TypeInfo TYPE_DECIMAL;
+
+    /**
      * DECIMAL type with default parameters.
      */
     public static final TypeInfo TYPE_DECIMAL_DEFAULT;
@@ -67,7 +73,7 @@ public class TypeInfo {
     public static final TypeInfo TYPE_FLOAT;
 
     /**
-     * TIME type with parameters.
+     * TIME type with maximum parameters.
      */
     public static final TypeInfo TYPE_TIME;
 
@@ -77,14 +83,14 @@ public class TypeInfo {
     public static final TypeInfo TYPE_DATE;
 
     /**
-     * TIMESTAMP type with parameters.
+     * TIMESTAMP type with maximum parameters.
      */
     public static final TypeInfo TYPE_TIMESTAMP;
 
     /**
-     * STRING type with default parameters.
+     * STRING type with maximum parameters.
      */
-    public static final TypeInfo TYPE_STRING_DEFAULT;
+    public static final TypeInfo TYPE_STRING;
 
     /**
      * ARRAY type with parameters.
@@ -112,7 +118,7 @@ public class TypeInfo {
     public static final TypeInfo TYPE_GEOMETRY;
 
     /**
-     * TIMESTAMP WITH TIME ZONE type with parameters.
+     * TIMESTAMP WITH TIME ZONE type with maximum parameters.
      */
     public static final TypeInfo TYPE_TIMESTAMP_TZ;
 
@@ -122,17 +128,17 @@ public class TypeInfo {
     public static final TypeInfo TYPE_ENUM_UNDEFINED;
 
     /**
-     * INTERVAL DAY type with parameters.
+     * INTERVAL DAY type with maximum parameters.
      */
     public static final TypeInfo TYPE_INTERVAL_DAY;
 
     /**
-     * INTERVAL DAY TO SECOND type with parameters.
+     * INTERVAL DAY TO SECOND type with maximum parameters.
      */
     public static final TypeInfo TYPE_INTERVAL_DAY_TO_SECOND;
 
     /**
-     * INTERVAL HOUR TO SECOND type with parameters.
+     * INTERVAL HOUR TO SECOND type with maximum parameters.
      */
     public static final TypeInfo TYPE_INTERVAL_HOUR_TO_SECOND;
 
@@ -154,40 +160,61 @@ public class TypeInfo {
     private final ExtTypeInfo extTypeInfo;
 
     static {
-        DataType[] type = DataType.TYPES_BY_VALUE_TYPE;
         TypeInfo[] infos = new TypeInfo[Value.TYPE_COUNT];
-        for (int i = 0; i < type.length; i++) {
-            DataType dt = type[i];
-            if (dt != null) {
-                Value.getOrder(i);
-                infos[i] = createTypeInfo(i, dt);
-            }
-        }
         TYPE_UNKNOWN = new TypeInfo(Value.UNKNOWN, -1L, -1, -1, null);
-        TYPE_NULL = infos[Value.NULL];
-        TYPE_BOOLEAN = infos[Value.BOOLEAN];
-        TYPE_BYTE = infos[Value.BYTE];
-        TYPE_SHORT = infos[Value.SHORT];
-        TYPE_INT = infos[Value.INT];
-        TYPE_LONG = infos[Value.LONG];
-        TYPE_DECIMAL_DEFAULT = infos[Value.DECIMAL];
-        TYPE_DOUBLE = infos[Value.DOUBLE];
-        TYPE_FLOAT = infos[Value.FLOAT];
-        TYPE_TIME = infos[Value.TIME];
-        TYPE_DATE = infos[Value.DATE];
-        TYPE_TIMESTAMP = infos[Value.TIMESTAMP];
-        TYPE_STRING_DEFAULT = infos[Value.STRING];
-        TYPE_ARRAY = infos[Value.ARRAY];
-        TYPE_RESULT_SET = infos[Value.RESULT_SET];
-        TYPE_JAVA_OBJECT = infos[Value.JAVA_OBJECT];
-        TYPE_UUID = infos[Value.UUID];
-        TYPE_GEOMETRY = infos[Value.GEOMETRY];
-        TYPE_TIMESTAMP_TZ = infos[Value.TIMESTAMP_TZ];
-        TYPE_ENUM_UNDEFINED = infos[Value.ENUM];
+        infos[Value.NULL] = TYPE_NULL = new TypeInfo(Value.NULL, ValueNull.PRECISION, 0, ValueNull.DISPLAY_SIZE, null);
+        infos[Value.BOOLEAN] = TYPE_BOOLEAN = new TypeInfo(Value.BOOLEAN, ValueBoolean.PRECISION, 0,
+                ValueBoolean.DISPLAY_SIZE, null);
+        infos[Value.BYTE] = TYPE_BYTE = new TypeInfo(Value.BYTE, ValueByte.PRECISION, 0, ValueByte.DISPLAY_SIZE, null);
+        infos[Value.SHORT] = TYPE_SHORT = new TypeInfo(Value.SHORT, ValueShort.PRECISION, 0, ValueShort.DISPLAY_SIZE,
+                null);
+        infos[Value.INT] = TYPE_INT = new TypeInfo(Value.INT, ValueInt.PRECISION, 0, ValueInt.DISPLAY_SIZE, null);
+        infos[Value.LONG] = TYPE_LONG = new TypeInfo(Value.LONG, ValueLong.PRECISION, 0, ValueLong.DISPLAY_SIZE, null);
+        infos[Value.DECIMAL] = TYPE_DECIMAL= new TypeInfo(Value.DECIMAL, Integer.MAX_VALUE, Integer.MAX_VALUE,
+                Integer.MAX_VALUE, null);
+        TYPE_DECIMAL_DEFAULT = new TypeInfo(Value.DECIMAL, ValueDecimal.DEFAULT_PRECISION, ValueDecimal.DEFAULT_SCALE,
+                ValueDecimal.DEFAULT_PRECISION + 2, null);
+        infos[Value.DOUBLE] = TYPE_DOUBLE = new TypeInfo(Value.DOUBLE, ValueDouble.PRECISION, 0,
+                ValueDouble.DISPLAY_SIZE, null);
+        infos[Value.FLOAT] = TYPE_FLOAT = new TypeInfo(Value.FLOAT, ValueFloat.PRECISION, 0, ValueFloat.DISPLAY_SIZE,
+                null);
+        infos[Value.TIME] = TYPE_TIME = new TypeInfo(Value.TIME, ValueTime.MAXIMUM_PRECISION, ValueTime.MAXIMUM_SCALE,
+                ValueTime.MAXIMUM_PRECISION, null);
+        infos[Value.DATE] = TYPE_DATE = new TypeInfo(Value.DATE, ValueDate.PRECISION, 0, ValueDate.PRECISION, null);
+        infos[Value.TIMESTAMP] = TYPE_TIMESTAMP = new TypeInfo(Value.TIMESTAMP, ValueTimestamp.MAXIMUM_PRECISION,
+                ValueTimestamp.MAXIMUM_SCALE, ValueTimestamp.MAXIMUM_PRECISION, null);
+        infos[Value.BYTES] = new TypeInfo(Value.BYTES, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
+        infos[Value.STRING] = TYPE_STRING = new TypeInfo(Value.STRING, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
+        infos[Value.STRING_IGNORECASE] = new TypeInfo(Value.STRING_IGNORECASE, Integer.MAX_VALUE, 0, Integer.MAX_VALUE,
+                null);
+        infos[Value.BLOB] = new TypeInfo(Value.BLOB, Long.MAX_VALUE, 0, Integer.MAX_VALUE, null);
+        infos[Value.CLOB] = new TypeInfo(Value.CLOB, Long.MAX_VALUE, 0, Integer.MAX_VALUE, null);
+        infos[Value.ARRAY] = TYPE_ARRAY = new TypeInfo(Value.ARRAY, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
+        infos[Value.RESULT_SET] = TYPE_RESULT_SET = new TypeInfo(Value.RESULT_SET, Integer.MAX_VALUE,
+                Integer.MAX_VALUE, Integer.MAX_VALUE, null);
+        infos[Value.JAVA_OBJECT] = TYPE_JAVA_OBJECT = new TypeInfo(Value.JAVA_OBJECT, Integer.MAX_VALUE, 0,
+                Integer.MAX_VALUE, null);
+        infos[Value.UUID] = TYPE_UUID = new TypeInfo(Value.UUID, ValueUuid.PRECISION, 0, ValueUuid.DISPLAY_SIZE, null);
+        infos[Value.STRING_FIXED] = new TypeInfo(Value.STRING_FIXED, Integer.MAX_VALUE, 0, Integer.MAX_VALUE,
+                null);
+        infos[Value.GEOMETRY] = TYPE_GEOMETRY = new TypeInfo(Value.GEOMETRY, Integer.MAX_VALUE, 0, Integer.MAX_VALUE,
+                null);
+        infos[Value.TIMESTAMP_TZ] = TYPE_TIMESTAMP_TZ = new TypeInfo(Value.TIMESTAMP_TZ,
+                ValueTimestampTimeZone.MAXIMUM_PRECISION, ValueTimestampTimeZone.MAXIMUM_SCALE,
+                ValueTimestampTimeZone.MAXIMUM_PRECISION, null);
+        infos[Value.ENUM] = TYPE_ENUM_UNDEFINED = new TypeInfo(Value.ENUM, Integer.MAX_VALUE, 0, Integer.MAX_VALUE,
+                null);
+        for (int i = Value.INTERVAL_YEAR; i <= Value.INTERVAL_MINUTE_TO_SECOND; i++) {
+            infos[i] = new TypeInfo(i, ValueInterval.MAXIMUM_PRECISION,
+                    IntervalQualifier.valueOf(i - Value.INTERVAL_YEAR).hasSeconds() ? ValueInterval.MAXIMUM_SCALE : 0,
+                    ValueInterval.getDisplaySize(i, ValueInterval.MAXIMUM_PRECISION,
+                            // Scale will be ignored if it is not supported
+                            ValueInterval.MAXIMUM_SCALE), null);
+        }
         TYPE_INTERVAL_DAY = infos[Value.INTERVAL_DAY];
         TYPE_INTERVAL_DAY_TO_SECOND = infos[Value.INTERVAL_DAY_TO_SECOND];
         TYPE_INTERVAL_HOUR_TO_SECOND = infos[Value.INTERVAL_HOUR_TO_SECOND];
-        TYPE_ROW = infos[Value.ROW];
+        infos[Value.ROW] = TYPE_ROW = new TypeInfo(Value.ROW, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
         TYPE_INFOS_BY_VALUE_TYPE = infos;
     }
 
@@ -291,7 +318,7 @@ public class TypeInfo {
             return new TypeInfo(Value.BYTES, precision, 0, MathUtils.convertLongToInt(precision) * 2, null);
         case Value.STRING:
             if (precision < 0) {
-                return TYPE_STRING_DEFAULT;
+                return TYPE_STRING;
             }
             //$FALL-THROUGH$
         case Value.STRING_FIXED:
@@ -327,7 +354,7 @@ public class TypeInfo {
         case Value.INTERVAL_DAY_TO_HOUR:
         case Value.INTERVAL_DAY_TO_MINUTE:
         case Value.INTERVAL_HOUR_TO_MINUTE:
-            if (precision < 0 || precision > ValueInterval.MAXIMUM_PRECISION) {
+            if (precision < 1 || precision > ValueInterval.MAXIMUM_PRECISION) {
                 precision = ValueInterval.MAXIMUM_PRECISION;
             }
             return new TypeInfo(type, precision, 0, ValueInterval.getDisplaySize(type, (int) precision, 0), null);
@@ -335,7 +362,7 @@ public class TypeInfo {
         case Value.INTERVAL_DAY_TO_SECOND:
         case Value.INTERVAL_HOUR_TO_SECOND:
         case Value.INTERVAL_MINUTE_TO_SECOND:
-            if (precision < 0 || precision > ValueInterval.MAXIMUM_PRECISION) {
+            if (precision < 1 || precision > ValueInterval.MAXIMUM_PRECISION) {
                 precision = ValueInterval.MAXIMUM_PRECISION;
             }
             if (scale < 0 || scale > ValueInterval.MAXIMUM_SCALE) {
@@ -351,10 +378,6 @@ public class TypeInfo {
             }
         }
         return TYPE_NULL;
-    }
-
-    private static TypeInfo createTypeInfo(int valueType, DataType dataType) {
-        return new TypeInfo(valueType, dataType.maxPrecision, dataType.maxScale, dataType.defaultDisplaySize, null);
     }
 
     /**

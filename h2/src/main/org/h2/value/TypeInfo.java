@@ -5,6 +5,7 @@
  */
 package org.h2.value;
 
+import org.h2.api.CustomDataTypesHandler;
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.util.JdbcUtils;
@@ -208,10 +209,11 @@ public class TypeInfo {
                 return t;
             }
         }
-        if (JdbcUtils.customDataTypesHandler != null) {
-            DataType dt = JdbcUtils.customDataTypesHandler.getDataTypeById(type);
+        CustomDataTypesHandler handler = JdbcUtils.customDataTypesHandler;
+        if (handler != null) {
+            DataType dt = handler.getDataTypeById(type);
             if (dt != null) {
-                return createTypeInfo(type, dt);
+                return handler.getTypeInfoById(type, dt.maxPrecision, dt.maxScale, null);
             }
         }
         return TYPE_NULL;
@@ -342,10 +344,10 @@ public class TypeInfo {
             return new TypeInfo(type, precision, scale, ValueInterval.getDisplaySize(type, (int) precision, scale),
                     null);
         }
-        if (JdbcUtils.customDataTypesHandler != null) {
-            DataType dt = JdbcUtils.customDataTypesHandler.getDataTypeById(type);
-            if (dt != null) {
-                return createTypeInfo(type, dt);
+        CustomDataTypesHandler handler = JdbcUtils.customDataTypesHandler;
+        if (handler != null) {
+            if (handler.getDataTypeById(type) != null) {
+                return handler.getTypeInfoById(type, precision, scale, extTypeInfo);
             }
         }
         return TYPE_NULL;

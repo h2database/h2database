@@ -7,6 +7,8 @@ package org.h2.api;
 
 import org.h2.store.DataHandler;
 import org.h2.value.DataType;
+import org.h2.value.ExtTypeInfo;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
 /**
@@ -35,6 +37,17 @@ public interface CustomDataTypesHandler {
      * @return custom data type
      */
     DataType getDataTypeById(int type);
+
+    /**
+     * Get type info for the given data type identity.
+     *
+     * @param type identifier of a data type
+     * @param precision precision
+     * @param scale scale
+     * @param extTypeInfo the extended type information, or null
+     * @return type information
+     */
+    TypeInfo getTypeInfoById(int type, long precision, int scale, ExtTypeInfo extTypeInfo);
 
     /**
      * Get order for custom data type given its integer id

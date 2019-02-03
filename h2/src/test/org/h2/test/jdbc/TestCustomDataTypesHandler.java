@@ -191,7 +191,6 @@ public class TestCustomDataTypesHandler extends TestDb {
             if (name.toLowerCase(Locale.ENGLISH).equals(COMPLEX_DATA_TYPE_NAME)) {
                 return complexDataType;
             }
-
             return null;
         }
 
@@ -201,6 +200,11 @@ public class TestCustomDataTypesHandler extends TestDb {
                 return complexDataType;
             }
             return null;
+        }
+
+        @Override
+        public TypeInfo getTypeInfoById(int type, long precision, int scale, ExtTypeInfo extTypeInfo) {
+            return new TypeInfo(type, 0, 0, ValueDouble.DISPLAY_SIZE * 2 + 1, null);
         }
 
         @Override

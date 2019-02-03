@@ -159,11 +159,6 @@ public class DataType {
     public int defaultScale;
 
     /**
-     * The default display size.
-     */
-    public int defaultDisplaySize;
-
-    /**
      * If this data type should not be listed in the database meta data.
      */
     public boolean hidden;
@@ -185,7 +180,6 @@ public class DataType {
 
         DataType dataType = new DataType();
         dataType.defaultPrecision = dataType.maxPrecision = ValueNull.PRECISION;
-        dataType.defaultDisplaySize = ValueNull.DISPLAY_SIZE;
         add(Value.NULL, Types.NULL,
                 dataType,
                 new String[]{"NULL"},
@@ -337,7 +331,6 @@ public class DataType {
         dataType = new DataType();
         dataType.prefix = dataType.suffix = "'";
         dataType.defaultPrecision = dataType.maxPrecision = ValueUuid.PRECISION;
-        dataType.defaultDisplaySize = ValueUuid.DISPLAY_SIZE;
         add(Value.UUID, Types.BINARY,
                 createString(false),
                 // UNIQUEIDENTIFIER is the MSSQL mode equivalent
@@ -377,7 +370,7 @@ public class DataType {
                 32
         );
         dataType = new DataType();
-        dataType.maxPrecision = dataType.defaultPrecision = dataType.defaultDisplaySize = Integer.MAX_VALUE;
+        dataType.maxPrecision = dataType.defaultPrecision = Integer.MAX_VALUE;
         add(Value.RESULT_SET, DataType.TYPE_RESULT_SET,
                 dataType,
                 new String[]{"RESULT_SET"},
@@ -441,9 +434,6 @@ public class DataType {
             dataType.defaultScale = ValueInterval.DEFAULT_SCALE;
             dataType.maxScale = ValueInterval.MAXIMUM_SCALE;
         }
-        dataType.defaultDisplaySize = ValueInterval.getDisplaySize(type, ValueInterval.DEFAULT_PRECISION,
-                // Scale will be ignored if it is not supported
-                ValueInterval.DEFAULT_SCALE);
         add(type, Types.OTHER, dataType,
                 new String[]{("INTERVAL " + name).intern()},
                 36
@@ -469,7 +459,6 @@ public class DataType {
             dt.supportsScale = dataType.supportsScale;
             dt.defaultPrecision = dataType.defaultPrecision;
             dt.defaultScale = dataType.defaultScale;
-            dt.defaultDisplaySize = dataType.defaultDisplaySize;
             dt.caseSensitive = dataType.caseSensitive;
             dt.hidden = i > 0;
             dt.memory = memory;
@@ -504,7 +493,6 @@ public class DataType {
         dataType.maxPrecision = maxPrecision;
         dataType.defaultPrecision = defaultPrecision;
         dataType.defaultScale = defaultScale;
-        dataType.defaultDisplaySize = defaultDisplaySize;
         if (needsPrecisionAndScale) {
             dataType.params = "PRECISION,SCALE";
             dataType.supportsPrecision = true;
@@ -537,7 +525,6 @@ public class DataType {
         dataType.maxScale = maxScale;
         dataType.defaultPrecision = precision;
         dataType.defaultScale = scale;
-        dataType.defaultDisplaySize = precision;
         return dataType;
     }
 
@@ -550,7 +537,6 @@ public class DataType {
         dataType.supportsPrecision = true;
         dataType.maxPrecision = Integer.MAX_VALUE;
         dataType.defaultPrecision = Integer.MAX_VALUE;
-        dataType.defaultDisplaySize = Integer.MAX_VALUE;
         return dataType;
     }
 
@@ -568,7 +554,6 @@ public class DataType {
         dataType.params = "TYPE,SRID";
         dataType.maxPrecision = Integer.MAX_VALUE;
         dataType.defaultPrecision = Integer.MAX_VALUE;
-        dataType.defaultDisplaySize = Integer.MAX_VALUE;
         return dataType;
     }
 

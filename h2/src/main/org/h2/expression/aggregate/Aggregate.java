@@ -648,7 +648,7 @@ public class Aggregate extends AbstractAggregate {
         }
         switch (aggregateType) {
         case GROUP_CONCAT:
-            type = TypeInfo.TYPE_STRING_DEFAULT;
+            type = TypeInfo.TYPE_STRING;
             break;
         case COUNT_ALL:
         case COUNT:

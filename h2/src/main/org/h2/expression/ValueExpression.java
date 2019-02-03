@@ -13,8 +13,8 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
+import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueNull;
 
 /**
@@ -163,8 +163,9 @@ public class ValueExpression extends Expression {
 
     @Override
     public Expression[] getExpressionColumns(Session session) {
-        if (getType().getValueType() == Value.ARRAY) {
-            return getExpressionColumns(session, (ValueArray) getValue(session));
+        int valueType = getType().getValueType();
+        if (valueType == Value.ARRAY || valueType == Value.ROW) {
+            return getExpressionColumns(session, (ValueCollectionBase) getValue(session));
         }
         return super.getExpressionColumns(session);
     }

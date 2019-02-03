@@ -197,38 +197,31 @@ public class DataType {
                 new String[]{"VARCHAR_IGNORECASE"}
         );
         add(Value.BOOLEAN, Types.BOOLEAN,
-                createDecimal(ValueBoolean.PRECISION, ValueBoolean.PRECISION,
-                        0, false, false),
+                createNumeric(ValueBoolean.PRECISION, 0, false),
                 new String[]{"BOOLEAN", "BIT", "BOOL"}
         );
         add(Value.BYTE, Types.TINYINT,
-                createDecimal(ValueByte.PRECISION, ValueByte.PRECISION, 0,
-                        false, false),
+                createNumeric(ValueByte.PRECISION, 0, false),
                 new String[]{"TINYINT"}
         );
         add(Value.SHORT, Types.SMALLINT,
-                createDecimal(ValueShort.PRECISION, ValueShort.PRECISION, 0,
-                        false, false),
+                createNumeric(ValueShort.PRECISION, 0, false),
                 new String[]{"SMALLINT", "YEAR", "INT2"}
         );
         add(Value.INT, Types.INTEGER,
-                createDecimal(ValueInt.PRECISION, ValueInt.PRECISION, 0,
-                        false, false),
+                createNumeric(ValueInt.PRECISION, 0, false),
                 new String[]{"INTEGER", "INT", "MEDIUMINT", "INT4", "SIGNED"}
         );
         add(Value.INT, Types.INTEGER,
-                createDecimal(ValueInt.PRECISION, ValueInt.PRECISION, 0,
-                        false, true),
+                createNumeric(ValueInt.PRECISION, 0, true),
                 new String[]{"SERIAL"}
         );
         add(Value.LONG, Types.BIGINT,
-                createDecimal(ValueLong.PRECISION, ValueLong.PRECISION, 0,
-                        false, false),
+                createNumeric(ValueLong.PRECISION, 0, false),
                 new String[]{"BIGINT", "INT8", "LONG"}
         );
         add(Value.LONG, Types.BIGINT,
-                createDecimal(ValueLong.PRECISION, ValueLong.PRECISION, 0,
-                        false, true),
+                createNumeric(ValueLong.PRECISION, 0, true),
                 new String[]{"IDENTITY", "BIGSERIAL"}
         );
         if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
@@ -239,18 +232,15 @@ public class DataType {
             addDecimal();
         }
         add(Value.FLOAT, Types.REAL,
-                createDecimal(ValueFloat.PRECISION, ValueFloat.PRECISION,
-                        0, false, false),
+                createNumeric(ValueFloat.PRECISION, 0, false),
                 new String[] {"REAL", "FLOAT4"}
         );
         add(Value.DOUBLE, Types.DOUBLE,
-                createDecimal(ValueDouble.PRECISION, ValueDouble.PRECISION,
-                        0, false, false),
+                createNumeric(ValueDouble.PRECISION, 0, false),
                 new String[] { "DOUBLE", "DOUBLE PRECISION" }
         );
         add(Value.DOUBLE, Types.FLOAT,
-                createDecimal(ValueDouble.PRECISION, ValueDouble.PRECISION,
-                        0, false, false),
+                createNumeric(ValueDouble.PRECISION, 0, false),
                 new String[] {"FLOAT", "FLOAT8" }
         );
         add(Value.TIME, Types.TIME,
@@ -352,20 +342,14 @@ public class DataType {
 
     private static void addDecimal() {
         add(Value.DECIMAL, Types.DECIMAL,
-                createDecimal(Integer.MAX_VALUE,
-                        ValueDecimal.DEFAULT_PRECISION,
-                        ValueDecimal.DEFAULT_SCALE,
-                        true, false),
+                createNumeric(Integer.MAX_VALUE, ValueDecimal.DEFAULT_PRECISION, ValueDecimal.DEFAULT_SCALE),
                 new String[]{"DECIMAL", "DEC"}
         );
     }
 
     private static void addNumeric() {
         add(Value.DECIMAL, Types.NUMERIC,
-                createDecimal(Integer.MAX_VALUE,
-                        ValueDecimal.DEFAULT_PRECISION,
-                        ValueDecimal.DEFAULT_SCALE,
-                        true, false),
+                createNumeric(Integer.MAX_VALUE, ValueDecimal.DEFAULT_PRECISION, ValueDecimal.DEFAULT_SCALE),
                 new String[]{"NUMERIC", "NUMBER"}
         );
     }
@@ -424,30 +408,40 @@ public class DataType {
     }
 
     /**
+     * Create a width numeric data type without parameters.
+     *
+     * @param precision precision
+     * @param scale scale
+     * @param autoInc whether the data type is an auto-increment type
+     * @return data type
+     */
+    public static DataType createNumeric(int precision, int scale, boolean autoInc) {
+        DataType dataType = new DataType();
+        dataType.defaultPrecision = dataType.maxPrecision = precision;
+        dataType.defaultScale = dataType.maxScale = dataType.minScale = scale;
+        dataType.decimal = true;
+        dataType.autoIncrement = autoInc;
+        return dataType;
+    }
+
+    /**
      * Create a numeric data type.
      *
      * @param maxPrecision maximum supported precision
      * @param defaultPrecision default precision
      * @param defaultScale default scale
-     * @param needsPrecisionAndScale where precision and scale are supported
-     * @param autoInc whether the data type is an auto-increment type
      * @return data type
      */
-    public static DataType createDecimal(int maxPrecision,
-            int defaultPrecision, int defaultScale, boolean needsPrecisionAndScale,
-            boolean autoInc) {
+    public static DataType createNumeric(int maxPrecision, int defaultPrecision, int defaultScale) {
         DataType dataType = new DataType();
         dataType.maxPrecision = maxPrecision;
         dataType.defaultPrecision = defaultPrecision;
         dataType.defaultScale = defaultScale;
-        if (needsPrecisionAndScale) {
-            dataType.params = "PRECISION,SCALE";
-            dataType.supportsPrecision = true;
-            dataType.supportsScale = true;
-            dataType.maxScale = maxPrecision;
-        }
+        dataType.params = "PRECISION,SCALE";
+        dataType.supportsPrecision = true;
+        dataType.supportsScale = true;
+        dataType.maxScale = maxPrecision;
         dataType.decimal = true;
-        dataType.autoIncrement = autoInc;
         return dataType;
     }
 

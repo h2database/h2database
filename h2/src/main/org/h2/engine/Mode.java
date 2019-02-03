@@ -279,12 +279,12 @@ public class Mode {
         // MS SQL Server does not support client info properties. See
         // https://msdn.microsoft.com/en-Us/library/dd571296%28v=sql.110%29.aspx
         mode.supportedClientInfoPropertiesRegEx = null;
-        DataType dt = DataType.createDecimal(19, 19, 4, false, false);
+        DataType dt = DataType.createNumeric(19, 4, false);
         dt.type = Value.DECIMAL;
         dt.sqlType = Types.NUMERIC;
         dt.name = "MONEY";
         mode.typeByNameMap.put("MONEY", dt);
-        dt = DataType.createDecimal(10, 10, 4, false, false);
+        dt = DataType.createNumeric(10, 4, false);
         dt.type = Value.DECIMAL;
         dt.sqlType = Types.NUMERIC;
         dt.name = "SMALLMONEY";
@@ -348,7 +348,7 @@ public class Mode {
         disallowedTypes.add("TINYINT");
         disallowedTypes.add("BLOB");
         mode.disallowedTypes = disallowedTypes;
-        dt = DataType.createDecimal(19, 19, 2, false, false);
+        dt = DataType.createNumeric(19, 2, false);
         dt.type = Value.DECIMAL;
         dt.sqlType = Types.NUMERIC;
         dt.name = "MONEY";

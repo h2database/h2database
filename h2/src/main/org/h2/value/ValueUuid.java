@@ -137,6 +137,11 @@ public class ValueUuid extends Value {
     }
 
     @Override
+    public int getMemory() {
+        return 32;
+    }
+
+    @Override
     public int getValueType() {
         return UUID;
     }

@@ -104,6 +104,11 @@ public class ValueEnumBase extends Value {
     }
 
     @Override
+    public int getMemory() {
+        return 120;
+    }
+
+    @Override
     public int hashCode() {
         int results = 31;
         results += getString().hashCode();

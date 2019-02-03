@@ -64,6 +64,12 @@ public class ValueNull extends Value {
     }
 
     @Override
+    public int getMemory() {
+        // Singleton value
+        return 0;
+    }
+
+    @Override
     public String getString() {
         return null;
     }

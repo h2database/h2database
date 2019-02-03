@@ -69,7 +69,12 @@ public class ValueString extends Value {
 
     @Override
     public int getMemory() {
-        return value.length() * 2 + 48;
+        /*
+         * Java 11 with -XX:-UseCompressedOops
+         * Empty string: 88 bytes
+         * 1 to 4 UTF-16 chars: 96 bytes
+         */
+        return value.length() * 2 + 94;
     }
 
     @Override

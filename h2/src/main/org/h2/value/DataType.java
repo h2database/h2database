@@ -163,11 +163,6 @@ public class DataType {
      */
     public boolean hidden;
 
-    /**
-     * The number of bytes required for an object.
-     */
-    public int memory;
-
     static {
         Class<?> g;
         try {
@@ -182,77 +177,59 @@ public class DataType {
         dataType.defaultPrecision = dataType.maxPrecision = ValueNull.PRECISION;
         add(Value.NULL, Types.NULL,
                 dataType,
-                new String[]{"NULL"},
-                // the value is always in the cache
-                0
+                new String[]{"NULL"}
         );
         add(Value.STRING, Types.VARCHAR,
                 createString(true),
                 new String[]{"VARCHAR", "CHARACTER VARYING", "VARCHAR2", "NVARCHAR", "NVARCHAR2",
-                    "VARCHAR_CASESENSITIVE", "TID"},
-                // 24 for ValueString, 24 for String
-                48
+                    "VARCHAR_CASESENSITIVE", "TID"}
         );
         add(Value.STRING, Types.LONGVARCHAR,
                 createString(true),
-                new String[]{"LONGVARCHAR", "LONGNVARCHAR"},
-                48
+                new String[]{"LONGVARCHAR", "LONGNVARCHAR"}
         );
         add(Value.STRING_FIXED, Types.CHAR,
                 createString(true),
-                new String[]{"CHAR", "CHARACTER", "NCHAR"},
-                48
+                new String[]{"CHAR", "CHARACTER", "NCHAR"}
         );
         add(Value.STRING_IGNORECASE, Types.VARCHAR,
                 createString(false),
-                new String[]{"VARCHAR_IGNORECASE"},
-                48
+                new String[]{"VARCHAR_IGNORECASE"}
         );
         add(Value.BOOLEAN, Types.BOOLEAN,
                 createDecimal(ValueBoolean.PRECISION, ValueBoolean.PRECISION,
                         0, ValueBoolean.DISPLAY_SIZE, false, false),
-                new String[]{"BOOLEAN", "BIT", "BOOL"},
-                // the value is always in the cache
-                0
+                new String[]{"BOOLEAN", "BIT", "BOOL"}
         );
         add(Value.BYTE, Types.TINYINT,
                 createDecimal(ValueByte.PRECISION, ValueByte.PRECISION, 0,
                         ValueByte.DISPLAY_SIZE, false, false),
-                new String[]{"TINYINT"},
-                // the value is almost always in the cache
-                1
+                new String[]{"TINYINT"}
         );
         add(Value.SHORT, Types.SMALLINT,
                 createDecimal(ValueShort.PRECISION, ValueShort.PRECISION, 0,
                         ValueShort.DISPLAY_SIZE, false, false),
-                new String[]{"SMALLINT", "YEAR", "INT2"},
-                // in many cases the value is in the cache
-                20
+                new String[]{"SMALLINT", "YEAR", "INT2"}
         );
         add(Value.INT, Types.INTEGER,
                 createDecimal(ValueInt.PRECISION, ValueInt.PRECISION, 0,
                         ValueInt.DISPLAY_SIZE, false, false),
-                new String[]{"INTEGER", "INT", "MEDIUMINT", "INT4", "SIGNED"},
-                // in many cases the value is in the cache
-                20
+                new String[]{"INTEGER", "INT", "MEDIUMINT", "INT4", "SIGNED"}
         );
         add(Value.INT, Types.INTEGER,
                 createDecimal(ValueInt.PRECISION, ValueInt.PRECISION, 0,
                         ValueInt.DISPLAY_SIZE, false, true),
-                new String[]{"SERIAL"},
-                20
+                new String[]{"SERIAL"}
         );
         add(Value.LONG, Types.BIGINT,
                 createDecimal(ValueLong.PRECISION, ValueLong.PRECISION, 0,
                         ValueLong.DISPLAY_SIZE, false, false),
-                new String[]{"BIGINT", "INT8", "LONG"},
-                24
+                new String[]{"BIGINT", "INT8", "LONG"}
         );
         add(Value.LONG, Types.BIGINT,
                 createDecimal(ValueLong.PRECISION, ValueLong.PRECISION, 0,
                         ValueLong.DISPLAY_SIZE, false, true),
-                new String[]{"IDENTITY", "BIGSERIAL"},
-                24
+                new String[]{"IDENTITY", "BIGSERIAL"}
         );
         if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
             addDecimal();
@@ -264,42 +241,33 @@ public class DataType {
         add(Value.FLOAT, Types.REAL,
                 createDecimal(ValueFloat.PRECISION, ValueFloat.PRECISION,
                         0, ValueFloat.DISPLAY_SIZE, false, false),
-                new String[] {"REAL", "FLOAT4"},
-                24
+                new String[] {"REAL", "FLOAT4"}
         );
         add(Value.DOUBLE, Types.DOUBLE,
                 createDecimal(ValueDouble.PRECISION, ValueDouble.PRECISION,
                         0, ValueDouble.DISPLAY_SIZE, false, false),
-                new String[] { "DOUBLE", "DOUBLE PRECISION" },
-                24
+                new String[] { "DOUBLE", "DOUBLE PRECISION" }
         );
         add(Value.DOUBLE, Types.FLOAT,
                 createDecimal(ValueDouble.PRECISION, ValueDouble.PRECISION,
                         0, ValueDouble.DISPLAY_SIZE, false, false),
-                new String[] {"FLOAT", "FLOAT8" },
-                24
+                new String[] {"FLOAT", "FLOAT8" }
         );
         add(Value.TIME, Types.TIME,
                 createDate(ValueTime.MAXIMUM_PRECISION, ValueTime.DEFAULT_PRECISION,
                         "TIME", true, ValueTime.DEFAULT_SCALE, ValueTime.MAXIMUM_SCALE),
-                new String[]{"TIME", "TIME WITHOUT TIME ZONE"},
-                // 24 for ValueTime, 32 for java.sql.Time
-                56
+                new String[]{"TIME", "TIME WITHOUT TIME ZONE"}
         );
         add(Value.DATE, Types.DATE,
                 createDate(ValueDate.PRECISION, ValueDate.PRECISION,
                         "DATE", false, 0, 0),
-                new String[]{"DATE"},
-                // 24 for ValueDate, 32 for java.sql.Date
-                56
+                new String[]{"DATE"}
         );
         add(Value.TIMESTAMP, Types.TIMESTAMP,
                 createDate(ValueTimestamp.MAXIMUM_PRECISION, ValueTimestamp.DEFAULT_PRECISION,
                         "TIMESTAMP", true, ValueTimestamp.DEFAULT_SCALE, ValueTimestamp.MAXIMUM_SCALE),
                 new String[]{"TIMESTAMP", "TIMESTAMP WITHOUT TIME ZONE",
-                        "DATETIME", "DATETIME2", "SMALLDATETIME"},
-                // 24 for ValueTimestamp, 32 for java.sql.Timestamp
-                56
+                        "DATETIME", "DATETIME2", "SMALLDATETIME"}
         );
         // 2014 is the value of Types.TIMESTAMP_WITH_TIMEZONE
         // use the value instead of the reference because the code has to
@@ -309,24 +277,19 @@ public class DataType {
                 createDate(ValueTimestampTimeZone.MAXIMUM_PRECISION, ValueTimestampTimeZone.DEFAULT_PRECISION,
                         "TIMESTAMP_TZ", true, ValueTimestampTimeZone.DEFAULT_SCALE,
                         ValueTimestampTimeZone.MAXIMUM_SCALE),
-                new String[]{"TIMESTAMP WITH TIME ZONE"},
-                // 26 for ValueTimestampTimeZone, 32 for java.sql.Timestamp
-                58
+                new String[]{"TIMESTAMP WITH TIME ZONE"}
         );
         add(Value.BYTES, Types.VARBINARY,
                 createString(false),
-                new String[]{"VARBINARY", "BINARY VARYING"},
-                32
+                new String[]{"VARBINARY", "BINARY VARYING"}
         );
         add(Value.BYTES, Types.BINARY,
                 createString(false),
-                new String[]{"BINARY", "RAW", "BYTEA", "LONG RAW"},
-                32
+                new String[]{"BINARY", "RAW", "BYTEA", "LONG RAW"}
         );
         add(Value.BYTES, Types.LONGVARBINARY,
                 createString(false),
-                new String[]{"LONGVARBINARY"},
-                32
+                new String[]{"LONGVARBINARY"}
         );
         dataType = new DataType();
         dataType.prefix = dataType.suffix = "'";
@@ -334,55 +297,45 @@ public class DataType {
         add(Value.UUID, Types.BINARY,
                 createString(false),
                 // UNIQUEIDENTIFIER is the MSSQL mode equivalent
-                new String[]{"UUID", "UNIQUEIDENTIFIER"},
-                32
+                new String[]{"UUID", "UNIQUEIDENTIFIER"}
         );
         add(Value.JAVA_OBJECT, Types.OTHER,
                 createString(false),
-                new String[]{"OTHER", "OBJECT", "JAVA_OBJECT"},
-                24
+                new String[]{"OTHER", "OBJECT", "JAVA_OBJECT"}
         );
         add(Value.BLOB, Types.BLOB,
                 createLob(),
                 new String[]{"BLOB", "BINARY LARGE OBJECT", "TINYBLOB", "MEDIUMBLOB",
-                    "LONGBLOB", "IMAGE", "OID"},
-                // 80 for ValueLob, 24 for String
-                104
+                    "LONGBLOB", "IMAGE", "OID"}
         );
         add(Value.CLOB, Types.CLOB,
                 createLob(),
                 new String[]{"CLOB", "CHARACTER LARGE OBJECT", "TINYTEXT", "TEXT", "MEDIUMTEXT",
-                    "LONGTEXT", "NTEXT", "NCLOB"},
-                // 80 for ValueLob, 24 for String
-                104
+                    "LONGTEXT", "NTEXT", "NCLOB"}
         );
         add(Value.GEOMETRY, Types.OTHER,
                 createGeometry(),
-                new String[]{"GEOMETRY"},
-                32
+                new String[]{"GEOMETRY"}
         );
         dataType = new DataType();
         dataType.prefix = "ARRAY[";
         dataType.suffix = "]";
         add(Value.ARRAY, Types.ARRAY,
                 dataType,
-                new String[]{"ARRAY"},
-                32
+                new String[]{"ARRAY"}
         );
         dataType = new DataType();
         dataType.maxPrecision = dataType.defaultPrecision = Integer.MAX_VALUE;
         add(Value.RESULT_SET, DataType.TYPE_RESULT_SET,
                 dataType,
-                new String[]{"RESULT_SET"},
-                400
+                new String[]{"RESULT_SET"}
         );
         dataType = createString(false);
         dataType.supportsPrecision = false;
         dataType.supportsScale = false;
         add(Value.ENUM, Types.OTHER,
                 dataType,
-                new String[]{"ENUM"},
-                48
+                new String[]{"ENUM"}
         );
         for (int i = Value.INTERVAL_YEAR; i <= Value.INTERVAL_MINUTE_TO_SECOND; i++) {
             addInterval(i);
@@ -403,9 +356,7 @@ public class DataType {
                         ValueDecimal.DEFAULT_PRECISION,
                         ValueDecimal.DEFAULT_SCALE,
                         ValueDecimal.DEFAULT_DISPLAY_SIZE, true, false),
-                new String[]{"DECIMAL", "DEC"},
-                // 40 for ValueDecimal,
-                64
+                new String[]{"DECIMAL", "DEC"}
         );
     }
 
@@ -415,8 +366,7 @@ public class DataType {
                         ValueDecimal.DEFAULT_PRECISION,
                         ValueDecimal.DEFAULT_SCALE,
                         ValueDecimal.DEFAULT_DISPLAY_SIZE, true, false),
-                new String[]{"NUMERIC", "NUMBER"},
-                64
+                new String[]{"NUMERIC", "NUMBER"}
         );
     }
 
@@ -435,13 +385,12 @@ public class DataType {
             dataType.maxScale = ValueInterval.MAXIMUM_SCALE;
         }
         add(type, Types.OTHER, dataType,
-                new String[]{("INTERVAL " + name).intern()},
-                36
+                new String[]{("INTERVAL " + name).intern()}
         );
     }
 
     private static void add(int type, int sqlType,
-            DataType dataType, String[] names, int memory) {
+            DataType dataType, String[] names) {
         for (int i = 0; i < names.length; i++) {
             DataType dt = new DataType();
             dt.type = type;
@@ -461,7 +410,6 @@ public class DataType {
             dt.defaultScale = dataType.defaultScale;
             dt.caseSensitive = dataType.caseSensitive;
             dt.hidden = i > 0;
-            dt.memory = memory;
             for (DataType t2 : TYPES) {
                 if (t2.sqlType == dt.sqlType) {
                     dt.sqlTypePos++;

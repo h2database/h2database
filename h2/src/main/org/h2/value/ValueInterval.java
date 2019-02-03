@@ -172,6 +172,12 @@ public class ValueInterval extends Value {
     }
 
     @Override
+    public int getMemory() {
+        // Java 11 with -XX:-UseCompressedOops
+        return 48;
+    }
+
+    @Override
     public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
         if (targetScale >= MAXIMUM_SCALE) {
             return this;

@@ -51,6 +51,12 @@ public class ValueBoolean extends Value {
     }
 
     @Override
+    public int getMemory() {
+        // Singleton TRUE and FALSE values
+        return 0;
+    }
+
+    @Override
     public StringBuilder getSQL(StringBuilder builder) {
         return builder.append(getString());
     }

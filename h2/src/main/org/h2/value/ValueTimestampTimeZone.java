@@ -169,6 +169,12 @@ public class ValueTimestampTimeZone extends Value {
     }
 
     @Override
+    public int getMemory() {
+        // Java 11 with -XX:-UseCompressedOops
+        return 40;
+    }
+
+    @Override
     public String getString() {
         StringBuilder builder = new StringBuilder(ValueTimestampTimeZone.MAXIMUM_PRECISION);
         DateTimeUtils.appendTimestampTimeZone(builder, dateValue, timeNanos, timeZoneOffsetMins);

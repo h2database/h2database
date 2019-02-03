@@ -183,9 +183,9 @@ public class ValueJavaObject extends ValueBytes {
         @Override
         public int getMemory() {
             if (value == null) {
-                return DataType.getDataType(getValueType()).memory;
+                return 40;
             }
-            int mem = super.getMemory();
+            int mem = 40;
             if (javaObject != null) {
                 mem *= 2;
             }

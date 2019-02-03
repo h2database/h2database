@@ -367,6 +367,9 @@ public class DataType {
             dataType.supportsScale = true;
             dataType.defaultScale = ValueInterval.DEFAULT_SCALE;
             dataType.maxScale = ValueInterval.MAXIMUM_SCALE;
+            dataType.params = "PRECISION,SCALE";
+        } else {
+            dataType.params = "PRECISION";
         }
         add(type, Types.OTHER, dataType,
                 new String[]{("INTERVAL " + name).intern()}
@@ -462,10 +465,13 @@ public class DataType {
         dataType.prefix = prefix + " '";
         dataType.suffix = "'";
         dataType.maxPrecision = maxPrecision;
-        dataType.supportsScale = supportsScale;
-        dataType.maxScale = maxScale;
         dataType.defaultPrecision = precision;
-        dataType.defaultScale = scale;
+        if (supportsScale) {
+            dataType.params = "SCALE";
+            dataType.supportsScale = true;
+            dataType.maxScale = maxScale;
+            dataType.defaultScale = scale;
+        }
         return dataType;
     }
 

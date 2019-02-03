@@ -637,7 +637,7 @@ public class TestMVTableEngine extends TestDb {
         String readCount = plan.substring(plan.indexOf("reads: "));
         readCount = readCount.substring("reads: ".length(), readCount.indexOf('\n'));
         int rc = Integer.parseInt(readCount);
-        assertTrue(plan, rc >= 60 && rc <= 70);
+        assertTrue(plan, rc >= 60 && rc <= 80);
 //        assertTrue(plan, rc >= 1000 && rc <= 1200);
         conn.close();
     }

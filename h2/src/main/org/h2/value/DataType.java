@@ -198,37 +198,37 @@ public class DataType {
         );
         add(Value.BOOLEAN, Types.BOOLEAN,
                 createDecimal(ValueBoolean.PRECISION, ValueBoolean.PRECISION,
-                        0, ValueBoolean.DISPLAY_SIZE, false, false),
+                        0, false, false),
                 new String[]{"BOOLEAN", "BIT", "BOOL"}
         );
         add(Value.BYTE, Types.TINYINT,
                 createDecimal(ValueByte.PRECISION, ValueByte.PRECISION, 0,
-                        ValueByte.DISPLAY_SIZE, false, false),
+                        false, false),
                 new String[]{"TINYINT"}
         );
         add(Value.SHORT, Types.SMALLINT,
                 createDecimal(ValueShort.PRECISION, ValueShort.PRECISION, 0,
-                        ValueShort.DISPLAY_SIZE, false, false),
+                        false, false),
                 new String[]{"SMALLINT", "YEAR", "INT2"}
         );
         add(Value.INT, Types.INTEGER,
                 createDecimal(ValueInt.PRECISION, ValueInt.PRECISION, 0,
-                        ValueInt.DISPLAY_SIZE, false, false),
+                        false, false),
                 new String[]{"INTEGER", "INT", "MEDIUMINT", "INT4", "SIGNED"}
         );
         add(Value.INT, Types.INTEGER,
                 createDecimal(ValueInt.PRECISION, ValueInt.PRECISION, 0,
-                        ValueInt.DISPLAY_SIZE, false, true),
+                        false, true),
                 new String[]{"SERIAL"}
         );
         add(Value.LONG, Types.BIGINT,
                 createDecimal(ValueLong.PRECISION, ValueLong.PRECISION, 0,
-                        ValueLong.DISPLAY_SIZE, false, false),
+                        false, false),
                 new String[]{"BIGINT", "INT8", "LONG"}
         );
         add(Value.LONG, Types.BIGINT,
                 createDecimal(ValueLong.PRECISION, ValueLong.PRECISION, 0,
-                        ValueLong.DISPLAY_SIZE, false, true),
+                        false, true),
                 new String[]{"IDENTITY", "BIGSERIAL"}
         );
         if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
@@ -240,17 +240,17 @@ public class DataType {
         }
         add(Value.FLOAT, Types.REAL,
                 createDecimal(ValueFloat.PRECISION, ValueFloat.PRECISION,
-                        0, ValueFloat.DISPLAY_SIZE, false, false),
+                        0, false, false),
                 new String[] {"REAL", "FLOAT4"}
         );
         add(Value.DOUBLE, Types.DOUBLE,
                 createDecimal(ValueDouble.PRECISION, ValueDouble.PRECISION,
-                        0, ValueDouble.DISPLAY_SIZE, false, false),
+                        0, false, false),
                 new String[] { "DOUBLE", "DOUBLE PRECISION" }
         );
         add(Value.DOUBLE, Types.FLOAT,
                 createDecimal(ValueDouble.PRECISION, ValueDouble.PRECISION,
-                        0, ValueDouble.DISPLAY_SIZE, false, false),
+                        0, false, false),
                 new String[] {"FLOAT", "FLOAT8" }
         );
         add(Value.TIME, Types.TIME,
@@ -355,7 +355,7 @@ public class DataType {
                 createDecimal(Integer.MAX_VALUE,
                         ValueDecimal.DEFAULT_PRECISION,
                         ValueDecimal.DEFAULT_SCALE,
-                        ValueDecimal.DEFAULT_DISPLAY_SIZE, true, false),
+                        true, false),
                 new String[]{"DECIMAL", "DEC"}
         );
     }
@@ -365,7 +365,7 @@ public class DataType {
                 createDecimal(Integer.MAX_VALUE,
                         ValueDecimal.DEFAULT_PRECISION,
                         ValueDecimal.DEFAULT_SCALE,
-                        ValueDecimal.DEFAULT_DISPLAY_SIZE, true, false),
+                        true, false),
                 new String[]{"NUMERIC", "NUMBER"}
         );
     }
@@ -429,14 +429,13 @@ public class DataType {
      * @param maxPrecision maximum supported precision
      * @param defaultPrecision default precision
      * @param defaultScale default scale
-     * @param defaultDisplaySize default display size
      * @param needsPrecisionAndScale where precision and scale are supported
      * @param autoInc whether the data type is an auto-increment type
      * @return data type
      */
     public static DataType createDecimal(int maxPrecision,
-            int defaultPrecision, int defaultScale, int defaultDisplaySize,
-            boolean needsPrecisionAndScale, boolean autoInc) {
+            int defaultPrecision, int defaultScale, boolean needsPrecisionAndScale,
+            boolean autoInc) {
         DataType dataType = new DataType();
         dataType.maxPrecision = maxPrecision;
         dataType.defaultPrecision = defaultPrecision;

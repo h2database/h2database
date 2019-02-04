@@ -1,7 +1,9 @@
 # Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
 # and the EPL 1.0 (http://h2database.com/html/license.html).
 # Initial Developer: H2 Group
+
 "SECTION","TOPIC","SYNTAX","TEXT","EXAMPLE"
+
 "Commands (DML)","SELECT","
 SELECT [ TOP term [ PERCENT ] [ WITH TIES ] ]
 [ DISTINCT [ ON ( expression [,...] ) ] | ALL ]
@@ -20,26 +22,37 @@ selectExpression [,...]
 [ FOR UPDATE ]
 ","
 Selects data from a table or multiple tables.
-WHERE filters rows before other operations.
 
-GROUP BY groups the result by the given expression(s).
+Command is executed in the following logical order:
+
+1. Data is taken from table value expressions that are specified in the FROM clause, joins are executed.
+If FROM clause is not specified a single row is constructed.
+
+2. WHERE filters rows. Aggregate or window functions are not allowed in this clause.
+
+3. GROUP BY groups the result by the given expression(s).
 If GROUP BY clause is not specified, but non-window aggregate functions are used or HAVING is specified
 all rows are grouped together.
-Aggregate functions are evaluated, SAMPLE_SIZE limits the number of rows read.
-HAVING filters rows after grouping and evaluation of aggregate functions.
 
-Window functions are evaluated.
-QUALIFY filters rows after evaluation of window functions.
+4. Aggregate functions are evaluated, SAMPLE_SIZE limits the number of rows read.
 
-DISTINCT removes duplicates.
+5. HAVING filters rows after grouping and evaluation of aggregate functions.
+Non-window aggregate functions are allowed in this clause.
 
-UNION, EXCEPT (MINUS), and INTERSECT combine the result of this query with the results of another query.
+6. Window functions are evaluated.
+
+7. QUALIFY filters rows after evaluation of window functions.
+Aggregate and window functions are allowed in this clause.
+
+8. DISTINCT removes duplicates. If DISTINCT ON is used only the specified expressions are checked for duplicates.
+
+9. UNION, EXCEPT (MINUS), and INTERSECT combine the result of this query with the results of another query.
 Multiple set operators (UNION, INTERSECT, MINUS, EXCEPT) are evaluated from left to right.
 For compatibility with other databases and future versions of H2 please use parentheses.
 
-ORDER BY sorts the result by the given column(s) or expression(s).
+10. ORDER BY sorts the result by the given column(s) or expression(s).
 
-Number of rows in output can be limited either with standard OFFSET / FETCH,
+11. Number of rows in output can be limited either with standard OFFSET / FETCH,
 with non-standard LIMIT / OFFSET, or with non-standard TOP clauses.
 Different clauses cannot be used together.
 OFFSET specifies how many rows to skip.
@@ -49,6 +62,9 @@ If PERCENT is specified number of rows is specified as a percent of the total nu
 and should be an integer value between 0 and 100 inclusive.
 WITH TIES can be used only together with ORDER BY and means that all additional rows that have the same sorting position
 as the last row will be also returned.
+
+WINDOW clause specifies window definitions for window functions and window aggregate functions.
+This clause can be used to reuse the same definition in multiple functions.
 
 If FOR UPDATE is specified, the tables or rows are locked for writing.
 This clause is not allowed in DISTINCT queries and in queries with non-window aggregates, GROUP BY, or HAVING clauses.

@@ -1678,8 +1678,7 @@ public class Parser {
         }
         if (readIf("DEFAULT")) {
             read(VALUES);
-            Expression[] expr = {};
-            command.addRow(expr);
+            command.addRow(new Expression[0]);
         } else if (readIf(VALUES)) {
             parseValuesForCommand(command);
         } else if (readIf("SET")) {

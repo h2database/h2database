@@ -2429,7 +2429,7 @@ NAME
 
 "Other Grammar","Insert columns and source","
 { [ ( columnName [,...] ) ]
-    { insertValues | [ DIRECT ] [ SORTED ] select } }
+    { insertValues | [ DIRECT ] [ SORTED ] select | DEFAULT VALUES } }
     | { SET { columnName = { DEFAULT | expression } } [,...] }
 ","
 Names of columns and their values for INSERT statement.

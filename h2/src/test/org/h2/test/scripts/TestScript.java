@@ -158,7 +158,7 @@ public class TestScript extends TestDb {
             testScript("ddl/" + s + ".sql");
         }
         for (String s : new String[] { "delete", "error_reporting", "insert", "insertIgnore", "merge", "mergeUsing",
-                "replace", "script", "select", "show", "table", "values", "with" }) {
+                "replace", "script", "select", "show", "table", "update", "values", "with" }) {
             testScript("dml/" + s + ".sql");
         }
         for (String s : new String[] { "help" }) {

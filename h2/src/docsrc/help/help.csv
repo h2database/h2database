@@ -2597,11 +2597,13 @@ COMPRESSION LZF
 "Other Grammar","Row value expression","
 ROW (expression, [,...])
     | ( [ expression, expression [,...] ] )
+    | expression
 ","
 A row value expression.
 ","
 ROW (1)
 (1, 2)
+1
 "
 
 "Other Grammar","Select Expression","

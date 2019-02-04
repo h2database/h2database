@@ -1,7 +1,9 @@
 # Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
 # and the EPL 1.0 (http://h2database.com/html/license.html).
 # Initial Developer: H2 Group
+
 "SECTION","TOPIC","SYNTAX","TEXT","EXAMPLE"
+
 "Commands (DML)","SELECT","
 SELECT [ TOP term [ PERCENT ] [ WITH TIES ] ]
 [ DISTINCT [ ON ( expression [,...] ) ] | ALL ]
@@ -20,26 +22,37 @@ selectExpression [,...]
 [ FOR UPDATE ]
 ","
 Selects data from a table or multiple tables.
-WHERE filters rows before other operations.
 
-GROUP BY groups the result by the given expression(s).
+Command is executed in the following logical order:
+
+1. Data is taken from table value expressions that are specified in the FROM clause, joins are executed.
+If FROM clause is not specified a single row is constructed.
+
+2. WHERE filters rows. Aggregate or window functions are not allowed in this clause.
+
+3. GROUP BY groups the result by the given expression(s).
 If GROUP BY clause is not specified, but non-window aggregate functions are used or HAVING is specified
 all rows are grouped together.
-Aggregate functions are evaluated, SAMPLE_SIZE limits the number of rows read.
-HAVING filters rows after grouping and evaluation of aggregate functions.
 
-Window functions are evaluated.
-QUALIFY filters rows after evaluation of window functions.
+4. Aggregate functions are evaluated, SAMPLE_SIZE limits the number of rows read.
 
-DISTINCT removes duplicates.
+5. HAVING filters rows after grouping and evaluation of aggregate functions.
+Non-window aggregate functions are allowed in this clause.
 
-UNION, EXCEPT (MINUS), and INTERSECT combine the result of this query with the results of another query.
+6. Window functions are evaluated.
+
+7. QUALIFY filters rows after evaluation of window functions.
+Aggregate and window functions are allowed in this clause.
+
+8. DISTINCT removes duplicates. If DISTINCT ON is used only the specified expressions are checked for duplicates.
+
+9. UNION, EXCEPT (MINUS), and INTERSECT combine the result of this query with the results of another query.
 Multiple set operators (UNION, INTERSECT, MINUS, EXCEPT) are evaluated from left to right.
 For compatibility with other databases and future versions of H2 please use parentheses.
 
-ORDER BY sorts the result by the given column(s) or expression(s).
+10. ORDER BY sorts the result by the given column(s) or expression(s).
 
-Number of rows in output can be limited either with standard OFFSET / FETCH,
+11. Number of rows in output can be limited either with standard OFFSET / FETCH,
 with non-standard LIMIT / OFFSET, or with non-standard TOP clauses.
 Different clauses cannot be used together.
 OFFSET specifies how many rows to skip.
@@ -49,6 +62,9 @@ If PERCENT is specified number of rows is specified as a percent of the total nu
 and should be an integer value between 0 and 100 inclusive.
 WITH TIES can be used only together with ORDER BY and means that all additional rows that have the same sorting position
 as the last row will be also returned.
+
+WINDOW clause specifies window definitions for window functions and window aggregate functions.
+This clause can be used to reuse the same definition in multiple functions.
 
 If FOR UPDATE is specified, the tables or rows are locked for writing.
 This clause is not allowed in DISTINCT queries and in queries with non-window aggregates, GROUP BY, or HAVING clauses.
@@ -136,7 +152,7 @@ EXPLAIN SELECT * FROM TEST WHERE ID=1
 "Commands (DML)","MERGE","
 MERGE INTO tableName [ ( columnName [,...] ) ]
 [ KEY ( columnName [,...] ) ]
-{ VALUES { ( { DEFAULT | expression } [,...] ) } [,...] | select }
+{ insertValues | select }
 ","
 Updates existing rows, and insert rows that don't exist. If no key column is
 specified, the primary key columns are used to find the row. If more than one
@@ -250,17 +266,34 @@ Lists the schemas, tables, or the columns of a table.
 SHOW TABLES
 "
 
-"Commands (DML)","Explicit TABLE","
+"Commands (DML)","Explicit table","
 TABLE [schemaName.]tableName
+[ ORDER BY order [,...] ]
+[ OFFSET expression { ROW | ROWS } ]
+[ FETCH { FIRST | NEXT } [ expression [ PERCENT ] ] { ROW | ROWS }
+    { ONLY | WITH TIES } ]
 ","
 Selects data from a table.
 
 This command is an equivalent to SELECT * FROM tableName.
-
-FROM, WHERE, GROUP BY, HAVING, QUALIFY, and WINDOW clauses from the SELECT command are not allowed.
+See SELECT command for description of ORDER BY, OFFSET, and FETCH.
 ","
 TABLE TEST;
 TABLE TEST ORDER BY ID FETCH FIRST ROW ONLY;
+"
+
+"Commands (DML)","Table value","
+VALUES rowValueExpression [,...]
+[ ORDER BY order [,...] ]
+[ OFFSET expression { ROW | ROWS } ]
+[ FETCH { FIRST | NEXT } [ expression [ PERCENT ] ] { ROW | ROWS }
+    { ONLY | WITH TIES } ]
+","
+A list of rows that can be used like a table.
+See SELECT command for description of ORDER BY, OFFSET, and FETCH.
+The column list of the resulting table is C1, C2, and so on.
+","
+VALUES (1, 'Hello'), (2, 'World');
 "
 
 "Commands (DML)","WITH","
@@ -2396,13 +2429,20 @@ NAME
 
 "Other Grammar","Insert columns and source","
 { [ ( columnName [,...] ) ]
-    { VALUES { ( { DEFAULT | expression } [,...] ) } [,...]
-        | [ DIRECT ] [ SORTED ] select } } |
-    { SET { columnName = { DEFAULT | expression } } [,...] }
+    { insertValues | [ DIRECT ] [ SORTED ] select | DEFAULT VALUES } }
+    | { SET { columnName = { DEFAULT | expression } } [,...] }
 ","
 Names of columns and their values for INSERT statement.
 ","
 (ID, NAME) VALUES (1, 'Test')
+"
+
+"Other Grammar","Insert values","
+VALUES { DEFAULT|expression | [ROW] ({DEFAULT|expression} [,...]) }, [,...]
+","
+Values for INSERT statement.
+","
+VALUES (1, 'Test')
 "
 
 "Other Grammar","Int","
@@ -2557,11 +2597,13 @@ COMPRESSION LZF
 "Other Grammar","Row value expression","
 ROW (expression, [,...])
     | ( [ expression, expression [,...] ] )
+    | expression
 ","
 A row value expression.
 ","
 ROW (1)
 (1, 2)
+1
 "
 
 "Other Grammar","Select Expression","
@@ -2627,15 +2669,6 @@ A natural join is an inner join, where the condition is automatically on the
 columns with the same name.
 ","
 TEST AS T LEFT JOIN TEST AS T1 ON T.ID = T1.ID
-"
-
-"Other Grammar","Values Expression","
-VALUES { ( expression [,...] ) } [,...]
-","
-A list of rows that can be used like a table.
-The column list of the resulting table is C1, C2, and so on.
-","
-SELECT * FROM (VALUES(1, 'Hello'), (2, 'World')) AS V;
 "
 
 "Other Grammar","Wildcard expression","

@@ -3,10 +3,10 @@
 -- Initial Developer: H2 Group
 --
 
-select * from table(a int=(1)), table(b int=(2));
-> A B
-> - -
-> 1 2
+select * from table(a int=(1)), table(b int=2), table(c int=row(3));
+> A B C
+> - - -
+> 1 2 3
 > rows: 1
 
 create table test as select * from table(id int=(1, 2, 3));

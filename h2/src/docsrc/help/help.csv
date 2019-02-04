@@ -136,7 +136,7 @@ EXPLAIN SELECT * FROM TEST WHERE ID=1
 "Commands (DML)","MERGE","
 MERGE INTO tableName [ ( columnName [,...] ) ]
 [ KEY ( columnName [,...] ) ]
-{ VALUES { ( { DEFAULT | expression } [,...] ) } [,...] | select }
+{ insertValues | select }
 ","
 Updates existing rows, and insert rows that don't exist. If no key column is
 specified, the primary key columns are used to find the row. If more than one
@@ -2413,13 +2413,20 @@ NAME
 
 "Other Grammar","Insert columns and source","
 { [ ( columnName [,...] ) ]
-    { VALUES { ( { DEFAULT | expression } [,...] ) } [,...]
-        | [ DIRECT ] [ SORTED ] select } } |
-    { SET { columnName = { DEFAULT | expression } } [,...] }
+    { insertValues | [ DIRECT ] [ SORTED ] select } }
+    | { SET { columnName = { DEFAULT | expression } } [,...] }
 ","
 Names of columns and their values for INSERT statement.
 ","
 (ID, NAME) VALUES (1, 'Test')
+"
+
+"Other Grammar","Insert values","
+VALUES { DEFAULT|expression | [ROW] ({DEFAULT|expression} [,...]) }, [,...]
+","
+Values for INSERT statement.
+","
+VALUES (1, 'Test')
 "
 
 "Other Grammar","Int","

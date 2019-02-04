@@ -314,7 +314,11 @@ public abstract class Value extends VersionedValue {
      * @return the memory used in bytes
      */
     public int getMemory() {
-        return DataType.getDataType(getValueType()).memory;
+        /*
+         * Java 11 with -XX:-UseCompressedOops for all values up to ValueLong
+         * and ValueDouble.
+         */
+        return 24;
     }
 
     /**

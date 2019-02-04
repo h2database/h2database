@@ -161,6 +161,7 @@ public class JavaFunction extends Expression implements FunctionCall {
             ValueResultSet rs = getValueForColumnList(session, getArgs());
             return getExpressionColumns(session, rs.getResult());
         case Value.ARRAY:
+        case Value.ROW:
             return getExpressionColumns(session, (ValueArray) getValue(session));
         }
         return super.getExpressionColumns(session);

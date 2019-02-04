@@ -515,7 +515,12 @@ public class ValueLobDb extends Value {
     @Override
     public int getMemory() {
         if (small != null) {
-            return small.length + 104;
+            /*
+             * Java 11 with -XX:-UseCompressedOops
+             * 0 bytes: 120 bytes
+             * 1 byte: 128 bytes
+             */
+            return small.length + 127;
         }
         return 140;
     }

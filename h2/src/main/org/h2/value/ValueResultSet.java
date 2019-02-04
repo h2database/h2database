@@ -107,6 +107,11 @@ public class ValueResultSet extends Value {
     }
 
     @Override
+    public int getMemory() {
+        return result.getRowCount() * result.getVisibleColumnCount() * 32 + 400;
+    }
+
+    @Override
     public String getString() {
         StringBuilder buff = new StringBuilder("(");
         ResultInterface result = this.result.createShallowCopy(null);

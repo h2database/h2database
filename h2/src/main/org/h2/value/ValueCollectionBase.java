@@ -123,7 +123,7 @@ public abstract class ValueCollectionBase extends Value {
 
     @Override
     public int getMemory() {
-        int memory = 32;
+        int memory = 72;
         for (Value v : values) {
             memory += v.getMemory() + Constants.MEMORY_POINTER;
         }

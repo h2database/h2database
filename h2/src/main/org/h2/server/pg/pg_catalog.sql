@@ -107,6 +107,7 @@ merge into pg_catalog.pg_type values(
     null
 );
 
+drop domain if exists regproc cascade;
 create domain regproc as varchar_ignorecase;
 
 create view pg_catalog.pg_class -- (oid, relname, relnamespace, relkind, relam, reltuples, reltablespace, relpages, relhasindex, relhasrules, relhasoids, relchecks, reltriggers)

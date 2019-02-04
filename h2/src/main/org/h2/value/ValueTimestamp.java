@@ -177,6 +177,11 @@ public class ValueTimestamp extends Value {
     }
 
     @Override
+    public int getMemory() {
+        return 32;
+    }
+
+    @Override
     public String getString() {
         StringBuilder buff = new StringBuilder(MAXIMUM_PRECISION);
         DateTimeUtils.appendDate(buff, dateValue);

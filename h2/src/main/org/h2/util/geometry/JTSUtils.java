@@ -456,8 +456,8 @@ public final class JTSUtils {
         int d = sequence.getDimension();
         if (M_IS_SUPPORTED) {
             d -= measures;
-            z = d > 2 ? sequence.getOrdinate(index, Z) : Double.NaN;
-            m = measures >= 1 ? sequence.getOrdinate(index, d) : Double.NaN;
+            z = d > 2 ? toCanonicalDouble(sequence.getOrdinate(index, Z)) : Double.NaN;
+            m = measures >= 1 ? toCanonicalDouble(sequence.getOrdinate(index, d)) : Double.NaN;
         } else {
             z = d >= 3 ? toCanonicalDouble(sequence.getOrdinate(index, Z)) : Double.NaN;
             m = d >= 4 ? toCanonicalDouble(sequence.getOrdinate(index, M)) : Double.NaN;

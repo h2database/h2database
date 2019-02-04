@@ -532,47 +532,6 @@ SELECT * FROM TEST WHERE (A, B) = (VALUES (11, 12));
 DROP TABLE TEST;
 > ok
 
-VALUES (1, 2);
-> C1 C2
-> -- --
-> 1  2
-> rows: 1
-
-VALUES ROW (1, 2);
-> C1 C2
-> -- --
-> 1  2
-> rows: 1
-
-VALUES 1, 2;
-> C1
-> --
-> 1
-> 2
-> rows: 2
-
-SELECT * FROM (VALUES (1::BIGINT, 2)) T (A, B) WHERE (A, B) IN (VALUES(1, 2));
-> A B
-> - -
-> 1 2
-> rows: 1
-
-SELECT * FROM (VALUES (1000000000000, 2)) T (A, B) WHERE (A, B) IN (VALUES(1, 2));
-> A B
-> - -
-> rows: 0
-
-SELECT * FROM (VALUES (1, 2)) T (A, B) WHERE (A, B) IN (VALUES(1::BIGINT, 2));
-> A B
-> - -
-> 1 2
-> rows: 1
-
-SELECT * FROM (VALUES (1, 2)) T (A, B) WHERE (A, B) IN (VALUES(1000000000000, 2));
-> A B
-> - -
-> rows: 0
-
 CREATE TABLE TEST(A BIGINT, B INT) AS VALUES (1::BIGINT, 2);
 > ok
 

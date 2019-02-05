@@ -1306,7 +1306,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         int unsavedMemory = replacement.getMemory();
         while (path != null) {
             Page parent = path.page;
-            // condition below sould always be true, but older versions (up to 1.4.197)
+            // condition below should always be true, but older versions (up to 1.4.197)
             // may create single-childed (with no keys) internal nodes, which we skip here
             if (parent.getKeyCount() > 0) {
                 Page child = replacement;
@@ -1717,8 +1717,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                                 index = pos.index;
                                 pos = pos.parent;
                                 keyCount = p.getKeyCount();
-                                // condition below sould always be false, but older versions (up to 1.4.197)
-                                // may create single-childed (with no keys) internal nodes, which we skip here
+                                // condition below should always be false, but older
+                                // versions (up to 1.4.197) may create
+                                // single-childed (with no keys) internal nodes,
+                                // which we skip here
                             } while (keyCount == 0 && pos != null);
 
                             if (keyCount <= 1) {
@@ -1726,8 +1728,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                                     assert index <= 1;
                                     p = p.getChildPage(1 - index);
                                 } else {
-                                    // if root happens to be such single-childed (with no keys) internal node,
-                                    // then just replace it with empty leaf
+                                    // if root happens to be such single-childed
+                                    // (with no keys) internal node, then just
+                                    // replace it with empty leaf
                                     p = Page.createEmptyLeaf(this);
                                 }
                                 break;

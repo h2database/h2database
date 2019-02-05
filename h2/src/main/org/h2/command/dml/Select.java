@@ -44,6 +44,7 @@ import org.h2.table.IndexColumn;
 import org.h2.table.JoinBatch;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.table.TableFilter.TableFilterVisitor;
 import org.h2.table.TableType;
 import org.h2.table.TableView;
 import org.h2.util.ColumnNamer;
@@ -116,6 +117,11 @@ public class Select extends Query {
      * Whether a column in the expression list is part of a group-by.
      */
     boolean[] groupByExpression;
+
+    /**
+     * Select with grouped data for aggregates.
+     */
+    private Select groupSelect;
 
     /**
      * Grouped data for aggregates.
@@ -213,6 +219,10 @@ public class Select extends Query {
         return group;
     }
 
+    void setGroupSelect(Select groupSelect) {
+        this.groupSelect = groupSelect;
+    }
+
     /**
      * Get the group data if there is currently a group-by active.
      *
@@ -220,6 +230,9 @@ public class Select extends Query {
      * @return the grouped data
      */
     public SelectGroups getGroupDataIfCurrent(boolean window) {
+        if (groupSelect != null) {
+            return groupSelect.getGroupDataIfCurrent(window);
+        }
         return groupData != null && (window || groupData.isCurrentGroup()) ? groupData : null;
     }
 
@@ -1333,6 +1346,15 @@ public class Select extends Query {
                 isGroupSortedQuery = true;
             }
         }
+        topTableFilter.visit(new TableFilterVisitor() {
+            @Override
+            public void accept(TableFilter f) {
+                Select s = f.getSelect();
+                if (s != null && s != Select.this) {
+                    s.setGroupSelect(Select.this);
+                }
+            }
+        });
         expressionArray = expressions.toArray(new Expression[0]);
         isPrepared = true;
     }

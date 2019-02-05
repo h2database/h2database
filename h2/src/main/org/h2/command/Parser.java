@@ -2750,11 +2750,6 @@ public class Parser {
             Expression condition = readExpression();
             command.setHaving(condition);
         }
-        if (readIf(QUALIFY)) {
-            command.setWindowQuery();
-            Expression condition = readExpression();
-            command.setQualify(condition);
-        }
         if (readIf(WINDOW)) {
             do {
                 int index = parseIndex;
@@ -2765,6 +2760,11 @@ public class Parser {
                     throw DbException.getSyntaxError(sqlCommand, index, "unique identifier");
                 }
             } while (readIf(COMMA));
+        }
+        if (readIf(QUALIFY)) {
+            command.setWindowQuery();
+            Expression condition = readExpression();
+            command.setQualify(condition);
         }
         command.setParameterList(parameters);
         currentSelect = oldSelect;

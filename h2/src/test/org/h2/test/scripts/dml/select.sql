@@ -584,3 +584,21 @@ SELECT COUNT(*) C FROM TEST QUALIFY C < 1;
 
 DROP TABLE TEST;
 > ok
+
+SELECT A, ROW_NUMBER() OVER (ORDER BY B) R
+FROM (VALUES (1, 2), (2, 1), (3, 3)) T(A, B);
+> A R
+> - -
+> 1 2
+> 2 1
+> 3 3
+> rows: 3
+
+SELECT X, A, ROW_NUMBER() OVER (ORDER BY B) R
+FROM (SELECT 1 X), (VALUES (1, 2), (2, 1), (3, 3)) T(A, B);
+> X A R
+> - - -
+> 1 1 2
+> 1 2 1
+> 1 3 3
+> rows: 3

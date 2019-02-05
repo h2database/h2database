@@ -294,7 +294,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     @SuppressWarnings("unchecked")
     private K getFirstLast(boolean first) {
         Page p = getRootPage();
-        if (p.getKeyCount() == 0) {
+        if (p.getTotalCount() == 0) {
             return null;
         }
         while (true) {

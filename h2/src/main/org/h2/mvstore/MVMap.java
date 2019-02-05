@@ -1305,10 +1305,15 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     private static Page replacePage(CursorPos path, Page replacement, IntValueHolder unsavedMemoryHolder) {
         int unsavedMemory = replacement.getMemory();
         while (path != null) {
-            Page child = replacement;
-            replacement = path.page.copy();
-            replacement.setChild(path.index, child);
-            unsavedMemory += replacement.getMemory();
+            Page parent = path.page;
+            // condition below sould always be true, but older versions (up to 1.4.197)
+            // may create single-childed (with no keys) internal nodes, which we skip here
+            if (parent.getKeyCount() > 0) {
+                Page child = replacement;
+                replacement = parent.copy();
+                replacement.setChild(path.index, child);
+                unsavedMemory += replacement.getMemory();
+            }
             path = path.parent;
         }
         unsavedMemoryHolder.value += unsavedMemory;
@@ -1706,15 +1711,27 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                         }
 
                         if (p.getTotalCount() == 1 && pos != null) {
-                            p = pos.page;
-                            index = pos.index;
-                            pos = pos.parent;
-                            if (p.getKeyCount() == 1) {
-                                assert index <= 1;
-                                p = p.getChildPage(1 - index);
+                            int keyCount;
+                            do {
+                                p = pos.page;
+                                index = pos.index;
+                                pos = pos.parent;
+                                keyCount = p.getKeyCount();
+                                // condition below sould always be false, but older versions (up to 1.4.197)
+                                // may create single-childed (with no keys) internal nodes, which we skip here
+                            } while (keyCount == 0 && pos != null);
+
+                            if (keyCount <= 1) {
+                                if (keyCount == 1) {
+                                    assert index <= 1;
+                                    p = p.getChildPage(1 - index);
+                                } else {
+                                    // if root happens to be such single-childed (with no keys) internal node,
+                                    // then just replace it with empty leaf
+                                    p = Page.createEmptyLeaf(this);
+                                }
                                 break;
                             }
-                            assert p.getKeyCount() > 1;
                         }
                         p = p.copy();
                         p.remove(index);
@@ -1864,7 +1881,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     private static CursorPos traverseDown(Page p, Object key) {
         CursorPos pos = null;
         while (!p.isLeaf()) {
-            assert p.getKeyCount() > 0;
             int index = p.binarySearch(key) + 1;
             if (index < 0) {
                 index = -index;

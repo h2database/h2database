@@ -3582,10 +3582,12 @@ Aggregates are only allowed in select statements.
 COUNT(*)
 "
 
-"Functions (Aggregate)","GROUP_CONCAT","
-GROUP_CONCAT ( [ DISTINCT|ALL ] string
-[ ORDER BY { expression [ ASC | DESC ] } [,...] ]
-[ SEPARATOR expression ] )
+"Functions (Aggregate)","LISTAGG","
+{ LISTAGG ( [ DISTINCT|ALL ] string [, separatorString] [ ON OVERFLOW ERROR ] )
+    WITHIN GROUP (ORDER BY {expression [ASC|DESC]} [,...]) }
+| { GROUP_CONCAT ( [ DISTINCT|ALL ] string
+    [ ORDER BY { expression [ ASC | DESC ] } [,...] ]
+    [ SEPARATOR separatorString ] ) }
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Concatenates strings with a separator.
@@ -3593,14 +3595,10 @@ Separator must be the same for all rows in the same group.
 The default separator is a ',' (without space).
 This method returns a string.
 If no rows are selected, the result is NULL.
-If ORDER BY is not specified order of strings is not determined.
-When this aggregate is used with OVER clause that contains ORDER BY subclause
-it does not enforce exact order of strings.
-This aggregate needs additional own ORDER BY clause to make it deterministic.
 Aggregates are only allowed in select statements.
 ","
-GROUP_CONCAT(NAME ORDER BY ID SEPARATOR ', ')
-GROUP_CONCAT(ID ORDER BY ID SEPARATOR ', ') OVER (ORDER BY ID)
+LISTAGG(NAME, ', ') WITHIN GROUP (ORDER BY ID)
+LISTAGG(ID, ', ') WITHIN GROUP (ORDER BY ID) OVER (ORDER BY ID)
 "
 
 "Functions (Aggregate)","ARRAY_AGG","

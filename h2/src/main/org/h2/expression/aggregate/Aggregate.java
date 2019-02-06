@@ -89,9 +89,11 @@ public class Aggregate extends AbstractAggregate {
         addAggregate("MIN", AggregateType.MIN);
         addAggregate("MAX", AggregateType.MAX);
         addAggregate("AVG", AggregateType.AVG);
-        addAggregate("GROUP_CONCAT", AggregateType.GROUP_CONCAT);
+        addAggregate("LISTAGG", AggregateType.LISTAGG);
+        // MySQL compatibility: group_concat(expression, delimiter)
+        addAggregate("GROUP_CONCAT", AggregateType.LISTAGG);
         // PostgreSQL compatibility: string_agg(expression, delimiter)
-        addAggregate("STRING_AGG", AggregateType.GROUP_CONCAT);
+        addAggregate("STRING_AGG", AggregateType.LISTAGG);
         addAggregate("STDDEV_SAMP", AggregateType.STDDEV_SAMP);
         addAggregate("STDDEV", AggregateType.STDDEV_SAMP);
         addAggregate("STDDEV_POP", AggregateType.STDDEV_POP);
@@ -188,7 +190,7 @@ public class Aggregate extends AbstractAggregate {
 
     private void updateData(Session session, AggregateData data, Value v, Value[] remembered) {
         switch (aggregateType) {
-        case GROUP_CONCAT:
+        case LISTAGG:
             if (v != ValueNull.INSTANCE) {
                 v = updateCollecting(session, v.convertTo(Value.STRING), remembered);
             }
@@ -393,8 +395,8 @@ public class Aggregate extends AbstractAggregate {
             break;
         case HISTOGRAM:
             return getHistogram(session, data);
-        case GROUP_CONCAT:
-            return getGroupConcat(session, data);
+        case LISTAGG:
+            return getListagg(session, data);
         case ARRAY_AGG: {
             Value[] array = ((AggregateDataCollecting) data).getArray();
             if (array == null) {
@@ -521,7 +523,7 @@ public class Aggregate extends AbstractAggregate {
         throw DbException.throwInternalError();
     }
 
-    private Value getGroupConcat(Session session, AggregateData data) {
+    private Value getListagg(Session session, AggregateData data) {
         AggregateDataCollecting collectingData = (AggregateDataCollecting) data;
         Value[] array = collectingData.getArray();
         if (array == null) {
@@ -638,7 +640,7 @@ public class Aggregate extends AbstractAggregate {
             int offset;
             switch (aggregateType) {
             case ARRAY_AGG:
-            case GROUP_CONCAT:
+            case LISTAGG:
                 offset = 1;
                 break;
             default:
@@ -647,7 +649,7 @@ public class Aggregate extends AbstractAggregate {
             orderBySort = createOrder(session, orderByList, offset);
         }
         switch (aggregateType) {
-        case GROUP_CONCAT:
+        case LISTAGG:
             type = TypeInfo.TYPE_STRING;
             break;
         case COUNT_ALL:
@@ -746,21 +748,6 @@ public class Aggregate extends AbstractAggregate {
         super.setEvaluatable(tableFilter, b);
     }
 
-    private StringBuilder getSQLGroupConcat(StringBuilder builder) {
-        builder.append("GROUP_CONCAT(");
-        if (distinct) {
-            builder.append("DISTINCT ");
-        }
-        args[0].getSQL(builder);
-        Window.appendOrderBy(builder, orderByList);
-        if (args.length >= 2) {
-            builder.append(" SEPARATOR ");
-            args[1].getSQL(builder);
-        }
-        builder.append(')');
-        return appendTailConditions(builder);
-    }
-
     private StringBuilder getSQLArrayAggregate(StringBuilder builder) {
         builder.append("ARRAY_AGG(");
         if (distinct) {
@@ -776,8 +763,6 @@ public class Aggregate extends AbstractAggregate {
     public StringBuilder getSQL(StringBuilder builder) {
         String text;
         switch (aggregateType) {
-        case GROUP_CONCAT:
-            return getSQLGroupConcat(builder);
         case COUNT_ALL:
             return appendTailConditions(builder.append("COUNT(*)"));
         case COUNT:
@@ -846,6 +831,9 @@ public class Aggregate extends AbstractAggregate {
         case MEDIAN:
             text = "MEDIAN";
             break;
+        case LISTAGG:
+            text = "LISTAGG";
+            break;
         case ARRAY_AGG:
             return getSQLArrayAggregate(builder);
         case MODE:
@@ -860,18 +848,21 @@ public class Aggregate extends AbstractAggregate {
         builder.append(text);
         if (distinct) {
             builder.append("(DISTINCT ");
-            args[0].getSQL(builder).append(')');
         } else {
             builder.append('(');
-            for (Expression arg : args) {
-                if (arg instanceof Subquery) {
-                    arg.getSQL(builder);
-                } else {
-                    arg.getUnenclosedSQL(builder);
-                }
-            }
-            builder.append(')');
         }
+        for (int i = 0; i < args.length; i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            Expression arg = args[i];
+            if (arg instanceof Subquery) {
+                arg.getSQL(builder);
+            } else {
+                arg.getUnenclosedSQL(builder);
+            }
+        }
+        builder.append(')');
         if (orderByList != null) {
             builder.append(" WITHIN GROUP (");
             Window.appendOrderBy(builder, orderByList);

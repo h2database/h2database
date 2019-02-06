@@ -32,7 +32,7 @@ abstract class AggregateData {
                 return new AggregateDataCount(false);
             }
             break;
-        case GROUP_CONCAT:
+        case LISTAGG:
         case ARRAY_AGG:
         case RANK:
         case DENSE_RANK:

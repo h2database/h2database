@@ -21,11 +21,6 @@ public enum AggregateType {
     COUNT,
 
     /**
-     * The aggregate type for GROUP_CONCAT(...).
-     */
-    GROUP_CONCAT,
-
-    /**
      * The aggregate type for SUM(expression).
      */
     SUM,
@@ -129,6 +124,11 @@ public enum AggregateType {
      * The aggregate type for MEDIAN(expression).
      */
     MEDIAN,
+
+    /**
+     * The aggregate type for LISTAGG(...).
+     */
+    LISTAGG,
 
     /**
      * The aggregate type for ARRAY_AGG(expression).

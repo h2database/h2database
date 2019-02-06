@@ -119,11 +119,6 @@ public class Select extends Query {
     boolean[] groupByExpression;
 
     /**
-     * Select with grouped data for aggregates.
-     */
-    private Select groupSelect;
-
-    /**
      * Grouped data for aggregates.
      */
     SelectGroups groupData;
@@ -219,10 +214,6 @@ public class Select extends Query {
         return group;
     }
 
-    void setGroupSelect(Select groupSelect) {
-        this.groupSelect = groupSelect;
-    }
-
     /**
      * Get the group data if there is currently a group-by active.
      *
@@ -230,9 +221,6 @@ public class Select extends Query {
      * @return the grouped data
      */
     public SelectGroups getGroupDataIfCurrent(boolean window) {
-        if (groupSelect != null) {
-            return groupSelect.getGroupDataIfCurrent(window);
-        }
         return groupData != null && (window || groupData.isCurrentGroup()) ? groupData : null;
     }
 
@@ -481,11 +469,24 @@ public class Select extends Query {
 
     private void initGroupData(int columnCount) {
         if (groupData == null) {
-            groupData = SelectGroups.getInstance(session, expressions, isGroupQuery, groupIndex);
+            setGroupData(SelectGroups.getInstance(session, expressions, isGroupQuery, groupIndex));
         } else {
             updateAgg(columnCount, DataAnalysisOperation.STAGE_RESET);
         }
         groupData.reset();
+    }
+
+    void setGroupData(final SelectGroups groupData) {
+        this.groupData = groupData;
+        topTableFilter.visit(new TableFilterVisitor() {
+            @Override
+            public void accept(TableFilter f) {
+                Select s = f.getSelect();
+                if (s != null) {
+                    s.groupData = groupData;
+                }
+            }
+        });
     }
 
     private void gatherGroup(int columnCount, int stage) {
@@ -1346,15 +1347,6 @@ public class Select extends Query {
                 isGroupSortedQuery = true;
             }
         }
-        topTableFilter.visit(new TableFilterVisitor() {
-            @Override
-            public void accept(TableFilter f) {
-                Select s = f.getSelect();
-                if (s != null && s != Select.this) {
-                    s.setGroupSelect(Select.this);
-                }
-            }
-        });
         expressionArray = expressions.toArray(new Expression[0]);
         isPrepared = true;
     }
@@ -1910,7 +1902,8 @@ public class Select extends Query {
         LazyResultGroupSorted(Expression[] expressions, int columnCount) {
             super(expressions, columnCount);
             if (groupData == null) {
-                groupData = SelectGroups.getInstance(getSession(), Select.this.expressions, isGroupQuery, groupIndex);
+                setGroupData(SelectGroups.getInstance(getSession(), Select.this.expressions, isGroupQuery,
+                        groupIndex));
             } else {
                 // TODO is this branch possible?
                 updateAgg(columnCount, DataAnalysisOperation.STAGE_RESET);

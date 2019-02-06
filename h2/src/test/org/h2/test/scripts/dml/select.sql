@@ -603,6 +603,14 @@ FROM (SELECT 1 X), (VALUES (1, 2), (2, 1), (3, 3)) T(A, B);
 > 1 3 3
 > rows: 3
 
+SELECT A, SUM(S) OVER (ORDER BY S) FROM
+    (SELECT A, SUM(B) FROM (VALUES (1, 2), (1, 3), (3, 5), (3, 10)) V(A, B) GROUP BY A) S(A, S);
+> A SUM(S) OVER (ORDER BY S)
+> - ------------------------
+> 1 5
+> 3 20
+> rows: 2
+
 SELECT A, B, C FROM (SELECT A, B, C FROM (VALUES (1, 2, 3)) V(A, B, C));
 > A B C
 > - - -

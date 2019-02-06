@@ -2671,6 +2671,14 @@ columns with the same name.
 TEST AS T LEFT JOIN TEST AS T1 ON T.ID = T1.ID
 "
 
+"Other Grammar","Within group specification","
+WITHIN GROUP (ORDER BY {expression [ASC|DESC]} [,...])
+","
+Group specification for ordered set functions.
+","
+WITHIN GROUP (ORDER BY ID DESC)
+"
+
 "Other Grammar","Wildcard expression","
 {* | tableAlias.*} [EXCEPT ([tableAlias.]columnName, [,...])]
 ","
@@ -3584,7 +3592,7 @@ COUNT(*)
 
 "Functions (Aggregate)","LISTAGG","
 { LISTAGG ( [ DISTINCT|ALL ] string [, separatorString] [ ON OVERFLOW ERROR ] )
-    WITHIN GROUP (ORDER BY {expression [ASC|DESC]} [,...]) }
+    withinGroupSpecification }
 | { GROUP_CONCAT ( [ DISTINCT|ALL ] string
     [ ORDER BY { expression [ ASC | DESC ] } [,...] ]
     [ SEPARATOR separatorString ] ) }
@@ -3719,7 +3727,7 @@ VAR_SAMP(X)
 
 "Functions (Aggregate)","RANK aggregate","
 RANK(value [,...])
-WITHIN GROUP (ORDER BY {expression [ASC|DESC]} [,...])
+withinGroupSpecification
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Returns the rank of the hypothetical row in specified collection of rows.
@@ -3732,7 +3740,7 @@ SELECT RANK(5) WITHIN GROUP (ORDER BY V) FROM TEST;
 
 "Functions (Aggregate)","DENSE_RANK aggregate","
 DENSE_RANK(value [,...])
-WITHIN GROUP (ORDER BY {expression [ASC|DESC]} [,...])
+withinGroupSpecification
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Returns the dense rank of the hypothetical row in specified collection of rows.
@@ -3745,7 +3753,7 @@ SELECT DENSE_RANK(5) WITHIN GROUP (ORDER BY V) FROM TEST;
 
 "Functions (Aggregate)","PERCENT_RANK aggregate","
 PERCENT_RANK(value [,...])
-WITHIN GROUP (ORDER BY {expression [ASC|DESC]} [,...])
+withinGroupSpecification
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Returns the relative rank of the hypothetical row in specified collection of rows.
@@ -3757,7 +3765,7 @@ SELECT PERCENT_RANK(5) WITHIN GROUP (ORDER BY V) FROM TEST;
 
 "Functions (Aggregate)","CUME_DIST aggregate","
 CUME_DIST(value [,...])
-WITHIN GROUP (ORDER BY {expression [ASC|DESC]} [,...])
+withinGroupSpecification
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Returns the relative rank of the hypothetical row in specified collection of rows.

@@ -39,6 +39,7 @@ public class ExpressionColumn extends Expression {
     private ColumnResolver columnResolver;
     private int queryLevel;
     private Column column;
+    private String derivedName;
 
     public ExpressionColumn(Database database, Column column) {
         this.database = database;
@@ -76,7 +77,11 @@ public class ExpressionColumn extends Expression {
             builder.append('.');
         }
         if (column != null) {
-            builder.append(column.getSQL());
+            if (derivedName != null) {
+                Parser.quoteIdentifier(builder, derivedName);
+            } else {
+                builder.append(column.getSQL());
+            }
         } else if (quote) {
             Parser.quoteIdentifier(builder, columnName);
         } else {
@@ -101,11 +106,18 @@ public class ExpressionColumn extends Expression {
         }
         for (Column col : resolver.getColumns()) {
             String n = resolver.getDerivedColumnName(col);
+            boolean derived;
             if (n == null) {
                 n = col.getName();
+                derived  = false;
+            } else {
+                derived = true;
             }
             if (database.equalsIdentifiers(columnName, n)) {
                 mapColumn(resolver, col, level);
+                if (derived) {
+                    derivedName = n;
+                }
                 return;
             }
         }

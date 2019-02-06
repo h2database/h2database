@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -179,7 +179,7 @@ public class PageDataIndex extends PageIndex {
     }
 
     /**
-     * Read an overflow page page.
+     * Read an overflow page.
      *
      * @param id the page id
      * @return the page

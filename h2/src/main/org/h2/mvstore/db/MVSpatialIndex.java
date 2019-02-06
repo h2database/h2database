@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -28,7 +28,8 @@ import org.h2.mvstore.rtree.MVRTreeMap.RTreeCursor;
 import org.h2.mvstore.rtree.SpatialKey;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionMap;
-import org.h2.mvstore.tx.VersionedValue;
+import org.h2.mvstore.tx.VersionedValueType;
+import org.h2.value.VersionedValue;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
@@ -87,7 +88,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
             throw DbException.getUnsupportedException(
                     "Nulls last is not supported");
         }
-        if (col.column.getType() != Value.GEOMETRY) {
+        if (col.column.getType().getValueType() != Value.GEOMETRY) {
             throw DbException.getUnsupportedException(
                     "Spatial index on non-geometry column, "
                     + col.column.getCreateSQL());
@@ -98,7 +99,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
         }
         String mapName = "index." + getId();
         ValueDataType vt = new ValueDataType(db, null);
-        VersionedValue.Type valueType = new VersionedValue.Type(vt);
+        VersionedValueType valueType = new VersionedValueType(vt);
         MVRTreeMap.Builder<VersionedValue> mapBuilder =
                 new MVRTreeMap.Builder<VersionedValue>().
                 valueType(valueType);

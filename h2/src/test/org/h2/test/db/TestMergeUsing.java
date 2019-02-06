@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -185,7 +185,7 @@ public class TestMergeUsing extends TestDb implements Trigger {
         // SQL standard says duplicate or repeated updates of same row in same
         // statement should cause errors - but because first row is updated,
         // deleted (on source row 1) then inserted (on source row 2)
-        // it's considered different - with respect to to ROWID - so no error
+        // it's considered different - with respect to ROWID - so no error
         // One insert, one update one delete happens (on same row) , target
         // table missing PK, no source or target alias
         if (false) // TODO

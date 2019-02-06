@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -31,7 +31,6 @@ public class ConditionIn extends Condition {
     private final Database database;
     private Expression left;
     private final ArrayList<Expression> valueList;
-    private int queryLevel;
 
     /**
      * Create a new IN(..) condition.
@@ -50,11 +49,9 @@ public class ConditionIn extends Condition {
     @Override
     public Value getValue(Session session) {
         Value l = left.getValue(session);
-        if (l == ValueNull.INSTANCE) {
-            return l;
+        if (l.containsNull()) {
+            return ValueNull.INSTANCE;
         }
-        boolean result = false;
-        boolean hasNull = false;
         int size = valueList.size();
         if (size == 1) {
             Expression e = valueList.get(0);
@@ -62,22 +59,21 @@ public class ConditionIn extends Condition {
                 return ConditionInParameter.getValue(database, l, e.getValue(session));
             }
         }
+        boolean hasNull = false;
         for (int i = 0; i < size; i++) {
             Expression e = valueList.get(i);
             Value r = e.getValue(session);
-            if (r == ValueNull.INSTANCE) {
+            Value cmp = Comparison.compare(database, l, r, Comparison.EQUAL);
+            if (cmp == ValueNull.INSTANCE) {
                 hasNull = true;
-            } else {
-                result = Comparison.compareNotNull(database, l, r, Comparison.EQUAL);
-                if (result) {
-                    break;
-                }
+            } else if (cmp == ValueBoolean.TRUE) {
+                return cmp;
             }
         }
-        if (!result && hasNull) {
+        if (hasNull) {
             return ValueNull.INSTANCE;
         }
-        return ValueBoolean.get(result);
+        return ValueBoolean.FALSE;
     }
 
     @Override
@@ -86,7 +82,6 @@ public class ConditionIn extends Condition {
         for (Expression e : valueList) {
             e.mapColumns(resolver, level, state);
         }
-        this.queryLevel = Math.max(level, this.queryLevel);
     }
 
     @Override
@@ -116,7 +111,7 @@ public class ConditionIn extends Condition {
                     ArrayList<Expression> list = new ArrayList<>(ri.getRowCount());
                     while (ri.next()) {
                         Value v = ri.currentRow()[0];
-                        if (v != ValueNull.INSTANCE) {
+                        if (!v.containsNull()) {
                             allValuesNull = false;
                         }
                         list.add(ValueExpression.get(v));
@@ -131,7 +126,7 @@ public class ConditionIn extends Condition {
         for (int i = 0; i < size; i++) {
             Expression e = valueList.get(i);
             e = e.optimize(session);
-            if (e.isConstant() && e.getValue(session) != ValueNull.INSTANCE) {
+            if (e.isConstant() && !e.getValue(session).containsNull()) {
                 allValuesNull = false;
             }
             if (allValuesConstant && !e.isConstant()) {
@@ -155,7 +150,7 @@ public class ConditionIn extends Condition {
             return new Comparison(session, Comparison.EQUAL, left, values.get(0)).optimize(session);
         }
         if (allValuesConstant && !allValuesNull) {
-            int leftType = left.getType();
+            int leftType = left.getType().getValueType();
             if (leftType == Value.UNKNOWN) {
                 return this;
             }

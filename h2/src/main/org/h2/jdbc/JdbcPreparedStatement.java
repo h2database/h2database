@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -1309,12 +1309,17 @@ public class JdbcPreparedStatement extends JdbcStatement implements
     @Override
     public ResultSet getGeneratedKeys() throws SQLException {
         if (batchIdentities != null) {
-            int id = getNextId(TraceObject.RESULT_SET);
-            if (isDebugEnabled()) {
-                debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id, "getGeneratedKeys()");
+            try {
+                int id = getNextId(TraceObject.RESULT_SET);
+                if (isDebugEnabled()) {
+                    debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id, "getGeneratedKeys()");
+                }
+                checkClosed();
+                generatedKeys = new JdbcResultSet(conn, this, null, batchIdentities.getResult(), id, false, true,
+                        false);
+            } catch (Exception e) {
+                throw logAndConvert(e);
             }
-            checkClosed();
-            generatedKeys = new JdbcResultSet(conn, this, null, batchIdentities.getResult(), id, false, true, false);
         }
         return super.getGeneratedKeys();
     }

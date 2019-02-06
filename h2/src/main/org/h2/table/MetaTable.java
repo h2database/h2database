@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -849,7 +849,7 @@ public class MetaTable extends Table {
                     Domain domain = c.getDomain();
                     DataType dataType = c.getDataType();
                     ValueInt precision = ValueInt.get(c.getPrecisionAsInt());
-                    ValueInt scale = ValueInt.get(c.getScale());
+                    ValueInt scale = ValueInt.get(c.getType().getScale());
                     Sequence sequence = c.getSequence();
                     boolean hasDateTimePrecision;
                     int type = dataType.type;
@@ -1762,7 +1762,7 @@ public class MetaTable extends Table {
                         // CONSTANT_NAME
                         identifier(constant.getName()),
                         // DATA_TYPE
-                        ValueInt.get(DataType.convertTypeToSQLType(expr.getType())),
+                        ValueInt.get(DataType.convertTypeToSQLType(expr.getType().getValueType())),
                         // REMARKS
                         replaceNullWithEmpty(constant.getComment()),
                         // SQL
@@ -1792,7 +1792,7 @@ public class MetaTable extends Table {
                         // PRECISION
                         ValueInt.get(col.getPrecisionAsInt()),
                         // SCALE
-                        ValueInt.get(col.getScale()),
+                        ValueInt.get(col.getType().getScale()),
                         // TYPE_NAME
                         col.getDataType().name,
                         // SELECTIVITY INT

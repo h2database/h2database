@@ -1,4 +1,4 @@
--- Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (http://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -25,6 +25,11 @@ select * from card;
 > 3    hearts
 > 4    null
 > rows: 3
+
+@reconnect
+
+select suit from card where rank = 0;
+>> clubs
 
 alter table card alter column suit enum('a', 'b', 'c', 'd');
 > exception ENUM_VALUE_NOT_PERMITTED
@@ -253,11 +258,11 @@ SELECT * FROM V3;
 SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE COLUMN_NAME = 'E' ORDER BY TABLE_NAME;
 > TABLE_CATALOG TABLE_SCHEMA TABLE_NAME COLUMN_NAME ORDINAL_POSITION DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME COLUMN_DEFAULT IS_NULLABLE DATA_TYPE CHARACTER_MAXIMUM_LENGTH CHARACTER_OCTET_LENGTH NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE DATETIME_PRECISION INTERVAL_TYPE INTERVAL_PRECISION CHARACTER_SET_NAME COLLATION_NAME TYPE_NAME NULLABLE IS_COMPUTED SELECTIVITY CHECK_CONSTRAINT SEQUENCE_NAME REMARKS SOURCE_DATA_TYPE COLUMN_TYPE    COLUMN_ON_UPDATE IS_VISIBLE
 > ------------- ------------ ---------- ----------- ---------------- -------------- ------------- ----------- -------------- ----------- --------- ------------------------ ---------------------- ----------------- ----------------------- ------------- ------------------ ------------- ------------------ ------------------ -------------- --------- -------- ----------- ----------- ---------------- ------------- ------- ---------------- -------------- ---------------- ----------
-> SCRIPT        PUBLIC       TEST       E           1                null           null          null        null           YES         1111      2147483647               2147483647             2147483647        10                      0             null               null          null               Unicode            OFF            ENUM      1        FALSE       50                           null                  null             ENUM('A', 'B') null             TRUE
-> SCRIPT        PUBLIC       V          E           1                null           null          null        null           YES         1111      2147483647               2147483647             2147483647        10                      0             null               null          null               Unicode            OFF            ENUM      1        FALSE       50                           null                  null             ENUM('A', 'B') null             TRUE
-> SCRIPT        PUBLIC       V1         E           1                null           null          null        null           YES         4         2147483647               2147483647             2147483647        10                      0             null               null          null               Unicode            OFF            INTEGER   1        FALSE       50                           null                  null             INTEGER        null             TRUE
-> SCRIPT        PUBLIC       V2         E           1                null           null          null        null           YES         4         2147483647               2147483647             2147483647        10                      0             null               null          null               Unicode            OFF            INTEGER   1        FALSE       50                           null                  null             INTEGER        null             TRUE
-> SCRIPT        PUBLIC       V3         E           1                null           null          null        null           YES         4         2147483647               2147483647             2147483647        10                      0             null               null          null               Unicode            OFF            INTEGER   1        FALSE       50                           null                  null             INTEGER        null             TRUE
+> SCRIPT        PUBLIC       TEST       E           1                null           null          null        null           YES         1111      10                       10                     10                10                      0             null               null          null               Unicode            OFF            ENUM      1        FALSE       50                           null                  null             ENUM('A', 'B') null             TRUE
+> SCRIPT        PUBLIC       V          E           1                null           null          null        null           YES         1111      10                       10                     10                10                      0             null               null          null               Unicode            OFF            ENUM      1        FALSE       50                           null                  null             ENUM('A', 'B') null             TRUE
+> SCRIPT        PUBLIC       V1         E           1                null           null          null        null           YES         4         10                       10                     10                10                      0             null               null          null               Unicode            OFF            INTEGER   1        FALSE       50                           null                  null             INTEGER        null             TRUE
+> SCRIPT        PUBLIC       V2         E           1                null           null          null        null           YES         4         10                       10                     10                10                      0             null               null          null               Unicode            OFF            INTEGER   1        FALSE       50                           null                  null             INTEGER        null             TRUE
+> SCRIPT        PUBLIC       V3         E           1                null           null          null        null           YES         4         10                       10                     10                10                      0             null               null          null               Unicode            OFF            INTEGER   1        FALSE       50                           null                  null             INTEGER        null             TRUE
 > rows (ordered): 5
 
 DROP VIEW V;
@@ -283,6 +288,21 @@ CREATE TABLE TEST(E ENUM('a', 'b'));
 
 EXPLAIN SELECT * FROM TEST WHERE E = 'a';
 >> SELECT TEST.E FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ WHERE E = 'a'
+
+INSERT INTO TEST VALUES ('a');
+> update count: 1
+
+(SELECT * FROM TEST A) UNION ALL (SELECT * FROM TEST A);
+> E
+> -
+> a
+> a
+> rows: 2
+
+(SELECT * FROM TEST A) MINUS (SELECT * FROM TEST A);
+> E
+> -
+> rows: 0
 
 DROP TABLE TEST;
 > ok

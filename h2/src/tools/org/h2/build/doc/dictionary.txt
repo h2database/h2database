@@ -77,7 +77,7 @@ called caller calling calls cally caload came camel can cancel canceled cancelin
 cancellation cancelled cancels candidates cannot canonical cap capabilities
 capability capacity capitalization capitalize capitalized capone caps capture
 captured car card cardinal cardinality care careful carriage carrier cars cartesian
-cascade cascading case cases casesensitive casewhen cash casing casqueiro cast
+cas cascade cascading case cases casesensitive casewhen cash casing casqueiro cast
 casting castore cat catalina catalog catalogs cataloguing catch catcher catches
 catching category catlog caucho caught cause caused causes causing cavestro
 cayenne cbc cbtree ccedil cdata cdd cddl cdo cdup cease cedil ceil ceiling cell
@@ -157,7 +157,7 @@ dateadd datediff datepart dates datestyle datetime datetimes datum david davide
 day daylight dayname dayofmonth dayofweek dayofyear days dba dbbench dbcp dbid
 dbms dbname dbo dbs dbserv dbsnmp dclassifier dcmpg dcmpl dconst ddiv ddl
 ddladmin deactivate deactivated deactivation dead deadlock deadlocked deadlocks
-deal dealing deallocate death debug debugging dec decade december decide decimal
+deal dealing deallocate death debug debugging dec decade december decide decided decimal
 decision deck declaration declarations declarative declaratory declare declared
 declaring decode decoded decoder decodes decoding decompile decompiler decompiles
 decompiling decompress decompressed decompresser decompression decoration
@@ -251,7 +251,7 @@ filo filter filtered filtering filters fin final finalization finalize finalizer
 finally find finder finding finds fine finer finish finished finishes finland fire
 firebird firebirdsql fired firefox firewall first firstname fish fit fitness fits
 fitting five fix fixed fixes fixing fkcolumn fktable flag flags flash flashback
-flat fle fletcher flexibility flexible flexive flip flipped fload float floating
+flat flavour fle fletcher flexibility flexible flexive flip flipped fload float floating
 flooding floor florent flow flower flows fluent fluid flush flushed flushes
 flushing flux fly flyway fmb fmc fml fmrn fmt fmul fmxx fmxxx fneg focus focusable
 fog fogh folder follow followed following follows font fontes foo footer footers
@@ -321,7 +321,7 @@ inform information informational informed informix informs informtn infos
 infrastructure infringe infringed infringement infringements infringes infringing
 inherent inherit inheritance inherited inherits ini init initial initialization
 initialize initialized initializer initializes initializing initially initiate
-initiation inits inject injection injections injury inline inlined inliner
+initiated initiation inits inject injection injections injury inline inlined inliner
 inlining inner inno innodb inplace input inputs ins insecure insensitive insert
 inserted inserting insertion inserts insets inside insists inspect inspected
 inspector inspectors inst install installation installations installed installer
@@ -440,8 +440,8 @@ omitted omitting once onchange onclick one ones onfocus ongoing onkeydown onkeyu
 online onload only onmousedown onmousemove onmouseout onmouseover onmouseup
 onreadystatechange onresize onscroll onsubmit onto ontology ontoprise oome oops
 ooq open opened openfire opening openjpa opens opera operand operands operate
-operates operating operation operations operator operators oplus opposite ops opt
-optimal optimisation optimised optimistic optimizable optimization optimizations
+operates operating operation operational operations operator operators oplus opposite
+ops opt optimal optimisation optimised optimistic optimizable optimization optimizations
 optimize optimized optimizer optimizing option optional optionally options ora
 oracle orange oranges orchestration order orderable ordered orderid ordering
 orders ordf ordinal ordinary ordinate ordm ordplugins ordsys oren org organic
@@ -803,3 +803,7 @@ discard enhancements nolock surefire logarithm
 qualification opportunity jumping exploited unacceptable vrs duplicated
 queryparser tokenized freeze factorings recompilation unenclosed rfe dsync
 econd irst bcef ordinality nord unnest
+analyst occupation distributive josaph aor engineer sajeewa isuru randil kevin doctor businessman artist ashan
+corrupts splitted disruption unintentional octets preconditions predicates subq objectweb insn opcodes
+preserves masking holder unboxing avert iae transformed subtle reevaluate exclusions subclause ftbl rgr
+presorted inclusion contexts aax mwd percentile cont interpolate mwa hypothetical regproc childed listagg

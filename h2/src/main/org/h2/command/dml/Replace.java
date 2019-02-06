@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -25,18 +25,16 @@ import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.util.StatementBuilder;
-import org.h2.util.Utils;
 import org.h2.value.Value;
 
 /**
  * This class represents the MySQL-compatibility REPLACE statement
  */
-public class Replace extends Prepared {
+public class Replace extends CommandWithValues {
 
     private Table table;
     private Column[] columns;
     private Column[] keys;
-    private final ArrayList<Expression[]> list = Utils.newSmallArrayList();
     private Query query;
     private Prepared update;
 
@@ -68,15 +66,6 @@ public class Replace extends Prepared {
         this.query = query;
     }
 
-    /**
-     * Add a row to this replace statement.
-     *
-     * @param expr the list of values
-     */
-    public void addRow(Expression[] expr) {
-        list.add(expr);
-    }
-
     @Override
     public int update() {
         int count = 0;
@@ -84,10 +73,10 @@ public class Replace extends Prepared {
         session.getUser().checkRight(table, Right.UPDATE);
         setCurrentRowNumber(0);
         Mode mode = session.getDatabase().getMode();
-        if (!list.isEmpty()) {
-            for (int x = 0, size = list.size(); x < size; x++) {
+        if (!valuesExpressionList.isEmpty()) {
+            for (int x = 0, size = valuesExpressionList.size(); x < size; x++) {
                 setCurrentRowNumber(x + 1);
-                Expression[] expr = list.get(x);
+                Expression[] expr = valuesExpressionList.get(x);
                 Row newRow = table.getTemplateRow();
                 for (int i = 0, len = columns.length; i < len; i++) {
                     Column c = columns[i];
@@ -214,10 +203,10 @@ public class Replace extends Prepared {
         }
         buff.append(')');
         buff.append('\n');
-        if (!list.isEmpty()) {
+        if (!valuesExpressionList.isEmpty()) {
             buff.append("VALUES ");
             int row = 0;
-            for (Expression[] expr : list) {
+            for (Expression[] expr : valuesExpressionList) {
                 if (row++ > 0) {
                     buff.append(", ");
                 }
@@ -234,15 +223,15 @@ public class Replace extends Prepared {
     @Override
     public void prepare() {
         if (columns == null) {
-            if (!list.isEmpty() && list.get(0).length == 0) {
+            if (!valuesExpressionList.isEmpty() && valuesExpressionList.get(0).length == 0) {
                 // special case where table is used as a sequence
                 columns = new Column[0];
             } else {
                 columns = table.getColumns();
             }
         }
-        if (!list.isEmpty()) {
-            for (Expression[] expr : list) {
+        if (!valuesExpressionList.isEmpty()) {
+            for (Expression[] expr : valuesExpressionList) {
                 if (expr.length != columns.length) {
                     throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
                 }

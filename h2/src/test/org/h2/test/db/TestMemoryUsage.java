@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -13,6 +13,7 @@ import java.sql.Statement;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
+import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.util.Utils;
@@ -72,7 +73,7 @@ public class TestMemoryUsage extends TestDb {
             }
         } finally {
             freeMemory();
-            conn.close();
+            closeConnection(conn);
         }
     }
 
@@ -145,7 +146,24 @@ public class TestMemoryUsage extends TestDb {
             }
         } finally {
             freeMemory();
+            closeConnection(conn);
+        }
+    }
+
+    /**
+     * Closes the specified connection. It silently consumes OUT_OF_MEMORY that
+     * may happen in background thread during the tests.
+     *
+     * @param conn connection to close
+     * @throws SQLException on other SQL exception
+     */
+    private static void closeConnection(Connection conn) throws SQLException {
+        try {
             conn.close();
+        } catch (SQLException e) {
+            if (e.getErrorCode() != ErrorCode.OUT_OF_MEMORY) {
+                throw e;
+            }
         }
     }
 

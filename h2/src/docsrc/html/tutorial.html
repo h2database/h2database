@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0, Version 1.0,
-and under the Eclipse Public License, Version 1.0
+Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+and the EPL 1.0 (http://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
@@ -779,7 +779,7 @@ If the TCP server is started within the <code>DbStarter</code>, it will also be 
 <h3>Using the H2 Console Servlet</h3>
 <p>
 The H2 Console is a standalone application and includes its own web server, but it can be
-used as a servlet as well. To do that, include the the <code>h2*.jar</code> file in your application, and
+used as a servlet as well. To do that, include the <code>h2*.jar</code> file in your application, and
 add the following configuration to your <code>web.xml</code>:
 </p>
 <pre>
@@ -1234,7 +1234,7 @@ org.h2.fulltext.FullText.searchData(conn, text, limit, offset);
 <h3>Using the Apache Lucene Fulltext Search</h3>
 <p>
 To use the Apache Lucene full text search, you need the Lucene library in the classpath.
-Apache Lucene 5.5.5 or later version up to 7.5.0 is required.
+Apache Lucene 5.5.5 or later version up to 7.6.0 is required.
 Newer versions may also work, but were not tested.
 How to do that depends on the application; if you use the H2 Console, you can add the Lucene
 jar file to the environment variables <code>H2DRIVERS</code> or

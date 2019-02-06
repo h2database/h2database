@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -16,6 +16,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,6 +28,7 @@ import org.h2.command.Parser;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
+import org.h2.engine.Mode.ModeEnum;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -59,11 +61,12 @@ import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
-import org.h2.value.ExtTypeInfo;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueBytes;
+import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInt;
@@ -135,7 +138,7 @@ public class Function extends Expression implements FunctionCall {
             CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
             FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227,
             NVL2 = 228, DECODE = 229, ARRAY_CONTAINS = 230, FILE_WRITE = 232,
-            UNNEST = 233;
+            UNNEST = 233, ARRAY_CONCAT = 234, ARRAY_APPEND = 235, ARRAY_SLICE = 236;
 
     public static final int REGEXP_LIKE = 240;
 
@@ -151,7 +154,6 @@ public class Function extends Expression implements FunctionCall {
     public static final int H2VERSION = 231;
 
     protected static final int VAR_ARGS = -1;
-    private static final long PRECISION_UNKNOWN = -1;
 
     private static final HashMap<String, FunctionInfo> FUNCTIONS = new HashMap<>(256);
     private static final char[] SOUNDEX_INDEX = new char[128];
@@ -160,12 +162,7 @@ public class Function extends Expression implements FunctionCall {
 
     protected final FunctionInfo info;
     private ArrayList<Expression> varArgs;
-    protected int dataType;
-
-    protected int scale;
-    protected long precision = PRECISION_UNKNOWN;
-    protected int displaySize;
-    protected ExtTypeInfo extTypeInfo;
+    protected TypeInfo type;
 
     private final Database database;
 
@@ -419,6 +416,9 @@ public class Function extends Expression implements FunctionCall {
         addFunction("ARRAY_GET", ARRAY_GET,
                 2, Value.NULL);
         addFunctionWithNull("ARRAY_CONTAINS", ARRAY_CONTAINS, 2, Value.BOOLEAN);
+        addFunction("ARRAY_CAT", ARRAY_CONCAT, 2, Value.ARRAY);
+        addFunction("ARRAY_APPEND", ARRAY_APPEND, 2, Value.ARRAY);
+        addFunction("ARRAY_SLICE", ARRAY_SLICE, 3, Value.ARRAY);
         addFunction("CSVREAD", CSVREAD,
                 VAR_ARGS, Value.RESULT_SET, false, false, false, true);
         addFunction("CSVWRITE", CSVWRITE,
@@ -897,9 +897,10 @@ public class Function extends Expression implements FunctionCall {
         case CAST:
         case CONVERT: {
             Mode mode = database.getMode();
-            v0 = v0.convertTo(dataType, MathUtils.convertLongToInt(precision), mode, null, extTypeInfo);
-            v0 = v0.convertScale(mode.convertOnlyToSmallerScale, scale);
-            v0 = v0.convertPrecision(getPrecision(), false);
+            TypeInfo type = this.type;
+            v0 = v0.convertTo(type, mode, null);
+            v0 = v0.convertScale(mode.convertOnlyToSmallerScale, type.getScale());
+            v0 = v0.convertPrecision(type.getPrecision(), false);
             result = v0;
             break;
         }
@@ -926,7 +927,7 @@ public class Function extends Expression implements FunctionCall {
             if (v0 == ValueNull.INSTANCE) {
                 result = getNullOrValue(session, args, values, 1);
             }
-            result = result.convertTo(dataType, database.getMode());
+            result = result.convertTo(type, database.getMode(), null);
             break;
         }
         case CASEWHEN: {
@@ -936,7 +937,7 @@ public class Function extends Expression implements FunctionCall {
             } else {
                 v = getNullOrValue(session, args, values, 1);
             }
-            result = v.convertTo(dataType);
+            result = v.convertTo(type, database.getMode(), null);
             break;
         }
         case DECODE: {
@@ -953,7 +954,7 @@ public class Function extends Expression implements FunctionCall {
             }
             Value v = index < 0 ? ValueNull.INSTANCE :
                     getNullOrValue(session, args, values, index);
-            result = v.convertTo(dataType);
+            result = v.convertTo(type, database.getMode(), null);
             break;
         }
         case NVL2: {
@@ -963,7 +964,7 @@ public class Function extends Expression implements FunctionCall {
             } else {
                 v = getNullOrValue(session, args, values, 1);
             }
-            result = v.convertTo(dataType);
+            result = v.convertTo(type, database.getMode(), null);
             break;
         }
         case COALESCE: {
@@ -971,7 +972,7 @@ public class Function extends Expression implements FunctionCall {
             for (int i = 0; i < args.length; i++) {
                 Value v = getNullOrValue(session, args, values, i);
                 if (v != ValueNull.INSTANCE) {
-                    result = v.convertTo(dataType);
+                    result = v.convertTo(type, database.getMode(), null);
                     break;
                 }
             }
@@ -983,7 +984,7 @@ public class Function extends Expression implements FunctionCall {
             for (int i = 0; i < args.length; i++) {
                 Value v = getNullOrValue(session, args, values, i);
                 if (v != ValueNull.INSTANCE) {
-                    v = v.convertTo(dataType);
+                    v = v.convertTo(type, database.getMode(), null);
                     if (result == ValueNull.INSTANCE) {
                         result = v;
                     } else {
@@ -1034,14 +1035,14 @@ public class Function extends Expression implements FunctionCall {
                 then = args[args.length - 1];
             }
             Value v = then == null ? ValueNull.INSTANCE : then.getValue(session);
-            result = v.convertTo(dataType);
+            result = v.convertTo(type, database.getMode(), null);
             break;
         }
         case ARRAY_GET: {
-            if (v0.getType() == Value.ARRAY) {
+            Value[] list = getArray(v0);
+            if (list != null) {
                 Value v1 = getNullOrValue(session, args, values, 1);
                 int element = v1.getInt();
-                Value[] list = ((ValueArray) v0).getList();
                 if (element < 1 || element > list.length) {
                     result = ValueNull.INSTANCE;
                 } else {
@@ -1053,8 +1054,8 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case ARRAY_LENGTH: {
-            if (v0.getType() == Value.ARRAY) {
-                Value[] list = ((ValueArray) v0).getList();
+            Value[] list = getArray(v0);
+            if (list != null) {
                 result = ValueInt.get(list.length);
             } else {
                 result = ValueNull.INSTANCE;
@@ -1063,9 +1064,9 @@ public class Function extends Expression implements FunctionCall {
         }
         case ARRAY_CONTAINS: {
             result = ValueBoolean.FALSE;
-            if (v0.getType() == Value.ARRAY) {
+            Value[] list = getArray(v0);
+            if (list != null) {
                 Value v1 = getNullOrValue(session, args, values, 1);
-                Value[] list = ((ValueArray) v0).getList();
                 for (Value v : list) {
                     if (database.areEqual(v, v1)) {
                         result = ValueBoolean.TRUE;
@@ -1089,6 +1090,17 @@ public class Function extends Expression implements FunctionCall {
             result = null;
         }
         return result;
+    }
+
+    private static Value[] getArray(Value v0) {
+        int t = v0.getValueType();
+        Value[] list;
+        if (t == Value.ARRAY || t == Value.ROW) {
+            list = ((ValueCollectionBase) v0).getList();
+        } else {
+            list = null;
+        }
+        return list;
     }
 
     private static boolean cancelStatement(Session session, int targetSessionId) {
@@ -1130,6 +1142,16 @@ public class Function extends Expression implements FunctionCall {
         return new Parser(session).parseTableName(tableName.getString());
     }
 
+    /**
+     * Get value transformed by expression, or null if i is out of range or
+     * the input value is null.
+     *
+     * @param session database session
+     * @param args expressions
+     * @param values array of input values
+     * @param i index of value of transform
+     * @return value or null
+     */
     protected static Value getNullOrValue(Session session, Expression[] args,
             Value[] values, int i) {
         if (i >= args.length) {
@@ -1146,6 +1168,13 @@ public class Function extends Expression implements FunctionCall {
         return v;
     }
 
+    /**
+     * Return the resulting value for the given expression arguments.
+     *
+     * @param session the session
+     * @param args argument expressions
+     * @return the result
+     */
     protected Value getValueWithArgs(Session session, Expression[] args) {
         Value[] values = new Value[args.length];
         if (info.nullIfParameterIsNull) {
@@ -1208,15 +1237,15 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case TRUNCATE: {
-            if (v0.getType() == Value.TIMESTAMP) {
+            if (v0.getValueType() == Value.TIMESTAMP) {
                 result = ValueTimestamp.fromDateValueAndNanos(((ValueTimestamp) v0).getDateValue(), 0);
-            } else if (v0.getType() == Value.DATE) {
+            } else if (v0.getValueType() == Value.DATE) {
                 result = ValueTimestamp.fromDateValueAndNanos(((ValueDate) v0).getDateValue(), 0);
-            } else if (v0.getType() == Value.TIMESTAMP_TZ) {
+            } else if (v0.getValueType() == Value.TIMESTAMP_TZ) {
                 ValueTimestampTimeZone ts = (ValueTimestampTimeZone) v0;
                 result = ValueTimestampTimeZone.fromDateValueAndNanos(ts.getDateValue(), 0,
                         ts.getTimeZoneOffsetMins());
-            } else if (v0.getType() == Value.STRING) {
+            } else if (v0.getValueType() == Value.STRING) {
                 ValueTimestamp ts = ValueTimestamp.parse(v0.getString(), session.getDatabase().getMode());
                 result = ValueTimestamp.fromDateValueAndNanos(ts.getDateValue(), 0);
             } else {
@@ -1373,7 +1402,7 @@ public class Function extends Expression implements FunctionCall {
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case TO_CHAR:
-            switch (v0.getType()){
+            switch (v0.getValueType()){
             case Value.TIME:
             case Value.DATE:
             case Value.TIMESTAMP:
@@ -1400,19 +1429,16 @@ public class Function extends Expression implements FunctionCall {
             }
             break;
         case TO_DATE:
-            result = ToDateParser.toDate(v0.getString(),
-                    v1 == null ? null : v1.getString());
+            result = ToDateParser.toDate(session, v0.getString(), v1 == null ? null : v1.getString());
             break;
         case TO_TIMESTAMP:
-            result = ToDateParser.toTimestamp(v0.getString(),
-                    v1 == null ? null : v1.getString());
+            result = ToDateParser.toTimestamp(session, v0.getString(), v1 == null ? null : v1.getString());
             break;
         case ADD_MONTHS:
             result = DateTimeFunctions.dateadd("MONTH", v1.getInt(), v0);
             break;
         case TO_TIMESTAMP_TZ:
-            result = ToDateParser.toTimestampTz(v0.getString(),
-                    v1 == null ? null : v1.getString());
+            result = ToDateParser.toTimestampTz(session, v0.getString(), v1 == null ? null : v1.getString());
             break;
         case TRANSLATE: {
             String matching = v1.getString();
@@ -1512,6 +1538,61 @@ public class Function extends Expression implements FunctionCall {
             } catch (SQLException e) {
                 throw DbException.convert(e);
             }
+            break;
+        }
+        case ARRAY_CONCAT: {
+            final ValueArray array = (ValueArray) v0.convertTo(Value.ARRAY);
+            final ValueArray array2 = (ValueArray) v1.convertTo(Value.ARRAY);
+            if (!array.getComponentType().equals(array2.getComponentType()))
+                throw DbException.get(ErrorCode.GENERAL_ERROR_1, "Expected component type " + array.getComponentType()
+                        + " but got " + array2.getComponentType());
+            final Value[] res = Arrays.copyOf(array.getList(), array.getList().length + array2.getList().length);
+            System.arraycopy(array2.getList(), 0, res, array.getList().length, array2.getList().length);
+            result = ValueArray.get(array.getComponentType(), res);
+            break;
+        }
+        case ARRAY_APPEND: {
+            final ValueArray array = (ValueArray) v0.convertTo(Value.ARRAY);
+            if (v1 != ValueNull.INSTANCE && array.getComponentType() != Object.class
+                    && !array.getComponentType().isInstance(v1.getObject()))
+                throw DbException.get(ErrorCode.GENERAL_ERROR_1,
+                        "Expected component type " + array.getComponentType() + " but got " + v1.getClass());
+            final Value[] res = Arrays.copyOf(array.getList(), array.getList().length + 1);
+            res[array.getList().length] = v1;
+            result = ValueArray.get(array.getComponentType(), res);
+            break;
+        }
+        case ARRAY_SLICE: {
+            result = null;
+            final ValueArray array = (ValueArray) v0.convertTo(Value.ARRAY);
+            // SQL is 1-based
+            int index1 = v1.getInt() - 1;
+            // 1-based and inclusive as postgreSQL (-1+1)
+            int index2 = v2.getInt();
+            // https://www.postgresql.org/docs/current/arrays.html#ARRAYS-ACCESSING
+            // For historical reasons postgreSQL ignore invalid indexes
+            final boolean isPG = database.getMode().getEnum() == ModeEnum.PostgreSQL;
+            if (index1 > index2) {
+                if (isPG)
+                    result = ValueArray.get(array.getComponentType(), new Value[0]);
+                else
+                    result = ValueNull.INSTANCE;
+            } else {
+                if (index1 < 0) {
+                    if (isPG)
+                        index1 = 0;
+                    else
+                        result = ValueNull.INSTANCE;
+                }
+                if (index2 > array.getList().length) {
+                    if (isPG)
+                        index2 = array.getList().length;
+                    else
+                        result = ValueNull.INSTANCE;
+                }
+            }
+            if (result == null)
+                result = ValueArray.get(array.getComponentType(), Arrays.copyOfRange(array.getList(), index1, index2));
             break;
         }
         case LINK_SCHEMA: {
@@ -1686,12 +1767,12 @@ public class Function extends Expression implements FunctionCall {
     }
 
     private static long length(Value v) {
-        switch (v.getType()) {
+        switch (v.getValueType()) {
         case Value.BLOB:
         case Value.CLOB:
         case Value.BYTES:
         case Value.JAVA_OBJECT:
-            return v.getPrecision();
+            return v.getType().getPrecision();
         default:
             return v.getString().length();
         }
@@ -1967,7 +2048,7 @@ public class Function extends Expression implements FunctionCall {
 
     private static MessageDigest hashImpl(Value value, String algorithm) {
         MessageDigest md;
-        switch (value.getType()) {
+        switch (value.getValueType()) {
         case Value.NULL:
             return null;
         case Value.STRING:
@@ -2030,11 +2111,9 @@ public class Function extends Expression implements FunctionCall {
             return ValueString.get(isInPostgreSqlMode && (regexpMode == null || regexpMode.indexOf('g') < 0) ?
                     matcher.replaceFirst(replacement) : matcher.replaceAll(replacement),
                     mode.treatEmptyStringsAsNull);
-        } catch (StringIndexOutOfBoundsException e) {
-            throw DbException.get(ErrorCode.LIKE_ESCAPE_ERROR_1, e, replacement);
         } catch (PatternSyntaxException e) {
             throw DbException.get(ErrorCode.LIKE_ESCAPE_ERROR_1, e, regexp);
-        } catch (IllegalArgumentException e) {
+        } catch (StringIndexOutOfBoundsException | IllegalArgumentException e) {
             throw DbException.get(ErrorCode.LIKE_ESCAPE_ERROR_1, e, replacement);
         }
     }
@@ -2070,8 +2149,13 @@ public class Function extends Expression implements FunctionCall {
     }
 
     @Override
-    public int getType() {
-        return dataType;
+    public TypeInfo getType() {
+        return type;
+    }
+
+    @Override
+    public int getValueType() {
+        return type.getValueType();
     }
 
     @Override
@@ -2206,11 +2290,8 @@ public class Function extends Expression implements FunctionCall {
     }
 
     public void setDataType(Column col) {
-        dataType = col.getType();
-        precision = col.getPrecision();
-        displaySize = col.getDisplaySize();
-        scale = col.getScale();
-        extTypeInfo = col.getExtTypeInfo();
+        TypeInfo type = col.getType();
+        this.type = type;
     }
 
     @Override
@@ -2227,20 +2308,16 @@ public class Function extends Expression implements FunctionCall {
                 allConst = false;
             }
         }
-        int t, s, d;
-        long p;
+        TypeInfo typeInfo;
         Expression p0 = args.length < 1 ? null : args[0];
         switch (info.type) {
         case DATE_ADD: {
-            t = Value.TIMESTAMP;
-            p = d = ValueTimestamp.DEFAULT_PRECISION;
-            s = ValueTimestamp.MAXIMUM_SCALE;
+            typeInfo = TypeInfo.TYPE_TIMESTAMP;
             if (p0.isConstant()) {
                 Expression p2 = args[2];
-                switch (p2.getType()) {
+                switch (p2.getType().getValueType()) {
                 case Value.TIME:
-                    t = Value.TIME;
-                    p = d = ValueTime.DEFAULT_PRECISION;
+                    typeInfo = TypeInfo.TYPE_TIME;
                     break;
                 case Value.DATE: {
                     int field = DateTimeFunctions.getDatePart(p0.getValue(session).getString());
@@ -2255,79 +2332,55 @@ public class Function extends Expression implements FunctionCall {
                         // TIMESTAMP result
                         break;
                     default:
-                        t = Value.DATE;
-                        p = d = ValueDate.PRECISION;
-                        s = 0;
+                        type = TypeInfo.TYPE_DATE;
                     }
                     break;
                 }
                 case Value.TIMESTAMP_TZ:
-                    t = Value.TIMESTAMP_TZ;
-                    p = d = ValueTimestampTimeZone.DEFAULT_PRECISION;
+                    type = TypeInfo.TYPE_TIMESTAMP_TZ;
                 }
             }
             break;
         }
         case EXTRACT: {
             if (p0.isConstant() && DateTimeFunctions.getDatePart(p0.getValue(session).getString()) == Function.EPOCH) {
-                t = Value.DECIMAL;
-                p = ValueLong.PRECISION + ValueTimestamp.MAXIMUM_SCALE;
-                s = ValueTimestamp.MAXIMUM_SCALE;
-                d = ValueLong.PRECISION + ValueTimestamp.MAXIMUM_SCALE + 1;
+                typeInfo = TypeInfo.getTypeInfo(Value.DECIMAL, ValueLong.PRECISION + ValueTimestamp.MAXIMUM_SCALE,
+                        ValueTimestamp.MAXIMUM_SCALE, null);
             } else {
-                t = Value.INT;
-                p = ValueInt.PRECISION;
-                s = 0;
-                d = ValueInt.DISPLAY_SIZE;
+                typeInfo = TypeInfo.TYPE_INT;
             }
             break;
         }
-        case DATE_TRUNC: {
-            Expression p1 = args[1];
-            t = p1.getType();
-            if (t == Value.TIMESTAMP_TZ) {
-                p = d = ValueTimestampTimeZone.DEFAULT_PRECISION;
-            } else {
-                t = Value.TIMESTAMP;
-                p = d = ValueTimestamp.DEFAULT_PRECISION;
+        case DATE_TRUNC:
+            typeInfo = args[1].getType();
+            // TODO set scale when possible
+            if (typeInfo.getValueType() != Value.TIMESTAMP_TZ) {
+                typeInfo = TypeInfo.TYPE_TIMESTAMP;
             }
-            s = ValueTimestamp.MAXIMUM_SCALE;
             break;
-        }
         case IFNULL:
         case NULLIF:
         case COALESCE:
         case LEAST:
         case GREATEST: {
-            t = Value.UNKNOWN;
-            s = 0;
-            p = 0;
-            d = 0;
+            typeInfo = TypeInfo.TYPE_UNKNOWN;
             for (Expression e : args) {
                 if (e != ValueExpression.getNull()) {
-                    int type = e.getType();
-                    if (type != Value.UNKNOWN && type != Value.NULL) {
-                        t = Value.getHigherOrder(t, type);
-                        s = Math.max(s, e.getScale());
-                        p = Math.max(p, e.getPrecision());
-                        d = Math.max(d, e.getDisplaySize());
+                    TypeInfo type = e.getType();
+                    int valueType = type.getValueType();
+                    if (valueType != Value.UNKNOWN && valueType != Value.NULL) {
+                        typeInfo = Value.getHigherType(typeInfo, type);
                     }
                 }
             }
-            if (t == Value.UNKNOWN) {
-                t = Value.STRING;
-                s = 0;
-                p = Integer.MAX_VALUE;
-                d = Integer.MAX_VALUE;
+            if (typeInfo.getValueType() == Value.UNKNOWN) {
+                typeInfo = TypeInfo.TYPE_STRING;
             }
             break;
         }
         case CASE:
         case DECODE: {
-            t = Value.UNKNOWN;
-            s = 0;
-            p = 0;
-            d = 0;
+            typeInfo = TypeInfo.TYPE_UNKNOWN;
             // (expr, when, then)
             // (expr, when, then, else)
             // (expr, when, then, when, then)
@@ -2335,129 +2388,98 @@ public class Function extends Expression implements FunctionCall {
             for (int i = 2, len = args.length; i < len; i += 2) {
                 Expression then = args[i];
                 if (then != ValueExpression.getNull()) {
-                    int type = then.getType();
-                    if (type != Value.UNKNOWN && type != Value.NULL) {
-                        t = Value.getHigherOrder(t, type);
-                        s = Math.max(s, then.getScale());
-                        p = Math.max(p, then.getPrecision());
-                        d = Math.max(d, then.getDisplaySize());
+                    TypeInfo type = then.getType();
+                    int valueType = type.getValueType();
+                    if (valueType != Value.UNKNOWN && valueType != Value.NULL) {
+                        typeInfo = Value.getHigherType(typeInfo, type);
                     }
                 }
             }
             if (args.length % 2 == 0) {
                 Expression elsePart = args[args.length - 1];
                 if (elsePart != ValueExpression.getNull()) {
-                    int type = elsePart.getType();
-                    if (type != Value.UNKNOWN && type != Value.NULL) {
-                        t = Value.getHigherOrder(t, type);
-                        s = Math.max(s, elsePart.getScale());
-                        p = Math.max(p, elsePart.getPrecision());
-                        d = Math.max(d, elsePart.getDisplaySize());
+                    TypeInfo type = elsePart.getType();
+                    int valueType = type.getValueType();
+                    if (valueType != Value.UNKNOWN && valueType != Value.NULL) {
+                        typeInfo = Value.getHigherType(typeInfo, type);
                     }
                 }
             }
-            if (t == Value.UNKNOWN) {
-                t = Value.STRING;
-                s = 0;
-                p = Integer.MAX_VALUE;
-                d = Integer.MAX_VALUE;
+            if (typeInfo.getValueType() == Value.UNKNOWN) {
+                typeInfo = TypeInfo.TYPE_STRING;
             }
             break;
         }
         case CASEWHEN:
-            t = Value.getHigherOrder(args[1].getType(), args[2].getType());
-            p = Math.max(args[1].getPrecision(), args[2].getPrecision());
-            d = Math.max(args[1].getDisplaySize(), args[2].getDisplaySize());
-            s = Math.max(args[1].getScale(), args[2].getScale());
+            typeInfo = Value.getHigherType(args[1].getType(), args[2].getType());
             break;
-        case NVL2:
-            switch (args[1].getType()) {
+        case NVL2: {
+            TypeInfo t1 = args[1].getType(), t2 = args[2].getType();
+            switch (t1.getValueType()) {
             case Value.STRING:
             case Value.CLOB:
             case Value.STRING_FIXED:
             case Value.STRING_IGNORECASE:
-                t = args[1].getType();
+                typeInfo = TypeInfo.getTypeInfo(t1.getValueType(), -1, 0, null);
                 break;
             default:
-                t = Value.getHigherOrder(args[1].getType(), args[2].getType());
+                typeInfo = Value.getHigherType(t1, t2);
                 break;
             }
-            p = Math.max(args[1].getPrecision(), args[2].getPrecision());
-            d = Math.max(args[1].getDisplaySize(), args[2].getDisplaySize());
-            s = Math.max(args[1].getScale(), args[2].getScale());
             break;
+        }
         case CAST:
         case CONVERT:
         case TRUNCATE_VALUE:
-            // data type, precision and scale is already set
-            t = dataType;
-            p = precision;
-            s = scale;
-            d = displaySize;
+            if (type != null) {
+                // data type, precision and scale is already set
+                typeInfo = type;
+            } else {
+                typeInfo = TypeInfo.TYPE_UNKNOWN;
+            }
             break;
         case TRUNCATE:
-            switch (p0.getType()) {
+            switch (p0.getType().getValueType()) {
             case Value.STRING:
             case Value.DATE:
             case Value.TIMESTAMP:
-                t = Value.TIMESTAMP;
-                p = d = ValueTimestamp.DEFAULT_PRECISION;
-                s = 0;
+                typeInfo = TypeInfo.getTypeInfo(Value.TIMESTAMP, -1, 0, null);
                 break;
             case Value.TIMESTAMP_TZ:
-                t = Value.TIMESTAMP;
-                p = d = ValueTimestampTimeZone.DEFAULT_PRECISION;
-                s = 0;
+                typeInfo = TypeInfo.getTypeInfo(Value.TIMESTAMP_TZ, -1, 0, null);
                 break;
             default:
-                t = Value.DOUBLE;
-                s = 0;
-                p = ValueDouble.PRECISION;
-                d = ValueDouble.DISPLAY_SIZE;
+                typeInfo = TypeInfo.TYPE_DOUBLE;
             }
             break;
         case ABS:
         case FLOOR:
-        case ROUND:
-            t = p0.getType();
-            s = p0.getScale();
-            p = p0.getPrecision();
-            d = p0.getDisplaySize();
-            if (t == Value.NULL) {
-                t = Value.INT;
-                p = ValueInt.PRECISION;
-                d = ValueInt.DISPLAY_SIZE;
-                s = 0;
+        case ROUND: {
+            TypeInfo type = p0.getType();
+            typeInfo = type;
+            if (typeInfo.getValueType() == Value.NULL) {
+                typeInfo = TypeInfo.TYPE_INT;
             }
             break;
-        case SET: {
-            Expression p1 = args[1];
-            t = p1.getType();
-            p = p1.getPrecision();
-            s = p1.getScale();
-            d = p1.getDisplaySize();
+        }
+        case SET:
+            typeInfo = args[1].getType();
             if (!(p0 instanceof Variable)) {
                 throw DbException.get(
                         ErrorCode.CAN_ONLY_ASSIGN_TO_VARIABLE_1, p0.getSQL());
             }
             break;
-        }
         case FILE_READ: {
             if (args.length == 1) {
-                t = Value.BLOB;
+                typeInfo = TypeInfo.getTypeInfo(Value.BLOB, Integer.MAX_VALUE, 0, null);
             } else {
-                t = Value.CLOB;
+                typeInfo = TypeInfo.getTypeInfo(Value.CLOB, Integer.MAX_VALUE, 0, null);
             }
-            p = Integer.MAX_VALUE;
-            s = 0;
-            d = Integer.MAX_VALUE;
             break;
         }
         case SUBSTRING:
         case SUBSTR: {
-            t = info.returnDataType;
-            p = args[0].getPrecision();
-            s = 0;
+            long p = args[0].getType().getPrecision();
             if (args[1].isConstant()) {
                 // if only two arguments are used,
                 // subtract offset from first argument length
@@ -2468,24 +2490,71 @@ public class Function extends Expression implements FunctionCall {
                 p = Math.min(p, args[2].getValue(session).getLong());
             }
             p = Math.max(0, p);
-            d = MathUtils.convertLongToInt(p);
+            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, p, 0, null);
             break;
         }
-        default:
-            t = info.returnDataType;
-            DataType type = DataType.getDataType(t);
-            p = PRECISION_UNKNOWN;
-            d = 0;
-            s = type.defaultScale;
+        case ENCRYPT:
+        case DECRYPT:
+            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, args[2].getType().getPrecision(), 0, null);
+            break;
+        case COMPRESS:
+            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, args[0].getType().getPrecision(), 0, null);
+            break;
+        case CHAR:
+            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, 1, 0, null);
+            break;
+        case CONCAT: {
+            long p = 0;
+            for (Expression e : args) {
+                TypeInfo type = e.getType();
+                p += type.getPrecision();
+                if (p < 0) {
+                    p = Long.MAX_VALUE;
+                }
+            }
+            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, p, 0, null);
+            break;
         }
-        dataType = t;
-        precision = p;
-        scale = s;
-        displaySize = d;
+        case HEXTORAW:
+            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, (args[0].getType().getPrecision() + 3) / 4, 0, null);
+            break;
+        case LCASE:
+        case LTRIM:
+        case RIGHT:
+        case RTRIM:
+        case UCASE:
+        case LOWER:
+        case UPPER:
+        case TRIM:
+        case STRINGDECODE:
+        case UTF8TOSTRING:
+            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, args[0].getType().getPrecision(), 0, null);
+            break;
+        case RAWTOHEX:
+            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, args[0].getType().getPrecision() * 4, 0, null);
+            break;
+        case SOUNDEX:
+            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, 4, 0, null);
+            break;
+        case DAY_NAME:
+        case MONTH_NAME:
+            // day and month names may be long in some languages
+            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, 20, 0, null);
+            break;
+        default:
+            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, -1, -1, null);
+        }
+        type = typeInfo;
         if (allConst) {
             Value v = getValue(session);
-            if (v == ValueNull.INSTANCE) {
-                if (info.type == CAST || info.type == CONVERT) {
+            if (info.type == CAST || info.type == CONVERT) {
+                if (v == ValueNull.INSTANCE) {
+                    return this;
+                }
+                DataType dt = DataType.getDataType(type.getValueType());
+                TypeInfo vt = v.getType();
+                if (dt.supportsPrecision && type.getPrecision() != vt.getPrecision()
+                        || dt.supportsScale && type.getScale() != vt.getScale()) {
                     return this;
                 }
             }
@@ -2500,93 +2569,6 @@ public class Function extends Expression implements FunctionCall {
             if (e != null) {
                 e.setEvaluatable(tableFilter, b);
             }
-        }
-    }
-
-    @Override
-    public int getScale() {
-        return scale;
-    }
-
-    @Override
-    public long getPrecision() {
-        if (precision == PRECISION_UNKNOWN) {
-            calculatePrecisionAndDisplaySize();
-        }
-        return precision;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        if (precision == PRECISION_UNKNOWN) {
-            calculatePrecisionAndDisplaySize();
-        }
-        return displaySize;
-    }
-
-    private void calculatePrecisionAndDisplaySize() {
-        switch (info.type) {
-        case ENCRYPT:
-        case DECRYPT:
-            precision = args[2].getPrecision();
-            displaySize = args[2].getDisplaySize();
-            break;
-        case COMPRESS:
-            precision = args[0].getPrecision();
-            displaySize = args[0].getDisplaySize();
-            break;
-        case CHAR:
-            precision = 1;
-            displaySize = 1;
-            break;
-        case CONCAT:
-            precision = 0;
-            displaySize = 0;
-            for (Expression e : args) {
-                precision += e.getPrecision();
-                displaySize = MathUtils.convertLongToInt(
-                        (long) displaySize + e.getDisplaySize());
-                if (precision < 0) {
-                    precision = Long.MAX_VALUE;
-                }
-            }
-            break;
-        case HEXTORAW:
-            precision = (args[0].getPrecision() + 3) / 4;
-            displaySize = MathUtils.convertLongToInt(precision);
-            break;
-        case LCASE:
-        case LTRIM:
-        case RIGHT:
-        case RTRIM:
-        case UCASE:
-        case LOWER:
-        case UPPER:
-        case TRIM:
-        case STRINGDECODE:
-        case UTF8TOSTRING:
-        case TRUNCATE:
-            precision = args[0].getPrecision();
-            displaySize = args[0].getDisplaySize();
-            break;
-        case RAWTOHEX:
-            precision = args[0].getPrecision() * 4;
-            displaySize = MathUtils.convertLongToInt(precision);
-            break;
-        case SOUNDEX:
-            precision = 4;
-            displaySize = (int) precision;
-            break;
-        case DAY_NAME:
-        case MONTH_NAME:
-            // day and month names may be long in some languages
-            precision = 20;
-            displaySize = (int) precision;
-            break;
-        default:
-            DataType type = DataType.getDataType(dataType);
-            precision = type.defaultPrecision;
-            displaySize = type.defaultDisplaySize;
         }
     }
 
@@ -2616,21 +2598,15 @@ public class Function extends Expression implements FunctionCall {
         }
         switch (info.type) {
         case CAST: {
-            args[0].getSQL(builder).append(" AS ").
-                append(new Column(null, dataType, precision,
-                        scale, displaySize, extTypeInfo).getCreateSQL());
+            args[0].getSQL(builder).append(" AS ").append(new Column(null, type).getCreateSQL());
             break;
         }
         case CONVERT: {
             if (database.getMode().swapConvertFunctionParameters) {
-                builder.append(new Column(null, dataType, precision,
-                        scale, displaySize).getCreateSQL()).
-                    append(',');
+                builder.append(new Column(null, type).getCreateSQL()).append(',');
                 args[0].getSQL(builder);
             } else {
-                args[0].getSQL(builder).append(',').
-                    append(new Column(null, dataType, precision,
-                        scale, displaySize).getCreateSQL());
+                args[0].getSQL(builder).append(',').append(new Column(null, type).getCreateSQL());
             }
             break;
         }

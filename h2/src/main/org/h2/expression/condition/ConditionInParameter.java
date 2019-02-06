@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -24,7 +24,7 @@ import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
 
 /**
- * A condition with parameter as {@code IN(UNNEST(?))}.
+ * A condition with parameter as {@code = ANY(?)}.
  */
 public class ConditionInParameter extends Condition {
     private static final class ParameterList extends AbstractList<Expression> {
@@ -65,48 +65,51 @@ public class ConditionInParameter extends Condition {
 
     private final Parameter parameter;
 
+    /**
+     * Gets evaluated condition value.
+     *
+     * @param database database instance.
+     * @param l left value.
+     * @param value parameter value.
+     * @return Evaluated condition value.
+     */
     static Value getValue(Database database, Value l, Value value) {
-        boolean result = false;
         boolean hasNull = false;
-        if (value == ValueNull.INSTANCE) {
+        if (value.containsNull()) {
             hasNull = true;
-        } else if (value.getType() == Value.RESULT_SET) {
+        } else if (value.getValueType() == Value.RESULT_SET) {
             for (ResultInterface ri = value.getResult(); ri.next();) {
                 Value r = ri.currentRow()[0];
-                if (r == ValueNull.INSTANCE) {
+                Value cmp = Comparison.compare(database, l, r, Comparison.EQUAL);
+                if (cmp == ValueNull.INSTANCE) {
                     hasNull = true;
-                } else {
-                    result = Comparison.compareNotNull(database, l, r, Comparison.EQUAL);
-                    if (result) {
-                        break;
-                    }
+                } else if (cmp == ValueBoolean.TRUE) {
+                    return cmp;
                 }
             }
         } else {
             for (Value r : ((ValueArray) value.convertTo(Value.ARRAY)).getList()) {
-                if (r == ValueNull.INSTANCE) {
+                Value cmp = Comparison.compare(database, l, r, Comparison.EQUAL);
+                if (cmp == ValueNull.INSTANCE) {
                     hasNull = true;
-                } else {
-                    result = Comparison.compareNotNull(database, l, r, Comparison.EQUAL);
-                    if (result) {
-                        break;
-                    }
+                } else if (cmp == ValueBoolean.TRUE) {
+                    return cmp;
                 }
             }
         }
-        if (!result && hasNull) {
+        if (hasNull) {
             return ValueNull.INSTANCE;
         }
-        return ValueBoolean.get(result);
+        return ValueBoolean.FALSE;
     }
 
     /**
-     * Create a new {@code IN(UNNEST(?))} condition.
+     * Create a new {@code = ANY(?)} condition.
      *
      * @param database
      *            the database
      * @param left
-     *            the expression before {@code IN(UNNEST(?))}
+     *            the expression before {@code = ANY(?)}
      * @param parameter
      *            parameter
      */
@@ -159,8 +162,8 @@ public class ConditionInParameter extends Condition {
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
         builder.append('(');
-        left.getSQL(builder).append(" IN(UNNEST(");
-        return parameter.getSQL(builder).append(")))");
+        left.getSQL(builder).append(" = ANY(");
+        return parameter.getSQL(builder).append("))");
     }
 
     @Override

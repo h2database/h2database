@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -56,6 +56,9 @@ public final class JTSUtils {
      */
     public static final boolean M_IS_SUPPORTED;
 
+    /**
+     * create(int,int,int) method from CoordinateSequenceFactory, if it exists
+     */
     static final Method CREATE;
 
     private static final Method GET_MEASURES;
@@ -453,8 +456,8 @@ public final class JTSUtils {
         int d = sequence.getDimension();
         if (M_IS_SUPPORTED) {
             d -= measures;
-            z = d > 2 ? sequence.getOrdinate(index, Z) : Double.NaN;
-            m = measures >= 1 ? sequence.getOrdinate(index, d) : Double.NaN;
+            z = d > 2 ? toCanonicalDouble(sequence.getOrdinate(index, Z)) : Double.NaN;
+            m = measures >= 1 ? toCanonicalDouble(sequence.getOrdinate(index, d)) : Double.NaN;
         } else {
             z = d >= 3 ? toCanonicalDouble(sequence.getOrdinate(index, Z)) : Double.NaN;
             m = d >= 4 ? toCanonicalDouble(sequence.getOrdinate(index, M)) : Double.NaN;

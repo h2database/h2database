@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -45,7 +45,7 @@ public class FunctionTable extends Table {
             rowCount = Long.MAX_VALUE;
         }
         function.optimize(session);
-        int type = function.getType();
+        int type = function.getValueType();
         if (type != Value.RESULT_SET) {
             throw DbException.get(
                     ErrorCode.FUNCTION_MUST_RETURN_RESULT_SET_1, function.getName());
@@ -67,11 +67,7 @@ public class FunctionTable extends Table {
         int columnCount = result.getVisibleColumnCount();
         Column[] cols = new Column[columnCount];
         for (int i = 0; i < columnCount; i++) {
-            cols[i] = new Column(result.getColumnName(i),
-                    result.getColumnType(i),
-                    result.getColumnPrecision(i),
-                    result.getColumnScale(i),
-                    result.getDisplaySize(i));
+            cols[i] = new Column(result.getColumnName(i), result.getColumnType(i));
         }
         setColumns(cols);
     }

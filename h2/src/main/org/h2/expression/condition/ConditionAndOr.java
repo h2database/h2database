@@ -1,12 +1,11 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.expression.condition;
 
 import org.h2.engine.Session;
-import org.h2.engine.SysProperties;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ValueExpression;
@@ -39,7 +38,7 @@ public class ConditionAndOr extends Condition {
         this.andOrType = andOrType;
         this.left = left;
         this.right = right;
-        if (SysProperties.CHECK && (left == null || right == null)) {
+        if (left == null || right == null) {
             DbException.throwInternalError(left + " " + right);
         }
     }
@@ -319,25 +318,30 @@ public class ConditionAndOr extends Condition {
      * @param right the second condition
      * @return null or the third condition
      */
-    private Expression optimizeConditionAndOr(ConditionAndOr left, ConditionAndOr right) {
+    private static Expression optimizeConditionAndOr(ConditionAndOr left, ConditionAndOr right) {
         if (left.andOrType != AND || right.andOrType != AND) {
             return null;
         }
-        Expression commonExpressionLeft = left.getSubexpression(0);
-        Expression commonExpressionRight = left.getSubexpression(1);
+        Expression leftLeft = left.getSubexpression(0), leftRight = left.getSubexpression(1);
+        Expression rightLeft = right.getSubexpression(0), rightRight = right.getSubexpression(1);
+        String leftLeftSQL = leftLeft.getSQL(), rightLeftSQL = rightLeft.getSQL();
         Expression combinedExpression;
-        if (left.getSubexpression(0).getSQL().equals(right.getSubexpression(0).getSQL())) {
-            combinedExpression = new ConditionAndOr(OR, left.getSubexpression(1), right.getSubexpression(1));
-            return new ConditionAndOr(AND, commonExpressionLeft, combinedExpression);
-        } else if (left.getSubexpression(0).getSQL().equals(right.getSubexpression(1).getSQL())) {
-            combinedExpression = new ConditionAndOr(OR, left.getSubexpression(1), right.getSubexpression(0));
-            return new ConditionAndOr(AND, commonExpressionLeft, combinedExpression);
-        } else if (left.getSubexpression(1).getSQL().equals(right.getSubexpression(0).getSQL())) {
-            combinedExpression = new ConditionAndOr(OR, left.getSubexpression(0), right.getSubexpression(1));
-            return new ConditionAndOr(AND, commonExpressionRight, combinedExpression);
-        } else if (left.getSubexpression(1).getSQL().equals(right.getSubexpression(1).getSQL())) {
-            combinedExpression = new ConditionAndOr(OR, left.getSubexpression(0), right.getSubexpression(0));
-            return new ConditionAndOr(AND, commonExpressionRight, combinedExpression);
+        if (leftLeftSQL.equals(rightLeftSQL)) {
+            combinedExpression = new ConditionAndOr(OR, leftRight, rightRight);
+            return new ConditionAndOr(AND, leftLeft, combinedExpression);
+        }
+        String rightRightSQL = rightRight.getSQL();
+        if (leftLeftSQL.equals(rightRightSQL)) {
+            combinedExpression = new ConditionAndOr(OR, leftRight, rightLeft);
+            return new ConditionAndOr(AND, leftLeft, combinedExpression);
+        }
+        String leftRightSQL = leftRight.getSQL();
+        if (leftRightSQL.equals(rightLeftSQL)) {
+            combinedExpression = new ConditionAndOr(OR, leftLeft, rightRight);
+            return new ConditionAndOr(AND, leftRight, combinedExpression);
+        } else if (leftRightSQL.equals(rightRightSQL)) {
+            combinedExpression = new ConditionAndOr(OR, leftLeft, rightLeft);
+            return new ConditionAndOr(AND, leftRight, combinedExpression);
         }
         return null;
     }

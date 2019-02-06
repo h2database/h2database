@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -20,8 +20,8 @@ public class CompareModeIcu4J extends CompareMode {
 
     private final Comparator<String> collator;
 
-    protected CompareModeIcu4J(String name, int strength, boolean binaryUnsigned) {
-        super(name, strength, binaryUnsigned);
+    protected CompareModeIcu4J(String name, int strength, boolean binaryUnsigned, boolean uuidUnsigned) {
+        super(name, strength, binaryUnsigned, uuidUnsigned);
         collator = getIcu4jCollator(name, strength);
     }
 

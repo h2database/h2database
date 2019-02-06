@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -7,6 +7,7 @@ package org.h2.table;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
@@ -14,7 +15,6 @@ import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.command.dml.Select;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
-import org.h2.engine.SysProperties;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.condition.Comparison;
@@ -123,7 +123,7 @@ public class TableFilter implements ColumnResolver {
     private final int hashCode;
     private final int orderInFrom;
 
-    private HashMap<Column, String> derivedColumnMap;
+    private LinkedHashMap<Column, String> derivedColumnMap;
 
     /**
      * Create a new table filter object.
@@ -189,7 +189,7 @@ public class TableFilter implements ColumnResolver {
     }
 
     /**
-     * Get the best plan item (index, cost) to use use for the current join
+     * Get the best plan item (index, cost) to use for the current join
      * order.
      *
      * @param s the session
@@ -321,13 +321,13 @@ public class TableFilter implements ColumnResolver {
             }
         }
         if (nestedJoin != null) {
-            if (SysProperties.CHECK && nestedJoin == this) {
+            if (nestedJoin == this) {
                 DbException.throwInternalError("self join");
             }
             nestedJoin.prepare();
         }
         if (join != null) {
-            if (SysProperties.CHECK && join == this) {
+            if (join == this) {
                 DbException.throwInternalError("self join");
             }
             join.prepare();
@@ -802,6 +802,18 @@ public class TableFilter implements ColumnResolver {
         if (alias != null) {
             builder.append(' ');
             Parser.quoteIdentifier(builder, alias);
+            if (derivedColumnMap != null) {
+                builder.append('(');
+                boolean f = false;
+                for (String name : derivedColumnMap.values()) {
+                    if (f) {
+                        builder.append(", ");
+                    }
+                    f = true;
+                    Parser.quoteIdentifier(builder, name);
+                }
+                builder.append(')');
+            }
         }
         if (indexHints != null) {
             builder.append(" USE INDEX (");
@@ -1092,7 +1104,7 @@ public class TableFilter implements ColumnResolver {
         if (count != derivedColumnNames.size()) {
             throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
         }
-        HashMap<Column, String> map = new HashMap<>();
+        LinkedHashMap<Column, String> map = new LinkedHashMap<>();
         for (int i = 0; i < count; i++) {
             String alias = derivedColumnNames.get(i);
             for (int j = 0; j < i; j++) {

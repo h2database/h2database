@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -18,8 +18,8 @@ import org.h2.util.StringUtils;
  * client-server communication.
  */
 public class ValueEnumBase extends Value {
-    private static final int PRECISION = 10;
-    private static final int DISPLAY_SIZE = 11;
+    static final int PRECISION = 10;
+    static final int DISPLAY_SIZE = 11;
 
     private final String label;
     private final int ordinal;
@@ -64,11 +64,6 @@ public class ValueEnumBase extends Value {
     }
 
     @Override
-    public int getDisplaySize() {
-        return DISPLAY_SIZE;
-    }
-
-    @Override
     public int getInt() {
         return ordinal;
     }
@@ -81,11 +76,6 @@ public class ValueEnumBase extends Value {
     @Override
     public Object getObject() {
         return label;
-    }
-
-    @Override
-    public long getPrecision() {
-        return PRECISION;
     }
 
     @Override
@@ -104,8 +94,18 @@ public class ValueEnumBase extends Value {
     }
 
     @Override
-    public int getType() {
-        return Value.ENUM;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_ENUM_UNDEFINED;
+    }
+
+    @Override
+    public int getValueType() {
+        return ENUM;
+    }
+
+    @Override
+    public int getMemory() {
+        return 120;
     }
 
     @Override
@@ -142,11 +142,11 @@ public class ValueEnumBase extends Value {
     }
 
     @Override
-    public Value convertTo(int targetType, int precision, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
+    protected Value convertTo(int targetType, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
         if (targetType == Value.ENUM) {
             return extTypeInfo.cast(this);
         }
-        return super.convertTo(targetType, precision, mode, column, extTypeInfo);
+        return super.convertTo(targetType, mode, column, extTypeInfo);
     }
 
 }

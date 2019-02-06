@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -40,16 +40,6 @@ public class ValueTime extends Value {
     public static final int MAXIMUM_SCALE = 9;
 
     /**
-     * Get display size for the specified scale.
-     *
-     * @param scale scale
-     * @return display size
-     */
-    public static int getDisplaySize(int scale) {
-        return scale == 0 ? 8 : 9 + scale;
-    }
-
-    /**
      * Nanoseconds since midnight
      */
     private final long nanos;
@@ -84,7 +74,8 @@ public class ValueTime extends Value {
      * @return the value
      */
     public static ValueTime get(Time time) {
-        return fromNanos(DateTimeUtils.nanosFromDate(time.getTime()));
+        long ms = time.getTime();
+        return fromNanos(DateTimeUtils.nanosFromLocalMillis(ms + DateTimeUtils.getTimeZoneOffset(ms)));
     }
 
     /**
@@ -95,7 +86,7 @@ public class ValueTime extends Value {
      * @return the value
      */
     public static ValueTime fromMillis(long ms) {
-        return fromNanos(DateTimeUtils.nanosFromDate(ms));
+        return fromNanos(DateTimeUtils.nanosFromLocalMillis(ms + DateTimeUtils.getTimeZoneOffset(ms)));
     }
 
     /**
@@ -126,8 +117,13 @@ public class ValueTime extends Value {
     }
 
     @Override
-    public int getType() {
-        return Value.TIME;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_TIME;
+    }
+
+    @Override
+    public int getValueType() {
+        return TIME;
     }
 
     @Override
@@ -142,16 +138,6 @@ public class ValueTime extends Value {
         builder.append("TIME '");
         DateTimeUtils.appendTime(builder, nanos);
         return builder.append('\'');
-    }
-
-    @Override
-    public long getPrecision() {
-        return MAXIMUM_PRECISION;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return MAXIMUM_PRECISION;
     }
 
     @Override

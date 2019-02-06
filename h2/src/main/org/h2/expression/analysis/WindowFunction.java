@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -16,9 +16,10 @@ import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueDouble;
-import org.h2.value.ValueInt;
+import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 
 /**
@@ -48,6 +49,7 @@ public class WindowFunction extends DataAnalysisOperation {
         case LAG:
         case FIRST_VALUE:
         case LAST_VALUE:
+        case RATIO_TO_REPORT:
             return 1;
         case NTH_VALUE:
             return 2;
@@ -68,6 +70,7 @@ public class WindowFunction extends DataAnalysisOperation {
         case NTILE:
         case FIRST_VALUE:
         case LAST_VALUE:
+        case RATIO_TO_REPORT:
             return 1;
         case LEAD:
         case LAG:
@@ -184,7 +187,7 @@ public class WindowFunction extends DataAnalysisOperation {
         switch (type) {
         case ROW_NUMBER:
             for (int i = 0, size = ordered.size(); i < size;) {
-                result.put(ordered.get(i)[rowIdColumn].getInt(), ValueInt.get(++i));
+                result.put(ordered.get(i)[rowIdColumn].getInt(), ValueLong.get(++i));
             }
             break;
         case RANK:
@@ -193,19 +196,22 @@ public class WindowFunction extends DataAnalysisOperation {
             getRank(result, ordered, rowIdColumn);
             break;
         case CUME_DIST:
-            getCumeDist(session, result, ordered, rowIdColumn);
+            getCumeDist(result, ordered, rowIdColumn);
             break;
         case NTILE:
-            getNtile(session, result, ordered, rowIdColumn);
+            getNtile(result, ordered, rowIdColumn);
             break;
         case LEAD:
         case LAG:
-            getLeadLag(session, result, ordered, rowIdColumn);
+            getLeadLag(result, ordered, rowIdColumn);
             break;
         case FIRST_VALUE:
         case LAST_VALUE:
         case NTH_VALUE:
             getNth(session, result, ordered, rowIdColumn);
+            break;
+        case RATIO_TO_REPORT:
+            getRatioToReport(result, ordered, rowIdColumn);
             break;
         default:
             throw DbException.throwInternalError("type=" + type);
@@ -231,14 +237,13 @@ public class WindowFunction extends DataAnalysisOperation {
                 int nm = number - 1;
                 v = nm == 0 ? ValueDouble.ZERO : ValueDouble.get((double) nm / (size - 1));
             } else {
-                v = ValueInt.get(number);
+                v = ValueLong.get(number);
             }
             result.put(row[rowIdColumn].getInt(), v);
         }
     }
 
-    private void getCumeDist(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> orderedData,
-            int last) {
+    private void getCumeDist(HashMap<Integer, Value> result, ArrayList<Value[]> orderedData, int rowIdColumn) {
         int size = orderedData.size();
         for (int start = 0; start < size;) {
             Value[] array = orderedData.get(start);
@@ -248,40 +253,38 @@ public class WindowFunction extends DataAnalysisOperation {
             }
             ValueDouble v = ValueDouble.get((double) end / size);
             for (int i = start; i < end; i++) {
-                int rowId = orderedData.get(i)[last].getInt();
+                int rowId = orderedData.get(i)[rowIdColumn].getInt();
                 result.put(rowId, v);
             }
             start = end;
         }
     }
 
-    private static void getNtile(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> orderedData,
-            int last) {
+    private static void getNtile(HashMap<Integer, Value> result, ArrayList<Value[]> orderedData, int rowIdColumn) {
         int size = orderedData.size();
         for (int i = 0; i < size; i++) {
             Value[] array = orderedData.get(i);
-            int buckets = array[0].getInt();
+            long buckets = array[0].getLong();
             if (buckets <= 0) {
                 throw DbException.getInvalidValueException("number of tiles", buckets);
             }
-            int perTile = size / buckets;
-            int numLarger = size - perTile * buckets;
-            int largerGroup = numLarger * (perTile + 1);
-            int v;
+            long perTile = size / buckets;
+            long numLarger = size - perTile * buckets;
+            long largerGroup = numLarger * (perTile + 1);
+            long v;
             if (i >= largerGroup) {
                 v = (i - largerGroup) / perTile + numLarger + 1;
             } else {
                 v = i / (perTile + 1) + 1;
             }
-            result.put(orderedData.get(i)[last].getInt(), ValueInt.get(v));
+            result.put(orderedData.get(i)[rowIdColumn].getInt(), ValueLong.get(v));
         }
     }
 
-    private void getLeadLag(Session session, HashMap<Integer, Value> result, ArrayList<Value[]> ordered,
-            int rowIdColumn) {
+    private void getLeadLag(HashMap<Integer, Value> result, ArrayList<Value[]> ordered, int rowIdColumn) {
         int size = ordered.size();
         int numExpressions = getNumExpressions();
-        int dataType = args[0].getType();
+        int dataType = args[0].getType().getValueType();
         for (int i = 0; i < size; i++) {
             Value[] row = ordered.get(i);
             int rowId = row[rowIdColumn].getInt();
@@ -375,6 +378,37 @@ public class WindowFunction extends DataAnalysisOperation {
         }
     }
 
+    private static void getRatioToReport(HashMap<Integer, Value> result, ArrayList<Value[]> ordered, int rowIdColumn) {
+        int size = ordered.size();
+        Value value = null;
+        for (int i = 0; i < size; i++) {
+            Value v = ordered.get(i)[0];
+            if (v != ValueNull.INSTANCE) {
+                if (value == null) {
+                    value = v.convertTo(Value.DOUBLE);
+                } else {
+                    value = value.add(v.convertTo(Value.DOUBLE));
+                }
+            }
+        }
+        if (value != null && value.getSignum() == 0) {
+            value = null;
+        }
+        for (int i = 0; i < size; i++) {
+            Value[] row = ordered.get(i);
+            Value v;
+            if (value == null) {
+                v = ValueNull.INSTANCE;
+            } else {
+                v = row[0];
+                if (v != ValueNull.INSTANCE) {
+                    v = v.convertTo(Value.DOUBLE).divide(value);
+                }
+            }
+            result.put(row[rowIdColumn].getInt(), v);
+        }
+    }
+
     @Override
     protected Value getAggregatedValue(Session session, Object aggregateData) {
         throw DbException.getUnsupportedException("Window function");
@@ -414,6 +448,9 @@ public class WindowFunction extends DataAnalysisOperation {
                 throw DbException.getSyntaxError(sql, sql.length() - 1, "ORDER BY");
             default:
             }
+        } else if (type == WindowFunctionType.RATIO_TO_REPORT) {
+            String sql = getSQL();
+            throw DbException.getSyntaxError(sql, sql.length() - 1);
         }
         super.optimize(session);
         if (args != null) {
@@ -435,80 +472,23 @@ public class WindowFunction extends DataAnalysisOperation {
     }
 
     @Override
-    public int getType() {
+    public TypeInfo getType() {
         switch (type) {
         case ROW_NUMBER:
         case RANK:
         case DENSE_RANK:
         case NTILE:
-            return Value.INT;
+            return TypeInfo.TYPE_LONG;
         case PERCENT_RANK:
         case CUME_DIST:
-            return Value.DOUBLE;
+        case RATIO_TO_REPORT:
+            return TypeInfo.TYPE_DOUBLE;
         case LEAD:
         case LAG:
         case FIRST_VALUE:
         case LAST_VALUE:
         case NTH_VALUE:
             return args[0].getType();
-        default:
-            throw DbException.throwInternalError("type=" + type);
-        }
-    }
-
-    @Override
-    public int getScale() {
-        switch (type) {
-        case LEAD:
-        case LAG:
-        case FIRST_VALUE:
-        case LAST_VALUE:
-        case NTH_VALUE:
-            return args[0].getScale();
-        default:
-            return 0;
-        }
-    }
-
-    @Override
-    public long getPrecision() {
-        switch (type) {
-        case ROW_NUMBER:
-        case RANK:
-        case DENSE_RANK:
-        case NTILE:
-            return ValueInt.PRECISION;
-        case PERCENT_RANK:
-        case CUME_DIST:
-            return ValueDouble.PRECISION;
-        case LEAD:
-        case LAG:
-        case FIRST_VALUE:
-        case LAST_VALUE:
-        case NTH_VALUE:
-            return args[0].getPrecision();
-        default:
-            throw DbException.throwInternalError("type=" + type);
-        }
-    }
-
-    @Override
-    public int getDisplaySize() {
-        switch (type) {
-        case ROW_NUMBER:
-        case RANK:
-        case DENSE_RANK:
-        case NTILE:
-            return ValueInt.DISPLAY_SIZE;
-        case PERCENT_RANK:
-        case CUME_DIST:
-            return ValueDouble.DISPLAY_SIZE;
-        case LEAD:
-        case LAG:
-        case FIRST_VALUE:
-        case LAST_VALUE:
-        case NTH_VALUE:
-            return args[0].getDisplaySize();
         default:
             throw DbException.throwInternalError("type=" + type);
         }

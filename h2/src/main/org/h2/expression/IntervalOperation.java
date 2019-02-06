@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -26,6 +26,7 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.IntervalUtils;
 import org.h2.value.DataType;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueInterval;
@@ -77,7 +78,7 @@ public class IntervalOperation extends Expression {
 
     private final IntervalOpType opType;
     private Expression left, right;
-    private int dataType;
+    private TypeInfo type;
 
     private static BigInteger nanosFromValue(Value v) {
         long[] a = dateAndTimeFromValue(v);
@@ -89,25 +90,25 @@ public class IntervalOperation extends Expression {
         this.opType = opType;
         this.left = left;
         this.right = right;
-        int l = left.getType(), r = right.getType();
+        int l = left.getType().getValueType(), r = right.getType().getValueType();
         switch (opType) {
         case INTERVAL_PLUS_INTERVAL:
         case INTERVAL_MINUS_INTERVAL:
-            dataType = Value.getHigherOrder(l, r);
+            type = TypeInfo.getTypeInfo(Value.getHigherOrder(l, r));
             break;
         case DATETIME_PLUS_INTERVAL:
         case DATETIME_MINUS_INTERVAL:
         case INTERVAL_MULTIPLY_NUMERIC:
         case INTERVAL_DIVIDE_NUMERIC:
-            dataType = l;
+            type = left.getType();
             break;
         case DATETIME_MINUS_DATETIME:
             if (l == Value.TIME && r == Value.TIME) {
-                dataType = Value.INTERVAL_HOUR_TO_SECOND;
+                type = TypeInfo.TYPE_INTERVAL_HOUR_TO_SECOND;
             } else if (l == Value.DATE && r == Value.DATE) {
-                dataType = Value.INTERVAL_DAY;
+                type = TypeInfo.TYPE_INTERVAL_DAY;
             } else {
-                dataType = Value.INTERVAL_DAY_TO_SECOND;
+                type = TypeInfo.TYPE_INTERVAL_DAY_TO_SECOND;
             }
         }
     }
@@ -144,7 +145,7 @@ public class IntervalOperation extends Expression {
         if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
             return ValueNull.INSTANCE;
         }
-        int lType = l.getType(), rType = r.getType();
+        int lType = l.getValueType(), rType = r.getValueType();
         switch (opType) {
         case INTERVAL_PLUS_INTERVAL:
         case INTERVAL_MINUS_INTERVAL: {
@@ -277,23 +278,8 @@ public class IntervalOperation extends Expression {
     }
 
     @Override
-    public int getType() {
-        return dataType;
-    }
-
-    @Override
-    public long getPrecision() {
-        return Math.max(left.getPrecision(), right.getPrecision());
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return Math.max(left.getDisplaySize(), right.getDisplaySize());
-    }
-
-    @Override
-    public int getScale() {
-        return Math.max(left.getScale(), right.getScale());
+    public TypeInfo getType() {
+        return type;
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -102,8 +102,7 @@ public class Update extends Prepared {
     public int update() {
         targetTableFilter.startQuery(session);
         targetTableFilter.reset();
-        RowList rows = new RowList(session);
-        try {
+        try (RowList rows = new RowList(session)) {
             Table table = targetTableFilter.getTable();
             session.getUser().checkRight(table, Right.UPDATE);
             table.fire(session, Trigger.UPDATE, true);
@@ -199,7 +198,6 @@ public class Update extends Prepared {
             // the cached row is already updated - we need the old values
             table.updateRows(this, session, rows);
             if (table.fireRow()) {
-                rows.invalidateCache();
                 for (rows.reset(); rows.hasNext();) {
                     Row o = rows.next();
                     Row n = rows.next();
@@ -208,8 +206,6 @@ public class Update extends Prepared {
             }
             table.fire(session, Trigger.UPDATE, false);
             return count;
-        } finally {
-            rows.close();
         }
     }
 
@@ -222,7 +218,7 @@ public class Update extends Prepared {
                 builder.append(",\n    ");
             }
             Column c = columns.get(i);
-            builder.append(c.getName()).append(" = ");
+            builder.append(c.getSQL()).append(" = ");
             expressionMap.get(c).getSQL(builder);
         }
         if (condition != null) {

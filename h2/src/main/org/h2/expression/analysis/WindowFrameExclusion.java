@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -36,6 +36,17 @@ public enum WindowFrameExclusion {
 
     private WindowFrameExclusion(String sql) {
         this.sql = sql;
+    }
+
+    /**
+     * Returns true if this exclusion clause excludes or includes the whole
+     * group.
+     *
+     * @return true if this exclusion clause is {@link #EXCLUDE_GROUP} or
+     *         {@link #EXCLUDE_NO_OTHERS}
+     */
+    public boolean isGroupOrNoOthers() {
+        return this == WindowFrameExclusion.EXCLUDE_GROUP || this == EXCLUDE_NO_OTHERS;
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -273,8 +273,7 @@ public class FileStore {
      * @param len the number of bytes to read
      */
     public void readFully(byte[] b, int off, int len) {
-        if (SysProperties.CHECK &&
-                (len < 0 || len % Constants.FILE_BLOCK_SIZE != 0)) {
+        if (len < 0 || len % Constants.FILE_BLOCK_SIZE != 0) {
             DbException.throwInternalError(
                     "unaligned read " + name + " len " + len);
         }
@@ -293,8 +292,7 @@ public class FileStore {
      * @param pos the location
      */
     public void seek(long pos) {
-        if (SysProperties.CHECK &&
-                pos % Constants.FILE_BLOCK_SIZE != 0) {
+        if (pos % Constants.FILE_BLOCK_SIZE != 0) {
             DbException.throwInternalError(
                     "unaligned seek " + name + " pos " + pos);
         }
@@ -327,8 +325,7 @@ public class FileStore {
      * @param len the number of bytes to write
      */
     public void write(byte[] b, int off, int len) {
-        if (SysProperties.CHECK && (len < 0 ||
-                len % Constants.FILE_BLOCK_SIZE != 0)) {
+        if (len < 0 || len % Constants.FILE_BLOCK_SIZE != 0) {
             DbException.throwInternalError(
                     "unaligned write " + name + " len " + len);
         }
@@ -350,7 +347,7 @@ public class FileStore {
      * @param newLength the new file size
      */
     public void setLength(long newLength) {
-        if (SysProperties.CHECK && newLength % Constants.FILE_BLOCK_SIZE != 0) {
+        if (newLength % Constants.FILE_BLOCK_SIZE != 0) {
             DbException.throwInternalError(
                     "unaligned setLength " + name + " pos " + newLength);
         }
@@ -378,9 +375,9 @@ public class FileStore {
      * @return the file size
      */
     public long length() {
-        try {
-            long len = fileLength;
-            if (ASSERT) {
+        long len = fileLength;
+        if (ASSERT) {
+            try {
                 len = file.size();
                 if (len != fileLength) {
                     DbException.throwInternalError(
@@ -394,11 +391,11 @@ public class FileStore {
                     DbException.throwInternalError(
                             "unaligned file length " + name + " len " + len);
                 }
+            } catch (IOException e) {
+                throw DbException.convertIOException(e, name);
             }
-            return len;
-        } catch (IOException e) {
-            throw DbException.convertIOException(e, name);
         }
+        return len;
     }
 
     /**

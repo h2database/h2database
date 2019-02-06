@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0, Version 1.0,
-and under the Eclipse Public License, Version 1.0
+Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+and the EPL 1.0 (http://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
@@ -475,11 +475,14 @@ There is a list of keywords that can't be used as identifiers (table names, colu
 unless they are quoted (surrounded with double quotes). The list is currently:
 </p><p>
 <code>
-ALL, CHECK, CONSTRAINT, CROSS, CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP, DISTINCT, EXCEPT,
-EXISTS, FALSE, FETCH, FOR, FOREIGN, FROM, FULL, GROUP, HAVING, INNER, INTERSECT, INTERSECTS,
-IS, JOIN, LIKE, LIMIT, LOCALTIME, LOCALTIMESTAMP, MINUS, NATURAL, NOT, NULL, OFFSET, ON, ORDER,
-PRIMARY, ROWNUM, SELECT, SYSDATE, SYSTIME, SYSTIMESTAMP, TODAY, TOP, TRUE, UNION, UNIQUE, WHERE,
-WINDOW, WITH
+ALL, ARRAY, CASE, CHECK, CONSTRAINT, CROSS, CURRENT_DATE,
+CURRENT_TIME, CURRENT_TIMESTAMP, CURRENT_USER, DISTINCT, EXCEPT,
+EXISTS, FALSE, FETCH, FOR, FOREIGN, FROM, FULL, GROUP, HAVING,
+IF, INNER, INTERSECT, INTERSECTS, INTERVAL, IS, JOIN, LIKE,
+LIMIT, LOCALTIME, LOCALTIMESTAMP, MINUS, NATURAL, NOT, NULL,
+OFFSET, ON, ORDER, PRIMARY, QUALIFY, ROW, ROWNUM, SELECT,
+SYSDATE, SYSTIME, SYSTIMESTAMP, TABLE, TODAY, TOP, TRUE, UNION,
+UNIQUE, VALUES, WHERE, WINDOW, WITH
 </code>
 </p><p>
 Certain words of this list are keywords because they are functions that can be used without '()',
@@ -1564,7 +1567,7 @@ The following file systems are included:
     The default value is 1%.
 </li></ul>
 <p>
-As an example, to use the the <code>nio</code> file system with PageStore storage engine,
+As an example, to use the <code>nio</code> file system with PageStore storage engine,
 use the following database URL: <code>jdbc:h2:nio:~/test;MV_STORE=FALSE</code>.
 With MVStore storage engine nio file system is used by default.
 </p>

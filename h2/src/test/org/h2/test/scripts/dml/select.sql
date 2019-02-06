@@ -1,4 +1,4 @@
--- Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (http://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -244,11 +244,11 @@ CREATE TABLE TEST(A INT, B INT);
 INSERT INTO TEST VALUES (1, 1), (1, 2), (2, 1), (2, 2), (2, 3);
 > update count: 5
 
-SELECT A, COUNT(B) FROM TEST GROUP BY A OFFSET 1;
+SELECT A, COUNT(B) FROM TEST GROUP BY A ORDER BY A OFFSET 1;
 > A COUNT(B)
 > - --------
 > 2 3
-> rows: 1
+> rows (ordered): 1
 
 DROP TABLE TEST;
 > ok
@@ -439,3 +439,204 @@ SELECT 1 FROM TEST HAVING TRUE FOR UPDATE;
 
 DROP TABLE TEST;
 > ok
+
+CREATE TABLE TEST(ID INT PRIMARY KEY, V INT) AS SELECT X, X + 1 FROM SYSTEM_RANGE(1, 3);
+> ok
+
+SELECT ID FROM TEST WHERE ID != ALL (SELECT ID FROM TEST WHERE ID IN(1, 3));
+> ID
+> --
+> 2
+> rows: 1
+
+SELECT (1, 3) > ANY (SELECT ID, V FROM TEST);
+>> TRUE
+
+SELECT (1, 2) > ANY (SELECT ID, V FROM TEST);
+>> FALSE
+
+SELECT (2, 3) = ANY (SELECT ID, V FROM TEST);
+>> TRUE
+
+SELECT (3, 4) > ALL (SELECT ID, V FROM TEST);
+>> FALSE
+
+DROP TABLE TEST;
+> ok
+
+SELECT 1 = ALL (SELECT * FROM VALUES (NULL), (1), (2), (NULL) ORDER BY 1);
+>> FALSE
+
+CREATE TABLE TEST(G INT, V INT);
+> ok
+
+INSERT INTO TEST VALUES (10, 1), (11, 2), (20, 4);
+> update count: 3
+
+SELECT G / 10 G1, G / 10 G2, SUM(T.V) S FROM TEST T GROUP BY G / 10, G / 10;
+> G1 G2 S
+> -- -- -
+> 1  1  3
+> 2  2  4
+> rows: 2
+
+
+SELECT G / 10 G1, G / 10 G2, SUM(T.V) S FROM TEST T GROUP BY G2;
+> G1 G2 S
+> -- -- -
+> 1  1  3
+> 2  2  4
+> rows: 2
+
+DROP TABLE TEST;
+> ok
+
+@reconnect off
+
+CALL RAND(0);
+>> 0.730967787376657
+
+SELECT RAND(), RAND() + 1, RAND() + 1, RAND() GROUP BY RAND() + 1;
+> RAND()             RAND() + 1         RAND() + 1         RAND()
+> ------------------ ------------------ ------------------ ------------------
+> 0.6374174253501083 1.2405364156714858 1.2405364156714858 0.5504370051176339
+> rows: 1
+
+SELECT RAND() A, RAND() + 1 B, RAND() + 1 C, RAND() D, RAND() + 2 E, RAND() + 3 F GROUP BY B, C, E, F;
+> A                  B                  C                  D                  E                  F
+> ------------------ ------------------ ------------------ ------------------ ------------------ ------------------
+> 0.8791825178724801 1.3332183994766498 1.3332183994766498 0.9412491794821144 2.3851891847407183 3.9848415401998087
+> rows: 1
+
+@reconnect on
+
+CREATE TABLE TEST (A INT, B INT, C INT);
+> ok
+
+INSERT INTO TEST VALUES (11, 12, 13), (21, 22, 23), (31, 32, 33);
+> update count: 3
+
+SELECT * FROM TEST WHERE (A, B) IN (VALUES (11, 12), (21, 22), (41, 42));
+> A  B  C
+> -- -- --
+> 11 12 13
+> 21 22 23
+> rows: 2
+
+SELECT * FROM TEST WHERE (A, B) = (VALUES (11, 12));
+> A  B  C
+> -- -- --
+> 11 12 13
+> rows: 1
+
+DROP TABLE TEST;
+> ok
+
+CREATE TABLE TEST(A BIGINT, B INT) AS VALUES (1::BIGINT, 2);
+> ok
+
+SELECT * FROM TEST WHERE (A, B) IN ((1, 2), (3, 4));
+> A B
+> - -
+> 1 2
+> rows: 1
+
+UPDATE TEST SET A = 1000000000000;
+> update count: 1
+
+SELECT * FROM TEST WHERE (A, B) IN ((1, 2), (3, 4));
+> A B
+> - -
+> rows: 0
+
+DROP TABLE TEST;
+> ok
+
+CREATE TABLE TEST(A BIGINT, B INT) AS VALUES (1, 2);
+> ok
+
+SELECT * FROM TEST WHERE (A, B) IN ((1::BIGINT, 2), (3, 4));
+> A B
+> - -
+> 1 2
+> rows: 1
+
+SELECT * FROM TEST WHERE (A, B) IN ((1000000000000, 2), (3, 4));
+> A B
+> - -
+> rows: 0
+
+DROP TABLE TEST;
+> ok
+
+CREATE TABLE TEST(I) AS VALUES 1, 2, 3;
+> ok
+
+SELECT COUNT(*) C FROM TEST HAVING C < 1;
+> C
+> -
+> rows: 0
+
+SELECT COUNT(*) C FROM TEST QUALIFY C < 1;
+> C
+> -
+> rows: 0
+
+DROP TABLE TEST;
+> ok
+
+SELECT A, ROW_NUMBER() OVER (ORDER BY B) R
+FROM (VALUES (1, 2), (2, 1), (3, 3)) T(A, B);
+> A R
+> - -
+> 1 2
+> 2 1
+> 3 3
+> rows: 3
+
+SELECT X, A, ROW_NUMBER() OVER (ORDER BY B) R
+FROM (SELECT 1 X), (VALUES (1, 2), (2, 1), (3, 3)) T(A, B);
+> X A R
+> - - -
+> 1 1 2
+> 1 2 1
+> 1 3 3
+> rows: 3
+
+SELECT A, SUM(S) OVER (ORDER BY S) FROM
+    (SELECT A, SUM(B) FROM (VALUES (1, 2), (1, 3), (3, 5), (3, 10)) V(A, B) GROUP BY A) S(A, S);
+> A SUM(S) OVER (ORDER BY S)
+> - ------------------------
+> 1 5
+> 3 20
+> rows: 2
+
+SELECT A, SUM(A) OVER W SUM FROM (VALUES 1, 2) T(A) WINDOW W AS (ORDER BY A);
+> A SUM
+> - ---
+> 1 1
+> 2 3
+> rows: 2
+
+SELECT A, B, C FROM (SELECT A, B, C FROM (VALUES (1, 2, 3)) V(A, B, C));
+> A B C
+> - - -
+> 1 2 3
+> rows: 1
+
+SELECT * FROM (SELECT * FROM (VALUES (1, 2, 3)) V(A, B, C));
+> A B C
+> - - -
+> 1 2 3
+> rows: 1
+
+SELECT * FROM
+    (SELECT X * X, Y FROM
+        (SELECT A + 5, B FROM
+            (VALUES (1, 2)) V(A, B)
+        ) T(X, Y)
+    );
+> X * X Y
+> ----- -
+> 36    2
+> rows: 1

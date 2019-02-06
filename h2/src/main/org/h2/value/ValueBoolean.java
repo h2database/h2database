@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -41,8 +41,19 @@ public class ValueBoolean extends Value {
     }
 
     @Override
-    public int getType() {
-        return Value.BOOLEAN;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_BOOLEAN;
+    }
+
+    @Override
+    public int getValueType() {
+        return BOOLEAN;
+    }
+
+    @Override
+    public int getMemory() {
+        // Singleton TRUE and FALSE values
+        return 0;
     }
 
     @Override
@@ -71,11 +82,6 @@ public class ValueBoolean extends Value {
     }
 
     @Override
-    public long getPrecision() {
-        return PRECISION;
-    }
-
-    @Override
     public int hashCode() {
         return value ? 1 : 0;
     }
@@ -99,11 +105,6 @@ public class ValueBoolean extends Value {
      */
     public static ValueBoolean get(boolean b) {
         return b ? TRUE : FALSE;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return DISPLAY_SIZE;
     }
 
     @Override

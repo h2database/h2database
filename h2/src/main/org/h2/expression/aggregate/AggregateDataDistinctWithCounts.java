@@ -1,12 +1,12 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.expression.aggregate;
 
+import java.util.TreeMap;
 import org.h2.engine.Database;
-import org.h2.util.ValueHashMap;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -20,7 +20,7 @@ class AggregateDataDistinctWithCounts extends AggregateData {
 
     private final int maxDistinctCount;
 
-    private ValueHashMap<LongDataCounter> values;
+    private TreeMap<Value, LongDataCounter> values;
 
     /**
      * Creates new instance of data for aggregate that needs distinct values
@@ -37,12 +37,12 @@ class AggregateDataDistinctWithCounts extends AggregateData {
     }
 
     @Override
-    void add(Database database, int dataType, Value v) {
+    void add(Database database, Value v) {
         if (ignoreNulls && v == ValueNull.INSTANCE) {
             return;
         }
         if (values == null) {
-            values = new ValueHashMap<>();
+            values = new TreeMap<>(database.getCompareMode());
         }
         LongDataCounter a = values.get(v);
         if (a == null) {
@@ -65,7 +65,7 @@ class AggregateDataDistinctWithCounts extends AggregateData {
      *
      * @return map with values and their counts
      */
-    ValueHashMap<LongDataCounter> getValues() {
+    TreeMap<Value, LongDataCounter> getValues() {
         return values;
     }
 

@@ -1,4 +1,4 @@
--- Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (http://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -36,10 +36,10 @@ SELECT * FROM UNNEST(ARRAY[1], ARRAY[2, 3, 4], ARRAY[5, 6]) WITH ORDINALITY;
 > rows: 3
 
 EXPLAIN SELECT * FROM UNNEST(ARRAY[1]);
->> SELECT UNNEST.C1 FROM UNNEST((1,)) /* function */
+>> SELECT UNNEST.C1 FROM UNNEST(ARRAY [1]) /* function */
 
 EXPLAIN SELECT * FROM UNNEST(ARRAY[1]) WITH ORDINALITY;
->> SELECT UNNEST.C1, UNNEST.NORD FROM UNNEST((1,)) WITH ORDINALITY /* function */
+>> SELECT UNNEST.C1, UNNEST.NORD FROM UNNEST(ARRAY [1]) WITH ORDINALITY /* function */
 
 SELECT 1 IN(UNNEST(ARRAY[1, 2, 3]));
 >> TRUE
@@ -60,8 +60,8 @@ SELECT X, X IN(UNNEST(ARRAY[2, 4])) FROM SYSTEM_RANGE(1, 5);
 SELECT X, X IN(UNNEST(?)) FROM SYSTEM_RANGE(1, 5);
 {
 2
-> X X IN(UNNEST(?1))
-> - ----------------
+> X X = ANY(?1)
+> - -----------
 > 1 FALSE
 > 2 TRUE
 > 3 FALSE
@@ -80,8 +80,8 @@ INSERT INTO TEST VALUES (2, ARRAY[2, 4]), (3, ARRAY[2, 5]);
 SELECT A, B, A IN(UNNEST(B)) FROM TEST;
 > A B      A IN(UNNEST(B))
 > - ------ ---------------
-> 2 (2, 4) TRUE
-> 3 (2, 5) FALSE
+> 2 [2, 4] TRUE
+> 3 [2, 5] FALSE
 > rows: 2
 
 DROP TABLE TEST;

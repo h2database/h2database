@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: Daniel Gredler
  */
@@ -549,7 +549,7 @@ class ToDateTokenizer {
         YYY(PARSLET_YEAR),
         // 2-digit year
         YY(PARSLET_YEAR),
-        // Two-digit century with with sign (- = B.C.)
+        // Two-digit century with sign (- = B.C.)
         SCC(PARSLET_YEAR),
         // Two-digit century.
         CC(PARSLET_YEAR),

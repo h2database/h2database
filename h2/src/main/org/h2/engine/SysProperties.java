@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -418,10 +418,20 @@ public class SysProperties {
      * System property <code>h2.sortBinaryUnsigned</code>
      * (default: true).<br />
      * Whether binary data should be sorted in unsigned mode
-     * (0xff is larger than 0x00).
+     * (0xff is larger than 0x00) by default in new databases.
      */
     public static final boolean SORT_BINARY_UNSIGNED =
             Utils.getProperty("h2.sortBinaryUnsigned", true);
+
+    /**
+     * System property {@code h2.sortUuidUnsigned}, {@code false} by default
+     * unless {@code h2.preview} is enabled.
+     * Whether UUID data should be sorted in unsigned mode
+     * ('ffffffff-ffff-ffff-ffff-ffffffffffff' is larger than
+     * '00000000-0000-0000-0000-000000000000') by default in new databases.
+     */
+    public static final boolean SORT_UUID_UNSIGNED =
+            Utils.getProperty("h2.sortUuidUnsigned", PREVIEW);
 
     /**
      * System property <code>h2.sortNullsHigh</code> (default: false).<br />
@@ -614,7 +624,7 @@ public class SysProperties {
         String s = Utils.getProperty(key, null);
         if (s != null) {
             try {
-                return Integer.decode(s).intValue();
+                return Integer.decode(s);
             } catch (NumberFormatException e) {
                 // ignore
             }

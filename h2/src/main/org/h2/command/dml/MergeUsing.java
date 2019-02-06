@@ -36,10 +36,19 @@ import org.h2.value.Value;
  */
 public class MergeUsing extends Prepared {
 
+    /**
+     * Abstract WHEN command of the MERGE statement.
+     */
     public static abstract class When {
 
+        /**
+         * The parent MERGE statement.
+         */
         final MergeUsing mergeUsing;
 
+        /**
+         * AND condition of the command.
+         */
         Expression andCondition;
 
         When(MergeUsing mergeUsing) {
@@ -55,12 +64,23 @@ public class MergeUsing extends Prepared {
             this.andCondition = andCondition;
         }
 
+        /**
+         * Reset updated keys if needs.
+         */
         void reset() {
             // Nothing to do
         }
 
+        /**
+         * Merges rows.
+         *
+         * @return count of updated rows.
+         */
         abstract int merge();
 
+        /**
+         * Prepares WHEN command.
+         */
         void prepare() {
             if (andCondition != null) {
                 andCondition.mapColumns(mergeUsing.sourceTableFilter, 2, Expression.MAP_INITIAL);
@@ -68,8 +88,16 @@ public class MergeUsing extends Prepared {
             }
         }
 
+        /**
+         * Evaluates trigger mask (UPDATE, INSERT, DELETE).
+         *
+         * @return the trigger mask.
+         */
         abstract int evaluateTriggerMasks();
 
+        /**
+         * Checks user's INSERT, UPDATE, DELETE permission in appropriate cases.
+         */
         abstract void checkRights();
 
     }
@@ -224,17 +252,36 @@ public class MergeUsing extends Prepared {
     }
 
     // Merge fields
+    /**
+     * Target table.
+     */
     Table targetTable;
+
+    /**
+     * Target table filter.
+     */
     TableFilter targetTableFilter;
+
     private Query query;
 
     // MergeUsing fields
+    /**
+     * Source table filter.
+     */
     TableFilter sourceTableFilter;
+
+    /**
+     * ON condition expression.
+     */
     Expression onCondition;
     private ArrayList<When> when = Utils.newSmallArrayList();
     private String queryAlias;
     private int countUpdatedRows;
     private Select targetMatchQuery;
+    /**
+     * Contains mappings between _ROWID_ and ROW_NUMBER for processed rows. Row
+     * identities are remembered to prevent duplicate updates of the same row.
+     */
     private final HashMap<Value, Integer> targetRowidsRemembered = new HashMap<>();
     private int sourceQueryRowNumber;
 
@@ -372,7 +419,7 @@ public class MergeUsing extends Prepared {
         }
 
         // setup the targetMatchQuery - for detecting if the target row exists
-        targetMatchQuery = new Select(session);
+        targetMatchQuery = new Select(session, null);
         ArrayList<Expression> expressions = new ArrayList<>(1);
         expressions.add(new ExpressionColumn(session.getDatabase(), targetTable.getSchema().getName(),
                 targetTableFilter.getTableAlias(), "_ROWID_"));
@@ -403,6 +450,11 @@ public class MergeUsing extends Prepared {
         return when;
     }
 
+    /**
+     * Adds WHEN command.
+     *
+     * @param w new WHEN command to add (update, delete or insert).
+     */
     public void addWhen(When w) {
         when.add(w);
     }

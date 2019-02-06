@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -15,6 +15,7 @@ import org.h2.table.TableFilter;
 import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueRow;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -303,6 +304,20 @@ public class SortOrder implements Comparator<Value[]> {
             sortTypes[i] = addExplicitNullPosition(sortTypes[i]);
         }
         return sortTypes;
+    }
+
+    /**
+     * Returns comparator for row values.
+     *
+     * @return comparator for row values.
+     */
+    public Comparator<Value> getRowValueComparator() {
+        return new Comparator<Value>() {
+            @Override
+            public int compare(Value o1, Value o2) {
+                return SortOrder.this.compare(((ValueRow) o1).getList(), ((ValueRow) o2).getList());
+            }
+        };
     }
 
     /**

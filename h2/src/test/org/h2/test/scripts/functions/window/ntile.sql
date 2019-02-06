@@ -1,4 +1,4 @@
--- Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (http://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -118,3 +118,12 @@ SELECT NTILE(X) OVER () FROM (SELECT * FROM SYSTEM_RANGE(1, 1));
 
 SELECT NTILE(X) OVER (ORDER BY X RANGE CURRENT ROW) FROM (SELECT * FROM SYSTEM_RANGE(1, 1));
 > exception SYNTAX_ERROR_1
+
+SELECT NTILE(100000000000) OVER (ORDER BY X) FROM (SELECT * FROM SYSTEM_RANGE(1, 4));
+> NTILE(100000000000) OVER (ORDER BY X)
+> -------------------------------------
+> 1
+> 2
+> 3
+> 4
+> rows: 4

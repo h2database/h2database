@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -165,7 +165,7 @@ public class Recover extends Tool implements DataHandler {
      * open the database and can be used even if the database files are
      * corrupted. A database can get corrupted if there is a bug in the database
      * engine or file system software, or if an application writes into the
-     * database file that doesn't understand the the file format, or if there is
+     * database file that doesn't understand the file format, or if there is
      * a hardware problem.
      *
      * @param args the command line arguments
@@ -423,7 +423,7 @@ public class Recover extends Tool implements DataHandler {
             byte[] small = lob.getSmall();
             if (small == null) {
                 String file = lob.getFileName();
-                String type = lob.getType() == Value.BLOB ? "BLOB" : "CLOB";
+                String type = lob.getValueType() == Value.BLOB ? "BLOB" : "CLOB";
                 if (lob.isCompressed()) {
                     dumpLob(file, true);
                     file += ".comp";
@@ -435,9 +435,9 @@ public class Recover extends Tool implements DataHandler {
             ValueLobDb lob = (ValueLobDb) v;
             byte[] small = lob.getSmall();
             if (small == null) {
-                int type = lob.getType();
+                int type = lob.getValueType();
                 long id = lob.getLobId();
-                long precision = lob.getPrecision();
+                long precision = lob.getType().getPrecision();
                 String columnType;
                 if (type == Value.BLOB) {
                     columnType = "BLOB";
@@ -486,7 +486,7 @@ public class Recover extends Tool implements DataHandler {
             } catch (Exception e) {
                 writeError(writer, e);
             }
-            Data s = Data.create(this, 128);
+            Data s = Data.create(this, 128, false);
             seek(0);
             store.readFully(s.getBytes(), 0, 128);
             s.setPos(48);
@@ -503,7 +503,7 @@ public class Recover extends Tool implements DataHandler {
             }
             long pageCount = length / pageSize;
             parents = new int[(int) pageCount];
-            s = Data.create(this, pageSize);
+            s = Data.create(this, pageSize, false);
             for (long i = 3; i < pageCount; i++) {
                 s.reset();
                 seek(i);
@@ -513,7 +513,7 @@ public class Recover extends Tool implements DataHandler {
                 parents[(int) i] = s.readInt();
             }
             int logKey = 0, logFirstTrunkPage = 0, logFirstDataPage = 0;
-            s = Data.create(this, pageSize);
+            s = Data.create(this, pageSize, false);
             for (long i = 1;; i++) {
                 if (i == 3) {
                     break;
@@ -789,9 +789,9 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void dumpPageStore(PrintWriter writer, long pageCount) {
-        Data s = Data.create(this, pageSize);
+        Data s = Data.create(this, pageSize, false);
         for (long page = 3; page < pageCount; page++) {
-            s = Data.create(this, pageSize);
+            s = Data.create(this, pageSize, false);
             seek(page);
             store.readFully(s.getBytes(), 0, pageSize);
             dumpPage(writer, s, page, pageCount);
@@ -899,7 +899,7 @@ public class Recover extends Tool implements DataHandler {
     private void dumpPageLogStream(PrintWriter writer, int logKey,
             int logFirstTrunkPage, int logFirstDataPage, long pageCount)
             throws IOException {
-        Data s = Data.create(this, pageSize);
+        Data s = Data.create(this, pageSize, false);
         DataReader in = new DataReader(
                 new PageInputStream(writer, this, store, logKey,
                 logFirstTrunkPage, logFirstDataPage, pageSize)
@@ -968,7 +968,7 @@ public class Recover extends Tool implements DataHandler {
                 }
                 writer.println("-- undo page " + pageId + " " + typeName);
                 if (trace) {
-                    Data d = Data.create(null, data);
+                    Data d = Data.create(null, data, false);
                     dumpPage(writer, d, pageId, pageCount);
                 }
             } else if (x == PageLog.ADD) {
@@ -1094,7 +1094,7 @@ public class Recover extends Tool implements DataHandler {
             this.logKey = logKey - 1;
             this.nextTrunkPage = firstTrunkPage;
             this.dataPage = firstDataPage;
-            page = Data.create(handler, pageSize);
+            page = Data.create(handler, pageSize, false);
         }
 
         @Override
@@ -1379,7 +1379,7 @@ public class Recover extends Tool implements DataHandler {
             writer.println("--   empty: " + empty);
         }
         if (!last) {
-            Data s2 = Data.create(this, pageSize);
+            Data s2 = Data.create(this, pageSize, false);
             s.setPos(pageSize);
             long parent = pageId;
             while (true) {
@@ -1568,7 +1568,7 @@ public class Recover extends Tool implements DataHandler {
                     writer.println("DELETE FROM " + name + ";");
                     writer.println("INSERT INTO " + name + " SELECT * FROM " + storageName + ";");
                     if (name.startsWith("INFORMATION_SCHEMA.LOBS")) {
-                        writer.println("UPDATE " + name + " SET TABLE = " +
+                        writer.println("UPDATE " + name + " SET \"TABLE\" = " +
                                 LobStorageFrontend.TABLE_TEMP + ";");
                         deleteLobs = true;
                     }
@@ -1595,7 +1595,7 @@ public class Recover extends Tool implements DataHandler {
         writer.println("DROP ALIAS READ_BLOB_DB;");
         writer.println("DROP ALIAS READ_CLOB_DB;");
         if (deleteLobs) {
-            writer.println("DELETE FROM INFORMATION_SCHEMA.LOBS WHERE TABLE = " +
+            writer.println("DELETE FROM INFORMATION_SCHEMA.LOBS WHERE \"TABLE\" = " +
                     LobStorageFrontend.TABLE_TEMP + ";");
         }
         for (MetaRecord m : schema) {

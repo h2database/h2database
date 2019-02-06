@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -11,14 +11,14 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.analysis.DataAnalysisOperation;
 import org.h2.expression.analysis.PartitionData;
-import org.h2.util.ValueHashMap;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
+import org.h2.value.ValueRow;
 
 /**
  * Grouped data for aggregates.
@@ -51,18 +51,18 @@ public abstract class SelectGroups {
         /**
          * Map of group-by key to group-by expression data e.g. AggregateData
          */
-        private HashMap<ValueArray, Object[]> groupByData;
+        private TreeMap<ValueRow, Object[]> groupByData;
 
         /**
          * Key into groupByData that produces currentGroupByExprData. Not used
          * in lazy mode.
          */
-        private ValueArray currentGroupsKey;
+        private ValueRow currentGroupsKey;
 
         /**
          * Cursor for {@link #next()} method.
          */
-        private Iterator<Entry<ValueArray, Object[]>> cursor;
+        private Iterator<Entry<ValueRow, Object[]>> cursor;
 
         Grouped(Session session, ArrayList<Expression> expressions, int[] groupIndex) {
             super(session, expressions);
@@ -72,7 +72,7 @@ public abstract class SelectGroups {
         @Override
         public void reset() {
             super.reset();
-            groupByData = new HashMap<>();
+            groupByData = new TreeMap<>(session.getDatabase().getCompareMode());
             currentGroupsKey = null;
             cursor = null;
         }
@@ -80,7 +80,7 @@ public abstract class SelectGroups {
         @Override
         public void nextSource() {
             if (groupIndex == null) {
-                currentGroupsKey = ValueArray.getEmpty();
+                currentGroupsKey = ValueRow.getEmpty();
             } else {
                 Value[] keyValues = new Value[groupIndex.length];
                 // update group
@@ -89,7 +89,7 @@ public abstract class SelectGroups {
                     Expression expr = expressions.get(idx);
                     keyValues[i] = expr.getValue(session);
                 }
-                currentGroupsKey = ValueArray.get(keyValues);
+                currentGroupsKey = ValueRow.get(keyValues);
             }
             Object[] values = groupByData.get(currentGroupsKey);
             if (values == null) {
@@ -114,15 +114,15 @@ public abstract class SelectGroups {
         public void done() {
             super.done();
             if (groupIndex == null && groupByData.size() == 0) {
-                groupByData.put(ValueArray.getEmpty(), createRow());
+                groupByData.put(ValueRow.getEmpty(), createRow());
             }
             cursor = groupByData.entrySet().iterator();
         }
 
         @Override
-        public ValueArray next() {
+        public ValueRow next() {
             if (cursor.hasNext()) {
-                Map.Entry<ValueArray, Object[]> entry = cursor.next();
+                Map.Entry<ValueRow, Object[]> entry = cursor.next();
                 currentGroupByExprData = entry.getValue();
                 currentGroupRowId++;
                 return entry.getKey();
@@ -184,18 +184,24 @@ public abstract class SelectGroups {
         }
 
         @Override
-        public ValueArray next() {
+        public ValueRow next() {
             if (cursor.hasNext()) {
                 currentGroupByExprData = cursor.next();
                 currentGroupRowId++;
-                return ValueArray.getEmpty();
+                return ValueRow.getEmpty();
             }
             return null;
         }
     }
 
+    /**
+     * The database session.
+     */
     final Session session;
 
+    /**
+     * The query's column list, including invisible expressions such as order by expressions.
+     */
     final ArrayList<Expression> expressions;
 
     /**
@@ -217,7 +223,7 @@ public abstract class SelectGroups {
     /**
      * Maps an partitioned window expression object to its data.
      */
-    private final HashMap<DataAnalysisOperation, ValueHashMap<PartitionData>> windowPartitionData = new HashMap<>();
+    private final HashMap<DataAnalysisOperation, TreeMap<Value, PartitionData>> windowPartitionData = new HashMap<>();
 
     /**
      * The id of the current group.
@@ -235,6 +241,7 @@ public abstract class SelectGroups {
      *            is this query is a group query
      * @param groupIndex
      *            the indexes of group expressions, or null
+     * @return new instance of the grouped data.
      */
     public static SelectGroups getInstance(Session session, ArrayList<Expression> expressions, boolean isGroupQuery,
             int[] groupIndex) {
@@ -247,7 +254,10 @@ public abstract class SelectGroups {
     }
 
     /**
-     * Is there currently a group-by active
+     * Is there currently a group-by active.
+     *
+     * @return {@code true} if there is currently a group-by active,
+     *          otherwise returns {@code false}.
      */
     public boolean isCurrentGroup() {
         return currentGroupByExprData != null;
@@ -273,7 +283,7 @@ public abstract class SelectGroups {
      *
      * @param expr
      *            expression
-     * @param object
+     * @param obj
      *            expression data to set
      */
     public final void setCurrentGroupExprData(Expression expr, Object obj) {
@@ -292,6 +302,11 @@ public abstract class SelectGroups {
         currentGroupByExprData[index] = obj;
     }
 
+    /**
+     * Creates new object arrays to holds group-by data.
+     *
+     * @return new object array to holds group-by data.
+     */
     final Object[] createRow() {
         return new Object[Math.max(exprToIndexInGroupByData.size(), expressions.size())];
     }
@@ -309,7 +324,7 @@ public abstract class SelectGroups {
         if (partitionKey == null) {
             return windowData.get(expr);
         } else {
-            ValueHashMap<PartitionData> map = windowPartitionData.get(expr);
+            TreeMap<Value, PartitionData> map = windowPartitionData.get(expr);
             return map != null ? map.get(partitionKey) : null;
         }
     }
@@ -321,7 +336,7 @@ public abstract class SelectGroups {
      *            expression
      * @param partitionKey
      *            a key of partition
-     * @param object
+     * @param obj
      *            window expression data to set
      */
     public final void setWindowExprData(DataAnalysisOperation expr, Value partitionKey, PartitionData obj) {
@@ -329,15 +344,18 @@ public abstract class SelectGroups {
             Object old = windowData.put(expr, obj);
             assert old == null;
         } else {
-            ValueHashMap<PartitionData> map = windowPartitionData.get(expr);
+            TreeMap<Value, PartitionData> map = windowPartitionData.get(expr);
             if (map == null) {
-                map = new ValueHashMap<>();
+                map = new TreeMap<>(session.getDatabase().getCompareMode());
                 windowPartitionData.put(expr, map);
             }
             map.put(partitionKey, obj);
         }
     }
 
+    /**
+     * Update group-by data specified by implementation.
+     */
     abstract void updateCurrentGroupExprData();
 
     /**
@@ -379,7 +397,7 @@ public abstract class SelectGroups {
      *
      * @return the key of the next group, or null
      */
-    public abstract ValueArray next();
+    public abstract ValueRow next();
 
     /**
      * Removes the data for the current key.
@@ -412,4 +430,13 @@ public abstract class SelectGroups {
         currentGroupRowId++;
     }
 
+    /**
+     * Gets the query's column list, including invisible expressions
+     * such as order by expressions.
+     *
+     * @return Expressions.
+     */
+    public ArrayList<Expression> expressions() {
+        return expressions;
+    }
 }

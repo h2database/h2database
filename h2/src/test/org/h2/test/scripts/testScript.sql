@@ -1,4 +1,4 @@
--- Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (http://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -366,14 +366,14 @@ explain select -cast(0 as real), -cast(0 as double);
 
 select () empty;
 > EMPTY
-> -----
-> ()
+> ------
+> ROW ()
 > rows: 1
 
 select (1,) one_element;
 > ONE_ELEMENT
 > -----------
-> (1)
+> ROW (1)
 > rows: 1
 
 select (1) one;
@@ -1395,15 +1395,15 @@ drop table test;
 create table test(id int primary key, data array);
 > ok
 
-insert into test values(1, (1, 1)), (2, (1, 2)), (3, (1, 1, 1));
+insert into test values(1, ARRAY[1, 1]), (2, ARRAY[1, 2]), (3, ARRAY[1, 1, 1]);
 > update count: 3
 
 select * from test order by data;
 > ID DATA
 > -- ---------
-> 1  (1, 1)
-> 3  (1, 1, 1)
-> 2  (1, 2)
+> 1  [1, 1]
+> 3  [1, 1, 1]
+> 2  [1, 2]
 > rows (ordered): 3
 
 drop table test;
@@ -2003,21 +2003,21 @@ drop table people, cars;
 > ok
 
 select (1, 2);
-> 1, 2
-> ------
-> (1, 2)
+> ROW (1, 2)
+> ----------
+> ROW (1, 2)
 > rows: 1
 
 create table array_test(x array);
 > ok
 
-insert into array_test values((1, 2, 3)), ((2, 3, 4));
+insert into array_test values(ARRAY[1, 2, 3]), (ARRAY[2, 3, 4]);
 > update count: 2
 
-select * from array_test where x = (1, 2, 3);
+select * from array_test where x = ARRAY[1, 2, 3];
 > X
 > ---------
-> (1, 2, 3)
+> [1, 2, 3]
 > rows: 1
 
 drop table array_test;
@@ -3177,7 +3177,7 @@ drop table test;
 call select 1.0/3.0*3.0, 100.0/2.0, -25.0/100.0, 0.0/3.0, 6.9/2.0, 0.72179425150347250912311550800000 / 5314251955.21;
 > SELECT 0.999999999999999999999999990, 50, -0.25, 0, 3.45, 1.35822361752313607260107721120531135706133161972E-10 FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */ /* scanCount: 2 */
 > -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> (0.999999999999999999999999990, 50, -0.25, 0, 3.45, 1.35822361752313607260107721120531135706133161972E-10)
+> ROW (0.999999999999999999999999990, 50, -0.25, 0, 3.45, 1.35822361752313607260107721120531135706133161972E-10)
 > rows: 1
 
 call (select x from dual where x is null);
@@ -3254,8 +3254,11 @@ select count(*) from test where id in ((select id from test));
 select count(*) from test where id = ((select id from test));
 > exception SCALAR_SUBQUERY_CONTAINS_MORE_THAN_ONE_ROW
 
-select count(*) from test where id = ((select id from test), 1);
+select count(*) from test where id = ARRAY [(select id from test), 1];
 > exception COMPARING_ARRAY_TO_SCALAR
+
+select count(*) from test where id = ((select id from test fetch first row only), 1);
+> exception COLUMN_COUNT_DOES_NOT_MATCH
 
 select (select id from test where 1=0) from test;
 > SELECT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan: FALSE */ WHERE FALSE
@@ -3895,8 +3898,8 @@ SELECT * FROM TEST;
 > rows: 0
 
 SELECT GROUP_CONCAT(ID) FROM TEST;
-> GROUP_CONCAT(ID)
-> ----------------
+> LISTAGG(ID)
+> -----------
 > null
 > rows: 1
 
@@ -3927,8 +3930,8 @@ INSERT INTO TEST VALUES(2, 'World');
 > update count: 1
 
 SELECT group_concat(name) FROM TEST group by id;
-> GROUP_CONCAT(NAME)
-> ------------------
+> LISTAGG(NAME)
+> -------------
 > Hello
 > World
 > rows: 2
@@ -4315,8 +4318,8 @@ update test set (id, name)=(select id+1, name || 'Ho' from test t1 where test.id
 > update count: 2
 
 explain update test set (id, name)=(id+1, name || 'Hi');
-#+mvStore#>> UPDATE PUBLIC.TEST /* PUBLIC.TEST.tableScan */ SET ID = ARRAY_GET(((ID + 1), (NAME || 'Hi')), 1), NAME = ARRAY_GET(((ID + 1), (NAME || 'Hi')), 2)
-#-mvStore#>> UPDATE PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ SET ID = ARRAY_GET(((ID + 1), (NAME || 'Hi')), 1), NAME = ARRAY_GET(((ID + 1), (NAME || 'Hi')), 2)
+#+mvStore#>> UPDATE PUBLIC.TEST /* PUBLIC.TEST.tableScan */ SET ID = ARRAY_GET(ROW ((ID + 1), (NAME || 'Hi')), 1), NAME = ARRAY_GET(ROW ((ID + 1), (NAME || 'Hi')), 2)
+#-mvStore#>> UPDATE PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ SET ID = ARRAY_GET(ROW ((ID + 1), (NAME || 'Hi')), 1), NAME = ARRAY_GET(ROW ((ID + 1), (NAME || 'Hi')), 2)
 
 explain update test set (id, name)=(select id+1, name || 'Ho' from test t1 where test.id=t1.id);
 #+mvStore#>> UPDATE PUBLIC.TEST /* PUBLIC.TEST.tableScan */ SET ID = ARRAY_GET((SELECT (ID + 1), (NAME || 'Ho') FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE TEST.ID = T1.ID), 1), NAME = ARRAY_GET((SELECT (ID + 1), (NAME || 'Ho') FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE TEST.ID = T1.ID), 2)
@@ -6081,18 +6084,18 @@ SELECT ID FROM TEST WHERE XVI LIKE 'abc%';
 > 3
 > rows: 1
 
-SELECT 'abc', 'Papa Joe''s', CAST(-1 AS SMALLINT), CAST(2 AS BIGINT), CAST(0 AS DOUBLE), CAST('0a0f' AS BINARY), CAST(125 AS TINYINT), TRUE, FALSE FROM TEST WHERE ID=1;
-> 'abc' 'Papa Joe''s' -1 2 0.0 X'0a0f' 125 TRUE FALSE
-> ----- ------------- -- - --- ------- --- ---- -----
-> abc   Papa Joe's    -1 2 0.0 0a0f    125 TRUE FALSE
+SELECT 'abc', 'Papa Joe''s', CAST(-1 AS SMALLINT), CAST(2 AS BIGINT), CAST(0 AS DOUBLE), CAST('0a0f' AS BINARY) B, CAST(125 AS TINYINT), TRUE, FALSE FROM TEST WHERE ID=1;
+> 'abc' 'Papa Joe''s' -1 2 0.0 B    125 TRUE FALSE
+> ----- ------------- -- - --- ---- --- ---- -----
+> abc   Papa Joe's    -1 2 0.0 0a0f 125 TRUE FALSE
 > rows: 1
 
 -- ' This apostrophe is here to fix syntax highlighting in the text editors.
 
-SELECT CAST('abcd' AS VARCHAR(255)), CAST('ef_gh' AS VARCHAR(3));
-> 'abcd' 'ef_'
-> ------ -----
-> abcd   ef_
+SELECT CAST('abcd' AS VARCHAR(255)) C1, CAST('ef_gh' AS VARCHAR(3)) C2;
+> C1   C2
+> ---- ---
+> abcd ef_
 > rows: 1
 
 DROP TABLE TEST;
@@ -6513,9 +6516,6 @@ SELECT * FROM CUSTOMER WHERE NAME NOT IN(SELECT NAME FROM CUSTOMER);
 > -- ----
 > rows: 0
 
-SET MODE PostgreSQL;
-> ok
-
 SELECT * FROM CUSTOMER WHERE NAME = ANY(SELECT NAME FROM CUSTOMER);
 > ID NAME
 > -- -------
@@ -6547,9 +6547,6 @@ SELECT * FROM CUSTOMER WHERE NAME < ANY(SELECT NAME FROM CUSTOMER);
 > 1  Lehmann
 > 2  Meier
 > rows: 2
-
-SET MODE Regular;
-> ok
 
 DROP TABLE INVOICE;
 > ok
@@ -6669,8 +6666,8 @@ INSERT INTO TEST VALUES(?, ?, ?);
 > update count: 9
 
 SELECT IFNULL(NAME, '') || ': ' || GROUP_CONCAT(VALUE ORDER BY NAME, VALUE DESC SEPARATOR ', ') FROM TEST GROUP BY NAME ORDER BY 1;
-> (IFNULL(NAME, '') || ': ') || GROUP_CONCAT(VALUE ORDER BY NAME, VALUE DESC SEPARATOR ', ')
-> ------------------------------------------------------------------------------------------
+> (IFNULL(NAME, '') || ': ') || LISTAGG(VALUE, ', ') WITHIN GROUP (ORDER BY NAME, VALUE DESC)
+> -------------------------------------------------------------------------------------------
 > : 3.10, -10.00
 > Apples: 1.50, 1.20, 1.10
 > Bananas: 2.50
@@ -6679,14 +6676,14 @@ SELECT IFNULL(NAME, '') || ': ' || GROUP_CONCAT(VALUE ORDER BY NAME, VALUE DESC 
 > rows (ordered): 5
 
 SELECT GROUP_CONCAT(ID ORDER BY ID) FROM TEST;
-> GROUP_CONCAT(ID ORDER BY ID)
-> ----------------------------
+> LISTAGG(ID) WITHIN GROUP (ORDER BY ID)
+> --------------------------------------
 > 1,2,3,4,5,6,7,8,9
 > rows: 1
 
 SELECT STRING_AGG(ID,';') FROM TEST;
-> GROUP_CONCAT(ID SEPARATOR ';')
-> ------------------------------
+> LISTAGG(ID, ';')
+> -----------------
 > 1;2;3;4;5;6;7;8;9
 > rows: 1
 

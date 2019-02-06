@@ -109,6 +109,12 @@
       <version>4.12</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm</artifactId>
+      <version>7.0</version>
+      <scope>test</scope>
+    </dependency>
     <!-- END TEST DEPENDENCIES !-->
   </dependencies>
 
@@ -188,7 +194,6 @@
   <testResource>
     <directory>src/test</directory>
       <includes>
-        <include>org/h2/test/scripts/testSimple.in.txt</include>
         <include>org/h2/test/scripts/**/*.sql</include>
         <include>org/h2/samples/newsfeed.sql</include>
         <include>org/h2/samples/optimizations.sql</include>

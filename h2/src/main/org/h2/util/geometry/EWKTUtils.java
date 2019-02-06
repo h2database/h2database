@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -563,7 +563,7 @@ public final class EWKTUtils {
      *
      * @param ewkb
      *            source EWKB
-     * @param dimension
+     * @param dimensionSystem
      *            dimension system
      * @return EWKT representation
      */
@@ -594,7 +594,7 @@ public final class EWKTUtils {
      *
      * @param ewkt
      *            source EWKT
-     * @param dimension
+     * @param dimensionSystem
      *            dimension system
      * @return EWKB representation
      */
@@ -608,7 +608,7 @@ public final class EWKTUtils {
     /**
      * Parses a EWKB.
      *
-     * @param source
+     * @param ewkt
      *            source EWKT
      * @param target
      *            output target

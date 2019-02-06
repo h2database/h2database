@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -413,12 +413,12 @@ public class ScriptCommand extends ScriptBase {
                     buff.append(", ");
                 }
                 Value v = row.getValue(j);
-                if (v.getPrecision() > lobBlockSize) {
+                if (v.getType().getPrecision() > lobBlockSize) {
                     int id;
-                    if (v.getType() == Value.CLOB) {
+                    if (v.getValueType() == Value.CLOB) {
                         id = writeLobStream(v);
                         buff.append("SYSTEM_COMBINE_CLOB(").append(id).append(')');
-                    } else if (v.getType() == Value.BLOB) {
+                    } else if (v.getValueType() == Value.BLOB) {
                         id = writeLobStream(v);
                         buff.append("SYSTEM_COMBINE_BLOB(").append(id).append(')');
                     } else {
@@ -459,7 +459,7 @@ public class ScriptCommand extends ScriptBase {
             tempLobTableCreated = true;
         }
         int id = nextLobId++;
-        switch (v.getType()) {
+        switch (v.getValueType()) {
         case Value.BLOB: {
             byte[] bytes = new byte[lobBlockSize];
             try (InputStream input = v.getInputStream()) {
@@ -499,7 +499,7 @@ public class ScriptCommand extends ScriptBase {
             break;
         }
         default:
-            DbException.throwInternalError("type:" + v.getType());
+            DbException.throwInternalError("type:" + v.getValueType());
         }
         return id;
     }

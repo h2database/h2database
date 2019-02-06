@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -167,7 +167,7 @@ public final class GeometryUtils {
          */
         private boolean set;
 
-        double minX, maxX, minY, maxY;
+        private double minX, maxX, minY, maxY;
 
         /**
          * Creates a new envelope calculation target.
@@ -295,7 +295,7 @@ public final class GeometryUtils {
          */
         private boolean set;
 
-        double minX, maxX, minY, maxY;
+        private double minX, maxX, minY, maxY;
 
         private boolean hasZ;
 
@@ -567,6 +567,11 @@ public final class GeometryUtils {
         return Double.isNaN(d) ? Double.NaN : d == 0d ? 0d : d;
     }
 
+    /**
+     * Throw exception if param is not finite value (ie. NaN/inf/etc)
+     * @param d double value
+     * @return same double value
+     */
     static double checkFinite(double d) {
         // Do not push this negation down, it will break NaN rejection
         if (!(Math.abs(d) <= Double.MAX_VALUE)) {

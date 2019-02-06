@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -209,6 +209,12 @@ public class MVPrimaryIndex extends BaseIndex {
         }
     }
 
+    /**
+     * Lock a set of rows.
+     *
+     * @param session database session
+     * @param rowsForUpdate rows to lock
+     */
     void lockRows(Session session, Iterable<Row> rowsForUpdate) {
         TransactionMap<Value, Value> map = getMap(session);
         for (Row row : rowsForUpdate) {
@@ -217,6 +223,13 @@ public class MVPrimaryIndex extends BaseIndex {
         }
     }
 
+    /**
+     * Lock a single row.
+     *
+     * @param session database session
+     * @param row to lock
+     * @return row object if it exists
+     */
     Row lockRow(Session session, Row row) {
         TransactionMap<Value, Value> map = getMap(session);
         long key = row.getKey();
@@ -273,7 +286,7 @@ public class MVPrimaryIndex extends BaseIndex {
         return getRow(session, key, (ValueArray) v);
     }
 
-    public Row getRow(Session session, long key, ValueArray array) {
+    private Row getRow(Session session, long key, ValueArray array) {
         Row row = session.createRow(array.getList(), 0);
         row.setKey(key);
         return row;

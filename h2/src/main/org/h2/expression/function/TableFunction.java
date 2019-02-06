@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -16,13 +16,14 @@ import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.table.Column;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
+import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
 
 /**
- * Implementation of the functions TABLE(..) and TABLE_DISTINCT(..).
+ * Implementation of the functions TABLE(..), TABLE_DISTINCT(..), and
+ * UNNEST(..).
  */
 public class TableFunction extends Function {
     private final long rowCount;
@@ -104,8 +105,11 @@ public class TableFunction extends Function {
                 if (v == ValueNull.INSTANCE) {
                     list[i] = new Value[0];
                 } else {
-                    ValueArray array = (ValueArray) v.convertTo(Value.ARRAY);
-                    Value[] l = array.getList();
+                    int type = v.getValueType();
+                    if (type != Value.ARRAY && type != Value.ROW) {
+                        v = v.convertTo(Value.ARRAY);
+                    }
+                    Value[] l = ((ValueCollectionBase) v).getList();
                     list[i] = l;
                     rows = Math.max(rows, l.length);
                 }
@@ -121,8 +125,8 @@ public class TableFunction extends Function {
                         Column c = columns[j];
                         v = l[row];
                         if (!unnest) {
-                            v = c.convert(v).convertPrecision(c.getPrecision(), false)
-                                    .convertScale(true, c.getScale());
+                            v = c.convert(v).convertPrecision(c.getType().getPrecision(), false)
+                                    .convertScale(true, c.getType().getScale());
                         }
                     }
                     r[j] = v;

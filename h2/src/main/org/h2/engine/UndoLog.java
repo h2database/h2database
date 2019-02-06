@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -73,7 +73,7 @@ public class UndoLog {
             long pos = storedEntriesPos.remove(last);
             long end = file.length();
             int bufferLength = (int) (end - pos);
-            Data buff = Data.create(database, bufferLength);
+            Data buff = Data.create(database, bufferLength, true);
             file.seek(pos);
             file.readFully(buff.getBytes(), 0, bufferLength);
             while (buff.length() < bufferLength) {
@@ -143,10 +143,11 @@ public class UndoLog {
             if (file == null) {
                 String fileName = database.createTempFile();
                 file = database.openFile(fileName, "rw", false);
+                file.autoDelete();
                 file.setCheckedWriting(false);
                 file.setLength(FileStore.HEADER_LENGTH);
             }
-            Data buff = Data.create(database, Constants.DEFAULT_PAGE_SIZE);
+            Data buff = Data.create(database, Constants.DEFAULT_PAGE_SIZE, true);
             for (int i = 0; i < records.size(); i++) {
                 UndoLogRecord r = records.get(i);
                 buff.checkCapacity(Constants.DEFAULT_PAGE_SIZE);
@@ -160,7 +161,6 @@ public class UndoLog {
             storedEntries += records.size();
             memoryUndo = 0;
             records.clear();
-            file.autoDelete();
         }
     }
 

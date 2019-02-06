@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0, Version 1.0,
-and under the Eclipse Public License, Version 1.0
+Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+and the EPL 1.0 (http://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
@@ -63,8 +63,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>PostgreSQL catalog: use BEFORE SELECT triggers instead of views over metadata tables.
 </li><li>Test very large databases and LOBs (up to 256 GB).
 </li><li>Store all temp files in the temp directory.
-</li><li>Don't use temp files, specially not deleteOnExit (bug 4513817: File.deleteOnExit consumes memory).
-    Also to allow opening client / server (remote) connections when using LOBs.
 </li><li>Make DDL (Data Definition) operations transactional.
 </li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED).
 </li><li>Groovy Stored Procedures: http://groovy.codehaus.org/GSQL

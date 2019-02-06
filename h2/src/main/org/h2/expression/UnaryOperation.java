@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -8,6 +8,7 @@ package org.h2.expression;
 import org.h2.engine.Session;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -17,7 +18,7 @@ import org.h2.value.ValueNull;
 public class UnaryOperation extends Expression {
 
     private Expression arg;
-    private int dataType;
+    private TypeInfo type;
 
     public UnaryOperation(Expression arg) {
         this.arg = arg;
@@ -33,7 +34,7 @@ public class UnaryOperation extends Expression {
 
     @Override
     public Value getValue(Session session) {
-        Value a = arg.getValue(session).convertTo(dataType, session.getDatabase().getMode());
+        Value a = arg.getValue(session).convertTo(type, session.getDatabase().getMode(), null);
         return a == ValueNull.INSTANCE ? a : a.negate();
     }
 
@@ -45,11 +46,11 @@ public class UnaryOperation extends Expression {
     @Override
     public Expression optimize(Session session) {
         arg = arg.optimize(session);
-        dataType = arg.getType();
-        if (dataType == Value.UNKNOWN) {
-            dataType = Value.DECIMAL;
-        } else if (dataType == Value.ENUM) {
-            dataType = Value.INT;
+        type = arg.getType();
+        if (type.getValueType() == Value.UNKNOWN) {
+            type = TypeInfo.TYPE_DECIMAL_DEFAULT;
+        } else if (type.getValueType() == Value.ENUM) {
+            type = TypeInfo.TYPE_INT;
         }
         if (arg.isConstant()) {
             return ValueExpression.get(getValue(session));
@@ -63,23 +64,8 @@ public class UnaryOperation extends Expression {
     }
 
     @Override
-    public int getType() {
-        return dataType;
-    }
-
-    @Override
-    public long getPrecision() {
-        return arg.getPrecision();
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return arg.getDisplaySize();
-    }
-
-    @Override
-    public int getScale() {
-        return arg.getScale();
+    public TypeInfo getType() {
+        return type;
     }
 
     @Override

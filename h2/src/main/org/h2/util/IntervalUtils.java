@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -328,7 +328,8 @@ public class IntervalUtils {
         return ValueInterval.from(qualifier, negative, leading, remaining);
     }
 
-    static ValueInterval parseInterval2(IntervalQualifier qualifier, String s, char ch, int max, boolean negative) {
+    private static ValueInterval parseInterval2(IntervalQualifier qualifier, String s,
+            char ch, int max, boolean negative) {
         long leading;
         long remaining;
         int dash = s.indexOf(ch, 1);
@@ -665,6 +666,8 @@ public class IntervalUtils {
     }
 
     /**
+     * Returns years value of interval, if any.
+     *
      * @param qualifier
      *            qualifier
      * @param negative
@@ -688,6 +691,8 @@ public class IntervalUtils {
     }
 
     /**
+     * Returns months value of interval, if any.
+     *
      * @param qualifier
      *            qualifier
      * @param negative
@@ -715,6 +720,8 @@ public class IntervalUtils {
     }
 
     /**
+     * Returns days value of interval, if any.
+     *
      * @param qualifier
      *            qualifier
      * @param negative
@@ -723,7 +730,7 @@ public class IntervalUtils {
      *            value of leading field
      * @param remaining
      *            values of all remaining fields
-     * @return months, or 0
+     * @return days, or 0
      */
     public static long daysFromInterval(IntervalQualifier qualifier, boolean negative, long leading, long remaining) {
         switch (qualifier) {
@@ -742,6 +749,8 @@ public class IntervalUtils {
     }
 
     /**
+     * Returns hours value of interval, if any.
+     *
      * @param qualifier
      *            qualifier
      * @param negative
@@ -779,6 +788,8 @@ public class IntervalUtils {
     }
 
     /**
+     * Returns minutes value of interval, if any.
+     *
      * @param qualifier
      *            qualifier
      * @param negative
@@ -819,6 +830,8 @@ public class IntervalUtils {
     }
 
     /**
+     * Returns nanoseconds value of interval, if any.
+     *
      * @param qualifier
      *            qualifier
      * @param negative

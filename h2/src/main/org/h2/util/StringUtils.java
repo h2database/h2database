@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -172,6 +172,15 @@ public class StringUtils {
         return buff.toString();
     }
 
+    /**
+     * Convert a string to a Java literal using the correct escape sequences.
+     * The literal is not enclosed in double quotes. The result can be used in
+     * properties files or in Java source code.
+     *
+     * @param s the text to convert
+     * @param buff the Java representation to return
+     * @param forSQL true if we embedding this inside a STRINGDECODE SQL command
+     */
     public static void javaEncode(String s, StringBuilder buff, boolean forSQL) {
         int length = s.length();
         for (int i = 0; i < length; i++) {
@@ -242,8 +251,9 @@ public class StringUtils {
      */
     public static String addAsterisk(String s, int index) {
         if (s != null) {
-            index = Math.min(index, s.length());
-            s = s.substring(0, index) + "[*]" + s.substring(index);
+            int len = s.length();
+            index = Math.min(index, len);
+            s = new StringBuilder(len + 3).append(s, 0, index).append("[*]").append(s, index, len).toString();
         }
         return s;
     }
@@ -360,10 +370,12 @@ public class StringUtils {
         if (array == null) {
             return "null";
         }
-        StatementBuilder buff = new StatementBuilder("new String[]{");
-        for (String a : array) {
-            buff.appendExceptFirst(", ");
-            buff.append(quoteJavaString(a));
+        StringBuilder buff = new StringBuilder("new String[]{");
+        for (int i = 0; i < array.length; i++) {
+            if (i > 0) {
+                buff.append(", ");
+            }
+            buff.append(quoteJavaString(array[i]));
         }
         return buff.append('}').toString();
     }
@@ -379,12 +391,14 @@ public class StringUtils {
         if (array == null) {
             return "null";
         }
-        StatementBuilder buff = new StatementBuilder("new int[]{");
-        for (int a : array) {
-            buff.appendExceptFirst(", ");
-            buff.append(a);
+        StringBuilder builder = new StringBuilder("new int[]{");
+        for (int i = 0; i < array.length; i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            builder.append(array[i]);
         }
-        return buff.append('}').toString();
+        return builder.append('}').toString();
     }
 
     /**
@@ -432,14 +446,10 @@ public class StringUtils {
             } else if (ch == '%') {
                 buff[j++] = (byte) Integer.parseInt(encoded.substring(i + 1, i + 3), 16);
                 i += 2;
-            } else {
-                if (SysProperties.CHECK) {
-                    if (ch > 127 || ch < ' ') {
-                        throw new IllegalArgumentException(
-                                "Unexpected char " + (int) ch + " decoding " + encoded);
-                    }
-                }
+            } else if (ch <= 127 && ch >= ' ') {
                 buff[j++] = (byte) ch;
+            } else {
+                throw new IllegalArgumentException("Unexpected char " + (int) ch + " decoding " + encoded);
             }
         }
         return new String(buff, 0, j, StandardCharsets.UTF_8);
@@ -492,21 +502,24 @@ public class StringUtils {
      * @return the combined string
      */
     public static String arrayCombine(String[] list, char separatorChar) {
-        StatementBuilder buff = new StatementBuilder();
-        for (String s : list) {
-            buff.appendExceptFirst(String.valueOf(separatorChar));
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < list.length; i++) {
+            if (i > 0) {
+                builder.append(separatorChar);
+            }
+            String s = list[i];
             if (s == null) {
-                s = "";
+                continue;
             }
             for (int j = 0, length = s.length(); j < length; j++) {
                 char c = s.charAt(j);
                 if (c == '\\' || c == separatorChar) {
-                    buff.append('\\');
+                    builder.append('\\');
                 }
-                buff.append(c);
+                builder.append(c);
             }
         }
-        return buff.toString();
+        return builder.toString();
     }
 
     /**
@@ -944,15 +957,13 @@ public class StringUtils {
         } else if (s.isEmpty()) {
             return "";
         }
-        int hash = s.hashCode();
         String[] cache = getCache();
         if (cache != null) {
+            int hash = s.hashCode();
             int index = hash & (SysProperties.OBJECT_CACHE_SIZE - 1);
             String cached = cache[index];
-            if (cached != null) {
-                if (s.equals(cached)) {
-                    return cached;
-                }
+            if (s.equals(cached)) {
+                return cached;
             }
             cache[index] = s;
         }
@@ -1080,6 +1091,26 @@ public class StringUtils {
         for (int i = 0; i < len; i++) {
             int c = value[i] & 0xff;
             builder.append(hex[c >>> 4]).append(hex[c & 0xf]);
+        }
+        return builder;
+    }
+
+    /**
+     * Appends specified number of trailing bytes from unsigned long value to a
+     * specified string builder.
+     *
+     * @param builder
+     *            string builder to append to
+     * @param x
+     *            value to append
+     * @param bytes
+     *            number of bytes to append
+     * @return the specified string builder
+     */
+    public static StringBuilder appendHex(StringBuilder builder, long x, int bytes) {
+        char[] hex = HEX;
+        for (int i = bytes * 8; i > 0;) {
+            builder.append(hex[(int) (x >> (i -= 4)) & 0xf]).append(hex[(int) (x >> (i -= 4)) & 0xf]);
         }
         return builder;
     }

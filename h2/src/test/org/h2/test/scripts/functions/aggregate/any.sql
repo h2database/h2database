@@ -1,4 +1,4 @@
--- Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (http://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -19,3 +19,15 @@ SELECT A, ANY(B < 2), SOME(B > 3), BOOL_OR(B = 1), ANY(B = 1) FILTER (WHERE A = 
 
 DROP TABLE TEST;
 > ok
+
+SELECT TRUE = (ANY((SELECT TRUE)));
+> TRUE = (ANY((SELECT TRUE FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */ /* scanCount: 2 */)))
+> -----------------------------------------------------------------------------------------------
+> TRUE
+> rows: 1
+
+SELECT TRUE = (ANY((SELECT FALSE)));
+> TRUE = (ANY((SELECT FALSE FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */ /* scanCount: 2 */)))
+> ------------------------------------------------------------------------------------------------
+> FALSE
+> rows: 1

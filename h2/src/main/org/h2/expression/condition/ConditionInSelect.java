@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -19,9 +19,11 @@ import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueRow;
 
 /**
  * An 'in' condition with a subquery, as in WHERE ID IN(SELECT ...)
@@ -33,7 +35,6 @@ public class ConditionInSelect extends Condition {
     private final Query query;
     private final boolean all;
     private final int compareType;
-    private int queryLevel;
 
     public ConditionInSelect(Database database, Expression left, Query query,
             boolean all, int compareType) {
@@ -54,8 +55,8 @@ public class ConditionInSelect extends Condition {
         Value l = left.getValue(session);
         if (!rows.hasNext()) {
             return ValueBoolean.get(all);
-        } else if (l == ValueNull.INSTANCE) {
-            return l;
+        } else if (l.containsNull()) {
+            return ValueNull.INSTANCE;
         }
         if (!database.getSettings().optimizeInSelect) {
             return getValueSlow(rows, l);
@@ -64,15 +65,31 @@ public class ConditionInSelect extends Condition {
                 compareType != Comparison.EQUAL_NULL_SAFE)) {
             return getValueSlow(rows, l);
         }
-        int dataType = rows.getColumnType(0);
-        if (dataType == Value.NULL) {
-            return ValueBoolean.FALSE;
+        int columnCount = query.getColumnCount();
+        if (columnCount != 1) {
+            l = l.convertTo(Value.ROW);
+            Value[] leftValue = ((ValueRow) l).getList();
+            if (columnCount == leftValue.length && rows.containsDistinct(leftValue)) {
+                return ValueBoolean.TRUE;
+            }
+        } else {
+            TypeInfo colType = rows.getColumnType(0);
+            if (colType.getValueType() == Value.NULL) {
+                return ValueBoolean.FALSE;
+            }
+            if (l.getValueType() == Value.ROW) {
+                Value[] leftList = ((ValueRow) l).getList();
+                if (leftList.length != 1) {
+                    throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
+                }
+                l = leftList[0];
+            }
+            l = l.convertTo(colType, database.getMode(), null);
+            if (rows.containsDistinct(new Value[] { l })) {
+                return ValueBoolean.TRUE;
+            }
         }
-        l = l.convertTo(dataType, database.getMode());
-        if (rows.containsDistinct(new Value[] { l })) {
-            return ValueBoolean.TRUE;
-        }
-        if (rows.containsDistinct(new Value[] { ValueNull.INSTANCE })) {
+        if (rows.containsNull()) {
             return ValueNull.INSTANCE;
         }
         return ValueBoolean.FALSE;
@@ -82,35 +99,42 @@ public class ConditionInSelect extends Condition {
         // this only returns the correct result if the result has at least one
         // row, and if l is not null
         boolean hasNull = false;
-        boolean result = all;
-        while (rows.next()) {
-            boolean value;
-            Value r = rows.currentRow()[0];
-            if (r == ValueNull.INSTANCE) {
-                value = false;
-                hasNull = true;
-            } else {
-                value = Comparison.compareNotNull(database, l, r, compareType);
+        if (all) {
+            while (rows.next()) {
+                Value cmp = compare(l, rows);
+                if (cmp == ValueNull.INSTANCE) {
+                    hasNull = true;
+                } else if (cmp == ValueBoolean.FALSE) {
+                    return cmp;
+                }
             }
-            if (!value && all) {
-                result = false;
-                break;
-            } else if (value && !all) {
-                result = true;
-                break;
+        } else {
+            while (rows.next()) {
+                Value cmp = compare(l, rows);
+                if (cmp == ValueNull.INSTANCE) {
+                    hasNull = true;
+                } else if (cmp == ValueBoolean.TRUE) {
+                    return cmp;
+                }
             }
         }
-        if (!result && hasNull) {
+        if (hasNull) {
             return ValueNull.INSTANCE;
         }
-        return ValueBoolean.get(result);
+        return ValueBoolean.get(all);
+    }
+
+    private Value compare(Value l, ResultInterface rows) {
+        Value[] currentRow = rows.currentRow();
+        Value r = l.getValueType() != Value.ROW && query.getColumnCount() == 1 ? currentRow[0]
+                : ValueRow.get(currentRow);
+        return Comparison.compare(database, l, r, compareType);
     }
 
     @Override
     public void mapColumns(ColumnResolver resolver, int level, int state) {
         left.mapColumns(resolver, level, state);
         query.mapColumns(resolver, level + 1);
-        this.queryLevel = Math.max(level, this.queryLevel);
     }
 
     @Override
@@ -118,9 +142,6 @@ public class ConditionInSelect extends Condition {
         left = left.optimize(session);
         query.setRandomAccessResult(true);
         session.optimizeQueryExpression(query);
-        if (query.getColumnCount() != 1) {
-            throw DbException.get(ErrorCode.SUBQUERY_IS_NOT_SINGLE_COLUMN);
-        }
         // Can not optimize: the data may change
         return this;
     }
@@ -169,6 +190,12 @@ public class ConditionInSelect extends Condition {
     @Override
     public void createIndexConditions(Session session, TableFilter filter) {
         if (!session.getDatabase().getSettings().optimizeInList) {
+            return;
+        }
+        if (compareType != Comparison.EQUAL) {
+            return;
+        }
+        if (query.getColumnCount() != 1) {
             return;
         }
         if (!(left instanceof ExpressionColumn)) {

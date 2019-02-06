@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -578,7 +578,7 @@ public class MVStoreTool {
     }
 
     /**
-     * Roll back to a given revision into a a file called *.temp.
+     * Roll back to a given revision into a file called *.temp.
      *
      * @param fileName the file name
      * @param targetVersion the version to roll back to (Long.MAX_VALUE for the
@@ -699,8 +699,8 @@ public class MVStoreTool {
 
         @Override
         public void write(WriteBuffer buff, Object[] obj, int len, boolean key) {
-            for (Object o : obj) {
-                write(buff, o);
+            for (int i = 0; i < len; i++) {
+                write(buff, obj[i]);
             }
         }
 
@@ -717,12 +717,9 @@ public class MVStoreTool {
 
         @Override
         public void read(ByteBuffer buff, Object[] obj, int len, boolean key) {
-            for (int i = 0; i < obj.length; i++) {
+            for (int i = 0; i < len; i++) {
                 obj[i] = read(buff);
             }
         }
-
     }
-
-
 }

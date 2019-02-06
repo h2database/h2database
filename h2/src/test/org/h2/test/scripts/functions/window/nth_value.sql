@@ -1,4 +1,4 @@
--- Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (http://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -218,6 +218,28 @@ SELECT ID, CATEGORY,
 > 13 4        1  1  1  2  3  4
 > rows (ordered): 13
 
+SELECT ID, CATEGORY,
+    FIRST_VALUE(ID) OVER (ORDER BY ID ROWS BETWEEN CATEGORY FOLLOWING AND UNBOUNDED FOLLOWING) F,
+    LAST_VALUE(ID) OVER (ORDER BY ID ROWS BETWEEN CURRENT ROW AND CATEGORY FOLLOWING) L,
+    NTH_VALUE(ID, 2) OVER (ORDER BY ID ROWS BETWEEN CATEGORY FOLLOWING AND UNBOUNDED FOLLOWING) N
+    FROM TEST ORDER BY ID;
+> ID CATEGORY F    L  N
+> -- -------- ---- -- ----
+> 1  1        2    2  3
+> 2  1        3    3  4
+> 3  1        4    4  5
+> 4  1        5    5  6
+> 5  1        6    6  7
+> 6  1        7    7  8
+> 7  2        9    9  10
+> 8  2        10   10 11
+> 9  3        12   12 13
+> 10 3        13   13 null
+> 11 3        null 13 null
+> 12 4        null 13 null
+> 13 4        null 13 null
+> rows (ordered): 13
+
 DROP TABLE TEST;
 > ok
 
@@ -230,3 +252,13 @@ SELECT I, X, LAST_VALUE(I) OVER (ORDER BY X) L FROM VALUES (1, 1), (2, 1), (3, 2
 > 4 2 4
 > 5 3 5
 > rows: 5
+
+SELECT A, MAX(B) M, FIRST_VALUE(A) OVER (ORDER BY A ROWS BETWEEN MAX(B) - 1 FOLLOWING AND UNBOUNDED FOLLOWING) F
+    FROM VALUES (1, 1), (1, 1), (2, 1), (2, 2), (3, 1) V(A, B)
+    GROUP BY A;
+> A M F
+> - - -
+> 1 1 1
+> 2 2 3
+> 3 1 3
+> rows: 3

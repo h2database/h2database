@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -44,7 +44,7 @@ public class Call extends Prepared {
     @Override
     public int update() {
         Value v = expression.getValue(session);
-        int type = v.getType();
+        int type = v.getValueType();
         switch (type) {
         case Value.RESULT_SET:
             // this will throw an exception
@@ -76,7 +76,7 @@ public class Call extends Prepared {
     public void prepare() {
         expression = expression.optimize(session);
         expressions = new Expression[] { expression };
-        isResultSet = expression.getType() == Value.RESULT_SET;
+        isResultSet = expression.getType().getValueType() == Value.RESULT_SET;
         if (isResultSet) {
             prepareAlways = true;
         }

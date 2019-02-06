@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -28,11 +28,11 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.RowList;
 import org.h2.schema.Schema;
-import org.h2.util.MathUtils;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueTime;
@@ -156,9 +156,8 @@ public class TableLink extends Table {
             precision = convertPrecision(sqlType, precision);
             int scale = rs.getInt("DECIMAL_DIGITS");
             scale = convertScale(sqlType, scale);
-            int displaySize = MathUtils.convertLongToInt(precision);
             int type = DataType.convertSQLTypeToValueType(sqlType, sqlTypeName);
-            Column col = new Column(n, type, precision, scale, displaySize);
+            Column col = new Column(n, TypeInfo.getTypeInfo(type, precision, scale, null));
             col.setTable(this, i++);
             columnList.add(col);
             columnMap.put(n, col);
@@ -185,9 +184,8 @@ public class TableLink extends Table {
                     precision = convertPrecision(sqlType, precision);
                     int scale = rsMeta.getScale(i + 1);
                     scale = convertScale(sqlType, scale);
-                    int displaySize = rsMeta.getColumnDisplaySize(i + 1);
                     int type = DataType.getValueTypeFromResultSet(rsMeta, i + 1);
-                    Column col = new Column(n, type, precision, scale, displaySize);
+                    Column col = new Column(n, TypeInfo.getTypeInfo(type, precision, scale, null));
                     col.setTable(this, i++);
                     columnList.add(col);
                     columnMap.put(n, col);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -10,15 +10,12 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
 
-import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
-import org.h2.util.MathUtils;
-import org.h2.util.StatementBuilder;
 
 /**
  * Implementation of the ARRAY data type.
  */
-public class ValueArray extends Value {
+public class ValueArray extends ValueCollectionBase {
 
     /**
      * Empty array.
@@ -26,12 +23,10 @@ public class ValueArray extends Value {
     private static final Object EMPTY = get(new Value[0]);
 
     private final Class<?> componentType;
-    private final Value[] values;
-    private int hash;
 
     private ValueArray(Class<?> componentType, Value[] list) {
+        super(list);
         this.componentType = componentType;
-        this.values = list;
     }
 
     /**
@@ -67,25 +62,8 @@ public class ValueArray extends Value {
     }
 
     @Override
-    public int hashCode() {
-        if (hash != 0) {
-            return hash;
-        }
-        int h = 1;
-        for (Value v : values) {
-            h = h * 31 + v.hashCode();
-        }
-        hash = h;
-        return h;
-    }
-
-    public Value[] getList() {
-        return values;
-    }
-
-    @Override
-    public int getType() {
-        return Value.ARRAY;
+    public int getValueType() {
+        return ARRAY;
     }
 
     public Class<?> getComponentType() {
@@ -93,22 +71,15 @@ public class ValueArray extends Value {
     }
 
     @Override
-    public long getPrecision() {
-        long p = 0;
-        for (Value v : values) {
-            p += v.getPrecision();
-        }
-        return p;
-    }
-
-    @Override
     public String getString() {
-        StatementBuilder buff = new StatementBuilder("(");
-        for (Value v : values) {
-            buff.appendExceptFirst(", ");
-            buff.append(v.getString());
+        StringBuilder builder = new StringBuilder().append('[');
+        for (int i = 0; i < values.length; i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            builder.append(values[i].getString());
         }
-        return buff.append(')').toString();
+        return builder.append(']').toString();
     }
 
     @Override
@@ -138,7 +109,7 @@ public class ValueArray extends Value {
         for (int i = 0; i < len; i++) {
             final Value value = values[i];
             if (!SysProperties.OLD_RESULT_SET_GET_OBJECT) {
-                final int type = value.getType();
+                final int type = value.getValueType();
                 if (type == Value.BYTE || type == Value.SHORT) {
                     list[i] = value.getInt();
                     continue;
@@ -156,7 +127,7 @@ public class ValueArray extends Value {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
-        builder.append('(');
+        builder.append("ARRAY [");
         int length = values.length;
         for (int i = 0; i < length; i++) {
             if (i > 0) {
@@ -164,29 +135,20 @@ public class ValueArray extends Value {
             }
             values[i].getSQL(builder);
         }
-        if (length == 1) {
-            builder.append(',');
-        }
-        return builder.append(')');
+        return builder.append(']');
     }
 
     @Override
     public String getTraceSQL() {
-        StatementBuilder buff = new StatementBuilder("(");
-        for (Value v : values) {
-            buff.appendExceptFirst(", ");
-            buff.append(v == null ? "null" : v.getTraceSQL());
+        StringBuilder builder = new StringBuilder("[");
+        for (int i = 0; i < values.length; i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            Value v = values[i];
+            builder.append(v == null ? "null" : v.getTraceSQL());
         }
-        return buff.append(')').toString();
-    }
-
-    @Override
-    public int getDisplaySize() {
-        long size = 0;
-        for (Value v : values) {
-            size += v.getDisplaySize();
-        }
-        return MathUtils.convertLongToInt(size);
+        return builder.append(']').toString();
     }
 
     @Override
@@ -211,15 +173,6 @@ public class ValueArray extends Value {
     }
 
     @Override
-    public int getMemory() {
-        int memory = 32;
-        for (Value v : values) {
-            memory += v.getMemory() + Constants.MEMORY_POINTER;
-        }
-        return memory;
-    }
-
-    @Override
     public Value convertPrecision(long precision, boolean force) {
         if (!force) {
             return this;
@@ -236,7 +189,7 @@ public class ValueArray extends Value {
             }
             // empty byte arrays or strings have precision 0
             // they count as precision 1 here
-            precision -= Math.max(1, v.getPrecision());
+            precision -= Math.max(1, v.getType().getPrecision());
             if (precision < 0) {
                 break;
             }

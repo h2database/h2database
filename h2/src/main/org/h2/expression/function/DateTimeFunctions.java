@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -614,7 +614,7 @@ public final class DateTimeFunctions {
         if (p == null) {
             throw DbException.getInvalidValueException("date part", part);
         }
-        return p.intValue();
+        return p;
     }
 
     /**
@@ -642,7 +642,6 @@ public final class DateTimeFunctions {
                 v = IntervalUtils.monthsFromInterval(qualifier, negative, leading, remaining);
                 break;
             case DAY_OF_MONTH:
-            case DAY_OF_WEEK:
             case DAY_OF_YEAR:
                 v = IntervalUtils.daysFromInterval(qualifier, negative, leading, remaining);
                 break;

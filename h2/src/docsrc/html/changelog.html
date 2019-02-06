@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0, Version 1.0,
-and under the Eclipse Public License, Version 1.0
+Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+and the EPL 1.0 (http://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
@@ -21,6 +21,175 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>Issue #1718: Window function and values clause don't work well together
+</li>
+<li>PR #1717: Backward compatibility patch for #1592
+</li>
+<li>PR #1716: Improve documentation of some DML commands
+</li>
+<li>Issue #1715: Postgres mode: Domain "regproc" already exists
+</li>
+<li>PR #1714: Assorted changes
+</li>
+<li>PR #1713: Remove DataType.defaultDisplaySize and fix display size in TypeInfo
+</li>
+<li>PR #1711: Add QUALIFY clause to SELECT command
+</li>
+<li>Issue #1708: CREATE TABLE AS doesn't support column lists without data types
+</li>
+<li>PR #1707: Fix sort order and ENUM data type in external results
+</li>
+<li>PR #1706: Add hypothetical set functions
+</li>
+<li>PR #1705: Fix GROUP_CONCAT with variable separator
+</li>
+<li>PR #1704: Fix return type of PERCENTILE_CONT and MEDIAN
+</li>
+<li>PR #1701: Add PERCENTILE_CONT and PERCENTILE_DISC inverse distribution functions
+</li>
+<li>Issues #1297, #1697: Failure on concurrent session closure
+</li>
+<li>Issue #1297: removeOldTempIndexes on PageStore causes NullPointerException
+</li>
+<li>Issue #1354: TestCrashAPI: another NPE
+</li>
+<li>PR #1695: Reduce memory for TestMVTempResult to 64m
+</li>
+<li>Issue #1691: Append mode causes OOME in MVPlainTempResult
+</li>
+<li>PR #1692: Use MVTempResult unconditionally
+</li>
+<li>Issue #1689: Use separate constants for data types in Data, ValueDataType, and Transfer
+</li>
+<li>PR #1687: MVMap minor cleanup
+</li>
+<li>PR #1686: Fix a regression with ENUM data type
+</li>
+<li>PR #1685: Fix CHAR in PostgreSQL mode and refactor some code
+</li>
+<li>Issue #1681: IN () doesn't work with row values when data types are not exactly the same
+</li>
+<li>Issue #1320: OOME / GC overhead in IndexCursor.nextCursor()
+</li>
+<li>PR #1680: Assorted fixes for ALTER TABLE ALTER COLUMN
+</li>
+<li>PR #1679: Use TestScript for testSimple
+</li>
+<li>Issue #1677: Unable to use VALUES keyword in WHERE clause
+</li>
+<li>Issue #1672: Deadlock on MVStore close in TestOutOfMemory
+</li>
+<li>Issue #1665: TestCrashAPI: NPE with ENUM in MINUS operator
+</li>
+<li>Issue #1602: Combine type, precision, scale, display size and extTypeInfo into one object
+</li>
+<li>PR #1671: Assorted changes
+</li>
+<li>Issue #1668: MySQL compatibility DATE() function should return NULL on error
+</li>
+<li>Issue #1604: TestCrashAPI: PreparedStatement.getGeneratedKeys() is already closed
+</li>
+<li>PR #1667: Detect NULL values and overflow in window frame bounds
+</li>
+<li>PR #1664: Allow any expressions in window frames
+</li>
+<li>Issue #1576: H2 Console should not display precision and scale for data types that don't have them
+</li>
+<li>PR #1662: Fix Alter Table Drop Column In View when table name is wrapped by Double Quotes
+</li>
+<li>PR #1660: Optimize window aggregates with AND UNBOUNDED FOLLOWING and no exclusions
+</li>
+<li>PR #1658: Assorted small changes
+</li>
+<li>PR #1657: Failure to stop background thread
+</li>
+<li>PR #1656: Optimize window aggregates with ORDER BY + UNBOUNDED PRECEDING + no exclusions
+</li>
+<li>Issue #1654: OOM in TestMemoryUsage, in big mode
+</li>
+<li>Issue #1651: TIMESTAMP values near DST may be changed in MVStore database due to UTC-based PageStore format in some
+temporary storages
+</li>
+<li>PR #1650: Fix race in MVStore.close()
+</li>
+<li>Issue #1212: TestDiskFull: The file is locked
+</li>
+<li>PR #1648: Add functions ARRAY_CAT(), ARRAY_APPEND() and ARRAY_SLICE()
+</li>
+<li>PR #1646: In preparation to a release
+</li>
+<li>PR #1643: more javadoc update
+</li>
+<li>PR #1642: update javadoc
+</li>
+<li>PR #1641: Update copyright years
+</li>
+<li>PR #1640: Suggest ANY(?) instead of variable IN() again
+</li>
+<li>PR #1638: Add support for Java 11 to test suite
+</li>
+<li>PR #1637: Remove explicit unboxing
+</li>
+<li>PR #1635: Optimize UUID to VARCHAR conversion and use correct time check in Engine.openSession()
+</li>
+<li>Issue #1632: TestMVTableEngine failure
+</li>
+<li>PR #1631: Prepare to release: javadoc cleanup
+</li>
+<li>PR #1630: fix duplicate words typos in comments and javadoc
+</li>
+<li>PR #1627: Use lock to protect append buffer
+</li>
+<li>Issue #1618: GROUP BY does not work with two identical columns in selected expressions
+</li>
+<li>Issue #1619: Two-phase commit regression in MASTER
+</li>
+<li>PR #1626: fix doc
+</li>
+<li>PR #1625: Prepare to release: javadoc cleanup, fix maven build, fix javadoc build
+</li>
+<li>Issue #1620: UUIDs are unexpectedly sorted as signed
+</li>
+<li>PR #1614: Use bulk .addAll() operation
+</li>
+<li>PR #1613: Add explicit table query
+</li>
+<li>Issue #1608: ARRAY and row value expression should not be the same
+</li>
+<li>Issue #1606: Quantified comparison predicate doesn't work correctly on primary key column
+</li>
+<li>Issue #1057: Very slow execution with subquery and connection parameter LAZY_QUERY_EXECUTION=1
+</li>
+<li>Issue #1072: Very slow execution with join and connection parameter LAZY_QUERY_EXECUTION=1
+</li>
+<li>PR #1601: Return BIGINT from ROWNUM(), ROW_NUMBER() and rank functions
+</li>
+<li>PR #1599: cleanup StringUtils.cache
+</li>
+<li>PR #1598: Minor changes in parser and documentation
+</li>
+<li>PR #1597: Remove SysProperties.CHECK preconditions around simple assertions
+</li>
+<li>PR #1596: Improve SQL Standard compliance in LOB precision parsing
+</li>
+<li>Issue #1594: DBSettings.optimizeIsNull and dead code in IndexCursor.getMax()
+</li>
+<li>PR #1591: Use multi-catch java 7 language construction to simplify code
+</li>
+<li>Issue #1582: h2 not using best index for &gt;=
+</li>
+<li>PR #1588: Add support for java.time.Period
+</li>
+<li>Issue #446: FILE_READ from classpath not working because of 0 byte file length
+</li>
+<li>PR #1579: fix unintentional append mode disruption
+</li>
+<li>Issue #1573: DELETE FROM w/ ROWNUM and subquery
+</li>
+<li>Issue #187: SHUTDOWN DEFRAG corrupts splitted file database
+</li>
+<li>PR #1571: Optimizing ConditionAndOr queries
+</li>
 <li>Issue #1565: SOME / ANY conflict
 </li>
 <li>PR #1564: Refactor Expression implementations

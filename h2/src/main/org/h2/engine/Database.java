@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -412,8 +412,8 @@ public class Database implements DataHandler {
     }
 
     /**
-     * Compare two values with the current comparison mode. The values may not
-     * be of the same type.
+     * Compare two values with the current comparison mode. The values may have
+     * different data types including NULL.
      *
      * @param a the first value
      * @param b the second value
@@ -422,6 +422,21 @@ public class Database implements DataHandler {
      */
     public int compare(Value a, Value b) {
         return a.compareTo(b, mode, compareMode);
+    }
+
+    /**
+     * Compare two values with the current comparison mode. The values may have
+     * different data types including NULL.
+     *
+     * @param a the first value
+     * @param b the second value
+     * @param forEquality perform only check for equality (= or &lt;&gt;)
+     * @return 0 if both values are equal, -1 if the first value is smaller, 1
+     *         if the second value is larger, {@link Integer#MIN_VALUE} if order
+     *         is not defined due to NULL comparison
+     */
+    public int compareWithNull(Value a, Value b, boolean forEquality) {
+        return a.compareWithNull(b, forEquality, mode, compareMode);
     }
 
     /**
@@ -840,6 +855,8 @@ public class Database implements DataHandler {
                 lockMeta(systemSession);
                 addDatabaseObject(systemSession, setting);
             }
+            setSortSetting(SetTypes.BINARY_COLLATION, SysProperties.SORT_BINARY_UNSIGNED, true);
+            setSortSetting(SetTypes.UUID_COLLATION, SysProperties.SORT_UUID_UNSIGNED, false);
             // mark all ids used in the page store
             if (pageStore != null) {
                 BitSet f = pageStore.getObjectIds();
@@ -860,6 +877,30 @@ public class Database implements DataHandler {
         }
     }
 
+    /**
+     * Preserves a current default value of a sorting setting if it is not the
+     * same as default for older versions of H2 and if it was not modified by
+     * user.
+     *
+     * @param type
+     *            setting type
+     * @param defValue
+     *            current default value (may be modified via system properties)
+     * @param oldDefault
+     *            default value for old versions
+     */
+    private void setSortSetting(int type, boolean defValue, boolean oldDefault) {
+        if (defValue == oldDefault) {
+            return;
+        }
+        String name = SetTypes.getTypeName(type);
+        if (settings.get(name) == null) {
+            Setting setting = new Setting(this, allocateObjectId(), name);
+            setting.setStringValue(defValue ? CompareMode.UNSIGNED : CompareMode.SIGNED);
+            lockMeta(systemSession);
+            addDatabaseObject(systemSession, setting);
+        }
+    }
 
     private void handleUpgradeIssues() {
         if (store != null && !isReadOnly()) {
@@ -1041,9 +1082,11 @@ public class Database implements DataHandler {
      * @param session the session
      */
     public void unlockMeta(Session session) {
-        unlockMetaDebug(session);
-        meta.unlock(session);
-        session.unlock(meta);
+        if (meta != null) {
+            unlockMetaDebug(session);
+            meta.unlock(session);
+            session.unlock(meta);
+        }
     }
 
     /**
@@ -1076,10 +1119,8 @@ public class Database implements DataHandler {
             try {
                 Cursor cursor = metaIdIndex.find(session, r, r);
                 if (cursor.next()) {
-                    if (SysProperties.CHECK) {
-                        if (lockMode != Constants.LOCK_MODE_OFF && !wasLocked) {
-                            throw DbException.throwInternalError();
-                        }
+                    if (lockMode != Constants.LOCK_MODE_OFF && !wasLocked) {
+                        throw DbException.throwInternalError();
                     }
                     Row found = cursor.get();
                     meta.removeRow(session, found);
@@ -1110,6 +1151,10 @@ public class Database implements DataHandler {
         }
     }
 
+    /**
+     * Mark some database ids as unused.
+     * @param idsToRelease the ids to release
+     */
     void releaseDatabaseObjectIds(BitSet idsToRelease) {
         synchronized (objectIds) {
             objectIds.andNot(idsToRelease);
@@ -1348,10 +1393,7 @@ public class Database implements DataHandler {
         for (Session s : all) {
             if (s != except) {
                 try {
-                    // must roll back, otherwise the session is removed and
-                    // the transaction log that contains its uncommitted
-                    // operations as well
-                    s.rollback();
+                    // this will rollback outstanding transaction
                     s.close();
                 } catch (DbException e) {
                     trace.error(e, "disconnecting session #{0}", s.getId());
@@ -1367,12 +1409,27 @@ public class Database implements DataHandler {
      *            hook
      */
     void close(boolean fromShutdownHook) {
+        DbException b = backgroundException.getAndSet(null);
+        try {
+            closeImpl(fromShutdownHook);
+        } catch (Throwable t) {
+            if (b != null) {
+                t.addSuppressed(b);
+            }
+            throw t;
+        }
+        if (b != null) {
+            // wrap the exception, so we see it was thrown here
+            throw DbException.get(b.getErrorCode(), b, b.getMessage());
+        }
+    }
+
+    private void closeImpl(boolean fromShutdownHook) {
         try {
             synchronized (this) {
                 if (closing) {
                     return;
                 }
-                throwLastBackgroundException();
                 if (fileLockMethod == FileLockMethod.SERIALIZED &&
                         !reconnectChangePending) {
                     // another connection may have written something - don't write
@@ -1830,7 +1887,7 @@ public class Database implements DataHandler {
                 }
             }
         } else {
-            lockMeta(session);
+            boolean metaWasLocked = lockMeta(session);
             synchronized (this) {
                 int id = obj.getId();
                 removeMeta(session, id);
@@ -1839,6 +1896,9 @@ public class Database implements DataHandler {
                 if(id > 0) {
                     objectIds.set(id);
                 }
+            }
+            if (!metaWasLocked) {
+                unlockMeta(session);
             }
         }
     }
@@ -1913,8 +1973,7 @@ public class Database implements DataHandler {
             if (!persistent) {
                 name = "memFS:" + name;
             }
-            return FileUtils.createTempFile(name,
-                    Constants.SUFFIX_TEMP_FILE, true, inTempDir);
+            return FileUtils.createTempFile(name, Constants.SUFFIX_TEMP_FILE, inTempDir);
         } catch (IOException e) {
             throw DbException.convertIOException(e, databaseName);
         }
@@ -2060,7 +2119,7 @@ public class Database implements DataHandler {
     /**
      * Check if this database is disk-based.
      *
-     * @return true if it is disk-based, false it it is in-memory only.
+     * @return true if it is disk-based, false if it is in-memory only.
      */
     public boolean isPersistent() {
         return persistent;
@@ -2780,7 +2839,7 @@ public class Database implements DataHandler {
         }
         long now = System.nanoTime();
         if (now > reconnectCheckNext + reconnectCheckDelayNs) {
-            if (SysProperties.CHECK && checkpointAllowed < 0) {
+            if (checkpointAllowed < 0) {
                 DbException.throwInternalError(Integer.toString(checkpointAllowed));
             }
             synchronized (reconnectSync) {
@@ -2849,8 +2908,7 @@ public class Database implements DataHandler {
         }
         synchronized (reconnectSync) {
             if (reconnectModified(true)) {
-                checkpointAllowed++;
-                if (SysProperties.CHECK && checkpointAllowed > 20) {
+                if (++checkpointAllowed > 20) {
                     throw DbException.throwInternalError(Integer.toString(checkpointAllowed));
                 }
                 return true;
@@ -2872,7 +2930,7 @@ public class Database implements DataHandler {
         synchronized (reconnectSync) {
             checkpointAllowed--;
         }
-        if (SysProperties.CHECK && checkpointAllowed < 0) {
+        if (checkpointAllowed < 0) {
             throw DbException.throwInternalError(Integer.toString(checkpointAllowed));
         }
     }

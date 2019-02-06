@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -100,7 +100,7 @@ public class CompareLike extends Condition {
     public Expression optimize(Session session) {
         left = left.optimize(session);
         right = right.optimize(session);
-        if (left.getType() == Value.STRING_IGNORECASE) {
+        if (left.getType().getValueType() == Value.STRING_IGNORECASE) {
             ignoreCase = true;
         }
         if (left.isValueSet()) {
@@ -206,7 +206,7 @@ public class CompareLike extends Condition {
             // can't use an index
             return;
         }
-        if (!DataType.isStringType(l.getColumn().getType())) {
+        if (!DataType.isStringType(l.getColumn().getType().getValueType())) {
             // column is not a varchar - can't use the index
             return;
         }

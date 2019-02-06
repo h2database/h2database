@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -1451,7 +1451,7 @@ public class WebApp {
                 String s = sql;
                 for (Integer type : params) {
                     idx = s.indexOf('?');
-                    if (type.intValue() == 1) {
+                    if (type == 1) {
                         s = s.substring(0, idx) + random.nextInt(count) + s.substring(idx + 1);
                     } else {
                         s = s.substring(0, idx) + i + s.substring(idx + 1);
@@ -1471,7 +1471,7 @@ public class WebApp {
             for (int i = 0; !stop && i < count; i++) {
                 for (int j = 0; j < params.size(); j++) {
                     Integer type = params.get(j);
-                    if (type.intValue() == 1) {
+                    if (type == 1) {
                         prep.setInt(j + 1, random.nextInt(count));
                     } else {
                         prep.setInt(j + 1, i);

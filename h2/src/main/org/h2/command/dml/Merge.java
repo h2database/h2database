@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -27,20 +27,18 @@ import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.StatementBuilder;
-import org.h2.util.Utils;
 import org.h2.value.Value;
 
 /**
  * This class represents the statement
  * MERGE
  */
-public class Merge extends Prepared {
+public class Merge extends CommandWithValues {
 
     private Table targetTable;
     private TableFilter targetTableFilter;
     private Column[] columns;
     private Column[] keys;
-    private final ArrayList<Expression[]> valuesExpressionList = Utils.newSmallArrayList();
     private Query query;
     private Prepared update;
 
@@ -70,15 +68,6 @@ public class Merge extends Prepared {
 
     public void setQuery(Query query) {
         this.query = query;
-    }
-
-    /**
-     * Add a row to this merge statement.
-     *
-     * @param expr the list of values
-     */
-    public void addRow(Expression[] expr) {
-        valuesExpressionList.add(expr);
     }
 
     @Override

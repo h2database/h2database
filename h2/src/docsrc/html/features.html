@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0, Version 1.0,
-and under the Eclipse Public License, Version 1.0
+Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+and the EPL 1.0 (http://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
@@ -415,11 +415,13 @@ To keep the content of an in-memory database as long as the virtual machine is a
 <p>
 The database files can be encrypted.
 Three encryption algorithms are supported:
+</p>
 <ul>
 <li>"AES" - also known as Rijndael, only AES-128 is implemented.</li>
 <li>"XTEA" - the 32 round version.</li>
 <li>"FOG" - pseudo-encryption only useful for hiding data from a text editor.</li>
 </ul>
+<p>
 To use file encryption, you need to specify the encryption algorithm (the 'cipher')
 and the file password (in addition to the user password) when connecting to the database.
 </p>
@@ -906,8 +908,10 @@ or the SQL statement <code>SET MODE MySQL</code>. Use this mode for compatibilit
     digits are not truncated, but the value is rounded.
 </li><li>Concatenating <code>NULL</code> with another value
     results in the other value.
-</li><li>ON DUPLICATE KEY UPDATE is supported in INSERT statements.
-</li><li>INSERT IGNORE is partially supported and may be used to skip rows with duplicate keys if ON DUPLICATE KEY UPDATE is not specified.
+</li><li>ON DUPLICATE KEY UPDATE is supported in INSERT statements, due to this feature VALUES has special non-standard
+    meaning is some contexts.
+</li><li>INSERT IGNORE is partially supported and may be used to skip rows with duplicate keys if ON DUPLICATE KEY
+    UPDATE is not specified.
 </li><li>REGEXP_REPLACE() uses \ for back-references for compatibility with MariaDB.
 </li><li>Datetime value functions return the same value within a command.
 </li></ul>
@@ -959,7 +963,7 @@ or the SQL statement <code>SET MODE PostgreSQL</code>.
 </li><li>Fixed-width strings are padded with spaces.
 </li><li>MONEY data type is treated like NUMERIC(19, 2) data type.
 </li><li>Datetime value functions return the same value within a transaction.
-</li><li>ANY and SOME after comparison operators are parsed as array comparison operators.
+</li><li>ARRAY_SLICE() out of bounds parameters are silently corrected.
 </li></ul>
 
 <h3>Ignite Compatibility Mode</h3>
@@ -1014,7 +1018,7 @@ The application that opens the first connection to the database uses the embedde
 which is faster than the server mode. Therefore the main application should open
 the database first if possible. The first connection automatically starts a server on a random port.
 This server allows remote connections, however only to this database (to ensure that,
-the client reads <code>.lock.db</code> file and sends the the random key that is stored there to the server).
+the client reads <code>.lock.db</code> file and sends the random key that is stored there to the server).
 When the first connection is closed, the server stops. If other (remote) connections are still
 open, one of them will then start a server (auto-reconnect is enabled automatically).
 </p>
@@ -1467,6 +1471,7 @@ For some examples, have a look at the code in <code>org.h2.test.db.TestTableEngi
 <p>
 In order to create your own TableEngine, you need to implement the <code>org.h2.api.TableEngine</code> interface e.g.
 something like this:
+</p>
 <pre>
 package acme;
 public static class MyTableEngine implements org.h2.api.TableEngine {
@@ -1480,12 +1485,13 @@ public static class MyTableEngine implements org.h2.api.TableEngine {
     }
 }
 </pre>
+<p>
 and then create the table from SQL like this:
+</p>
 <pre>
 CREATE TABLE TEST(ID INT, NAME VARCHAR)
     ENGINE "acme.MyTableEngine";
 </pre>
-</p>
 <p>
 It is also possible to pass in parameters to the table engine, like so:
 </p>
@@ -1633,7 +1639,7 @@ is listed.
 <h2 id="external_authentication">External authentication (Experimental)</h2>
 <p>
 External authentication allows to optionally validate user credentials externally (JAAS,LDAP,custom classes).
-Is also possible to temporary assign roles to to externally authenticated users.  <b>This feature is experimental and subject to change</b>
+Is also possible to temporary assign roles to externally authenticated users.  <b>This feature is experimental and subject to change</b>
 </p>
 <p>Master user cannot be externally authenticated</p>
 <p>

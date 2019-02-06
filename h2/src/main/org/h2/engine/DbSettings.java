@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -205,12 +205,6 @@ public class DbSettings extends SettingsBase {
      * optimization for SELECT, DELETE, and UPDATE.
      */
     public final boolean optimizeInSelect = get("OPTIMIZE_IN_SELECT", true);
-
-    /**
-     * Database setting <code>OPTIMIZE_IS_NULL</code> (default: false).<br />
-     * Use an index for condition of the form columnName IS NULL.
-     */
-    public final boolean optimizeIsNull = get("OPTIMIZE_IS_NULL", true);
 
     /**
      * Database setting <code>OPTIMIZE_OR</code> (default: true).<br />

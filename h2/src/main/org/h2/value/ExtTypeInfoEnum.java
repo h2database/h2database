@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -18,6 +18,8 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
 
     private final String[] enumerators, cleaned;
 
+    private TypeInfo type;
+
     /**
      * Returns enumerators for the two specified values for a binary operation.
      *
@@ -29,13 +31,13 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
      *         if both values do not have enumerators
      */
     public static ExtTypeInfoEnum getEnumeratorsForBinaryOperation(Value left, Value right) {
-        if (left.getType() == Value.ENUM) {
+        if (left.getValueType() == Value.ENUM) {
             return ((ValueEnum) left).getEnumerators();
-        } else if (right.getType() == Value.ENUM) {
+        } else if (right.getValueType() == Value.ENUM) {
             return ((ValueEnum) right).getEnumerators();
         } else {
             throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1,
-                    "type1=" + left.getType() + ", type2=" + right.getType());
+                    "type1=" + left.getValueType() + ", type2=" + right.getValueType());
         }
     }
 
@@ -92,9 +94,24 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
         this.cleaned = Arrays.equals(cleaned, enumerators) ? enumerators : cleaned;
     }
 
+    TypeInfo getType() {
+        TypeInfo type = this.type;
+        if (type == null) {
+            int p = 0;
+            for (String s : enumerators) {
+                int l = s.length();
+                if (l > p) {
+                    p = l;
+                }
+            }
+            this.type = type = new TypeInfo(Value.ENUM, p, 0, p, this);
+        }
+        return type;
+    }
+
     @Override
     public Value cast(Value value) {
-        switch (value.getType()) {
+        switch (value.getValueType()) {
         case Value.ENUM:
             if (value instanceof ValueEnum && ((ValueEnum) value).getEnumerators().equals(this)) {
                 return value;
@@ -132,6 +149,11 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
         return enumerators[ordinal];
     }
 
+    /**
+     * Get ValueEnum instance for an ordinal.
+     * @param ordinal ordinal value of an enum
+     * @return ValueEnum instance
+     */
     public ValueEnum getValue(int ordinal) {
         if (ordinal < 0 || ordinal >= enumerators.length) {
             throw DbException.get(ErrorCode.ENUM_VALUE_NOT_PERMITTED, enumerators.toString(),
@@ -140,6 +162,11 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
         return new ValueEnum(this, enumerators[ordinal], ordinal);
     }
 
+    /**
+     * Get ValueEnum instance for a label string.
+     * @param label label string
+     * @return ValueEnum instance
+     */
     public ValueEnum getValue(String label) {
         ValueEnum value = getValueOrNull(label);
         if (value == null) {

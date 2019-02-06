@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -21,6 +21,7 @@ import org.h2.test.auth.TestAuthentication;
 import org.h2.test.bench.TestPerformance;
 import org.h2.test.db.TestAlter;
 import org.h2.test.db.TestAlterSchemaRename;
+import org.h2.test.db.TestAnalyzeTableTx;
 import org.h2.test.db.TestAutoRecompile;
 import org.h2.test.db.TestBackup;
 import org.h2.test.db.TestBigDb;
@@ -74,6 +75,7 @@ import org.h2.test.db.TestSetCollation;
 import org.h2.test.db.TestSpaceReuse;
 import org.h2.test.db.TestSpatial;
 import org.h2.test.db.TestSpeed;
+import org.h2.test.db.TestSubqueryPerformanceOnLazyExecutionMode;
 import org.h2.test.db.TestSynonymForTable;
 import org.h2.test.db.TestTableEngines;
 import org.h2.test.db.TestTempTables;
@@ -123,7 +125,6 @@ import org.h2.test.poweroff.TestReorderWrites;
 import org.h2.test.recover.RecoverLobTest;
 import org.h2.test.rowlock.TestRowLocks;
 import org.h2.test.scripts.TestScript;
-import org.h2.test.scripts.TestScriptSimple;
 import org.h2.test.server.TestAutoServer;
 import org.h2.test.server.TestInit;
 import org.h2.test.server.TestNestedLoop;
@@ -196,8 +197,10 @@ import org.h2.test.unit.TestIntIntHashMap;
 import org.h2.test.unit.TestIntPerfectHash;
 import org.h2.test.unit.TestInterval;
 import org.h2.test.unit.TestJmx;
+import org.h2.test.unit.TestKeywords;
 import org.h2.test.unit.TestLocalResultFactory;
 import org.h2.test.unit.TestLocale;
+import org.h2.test.unit.TestMVTempResult;
 import org.h2.test.unit.TestMathUtils;
 import org.h2.test.unit.TestMemoryUnmapper;
 import org.h2.test.unit.TestMode;
@@ -227,7 +230,6 @@ import org.h2.test.unit.TestTools;
 import org.h2.test.unit.TestTraceSystem;
 import org.h2.test.unit.TestUtils;
 import org.h2.test.unit.TestValue;
-import org.h2.test.unit.TestValueHashMap;
 import org.h2.test.unit.TestValueMemory;
 import org.h2.test.utils.OutputCatcher;
 import org.h2.test.utils.SelfDestructor;
@@ -437,6 +439,10 @@ java org.h2.test.TestAll timer
 
     private Server server;
 
+    /**
+     * The map of executed tests to detect not executed tests.
+     * Boolean value is 'false' for a disabled test.
+     */
     HashMap<Class<? extends TestBase>, Boolean> executedTests = new HashMap<>();
 
     /**
@@ -735,7 +741,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         beforeTest();
 
         // db
-        addTest(new TestScriptSimple());
         addTest(new TestScript());
         addTest(new TestAlter());
         addTest(new TestAlterSchemaRename());
@@ -843,6 +848,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestMvccMultiThreaded());
         addTest(new TestMvccMultiThreaded2());
         addTest(new TestRowLocks());
+        addTest(new TestAnalyzeTableTx());
 
         // synth
         addTest(new TestBtreeIndex());
@@ -922,10 +928,10 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestCluster());
         addTest(new TestFileLockSerialized());
         addTest(new TestFileLockProcess());
-        addTest(new TestFileSystem());
         addTest(new TestDefrag());
         addTest(new TestTools());
         addTest(new TestSampleApps());
+        addTest(new TestSubqueryPerformanceOnLazyExecutionMode());
 
         runAddedTests(1);
     }
@@ -954,6 +960,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestSpinLock());
         addTest(new TestStreamStore());
         addTest(new TestTransactionStore());
+        addTest(new TestMVTempResult());
 
         // unit
         addTest(new TestAnsCompression());
@@ -965,12 +972,14 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestDateIso8601());
         addTest(new TestDbException());
         addTest(new TestFile());
+        addTest(new TestFileSystem());
         addTest(new TestFtp());
         addTest(new TestGeometryUtils());
         addTest(new TestInterval());
         addTest(new TestIntArray());
         addTest(new TestIntIntHashMap());
         addTest(new TestIntPerfectHash());
+        addTest(new TestKeywords());
         addTest(new TestMathUtils());
         addTest(new TestMemoryUnmapper());
         addTest(new TestMode());
@@ -986,7 +995,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestStringUtils());
         addTest(new TestTraceSystem());
         addTest(new TestUtils());
-        addTest(new TestValueHashMap());
         addTest(new TestLocalResultFactory());
 
         runAddedTests();

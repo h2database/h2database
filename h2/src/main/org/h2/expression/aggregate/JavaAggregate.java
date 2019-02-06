@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -15,12 +15,12 @@ import org.h2.engine.UserAggregate;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.message.DbException;
-import org.h2.table.ColumnResolver;
-import org.h2.table.TableFilter;
 import org.h2.value.DataType;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
+import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueRow;
 
 /**
  * This class wraps a user-defined aggregate.
@@ -28,15 +28,13 @@ import org.h2.value.ValueNull;
 public class JavaAggregate extends AbstractAggregate {
 
     private final UserAggregate userAggregate;
-    private final Expression[] args;
     private int[] argTypes;
     private int dataType;
     private Connection userConnection;
 
     public JavaAggregate(UserAggregate userAggregate, Expression[] args, Select select, boolean distinct) {
-        super(select, distinct);
+        super(select, args, distinct);
         this.userAggregate = userAggregate;
-        this.args = args;
     }
 
     @Override
@@ -52,31 +50,11 @@ public class JavaAggregate extends AbstractAggregate {
     }
 
     @Override
-    public long getPrecision() {
-        return Integer.MAX_VALUE;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return Integer.MAX_VALUE;
-    }
-
-    @Override
-    public int getScale() {
-        return DataType.getDataType(dataType).defaultScale;
-    }
-
-    @Override
     public StringBuilder getSQL(StringBuilder builder) {
         Parser.quoteIdentifier(builder, userAggregate.getName()).append('(');
         writeExpressions(builder, args);
         builder.append(')');
         return appendTailConditions(builder);
-    }
-
-    @Override
-    public int getType() {
-        return dataType;
     }
 
     @Override
@@ -105,40 +83,23 @@ public class JavaAggregate extends AbstractAggregate {
     }
 
     @Override
-    public void mapColumnsAnalysis(ColumnResolver resolver, int level, int innerState) {
-        for (Expression arg : args) {
-            arg.mapColumns(resolver, level, innerState);
-        }
-        super.mapColumnsAnalysis(resolver, level, innerState);
-    }
-
-    @Override
     public Expression optimize(Session session) {
         super.optimize(session);
         userConnection = session.createConnection(false);
         int len = args.length;
         argTypes = new int[len];
         for (int i = 0; i < len; i++) {
-            Expression expr = args[i];
-            args[i] = expr.optimize(session);
-            int type = expr.getType();
+            int type = args[i].getType().getValueType();
             argTypes[i] = type;
         }
         try {
             Aggregate aggregate = getInstance();
             dataType = aggregate.getInternalType(argTypes);
+            type = TypeInfo.getTypeInfo(dataType);
         } catch (SQLException e) {
             throw DbException.convert(e);
         }
         return this;
-    }
-
-    @Override
-    public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        for (Expression e : args) {
-            e.setEvaluatable(tableFilter, b);
-        }
-        super.setEvaluatable(tableFilter, b);
     }
 
     private Aggregate getInstance() {
@@ -163,7 +124,7 @@ public class JavaAggregate extends AbstractAggregate {
                         if (args.length == 1) {
                             agg.add(value.getObject());
                         } else {
-                            Value[] values = ((ValueArray) value).getList();
+                            Value[] values = ((ValueRow) value).getList();
                             Object[] argValues = new Object[args.length];
                             for (int i = 0, len = args.length; i < len; i++) {
                                 argValues[i] = values[i].getObject();
@@ -204,7 +165,7 @@ public class JavaAggregate extends AbstractAggregate {
                     arg = arg.convertTo(argTypes[i]);
                     argValues[i] = arg;
                 }
-                data.add(session.getDatabase(), dataType, args.length == 1 ? arg : ValueArray.get(argValues));
+                data.add(session.getDatabase(), args.length == 1 ? arg : ValueRow.get(argValues));
             } else {
                 Aggregate agg = (Aggregate) aggregateData;
                 Object[] argValues = new Object[args.length];
@@ -232,19 +193,29 @@ public class JavaAggregate extends AbstractAggregate {
 
     @Override
     protected int getNumExpressions() {
-        return args.length;
+        int n = args.length;
+        if (filterCondition != null) {
+            n++;
+        }
+        return n;
     }
 
     @Override
     protected void rememberExpressions(Session session, Value[] array) {
-        for (int i = 0; i < args.length; i++) {
+        int length = args.length;
+        for (int i = 0; i < length; i++) {
             array[i] = args[i].getValue(session);
+        }
+        if (filterCondition != null) {
+            array[length] = ValueBoolean.get(filterCondition.getBooleanValue(session));
         }
     }
 
     @Override
     protected void updateFromExpressions(Session session, Object aggregateData, Value[] array) {
-        updateData(session, aggregateData, array);
+        if (filterCondition == null || array[getNumExpressions() - 1].getBoolean()) {
+            updateData(session, aggregateData, array);
+        }
     }
 
     @Override

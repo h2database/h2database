@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -271,6 +271,12 @@ public class ExpressionVisitor {
         columns1.add(column);
     }
 
+    /**
+     * Add a new column to the set of columns.
+     * This is used for GET_COLUMNS2 visitors.
+     *
+     * @param column the additional column.
+     */
     void addColumn2(Column column) {
         if (table == null || table == column.getTable()) {
             columns2.add(column);
@@ -367,6 +373,7 @@ public class ExpressionVisitor {
      * Get the set of columns of all tables.
      *
      * @param filters the filters
+     * @param allColumnsSet the on-demand all-columns set
      */
     public static void allColumnsForTableFilters(TableFilter[] filters, AllColumnsForPlan allColumnsSet) {
         for (TableFilter filter : filters) {

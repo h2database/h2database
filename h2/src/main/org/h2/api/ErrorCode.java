@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -132,6 +132,15 @@ public class ErrorCode {
      * </pre>
      */
     public static final int DIVISION_BY_ZERO_1 = 22012;
+
+    /**
+     * The error with code <code>22013</code> is thrown when preceding or
+     * following size in a window function is null or negative. Example:
+     * <pre>
+     * FIRST_VALUE(N) OVER(ORDER BY N ROWS -1 PRECEDING)
+     * </pre>
+     */
+    public static final int INVALID_PRECEDING_OR_FOLLOWING_1 = 22013;
 
     /**
      * The error with code <code>22018</code> is thrown when
@@ -405,7 +414,7 @@ public class ErrorCode {
     /**
      * The error with code <code>42131</code> is thrown when
      * identical expressions should be used, but different
-     * exceptions were found.
+     * expressions were found.
      * Example:
      * <pre>
      * SELECT MODE(A ORDER BY B) FROM TEST;

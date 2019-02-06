@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -486,11 +486,7 @@ public class FileLock implements Runnable {
                         save();
                     }
                     Thread.sleep(sleep);
-                } catch (OutOfMemoryError e) {
-                    // ignore
-                } catch (InterruptedException e) {
-                    // ignore
-                } catch (NullPointerException e) {
+                } catch (OutOfMemoryError | NullPointerException | InterruptedException e) {
                     // ignore
                 } catch (Exception e) {
                     trace.debug(e, "watchdog");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -58,13 +58,13 @@ public class ValueResultSet extends Value {
                         meta.getColumnTypeName(i + 1));
                 int precision = meta.getPrecision(i + 1);
                 int scale = meta.getScale(i + 1);
-                int displaySize = meta.getColumnDisplaySize(i + 1);
-                simple.addColumn(alias, name, columnType, precision, scale, displaySize);
+                simple.addColumn(alias, name, columnType, precision, scale);
             }
             for (int i = 0; i < maxrows && rs.next(); i++) {
                 Value[] list = new Value[columnCount];
                 for (int j = 0; j < columnCount; j++) {
-                    list[j] = DataType.convertToValue(session, rs.getObject(j + 1), simple.getColumnType(j));
+                    list[j] = DataType.convertToValue(session, rs.getObject(j + 1),
+                            simple.getColumnType(j).getValueType());
                 }
                 simple.addRow(list);
             }
@@ -87,8 +87,7 @@ public class ValueResultSet extends Value {
         int columnCount = result.getVisibleColumnCount();
         SimpleResult simple = new SimpleResult();
         for (int i = 0; i < columnCount; i++) {
-            simple.addColumn(result.getAlias(i), result.getColumnName(i), result.getColumnType(i),
-                    result.getColumnPrecision(i), result.getColumnScale(i), result.getDisplaySize(i));
+            simple.addColumn(result.getAlias(i), result.getColumnName(i), result.getColumnType(i));
         }
         result.reset();
         for (int i = 0; i < maxrows && result.next(); i++) {
@@ -98,19 +97,18 @@ public class ValueResultSet extends Value {
     }
 
     @Override
-    public int getType() {
-        return Value.RESULT_SET;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_RESULT_SET;
     }
 
     @Override
-    public long getPrecision() {
-        return Integer.MAX_VALUE;
+    public int getValueType() {
+        return RESULT_SET;
     }
 
     @Override
-    public int getDisplaySize() {
-        // it doesn't make sense to calculate it
-        return Integer.MAX_VALUE;
+    public int getMemory() {
+        return result.getRowCount() * result.getVisibleColumnCount() * 32 + 400;
     }
 
     @Override

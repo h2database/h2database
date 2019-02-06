@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -137,7 +137,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             db.updateMeta(session, table);
             break;
         }
-        case CommandInterface.ALTER_TABLE_ALTER_COLUMN_NULL: {
+        case CommandInterface.ALTER_TABLE_ALTER_COLUMN_DROP_NOT_NULL: {
             if (oldColumn.isNullable()) {
                 // no change
                 break;
@@ -296,7 +296,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             // (because the column to drop is referenced or so)
             checkViews(table, newTable);
         } catch (DbException e) {
-            execute("DROP TABLE " + newTable.getName(), true);
+            execute("DROP TABLE " + newTable.getSQL(), true);
             throw e;
         }
         String tableName = table.getName();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -38,8 +38,7 @@ import org.h2.util.ColumnNamer;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
-import org.h2.value.DataType;
-import org.h2.value.ExtTypeInfo;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
 /**
@@ -181,7 +180,7 @@ public class TableView extends Table {
             for (int i = 0; i < count; i++) {
                 Expression expr = expressions.get(i);
                 String name = null;
-                int type = Value.UNKNOWN;
+                TypeInfo type = TypeInfo.TYPE_UNKNOWN;
                 if (columnTemplates != null && columnTemplates.length > i) {
                     name = columnTemplates[i].getName();
                     type = columnTemplates[i].getType();
@@ -190,19 +189,10 @@ public class TableView extends Table {
                     name = expr.getAlias();
                 }
                 name = columnNamer.getColumnName(expr, i, name);
-                if (type == Value.UNKNOWN) {
+                if (type.getValueType() == Value.UNKNOWN) {
                     type = expr.getType();
                 }
-                long precision = expr.getPrecision();
-                int scale = expr.getScale();
-                int displaySize = expr.getDisplaySize();
-                ExtTypeInfo extTypeInfo = null;
-                if (DataType.isExtInfoType(type)) {
-                    if (expr instanceof ExpressionColumn) {
-                        extTypeInfo = ((ExpressionColumn) expr).getColumn().getExtTypeInfo();
-                    }
-                }
-                Column col = new Column(name, type, precision, scale, displaySize, extTypeInfo);
+                Column col = new Column(name, type);
                 col.setTable(this, i);
                 // Fetch check constraint from view column source
                 ExpressionColumn fromColumn = null;
@@ -817,8 +807,7 @@ public class TableView extends Table {
             // (if found) otherwise use column name derived from column
             // expression
             String columnName = columnNamer.getColumnName(columnExp, i, cols);
-            columnTemplateList.add(new Column(columnName,
-                    columnExp.getType()));
+            columnTemplateList.add(new Column(columnName, columnExp.getType()));
 
         }
         return columnTemplateList;

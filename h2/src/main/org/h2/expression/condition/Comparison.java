@@ -1,27 +1,27 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.expression.condition;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
-import org.h2.engine.SysProperties;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
+import org.h2.expression.aggregate.Aggregate;
+import org.h2.expression.aggregate.AggregateType;
 import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.util.MathUtils;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueGeometry;
@@ -132,6 +132,7 @@ public class Comparison extends Condition {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
+        boolean encloseRight = false;
         builder.append('(');
         switch (compareType) {
         case IS_NULL:
@@ -145,9 +146,25 @@ public class Comparison extends Condition {
             left.getSQL(builder).append(", ");
             right.getSQL(builder).append(')');
             break;
+        case EQUAL:
+        case BIGGER_EQUAL:
+        case BIGGER:
+        case SMALLER_EQUAL:
+        case SMALLER:
+        case NOT_EQUAL:
+            if (right instanceof Aggregate && ((Aggregate) right).getAggregateType() == AggregateType.ANY) {
+                encloseRight = true;
+            }
+            //$FALL-THROUGH$
         default:
             left.getSQL(builder).append(' ').append(getCompareOperator(compareType)).append(' ');
+            if (encloseRight) {
+                builder.append('(');
+            }
             right.getSQL(builder);
+            if (encloseRight) {
+                builder.append(')');
+            }
         }
         return builder.append(')');
     }
@@ -188,7 +205,8 @@ public class Comparison extends Condition {
         left = left.optimize(session);
         if (right != null) {
             right = right.optimize(session);
-            if (right.getType() == Value.ARRAY && left.getType() != Value.ARRAY) {
+            // TODO check row values too
+            if (right.getType().getValueType() == Value.ARRAY && left.getType().getValueType() != Value.ARRAY) {
                 throw DbException.get(ErrorCode.COMPARING_ARRAY_TO_SCALAR);
             }
             if (right instanceof ExpressionColumn) {
@@ -207,17 +225,17 @@ public class Comparison extends Condition {
                             return ValueExpression.getNull();
                         }
                     }
-                    int colType = left.getType();
-                    int constType = r.getType();
-                    int resType = Value.getHigherOrder(colType, constType);
-                    // If not, the column values will need to be promoted
-                    // to constant type, but vise versa, then let's do this here
-                    // once.
-                    if (constType != resType) {
-                        Column column = ((ExpressionColumn) left).getColumn();
-                        right = ValueExpression.get(r.convertTo(resType,
-                                MathUtils.convertLongToInt(left.getPrecision()),
-                                session.getDatabase().getMode(), column, column.getExtTypeInfo()));
+                    TypeInfo colType = left.getType(), constType = r.getType();
+                    int constValueType = constType.getValueType();
+                    if (constValueType != colType.getValueType()) {
+                        TypeInfo resType = Value.getHigherType(colType, constType);
+                        // If not, the column values will need to be promoted
+                        // to constant type, but vise versa, then let's do this here
+                        // once.
+                        if (constValueType != resType.getValueType()) {
+                            Column column = ((ExpressionColumn) left).getColumn();
+                            right = ValueExpression.get(r.convertTo(resType, session.getDatabase().getMode(), column));
+                        }
                     }
                 } else if (right instanceof Parameter) {
                     ((Parameter) right).setColumn(
@@ -230,7 +248,7 @@ public class Comparison extends Condition {
                 return ValueExpression.get(getValue(session));
             }
         } else {
-            if (SysProperties.CHECK && (left == null || right == null)) {
+            if (left == null || right == null) {
                 DbException.throwInternalError(left + " " + right);
             }
             if (left == ValueExpression.getNull() ||
@@ -265,58 +283,101 @@ public class Comparison extends Condition {
             }
             return ValueBoolean.get(result);
         }
-        if (l == ValueNull.INSTANCE) {
-            if ((compareType & NULL_SAFE) == 0) {
-                return ValueNull.INSTANCE;
-            }
+        // Optimization: do not evaluate right if not necessary
+        if (l == ValueNull.INSTANCE && (compareType & NULL_SAFE) == 0) {
+            return ValueNull.INSTANCE;
         }
-        Value r = right.getValue(session);
-        if (r == ValueNull.INSTANCE) {
-            if ((compareType & NULL_SAFE) == 0) {
-                return ValueNull.INSTANCE;
-            }
-        }
-        return ValueBoolean.get(compareNotNull(database, l, r, compareType));
+        return compare(database, l, right.getValue(session), compareType);
     }
 
     /**
-     * Compare two values, given the values are not NULL.
+     * Compare two values.
      *
      * @param database the database
      * @param l the first value
      * @param r the second value
      * @param compareType the compare type
-     * @return true if the comparison indicated by the comparison type evaluates
-     *         to true
+     * @return result of comparison, either TRUE, FALSE, or NULL
      */
-    static boolean compareNotNull(Database database, Value l, Value r,
-            int compareType) {
-        boolean result;
+    static Value compare(Database database, Value l, Value r, int compareType) {
+        Value result;
         switch (compareType) {
-        case EQUAL:
+        case EQUAL: {
+            int cmp = database.compareWithNull(l, r, true);
+            if (cmp == 0) {
+                result = ValueBoolean.TRUE;
+            } else if (cmp == Integer.MIN_VALUE) {
+                result = ValueNull.INSTANCE;
+            } else {
+                result = ValueBoolean.FALSE;
+            }
+            break;
+        }
         case EQUAL_NULL_SAFE:
-            result = database.areEqual(l, r);
+            result = ValueBoolean.get(database.areEqual(l, r));
             break;
-        case NOT_EQUAL:
+        case NOT_EQUAL: {
+            int cmp = database.compareWithNull(l, r, true);
+            if (cmp == 0) {
+                result = ValueBoolean.FALSE;
+            } else if (cmp == Integer.MIN_VALUE) {
+                result = ValueNull.INSTANCE;
+            } else {
+                result = ValueBoolean.TRUE;
+            }
+            break;
+        }
         case NOT_EQUAL_NULL_SAFE:
-            result = !database.areEqual(l, r);
+            result = ValueBoolean.get(!database.areEqual(l, r));
             break;
-        case BIGGER_EQUAL:
-            result = database.compare(l, r) >= 0;
+        case BIGGER_EQUAL: {
+            int cmp = database.compareWithNull(l, r, false);
+            if (cmp >= 0) {
+                result = ValueBoolean.TRUE;
+            } else if (cmp == Integer.MIN_VALUE) {
+                result = ValueNull.INSTANCE;
+            } else {
+                result = ValueBoolean.FALSE;
+            }
             break;
-        case BIGGER:
-            result = database.compare(l, r) > 0;
+        }
+        case BIGGER: {
+            int cmp = database.compareWithNull(l, r, false);
+            if (cmp > 0) {
+                result = ValueBoolean.TRUE;
+            } else if (cmp == Integer.MIN_VALUE) {
+                result = ValueNull.INSTANCE;
+            } else {
+                result = ValueBoolean.FALSE;
+            }
             break;
-        case SMALLER_EQUAL:
-            result = database.compare(l, r) <= 0;
+        }
+        case SMALLER_EQUAL: {
+            int cmp = database.compareWithNull(l, r, false);
+            if (cmp == Integer.MIN_VALUE) {
+                result = ValueNull.INSTANCE;
+            } else {
+                result = ValueBoolean.get(cmp <= 0);
+            }
             break;
-        case SMALLER:
-            result = database.compare(l, r) < 0;
+        }
+        case SMALLER: {
+            int cmp = database.compareWithNull(l, r, false);
+            if (cmp == Integer.MIN_VALUE) {
+                result = ValueNull.INSTANCE;
+            } else {
+                result = ValueBoolean.get(cmp < 0);
+            }
             break;
+        }
         case SPATIAL_INTERSECTS: {
-            ValueGeometry lg = (ValueGeometry) l.convertTo(Value.GEOMETRY);
-            ValueGeometry rg = (ValueGeometry) r.convertTo(Value.GEOMETRY);
-            result = lg.intersectsBoundingBox(rg);
+            if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
+                result = ValueNull.INSTANCE;
+            } else {
+                ValueGeometry lg = (ValueGeometry) l.convertTo(Value.GEOMETRY);
+                ValueGeometry rg = (ValueGeometry) r.convertTo(Value.GEOMETRY);
+                result = ValueBoolean.get(lg.intersectsBoundingBox(rg));
+            }
             break;
         }
         default:
@@ -398,12 +459,8 @@ public class Comparison extends Condition {
             if (l != null) {
                 switch (compareType) {
                 case IS_NULL:
-                    if (session.getDatabase().getSettings().optimizeIsNull) {
-                        filter.addIndexCondition(
-                                IndexCondition.get(
-                                        Comparison.EQUAL_NULL_SAFE, l,
-                                        ValueExpression.getNull()));
-                    }
+                    filter.addIndexCondition(
+                            IndexCondition.get(Comparison.EQUAL_NULL_SAFE, l, ValueExpression.getNull()));
                 }
             }
             return;
@@ -459,12 +516,14 @@ public class Comparison extends Condition {
         }
         if (addIndex) {
             if (l != null) {
-                if (l.getType() == right.getType() || right.getType() != Value.STRING_IGNORECASE) {
+                int rType = right.getType().getValueType();
+                if (l.getType().getValueType() == rType || rType != Value.STRING_IGNORECASE) {
                     filter.addIndexCondition(
                             IndexCondition.get(compareType, l, right));
                 }
             } else if (r != null) {
-                if (r.getType() == left.getType() || left.getType() != Value.STRING_IGNORECASE) {
+                int lType = left.getType().getValueType();
+                if (r.getType().getValueType() == lType || lType != Value.STRING_IGNORECASE) {
                     int compareRev = getReversedCompareType(compareType);
                     filter.addIndexCondition(
                             IndexCondition.get(compareRev, r, left));
@@ -575,23 +634,25 @@ public class Comparison extends Condition {
                 }
             } else {
                 // a=b OR a=c
-                Database db = session.getDatabase();
                 if (rc && r2c && l.equals(l2)) {
-                    return new ConditionIn(db, left,
-                            new ArrayList<>(Arrays.asList(right, other.right)));
+                    return getConditionIn(session, left, right, other.right);
                 } else if (rc && l2c && l.equals(r2)) {
-                    return new ConditionIn(db, left,
-                            new ArrayList<>(Arrays.asList(right, other.left)));
+                    return getConditionIn(session, left, right, other.left);
                 } else if (lc && r2c && r.equals(l2)) {
-                    return new ConditionIn(db, right,
-                            new ArrayList<>(Arrays.asList(left, other.right)));
+                    return getConditionIn(session, right, left, other.right);
                 } else if (lc && l2c && r.equals(r2)) {
-                    return new ConditionIn(db, right,
-                            new ArrayList<>(Arrays.asList(left, other.left)));
+                    return getConditionIn(session, right, left, other.left);
                 }
             }
         }
         return null;
+    }
+
+    private static ConditionIn getConditionIn(Session session, Expression left, Expression value1, Expression value2) {
+        ArrayList<Expression> right = new ArrayList<>(2);
+        right.add(value1);
+        right.add(value2);
+        return new ConditionIn(session.getDatabase(), left, right);
     }
 
     @Override

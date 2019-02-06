@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -210,12 +210,6 @@ public class Mode {
     public boolean dateTimeValueWithinTransaction;
 
     /**
-     * If {@code true}, ANY and SOME after comparison operators are parsed as
-     * array comparison operators.
-     */
-    public boolean anyAndSomeAreComparisons;
-
-    /**
      * An optional Set of hidden/disallowed column types.
      * Certain DBMSs don't support all column types provided by H2, such as
      * "NUMBER" when using PostgreSQL mode.
@@ -285,12 +279,12 @@ public class Mode {
         // MS SQL Server does not support client info properties. See
         // https://msdn.microsoft.com/en-Us/library/dd571296%28v=sql.110%29.aspx
         mode.supportedClientInfoPropertiesRegEx = null;
-        DataType dt = DataType.createDecimal(19, 19, 4, 21, false, false);
+        DataType dt = DataType.createNumeric(19, 4, false);
         dt.type = Value.DECIMAL;
         dt.sqlType = Types.NUMERIC;
         dt.name = "MONEY";
         mode.typeByNameMap.put("MONEY", dt);
-        dt = DataType.createDecimal(10, 10, 4, 12, false, false);
+        dt = DataType.createNumeric(10, 4, false);
         dt.type = Value.DECIMAL;
         dt.sqlType = Types.NUMERIC;
         dt.name = "SMALLMONEY";
@@ -354,13 +348,12 @@ public class Mode {
         disallowedTypes.add("TINYINT");
         disallowedTypes.add("BLOB");
         mode.disallowedTypes = disallowedTypes;
-        dt = DataType.createDecimal(19, 19, 2, 21, false, false);
+        dt = DataType.createNumeric(19, 2, false);
         dt.type = Value.DECIMAL;
         dt.sqlType = Types.NUMERIC;
         dt.name = "MONEY";
         mode.typeByNameMap.put("MONEY", dt);
         mode.dateTimeValueWithinTransaction = true;
-        mode.anyAndSomeAreComparisons = true;
         add(mode);
 
         mode = new Mode(ModeEnum.Ignite);

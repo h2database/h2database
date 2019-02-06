@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -176,7 +176,7 @@ public class TestMetaData extends TestDb {
 
         Statement stat = conn.createStatement();
         stat.execute("create table a(x array)");
-        stat.execute("insert into a values((1, 2))");
+        stat.execute("insert into a values(ARRAY[1, 2])");
         rs = stat.executeQuery("SELECT x[1] FROM a");
         ResultSetMetaData rsMeta = rs.getMetaData();
         assertEquals(Types.NULL, rsMeta.getColumnType(1));
@@ -463,7 +463,7 @@ public class TestMetaData extends TestDb {
 
         assertEquals("schema", meta.getSchemaTerm());
         assertEquals("\\", meta.getSearchStringEscape());
-        assertEquals("INTERSECTS,LIMIT,MINUS,OFFSET,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY,TOP",
+        assertEquals("IF,INTERSECTS,LIMIT,MINUS,OFFSET,QUALIFY,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY,TOP",
                 meta.getSQLKeywords());
 
         assertTrue(meta.getURL().startsWith("jdbc:h2:"));

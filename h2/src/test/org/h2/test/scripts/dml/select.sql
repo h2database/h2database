@@ -611,6 +611,13 @@ SELECT A, SUM(S) OVER (ORDER BY S) FROM
 > 3 20
 > rows: 2
 
+SELECT A, SUM(A) OVER W SUM FROM (VALUES 1, 2) T(A) WINDOW W AS (ORDER BY A);
+> A SUM
+> - ---
+> 1 1
+> 2 3
+> rows: 2
+
 SELECT A, B, C FROM (SELECT A, B, C FROM (VALUES (1, 2, 3)) V(A, B, C));
 > A B C
 > - - -

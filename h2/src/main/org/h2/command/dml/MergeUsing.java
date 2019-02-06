@@ -419,7 +419,7 @@ public class MergeUsing extends Prepared {
         }
 
         // setup the targetMatchQuery - for detecting if the target row exists
-        targetMatchQuery = new Select(session);
+        targetMatchQuery = new Select(session, null);
         ArrayList<Expression> expressions = new ArrayList<>(1);
         expressions.add(new ExpressionColumn(session.getDatabase(), targetTable.getSchema().getName(),
                 targetTableFilter.getTableAlias(), "_ROWID_"));

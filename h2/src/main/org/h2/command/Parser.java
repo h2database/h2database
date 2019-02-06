@@ -3060,7 +3060,7 @@ public class Parser {
                 }
             }
             break;
-        case GROUP_CONCAT: {
+        case LISTAGG: {
             boolean distinct = readDistinctAgg();
             Expression arg = readExpression(), separator = null;
             ArrayList<SelectOrderBy> orderByList = null;
@@ -3072,7 +3072,7 @@ public class Parser {
                     read("BY");
                     orderByList = parseSimpleOrderList();
                 }
-            } else {
+            } else if (equalsToken("GROUP_CONCAT", aggregateName)){
                 if (readIf(ORDER)) {
                     read("BY");
                     orderByList = parseSimpleOrderList();
@@ -3080,12 +3080,27 @@ public class Parser {
                 if (readIf("SEPARATOR")) {
                     separator = readExpression();
                 }
+            } else {
+                if (readIf(COMMA)) {
+                    separator = readExpression();
+                }
+                if (readIf(ON)) {
+                    read("OVERFLOW");
+                    read("ERROR");
+                }
             }
-            r = new Aggregate(AggregateType.GROUP_CONCAT,
-                    separator == null ? new Expression[] { arg } : new Expression[] { arg, separator },
-                            currentSelect, distinct);
-            if (orderByList != null) {
-                r.setOrderByList(orderByList);
+            Expression[] args = separator == null ? new Expression[] { arg } : new Expression[] { arg, separator };
+            int index = lastParseIndex;
+            read(CLOSE_PAREN);
+            if (orderByList == null && isToken("WITHIN")) {
+                r = readWithinGroup(aggregateType, args, distinct, false);
+            } else {
+                parseIndex = index;
+                read();
+                r = new Aggregate(AggregateType.LISTAGG, args, currentSelect, distinct);
+                if (orderByList != null) {
+                    r.setOrderByList(orderByList);
+                }
             }
             break;
         }
@@ -3109,19 +3124,19 @@ public class Parser {
             do {
                 expressions.add(readExpression());
             } while (readIfMore(true));
-            r = readWithinGroup(aggregateType, expressions.toArray(new Expression[0]), true);
+            r = readWithinGroup(aggregateType, expressions.toArray(new Expression[0]), false, true);
             break;
         }
         case PERCENTILE_CONT:
         case PERCENTILE_DISC: {
             Expression num = readExpression();
             read(CLOSE_PAREN);
-            r = readWithinGroup(aggregateType, new Expression[] { num }, false);
+            r = readWithinGroup(aggregateType, new Expression[] { num }, false, false);
             break;
         }
         case MODE: {
             if (readIf(CLOSE_PAREN)) {
-                r = readWithinGroup(AggregateType.MODE, new Expression[0], false);
+                r = readWithinGroup(AggregateType.MODE, new Expression[0], false, false);
             } else {
                 Expression expr = readExpression();
                 r = new Aggregate(aggregateType, new Expression[0], currentSelect, false);
@@ -3150,13 +3165,14 @@ public class Parser {
         return r;
     }
 
-    private Aggregate readWithinGroup(AggregateType aggregateType, Expression[] args, boolean forHypotheticalSet) {
+    private Aggregate readWithinGroup(AggregateType aggregateType, Expression[] args, boolean distinct,
+            boolean forHypotheticalSet) {
         read("WITHIN");
         read(GROUP);
         read(OPEN_PAREN);
         read(ORDER);
         read("BY");
-        Aggregate r = new Aggregate(aggregateType, args, currentSelect, false);
+        Aggregate r = new Aggregate(aggregateType, args, currentSelect, distinct);
         if (forHypotheticalSet) {
             int count = args.length;
             ArrayList<SelectOrderBy> orderList = new ArrayList<>(count);

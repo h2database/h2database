@@ -2671,6 +2671,14 @@ columns with the same name.
 TEST AS T LEFT JOIN TEST AS T1 ON T.ID = T1.ID
 "
 
+"Other Grammar","Within group specification","
+WITHIN GROUP (ORDER BY {expression [ASC|DESC]} [,...])
+","
+Group specification for ordered set functions.
+","
+WITHIN GROUP (ORDER BY ID DESC)
+"
+
 "Other Grammar","Wildcard expression","
 {* | tableAlias.*} [EXCEPT ([tableAlias.]columnName, [,...])]
 ","
@@ -3582,10 +3590,12 @@ Aggregates are only allowed in select statements.
 COUNT(*)
 "
 
-"Functions (Aggregate)","GROUP_CONCAT","
-GROUP_CONCAT ( [ DISTINCT|ALL ] string
-[ ORDER BY { expression [ ASC | DESC ] } [,...] ]
-[ SEPARATOR expression ] )
+"Functions (Aggregate)","LISTAGG","
+{ LISTAGG ( [ DISTINCT|ALL ] string [, separatorString] [ ON OVERFLOW ERROR ] )
+    withinGroupSpecification }
+| { GROUP_CONCAT ( [ DISTINCT|ALL ] string
+    [ ORDER BY { expression [ ASC | DESC ] } [,...] ]
+    [ SEPARATOR separatorString ] ) }
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Concatenates strings with a separator.
@@ -3593,14 +3603,10 @@ Separator must be the same for all rows in the same group.
 The default separator is a ',' (without space).
 This method returns a string.
 If no rows are selected, the result is NULL.
-If ORDER BY is not specified order of strings is not determined.
-When this aggregate is used with OVER clause that contains ORDER BY subclause
-it does not enforce exact order of strings.
-This aggregate needs additional own ORDER BY clause to make it deterministic.
 Aggregates are only allowed in select statements.
 ","
-GROUP_CONCAT(NAME ORDER BY ID SEPARATOR ', ')
-GROUP_CONCAT(ID ORDER BY ID SEPARATOR ', ') OVER (ORDER BY ID)
+LISTAGG(NAME, ', ') WITHIN GROUP (ORDER BY ID)
+LISTAGG(ID, ', ') WITHIN GROUP (ORDER BY ID) OVER (ORDER BY ID)
 "
 
 "Functions (Aggregate)","ARRAY_AGG","
@@ -3721,7 +3727,7 @@ VAR_SAMP(X)
 
 "Functions (Aggregate)","RANK aggregate","
 RANK(value [,...])
-WITHIN GROUP (ORDER BY {expression [ASC|DESC]} [,...])
+withinGroupSpecification
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Returns the rank of the hypothetical row in specified collection of rows.
@@ -3734,7 +3740,7 @@ SELECT RANK(5) WITHIN GROUP (ORDER BY V) FROM TEST;
 
 "Functions (Aggregate)","DENSE_RANK aggregate","
 DENSE_RANK(value [,...])
-WITHIN GROUP (ORDER BY {expression [ASC|DESC]} [,...])
+withinGroupSpecification
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Returns the dense rank of the hypothetical row in specified collection of rows.
@@ -3747,7 +3753,7 @@ SELECT DENSE_RANK(5) WITHIN GROUP (ORDER BY V) FROM TEST;
 
 "Functions (Aggregate)","PERCENT_RANK aggregate","
 PERCENT_RANK(value [,...])
-WITHIN GROUP (ORDER BY {expression [ASC|DESC]} [,...])
+withinGroupSpecification
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Returns the relative rank of the hypothetical row in specified collection of rows.
@@ -3759,7 +3765,7 @@ SELECT PERCENT_RANK(5) WITHIN GROUP (ORDER BY V) FROM TEST;
 
 "Functions (Aggregate)","CUME_DIST aggregate","
 CUME_DIST(value [,...])
-WITHIN GROUP (ORDER BY {expression [ASC|DESC]} [,...])
+withinGroupSpecification
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Returns the relative rank of the hypothetical row in specified collection of rows.

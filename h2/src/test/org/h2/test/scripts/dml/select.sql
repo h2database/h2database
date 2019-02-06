@@ -602,3 +602,26 @@ FROM (SELECT 1 X), (VALUES (1, 2), (2, 1), (3, 3)) T(A, B);
 > 1 2 1
 > 1 3 3
 > rows: 3
+
+SELECT A, B, C FROM (SELECT A, B, C FROM (VALUES (1, 2, 3)) V(A, B, C));
+> A B C
+> - - -
+> 1 2 3
+> rows: 1
+
+SELECT * FROM (SELECT * FROM (VALUES (1, 2, 3)) V(A, B, C));
+> A B C
+> - - -
+> 1 2 3
+> rows: 1
+
+SELECT * FROM
+    (SELECT X * X, Y FROM
+        (SELECT A + 5, B FROM
+            (VALUES (1, 2)) V(A, B)
+        ) T(X, Y)
+    );
+> X * X Y
+> ----- -
+> 36    2
+> rows: 1

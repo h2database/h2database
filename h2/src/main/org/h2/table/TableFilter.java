@@ -7,6 +7,7 @@ package org.h2.table;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
@@ -122,7 +123,7 @@ public class TableFilter implements ColumnResolver {
     private final int hashCode;
     private final int orderInFrom;
 
-    private HashMap<Column, String> derivedColumnMap;
+    private LinkedHashMap<Column, String> derivedColumnMap;
 
     /**
      * Create a new table filter object.
@@ -801,6 +802,18 @@ public class TableFilter implements ColumnResolver {
         if (alias != null) {
             builder.append(' ');
             Parser.quoteIdentifier(builder, alias);
+            if (derivedColumnMap != null) {
+                builder.append('(');
+                boolean f = false;
+                for (String name : derivedColumnMap.values()) {
+                    if (f) {
+                        builder.append(", ");
+                    }
+                    f = true;
+                    Parser.quoteIdentifier(builder, name);
+                }
+                builder.append(')');
+            }
         }
         if (indexHints != null) {
             builder.append(" USE INDEX (");
@@ -1091,7 +1104,7 @@ public class TableFilter implements ColumnResolver {
         if (count != derivedColumnNames.size()) {
             throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
         }
-        HashMap<Column, String> map = new HashMap<>();
+        LinkedHashMap<Column, String> map = new LinkedHashMap<>();
         for (int i = 0; i < count; i++) {
             String alias = derivedColumnNames.get(i);
             for (int j = 0; j < i; j++) {

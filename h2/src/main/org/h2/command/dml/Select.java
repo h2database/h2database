@@ -79,6 +79,11 @@ public class Select extends Query {
     private final ArrayList<TableFilter> topFilters = Utils.newSmallArrayList();
 
     /**
+     * Parent select for selects in table filters.
+     */
+    private Select parentSelect;
+
+    /**
      * WHERE condition.
      */
     private Expression condition;
@@ -146,8 +151,9 @@ public class Select extends Query {
 
     private HashMap<String, Window> windows;
 
-    public Select(Session session) {
+    public Select(Session session, Select parentSelect) {
         super(session);
+        this.parentSelect = parentSelect;
     }
 
     @Override
@@ -1956,4 +1962,14 @@ public class Select extends Query {
             return row;
         }
     }
+
+    /**
+     * Returns parent select, or null.
+     *
+     * @return parent select, or null
+     */
+    public Select getParentSelect() {
+        return parentSelect;
+    }
+
 }

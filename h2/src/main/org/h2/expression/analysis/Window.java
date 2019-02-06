@@ -8,6 +8,7 @@ package org.h2.expression.analysis;
 import java.util.ArrayList;
 
 import org.h2.api.ErrorCode;
+import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectOrderBy;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -104,9 +105,13 @@ public final class Window {
 
     private void resolveWindows(ColumnResolver resolver) {
         if (parent != null) {
-            Window p = resolver.getSelect().getWindow(parent);
-            if (p == null) {
-                throw DbException.get(ErrorCode.WINDOW_NOT_FOUND_1, parent);
+            Select select = resolver.getSelect();
+            Window p;
+            while ((p = select.getWindow(parent)) == null) {
+                select = select.getParentSelect();
+                if (select == null) {
+                    throw DbException.get(ErrorCode.WINDOW_NOT_FOUND_1, parent);
+                }
             }
             p.resolveWindows(resolver);
             if (partitionBy == null) {

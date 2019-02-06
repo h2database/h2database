@@ -1335,7 +1335,7 @@ public class Parser {
     }
 
     private Prepared parseHelp() {
-        Select select = new Select(session);
+        Select select = new Select(session, null);
         select.setWildcard();
         Table table = database.getSchema("INFORMATION_SCHEMA").resolveTableOrView(session, "HELP");
         Function function = Function.getFunction(database, "UPPER");
@@ -1535,7 +1535,7 @@ public class Parser {
             TableFilter sourceTableFilter = readSimpleTableFilter(0, null);
             command.setSourceTableFilter(sourceTableFilter);
 
-            Select preparedQuery = new Select(session);
+            Select preparedQuery = new Select(session, null);
             preparedQuery.setWildcard();
             TableFilter filter = new TableFilter(session, sourceTableFilter.getTable(),
                     sourceTableFilter.getTableAlias(), rightsChecked, preparedQuery, 0, null);
@@ -2689,7 +2689,7 @@ public class Parser {
         } else if (readIf(TABLE)) {
             int start = lastParseIndex;
             Table table = readTableOrView();
-            Select command = new Select(session);
+            Select command = new Select(session, currentSelect);
             TableFilter filter = new TableFilter(session, table, null, rightsChecked,
                     command, orderInFrom++, null);
             command.addTableFilter(filter, true);
@@ -2703,7 +2703,7 @@ public class Parser {
         } else {
             throw getSyntaxError();
         }
-        Select command = new Select(session);
+        Select command = new Select(session, currentSelect);
         int start = lastParseIndex;
         Select oldSelect = currentSelect;
         Prepared oldPrepared = currentPrepared;
@@ -5867,7 +5867,7 @@ public class Parser {
     }
 
     private Select parseValues() {
-        Select command = new Select(session);
+        Select command = new Select(session, currentSelect);
         currentSelect = command;
         TableFilter filter = parseValuesTable(0);
         command.setWildcard();

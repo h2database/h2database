@@ -1094,7 +1094,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         DeleteDbFiles.execute(TestBase.BASE_TEST_DIR, null, true);
         FileUtils.deleteRecursive("trace.db", false);
         if (networked) {
-            String[] args = ssl ? new String[] { "-tcpSSL" } : new String[0];
+            String[] args = ssl ? new String[] { "-ifNotExists", "-tcpSSL" } : new String[] { "-ifNotExists" };
             server = Server.createTcpServer(args);
             try {
                 server.start();

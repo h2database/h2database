@@ -100,9 +100,11 @@ public class TestCluster extends TestDb {
         ResultSet rs;
 
 
-        Server server1 = org.h2.tools.Server.createTcpServer("-ifNotExists", "-baseDir", getBaseDir() + "/node1").start();
+        Server server1 = org.h2.tools.Server.createTcpServer("-ifNotExists", "-baseDir", getBaseDir() + "/node1")
+                .start();
         int port1 = server1.getPort();
-        Server server2 = org.h2.tools.Server.createTcpServer("-ifNotExists", "-baseDir", getBaseDir() + "/node2").start();
+        Server server2 = org.h2.tools.Server.createTcpServer("-ifNotExists", "-baseDir", getBaseDir() + "/node2")
+                .start();
         int port2 = server2.getPort();
 
         String url1 = getURL("jdbc:h2:tcp://localhost:" + port1 + "/test", true);

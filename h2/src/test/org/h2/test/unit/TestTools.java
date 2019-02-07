@@ -1096,7 +1096,7 @@ public class TestTools extends TestDb {
         Connection conn;
         try {
             deleteDb("test");
-            Server tcpServer = Server.createTcpServer("-ifNotExists", 
+            Server tcpServer = Server.createTcpServer("-ifNotExists",
                             "-baseDir", getBaseDir(),
                             "-tcpAllowOthers").start();
             remainingServers.add(tcpServer);
@@ -1150,7 +1150,7 @@ public class TestTools extends TestDb {
             JdbcUtils.closeSilently(conn);
             // Test filesystem prefix and escape from baseDir
             deleteDb("testSplit");
-            server = Server.createTcpServer("-ifNotExists", 
+            server = Server.createTcpServer("-ifNotExists",
                             "-baseDir", getBaseDir(),
                             "-tcpAllowOthers").start();
             final int p = server.getPort();

@@ -79,6 +79,18 @@ public class SortedProperties extends Properties {
     }
 
     /**
+     * Get a string property value from a properties object.
+     *
+     * @param prop the properties object
+     * @param key the key
+     * @param def the default value
+     * @return the value if set, or the default value if not
+     */
+    public static String getStringProperty(Properties prop, String key, String def) {
+        return prop.getProperty(key, def);
+    }
+
+    /**
      * Load a properties object from a file.
      *
      * @param fileName the name of the properties file

@@ -408,7 +408,7 @@ public class WebApp {
             server.setSSL(ssl);
             byte[] adminPassword = server.getAdminPassword();
             if (adminPassword != null) {
-                prop.setProperty("adminPassword", StringUtils.convertBytesToHex(adminPassword));
+                prop.setProperty("webAdminPassword", StringUtils.convertBytesToHex(adminPassword));
             }
             server.saveProperties(prop);
         } catch (Exception e) {

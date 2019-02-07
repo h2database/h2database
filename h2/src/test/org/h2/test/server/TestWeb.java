@@ -172,7 +172,7 @@ public class TestWeb extends TestDb {
         Server server = new Server();
         server.setOut(new PrintStream(new ByteArrayOutputStream()));
         server.runTool("-web", "-webPort", "8182",
-                "-properties", "null", "-tcp", "-tcpPort", "9101");
+                "-properties", "null", "-tcp", "-tcpPort", "9101", "-webAdminPassword", "123");
         try {
             String url = "http://localhost:8182";
             WebClient client;
@@ -180,6 +180,7 @@ public class TestWeb extends TestDb {
             client = new WebClient();
             result = client.get(url);
             client.readSessionId(result);
+            result = client.get(url, "adminLogin.do?password=123");
             result = client.get(url, "tools.jsp");
             FileUtils.delete(getBaseDir() + "/backup.zip");
             result = client.get(url, "tools.do?tool=Backup&args=-dir," +

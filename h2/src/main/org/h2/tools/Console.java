@@ -72,7 +72,7 @@ public class Console extends Tool implements ShutdownHandler {
 
     /**
      * This tool starts the H2 Console (web-) server, as well as the TCP and PG
-     * server. For JDK 1.6, a system tray icon is created, for platforms that
+     * server. A system tray icon is created, for platforms that
      * support it. Otherwise, a small window opens.
      *
      * @param args the command line arguments

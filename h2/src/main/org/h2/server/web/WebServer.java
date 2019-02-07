@@ -281,7 +281,7 @@ public class WebServer implements Service {
                 "webSSL", false);
         allowOthers = SortedProperties.getBooleanProperty(prop,
                 "webAllowOthers", false);
-        setAdminPassword(SortedProperties.getStringProperty(prop, "adminPassword", null));
+        setAdminPassword(SortedProperties.getStringProperty(prop, "webAdminPassword", null));
         commandHistoryString = prop.getProperty(COMMAND_HISTORY);
         for (int i = 0; args != null && i < args.length; i++) {
             String a = args[i];
@@ -300,7 +300,7 @@ public class WebServer implements Service {
                 ifExists = true;
             } else if (Tool.isOption(a, "-ifNotExists")) {
                 ifExists = false;
-            } else if (Tool.isOption(a, "-adminPassword")) {
+            } else if (Tool.isOption(a, "-webAdminPassword")) {
                 setAdminPassword(args[++i]);
             } else if (Tool.isOption(a, "-properties")) {
                 // already set
@@ -686,7 +686,7 @@ public class WebServer implements Service {
                 prop.setProperty("webSSL",
                         Boolean.toString(SortedProperties.getBooleanProperty(old, "webSSL", ssl)));
                 if (adminPassword != null) {
-                    prop.setProperty("adminPassword", StringUtils.convertBytesToHex(adminPassword));
+                    prop.setProperty("webAdminPassword", StringUtils.convertBytesToHex(adminPassword));
                 }
                 if (commandHistoryString != null) {
                     prop.setProperty(COMMAND_HISTORY, commandHistoryString);

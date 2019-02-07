@@ -147,7 +147,6 @@ public abstract class TestDb extends TestBase {
         if (config.collation != null) {
             url = addOption(url, "COLLATION", config.collation);
         }
-        url = addOption(url, "IFEXISTS", "FALSE");
         return "jdbc:h2:" + url;
     }
 

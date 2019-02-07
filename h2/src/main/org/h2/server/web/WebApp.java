@@ -406,9 +406,9 @@ public class WebApp {
             boolean ssl = Utils.parseBoolean((String) attributes.get("ssl"), false, false);
             prop.setProperty("webSSL", String.valueOf(ssl));
             server.setSSL(ssl);
-            String adminPassword = server.getAdminPassword();
-            if (adminPassword != null && !adminPassword.isEmpty()) {
-                prop.setProperty("adminPassword", adminPassword);
+            byte[] adminPassword = server.getAdminPassword();
+            if (adminPassword != null) {
+                prop.setProperty("adminPassword", StringUtils.convertBytesToHex(adminPassword));
             }
             server.saveProperties(prop);
         } catch (Exception e) {

@@ -77,7 +77,7 @@ public class TestPgServer extends TestDb {
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int, name varchar(255))");
         Server server = createPgServer("-baseDir", getBaseDir(),
-                "-pgPort", "5535", "-pgDaemon", "-key", "pgserver",
+                "-ifNotExists", "-pgPort", "5535", "-pgDaemon", "-key", "pgserver",
                 "mem:pgserver");
         try {
             Connection conn2;
@@ -128,7 +128,7 @@ public class TestPgServer extends TestDb {
     private void testPgAdapter() throws SQLException {
         deleteDb("pgserver");
         Server server = Server.createPgServer(
-                "-baseDir", getBaseDir(), "-pgPort", "5535", "-pgDaemon");
+                "-ifNotExists", "-baseDir", getBaseDir(), "-pgPort", "5535", "-pgDaemon");
         assertEquals(5535, server.getPort());
         assertEquals("Not started", server.getStatus());
         server.start();
@@ -148,7 +148,7 @@ public class TestPgServer extends TestDb {
         }
 
         Server server = createPgServer(
-                "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
+                "-ifNotExists", "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
 
         ExecutorService executor = Executors.newSingleThreadExecutor();
         try {
@@ -374,7 +374,7 @@ public class TestPgServer extends TestDb {
             return;
         }
         Server server = createPgServer(
-                "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
+                "-ifNotExists", "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
         try {
             Connection conn = DriverManager.getConnection(
                     "jdbc:postgresql://localhost:5535/pgserver", "sa", "sa");
@@ -401,7 +401,7 @@ public class TestPgServer extends TestDb {
         }
 
         Server server = createPgServer(
-                "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
+                "-ifNotExists", "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
         try {
             Properties props = new Properties();
             props.setProperty("user", "sa");
@@ -476,7 +476,7 @@ public class TestPgServer extends TestDb {
         }
 
         Server server = createPgServer(
-                "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
+                "-ifNotExists", "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
         try {
             Properties props = new Properties();
             props.setProperty("user", "sa");
@@ -535,7 +535,7 @@ public class TestPgServer extends TestDb {
         }
 
         Server server = createPgServer(
-                "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
+                "-ifNotExists", "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
         try {
             Properties props = new Properties();
 

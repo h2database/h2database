@@ -15,7 +15,7 @@ Initial Developer: H2 Group
         ${text.adminTitle}
     </h1>
     <p>
-        <a href="index.do?jsessionid=${sessionId}">${text.adminLogout}</a>
+        <a href="logout.do?jsessionid=${sessionId}">${text.adminLogout}</a>
     </p>
     <hr />
     <form name="admin" method="post" action="adminSave.do?jsessionid=${sessionId}">

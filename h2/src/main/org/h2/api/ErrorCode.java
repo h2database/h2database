@@ -611,13 +611,13 @@ public class ErrorCode {
     public static final int PARAMETER_NOT_SET_1 = 90012;
 
     /**
-     * The error with code <code>90013</code> is thrown when
-     * trying to open a database that does not exist using the flag
-     * IFEXISTS=TRUE, or when trying to access a database object with a catalog
-     * name that does not match the database name. Example:
+     * The error with code <code>90013</code> is thrown when trying to open a
+     * database that does not exist remotely without enabling remote database
+     * creation first, or using the flag IFEXISTS=TRUE, or when trying to access
+     * a database object with a catalog name that does not match the database
+     * name.
      * <pre>
-     * CREATE TABLE TEST(ID INT);
-     * SELECT XYZ.PUBLIC.TEST.ID FROM TEST;
+     * jdbc:h2:./database_that_does_not_exist
      * </pre>
      */
     public static final int DATABASE_NOT_FOUND_1 = 90013;

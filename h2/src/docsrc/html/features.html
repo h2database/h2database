@@ -499,7 +499,8 @@ For more information about the algorithms, see
 <h2 id="database_only_if_exists">Opening a Database Only if it Already Exists</h2>
 <p>
 By default, when an application calls <code>DriverManager.getConnection(url, ...)</code>
-and the database specified in the URL does not yet exist, a new (empty) database is created.
+with <a href="features.html#database_url">embedded</a> URL and the database specified in the URL does not yet exist,
+a new (empty) database is created.
 In some situations, it is better to restrict creating new databases, and only allow to open
 existing databases. To do this, add <code>;IFEXISTS=TRUE</code>
 to the database URL. In this case, if the database does not already exist, an exception is thrown when

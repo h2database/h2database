@@ -710,6 +710,9 @@ public class Parser {
             CommandContainer.clearCTE(session, p);
             throw t;
         }
+        if (parseIndex < sql.length()) {
+            sql = sql.substring(0, parseIndex);
+        }
         return new CommandContainer(session, sql, p);
     }
 

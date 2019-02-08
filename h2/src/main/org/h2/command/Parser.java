@@ -3878,6 +3878,7 @@ public class Parser {
             if (p == null) {
                 p = new Parameter(index);
                 indexedParameterList.set(index, p);
+                parameters.add(p);
             }
             read();
         } else {
@@ -3887,8 +3888,8 @@ public class Parser {
                         .get(ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
             }
             p = new Parameter(parameters.size());
+            parameters.add(p);
         }
-        parameters.add(p);
         return p;
     }
 

@@ -686,24 +686,44 @@ public class Parser {
         }
     }
 
-    private CommandList prepareCommandList(CommandContainer c, String sql, String remaining) {
-        ArrayList<CommandContainer> list = Utils.newSmallArrayList();
-        list.add(c);
-        do {
-            suppliedParameters = parameters;
-            suppliedParameterList = indexedParameterList;
-            try {
-                c = prepareSingleCommand(remaining);
-            } catch (Throwable t) {
-                for (CommandContainer cc : list) {
-                    cc.clearCTE();
+    private CommandList prepareCommandList(CommandContainer command, String sql, String remaining) {
+        try {
+            ArrayList<Prepared> list = Utils.newSmallArrayList();
+            boolean stop = false;
+            do {
+                if (stop) {
+                    return new CommandList(session, sql, command, list, parameters, remaining);
                 }
-                throw t;
-            }
-            list.add(c);
-        } while (currentTokenType == SEMICOLON
-                && !StringUtils.isWhitespaceOrEmpty(remaining = originalSQL.substring(parseIndex)));
-        return new CommandList(session, sql, list, parameters);
+                suppliedParameters = parameters;
+                suppliedParameterList = indexedParameterList;
+                Prepared p;
+                try {
+                    p = parse(remaining);
+                } catch (DbException ex) {
+                    // This command may depend on results of previous commands.
+                    if (ex.getErrorCode() == ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS) {
+                        throw ex;
+                    }
+                    return new CommandList(session, sql, command, list, parameters, remaining);
+                }
+                if (p instanceof DefineCommand) {
+                    // Next commands may depend on results of this command.
+                    stop = true;
+                }
+                list.add(p);
+                if (currentTokenType == END) {
+                    break;
+                }
+                if (currentTokenType != SEMICOLON) {
+                    addExpected(SEMICOLON);
+                    throw getSyntaxError();
+                }
+            } while (!StringUtils.isWhitespaceOrEmpty(remaining = originalSQL.substring(parseIndex)));
+            return new CommandList(session, sql, command, list, parameters, null);
+        } catch (Throwable t) {
+            command.clearCTE();
+            throw t;
+        }
     }
 
     private CommandContainer prepareSingleCommand(String sql) {

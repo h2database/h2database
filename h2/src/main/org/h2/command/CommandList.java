@@ -17,13 +17,19 @@ import org.h2.result.ResultInterface;
  */
 class CommandList extends Command {
 
-    private final ArrayList<CommandContainer> commands;
+    private CommandContainer command;
+    private final ArrayList<Prepared> commands;
     private final ArrayList<Parameter> parameters;
+    private String remaining;
+    private Command remainingCommand;
 
-    CommandList(Session session, String sql, ArrayList<CommandContainer> commands, ArrayList<Parameter> parameters) {
+    CommandList(Session session, String sql, CommandContainer command, ArrayList<Prepared> commands,
+            ArrayList<Parameter> parameters, String remaining) {
         super(session, sql);
+        this.command = command;
         this.commands = commands;
         this.parameters = parameters;
+        this.remaining = remaining;
     }
 
     @Override
@@ -32,38 +38,58 @@ class CommandList extends Command {
     }
 
     private void executeRemaining() {
-        for (int i = 1, l = commands.size(); i < l; i++) {
-            CommandContainer command = commands.get(i);
-            if (command.isQuery()) {
-                command.query(0);
+        for (Prepared prepared : commands) {
+            prepared.prepare();
+            if (prepared.isQuery()) {
+                prepared.query(0);
             } else {
-                command.update();
+                prepared.update();
+            }
+        }
+        if (remaining != null) {
+            remainingCommand = session.prepareLocal(remaining);
+            remaining = null;
+            if (remainingCommand.isQuery()) {
+                remainingCommand.query(0);
+            } else {
+                remainingCommand.update();
             }
         }
     }
 
     @Override
     public int update() {
-        int updateCount = commands.get(0).executeUpdate(false).getUpdateCount();
+        int updateCount = command.executeUpdate(false).getUpdateCount();
         executeRemaining();
         return updateCount;
     }
 
     @Override
     public void prepareJoinBatch() {
-        commands.get(0).prepareJoinBatch();
+        command.prepareJoinBatch();
     }
 
     @Override
     public ResultInterface query(int maxrows) {
-        ResultInterface result = commands.get(0).query(maxrows);
+        ResultInterface result = command.query(maxrows);
         executeRemaining();
         return result;
     }
 
     @Override
+    public void stop() {
+        command.stop();
+        for (Prepared prepared : commands) {
+            CommandContainer.clearCTE(session, prepared);
+        }
+        if (remainingCommand != null) {
+            remainingCommand.stop();
+        }
+    }
+
+    @Override
     public boolean isQuery() {
-        return commands.get(0).isQuery();
+        return command.isQuery();
     }
 
     @Override
@@ -78,12 +104,12 @@ class CommandList extends Command {
 
     @Override
     public ResultInterface queryMeta() {
-        return commands.get(0).queryMeta();
+        return command.queryMeta();
     }
 
     @Override
     public int getCommandType() {
-        return commands.get(0).getCommandType();
+        return command.getCommandType();
     }
 
 }

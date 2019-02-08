@@ -673,7 +673,21 @@ public class Parser {
      */
     public Command prepareCommand(String sql) {
         try {
-            CommandContainer c = prepareSingleCommand(sql);
+            Prepared p = parse(sql);
+            if (currentTokenType != SEMICOLON && currentTokenType != END) {
+                addExpected(SEMICOLON);
+                throw getSyntaxError();
+            }
+            try {
+                p.prepare();
+            } catch (Throwable t) {
+                CommandContainer.clearCTE(session, p);
+                throw t;
+            }
+            if (parseIndex < sql.length()) {
+                sql = sql.substring(0, parseIndex);
+            }
+            CommandContainer c = new CommandContainer(session, sql, p);
             if (currentTokenType == SEMICOLON) {
                 String remaining = originalSQL.substring(parseIndex);
                 if (!StringUtils.isWhitespaceOrEmpty(remaining)) {
@@ -724,24 +738,6 @@ public class Parser {
             command.clearCTE();
             throw t;
         }
-    }
-
-    private CommandContainer prepareSingleCommand(String sql) {
-        Prepared p = parse(sql);
-        if (currentTokenType != SEMICOLON && currentTokenType != END) {
-            addExpected(SEMICOLON);
-            throw getSyntaxError();
-        }
-        try {
-            p.prepare();
-        } catch (Throwable t) {
-            CommandContainer.clearCTE(session, p);
-            throw t;
-        }
-        if (parseIndex < sql.length()) {
-            sql = sql.substring(0, parseIndex);
-        }
-        return new CommandContainer(session, sql, p);
     }
 
     /**

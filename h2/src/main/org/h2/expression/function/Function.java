@@ -120,7 +120,7 @@ public class Function extends Expression implements FunctionCall {
      */
     public static final int MILLISECOND = 126, EPOCH = 127, MICROSECOND = 128, NANOSECOND = 129,
             TIMEZONE_HOUR = 130, TIMEZONE_MINUTE = 131, DECADE = 132, CENTURY = 133,
-            MILLENNIUM = 134;
+            MILLENNIUM = 134, DOW = 135;
 
     public static final int DATABASE = 150, USER = 151, CURRENT_USER = 152,
             IDENTITY = 153, SCOPE_IDENTITY = 154, AUTOCOMMIT = 155,
@@ -849,7 +849,7 @@ public class Function extends Expression implements FunctionCall {
         case SECOND:
         case WEEK:
         case YEAR:
-            result = ValueInt.get(DateTimeFunctions.getIntDatePart(v0, info.type));
+            result = ValueInt.get(DateTimeFunctions.getIntDatePart(v0, info.type, database.getMode()));
             break;
         case MONTH_NAME: {
             int month = DateTimeUtils.monthFromDateValue(DateTimeUtils.dateAndTimeFromValue(v0)[0]);
@@ -1462,7 +1462,7 @@ public class Function extends Expression implements FunctionCall {
             result = DateTimeFunctions.truncateDate(v0.getString(), v1);
             break;
         case EXTRACT:
-            result = DateTimeFunctions.extract(v0.getString(), v1);
+            result = DateTimeFunctions.extract(v0.getString(), v1, database.getMode());
             break;
         case FORMATDATETIME: {
             if (v0 == ValueNull.INSTANCE || v1 == ValueNull.INSTANCE) {

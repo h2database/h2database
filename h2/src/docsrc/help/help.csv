@@ -1923,7 +1923,7 @@ yearField | monthField | dayOfMonthField
     | hourField | minuteField | secondField
     | millisecondField | microsecondField | nanosecondField
     | timezoneHourField | timezoneMinuteField
-    | dayOfWeekField | isoDayOfWeekField
+    | dayOfWeekField | isoWeekYearField | isoDayOfWeekField
     | weekOfYearField | isoWeekOfYearField
     | quarterField | dayOfYearField | epochField
 ","
@@ -2028,8 +2028,16 @@ Day of week (1-7). Sunday is 1.
 DAY_OF_WEEK
 "
 
+"Datetime fields","ISO week year field","
+ISO_YEAR | ISOYEAR
+","
+Returns the ISO week year from a date/time value.
+","
+ISO_YEAR
+"
+
 "Datetime fields","ISO day of week field","
-ISO_DAY_OF_WEEK
+ISO_DAY_OF_WEEK | ISODOW
 ","
 ISO day of week (1-7). Monday is 1.
 ","

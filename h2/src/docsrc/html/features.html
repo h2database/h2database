@@ -965,6 +965,7 @@ or the SQL statement <code>SET MODE PostgreSQL</code>.
 </li><li>MONEY data type is treated like NUMERIC(19, 2) data type.
 </li><li>Datetime value functions return the same value within a transaction.
 </li><li>ARRAY_SLICE() out of bounds parameters are silently corrected.
+</li><li>EXTRACT function with DOW field returns (0-6), Sunday is 0.
 </li></ul>
 
 <h3>Ignite Compatibility Mode</h3>

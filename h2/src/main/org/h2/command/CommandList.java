@@ -17,10 +17,10 @@ import org.h2.result.ResultInterface;
  */
 class CommandList extends Command {
 
-    private final ArrayList<Command> commands;
+    private final ArrayList<CommandContainer> commands;
     private final ArrayList<Parameter> parameters;
 
-    CommandList(Session session, String sql, ArrayList<Command> commands, ArrayList<Parameter> parameters) {
+    CommandList(Session session, String sql, ArrayList<CommandContainer> commands, ArrayList<Parameter> parameters) {
         super(session, sql);
         this.commands = commands;
         this.parameters = parameters;
@@ -33,7 +33,7 @@ class CommandList extends Command {
 
     private void executeRemaining() {
         for (int i = 1, l = commands.size(); i < l; i++) {
-            Command command = commands.get(i);
+            CommandContainer command = commands.get(i);
             if (command.isQuery()) {
                 command.query(0);
             } else {

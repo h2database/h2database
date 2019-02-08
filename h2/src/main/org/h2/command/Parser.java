@@ -673,11 +673,11 @@ public class Parser {
      */
     public Command prepareCommand(String sql) {
         try {
-            Command c = prepareSingleCommand(sql);
+            CommandContainer c = prepareSingleCommand(sql);
             if (currentTokenType == SEMICOLON) {
                 String remaining = originalSQL.substring(parseIndex);
                 if (!StringUtils.isWhitespaceOrEmpty(remaining)) {
-                    c = prepareCommandList(c, sql, remaining);
+                    return prepareCommandList(c, sql, remaining);
                 }
             }
             return c;
@@ -686,19 +686,27 @@ public class Parser {
         }
     }
 
-    private Command prepareCommandList(Command c, String sql, String remaining) {
-        ArrayList<Command> list = Utils.newSmallArrayList();
+    private CommandList prepareCommandList(CommandContainer c, String sql, String remaining) {
+        ArrayList<CommandContainer> list = Utils.newSmallArrayList();
         list.add(c);
         do {
             suppliedParameters = parameters;
             suppliedParameterList = indexedParameterList;
-            list.add(prepareSingleCommand(remaining));
+            try {
+                c = prepareSingleCommand(remaining);
+            } catch (Throwable t) {
+                for (CommandContainer cc : list) {
+                    cc.clearCTE();
+                }
+                throw t;
+            }
+            list.add(c);
         } while (currentTokenType == SEMICOLON
                 && !StringUtils.isWhitespaceOrEmpty(remaining = originalSQL.substring(parseIndex)));
         return new CommandList(session, sql, list, parameters);
     }
 
-    private Command prepareSingleCommand(String sql) {
+    private CommandContainer prepareSingleCommand(String sql) {
         Prepared p = parse(sql);
         if (currentTokenType != SEMICOLON && currentTokenType != END) {
             addExpected(SEMICOLON);

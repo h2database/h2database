@@ -634,14 +634,15 @@ public class Parser {
     private Prepared currentPrepared;
     private Select currentSelect;
     private ArrayList<Parameter> parameters;
+    private ArrayList<Parameter> indexedParameterList;
+    private ArrayList<Parameter> suppliedParameters;
+    private ArrayList<Parameter> suppliedParameterList;
     private String schemaName;
     private ArrayList<String> expectedList;
     private boolean rightsChecked;
     private boolean recompileAlways;
     private boolean literalsChecked;
-    private ArrayList<Parameter> indexedParameterList;
     private int orderInFrom;
-    private ArrayList<Parameter> suppliedParameterList;
 
     public Parser(Session session) {
         this.database = session.getDatabase();
@@ -672,28 +673,44 @@ public class Parser {
      */
     public Command prepareCommand(String sql) {
         try {
-            Prepared p = parse(sql);
-            boolean hasMore = isToken(SEMICOLON);
-            if (!hasMore && currentTokenType != END) {
-                throw getSyntaxError();
-            }
-            try {
-                p.prepare();
-            } catch (Throwable t) {
-                CommandContainer.clearCTE(session, p);
-                throw t;
-            }
-            Command c = new CommandContainer(session, sql, p);
-            if (hasMore) {
+            Command c = prepareSingleCommand(sql);
+            if (currentTokenType == SEMICOLON) {
                 String remaining = originalSQL.substring(parseIndex);
                 if (!StringUtils.isWhitespaceOrEmpty(remaining)) {
-                    c = new CommandList(session, sql, c, remaining);
+                    c = prepareCommandList(c, sql, remaining);
                 }
             }
             return c;
         } catch (DbException e) {
             throw e.addSQL(originalSQL);
         }
+    }
+
+    private Command prepareCommandList(Command c, String sql, String remaining) {
+        ArrayList<Command> list = Utils.newSmallArrayList();
+        list.add(c);
+        do {
+            suppliedParameters = parameters;
+            suppliedParameterList = indexedParameterList;
+            list.add(prepareSingleCommand(remaining));
+        } while (currentTokenType == SEMICOLON
+                && !StringUtils.isWhitespaceOrEmpty(remaining = originalSQL.substring(parseIndex)));
+        return new CommandList(session, sql, list, parameters);
+    }
+
+    private Command prepareSingleCommand(String sql) {
+        Prepared p = parse(sql);
+        if (currentTokenType != SEMICOLON && currentTokenType != END) {
+            addExpected(SEMICOLON);
+            throw getSyntaxError();
+        }
+        try {
+            p.prepare();
+        } catch (Throwable t) {
+            CommandContainer.clearCTE(session, p);
+            throw t;
+        }
+        return new CommandContainer(session, sql, p);
     }
 
     /**
@@ -727,12 +744,12 @@ public class Parser {
         } else {
             expectedList = null;
         }
-        parameters = Utils.newSmallArrayList();
+        parameters = suppliedParameters != null ? suppliedParameters : Utils.<Parameter>newSmallArrayList();
+        indexedParameterList = suppliedParameterList;
         currentSelect = null;
         currentPrepared = null;
         createView = null;
         recompileAlways = false;
-        indexedParameterList = suppliedParameterList;
         read();
         return parsePrepared();
     }

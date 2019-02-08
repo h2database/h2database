@@ -8,6 +8,7 @@ package org.h2.command;
 import java.util.ArrayList;
 
 import org.h2.engine.Session;
+import org.h2.expression.Parameter;
 import org.h2.expression.ParameterInterface;
 import org.h2.result.ResultInterface;
 
@@ -16,51 +17,53 @@ import org.h2.result.ResultInterface;
  */
 class CommandList extends Command {
 
-    private final Command command;
-    private final String remaining;
+    private final ArrayList<Command> commands;
+    private final ArrayList<Parameter> parameters;
 
-    CommandList(Session session, String sql, Command c, String remaining) {
+    CommandList(Session session, String sql, ArrayList<Command> commands, ArrayList<Parameter> parameters) {
         super(session, sql);
-        this.command = c;
-        this.remaining = remaining;
+        this.commands = commands;
+        this.parameters = parameters;
     }
 
     @Override
     public ArrayList<? extends ParameterInterface> getParameters() {
-        return command.getParameters();
+        return parameters;
     }
 
     private void executeRemaining() {
-        Command remainingCommand = session.prepareLocal(remaining);
-        if (remainingCommand.isQuery()) {
-            remainingCommand.query(0);
-        } else {
-            remainingCommand.update();
+        for (int i = 1, l = commands.size(); i < l; i++) {
+            Command command = commands.get(i);
+            if (command.isQuery()) {
+                command.query(0);
+            } else {
+                command.update();
+            }
         }
     }
 
     @Override
     public int update() {
-        int updateCount = command.executeUpdate(false).getUpdateCount();
+        int updateCount = commands.get(0).executeUpdate(false).getUpdateCount();
         executeRemaining();
         return updateCount;
     }
 
     @Override
     public void prepareJoinBatch() {
-        command.prepareJoinBatch();
+        commands.get(0).prepareJoinBatch();
     }
 
     @Override
     public ResultInterface query(int maxrows) {
-        ResultInterface result = command.query(maxrows);
+        ResultInterface result = commands.get(0).query(maxrows);
         executeRemaining();
         return result;
     }
 
     @Override
     public boolean isQuery() {
-        return command.isQuery();
+        return commands.get(0).isQuery();
     }
 
     @Override
@@ -75,12 +78,12 @@ class CommandList extends Command {
 
     @Override
     public ResultInterface queryMeta() {
-        return command.queryMeta();
+        return commands.get(0).queryMeta();
     }
 
     @Override
     public int getCommandType() {
-        return command.getCommandType();
+        return commands.get(0).getCommandType();
     }
 
 }

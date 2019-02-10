@@ -300,10 +300,7 @@ public class JdbcUtils {
                     if (connection != null) {
                         return connection;
                     }
-                    /*
-                     * URL is not valid for the specified driver, fallback to
-                     * default.
-                     */
+                    throw new SQLException("Driver " + driver + " is not suitable for " + url, "08001");
                 } else if (javax.naming.Context.class.isAssignableFrom(d)) {
                     // JNDI context
                     Context context = (Context) d.getDeclaredConstructor().newInstance();

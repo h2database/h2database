@@ -515,9 +515,9 @@ public class TestTools extends TestDb {
         assertEquals(null, JdbcUtils.getDriver("jdbc:unknown:test"));
         try {
             JdbcUtils.getConnection("org.h2.Driver", "jdbc:h2x:test", "sa", "");
-            fail("Expected SQLException: No suitable driver found");
+            fail("Expected SQLException: 08001");
         } catch (SQLException e) {
-            // OK
+            assertEquals("08001", e.getSQLState());
         }
     }
 

@@ -510,12 +510,15 @@ public class TestTools extends TestDb {
     }
 
     private void testJdbcDriverUtils() {
-        assertEquals("org.h2.Driver",
-                JdbcUtils.getDriver("jdbc:h2:~/test"));
-        assertEquals("org.postgresql.Driver",
-                JdbcUtils.getDriver("jdbc:postgresql:test"));
-        assertEquals(null,
-                JdbcUtils.getDriver("jdbc:unknown:test"));
+        assertEquals("org.h2.Driver", JdbcUtils.getDriver("jdbc:h2:~/test"));
+        assertEquals("org.postgresql.Driver", JdbcUtils.getDriver("jdbc:postgresql:test"));
+        assertEquals(null, JdbcUtils.getDriver("jdbc:unknown:test"));
+        try {
+            JdbcUtils.getConnection("org.h2.Driver", "jdbc:h2x:test", "sa", "");
+            fail("Expected SQLException: No suitable driver found");
+        } catch (SQLException e) {
+            // OK
+        }
     }
 
     private void testWrongServer() throws Exception {

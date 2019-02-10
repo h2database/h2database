@@ -724,7 +724,6 @@ public class WebServer implements Service {
             String password) throws SQLException {
         driver = driver.trim();
         databaseUrl = databaseUrl.trim();
-        org.h2.Driver.load();
         Properties p = new Properties();
         p.setProperty("user", user.trim());
         // do not trim the password, otherwise an
@@ -734,19 +733,7 @@ public class WebServer implements Service {
             if (ifExists) {
                 databaseUrl += ";IFEXISTS=TRUE";
             }
-            // PostgreSQL would throw a NullPointerException
-            // if it is loaded before the H2 driver
-            // because it can't deal with non-String objects in the connection
-            // Properties
-            return org.h2.Driver.load().connect(databaseUrl, p);
         }
-//            try {
-//                Driver dr = (Driver) urlClassLoader.
-//                        loadClass(driver).newInstance();
-//                return dr.connect(url, p);
-//            } catch(ClassNotFoundException e2) {
-//                throw e2;
-//            }
         return JdbcUtils.getConnection(driver, databaseUrl, p);
     }
 

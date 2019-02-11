@@ -9,19 +9,19 @@ Initial Developer: H2 Group
 <script type="text/javascript">
 // <!--
 
-function getVersion(build) {
+function getPath(build) {
     if (build >= 177) {
         return 'version-1.4.' + build + '/h2';
     } else if (build >= 146 && build != 147) {
-        return 'd52c0c339f53947e37ad5a4c58a69f9cb14ce4d4/version-1.3.' + build + '/h2';
+        return 'version-1.3/version-1.3.' + build + '/h2';
     } else if (build >= 120) {
-        return '53886f61a4f8a4df7ff59337b6ac8e3fbaaace59/version-1.2.' + build + '/h2';
+        return 'version-1.2/version-1.2.' + build + '/h2';
     } else if (build >= 100) {
-        return '04c8cd944bdb60735b2312b19a05e41d3161509e/version-1.1.' + build + '/h2';
+        return 'version-1.1/version-1.1.' + build + '/h2';
     } else if (build == 64) {
-        return 'b76137fa79a8f088c92b314289fb5e472af47f6c/version-1.0.64';
+        return 'version-1.0/version-1.0.64';
     } else {
-        return 'b76137fa79a8f088c92b314289fb5e472af47f6c/version-1.0.' + build + '/h2';
+        return 'version-1.0/version-1.0.' + build + '/h2';
     }
 }
 
@@ -36,7 +36,7 @@ for (var i = 0; i<params.length; i++) {
     } else if (key == 'file') {
         file = value;
     } else if (key == 'build') {
-        path = getVersion(value);
+        path = getPath(value);
     }
 }
 

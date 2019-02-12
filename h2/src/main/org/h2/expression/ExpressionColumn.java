@@ -59,22 +59,11 @@ public class ExpressionColumn extends Expression {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
-        boolean quote = database.getSettings().databaseToUpper;
         if (schemaName != null) {
-            if (quote) {
-                Parser.quoteIdentifier(builder, schemaName);
-            } else {
-                builder.append(schemaName);
-            }
-            builder.append('.');
+            Parser.quoteIdentifier(builder, schemaName).append('.');
         }
         if (tableAlias != null) {
-            if (quote) {
-                Parser.quoteIdentifier(builder, tableAlias);
-            } else {
-                builder.append(tableAlias);
-            }
-            builder.append('.');
+            Parser.quoteIdentifier(builder, tableAlias).append('.');
         }
         if (column != null) {
             if (derivedName != null) {
@@ -82,10 +71,8 @@ public class ExpressionColumn extends Expression {
             } else {
                 builder.append(column.getSQL());
             }
-        } else if (quote) {
-            Parser.quoteIdentifier(builder, columnName);
         } else {
-            builder.append(columnName);
+            Parser.quoteIdentifier(builder, columnName);
         }
         return builder;
     }

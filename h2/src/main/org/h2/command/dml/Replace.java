@@ -24,7 +24,6 @@ import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.Table;
-import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 
 /**
@@ -266,20 +265,11 @@ public class Replace extends CommandWithValues {
                 return;
             }
         }
-        StatementBuilder buff = new StatementBuilder("UPDATE ");
-        table.getSQL(buff.builder()).append(" SET ");
-        for (Column c : columns) {
-            buff.appendExceptFirst(", ");
-            c.getSQL(buff.builder()).append("=?");
-        }
-        buff.append(" WHERE ");
-        buff.resetCount();
-        for (Column c : keys) {
-            buff.appendExceptFirst(" AND ");
-            c.getSQL(buff.builder()).append("=?");
-        }
-        String sql = buff.toString();
-        update = session.prepare(sql);
+        StringBuilder builder = new StringBuilder("UPDATE ");
+        table.getSQL(builder).append(" SET ");
+        Column.writeColumns(builder, columns, ", ", "=?").append(" WHERE ");
+        Column.writeColumns(builder, keys, " AND ", "=?");
+        update = session.prepare(builder.toString());
     }
 
     @Override

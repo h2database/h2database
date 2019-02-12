@@ -1484,18 +1484,13 @@ public class Select extends Query {
                 }
             }
         }
-        buff.resetCount();
         buff.append("SELECT");
         if (isAnyDistinct()) {
             buff.append(" DISTINCT");
             if (distinctExpressions != null) {
                 buff.append(" ON(");
-                for (Expression distinctExpression: distinctExpressions) {
-                    buff.appendExceptFirst(", ");
-                    distinctExpression.getSQL(buff.builder());
-                }
+                Expression.writeExpressions(buff.builder(), distinctExpressions);
                 buff.append(')');
-                buff.resetCount();
             }
         }
         for (int i = 0; i < visibleColumnCount; i++) {

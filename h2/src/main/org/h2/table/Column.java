@@ -105,6 +105,30 @@ public class Column {
         return builder;
     }
 
+    /**
+     * Appends the specified columns to the specified builder.
+     *
+     * @param builder
+     *            string builder
+     * @param columns
+     *            columns
+     * @param separator
+     *            separator
+     * @param suffix
+     *            additional SQL to append after each column
+     * @return the specified string builder
+     */
+    public static StringBuilder writeColumns(StringBuilder builder, Column[] columns, String separator,
+            String suffix) {
+        for (int i = 0, l = columns.length; i < l; i++) {
+            if (i > 0) {
+                builder.append(separator);
+            }
+            columns[i].getSQL(builder).append(suffix);
+        }
+        return builder;
+    }
+
     public Column(String name, int valueType) {
         this(name, TypeInfo.getTypeInfo(valueType));
     }

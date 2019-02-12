@@ -20,7 +20,6 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableFilter;
 import org.h2.table.TableLink;
-import org.h2.util.StatementBuilder;
 import org.h2.util.Utils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -89,20 +88,20 @@ public class LinkedIndex extends BaseIndex {
     @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
         ArrayList<Value> params = Utils.newSmallArrayList();
-        StatementBuilder buff = new StatementBuilder("SELECT * FROM ");
-        buff.append(targetTableName).append(" T");
+        StringBuilder builder = new StringBuilder("SELECT * FROM ").append(targetTableName).append(" T");
+        boolean f = false;
         for (int i = 0; first != null && i < first.getColumnCount(); i++) {
             Value v = first.getValue(i);
             if (v != null) {
-                buff.appendOnlyFirst(" WHERE ");
-                buff.appendExceptFirst(" AND ");
+                builder.append(f ? " AND " : " WHERE ");
+                f = true;
                 Column col = table.getColumn(i);
-                col.getSQL(buff.builder());
+                col.getSQL(builder);
                 if (v == ValueNull.INSTANCE) {
-                    buff.append(" IS NULL");
+                    builder.append(" IS NULL");
                 } else {
-                    buff.append(">=");
-                    addParameter(buff.builder(), col);
+                    builder.append(">=");
+                    addParameter(builder, col);
                     params.add(v);
                 }
             }
@@ -110,20 +109,20 @@ public class LinkedIndex extends BaseIndex {
         for (int i = 0; last != null && i < last.getColumnCount(); i++) {
             Value v = last.getValue(i);
             if (v != null) {
-                buff.appendOnlyFirst(" WHERE ");
-                buff.appendExceptFirst(" AND ");
+                builder.append(f ? " AND " : " WHERE ");
+                f = true;
                 Column col = table.getColumn(i);
-                col.getSQL(buff.builder());
+                col.getSQL(builder);
                 if (v == ValueNull.INSTANCE) {
-                    buff.append(" IS NULL");
+                    builder.append(" IS NULL");
                 } else {
-                    buff.append("<=");
-                    addParameter(buff.builder(), col);
+                    builder.append("<=");
+                    addParameter(builder, col);
                     params.add(v);
                 }
             }
         }
-        String sql = buff.toString();
+        String sql = builder.toString();
         try {
             PreparedStatement prep = link.execute(sql, params, false);
             ResultSet rs = prep.getResultSet();

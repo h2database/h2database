@@ -1713,10 +1713,15 @@ public class Function extends Expression implements FunctionCall {
             }
             break;
         }
-        case VALUES:
-            result = session.getVariable(args[0].getSchemaName() + "." +
-                    args[0].getTableName() + "." + args[0].getColumnName());
+        case VALUES: {
+            Expression a0 = args[0];
+            StringBuilder builder = new StringBuilder();
+            Parser.quoteIdentifier(builder, a0.getSchemaName()).append('.');
+            Parser.quoteIdentifier(builder, a0.getTableName()).append('.');
+            Parser.quoteIdentifier(builder, a0.getColumnName());
+            result = session.getVariable(builder.toString());
             break;
+        }
         case SIGNAL: {
             String sqlState = v0.getString();
             if (sqlState.startsWith("00") || !SIGNAL_PATTERN.matcher(sqlState).matches()) {

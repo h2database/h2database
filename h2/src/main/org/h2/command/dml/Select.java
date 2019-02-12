@@ -1478,11 +1478,7 @@ public class Select extends Query {
                     t.getSchema().getSQL(buff.builder()).append('.');
                     Parser.quoteIdentifier(buff.builder(), t.getName())
                             .append('(');
-                    buff.resetCount();
-                    for (Column c : t.getColumns()) {
-                        buff.appendExceptFirst(",");
-                        buff.append(c.getName());
-                    }
+                    Column.writeColumns(buff.builder(), t.getColumns());
                     buff.append(") AS ");
                     t.getSQL(buff.builder()).append('\n');
                 }

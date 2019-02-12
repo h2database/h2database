@@ -388,8 +388,8 @@ public class Insert extends CommandWithValues implements ResultTarget {
         Expression[] row = (currentRow == null) ? valuesExpressionList.get((int) getCurrentRowNumber() - 1)
                 : new Expression[columns.length];
         for (int i = 0; i < columns.length; i++) {
-            String key = table.getSchema().getName() + "." +
-                    table.getName() + "." + columns[i].getName();
+            StringBuilder builder = table.getSQL(new StringBuilder()).append('.');
+            String key = columns[i].getSQL(builder).toString();
             variableNames.add(key);
             Value value;
             if (currentRow != null) {

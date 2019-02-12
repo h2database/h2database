@@ -58,7 +58,7 @@ public class ConstraintUnique extends Constraint {
         buff.append(' ').append(getConstraintType().getSqlName()).append('(');
         for (IndexColumn c : columns) {
             buff.appendExceptFirst(", ");
-            Parser.quoteIdentifier(buff.builder(), c.column.getName());
+            c.column.getSQL(buff.builder());
         }
         buff.append(')');
         if (internalIndex && indexOwner && forTable == this.table) {

@@ -210,7 +210,7 @@ public class Merge extends CommandWithValues {
         targetTable.getSQL(buff.builder()).append('(');
         for (Column c : columns) {
             buff.appendExceptFirst(", ");
-            buff.append(c.getSQL());
+            c.getSQL(buff.builder());
         }
         buff.append(')');
         if (keys != null) {
@@ -218,7 +218,7 @@ public class Merge extends CommandWithValues {
             buff.resetCount();
             for (Column c : keys) {
                 buff.appendExceptFirst(", ");
-                buff.append(c.getSQL());
+                c.getSQL(buff.builder());
             }
             buff.append(')');
         }
@@ -279,13 +279,13 @@ public class Merge extends CommandWithValues {
         targetTable.getSQL(buff.builder()).append(" SET ");
         for (Column c : columns) {
             buff.appendExceptFirst(", ");
-            buff.append(c.getSQL()).append("=?");
+            c.getSQL(buff.builder()).append("=?");
         }
         buff.append(" WHERE ");
         buff.resetCount();
         for (Column c : keys) {
             buff.appendExceptFirst(" AND ");
-            buff.append(c.getSQL()).append("=?");
+            c.getSQL(buff.builder()).append("=?");
         }
         String sql = buff.toString();
         update = session.prepare(sql);

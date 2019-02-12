@@ -248,6 +248,10 @@ public class Column {
         return Parser.quoteIdentifier(name);
     }
 
+    public StringBuilder getSQL(StringBuilder builder) {
+        return Parser.quoteIdentifier(builder, name);
+    }
+
     public String getName() {
         return name;
     }

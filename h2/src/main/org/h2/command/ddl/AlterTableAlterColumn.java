@@ -409,9 +409,13 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             if (type == CommandInterface.ALTER_TABLE_ADD_COLUMN &&
                     columnsToAdd != null && columnsToAdd.contains(nc)) {
                 Expression def = nc.getDefaultExpression();
-                columnList.append(def == null ? "NULL" : def.getSQL());
+                if (def == null) {
+                    columnList.append("NULL");
+                } else {
+                    def.getSQL(columnList);
+                }
             } else {
-                columnList.append(nc.getSQL());
+                nc.getSQL(columnList);
             }
         }
         String newTableName = newTable.getName();
@@ -589,7 +593,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
     private void checkNoNullValues(Table table) {
         StringBuilder builder = new StringBuilder("SELECT COUNT(*) FROM ");
         table.getSQL(builder).append(" WHERE ");
-        builder.append(oldColumn.getSQL()).append(" IS NULL");
+        oldColumn.getSQL(builder).append(" IS NULL");
         String sql = builder.toString();
         Prepared command = session.prepare(sql);
         ResultInterface result = command.query(0);

@@ -69,7 +69,7 @@ public class ExpressionColumn extends Expression {
             if (derivedName != null) {
                 Parser.quoteIdentifier(builder, derivedName);
             } else {
-                builder.append(column.getSQL());
+                column.getSQL(builder);
             }
         } else {
             Parser.quoteIdentifier(builder, columnName);

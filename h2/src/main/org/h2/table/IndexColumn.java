@@ -35,9 +35,10 @@ public class IndexColumn {
      * @return the SQL snippet
      */
     public String getSQL() {
-        StringBuilder buff = new StringBuilder(column.getSQL());
-        SortOrder.typeToString(buff, sortType);
-        return buff.toString();
+        StringBuilder builder = new StringBuilder();
+        column.getSQL(builder);
+        SortOrder.typeToString(builder, sortType);
+        return builder.toString();
     }
 
     /**

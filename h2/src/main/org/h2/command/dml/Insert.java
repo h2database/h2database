@@ -273,7 +273,7 @@ public class Insert extends CommandWithValues implements ResultTarget {
         table.getSQL(buff.builder()).append('(');
         for (Column c : columns) {
             buff.appendExceptFirst(", ");
-            buff.append(c.getSQL());
+            c.getSQL(buff.builder());
         }
         buff.append(")\n");
         if (insertFromSelect) {
@@ -409,7 +409,7 @@ public class Insert extends CommandWithValues implements ResultTarget {
         for (Column column : duplicateKeyAssignmentMap.keySet()) {
             buff.appendExceptFirst(", ");
             Expression ex = duplicateKeyAssignmentMap.get(column);
-            buff.append(column.getSQL()).append('=');
+            column.getSQL(buff.builder()).append('=');
             ex.getSQL(buff.builder());
         }
         buff.append(" WHERE ");

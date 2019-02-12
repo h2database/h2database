@@ -95,7 +95,7 @@ public class LinkedIndex extends BaseIndex {
                 buff.appendOnlyFirst(" WHERE ");
                 buff.appendExceptFirst(" AND ");
                 Column col = table.getColumn(i);
-                buff.append(col.getSQL());
+                col.getSQL(buff.builder());
                 if (v == ValueNull.INSTANCE) {
                     buff.append(" IS NULL");
                 } else {
@@ -111,7 +111,7 @@ public class LinkedIndex extends BaseIndex {
                 buff.appendOnlyFirst(" WHERE ");
                 buff.appendExceptFirst(" AND ");
                 Column col = table.getColumn(i);
-                buff.append(col.getSQL());
+                col.getSQL(buff.builder());
                 if (v == ValueNull.INSTANCE) {
                     buff.append(" IS NULL");
                 } else {
@@ -192,7 +192,7 @@ public class LinkedIndex extends BaseIndex {
         for (int i = 0; i < row.getColumnCount(); i++) {
             buff.appendExceptFirst("AND ");
             Column col = table.getColumn(i);
-            buff.append(col.getSQL());
+            col.getSQL(buff.builder());
             Value v = row.getValue(i);
             if (isNull(v)) {
                 buff.append(" IS NULL ");
@@ -227,7 +227,7 @@ public class LinkedIndex extends BaseIndex {
         buff.append(targetTableName).append(" SET ");
         for (int i = 0; i < newRow.getColumnCount(); i++) {
             buff.appendExceptFirst(", ");
-            buff.append(table.getColumn(i).getSQL()).append('=');
+            table.getColumn(i).getSQL(buff.builder()).append('=');
             Value v = newRow.getValue(i);
             if (v == null) {
                 buff.append("DEFAULT");
@@ -241,7 +241,7 @@ public class LinkedIndex extends BaseIndex {
         for (int i = 0; i < oldRow.getColumnCount(); i++) {
             Column col = table.getColumn(i);
             buff.appendExceptFirst(" AND ");
-            buff.append(col.getSQL());
+            col.getSQL(buff.builder());
             Value v = oldRow.getValue(i);
             if (isNull(v)) {
                 buff.append(" IS NULL");

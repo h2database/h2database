@@ -110,7 +110,8 @@ public class Analyze extends DefineCommand {
                 // the selectivity is not required
                 buff.append("MAX(NULL)");
             } else {
-                buff.append("SELECTIVITY(").append(col.getSQL()).append(')');
+                buff.append("SELECTIVITY(");
+                col.getSQL(buff.builder()).append(')');
             }
         }
         buff.append(" FROM ");

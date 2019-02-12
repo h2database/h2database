@@ -345,7 +345,7 @@ public class TableView extends Table {
             buff.append('(');
             for (Column c : columns) {
                 buff.appendExceptFirst(", ");
-                buff.append(c.getSQL());
+                c.getSQL(buff.builder());
             }
             buff.append(')');
         } else if (columnTemplates != null) {

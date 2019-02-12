@@ -193,7 +193,7 @@ public class ScanIndex extends BaseIndex {
 
     @Override
     public String getPlanSQL() {
-        return table.getSQL() + ".tableScan";
+        return table.getSQL(new StringBuilder()).append(".tableScan").toString();
     }
 
 }

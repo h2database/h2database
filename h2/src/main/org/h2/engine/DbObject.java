@@ -102,6 +102,16 @@ public interface DbObject {
     String getSQL();
 
     /**
+     * Appends the SQL name of this object (may be quoted) to the specified
+     * builder.
+     *
+     * @param builder
+     *            string builder
+     * @return the specified string builder
+     */
+    StringBuilder getSQL(StringBuilder builder);
+
+    /**
      * Get the list of dependent children (for tables, this includes indexes and
      * so on).
      *

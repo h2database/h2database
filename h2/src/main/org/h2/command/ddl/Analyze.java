@@ -16,7 +16,6 @@ import org.h2.result.ResultInterface;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableType;
-import org.h2.util.StatementBuilder;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
@@ -102,18 +101,23 @@ public class Analyze extends DefineCommand {
             return;
         }
         Database db = session.getDatabase();
-        StatementBuilder buff = new StatementBuilder("SELECT ");
-        for (Column col : columns) {
-            buff.appendExceptFirst(", ");
+        StringBuilder buff = new StringBuilder("SELECT ");
+        for (int i = 0, l = columns.length; i < l; i++) {
+            if (i > 0) {
+                buff.append(", ");
+            }
+            Column col = columns[i];
             if (DataType.isLargeObject(col.getType().getValueType())) {
                 // can not index LOB columns, so calculating
                 // the selectivity is not required
                 buff.append("MAX(NULL)");
             } else {
-                buff.append("SELECTIVITY(").append(col.getSQL()).append(')');
+                buff.append("SELECTIVITY(");
+                col.getSQL(buff).append(')');
             }
         }
-        buff.append(" FROM ").append(table.getSQL());
+        buff.append(" FROM ");
+        table.getSQL(buff);
         if (sample > 0) {
             buff.append(" FETCH FIRST ROW ONLY SAMPLE_SIZE ? ");
         }

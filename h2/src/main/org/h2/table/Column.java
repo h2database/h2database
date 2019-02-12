@@ -86,6 +86,49 @@ public class Column {
     private boolean visible = true;
     private Domain domain;
 
+    /**
+     * Appends the specified columns to the specified builder.
+     *
+     * @param builder
+     *            string builder
+     * @param columns
+     *            columns
+     * @return the specified string builder
+     */
+    public static StringBuilder writeColumns(StringBuilder builder, Column[] columns) {
+        for (int i = 0, l = columns.length; i < l; i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            columns[i].getSQL(builder);
+        }
+        return builder;
+    }
+
+    /**
+     * Appends the specified columns to the specified builder.
+     *
+     * @param builder
+     *            string builder
+     * @param columns
+     *            columns
+     * @param separator
+     *            separator
+     * @param suffix
+     *            additional SQL to append after each column
+     * @return the specified string builder
+     */
+    public static StringBuilder writeColumns(StringBuilder builder, Column[] columns, String separator,
+            String suffix) {
+        for (int i = 0, l = columns.length; i < l; i++) {
+            if (i > 0) {
+                builder.append(separator);
+            }
+            columns[i].getSQL(builder).append(suffix);
+        }
+        return builder;
+    }
+
     public Column(String name, int valueType) {
         this(name, TypeInfo.getTypeInfo(valueType));
     }
@@ -246,6 +289,10 @@ public class Column {
 
     public String getSQL() {
         return Parser.quoteIdentifier(name);
+    }
+
+    public StringBuilder getSQL(StringBuilder builder) {
+        return Parser.quoteIdentifier(builder, name);
     }
 
     public String getName() {
@@ -490,7 +537,8 @@ public class Column {
             buff.append(" NULL_TO_DEFAULT");
         }
         if (sequence != null) {
-            buff.append(" SEQUENCE ").append(sequence.getSQL());
+            buff.append(" SEQUENCE ");
+            sequence.getSQL(buff);
         }
         if (selectivity != 0) {
             buff.append(" SELECTIVITY ").append(selectivity);

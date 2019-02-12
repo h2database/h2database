@@ -14,7 +14,6 @@ import org.h2.index.IndexType;
 import org.h2.mvstore.db.MVTableEngine;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
 
@@ -79,7 +78,9 @@ public abstract class TableBase extends Table {
 
     @Override
     public String getDropSQL() {
-        return "DROP TABLE IF EXISTS " + getSQL() + " CASCADE";
+        StringBuilder builder = new StringBuilder("DROP TABLE IF EXISTS ");
+        getSQL(builder).append(" CASCADE");
+        return builder.toString();
     }
 
     @Override
@@ -89,7 +90,7 @@ public abstract class TableBase extends Table {
             // closed
             return null;
         }
-        StatementBuilder buff = new StatementBuilder("CREATE ");
+        StringBuilder buff = new StringBuilder("CREATE ");
         if (isTemporary()) {
             if (isGlobalTemporary()) {
                 buff.append("GLOBAL ");
@@ -106,15 +107,17 @@ public abstract class TableBase extends Table {
         if (isHidden) {
             buff.append("IF NOT EXISTS ");
         }
-        buff.append(getSQL());
+        getSQL(buff);
         if (comment != null) {
             buff.append(" COMMENT ");
-            StringUtils.quoteStringSQL(buff.builder(), comment);
+            StringUtils.quoteStringSQL(buff, comment);
         }
         buff.append("(\n    ");
-        for (Column column : columns) {
-            buff.appendExceptFirst(",\n    ");
-            buff.append(column.getCreateSQL());
+        for (int i = 0, l = columns.length; i < l; i++) {
+            if (i > 0) {
+                buff.append(",\n    ");
+            }
+            buff.append(columns[i].getCreateSQL());
         }
         buff.append("\n)");
         if (tableEngine != null) {
@@ -125,15 +128,16 @@ public abstract class TableBase extends Table {
             }
             if (d == null || !tableEngine.endsWith(d)) {
                 buff.append("\nENGINE ");
-                StringUtils.quoteIdentifier(buff.builder(), tableEngine);
+                StringUtils.quoteIdentifier(buff, tableEngine);
             }
         }
         if (!tableEngineParams.isEmpty()) {
             buff.append("\nWITH ");
-            buff.resetCount();
-            for (String parameter : tableEngineParams) {
-                buff.appendExceptFirst(", ");
-                StringUtils.quoteIdentifier(buff.builder(), parameter);
+            for (int i = 0, l = tableEngineParams.size(); i < l; i++) {
+                if (i > 0) {
+                    buff.append(", ");
+                }
+                StringUtils.quoteIdentifier(buff, tableEngineParams.get(i));
             }
         }
         if (!isPersistIndexes() && !isPersistData()) {

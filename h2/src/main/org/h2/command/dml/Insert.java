@@ -33,7 +33,6 @@ import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -269,37 +268,34 @@ public class Insert extends CommandWithValues implements ResultTarget {
 
     @Override
     public String getPlanSQL() {
-        StatementBuilder buff = new StatementBuilder("INSERT INTO ");
-        buff.append(table.getSQL()).append('(');
-        for (Column c : columns) {
-            buff.appendExceptFirst(", ");
-            buff.append(c.getSQL());
-        }
-        buff.append(")\n");
+        StringBuilder builder = new StringBuilder("INSERT INTO ");
+        table.getSQL(builder).append('(');
+        Column.writeColumns(builder, columns);
+        builder.append(")\n");
         if (insertFromSelect) {
-            buff.append("DIRECT ");
+            builder.append("DIRECT ");
         }
         if (sortedInsertMode) {
-            buff.append("SORTED ");
+            builder.append("SORTED ");
         }
         if (!valuesExpressionList.isEmpty()) {
-            buff.append("VALUES ");
+            builder.append("VALUES ");
             int row = 0;
             if (valuesExpressionList.size() > 1) {
-                buff.append('\n');
+                builder.append('\n');
             }
             for (Expression[] expr : valuesExpressionList) {
                 if (row++ > 0) {
-                    buff.append(",\n");
+                    builder.append(",\n");
                 }
-                buff.append('(');
-                Expression.writeExpressions(buff.builder(), expr);
-                buff.append(')');
+                builder.append('(');
+                Expression.writeExpressions(builder, expr);
+                builder.append(')');
             }
         } else {
-            buff.append(query.getPlanSQL());
+            builder.append(query.getPlanSQL());
         }
-        return buff.toString();
+        return builder.toString();
     }
 
     @Override
@@ -391,8 +387,8 @@ public class Insert extends CommandWithValues implements ResultTarget {
         Expression[] row = (currentRow == null) ? valuesExpressionList.get((int) getCurrentRowNumber() - 1)
                 : new Expression[columns.length];
         for (int i = 0; i < columns.length; i++) {
-            String key = table.getSchema().getName() + "." +
-                    table.getName() + "." + columns[i].getName();
+            StringBuilder builder = table.getSQL(new StringBuilder()).append('.');
+            String key = columns[i].getSQL(builder).toString();
             variableNames.add(key);
             Value value;
             if (currentRow != null) {
@@ -404,22 +400,26 @@ public class Insert extends CommandWithValues implements ResultTarget {
             session.setVariable(key, value);
         }
 
-        StatementBuilder buff = new StatementBuilder("UPDATE ");
-        buff.append(table.getSQL()).append(" SET ");
+        StringBuilder builder = new StringBuilder("UPDATE ");
+        table.getSQL(builder).append(" SET ");
+        boolean f = false;
         for (Column column : duplicateKeyAssignmentMap.keySet()) {
-            buff.appendExceptFirst(", ");
+            if (f) {
+                builder.append(", ");
+            }
+            f = true;
             Expression ex = duplicateKeyAssignmentMap.get(column);
-            buff.append(column.getSQL()).append('=');
-            ex.getSQL(buff.builder());
+            column.getSQL(builder).append('=');
+            ex.getSQL(builder);
         }
-        buff.append(" WHERE ");
+        builder.append(" WHERE ");
         Index foundIndex = (Index) de.getSource();
         if (foundIndex == null) {
             throw DbException.getUnsupportedException(
                     "Unable to apply ON DUPLICATE KEY UPDATE, no index found!");
         }
-        prepareUpdateCondition(foundIndex, row).getSQL(buff.builder());
-        String sql = buff.toString();
+        prepareUpdateCondition(foundIndex, row).getSQL(builder);
+        String sql = builder.toString();
         Update command = (Update) session.prepare(sql);
         command.setUpdateToCurrentValuesReturnsZero(true);
         for (Parameter param : command.getParameters()) {

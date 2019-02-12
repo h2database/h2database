@@ -21,7 +21,6 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -93,12 +92,15 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * @return the exception
      */
     protected DbException getDuplicateKeyException(String key) {
-        String sql = getName() + " ON " + table.getSQL() +
-                "(" + getColumnListSQL() + ")";
+        StringBuilder builder = new StringBuilder();
+        getSQL(builder).append(" ON ");
+        table.getSQL(builder).append('(');
+        builder.append(getColumnListSQL());
+        builder.append(')');
         if (key != null) {
-            sql += " VALUES " + key;
+            builder.append(" VALUES ").append(key);
         }
-        DbException e = DbException.get(ErrorCode.DUPLICATE_KEY_1, sql);
+        DbException e = DbException.get(ErrorCode.DUPLICATE_KEY_1, builder.toString());
         e.setSource(this);
         return e;
     }
@@ -409,12 +411,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * @return the list of columns
      */
     private String getColumnListSQL() {
-        StatementBuilder buff = new StatementBuilder();
-        for (IndexColumn c : indexColumns) {
-            buff.appendExceptFirst(", ");
-            buff.append(c.getSQL());
-        }
-        return buff.toString();
+        return IndexColumn.writeColumns(new StringBuilder(), indexColumns).toString();
     }
 
     @Override
@@ -426,7 +423,8 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
             buff.append("IF NOT EXISTS ");
         }
         buff.append(quotedName);
-        buff.append(" ON ").append(targetTable.getSQL());
+        buff.append(" ON ");
+        targetTable.getSQL(buff);
         if (comment != null) {
             buff.append(" COMMENT ");
             StringUtils.quoteStringSQL(buff, comment);

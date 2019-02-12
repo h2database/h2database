@@ -48,7 +48,6 @@ import org.h2.table.TableFilter.TableFilterVisitor;
 import org.h2.table.TableType;
 import org.h2.table.TableView;
 import org.h2.util.ColumnNamer;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
@@ -1463,7 +1462,7 @@ public class Select extends Query {
         // indexes may be incorrect: ? may be in fact ?2 for a subquery
         // but indexes may be set manually as well
         Expression[] exprList = expressions.toArray(new Expression[0]);
-        StatementBuilder buff = new StatementBuilder();
+        StringBuilder builder = new StringBuilder();
         for (TableFilter f : topFilters) {
             Table t = f.getTable();
             TableView tableView = t.isView() ? (TableView) t : null;
@@ -1474,129 +1473,124 @@ public class Select extends Query {
                     // since using a with statement will re-create the common table expression
                     // views.
                 } else {
-                    buff.append("WITH RECURSIVE ")
-                            .append(t.getSchema().getSQL()).append('.');
-                    Parser.quoteIdentifier(buff.builder(), t.getName())
-                            .append('(');
-                    buff.resetCount();
-                    for (Column c : t.getColumns()) {
-                        buff.appendExceptFirst(",");
-                        buff.append(c.getName());
-                    }
-                    buff.append(") AS ").append(t.getSQL()).append('\n');
+                    builder.append("WITH RECURSIVE ");
+                    t.getSchema().getSQL(builder).append('.');
+                    Parser.quoteIdentifier(builder, t.getName()).append('(');
+                    Column.writeColumns(builder, t.getColumns());
+                    builder.append(") AS ");
+                    t.getSQL(builder).append('\n');
                 }
             }
         }
-        buff.resetCount();
-        buff.append("SELECT");
+        builder.append("SELECT");
         if (isAnyDistinct()) {
-            buff.append(" DISTINCT");
+            builder.append(" DISTINCT");
             if (distinctExpressions != null) {
-                buff.append(" ON(");
-                for (Expression distinctExpression: distinctExpressions) {
-                    buff.appendExceptFirst(", ");
-                    distinctExpression.getSQL(buff.builder());
-                }
-                buff.append(')');
-                buff.resetCount();
+                builder.append(" ON(");
+                Expression.writeExpressions(builder, distinctExpressions);
+                builder.append(')');
             }
         }
         for (int i = 0; i < visibleColumnCount; i++) {
-            buff.appendExceptFirst(",");
-            buff.append('\n');
-            StringUtils.indent(buff.builder(), exprList[i].getSQL(), 4, false);
+            if (i > 0) {
+                builder.append(',');
+            }
+            builder.append('\n');
+            StringUtils.indent(builder, exprList[i].getSQL(), 4, false);
         }
-        buff.append("\nFROM ");
+        builder.append("\nFROM ");
         TableFilter filter = topTableFilter;
         if (filter != null) {
-            buff.resetCount();
             int i = 0;
             do {
-                buff.appendExceptFirst("\n");
-                filter.getPlanSQL(buff.builder(), i++ > 0);
+                if (i > 0) {
+                    builder.append('\n');
+                }
+                filter.getPlanSQL(builder, i++ > 0);
                 filter = filter.getJoin();
             } while (filter != null);
         } else {
-            buff.resetCount();
             int i = 0;
             for (TableFilter f : topFilters) {
                 do {
-                    buff.appendExceptFirst("\n");
-                    f.getPlanSQL(buff.builder(), i++ > 0);
+                    if (i > 0) {
+                        builder.append('\n');
+                    }
+                    f.getPlanSQL(builder, i++ > 0);
                     f = f.getJoin();
                 } while (f != null);
             }
         }
         if (condition != null) {
-            buff.append("\nWHERE ");
-            condition.getUnenclosedSQL(buff.builder());
+            builder.append("\nWHERE ");
+            condition.getUnenclosedSQL(builder);
         }
         if (groupIndex != null) {
-            buff.append("\nGROUP BY ");
-            buff.resetCount();
-            for (int gi : groupIndex) {
-                Expression g = exprList[gi];
-                g = g.getNonAliasExpression();
-                buff.appendExceptFirst(", ");
-                g.getUnenclosedSQL(buff.builder());
+            builder.append("\nGROUP BY ");
+            for (int i = 0, l = groupIndex.length; i < l; i++) {
+                if (i > 0) {
+                    builder.append(", ");
+                }
+                exprList[groupIndex[i]].getNonAliasExpression().getUnenclosedSQL(builder);
+            }
+        } else if (group != null) {
+            builder.append("\nGROUP BY ");
+            for (int i = 0, l = group.size(); i < l; i++) {
+                if (i > 0) {
+                    builder.append(", ");
+                }
+                group.get(i).getUnenclosedSQL(builder);
             }
         }
-        if (group != null) {
-            buff.append("\nGROUP BY ");
-            buff.resetCount();
-            for (Expression g : group) {
-                buff.appendExceptFirst(", ");
-                g.getUnenclosedSQL(buff.builder());
-            }
-        }
-        getFilterSQL(buff, "\nHAVING ", exprList, having, havingIndex);
-        getFilterSQL(buff, "\nQUALIFY ", exprList, qualify, qualifyIndex);
+        getFilterSQL(builder, "\nHAVING ", exprList, having, havingIndex);
+        getFilterSQL(builder, "\nQUALIFY ", exprList, qualify, qualifyIndex);
         if (sort != null) {
-            buff.append("\nORDER BY ").append(
+            builder.append("\nORDER BY ").append(
                     sort.getSQL(exprList, visibleColumnCount));
         }
         if (orderList != null) {
-            buff.append("\nORDER BY ");
-            buff.resetCount();
-            for (SelectOrderBy o : orderList) {
-                buff.appendExceptFirst(", ");
-                buff.append(StringUtils.unEnclose(o.getSQL()));
+            builder.append("\nORDER BY ");
+            for (int i = 0, l = orderList.size(); i < l; i++) {
+                if (i > 0) {
+                    builder.append(", ");
+                }
+                orderList.get(i).getSQL(builder);
             }
         }
-        appendLimitToSQL(buff.builder());
+        appendLimitToSQL(builder);
         if (sampleSizeExpr != null) {
-            buff.append("\nSAMPLE_SIZE ");
-            sampleSizeExpr.getUnenclosedSQL(buff.builder());
+            builder.append("\nSAMPLE_SIZE ");
+            sampleSizeExpr.getUnenclosedSQL(builder);
         }
         if (isForUpdate) {
-            buff.append("\nFOR UPDATE");
+            builder.append("\nFOR UPDATE");
         }
         if (isQuickAggregateQuery) {
-            buff.append("\n/* direct lookup */");
+            builder.append("\n/* direct lookup */");
         }
         if (isDistinctQuery) {
-            buff.append("\n/* distinct */");
+            builder.append("\n/* distinct */");
         }
         if (sortUsingIndex) {
-            buff.append("\n/* index sorted */");
+            builder.append("\n/* index sorted */");
         }
         if (isGroupQuery) {
             if (isGroupSortedQuery) {
-                buff.append("\n/* group sorted */");
+                builder.append("\n/* group sorted */");
             }
         }
         // buff.append("\n/* cost: " + cost + " */");
-        return buff.toString();
+        return builder.toString();
     }
 
-    private static void getFilterSQL(StatementBuilder buff, String sql, Expression[] exprList, Expression condition,
+    private static void getFilterSQL(StringBuilder builder, String sql, Expression[] exprList, Expression condition,
             int conditionIndex) {
         if (condition != null) {
-            buff.append(sql);
-            condition.getUnenclosedSQL(buff.builder());
+            builder.append(sql);
+            condition.getUnenclosedSQL(builder);
         } else if (conditionIndex >= 0) {
-            buff.append(sql);
-            exprList[conditionIndex].getUnenclosedSQL(buff.builder());
+            builder.append(sql);
+            exprList[conditionIndex].getUnenclosedSQL(builder);
         }
     }
 

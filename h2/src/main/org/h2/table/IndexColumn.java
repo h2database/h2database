@@ -30,14 +30,58 @@ public class IndexColumn {
     public int sortType = SortOrder.ASCENDING;
 
     /**
-     * Get the SQL snippet for this index column.
+     * Appends the specified columns to the specified builder.
      *
-     * @return the SQL snippet
+     * @param builder
+     *            string builder
+     * @param columns
+     *            index columns
+     * @return the specified string builder
      */
-    public String getSQL() {
-        StringBuilder buff = new StringBuilder(column.getSQL());
-        SortOrder.typeToString(buff, sortType);
-        return buff.toString();
+    public static StringBuilder writeColumns(StringBuilder builder, IndexColumn[] columns) {
+        for (int i = 0, l = columns.length; i < l; i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            columns[i].getSQL(builder);
+        }
+        return builder;
+    }
+
+    /**
+     * Appends the specified columns to the specified builder.
+     *
+     * @param builder
+     *            string builder
+     * @param columns
+     *            index columns
+     * @param separator
+     *            separator
+     * @param suffix
+     *            additional SQL to append after each column
+     * @return the specified string builder
+     */
+    public static StringBuilder writeColumns(StringBuilder builder, IndexColumn[] columns, String separator,
+            String suffix) {
+        for (int i = 0, l = columns.length; i < l; i++) {
+            if (i > 0) {
+                builder.append(separator);
+            }
+            columns[i].getSQL(builder).append(suffix);
+        }
+        return builder;
+    }
+
+    /**
+     * Appends the SQL snippet for this index column to the specified string builder.
+     *
+     * @param builder
+     *            string builder
+     * @return the specified string builder
+     */
+    public StringBuilder getSQL(StringBuilder builder) {
+        SortOrder.typeToString(column.getSQL(builder), sortType);
+        return builder;
     }
 
     /**
@@ -70,6 +114,6 @@ public class IndexColumn {
 
     @Override
     public String toString() {
-        return "IndexColumn " + getSQL();
+        return getSQL(new StringBuilder("IndexColumn ")).toString();
     }
 }

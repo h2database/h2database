@@ -24,7 +24,6 @@ import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.Table;
-import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 
 /**
@@ -195,29 +194,26 @@ public class Replace extends CommandWithValues {
 
     @Override
     public String getPlanSQL() {
-        StatementBuilder buff = new StatementBuilder("REPLACE INTO ");
-        buff.append(table.getSQL()).append('(');
-        for (Column c : columns) {
-            buff.appendExceptFirst(", ");
-            buff.append(c.getSQL());
-        }
-        buff.append(')');
-        buff.append('\n');
+        StringBuilder builder = new StringBuilder("REPLACE INTO ");
+        table.getSQL(builder).append('(');
+        Column.writeColumns(builder, columns);
+        builder.append(')');
+        builder.append('\n');
         if (!valuesExpressionList.isEmpty()) {
-            buff.append("VALUES ");
+            builder.append("VALUES ");
             int row = 0;
             for (Expression[] expr : valuesExpressionList) {
                 if (row++ > 0) {
-                    buff.append(", ");
+                    builder.append(", ");
                 }
-                buff.append('(');
-                Expression.writeExpressions(buff.builder(), expr);
-                buff.append(')');
+                builder.append('(');
+                Expression.writeExpressions(builder, expr);
+                builder.append(')');
             }
         } else {
-            buff.append(query.getPlanSQL());
+            builder.append(query.getPlanSQL());
         }
-        return buff.toString();
+        return builder.toString();
     }
 
     @Override
@@ -269,20 +265,11 @@ public class Replace extends CommandWithValues {
                 return;
             }
         }
-        StatementBuilder buff = new StatementBuilder("UPDATE ");
-        buff.append(table.getSQL()).append(" SET ");
-        for (Column c : columns) {
-            buff.appendExceptFirst(", ");
-            buff.append(c.getSQL()).append("=?");
-        }
-        buff.append(" WHERE ");
-        buff.resetCount();
-        for (Column c : keys) {
-            buff.appendExceptFirst(" AND ");
-            buff.append(c.getSQL()).append("=?");
-        }
-        String sql = buff.toString();
-        update = session.prepare(sql);
+        StringBuilder builder = new StringBuilder("UPDATE ");
+        table.getSQL(builder).append(" SET ");
+        Column.writeColumns(builder, columns, ", ", "=?").append(" WHERE ");
+        Column.writeColumns(builder, keys, " AND ", "=?");
+        update = session.prepare(builder.toString());
     }
 
     @Override

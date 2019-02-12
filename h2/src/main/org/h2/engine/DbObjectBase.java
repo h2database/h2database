@@ -105,6 +105,11 @@ public abstract class DbObjectBase implements DbObject {
     }
 
     @Override
+    public StringBuilder getSQL(StringBuilder builder) {
+        return Parser.quoteIdentifier(builder, objectName);
+    }
+
+    @Override
     public ArrayList<DbObject> getChildren() {
         return null;
     }

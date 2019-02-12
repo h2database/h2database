@@ -26,7 +26,6 @@ import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 
 /**
@@ -206,38 +205,31 @@ public class Merge extends CommandWithValues {
 
     @Override
     public String getPlanSQL() {
-        StatementBuilder buff = new StatementBuilder("MERGE INTO ");
-        buff.append(targetTable.getSQL()).append('(');
-        for (Column c : columns) {
-            buff.appendExceptFirst(", ");
-            buff.append(c.getSQL());
-        }
-        buff.append(')');
+        StringBuilder builder = new StringBuilder("MERGE INTO ");
+        targetTable.getSQL(builder).append('(');
+        Column.writeColumns(builder, columns);
+        builder.append(')');
         if (keys != null) {
-            buff.append(" KEY(");
-            buff.resetCount();
-            for (Column c : keys) {
-                buff.appendExceptFirst(", ");
-                buff.append(c.getSQL());
-            }
-            buff.append(')');
+            builder.append(" KEY(");
+            Column.writeColumns(builder, keys);
+            builder.append(')');
         }
-        buff.append('\n');
+        builder.append('\n');
         if (!valuesExpressionList.isEmpty()) {
-            buff.append("VALUES ");
+            builder.append("VALUES ");
             int row = 0;
             for (Expression[] expr : valuesExpressionList) {
                 if (row++ > 0) {
-                    buff.append(", ");
+                    builder.append(", ");
                 }
-                buff.append('(');
-                Expression.writeExpressions(buff.builder(), expr);
-                buff.append(')');
+                builder.append('(');
+                Expression.writeExpressions(builder, expr);
+                builder.append(')');
             }
         } else {
-            buff.append(query.getPlanSQL());
+            builder.append(query.getPlanSQL());
         }
-        return buff.toString();
+        return builder.toString();
     }
 
     @Override
@@ -275,20 +267,11 @@ public class Merge extends CommandWithValues {
             }
             keys = idx.getColumns();
         }
-        StatementBuilder buff = new StatementBuilder("UPDATE ");
-        buff.append(targetTable.getSQL()).append(" SET ");
-        for (Column c : columns) {
-            buff.appendExceptFirst(", ");
-            buff.append(c.getSQL()).append("=?");
-        }
-        buff.append(" WHERE ");
-        buff.resetCount();
-        for (Column c : keys) {
-            buff.appendExceptFirst(" AND ");
-            buff.append(c.getSQL()).append("=?");
-        }
-        String sql = buff.toString();
-        update = session.prepare(sql);
+        StringBuilder builder = new StringBuilder("UPDATE ");
+        targetTable.getSQL(builder).append(" SET ");
+        Column.writeColumns(builder, columns, ", ", "=?").append(" WHERE ");
+        Column.writeColumns(builder, keys, " AND ", "=?");
+        update = session.prepare(builder.toString());
     }
 
     @Override

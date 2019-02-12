@@ -36,7 +36,6 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.IOUtils;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
@@ -1142,18 +1141,22 @@ public class FullText {
         }
 
         private String getKey(Object[] row) throws SQLException {
-            StatementBuilder buff = new StatementBuilder();
-            for (int columnIndex : index.keys) {
-                buff.appendExceptFirst(" AND ");
-                StringUtils.quoteIdentifier(buff.builder(), index.columns[columnIndex]);
+            StringBuilder builder = new StringBuilder();
+            int[] keys = index.keys;
+            for (int i = 0, l = keys.length; i < l; i++) {
+                if (i > 0) {
+                    builder.append(" AND ");
+                }
+                int columnIndex = keys[i];
+                StringUtils.quoteIdentifier(builder, index.columns[columnIndex]);
                 Object o = row[columnIndex];
                 if (o == null) {
-                    buff.append(" IS NULL");
+                    builder.append(" IS NULL");
                 } else {
-                    buff.append('=').append(quoteSQL(o, columnTypes[columnIndex]));
+                    builder.append('=').append(quoteSQL(o, columnTypes[columnIndex]));
                 }
             }
-            return buff.toString();
+            return builder.toString();
         }
 
         private PreparedStatement getStatement(Connection conn, int index) throws SQLException {

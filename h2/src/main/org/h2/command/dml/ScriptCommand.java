@@ -23,7 +23,6 @@ import java.util.Comparator;
 import java.util.Set;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
-import org.h2.command.Parser;
 import org.h2.constraint.Constraint;
 import org.h2.engine.Comment;
 import org.h2.engine.Constants;
@@ -56,7 +55,6 @@ import org.h2.table.Table;
 import org.h2.table.TableType;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
@@ -291,10 +289,10 @@ public class ScriptCommand extends ScriptBase {
                 }
                 if (TableType.TABLE == tableType) {
                     if (table.canGetRowCount()) {
-                        String rowcount = "-- " +
-                                table.getRowCountApproximation() +
-                                " +/- SELECT COUNT(*) FROM " + table.getSQL();
-                        add(rowcount, false);
+                        StringBuilder builder = new StringBuilder("-- ").append(table.getRowCountApproximation())
+                                .append(" +/- SELECT COUNT(*) FROM ");
+                        table.getSQL(builder);
+                        add(builder.toString(), false);
                     }
                     if (data) {
                         count = generateInsertValues(count, table);
@@ -388,58 +386,55 @@ public class ScriptCommand extends ScriptBase {
         Index index = plan.getIndex();
         Cursor cursor = index.find(session, null, null);
         Column[] columns = table.getColumns();
-        StatementBuilder buff = new StatementBuilder("INSERT INTO ");
-        buff.append(table.getSQL()).append('(');
-        for (Column col : columns) {
-            buff.appendExceptFirst(", ");
-            Parser.quoteIdentifier(buff.builder(), col.getName());
-        }
-        buff.append(") VALUES");
+        StringBuilder builder = new StringBuilder("INSERT INTO ");
+        table.getSQL(builder).append('(');
+        Column.writeColumns(builder, columns);
+        builder.append(") VALUES");
         if (!simple) {
-            buff.append('\n');
+            builder.append('\n');
         }
-        buff.append('(');
-        String ins = buff.toString();
-        buff = null;
+        builder.append('(');
+        String ins = builder.toString();
+        builder = null;
         while (cursor.next()) {
             Row row = cursor.get();
-            if (buff == null) {
-                buff = new StatementBuilder(ins);
+            if (builder == null) {
+                builder = new StringBuilder(ins);
             } else {
-                buff.append(",\n(");
+                builder.append(",\n(");
             }
             for (int j = 0; j < row.getColumnCount(); j++) {
                 if (j > 0) {
-                    buff.append(", ");
+                    builder.append(", ");
                 }
                 Value v = row.getValue(j);
                 if (v.getType().getPrecision() > lobBlockSize) {
                     int id;
                     if (v.getValueType() == Value.CLOB) {
                         id = writeLobStream(v);
-                        buff.append("SYSTEM_COMBINE_CLOB(").append(id).append(')');
+                        builder.append("SYSTEM_COMBINE_CLOB(").append(id).append(')');
                     } else if (v.getValueType() == Value.BLOB) {
                         id = writeLobStream(v);
-                        buff.append("SYSTEM_COMBINE_BLOB(").append(id).append(')');
+                        builder.append("SYSTEM_COMBINE_BLOB(").append(id).append(')');
                     } else {
-                        v.getSQL(buff.builder());
+                        v.getSQL(builder);
                     }
                 } else {
-                    v.getSQL(buff.builder());
+                    v.getSQL(builder);
                 }
             }
-            buff.append(')');
+            builder.append(')');
             count++;
             if ((count & 127) == 0) {
                 checkCanceled();
             }
-            if (simple || buff.length() > Constants.IO_BUFFER_SIZE) {
-                add(buff.toString(), true);
-                buff = null;
+            if (simple || builder.length() > Constants.IO_BUFFER_SIZE) {
+                add(builder.toString(), true);
+                builder = null;
             }
         }
-        if (buff != null) {
-            add(buff.toString(), true);
+        if (builder != null) {
+            add(builder.toString(), true);
         }
         return count;
     }

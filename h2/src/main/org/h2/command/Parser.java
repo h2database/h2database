@@ -218,7 +218,6 @@ import org.h2.table.TableFilter.TableFilterVisitor;
 import org.h2.table.TableView;
 import org.h2.util.IntervalUtils;
 import org.h2.util.ParserUtil;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.util.geometry.EWKTUtils;
@@ -981,13 +980,8 @@ public class Parser {
         if (expectedList == null || expectedList.isEmpty()) {
             return DbException.getSyntaxError(sqlCommand, parseIndex);
         }
-        StatementBuilder buff = new StatementBuilder();
-        for (String e : expectedList) {
-            buff.appendExceptFirst(", ");
-            buff.append(e);
-        }
         return DbException.getSyntaxError(sqlCommand, parseIndex,
-                buff.toString());
+                StringUtils.join(new StringBuilder(), expectedList, ", ").toString());
     }
 
     private Prepared parseBackup() {
@@ -3643,7 +3637,7 @@ public class Parser {
     }
 
     private WindowFunction readWindowFunction(String name) {
-        if (!database.getSettings().databaseToUpper) {
+        if (!identifiersToUpper) {
             // if not yet converted to uppercase, do it now
             name = StringUtils.toUpperEnglish(name);
         }

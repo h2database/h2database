@@ -178,7 +178,7 @@ public class IndexCondition {
             return "FALSE";
         }
         StringBuilder builder = new StringBuilder();
-        builder.append(column.getSQL());
+        column.getSQL(builder);
         switch (compareType) {
         case Comparison.EQUAL:
             builder.append(" = ");

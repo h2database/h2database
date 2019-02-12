@@ -36,7 +36,13 @@ public abstract class SchemaObjectBase extends DbObjectBase implements
 
     @Override
     public String getSQL() {
-        return schema.getSQL() + "." + super.getSQL();
+        return getSQL(new StringBuilder()).toString();
+    }
+
+    @Override
+    public StringBuilder getSQL(StringBuilder builder) {
+        schema.getSQL(builder).append('.');
+        return super.getSQL(builder);
     }
 
     @Override

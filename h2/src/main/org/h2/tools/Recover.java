@@ -990,15 +990,17 @@ public class Recover extends Tool implements DataHandler {
                     } else {
                         String tableName = tableMap.get(storageId);
                         if (tableName != null) {
-                            StatementBuilder buff = new StatementBuilder();
-                            buff.append("INSERT INTO ").append(tableName).
+                            StringBuilder builder = new StringBuilder();
+                            builder.append("INSERT INTO ").append(tableName).
                                     append(" VALUES(");
                             for (int i = 0; i < row.getColumnCount(); i++) {
-                                buff.appendExceptFirst(", ");
-                                row.getValue(i).getSQL(buff.builder());
+                                if (i > 0) {
+                                    builder.append(", ");
+                                }
+                                row.getValue(i).getSQL(builder);
                             }
-                            buff.append(");");
-                            writer.println(buff.toString());
+                            builder.append(");");
+                            writer.println(builder.toString());
                         }
                     }
                 }

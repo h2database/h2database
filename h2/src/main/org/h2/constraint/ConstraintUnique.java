@@ -6,7 +6,6 @@
 package org.h2.constraint;
 
 import java.util.HashSet;
-import org.h2.command.Parser;
 import org.h2.engine.Session;
 import org.h2.index.Index;
 import org.h2.result.Row;
@@ -14,7 +13,6 @@ import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 
 /**
@@ -43,28 +41,30 @@ public class ConstraintUnique extends Constraint {
         return getCreateSQLForCopy(forTable, quotedName, true);
     }
 
-    private String getCreateSQLForCopy(Table forTable, String quotedName,
-            boolean internalIndex) {
-        StatementBuilder buff = new StatementBuilder("ALTER TABLE ");
-        buff.append(forTable.getSQL()).append(" ADD CONSTRAINT ");
+    private String getCreateSQLForCopy(Table forTable, String quotedName, boolean internalIndex) {
+        StringBuilder builder = new StringBuilder("ALTER TABLE ");
+        forTable.getSQL(builder).append(" ADD CONSTRAINT ");
         if (forTable.isHidden()) {
-            buff.append("IF NOT EXISTS ");
+            builder.append("IF NOT EXISTS ");
         }
-        buff.append(quotedName);
+        builder.append(quotedName);
         if (comment != null) {
-            buff.append(" COMMENT ");
-            StringUtils.quoteStringSQL(buff.builder(), comment);
+            builder.append(" COMMENT ");
+            StringUtils.quoteStringSQL(builder, comment);
         }
-        buff.append(' ').append(getConstraintType().getSqlName()).append('(');
-        for (IndexColumn c : columns) {
-            buff.appendExceptFirst(", ");
-            Parser.quoteIdentifier(buff.builder(), c.column.getName());
+        builder.append(' ').append(getConstraintType().getSqlName()).append('(');
+        for (int i = 0, l = columns.length; i < l; i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            columns[i].column.getSQL(builder);
         }
-        buff.append(')');
+        builder.append(')');
         if (internalIndex && indexOwner && forTable == this.table) {
-            buff.append(" INDEX ").append(index.getSQL());
+            builder.append(" INDEX ");
+            index.getSQL(builder);
         }
-        return buff.toString();
+        return builder.toString();
     }
 
     @Override

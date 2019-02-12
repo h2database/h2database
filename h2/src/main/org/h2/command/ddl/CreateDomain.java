@@ -64,9 +64,9 @@ public class CreateDomain extends DefineCommand {
             }
             Table table = session.getDatabase().getFirstUserTable();
             if (table != null) {
-                throw DbException.get(
-                        ErrorCode.DOMAIN_ALREADY_EXISTS_1,
-                        typeName + " (" + table.getSQL() + ")");
+                StringBuilder builder = new StringBuilder(typeName).append(" (");
+                table.getSQL(builder).append(')');
+                throw DbException.get(ErrorCode.DOMAIN_ALREADY_EXISTS_1, builder.toString());
             }
         }
         int id = getObjectId();

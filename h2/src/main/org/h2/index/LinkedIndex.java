@@ -60,11 +60,13 @@ public class LinkedIndex extends BaseIndex {
     @Override
     public void add(Session session, Row row) {
         ArrayList<Value> params = Utils.newSmallArrayList();
-        StatementBuilder buff = new StatementBuilder("INSERT INTO ");
+        StringBuilder buff = new StringBuilder("INSERT INTO ");
         buff.append(targetTableName).append(" VALUES(");
         for (int i = 0; i < row.getColumnCount(); i++) {
             Value v = row.getValue(i);
-            buff.appendExceptFirst(", ");
+            if (i > 0) {
+                buff.append(", ");
+            }
             if (v == null) {
                 buff.append("DEFAULT");
             } else if (isNull(v)) {
@@ -100,7 +102,7 @@ public class LinkedIndex extends BaseIndex {
                     buff.append(" IS NULL");
                 } else {
                     buff.append(">=");
-                    addParameter(buff, col);
+                    addParameter(buff.builder(), col);
                     params.add(v);
                 }
             }
@@ -116,7 +118,7 @@ public class LinkedIndex extends BaseIndex {
                     buff.append(" IS NULL");
                 } else {
                     buff.append("<=");
-                    addParameter(buff, col);
+                    addParameter(buff.builder(), col);
                     params.add(v);
                 }
             }
@@ -131,16 +133,16 @@ public class LinkedIndex extends BaseIndex {
         }
     }
 
-    private void addParameter(StatementBuilder buff, Column col) {
+    private void addParameter(StringBuilder builder, Column col) {
         TypeInfo type = col.getType();
         if (type.getValueType() == Value.STRING_FIXED && link.isOracle()) {
             // workaround for Oracle
             // create table test(id int primary key, name char(15));
             // insert into test values(1, 'Hello')
             // select * from test where name = ? -- where ? = "Hello" > no rows
-            buff.append("CAST(? AS CHAR(").append(type.getPrecision()).append("))");
+            builder.append("CAST(? AS CHAR(").append(type.getPrecision()).append("))");
         } else {
-            buff.append('?');
+            builder.append('?');
         }
     }
 
@@ -187,23 +189,24 @@ public class LinkedIndex extends BaseIndex {
     @Override
     public void remove(Session session, Row row) {
         ArrayList<Value> params = Utils.newSmallArrayList();
-        StatementBuilder buff = new StatementBuilder("DELETE FROM ");
-        buff.append(targetTableName).append(" WHERE ");
+        StringBuilder builder = new StringBuilder("DELETE FROM ").append(targetTableName).append(" WHERE ");
         for (int i = 0; i < row.getColumnCount(); i++) {
-            buff.appendExceptFirst("AND ");
+            if (i > 0) {
+                builder.append("AND ");
+            }
             Column col = table.getColumn(i);
-            col.getSQL(buff.builder());
+            col.getSQL(builder);
             Value v = row.getValue(i);
             if (isNull(v)) {
-                buff.append(" IS NULL ");
+                builder.append(" IS NULL ");
             } else {
-                buff.append('=');
-                addParameter(buff, col);
+                builder.append('=');
+                addParameter(builder, col);
                 params.add(v);
-                buff.append(' ');
+                builder.append(' ');
             }
         }
-        String sql = buff.toString();
+        String sql = builder.toString();
         try {
             PreparedStatement prep = link.execute(sql, params, false);
             int count = prep.executeUpdate();
@@ -223,35 +226,37 @@ public class LinkedIndex extends BaseIndex {
      */
     public void update(Row oldRow, Row newRow) {
         ArrayList<Value> params = Utils.newSmallArrayList();
-        StatementBuilder buff = new StatementBuilder("UPDATE ");
-        buff.append(targetTableName).append(" SET ");
+        StringBuilder builder = new StringBuilder("UPDATE ").append(targetTableName).append(" SET ");
         for (int i = 0; i < newRow.getColumnCount(); i++) {
-            buff.appendExceptFirst(", ");
-            table.getColumn(i).getSQL(buff.builder()).append('=');
+            if (i > 0) {
+                builder.append(", ");
+            }
+            table.getColumn(i).getSQL(builder).append('=');
             Value v = newRow.getValue(i);
             if (v == null) {
-                buff.append("DEFAULT");
+                builder.append("DEFAULT");
             } else {
-                buff.append('?');
+                builder.append('?');
                 params.add(v);
             }
         }
-        buff.append(" WHERE ");
-        buff.resetCount();
+        builder.append(" WHERE ");
         for (int i = 0; i < oldRow.getColumnCount(); i++) {
             Column col = table.getColumn(i);
-            buff.appendExceptFirst(" AND ");
-            col.getSQL(buff.builder());
+            if (i > 0) {
+                builder.append(" AND ");
+            }
+            col.getSQL(builder);
             Value v = oldRow.getValue(i);
             if (isNull(v)) {
-                buff.append(" IS NULL");
+                builder.append(" IS NULL");
             } else {
-                buff.append('=');
+                builder.append('=');
                 params.add(v);
-                addParameter(buff, col);
+                addParameter(builder, col);
             }
         }
-        String sql = buff.toString();
+        String sql = builder.toString();
         try {
             link.execute(sql, params, true);
         } catch (Exception e) {

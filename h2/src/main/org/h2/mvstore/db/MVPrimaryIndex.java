@@ -119,7 +119,8 @@ public class MVPrimaryIndex extends BaseIndex {
                 StringBuilder builder = new StringBuilder("PRIMARY KEY ON ");
                 table.getSQL(builder);
                 if (mainIndexColumn >= 0 && mainIndexColumn < indexColumns.length) {
-                    builder.append('(').append(indexColumns[mainIndexColumn].getSQL()).append(')');
+                    builder.append('(');
+                    indexColumns[mainIndexColumn].getSQL(builder).append(')');
                 }
                 int errorCode = ErrorCode.CONCURRENT_UPDATE_1;
                 if (map.get(key) != null) {

@@ -136,7 +136,7 @@ public class SortOrder implements Comparator<Value[]> {
 
     /**
      * Appends type information (DESC, NULLS FIRST, NULLS LAST) to the specified statement builder.
-     * @param builder statement builder
+     * @param builder string builder
      * @param type sort type
      */
     public static void typeToString(StringBuilder builder, int type) {

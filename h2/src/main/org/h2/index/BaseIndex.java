@@ -21,7 +21,6 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -412,12 +411,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * @return the list of columns
      */
     private String getColumnListSQL() {
-        StatementBuilder buff = new StatementBuilder();
-        for (IndexColumn c : indexColumns) {
-            buff.appendExceptFirst(", ");
-            buff.append(c.getSQL());
-        }
-        return buff.toString();
+        return IndexColumn.writeColumns(new StringBuilder(), indexColumns).toString();
     }
 
     @Override

@@ -142,7 +142,8 @@ public class PageDataIndex extends PageIndex {
         StringBuilder builder = new StringBuilder("PRIMARY KEY ON ");
         table.getSQL(builder);
         if (mainIndexColumn >= 0 && mainIndexColumn < indexColumns.length) {
-            builder.append('(').append(indexColumns[mainIndexColumn].getSQL()).append(')');
+            builder.append('(');
+            indexColumns[mainIndexColumn].getSQL(builder).append(')');
         }
         DbException e = DbException.get(ErrorCode.DUPLICATE_KEY_1, builder.toString());
         e.setSource(this);

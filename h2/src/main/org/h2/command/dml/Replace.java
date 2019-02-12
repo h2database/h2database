@@ -195,29 +195,26 @@ public class Replace extends CommandWithValues {
 
     @Override
     public String getPlanSQL() {
-        StatementBuilder buff = new StatementBuilder("REPLACE INTO ");
-        table.getSQL(buff.builder()).append('(');
-        for (Column c : columns) {
-            buff.appendExceptFirst(", ");
-            c.getSQL(buff.builder());
-        }
-        buff.append(')');
-        buff.append('\n');
+        StringBuilder builder = new StringBuilder("REPLACE INTO ");
+        table.getSQL(builder).append('(');
+        Column.writeColumns(builder, columns);
+        builder.append(')');
+        builder.append('\n');
         if (!valuesExpressionList.isEmpty()) {
-            buff.append("VALUES ");
+            builder.append("VALUES ");
             int row = 0;
             for (Expression[] expr : valuesExpressionList) {
                 if (row++ > 0) {
-                    buff.append(", ");
+                    builder.append(", ");
                 }
-                buff.append('(');
-                Expression.writeExpressions(buff.builder(), expr);
-                buff.append(')');
+                builder.append('(');
+                Expression.writeExpressions(builder, expr);
+                builder.append(')');
             }
         } else {
-            buff.append(query.getPlanSQL());
+            builder.append(query.getPlanSQL());
         }
-        return buff.toString();
+        return builder.toString();
     }
 
     @Override

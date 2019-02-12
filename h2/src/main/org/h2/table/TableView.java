@@ -35,7 +35,6 @@ import org.h2.result.Row;
 import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
 import org.h2.util.ColumnNamer;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.TypeInfo;
@@ -323,40 +322,33 @@ public class TableView extends Table {
         return getCreateSQL(orReplace, force, getSQL());
     }
 
-    private String getCreateSQL(boolean orReplace, boolean force,
-            String quotedName) {
-        StatementBuilder buff = new StatementBuilder("CREATE ");
+    private String getCreateSQL(boolean orReplace, boolean force, String quotedName) {
+        StringBuilder builder = new StringBuilder("CREATE ");
         if (orReplace) {
-            buff.append("OR REPLACE ");
+            builder.append("OR REPLACE ");
         }
         if (force) {
-            buff.append("FORCE ");
+            builder.append("FORCE ");
         }
-        buff.append("VIEW ");
+        builder.append("VIEW ");
         if (isTableExpression) {
-            buff.append("TABLE_EXPRESSION ");
+            builder.append("TABLE_EXPRESSION ");
         }
-        buff.append(quotedName);
+        builder.append(quotedName);
         if (comment != null) {
-            buff.append(" COMMENT ");
-            StringUtils.quoteStringSQL(buff.builder(), comment);
+            builder.append(" COMMENT ");
+            StringUtils.quoteStringSQL(builder, comment);
         }
         if (columns != null && columns.length > 0) {
-            buff.append('(');
-            for (Column c : columns) {
-                buff.appendExceptFirst(", ");
-                c.getSQL(buff.builder());
-            }
-            buff.append(')');
+            builder.append('(');
+            Column.writeColumns(builder, columns);
+            builder.append(')');
         } else if (columnTemplates != null) {
-            buff.append('(');
-            for (Column c : columnTemplates) {
-                buff.appendExceptFirst(", ");
-                buff.append(c.getName());
-            }
-            buff.append(')');
+            builder.append('(');
+            Column.writeColumns(builder, columnTemplates);
+            builder.append(')');
         }
-        return buff.append(" AS\n").append(querySQL).toString();
+        return builder.append(" AS\n").append(querySQL).toString();
     }
 
     @Override

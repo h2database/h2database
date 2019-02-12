@@ -206,38 +206,31 @@ public class Merge extends CommandWithValues {
 
     @Override
     public String getPlanSQL() {
-        StatementBuilder buff = new StatementBuilder("MERGE INTO ");
-        targetTable.getSQL(buff.builder()).append('(');
-        for (Column c : columns) {
-            buff.appendExceptFirst(", ");
-            c.getSQL(buff.builder());
-        }
-        buff.append(')');
+        StringBuilder builder = new StringBuilder("MERGE INTO ");
+        targetTable.getSQL(builder).append('(');
+        Column.writeColumns(builder, columns);
+        builder.append(')');
         if (keys != null) {
-            buff.append(" KEY(");
-            buff.resetCount();
-            for (Column c : keys) {
-                buff.appendExceptFirst(", ");
-                c.getSQL(buff.builder());
-            }
-            buff.append(')');
+            builder.append(" KEY(");
+            Column.writeColumns(builder, keys);
+            builder.append(')');
         }
-        buff.append('\n');
+        builder.append('\n');
         if (!valuesExpressionList.isEmpty()) {
-            buff.append("VALUES ");
+            builder.append("VALUES ");
             int row = 0;
             for (Expression[] expr : valuesExpressionList) {
                 if (row++ > 0) {
-                    buff.append(", ");
+                    builder.append(", ");
                 }
-                buff.append('(');
-                Expression.writeExpressions(buff.builder(), expr);
-                buff.append(')');
+                builder.append('(');
+                Expression.writeExpressions(builder, expr);
+                builder.append(')');
             }
         } else {
-            buff.append(query.getPlanSQL());
+            builder.append(query.getPlanSQL());
         }
-        return buff.toString();
+        return builder.toString();
     }
 
     @Override

@@ -269,37 +269,34 @@ public class Insert extends CommandWithValues implements ResultTarget {
 
     @Override
     public String getPlanSQL() {
-        StatementBuilder buff = new StatementBuilder("INSERT INTO ");
-        table.getSQL(buff.builder()).append('(');
-        for (Column c : columns) {
-            buff.appendExceptFirst(", ");
-            c.getSQL(buff.builder());
-        }
-        buff.append(")\n");
+        StringBuilder builder = new StringBuilder("INSERT INTO ");
+        table.getSQL(builder).append('(');
+        Column.writeColumns(builder, columns);
+        builder.append(")\n");
         if (insertFromSelect) {
-            buff.append("DIRECT ");
+            builder.append("DIRECT ");
         }
         if (sortedInsertMode) {
-            buff.append("SORTED ");
+            builder.append("SORTED ");
         }
         if (!valuesExpressionList.isEmpty()) {
-            buff.append("VALUES ");
+            builder.append("VALUES ");
             int row = 0;
             if (valuesExpressionList.size() > 1) {
-                buff.append('\n');
+                builder.append('\n');
             }
             for (Expression[] expr : valuesExpressionList) {
                 if (row++ > 0) {
-                    buff.append(",\n");
+                    builder.append(",\n");
                 }
-                buff.append('(');
-                Expression.writeExpressions(buff.builder(), expr);
-                buff.append(')');
+                builder.append('(');
+                Expression.writeExpressions(builder, expr);
+                builder.append(')');
             }
         } else {
-            buff.append(query.getPlanSQL());
+            builder.append(query.getPlanSQL());
         }
-        return buff.toString();
+        return builder.toString();
     }
 
     @Override

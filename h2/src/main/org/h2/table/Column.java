@@ -86,6 +86,25 @@ public class Column {
     private boolean visible = true;
     private Domain domain;
 
+    /**
+     * Appends the specified columns to the specified builder.
+     *
+     * @param builder
+     *            string builder
+     * @param columns
+     *            columns
+     * @return the specified string builder
+     */
+    public static StringBuilder writeColumns(StringBuilder builder, Column[] columns) {
+        for (int i = 0, l = columns.length; i < l; i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            columns[i].getSQL(builder);
+        }
+        return builder;
+    }
+
     public Column(String name, int valueType) {
         this(name, TypeInfo.getTypeInfo(valueType));
     }

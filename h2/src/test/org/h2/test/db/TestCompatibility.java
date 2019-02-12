@@ -110,6 +110,20 @@ public class TestCompatibility extends TestDb {
         stat.execute("select id from test t group by T.ID");
 
         stat.execute("drop table test");
+
+        rs = stat.executeQuery("select 1e10, 1000000000000000000000e10, 0xfAfBl");
+        assertTrue(rs.next());
+        assertEquals(1e10, rs.getDouble(1));
+        assertEquals(1000000000000000000000e10, rs.getDouble(2));
+        assertEquals(0xfafbL, rs.getLong(3));
+        assertFalse(rs.next());
+
+        stat.execute("create table \"t 1\" (a int, b int)");
+        stat.execute("create view v as select * from \"t 1\"");
+        stat.executeQuery("select * from v").close();
+        stat.execute("drop view v");
+        stat.execute("drop table \"t 1\"");
+
         c.close();
     }
 
@@ -312,16 +326,12 @@ public class TestCompatibility extends TestDb {
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello'), (2, 'World')");
         assertResult("0", stat, "SELECT UNIX_TIMESTAMP('1970-01-01 00:00:00Z')");
-        assertResult("1196418619", stat,
-                "SELECT UNIX_TIMESTAMP('2007-11-30 10:30:19Z')");
-        assertResult("1196418619", stat,
-                "SELECT UNIX_TIMESTAMP(FROM_UNIXTIME(1196418619))");
-        assertResult("2007 November", stat,
-                "SELECT FROM_UNIXTIME(1196300000, '%Y %M')");
-        assertResult("2003-12-31", stat,
-                "SELECT DATE('2003-12-31 11:02:03')");
-        assertResult("2003-12-31", stat,
-                "SELECT DATE('2003-12-31 11:02:03')");
+        assertResult("1196418619", stat, "SELECT UNIX_TIMESTAMP('2007-11-30 10:30:19Z')");
+        assertResult("1196418619", stat, "SELECT UNIX_TIMESTAMP(FROM_UNIXTIME(1196418619))");
+        assertResult("2007 November", stat, "SELECT FROM_UNIXTIME(1196300000, '%Y %M')");
+        assertResult("2003-12-31", stat, "SELECT DATE('2003-12-31 11:02:03')");
+        assertResult("2003-12-31", stat, "SELECT DATE('2003-12-31 11:02:03')");
+        assertResult(null, stat, "SELECT DATE('100')");
         // check the weird MySQL variant of DELETE
         stat.execute("DELETE TEST FROM TEST WHERE 1=2");
 
@@ -334,6 +344,7 @@ public class TestCompatibility extends TestDb {
         ResultSet rs = stat.executeQuery("SELECT B FROM TEST2");
         assertTrue(rs.next());
         assertEquals(bytes, rs.getBytes(1));
+        assertEquals(bytes, rs.getBytes("B"));
         assertEquals(1, stat.executeUpdate("UPDATE TEST2 SET C = B"));
         testMySQLBytesCheck(stat, string, bytes);
         PreparedStatement prep = conn.prepareStatement("UPDATE TEST2 SET C = ?");
@@ -449,6 +460,7 @@ public class TestCompatibility extends TestDb {
         assertTrue(rs.next());
         assertEquals(string, rs.getString(1));
         assertEquals(bytes, rs.getBytes(1));
+        assertEquals(bytes, rs.getBytes("C"));
     }
 
     private void testSybaseAndMSSQLServer() throws SQLException {

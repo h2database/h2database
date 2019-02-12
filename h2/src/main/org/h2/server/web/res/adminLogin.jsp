@@ -10,7 +10,7 @@ Initial Developer: H2 Group
     <link rel="stylesheet" type="text/css" href="stylesheet.css" />
 </head>
 <body style="margin: 20px">
-    <form name="adminLogin" method="post" action="admin.do?jsessionid=${sessionId}">
+    <form name="adminLogin" method="post" action="adminLogin.do?jsessionid=${sessionId}">
         <table class="login" cellspacing="0" cellpadding="0">
             <tr class="login">
                 <th class="login">${text.adminLogin}</th>

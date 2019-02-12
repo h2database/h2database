@@ -634,7 +634,7 @@ public class PageLog {
         } else {
             for (int i = 0; i < columns; i++) {
                 Value v = row.getValue(i);
-                if (v.getType() == Value.BYTES) {
+                if (v.getValueType() == Value.BYTES) {
                     data.writeValue(ValueNull.INSTANCE);
                 } else {
                     data.writeValue(v);

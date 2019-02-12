@@ -15,6 +15,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
@@ -114,7 +115,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private boolean autoCommitAtTransactionEnd;
     private String currentTransactionName;
     private volatile long cancelAtNs;
-    private boolean closed;
     private final long sessionStart = System.currentTimeMillis();
     private ValueTimestampTimeZone transactionStart;
     private ValueTimestampTimeZone currentCommandStart;
@@ -160,7 +160,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private ArrayList<Value> temporaryLobs;
 
     private Transaction transaction;
-    private State state = State.INIT;
+    private final AtomicReference<State> state = new AtomicReference<>(State.INIT);
     private long startStatement = -1;
 
     /**
@@ -411,7 +411,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         boolean wasLocked = database.lockMeta(this);
         try {
             modificationId++;
-            localTempTables.remove(table.getName());
+            if (localTempTables != null) {
+                localTempTables.remove(table.getName());
+            }
             synchronized (database) {
                 table.removeChildrenAndResources(this);
             }
@@ -596,7 +598,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      * @return the prepared statement
      */
     public Command prepareLocal(String sql) {
-        if (closed) {
+        if (isClosed()) {
             throw DbException.get(ErrorCode.CONNECTION_BROKEN_1,
                     "session closed");
         }
@@ -877,8 +879,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     @Override
     public void close() {
-        if (!closed) {
-            state = State.CLOSED;
+        // this is the only operation that can be invoked concurrently
+        // so, we should prevent double-closure
+        if (state.getAndSet(State.CLOSED) != State.CLOSED) {
             try {
                 database.checkPowerOff();
 
@@ -896,7 +899,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                 // want to take the meta lock using the system session.
                 database.unlockMeta(this);
             } finally {
-                closed = true;
                 database.removeSession(this);
             }
         }
@@ -1036,11 +1038,11 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     @Override
     public Trace getTrace() {
-        if (trace != null && !closed) {
+        if (trace != null && !isClosed()) {
             return trace;
         }
         String traceModuleName = "jdbc[" + id + "]";
-        if (closed) {
+        if (isClosed()) {
             return new TraceSystem(null).getTrace(traceModuleName);
         }
         trace = database.getTraceSystem().getTrace(traceModuleName);
@@ -1202,7 +1204,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     @Override
     public boolean isClosed() {
-        return closed;
+        return state.get() == State.CLOSED;
     }
 
     public void setThrottle(int throttle) {
@@ -1223,15 +1225,17 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         if (lastThrottle + TimeUnit.MILLISECONDS.toNanos(Constants.THROTTLE_DELAY) > time) {
             return;
         }
-        State prevState = this.state;
-        lastThrottle = time + throttleNs;
-        try {
-            this.state = State.SLEEP;
-            Thread.sleep(TimeUnit.NANOSECONDS.toMillis(throttleNs));
-        } catch (Exception e) {
-            // ignore InterruptedException
-        } finally {
-            this.state = prevState;
+        State prevState = this.state.get();
+        if (prevState != State.CLOSED) {
+            lastThrottle = time + throttleNs;
+            try {
+                state.compareAndSet(prevState, State.SLEEP);
+                Thread.sleep(TimeUnit.NANOSECONDS.toMillis(throttleNs));
+            } catch (Exception e) {
+                // ignore InterruptedException
+            } finally {
+                state.compareAndSet(State.SLEEP, prevState);
+            }
         }
     }
 
@@ -1248,7 +1252,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      *            from
      */
     public void setCurrentCommand(Command command, Object generatedKeysRequest) {
-        this.currentCommand = command;
+        currentCommand = command;
         // Preserve generated keys in case of a new query due to possible nested
         // queries in update
         if (command != null && !command.isQuery()) {
@@ -1263,7 +1267,10 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                 currentCommandStart = null;
             }
         }
-        state = command == null ? State.SLEEP : State.RUNNING;
+        State currentState = state.get();
+        if(currentState != State.CLOSED) {
+            state.compareAndSet(currentState, command == null ? State.SLEEP : State.RUNNING);
+        }
     }
 
     /**
@@ -1745,7 +1752,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     @Override
     public void addTemporaryLob(Value v) {
-        if (!DataType.isLargeObject(v.getType())) {
+        if (!DataType.isLargeObject(v.getValueType())) {
             return;
         }
         if (v.getTableId() == LobStorageFrontend.TABLE_RESULT
@@ -1780,11 +1787,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     }
 
     public State getState() {
-        return getBlockingSessionId() != 0 ? State.BLOCKED : state;
-    }
-
-    public void setState(State state) {
-        this.state = state;
+        return getBlockingSessionId() != 0 ? State.BLOCKED : state.get();
     }
 
     public int getBlockingSessionId() {

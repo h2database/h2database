@@ -44,7 +44,7 @@ public class Call extends Prepared {
     @Override
     public int update() {
         Value v = expression.getValue(session);
-        int type = v.getType();
+        int type = v.getValueType();
         switch (type) {
         case Value.RESULT_SET:
             // this will throw an exception
@@ -76,7 +76,7 @@ public class Call extends Prepared {
     public void prepare() {
         expression = expression.optimize(session);
         expressions = new Expression[] { expression };
-        isResultSet = expression.getType() == Value.RESULT_SET;
+        isResultSet = expression.getType().getValueType() == Value.RESULT_SET;
         if (isResultSet) {
             prepareAlways = true;
         }

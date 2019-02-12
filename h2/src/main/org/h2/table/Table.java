@@ -454,7 +454,7 @@ public abstract class Table extends SchemaObjectBase {
         }
         for (int i = 0; i < columns.length; i++) {
             Column col = columns[i];
-            int dataType = col.getType();
+            int dataType = col.getType().getValueType();
             if (dataType == Value.UNKNOWN) {
                 throw DbException.get(
                         ErrorCode.UNKNOWN_DATA_TYPE_1, col.getSQL());

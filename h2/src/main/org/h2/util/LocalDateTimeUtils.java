@@ -429,7 +429,7 @@ public class LocalDateTimeUtils {
         if (!(value instanceof ValueInterval)) {
             value = value.convertTo(Value.INTERVAL_YEAR_TO_MONTH);
         }
-        if (!DataType.isYearMonthIntervalType(value.getType())) {
+        if (!DataType.isYearMonthIntervalType(value.getValueType())) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, (Throwable) null, value.getString());
         }
         ValueInterval v = (ValueInterval) value;
@@ -460,7 +460,7 @@ public class LocalDateTimeUtils {
         if (!(value instanceof ValueInterval)) {
             value = value.convertTo(Value.INTERVAL_DAY_TO_SECOND);
         }
-        if (DataType.isYearMonthIntervalType(value.getType())) {
+        if (DataType.isYearMonthIntervalType(value.getValueType())) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, (Throwable) null, value.getString());
         }
         BigInteger[] dr = IntervalUtils.intervalToAbsolute((ValueInterval) value)

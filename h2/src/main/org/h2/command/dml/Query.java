@@ -320,6 +320,15 @@ public abstract class Query extends Prepared {
     }
 
     /**
+     * Returns whether results support random access.
+     *
+     * @return whether results support random access
+     */
+    public boolean isRandomAccessResult() {
+        return randomAccessResult;
+    }
+
+    /**
      * Whether results need to support random access.
      *
      * @param b the new value
@@ -362,7 +371,7 @@ public abstract class Query extends Prepared {
         Database db = s.getDatabase();
         for (int i = 0; i < params.length; i++) {
             Value a = lastParams[i], b = params[i];
-            if (a.getType() != b.getType() || !db.areEqual(a, b)) {
+            if (a.getValueType() != b.getValueType() || !db.areEqual(a, b)) {
                 return false;
             }
         }

@@ -154,7 +154,6 @@ public class Cursor<K, V> implements Iterator<K> {
     private static CursorPos traverseDown(Page p, Object key) {
         CursorPos cursorPos = null;
         while (!p.isLeaf()) {
-            assert p.getKeyCount() > 0;
             int index = 0;
             if(key != null) {
                 index = p.binarySearch(key) + 1;

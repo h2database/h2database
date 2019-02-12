@@ -3898,8 +3898,8 @@ SELECT * FROM TEST;
 > rows: 0
 
 SELECT GROUP_CONCAT(ID) FROM TEST;
-> GROUP_CONCAT(ID)
-> ----------------
+> LISTAGG(ID)
+> -----------
 > null
 > rows: 1
 
@@ -3930,8 +3930,8 @@ INSERT INTO TEST VALUES(2, 'World');
 > update count: 1
 
 SELECT group_concat(name) FROM TEST group by id;
-> GROUP_CONCAT(NAME)
-> ------------------
+> LISTAGG(NAME)
+> -------------
 > Hello
 > World
 > rows: 2
@@ -6084,18 +6084,18 @@ SELECT ID FROM TEST WHERE XVI LIKE 'abc%';
 > 3
 > rows: 1
 
-SELECT 'abc', 'Papa Joe''s', CAST(-1 AS SMALLINT), CAST(2 AS BIGINT), CAST(0 AS DOUBLE), CAST('0a0f' AS BINARY), CAST(125 AS TINYINT), TRUE, FALSE FROM TEST WHERE ID=1;
-> 'abc' 'Papa Joe''s' -1 2 0.0 X'0a0f' 125 TRUE FALSE
-> ----- ------------- -- - --- ------- --- ---- -----
-> abc   Papa Joe's    -1 2 0.0 0a0f    125 TRUE FALSE
+SELECT 'abc', 'Papa Joe''s', CAST(-1 AS SMALLINT), CAST(2 AS BIGINT), CAST(0 AS DOUBLE), CAST('0a0f' AS BINARY) B, CAST(125 AS TINYINT), TRUE, FALSE FROM TEST WHERE ID=1;
+> 'abc' 'Papa Joe''s' -1 2 0.0 B    125 TRUE FALSE
+> ----- ------------- -- - --- ---- --- ---- -----
+> abc   Papa Joe's    -1 2 0.0 0a0f 125 TRUE FALSE
 > rows: 1
 
 -- ' This apostrophe is here to fix syntax highlighting in the text editors.
 
-SELECT CAST('abcd' AS VARCHAR(255)), CAST('ef_gh' AS VARCHAR(3));
-> 'abcd' 'ef_'
-> ------ -----
-> abcd   ef_
+SELECT CAST('abcd' AS VARCHAR(255)) C1, CAST('ef_gh' AS VARCHAR(3)) C2;
+> C1   C2
+> ---- ---
+> abcd ef_
 > rows: 1
 
 DROP TABLE TEST;
@@ -6666,8 +6666,8 @@ INSERT INTO TEST VALUES(?, ?, ?);
 > update count: 9
 
 SELECT IFNULL(NAME, '') || ': ' || GROUP_CONCAT(VALUE ORDER BY NAME, VALUE DESC SEPARATOR ', ') FROM TEST GROUP BY NAME ORDER BY 1;
-> (IFNULL(NAME, '') || ': ') || GROUP_CONCAT(VALUE ORDER BY NAME, VALUE DESC SEPARATOR ', ')
-> ------------------------------------------------------------------------------------------
+> (IFNULL(NAME, '') || ': ') || LISTAGG(VALUE, ', ') WITHIN GROUP (ORDER BY NAME, VALUE DESC)
+> -------------------------------------------------------------------------------------------
 > : 3.10, -10.00
 > Apples: 1.50, 1.20, 1.10
 > Bananas: 2.50
@@ -6676,14 +6676,14 @@ SELECT IFNULL(NAME, '') || ': ' || GROUP_CONCAT(VALUE ORDER BY NAME, VALUE DESC 
 > rows (ordered): 5
 
 SELECT GROUP_CONCAT(ID ORDER BY ID) FROM TEST;
-> GROUP_CONCAT(ID ORDER BY ID)
-> ----------------------------
+> LISTAGG(ID) WITHIN GROUP (ORDER BY ID)
+> --------------------------------------
 > 1,2,3,4,5,6,7,8,9
 > rows: 1
 
 SELECT STRING_AGG(ID,';') FROM TEST;
-> GROUP_CONCAT(ID SEPARATOR ';')
-> ------------------------------
+> LISTAGG(ID, ';')
+> -----------------
 > 1;2;3;4;5;6;7;8;9
 > rows: 1
 

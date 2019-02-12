@@ -59,14 +59,19 @@ public abstract class DataAnalysisOperation extends Expression {
      */
     protected SortOrder overOrderBySort;
 
+    private int numFrameExpressions;
+
     private int lastGroupRowId;
 
     /**
      * Create sort order.
      *
-     * @param session database session
-     * @param orderBy array of order by expressions
-     * @param offset index offset
+     * @param session
+     *            database session
+     * @param orderBy
+     *            array of order by expressions
+     * @param offset
+     *            index offset
      * @return the SortOrder
      */
     protected static SortOrder createOrder(Session session, ArrayList<SelectOrderBy> orderBy, int offset) {
@@ -131,9 +136,12 @@ public abstract class DataAnalysisOperation extends Expression {
     /**
      * Map the columns of the resolver to expression columns.
      *
-     * @param resolver the column resolver
-     * @param level the subquery nesting level
-     * @param innerState one of the Expression MAP_IN_* values
+     * @param resolver
+     *            the column resolver
+     * @param level
+     *            the subquery nesting level
+     * @param innerState
+     *            one of the Expression MAP_IN_* values
      */
     protected void mapColumnsAnalysis(ColumnResolver resolver, int level, int innerState) {
         if (over != null) {
@@ -151,8 +159,44 @@ public abstract class DataAnalysisOperation extends Expression {
             } else if (!isAggregate()) {
                 overOrderBySort = new SortOrder(session.getDatabase(), new int[getNumExpressions()], new int[0], null);
             }
+            WindowFrame frame = over.getWindowFrame();
+            if (frame != null) {
+                int index = getNumExpressions();
+                int orderBySize = 0;
+                if (orderBy != null) {
+                    orderBySize = orderBy.size();
+                    index += orderBySize;
+                }
+                int n = 0;
+                WindowFrameBound bound = frame.getStarting();
+                if (bound.isParameterized()) {
+                    if (orderBySize != 1) {
+                        throw getSingleSortKeyException();
+                    }
+                    if (bound.isVariable()) {
+                        bound.setExpressionIndex(index);
+                        n++;
+                    }
+                }
+                bound = frame.getFollowing();
+                if (bound != null && bound.isParameterized()) {
+                    if (orderBySize != 1) {
+                        throw getSingleSortKeyException();
+                    }
+                    if (bound.isVariable()) {
+                        bound.setExpressionIndex(index + n);
+                        n++;
+                    }
+                }
+                numFrameExpressions = n;
+            }
         }
         return this;
+    }
+
+    private DbException getSingleSortKeyException() {
+        String sql = getSQL();
+        return DbException.getSyntaxError(sql, sql.length() - 1, "exactly one sort key is required for RANGE units");
     }
 
     @Override
@@ -200,9 +244,12 @@ public abstract class DataAnalysisOperation extends Expression {
     /**
      * Update a row of an aggregate.
      *
-     * @param session the database session
-     * @param groupData data for the aggregate group
-     * @param groupRowId row id of group
+     * @param session
+     *            the database session
+     * @param groupData
+     *            data for the aggregate group
+     * @param groupRowId
+     *            row id of group
      */
     protected abstract void updateAggregate(Session session, SelectGroups groupData, int groupRowId);
 
@@ -222,11 +269,20 @@ public abstract class DataAnalysisOperation extends Expression {
     }
 
     /**
-     * Returns the number of expressions, excluding FILTER and OVER clauses.
+     * Returns the number of expressions, excluding OVER clause.
      *
      * @return the number of expressions
      */
     protected abstract int getNumExpressions();
+
+    /**
+     * Returns the number of window frame expressions.
+     *
+     * @return the number of window frame expressions
+     */
+    private int getNumFrameExpressions() {
+        return numFrameExpressions;
+    }
 
     /**
      * Stores current values of expressions into the specified array.
@@ -241,9 +297,12 @@ public abstract class DataAnalysisOperation extends Expression {
     /**
      * Get the aggregate data for a window clause.
      *
-     * @param session database session
-     * @param groupData aggregate group data
-     * @param forOrderBy true if this is for ORDER BY
+     * @param session
+     *            database session
+     * @param groupData
+     *            aggregate group data
+     * @param forOrderBy
+     *            true if this is for ORDER BY
      * @return the aggregate data object, specific to each kind of aggregate.
      */
     protected Object getWindowData(Session session, SelectGroups groupData, boolean forOrderBy) {
@@ -261,9 +320,12 @@ public abstract class DataAnalysisOperation extends Expression {
 
     /**
      * Get the aggregate group data object from the collector object.
-     * @param groupData the collector object
-     * @param ifExists if true, return null if object not found,
-     *                 if false, return new object if nothing found
+     *
+     * @param groupData
+     *            the collector object
+     * @param ifExists
+     *            if true, return null if object not found, if false, return new
+     *            object if nothing found
      * @return group data object
      */
     protected Object getGroupData(SelectGroups groupData, boolean ifExists) {
@@ -345,7 +407,11 @@ public abstract class DataAnalysisOperation extends Expression {
             data = partition.getData();
         }
         if (forOrderBy || !isAggregate()) {
-            return getOrderedResult(session, groupData, partition, data);
+            Value result = getOrderedResult(session, groupData, partition, data);
+            if (result == null) {
+                return getAggregatedValue(session, null);
+            }
+            return result;
         }
         // Window aggregate without ORDER BY clause in window specification
         Value result = partition.getResult();
@@ -370,21 +436,37 @@ public abstract class DataAnalysisOperation extends Expression {
     /**
      * Update a row of an ordered aggregate.
      *
-     * @param session the database session
-     * @param groupData data for the aggregate group
-     * @param groupRowId row id of group
-     * @param orderBy list of order by expressions
+     * @param session
+     *            the database session
+     * @param groupData
+     *            data for the aggregate group
+     * @param groupRowId
+     *            row id of group
+     * @param orderBy
+     *            list of order by expressions
      */
     protected void updateOrderedAggregate(Session session, SelectGroups groupData, int groupRowId,
             ArrayList<SelectOrderBy> orderBy) {
         int ne = getNumExpressions();
         int size = orderBy != null ? orderBy.size() : 0;
-        Value[] array = new Value[ne + size + 1];
+        int frameSize = getNumFrameExpressions();
+        Value[] array = new Value[ne + size + frameSize + 1];
         rememberExpressions(session, array);
         for (int i = 0; i < size; i++) {
             @SuppressWarnings("null")
             SelectOrderBy o = orderBy.get(i);
             array[ne++] = o.expression.getValue(session);
+        }
+        if (frameSize > 0) {
+            WindowFrame frame = over.getWindowFrame();
+            WindowFrameBound bound = frame.getStarting();
+            if (bound.isVariable()) {
+                array[ne++] = bound.getValue().getValue(session);
+            }
+            bound = frame.getFollowing();
+            if (bound != null && bound.isVariable()) {
+                array[ne++] = bound.getValue().getValue(session);
+            }
         }
         array[ne] = ValueInt.get(groupRowId);
         @SuppressWarnings("unchecked")
@@ -404,6 +486,7 @@ public abstract class DataAnalysisOperation extends Expression {
                 rowIdColumn += orderBy.size();
                 Collections.sort(orderedData, overOrderBySort);
             }
+            rowIdColumn += getNumFrameExpressions();
             getOrderedResultLoop(session, result, orderedData, rowIdColumn);
             partition.setOrderedResult(result);
         }
@@ -411,7 +494,8 @@ public abstract class DataAnalysisOperation extends Expression {
     }
 
     /**
-     * Returns result of this window function or window aggregate.
+     * Returns result of this window function or window aggregate. This method
+     * may not be called on window aggregate without window order clause.
      *
      * @param session
      *            the session
@@ -428,7 +512,8 @@ public abstract class DataAnalysisOperation extends Expression {
     /**
      * Used to create SQL for the OVER and FILTER clauses.
      *
-     * @param builder string builder
+     * @param builder
+     *            string builder
      * @return the builder object
      */
     protected StringBuilder appendTailConditions(StringBuilder builder) {

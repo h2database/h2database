@@ -28,6 +28,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import org.h2.compress.CompressDeflate;
 import org.h2.compress.CompressLZF;
@@ -148,6 +149,28 @@ public class MVStore implements AutoCloseable {
     private static final int MARKED_FREE = 10_000_000;
 
     /**
+     * Store is open.
+     */
+    private static final int STATE_OPEN = 0;
+
+    /**
+     * Store is about to close now, but is still operational.
+     * Outstanding store operation by background writer or other thread may be in progress.
+     * New updates must not be initiated, unless they are part of a closing procedure itself.
+     */
+    private static final int STATE_STOPPING = 1;
+
+    /**
+     * Store is closing now, and any operation on it may fail.
+     */
+    private static final int STATE_CLOSING = 2;
+
+    /**
+     * Store is closed.
+     */
+    private static final int STATE_CLOSED = 3;
+
+    /**
      * Lock which governs access to major store operations: store(), close(), ...
      * It should used in a non-reentrant fashion.
      * It serves as a replacement for synchronized(this), except it allows for
@@ -156,13 +179,13 @@ public class MVStore implements AutoCloseable {
     private final ReentrantLock storeLock = new ReentrantLock(true);
 
     /**
-     * The background thread, if any.
+     * Reference to a background thread, which is expected to be running, if any.
      */
-    volatile BackgroundWriterThread backgroundWriterThread;
+    private final AtomicReference<BackgroundWriterThread> backgroundWriterThread = new AtomicReference<>();
 
     private volatile boolean reuseSpace = true;
 
-    private volatile boolean closed;
+    private volatile int state;
 
     private final FileStore fileStore;
 
@@ -247,7 +270,8 @@ public class MVStore implements AutoCloseable {
     private final AtomicLong oldestVersionToKeep = new AtomicLong();
 
     /**
-     * Collection of all versions used by currently open transactions.
+     * Ordered collection of all version usage counters for all versions starting
+     * from oldestVersionToKeep and up to current.
      */
     private final Deque<TxCounter> versions = new LinkedList<>();
 
@@ -352,7 +376,6 @@ public class MVStore implements AutoCloseable {
         backgroundExceptionHandler =
                 (UncaughtExceptionHandler)config.get("backgroundExceptionHandler");
         meta = new MVMap<>(this);
-        meta.init();
         if (this.fileStore != null) {
             retentionTime = this.fileStore.getDefaultRetentionTime();
             // 19 KB memory is about 1 KB storage
@@ -414,7 +437,7 @@ public class MVStore implements AutoCloseable {
     }
 
     private void panic(IllegalStateException e) {
-        if (!closed) {
+        if (isOpen()) {
             handleException(e);
             panicException = e;
             closeImmediately();
@@ -482,13 +505,16 @@ public class MVStore implements AutoCloseable {
         M map;
         if (id >= 0) {
             map = openMap(id, builder);
+            assert builder.getKeyType() == null || map.getKeyType().getClass().equals(builder.getKeyType().getClass());
+            assert builder.getValueType() == null || map.getValueType().getClass().equals(builder.getValueType()
+                    .getClass());
         } else {
             HashMap<String, Object> c = new HashMap<>();
             id = lastMapId.incrementAndGet();
+            assert getMap(id) == null;
             c.put("id", id);
             c.put("createVersion", currentVersion);
             map = builder.create(this, c);
-            map.init();
             String x = Integer.toHexString(id);
             meta.put(MVMap.getMapKey(id), map.asString(name));
             meta.put("name." + name, x);
@@ -503,7 +529,7 @@ public class MVStore implements AutoCloseable {
         return map;
     }
 
-    public <M extends MVMap<K, V>, K, V> M openMap(int id, MVMap.MapBuilder<M, K, V> builder) {
+    private <M extends MVMap<K, V>, K, V> M openMap(int id, MVMap.MapBuilder<M, K, V> builder) {
         storeLock.lock();
         try {
             @SuppressWarnings("unchecked")
@@ -518,7 +544,6 @@ public class MVStore implements AutoCloseable {
                 }
                 config.put("id", id);
                 map = builder.create(this, config);
-                map.init();
                 long root = getRootPos(meta, id);
                 map.setRootPos(root, lastStoredVersion);
                 maps.put(id, map);
@@ -531,7 +556,7 @@ public class MVStore implements AutoCloseable {
 
     /**
      * Get map by id.
-     * 
+     *
      * @param <K> the key type
      * @param <V> the value type
      * @param id map id
@@ -619,7 +644,7 @@ public class MVStore implements AutoCloseable {
 
     /**
      * Check whether a given map exists and has data.
-     * 
+     *
      * @param name the map name
      * @return true if it exists and has data.
      */
@@ -918,27 +943,13 @@ public class MVStore implements AutoCloseable {
      */
     @Override
     public void close() {
-        if (closed) {
-            return;
-        }
-        FileStore f = fileStore;
-        if (f != null && !f.isReadOnly()) {
-            stopBackgroundThread();
-            for (MVMap<?, ?> map : maps.values()) {
-                if (map.isClosed()) {
-                    if (meta.remove(MVMap.getMapRootKey(map.getId())) != null) {
-                        markMetaChanged();
-                    }
-                }
-            }
-            commit();
-        }
         closeStore(true);
     }
 
     /**
-     * Close the file and the store, without writing anything. This will stop
-     * the background thread. This method ignores all errors.
+     * Close the file and the store, without writing anything.
+     * This will try to stop the background thread (without waiting for it).
+     * This method ignores all errors.
      */
     public void closeImmediately() {
         try {
@@ -948,44 +959,64 @@ public class MVStore implements AutoCloseable {
         }
     }
 
-    private void closeStore(boolean shrinkIfPossible) {
-        if (closed) {
-            return;
-        }
-        stopBackgroundThread();
-        closed = true;
-        storeLock.lock();
-        try {
+    private void closeStore(boolean normalShutdown) {
+        // If any other thead have already initiated closure procedure,
+        // isClosed() would wait until closure is done and then  we jump out of the loop.
+        // This is a subtle difference between !isClosed() and isOpen().
+        while (!isClosed()) {
+            stopBackgroundThread(normalShutdown);
+            storeLock.lock();
             try {
-                if (fileStore != null && shrinkIfPossible) {
-                    shrinkFileIfPossible(0);
+                if (state == STATE_OPEN) {
+                    state = STATE_STOPPING;
+                    try {
+                        try {
+                            if (normalShutdown && fileStore != null && !fileStore.isReadOnly()) {
+                                for (MVMap<?, ?> map : maps.values()) {
+                                    if (map.isClosed()) {
+                                        if (meta.remove(MVMap.getMapRootKey(map.getId())) != null) {
+                                            markMetaChanged();
+                                        }
+                                    }
+                                }
+                                commit();
+
+                                shrinkFileIfPossible(0);
+                            }
+
+                            state = STATE_CLOSING;
+
+                            // release memory early - this is important when called
+                            // because of out of memory
+                            if (cache != null) {
+                                cache.clear();
+                            }
+                            if (cacheChunkRef != null) {
+                                cacheChunkRef.clear();
+                            }
+                            for (MVMap<?, ?> m : new ArrayList<>(maps.values())) {
+                                m.close();
+                            }
+                            chunks.clear();
+                            maps.clear();
+                        } finally {
+                            if (fileStore != null && !fileStoreIsProvided) {
+                                fileStore.close();
+                            }
+                        }
+                    } finally {
+                        state = STATE_CLOSED;
+                    }
                 }
-                // release memory early - this is important when called
-                // because of out of memory
-                if (cache != null) {
-                    cache.clear();
-                }
-                if (cacheChunkRef != null) {
-                    cacheChunkRef.clear();
-                }
-                for (MVMap<?, ?> m : new ArrayList<>(maps.values())) {
-                    m.close();
-                }
-                chunks.clear();
-                maps.clear();
             } finally {
-                if (fileStore != null && !fileStoreIsProvided) {
-                    fileStore.close();
-                }
+                storeLock.unlock();
             }
-        } finally {
-            storeLock.unlock();
         }
     }
 
     /**
      * Read a page of data into a ByteBuffer.
-     * 
+     *
      * @param pos page pos
      * @param expectedMapId expected map id for the page
      * @return ByteBuffer containing page data.
@@ -1142,7 +1173,7 @@ public class MVStore implements AutoCloseable {
 
     private void store() {
         try {
-            if (!closed && hasUnsavedChangesInternal()) {
+            if (isOpenOrStopping() && hasUnsavedChangesInternal()) {
                 currentStoreVersion = currentVersion;
                 if (fileStore == null) {
                     lastStoredVersion = currentVersion;
@@ -1223,7 +1254,7 @@ public class MVStore implements AutoCloseable {
         ArrayList<Page> changed = new ArrayList<>();
         for (Iterator<MVMap<?, ?>> iter = maps.values().iterator(); iter.hasNext(); ) {
             MVMap<?, ?> map = iter.next();
-            MVMap.RootReference rootReference = map.setWriteVersion(version);
+            RootReference rootReference = map.setWriteVersion(version);
             if (rootReference == null) {
                 assert map.isClosed();
                 assert map.getVersion() < getOldestVersionToKeep();
@@ -1262,7 +1293,7 @@ public class MVStore implements AutoCloseable {
             }
         }
         applyFreedSpace();
-        MVMap.RootReference metaRootReference = meta.setWriteVersion(version);
+        RootReference metaRootReference = meta.setWriteVersion(version);
         assert metaRootReference != null;
         assert metaRootReference.version == version : metaRootReference.version + " != " + version;
         metaChanged = false;
@@ -1418,9 +1449,9 @@ public class MVStore implements AutoCloseable {
         try {
             ChunkIdsCollector collector = new ChunkIdsCollector(meta.getId());
             long oldestVersionToKeep = getOldestVersionToKeep();
-            MVMap.RootReference rootReference = meta.flushAndGetRoot();
+            RootReference rootReference = meta.flushAndGetRoot();
             if (fast) {
-                MVMap.RootReference previous;
+                RootReference previous;
                 while (rootReference.version >= oldestVersionToKeep && (previous = rootReference.previous) != null) {
                     rootReference = previous;
                 }
@@ -1455,7 +1486,7 @@ public class MVStore implements AutoCloseable {
      * @param inspectedRoots set of page positions for map's roots already inspected
      *                      or null if not to be used
      */
-    private void inspectVersion(MVMap.RootReference rootReference, ChunkIdsCollector collector,
+    private void inspectVersion(RootReference rootReference, ChunkIdsCollector collector,
                                 ThreadPoolExecutor executorService,
                                 AtomicInteger executingThreadCounter,
                                 Set<Long> inspectedRoots) {
@@ -1516,7 +1547,7 @@ public class MVStore implements AutoCloseable {
 
         /**
          * Visit a page on a chunk and collect ids for it and its children.
-         * 
+         *
          * @param page the page to visit
          * @param executorService the service to use when doing visit in parallel
          * @param executingThreadCounter number of threads currently active
@@ -1545,7 +1576,7 @@ public class MVStore implements AutoCloseable {
 
         /**
          * Visit a page on a chunk and collect ids for it and its children.
-         * 
+         *
          * @param pos position of the page to visit
          * @param executorService the service to use when doing visit in parallel
          * @param executingThreadCounter number of threads currently active
@@ -1581,7 +1612,7 @@ public class MVStore implements AutoCloseable {
 
         /**
          * Add chunk to list of referenced chunks.
-         * 
+         *
          * @param chunkId chunk id
          */
         void registerChunk(int chunkId) {
@@ -1719,7 +1750,7 @@ public class MVStore implements AutoCloseable {
         if (savedPercent < minPercent) {
             return;
         }
-        if (!closed) {
+        if (isOpenOrStopping()) {
             sync();
         }
         fileStore.truncate(end);
@@ -2392,7 +2423,7 @@ public class MVStore implements AutoCloseable {
      * @param map the map
      */
     void beforeWrite(MVMap<?, ?> map) {
-        if (saveNeeded && fileStore != null && !closed) {
+        if (saveNeeded && fileStore != null && isOpenOrStopping()) {
             saveNeeded = false;
             // check again, because it could have been written by now
             if (unsavedMemory > autoCommitMemory && autoCommitMemory > 0) {
@@ -2599,7 +2630,7 @@ public class MVStore implements AutoCloseable {
     }
 
     private void checkOpen() {
-        if (closed) {
+        if (!isOpenOrStopping()) {
             throw DataUtils.newIllegalStateException(DataUtils.ERROR_CLOSED,
                     "This store is closed", panicException);
         }
@@ -2645,7 +2676,7 @@ public class MVStore implements AutoCloseable {
 
     /**
      * Remove a map.
-     * 
+     *
      * @param map the map to remove
      * @param delayed whether to delay deleting the metadata
      */
@@ -2656,7 +2687,7 @@ public class MVStore implements AutoCloseable {
             DataUtils.checkArgument(map != meta,
                     "Removing the meta map is not allowed");
             map.close();
-            MVMap.RootReference rootReference = map.getRoot();
+            RootReference rootReference = map.getRoot();
             updateCounter += rootReference.updateCounter;
             updateAttemptCounter += rootReference.updateAttemptCounter;
 
@@ -2685,7 +2716,7 @@ public class MVStore implements AutoCloseable {
 
     /**
      * Remove map by name.
-     * 
+     *
      * @param name the map name
      */
     public void removeMap(String name) {
@@ -2718,7 +2749,7 @@ public class MVStore implements AutoCloseable {
      */
     void writeInBackground() {
         try {
-            if (closed) {
+            if (!isOpenOrStopping()) {
                 return;
             }
 
@@ -2753,7 +2784,7 @@ public class MVStore implements AutoCloseable {
     private void handleException(Throwable ex) {
         if (backgroundExceptionHandler != null) {
             try {
-                backgroundExceptionHandler.uncaughtException(null, ex);
+                backgroundExceptionHandler.uncaughtException(Thread.currentThread(), ex);
             } catch(Throwable ignore) {
                 if (ex != ignore) { // OOME may be the same
                     ex.addSuppressed(ignore);
@@ -2779,28 +2810,54 @@ public class MVStore implements AutoCloseable {
         }
     }
 
-    public boolean isClosed() {
-        return closed;
+    private boolean isOpen() {
+        return state == STATE_OPEN;
     }
 
-    private void stopBackgroundThread() {
-        BackgroundWriterThread t = backgroundWriterThread;
-        if (t == null) {
-            return;
+    /**
+     * Determine that store is open, or wait for it to be closed (by other thread)
+     * @return true if store is open, false otherwise
+     */
+    public boolean isClosed() {
+        if (isOpen()) {
+            return false;
         }
-        backgroundWriterThread = null;
-        if (Thread.currentThread() == t) {
-            // within the thread itself - can not join
-            return;
-        }
-        synchronized (t.sync) {
-            t.sync.notifyAll();
-        }
-
+        storeLock.lock();
         try {
-            t.join();
-        } catch (Exception e) {
-            // ignore
+            assert state == STATE_CLOSED;
+            return true;
+        } finally {
+            storeLock.unlock();
+        }
+    }
+
+    private boolean isOpenOrStopping() {
+        return state <= STATE_STOPPING;
+    }
+
+    private void stopBackgroundThread(boolean waitForIt) {
+        // Loop here is not strictly necessary, except for case of a spurious failure,
+        // which should not happen with non-weak flavour of CAS operation,
+        // but I've seen it, so just to be safe...
+        BackgroundWriterThread t;
+        while ((t = backgroundWriterThread.get()) != null) {
+            if (backgroundWriterThread.compareAndSet(t, null)) {
+                // if called from within the thread itself - can not join
+                if (t != Thread.currentThread()) {
+                    synchronized (t.sync) {
+                        t.sync.notifyAll();
+                    }
+
+                    if (waitForIt) {
+                        try {
+                            t.join();
+                        } catch (Exception e) {
+                            // ignore
+                        }
+                    }
+                }
+                break;
+            }
         }
     }
 
@@ -2823,16 +2880,21 @@ public class MVStore implements AutoCloseable {
         if (fileStore == null || fileStore.isReadOnly()) {
             return;
         }
-        stopBackgroundThread();
+        stopBackgroundThread(true);
         // start the background thread if needed
-        if (millis > 0) {
+        if (millis > 0 && isOpen()) {
             int sleep = Math.max(1, millis / 10);
             BackgroundWriterThread t =
                     new BackgroundWriterThread(this, sleep,
                             fileStore.toString());
-            t.start();
-            backgroundWriterThread = t;
+            if (backgroundWriterThread.compareAndSet(null, t)) {
+                t.start();
+            }
         }
+    }
+
+    boolean isBackgroundThread() {
+        return Thread.currentThread() == backgroundWriterThread.get();
     }
 
     /**
@@ -2925,11 +2987,11 @@ public class MVStore implements AutoCloseable {
     public double getUpdateFailureRatio() {
         long updateCounter = this.updateCounter;
         long updateAttemptCounter = this.updateAttemptCounter;
-        MVMap.RootReference rootReference = meta.getRoot();
+        RootReference rootReference = meta.getRoot();
         updateCounter += rootReference.updateCounter;
         updateAttemptCounter += rootReference.updateAttemptCounter;
         for (MVMap<?, ?> map : maps.values()) {
-            MVMap.RootReference root = map.getRoot();
+            RootReference root = map.getRoot();
             updateCounter += root.updateCounter;
             updateAttemptCounter += root.updateAttemptCounter;
         }
@@ -2963,6 +3025,14 @@ public class MVStore implements AutoCloseable {
         return txCounter;
     }
 
+    /**
+     * De-register (close) completed operation (transaction).
+     * This will decrement usage counter for the corresponding version.
+     * If counter reaches zero, that version (and all unused after it)
+     * can be dropped immediately.
+     *
+     * @param txCounter to be decremented, obtained from registerVersionUsage()
+     */
     public void deregisterVersionUsage(TxCounter txCounter) {
         if(txCounter != null) {
             if(txCounter.counter.decrementAndGet() <= 0) {
@@ -3001,7 +3071,14 @@ public class MVStore implements AutoCloseable {
      * which are still operating on this version.
      */
     public static final class TxCounter {
+        /**
+         * Version of a store, this TxCounter is related to
+         */
         public final long version;
+
+        /**
+         * Counter of outstanding operation on this version of a store
+         */
         public final AtomicInteger counter = new AtomicInteger();
 
         TxCounter(long version) {
@@ -3033,20 +3110,19 @@ public class MVStore implements AutoCloseable {
 
         @Override
         public void run() {
-            while (store.backgroundWriterThread != null) {
+            while (store.isBackgroundThread()) {
                 synchronized (sync) {
                     try {
                         sync.wait(sleep);
                     } catch (InterruptedException ignore) {
                     }
                 }
-                if (store.backgroundWriterThread == null) {
+                if (!store.isBackgroundThread()) {
                     break;
                 }
                 store.writeInBackground();
             }
         }
-
     }
 
     /**

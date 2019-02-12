@@ -21,6 +21,129 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>Issue #1735: Creating views with DATABASE_TO_UPPER=FALSE fails
+</li>
+<li>Issue #1732: source.html does not work
+</li>
+<li>Issue #1730: Show error in H2 Console if specified driver is not compatible with URL
+</li>
+<li>Issue #1590: Error on executing "DELETE FROM table1 WHERE ID = ?; DELETE FROM table2 WHERE ID = ?;"
+</li>
+<li>Issue #1727: Support ISODOW as identifier for the extract function additional to ISO_DAY_OF_WEEK
+</li>
+<li>PR #1580, #1726: Disable remote database creation by default
+</li>
+<li>PR #1725: Add partial implementation of standard LISTAGG aggregate function
+</li>
+<li>PR #1722: Fix window definition lookup in some queries
+</li>
+<li>PR #1721: Fix derived column list in complex queries
+</li>
+<li>Issue #1718: Window function and values clause don't work well together
+</li>
+<li>Issue #1592: Index out of bounds exception in Page.getKey()
+</li>
+<li>PR #1716: Improve documentation of some DML commands
+</li>
+<li>Issue #1715: Postgres mode: Domain "regproc" already exists
+</li>
+<li>PR #1714: Assorted changes
+</li>
+<li>PR #1713: Remove DataType.defaultDisplaySize and fix display size in TypeInfo
+</li>
+<li>PR #1711: Add QUALIFY clause to SELECT command
+</li>
+<li>Issue #1708: CREATE TABLE AS doesn't support column lists without data types
+</li>
+<li>PR #1707: Fix sort order and ENUM data type in external results
+</li>
+<li>PR #1706: Add hypothetical set functions
+</li>
+<li>PR #1705: Fix GROUP_CONCAT with variable separator
+</li>
+<li>PR #1704: Fix return type of PERCENTILE_CONT and MEDIAN
+</li>
+<li>PR #1701: Add PERCENTILE_CONT and PERCENTILE_DISC inverse distribution functions
+</li>
+<li>Issues #1297, #1697: Failure on concurrent session closure
+</li>
+<li>Issue #1297: removeOldTempIndexes on PageStore causes NullPointerException
+</li>
+<li>Issue #1354: TestCrashAPI: another NPE
+</li>
+<li>PR #1695: Reduce memory for TestMVTempResult to 64m
+</li>
+<li>Issue #1691: Append mode causes OOME in MVPlainTempResult
+</li>
+<li>PR #1692: Use MVTempResult unconditionally
+</li>
+<li>Issue #1689: Use separate constants for data types in Data, ValueDataType, and Transfer
+</li>
+<li>PR #1687: MVMap minor cleanup
+</li>
+<li>PR #1686: Fix a regression with ENUM data type
+</li>
+<li>PR #1685: Fix CHAR in PostgreSQL mode and refactor some code
+</li>
+<li>Issue #1681: IN () doesn't work with row values when data types are not exactly the same
+</li>
+<li>Issue #1320: OOME / GC overhead in IndexCursor.nextCursor()
+</li>
+<li>PR #1680: Assorted fixes for ALTER TABLE ALTER COLUMN
+</li>
+<li>PR #1679: Use TestScript for testSimple
+</li>
+<li>Issue #1677: Unable to use VALUES keyword in WHERE clause
+</li>
+<li>Issue #1672: Deadlock on MVStore close in TestOutOfMemory
+</li>
+<li>Issue #1665: TestCrashAPI: NPE with ENUM in MINUS operator
+</li>
+<li>Issue #1602: Combine type, precision, scale, display size and extTypeInfo into one object
+</li>
+<li>PR #1671: Assorted changes
+</li>
+<li>Issue #1668: MySQL compatibility DATE() function should return NULL on error
+</li>
+<li>Issue #1604: TestCrashAPI: PreparedStatement.getGeneratedKeys() is already closed
+</li>
+<li>PR #1667: Detect NULL values and overflow in window frame bounds
+</li>
+<li>PR #1664: Allow any expressions in window frames
+</li>
+<li>Issue #1576: H2 Console should not display precision and scale for data types that don't have them
+</li>
+<li>PR #1662: Fix Alter Table Drop Column In View when table name is wrapped by Double Quotes
+</li>
+<li>PR #1660: Optimize window aggregates with AND UNBOUNDED FOLLOWING and no exclusions
+</li>
+<li>PR #1658: Assorted small changes
+</li>
+<li>PR #1657: Failure to stop background thread
+</li>
+<li>PR #1656: Optimize window aggregates with ORDER BY + UNBOUNDED PRECEDING + no exclusions
+</li>
+<li>Issue #1654: OOM in TestMemoryUsage, in big mode
+</li>
+<li>Issue #1651: TIMESTAMP values near DST may be changed in MVStore database due to UTC-based PageStore format in some
+temporary storages
+</li>
+<li>PR #1650: Fix race in MVStore.close()
+</li>
+<li>Issue #1212: TestDiskFull: The file is locked
+</li>
+<li>PR #1648: Add functions ARRAY_CAT(), ARRAY_APPEND() and ARRAY_SLICE()
+</li>
+<li>PR #1646: In preparation to a release
+</li>
+<li>PR #1643: more javadoc update
+</li>
+<li>PR #1642: update javadoc
+</li>
+<li>PR #1641: Update copyright years
+</li>
+<li>PR #1640: Suggest ANY(?) instead of variable IN() again
+</li>
 <li>PR #1638: Add support for Java 11 to test suite
 </li>
 <li>PR #1637: Remove explicit unboxing

@@ -13,8 +13,9 @@ import org.h2.result.ResultInterface;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
+import org.h2.value.ValueCollectionBase;
 
 /**
  * An expression is a operation, a value, or a function in a query.
@@ -84,12 +85,12 @@ public abstract class Expression {
     public abstract Value getValue(Session session);
 
     /**
-     * Return the data type. The data type may not be known before the
+     * Returns the data type. The data type may not be known before the
      * optimization phase.
      *
-     * @return the type
+     * @return the data type
      */
-    public abstract int getType();
+    public abstract TypeInfo getType();
 
     /**
      * Map the columns of the resolver to expression columns.
@@ -117,27 +118,6 @@ public abstract class Expression {
      * @param value true if the table filter can return value
      */
     public abstract void setEvaluatable(TableFilter tableFilter, boolean value);
-
-    /**
-     * Get the scale of this expression.
-     *
-     * @return the scale
-     */
-    public abstract int getScale();
-
-    /**
-     * Get the precision of this expression.
-     *
-     * @return the precision
-     */
-    public abstract long getPrecision();
-
-    /**
-     * Get the display size of this expression.
-     *
-     * @return the display size
-     */
-    public abstract int getDisplaySize();
 
     /**
      * Get the SQL statement of this expression.
@@ -390,14 +370,12 @@ public abstract class Expression {
      * @param value the value to extract columns from
      * @return array of expression columns
      */
-    protected static Expression[] getExpressionColumns(Session session, ValueArray value) {
+    protected static Expression[] getExpressionColumns(Session session, ValueCollectionBase value) {
         Value[] list = value.getList();
         ExpressionColumn[] expr = new ExpressionColumn[list.length];
         for (int i = 0, len = list.length; i < len; i++) {
             Value v = list[i];
-            Column col = new Column("C" + (i + 1), v.getType(),
-                    v.getPrecision(), v.getScale(),
-                    v.getDisplaySize());
+            Column col = new Column("C" + (i + 1), v.getType());
             expr[i] = new ExpressionColumn(session.getDatabase(), col);
         }
         return expr;
@@ -416,11 +394,8 @@ public abstract class Expression {
         Database db = session == null ? null : session.getDatabase();
         for (int i = 0; i < columnCount; i++) {
             String name = result.getColumnName(i);
-            int type = result.getColumnType(i);
-            long precision = result.getColumnPrecision(i);
-            int scale = result.getColumnScale(i);
-            int displaySize = result.getDisplaySize(i);
-            Column col = new Column(name, type, precision, scale, displaySize);
+            TypeInfo type = result.getColumnType(i);
+            Column col = new Column(name, type);
             Expression expr = new ExpressionColumn(db, col);
             expressions[i] = expr;
         }

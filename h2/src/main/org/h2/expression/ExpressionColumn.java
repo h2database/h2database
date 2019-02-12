@@ -22,6 +22,7 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.value.ExtTypeInfo;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
@@ -38,6 +39,7 @@ public class ExpressionColumn extends Expression {
     private ColumnResolver columnResolver;
     private int queryLevel;
     private Column column;
+    private String derivedName;
 
     public ExpressionColumn(Database database, Column column) {
         this.database = database;
@@ -57,29 +59,20 @@ public class ExpressionColumn extends Expression {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
-        boolean quote = database.getSettings().databaseToUpper;
         if (schemaName != null) {
-            if (quote) {
-                Parser.quoteIdentifier(builder, schemaName);
-            } else {
-                builder.append(schemaName);
-            }
-            builder.append('.');
+            Parser.quoteIdentifier(builder, schemaName).append('.');
         }
         if (tableAlias != null) {
-            if (quote) {
-                Parser.quoteIdentifier(builder, tableAlias);
-            } else {
-                builder.append(tableAlias);
-            }
-            builder.append('.');
+            Parser.quoteIdentifier(builder, tableAlias).append('.');
         }
         if (column != null) {
-            builder.append(column.getSQL());
-        } else if (quote) {
-            Parser.quoteIdentifier(builder, columnName);
+            if (derivedName != null) {
+                Parser.quoteIdentifier(builder, derivedName);
+            } else {
+                builder.append(column.getSQL());
+            }
         } else {
-            builder.append(columnName);
+            Parser.quoteIdentifier(builder, columnName);
         }
         return builder;
     }
@@ -100,11 +93,18 @@ public class ExpressionColumn extends Expression {
         }
         for (Column col : resolver.getColumns()) {
             String n = resolver.getDerivedColumnName(col);
+            boolean derived;
             if (n == null) {
                 n = col.getName();
+                derived  = false;
+            } else {
+                derived = true;
             }
             if (database.equalsIdentifiers(columnName, n)) {
                 mapColumn(resolver, col, level);
+                if (derived) {
+                    derivedName = n;
+                }
                 return;
             }
         }
@@ -215,8 +215,11 @@ public class ExpressionColumn extends Expression {
                 throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
             }
         }
+        /*
+         * ENUM values are stored as integers.
+         */
         if (value != ValueNull.INSTANCE) {
-            ExtTypeInfo extTypeInfo = column.getExtTypeInfo();
+            ExtTypeInfo extTypeInfo = column.getType().getExtTypeInfo();
             if (extTypeInfo != null) {
                 return extTypeInfo.cast(value);
             }
@@ -225,8 +228,8 @@ public class ExpressionColumn extends Expression {
     }
 
     @Override
-    public int getType() {
-        return column == null ? Value.UNKNOWN : column.getType();
+    public TypeInfo getType() {
+        return column == null ? TypeInfo.TYPE_UNKNOWN : column.getType();
     }
 
     @Override
@@ -235,21 +238,6 @@ public class ExpressionColumn extends Expression {
 
     public Column getColumn() {
         return column;
-    }
-
-    @Override
-    public int getScale() {
-        return column.getScale();
-    }
-
-    @Override
-    public long getPrecision() {
-        return column.getPrecision();
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return column.getDisplaySize();
     }
 
     public String getOriginalColumnName() {
@@ -360,7 +348,7 @@ public class ExpressionColumn extends Expression {
     @Override
     public void createIndexConditions(Session session, TableFilter filter) {
         TableFilter tf = getTableFilter();
-        if (filter == tf && column.getType() == Value.BOOLEAN) {
+        if (filter == tf && column.getType().getValueType() == Value.BOOLEAN) {
             IndexCondition cond = IndexCondition.get(
                     Comparison.EQUAL, this, ValueExpression.get(
                             ValueBoolean.TRUE));

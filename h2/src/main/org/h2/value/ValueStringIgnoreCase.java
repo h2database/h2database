@@ -22,8 +22,8 @@ public class ValueStringIgnoreCase extends ValueString {
     }
 
     @Override
-    public int getType() {
-        return Value.STRING_IGNORECASE;
+    public int getValueType() {
+        return STRING_IGNORECASE;
     }
 
     @Override

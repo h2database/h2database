@@ -234,13 +234,11 @@ public class FilePathZip extends FilePath {
     }
 
     @Override
-    public FilePath createTempFile(String suffix, boolean deleteOnExit,
-            boolean inTempDir) throws IOException {
+    public FilePath createTempFile(String suffix, boolean inTempDir) throws IOException {
         if (!inTempDir) {
             throw new IOException("File system is read-only");
         }
-        return new FilePathDisk().getPath(name).createTempFile(suffix,
-                deleteOnExit, true);
+        return new FilePathDisk().getPath(name).createTempFile(suffix, true);
     }
 
     @Override

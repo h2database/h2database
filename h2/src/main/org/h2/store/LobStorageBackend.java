@@ -434,7 +434,7 @@ public class LobStorageBackend implements LobStorageInterface {
 
     @Override
     public ValueLobDb copyLob(ValueLobDb old, int tableId, long length) {
-        int type = old.getType();
+        int type = old.getValueType();
         long oldLobId = old.getLobId();
         assertNotHolds(conn.getSession());
         // see locking discussion at the top

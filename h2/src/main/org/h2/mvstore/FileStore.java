@@ -186,21 +186,20 @@ public class FileStore {
      * Close this store.
      */
     public void close() {
-        if(file != null) {
-            try {
+        try {
+            if(file != null && file.isOpen()) {
                 if (fileLock != null) {
                     fileLock.release();
-                    fileLock = null;
                 }
                 file.close();
-                freeSpace.clear();
-            } catch (Exception e) {
-                throw DataUtils.newIllegalStateException(
-                        DataUtils.ERROR_WRITING_FAILED,
-                        "Closing failed for file {0}", fileName, e);
-            } finally {
-                file = null;
             }
+        } catch (Exception e) {
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_WRITING_FAILED,
+                    "Closing failed for file {0}", fileName, e);
+        } finally {
+            fileLock = null;
+            file = null;
         }
     }
 

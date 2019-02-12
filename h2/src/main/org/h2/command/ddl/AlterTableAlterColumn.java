@@ -137,7 +137,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             db.updateMeta(session, table);
             break;
         }
-        case CommandInterface.ALTER_TABLE_ALTER_COLUMN_NULL: {
+        case CommandInterface.ALTER_TABLE_ALTER_COLUMN_DROP_NOT_NULL: {
             if (oldColumn.isNullable()) {
                 // no change
                 break;
@@ -296,7 +296,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             // (because the column to drop is referenced or so)
             checkViews(table, newTable);
         } catch (DbException e) {
-            execute("DROP TABLE " + newTable.getName(), true);
+            execute("DROP TABLE " + newTable.getSQL(), true);
             throw e;
         }
         String tableName = table.getName();

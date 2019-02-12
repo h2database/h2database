@@ -46,6 +46,7 @@ public class TestViewAlterTable extends TestDb {
         testJoinAndAlias();
         testSubSelect();
         testForeignKey();
+        testAlterTableDropColumnInViewWithDoubleQuotes();
 
         conn.close();
         deleteDb(getTestName());
@@ -196,5 +197,19 @@ public class TestViewAlterTable extends TestDb {
                     "INFORMATION_SCHEMA", rs.getString(2));
         }
 
+    }
+
+    // original error: table "XX_COPY_xx_xx" not found
+    private void testAlterTableDropColumnInViewWithDoubleQuotes() throws SQLException{
+        // simple
+        stat.execute("create table \"test\"(id identity, name varchar) " +
+                "as select x, 'Hello'");
+        stat.execute("create view test_view as select * from \"test\"");
+        assertThrows(ErrorCode.COLUMN_IS_REFERENCED_1, stat).
+                execute("alter table \"test\" drop name");
+        ResultSet rs = stat.executeQuery("select * from test_view");
+        assertTrue(rs.next());
+        stat.execute("drop view test_view");
+        stat.execute("drop table \"test\"");
     }
 }

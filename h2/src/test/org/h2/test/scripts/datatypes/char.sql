@@ -17,3 +17,59 @@ SELECT COLUMN_NAME, DATA_TYPE, TYPE_NAME, COLUMN_TYPE FROM INFORMATION_SCHEMA.CO
 
 DROP TABLE TEST;
 > ok
+
+CREATE TABLE TEST(C CHAR(2));
+> ok
+
+INSERT INTO TEST VALUES 'aa', 'b';
+> update count: 2
+
+SELECT * FROM TEST WHERE C = 'b';
+>> b
+
+SELECT * FROM TEST WHERE C = 'b ';
+>> b
+
+SELECT * FROM TEST WHERE C = 'b  ';
+>> b
+
+SELECT C || 'x' V FROM TEST;
+> V
+> ---
+> aax
+> bx
+> rows: 2
+
+DROP TABLE TEST;
+> ok
+
+SET MODE PostgreSQL;
+> ok
+
+CREATE TABLE TEST(C CHAR(2));
+> ok
+
+INSERT INTO TEST VALUES 'aa', 'b';
+> update count: 2
+
+SELECT * FROM TEST WHERE C = 'b';
+>> b
+
+SELECT * FROM TEST WHERE C = 'b ';
+>> b
+
+SELECT * FROM TEST WHERE C = 'b  ';
+>> b
+
+SELECT C || 'x' V FROM TEST;
+> V
+> ---
+> aax
+> bx
+> rows: 2
+
+DROP TABLE TEST;
+> ok
+
+SET MODE Regular;
+> ok

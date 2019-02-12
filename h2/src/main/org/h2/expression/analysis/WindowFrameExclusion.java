@@ -39,6 +39,17 @@ public enum WindowFrameExclusion {
     }
 
     /**
+     * Returns true if this exclusion clause excludes or includes the whole
+     * group.
+     *
+     * @return true if this exclusion clause is {@link #EXCLUDE_GROUP} or
+     *         {@link #EXCLUDE_NO_OTHERS}
+     */
+    public boolean isGroupOrNoOthers() {
+        return this == WindowFrameExclusion.EXCLUDE_GROUP || this == EXCLUDE_NO_OTHERS;
+    }
+
+    /**
      * Returns SQL representation.
      *
      * @return SQL representation.

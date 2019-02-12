@@ -51,7 +51,7 @@ public final class ExtTypeInfoGeometry extends ExtTypeInfo {
 
     @Override
     public Value cast(Value value) {
-        if (value.getType() != Value.GEOMETRY) {
+        if (value.getValueType() != Value.GEOMETRY) {
             value = value.convertTo(Value.GEOMETRY);
         }
         ValueGeometry g = (ValueGeometry) value;

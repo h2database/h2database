@@ -14,7 +14,7 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ValueExpression;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.value.DataType;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueNull;
@@ -41,7 +41,12 @@ public class JavaFunction extends Expression implements FunctionCall {
     }
 
     @Override
-    public int getType() {
+    public TypeInfo getType() {
+        return TypeInfo.getTypeInfo(javaMethod.getDataType());
+    }
+
+    @Override
+    public int getValueType() {
         return javaMethod.getDataType();
     }
 
@@ -73,21 +78,6 @@ public class JavaFunction extends Expression implements FunctionCall {
                 e.setEvaluatable(tableFilter, b);
             }
         }
-    }
-
-    @Override
-    public int getScale() {
-        return DataType.getDataType(getType()).defaultScale;
-    }
-
-    @Override
-    public long getPrecision() {
-        return Integer.MAX_VALUE;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return Integer.MAX_VALUE;
     }
 
     @Override
@@ -166,11 +156,12 @@ public class JavaFunction extends Expression implements FunctionCall {
 
     @Override
     public Expression[] getExpressionColumns(Session session) {
-        switch (getType()) {
+        switch (getValueType()) {
         case Value.RESULT_SET:
             ValueResultSet rs = getValueForColumnList(session, getArgs());
             return getExpressionColumns(session, rs.getResult());
         case Value.ARRAY:
+        case Value.ROW:
             return getExpressionColumns(session, (ValueArray) getValue(session));
         }
         return super.getExpressionColumns(session);

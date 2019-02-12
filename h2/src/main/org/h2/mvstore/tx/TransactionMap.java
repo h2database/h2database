@@ -9,6 +9,7 @@ import org.h2.mvstore.Cursor;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.Page;
+import org.h2.mvstore.RootReference;
 import org.h2.mvstore.type.DataType;
 import org.h2.value.VersionedValue;
 
@@ -100,19 +101,19 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         // In order to get such a "snapshot", we wait for a moment of silence,
         // when none of the variables concurrently changes it's value.
         BitSet committingTransactions;
-        MVMap.RootReference mapRootReference;
-        MVMap.RootReference[] undoLogRootReferences;
+        RootReference mapRootReference;
+        RootReference[] undoLogRootReferences;
         long undoLogSize;
         do {
             committingTransactions = store.committingTransactions.get();
             mapRootReference = map.flushAndGetRoot();
             BitSet opentransactions = store.openTransactions.get();
-            undoLogRootReferences = new MVMap.RootReference[opentransactions.length()];
+            undoLogRootReferences = new RootReference[opentransactions.length()];
             undoLogSize = 0;
             for (int i = opentransactions.nextSetBit(0); i >= 0; i = opentransactions.nextSetBit(i+1)) {
                 MVMap<Long, Object[]> undoLog = store.undoLogs[i];
                 if (undoLog != null) {
-                    MVMap.RootReference rootReference = undoLog.flushAndGetRoot();
+                    RootReference rootReference = undoLog.flushAndGetRoot();
                     undoLogRootReferences[i] = rootReference;
                     undoLogSize += rootReference.getTotalCount();
                 }
@@ -156,7 +157,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         } else {
             // The undo logs are much smaller than the map - scan all undo logs,
             // and then lookup relevant map entry.
-            for (MVMap.RootReference undoLogRootReference : undoLogRootReferences) {
+            for (RootReference undoLogRootReference : undoLogRootReferences) {
                 if (undoLogRootReference != null) {
                     Cursor<Long, Object[]> cursor = new Cursor<>(undoLogRootReference.root, null);
                     while (cursor.hasNext()) {
@@ -688,7 +689,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
             // In order to get such a "snapshot", we wait for a moment of silence,
             // when neither of the variables concurrently changes it's value.
             BitSet committingTransactions;
-            MVMap.RootReference mapRootReference;
+            RootReference mapRootReference;
             do {
                 committingTransactions = store.committingTransactions.get();
                 mapRootReference = map.flushAndGetRoot();

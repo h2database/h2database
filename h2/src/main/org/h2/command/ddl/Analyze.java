@@ -105,7 +105,7 @@ public class Analyze extends DefineCommand {
         StatementBuilder buff = new StatementBuilder("SELECT ");
         for (Column col : columns) {
             buff.appendExceptFirst(", ");
-            if (DataType.isLargeObject(col.getType())) {
+            if (DataType.isLargeObject(col.getType().getValueType())) {
                 // can not index LOB columns, so calculating
                 // the selectivity is not required
                 buff.append("MAX(NULL)");

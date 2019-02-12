@@ -46,16 +46,6 @@ public class ValueTimestampTimeZone extends Value {
     static final int MAXIMUM_SCALE = ValueTimestamp.MAXIMUM_SCALE;
 
     /**
-     * Get display size for the specified scale.
-     *
-     * @param scale scale
-     * @return display size
-     */
-    public static int getDisplaySize(int scale) {
-        return scale == 0 ? 25 : 26 + scale;
-    }
-
-    /**
      * A bit field with bits for the year, month, and day (see DateTimeUtils for
      * encoding)
      */
@@ -169,8 +159,19 @@ public class ValueTimestampTimeZone extends Value {
     }
 
     @Override
-    public int getType() {
-        return Value.TIMESTAMP_TZ;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_TIMESTAMP_TZ;
+    }
+
+    @Override
+    public int getValueType() {
+        return TIMESTAMP_TZ;
+    }
+
+    @Override
+    public int getMemory() {
+        // Java 11 with -XX:-UseCompressedOops
+        return 40;
     }
 
     @Override
@@ -185,21 +186,6 @@ public class ValueTimestampTimeZone extends Value {
         builder.append("TIMESTAMP WITH TIME ZONE '");
         DateTimeUtils.appendTimestampTimeZone(builder, dateValue, timeNanos, timeZoneOffsetMins);
         return builder.append('\'');
-    }
-
-    @Override
-    public long getPrecision() {
-        return MAXIMUM_PRECISION;
-    }
-
-    @Override
-    public int getScale() {
-        return MAXIMUM_SCALE;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return MAXIMUM_PRECISION;
     }
 
     @Override

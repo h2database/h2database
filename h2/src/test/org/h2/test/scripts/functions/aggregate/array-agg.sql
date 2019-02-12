@@ -107,15 +107,32 @@ SELECT ARRAY_AGG(ID ORDER BY ID) OVER (PARTITION BY NAME), NAME FROM TEST;
 > [4, 5, 6]                                          c
 > rows: 6
 
-SELECT ARRAY_AGG(ID ORDER BY ID) FILTER (WHERE ID < 3 OR ID > 4) OVER (PARTITION BY NAME), NAME FROM TEST ORDER BY NAME;
-> ARRAY_AGG(ID ORDER BY ID) FILTER (WHERE ((ID < 3) OR (ID > 4))) OVER (PARTITION BY NAME) NAME
-> ---------------------------------------------------------------------------------------- ----
-> [1, 2]                                                                                   a
-> [1, 2]                                                                                   a
-> null                                                                                     b
-> [5, 6]                                                                                   c
-> [5, 6]                                                                                   c
-> [5, 6]                                                                                   c
+SELECT
+    ARRAY_AGG(ID ORDER BY ID) FILTER (WHERE ID < 3 OR ID > 4) OVER (PARTITION BY NAME) A,
+    ARRAY_AGG(ID ORDER BY ID) FILTER (WHERE ID < 3 OR ID > 4) OVER (PARTITION BY NAME ORDER BY ID) AO,
+    ID, NAME FROM TEST ORDER BY ID;
+> A      AO     ID NAME
+> ------ ------ -- ----
+> [1, 2] [1]    1  a
+> [1, 2] [1, 2] 2  a
+> null   null   3  b
+> [5, 6] null   4  c
+> [5, 6] [5]    5  c
+> [5, 6] [5, 6] 6  c
+> rows (ordered): 6
+
+SELECT
+    ARRAY_AGG(ID ORDER BY ID) FILTER (WHERE ID < 3 OR ID > 4)
+    OVER (ORDER BY ID ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) A,
+    ID FROM TEST ORDER BY ID;
+> A      ID
+> ------ --
+> [1, 2] 1
+> [1, 2] 2
+> [2]    3
+> [5]    4
+> [5, 6] 5
+> [5, 6] 6
 > rows (ordered): 6
 
 SELECT ARRAY_AGG(SUM(ID)) OVER () FROM TEST;
@@ -150,6 +167,22 @@ SELECT ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) OVER (PARTITION BY NAME), NAME FROM 
 > [[3]]                                                         b
 > [[4, 5, 6]]                                                   c
 > rows: 3
+
+SELECT ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) OVER (PARTITION BY NAME), NAME FROM TEST
+    WHERE ID <> 5
+    GROUP BY NAME HAVING ARRAY_AGG(ID ORDER BY ID)[1] > 1
+    QUALIFY ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) OVER (PARTITION BY NAME) <> ARRAY[ARRAY[3]];
+> ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) OVER (PARTITION BY NAME) NAME
+> ------------------------------------------------------------- ----
+> [[4, 6]]                                                      c
+> rows: 1
+
+EXPLAIN
+    SELECT ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) OVER (PARTITION BY NAME), NAME FROM TEST
+    WHERE ID <> 5
+    GROUP BY NAME HAVING ARRAY_AGG(ID ORDER BY ID)[1] > 1
+    QUALIFY ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) OVER (PARTITION BY NAME) <> ARRAY[ARRAY[3]];
+>> SELECT ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) OVER (PARTITION BY NAME), NAME FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ WHERE ID <> 5 GROUP BY NAME HAVING ARRAY_GET(ARRAY_AGG(ID ORDER BY ID), 1) > 1 QUALIFY ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) OVER (PARTITION BY NAME) <> ARRAY [ARRAY [3]]
 
 SELECT ARRAY_AGG(ARRAY_AGG(ID ORDER BY ID)) OVER (PARTITION BY NAME), NAME FROM TEST
     GROUP BY NAME ORDER BY NAME OFFSET 1 ROW;
@@ -311,8 +344,24 @@ SELECT *,
 > 8  9     [7, 8]    [9, 9]    [4, 5, 6, 7, 8] [8, 8, 8, 9, 9] [9, 9, 8, 8, 8] [4, 5, 6, 7, 8]    [8, 8, 8, 9, 9]
 > rows: 8
 
+SELECT *,
+    ARRAY_AGG(ID ORDER BY ID) OVER (ORDER BY VALUE RANGE BETWEEN 1 PRECEDING AND UNBOUNDED FOLLOWING) A1,
+    ARRAY_AGG(ID) OVER (ORDER BY VALUE RANGE BETWEEN UNBOUNDED PRECEDING AND 1 FOLLOWING) A2
+    FROM TEST;
+> ID VALUE A1                       A2
+> -- ----- ------------------------ ------------------------
+> 1  1     [1, 2, 3, 4, 5, 6, 7, 8] [1, 2]
+> 2  1     [1, 2, 3, 4, 5, 6, 7, 8] [1, 2]
+> 3  5     [3, 4, 5, 6, 7, 8]       [1, 2, 3]
+> 4  8     [4, 5, 6, 7, 8]          [1, 2, 3, 4, 5, 6, 7, 8]
+> 5  8     [4, 5, 6, 7, 8]          [1, 2, 3, 4, 5, 6, 7, 8]
+> 6  8     [4, 5, 6, 7, 8]          [1, 2, 3, 4, 5, 6, 7, 8]
+> 7  9     [4, 5, 6, 7, 8]          [1, 2, 3, 4, 5, 6, 7, 8]
+> 8  9     [4, 5, 6, 7, 8]          [1, 2, 3, 4, 5, 6, 7, 8]
+> rows: 8
+
 SELECT *, ARRAY_AGG(ID) OVER (ORDER BY VALUE ROWS -1 PRECEDING) FROM TEST;
-> exception INVALID_VALUE_2
+> exception INVALID_PRECEDING_OR_FOLLOWING_1
 
 SELECT *, ARRAY_AGG(ID) OVER (ORDER BY ID ROWS BETWEEN 2 PRECEDING AND 1 PRECEDING) FROM TEST FETCH FIRST 4 ROWS ONLY;
 > ID VALUE ARRAY_AGG(ID) OVER (ORDER BY ID ROWS BETWEEN 2 PRECEDING AND 1 PRECEDING)
@@ -371,7 +420,7 @@ SELECT *,
     ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING) U_P,
     ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN 2 PRECEDING AND 1 PRECEDING) P,
     ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN 1 FOLLOWING AND 2 FOLLOWING) F,
-    ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN 1 FOLLOWING AND UNBOUNDED FOLLOWING) U_F
+    ARRAY_AGG(ID ORDER BY ID) OVER (ORDER BY VALUE GROUPS BETWEEN 1 FOLLOWING AND UNBOUNDED FOLLOWING) U_F
     FROM TEST;
 > ID VALUE U_P                P            F               U_F
 > -- ----- ------------------ ------------ --------------- ------------------
@@ -451,11 +500,11 @@ SELECT ID, VALUE, ARRAY_AGG(ID) OVER (ORDER BY VALUE RANGE BETWEEN 2 PRECEDING A
 
 SELECT ID, VALUE,
     ARRAY_AGG(ID) OVER (ORDER BY VALUE ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) CP,
-    ARRAY_AGG(ID) OVER (ORDER BY VALUE ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) CF,
+    ARRAY_AGG(ID ORDER BY ID) OVER (ORDER BY VALUE ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) CF,
     ARRAY_AGG(ID) OVER (ORDER BY VALUE RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) RP,
-    ARRAY_AGG(ID) OVER (ORDER BY VALUE RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) RF,
+    ARRAY_AGG(ID ORDER BY ID) OVER (ORDER BY VALUE RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) RF,
     ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) GP,
-    ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) GF
+    ARRAY_AGG(ID ORDER BY ID) OVER (ORDER BY VALUE GROUPS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) GF
     FROM TEST;
 > ID VALUE CP                       CF                       RP                       RF                       GP                       GF
 > -- ----- ------------------------ ------------------------ ------------------------ ------------------------ ------------------------ ------------------------
@@ -545,11 +594,11 @@ SELECT ID, VALUE, ARRAY_AGG(ID) OVER (ORDER BY VALUE RANGE BETWEEN 1 FOLLOWING A
 
 SELECT ID, VALUE,
     ARRAY_AGG(ID) OVER (ORDER BY VALUE ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) CP,
-    ARRAY_AGG(ID) OVER (ORDER BY VALUE ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) CF,
+    ARRAY_AGG(ID ORDER BY ID) OVER (ORDER BY VALUE ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) CF,
     ARRAY_AGG(ID) OVER (ORDER BY VALUE RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) RP,
-    ARRAY_AGG(ID) OVER (ORDER BY VALUE RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) RF,
+    ARRAY_AGG(ID ORDER BY ID) OVER (ORDER BY VALUE RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) RF,
     ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) GP,
-    ARRAY_AGG(ID) OVER (ORDER BY VALUE GROUPS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) GF
+    ARRAY_AGG(ID ORDER BY ID) OVER (ORDER BY VALUE GROUPS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) GF
     FROM TEST;
 > ID VALUE CP                       CF                       RP                       RF                       GP                       GF
 > -- ----- ------------------------ ------------------------ ------------------------ ------------------------ ------------------------ ------------------------
@@ -561,6 +610,44 @@ SELECT ID, VALUE,
 > 6  3     [1, 2, 3, 4, 5, 6]       [6, 7, 8]                [1, 2, 3, 4, 5, 6]       [5, 6, 7, 8]             [1, 2, 3, 4, 5, 6]       [5, 6, 7, 8]
 > 7  4     [1, 2, 3, 4, 5, 6, 7]    [7, 8]                   [1, 2, 3, 4, 5, 6, 7, 8] [7, 8]                   [1, 2, 3, 4, 5, 6, 7, 8] [7, 8]
 > 8  4     [1, 2, 3, 4, 5, 6, 7, 8] [8]                      [1, 2, 3, 4, 5, 6, 7, 8] [7, 8]                   [1, 2, 3, 4, 5, 6, 7, 8] [7, 8]
+> rows: 8
+
+SELECT ID, VALUE,
+    ARRAY_AGG(ID ORDER BY ID) OVER (ORDER BY ID RANGE BETWEEN UNBOUNDED PRECEDING AND VALUE FOLLOWING) RG,
+    ARRAY_AGG(ID ORDER BY ID) OVER (ORDER BY ID RANGE BETWEEN VALUE PRECEDING AND UNBOUNDED FOLLOWING) RGR,
+    ARRAY_AGG(ID ORDER BY ID) OVER (ORDER BY ID ROWS BETWEEN UNBOUNDED PRECEDING AND VALUE FOLLOWING) R,
+    ARRAY_AGG(ID ORDER BY ID) OVER (ORDER BY ID ROWS BETWEEN VALUE PRECEDING AND UNBOUNDED FOLLOWING) RR
+    FROM TEST;
+> ID VALUE RG                       RGR                      R                        RR
+> -- ----- ------------------------ ------------------------ ------------------------ ------------------------
+> 1  1     [1, 2]                   [1, 2, 3, 4, 5, 6, 7, 8] [1, 2]                   [1, 2, 3, 4, 5, 6, 7, 8]
+> 2  1     [1, 2, 3]                [1, 2, 3, 4, 5, 6, 7, 8] [1, 2, 3]                [1, 2, 3, 4, 5, 6, 7, 8]
+> 3  2     [1, 2, 3, 4, 5]          [1, 2, 3, 4, 5, 6, 7, 8] [1, 2, 3, 4, 5]          [1, 2, 3, 4, 5, 6, 7, 8]
+> 4  2     [1, 2, 3, 4, 5, 6]       [2, 3, 4, 5, 6, 7, 8]    [1, 2, 3, 4, 5, 6]       [2, 3, 4, 5, 6, 7, 8]
+> 5  3     [1, 2, 3, 4, 5, 6, 7, 8] [2, 3, 4, 5, 6, 7, 8]    [1, 2, 3, 4, 5, 6, 7, 8] [2, 3, 4, 5, 6, 7, 8]
+> 6  3     [1, 2, 3, 4, 5, 6, 7, 8] [3, 4, 5, 6, 7, 8]       [1, 2, 3, 4, 5, 6, 7, 8] [3, 4, 5, 6, 7, 8]
+> 7  4     [1, 2, 3, 4, 5, 6, 7, 8] [3, 4, 5, 6, 7, 8]       [1, 2, 3, 4, 5, 6, 7, 8] [3, 4, 5, 6, 7, 8]
+> 8  4     [1, 2, 3, 4, 5, 6, 7, 8] [4, 5, 6, 7, 8]          [1, 2, 3, 4, 5, 6, 7, 8] [4, 5, 6, 7, 8]
+> rows: 8
+
+SELECT ID, VALUE,
+    ARRAY_AGG(ID ORDER BY ID) OVER
+        (PARTITION BY VALUE ORDER BY ID ROWS BETWEEN VALUE / 3 PRECEDING AND VALUE / 3 FOLLOWING) A,
+    ARRAY_AGG(ID ORDER BY ID) OVER
+        (PARTITION BY VALUE ORDER BY ID ROWS BETWEEN UNBOUNDED PRECEDING AND VALUE / 3 FOLLOWING) AP,
+    ARRAY_AGG(ID ORDER BY ID) OVER
+        (PARTITION BY VALUE ORDER BY ID ROWS BETWEEN VALUE / 3 PRECEDING AND UNBOUNDED FOLLOWING) AF
+    FROM TEST;
+> ID VALUE A      AP     AF
+> -- ----- ------ ------ ------
+> 1  1     [1]    [1]    [1, 2]
+> 2  1     [2]    [1, 2] [2]
+> 3  2     [3]    [3]    [3, 4]
+> 4  2     [4]    [3, 4] [4]
+> 5  3     [5, 6] [5, 6] [5, 6]
+> 6  3     [5, 6] [5, 6] [5, 6]
+> 7  4     [7, 8] [7, 8] [7, 8]
+> 8  4     [7, 8] [7, 8] [7, 8]
 > rows: 8
 
 DROP TABLE TEST;

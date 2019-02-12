@@ -506,8 +506,7 @@ public class TestMultiThread extends TestDb implements Runnable {
 
         @Override
         public void run() {
-            try {
-                Connection c = getConnection("concurrentUpdate2;LOCK_TIMEOUT=10000");
+            try (Connection c = getConnection("concurrentUpdate2;LOCK_TIMEOUT=10000")) {
                 PreparedStatement ps = c.prepareStatement("UPDATE TEST SET V = ? WHERE " + column + " = ?");
                 for (int test = 0; test < 1000; test++) {
                     for (int i = 0; i < 16; i++) {
@@ -524,34 +523,36 @@ public class TestMultiThread extends TestDb implements Runnable {
 
     private void testConcurrentUpdate2() throws Exception {
         deleteDb("concurrentUpdate2");
-        Connection c = getConnection("concurrentUpdate2");
-        Statement s = c.createStatement();
-        s.execute("CREATE TABLE TEST(A INT, B INT, V INT, PRIMARY KEY(A, B))");
-        PreparedStatement ps = c.prepareStatement("INSERT INTO TEST VALUES (?, ?, ?)");
-        for (int i = 0; i < 16; i++) {
-            for (int j = 0; j < 16; j++) {
-                ps.setInt(1, i);
-                ps.setInt(2, j);
-                ps.setInt(3, 0);
-                ps.executeUpdate();
+        try (Connection c = getConnection("concurrentUpdate2")) {
+            Statement s = c.createStatement();
+            s.execute("CREATE TABLE TEST(A INT, B INT, V INT, PRIMARY KEY(A, B))");
+            PreparedStatement ps = c.prepareStatement("INSERT INTO TEST VALUES (?, ?, ?)");
+            for (int i = 0; i < 16; i++) {
+                for (int j = 0; j < 16; j++) {
+                    ps.setInt(1, i);
+                    ps.setInt(2, j);
+                    ps.setInt(3, 0);
+                    ps.executeUpdate();
+                }
             }
-        }
-        ConcurrentUpdate2 a = new ConcurrentUpdate2("A");
-        ConcurrentUpdate2 b = new ConcurrentUpdate2("B");
-        a.start();
-        b.start();
-        a.join();
-        b.join();
-        deleteDb("concurrentUpdate2");
-        Throwable e = a.exception;
-        if (e == null) {
-            e = b.exception;
-        }
-        if (e != null) {
-            if (e instanceof Exception) {
-                throw (Exception) e;
+            ConcurrentUpdate2 a = new ConcurrentUpdate2("A");
+            ConcurrentUpdate2 b = new ConcurrentUpdate2("B");
+            a.start();
+            b.start();
+            a.join();
+            b.join();
+            Throwable e = a.exception;
+            if (e == null) {
+                e = b.exception;
             }
-            throw (Error) e;
+            if (e != null) {
+                if (e instanceof Exception) {
+                    throw (Exception) e;
+                }
+                throw (Error) e;
+            }
+        } finally {
+            deleteDb("concurrentUpdate2");
         }
     }
 }

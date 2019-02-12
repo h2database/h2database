@@ -51,7 +51,7 @@ public abstract class TableBase extends Table {
         if (first.sortType != SortOrder.ASCENDING) {
             return SearchRow.ROWID_INDEX;
         }
-        switch (first.column.getType()) {
+        switch (first.column.getType().getValueType()) {
         case Value.BYTE:
         case Value.SHORT:
         case Value.INT:

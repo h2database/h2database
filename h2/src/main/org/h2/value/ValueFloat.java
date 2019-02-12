@@ -106,8 +106,13 @@ public class ValueFloat extends Value {
     }
 
     @Override
-    public int getType() {
-        return Value.FLOAT;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_FLOAT;
+    }
+
+    @Override
+    public int getValueType() {
+        return FLOAT;
     }
 
     @Override
@@ -126,18 +131,13 @@ public class ValueFloat extends Value {
     }
 
     @Override
+    public double getDouble() {
+        return value;
+    }
+
+    @Override
     public String getString() {
         return Float.toString(value);
-    }
-
-    @Override
-    public long getPrecision() {
-        return PRECISION;
-    }
-
-    @Override
-    public int getScale() {
-        return 0;
     }
 
     @Override
@@ -176,11 +176,6 @@ public class ValueFloat extends Value {
             return NAN;
         }
         return (ValueFloat) Value.cache(new ValueFloat(d));
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return DISPLAY_SIZE;
     }
 
     @Override

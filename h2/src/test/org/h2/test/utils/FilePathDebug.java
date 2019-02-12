@@ -191,10 +191,9 @@ public class FilePathDebug extends FilePathWrapper {
     }
 
     @Override
-    public FilePath createTempFile(String suffix, boolean deleteOnExit,
-            boolean inTempDir) throws IOException {
-        trace(name, "createTempFile", suffix, deleteOnExit, inTempDir);
-        return super.createTempFile(suffix, deleteOnExit, inTempDir);
+    public FilePath createTempFile(String suffix, boolean inTempDir) throws IOException {
+        trace(name, "createTempFile", suffix, inTempDir);
+        return super.createTempFile(suffix, inTempDir);
     }
 
     /**

@@ -19,6 +19,7 @@ import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
@@ -72,18 +73,18 @@ public class ConditionInSelect extends Condition {
                 return ValueBoolean.TRUE;
             }
         } else {
-            int dataType = rows.getColumnType(0);
-            if (dataType == Value.NULL) {
+            TypeInfo colType = rows.getColumnType(0);
+            if (colType.getValueType() == Value.NULL) {
                 return ValueBoolean.FALSE;
             }
-            if (l.getType() == Value.ROW) {
+            if (l.getValueType() == Value.ROW) {
                 Value[] leftList = ((ValueRow) l).getList();
                 if (leftList.length != 1) {
                     throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
                 }
                 l = leftList[0];
             }
-            l = l.convertTo(dataType, database.getMode());
+            l = l.convertTo(colType, database.getMode(), null);
             if (rows.containsDistinct(new Value[] { l })) {
                 return ValueBoolean.TRUE;
             }
@@ -125,7 +126,8 @@ public class ConditionInSelect extends Condition {
 
     private Value compare(Value l, ResultInterface rows) {
         Value[] currentRow = rows.currentRow();
-        Value r = l.getType() != Value.ROW && query.getColumnCount() == 1 ? currentRow[0] : ValueRow.get(currentRow);
+        Value r = l.getValueType() != Value.ROW && query.getColumnCount() == 1 ? currentRow[0]
+                : ValueRow.get(currentRow);
         return Comparison.compare(database, l, r, compareType);
     }
 

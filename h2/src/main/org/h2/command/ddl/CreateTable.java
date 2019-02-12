@@ -15,15 +15,12 @@ import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
-import org.h2.expression.ExpressionColumn;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.util.ColumnNamer;
-import org.h2.value.DataType;
-import org.h2.value.ExtTypeInfo;
 import org.h2.value.Value;
 
 /**
@@ -93,6 +90,14 @@ public class CreateTable extends CommandWithColumns {
                 generateColumnsFromQuery();
             } else if (data.columns.size() != asQuery.getColumnCount()) {
                 throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
+            } else {
+                ArrayList<Column> columns = data.columns;
+                for (int i = 0; i < columns.size(); i++) {
+                    Column column = columns.get(i);
+                    if (column.getType().getValueType() == Value.UNKNOWN) {
+                        columns.set(i, new Column(column.getName(), asQuery.getExpressions().get(i).getType()));
+                    }
+                }
             }
         }
         changePrimaryKeysToNotNull(data.columns);
@@ -180,38 +185,8 @@ public class CreateTable extends CommandWithColumns {
         ColumnNamer columnNamer= new ColumnNamer(session);
         for (int i = 0; i < columnCount; i++) {
             Expression expr = expressions.get(i);
-            int type = expr.getType();
-            String name = columnNamer.getColumnName(expr,i,expr.getAlias());
-            long precision = expr.getPrecision();
-            int displaySize = expr.getDisplaySize();
-            DataType dt = DataType.getDataType(type);
-            if (precision > 0 && (dt.defaultPrecision == 0 ||
-                    (dt.defaultPrecision > precision && dt.defaultPrecision < Byte.MAX_VALUE))) {
-                // dont' set precision to MAX_VALUE if this is the default
-                precision = dt.defaultPrecision;
-            }
-            int scale = expr.getScale();
-            if (scale > 0 && (dt.defaultScale == 0 ||
-                    (dt.defaultScale > scale && dt.defaultScale < precision))) {
-                scale = dt.defaultScale;
-            }
-            if (scale > precision) {
-                precision = scale;
-            }
-            ExtTypeInfo extTypeInfo = null;
-            int t = dt.type;
-            if (DataType.isExtInfoType(t)) {
-                if (expr instanceof ExpressionColumn) {
-                    extTypeInfo = ((ExpressionColumn) expr).getColumn().getExtTypeInfo();
-                } else if (t == Value.ENUM) {
-                    /*
-                     * Only columns of tables may be enumerated.
-                     */
-                    throw DbException.get(ErrorCode.GENERAL_ERROR_1,
-                            "Unable to resolve enumerators of expression");
-                }
-            }
-            Column col = new Column(name, type, precision, scale, displaySize, extTypeInfo);
+            String name = columnNamer.getColumnName(expr, i, expr.getAlias());
+            Column col = new Column(name, expr.getType());
             addColumn(col);
         }
     }

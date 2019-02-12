@@ -10,6 +10,7 @@ import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
 /**
@@ -31,28 +32,13 @@ public class Variable extends Expression {
     }
 
     @Override
-    public int getDisplaySize() {
-        return lastValue.getDisplaySize();
-    }
-
-    @Override
-    public long getPrecision() {
-        return lastValue.getPrecision();
-    }
-
-    @Override
     public StringBuilder getSQL(StringBuilder builder) {
         builder.append('@');
         return Parser.quoteIdentifier(builder, name);
     }
 
     @Override
-    public int getScale() {
-        return lastValue.getScale();
-    }
-
-    @Override
-    public int getType() {
+    public TypeInfo getType() {
         return lastValue.getType();
     }
 

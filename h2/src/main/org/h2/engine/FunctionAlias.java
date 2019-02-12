@@ -403,7 +403,7 @@ public class FunctionAlias extends SchemaObjectBase {
                 Object o;
                 if (Value.class.isAssignableFrom(paramClass)) {
                     o = v;
-                } else if (v.getType() == Value.ARRAY &&
+                } else if (v.getValueType() == Value.ARRAY &&
                         paramClass.isArray() &&
                         paramClass.getComponentType() != Object.class) {
                     Value[] array = ((ValueArray) v).getList();

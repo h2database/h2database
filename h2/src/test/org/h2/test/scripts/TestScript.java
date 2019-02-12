@@ -122,6 +122,9 @@ public class TestScript extends TestDb {
         reconnectOften = !config.memory && config.big;
 
         testScript("testScript.sql");
+        if (!config.memory && !config.big && !config.networked) {
+            testScript("testSimple.sql");
+        }
         testScript("comments.sql");
         testScript("derived-column-names.sql");
         testScript("distinct.sql");
@@ -149,21 +152,21 @@ public class TestScript extends TestDb {
                 "uuid", "varchar", "varchar-ignorecase" }) {
             testScript("datatypes/" + s + ".sql");
         }
-        for (String s : new String[] { "alterTableAdd", "alterTableDropColumn", "alterTableRename",
-                "createAlias", "createSequence", "createSynonym", "createTable", "createTrigger", "createView",
-                "dropDomain", "dropIndex", "dropSchema", "truncateTable" }) {
+        for (String s : new String[] { "alterTableAdd", "alterTableAlterColumn", "alterTableDropColumn",
+                "alterTableRename", "createAlias", "createSequence", "createSynonym", "createTable", "createTrigger",
+                "createView", "dropDomain", "dropIndex", "dropSchema", "truncateTable" }) {
             testScript("ddl/" + s + ".sql");
         }
-        for (String s : new String[] { "delete", "error_reporting", "insertIgnore", "merge", "mergeUsing", "replace",
-                "script", "select", "show", "table", "with" }) {
+        for (String s : new String[] { "delete", "error_reporting", "insert", "insertIgnore", "merge", "mergeUsing",
+                "replace", "script", "select", "show", "table", "update", "values", "with" }) {
             testScript("dml/" + s + ".sql");
         }
         for (String s : new String[] { "help" }) {
             testScript("other/" + s + ".sql");
         }
         for (String s : new String[] { "any", "array-agg", "avg", "bit-and", "bit-or", "count", "envelope",
-                "every", "group-concat", "histogram", "max", "median", "min", "mode", "selectivity", "stddev-pop",
-                "stddev-samp", "sum", "var-pop", "var-samp" }) {
+                "every", "histogram", "listagg", "max", "min", "mode", "percentile", "rank", "selectivity",
+                "stddev-pop", "stddev-samp", "sum", "var-pop", "var-samp" }) {
             testScript("functions/aggregate/" + s + ".sql");
         }
         for (String s : new String[] { "abs", "acos", "asin", "atan", "atan2",
@@ -186,8 +189,8 @@ public class TestScript extends TestDb {
                 "xmlnode", "xmlstartdoc", "xmltext" }) {
             testScript("functions/string/" + s + ".sql");
         }
-        for (String s : new String[] { "array-contains", "array-get",
-                "array-length", "autocommit", "cancel-session", "casewhen",
+        for (String s : new String[] { "array-cat", "array-contains", "array-get",
+                "array-length","array-slice", "autocommit", "cancel-session", "casewhen",
                 "cast", "coalesce", "convert", "csvread", "csvwrite", "currval",
                 "database-path", "database", "decode", "disk-space-used",
                 "file-read", "file-write", "greatest", "h2version", "identity",
@@ -204,7 +207,7 @@ public class TestScript extends TestDb {
                 "parsedatetime", "quarter", "second", "truncate", "week", "year", "date_trunc" }) {
             testScript("functions/timeanddate/" + s + ".sql");
         }
-        for (String s : new String[] { "lead", "nth_value", "ntile", "row_number" }) {
+        for (String s : new String[] { "lead", "nth_value", "ntile", "ratio_to_report", "row_number" }) {
             testScript("functions/window/" + s + ".sql");
         }
 

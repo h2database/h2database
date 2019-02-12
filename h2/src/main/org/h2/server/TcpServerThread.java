@@ -184,22 +184,11 @@ public class TcpServerThread implements Runnable {
         if (session != null) {
             RuntimeException closeError = null;
             try {
-                Command rollback = session.prepareLocal("ROLLBACK");
-                rollback.executeUpdate(false);
-            } catch (RuntimeException e) {
-                closeError = e;
-                server.traceError(e);
-            } catch (Exception e) {
-                server.traceError(e);
-            }
-            try {
                 session.close();
                 server.removeConnection(threadId);
             } catch (RuntimeException e) {
-                if (closeError == null) {
-                    closeError = e;
-                    server.traceError(e);
-                }
+                closeError = e;
+                server.traceError(e);
             } catch (Exception e) {
                 server.traceError(e);
             } finally {
@@ -544,7 +533,6 @@ public class TcpServerThread implements Runnable {
         }
         default:
             trace("Unknown operation: " + operation);
-            closeSession();
             close();
         }
     }
@@ -573,7 +561,7 @@ public class TcpServerThread implements Runnable {
     }
 
     private void writeValue(Value v) throws IOException {
-        if (DataType.isLargeObject(v.getType())) {
+        if (DataType.isLargeObject(v.getValueType())) {
             if (v instanceof ValueLobDb) {
                 ValueLobDb lob = (ValueLobDb) v;
                 if (lob.isStored()) {

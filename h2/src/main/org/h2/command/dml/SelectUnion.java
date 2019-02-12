@@ -121,7 +121,7 @@ public class SelectUnion extends Query {
         Mode mode = session.getDatabase().getMode();
         for (int i = 0; i < columnCount; i++) {
             Expression e = expressions.get(i);
-            newValues[i] = values[i].convertTo(e.getType(), mode);
+            newValues[i] = values[i].convertTo(e.getType(), mode, null);
         }
         return newValues;
     }
@@ -264,7 +264,9 @@ public class SelectUnion extends Query {
             if (v != ValueNull.INSTANCE) {
                 result.setLimit(v.getInt());
                 result.setFetchPercent(fetchPercent);
-                result.setWithTies(withTies);
+                if (withTies) {
+                    result.setWithTies(sort);
+                }
             }
         }
         l.close();
@@ -326,12 +328,8 @@ public class SelectUnion extends Query {
         for (int i = 0; i < len; i++) {
             Expression l = le.get(i);
             Expression r = re.get(i);
-            int type = Value.getHigherOrder(l.getType(), r.getType());
-            long prec = Math.max(l.getPrecision(), r.getPrecision());
-            int scale = Math.max(l.getScale(), r.getScale());
-            int displaySize = Math.max(l.getDisplaySize(), r.getDisplaySize());
-            String columnName = columnNamer.getColumnName(l,i,l.getAlias());
-            Column col = new Column(columnName, type, prec, scale, displaySize);
+            String columnName = columnNamer.getColumnName(l, i, l.getAlias());
+            Column col = new Column(columnName, Value.getHigherType(l.getType(), r.getType()));
             Expression e = new ExpressionColumn(session.getDatabase(), col);
             expressions.add(e);
         }

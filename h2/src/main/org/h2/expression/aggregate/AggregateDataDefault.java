@@ -6,7 +6,6 @@
 package org.h2.expression.aggregate;
 
 import org.h2.engine.Database;
-import org.h2.expression.aggregate.Aggregate.AggregateType;
 import org.h2.message.DbException;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -21,19 +20,22 @@ import org.h2.value.ValueNull;
 class AggregateDataDefault extends AggregateData {
 
     private final AggregateType aggregateType;
+    private final int dataType;
     private long count;
     private Value value;
     private double m2, mean;
 
     /**
      * @param aggregateType the type of the aggregate operation
+     * @param dataType the data type of the computed result
      */
-    AggregateDataDefault(AggregateType aggregateType) {
+    AggregateDataDefault(AggregateType aggregateType, int dataType) {
         this.aggregateType = aggregateType;
+        this.dataType = dataType;
     }
 
     @Override
-    void add(Database database, int dataType, Value v) {
+    void add(Database database, Value v) {
         if (v == ValueNull.INSTANCE) {
             return;
         }
@@ -43,7 +45,7 @@ class AggregateDataDefault extends AggregateData {
             if (value == null) {
                 value = v.convertTo(dataType);
             } else {
-                v = v.convertTo(value.getType());
+                v = v.convertTo(value.getValueType());
                 value = value.add(v);
             }
             break;
@@ -51,7 +53,7 @@ class AggregateDataDefault extends AggregateData {
             if (value == null) {
                 value = v.convertTo(DataType.getAddProofType(dataType));
             } else {
-                v = v.convertTo(value.getType());
+                v = v.convertTo(value.getValueType());
                 value = value.add(v);
             }
             break;
@@ -174,7 +176,7 @@ class AggregateDataDefault extends AggregateData {
         if (by == 0) {
             return ValueNull.INSTANCE;
         }
-        int type = Value.getHigherOrder(a.getType(), Value.LONG);
+        int type = Value.getHigherOrder(a.getValueType(), Value.LONG);
         Value b = ValueLong.get(by).convertTo(type);
         a = a.convertTo(type).divide(b);
         return a;

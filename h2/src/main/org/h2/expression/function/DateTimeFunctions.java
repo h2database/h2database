@@ -10,6 +10,7 @@ import static org.h2.expression.function.Function.DAY_OF_MONTH;
 import static org.h2.expression.function.Function.DAY_OF_WEEK;
 import static org.h2.expression.function.Function.DAY_OF_YEAR;
 import static org.h2.expression.function.Function.DECADE;
+import static org.h2.expression.function.Function.DOW;
 import static org.h2.expression.function.Function.EPOCH;
 import static org.h2.expression.function.Function.HOUR;
 import static org.h2.expression.function.Function.ISO_DAY_OF_WEEK;
@@ -43,6 +44,8 @@ import java.util.TimeZone;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
+import org.h2.engine.Mode;
+import org.h2.engine.Mode.ModeEnum;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IntervalUtils;
@@ -73,6 +76,8 @@ public final class DateTimeFunctions {
         DATE_PART.put("YEAR", YEAR);
         DATE_PART.put("YYYY", YEAR);
         DATE_PART.put("YY", YEAR);
+        DATE_PART.put("ISO_YEAR", ISO_YEAR);
+        DATE_PART.put("ISOYEAR", ISO_YEAR);
         DATE_PART.put("SQL_TSI_MONTH", MONTH);
         DATE_PART.put("MONTH", MONTH);
         DATE_PART.put("MM", MONTH);
@@ -89,8 +94,9 @@ public final class DateTimeFunctions {
         DATE_PART.put("SQL_TSI_DAY", DAY_OF_MONTH);
         DATE_PART.put("DAY_OF_WEEK", DAY_OF_WEEK);
         DATE_PART.put("DAYOFWEEK", DAY_OF_WEEK);
-        DATE_PART.put("DOW", DAY_OF_WEEK);
+        DATE_PART.put("DOW", DOW);
         DATE_PART.put("ISO_DAY_OF_WEEK", ISO_DAY_OF_WEEK);
+        DATE_PART.put("ISODOW", ISO_DAY_OF_WEEK);
         DATE_PART.put("DAYOFYEAR", DAY_OF_YEAR);
         DATE_PART.put("DAY_OF_YEAR", DAY_OF_YEAR);
         DATE_PART.put("DY", DAY_OF_YEAR);
@@ -170,6 +176,7 @@ public final class DateTimeFunctions {
             count *= 7;
             //$FALL-THROUGH$
         case DAY_OF_WEEK:
+        case DOW:
         case ISO_DAY_OF_WEEK:
         case DAY_OF_MONTH:
         case DAY_OF_YEAR:
@@ -288,6 +295,7 @@ public final class DateTimeFunctions {
         case DAY_OF_MONTH:
         case DAY_OF_YEAR:
         case DAY_OF_WEEK:
+        case DOW:
         case ISO_DAY_OF_WEEK:
             return absolute2 - absolute1;
         case WEEK:
@@ -335,13 +343,15 @@ public final class DateTimeFunctions {
      *            the date part
      * @param value
      *            the date-time value
+     * @param mode
+     *            the database mode
      * @return extracted field
      */
-    public static Value extract(String part, Value value) {
+    public static Value extract(String part, Value value, Mode mode) {
         Value result;
         int field = getDatePart(part);
         if (field != EPOCH) {
-            result = ValueInt.get(getIntDatePart(value, field));
+            result = ValueInt.get(getIntDatePart(value, field, mode));
         } else {
             // Case where we retrieve the EPOCH time.
             if (value instanceof ValueInterval) {
@@ -625,9 +635,11 @@ public final class DateTimeFunctions {
      *            the date value
      * @param field
      *            the field type, see {@link Function} for constants
+     * @param mode
+     *            the database mode
      * @return the value
      */
-    public static int getIntDatePart(Value date, int field) {
+    public static int getIntDatePart(Value date, int field, Mode mode) {
         if (date instanceof ValueInterval) {
             ValueInterval interval = (ValueInterval) date;
             IntervalQualifier qualifier = interval.getQualifier();
@@ -694,6 +706,13 @@ public final class DateTimeFunctions {
                 return DateTimeUtils.getDayOfYear(dateValue);
             case DAY_OF_WEEK:
                 return DateTimeUtils.getSundayDayOfWeek(dateValue);
+            case DOW: {
+                int dow = DateTimeUtils.getSundayDayOfWeek(dateValue);
+                if (mode.getEnum() == ModeEnum.PostgreSQL) {
+                    dow--;
+                }
+                return dow;
+            }
             case WEEK:
                 GregorianCalendar gc = DateTimeUtils.getCalendar();
                 return DateTimeUtils.getWeekOfYear(dateValue, gc.getFirstDayOfWeek() - 1,

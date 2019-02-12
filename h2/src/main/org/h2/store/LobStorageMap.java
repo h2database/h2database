@@ -245,9 +245,9 @@ public class LobStorageMap implements LobStorageInterface {
     @Override
     public ValueLobDb copyLob(ValueLobDb old, int tableId, long length) {
         init();
-        int type = old.getType();
+        int type = old.getValueType();
         long oldLobId = old.getLobId();
-        long oldLength = old.getPrecision();
+        long oldLength = old.getType().getPrecision();
         if (oldLength != length) {
             throw DbException.throwInternalError("Length is different");
         }

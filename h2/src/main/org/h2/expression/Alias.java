@@ -9,6 +9,7 @@ import org.h2.command.Parser;
 import org.h2.engine.Session;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
 /**
@@ -37,7 +38,7 @@ public class Alias extends Expression {
     }
 
     @Override
-    public int getType() {
+    public TypeInfo getType() {
         return expr.getType();
     }
 
@@ -55,21 +56,6 @@ public class Alias extends Expression {
     @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         expr.setEvaluatable(tableFilter, b);
-    }
-
-    @Override
-    public int getScale() {
-        return expr.getScale();
-    }
-
-    @Override
-    public long getPrecision() {
-        return expr.getPrecision();
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return expr.getDisplaySize();
     }
 
     @Override

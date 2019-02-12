@@ -134,6 +134,15 @@ public class ErrorCode {
     public static final int DIVISION_BY_ZERO_1 = 22012;
 
     /**
+     * The error with code <code>22013</code> is thrown when preceding or
+     * following size in a window function is null or negative. Example:
+     * <pre>
+     * FIRST_VALUE(N) OVER(ORDER BY N ROWS -1 PRECEDING)
+     * </pre>
+     */
+    public static final int INVALID_PRECEDING_OR_FOLLOWING_1 = 22013;
+
+    /**
      * The error with code <code>22018</code> is thrown when
      * trying to convert a value to a data type where the conversion is
      * undefined, or when an error occurred trying to convert. Example:
@@ -405,7 +414,7 @@ public class ErrorCode {
     /**
      * The error with code <code>42131</code> is thrown when
      * identical expressions should be used, but different
-     * exceptions were found.
+     * expressions were found.
      * Example:
      * <pre>
      * SELECT MODE(A ORDER BY B) FROM TEST;
@@ -602,13 +611,13 @@ public class ErrorCode {
     public static final int PARAMETER_NOT_SET_1 = 90012;
 
     /**
-     * The error with code <code>90013</code> is thrown when
-     * trying to open a database that does not exist using the flag
-     * IFEXISTS=TRUE, or when trying to access a database object with a catalog
-     * name that does not match the database name. Example:
+     * The error with code <code>90013</code> is thrown when trying to open a
+     * database that does not exist remotely without enabling remote database
+     * creation first, or using the flag IFEXISTS=TRUE, or when trying to access
+     * a database object with a catalog name that does not match the database
+     * name.
      * <pre>
-     * CREATE TABLE TEST(ID INT);
-     * SELECT XYZ.PUBLIC.TEST.ID FROM TEST;
+     * jdbc:h2:./database_that_does_not_exist
      * </pre>
      */
     public static final int DATABASE_NOT_FOUND_1 = 90013;

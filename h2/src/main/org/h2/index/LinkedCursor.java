@@ -64,7 +64,7 @@ public class LinkedCursor implements Cursor {
         current = tableLink.getTemplateRow();
         for (int i = 0; i < current.getColumnCount(); i++) {
             Column col = tableLink.getColumn(i);
-            Value v = DataType.readValue(session, rs, i + 1, col.getType());
+            Value v = DataType.readValue(session, rs, i + 1, col.getType().getValueType());
             current.setValue(i, v);
         }
         return true;

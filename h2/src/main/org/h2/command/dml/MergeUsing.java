@@ -278,6 +278,10 @@ public class MergeUsing extends Prepared {
     private String queryAlias;
     private int countUpdatedRows;
     private Select targetMatchQuery;
+    /**
+     * Contains mappings between _ROWID_ and ROW_NUMBER for processed rows. Row
+     * identities are remembered to prevent duplicate updates of the same row.
+     */
     private final HashMap<Value, Integer> targetRowidsRemembered = new HashMap<>();
     private int sourceQueryRowNumber;
 
@@ -415,7 +419,7 @@ public class MergeUsing extends Prepared {
         }
 
         // setup the targetMatchQuery - for detecting if the target row exists
-        targetMatchQuery = new Select(session);
+        targetMatchQuery = new Select(session, null);
         ArrayList<Expression> expressions = new ArrayList<>(1);
         expressions.add(new ExpressionColumn(session.getDatabase(), targetTable.getSchema().getName(),
                 targetTableFilter.getTableAlias(), "_ROWID_"));

@@ -41,16 +41,6 @@ public class ValueTimestamp extends Value {
     public static final int MAXIMUM_SCALE = 9;
 
     /**
-     * Get display size for the specified scale.
-     *
-     * @param scale scale
-     * @return display size
-     */
-    public static int getDisplaySize(int scale) {
-        return scale == 0 ? 19 : 20 + scale;
-    }
-
-    /**
      * A bit field with bits for the year, month, and day (see DateTimeUtils for
      * encoding)
      */
@@ -177,8 +167,18 @@ public class ValueTimestamp extends Value {
     }
 
     @Override
-    public int getType() {
-        return Value.TIMESTAMP;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_TIMESTAMP;
+    }
+
+    @Override
+    public int getValueType() {
+        return TIMESTAMP;
+    }
+
+    @Override
+    public int getMemory() {
+        return 32;
     }
 
     @Override
@@ -197,21 +197,6 @@ public class ValueTimestamp extends Value {
         builder.append(' ');
         DateTimeUtils.appendTime(builder, timeNanos);
         return builder.append('\'');
-    }
-
-    @Override
-    public long getPrecision() {
-        return MAXIMUM_PRECISION;
-    }
-
-    @Override
-    public int getScale() {
-        return MAXIMUM_SCALE;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return MAXIMUM_PRECISION;
     }
 
     @Override

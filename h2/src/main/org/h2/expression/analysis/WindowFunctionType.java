@@ -65,6 +65,11 @@ public enum WindowFunctionType {
      */
     NTH_VALUE,
 
+    /**
+     * The type for RATIO_TO_REPORT() window function.
+     */
+    RATIO_TO_REPORT,
+
     ;
 
     /**
@@ -98,6 +103,8 @@ public enum WindowFunctionType {
             return LAST_VALUE;
         case "NTH_VALUE":
             return NTH_VALUE;
+        case "RATIO_TO_REPORT":
+            return RATIO_TO_REPORT;
         default:
             return null;
         }

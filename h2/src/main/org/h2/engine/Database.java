@@ -1082,9 +1082,11 @@ public class Database implements DataHandler {
      * @param session the session
      */
     public void unlockMeta(Session session) {
-        unlockMetaDebug(session);
-        meta.unlock(session);
-        session.unlock(meta);
+        if (meta != null) {
+            unlockMetaDebug(session);
+            meta.unlock(session);
+            session.unlock(meta);
+        }
     }
 
     /**
@@ -1391,10 +1393,7 @@ public class Database implements DataHandler {
         for (Session s : all) {
             if (s != except) {
                 try {
-                    // must roll back, otherwise the session is removed and
-                    // the transaction log that contains its uncommitted
-                    // operations as well
-                    s.rollback();
+                    // this will rollback outstanding transaction
                     s.close();
                 } catch (DbException e) {
                     trace.error(e, "disconnecting session #{0}", s.getId());
@@ -1410,12 +1409,27 @@ public class Database implements DataHandler {
      *            hook
      */
     void close(boolean fromShutdownHook) {
+        DbException b = backgroundException.getAndSet(null);
+        try {
+            closeImpl(fromShutdownHook);
+        } catch (Throwable t) {
+            if (b != null) {
+                t.addSuppressed(b);
+            }
+            throw t;
+        }
+        if (b != null) {
+            // wrap the exception, so we see it was thrown here
+            throw DbException.get(b.getErrorCode(), b, b.getMessage());
+        }
+    }
+
+    private void closeImpl(boolean fromShutdownHook) {
         try {
             synchronized (this) {
                 if (closing) {
                     return;
                 }
-                throwLastBackgroundException();
                 if (fileLockMethod == FileLockMethod.SERIALIZED &&
                         !reconnectChangePending) {
                     // another connection may have written something - don't write
@@ -1873,7 +1887,7 @@ public class Database implements DataHandler {
                 }
             }
         } else {
-            lockMeta(session);
+            boolean metaWasLocked = lockMeta(session);
             synchronized (this) {
                 int id = obj.getId();
                 removeMeta(session, id);
@@ -1882,6 +1896,9 @@ public class Database implements DataHandler {
                 if(id > 0) {
                     objectIds.set(id);
                 }
+            }
+            if (!metaWasLocked) {
+                unlockMeta(session);
             }
         }
     }
@@ -1956,8 +1973,7 @@ public class Database implements DataHandler {
             if (!persistent) {
                 name = "memFS:" + name;
             }
-            return FileUtils.createTempFile(name,
-                    Constants.SUFFIX_TEMP_FILE, true, inTempDir);
+            return FileUtils.createTempFile(name, Constants.SUFFIX_TEMP_FILE, inTempDir);
         } catch (IOException e) {
             throw DbException.convertIOException(e, databaseName);
         }

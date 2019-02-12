@@ -27,7 +27,7 @@ import org.h2.schema.Sequence;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
-import org.h2.value.ExtTypeInfo;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueLong;
@@ -64,11 +64,7 @@ public class Column {
     public static final int NULLABLE_UNKNOWN =
             ResultSetMetaData.columnNullableUnknown;
 
-    private final int type;
-    private long precision;
-    private int scale;
-    private ExtTypeInfo extTypeInfo;
-    private int displaySize;
+    private final TypeInfo type;
     private Table table;
     private String name;
     private int columnId;
@@ -90,28 +86,13 @@ public class Column {
     private boolean visible = true;
     private Domain domain;
 
-    public Column(String name, int type) {
-        this(name, type, -1, -1, -1, null);
+    public Column(String name, int valueType) {
+        this(name, TypeInfo.getTypeInfo(valueType));
     }
 
-    public Column(String name, int type, long precision, int scale,
-            int displaySize) {
-        this(name, type, precision, scale, displaySize, null);
-    }
-
-    public Column(String name, int type, long precision, int scale, int displaySize, ExtTypeInfo extTypeInfo) {
+    public Column(String name, TypeInfo type) {
         this.name = name;
         this.type = type;
-        if (precision == -1 && scale == -1 && displaySize == -1 && type != Value.UNKNOWN) {
-            DataType dt = DataType.getDataType(type);
-            precision = dt.defaultPrecision;
-            scale = dt.defaultScale;
-            displaySize = dt.defaultDisplaySize;
-        }
-        this.precision = precision;
-        this.scale = scale;
-        this.displaySize = displaySize;
-        this.extTypeInfo = extTypeInfo;
     }
 
     @Override
@@ -141,7 +122,7 @@ public class Column {
     }
 
     public Column getClone() {
-        Column newColumn = new Column(name, type, precision, scale, displaySize, extTypeInfo);
+        Column newColumn = new Column(name, type);
         newColumn.copy(this);
         return newColumn;
     }
@@ -167,7 +148,7 @@ public class Column {
      */
     public Value convert(Value v, Mode mode) {
         try {
-            return v.convertTo(type, MathUtils.convertLongToInt(precision), mode, this, extTypeInfo);
+            return v.convertTo(type, mode, this);
         } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.DATA_CONVERSION_ERROR_1) {
                 String target = (table == null ? "" : table.getName() + ": ") +
@@ -271,28 +252,12 @@ public class Column {
         return name;
     }
 
-    public int getType() {
+    public TypeInfo getType() {
         return type;
-    }
-
-    public long getPrecision() {
-        return precision;
-    }
-
-    public int getDisplaySize() {
-        return displaySize;
-    }
-
-    public int getScale() {
-        return scale;
     }
 
     public void setNullable(boolean b) {
         nullable = b;
-    }
-
-    public ExtTypeInfo getExtTypeInfo() {
-        return extTypeInfo;
     }
 
     public boolean getVisible() {
@@ -350,9 +315,10 @@ public class Column {
             }
             if (value == ValueNull.INSTANCE && !nullable) {
                 if (mode.convertInsertNullToZero) {
-                    DataType dt = DataType.getDataType(type);
+                    int t = type.getValueType();
+                    DataType dt = DataType.getDataType(t);
                     if (dt.decimal) {
-                        value = ValueInt.get(0).convertTo(type);
+                        value = ValueInt.get(0).convertTo(t);
                     } else if (dt.type == Value.TIMESTAMP) {
                         value = session.getCurrentCommandStart().convertTo(Value.TIMESTAMP);
                     } else if (dt.type == Value.TIMESTAMP_TZ) {
@@ -362,7 +328,7 @@ public class Column {
                     } else if (dt.type == Value.DATE) {
                         value = session.getCurrentCommandStart().convertTo(Value.DATE);
                     } else {
-                        value = ValueString.get("").convertTo(type);
+                        value = ValueString.get("").convertTo(t);
                     }
                 } else {
                     throw DbException.get(ErrorCode.NULL_NOT_ALLOWED, name);
@@ -382,19 +348,21 @@ public class Column {
                         checkConstraint.getSQL());
             }
         }
-        value = value.convertScale(mode.convertOnlyToSmallerScale, scale);
+        value = value.convertScale(mode.convertOnlyToSmallerScale, type.getScale());
+        long precision = type.getPrecision();
         if (precision > 0) {
             if (!value.checkPrecision(precision)) {
                 String s = value.getTraceSQL();
                 if (s.length() > 127) {
                     s = s.substring(0, 128) + "...";
                 }
-                throw DbException.get(ErrorCode.VALUE_TOO_LONG_2,
-                        getCreateSQL(), s + " (" + value.getPrecision() + ")");
+                throw DbException.get(ErrorCode.VALUE_TOO_LONG_2, getCreateSQL(),
+                        s + " (" + value.getType().getPrecision() + ')');
             }
         }
-        if (value != ValueNull.INSTANCE && DataType.isExtInfoType(type) && extTypeInfo != null) {
-            value = extTypeInfo.cast(value);
+        if (value != ValueNull.INSTANCE && DataType.isExtInfoType(type.getValueType())
+                && type.getExtTypeInfo() != null) {
+            value = type.getExtTypeInfo().cast(value);
         }
         updateSequenceIfRequired(session, value);
         return value;
@@ -493,44 +461,7 @@ public class Column {
         if (originalSQL != null) {
             buff.append(originalSQL);
         } else {
-            DataType dataType = DataType.getDataType(type);
-            if (type == Value.TIMESTAMP_TZ) {
-                buff.append("TIMESTAMP");
-            } else {
-                buff.append(dataType.name);
-            }
-            switch (type) {
-            case Value.DECIMAL:
-                buff.append('(').append(precision).append(", ").append(scale).append(')');
-                break;
-            case Value.GEOMETRY:
-                if (extTypeInfo == null) {
-                    break;
-                }
-                //$FALL-THROUGH$
-            case Value.ENUM:
-                buff.append(extTypeInfo.getCreateSQL());
-                break;
-            case Value.BYTES:
-            case Value.STRING:
-            case Value.STRING_IGNORECASE:
-            case Value.STRING_FIXED:
-                if (precision < Integer.MAX_VALUE) {
-                    buff.append('(').append(precision).append(')');
-                }
-                break;
-            case Value.TIME:
-            case Value.TIMESTAMP:
-            case Value.TIMESTAMP_TZ:
-                if (scale != dataType.defaultScale) {
-                    buff.append('(').append(scale).append(')');
-                }
-                if (type == Value.TIMESTAMP_TZ) {
-                    buff.append(" WITH TIME ZONE");
-                }
-                break;
-            default:
-            }
+            type.getSQL(buff);
         }
 
         if (!visible) {
@@ -729,11 +660,11 @@ public class Column {
     }
 
     int getPrecisionAsInt() {
-        return MathUtils.convertLongToInt(precision);
+        return MathUtils.convertLongToInt(type.getPrecision());
     }
 
     DataType getDataType() {
-        return DataType.getDataType(type);
+        return DataType.getDataType(type.getValueType());
     }
 
     /**
@@ -803,10 +734,10 @@ public class Column {
         if (type != newColumn.type) {
             return false;
         }
-        if (precision > newColumn.precision) {
+        if (type.getPrecision() > newColumn.type.getPrecision()) {
             return false;
         }
-        if (scale != newColumn.scale) {
+        if (type.getScale() != newColumn.type.getScale()) {
             return false;
         }
         if (nullable && !newColumn.nullable) {
@@ -836,7 +767,7 @@ public class Column {
         if (onUpdateExpression != null || newColumn.onUpdateExpression != null) {
             return false;
         }
-        if (!Objects.equals(extTypeInfo, newColumn.extTypeInfo)) {
+        if (!Objects.equals(type.getExtTypeInfo(), newColumn.type.getExtTypeInfo())) {
             return false;
         }
         return true;
@@ -850,11 +781,7 @@ public class Column {
     public void copy(Column source) {
         checkConstraint = source.checkConstraint;
         checkConstraintSQL = source.checkConstraintSQL;
-        displaySize = source.displaySize;
         name = source.name;
-        precision = source.precision;
-        extTypeInfo = source.extTypeInfo;
-        scale = source.scale;
         // table is not set
         // columnId is not set
         nullable = source.nullable;

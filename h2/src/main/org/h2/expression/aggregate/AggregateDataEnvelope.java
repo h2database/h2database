@@ -38,7 +38,7 @@ class AggregateDataEnvelope extends AggregateData {
         if (on instanceof ExpressionColumn) {
             ExpressionColumn col = (ExpressionColumn) on;
             Column column = col.getColumn();
-            if (column.getType() == Value.GEOMETRY) {
+            if (column.getType().getValueType() == Value.GEOMETRY) {
                 TableFilter filter = col.getTableFilter();
                 if (filter != null) {
                     ArrayList<Index> indexes = filter.getTable().getIndexes();
@@ -57,7 +57,7 @@ class AggregateDataEnvelope extends AggregateData {
     }
 
     @Override
-    void add(Database database, int dataType, Value v) {
+    void add(Database database, Value v) {
         if (v == ValueNull.INSTANCE) {
             return;
         }

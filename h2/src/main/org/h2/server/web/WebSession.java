@@ -98,9 +98,10 @@ class WebSession {
      * Remove a session attribute from the map.
      *
      * @param key the key
+     * @return value that was associated with the key, or null
      */
-    void remove(String key) {
-        map.remove(key);
+    Object remove(String key) {
+        return map.remove(key);
     }
 
     /**

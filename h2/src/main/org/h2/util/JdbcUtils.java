@@ -288,17 +288,21 @@ public class JdbcUtils {
             JdbcUtils.load(url);
         } else {
             Class<?> d = loadUserClass(driver);
-            if (java.sql.Driver.class.isAssignableFrom(d)) {
-                try {
+            try {
+                if (java.sql.Driver.class.isAssignableFrom(d)) {
                     Driver driverInstance = (Driver) d.getDeclaredConstructor().newInstance();
-                    return driverInstance.connect(url, prop); /*fix issue #695 with drivers with the same
-                    jdbc subprotocol in classpath of jdbc drivers (as example redshift and postgresql drivers)*/
-                } catch (Exception e) {
-                    throw DbException.toSQLException(e);
-                }
-            } else if (javax.naming.Context.class.isAssignableFrom(d)) {
-                // JNDI context
-                try {
+                    /*
+                     * fix issue #695 with drivers with the same jdbc
+                     * subprotocol in classpath of jdbc drivers (as example
+                     * redshift and postgresql drivers)
+                     */
+                    Connection connection = driverInstance.connect(url, prop);
+                    if (connection != null) {
+                        return connection;
+                    }
+                    throw new SQLException("Driver " + driver + " is not suitable for " + url, "08001");
+                } else if (javax.naming.Context.class.isAssignableFrom(d)) {
+                    // JNDI context
                     Context context = (Context) d.getDeclaredConstructor().newInstance();
                     DataSource ds = (DataSource) context.lookup(url);
                     String user = prop.getProperty("user");
@@ -307,13 +311,11 @@ public class JdbcUtils {
                         return ds.getConnection();
                     }
                     return ds.getConnection(user, password);
-                } catch (Exception e) {
-                    throw DbException.toSQLException(e);
                 }
-            } else {
-                // don't know, but maybe it loaded a JDBC Driver
-                return DriverManager.getConnection(url, prop);
+            } catch (Exception e) {
+                throw DbException.toSQLException(e);
             }
+            // don't know, but maybe it loaded a JDBC Driver
         }
         return DriverManager.getConnection(url, prop);
     }

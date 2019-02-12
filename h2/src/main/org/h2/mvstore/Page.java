@@ -468,7 +468,7 @@ public abstract class Page implements Cloneable
      * @return the value or null
      */
     int binarySearch(Object key) {
-        int low = 0, high = keys.length - 1;
+        int low = 0, high = getKeyCount() - 1;
         // the cached index minus one, so that
         // for the first time (when cachedCompare is 0),
         // the default value is used
@@ -518,6 +518,14 @@ public abstract class Page implements Cloneable
         return bKeys;
     }
 
+    /**
+     * Append additional key/value mappings to this Page.
+     * New mappings suppose to be in correct key order.
+     *
+     * @param extraKeyCount number of mappings to be added
+     * @param extraKeys to be added
+     * @param extraValues to be added
+     */
     abstract void expand(int extraKeyCount, Object[] extraKeys, Object[] extraValues);
 
     /**
@@ -542,7 +550,7 @@ public abstract class Page implements Cloneable
     public abstract long getTotalCount();
 
     /**
-     * Get the descendant counts for the given child.
+     * Get the number of key-value pairs for a given child.
      *
      * @param index the child index
      * @return the descendant count
@@ -613,7 +621,7 @@ public abstract class Page implements Cloneable
     final void insertKey(int index, Object key) {
         int keyCount = getKeyCount();
         assert index <= keyCount : index + " > " + keyCount;
-        Object[] newKeys = new Object[keyCount + 1];
+        Object[] newKeys = createKeyStorage(keyCount + 1);
         DataUtils.copyWithGap(keys, newKeys, keyCount, index);
         keys = newKeys;
 
@@ -639,7 +647,7 @@ public abstract class Page implements Cloneable
             Object old = getKey(index);
             addMemory(-MEMORY_POINTER - keyType.getMemory(old));
         }
-        Object[] newKeys = new Object[keyCount - 1];
+        Object[] newKeys = createKeyStorage(keyCount - 1);
         DataUtils.copyExcept(keys, newKeys, keyCount, index);
         keys = newKeys;
     }
@@ -653,7 +661,7 @@ public abstract class Page implements Cloneable
     private void read(ByteBuffer buff, int chunkId) {
         int pageLength = buff.remaining() + 4;  // size of int, since we've read page length already
         int len = DataUtils.readVarInt(buff);
-        keys = new Object[len];
+        keys = createKeyStorage(len);
         int type = buff.get();
         if(isLeaf() != ((type & 1) == PAGE_TYPE_LEAF)) {
             throw DataUtils.newIllegalStateException(
@@ -720,7 +728,7 @@ public abstract class Page implements Cloneable
         buff.put((byte) type);
         writeChildren(buff, true);
         int compressStart = buff.position();
-        map.getKeyType().write(buff, keys, getKeyCount(), true);
+        map.getKeyType().write(buff, keys, len, true);
         writeValues(buff);
         MVStore store = map.getStore();
         int expLen = buff.position() - compressStart;
@@ -881,10 +889,11 @@ public abstract class Page implements Cloneable
      * @return memory in bytes
      */
     protected int calculateMemory() {
-        int mem = keys.length * MEMORY_POINTER;
+        int keyCount = getKeyCount();
+        int mem = keyCount * MEMORY_POINTER;
         DataType keyType = map.getKeyType();
-        for (Object key : keys) {
-            mem += keyType.getMemory(key);
+        for (int i = 0; i < keyCount; i++) {
+            mem += keyType.getMemory(keys[i]);
         }
         return mem;
     }
@@ -911,6 +920,12 @@ public abstract class Page implements Cloneable
         }
     }
 
+    /**
+     * Update given CursorPos chain to correspond to "append point" in a B-tree rooted at this Page.
+     *
+     * @param cursorPos to update, presumably pointing to this Page
+     * @return new head of the CursorPos chain
+     */
     public abstract CursorPos getAppendCursorPos(CursorPos cursorPos);
 
     /**
@@ -984,6 +999,11 @@ public abstract class Page implements Cloneable
             return page;
         }
 
+        /**
+         * Clear if necessary, reference to the actual child Page object,
+         * so it can be garbage collected if not actively used elsewhere.
+         * Reference is cleared only if corresponding page was already saved on a disk.
+         */
         void clearPageReference() {
             if (page != null) {
                 page.writeEnd();
@@ -1453,6 +1473,7 @@ public abstract class Page implements Cloneable
         long getCounts(int index) {
             throw new UnsupportedOperationException();
         }
+
         @Override
         public void setChild(int index, Page c) {
             throw new UnsupportedOperationException();
@@ -1491,6 +1512,7 @@ public abstract class Page implements Cloneable
                 }
             }
         }
+
         @Override
         public void insertNode(int index, Object key, Page childPage) {
             throw new UnsupportedOperationException();
@@ -1554,11 +1576,11 @@ public abstract class Page implements Cloneable
 
         @Override
         protected int calculateMemory() {
-            int mem = super.calculateMemory() + PAGE_LEAF_MEMORY +
-                                        values.length * MEMORY_POINTER;
+            int keyCount = getKeyCount();
+            int mem = super.calculateMemory() + PAGE_LEAF_MEMORY + keyCount * MEMORY_POINTER;
             DataType valueType = map.getValueType();
-            for (Object value : values) {
-                mem += valueType.getMemory(value);
+            for (int i = 0; i < keyCount; i++) {
+                mem += valueType.getMemory(values[i]);
             }
             return mem;
         }

@@ -29,6 +29,8 @@ public class ValueString extends Value {
      */
     protected final String value;
 
+    private TypeInfo type;
+
     protected ValueString(String value) {
         this.value = value;
     }
@@ -55,11 +57,6 @@ public class ValueString extends Value {
     }
 
     @Override
-    public long getPrecision() {
-        return value.length();
-    }
-
-    @Override
     public Object getObject() {
         return value;
     }
@@ -71,13 +68,13 @@ public class ValueString extends Value {
     }
 
     @Override
-    public int getDisplaySize() {
-        return value.length();
-    }
-
-    @Override
     public int getMemory() {
-        return value.length() * 2 + 48;
+        /*
+         * Java 11 with -XX:-UseCompressedOops
+         * Empty string: 88 bytes
+         * 1 to 4 UTF-16 chars: 96 bytes
+         */
+        return value.length() * 2 + 94;
     }
 
     @Override
@@ -122,8 +119,18 @@ public class ValueString extends Value {
     }
 
     @Override
-    public int getType() {
-        return Value.STRING;
+    public final TypeInfo getType() {
+        TypeInfo type = this.type;
+        if (type == null) {
+            int length = value.length();
+            this.type = type = new TypeInfo(getValueType(), length, 0, length, null);
+        }
+        return type;
+    }
+
+    @Override
+    public int getValueType() {
+        return STRING;
     }
 
     /**

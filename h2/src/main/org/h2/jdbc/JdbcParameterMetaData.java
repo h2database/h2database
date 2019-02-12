@@ -81,7 +81,7 @@ public class JdbcParameterMetaData extends TraceObject implements
         try {
             debugCodeCall("getParameterType", param);
             ParameterInterface p = getParameter(param);
-            int type = p.getType();
+            int type = p.getValueType();
             if (type == Value.UNKNOWN) {
                 type = Value.STRING;
             }
@@ -174,7 +174,7 @@ public class JdbcParameterMetaData extends TraceObject implements
         try {
             debugCodeCall("getParameterClassName", param);
             ParameterInterface p = getParameter(param);
-            int type = p.getType();
+            int type = p.getValueType();
             if (type == Value.UNKNOWN) {
                 type = Value.STRING;
             }
@@ -196,7 +196,7 @@ public class JdbcParameterMetaData extends TraceObject implements
         try {
             debugCodeCall("getParameterTypeName", param);
             ParameterInterface p = getParameter(param);
-            int type = p.getType();
+            int type = p.getValueType();
             if (type == Value.UNKNOWN) {
                 type = Value.STRING;
             }

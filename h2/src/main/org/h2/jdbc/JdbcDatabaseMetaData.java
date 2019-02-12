@@ -11,7 +11,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.RowIdLifetime;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.Arrays;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -25,8 +24,8 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 import org.h2.result.SimpleResult;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
+import org.h2.value.TypeInfo;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueString;
 
@@ -1543,7 +1542,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * table/column/index name, in addition to the SQL-2003 keywords. The list
      * returned is:
      * <pre>
-     * INTERSECTS,LIMIT,MINUS,OFFSET,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY,TOP
+     * INTERSECTS,LIMIT,MINUS,OFFSET,QUALIFY,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY,TOP
      * </pre>
      * The complete list of keywords (including SQL-2003 keywords) is:
      * <pre>
@@ -1552,9 +1551,9 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * EXISTS, FALSE, FETCH, FOR, FOREIGN, FROM, FULL, GROUP, HAVING,
      * IF, INNER, INTERSECT, INTERSECTS, INTERVAL, IS, JOIN, LIKE,
      * LIMIT, LOCALTIME, LOCALTIMESTAMP, MINUS, NATURAL, NOT, NULL,
-     * OFFSET, ON, ORDER, PRIMARY, ROW, ROWNUM, SELECT, SYSDATE,
-     * SYSTIME, SYSTIMESTAMP, TABLE, TODAY, TOP, TRUE, UNION, UNIQUE,
-     * VALUES, WHERE, WINDOW, WITH
+     * OFFSET, ON, ORDER, PRIMARY, QUALIFY, ROW, ROWNUM, SELECT,
+     * SYSDATE, SYSTIME, SYSTIMESTAMP, TABLE, TODAY, TOP, TRUE, UNION,
+     * UNIQUE, VALUES, WHERE, WINDOW, WITH
      * </pre>
      *
      * @return a list of additional the keywords
@@ -1562,7 +1561,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public String getSQLKeywords() {
         debugCodeCall("getSQLKeywords");
-        return "IF,INTERSECTS,LIMIT,MINUS,OFFSET,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY,TOP";
+        return "IF,INTERSECTS,LIMIT,MINUS,OFFSET,QUALIFY,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY,TOP";
     }
 
     /**
@@ -1616,25 +1615,27 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                     + "FROM INFORMATION_SCHEMA.HELP WHERE SECTION = ?");
             prep.setString(1, section);
             ResultSet rs = prep.executeQuery();
-            StatementBuilder buff = new StatementBuilder();
+            StringBuilder builder = new StringBuilder();
             while (rs.next()) {
                 String s = rs.getString(1).trim();
                 String[] array = StringUtils.arraySplit(s, ',', true);
                 for (String a : array) {
-                    buff.appendExceptFirst(",");
+                    if (builder.length() != 0) {
+                        builder.append(',');
+                    }
                     String f = a.trim();
                     int spaceIndex = f.indexOf(' ');
                     if (spaceIndex >= 0) {
                         // remove 'Function' from 'INSERT Function'
-                        StringUtils.trimSubstring(buff.builder(), f, 0, spaceIndex);
+                        StringUtils.trimSubstring(builder, f, 0, spaceIndex);
                     } else {
-                        buff.append(f);
+                        builder.append(f);
                     }
                 }
             }
             rs.close();
             prep.close();
-            return buff.toString();
+            return builder.toString();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -3186,12 +3187,12 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     public ResultSet getClientInfoProperties() throws SQLException {
         Properties clientInfo = conn.getClientInfo();
         SimpleResult result = new SimpleResult();
-        result.addColumn("NAME", "NAME", Types.VARCHAR, 0, 0, Integer.MAX_VALUE);
-        result.addColumn("MAX_LEN", "MAX_LEN", Types.INTEGER, 0, 0, ValueInt.DISPLAY_SIZE);
-        result.addColumn("DEFAULT_VALUE", "DEFAULT_VALUE", Types.VARCHAR, 0, 0, Integer.MAX_VALUE);
-        result.addColumn("DESCRIPTION", "DESCRIPTION", Types.VARCHAR, 0, 0, Integer.MAX_VALUE);
+        result.addColumn("NAME", "NAME", TypeInfo.TYPE_STRING);
+        result.addColumn("MAX_LEN", "MAX_LEN", TypeInfo.TYPE_INT);
+        result.addColumn("DEFAULT_VALUE", "DEFAULT_VALUE", TypeInfo.TYPE_STRING);
+        result.addColumn("DESCRIPTION", "DESCRIPTION", TypeInfo.TYPE_STRING);
         // Non-standard column
-        result.addColumn("VALUE", "VALUE", Types.VARCHAR, 0, 0, Integer.MAX_VALUE);
+        result.addColumn("VALUE", "VALUE", TypeInfo.TYPE_STRING);
         for (Entry<Object, Object> entry : clientInfo.entrySet()) {
             result.addRow(ValueString.get((String) entry.getKey()), ValueInt.get(Integer.MAX_VALUE),
                     ValueString.EMPTY, ValueString.EMPTY, ValueString.get((String) entry.getValue()));

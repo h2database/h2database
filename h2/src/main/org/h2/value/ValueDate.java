@@ -87,8 +87,13 @@ public class ValueDate extends Value {
     }
 
     @Override
-    public int getType() {
-        return Value.DATE;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_DATE;
+    }
+
+    @Override
+    public int getValueType() {
+        return DATE;
     }
 
     @Override
@@ -103,16 +108,6 @@ public class ValueDate extends Value {
         builder.append("DATE '");
         DateTimeUtils.appendDate(builder, dateValue);
         return builder.append('\'');
-    }
-
-    @Override
-    public long getPrecision() {
-        return PRECISION;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return PRECISION;
     }
 
     @Override

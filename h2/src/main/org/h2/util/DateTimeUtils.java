@@ -109,12 +109,12 @@ public class DateTimeUtils {
     private static volatile TimeZone timeZone;
 
     /**
-     * Observed JVM behaviour is that if the timezone of the host computer is
-     * changed while the JVM is running, the zone offset does not change but
-     * keeps the initial value. So it is correct to measure this once and use
-     * this value throughout the JVM's lifecycle. In any case, it is safer to
-     * use a fixed value throughout the duration of the JVM's life, rather than
-     * have this offset change, possibly midway through a long-running query.
+     * Raw offset doesn't change during DST transitions, but changes during
+     * other transitions that some time zones have. H2 1.4.193 and later
+     * versions use zone offset that is valid for startup time for performance
+     * reasons. This code is now used only by old PageStore engine and its
+     * datetime storage code has issues with all time zone transitions, so this
+     * buggy logic is preserved as is too.
      */
     private static int zoneOffsetMillis = createGregorianCalendar().get(Calendar.ZONE_OFFSET);
 

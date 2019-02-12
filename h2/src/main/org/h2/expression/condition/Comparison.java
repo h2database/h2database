@@ -15,13 +15,13 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.aggregate.Aggregate;
-import org.h2.expression.aggregate.Aggregate.AggregateType;
+import org.h2.expression.aggregate.AggregateType;
 import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.util.MathUtils;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueGeometry;
@@ -206,7 +206,7 @@ public class Comparison extends Condition {
         if (right != null) {
             right = right.optimize(session);
             // TODO check row values too
-            if (right.getType() == Value.ARRAY && left.getType() != Value.ARRAY) {
+            if (right.getType().getValueType() == Value.ARRAY && left.getType().getValueType() != Value.ARRAY) {
                 throw DbException.get(ErrorCode.COMPARING_ARRAY_TO_SCALAR);
             }
             if (right instanceof ExpressionColumn) {
@@ -225,17 +225,17 @@ public class Comparison extends Condition {
                             return ValueExpression.getNull();
                         }
                     }
-                    int colType = left.getType();
-                    int constType = r.getType();
-                    int resType = Value.getHigherOrder(colType, constType);
-                    // If not, the column values will need to be promoted
-                    // to constant type, but vise versa, then let's do this here
-                    // once.
-                    if (constType != resType) {
-                        Column column = ((ExpressionColumn) left).getColumn();
-                        right = ValueExpression.get(r.convertTo(resType,
-                                MathUtils.convertLongToInt(left.getPrecision()),
-                                session.getDatabase().getMode(), column, column.getExtTypeInfo()));
+                    TypeInfo colType = left.getType(), constType = r.getType();
+                    int constValueType = constType.getValueType();
+                    if (constValueType != colType.getValueType()) {
+                        TypeInfo resType = Value.getHigherType(colType, constType);
+                        // If not, the column values will need to be promoted
+                        // to constant type, but vise versa, then let's do this here
+                        // once.
+                        if (constValueType != resType.getValueType()) {
+                            Column column = ((ExpressionColumn) left).getColumn();
+                            right = ValueExpression.get(r.convertTo(resType, session.getDatabase().getMode(), column));
+                        }
                     }
                 } else if (right instanceof Parameter) {
                     ((Parameter) right).setColumn(
@@ -516,12 +516,14 @@ public class Comparison extends Condition {
         }
         if (addIndex) {
             if (l != null) {
-                if (l.getType() == right.getType() || right.getType() != Value.STRING_IGNORECASE) {
+                int rType = right.getType().getValueType();
+                if (l.getType().getValueType() == rType || rType != Value.STRING_IGNORECASE) {
                     filter.addIndexCondition(
                             IndexCondition.get(compareType, l, right));
                 }
             } else if (r != null) {
-                if (r.getType() == left.getType() || left.getType() != Value.STRING_IGNORECASE) {
+                int lType = left.getType().getValueType();
+                if (r.getType().getValueType() == lType || lType != Value.STRING_IGNORECASE) {
                     int compareRev = getReversedCompareType(compareType);
                     filter.addIndexCondition(
                             IndexCondition.get(compareRev, r, left));

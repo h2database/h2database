@@ -24,7 +24,7 @@ class AggregateDataCount extends AggregateData {
     }
 
     @Override
-    void add(Database database, int dataType, Value v) {
+    void add(Database database, Value v) {
         if (all || v != ValueNull.INSTANCE) {
             count++;
         }

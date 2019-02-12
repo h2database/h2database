@@ -12,8 +12,8 @@ import org.h2.expression.function.Function;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.util.MathUtils;
 import org.h2.value.DataType;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
@@ -59,7 +59,7 @@ public class BinaryOperation extends Expression {
 
     private OpType opType;
     private Expression left, right;
-    private int dataType;
+    private TypeInfo type;
     private boolean convertRight = true;
 
     public BinaryOperation(OpType opType, Expression left, Expression right) {
@@ -99,10 +99,10 @@ public class BinaryOperation extends Expression {
     @Override
     public Value getValue(Session session) {
         Mode mode = session.getDatabase().getMode();
-        Value l = left.getValue(session).convertTo(dataType, mode);
+        Value l = left.getValue(session).convertTo(type, mode, null);
         Value r = right.getValue(session);
         if (convertRight) {
-            r = r.convertTo(dataType, mode);
+            r = r.convertTo(type, mode, null);
         }
         switch (opType) {
         case CONCAT: {
@@ -163,38 +163,49 @@ public class BinaryOperation extends Expression {
         left = left.optimize(session);
         right = right.optimize(session);
         switch (opType) {
-        case CONCAT:
-            dataType = Value.STRING;
+        case CONCAT: {
+            TypeInfo l = left.getType(), r = right.getType();
+            if (DataType.isStringType(l.getValueType()) && DataType.isStringType(r.getValueType())) {
+                long precision = l.getPrecision() + r.getPrecision();
+                if (precision >= 0 && precision < Integer.MAX_VALUE) {
+                    type = TypeInfo.getTypeInfo(Value.STRING, precision, 0, null);
+                    break;
+                }
+            }
+            type = TypeInfo.TYPE_STRING;
             break;
+        }
         case PLUS:
         case MINUS:
         case MULTIPLY:
         case DIVIDE:
         case MODULUS:
-            int l = left.getType();
-            int r = right.getType();
+            int l = left.getType().getValueType();
+            int r = right.getType().getValueType();
             if ((l == Value.NULL && r == Value.NULL) ||
                     (l == Value.UNKNOWN && r == Value.UNKNOWN)) {
                 // (? + ?) - use decimal by default (the most safe data type) or
                 // string when text concatenation with + is enabled
                 if (opType == OpType.PLUS && session.getDatabase().
                         getMode().allowPlusForStringConcat) {
-                    dataType = Value.STRING;
+                    type = TypeInfo.TYPE_STRING;
                     opType = OpType.CONCAT;
                 } else {
-                    dataType = Value.DECIMAL;
+                    type = TypeInfo.TYPE_DECIMAL_DEFAULT;
                 }
             } else if (DataType.isIntervalType(l) || DataType.isIntervalType(r)) {
                 return optimizeInterval(session, l, r);
             } else if (DataType.isDateTimeType(l) || DataType.isDateTimeType(r)) {
                 return optimizeDateTime(session, l, r);
             } else {
-                dataType = Value.getHigherOrder(l, r);
+                int dataType = Value.getHigherOrder(l, r);
                 if (dataType == Value.ENUM) {
-                    dataType = Value.INT;
-                } else if (DataType.isStringType(dataType) &&
-                        session.getDatabase().getMode().allowPlusForStringConcat) {
-                    opType = OpType.CONCAT;
+                    type = TypeInfo.TYPE_INT;
+                } else {
+                    type = TypeInfo.getTypeInfo(dataType);
+                    if (DataType.isStringType(dataType) && session.getDatabase().getMode().allowPlusForStringConcat) {
+                        opType = OpType.CONCAT;
+                    }
                 }
             }
             break;
@@ -310,10 +321,10 @@ public class BinaryOperation extends Expression {
             }
             case Value.TIME:
                 if (r == Value.TIME || r == Value.TIMESTAMP_TZ) {
-                    dataType = r;
+                    type = TypeInfo.getTypeInfo(r);
                     return this;
                 } else { // DATE, TIMESTAMP
-                    dataType = Value.TIMESTAMP;
+                    type = TypeInfo.TYPE_TIMESTAMP;
                     return this;
                 }
             }
@@ -351,7 +362,7 @@ public class BinaryOperation extends Expression {
                     return f.optimize(session);
                 }
                 case Value.TIME:
-                    dataType = Value.TIMESTAMP;
+                    type = TypeInfo.TYPE_TIMESTAMP;
                     return this;
                 case Value.DATE:
                 case Value.TIMESTAMP:
@@ -368,19 +379,19 @@ public class BinaryOperation extends Expression {
             break;
         case MULTIPLY:
             if (l == Value.TIME) {
-                dataType = Value.TIME;
+                type = TypeInfo.TYPE_TIME;
                 convertRight = false;
                 return this;
             } else if (r == Value.TIME) {
                 swap();
-                dataType = Value.TIME;
+                type = TypeInfo.TYPE_TIME;
                 convertRight = false;
                 return this;
             }
             break;
         case DIVIDE:
             if (l == Value.TIME) {
-                dataType = Value.TIME;
+                type = TypeInfo.TYPE_TIME;
                 convertRight = false;
                 return this;
             }
@@ -408,34 +419,8 @@ public class BinaryOperation extends Expression {
     }
 
     @Override
-    public int getType() {
-        return dataType;
-    }
-
-    @Override
-    public long getPrecision() {
-        switch (opType) {
-        case CONCAT:
-            return left.getPrecision() + right.getPrecision();
-        default:
-            return Math.max(left.getPrecision(), right.getPrecision());
-        }
-    }
-
-    @Override
-    public int getDisplaySize() {
-        switch (opType) {
-        case CONCAT:
-            return MathUtils.convertLongToInt((long) left.getDisplaySize() +
-                    (long) right.getDisplaySize());
-        default:
-            return Math.max(left.getDisplaySize(), right.getDisplaySize());
-        }
-    }
-
-    @Override
-    public int getScale() {
-        return Math.max(left.getScale(), right.getScale());
+    public TypeInfo getType() {
+        return type;
     }
 
     @Override

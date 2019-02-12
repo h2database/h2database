@@ -18,6 +18,8 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
 
     private final String[] enumerators, cleaned;
 
+    private TypeInfo type;
+
     /**
      * Returns enumerators for the two specified values for a binary operation.
      *
@@ -29,13 +31,13 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
      *         if both values do not have enumerators
      */
     public static ExtTypeInfoEnum getEnumeratorsForBinaryOperation(Value left, Value right) {
-        if (left.getType() == Value.ENUM) {
+        if (left.getValueType() == Value.ENUM) {
             return ((ValueEnum) left).getEnumerators();
-        } else if (right.getType() == Value.ENUM) {
+        } else if (right.getValueType() == Value.ENUM) {
             return ((ValueEnum) right).getEnumerators();
         } else {
             throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1,
-                    "type1=" + left.getType() + ", type2=" + right.getType());
+                    "type1=" + left.getValueType() + ", type2=" + right.getValueType());
         }
     }
 
@@ -92,9 +94,24 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
         this.cleaned = Arrays.equals(cleaned, enumerators) ? enumerators : cleaned;
     }
 
+    TypeInfo getType() {
+        TypeInfo type = this.type;
+        if (type == null) {
+            int p = 0;
+            for (String s : enumerators) {
+                int l = s.length();
+                if (l > p) {
+                    p = l;
+                }
+            }
+            this.type = type = new TypeInfo(Value.ENUM, p, 0, p, this);
+        }
+        return type;
+    }
+
     @Override
     public Value cast(Value value) {
-        switch (value.getType()) {
+        switch (value.getValueType()) {
         case Value.ENUM:
             if (value instanceof ValueEnum && ((ValueEnum) value).getEnumerators().equals(this)) {
                 return value;

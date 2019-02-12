@@ -18,7 +18,7 @@ import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.value.ExtTypeInfo;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
@@ -26,18 +26,16 @@ import org.h2.value.ValueNull;
 /**
  * Used for optimised IN(...) queries where the contents of the IN list are all
  * constant and of the same type.
- * <p>
- * Checking using a HashSet is has time complexity O(1), instead of O(n) for
- * checking using an array.
  */
 public class ConditionInConstantSet extends Condition {
 
     private Expression left;
     private final ArrayList<Expression> valueList;
+    // HashSet cannot be used here, because we need to compare values of
+    // different type or scale properly.
     private final TreeSet<Value> valueSet;
     private boolean hasNull;
-    private final int type;
-    private ExtTypeInfo extTypeInfo;
+    private final TypeInfo type;
 
     /**
      * Create a new IN(..) condition.
@@ -56,15 +54,8 @@ public class ConditionInConstantSet extends Condition {
         this.valueSet = new TreeSet<>(database.getCompareMode());
         type = left.getType();
         Mode mode = database.getMode();
-        if (type == Value.ENUM) {
-            extTypeInfo = ((ExpressionColumn) left).getColumn().getExtTypeInfo();
-            for (Expression expression : valueList) {
-                add(extTypeInfo.cast(expression.getValue(session)));
-            }
-        } else {
-            for (Expression expression : valueList) {
-                add(expression.getValue(session).convertTo(type, mode));
-            }
+        for (Expression expression : valueList) {
+            add(expression.getValue(session).convertTo(type, mode, null));
         }
     }
 
@@ -173,11 +164,7 @@ public class ConditionInConstantSet extends Condition {
         if (add != null) {
             if (add.isConstant()) {
                 valueList.add(add);
-                if (type == Value.ENUM) {
-                    add(add.getValue(session).convertToEnum(extTypeInfo));
-                } else {
-                    add(add.getValue(session).convertTo(type, session.getDatabase().getMode()));
-                }
+                add(add.getValue(session).convertTo(type, session.getDatabase().getMode(), null));
                 return this;
             }
         }

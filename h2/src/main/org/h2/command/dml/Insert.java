@@ -12,7 +12,6 @@ import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
-import org.h2.command.Prepared;
 import org.h2.engine.GeneratedKeys;
 import org.h2.engine.Mode;
 import org.h2.engine.Right;
@@ -35,7 +34,6 @@ import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.StatementBuilder;
-import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -43,11 +41,10 @@ import org.h2.value.ValueNull;
  * This class represents the statement
  * INSERT
  */
-public class Insert extends Prepared implements ResultTarget {
+public class Insert extends CommandWithValues implements ResultTarget {
 
     private Table table;
     private Column[] columns;
-    private final ArrayList<Expression[]> list = Utils.newSmallArrayList();
     private Query query;
     private boolean sortedInsertMode;
     private int rowNumber;
@@ -117,15 +114,6 @@ public class Insert extends Prepared implements ResultTarget {
         duplicateKeyAssignmentMap.put(column, expression);
     }
 
-    /**
-     * Add a row to this merge statement.
-     *
-     * @param expr the list of values
-     */
-    public void addRow(Expression[] expr) {
-        list.add(expr);
-    }
-
     @Override
     public int update() {
         Index index = null;
@@ -157,14 +145,14 @@ public class Insert extends Prepared implements ResultTarget {
         rowNumber = 0;
         GeneratedKeys generatedKeys = session.getGeneratedKeys();
         generatedKeys.initialize(table);
-        int listSize = list.size();
+        int listSize = valuesExpressionList.size();
         if (listSize > 0) {
             Mode mode = session.getDatabase().getMode();
             int columnLen = columns.length;
             for (int x = 0; x < listSize; x++) {
                 generatedKeys.nextRow();
                 Row newRow = table.getTemplateRow();
-                Expression[] expr = list.get(x);
+                Expression[] expr = valuesExpressionList.get(x);
                 setCurrentRowNumber(x + 1);
                 for (int i = 0; i < columnLen; i++) {
                     Column c = columns[i];
@@ -294,13 +282,13 @@ public class Insert extends Prepared implements ResultTarget {
         if (sortedInsertMode) {
             buff.append("SORTED ");
         }
-        if (!list.isEmpty()) {
+        if (!valuesExpressionList.isEmpty()) {
             buff.append("VALUES ");
             int row = 0;
-            if (list.size() > 1) {
+            if (valuesExpressionList.size() > 1) {
                 buff.append('\n');
             }
-            for (Expression[] expr : list) {
+            for (Expression[] expr : valuesExpressionList) {
                 if (row++ > 0) {
                     buff.append(",\n");
                 }
@@ -317,15 +305,15 @@ public class Insert extends Prepared implements ResultTarget {
     @Override
     public void prepare() {
         if (columns == null) {
-            if (!list.isEmpty() && list.get(0).length == 0) {
+            if (!valuesExpressionList.isEmpty() && valuesExpressionList.get(0).length == 0) {
                 // special case where table is used as a sequence
                 columns = new Column[0];
             } else {
                 columns = table.getColumns();
             }
         }
-        if (!list.isEmpty()) {
-            for (Expression[] expr : list) {
+        if (!valuesExpressionList.isEmpty()) {
+            for (Expression[] expr : valuesExpressionList) {
                 if (expr.length != columns.length) {
                     throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
                 }
@@ -400,7 +388,7 @@ public class Insert extends Prepared implements ResultTarget {
 
         ArrayList<String> variableNames = new ArrayList<>(
                 duplicateKeyAssignmentMap.size());
-        Expression[] row = (currentRow == null) ? list.get((int) getCurrentRowNumber() - 1)
+        Expression[] row = (currentRow == null) ? valuesExpressionList.get((int) getCurrentRowNumber() - 1)
                 : new Expression[columns.length];
         for (int i = 0; i < columns.length; i++) {
             String key = table.getSchema().getName() + "." +

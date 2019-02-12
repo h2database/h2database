@@ -1,15 +1,19 @@
 # Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
 # and the EPL 1.0 (http://h2database.com/html/license.html).
 # Initial Developer: H2 Group
+
 "SECTION","TOPIC","SYNTAX","TEXT","EXAMPLE"
+
 "Commands (DML)","SELECT","
 SELECT [ TOP term [ PERCENT ] [ WITH TIES ] ]
 [ DISTINCT [ ON ( expression [,...] ) ] | ALL ]
 selectExpression [,...]
-FROM tableExpression [,...] [ WHERE expression ]
+[ FROM tableExpression [,...] ]
+[ WHERE expression ]
 [ GROUP BY expression [,...] ] [ HAVING expression ]
 [ WINDOW { { windowName AS windowSpecification } [,...] } ]
-[ { UNION [ ALL ] | MINUS | EXCEPT | INTERSECT } select ]
+[ QUALIFY expression ]
+[ { UNION [ ALL ] | EXCEPT | MINUS | INTERSECT } select ]
 [ ORDER BY order [,...] ]
 [ LIMIT expression [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] ]
 [ [ OFFSET expression { ROW | ROWS } ]
@@ -18,30 +22,54 @@ FROM tableExpression [,...] [ WHERE expression ]
 [ FOR UPDATE ]
 ","
 Selects data from a table or multiple tables.
-GROUP BY groups the result by the given expression(s).
-HAVING filters rows after grouping.
-ORDER BY sorts the result by the given column(s) or expression(s).
-UNION combines the result of this query with the results of another query.
 
-Number of rows in output can be limited either with standard OFFSET / FETCH,
+Command is executed in the following logical order:
+
+1. Data is taken from table value expressions that are specified in the FROM clause, joins are executed.
+If FROM clause is not specified a single row is constructed.
+
+2. WHERE filters rows. Aggregate or window functions are not allowed in this clause.
+
+3. GROUP BY groups the result by the given expression(s).
+If GROUP BY clause is not specified, but non-window aggregate functions are used or HAVING is specified
+all rows are grouped together.
+
+4. Aggregate functions are evaluated, SAMPLE_SIZE limits the number of rows read.
+
+5. HAVING filters rows after grouping and evaluation of aggregate functions.
+Non-window aggregate functions are allowed in this clause.
+
+6. Window functions are evaluated.
+
+7. QUALIFY filters rows after evaluation of window functions.
+Aggregate and window functions are allowed in this clause.
+
+8. DISTINCT removes duplicates. If DISTINCT ON is used only the specified expressions are checked for duplicates.
+
+9. UNION, EXCEPT (MINUS), and INTERSECT combine the result of this query with the results of another query.
+Multiple set operators (UNION, INTERSECT, MINUS, EXCEPT) are evaluated from left to right.
+For compatibility with other databases and future versions of H2 please use parentheses.
+
+10. ORDER BY sorts the result by the given column(s) or expression(s).
+
+11. Number of rows in output can be limited either with standard OFFSET / FETCH,
 with non-standard LIMIT / OFFSET, or with non-standard TOP clauses.
 Different clauses cannot be used together.
+OFFSET specifies how many rows to skip.
+Please note that queries with high offset values can be slow.
 FETCH FIRST/NEXT, LIMIT or TOP limits the number of rows returned by the query (no limit if null or smaller than zero).
 If PERCENT is specified number of rows is specified as a percent of the total number of rows
 and should be an integer value between 0 and 100 inclusive.
 WITH TIES can be used only together with ORDER BY and means that all additional rows that have the same sorting position
 as the last row will be also returned.
-OFFSET specifies how many rows to skip.
-Please note that queries with high offset values can be slow.
-SAMPLE_SIZE limits the number of rows read for aggregate queries.
 
-Multiple set operators (UNION, INTERSECT, MINUS, EXCEPT) are evaluated
-from left to right. For compatibility with other databases and future versions
-of H2 please use parentheses.
+WINDOW clause specifies window definitions for window functions and window aggregate functions.
+This clause can be used to reuse the same definition in multiple functions.
 
 If FOR UPDATE is specified, the tables or rows are locked for writing.
 This clause is not allowed in DISTINCT queries and in queries with non-window aggregates, GROUP BY, or HAVING clauses.
-When using default MVStore engine only the selected rows are locked as in an UPDATE statement.
+When using default MVStore engine only the selected rows are locked as in an UPDATE statement;
+locking behavior for rows that were excluded from result using OFFSET / FETCH is undefined.
 With PageStore engine the whole tables are locked.
 ","
 SELECT * FROM TEST;
@@ -124,7 +152,7 @@ EXPLAIN SELECT * FROM TEST WHERE ID=1
 "Commands (DML)","MERGE","
 MERGE INTO tableName [ ( columnName [,...] ) ]
 [ KEY ( columnName [,...] ) ]
-{ VALUES { ( { DEFAULT | expression } [,...] ) } [,...] | select }
+{ insertValues | select }
 ","
 Updates existing rows, and insert rows that don't exist. If no key column is
 specified, the primary key columns are used to find the row. If more than one
@@ -238,17 +266,34 @@ Lists the schemas, tables, or the columns of a table.
 SHOW TABLES
 "
 
-"Commands (DML)","Explicit TABLE","
+"Commands (DML)","Explicit table","
 TABLE [schemaName.]tableName
+[ ORDER BY order [,...] ]
+[ OFFSET expression { ROW | ROWS } ]
+[ FETCH { FIRST | NEXT } [ expression [ PERCENT ] ] { ROW | ROWS }
+    { ONLY | WITH TIES } ]
 ","
 Selects data from a table.
 
 This command is an equivalent to SELECT * FROM tableName.
-
-FROM, WHERE, GROUP BY, HAVING, and WINDOW clauses from the SELECT command are not allowed.
+See SELECT command for description of ORDER BY, OFFSET, and FETCH.
 ","
 TABLE TEST;
 TABLE TEST ORDER BY ID FETCH FIRST ROW ONLY;
+"
+
+"Commands (DML)","Table value","
+VALUES rowValueExpression [,...]
+[ ORDER BY order [,...] ]
+[ OFFSET expression { ROW | ROWS } ]
+[ FETCH { FIRST | NEXT } [ expression [ PERCENT ] ] { ROW | ROWS }
+    { ONLY | WITH TIES } ]
+","
+A list of rows that can be used like a table.
+See SELECT command for description of ORDER BY, OFFSET, and FETCH.
+The column list of the resulting table is C1, C2, and so on.
+","
+VALUES (1, 'Hello'), (2, 'World');
 "
 
 "Commands (DML)","WITH","
@@ -354,11 +399,13 @@ ALTER TABLE [ IF EXISTS ] tableName ALTER COLUMN columnName
     | { RESTART WITH long }
     | { SELECTIVITY int }
     | { SET DEFAULT expression }
+    | { DROP DEFAULT }
     | { SET ON UPDATE expression }
-    | { SET NULL }
+    | { DROP ON UPDATE }
     | { SET NOT NULL }
-    | { SET { VISIBLE | INVISIBLE } }
-    | { DROP { DEFAULT | ON UPDATE } } }
+    | { DROP NOT NULL } | { SET NULL }
+    | { SET DATA TYPE dataType }
+    | { SET { VISIBLE | INVISIBLE } } }
 ","
 Changes the data type of a column, rename a column,
 change the identity value, or change the selectivity.
@@ -376,19 +423,20 @@ Selectivity 100 means values are unique, 10 means every distinct value appears 1
 
 SET DEFAULT changes the default value of a column.
 
+DROP DEFAULT removes the default value of a column.
+
 SET ON UPDATE changes the value that is set on update if value for this column is not specified in update statement.
 
-SET NULL sets a column to allow NULL. The row may not be part of a primary key.
-Single column indexes on this column are dropped.
+DROP ON UPDATE removes the value that is set on update of a column.
 
 SET NOT NULL sets a column to not allow NULL. Rows may not contains NULL in this column.
 
+DROP NOT NULL and SET NULL set a column to allow NULL. The row may not be part of a primary key.
+
+SET DATA TYPE changes the data type of a column.
+
 SET INVISIBLE makes the column hidden, i.e. it will not appear in SELECT * results.
 SET VISIBLE has the reverse effect.
-
-DROP DEFAULT removes the default value of a column.
-
-DROP ON UPDATE removes the value that is set on update of a column.
 
 This command commits an open transaction in this connection.
 ","
@@ -637,10 +685,12 @@ ON tableName ( indexColumn [,...] )
 Creates a new index.
 This command commits an open transaction in this connection.
 
-Hash indexes are meant for in-memory databases and memory tables (CREATE MEMORY TABLE).
+Hash indexes are meant for in-memory databases and memory tables (CREATE MEMORY TABLE) when PageStore engine is used.
 For other tables, or if the index contains multiple columns, the HASH keyword is ignored.
-Hash indexes can only test for equality, and do not support range queries (similar to a hash table).
+Hash indexes can only test for equality, do not support range queries (similar to a hash table), use more memory,
+but can perform lookups faster.
 Non-unique keys are supported.
+
 Spatial indexes are supported only on Geometry columns.
 ","
 CREATE INDEX IDXNAME ON TEST(NAME)
@@ -733,7 +783,7 @@ CREATE SEQUENCE SEQ_ID
 "Commands (DDL)","CREATE TABLE","
 CREATE [ CACHED | MEMORY ] [ TEMP | [ GLOBAL | LOCAL ] TEMPORARY ]
 TABLE [ IF NOT EXISTS ] name
-[ ( { columnName columnDefinition | constraint } [,...] ) ]
+[ ( { columnName [columnDefinition] | constraint } [,...] ) ]
 [ ENGINE tableEngineName ]
 [ WITH tableEngineParamName [,...] ]
 [ NOT PERSISTENT ] [ TRANSACTIONAL ]
@@ -763,7 +813,7 @@ in CREATE TABLE, then the engine specified by DEFAULT_TABLE_ENGINE option of dat
 Tables with the NOT PERSISTENT modifier are kept fully in memory, and all
 rows are lost when the database is closed.
 
-The column definition is optional if a query is specified.
+The column definitions are optional if a query is specified.
 In that case the column list of the query is used.
 If the query is specified its results are inserted into created table unless WITH NO DATA is specified.
 
@@ -1873,7 +1923,7 @@ yearField | monthField | dayOfMonthField
     | hourField | minuteField | secondField
     | millisecondField | microsecondField | nanosecondField
     | timezoneHourField | timezoneMinuteField
-    | dayOfWeekField | isoDayOfWeekField
+    | dayOfWeekField | isoWeekYearField | isoDayOfWeekField
     | weekOfYearField | isoWeekOfYearField
     | quarterField | dayOfYearField | epochField
 ","
@@ -1978,8 +2028,16 @@ Day of week (1-7). Sunday is 1.
 DAY_OF_WEEK
 "
 
+"Datetime fields","ISO week year field","
+ISO_YEAR | ISOYEAR
+","
+Returns the ISO week year from a date/time value.
+","
+ISO_YEAR
+"
+
 "Datetime fields","ISO day of week field","
-ISO_DAY_OF_WEEK
+ISO_DAY_OF_WEEK | ISODOW
 ","
 ISO day of week (1-7). Monday is 1.
 ","
@@ -2379,13 +2437,20 @@ NAME
 
 "Other Grammar","Insert columns and source","
 { [ ( columnName [,...] ) ]
-    { VALUES { ( { DEFAULT | expression } [,...] ) } [,...]
-        | [ DIRECT ] [ SORTED ] select } } |
-    { SET { columnName = { DEFAULT | expression } } [,...] }
+    { insertValues | [ DIRECT ] [ SORTED ] select | DEFAULT VALUES } }
+    | { SET { columnName = { DEFAULT | expression } } [,...] }
 ","
 Names of columns and their values for INSERT statement.
 ","
 (ID, NAME) VALUES (1, 'Test')
+"
+
+"Other Grammar","Insert values","
+VALUES { DEFAULT|expression | [ROW] ({DEFAULT|expression} [,...]) }, [,...]
+","
+Values for INSERT statement.
+","
+VALUES (1, 'Test')
 "
 
 "Other Grammar","Int","
@@ -2540,11 +2605,13 @@ COMPRESSION LZF
 "Other Grammar","Row value expression","
 ROW (expression, [,...])
     | ( [ expression, expression [,...] ] )
+    | expression
 ","
 A row value expression.
 ","
 ROW (1)
 (1, 2)
+1
 "
 
 "Other Grammar","Select Expression","
@@ -2612,13 +2679,12 @@ columns with the same name.
 TEST AS T LEFT JOIN TEST AS T1 ON T.ID = T1.ID
 "
 
-"Other Grammar","Values Expression","
-VALUES { ( expression [,...] ) } [,...]
+"Other Grammar","Within group specification","
+WITHIN GROUP (ORDER BY {expression [ASC|DESC]} [,...])
 ","
-A list of rows that can be used like a table.
-The column list of the resulting table is C1, C2, and so on.
+Group specification for ordered set functions.
 ","
-SELECT * FROM (VALUES(1, 'Hello'), (2, 'World')) AS V;
+WITHIN GROUP (ORDER BY ID DESC)
 "
 
 "Other Grammar","Wildcard expression","
@@ -2709,7 +2775,7 @@ ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE TIES
 UNBOUNDED PRECEDING|value PRECEDING|CURRENT ROW
 ","
 A window frame preceding clause.
-If value is specified it should be non-negative value or parameter.
+If value is specified it should not be negative.
 ","
 UNBOUNDED PRECEDING
 1 PRECEDING
@@ -2721,7 +2787,7 @@ UNBOUNDED PRECEDING|value PRECEDING|CURRENT ROW
     |value FOLLOWING|UNBOUNDED FOLLOWING
 ","
 A window frame bound clause.
-If value is specified it should be non-negative value or parameter.
+If value is specified it should not be negative.
 ","
 UNBOUNDED PRECEDING
 UNBOUNDED FOLLOWING
@@ -3532,19 +3598,23 @@ Aggregates are only allowed in select statements.
 COUNT(*)
 "
 
-"Functions (Aggregate)","GROUP_CONCAT","
-GROUP_CONCAT ( [ DISTINCT|ALL ] string
-[ ORDER BY { expression [ ASC | DESC ] } [,...] ]
-[ SEPARATOR expression ] )
+"Functions (Aggregate)","LISTAGG","
+{ LISTAGG ( [ DISTINCT|ALL ] string [, separatorString] [ ON OVERFLOW ERROR ] )
+    withinGroupSpecification }
+| { GROUP_CONCAT ( [ DISTINCT|ALL ] string
+    [ ORDER BY { expression [ ASC | DESC ] } [,...] ]
+    [ SEPARATOR separatorString ] ) }
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Concatenates strings with a separator.
+Separator must be the same for all rows in the same group.
 The default separator is a ',' (without space).
 This method returns a string.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
-GROUP_CONCAT(NAME ORDER BY ID SEPARATOR ', ')
+LISTAGG(NAME, ', ') WITHIN GROUP (ORDER BY ID)
+LISTAGG(ID, ', ') WITHIN GROUP (ORDER BY ID) OVER (ORDER BY ID)
 "
 
 "Functions (Aggregate)","ARRAY_AGG","
@@ -3555,9 +3625,14 @@ ARRAY_AGG ( [ DISTINCT|ALL ] string
 Aggregate the value into an array.
 This method returns an array.
 If no rows are selected, the result is NULL.
+If ORDER BY is not specified order of values is not determined.
+When this aggregate is used with OVER clause that contains ORDER BY subclause
+it does not enforce exact order of values.
+This aggregate needs additional own ORDER BY clause to make it deterministic.
 Aggregates are only allowed in select statements.
 ","
 ARRAY_AGG(NAME ORDER BY ID)
+ARRAY_AGG(ID ORDER BY ID) OVER (ORDER BY ID)
 "
 
 "Functions (Aggregate)","MAX","
@@ -3658,6 +3733,89 @@ Aggregates are only allowed in select statements.
 VAR_SAMP(X)
 "
 
+"Functions (Aggregate)","RANK aggregate","
+RANK(value [,...])
+withinGroupSpecification
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Returns the rank of the hypothetical row in specified collection of rows.
+The rank of a row is the number of rows that precede this row plus 1.
+If two or more rows have the same values in ORDER BY columns, these rows get the same rank from the first row with the same values.
+It means that gaps in ranks are possible.
+","
+SELECT RANK(5) WITHIN GROUP (ORDER BY V) FROM TEST;
+"
+
+"Functions (Aggregate)","DENSE_RANK aggregate","
+DENSE_RANK(value [,...])
+withinGroupSpecification
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Returns the dense rank of the hypothetical row in specified collection of rows.
+The rank of a row is the number of groups of rows with the same values in ORDER BY columns that precede group with this row plus 1.
+If two or more rows have the same values in ORDER BY columns, these rows get the same rank.
+Gaps in ranks are not possible.
+","
+SELECT DENSE_RANK(5) WITHIN GROUP (ORDER BY V) FROM TEST;
+"
+
+"Functions (Aggregate)","PERCENT_RANK aggregate","
+PERCENT_RANK(value [,...])
+withinGroupSpecification
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Returns the relative rank of the hypothetical row in specified collection of rows.
+The relative rank is calculated as (RANK - 1) / (NR - 1),
+where RANK is a rank of the row and NR is a total number of rows in the collection including hypothetical row.
+","
+SELECT PERCENT_RANK(5) WITHIN GROUP (ORDER BY V) FROM TEST;
+"
+
+"Functions (Aggregate)","CUME_DIST aggregate","
+CUME_DIST(value [,...])
+withinGroupSpecification
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Returns the relative rank of the hypothetical row in specified collection of rows.
+The relative rank is calculated as NP / NR
+where NP is a number of rows that precede the current row or have the same values in ORDER BY columns
+and NR is a total number of rows in the collection including hypothetical row.
+","
+SELECT CUME_DIST(5) WITHIN GROUP (ORDER BY V) FROM TEST;
+"
+
+"Functions (Aggregate)","PERCENTILE_CONT","
+PERCENTILE_CONT(numeric) WITHIN GROUP (ORDER BY value [ASC|DESC])
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Return percentile of values from the group with interpolation.
+Interpolation is only supported for numeric, date-time, and interval data types.
+Argument must be between 0 and 1 inclusive.
+Argument must be the same for all rows in the same group.
+If argument is NULL, the result is NULL.
+NULL values are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY V)
+"
+
+"Functions (Aggregate)","PERCENTILE_DISC","
+PERCENTILE_DISC(numeric) WITHIN GROUP (ORDER BY value [ASC|DESC])
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Return percentile of values from the group.
+Interpolation is not performed.
+Argument must be between 0 and 1 inclusive.
+Argument must be the same for all rows in the same group.
+If argument is NULL, the result is NULL.
+NULL values are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY V)
+"
+
 "Functions (Aggregate)","MEDIAN","
 MEDIAN( [ DISTINCT|ALL ] value )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
@@ -3674,7 +3832,7 @@ MEDIAN(X)
 
 "Functions (Aggregate)","MODE","
 { MODE( value ) [ ORDER BY expression [ ASC | DESC ] ] }
-    | { MODE() WITHIN GROUP(ORDER BY expression [ ASC | DESC ]) }
+    | { MODE() WITHIN GROUP (ORDER BY expression [ ASC | DESC ]) }
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Returns the value that occurs with the greatest frequency.
@@ -3690,7 +3848,7 @@ Aggregates are only allowed in select statements.
 ","
 MODE(X)
 MODE(X ORDER BY X)
-MODE() WITHIN GROUP(ORDER BY X)
+MODE() WITHIN GROUP (ORDER BY X)
 "
 
 "Functions (Aggregate)","ENVELOPE","
@@ -4842,6 +5000,34 @@ Returns NULL if the specified array is NULL.
 CALL ARRAY_CONTAINS(ARRAY['Hello', 'World'], 'Hello')
 "
 
+"Functions (System)","ARRAY_CAT","
+ARRAY_CAT(arrayExpression, arrayExpression)
+","
+Returns the concatenation of two arrays.
+Returns NULL if any parameter is NULL.
+","
+CALL ARRAY_CAT(ARRAY[1, 2], ARRAY[3, 4])
+"
+
+"Functions (System)","ARRAY_APPEND","
+ARRAY_APPEND(arrayExpression, value)
+","
+Append an element to the end of an array.
+Returns NULL if any parameter is NULL.
+","
+CALL ARRAY_APPEND(ARRAY[1, 2], 3)
+"
+
+"Functions (System)","ARRAY_SLICE","
+ARRAY_SLICE(arrayExpression, lowerBoundInt, upperBoundInt)
+","
+Returns elements from the array as specified by the lower and upper bound parameters.
+Both parameters are inclusive and the first element has index 1, i.e. ARRAY_SLICE(a, 2, 2) has only the second element.
+Returns NULL if any parameter is NULL or if an index is out of bounds.
+","
+CALL ARRAY_SLICE(ARRAY[1, 2, 3, 4], 1, 3)
+"
+
 "Functions (System)","AUTOCOMMIT","
 AUTOCOMMIT()
 ","
@@ -5513,6 +5699,20 @@ SELECT NTH_VALUE(X) IGNORE NULLS OVER (
     PARTITION BY CATEGORY ORDER BY ID
     RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
 ), * FROM TEST;
+"
+
+"Functions (Window)","RATIO_TO_REPORT","
+RATIO_TO_REPORT(value)
+OVER windowNameOrSpecification
+","
+Returns the ratio of a value to the sum of all values.
+If argument is NULL or sum of all values is 0, then the value of function is NULL.
+Window ordering and window frame clauses are not allowed for this function.
+
+Window functions are currently experimental in H2 and should be used with caution.
+They also may require a lot of memory for large queries.
+","
+SELECT X, RATIO_TO_REPORT(X) OVER (PARTITION BY CATEGORY), CATEGORY FROM TEST;
 "
 
 "System Tables","Information Schema","

@@ -40,8 +40,7 @@ public final class MergedResult {
         SimpleResult.Column[] cols = new SimpleResult.Column[count];
         for (int i = 0; i < count; i++) {
             SimpleResult.Column c = new SimpleResult.Column(result.getAlias(i), result.getColumnName(i),
-                    result.getColumnType(i), result.getColumnPrecision(i), result.getColumnScale(i),
-                    result.getDisplaySize(i));
+                    result.getColumnType(i));
             cols[i] = c;
             if (!columns.contains(c)) {
                 columns.add(c);

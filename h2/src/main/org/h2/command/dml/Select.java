@@ -44,6 +44,7 @@ import org.h2.table.IndexColumn;
 import org.h2.table.JoinBatch;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.table.TableFilter.TableFilterVisitor;
 import org.h2.table.TableType;
 import org.h2.table.TableView;
 import org.h2.util.ColumnNamer;
@@ -51,8 +52,8 @@ import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueRow;
 
 /**
  * This class represents a simple SELECT statement.
@@ -77,8 +78,25 @@ public class Select extends Query {
     private final ArrayList<TableFilter> filters = Utils.newSmallArrayList();
     private final ArrayList<TableFilter> topFilters = Utils.newSmallArrayList();
 
-    private Expression having;
+    /**
+     * Parent select for selects in table filters.
+     */
+    private Select parentSelect;
+
+    /**
+     * WHERE condition.
+     */
     private Expression condition;
+
+    /**
+     * HAVING condition.
+     */
+    private Expression having;
+
+    /**
+     * QUALIFY condition.
+     */
+    private Expression qualify;
 
     /**
      * The visible columns (the ones required in the result).
@@ -112,6 +130,8 @@ public class Select extends Query {
 
     private int havingIndex;
 
+    private int qualifyIndex;
+
     private int[] groupByCopies;
 
     /**
@@ -131,8 +151,9 @@ public class Select extends Query {
 
     private HashMap<String, Window> windows;
 
-    public Select(Session session) {
+    public Select(Session session, Select parentSelect) {
         super(session);
+        this.parentSelect = parentSelect;
     }
 
     @Override
@@ -413,7 +434,7 @@ public class Select extends Query {
         initGroupData(columnCount);
         try {
             gatherGroup(columnCount, DataAnalysisOperation.STAGE_WINDOW);
-            processGroupResult(columnCount, result, offset, quickOffset);
+            processGroupResult(columnCount, result, offset, quickOffset, false);
         } finally {
             groupData.reset();
         }
@@ -433,7 +454,7 @@ public class Select extends Query {
                     }
                 }
                 groupData.done();
-                processGroupResult(columnCount, result, offset, quickOffset);
+                processGroupResult(columnCount, result, offset, quickOffset, /* Having was performed earlier */ false);
             } finally {
                 isGroupWindowStage2 = false;
             }
@@ -446,7 +467,7 @@ public class Select extends Query {
         initGroupData(columnCount);
         try {
             gatherGroup(columnCount, DataAnalysisOperation.STAGE_GROUP);
-            processGroupResult(columnCount, result, offset, quickOffset);
+            processGroupResult(columnCount, result, offset, quickOffset, true);
         } finally {
             groupData.reset();
         }
@@ -454,11 +475,24 @@ public class Select extends Query {
 
     private void initGroupData(int columnCount) {
         if (groupData == null) {
-            groupData = SelectGroups.getInstance(session, expressions, isGroupQuery, groupIndex);
+            setGroupData(SelectGroups.getInstance(session, expressions, isGroupQuery, groupIndex));
         } else {
             updateAgg(columnCount, DataAnalysisOperation.STAGE_RESET);
         }
         groupData.reset();
+    }
+
+    void setGroupData(final SelectGroups groupData) {
+        this.groupData = groupData;
+        topTableFilter.visit(new TableFilterVisitor() {
+            @Override
+            public void accept(TableFilter f) {
+                Select s = f.getSelect();
+                if (s != null) {
+                    s.groupData = groupData;
+                }
+            }
+        });
     }
 
     private void gatherGroup(int columnCount, int stage) {
@@ -498,8 +532,9 @@ public class Select extends Query {
         }
     }
 
-    private void processGroupResult(int columnCount, LocalResult result, long offset, boolean quickOffset) {
-        for (ValueArray currentGroupsKey; (currentGroupsKey = groupData.next()) != null;) {
+    private void processGroupResult(int columnCount, LocalResult result, long offset, boolean quickOffset,
+            boolean withHaving) {
+        for (ValueRow currentGroupsKey; (currentGroupsKey = groupData.next()) != null;) {
             Value[] keyValues = currentGroupsKey.getList();
             Value[] row = new Value[columnCount];
             for (int j = 0; groupIndex != null && j < groupIndex.length; j++) {
@@ -519,7 +554,10 @@ public class Select extends Query {
                 Expression expr = expressions.get(j);
                 row[j] = expr.getValue(session);
             }
-            if (isHavingNullOrFalse(row)) {
+            if (withHaving && isHavingNullOrFalse(row)) {
+                continue;
+            }
+            if (qualifyIndex >= 0 && !row[qualifyIndex].getBoolean()) {
                 continue;
             }
             if (quickOffset && offset > 0) {
@@ -774,7 +812,7 @@ public class Select extends Query {
         }
         boolean fetchPercent = this.fetchPercent;
         if (fetchPercent) {
-            // Need to check it row, because negative limit has special treatment later
+            // Need to check it now, because negative limit has special treatment later
             if (limitRows < 0 || limitRows > 100) {
                 throw DbException.getInvalidValueException("FETCH PERCENT", limitRows);
             }
@@ -803,7 +841,7 @@ public class Select extends Query {
         }
         // Do not add rows before OFFSET to result if possible
         boolean quickOffset = !fetchPercent;
-        if (sort != null && (!sortUsingIndex || isAnyDistinct() || withTies)) {
+        if (sort != null && (!sortUsingIndex || isAnyDistinct())) {
             result = createLocalResult(result);
             result.setSortOrder(sort);
             if (!sortUsingIndex) {
@@ -886,7 +924,9 @@ public class Select extends Query {
         if (limitRows >= 0) {
             result.setLimit(limitRows);
             result.setFetchPercent(fetchPercent);
-            result.setWithTies(withTies);
+            if (withTies) {
+                result.setWithTies(sort);
+            }
         }
         if (result != null) {
             result.done();
@@ -1061,6 +1101,13 @@ public class Select extends Query {
         } else {
             havingIndex = -1;
         }
+        if (qualify != null) {
+            expressions.add(qualify);
+            qualifyIndex = expressions.size() - 1;
+            qualify = null;
+        } else {
+            qualifyIndex = -1;
+        }
 
         if (withTies && !hasOrder()) {
             throw DbException.get(ErrorCode.WITH_TIES_WITHOUT_ORDER_BY);
@@ -1128,12 +1175,17 @@ public class Select extends Query {
         for (TableFilter f : filters) {
             mapColumns(f, 0);
         }
-        if (havingIndex >= 0) {
-            Expression expr = expressions.get(havingIndex);
+        mapCondition(havingIndex);
+        mapCondition(qualifyIndex);
+        checkInit = true;
+    }
+
+    private void mapCondition(int index) {
+        if (index >= 0) {
+            Expression expr = expressions.get(index);
             SelectListColumnResolver res = new SelectListColumnResolver(this);
             expr.mapColumns(res, 0, Expression.MAP_INITIAL);
         }
-        checkInit = true;
     }
 
     private int mergeGroupByExpressions(Database db, int index, ArrayList<String> expressionSQL, boolean scanPrevious)
@@ -1219,14 +1271,9 @@ public class Select extends Query {
                 }
             }
         }
-        if (isGroupQuery && groupIndex == null &&
-                havingIndex < 0 && filters.size() == 1) {
-            if (condition == null) {
-                Table t = filters.get(0).getTable();
-                ExpressionVisitor optimizable = ExpressionVisitor.
-                        getOptimizableVisitor(t);
-                isQuickAggregateQuery = isEverything(optimizable);
-            }
+        if (isGroupQuery && groupIndex == null && havingIndex < 0 && qualifyIndex < 0 && condition == null
+                && filters.size() == 1) {
+            isQuickAggregateQuery = isEverything(ExpressionVisitor.getOptimizableVisitor(filters.get(0).getTable()));
         }
         cost = preparePlan(session.isParsingCreateView());
         if (distinct && session.getDatabase().getSettings().optimizeDistinct &&
@@ -1502,18 +1549,8 @@ public class Select extends Query {
                 g.getUnenclosedSQL(buff.builder());
             }
         }
-        if (having != null) {
-            // could be set in addGlobalCondition
-            // in this case the query is not run directly, just getPlanSQL is
-            // called
-            Expression h = having;
-            buff.append("\nHAVING ");
-            h.getUnenclosedSQL(buff.builder());
-        } else if (havingIndex >= 0) {
-            Expression h = exprList[havingIndex];
-            buff.append("\nHAVING ");
-            h.getUnenclosedSQL(buff.builder());
-        }
+        getFilterSQL(buff, "\nHAVING ", exprList, having, havingIndex);
+        getFilterSQL(buff, "\nQUALIFY ", exprList, qualify, qualifyIndex);
         if (sort != null) {
             buff.append("\nORDER BY ").append(
                     sort.getSQL(exprList, visibleColumnCount));
@@ -1552,12 +1589,31 @@ public class Select extends Query {
         return buff.toString();
     }
 
+    private static void getFilterSQL(StatementBuilder buff, String sql, Expression[] exprList, Expression condition,
+            int conditionIndex) {
+        if (condition != null) {
+            buff.append(sql);
+            condition.getUnenclosedSQL(buff.builder());
+        } else if (conditionIndex >= 0) {
+            buff.append(sql);
+            exprList[conditionIndex].getUnenclosedSQL(buff.builder());
+        }
+    }
+
     public void setHaving(Expression having) {
         this.having = having;
     }
 
     public Expression getHaving() {
         return having;
+    }
+
+    public void setQualify(Expression qualify) {
+        this.qualify = qualify;
+    }
+
+    public Expression getQualify() {
+        return qualify;
     }
 
     @Override
@@ -1694,6 +1750,9 @@ public class Select extends Query {
         if (having != null) {
             having.updateAggregate(s, stage);
         }
+        if (qualify != null) {
+            qualify.updateAggregate(s, stage);
+        }
     }
 
     @Override
@@ -1743,6 +1802,9 @@ public class Select extends Query {
             return false;
         }
         if (having != null && !having.isEverything(v2)) {
+            return false;
+        }
+        if (qualify != null && !qualify.isEverything(v2)) {
             return false;
         }
         return true;
@@ -1846,7 +1908,8 @@ public class Select extends Query {
         LazyResultGroupSorted(Expression[] expressions, int columnCount) {
             super(expressions, columnCount);
             if (groupData == null) {
-                groupData = SelectGroups.getInstance(getSession(), Select.this.expressions, isGroupQuery, groupIndex);
+                setGroupData(SelectGroups.getInstance(getSession(), Select.this.expressions, isGroupQuery,
+                        groupIndex));
             } else {
                 // TODO is this branch possible?
                 updateAgg(columnCount, DataAnalysisOperation.STAGE_RESET);
@@ -1899,4 +1962,14 @@ public class Select extends Query {
             return row;
         }
     }
+
+    /**
+     * Returns parent select, or null.
+     *
+     * @return parent select, or null
+     */
+    public Select getParentSelect() {
+        return parentSelect;
+    }
+
 }

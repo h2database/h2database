@@ -70,6 +70,9 @@ public class DataType {
      */
     private static final ArrayList<DataType> TYPES = new ArrayList<>(96);
     private static final HashMap<String, DataType> TYPES_BY_NAME = new HashMap<>(128);
+    /**
+     * Mapping from Value type numbers to DataType.
+     */
     static final DataType[] TYPES_BY_VALUE_TYPE = new DataType[Value.TYPE_COUNT];
 
     /**

@@ -18,7 +18,13 @@ import org.h2.util.StringUtils;
  * client-server communication.
  */
 public class ValueEnumBase extends Value {
+    /**
+     * Default precision.
+     */
     static final int PRECISION = 10;
+    /**
+     * Default display size.
+     */
     static final int DISPLAY_SIZE = 11;
 
     private final String label;

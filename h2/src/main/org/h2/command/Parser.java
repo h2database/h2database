@@ -3637,7 +3637,7 @@ public class Parser {
     }
 
     private WindowFunction readWindowFunction(String name) {
-        if (!database.getSettings().databaseToUpper) {
+        if (!identifiersToUpper) {
             // if not yet converted to uppercase, do it now
             name = StringUtils.toUpperEnglish(name);
         }

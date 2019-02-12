@@ -70,9 +70,8 @@ public class TableSynonym extends SchemaObjectBase {
     public String getCreateSQL() {
         StringBuilder builder = new StringBuilder("CREATE SYNONYM ");
         getSQL(builder).append(" FOR ");
-        Parser.quoteIdentifier(data.synonymForSchema.getName());
-        builder.append('.');
-        Parser.quoteIdentifier(data.synonymFor);
+        Parser.quoteIdentifier(builder, data.synonymForSchema.getName()).append('.');
+        Parser.quoteIdentifier(builder, data.synonymFor);
         return builder.toString();
     }
 

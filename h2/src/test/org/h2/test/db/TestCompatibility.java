@@ -117,6 +117,13 @@ public class TestCompatibility extends TestDb {
         assertEquals(1000000000000000000000e10, rs.getDouble(2));
         assertEquals(0xfafbL, rs.getLong(3));
         assertFalse(rs.next());
+
+        stat.execute("create table \"t 1\" (a int, b int)");
+        stat.execute("create view v as select * from \"t 1\"");
+        stat.executeQuery("select * from v").close();
+        stat.execute("drop view v");
+        stat.execute("drop table \"t 1\"");
+
         c.close();
     }
 

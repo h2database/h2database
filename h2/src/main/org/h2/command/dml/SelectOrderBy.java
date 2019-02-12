@@ -30,16 +30,14 @@ public class SelectOrderBy {
      */
     public int sortType;
 
-    public String getSQL() {
-        StringBuilder buff = new StringBuilder();
+    public void getSQL(StringBuilder builder) {
         if (expression != null) {
-            buff.append('=');
-            expression.getSQL(buff);
+            builder.append('=');
+            expression.getSQL(builder);
         } else {
-            columnIndexExpr.getSQL(buff);
+            columnIndexExpr.getUnenclosedSQL(builder);
         }
-        SortOrder.typeToString(buff, sortType);
-        return buff.toString();
+        SortOrder.typeToString(builder, sortType);
     }
 
 }

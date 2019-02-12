@@ -490,7 +490,8 @@ public class Column {
             buff.append(" NULL_TO_DEFAULT");
         }
         if (sequence != null) {
-            buff.append(" SEQUENCE ").append(sequence.getSQL());
+            buff.append(" SEQUENCE ");
+            sequence.getSQL(buff);
         }
         if (selectivity != 0) {
             buff.append(" SELECTIVITY ").append(selectivity);

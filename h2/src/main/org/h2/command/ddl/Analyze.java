@@ -113,7 +113,8 @@ public class Analyze extends DefineCommand {
                 buff.append("SELECTIVITY(").append(col.getSQL()).append(')');
             }
         }
-        buff.append(" FROM ").append(table.getSQL());
+        buff.append(" FROM ");
+        table.getSQL(buff.builder());
         if (sample > 0) {
             buff.append(" FETCH FIRST ROW ONLY SAMPLE_SIZE ? ");
         }

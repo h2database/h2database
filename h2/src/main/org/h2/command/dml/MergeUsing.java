@@ -390,7 +390,7 @@ public class MergeUsing extends Prepared {
     @Override
     public String getPlanSQL() {
         StringBuilder builder = new StringBuilder("MERGE INTO ");
-        builder.append(targetTable.getSQL()).append('\n').append("USING ").append(query.getPlanSQL());
+        targetTable.getSQL(builder).append('\n').append("USING ").append(query.getPlanSQL());
         // TODO add aliases and WHEN clauses to make plan SQL more like original SQL
         return builder.toString();
     }

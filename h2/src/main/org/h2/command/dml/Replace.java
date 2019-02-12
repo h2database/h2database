@@ -196,7 +196,7 @@ public class Replace extends CommandWithValues {
     @Override
     public String getPlanSQL() {
         StatementBuilder buff = new StatementBuilder("REPLACE INTO ");
-        buff.append(table.getSQL()).append('(');
+        table.getSQL(buff.builder()).append('(');
         for (Column c : columns) {
             buff.appendExceptFirst(", ");
             buff.append(c.getSQL());
@@ -270,7 +270,7 @@ public class Replace extends CommandWithValues {
             }
         }
         StatementBuilder buff = new StatementBuilder("UPDATE ");
-        buff.append(table.getSQL()).append(" SET ");
+        table.getSQL(buff.builder()).append(" SET ");
         for (Column c : columns) {
             buff.appendExceptFirst(", ");
             buff.append(c.getSQL()).append("=?");

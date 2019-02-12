@@ -50,7 +50,7 @@ public class ConstraintCheck extends Constraint {
     @Override
     public String getCreateSQLForCopy(Table forTable, String quotedName) {
         StringBuilder buff = new StringBuilder("ALTER TABLE ");
-        buff.append(forTable.getSQL()).append(" ADD CONSTRAINT ");
+        forTable.getSQL(buff).append(" ADD CONSTRAINT ");
         if (forTable.isHidden()) {
             buff.append("IF NOT EXISTS ");
         }
@@ -143,9 +143,8 @@ public class ConstraintCheck extends Constraint {
             // don't check at startup
             return;
         }
-        StringBuilder builder = new StringBuilder().append("SELECT 1 FROM ")
-                .append(filter.getTable().getSQL())
-                .append(" WHERE NOT(");
+        StringBuilder builder = new StringBuilder().append("SELECT 1 FROM ");
+        filter.getTable().getSQL(builder).append(" WHERE NOT(");
         expr.getSQL(builder).append(')');
         String sql = builder.toString();
         ResultInterface r = session.prepare(sql).query(1);

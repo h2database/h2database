@@ -335,7 +335,8 @@ public class TriggerObject extends SchemaObjectBase {
             buff.append(" AFTER ");
         }
         buff.append(getTypeNameList());
-        buff.append(" ON ").append(targetTable.getSQL());
+        buff.append(" ON ");
+        targetTable.getSQL(buff);
         if (rowBased) {
             buff.append(" FOR EACH ROW");
         }

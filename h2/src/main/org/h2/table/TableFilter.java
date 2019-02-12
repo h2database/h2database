@@ -791,10 +791,10 @@ public class TableFilter implements ColumnResolver {
             return builder;
         }
         if (table.isView() && ((TableView) table).isRecursive()) {
-            builder.append(table.getSchema().getSQL()).append('.');
+            table.getSchema().getSQL(builder).append('.');
             Parser.quoteIdentifier(builder, table.getName());
         } else {
-            builder.append(table.getSQL());
+            table.getSQL(builder);
         }
         if (table.isView() && ((TableView) table).isInvalid()) {
             throw DbException.get(ErrorCode.VIEW_IS_INVALID_2, table.getName(), "not compiled");

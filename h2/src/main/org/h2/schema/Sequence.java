@@ -211,7 +211,8 @@ public class Sequence extends SchemaObjectBase {
         if (getBelongsToTable()) {
             return null;
         }
-        return "DROP SEQUENCE IF EXISTS " + getSQL();
+        StringBuilder builder = new StringBuilder("DROP SEQUENCE IF EXISTS ");
+        return getSQL(builder).toString();
     }
 
     @Override
@@ -223,7 +224,7 @@ public class Sequence extends SchemaObjectBase {
     public synchronized String getCreateSQL() {
         long v = writeWithMargin ? valueWithMargin : value;
         StringBuilder buff = new StringBuilder("CREATE SEQUENCE ");
-        buff.append(getSQL()).append(" START WITH ").append(v);
+        getSQL(buff).append(" START WITH ").append(v);
         if (increment != 1) {
             buff.append(" INCREMENT BY ").append(increment);
         }

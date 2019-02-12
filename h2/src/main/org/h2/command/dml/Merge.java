@@ -207,7 +207,7 @@ public class Merge extends CommandWithValues {
     @Override
     public String getPlanSQL() {
         StatementBuilder buff = new StatementBuilder("MERGE INTO ");
-        buff.append(targetTable.getSQL()).append('(');
+        targetTable.getSQL(buff.builder()).append('(');
         for (Column c : columns) {
             buff.appendExceptFirst(", ");
             buff.append(c.getSQL());
@@ -276,7 +276,7 @@ public class Merge extends CommandWithValues {
             keys = idx.getColumns();
         }
         StatementBuilder buff = new StatementBuilder("UPDATE ");
-        buff.append(targetTable.getSQL()).append(" SET ");
+        targetTable.getSQL(buff.builder()).append(" SET ");
         for (Column c : columns) {
             buff.appendExceptFirst(", ");
             buff.append(c.getSQL()).append("=?");

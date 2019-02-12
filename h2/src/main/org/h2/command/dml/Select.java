@@ -1474,8 +1474,8 @@ public class Select extends Query {
                     // since using a with statement will re-create the common table expression
                     // views.
                 } else {
-                    buff.append("WITH RECURSIVE ")
-                            .append(t.getSchema().getSQL()).append('.');
+                    buff.append("WITH RECURSIVE ");
+                    t.getSchema().getSQL(buff.builder()).append('.');
                     Parser.quoteIdentifier(buff.builder(), t.getName())
                             .append('(');
                     buff.resetCount();
@@ -1483,7 +1483,8 @@ public class Select extends Query {
                         buff.appendExceptFirst(",");
                         buff.append(c.getName());
                     }
-                    buff.append(") AS ").append(t.getSQL()).append('\n');
+                    buff.append(") AS ");
+                    t.getSQL(buff.builder()).append('\n');
                 }
             }
         }

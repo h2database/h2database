@@ -270,7 +270,7 @@ public class Insert extends CommandWithValues implements ResultTarget {
     @Override
     public String getPlanSQL() {
         StatementBuilder buff = new StatementBuilder("INSERT INTO ");
-        buff.append(table.getSQL()).append('(');
+        table.getSQL(buff.builder()).append('(');
         for (Column c : columns) {
             buff.appendExceptFirst(", ");
             buff.append(c.getSQL());
@@ -405,7 +405,7 @@ public class Insert extends CommandWithValues implements ResultTarget {
         }
 
         StatementBuilder buff = new StatementBuilder("UPDATE ");
-        buff.append(table.getSQL()).append(" SET ");
+        table.getSQL(buff.builder()).append(" SET ");
         for (Column column : duplicateKeyAssignmentMap.keySet()) {
             buff.appendExceptFirst(", ");
             Expression ex = duplicateKeyAssignmentMap.get(column);

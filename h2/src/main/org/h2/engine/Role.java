@@ -45,7 +45,7 @@ public class Role extends RightOwner {
         if (ifNotExists) {
             buff.append("IF NOT EXISTS ");
         }
-        buff.append(getSQL());
+        getSQL(buff);
         return buff.toString();
     }
 

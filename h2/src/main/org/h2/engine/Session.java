@@ -393,8 +393,10 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             localTempTables = database.newStringMap();
         }
         if (localTempTables.get(table.getName()) != null) {
-            throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1,
-                    table.getSQL()+" AS "+table.getName());
+            StringBuilder builder = new StringBuilder();
+            table.getSQL(builder).append(" AS ");
+            Parser.quoteIdentifier(table.getName());
+            throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, builder.toString());
         }
         modificationId++;
         localTempTables.put(table.getName(), table);

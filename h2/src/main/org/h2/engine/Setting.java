@@ -50,7 +50,7 @@ public class Setting extends DbObjectBase {
     @Override
     public String getCreateSQL() {
         StringBuilder buff = new StringBuilder("SET ");
-        buff.append(getSQL()).append(' ');
+        getSQL(buff).append(' ');
         if (stringValue != null) {
             buff.append(stringValue);
         } else {

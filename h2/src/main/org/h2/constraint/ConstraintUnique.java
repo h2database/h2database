@@ -46,7 +46,7 @@ public class ConstraintUnique extends Constraint {
     private String getCreateSQLForCopy(Table forTable, String quotedName,
             boolean internalIndex) {
         StatementBuilder buff = new StatementBuilder("ALTER TABLE ");
-        buff.append(forTable.getSQL()).append(" ADD CONSTRAINT ");
+        forTable.getSQL(buff.builder()).append(" ADD CONSTRAINT ");
         if (forTable.isHidden()) {
             buff.append("IF NOT EXISTS ");
         }
@@ -62,7 +62,8 @@ public class ConstraintUnique extends Constraint {
         }
         buff.append(')');
         if (internalIndex && indexOwner && forTable == this.table) {
-            buff.append(" INDEX ").append(index.getSQL());
+            buff.append(" INDEX ");
+            index.getSQL(buff.builder());
         }
         return buff.toString();
     }

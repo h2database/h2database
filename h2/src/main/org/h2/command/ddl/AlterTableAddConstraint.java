@@ -208,8 +208,9 @@ public class AlterTableAddConstraint extends SchemaCommand {
             }
             session.getUser().checkRight(refTable, Right.ALL);
             if (!refTable.canReference()) {
-                throw DbException.getUnsupportedException("Reference " +
-                        refTable.getSQL());
+                StringBuilder builder = new StringBuilder("Reference ");
+                refTable.getSQL(builder);
+                throw DbException.getUnsupportedException(builder.toString());
             }
             boolean isOwner = false;
             IndexColumn.mapColumns(indexColumns, table);

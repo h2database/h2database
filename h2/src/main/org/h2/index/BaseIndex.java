@@ -93,12 +93,15 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * @return the exception
      */
     protected DbException getDuplicateKeyException(String key) {
-        String sql = getName() + " ON " + table.getSQL() +
-                "(" + getColumnListSQL() + ")";
+        StringBuilder builder = new StringBuilder();
+        getSQL(builder).append(" ON ");
+        table.getSQL(builder).append('(');
+        builder.append(getColumnListSQL());
+        builder.append(')');
         if (key != null) {
-            sql += " VALUES " + key;
+            builder.append(" VALUES ").append(key);
         }
-        DbException e = DbException.get(ErrorCode.DUPLICATE_KEY_1, sql);
+        DbException e = DbException.get(ErrorCode.DUPLICATE_KEY_1, builder.toString());
         e.setSource(this);
         return e;
     }
@@ -426,7 +429,8 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
             buff.append("IF NOT EXISTS ");
         }
         buff.append(quotedName);
-        buff.append(" ON ").append(targetTable.getSQL());
+        buff.append(" ON ");
+        targetTable.getSQL(buff);
         if (comment != null) {
             buff.append(" COMMENT ");
             StringUtils.quoteStringSQL(buff, comment);

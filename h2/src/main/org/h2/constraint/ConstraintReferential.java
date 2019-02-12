@@ -80,8 +80,7 @@ public class ConstraintReferential extends Constraint {
     public String getCreateSQLForCopy(Table forTable, Table forRefTable,
             String quotedName, boolean internalIndex) {
         StatementBuilder buff = new StatementBuilder("ALTER TABLE ");
-        String mainTable = forTable.getSQL();
-        buff.append(mainTable).append(" ADD CONSTRAINT ");
+        forTable.getSQL(buff.builder()).append(" ADD CONSTRAINT ");
         if (forTable.isHidden()) {
             buff.append("IF NOT EXISTS ");
         }
@@ -99,17 +98,17 @@ public class ConstraintReferential extends Constraint {
         }
         buff.append(')');
         if (internalIndex && indexOwner && forTable == this.table) {
-            buff.append(" INDEX ").append(index.getSQL());
+            buff.append(" INDEX ");
+            index.getSQL(buff.builder());
         }
         buff.append(" REFERENCES ");
-        String quotedRefTable;
         if (this.table == this.refTable) {
             // self-referencing constraints: need to use new table
-            quotedRefTable = forTable.getSQL();
+            forTable.getSQL(buff.builder());
         } else {
-            quotedRefTable = forRefTable.getSQL();
+            forRefTable.getSQL(buff.builder());
         }
-        buff.append(quotedRefTable).append('(');
+        buff.append('(');
         buff.resetCount();
         for (IndexColumn r : refCols) {
             buff.appendExceptFirst(", ");
@@ -117,7 +116,8 @@ public class ConstraintReferential extends Constraint {
         }
         buff.append(')');
         if (internalIndex && refIndexOwner && forTable == this.table) {
-            buff.append(" INDEX ").append(refIndex.getSQL());
+            buff.append(" INDEX ");
+            refIndex.getSQL(buff.builder());
         }
         if (deleteAction != ConstraintActionType.RESTRICT) {
             buff.append(" ON DELETE ").append(deleteAction.getSqlName());
@@ -139,12 +139,14 @@ public class ConstraintReferential extends Constraint {
      */
     private String getShortDescription(Index searchIndex, SearchRow check) {
         StatementBuilder buff = new StatementBuilder(getName());
-        buff.append(": ").append(table.getSQL()).append(" FOREIGN KEY(");
+        buff.append(": ");
+        table.getSQL(buff.builder()).append(" FOREIGN KEY(");
         for (IndexColumn c : columns) {
             buff.appendExceptFirst(", ");
             buff.append(c.getSQL());
         }
-        buff.append(") REFERENCES ").append(refTable.getSQL()).append('(');
+        buff.append(") REFERENCES ");
+        refTable.getSQL(buff.builder()).append('(');
         buff.resetCount();
         for (IndexColumn r : refColumns) {
             buff.appendExceptFirst(", ");
@@ -491,7 +493,8 @@ public class ConstraintReferential extends Constraint {
         }
         StatementBuilder buff = new StatementBuilder();
         if (deleteAction == ConstraintActionType.CASCADE) {
-            buff.append("DELETE FROM ").append(table.getSQL());
+            buff.append("DELETE FROM ");
+            table.getSQL(buff.builder());
         } else {
             appendUpdate(buff);
         }
@@ -567,7 +570,8 @@ public class ConstraintReferential extends Constraint {
     }
 
     private void appendUpdate(StatementBuilder buff) {
-        buff.append("UPDATE ").append(table.getSQL()).append(" SET ");
+        buff.append("UPDATE ");
+        table.getSQL(buff.builder()).append(" SET ");
         buff.resetCount();
         for (IndexColumn c : columns) {
             buff.appendExceptFirst(", ");
@@ -622,7 +626,8 @@ public class ConstraintReferential extends Constraint {
             buff.appendExceptFirst(", ");
             buff.append(c.getSQL());
         }
-        buff.append(" FROM ").append(table.getSQL()).append(" WHERE ");
+        buff.append(" FROM ");
+        table.getSQL(buff.builder()).append(" WHERE ");
         buff.resetCount();
         for (IndexColumn c : columns) {
             buff.appendExceptFirst(" AND ");
@@ -634,8 +639,8 @@ public class ConstraintReferential extends Constraint {
             buff.appendExceptFirst(", ");
             buff.append(c.getSQL());
         }
-        buff.append(") C WHERE NOT EXISTS(SELECT 1 FROM ").
-            append(refTable.getSQL()).append(" P WHERE ");
+        buff.append(") C WHERE NOT EXISTS(SELECT 1 FROM ");
+        refTable.getSQL(buff.builder()).append(" P WHERE ");
         buff.resetCount();
         int i = 0;
         for (IndexColumn c : columns) {

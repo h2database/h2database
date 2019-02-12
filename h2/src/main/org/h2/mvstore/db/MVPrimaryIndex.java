@@ -70,7 +70,7 @@ public class MVPrimaryIndex extends BaseIndex {
 
     @Override
     public String getPlanSQL() {
-        return table.getSQL() + ".tableScan";
+        return table.getSQL(new StringBuilder()).append(".tableScan").toString();
     }
 
     public void setMainIndexColumn(int mainIndexColumn) {
@@ -116,16 +116,18 @@ public class MVPrimaryIndex extends BaseIndex {
         try {
             Value oldValue = map.putIfAbsent(key, ValueArray.get(row.getValueList()));
             if (oldValue != null) {
-                String sql = "PRIMARY KEY ON " + table.getSQL();
+                StringBuilder builder = new StringBuilder("PRIMARY KEY ON ");
+                table.getSQL(builder);
                 if (mainIndexColumn >= 0 && mainIndexColumn < indexColumns.length) {
-                    sql += "(" + indexColumns[mainIndexColumn].getSQL() + ")";
+                    builder.append('(').append(indexColumns[mainIndexColumn].getSQL()).append(')');
                 }
                 int errorCode = ErrorCode.CONCURRENT_UPDATE_1;
                 if (map.get(key) != null) {
                     // committed
                     errorCode = ErrorCode.DUPLICATE_KEY_1;
                 }
-                DbException e = DbException.get(errorCode, sql + " " + oldValue);
+                builder.append(' ').append(oldValue);
+                DbException e = DbException.get(errorCode, builder.toString());
                 e.setSource(this);
                 throw e;
             }
@@ -154,8 +156,9 @@ public class MVPrimaryIndex extends BaseIndex {
         try {
             Value old = map.remove(ValueLong.get(row.getKey()));
             if (old == null) {
-                throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1,
-                        getSQL() + ": " + row.getKey());
+                StringBuilder builder = new StringBuilder();
+                getSQL(builder).append(": ").append(row.getKey());
+                throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, builder.toString());
             }
         } catch (IllegalStateException e) {
             throw mvTable.convertException(e);
@@ -194,8 +197,9 @@ public class MVPrimaryIndex extends BaseIndex {
         try {
             Value existing = map.put(ValueLong.get(key), ValueArray.get(newRow.getValueList()));
             if (existing == null) {
-                throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1,
-                        getSQL() + ": " + key);
+                StringBuilder builder = new StringBuilder();
+                getSQL(builder).append(": ").append(key);
+                throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, builder.toString());
             }
         } catch (IllegalStateException e) {
             throw mvTable.convertException(e);
@@ -286,7 +290,7 @@ public class MVPrimaryIndex extends BaseIndex {
         return getRow(session, key, (ValueArray) v);
     }
 
-    private Row getRow(Session session, long key, ValueArray array) {
+    private static Row getRow(Session session, long key, ValueArray array) {
         Row row = session.createRow(array.getList(), 0);
         row.setKey(key);
         return row;

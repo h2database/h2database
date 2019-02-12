@@ -291,10 +291,10 @@ public class ScriptCommand extends ScriptBase {
                 }
                 if (TableType.TABLE == tableType) {
                     if (table.canGetRowCount()) {
-                        String rowcount = "-- " +
-                                table.getRowCountApproximation() +
-                                " +/- SELECT COUNT(*) FROM " + table.getSQL();
-                        add(rowcount, false);
+                        StringBuilder builder = new StringBuilder("-- ").append(table.getRowCountApproximation())
+                                .append(" +/- SELECT COUNT(*) FROM ");
+                        table.getSQL(builder);
+                        add(builder.toString(), false);
                     }
                     if (data) {
                         count = generateInsertValues(count, table);
@@ -389,7 +389,7 @@ public class ScriptCommand extends ScriptBase {
         Cursor cursor = index.find(session, null, null);
         Column[] columns = table.getColumns();
         StatementBuilder buff = new StatementBuilder("INSERT INTO ");
-        buff.append(table.getSQL()).append('(');
+        table.getSQL(buff.builder()).append('(');
         for (Column col : columns) {
             buff.appendExceptFirst(", ");
             Parser.quoteIdentifier(buff.builder(), col.getName());

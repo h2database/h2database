@@ -17,6 +17,9 @@ import org.h2.util.Utils;
  */
 public abstract class CommandWithValues extends Prepared {
 
+    /**
+     * Expression data for the VALUES clause.
+     */
     protected final ArrayList<Expression[]> valuesExpressionList = Utils.newSmallArrayList();
 
     /**

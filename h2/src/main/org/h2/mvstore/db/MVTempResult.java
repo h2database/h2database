@@ -222,6 +222,9 @@ public abstract class MVTempResult implements ResultExternal {
         tempFileDeleter.deleteFile(fileRef, closeable);
     }
 
+    /**
+     * If any value in the rows is a ValueEnum, apply custom type conversion.
+     */
     final void fixEnum(Value[] row) {
         for (int i = 0, l = expressions.length; i < l; i++) {
             TypeInfo type = expressions[i].getType();

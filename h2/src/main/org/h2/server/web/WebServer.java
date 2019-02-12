@@ -866,6 +866,9 @@ public class WebServer implements Service {
         adminPassword = total;
     }
 
+    /**
+     * true if admin password not configure, or admin password correct.
+     */
     boolean checkAdminPassword(String password) {
         if (adminPassword == null) {
             return false;

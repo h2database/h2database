@@ -31,6 +31,9 @@ public class ValueBytes extends Value {
      */
     protected byte[] value;
 
+    /**
+     * Associated TypeInfo.
+     */
     protected TypeInfo type;
 
     /**

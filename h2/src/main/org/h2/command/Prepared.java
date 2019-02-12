@@ -18,7 +18,6 @@ import org.h2.message.Trace;
 import org.h2.result.ResultInterface;
 import org.h2.table.TableView;
 import org.h2.util.MathUtils;
-import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 
 /**
@@ -404,14 +403,17 @@ public abstract class Prepared {
      * @return the SQL snippet
      */
     protected static String getSQL(Value[] values) {
-        StatementBuilder buff = new StatementBuilder();
-        for (Value v : values) {
-            buff.appendExceptFirst(", ");
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0, l = values.length; i < l; i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            Value v = values[i];
             if (v != null) {
-                v.getSQL(buff.builder());
+                v.getSQL(builder);
             }
         }
-        return buff.toString();
+        return builder.toString();
     }
 
     /**

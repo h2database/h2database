@@ -1493,7 +1493,7 @@ public class Select extends Query {
         }
         for (int i = 0; i < visibleColumnCount; i++) {
             if (i > 0) {
-                builder.append(", ");
+                builder.append(',');
             }
             builder.append('\n');
             StringUtils.indent(builder, exprList[i].getSQL(), 4, false);

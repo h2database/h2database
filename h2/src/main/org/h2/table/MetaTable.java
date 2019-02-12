@@ -1914,17 +1914,18 @@ public class MetaTable extends Table {
             }
             String[] path = session.getSchemaSearchPath();
             if (path != null && path.length > 0) {
-                StatementBuilder buff = new StatementBuilder(
-                        "SET SCHEMA_SEARCH_PATH ");
-                for (String p : path) {
-                    buff.appendExceptFirst(", ");
-                    StringUtils.quoteIdentifier(buff.builder(), p);
+                StringBuilder builder = new StringBuilder("SET SCHEMA_SEARCH_PATH ");
+                for (int i = 0, l = path.length; i < l; i++) {
+                    if (i > 0) {
+                        builder.append(", ");
+                    }
+                    StringUtils.quoteIdentifier(builder, path[i]);
                 }
                 add(rows,
                         // KEY
                         "SCHEMA_SEARCH_PATH",
                         // SQL
-                        buff.toString()
+                        builder.toString()
                 );
             }
             String schema = session.getCurrentSchemaName();

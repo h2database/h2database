@@ -33,7 +33,6 @@ import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -401,22 +400,26 @@ public class Insert extends CommandWithValues implements ResultTarget {
             session.setVariable(key, value);
         }
 
-        StatementBuilder buff = new StatementBuilder("UPDATE ");
-        table.getSQL(buff.builder()).append(" SET ");
+        StringBuilder builder = new StringBuilder("UPDATE ");
+        table.getSQL(builder).append(" SET ");
+        boolean f = false;
         for (Column column : duplicateKeyAssignmentMap.keySet()) {
-            buff.appendExceptFirst(", ");
+            if (f) {
+                builder.append(", ");
+            }
+            f = true;
             Expression ex = duplicateKeyAssignmentMap.get(column);
-            column.getSQL(buff.builder()).append('=');
-            ex.getSQL(buff.builder());
+            column.getSQL(builder).append('=');
+            ex.getSQL(builder);
         }
-        buff.append(" WHERE ");
+        builder.append(" WHERE ");
         Index foundIndex = (Index) de.getSource();
         if (foundIndex == null) {
             throw DbException.getUnsupportedException(
                     "Unable to apply ON DUPLICATE KEY UPDATE, no index found!");
         }
-        prepareUpdateCondition(foundIndex, row).getSQL(buff.builder());
-        String sql = buff.toString();
+        prepareUpdateCondition(foundIndex, row).getSQL(builder);
+        String sql = builder.toString();
         Update command = (Update) session.prepare(sql);
         command.setUpdateToCurrentValuesReturnsZero(true);
         for (Parameter param : command.getParameters()) {

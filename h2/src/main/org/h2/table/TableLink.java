@@ -28,7 +28,6 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.RowList;
 import org.h2.schema.Schema;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
@@ -499,20 +498,21 @@ public class TableLink extends Table {
                         prep = conn.getConnection().prepareStatement(sql);
                     }
                     if (trace.isDebugEnabled()) {
-                        StatementBuilder buff = new StatementBuilder();
-                        buff.append(getName()).append(":\n").append(sql);
+                        StringBuilder builder = new StringBuilder(getName()).append(":\n").append(sql);
                         if (params != null && !params.isEmpty()) {
-                            buff.append(" {");
-                            int i = 1;
-                            for (Value v : params) {
-                                buff.appendExceptFirst(", ");
-                                buff.append(i++).append(": ");
-                                v.getSQL(buff.builder());
+                            builder.append(" {");
+                            for (int i = 0, l = params.size(); i < l;) {
+                                Value v = params.get(i);
+                                if (i > 0) {
+                                    builder.append(", ");
+                                }
+                                builder.append(++i).append(": ");
+                                v.getSQL(builder);
                             }
-                            buff.append('}');
+                            builder.append('}');
                         }
-                        buff.append(';');
-                        trace.debug(buff.toString());
+                        builder.append(';');
+                        trace.debug(builder.toString());
                     }
                     if (params != null) {
                         for (int i = 0, size = params.size(); i < size; i++) {

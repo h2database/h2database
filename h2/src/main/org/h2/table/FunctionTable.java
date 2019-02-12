@@ -231,6 +231,11 @@ public class FunctionTable extends Table {
     }
 
     @Override
+    public StringBuilder getSQL(StringBuilder builder) {
+        return builder.append(function.getSQL());
+    }
+
+    @Override
     public long getRowCountApproximation() {
         return rowCount;
     }

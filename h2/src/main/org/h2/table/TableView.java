@@ -456,12 +456,12 @@ public class TableView extends Table {
     }
 
     @Override
-    public String getSQL() {
+    public StringBuilder getSQL(StringBuilder builder) {
         if (isTemporary() && querySQL != null) {
-            StringBuilder builder = new StringBuilder(querySQL.length() + 16).append("(\n");
-            return StringUtils.indent(builder, querySQL, 4, true).append(')').toString();
+            builder.append("(\n");
+            return StringUtils.indent(builder, querySQL, 4, true).append(')');
         }
-        return super.getSQL();
+        return super.getSQL(builder);
     }
 
     public String getQuery() {

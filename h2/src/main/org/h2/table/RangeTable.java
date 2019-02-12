@@ -71,8 +71,7 @@ public class RangeTable extends Table {
     }
 
     @Override
-    public String getSQL() {
-        StringBuilder builder = new StringBuilder();
+    public StringBuilder getSQL(StringBuilder builder) {
         builder.append(NAME).append('(');
         min.getSQL(builder).append(", ");
         max.getSQL(builder);
@@ -80,7 +79,7 @@ public class RangeTable extends Table {
             builder.append(", ");
             step.getSQL(builder);
         }
-        return builder.append(')').toString();
+        return builder.append(')');
     }
 
     @Override

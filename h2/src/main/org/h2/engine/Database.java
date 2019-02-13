@@ -82,7 +82,7 @@ import org.h2.util.TempFileDeleter;
 import org.h2.util.Utils;
 import org.h2.value.CaseInsensitiveMap;
 import org.h2.value.CompareMode;
-import org.h2.value.NullableKeyConcurrentMap;
+import org.h2.value.CaseInsensitiveConcurrentMap;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 
@@ -3041,9 +3041,7 @@ public class Database implements DataHandler {
      * @return the hash map
      */
     public <V> HashMap<String, V> newStringMap() {
-        return dbSettings.databaseToUpper ?
-                new HashMap<String, V>() :
-                new CaseInsensitiveMap<V>();
+        return dbSettings.databaseToUpper ? new HashMap<String, V>() : new CaseInsensitiveMap<V>();
     }
 
     /**
@@ -3054,7 +3052,7 @@ public class Database implements DataHandler {
      * @return the hash map
      */
     public <V> ConcurrentHashMap<String, V> newConcurrentStringMap() {
-        return new NullableKeyConcurrentMap<>(!dbSettings.databaseToUpper);
+        return dbSettings.databaseToUpper ? new ConcurrentHashMap<String, V>() : new CaseInsensitiveConcurrentMap<V>();
     }
 
     /**

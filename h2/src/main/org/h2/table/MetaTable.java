@@ -830,6 +830,9 @@ public class MetaTable extends Table {
             final ArrayList<Table> tablesToList;
             if (indexFrom != null && indexFrom.equals(indexTo)) {
                 String tableName = identifier(indexFrom.getString());
+                if (tableName == null) {
+                    break;
+                }
                 tablesToList = getTablesByName(session, tableName);
             } else {
                 tablesToList = getAllTables(session);
@@ -947,6 +950,9 @@ public class MetaTable extends Table {
             final ArrayList<Table> tablesToList;
             if (indexFrom != null && indexFrom.equals(indexTo)) {
                 String tableName = identifier(indexFrom.getString());
+                if (tableName == null) {
+                    break;
+                }
                 tablesToList = getTablesByName(session, tableName);
             } else {
                 tablesToList = getAllTables(session);

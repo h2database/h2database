@@ -16,7 +16,6 @@ import org.h2.command.Prepared;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.command.dml.Query;
-import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
@@ -547,7 +546,7 @@ public class TableView extends Table {
      */
     public static TableView createTempView(Session session, User owner,
             String name, Query query, Query topQuery) {
-        Schema mainSchema = session.getDatabase().getSchema(Constants.SCHEMA_MAIN);
+        Schema mainSchema = session.getDatabase().getMainSchema();
         String querySQL = query.getPlanSQL();
         TableView v = new TableView(mainSchema, 0, name,
                 querySQL, query.getParameters(), null /* column templates */, session,

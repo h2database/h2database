@@ -71,7 +71,7 @@ public class TestCompatibility extends TestDb {
     }
 
     private void testCaseSensitiveIdentifiers() throws SQLException {
-        Connection c = getConnection("compatibility;DATABASE_TO_UPPER=FALSE");
+        Connection c = getConnection("compatibility;DATABASE_TO_UPPER=FALSE;CASE_INSENSITIVE_IDENTIFIERS=TRUE");
         Statement stat = c.createStatement();
         stat.execute("create table test(id int primary key, name varchar) " +
                 "as select 1, 'hello'");

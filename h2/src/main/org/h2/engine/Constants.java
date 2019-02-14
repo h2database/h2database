@@ -402,6 +402,16 @@ public class Constants {
     public static final int SALT_LEN = 8;
 
     /**
+     * The identity of INFORMATION_SCHEMA.
+     */
+    public static final int META_SCHEMA_ID = -1;
+
+    /**
+     * The identity of PUBLIC schema.
+     */
+    public static final int MAIN_SCHEMA_ID = 0;
+
+    /**
      * The name of the default schema.
      */
     public static final String SCHEMA_MAIN = "PUBLIC";

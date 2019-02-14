@@ -139,7 +139,7 @@ public class MetaTable extends Table {
         String indexColumnName = null;
         switch (type) {
         case TABLES:
-            setObjectName("TABLES");
+            setMetaTableName("TABLES");
             cols = createColumns(
                     "TABLE_CATALOG",
                     "TABLE_SCHEMA",
@@ -158,7 +158,7 @@ public class MetaTable extends Table {
             indexColumnName = "TABLE_NAME";
             break;
         case COLUMNS:
-            setObjectName("COLUMNS");
+            setMetaTableName("COLUMNS");
             cols = createColumns(
                     "TABLE_CATALOG",
                     "TABLE_SCHEMA",
@@ -197,7 +197,7 @@ public class MetaTable extends Table {
             indexColumnName = "TABLE_NAME";
             break;
         case INDEXES:
-            setObjectName("INDEXES");
+            setMetaTableName("INDEXES");
             cols = createColumns(
                     "TABLE_CATALOG",
                     "TABLE_SCHEMA",
@@ -225,11 +225,11 @@ public class MetaTable extends Table {
             indexColumnName = "TABLE_NAME";
             break;
         case TABLE_TYPES:
-            setObjectName("TABLE_TYPES");
+            setMetaTableName("TABLE_TYPES");
             cols = createColumns("TYPE");
             break;
         case TYPE_INFO:
-            setObjectName("TYPE_INFO");
+            setMetaTableName("TYPE_INFO");
             cols = createColumns(
                 "TYPE_NAME",
                 "DATA_TYPE INT",
@@ -248,15 +248,15 @@ public class MetaTable extends Table {
             );
             break;
         case CATALOGS:
-            setObjectName("CATALOGS");
+            setMetaTableName("CATALOGS");
             cols = createColumns("CATALOG_NAME");
             break;
         case SETTINGS:
-            setObjectName("SETTINGS");
+            setMetaTableName("SETTINGS");
             cols = createColumns("NAME", "VALUE");
             break;
         case HELP:
-            setObjectName("HELP");
+            setMetaTableName("HELP");
             cols = createColumns(
                     "ID INT",
                     "SECTION",
@@ -266,7 +266,7 @@ public class MetaTable extends Table {
             );
             break;
         case SEQUENCES:
-            setObjectName("SEQUENCES");
+            setMetaTableName("SEQUENCES");
             cols = createColumns(
                     "SEQUENCE_CATALOG",
                     "SEQUENCE_SCHEMA",
@@ -283,7 +283,7 @@ public class MetaTable extends Table {
             );
             break;
         case USERS:
-            setObjectName("USERS");
+            setMetaTableName("USERS");
             cols = createColumns(
                     "NAME",
                     "ADMIN",
@@ -292,7 +292,7 @@ public class MetaTable extends Table {
             );
             break;
         case ROLES:
-            setObjectName("ROLES");
+            setMetaTableName("ROLES");
             cols = createColumns(
                     "NAME",
                     "REMARKS",
@@ -300,7 +300,7 @@ public class MetaTable extends Table {
             );
             break;
         case RIGHTS:
-            setObjectName("RIGHTS");
+            setMetaTableName("RIGHTS");
             cols = createColumns(
                     "GRANTEE",
                     "GRANTEETYPE",
@@ -313,7 +313,7 @@ public class MetaTable extends Table {
             indexColumnName = "TABLE_NAME";
             break;
         case FUNCTION_ALIASES:
-            setObjectName("FUNCTION_ALIASES");
+            setMetaTableName("FUNCTION_ALIASES");
             cols = createColumns(
                     "ALIAS_CATALOG",
                     "ALIAS_SCHEMA",
@@ -330,7 +330,7 @@ public class MetaTable extends Table {
             );
             break;
         case FUNCTION_COLUMNS:
-            setObjectName("FUNCTION_COLUMNS");
+            setMetaTableName("FUNCTION_COLUMNS");
             cols = createColumns(
                     "ALIAS_CATALOG",
                     "ALIAS_SCHEMA",
@@ -352,7 +352,7 @@ public class MetaTable extends Table {
             );
             break;
         case SCHEMATA:
-            setObjectName("SCHEMATA");
+            setMetaTableName("SCHEMATA");
             cols = createColumns(
                     "CATALOG_NAME",
                     "SCHEMA_NAME",
@@ -365,7 +365,7 @@ public class MetaTable extends Table {
             );
             break;
         case TABLE_PRIVILEGES:
-            setObjectName("TABLE_PRIVILEGES");
+            setMetaTableName("TABLE_PRIVILEGES");
             cols = createColumns(
                     "GRANTOR",
                     "GRANTEE",
@@ -378,7 +378,7 @@ public class MetaTable extends Table {
             indexColumnName = "TABLE_NAME";
             break;
         case COLUMN_PRIVILEGES:
-            setObjectName("COLUMN_PRIVILEGES");
+            setMetaTableName("COLUMN_PRIVILEGES");
             cols = createColumns(
                     "GRANTOR",
                     "GRANTEE",
@@ -392,14 +392,14 @@ public class MetaTable extends Table {
             indexColumnName = "TABLE_NAME";
             break;
         case COLLATIONS:
-            setObjectName("COLLATIONS");
+            setMetaTableName("COLLATIONS");
             cols = createColumns(
                     "NAME",
                     "KEY"
             );
             break;
         case VIEWS:
-            setObjectName("VIEWS");
+            setMetaTableName("VIEWS");
             cols = createColumns(
                     "TABLE_CATALOG",
                     "TABLE_SCHEMA",
@@ -414,14 +414,14 @@ public class MetaTable extends Table {
             indexColumnName = "TABLE_NAME";
             break;
         case IN_DOUBT:
-            setObjectName("IN_DOUBT");
+            setMetaTableName("IN_DOUBT");
             cols = createColumns(
                     "TRANSACTION",
                     "STATE"
             );
             break;
         case CROSS_REFERENCES:
-            setObjectName("CROSS_REFERENCES");
+            setMetaTableName("CROSS_REFERENCES");
             cols = createColumns(
                     "PKTABLE_CATALOG",
                     "PKTABLE_SCHEMA",
@@ -441,7 +441,7 @@ public class MetaTable extends Table {
             indexColumnName = "PKTABLE_NAME";
             break;
         case CONSTRAINTS:
-            setObjectName("CONSTRAINTS");
+            setMetaTableName("CONSTRAINTS");
             cols = createColumns(
                     "CONSTRAINT_CATALOG",
                     "CONSTRAINT_SCHEMA",
@@ -460,7 +460,7 @@ public class MetaTable extends Table {
             indexColumnName = "TABLE_NAME";
             break;
         case CONSTANTS:
-            setObjectName("CONSTANTS");
+            setMetaTableName("CONSTANTS");
             cols = createColumns(
                     "CONSTANT_CATALOG",
                     "CONSTANT_SCHEMA",
@@ -472,7 +472,7 @@ public class MetaTable extends Table {
             );
             break;
         case DOMAINS:
-            setObjectName("DOMAINS");
+            setMetaTableName("DOMAINS");
             cols = createColumns(
                     "DOMAIN_CATALOG",
                     "DOMAIN_SCHEMA",
@@ -491,7 +491,7 @@ public class MetaTable extends Table {
             );
             break;
         case TRIGGERS:
-            setObjectName("TRIGGERS");
+            setMetaTableName("TRIGGERS");
             cols = createColumns(
                     "TRIGGER_CATALOG",
                     "TRIGGER_SCHEMA",
@@ -510,7 +510,7 @@ public class MetaTable extends Table {
             );
             break;
         case SESSIONS: {
-            setObjectName("SESSIONS");
+            setMetaTableName("SESSIONS");
             cols = createColumns(
                     "ID INT",
                     "USER_NAME",
@@ -524,7 +524,7 @@ public class MetaTable extends Table {
             break;
         }
         case LOCKS: {
-            setObjectName("LOCKS");
+            setMetaTableName("LOCKS");
             cols = createColumns(
                     "TABLE_SCHEMA",
                     "TABLE_NAME",
@@ -534,7 +534,7 @@ public class MetaTable extends Table {
             break;
         }
         case SESSION_STATE: {
-            setObjectName("SESSION_STATE");
+            setMetaTableName("SESSION_STATE");
             cols = createColumns(
                     "KEY",
                     "SQL"
@@ -542,7 +542,7 @@ public class MetaTable extends Table {
             break;
         }
         case QUERY_STATISTICS: {
-            setObjectName("QUERY_STATISTICS");
+            setMetaTableName("QUERY_STATISTICS");
             cols = createColumns(
                     "SQL_STATEMENT",
                     "EXECUTION_COUNT INT",
@@ -560,7 +560,7 @@ public class MetaTable extends Table {
             break;
         }
         case SYNONYMS: {
-            setObjectName("SYNONYMS");
+            setMetaTableName("SYNONYMS");
             cols = createColumns(
                     "SYNONYM_CATALOG",
                     "SYNONYM_SCHEMA",
@@ -576,7 +576,7 @@ public class MetaTable extends Table {
             break;
         }
         case TABLE_CONSTRAINTS: {
-            setObjectName("TABLE_CONSTRAINTS");
+            setMetaTableName("TABLE_CONSTRAINTS");
             cols = createColumns(
                     "CONSTRAINT_CATALOG",
                     "CONSTRAINT_SCHEMA",
@@ -592,7 +592,7 @@ public class MetaTable extends Table {
             break;
         }
         case KEY_COLUMN_USAGE: {
-            setObjectName("KEY_COLUMN_USAGE");
+            setMetaTableName("KEY_COLUMN_USAGE");
             cols = createColumns(
                     "CONSTRAINT_CATALOG",
                     "CONSTRAINT_SCHEMA",
@@ -608,7 +608,7 @@ public class MetaTable extends Table {
             break;
         }
         case REFERENTIAL_CONSTRAINTS: {
-            setObjectName("REFERENTIAL_CONSTRAINTS");
+            setMetaTableName("REFERENTIAL_CONSTRAINTS");
             cols = createColumns(
                     "CONSTRAINT_CATALOG",
                     "CONSTRAINT_SCHEMA",
@@ -631,11 +631,15 @@ public class MetaTable extends Table {
             indexColumn = -1;
             metaIndex = null;
         } else {
-            indexColumn = getColumn(indexColumnName).getColumnId();
+            indexColumn = getColumn(database.sysIdentifier(indexColumnName)).getColumnId();
             IndexColumn[] indexCols = IndexColumn.wrap(
                     new Column[] { cols[indexColumn] });
             metaIndex = new MetaIndex(this, indexCols, false);
         }
+    }
+
+    private void setMetaTableName(String upperName) {
+        setObjectName(database.sysIdentifier(upperName));
     }
 
     private Column[] createColumns(String... names) {
@@ -653,7 +657,7 @@ public class MetaTable extends Table {
                 dataType = DataType.getTypeByName(nameType.substring(idx + 1), database.getMode()).type;
                 name = nameType.substring(0, idx);
             }
-            cols[i] = new Column(name, dataType);
+            cols[i] = new Column(database.sysIdentifier(name), dataType);
         }
         return cols;
     }
@@ -886,7 +890,7 @@ public class MetaTable extends Table {
                             // DOMAIN_CATALOG
                             domain != null ? catalog : null,
                             // DOMAIN_SCHEMA
-                            domain != null ? Constants.SCHEMA_MAIN : null,
+                            domain != null ? database.getMainSchema().getName() : null,
                             // DOMAIN_NAME
                             domain != null ? domain.getName() : null,
                             // COLUMN_DEFAULT
@@ -1381,7 +1385,7 @@ public class MetaTable extends Table {
                         // ALIAS_CATALOG
                         catalog,
                         // ALIAS_SCHEMA
-                        Constants.SCHEMA_MAIN,
+                        database.getMainSchema().getName(),
                         // ALIAS_NAME
                         identifier(agg.getName()),
                         // JAVA_CLASS
@@ -1524,7 +1528,7 @@ public class MetaTable extends Table {
                         // DEFAULT_COLLATION_NAME
                         collation,
                         // IS_DEFAULT
-                        ValueBoolean.get(Constants.SCHEMA_MAIN.equals(schema.getName())),
+                        ValueBoolean.get(schema.getId() == Constants.MAIN_SCHEMA_ID),
                         // REMARKS
                         replaceNullWithEmpty(schema.getComment()),
                         // ID
@@ -1786,7 +1790,7 @@ public class MetaTable extends Table {
                         // DOMAIN_CATALOG
                         catalog,
                         // DOMAIN_SCHEMA
-                        Constants.SCHEMA_MAIN,
+                        database.getMainSchema().getName(),
                         // DOMAIN_NAME
                         identifier(dt.getName()),
                         // COLUMN_DEFAULT

@@ -176,7 +176,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         this.user = user;
         this.id = id;
         this.lockTimeout = database.getLockTimeout();
-        this.currentSchemaName = Constants.SCHEMA_MAIN;
+        this.currentSchemaName = database.getMainSchema().getName();
         this.columnNamerConfiguration = ColumnNamerConfiguration.getDefault();
     }
 

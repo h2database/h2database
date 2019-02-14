@@ -609,6 +609,11 @@ public class Parser {
 
     private final Database database;
     private final Session session;
+
+    /**
+     * @see org.h2.engine.DbSettings#databaseToLower
+     */
+    private final boolean identifiersToLower;
     /**
      * @see org.h2.engine.DbSettings#databaseToUpper
      */
@@ -645,6 +650,7 @@ public class Parser {
 
     public Parser(Session session) {
         this.database = session.getDatabase();
+        this.identifiersToLower = database.getSettings().databaseToLower;
         this.identifiersToUpper = database.getSettings().databaseToUpper;
         this.session = session;
     }
@@ -1375,9 +1381,12 @@ public class Parser {
     private Prepared parseHelp() {
         Select select = new Select(session, null);
         select.setWildcard();
-        Table table = database.getSchema("INFORMATION_SCHEMA").resolveTableOrView(session, "HELP");
+        String informationSchema = database.sysIdentifier("INFORMATION_SCHEMA");
+        Table table = database.getSchema(informationSchema)
+                .resolveTableOrView(session, database.sysIdentifier("HELP"));
         Function function = Function.getFunction(database, "UPPER");
-        function.setParameter(0, new ExpressionColumn(database, "INFORMATION_SCHEMA", "HELP", "TOPIC"));
+        function.setParameter(0, new ExpressionColumn(database, informationSchema,
+                database.sysIdentifier("HELP"), database.sysIdentifier("TOPIC")));
         function.doneWithParameters();
         TableFilter filter = new TableFilter(session, table, null, rightsChecked, select, 0, null);
         select.addTableFilter(filter, true);
@@ -1419,7 +1428,7 @@ public class Parser {
             buff.append("'UTF8' AS SERVER_ENCODING FROM DUAL");
         } else if (readIf("TABLES")) {
             // for MySQL compatibility
-            String schema = Constants.SCHEMA_MAIN;
+            String schema = database.getMainSchema().getName();
             if (readIf(FROM)) {
                 schema = readUniqueIdentifier();
             }
@@ -1825,7 +1834,7 @@ public class Parser {
             table = parseValuesTable(0).getTable();
         } else if (readIf(TABLE)) {
             read(OPEN_PAREN);
-            table = readTableFunction("TABLE", null, database.getSchema(Constants.SCHEMA_MAIN));
+            table = readTableFunction("TABLE", null, database.getMainSchema());
         } else {
             String tableName = readIdentifierWithSchema(null);
             Schema schema;
@@ -1850,7 +1859,7 @@ public class Parser {
                 foundLeftBracket = false;
             }
             if (foundLeftBracket) {
-                Schema mainSchema = database.getSchema(Constants.SCHEMA_MAIN);
+                Schema mainSchema = database.getMainSchema();
                 if (equalsToken(tableName, RangeTable.NAME)
                         || equalsToken(tableName, RangeTable.ALIAS)) {
                     Expression min = readExpression();
@@ -2812,7 +2821,7 @@ public class Parser {
     }
 
     private Table getDualTable(boolean noColumns) {
-        Schema main = database.findSchema(Constants.SCHEMA_MAIN);
+        Schema main = database.getMainSchema();
         Expression one = ValueExpression.get(ValueLong.get(1));
         return new RangeTable(main, one, one, noColumns);
     }
@@ -4098,8 +4107,7 @@ public class Parser {
                 read(DOT);
             }
             if (readIf("REGCLASS")) {
-                FunctionAlias f = findFunctionAlias(Constants.SCHEMA_MAIN,
-                        "PG_GET_OID");
+                FunctionAlias f = findFunctionAlias(database.getMainSchema().getName(), "PG_GET_OID");
                 if (f == null) {
                     throw getSyntaxError();
                 }
@@ -5050,6 +5058,10 @@ public class Parser {
                     }
                     type = CHAR_NAME;
                 } else if (c >= 'A' && c <= 'Z') {
+                    if (identifiersToLower) {
+                        command[i] = (char) (c + ('a' - 'A'));
+                        changed = true;
+                    }
                     type = CHAR_NAME;
                 } else if (c >= '0' && c <= '9') {
                     type = CHAR_VALUE;
@@ -5058,8 +5070,8 @@ public class Parser {
                         // whitespace
                     } else if (Character.isJavaIdentifierPart(c)) {
                         type = CHAR_NAME;
-                        if (identifiersToUpper) {
-                            char u = Character.toUpperCase(c);
+                        if (identifiersToUpper || identifiersToLower) {
+                            char u = identifiersToUpper ? Character.toUpperCase(c) : Character.toLowerCase(c);
                             if (u != c) {
                                 command[i] = u;
                                 changed = true;
@@ -5931,7 +5943,7 @@ public class Parser {
     }
 
     private TableFilter parseValuesTable(int orderInFrom) {
-        Schema mainSchema = database.getSchema(Constants.SCHEMA_MAIN);
+        Schema mainSchema = database.getMainSchema();
         TableFunction tf = (TableFunction) Function.getFunction(database, "TABLE");
         ArrayList<Column> columns = Utils.newSmallArrayList();
         ArrayList<ArrayList<Expression>> rows = Utils.newSmallArrayList();
@@ -6909,7 +6921,11 @@ public class Parser {
                 currentToken = SetTypes
                         .getTypeName(SetTypes.REFERENTIAL_INTEGRITY);
             }
-            int type = SetTypes.getType(currentToken);
+            String typeName = currentToken;
+            if (!identifiersToUpper) {
+                typeName = StringUtils.toUpperEnglish(typeName);
+            }
+            int type = SetTypes.getType(typeName);
             if (type < 0) {
                 throw getSyntaxError();
             }

@@ -84,7 +84,7 @@ public class JavaFunction extends Expression implements FunctionCall {
     public StringBuilder getSQL(StringBuilder builder) {
         // TODO always append the schema once FUNCTIONS_IN_SCHEMA is enabled
         if (functionAlias.getDatabase().getSettings().functionsInSchema ||
-                !functionAlias.getSchema().getName().equals(Constants.SCHEMA_MAIN)) {
+                functionAlias.getSchema().getId() != Constants.MAIN_SCHEMA_ID) {
             Parser.quoteIdentifier(builder, functionAlias.getSchema().getName()).append('.');
         }
         Parser.quoteIdentifier(builder, functionAlias.getName()).append('(');

@@ -1405,7 +1405,7 @@ public abstract class Value extends VersionedValue {
             return 0;
         }
         if (this == ValueNull.INSTANCE) {
-            return v == ValueNull.INSTANCE ? 0 : -1;
+            return -1;
         } else if (v == ValueNull.INSTANCE) {
             return 1;
         }

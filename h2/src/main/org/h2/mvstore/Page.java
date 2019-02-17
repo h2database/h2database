@@ -265,7 +265,7 @@ public abstract class Page implements Cloneable
          * recursive and needs to wait for children before returning up the call-stack, (b) checking
          * the size of the thread-pool is not reliable.
          */
-        final List<Future<?>> futures = new ArrayList<>(len);
+        final List<Future<?>> futures = new ArrayList<>(len + 1);
         for (int i = 0; i <= len; i++) {
             final long childPagePos = buff.getLong();
             for (;;) {

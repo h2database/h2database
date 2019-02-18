@@ -17,6 +17,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -61,6 +62,7 @@ import org.h2.value.ValueBytes;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInt;
+import org.h2.value.ValueJson;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
@@ -69,6 +71,10 @@ import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueUuid;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * This class implements most built-in functions of this database.
@@ -149,10 +155,10 @@ public class Function extends Expression implements FunctionCall {
      * Json functions.
      */
     public static final int JSON_FIELD = 350, JSON_FIELD_TEXT = 351,
-    		JSON_FIELD_PATH = 352, JSON_FIELD_PATH_TEXT = 353,
-    		JSON_CONTAINS = 354, JSON_EXISTS = 355, JSON_EXISTS_ANY = 356,
-    		JSON_EXISTS_ALL = 357, JSON_CONCAT = 358, JSON_DELETE_FIELD = 359,
-    		JSON_DELETE_PATH = 360;
+            JSON_FIELD_PATH = 352, JSON_FIELD_PATH_TEXT = 353,
+            JSON_CONTAINS = 354, JSON_EXISTS = 355, JSON_EXISTS_ANY = 356,
+            JSON_EXISTS_ALL = 357, JSON_CONCAT = 358, JSON_DELETE_FIELD = 359,
+            JSON_DELETE_PATH = 360;
 
     protected static final int VAR_ARGS = -1;
     private static final long PRECISION_UNKNOWN = -1;
@@ -474,7 +480,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("JSON_FIELD_PATH_TEXT", JSON_FIELD_PATH_TEXT, 2, Value.STRING);
         addFunction("JSON_CONTAINS", JSON_CONTAINS, 2, Value.BOOLEAN);
         addFunction("JSON_EXISTS", JSON_EXISTS, 2, Value.BOOLEAN);
-        addFunction("JSON_EXIST_ANY", JSON_EXISTS_ANY, 2, Value.BOOLEAN);
+        addFunction("JSON_EXISTS_ANY", JSON_EXISTS_ANY, 2, Value.BOOLEAN);
         addFunction("JSON_EXISTS_ALL", JSON_EXISTS_ALL, 2, Value.BOOLEAN);
         addFunction("JSON_CONCAT", JSON_CONCAT, 2, Value.JSON);
         addFunction("JSON_DELETE_FIELD", JSON_DELETE_FIELD, 2, Value.JSON);
@@ -1673,52 +1679,196 @@ public class Function extends Expression implements FunctionCall {
             throw DbException.fromUser(sqlState, msgText);
         }
         case JSON_FIELD: {
-        	if(v0.getType() == Value.STRING || v0.getType() == Value.JSON) {
-        		result = ValueString.get("result of JSON_FIELD function");
-        	} else {
-        		throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
-        	}
-        	break;
+            if(v0.getType() == Value.JSON) {
+                JsonNode json = ((ValueJson) v0).getObject();
+                if (json.isArray() && v1.getType() == Value.INT) {
+                    Integer key = v1.getInt();
+                    result = json.has(key) ? ValueJson.get(json.get(key)) : ValueNull.INSTANCE;
+                } else {
+                    String key = v1.getString();
+                    result = json.has(key) ? ValueJson.get(json.get(key)) : ValueNull.INSTANCE;
+                }
+            } else {
+                throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
+            }
+            break;
         }
         case JSON_FIELD_TEXT: {
-    		result = ValueString.get("result of JSON_FIELD_TEXT function");
-        	break;
+            if(v0.getType() == Value.JSON) {
+                JsonNode json = ((ValueJson) v0).getObject();
+                if (json.isArray() && v1.getType() == Value.INT) {
+                    Integer key = v1.getInt();
+                    result = json.has(key) ? ValueJson.get(json.get(key)) : ValueNull.INSTANCE;
+                } else {
+                    String key = v1.getString();
+                    result = json.has(key) ? ValueString.get(json.get(key).toString()) : ValueNull.INSTANCE;
+                }
+                
+            }
+            else {
+                throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
+            }
+            break;
         }
         case JSON_FIELD_PATH: {
-    		result = ValueString.get("result of JSON_FIELD_PATH function");
-        	break;
+            if(v0.getType() == Value.JSON && v1.getType() == Value.ARRAY) {
+                JsonNode json = ((ValueJson) v0).getObject();
+                boolean isNull = false;
+                for(Value v: ((ValueArray) v1).getList()){
+                    if(json.has(v.getString())) {
+                        json = json.get(v.getString());
+                    } else {
+                        isNull = true;
+                        break;
+                    }
+                }
+                if (!isNull) {
+                    result = ValueJson.get(json);
+                } else {
+                    result = ValueNull.INSTANCE;
+                }
+            } else {
+                throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
+            }
         }
         case JSON_FIELD_PATH_TEXT: {
-    		result = ValueString.get("result of JSON_FIELD_PATH_TEXT function");
-        	break;
+            if(v0.getType() == Value.JSON && v1.getType() == Value.ARRAY) {
+                JsonNode json = ((ValueJson) v0).getObject();
+                boolean isNull = false;
+                for (Value v: ((ValueArray) v1).getList()) {
+                    if (json.has(v.getString())) {
+                        json = json.get(v.getString());
+                    } else {                        
+                        isNull = true;
+                        break;
+                    }
+                }
+                if (!isNull) {
+                    result = ValueString.get(json.toString());
+                } else {
+                    result = ValueNull.INSTANCE;
+                }
+            } else {
+                throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
+            }
+            break;
         }
         case JSON_CONTAINS: {
-    		result = ValueString.get("result of JSON_CONTAINS function");
-        	break;
+            if(v0.getType() == Value.JSON && v1.getType() == Value.JSON) {
+                JsonNode first = ((ValueJson) v0).getObject();
+                JsonNode second = ((ValueJson) v1).getObject();
+                if (first.isObject() && second.isObject()) {
+                    ObjectNode objFirst = (ObjectNode) first; 
+                    ObjectNode objSecond = (ObjectNode) second;
+                    Iterator<String> keys = objSecond.fieldNames();
+                    boolean isTrue = true;
+                    while (keys.hasNext()) {
+                        String key = keys.next();
+                        JsonNode val = objSecond.get(key);
+                        if (!objFirst.has(key) || !objFirst.get(key).equals(val)) {
+                            isTrue = false;
+                            break;
+                        }
+                    }
+                    result = ValueBoolean.get(isTrue);
+                } else {
+                    throw DbException.throwInternalError("json comparison implemented only for ObjectNodes");
+                }
+            } else {
+                throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
+            }
+            break;
         }
         case JSON_EXISTS: {
-    		result = ValueString.get("result of JSON_EXISTS function");
-        	break;
+            if(v0.getType() == Value.JSON) {
+                JsonNode json = ((ValueJson) v0).getObject();
+                if (json.isArray() && v1.getType() == Value.INT) {
+                    Integer key = v1.getInt();
+                    result = ValueBoolean.get(json.has(key));
+                } else {
+                    String key = v1.getString();
+                    result = ValueBoolean.get(json.has(key));
+                }
+            } else {
+                throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
+            }
+            break;
         }
         case JSON_EXISTS_ANY: {
-    		result = ValueString.get("result of JSON_EXISTS_ANY function");
-        	break;
+            if(v0.getType() == Value.JSON  && v1.getType() == Value.ARRAY) {
+                JsonNode json = ((ValueJson) v0).getObject();
+                boolean isTrue = false;
+                if (json.isArray()) {
+                    for (Value v: ((ValueArray) v1).getList()) {
+                        if (v.getType() == Value.INT && json.has(v.getInt())) {
+                            isTrue = true;
+                            break;
+                        }
+                    }
+                } else {
+                    for (Value v: ((ValueArray) v1).getList()) {
+                        if (json.has(v.getString())) {
+                            isTrue = true;
+                            break;
+                        }
+                    }
+                }
+                result = ValueBoolean.get(isTrue);
+            } else {
+                throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
+            }
+            break;
         }
         case JSON_EXISTS_ALL: {
-    		result = ValueString.get("result of JSON_EXISTS_ALL function");
-        	break;
+            if(v0.getType() == Value.STRING || v1.getType() == Value.ARRAY) {
+                JsonNode json = ((ValueJson) v0).getObject();
+                boolean isTrue = true;
+                for (Value v : ((ValueArray) v1).getList()) {
+                    if(!json.has(v.getString())) {
+                        isTrue = false;
+                        break;
+                    }
+                }
+                result = ValueBoolean.get(isTrue);
+            } else {
+                throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
+            }
+            break;
         }
         case JSON_CONCAT: {
-    		result = ValueString.get("result of JSON_CONCAT function");
-        	break;
+            if(v0.getType() == Value.JSON || v1.getType() == Value.JSON) {
+                JsonNode first = ((ValueJson) v0).getObject();
+                JsonNode second = ((ValueJson) v1).getObject();
+                if(first.isObject() && second.isObject()) {
+                    ObjectNode objFirst = (ObjectNode) first;
+                    ObjectNode objSecond = (ObjectNode) second;
+                    result = ValueJson.get(objFirst.putAll(objSecond));
+                } else {
+                    throw DbException.throwInternalError("json comparison implemented only for ObjectNodes");
+                }
+            } else {
+                throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
+            }
+            break;
         }
         case JSON_DELETE_FIELD: {
-    		result = ValueString.get("result of JSON_DELETE_FIELD function");
-        	break;
+            if(v0.getType() == Value.JSON) {
+                JsonNode json = ((ValueJson) v0).getObject();
+                String key = v1.getString();
+                if (json.isObject()) {
+                    ObjectNode objJson = (ObjectNode) json;
+                    objJson.remove(key);
+                    result = ValueJson.get(objJson);
+                } else {
+                    throw DbException.throwInternalError("json remove implemented only for ObjectNodes");
+                }
+            } else {
+                throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
+            }
+            break;
         }
         case JSON_DELETE_PATH: {
-    		result = ValueString.get("result of JSON_DELETE_PATH function");
-        	break;
+            throw DbException.throwInternalError("Unimplemented");
         }
         default:
             throw DbException.throwInternalError("type=" + info.type);
@@ -2108,7 +2258,7 @@ public class Function extends Expression implements FunctionCall {
 
     @Override
     public int getType() {
-        return dataType;
+        return dataType != 0 ? dataType : info.returnDataType;
     }
 
     @Override

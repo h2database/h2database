@@ -67,6 +67,11 @@ public class DataType {
 
     private static final String GEOMETRY_CLASS_NAME =
             "org.locationtech.jts.geom.Geometry";
+    
+    public static final Class<?> JSON_CLASS;
+    
+    private static final String JSON_CLASS_NAME = 
+            "com.fasterxml.jackson.databind.JsonNode";
 
     /**
      * The list of types. An ArrayList so that Tomcat doesn't set it to null
@@ -186,6 +191,14 @@ public class DataType {
             g = null;
         }
         GEOMETRY_CLASS = g;
+        
+        Class<?> j;
+        try {
+            j = JdbcUtils.loadUserClass(JSON_CLASS_NAME);
+        } catch (Exception e) {
+            j = null;
+        }
+        JSON_CLASS = j;
 
         add(Value.NULL, Types.NULL,
                 new DataType(),
@@ -366,9 +379,9 @@ public class DataType {
                 32
         );
         add(Value.JSON, Types.OTHER,
-        		createString(false),
-        		new String[] {"JSON"},
-        		32
+                createString(false),
+                new String[] {"JSON"},
+                32
         );
         DataType dataType = new DataType();
         dataType.prefix = "(";
@@ -578,6 +591,7 @@ public class DataType {
             int columnIndex, int type) {
         try {
             Value v;
+
             switch (type) {
             case Value.NULL: {
                 return ValueNull.INSTANCE;
@@ -807,18 +821,18 @@ public class DataType {
                         interval.getLeading(), interval.getRemaining());
             }
             case Value.JSON: {
-            	Object x = rs.getObject(columnIndex);
-            	if (x == null) {
-            		return ValueNull.INSTANCE;
-            	} else if (x.getClass() == String.class) {
-            		try {
-            			return new ValueJson((String) x);
-            		} catch (IOException e) {
-            			throw DbException.throwInternalError("type="+type);
-            		}
-            	} else if (x instanceof JsonNode) {
-            		return new ValueJson((JsonNode) x);
-            	}
+                Object x = rs.getObject(columnIndex);
+                if (x == null) {
+                    return ValueNull.INSTANCE;
+                } else if (x.getClass() == String.class) {
+                    try {
+                        return new ValueJson((String) x);
+                    } catch (IOException e) {
+                        throw DbException.throwInternalError("type="+type);
+                    }
+                } else if (x instanceof JsonNode) {
+                    return new ValueJson((JsonNode) x);
+                }
             }
             default:
                 if (JdbcUtils.customDataTypesHandler != null) {
@@ -937,7 +951,7 @@ public class DataType {
             // "org.h2.api.Interval"
             return Interval.class.getName();
         case Value.JSON:
-        	return JsonNode.class.getName();
+            return JsonNode.class.getName();
         default:
             if (JdbcUtils.customDataTypesHandler != null) {
                 return JdbcUtils.customDataTypesHandler.getDataTypeClassName(type);
@@ -996,7 +1010,7 @@ public class DataType {
                 if (sqlTypeName.equalsIgnoreCase("geometry")) {
                     return Value.GEOMETRY;
                 } else if (sqlTypeName.equalsIgnoreCase("json")) {
-                	return Value.JSON;
+                    return Value.JSON;
                 }
         }
         return convertSQLTypeToValueType(sqlType);
@@ -1162,7 +1176,7 @@ public class DataType {
         } else if (LocalDateTimeUtils.OFFSET_DATE_TIME == x || LocalDateTimeUtils.INSTANT == x) {
             return Value.TIMESTAMP_TZ;
         } else if (com.fasterxml.jackson.databind.JsonNode.class == x) {
-        	return Value.JSON;
+            return Value.JSON;
         } else {
             if (JdbcUtils.customDataTypesHandler != null) {
                 return JdbcUtils.customDataTypesHandler.getTypeIdFromClass(x);
@@ -1459,6 +1473,7 @@ public class DataType {
         case Value.INTERVAL_HOUR_TO_MINUTE:
         case Value.INTERVAL_HOUR_TO_SECOND:
         case Value.INTERVAL_MINUTE_TO_SECOND:
+        case Value.JSON:
             return true;
         case Value.BOOLEAN:
         case Value.TIME:

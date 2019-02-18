@@ -433,14 +433,14 @@ public abstract class Value {
             return 43_000;
         case GEOMETRY:
             return 44_000;
-        case JSON:
-        	return 45_000;
         case ARRAY:
             return 50_000;
         case RESULT_SET:
             return 51_000;
         case ENUM:
             return 52_000;
+        case JSON:
+            return 53_000;
         default:
             if (JdbcUtils.customDataTypesHandler != null) {
                 return JdbcUtils.customDataTypesHandler.getDataTypeOrder(type);
@@ -788,7 +788,7 @@ public abstract class Value {
             case Value.INTERVAL_MINUTE_TO_SECOND:
                 return convertToIntervalDayTime(targetType);
             case Value.JSON:
-            	return new ValueJson(getString());
+                return new ValueJson(getString());
             case ARRAY:
                 return convertToArray();
             case RESULT_SET:
@@ -802,11 +802,11 @@ public abstract class Value {
         } catch (NumberFormatException e) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, getString());
         } catch (IOException e) {
-        	throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, getString());
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, getString());
         }
     }
 
-	private ValueBoolean convertToBoolean() {
+    private ValueBoolean convertToBoolean() {
         switch (getType()) {
         case BYTE:
         case SHORT:

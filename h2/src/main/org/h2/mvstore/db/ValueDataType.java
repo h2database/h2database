@@ -479,10 +479,10 @@ public class ValueDataType implements DataType {
             break;
         }
         case Value.JSON: {
-        	String s = v.getString();
+            String s = v.getString();
             int len = s.length();
             if (len < 32) {
-                buff.put((byte) (STRING_0_31 + len)).
+                buff.put((byte) (Value.JSON)).put((byte)len).
                     putStringData(s, len);
             } else {
                 buff.put((byte) type);
@@ -668,12 +668,12 @@ public class ValueDataType implements DataType {
             return ValueGeometry.get(b);
         }
         case Value.JSON: {
-        	try {
-        		String str = readString(buff);
-        		return ValueJson.get(str);
-        	} catch (IOException e) {
-        		throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "type: " + type);
-        	}
+            try {
+                String str = readString(buff);
+                return ValueJson.get(str);
+            } catch (IOException e) {
+                throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "type: " + type);
+            }
         }
         case SPATIAL_KEY_2D:
             return getSpatialDataType().read(buff);

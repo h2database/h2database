@@ -42,6 +42,7 @@ import org.h2.value.ValueGeometry;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueJavaObject;
+import org.h2.value.ValueJson;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueLobDb;
 import org.h2.value.ValueLong;
@@ -691,6 +692,19 @@ public class Data {
             writeVarLong(interval.getRemaining());
             break;
         }
+        case ValueJson.JSON: {
+            ValueJson json = (ValueJson) v;
+            String s = json.getString();
+            int len = s.length();
+            if (len < 32) {
+                writeByte((byte) (STRING_0_31 + len));
+                writeStringWithoutLength(s, len);
+            } else {
+                writeByte((byte) type);
+                writeString(s);
+            }
+            break;
+        }
         default:
             if (JdbcUtils.customDataTypesHandler != null) {
                 byte[] b = v.getBytesNoCopy();
@@ -887,6 +901,13 @@ public class Data {
             }
             return ValueInterval.from(IntervalQualifier.valueOf(ordinal), negative, readVarLong(),
                     ordinal < 5 ? 0 : readVarLong());
+        }
+        case Value.JSON: {
+            try {
+                return ValueJson.get(readString());
+            } catch (IOException e) {
+                return ValueNull.INSTANCE;
+            }
         }
         case CUSTOM_DATA_TYPE: {
             if (JdbcUtils.customDataTypesHandler != null) {

@@ -404,7 +404,7 @@ public class Constants {
     /**
      * The identity of INFORMATION_SCHEMA.
      */
-    public static final int META_SCHEMA_ID = -1;
+    public static final int INFORMATION_SCHEMA_ID = -1;
 
     /**
      * The identity of PUBLIC schema.

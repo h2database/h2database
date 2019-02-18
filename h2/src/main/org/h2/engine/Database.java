@@ -791,7 +791,7 @@ public class Database implements DataHandler {
         systemUser = new User(this, 0, SYSTEM_USER_NAME, true);
         mainSchema = new Schema(this, Constants.MAIN_SCHEMA_ID, sysIdentifier(Constants.SCHEMA_MAIN), systemUser,
                 true);
-        infoSchema = new Schema(this, Constants.META_SCHEMA_ID, sysIdentifier("INFORMATION_SCHEMA"), systemUser,
+        infoSchema = new Schema(this, Constants.INFORMATION_SCHEMA_ID, sysIdentifier("INFORMATION_SCHEMA"), systemUser,
                 true);
         schemas.put(mainSchema.getName(), mainSchema);
         schemas.put(infoSchema.getName(), infoSchema);
@@ -2772,7 +2772,7 @@ public class Database implements DataHandler {
                     continue;
                 }
                 // exclude the LOB_MAP that the Recover tool creates
-                if (table.getSchema().getId() == Constants.META_SCHEMA_ID
+                if (table.getSchema().getId() == Constants.INFORMATION_SCHEMA_ID
                         && table.getName().equalsIgnoreCase("LOB_BLOCKS")) {
                     continue;
                 }
@@ -3088,7 +3088,22 @@ public class Database implements DataHandler {
      * @return identifier in upper or lower case
      */
     public String sysIdentifier(String upperName) {
+        assert isUpperSysIdentifier(upperName);
         return dbSettings.databaseToLower ? StringUtils.toLowerEnglish(upperName) : upperName;
+    }
+
+    private static boolean isUpperSysIdentifier(String upperName) {
+        int l = upperName.length();
+        if (l == 0) {
+            return false;
+        }
+        for (int i = 0; i < l; i++) {
+            int ch = upperName.charAt(i);
+            if (ch < 'A' || ch > 'Z' && ch != '_') {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override

@@ -148,19 +148,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     @Override
     public V put(K key, V value) {
         DataUtils.checkArgument(value != null, "The value may not be null");
-        return put(key, value, DecisionMaker.PUT);
-    }
-
-    /**
-     * Add or replace a key-value pair.
-     *
-     * @param key the key (may not be null)
-     * @param value the value (may not be null)
-     * @param decisionMaker callback object for update logic
-     * @return the old value if the key existed, or null otherwise
-     */
-    public final V put(K key, V value, DecisionMaker<? super V> decisionMaker) {
-        return operate(key, value, decisionMaker);
+        return operate(key, value, DecisionMaker.PUT);
     }
 
     /**
@@ -467,7 +455,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     @Override
     public final V putIfAbsent(K key, V value) {
-        return put(key, value, DecisionMaker.IF_ABSENT);
+        return operate(key, value, DecisionMaker.IF_ABSENT);
     }
 
     /**
@@ -483,17 +471,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         EqualsDecisionMaker<V> decisionMaker = new EqualsDecisionMaker<>(valueType, (V)value);
         operate((K)key, null, decisionMaker);
         return decisionMaker.getDecision() != Decision.ABORT;
-    }
-
-    /**
-     * Check whether the two values are equal.
-     *
-     * @param a the first value
-     * @param b the second value
-     * @return true if they are equal
-     */
-    public final boolean areValuesEqual(Object a, Object b) {
-        return areValuesEqual(valueType, a, b);
     }
 
     /**
@@ -520,9 +497,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     @Override
     public final boolean replace(K key, V oldValue, V newValue) {
         EqualsDecisionMaker<V> decisionMaker = new EqualsDecisionMaker<>(valueType, oldValue);
-        V result = put(key, newValue, decisionMaker);
+        V result = operate(key, newValue, decisionMaker);
         boolean res = decisionMaker.getDecision() != Decision.ABORT;
-        assert !res || areValuesEqual(oldValue, result) : oldValue + " != " + result;
+        assert !res || areValuesEqual(valueType, oldValue, result) : oldValue + " != " + result;
         return res;
     }
 
@@ -535,7 +512,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     @Override
     public final V replace(K key, V value) {
-        return put(key, value, DecisionMaker.IF_PRESENT);
+        return operate(key, value, DecisionMaker.IF_PRESENT);
     }
 
     /**
@@ -1265,11 +1242,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                         p = p.copy();
                         p.setChild(index, page);
                         p.insertNode(index, key, c);
-                        if ((keyCount = p.getKeyCount()) <= store.getKeysPerPage() &&
-                                (p.getMemory() < store.getMaxPageSize() || keyCount <= (p.isLeaf() ? 1 : 2))) {
+                        keyCount = p.getKeyCount();
+                        int at = keyCount - (p.isLeaf() ? 1 : 2);
+                        if (keyCount <= store.getKeysPerPage() &&
+                                (p.getMemory() < store.getMaxPageSize() || at <= 0)) {
                             break;
                         }
-                        int at = keyCount - 2;
                         key = p.getKey(at);
                         page = p.split(at);
                         unsavedMemoryHolder.value += p.getMemory() + page.getMemory();
@@ -1640,7 +1618,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         /**
          * Provides revised value for insert/update based on original input value
          * and value currently existing in the map.
-         * This method is not invoked only after decide(), if it returns PUT.
+         * This method is only invoked after call to decide(), if it returns PUT.
          * @param existingValue value currently exists in the map
          * @param providedValue original input value
          * @param <T> value type
@@ -1659,12 +1637,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     /**
-     * Apply an operation to a key-value pair.
+     * Add, replace or remove a key-value pair.
      *
-     * @param key key to operate on
-     * @param value new value
+     * @param key the key (may not be null)
+     * @param value new value, it may be null when removal is indended
      * @param decisionMaker command object to make choices during transaction.
-     * @return new value
+     * @return previous value, if mapping for that key existed, or null otherwise
      */
     @SuppressWarnings("unchecked")
     public V operate(K key, V value, DecisionMaker<? super V> decisionMaker) {

@@ -538,6 +538,9 @@ public class TcpServerThread implements Runnable {
     }
 
     private int getState(int oldModificationId) {
+        if (session == null) {
+            return SessionRemote.STATUS_CLOSED;
+        }
         if (session.getModificationId() == oldModificationId) {
             return SessionRemote.STATUS_OK;
         }

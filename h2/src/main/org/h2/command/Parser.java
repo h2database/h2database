@@ -3360,109 +3360,145 @@ public class Parser {
     }
     
     private Function getJsonFunction(Expression arg0) {
-    	int type = currentTokenType;
-    	read();
-    	Function fun;
-    	Expression arg1;
-		switch(type) {
-			case JSON_FIELD:
-				fun = Function.getFunction(database, "JSON_FIELD");
-				arg1 = ValueExpression.get(currentValue);
-				break;
-			case JSON_FIELD_TEXT:
-				fun = Function.getFunction(database, "JSON_FIELD_TEXT");
-				arg1 = ValueExpression.get(currentValue);
-				break;
-			case JSON_FIELD_PATH: {
-				fun = Function.getFunction(database, "JSON_FIELD_PATH");
-				String param = currentValue.getString();
-        		String[] args;
-				if(param.startsWith("{") && param.endsWith("}")) {
-        			param = param.substring(1, param.length() - 1);
-        			args = param.replaceAll(" ", "").split(",");
-        		} else {
-        			throw getSyntaxError();
-        		}
-				int len = args.length;
-            	Value[] arr = (Value[]) Array.newInstance(Value.class, len);
-				for (int i = 0; i < len; i++) {
-					Value v = args[i].matches(".*\\D*.*") ? ValueString.get(args[i]) : ValueInt.get(new Integer(args[i]));
-					arr[i] = v;
-				}
-				arg1 = ValueExpression.get(ValueArray.get(arr));
-				break;
-			}
-			case JSON_FIELD_PATH_TEXT: {
-				fun = Function.getFunction(database, "JSON_FIELD_PATH_TEXT");
-				String param = currentValue.getString();
-        		String[] args;
-				if(param.startsWith("{") && param.endsWith("}")) {
-        			param = param.substring(1, param.length() - 1);
-        			args = param.replaceAll(" ", "").split(",");
-        		} else {
-        			throw getSyntaxError();
-        		}
-				int len = args.length;
-            	Value[] arr = (Value[]) Array.newInstance(Value.class, len);
-				for (int i = 0; i < len; i++) {
-					Value v = args[i].matches(".*\\D*.*") ? ValueString.get(args[i]) : ValueInt.get(new Integer(args[i]));
-					arr[i] = v;
-				}
-				arg1 = ValueExpression.get(ValueArray.get(arr));
-				break;
-			}
-			case JSON_CONTAINS_LEFT:
-				fun = Function.getFunction(database, "JSON_CONTAINS");
-				arg1 = ValueExpression.get(currentValue);
-				break;
-			case JSON_CONTAINS_RIGHT:
-				fun = Function.getFunction(database, "JSON_CONTAINS");
-				arg1 = arg0;
-				arg0 = ValueExpression.get(currentValue);
-				break;
-			case JSON_EXISTS_ANY:
-				fun = Function.getFunction(database, "JSON_CONTAINS_ANY");
-				arg1 = readTerm();
-				break;
-			case JSON_EXISTS_ALL:
-				fun = Function.getFunction(database, "JSON_CONTAINS_ALL");
-				arg1 = readTerm();
-				break;
-			case JSON_EXISTS:
-				fun = Function.getFunction(database, "JSON_EXISTS");
-				arg1 = ValueExpression.get(currentValue);
-				break;
-			case JSON_CONCAT:
-				fun = Function.getFunction(database, "JSON_CONCAT");
-				arg1 = ValueExpression.get(currentValue);
-				break;
-			case JSON_DELETE_FIELD:
-				String param = currentValue.getString();
-				if (!(param.startsWith("{") && param.endsWith("}"))) {
-					fun = Function.getFunction(database, "JSON_DELETE_FIELD");
-					arg1 = ValueExpression.get(currentValue);
-				} else {
-					fun = Function.getFunction(database, "JSON_REMOVE_ALL");
-					String[] args;
-					param = param.substring(1, param.length() - 1);
-        			args = param.replaceAll(" ", "").split(",");
-        			int len = args.length;
-                	Value[] arr = (Value[]) Array.newInstance(Value.class, len);
-    				for (int i = 0; i < len; i++) {
-    					Value v = args[i].matches(".*\\D*.*") ? ValueString.get(args[i]) : ValueInt.get(new Integer(args[i]));
-    					arr[i] = v;
-    				}
-    				arg1 = ValueExpression.get(ValueArray.get(arr));
-				}
-//				arg1 = ValueExpression.get(currentValue);
-				break;
-			default:
-				throw getSyntaxError();
-		}
-		fun.setParameter(0, arg0);
-		fun.setParameter(1, arg1); 
-		return fun;
-	}
+        int type = currentTokenType;
+        read();
+        Function fun;
+        Expression arg1;
+        switch(type) {
+            case JSON_FIELD: {
+                fun = Function.getFunction(database, "JSON_FIELD");
+                arg1 = ValueExpression.get(currentValue);
+                break;
+            }
+            case JSON_FIELD_TEXT: {
+                fun = Function.getFunction(database, "JSON_FIELD_TEXT");
+                arg1 = ValueExpression.get(currentValue);
+                break;
+            }
+            case JSON_FIELD_PATH: {
+                fun = Function.getFunction(database, "JSON_FIELD_PATH");
+                String param = currentValue.getString();
+                String[] args;
+                if(param.startsWith("{") && param.endsWith("}")) {
+                    param = param.substring(1, param.length() - 1);
+                    args = param.replaceAll(" ", "").split(",");
+                } else {
+                    throw getSyntaxError();
+                }
+                int len = args.length;
+                Value[] arr = (Value[]) Array.newInstance(Value.class, len);
+                for (int i = 0; i < len; i++) {
+                    Value v = args[i].matches(".*\\D*.*") ? ValueString.get(args[i]) : ValueInt.get(new Integer(args[i]));
+                    arr[i] = v;
+                }
+                arg1 = ValueExpression.get(ValueArray.get(arr));
+                break;
+            }
+            case JSON_FIELD_PATH_TEXT: {
+                fun = Function.getFunction(database, "JSON_FIELD_PATH_TEXT");
+                String param = currentValue.getString();
+                String[] args;
+                if(param.startsWith("{") && param.endsWith("}")) {
+                    param = param.substring(1, param.length() - 1);
+                    args = param.replaceAll(" ", "").split(",");
+                } else {
+                    throw getSyntaxError();
+                }
+                int len = args.length;
+                Value[] arr = (Value[]) Array.newInstance(Value.class, len);
+                for (int i = 0; i < len; i++) {
+                    Value v = args[i].matches(".*\\D*.*") ? ValueString.get(args[i]) : ValueInt.get(new Integer(args[i]));
+                    arr[i] = v;
+                }
+                arg1 = ValueExpression.get(ValueArray.get(arr));
+                break;
+            }
+            case JSON_CONTAINS_LEFT: {
+                fun = Function.getFunction(database, "JSON_CONTAINS");
+                arg1 = ValueExpression.get(currentValue);
+                break;
+            }
+            case JSON_CONTAINS_RIGHT: {
+                fun = Function.getFunction(database, "JSON_CONTAINS");
+                arg1 = arg0;
+                arg0 = ValueExpression.get(currentValue);
+                break;
+            }
+            case JSON_EXISTS_ANY: {
+                fun = Function.getFunction(database, "JSON_EXISTS_ANY");
+                String param = currentValue.getString();
+                String[] args;
+                if(param.startsWith("[") && param.endsWith("]")) {
+                    param = param.substring(1, param.length() - 1);
+                    args = param.replaceAll(" ", "").split(",");
+                } else {
+                    throw getSyntaxError();
+                }
+                int len = args.length;
+                Value[] arr = (Value[]) Array.newInstance(Value.class, len);
+                for (int i = 0; i < len; i++) {
+                    Value v = args[i].matches(".*\\D*.*") ? ValueString.get(args[i]) : ValueInt.get(new Integer(args[i]));
+                    arr[i] = v;
+                }
+                arg1 = ValueExpression.get(ValueArray.get(arr));
+                break;
+            }
+            case JSON_EXISTS_ALL: {
+                fun = Function.getFunction(database, "JSON_EXISTS_ALL");
+                String param = currentValue.getString();
+                String[] args;
+                if(param.startsWith("[") && param.endsWith("]")) {
+                    param = param.substring(1, param.length() - 1);
+                    args = param.replaceAll(" ", "").split(",");
+                } else {
+                    throw getSyntaxError();
+                }
+                int len = args.length;
+                Value[] arr = (Value[]) Array.newInstance(Value.class, len);
+                for (int i = 0; i < len; i++) {
+                    Value v = args[i].matches(".*\\D*.*") ? ValueString.get(args[i]) : ValueInt.get(new Integer(args[i]));
+                    arr[i] = v;
+                }
+                arg1 = ValueExpression.get(ValueArray.get(arr));
+                break;
+            }
+            case JSON_EXISTS: {
+                fun = Function.getFunction(database, "JSON_EXISTS");
+                arg1 = ValueExpression.get(currentValue);
+                break;
+            }
+            case JSON_CONCAT: {
+                fun = Function.getFunction(database, "JSON_CONCAT");
+                arg1 = ValueExpression.get(currentValue);
+                break;
+            }
+            case JSON_DELETE_FIELD: {
+                String param = currentValue.getString();
+                if (!(param.startsWith("{") && param.endsWith("}"))) {
+                    fun = Function.getFunction(database, "JSON_DELETE_FIELD");
+                    arg1 = ValueExpression.get(currentValue);
+                } else {
+                    fun = Function.getFunction(database, "JSON_REMOVE_ALL");
+                    String[] args;
+                    param = param.substring(1, param.length() - 1);
+                    args = param.replaceAll(" ", "").split(",");
+                    int len = args.length;
+                    Value[] arr = (Value[]) Array.newInstance(Value.class, len);
+                    for (int i = 0; i < len; i++) {
+                        Value v = args[i].matches(".*\\D*.*") ? ValueString.get(args[i]) : ValueInt.get(new Integer(args[i]));
+                        arr[i] = v;
+                    }
+                    arg1 = ValueExpression.get(ValueArray.get(arr));
+                }
+                break;
+            }
+            default:
+                throw getSyntaxError();
+        }
+        fun.setParameter(0, arg0);
+        fun.setParameter(1, arg1); 
+        return fun;
+    }
 
 
     private Expression readWildcardOrSequenceValue(String schema,
@@ -3747,20 +3783,17 @@ public class Parser {
                         r = new ExpressionColumn(database, null, null, name);
                     }
                 } else if (currentTokenType >= JSON_FIELD && currentTokenType <= JSON_DELETE_PATH) {
-                	Function fun = null;
-                	while (currentTokenType >= JSON_FIELD && currentTokenType <= JSON_DELETE_PATH) {
-                		if(fun != null && fun.getType() != Value.JSON) {
-                			throw getSyntaxError();
-                		}
-                		fun = getJsonFunction(fun == null ? new ExpressionColumn(database, null, null, name) : fun);
-                		read();
-                	}
-            		r = fun;
-            		break;
-//                	read();
-//                	r = new ExpressionColumn(database, null, null, name);
-//                	read();
-            	} else {
+                    Function fun = null;
+                    while (currentTokenType >= JSON_FIELD && currentTokenType <= JSON_DELETE_PATH) {
+                        if(fun != null && fun.getClass() == Function.class && fun.getType() != Value.JSON) {
+                            throw getSyntaxError();
+                        }
+                        fun = getJsonFunction(fun == null ? new ExpressionColumn(database, null, null, name) : fun);
+                        read();
+                    }
+                    r = fun;
+                    break;
+                } else {
                     r = new ExpressionColumn(database, null, null, name);
                 }
             }
@@ -4271,17 +4304,17 @@ public class Parser {
             return;
         }
         case CHAR_SPECIAL_3: {
-        	while (true) {
+            while (true) {
                 type = types[i];
                 if (type != CHAR_SPECIAL_3) {
                     break;
                 }
                 i++;
             }
-//        	currentToken = sqlCommand.substring(start, i);
-        	currentTokenType = getJsonType(sqlCommand.substring(start, i));
-        	parseIndex = i;
-        	return;
+//            currentToken = sqlCommand.substring(start, i);
+            currentTokenType = getJsonType(sqlCommand.substring(start, i));
+            parseIndex = i;
+            return;
         }
         case CHAR_SPECIAL_2:
             if (types[i] == CHAR_SPECIAL_2) {
@@ -4567,11 +4600,11 @@ public class Parser {
                         checkRunOver(i, len, startLoop);
                     }
                 } else  if (command[i + 1] == '>' && command [i + 2] == '>'){
-                	checkRunOver(i, len, i - 2);
-                	type = types[i++] = types[i++] = CHAR_SPECIAL_3;
+                    checkRunOver(i, len, i - 2);
+                    type = types[i++] = types[i++] = CHAR_SPECIAL_3;
                 } else if (command[i + 1] == '>') {
-                	checkRunOver(i, len, i - 1);
-                	type = types[i++] = CHAR_SPECIAL_3;
+                    checkRunOver(i, len, i - 1);
+                    type = types[i++] = CHAR_SPECIAL_3;
                 } else {
                     type = CHAR_SPECIAL_1;
                 }
@@ -4603,21 +4636,26 @@ public class Parser {
                 }
                 break;
             case '?':
-            	if (lastType == CHAR_NAME || lastType == CHAR_VALUE) {
-            		if (command[i + 1] == '|' || command[i + 1] == '&') {
-                    	checkRunOver(i, len, i - 1);
-            			type = types[i++] = CHAR_SPECIAL_3;
-            		} else {
-            			type = CHAR_SPECIAL_3;
-            		}
-                	break;
-            	}
+                if (lastType == CHAR_NAME || lastType == CHAR_VALUE) {
+                    if (command[i + 1] == '|' || command[i + 1] == '&') {
+                        checkRunOver(i, len, i - 1);
+                        type = types[i++] = CHAR_SPECIAL_3;
+                    } else {
+                        type = CHAR_SPECIAL_3;
+                    }
+                } else {
+                    type = CHAR_SPECIAL_1;
+                }
+                break;
             case '@':
-            	if (command[i + 1] == '>') {
-                	checkRunOver(i, len, i - 1);
-            		type = types[i++] = CHAR_SPECIAL_3;
-            		break;
-            	}
+                if (command[i + 1] == '>') {
+                    checkRunOver(i, len, i - 1);
+                    type = types[i++] = CHAR_SPECIAL_3;
+                    break;
+                } else {
+                    type = CHAR_SPECIAL_1;
+                }
+                break;
             case '(':
             case ')':
             case '{':
@@ -4631,16 +4669,17 @@ public class Parser {
                 type = CHAR_SPECIAL_1;
                 break;
             case '<':
-            	if (command[i + 1] == '@') {
-                	checkRunOver(i, len, i - 1);
-            		type = types[i++] = CHAR_SPECIAL_3;
-            		break;
-            	}
+                if (command[i + 1] == '@') {
+                    checkRunOver(i, len, i - 1);
+                    type = types[i++] = CHAR_SPECIAL_3;
+                    break;
+                }
             case '|':
-            	if (command[i + 1] == '|') {
-                	checkRunOver(i, len, i - 1);
-            		type = types[i++] = CHAR_SPECIAL_3;
-            	}
+                if (command[i + 1] == '|') {
+                    checkRunOver(i, len, i - 1);
+                    type = types[i++] = CHAR_SPECIAL_3;
+                    break;
+                }
             case '!':
             case '>':
             case '=':
@@ -4701,11 +4740,11 @@ public class Parser {
                 if (database.getMode().supportPoundSymbolForColumnNames) {
                     type = CHAR_NAME;
                 } else if (command[i + 1] == '>' && command[i + 2] == '>') {
-                	checkRunOver(i, len, i - 2);
-                	type = types[i++] = types[i++] = CHAR_SPECIAL_3;
+                    checkRunOver(i, len, i - 2);
+                    type = types[i++] = types[i++] = CHAR_SPECIAL_3;
                 } else if (command[i + 1] == '>') {
-                	checkRunOver(i, len, i - 1);
-                	type = types[i++] = CHAR_SPECIAL_3;
+                    checkRunOver(i, len, i - 1);
+                    type = types[i++] = CHAR_SPECIAL_3;
                 } else {
                     type = CHAR_SPECIAL_1;
                 }
@@ -4848,54 +4887,54 @@ public class Parser {
     }
     
     private int getJsonType(String s) {
-    	char c0 = s.charAt(0);
-    	switch(c0) {
-    	case '-':
-    		if ("->".equals(s)) {
-    			return JSON_FIELD;
-    		} else if ("->>".equals(s)) {
-    			return JSON_FIELD_TEXT;
-    		} else if ("-".equals(s)) {
-    			return JSON_DELETE_FIELD;
-    		}
-    		break;
-    	case '#':
-    		if ("#>".equals(s)) {
-    			return JSON_FIELD_PATH;
-    		} else if ("#>>".equals(s)) {
-    			return JSON_FIELD_PATH_TEXT;
-    		} else if ("#-".equals(s)) {
-    			return JSON_DELETE_PATH;
-    		}
-    		break;
-    	case '@':
-    		if("@>".equals(s)) {
-    			return JSON_CONTAINS_LEFT;
-    		}
-    		break;
-    	case '<':
-    		if("<@".equals(s)) {
-    			return JSON_CONTAINS_RIGHT;
-    		}
-    		break;
-    	case '?':
-    		if ("?".equals(s)) {
-    			return JSON_EXISTS;
-    		} else if ("?|".equals(s)) {
-    			return JSON_EXISTS_ANY;
-    		} else if ("?&".equals(s)) {
-    			return JSON_EXISTS_ALL;
-    		}
-    		break;
-    	case '|':
-    		if ("||".equals(s)) {
-    			return JSON_CONCAT;
-    		}
-    		break;
-    	default:
-    		break;
-    	}
-		throw getSyntaxError();
+        char c0 = s.charAt(0);
+        switch(c0) {
+        case '-':
+            if ("->".equals(s)) {
+                return JSON_FIELD;
+            } else if ("->>".equals(s)) {
+                return JSON_FIELD_TEXT;
+            } else if ("-".equals(s)) {
+                return JSON_DELETE_FIELD;
+            }
+            break;
+        case '#':
+            if ("#>".equals(s)) {
+                return JSON_FIELD_PATH;
+            } else if ("#>>".equals(s)) {
+                return JSON_FIELD_PATH_TEXT;
+            } else if ("#-".equals(s)) {
+                return JSON_DELETE_PATH;
+            }
+            break;
+        case '@':
+            if("@>".equals(s)) {
+                return JSON_CONTAINS_LEFT;
+            }
+            break;
+        case '<':
+            if("<@".equals(s)) {
+                return JSON_CONTAINS_RIGHT;
+            }
+            break;
+        case '?':
+            if ("?".equals(s)) {
+                return JSON_EXISTS;
+            } else if ("?|".equals(s)) {
+                return JSON_EXISTS_ANY;
+            } else if ("?&".equals(s)) {
+                return JSON_EXISTS_ALL;
+            }
+            break;
+        case '|':
+            if ("||".equals(s)) {
+                return JSON_CONCAT;
+            }
+            break;
+        default:
+            break;
+        }
+        throw getSyntaxError();
     }
 
     private int getTokenType(String s) {

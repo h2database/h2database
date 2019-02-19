@@ -1,11 +1,14 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.index;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Session;
@@ -18,7 +21,7 @@ import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
 import org.h2.table.TableFilter;
 import org.h2.util.Utils;
-import org.h2.util.ValueHashMap;
+import org.h2.value.DataType;
 import org.h2.value.Value;
 
 /**
@@ -32,20 +35,24 @@ public class NonUniqueHashIndex extends BaseIndex {
      * The index of the indexed column.
      */
     private final int indexColumn;
-    private ValueHashMap<ArrayList<Long>> rows;
+    private final boolean totalOrdering;
+    private Map<Value, ArrayList<Long>> rows;
     private final RegularTable tableData;
     private long rowCount;
 
     public NonUniqueHashIndex(RegularTable table, int id, String indexName,
             IndexColumn[] columns, IndexType indexType) {
         super(table, id, indexName, columns, indexType);
-        this.indexColumn = columns[0].column.getColumnId();
-        this.tableData = table;
+        Column column = columns[0].column;
+        indexColumn = column.getColumnId();
+        totalOrdering = DataType.hasTotalOrdering(column.getType().getValueType());
+        tableData = table;
         reset();
     }
 
     private void reset() {
-        rows = ValueHashMap.newInstance();
+        rows = totalOrdering ? new HashMap<Value, ArrayList<Long>>()
+                : new TreeMap<Value, ArrayList<Long>>(database.getCompareMode());
         rowCount = 0;
     }
 
@@ -98,10 +105,10 @@ public class NonUniqueHashIndex extends BaseIndex {
         /*
          * Sometimes the incoming search is a similar, but not the same type
          * e.g. the search value is INT, but the index column is LONG. In which
-         * case we need to convert, otherwise the ValueHashMap will not find the
+         * case we need to convert, otherwise the HashMap will not find the
          * result.
          */
-        v = v.convertTo(tableData.getColumn(indexColumn).getType(), database.getMode());
+        v = v.convertTo(tableData.getColumn(indexColumn).getType(), database.getMode(), null);
         ArrayList<Long> positions = rows.get(v);
         return new NonUniqueHashCursor(session, tableData, positions);
     }

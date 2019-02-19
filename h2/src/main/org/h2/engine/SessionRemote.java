@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -376,7 +376,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
                 traceSystem.setLevelFile(level);
                 if (level > 0 && level < 4) {
                     String file = FileUtils.createTempFile(prefix,
-                            Constants.SUFFIX_TRACE_FILE, false, false);
+                            Constants.SUFFIX_TRACE_FILE, false);
                     traceSystem.setFileName(file);
                 }
             } catch (IOException e) {

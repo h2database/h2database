@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -11,8 +11,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.RowIdLifetime;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.Arrays;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.h2.engine.Constants;
@@ -23,9 +23,11 @@ import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
-import org.h2.tools.SimpleResultSet;
-import org.h2.util.StatementBuilder;
+import org.h2.result.SimpleResult;
 import org.h2.util.StringUtils;
+import org.h2.value.TypeInfo;
+import org.h2.value.ValueInt;
+import org.h2.value.ValueString;
 
 /**
  * Represents the meta data for a database.
@@ -1540,16 +1542,18 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * table/column/index name, in addition to the SQL-2003 keywords. The list
      * returned is:
      * <pre>
-     * INTERSECTS,LIMIT,MINUS,OFFSET,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY,TOP
+     * INTERSECTS,LIMIT,MINUS,OFFSET,QUALIFY,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY,TOP
      * </pre>
      * The complete list of keywords (including SQL-2003 keywords) is:
      * <pre>
-     * ALL, CHECK, CONSTRAINT, CROSS, CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP,
-     * DISTINCT, EXCEPT, EXISTS, FALSE, FETCH, FOR, FOREIGN, FROM, FULL, GROUP,
-     * HAVING, INNER, INTERSECT, INTERSECTS, IS, JOIN, LIKE, LIMIT, LOCALTIME,
-     * LOCALTIMESTAMP, MINUS, NATURAL, NOT, NULL, OFFSET, ON, ORDER, PRIMARY, ROWNUM,
-     * SELECT, SYSDATE, SYSTIME, SYSTIMESTAMP, TODAY, TOP, TRUE, UNION, UNIQUE, WHERE,
-     * WITH
+     * ALL, ARRAY, CASE, CHECK, CONSTRAINT, CROSS, CURRENT_DATE,
+     * CURRENT_TIME, CURRENT_TIMESTAMP, CURRENT_USER, DISTINCT, EXCEPT,
+     * EXISTS, FALSE, FETCH, FOR, FOREIGN, FROM, FULL, GROUP, HAVING,
+     * IF, INNER, INTERSECT, INTERSECTS, INTERVAL, IS, JOIN, LIKE,
+     * LIMIT, LOCALTIME, LOCALTIMESTAMP, MINUS, NATURAL, NOT, NULL,
+     * OFFSET, ON, ORDER, PRIMARY, QUALIFY, ROW, ROWNUM, SELECT,
+     * SYSDATE, SYSTIME, SYSTIMESTAMP, TABLE, TODAY, TOP, TRUE, UNION,
+     * UNIQUE, VALUES, WHERE, WINDOW, WITH
      * </pre>
      *
      * @return a list of additional the keywords
@@ -1557,7 +1561,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public String getSQLKeywords() {
         debugCodeCall("getSQLKeywords");
-        return "INTERSECTS,LIMIT,MINUS,OFFSET,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY,TOP";
+        return "IF,INTERSECTS,LIMIT,MINUS,OFFSET,QUALIFY,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY,TOP";
     }
 
     /**
@@ -1611,24 +1615,27 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                     + "FROM INFORMATION_SCHEMA.HELP WHERE SECTION = ?");
             prep.setString(1, section);
             ResultSet rs = prep.executeQuery();
-            StatementBuilder buff = new StatementBuilder();
+            StringBuilder builder = new StringBuilder();
             while (rs.next()) {
                 String s = rs.getString(1).trim();
                 String[] array = StringUtils.arraySplit(s, ',', true);
                 for (String a : array) {
-                    buff.appendExceptFirst(",");
+                    if (builder.length() != 0) {
+                        builder.append(',');
+                    }
                     String f = a.trim();
                     int spaceIndex = f.indexOf(' ');
                     if (spaceIndex >= 0) {
                         // remove 'Function' from 'INSERT Function'
-                        f = StringUtils.trimSubstring(f, 0, spaceIndex);
+                        StringUtils.trimSubstring(builder, f, 0, spaceIndex);
+                    } else {
+                        builder.append(f);
                     }
-                    buff.append(f);
                 }
             }
             rs.close();
             prep.close();
-            return buff.toString();
+            return builder.toString();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -3089,14 +3096,14 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     }
 
     private static String getSchemaPattern(String pattern) {
-        return pattern == null ? "%" : pattern.length() == 0 ?
+        return pattern == null ? "%" : pattern.isEmpty() ?
                 Constants.SCHEMA_MAIN : pattern;
     }
 
     private static String getCatalogPattern(String catalogPattern) {
         // Workaround for OpenOffice: getColumns is called with "" as the
         // catalog
-        return catalogPattern == null || catalogPattern.length() == 0 ?
+        return catalogPattern == null || catalogPattern.isEmpty() ?
                 "%" : catalogPattern;
     }
 
@@ -3179,13 +3186,22 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public ResultSet getClientInfoProperties() throws SQLException {
         Properties clientInfo = conn.getClientInfo();
-        SimpleResultSet result = new SimpleResultSet();
-        result.addColumn("Name", Types.VARCHAR, 0, 0);
-        result.addColumn("Value", Types.VARCHAR, 0, 0);
-        for (Object key : clientInfo.keySet()) {
-            result.addRow(key, clientInfo.get(key));
+        SimpleResult result = new SimpleResult();
+        result.addColumn("NAME", "NAME", TypeInfo.TYPE_STRING);
+        result.addColumn("MAX_LEN", "MAX_LEN", TypeInfo.TYPE_INT);
+        result.addColumn("DEFAULT_VALUE", "DEFAULT_VALUE", TypeInfo.TYPE_STRING);
+        result.addColumn("DESCRIPTION", "DESCRIPTION", TypeInfo.TYPE_STRING);
+        // Non-standard column
+        result.addColumn("VALUE", "VALUE", TypeInfo.TYPE_STRING);
+        for (Entry<Object, Object> entry : clientInfo.entrySet()) {
+            result.addRow(ValueString.get((String) entry.getKey()), ValueInt.get(Integer.MAX_VALUE),
+                    ValueString.EMPTY, ValueString.EMPTY, ValueString.get((String) entry.getValue()));
         }
-        return result;
+        int id = getNextId(TraceObject.RESULT_SET);
+        if (isDebugEnabled()) {
+            debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id, "getClientInfoProperties()");
+        }
+        return new JdbcResultSet(conn, null, null, result, id, false, true, false);
     }
 
     /**

@@ -54,18 +54,8 @@ public class ValueJson extends Value {
     }
 
     @Override
-    public int getType() {
-        return Value.JSON;
-    }
-
-    @Override
-    public long getPrecision() {
-        return 0;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return 0;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_JSON;
     }
 
     @Override
@@ -105,7 +95,7 @@ public class ValueJson extends Value {
         if (json.isArray()) {
             String key = v.getString();
             return get(((ObjectNode) json).remove(key));
-        } else if (json.isArray() && v.getType() == Value.INT) {
+        } else if (json.isArray() && v.getType() == TypeInfo.TYPE_INT) {
             Integer key = v.getInt();
             return get(((ArrayNode) json).remove(key));
         } else {
@@ -115,6 +105,18 @@ public class ValueJson extends Value {
 
     @Override
     public int compareTypeSafe(Value v, CompareMode mode) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public StringBuilder getSQL(StringBuilder builder) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public int getValueType() {
         // TODO Auto-generated method stub
         return 0;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -43,6 +43,8 @@ public class ValueLobDb extends Value {
      * the value type (Value.BLOB or CLOB)
      */
     private final int valueType;
+
+    private TypeInfo type;
     /**
      * If the LOB is managed by the one the LobStorageBackend classes, these are the
      * unique key inside that storage.
@@ -176,10 +178,10 @@ public class ValueLobDb extends Value {
     private static String createTempLobFileName(DataHandler handler)
             throws IOException {
         String path = handler.getDatabasePath();
-        if (path.length() == 0) {
+        if (path.isEmpty()) {
             path = SysProperties.PREFIX_TEMP_FILE;
         }
-        return FileUtils.createTempFile(path, Constants.SUFFIX_TEMP_FILE, true, true);
+        return FileUtils.createTempFile(path, Constants.SUFFIX_TEMP_FILE, true);
     }
 
     /**
@@ -203,15 +205,13 @@ public class ValueLobDb extends Value {
      * except when converting to BLOB or CLOB.
      *
      * @param t the new type
-     * @param precision the precision
      * @param mode the mode
      * @param column the column (if any), used for to improve the error message if conversion fails
-     * @param enumerators the ENUM datatype enumerators (if any),
-     *        for dealing with ENUM conversions
+     * @param extTypeInfo the extended data type information, or null
      * @return the converted value
      */
     @Override
-    public Value convertTo(int t, int precision, Mode mode, Object column, String[] enumerators) {
+    protected Value convertTo(int t, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
         if (t == valueType) {
             return this;
         } else if (t == Value.CLOB) {
@@ -229,7 +229,7 @@ public class ValueLobDb extends Value {
                 return ValueLobDb.createSmallLob(t, small);
             }
         }
-        return super.convertTo(t, precision, mode, column, null);
+        return super.convertTo(t, mode, column, null);
     }
 
     @Override
@@ -262,14 +262,14 @@ public class ValueLobDb extends Value {
     @Override
     public Value copy(DataHandler database, int tableId) {
         if (small == null) {
-            return handler.getLobStorage().copyLob(this, tableId, getPrecision());
+            return handler.getLobStorage().copyLob(this, tableId, precision);
         } else if (small.length > database.getMaxLengthInplaceLob()) {
             LobStorageInterface s = database.getLobStorage();
             Value v;
             if (valueType == Value.BLOB) {
-                v = s.createBlob(getInputStream(), getPrecision());
+                v = s.createBlob(getInputStream(), precision);
             } else {
-                v = s.createClob(getReader(), getPrecision());
+                v = s.createClob(getReader(), precision);
             }
             Value v2 = v.copy(database, tableId);
             v.remove();
@@ -289,13 +289,17 @@ public class ValueLobDb extends Value {
     }
 
     @Override
-    public int getType() {
-        return valueType;
+    public TypeInfo getType() {
+        TypeInfo type = this.type;
+        if (type == null) {
+            this.type = type = new TypeInfo(valueType, precision, 0, MathUtils.convertLongToInt(precision), null);
+        }
+        return type;
     }
 
     @Override
-    public long getPrecision() {
-        return precision;
+    public int getValueType() {
+        return valueType;
     }
 
     @Override
@@ -450,7 +454,7 @@ public class ValueLobDb extends Value {
     @Override
     public void set(PreparedStatement prep, int parameterIndex)
             throws SQLException {
-        long p = getPrecision();
+        long p = precision;
         if (p > Integer.MAX_VALUE || p <= 0) {
             p = -1;
         }
@@ -462,27 +466,26 @@ public class ValueLobDb extends Value {
     }
 
     @Override
-    public String getSQL() {
-        String s;
+    public StringBuilder getSQL(StringBuilder builder) {
         if (valueType == Value.CLOB) {
-            s = getString();
-            return StringUtils.quoteStringSQL(s);
+            StringUtils.quoteStringSQL(builder, getString());
+        } else {
+            builder.append("X'");
+            StringUtils.convertBytesToHex(builder, getBytes()).append('\'');
         }
-        byte[] buff = getBytes();
-        s = StringUtils.convertBytesToHex(buff);
-        return "X'" + s + "'";
+        return builder;
     }
 
     @Override
     public String getTraceSQL() {
-        if (small != null && getPrecision() <= SysProperties.MAX_TRACE_DATA_LENGTH) {
+        if (small != null && precision <= SysProperties.MAX_TRACE_DATA_LENGTH) {
             return getSQL();
         }
         StringBuilder buff = new StringBuilder();
         if (valueType == Value.CLOB) {
-            buff.append("SPACE(").append(getPrecision());
+            buff.append("SPACE(").append(precision);
         } else {
-            buff.append("CAST(REPEAT('00', ").append(getPrecision()).append(") AS BINARY");
+            buff.append("CAST(REPEAT('00', ").append(precision).append(") AS BINARY");
         }
         buff.append(" /* table: ").append(tableId).append(" id: ")
                 .append(lobId).append(" */)");
@@ -500,11 +503,6 @@ public class ValueLobDb extends Value {
     }
 
     @Override
-    public int getDisplaySize() {
-        return MathUtils.convertLongToInt(getPrecision());
-    }
-
-    @Override
     public boolean equals(Object other) {
         if (!(other instanceof ValueLobDb))
             return false;
@@ -517,7 +515,12 @@ public class ValueLobDb extends Value {
     @Override
     public int getMemory() {
         if (small != null) {
-            return small.length + 104;
+            /*
+             * Java 11 with -XX:-UseCompressedOops
+             * 0 bytes: 120 bytes
+             * 1 byte: 128 bytes
+             */
+            return small.length + 127;
         }
         return 140;
     }
@@ -548,8 +551,7 @@ public class ValueLobDb extends Value {
         if (s.isReadOnly()) {
             return this;
         }
-        return s.copyLob(this, LobStorageFrontend.TABLE_RESULT,
-                getPrecision());
+        return s.copyLob(this, LobStorageFrontend.TABLE_RESULT, precision);
     }
 
     public long getLobId() {

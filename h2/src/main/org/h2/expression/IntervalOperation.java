@@ -1,10 +1,17 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.expression;
 
+import static org.h2.util.DateTimeUtils.NANOS_PER_DAY;
+import static org.h2.util.DateTimeUtils.NANOS_PER_HOUR;
+import static org.h2.util.DateTimeUtils.NANOS_PER_MINUTE;
+import static org.h2.util.DateTimeUtils.absoluteDayFromDateValue;
+import static org.h2.util.DateTimeUtils.dateAndTimeFromValue;
+import static org.h2.util.DateTimeUtils.dateTimeToValue;
+import static org.h2.util.DateTimeUtils.dateValueFromAbsoluteDay;
 import static org.h2.util.IntervalUtils.NANOS_PER_DAY_BI;
 
 import java.math.BigDecimal;
@@ -13,13 +20,13 @@ import java.math.BigInteger;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.Session;
+import org.h2.expression.function.DateTimeFunctions;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.util.DateTimeFunctions;
-import org.h2.util.DateTimeUtils;
 import org.h2.util.IntervalUtils;
 import org.h2.value.DataType;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueInterval;
@@ -71,38 +78,46 @@ public class IntervalOperation extends Expression {
 
     private final IntervalOpType opType;
     private Expression left, right;
-    private int dataType;
+    private TypeInfo type;
+
+    private static BigInteger nanosFromValue(Value v) {
+        long[] a = dateAndTimeFromValue(v);
+        return BigInteger.valueOf(absoluteDayFromDateValue(a[0])).multiply(NANOS_PER_DAY_BI)
+                .add(BigInteger.valueOf(a[1]));
+    }
 
     public IntervalOperation(IntervalOpType opType, Expression left, Expression right) {
         this.opType = opType;
         this.left = left;
         this.right = right;
-        int l = left.getType(), r = right.getType();
+        int l = left.getType().getValueType(), r = right.getType().getValueType();
         switch (opType) {
         case INTERVAL_PLUS_INTERVAL:
         case INTERVAL_MINUS_INTERVAL:
-            dataType = Value.getHigherOrder(l, r);
+            type = TypeInfo.getTypeInfo(Value.getHigherOrder(l, r));
             break;
         case DATETIME_PLUS_INTERVAL:
         case DATETIME_MINUS_INTERVAL:
         case INTERVAL_MULTIPLY_NUMERIC:
         case INTERVAL_DIVIDE_NUMERIC:
-            dataType = l;
+            type = left.getType();
             break;
         case DATETIME_MINUS_DATETIME:
             if (l == Value.TIME && r == Value.TIME) {
-                dataType = Value.INTERVAL_HOUR_TO_SECOND;
+                type = TypeInfo.TYPE_INTERVAL_HOUR_TO_SECOND;
             } else if (l == Value.DATE && r == Value.DATE) {
-                dataType = Value.INTERVAL_DAY;
+                type = TypeInfo.TYPE_INTERVAL_DAY;
             } else {
-                dataType = Value.INTERVAL_DAY_TO_SECOND;
+                type = TypeInfo.TYPE_INTERVAL_DAY_TO_SECOND;
             }
         }
     }
 
     @Override
-    public String getSQL() {
-        return '(' + left.getSQL() + ' ' + getOperationToken() + ' ' + right.getSQL() + ')';
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append('(');
+        left.getSQL(builder).append(' ').append(getOperationToken()).append(' ');
+        return right.getSQL(builder).append(')');
     }
 
     private char getOperationToken() {
@@ -130,7 +145,7 @@ public class IntervalOperation extends Expression {
         if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
             return ValueNull.INSTANCE;
         }
-        int lType = l.getType(), rType = r.getType();
+        int lType = l.getValueType(), rType = r.getValueType();
         switch (opType) {
         case INTERVAL_PLUS_INTERVAL:
         case INTERVAL_MINUS_INTERVAL: {
@@ -158,29 +173,23 @@ public class IntervalOperation extends Expression {
                 if (negative) {
                     diff = -diff;
                 }
-                return ValueInterval.from(IntervalQualifier.HOUR_TO_SECOND, negative, diff / 3_600_000_000_000L,
-                        diff % 3_600_000_000_000L);
+                return ValueInterval.from(IntervalQualifier.HOUR_TO_SECOND, negative, diff / NANOS_PER_HOUR,
+                        diff % NANOS_PER_HOUR);
             } else if (lType == Value.DATE && rType == Value.DATE) {
-                long diff = DateTimeUtils.absoluteDayFromDateValue(((ValueDate) l).getDateValue())
-                        - DateTimeUtils.absoluteDayFromDateValue(((ValueDate) r).getDateValue());
+                long diff = absoluteDayFromDateValue(((ValueDate) l).getDateValue())
+                        - absoluteDayFromDateValue(((ValueDate) r).getDateValue());
                 boolean negative = diff < 0;
                 if (negative) {
                     diff = -diff;
                 }
                 return ValueInterval.from(IntervalQualifier.DAY, negative, diff, 0L);
             } else {
-                long[] a = DateTimeUtils.dateAndTimeFromValue(l);
-                long[] b = DateTimeUtils.dateAndTimeFromValue(r);
-                BigInteger bi1 = BigInteger.valueOf(a[0]).multiply(NANOS_PER_DAY_BI)
-                        .add(BigInteger.valueOf(a[1]));
-                BigInteger bi2 = BigInteger.valueOf(b[0]).multiply(NANOS_PER_DAY_BI)
-                        .add(BigInteger.valueOf(b[1]));
-                BigInteger diff = bi1.subtract(bi2);
+                BigInteger diff = nanosFromValue(l).subtract(nanosFromValue(r));
                 if (lType == Value.TIMESTAMP_TZ || rType == Value.TIMESTAMP_TZ) {
                     l = l.convertTo(Value.TIMESTAMP_TZ);
                     r = r.convertTo(Value.TIMESTAMP_TZ);
                     diff = diff.add(BigInteger.valueOf((((ValueTimestampTimeZone) r).getTimeZoneOffsetMins()
-                            - ((ValueTimestampTimeZone) l).getTimeZoneOffsetMins()) * 60_000_000_000L));
+                            - ((ValueTimestampTimeZone) l).getTimeZoneOffsetMins()) * NANOS_PER_MINUTE));
                 }
                 return IntervalUtils.intervalFromAbsolute(IntervalQualifier.DAY_TO_SECOND, diff);
             }
@@ -214,14 +223,13 @@ public class IntervalOperation extends Expression {
             } else {
                 BigInteger a2 = IntervalUtils.intervalToAbsolute((ValueInterval) r);
                 if (lType == Value.DATE) {
-                    BigInteger a1 = BigInteger
-                            .valueOf(DateTimeUtils.absoluteDayFromDateValue(((ValueDate) l).getDateValue()));
+                    BigInteger a1 = BigInteger.valueOf(absoluteDayFromDateValue(((ValueDate) l).getDateValue()));
                     a2 = a2.divide(NANOS_PER_DAY_BI);
                     BigInteger n = opType == IntervalOpType.DATETIME_PLUS_INTERVAL ? a1.add(a2) : a1.subtract(a2);
-                    return ValueDate.fromDateValue(DateTimeUtils.dateValueFromAbsoluteDay(n.longValue()));
+                    return ValueDate.fromDateValue(dateValueFromAbsoluteDay(n.longValue()));
                 } else {
-                    long[] a = DateTimeUtils.dateAndTimeFromValue(l);
-                    long absoluteDay = DateTimeUtils.absoluteDayFromDateValue(a[0]);
+                    long[] a = dateAndTimeFromValue(l);
+                    long absoluteDay = absoluteDayFromDateValue(a[0]);
                     long timeNanos = a[1];
                     BigInteger[] dr = a2.divideAndRemainder(NANOS_PER_DAY_BI);
                     if (opType == IntervalOpType.DATETIME_PLUS_INTERVAL) {
@@ -231,15 +239,14 @@ public class IntervalOperation extends Expression {
                         absoluteDay -= dr[0].longValue();
                         timeNanos -= dr[1].longValue();
                     }
-                    if (timeNanos >= DateTimeUtils.NANOS_PER_DAY) {
-                        timeNanos -= DateTimeUtils.NANOS_PER_DAY;
+                    if (timeNanos >= NANOS_PER_DAY) {
+                        timeNanos -= NANOS_PER_DAY;
                         absoluteDay++;
                     } else if (timeNanos < 0) {
-                        timeNanos += DateTimeUtils.NANOS_PER_DAY;
+                        timeNanos += NANOS_PER_DAY;
                         absoluteDay--;
                     }
-                    return DateTimeUtils.dateTimeToValue(l, DateTimeUtils.dateValueFromAbsoluteDay(absoluteDay),
-                            timeNanos, false);
+                    return dateTimeToValue(l, dateValueFromAbsoluteDay(absoluteDay), timeNanos, false);
                 }
             }
         }
@@ -247,10 +254,10 @@ public class IntervalOperation extends Expression {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
-        left.mapColumns(resolver, level);
+    public void mapColumns(ColumnResolver resolver, int level, int state) {
+        left.mapColumns(resolver, level, state);
         if (right != null) {
-            right.mapColumns(resolver, level);
+            right.mapColumns(resolver, level, state);
         }
     }
 
@@ -271,29 +278,14 @@ public class IntervalOperation extends Expression {
     }
 
     @Override
-    public int getType() {
-        return dataType;
+    public TypeInfo getType() {
+        return type;
     }
 
     @Override
-    public long getPrecision() {
-        return Math.max(left.getPrecision(), right.getPrecision());
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return Math.max(left.getDisplaySize(), right.getDisplaySize());
-    }
-
-    @Override
-    public int getScale() {
-        return Math.max(left.getScale(), right.getScale());
-    }
-
-    @Override
-    public void updateAggregate(Session session) {
-        left.updateAggregate(session);
-        right.updateAggregate(session);
+    public void updateAggregate(Session session, int stage) {
+        left.updateAggregate(session, stage);
+        right.updateAggregate(session, stage);
     }
 
     @Override
@@ -306,22 +298,21 @@ public class IntervalOperation extends Expression {
         return left.getCost() + 1 + right.getCost();
     }
 
-    /**
-     * Get the left sub-expression of this operation.
-     *
-     * @return the left sub-expression
-     */
-    public Expression getLeftSubExpression() {
-        return left;
+    @Override
+    public int getSubexpressionCount() {
+        return 2;
     }
 
-    /**
-     * Get the right sub-expression of this operation.
-     *
-     * @return the right sub-expression
-     */
-    public Expression getRightSubExpression() {
-        return right;
+    @Override
+    public Expression getSubexpression(int index) {
+        switch (index) {
+        case 0:
+            return left;
+        case 1:
+            return right;
+        default:
+            throw new IndexOutOfBoundsException();
+        }
     }
 
 }

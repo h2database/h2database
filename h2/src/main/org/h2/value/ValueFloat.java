@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -92,21 +92,27 @@ public class ValueFloat extends Value {
     }
 
     @Override
-    public String getSQL() {
+    public StringBuilder getSQL(StringBuilder builder) {
         if (value == Float.POSITIVE_INFINITY) {
-            return "POWER(0, -1)";
+            builder.append("POWER(0, -1)");
         } else if (value == Float.NEGATIVE_INFINITY) {
-            return "(-POWER(0, -1))";
+            builder.append("(-POWER(0, -1))");
         } else if (Float.isNaN(value)) {
-            // NaN
-            return "SQRT(-1)";
+            builder.append("SQRT(-1)");
+        } else {
+            builder.append(value);
         }
-        return getString();
+        return builder;
     }
 
     @Override
-    public int getType() {
-        return Value.FLOAT;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_FLOAT;
+    }
+
+    @Override
+    public int getValueType() {
+        return FLOAT;
     }
 
     @Override
@@ -125,18 +131,13 @@ public class ValueFloat extends Value {
     }
 
     @Override
+    public double getDouble() {
+        return value;
+    }
+
+    @Override
     public String getString() {
         return Float.toString(value);
-    }
-
-    @Override
-    public long getPrecision() {
-        return PRECISION;
-    }
-
-    @Override
-    public int getScale() {
-        return 0;
     }
 
     @Override
@@ -175,11 +176,6 @@ public class ValueFloat extends Value {
             return NAN;
         }
         return (ValueFloat) Value.cache(new ValueFloat(d));
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return DISPLAY_SIZE;
     }
 
     @Override

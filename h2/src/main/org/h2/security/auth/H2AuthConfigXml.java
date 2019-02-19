@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: Alessandro Ventura
  */
@@ -20,9 +20,8 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 public class H2AuthConfigXml extends DefaultHandler{
 
-    H2AuthConfig result;
-
-    HasConfigProperties lastConfigProperties;
+    private H2AuthConfig result;
+    private HasConfigProperties lastConfigProperties;
 
     @Override
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
@@ -68,7 +67,7 @@ public class H2AuthConfigXml extends DefaultHandler{
         }
     }
 
-    static String getMandatoryAttributeValue(String attributeName, Attributes attributes) throws SAXException {
+    private static String getMandatoryAttributeValue(String attributeName, Attributes attributes) throws SAXException {
         String attributeValue=attributes.getValue(attributeName);
         if (attributeValue==null || attributeValue.trim().equals("")) {
             throw new SAXException("missing attribute "+attributeName);
@@ -77,7 +76,7 @@ public class H2AuthConfigXml extends DefaultHandler{
 
     }
 
-    static String getAttributeValueOr(String attributeName, Attributes attributes, String defaultValue) {
+    private static String getAttributeValueOr(String attributeName, Attributes attributes, String defaultValue) {
         String attributeValue=attributes.getValue(attributeName);
         if (attributeValue==null || attributeValue.trim().equals("")) {
             return defaultValue;
@@ -85,12 +84,23 @@ public class H2AuthConfigXml extends DefaultHandler{
         return attributeValue;
     }
 
+    /**
+     * Returns parsed authenticator configuration.
+     *
+     * @return Authenticator configuration.
+     */
     public H2AuthConfig getResult() {
         return result;
     }
 
     /**
-     * Parse the xml
+     * Parse the xml.
+     *
+     * @param url the source of the xml configuration.
+     * @return Authenticator configuration.
+     * @throws ParserConfigurationException if a parser cannot be created.
+     * @throws SAXException for SAX errors.
+     * @throws IOException If an I/O error occurs
      */
     public static H2AuthConfig parseFrom(URL url)
             throws SAXException, IOException, ParserConfigurationException {
@@ -99,6 +109,15 @@ public class H2AuthConfigXml extends DefaultHandler{
         }
     }
 
+    /**
+     * Parse the xml.
+     *
+     * @param inputStream the source of the xml configuration.
+     * @return Authenticator configuration.
+     * @throws ParserConfigurationException if a parser cannot be created.
+     * @throws SAXException for SAX errors.
+     * @throws IOException If an I/O error occurs
+     */
     public static H2AuthConfig parseFrom(InputStream inputStream)
             throws SAXException, IOException, ParserConfigurationException {
         SAXParser saxParser = SAXParserFactory.newInstance().newSAXParser();

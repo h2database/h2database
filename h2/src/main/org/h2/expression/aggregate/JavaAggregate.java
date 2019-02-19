@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -8,7 +8,6 @@ package org.h2.expression.aggregate;
 import java.sql.Connection;
 import java.sql.SQLException;
 import org.h2.api.Aggregate;
-import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.command.dml.Select;
 import org.h2.engine.Session;
@@ -16,36 +15,26 @@ import org.h2.engine.UserAggregate;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.message.DbException;
-import org.h2.table.ColumnResolver;
-import org.h2.table.TableFilter;
-import org.h2.util.StatementBuilder;
 import org.h2.value.DataType;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
+import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueRow;
 
 /**
  * This class wraps a user-defined aggregate.
  */
-public class JavaAggregate extends Expression {
+public class JavaAggregate extends AbstractAggregate {
 
     private final UserAggregate userAggregate;
-    private final Select select;
-    private final Expression[] args;
     private int[] argTypes;
-    private final boolean distinct;
-    private Expression filterCondition;
     private int dataType;
     private Connection userConnection;
-    private int lastGroupRowId;
 
-    public JavaAggregate(UserAggregate userAggregate, Expression[] args,
-            Select select, boolean distinct, Expression filterCondition) {
+    public JavaAggregate(UserAggregate userAggregate, Expression[] args, Select select, boolean distinct) {
+        super(select, args, distinct);
         this.userAggregate = userAggregate;
-        this.args = args;
-        this.select = select;
-        this.distinct = distinct;
-        this.filterCondition = filterCondition;
     }
 
     @Override
@@ -61,47 +50,23 @@ public class JavaAggregate extends Expression {
     }
 
     @Override
-    public long getPrecision() {
-        return Integer.MAX_VALUE;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return Integer.MAX_VALUE;
-    }
-
-    @Override
-    public int getScale() {
-        return DataType.getDataType(dataType).defaultScale;
-    }
-
-    @Override
-    public String getSQL() {
-        StatementBuilder buff = new StatementBuilder();
-        buff.append(Parser.quoteIdentifier(userAggregate.getName())).append('(');
-        for (Expression e : args) {
-            buff.appendExceptFirst(", ");
-            buff.append(e.getSQL());
-        }
-        buff.append(')');
-        if (filterCondition != null) {
-            buff.append(" FILTER (WHERE ").append(filterCondition.getSQL()).append(')');
-        }
-        return buff.toString();
-    }
-
-    @Override
-    public int getType() {
-        return dataType;
+    public StringBuilder getSQL(StringBuilder builder) {
+        Parser.quoteIdentifier(builder, userAggregate.getName()).append('(');
+        writeExpressions(builder, args);
+        builder.append(')');
+        return appendTailConditions(builder);
     }
 
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
+        if (!super.isEverything(visitor)) {
+            return false;
+        }
         switch (visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC:
             // TODO optimization: some functions are deterministic, but we don't
             // know (no setting for that)
-        case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
+        case ExpressionVisitor.OPTIMIZABLE_AGGREGATE:
             // user defined aggregate functions can not be optimized
             return false;
         case ExpressionVisitor.GET_DEPENDENCIES:
@@ -118,70 +83,48 @@ public class JavaAggregate extends Expression {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
-        for (Expression arg : args) {
-            arg.mapColumns(resolver, level);
-        }
-        if (filterCondition != null) {
-            filterCondition.mapColumns(resolver, level);
-        }
-    }
-
-    @Override
     public Expression optimize(Session session) {
+        super.optimize(session);
         userConnection = session.createConnection(false);
         int len = args.length;
         argTypes = new int[len];
         for (int i = 0; i < len; i++) {
-            Expression expr = args[i];
-            args[i] = expr.optimize(session);
-            int type = expr.getType();
+            int type = args[i].getType().getValueType();
             argTypes[i] = type;
         }
         try {
             Aggregate aggregate = getInstance();
             dataType = aggregate.getInternalType(argTypes);
+            type = TypeInfo.getTypeInfo(dataType);
         } catch (SQLException e) {
             throw DbException.convert(e);
-        }
-        if (filterCondition != null) {
-            filterCondition = filterCondition.optimize(session);
         }
         return this;
     }
 
-    @Override
-    public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        for (Expression e : args) {
-            e.setEvaluatable(tableFilter, b);
-        }
-        if (filterCondition != null) {
-            filterCondition.setEvaluatable(tableFilter, b);
-        }
-    }
-
-    private Aggregate getInstance() throws SQLException {
+    private Aggregate getInstance() {
         Aggregate agg = userAggregate.getInstance();
-        agg.init(userConnection);
+        try {
+            agg.init(userConnection);
+        } catch (SQLException ex) {
+            throw DbException.convert(ex);
+        }
         return agg;
     }
 
     @Override
-    public Value getValue(Session session) {
-        if (!select.isCurrentGroup()) {
-            throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
-        }
+    public Value getAggregatedValue(Session session, Object aggregateData) {
         try {
             Aggregate agg;
             if (distinct) {
                 agg = getInstance();
-                AggregateDataCollecting data = (AggregateDataCollecting) select.getCurrentGroupExprData(this);
+                AggregateDataCollecting data = (AggregateDataCollecting) aggregateData;
                 if (data != null) {
                     for (Value value : data.values) {
                         if (args.length == 1) {
                             agg.add(value.getObject());
                         } else {
-                            Value[] values = ((ValueArray) value).getList();
+                            Value[] values = ((ValueRow) value).getList();
                             Object[] argValues = new Object[args.length];
                             for (int i = 0, len = args.length; i < len; i++) {
                                 argValues[i] = values[i].getObject();
@@ -191,7 +134,7 @@ public class JavaAggregate extends Expression {
                     }
                 }
             } else {
-                agg = (Aggregate) select.getCurrentGroupExprData(this);
+                agg = (Aggregate) aggregateData;
                 if (agg == null) {
                     agg = getInstance();
                 }
@@ -207,50 +150,28 @@ public class JavaAggregate extends Expression {
     }
 
     @Override
-    public void updateAggregate(Session session) {
-        if (!select.isCurrentGroup()) {
-            // this is a different level (the enclosing query)
-            return;
-        }
+    protected void updateAggregate(Session session, Object aggregateData) {
+        updateData(session, aggregateData, null);
+    }
 
-        int groupRowId = select.getCurrentGroupRowId();
-        if (lastGroupRowId == groupRowId) {
-            // already visited
-            return;
-        }
-        lastGroupRowId = groupRowId;
-
-        if (filterCondition != null) {
-            if (!filterCondition.getBooleanValue(session)) {
-                return;
-            }
-        }
-
+    private void updateData(Session session, Object aggregateData, Value[] remembered) {
         try {
             if (distinct) {
-                AggregateDataCollecting data = (AggregateDataCollecting) select.getCurrentGroupExprData(this);
-                if (data == null) {
-                    data = new AggregateDataCollecting();
-                    select.setCurrentGroupExprData(this, data);
-                }
+                AggregateDataCollecting data = (AggregateDataCollecting) aggregateData;
                 Value[] argValues = new Value[args.length];
                 Value arg = null;
                 for (int i = 0, len = args.length; i < len; i++) {
-                    arg = args[i].getValue(session);
+                    arg = remembered == null ? args[i].getValue(session) : remembered[i];
                     arg = arg.convertTo(argTypes[i]);
                     argValues[i] = arg;
                 }
-                data.add(session.getDatabase(), dataType, true, args.length == 1 ? arg : ValueArray.get(argValues));
+                data.add(session.getDatabase(), args.length == 1 ? arg : ValueRow.get(argValues));
             } else {
-                Aggregate agg = (Aggregate) select.getCurrentGroupExprData(this);
-                if (agg == null) {
-                    agg = getInstance();
-                    select.setCurrentGroupExprData(this, agg);
-                }
+                Aggregate agg = (Aggregate) aggregateData;
                 Object[] argValues = new Object[args.length];
                 Object arg = null;
                 for (int i = 0, len = args.length; i < len; i++) {
-                    Value v = args[i].getValue(session);
+                    Value v = remembered == null ? args[i].getValue(session) : remembered[i];
                     v = v.convertTo(argTypes[i]);
                     arg = v.getObject();
                     argValues[i] = arg;
@@ -260,6 +181,46 @@ public class JavaAggregate extends Expression {
         } catch (SQLException e) {
             throw DbException.convert(e);
         }
+    }
+
+    @Override
+    protected void updateGroupAggregates(Session session, int stage) {
+        super.updateGroupAggregates(session, stage);
+        for (Expression expr : args) {
+            expr.updateAggregate(session, stage);
+        }
+    }
+
+    @Override
+    protected int getNumExpressions() {
+        int n = args.length;
+        if (filterCondition != null) {
+            n++;
+        }
+        return n;
+    }
+
+    @Override
+    protected void rememberExpressions(Session session, Value[] array) {
+        int length = args.length;
+        for (int i = 0; i < length; i++) {
+            array[i] = args[i].getValue(session);
+        }
+        if (filterCondition != null) {
+            array[length] = ValueBoolean.get(filterCondition.getBooleanValue(session));
+        }
+    }
+
+    @Override
+    protected void updateFromExpressions(Session session, Object aggregateData, Value[] array) {
+        if (filterCondition == null || array[getNumExpressions() - 1].getBoolean()) {
+            updateData(session, aggregateData, array);
+        }
+    }
+
+    @Override
+    protected Object createAggregateData() {
+        return distinct ? new AggregateDataCollecting(true) : getInstance();
     }
 
 }

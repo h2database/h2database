@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -135,18 +135,21 @@ public class Right extends DbObjectBase {
         StringBuilder buff = new StringBuilder();
         buff.append("GRANT ");
         if (grantedRole != null) {
-            buff.append(grantedRole.getSQL());
+            grantedRole.getSQL(buff);
         } else {
             buff.append(getRights());
             if (object != null) {
                 if (object instanceof Schema) {
-                    buff.append(" ON SCHEMA ").append(object.getSQL());
+                    buff.append(" ON SCHEMA ");
+                    object.getSQL(buff);
                 } else if (object instanceof Table) {
-                    buff.append(" ON ").append(object.getSQL());
+                    buff.append(" ON ");
+                    object.getSQL(buff);
                 }
             }
         }
-        buff.append(" TO ").append(grantee.getSQL());
+        buff.append(" TO ");
+        grantee.getSQL(buff);
         return buff.toString();
     }
 

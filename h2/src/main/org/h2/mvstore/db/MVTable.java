@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
@@ -105,7 +106,7 @@ public class MVTable extends TableBase {
 
     private MVPrimaryIndex primaryIndex;
     private final ArrayList<Index> indexes = Utils.newSmallArrayList();
-    private volatile long lastModificationId;
+    private final AtomicLong lastModificationId = new AtomicLong();
     private volatile Session lockExclusiveSession;
 
     // using a ConcurrentHashMap as a set
@@ -135,7 +136,7 @@ public class MVTable extends TableBase {
         this.isHidden = data.isHidden;
         boolean b = false;
         for (Column col : getColumns()) {
-            if (DataType.isLargeObject(col.getType())) {
+            if (DataType.isLargeObject(col.getType().getValueType())) {
                 b = true;
                 break;
             }
@@ -608,7 +609,7 @@ public class MVTable extends TableBase {
         } else {
             addRowsToIndex(session, buffer, index);
         }
-        if (SysProperties.CHECK && remaining != 0) {
+        if (remaining != 0) {
             DbException.throwInternalError("rowcount remaining=" + remaining +
                     " " + getName());
         }
@@ -635,7 +636,7 @@ public class MVTable extends TableBase {
             remaining--;
         }
         addRowsToIndex(session, buffer, index);
-        if (SysProperties.CHECK && remaining != 0) {
+        if (remaining != 0) {
             DbException.throwInternalError("rowcount remaining=" + remaining +
                     " " + getName());
         }
@@ -661,7 +662,7 @@ public class MVTable extends TableBase {
 
     @Override
     public void removeRow(Session session, Row row) {
-        lastModificationId = database.getNextModificationDataId();
+        syncLastModificationIdWithDatabase();
         Transaction t = session.getTransaction();
         long savepoint = t.setSavepoint();
         try {
@@ -682,7 +683,7 @@ public class MVTable extends TableBase {
 
     @Override
     public void truncate(Session session) {
-        lastModificationId = database.getNextModificationDataId();
+        syncLastModificationIdWithDatabase();
         for (int i = indexes.size() - 1; i >= 0; i--) {
             Index index = indexes.get(i);
             index.truncate(session);
@@ -694,7 +695,7 @@ public class MVTable extends TableBase {
 
     @Override
     public void addRow(Session session, Row row) {
-        lastModificationId = database.getNextModificationDataId();
+        syncLastModificationIdWithDatabase();
         Transaction t = session.getTransaction();
         long savepoint = t.setSavepoint();
         try {
@@ -715,7 +716,7 @@ public class MVTable extends TableBase {
     @Override
     public void updateRow(Session session, Row oldRow, Row newRow) {
         newRow.setKey(oldRow.getKey());
-        lastModificationId = database.getNextModificationDataId();
+        syncLastModificationIdWithDatabase();
         Transaction t = session.getTransaction();
         long savepoint = t.setSavepoint();
         try {
@@ -736,6 +737,11 @@ public class MVTable extends TableBase {
     @Override
     public void lockRows(Session session, Iterable<Row> rowsForUpdate) {
         primaryIndex.lockRows(session, rowsForUpdate);
+    }
+
+    @Override
+    public Row lockRow(Session session, Row row) {
+        return primaryIndex.lockRow(session, row);
     }
 
     private void analyzeIfRequired(Session session) {
@@ -777,7 +783,7 @@ public class MVTable extends TableBase {
 
     @Override
     public long getMaxDataModificationId() {
-        return lastModificationId;
+        return lastModificationId.get();
     }
 
     public boolean getContainsLargeObject() {
@@ -890,8 +896,24 @@ public class MVTable extends TableBase {
      */
     public void commit() {
         if (database != null) {
-            lastModificationId = database.getNextModificationDataId();
+            syncLastModificationIdWithDatabase();
         }
+    }
+
+    // Field lastModificationId can not be just a volatile, because window of opportunity
+    // between reading database's modification id and storing this value in the field
+    // could be exploited by another thread.
+    // Second thread may do the same with possibly bigger (already advanced)
+    // modification id, and when first thread finally updates the field, it will
+    // result in lastModificationId jumping back.
+    // This is, of course, unacceptable.
+    private void syncLastModificationIdWithDatabase() {
+        long nextModificationDataId = database.getNextModificationDataId();
+        long currentId;
+        do {
+            currentId = lastModificationId.get();
+        } while (nextModificationDataId > currentId &&
+                !lastModificationId.compareAndSet(currentId, nextModificationDataId));
     }
 
     /**

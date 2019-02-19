@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: Alessandro Ventura
  */
@@ -33,7 +33,7 @@ import org.xml.sax.SAXException;
  * Default authenticator implementation.
  * <p>
  * When client connectionInfo contains property AUTHREALM={realName} credentials
- * (typically user id and password) are validated by by
+ * (typically user id and password) are validated by
  * {@link org.h2.api.CredentialsValidator} configured for that realm.
  * </p>
  * <p>
@@ -54,19 +54,12 @@ public class DefaultAuthenticator implements Authenticator {
     public static final String DEFAULT_REALMNAME = "H2";
 
     private Map<String, CredentialsValidator> realms = new HashMap<>();
-
     private List<UserToRolesMapper> userToRolesMappers = new ArrayList<>();
-
     private boolean allowUserRegistration;
-
     private boolean persistUsers;
-
     private boolean createMissingRoles;
-
     private boolean skipDefaultInitialization;
-
     private boolean initialized;
-
     private static DefaultAuthenticator instance;
 
     protected static final DefaultAuthenticator getInstance() {
@@ -95,34 +88,62 @@ public class DefaultAuthenticator implements Authenticator {
 
     /**
      * If set save users externals defined during the authentication.
+     *
+     * @return {@code true} if user will be persisted,
+     *      otherwise returns {@code false}
      */
     public boolean isPersistUsers() {
         return persistUsers;
     }
 
+    /**
+     * If set to {@code true} saves users externals defined during the authentication.
+     *
+     * @param persistUsers {@code true} if user will be persisted,
+     *      otherwise {@code false}.
+     */
     public void setPersistUsers(boolean persistUsers) {
         this.persistUsers = persistUsers;
     }
 
     /**
      * If set create external users in the database if not present.
+     *
+     * @return {@code true} if creation external user is allowed,
+     *      otherwise returns {@code false}
      */
     public boolean isAllowUserRegistration() {
         return allowUserRegistration;
     }
 
+    /**
+     * If set to{@code true} creates external users in the database if not present.
+     *
+     * @param allowUserRegistration {@code true} if creation external user is allowed,
+     *      otherwise returns {@code false}
+     */
     public void setAllowUserRegistration(boolean allowUserRegistration) {
         this.allowUserRegistration = allowUserRegistration;
     }
 
     /**
      * When set create roles not found in the database. If not set roles not
-     * found in the database are silently skipped
+     * found in the database are silently skipped.
+     *
+     * @return {@code true} if not found roles will be created,
+     *      {@code false} roles are silently skipped.
      */
     public boolean isCreateMissingRoles() {
         return createMissingRoles;
     }
 
+    /**
+     * Sets the flag that define behavior in case external roles not found in the database.
+     *
+     *
+     * @param createMissingRoles when is {@code true} not found roles are created,
+     *      when is {@code false} roles are silently skipped.
+     */
     public void setCreateMissingRoles(boolean createMissingRoles) {
         this.createMissingRoles = createMissingRoles;
     }
@@ -209,7 +230,7 @@ public class DefaultAuthenticator implements Authenticator {
         }
     }
 
-    void defaultConfiguration() {
+    private void defaultConfiguration() {
         createMissingRoles = false;
         allowUserRegistration = true;
         realms = new HashMap<>();
@@ -232,7 +253,7 @@ public class DefaultAuthenticator implements Authenticator {
         configureFrom(config);
     }
 
-    void configureFrom(H2AuthConfig config) throws AuthenticationException {
+    private void configureFrom(H2AuthConfig config) throws AuthenticationException {
         allowUserRegistration = config.isAllowUserRegistration();
         createMissingRoles = config.isCreateMissingRoles();
         Map<String, CredentialsValidator> newRealms = new HashMap<>();
@@ -270,7 +291,7 @@ public class DefaultAuthenticator implements Authenticator {
         this.userToRolesMappers = newUserToRolesMapper;
     }
 
-    boolean updateRoles(AuthenticationInfo authenticationInfo, User user, Database database)
+    private boolean updateRoles(AuthenticationInfo authenticationInfo, User user, Database database)
             throws AuthenticationException {
         boolean updatedDb = false;
         Set<String> roles = new HashSet<>();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -46,6 +46,7 @@ public class TestViewAlterTable extends TestDb {
         testJoinAndAlias();
         testSubSelect();
         testForeignKey();
+        testAlterTableDropColumnInViewWithDoubleQuotes();
 
         conn.close();
         deleteDb(getTestName());
@@ -73,7 +74,7 @@ public class TestViewAlterTable extends TestDb {
         stat.execute("create table test(id identity, name varchar) " +
                 "as select x, 'Hello'");
         stat.execute("create view test_view as select * from test");
-        assertThrows(ErrorCode.VIEW_IS_INVALID_2, stat).
+        assertThrows(ErrorCode.COLUMN_IS_REFERENCED_1, stat).
                 execute("alter table test drop name");
         ResultSet rs = stat.executeQuery("select * from test_view");
         assertTrue(rs.next());
@@ -83,7 +84,7 @@ public class TestViewAlterTable extends TestDb {
         // nested
         createTestData();
         // should throw exception because V1 uses column A
-        assertThrows(ErrorCode.VIEW_IS_INVALID_2, stat).
+        assertThrows(ErrorCode.COLUMN_IS_REFERENCED_1, stat).
                 execute("alter table test drop column a");
         stat.execute("drop table test cascade");
     }
@@ -196,5 +197,19 @@ public class TestViewAlterTable extends TestDb {
                     "INFORMATION_SCHEMA", rs.getString(2));
         }
 
+    }
+
+    // original error: table "XX_COPY_xx_xx" not found
+    private void testAlterTableDropColumnInViewWithDoubleQuotes() throws SQLException{
+        // simple
+        stat.execute("create table \"test\"(id identity, name varchar) " +
+                "as select x, 'Hello'");
+        stat.execute("create view test_view as select * from \"test\"");
+        assertThrows(ErrorCode.COLUMN_IS_REFERENCED_1, stat).
+                execute("alter table \"test\" drop name");
+        ResultSet rs = stat.executeQuery("select * from test_view");
+        assertTrue(rs.next());
+        stat.execute("drop view test_view");
+        stat.execute("drop table \"test\"");
     }
 }

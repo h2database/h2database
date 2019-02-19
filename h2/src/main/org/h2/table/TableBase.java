@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -14,7 +14,6 @@ import org.h2.index.IndexType;
 import org.h2.mvstore.db.MVTableEngine;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
 
@@ -51,7 +50,7 @@ public abstract class TableBase extends Table {
         if (first.sortType != SortOrder.ASCENDING) {
             return SearchRow.ROWID_INDEX;
         }
-        switch (first.column.getType()) {
+        switch (first.column.getType().getValueType()) {
         case Value.BYTE:
         case Value.SHORT:
         case Value.INT:
@@ -79,7 +78,9 @@ public abstract class TableBase extends Table {
 
     @Override
     public String getDropSQL() {
-        return "DROP TABLE IF EXISTS " + getSQL() + " CASCADE";
+        StringBuilder builder = new StringBuilder("DROP TABLE IF EXISTS ");
+        getSQL(builder).append(" CASCADE");
+        return builder.toString();
     }
 
     @Override
@@ -89,7 +90,7 @@ public abstract class TableBase extends Table {
             // closed
             return null;
         }
-        StatementBuilder buff = new StatementBuilder("CREATE ");
+        StringBuilder buff = new StringBuilder("CREATE ");
         if (isTemporary()) {
             if (isGlobalTemporary()) {
                 buff.append("GLOBAL ");
@@ -106,14 +107,17 @@ public abstract class TableBase extends Table {
         if (isHidden) {
             buff.append("IF NOT EXISTS ");
         }
-        buff.append(getSQL());
+        getSQL(buff);
         if (comment != null) {
-            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
+            buff.append(" COMMENT ");
+            StringUtils.quoteStringSQL(buff, comment);
         }
         buff.append("(\n    ");
-        for (Column column : columns) {
-            buff.appendExceptFirst(",\n    ");
-            buff.append(column.getCreateSQL());
+        for (int i = 0, l = columns.length; i < l; i++) {
+            if (i > 0) {
+                buff.append(",\n    ");
+            }
+            buff.append(columns[i].getCreateSQL());
         }
         buff.append("\n)");
         if (tableEngine != null) {
@@ -124,15 +128,16 @@ public abstract class TableBase extends Table {
             }
             if (d == null || !tableEngine.endsWith(d)) {
                 buff.append("\nENGINE ");
-                buff.append(StringUtils.quoteIdentifier(tableEngine));
+                StringUtils.quoteIdentifier(buff, tableEngine);
             }
         }
         if (!tableEngineParams.isEmpty()) {
             buff.append("\nWITH ");
-            buff.resetCount();
-            for (String parameter : tableEngineParams) {
-                buff.appendExceptFirst(", ");
-                buff.append(StringUtils.quoteIdentifier(parameter));
+            for (int i = 0, l = tableEngineParams.size(); i < l; i++) {
+                if (i > 0) {
+                    buff.append(", ");
+                }
+                StringUtils.quoteIdentifier(buff, tableEngineParams.get(i));
             }
         }
         if (!isPersistIndexes() && !isPersistData()) {

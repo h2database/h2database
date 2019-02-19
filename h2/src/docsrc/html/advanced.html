@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0, Version 1.0,
-and under the Eclipse Public License, Version 1.0
+Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+and the EPL 1.0 (http://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
@@ -106,8 +106,8 @@ Before the result is returned to the application, all rows are read by the datab
 Server side cursors are not supported currently.
 If only the first few rows are interesting for the application, then the
 result set size should be limited to improve the performance.
-This can be done using <code>LIMIT</code> in a query
-(example: <code>SELECT * FROM TEST LIMIT 100</code>),
+This can be done using <code>FETCH</code> in a query
+(example: <code>SELECT * FROM TEST FETCH FIRST 100 ROWS ONLY</code>),
 or by using <code>Statement.setMaxRows(max)</code>.
 </p>
 
@@ -273,10 +273,21 @@ When using the isolation level 'serializable', dirty reads, non-repeatable reads
 </li>
 </ul>
 
-<h3>Table Level Locking</h3>
+<h3 id="mvcc">Multi-Version Concurrency Control (MVCC)</h3>
 <p>
-The database allows multiple concurrent connections to the same database.
-To make sure all connections only see consistent data, table level locking is used by default.
+With default MVStore engine delete, insert and update operations only issue a shared lock on the table.
+An exclusive lock is still used when adding or removing columns,
+when dropping the table, and when using <code>SELECT ... FOR UPDATE</code>.
+Connections only 'see' committed data, and own changes. That means, if connection A updates
+a row but doesn't commit this change yet, connection B will see the old value.
+Only when the change is committed, the new value is visible by other connections
+(read committed). If multiple connections concurrently try to update the same row, the
+database waits until it can apply the change, but at most until the lock timeout expires.
+</p>
+
+<h3>Table Level Locking (PageStore engine)</h3>
+<p>
+With PageStore engine to make sure all connections only see consistent data, table level locking is used.
 This mechanism does not allow high concurrency, but is very fast.
 Shared locks and exclusive locks are supported.
 Before reading from a table, the database tries to add a shared lock to the table
@@ -298,26 +309,6 @@ lock commits and it is then possible to get the lock. If this is not possible be
 the other connection does not release the lock for some time, the unsuccessful
 connection will get a lock timeout exception. The lock timeout can be set individually
 for each connection.
-</p>
-
-<h2 id="mvcc">Multi-Version Concurrency Control (MVCC)</h2>
-<p>
-The MVCC feature allows higher concurrency than using (table level or row level) locks.
-Delete, insert and update operations will only issue a shared lock on the table.
-An exclusive lock is still used when adding or removing columns,
-when dropping the table, and when using <code>SELECT ... FOR UPDATE</code>.
-Connections only 'see' committed data, and own changes. That means, if connection A updates
-a row but doesn't commit this change yet, connection B will see the old value.
-Only when the change is committed, the new value is visible by other connections
-(read committed). If multiple connections concurrently try to update the same row, the
-database waits until it can apply the change, but at most until the lock timeout expires.
-</p>
-<p>
-This feature is only available with the default MVStore storage engine.
-Changing the lock mode with it (<code>LOCK_MODE</code>) has no effect.
-</p>
-<p>
-MVCC is not used when using the PageStore storage engine.
 </p>
 
 <h2 id="clustering">Clustering / High Availability</h2>
@@ -484,14 +475,17 @@ There is a list of keywords that can't be used as identifiers (table names, colu
 unless they are quoted (surrounded with double quotes). The list is currently:
 </p><p>
 <code>
-ALL, CHECK, CONSTRAINT, CROSS, CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP, DISTINCT, EXCEPT,
-EXISTS, FALSE, FETCH, FOR, FOREIGN, FROM, FULL, GROUP, HAVING, INNER, INTERSECT, INTERSECTS,
-IS, JOIN, LIKE, LIMIT, LOCALTIME, LOCALTIMESTAMP, MINUS, NATURAL, NOT, NULL, OFFSET, ON, ORDER,
-PRIMARY, ROWNUM, SELECT, SYSDATE, SYSTIME, SYSTIMESTAMP, TODAY, TOP, TRUE, UNION, UNIQUE, WHERE,
-WITH
+ALL, ARRAY, CASE, CHECK, CONSTRAINT, CROSS, CURRENT_DATE,
+CURRENT_TIME, CURRENT_TIMESTAMP, CURRENT_USER, DISTINCT, EXCEPT,
+EXISTS, FALSE, FETCH, FOR, FOREIGN, FROM, FULL, GROUP, HAVING,
+IF, INNER, INTERSECT, INTERSECTS, INTERVAL, IS, JOIN, LIKE,
+LIMIT, LOCALTIME, LOCALTIMESTAMP, MINUS, NATURAL, NOT, NULL,
+OFFSET, ON, ORDER, PRIMARY, QUALIFY, ROW, ROWNUM, SELECT,
+SYSDATE, SYSTIME, SYSTIMESTAMP, TABLE, TODAY, TOP, TRUE, UNION,
+UNIQUE, VALUES, WHERE, WINDOW, WITH
 </code>
 </p><p>
-Certain words of this list are keywords because they are functions that can be used without '()' for compatibility,
+Certain words of this list are keywords because they are functions that can be used without '()',
 for example <code>CURRENT_TIMESTAMP</code>.
 </p>
 
@@ -1206,7 +1200,7 @@ options <code>-webAllowOthers, -tcpAllowOthers, -pgAllowOthers</code>.
 <p>
 If you enable remote access using
 <code>-tcpAllowOthers</code> or <code>-pgAllowOthers</code>,
-please also consider using the options <code>-baseDir, -ifExists</code>,
+please also consider using the options <code>-baseDir</code>,
 so that remote users can not create new databases
 or access existing databases with weak passwords.
 When using the option <code>-baseDir</code>, only databases within that directory may be accessed.
@@ -1215,7 +1209,7 @@ Ensure the existing accessible databases are protected using strong passwords.
 <p>
 If you enable remote access using <code>-webAllowOthers</code>,
 please ensure the web server can only be accessed from trusted networks.
-The options <code>-baseDir, -ifExists</code> don't protect
+The options <code>-baseDir</code> don't protect
 access to the tools section, prevent remote shutdown of the web server,
 changes to the preferences, the saved connection settings,
 or access to other databases accessible from the system.
@@ -1415,19 +1409,7 @@ that means the probability is about 0.000'000'000'06.
 
 <h2 id="spatial_features">Spatial Features</h2>
 <p>
-H2 supports the geometry data type and spatial indexes if
-the <a href="https://projects.eclipse.org/projects/locationtech.jts">JTS Topology Suite</a>
-is in the classpath.
-To run the H2 Console tool with the JTS tool, you need to download the
-<a href="https://search.maven.org/remotecontent?filepath=org/locationtech/jts/jts-core/1.15.0/jts-core-1.15.0.jar">JTS-CORE 1.15.0 jar file</a>
-and place it in the h2 bin directory. Then edit the <code>h2.sh</code> file as follows:
-</p>
-<pre>
-#!/bin/sh
-dir=$(dirname "$0")
-java -cp "$dir/h2.jar:jts-core-1.15.0.jar:$H2DRIVERS:$CLASSPATH" org.h2.tools.Console "$@"
-</pre>
-<p>
+H2 supports the geometry data type and spatial indexes.
 Here is an example SQL script to create a table with a spatial column and index:
 </p>
 <pre>
@@ -1440,25 +1422,25 @@ CREATE SPATIAL INDEX GEO_TABLE_SPATIAL_INDEX ON GEO_TABLE(THE_GEOM);
 </pre>
 <p>
 To query the table using geometry envelope intersection,
-use the operation <code>&&</code>, as in PostGIS:
+use the operation <code>&amp;&amp;</code>, as in PostGIS:
 </p>
 <pre>
 SELECT * FROM GEO_TABLE
-WHERE THE_GEOM && 'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))';
+WHERE THE_GEOM &amp;&amp; 'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))';
 </pre>
 <p>
 You can verify that the spatial index is used using the "explain plan" feature:
 </p>
 <pre>
 EXPLAIN SELECT * FROM GEO_TABLE
-WHERE THE_GEOM && 'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))';
+WHERE THE_GEOM &amp;&amp; 'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))';
 -- Result
 SELECT
     GEO_TABLE.GID,
     GEO_TABLE.THE_GEOM
 FROM PUBLIC.GEO_TABLE
     /* PUBLIC.GEO_TABLE_SPATIAL_INDEX:
-    THE_GEOM && 'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))' */
+    THE_GEOM &amp;&amp; 'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))' */
 WHERE INTERSECTS(THE_GEOM,
     'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))')
 </pre>
@@ -1571,6 +1553,7 @@ The following file systems are included:
 </li><li><code>nioMapped:</code> file system that uses memory mapped files (faster in some operating systems).
     Please note that there currently is a file size limitation of 2 GB when using this file system.
     To work around this limitation, combine it with the split file system: <code>split:nioMapped:test</code>.
+</li><li><code>async:</code> experimental file system that uses <code>AsynchronousFileChannel</code> instead of <code>RandomAccessFile</code> (faster in some operating systems).
 </li><li><code>memFS:</code> in-memory file system (slower than mem; experimental; mainly used for testing the database engine itself).
 </li><li><code>memLZF:</code> compressing in-memory file system (slower than memFS but uses less memory; experimental; mainly used for testing the database engine itself).
 </li><li><code>nioMemFS:</code> stores data outside of the VM's heap - useful for large memory DBs without incurring GC costs.
@@ -1584,8 +1567,9 @@ The following file systems are included:
     The default value is 1%.
 </li></ul>
 <p>
-As an example, to use the the <code>nio</code> file system, use the following database URL:
-<code>jdbc:h2:nio:~/test</code>.
+As an example, to use the <code>nio</code> file system with PageStore storage engine,
+use the following database URL: <code>jdbc:h2:nio:~/test;MV_STORE=FALSE</code>.
+With MVStore storage engine nio file system is used by default.
 </p>
 <p>
 To register a new file system, extend the classes <code>org.h2.store.fs.FilePath, FileBase</code>,

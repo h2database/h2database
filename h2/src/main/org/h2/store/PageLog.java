@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -14,7 +14,6 @@ import java.util.HashMap;
 import org.h2.api.ErrorCode;
 import org.h2.compress.CompressLZF;
 import org.h2.engine.Session;
-import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.Row;
@@ -498,10 +497,8 @@ public class PageLog {
         if (trace.isDebugEnabled()) {
             trace.debug("log undo " + pageId);
         }
-        if (SysProperties.CHECK) {
-            if (page == null) {
-                DbException.throwInternalError("Undo entry not written");
-            }
+        if (page == null) {
+            DbException.throwInternalError("Undo entry not written");
         }
         undo.set(pageId);
         undoAll.set(pageId);
@@ -637,7 +634,7 @@ public class PageLog {
         } else {
             for (int i = 0; i < columns; i++) {
                 Value v = row.getValue(i);
-                if (v.getType() == Value.BYTES) {
+                if (v.getValueType() == Value.BYTES) {
                     data.writeValue(ValueNull.INSTANCE);
                 } else {
                     data.writeValue(v);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -21,7 +21,6 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -73,7 +72,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      */
     protected static void checkIndexColumnTypes(IndexColumn[] columns) {
         for (IndexColumn c : columns) {
-            if (DataType.isLargeObject(c.column.getType())) {
+            if (DataType.isLargeObject(c.column.getType().getValueType())) {
                 throw DbException.getUnsupportedException(
                         "Index on BLOB or CLOB column: " + c.column.getCreateSQL());
             }
@@ -93,12 +92,15 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * @return the exception
      */
     protected DbException getDuplicateKeyException(String key) {
-        String sql = getName() + " ON " + table.getSQL() +
-                "(" + getColumnListSQL() + ")";
+        StringBuilder builder = new StringBuilder();
+        getSQL(builder).append(" ON ");
+        table.getSQL(builder).append('(');
+        builder.append(getColumnListSQL());
+        builder.append(')');
         if (key != null) {
-            sql += " VALUES " + key;
+            builder.append(" VALUES ").append(key);
         }
-        DbException e = DbException.get(ErrorCode.DUPLICATE_KEY_1, sql);
+        DbException e = DbException.get(ErrorCode.DUPLICATE_KEY_1, builder.toString());
         e.setSource(this);
         return e;
     }
@@ -168,12 +170,14 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         int totalSelectivity = 0;
         long rowsCost = rowCount;
         if (masks != null) {
-            for (int i = 0, len = columns.length; i < len; i++) {
-                Column column = columns[i];
+            int i = 0, len = columns.length;
+            boolean tryAdditional = false;
+            while (i < len) {
+                Column column = columns[i++];
                 int index = column.getColumnId();
                 int mask = masks[index];
                 if ((mask & IndexCondition.EQUALITY) == IndexCondition.EQUALITY) {
-                    if (i == columns.length - 1 && getIndexType().isUnique()) {
+                    if (i == len && getIndexType().isUnique()) {
                         rowsCost = 3;
                         break;
                     }
@@ -185,18 +189,34 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
                     }
                     rowsCost = 2 + Math.max(rowCount / distinctRows, 1);
                 } else if ((mask & IndexCondition.RANGE) == IndexCondition.RANGE) {
-                    rowsCost = 2 + rowCount / 4;
+                    rowsCost = 2 + rowsCost / 4;
+                    tryAdditional = true;
                     break;
                 } else if ((mask & IndexCondition.START) == IndexCondition.START) {
-                    rowsCost = 2 + rowCount / 3;
+                    rowsCost = 2 + rowsCost / 3;
+                    tryAdditional = true;
                     break;
                 } else if ((mask & IndexCondition.END) == IndexCondition.END) {
-                    rowsCost = rowCount / 3;
+                    rowsCost = rowsCost / 3;
+                    tryAdditional = true;
                     break;
                 } else {
+                    if (mask == 0) {
+                        // Adjust counter of used columns (i)
+                        i--;
+                    }
                     break;
                 }
             }
+            // Some additional columns can still be used
+            if (tryAdditional) {
+                while (i < len && masks[columns[i].getColumnId()] != 0) {
+                    i++;
+                    rowsCost--;
+                }
+            }
+            // Increase cost of indexes with additional unused columns
+            rowsCost += len - i;
         }
         // If the ORDER BY clause matches the ordering of this index,
         // it will be cheaper than another index, so adjust the cost
@@ -391,12 +411,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * @return the list of columns
      */
     private String getColumnListSQL() {
-        StatementBuilder buff = new StatementBuilder();
-        for (IndexColumn c : indexColumns) {
-            buff.appendExceptFirst(", ");
-            buff.append(c.getSQL());
-        }
-        return buff.toString();
+        return IndexColumn.writeColumns(new StringBuilder(), indexColumns).toString();
     }
 
     @Override
@@ -408,9 +423,11 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
             buff.append("IF NOT EXISTS ");
         }
         buff.append(quotedName);
-        buff.append(" ON ").append(targetTable.getSQL());
+        buff.append(" ON ");
+        targetTable.getSQL(buff);
         if (comment != null) {
-            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
+            buff.append(" COMMENT ");
+            StringUtils.quoteStringSQL(buff, comment);
         }
         buff.append('(').append(getColumnListSQL()).append(')');
         return buff.toString();

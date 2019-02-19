@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -252,10 +252,11 @@ public final class DataUtils {
      *
      * @param out the output stream
      * @param x the value
+     * @throws IOException if some data could not be written
      */
     public static void writeVarInt(OutputStream out, int x) throws IOException {
         while ((x & ~0x7f) != 0) {
-            out.write((byte) (0x80 | (x & 0x7f)));
+            out.write((byte) (x | 0x80));
             x >>>= 7;
         }
         out.write((byte) x);
@@ -269,7 +270,7 @@ public final class DataUtils {
      */
     public static void writeVarInt(ByteBuffer buff, int x) {
         while ((x & ~0x7f) != 0) {
-            buff.put((byte) (0x80 | (x & 0x7f)));
+            buff.put((byte) (x | 0x80));
             x >>>= 7;
         }
         buff.put((byte) x);
@@ -330,7 +331,7 @@ public final class DataUtils {
      */
     public static void writeVarLong(ByteBuffer buff, long x) {
         while ((x & ~0x7f) != 0) {
-            buff.put((byte) (0x80 | (x & 0x7f)));
+            buff.put((byte) (x | 0x80));
             x >>>= 7;
         }
         buff.put((byte) x);
@@ -341,11 +342,12 @@ public final class DataUtils {
      *
      * @param out the output stream
      * @param x the value
+     * @throws IOException if some data could not be written
      */
     public static void writeVarLong(OutputStream out, long x)
             throws IOException {
         while ((x & ~0x7f) != 0) {
-            out.write((byte) (0x80 | (x & 0x7f)));
+            out.write((byte) (x | 0x80));
             x >>>= 7;
         }
         out.write((byte) x);

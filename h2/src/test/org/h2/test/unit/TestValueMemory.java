@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -16,12 +16,12 @@ import java.util.Random;
 import org.h2.api.IntervalQualifier;
 import org.h2.api.JavaObjectSerializer;
 import org.h2.engine.Constants;
+import org.h2.result.SimpleResult;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.store.LobStorageFrontend;
 import org.h2.test.TestBase;
 import org.h2.test.utils.MemoryFootprint;
-import org.h2.tools.SimpleResultSet;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Utils;
@@ -43,6 +43,7 @@ import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
+import org.h2.value.ValueRow;
 import org.h2.value.ValueShort;
 import org.h2.value.ValueString;
 import org.h2.value.ValueStringFixed;
@@ -89,7 +90,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
                 continue;
             }
             Value v = create(i);
-            String s = "type: " + v.getType() +
+            String s = "type: " + v.getValueType() +
                     " calculated: " + v.getMemory() +
                     " real: " + MemoryFootprint.getObjectSize(v) + " " +
                     v.getClass().getName() + ": " + v.toString();
@@ -110,7 +111,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
                 // jts not in the classpath, OK
                 continue;
             }
-            assertEquals(i, v.getType());
+            assertEquals(i, v.getValueType());
             testType(i);
         }
     }
@@ -208,16 +209,12 @@ public class TestValueMemory extends TestBase implements DataHandler {
             String s = randomString(len);
             return getLobStorage().createClob(new StringReader(s), len);
         }
-        case Value.ARRAY: {
-            int len = random.nextInt(20);
-            Value[] list = new Value[len];
-            for (int i = 0; i < list.length; i++) {
-                list[i] = create(Value.STRING);
-            }
-            return ValueArray.get(list);
-        }
+        case Value.ARRAY:
+            return ValueArray.get(createArray());
+        case Value.ROW:
+            return ValueRow.get(createArray());
         case Value.RESULT_SET:
-            return ValueResultSet.get(new SimpleResultSet());
+            return ValueResultSet.get(new SimpleResult());
         case Value.JAVA_OBJECT:
             return ValueJavaObject.getNoCopy(null, randomBytes(random.nextInt(100)), this);
         case Value.UUID:
@@ -252,6 +249,15 @@ public class TestValueMemory extends TestBase implements DataHandler {
         default:
             throw new AssertionError("type=" + type);
         }
+    }
+
+    private Value[] createArray() throws SQLException {
+        int len = random.nextInt(20);
+        Value[] list = new Value[len];
+        for (int i = 0; i < list.length; i++) {
+            list[i] = create(Value.STRING);
+        }
+        return list;
     }
 
     private byte[] randomBytes(int len) {

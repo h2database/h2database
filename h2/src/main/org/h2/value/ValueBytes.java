@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -30,6 +30,11 @@ public class ValueBytes extends Value {
      * The value.
      */
     protected byte[] value;
+
+    /**
+     * Associated TypeInfo.
+     */
+    protected TypeInfo type;
 
     /**
      * The hash code.
@@ -74,13 +79,24 @@ public class ValueBytes extends Value {
     }
 
     @Override
-    public int getType() {
-        return Value.BYTES;
+    public TypeInfo getType() {
+        TypeInfo type = this.type;
+        if (type == null) {
+            long precision = value.length;
+            this.type = type = new TypeInfo(BYTES, precision, 0, MathUtils.convertLongToInt(precision * 2), null);
+        }
+        return type;
     }
 
     @Override
-    public String getSQL() {
-        return "X'" + StringUtils.convertBytesToHex(getBytesNoCopy()) + "'";
+    public int getValueType() {
+        return BYTES;
+    }
+
+    @Override
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append("X'");
+        return StringUtils.convertBytesToHex(builder, getBytesNoCopy()).append('\'');
     }
 
     @Override
@@ -108,11 +124,6 @@ public class ValueBytes extends Value {
     }
 
     @Override
-    public long getPrecision() {
-        return value.length;
-    }
-
-    @Override
     public int hashCode() {
         if (hash == 0) {
             hash = Utils.getByteArrayHash(value);
@@ -132,11 +143,6 @@ public class ValueBytes extends Value {
     }
 
     @Override
-    public int getDisplaySize() {
-        return MathUtils.convertLongToInt(value.length * 2L);
-    }
-
-    @Override
     public int getMemory() {
         return value.length + 24;
     }
@@ -153,8 +159,7 @@ public class ValueBytes extends Value {
             return this;
         }
         int len = MathUtils.convertLongToInt(precision);
-        byte[] buff = Arrays.copyOf(value, len);
-        return get(buff);
+        return getNoCopy(Arrays.copyOf(value, len));
     }
 
 }

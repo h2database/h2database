@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -637,7 +637,7 @@ public class TestMVTableEngine extends TestDb {
         String readCount = plan.substring(plan.indexOf("reads: "));
         readCount = readCount.substring("reads: ".length(), readCount.indexOf('\n'));
         int rc = Integer.parseInt(readCount);
-        assertTrue(plan, rc >= 60 && rc <= 70);
+        assertTrue(plan, rc >= 60 && rc <= 80);
 //        assertTrue(plan, rc >= 1000 && rc <= 1200);
         conn.close();
     }
@@ -1435,7 +1435,8 @@ public class TestMVTableEngine extends TestDb {
             reverse += testReverseDeletePerformance(true);
             direct += testReverseDeletePerformance(false);
         }
-        assertTrue("direct: " + direct + ", reverse: " + reverse, 3 * Math.abs(reverse - direct) < 2 * (reverse + direct));
+        assertTrue("direct: " + direct + ", reverse: " + reverse,
+                3 * Math.abs(reverse - direct) < 2 * (reverse + direct));
     }
 
     private long testReverseDeletePerformance(boolean reverse) throws Exception {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -165,7 +165,7 @@ public class Recover extends Tool implements DataHandler {
      * open the database and can be used even if the database files are
      * corrupted. A database can get corrupted if there is a bug in the database
      * engine or file system software, or if an application writes into the
-     * database file that doesn't understand the the file format, or if there is
+     * database file that doesn't understand the file format, or if there is
      * a hardware problem.
      *
      * @param args the command line arguments
@@ -417,45 +417,46 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private String getSQL(String column, Value v) {
+    private void getSQL(StringBuilder builder, String column, Value v) {
         if (v instanceof ValueLob) {
             ValueLob lob = (ValueLob) v;
             byte[] small = lob.getSmall();
             if (small == null) {
                 String file = lob.getFileName();
-                String type = lob.getType() == Value.BLOB ? "BLOB" : "CLOB";
+                String type = lob.getValueType() == Value.BLOB ? "BLOB" : "CLOB";
                 if (lob.isCompressed()) {
                     dumpLob(file, true);
                     file += ".comp";
                 }
-                return "READ_" + type + "('" + file + ".txt')";
+                builder.append("READ_").append(type).append("('").append(file).append(".txt')");
+                return;
             }
         } else if (v instanceof ValueLobDb) {
             ValueLobDb lob = (ValueLobDb) v;
             byte[] small = lob.getSmall();
             if (small == null) {
-                int type = lob.getType();
+                int type = lob.getValueType();
                 long id = lob.getLobId();
-                long precision = lob.getPrecision();
-                String m;
+                long precision = lob.getType().getPrecision();
                 String columnType;
                 if (type == Value.BLOB) {
                     columnType = "BLOB";
-                    m = "READ_BLOB";
+                    builder.append("READ_BLOB");
                 } else {
                     columnType = "CLOB";
-                    m = "READ_CLOB";
+                    builder.append("READ_CLOB");
                 }
                 if (lobMaps) {
-                    m += "_MAP";
+                    builder.append("_MAP");
                 } else {
-                    m += "_DB";
+                    builder.append("_DB");
                 }
                 columnTypeMap.put(column, columnType);
-                return m + "(" + id + ", " + precision + ")";
+                builder.append('(').append(id).append(", ").append(precision).append(')');
+                return;
             }
         }
-        return v.getSQL();
+        v.getSQL(builder);
     }
 
     private void setDatabaseName(String name) {
@@ -485,7 +486,7 @@ public class Recover extends Tool implements DataHandler {
             } catch (Exception e) {
                 writeError(writer, e);
             }
-            Data s = Data.create(this, 128);
+            Data s = Data.create(this, 128, false);
             seek(0);
             store.readFully(s.getBytes(), 0, 128);
             s.setPos(48);
@@ -502,7 +503,7 @@ public class Recover extends Tool implements DataHandler {
             }
             long pageCount = length / pageSize;
             parents = new int[(int) pageCount];
-            s = Data.create(this, pageSize);
+            s = Data.create(this, pageSize, false);
             for (long i = 3; i < pageCount; i++) {
                 s.reset();
                 seek(i);
@@ -512,7 +513,7 @@ public class Recover extends Tool implements DataHandler {
                 parents[(int) i] = s.readInt();
             }
             int logKey = 0, logFirstTrunkPage = 0, logFirstDataPage = 0;
-            s = Data.create(this, pageSize);
+            s = Data.create(this, pageSize, false);
             for (long i = 1;; i++) {
                 if (i == 3) {
                     break;
@@ -666,9 +667,11 @@ public class Recover extends Tool implements DataHandler {
                     if (!init) {
                         setStorage(Integer.parseInt(tableId));
                         // init the column types
+                        StringBuilder builder = new StringBuilder();
                         for (valueId = 0; valueId < recordLength; valueId++) {
                             String columnName = storageName + "." + valueId;
-                            getSQL(columnName, values[valueId]);
+                            builder.setLength(0);
+                            getSQL(builder, columnName, values[valueId]);
                         }
                         createTemporaryTable(writer);
                         init = true;
@@ -681,7 +684,7 @@ public class Recover extends Tool implements DataHandler {
                             buff.append(", ");
                         }
                         String columnName = storageName + "." + valueId;
-                        buff.append(getSQL(columnName, values[valueId]));
+                        getSQL(buff, columnName, values[valueId]);
                     }
                     buff.append(");");
                     writer.println(buff.toString());
@@ -729,10 +732,11 @@ public class Recover extends Tool implements DataHandler {
             try {
                 for (int seq = 0;; seq++) {
                     int l = IOUtils.readFully(in, block, block.length);
-                    String x = StringUtils.convertBytesToHex(block, l);
                     if (l > 0) {
-                        writer.println("INSERT INTO INFORMATION_SCHEMA.LOB_BLOCKS " +
-                                "VALUES(" + lobId + ", " + seq + ", '" + x + "');");
+                        writer.print("INSERT INTO INFORMATION_SCHEMA.LOB_BLOCKS " +
+                                "VALUES(" + lobId + ", " + seq + ", '");
+                        writer.print(StringUtils.convertBytesToHex(block, l));
+                        writer.println("');");
                     }
                     if (l != len) {
                         break;
@@ -785,9 +789,9 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void dumpPageStore(PrintWriter writer, long pageCount) {
-        Data s = Data.create(this, pageSize);
+        Data s = Data.create(this, pageSize, false);
         for (long page = 3; page < pageCount; page++) {
-            s = Data.create(this, pageSize);
+            s = Data.create(this, pageSize, false);
             seek(page);
             store.readFully(s.getBytes(), 0, pageSize);
             dumpPage(writer, s, page, pageCount);
@@ -895,7 +899,7 @@ public class Recover extends Tool implements DataHandler {
     private void dumpPageLogStream(PrintWriter writer, int logKey,
             int logFirstTrunkPage, int logFirstDataPage, long pageCount)
             throws IOException {
-        Data s = Data.create(this, pageSize);
+        Data s = Data.create(this, pageSize, false);
         DataReader in = new DataReader(
                 new PageInputStream(writer, this, store, logKey,
                 logFirstTrunkPage, logFirstDataPage, pageSize)
@@ -964,7 +968,7 @@ public class Recover extends Tool implements DataHandler {
                 }
                 writer.println("-- undo page " + pageId + " " + typeName);
                 if (trace) {
-                    Data d = Data.create(null, data);
+                    Data d = Data.create(null, data, false);
                     dumpPage(writer, d, pageId, pageCount);
                 }
             } else if (x == PageLog.ADD) {
@@ -986,15 +990,17 @@ public class Recover extends Tool implements DataHandler {
                     } else {
                         String tableName = tableMap.get(storageId);
                         if (tableName != null) {
-                            StatementBuilder buff = new StatementBuilder();
-                            buff.append("INSERT INTO ").append(tableName).
+                            StringBuilder builder = new StringBuilder();
+                            builder.append("INSERT INTO ").append(tableName).
                                     append(" VALUES(");
                             for (int i = 0; i < row.getColumnCount(); i++) {
-                                buff.appendExceptFirst(", ");
-                                buff.append(row.getValue(i).getSQL());
+                                if (i > 0) {
+                                    builder.append(", ");
+                                }
+                                row.getValue(i).getSQL(builder);
                             }
-                            buff.append(");");
-                            writer.println(buff.toString());
+                            builder.append(");");
+                            writer.println(builder.toString());
                         }
                     }
                 }
@@ -1090,7 +1096,7 @@ public class Recover extends Tool implements DataHandler {
             this.logKey = logKey - 1;
             this.nextTrunkPage = firstTrunkPage;
             this.dataPage = firstDataPage;
-            page = Data.create(handler, pageSize);
+            page = Data.create(handler, pageSize, false);
         }
 
         @Override
@@ -1375,7 +1381,7 @@ public class Recover extends Tool implements DataHandler {
             writer.println("--   empty: " + empty);
         }
         if (!last) {
-            Data s2 = Data.create(this, pageSize);
+            Data s2 = Data.create(this, pageSize, false);
             s.setPos(pageSize);
             long parent = pageId;
             while (true) {
@@ -1443,12 +1449,12 @@ public class Recover extends Tool implements DataHandler {
                             byte[] salt = MathUtils.secureRandomBytes(Constants.SALT_LEN);
                             byte[] passwordHash = SHA256.getHashWithSalt(
                                     userPasswordHash, salt);
-                            StringBuilder buff = new StringBuilder();
-                            buff.append("SALT '").
-                                append(StringUtils.convertBytesToHex(salt)).
-                                append("' HASH '").
-                                append(StringUtils.convertBytesToHex(passwordHash)).
-                                append('\'');
+                            StringBuilder buff = new StringBuilder()
+                                    .append("SALT '");
+                            StringUtils.convertBytesToHex(buff, salt)
+                                    .append("' HASH '");
+                            StringUtils.convertBytesToHex(buff, passwordHash)
+                                    .append('\'');
                             byte[] replacement = buff.toString().getBytes();
                             System.arraycopy(replacement, 0, s.getBytes(),
                                     saltIndex, replacement.length);
@@ -1497,7 +1503,7 @@ public class Recover extends Tool implements DataHandler {
                     sb.append(", ");
                 }
                 String columnName = storageName + "." + valueId;
-                sb.append(getSQL(columnName, v));
+                getSQL(sb, columnName, v);
             } catch (Exception e) {
                 writeDataError(writer, "exception " + e, s.getBytes());
             } catch (OutOfMemoryError e) {
@@ -1564,7 +1570,7 @@ public class Recover extends Tool implements DataHandler {
                     writer.println("DELETE FROM " + name + ";");
                     writer.println("INSERT INTO " + name + " SELECT * FROM " + storageName + ";");
                     if (name.startsWith("INFORMATION_SCHEMA.LOBS")) {
-                        writer.println("UPDATE " + name + " SET TABLE = " +
+                        writer.println("UPDATE " + name + " SET \"TABLE\" = " +
                                 LobStorageFrontend.TABLE_TEMP + ";");
                         deleteLobs = true;
                     }
@@ -1591,7 +1597,7 @@ public class Recover extends Tool implements DataHandler {
         writer.println("DROP ALIAS READ_BLOB_DB;");
         writer.println("DROP ALIAS READ_CLOB_DB;");
         if (deleteLobs) {
-            writer.println("DELETE FROM INFORMATION_SCHEMA.LOBS WHERE TABLE = " +
+            writer.println("DELETE FROM INFORMATION_SCHEMA.LOBS WHERE \"TABLE\" = " +
                     LobStorageFrontend.TABLE_TEMP + ";");
         }
         for (MetaRecord m : schema) {

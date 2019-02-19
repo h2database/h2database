@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -121,7 +121,15 @@ public class TestView extends TestDb {
         stat.execute("drop table test if exists");
         stat.execute("create table test(id int primary key, name varchar(1))");
         stat.execute("insert into test(id, name) values(1, 'b'), (3, 'a')");
-        ResultSet rs = stat.executeQuery(
+        ResultSet rs;
+        rs = stat.executeQuery(
+                "select nr from (select rownum() as nr, " +
+                "a.id as id from (select id from test order by name) as a) as b " +
+                "where b.id = 1;");
+        assertTrue(rs.next());
+        assertEquals(2, rs.getInt(1));
+        assertFalse(rs.next());
+        rs = stat.executeQuery(
                 "select nr from (select row_number() over() as nr, " +
                 "a.id as id from (select id from test order by name) as a) as b " +
                 "where b.id = 1;");

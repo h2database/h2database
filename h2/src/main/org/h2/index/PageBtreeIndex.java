@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -176,7 +176,7 @@ public class PageBtreeIndex extends PageIndex {
 
     private Cursor find(Session session, SearchRow first, boolean bigger,
             SearchRow last) {
-        if (SysProperties.CHECK && store == null) {
+        if (store == null) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }
         PageBtree root = getPage(rootPageId);

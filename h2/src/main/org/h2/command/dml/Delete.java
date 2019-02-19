@@ -1,9 +1,11 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.command.dml;
+
+import java.util.HashSet;
 
 import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
@@ -18,7 +20,6 @@ import org.h2.result.RowList;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -40,6 +41,8 @@ public class Delete extends Prepared {
      */
     private TableFilter sourceTableFilter;
 
+    private HashSet<Long> keysFilter;
+
     public Delete(Session session) {
         super(session);
     }
@@ -56,6 +59,15 @@ public class Delete extends Prepared {
         return this.condition;
     }
 
+    /**
+     * Sets the keys filter.
+     *
+     * @param keysFilter the keys filter
+     */
+    public void setKeysFilter(HashSet<Long> keysFilter) {
+        this.keysFilter = keysFilter;
+    }
+
     @Override
     public int update() {
         targetTableFilter.startQuery(session);
@@ -64,7 +76,6 @@ public class Delete extends Prepared {
         session.getUser().checkRight(table, Right.DELETE);
         table.fire(session, Trigger.DELETE, true);
         table.lock(session, true, false);
-        RowList rows = new RowList(session);
         int limitRows = -1;
         if (limitExpr != null) {
             Value v = limitExpr.getValue(session);
@@ -72,23 +83,30 @@ public class Delete extends Prepared {
                 limitRows = v.getInt();
             }
         }
-        try {
+        try (RowList rows = new RowList(session)) {
             setCurrentRowNumber(0);
             int count = 0;
             while (limitRows != 0 && targetTableFilter.next()) {
                 setCurrentRowNumber(rows.size() + 1);
                 if (condition == null || condition.getBooleanValue(session)) {
                     Row row = targetTableFilter.get();
-                    boolean done = false;
-                    if (table.fireRow()) {
-                        done = table.fireBeforeRow(session, row, null);
-                    }
-                    if (!done) {
-                        rows.add(row);
-                    }
-                    count++;
-                    if (limitRows >= 0 && count >= limitRows) {
-                        break;
+                    if (keysFilter == null || keysFilter.contains(row.getKey())) {
+                        boolean done = false;
+                        if (table.fireRow()) {
+                            done = table.fireBeforeRow(session, row, null);
+                        }
+                        if (!done) {
+                            if (table.isMVStore()) {
+                                done = table.lockRow(session, row) == null;
+                            }
+                            if (!done) {
+                                rows.add(row);
+                            }
+                        }
+                        count++;
+                        if (limitRows >= 0 && count >= limitRows) {
+                            break;
+                        }
                     }
                 }
             }
@@ -109,23 +127,21 @@ public class Delete extends Prepared {
             }
             table.fire(session, Trigger.DELETE, false);
             return count;
-        } finally {
-            rows.close();
         }
     }
 
     @Override
     public String getPlanSQL() {
         StringBuilder buff = new StringBuilder();
-        buff.append("DELETE ");
-        buff.append("FROM ").append(targetTableFilter.getPlanSQL(false));
+        buff.append("DELETE FROM ");
+        targetTableFilter.getPlanSQL(buff, false);
         if (condition != null) {
-            buff.append("\nWHERE ").append(StringUtils.unEnclose(
-                    condition.getSQL()));
+            buff.append("\nWHERE ");
+            condition.getUnenclosedSQL(buff);
         }
         if (limitExpr != null) {
-            buff.append("\nLIMIT (").append(StringUtils.unEnclose(
-                    limitExpr.getSQL())).append(')');
+            buff.append("\nLIMIT (");
+            limitExpr.getUnenclosedSQL(buff).append(')');
         }
         return buff.toString();
     }
@@ -133,9 +149,9 @@ public class Delete extends Prepared {
     @Override
     public void prepare() {
         if (condition != null) {
-            condition.mapColumns(targetTableFilter, 0);
+            condition.mapColumns(targetTableFilter, 0, Expression.MAP_INITIAL);
             if (sourceTableFilter != null) {
-                condition.mapColumns(sourceTableFilter, 0);
+                condition.mapColumns(sourceTableFilter, 0, Expression.MAP_INITIAL);
             }
             condition = condition.optimize(session);
             condition.createIndexConditions(session, targetTableFilter);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -88,13 +88,18 @@ public class ValueByte extends Value {
     }
 
     @Override
-    public String getSQL() {
-        return getString();
+    public StringBuilder getSQL(StringBuilder builder) {
+        return builder.append(value);
     }
 
     @Override
-    public int getType() {
-        return Value.BYTE;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_BYTE;
+    }
+
+    @Override
+    public int getValueType() {
+        return BYTE;
     }
 
     @Override
@@ -115,11 +120,6 @@ public class ValueByte extends Value {
     @Override
     public String getString() {
         return Integer.toString(value);
-    }
-
-    @Override
-    public long getPrecision() {
-        return PRECISION;
     }
 
     @Override
@@ -146,11 +146,6 @@ public class ValueByte extends Value {
      */
     public static ValueByte get(byte i) {
         return (ValueByte) Value.cache(new ValueByte(i));
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return DISPLAY_SIZE;
     }
 
     @Override

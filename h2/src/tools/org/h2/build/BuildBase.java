@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -274,9 +274,7 @@ public class BuildBase {
             } catch (InvocationTargetException e) {
                 throw e.getCause();
             }
-        } catch (Error e) {
-            throw e;
-        } catch (RuntimeException e) {
+        } catch (Error | RuntimeException e) {
             throw e;
         } catch (Throwable e) {
             throw new RuntimeException(e);
@@ -930,7 +928,7 @@ public class BuildBase {
      *
      * @return the Java version (7, 8, 9, 10, 11, etc)
      */
-    protected static int getJavaVersion() {
+    public static int getJavaVersion() {
         int version = 7;
         String v = getJavaSpecVersion();
         if (v != null) {

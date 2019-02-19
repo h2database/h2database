@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -55,6 +55,10 @@ public class DbException extends RuntimeException {
 
     private static final Properties MESSAGES = new Properties();
 
+    /**
+     * Thrown when OOME exception happens on handle error
+     * inside {@link #convert(java.lang.Throwable)}.
+     */
     public static final SQLException SQL_OOME =
             new SQLException("OutOfMemoryError", "HY000", OUT_OF_MEMORY, new OutOfMemoryError());
     private static final DbException OOME = new DbException(SQL_OOME);
@@ -88,9 +92,7 @@ public class DbException extends RuntimeException {
                     }
                 }
             }
-        } catch (OutOfMemoryError e) {
-            DbException.traceThrowable(e);
-        } catch (IOException e) {
+        } catch (OutOfMemoryError | IOException e) {
             DbException.traceThrowable(e);
         }
     }
@@ -434,6 +436,7 @@ public class DbException extends RuntimeException {
      * @param errorCode the error code
      * @param cause the exception that was the reason for this exception
      * @param stackTrace the stack trace
+     * @return the SQLException object
      */
     public static SQLException getJdbcSQLException(String message, String sql, String state, int errorCode,
             Throwable cause, String stackTrace) {
@@ -556,15 +559,17 @@ public class DbException extends RuntimeException {
         case CONSTANT_NOT_FOUND_1:
         case LITERALS_ARE_NOT_ALLOWED:
         case CANNOT_DROP_TABLE_1:
-        case USER_DATA_TYPE_ALREADY_EXISTS_1:
-        case USER_DATA_TYPE_NOT_FOUND_1:
+        case DOMAIN_ALREADY_EXISTS_1:
+        case DOMAIN_NOT_FOUND_1:
         case WITH_TIES_WITHOUT_ORDER_BY:
         case CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS:
         case TRANSACTION_NOT_FOUND_1:
         case AGGREGATE_NOT_FOUND_1:
+        case WINDOW_NOT_FOUND_1:
         case CAN_ONLY_ASSIGN_TO_VARIABLE_1:
         case PUBLIC_STATIC_JAVA_METHOD_NOT_FOUND_1:
         case JAVA_OBJECT_SERIALIZER_CHANGE_WITH_DATA_TABLE:
+        case FOR_UPDATE_IS_NOT_ALLOWED_IN_DISTINCT_OR_GROUPED_SELECT:
             return new JdbcSQLSyntaxErrorException(message, sql, state, errorCode, cause, stackTrace);
         case HEX_STRING_ODD_1:
         case HEX_STRING_WRONG_1:
@@ -664,7 +669,7 @@ public class DbException extends RuntimeException {
      * @param s print writer
      */
     public static void printNextExceptions(SQLException e, PrintWriter s) {
-        // getNextException().printStackTrace(s) would be very very slow
+        // getNextException().printStackTrace(s) would be very slow
         // if many exceptions are joined
         int i = 0;
         while ((e = e.getNextException()) != null) {
@@ -683,7 +688,7 @@ public class DbException extends RuntimeException {
      * @param s print stream
      */
     public static void printNextExceptions(SQLException e, PrintStream s) {
-        // getNextException().printStackTrace(s) would be very very slow
+        // getNextException().printStackTrace(s) would be very slow
         // if many exceptions are joined
         int i = 0;
         while ((e = e.getNextException()) != null) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -72,7 +72,7 @@ public class Console extends Tool implements ShutdownHandler {
 
     /**
      * This tool starts the H2 Console (web-) server, as well as the TCP and PG
-     * server. For JDK 1.6, a system tray icon is created, for platforms that
+     * server. A system tray icon is created, for platforms that
      * support it. Otherwise, a small window opens.
      *
      * @param args the command line arguments
@@ -255,6 +255,9 @@ public class Console extends Tool implements ShutdownHandler {
         }
     }
 
+    /**
+     * Overridden by GUIConsole to show a window
+     */
     void show() {
     }
 
@@ -287,6 +290,11 @@ public class Console extends Tool implements ShutdownHandler {
         }
     }
 
+    /**
+     * Open a new browser tab or window with the given URL.
+     *
+     * @param url the URL to open
+     */
     void openBrowser(String url) {
         try {
             Server.openBrowser(url);

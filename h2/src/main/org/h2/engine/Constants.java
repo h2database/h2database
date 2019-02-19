@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -44,12 +44,6 @@ public class Constants {
      * Example: ACME_SVN1651_BUILD3
      */
     public static final String BUILD_VENDOR_AND_VERSION = null;
-
-    /**
-     * The TCP protocol version number 8.
-     * @since 1.2.143 (2010-09-18)
-     */
-    public static final int TCP_PROTOCOL_VERSION_8 = 8;
 
     /**
      * The TCP protocol version number 9.
@@ -106,14 +100,20 @@ public class Constants {
     public static final int TCP_PROTOCOL_VERSION_17 = 17;
 
     /**
+     * The TCP protocol version number 18.
+     * @since 1.4.198 (TODO)
+     */
+    public static final int TCP_PROTOCOL_VERSION_18 = 18;
+
+    /**
      * Minimum supported version of TCP protocol.
      */
-    public static final int TCP_PROTOCOL_VERSION_MIN_SUPPORTED = TCP_PROTOCOL_VERSION_8;
+    public static final int TCP_PROTOCOL_VERSION_MIN_SUPPORTED = TCP_PROTOCOL_VERSION_9;
 
     /**
      * Maximum supported version of TCP protocol.
      */
-    public static final int TCP_PROTOCOL_VERSION_MAX_SUPPORTED = TCP_PROTOCOL_VERSION_17;
+    public static final int TCP_PROTOCOL_VERSION_MAX_SUPPORTED = TCP_PROTOCOL_VERSION_18;
 
     /**
      * The major version of this database.

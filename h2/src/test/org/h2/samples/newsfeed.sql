@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -23,8 +23,7 @@ INSERT INTO VERSION VALUES
 (134, '1.4.184', '2014-12-19'),
 (133, '1.4.183', '2014-12-13'),
 (132, '1.4.182', '2014-10-17'),
-(131, '1.4.181', '2014-08-06'),
-;
+(131, '1.4.181', '2014-08-06');
 
 CREATE TABLE CHANNEL(TITLE VARCHAR, LINK VARCHAR, DESC VARCHAR,
     LANGUAGE VARCHAR, PUB TIMESTAMP, LAST TIMESTAMP, AUTHOR VARCHAR);

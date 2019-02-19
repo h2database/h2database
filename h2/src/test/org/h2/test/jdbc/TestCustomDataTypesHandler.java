@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -25,6 +25,8 @@ import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
+import org.h2.value.ExtTypeInfo;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBytes;
 import org.h2.value.ValueDouble;
@@ -189,7 +191,6 @@ public class TestCustomDataTypesHandler extends TestDb {
             if (name.toLowerCase(Locale.ENGLISH).equals(COMPLEX_DATA_TYPE_NAME)) {
                 return complexDataType;
             }
-
             return null;
         }
 
@@ -199,6 +200,11 @@ public class TestCustomDataTypesHandler extends TestDb {
                 return complexDataType;
             }
             return null;
+        }
+
+        @Override
+        public TypeInfo getTypeInfoById(int type, long precision, int scale, ExtTypeInfo extTypeInfo) {
+            return new TypeInfo(type, 0, 0, ValueDouble.DISPLAY_SIZE * 2 + 1, null);
         }
 
         @Override
@@ -220,11 +226,11 @@ public class TestCustomDataTypesHandler extends TestDb {
 
         @Override
         public Value convert(Value source, int targetType) {
-            if (source.getType() == targetType) {
+            if (source.getValueType() == targetType) {
                 return source;
             }
             if (targetType == COMPLEX_DATA_TYPE_ID) {
-                switch (source.getType()) {
+                switch (source.getValueType()) {
                     case Value.JAVA_OBJECT: {
                         assert source instanceof ValueJavaObject;
                         return ValueComplex.get((ComplexNumber)
@@ -274,13 +280,13 @@ public class TestCustomDataTypesHandler extends TestDb {
         @Override
         public Object getObject(Value value, Class<?> cls) {
             if (cls.equals(ComplexNumber.class)) {
-                if (value.getType() == COMPLEX_DATA_TYPE_ID) {
+                if (value.getValueType() == COMPLEX_DATA_TYPE_ID) {
                     return value.getObject();
                 }
                 return convert(value, COMPLEX_DATA_TYPE_ID).getObject();
             }
             throw DbException.get(
-                    ErrorCode.UNKNOWN_DATA_TYPE_1, "type:" + value.getType());
+                    ErrorCode.UNKNOWN_DATA_TYPE_1, "type:" + value.getValueType());
         }
 
         @Override
@@ -336,23 +342,18 @@ public class TestCustomDataTypesHandler extends TestDb {
         }
 
         @Override
-        public String getSQL() {
-            return val.toString();
+        public StringBuilder getSQL(StringBuilder builder) {
+            return builder.append(val.toString());
         }
 
         @Override
-        public int getType() {
+        public TypeInfo getType() {
+            return TypeInfo.getTypeInfo(TestOnlyCustomDataTypesHandler.COMPLEX_DATA_TYPE_ID);
+        }
+
+        @Override
+        public int getValueType() {
             return TestOnlyCustomDataTypesHandler.COMPLEX_DATA_TYPE_ID;
-        }
-
-        @Override
-        public long getPrecision() {
-            return 0;
-        }
-
-        @Override
-        public int getDisplaySize() {
-            return 0;
         }
 
         @Override
@@ -394,8 +395,8 @@ public class TestCustomDataTypesHandler extends TestDb {
         }
 
         @Override
-        public Value convertTo(int targetType, int precision, Mode mode, Object column, String[] enumerators) {
-            if (getType() == targetType) {
+        protected Value convertTo(int targetType, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
+            if (getValueType() == targetType) {
                 return this;
             }
             switch (targetType) {

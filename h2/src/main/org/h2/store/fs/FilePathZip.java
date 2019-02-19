@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -51,7 +51,7 @@ public class FilePathZip extends FilePath {
     public boolean exists() {
         try {
             String entryName = getEntryName();
-            if (entryName.length() == 0) {
+            if (entryName.isEmpty()) {
                 return true;
             }
             try (ZipFile file = openZipFile()) {
@@ -88,7 +88,7 @@ public class FilePathZip extends FilePath {
     public boolean isDirectory() {
         try {
             String entryName = getEntryName();
-            if (entryName.length() == 0) {
+            if (entryName.isEmpty()) {
                 return true;
             }
             try (ZipFile file = openZipFile()) {
@@ -234,13 +234,11 @@ public class FilePathZip extends FilePath {
     }
 
     @Override
-    public FilePath createTempFile(String suffix, boolean deleteOnExit,
-            boolean inTempDir) throws IOException {
+    public FilePath createTempFile(String suffix, boolean inTempDir) throws IOException {
         if (!inTempDir) {
             throw new IOException("File system is read-only");
         }
-        return new FilePathDisk().getPath(name).createTempFile(suffix,
-                deleteOnExit, true);
+        return new FilePathDisk().getPath(name).createTempFile(suffix, true);
     }
 
     @Override

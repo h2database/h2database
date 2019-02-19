@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -10,7 +10,6 @@ import java.util.Arrays;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
-import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.store.Data;
@@ -417,7 +416,8 @@ public class PageDataLeaf extends PageData {
         int i = find(key);
         if (keys == null || keys[i] != key) {
             throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1,
-                    index.getSQL() + ": " + key + " " + (keys == null ? -1 : keys[i]));
+                    index.getSQL(new StringBuilder()).append(": ").append(key).append(' ')
+                    .append(keys == null ? -1 : keys[i]).toString());
         }
         index.getPageStore().logUndo(this, data);
         if (entryCount == 1) {
@@ -578,7 +578,7 @@ public class PageDataLeaf extends PageData {
      * @param overflow the new overflow page id
      */
     void setOverflow(int old, int overflow) {
-        if (SysProperties.CHECK && old != firstOverflowPageId) {
+        if (old != firstOverflowPageId) {
             DbException.throwInternalError("move " + this + " " + firstOverflowPageId);
         }
         index.getPageStore().logUndo(this, data);

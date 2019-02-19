@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -196,14 +196,15 @@ public class Engine implements SessionFactory {
         String cipher = ci.removeProperty("CIPHER", null);
         String init = ci.removeProperty("INIT", null);
         Session session;
-        for (int i = 0;; i++) {
+        long start = System.nanoTime();
+        for (;;) {
             session = openSession(ci, ifExists, cipher);
             if (session != null) {
                 break;
             }
             // we found a database that is currently closing
             // wait a bit to avoid a busy loop (the method is synchronized)
-            if (i > 60 * 1000) {
+            if (System.nanoTime() - start > 60_000_000_000L) {
                 // retry at most 1 minute
                 throw DbException.get(ErrorCode.DATABASE_ALREADY_OPEN_1,
                         "Waited for database closing longer than 1 minute");
@@ -211,7 +212,7 @@ public class Engine implements SessionFactory {
             try {
                 Thread.sleep(1);
             } catch (InterruptedException e) {
-                // ignore
+                throw DbException.get(ErrorCode.DATABASE_CALLED_AT_SHUTDOWN);
             }
         }
         synchronized (session) {

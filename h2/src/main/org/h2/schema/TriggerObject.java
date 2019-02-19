@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -335,7 +335,8 @@ public class TriggerObject extends SchemaObjectBase {
             buff.append(" AFTER ");
         }
         buff.append(getTypeNameList());
-        buff.append(" ON ").append(targetTable.getSQL());
+        buff.append(" ON ");
+        targetTable.getSQL(buff);
         if (rowBased) {
             buff.append(" FOR EACH ROW");
         }
@@ -345,9 +346,11 @@ public class TriggerObject extends SchemaObjectBase {
             buff.append(" QUEUE ").append(queueSize);
         }
         if (triggerClassName != null) {
-            buff.append(" CALL ").append(Parser.quoteIdentifier(triggerClassName));
+            buff.append(" CALL ");
+            Parser.quoteIdentifier(buff, triggerClassName);
         } else {
-            buff.append(" AS ").append(StringUtils.quoteStringSQL(triggerSource));
+            buff.append(" AS ");
+            StringUtils.quoteStringSQL(buff, triggerSource);
         }
         return buff.toString();
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -207,12 +207,6 @@ public class DbSettings extends SettingsBase {
     public final boolean optimizeInSelect = get("OPTIMIZE_IN_SELECT", true);
 
     /**
-     * Database setting <code>OPTIMIZE_IS_NULL</code> (default: false).<br />
-     * Use an index for condition of the form columnName IS NULL.
-     */
-    public final boolean optimizeIsNull = get("OPTIMIZE_IS_NULL", true);
-
-    /**
      * Database setting <code>OPTIMIZE_OR</code> (default: true).<br />
      * Convert (C=? OR C=?) to (C IN(?, ?)).
      */
@@ -295,14 +289,6 @@ public class DbSettings extends SettingsBase {
      * If set, each table has a pseudo-column _ROWID_.
      */
     public final boolean rowId = get("ROWID", true);
-
-    /**
-     * Database setting <code>SELECT_FOR_UPDATE_MVCC</code>
-     * (default: true).<br />
-     * If set, SELECT .. FOR UPDATE queries lock only the selected rows when
-     * using MVCC.
-     */
-    public final boolean selectForUpdateMvcc = get("SELECT_FOR_UPDATE_MVCC", true);
 
     /**
      * Database setting <code>SHARE_LINKED_CONNECTIONS</code>

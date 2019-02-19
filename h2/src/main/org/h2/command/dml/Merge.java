@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -26,21 +26,18 @@ import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.StatementBuilder;
-import org.h2.util.Utils;
 import org.h2.value.Value;
 
 /**
  * This class represents the statement
  * MERGE
  */
-public class Merge extends Prepared {
+public class Merge extends CommandWithValues {
 
     private Table targetTable;
     private TableFilter targetTableFilter;
     private Column[] columns;
     private Column[] keys;
-    private final ArrayList<Expression[]> valuesExpressionList = Utils.newSmallArrayList();
     private Query query;
     private Prepared update;
 
@@ -70,15 +67,6 @@ public class Merge extends Prepared {
 
     public void setQuery(Query query) {
         this.query = query;
-    }
-
-    /**
-     * Add a row to this merge statement.
-     *
-     * @param expr the list of values
-     */
-    public void addRow(Expression[] expr) {
-        valuesExpressionList.add(expr);
     }
 
     @Override
@@ -217,46 +205,31 @@ public class Merge extends Prepared {
 
     @Override
     public String getPlanSQL() {
-        StatementBuilder buff = new StatementBuilder("MERGE INTO ");
-        buff.append(targetTable.getSQL()).append('(');
-        for (Column c : columns) {
-            buff.appendExceptFirst(", ");
-            buff.append(c.getSQL());
-        }
-        buff.append(')');
+        StringBuilder builder = new StringBuilder("MERGE INTO ");
+        targetTable.getSQL(builder).append('(');
+        Column.writeColumns(builder, columns);
+        builder.append(')');
         if (keys != null) {
-            buff.append(" KEY(");
-            buff.resetCount();
-            for (Column c : keys) {
-                buff.appendExceptFirst(", ");
-                buff.append(c.getSQL());
-            }
-            buff.append(')');
+            builder.append(" KEY(");
+            Column.writeColumns(builder, keys);
+            builder.append(')');
         }
-        buff.append('\n');
+        builder.append('\n');
         if (!valuesExpressionList.isEmpty()) {
-            buff.append("VALUES ");
+            builder.append("VALUES ");
             int row = 0;
             for (Expression[] expr : valuesExpressionList) {
                 if (row++ > 0) {
-                    buff.append(", ");
+                    builder.append(", ");
                 }
-                buff.append('(');
-                buff.resetCount();
-                for (Expression e : expr) {
-                    buff.appendExceptFirst(", ");
-                    if (e == null) {
-                        buff.append("DEFAULT");
-                    } else {
-                        buff.append(e.getSQL());
-                    }
-                }
-                buff.append(')');
+                builder.append('(');
+                Expression.writeExpressions(builder, expr);
+                builder.append(')');
             }
         } else {
-            buff.append(query.getPlanSQL());
+            builder.append(query.getPlanSQL());
         }
-        return buff.toString();
+        return builder.toString();
     }
 
     @Override
@@ -294,20 +267,11 @@ public class Merge extends Prepared {
             }
             keys = idx.getColumns();
         }
-        StatementBuilder buff = new StatementBuilder("UPDATE ");
-        buff.append(targetTable.getSQL()).append(" SET ");
-        for (Column c : columns) {
-            buff.appendExceptFirst(", ");
-            buff.append(c.getSQL()).append("=?");
-        }
-        buff.append(" WHERE ");
-        buff.resetCount();
-        for (Column c : keys) {
-            buff.appendExceptFirst(" AND ");
-            buff.append(c.getSQL()).append("=?");
-        }
-        String sql = buff.toString();
-        update = session.prepare(sql);
+        StringBuilder builder = new StringBuilder("UPDATE ");
+        targetTable.getSQL(builder).append(" SET ");
+        Column.writeColumns(builder, columns, ", ", "=?").append(" WHERE ");
+        Column.writeColumns(builder, keys, " AND ", "=?");
+        update = session.prepare(builder.toString());
     }
 
     @Override

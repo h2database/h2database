@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0, Version 1.0,
-and under the Eclipse Public License, Version 1.0
+Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+and the EPL 1.0 (http://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
@@ -172,7 +172,7 @@ A map is sorted by key, and supports the common lookup operations,
 including access to the first and last key, iterate over some or all keys, and so on.
 </p><p>
 Also supported, and very uncommon for maps, is fast index lookup:
-the entries of the map can be be efficiently accessed like a random-access list
+the entries of the map can be efficiently accessed like a random-access list
 (get the entry at the given index), and the index of a key can be calculated efficiently.
 That also means getting the median of two keys is very fast,
 and a range of keys can be counted very quickly.
@@ -535,7 +535,7 @@ H:2,block:2,blockSize:1000,chunk:7,created:1441235ef73,format:1,version:7,fletch
 The data is stored in the form of a key-value pair.
 Each value is stored as a hexadecimal number. The entries are:
 </p>
-<ul><li>H: The entry "H:2" stands for the the H2 database.
+<ul><li>H: The entry "H:2" stands for the H2 database.
 </li><li>block: The block number where one of the newest chunks starts
     (but not necessarily the newest).
 </li><li>blockSize: The block size of the file; currently always hex 1000, which is decimal 4096,

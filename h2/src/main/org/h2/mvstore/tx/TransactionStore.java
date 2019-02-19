@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -20,6 +20,7 @@ import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
 import org.h2.util.StringUtils;
+import org.h2.value.VersionedValue;
 
 /**
  * A store that supports concurrent MVCC read-committed transactions.
@@ -101,6 +102,17 @@ public class TransactionStore {
     private static final int MAX_OPEN_TRANSACTIONS = 65535;
 
 
+    /**
+     * Generate a string used to name undo log map for a specific transaction.
+     * This name will contain transaction id and reflect the fact
+     * whether transaction is logically committed or not.
+     * This information might be used by recovery procedure after unclean shutdown
+     * (termination before transaction is fully committed).
+     *
+     * @param committed true if transaction is logically committed, false otherwise
+     * @param transactionId of the corresponding transaction
+     * @return undo log name
+     */
     public static String getUndoLogName(boolean committed, int transactionId) {
         return UNDO_LOG_NAME_PREFIX +
                 (committed ? UNDO_LOG_COMMITTED : UNDO_LOG_OPEN) +
@@ -128,14 +140,14 @@ public class TransactionStore {
         this.timeoutMillis = timeoutMillis;
         preparedTransactions = store.openMap("openTransactions",
                 new MVMap.Builder<Integer, Object[]>());
-        DataType oldValueType = new VersionedValue.Type(dataType);
+        DataType oldValueType = new VersionedValueType(dataType);
         ArrayType undoLogValueType = new ArrayType(new DataType[]{
                 new ObjectDataType(), dataType, oldValueType
         });
         undoLogBuilder = new MVMap.Builder<Long, Object[]>()
                 .singleWriter()
                 .valueType(undoLogValueType);
-        DataType vt = new VersionedValue.Type(dataType);
+        DataType vt = new VersionedValueType(dataType);
         mapBuilder = new MVMap.Builder<Object, VersionedValue>()
                             .keyType(dataType).valueType(vt);
     }
@@ -178,7 +190,7 @@ public class TransactionStore {
                                 assert committed || getTransactionId(lastUndoKey) == transactionId;
                                 long logId = lastUndoKey == null ? 0 : getLogId(lastUndoKey) + 1;
                                 registerTransaction(transactionId, status, name, logId, timeoutMillis, 0,
-                                        RollbackListener.NONE);
+                                        ROLLBACK_LISTENER_NONE);
                                 continue;
                             }
                         }
@@ -306,7 +318,7 @@ public class TransactionStore {
      * @return the transaction
      */
     public Transaction begin() {
-        return begin(RollbackListener.NONE, timeoutMillis, 0);
+        return begin(ROLLBACK_LISTENER_NONE, timeoutMillis, 0);
     }
 
     /**
@@ -386,10 +398,11 @@ public class TransactionStore {
      * @param transactionId id of the transaction
      * @param logId sequential number of the log record within transaction
      * @param undoLogRecord Object[mapId, key, previousValue]
+     * @return undo key
      */
     long addUndoLogRecord(int transactionId, long logId, Object[] undoLogRecord) {
         MVMap<Long, Object[]> undoLog = undoLogs[transactionId];
-        Long undoKey = getOperationId(transactionId, logId);
+        long undoKey = getOperationId(transactionId, logId);
         if (logId == 0 && !undoLog.isEmpty()) {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_TOO_MANY_OPEN_TRANSACTIONS,
@@ -449,7 +462,11 @@ public class TransactionStore {
                         if (map != null) { // might be null if map was removed later
                             Object key = op[1];
                             commitDecisionMaker.setUndoKey(undoKey);
-                            map.operate(key, null, commitDecisionMaker);
+                            // although second parameter (value) is not really
+                            // used by CommitDecisionMaker, MVRTreeMap has weird
+                            // traversal logic based on it, and any non-null
+                            // value will do, to signify update, not removal
+                            map.operate(key, VersionedValue.DUMMY, commitDecisionMaker);
                         }
                     }
                     undoLog.clear();
@@ -490,7 +507,7 @@ public class TransactionStore {
         if (valueType == null) {
             valueType = new ObjectDataType();
         }
-        VersionedValue.Type vt = new VersionedValue.Type(valueType);
+        VersionedValueType vt = new VersionedValueType(valueType);
         MVMap<K, VersionedValue> map;
         MVMap.Builder<K, VersionedValue> builder =
                 new MVMap.Builder<K, VersionedValue>().
@@ -577,6 +594,12 @@ public class TransactionStore {
         return true;
     }
 
+    /**
+     * Get Transaction object for a transaction id.
+     *
+     * @param transactionId id for an open transaction
+     * @return Transaction object.
+     */
     Transaction getTransaction(int transactionId) {
         return transactions.get(transactionId);
     }
@@ -636,7 +659,7 @@ public class TransactionStore {
                     MVMap<Object, VersionedValue> m = openMap(mapId);
                     if (m != null) { // could be null if map was removed later on
                         VersionedValue oldValue = (VersionedValue) op[2];
-                        current = new Change(m.getName(), op[1], oldValue == null ? null : oldValue.value);
+                        current = new Change(m.getName(), op[1], oldValue == null ? null : oldValue.getCurrentValue());
                         return;
                     }
                 }
@@ -706,14 +729,6 @@ public class TransactionStore {
      */
     public interface RollbackListener {
 
-        RollbackListener NONE = new RollbackListener() {
-            @Override
-            public void onRollback(MVMap<Object, VersionedValue> map, Object key,
-                                    VersionedValue existingValue, VersionedValue restoredValue) {
-                // do nothing
-            }
-        };
-
         /**
          * Notified of a single map change (add/update/remove)
          * @param map modified
@@ -724,6 +739,14 @@ public class TransactionStore {
         void onRollback(MVMap<Object,VersionedValue> map, Object key,
                         VersionedValue existingValue, VersionedValue restoredValue);
     }
+
+    private static final RollbackListener ROLLBACK_LISTENER_NONE = new RollbackListener() {
+        @Override
+        public void onRollback(MVMap<Object, VersionedValue> map, Object key,
+                                VersionedValue existingValue, VersionedValue restoredValue) {
+            // do nothing
+        }
+    };
 
     /**
      * A data type that contains an array of objects with the specified data

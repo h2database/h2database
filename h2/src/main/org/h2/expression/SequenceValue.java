@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -10,6 +10,7 @@ import org.h2.message.DbException;
 import org.h2.schema.Sequence;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
 
@@ -32,12 +33,12 @@ public class SequenceValue extends Expression {
     }
 
     @Override
-    public int getType() {
-        return Value.LONG;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_LONG;
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
+    public void mapColumns(ColumnResolver resolver, int level, int state) {
         // nothing to do
     }
 
@@ -52,27 +53,13 @@ public class SequenceValue extends Expression {
     }
 
     @Override
-    public int getScale() {
-        return 0;
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append("(NEXT VALUE FOR ");
+        return sequence.getSQL(builder).append(')');
     }
 
     @Override
-    public long getPrecision() {
-        return ValueLong.PRECISION;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return ValueLong.DISPLAY_SIZE;
-    }
-
-    @Override
-    public String getSQL() {
-        return "(NEXT VALUE FOR " + sequence.getSQL() +")";
-    }
-
-    @Override
-    public void updateAggregate(Session session) {
+    public void updateAggregate(Session session, int stage) {
         // nothing to do
     }
 
@@ -80,7 +67,7 @@ public class SequenceValue extends Expression {
     public boolean isEverything(ExpressionVisitor visitor) {
         switch (visitor.getType()) {
         case ExpressionVisitor.EVALUATABLE:
-        case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
+        case ExpressionVisitor.OPTIMIZABLE_AGGREGATE:
         case ExpressionVisitor.NOT_FROM_RESOLVER:
         case ExpressionVisitor.GET_COLUMNS1:
         case ExpressionVisitor.GET_COLUMNS2:

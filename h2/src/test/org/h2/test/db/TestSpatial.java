@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -608,16 +608,17 @@ public class TestSpatial extends TestDb {
      * Test serialization of Z and SRID values.
      */
     private void testWKB() {
-        String ewkt = "SRID=27572;POLYGON ((67 13 6, 67 18 5, 59 18 4, 59 13 6, 67 13 6))";
+        String ewkt = "SRID=27572;POLYGON Z ((67 13 6, 67 18 5, 59 18 4, 59 13 6, 67 13 6))";
         ValueGeometry geom3d = ValueGeometry.get(ewkt);
         assertEquals(ewkt, geom3d.getString());
         ValueGeometry copy = ValueGeometry.get(geom3d.getBytes());
-        assertEquals(6, copy.getGeometry().getCoordinates()[0].z);
-        assertEquals(5, copy.getGeometry().getCoordinates()[1].z);
-        assertEquals(4, copy.getGeometry().getCoordinates()[2].z);
+        Geometry g = copy.getGeometry();
+        assertEquals(6, g.getCoordinates()[0].z);
+        assertEquals(5, g.getCoordinates()[1].z);
+        assertEquals(4, g.getCoordinates()[2].z);
         // Test SRID
         copy = ValueGeometry.get(geom3d.getBytes());
-        assertEquals(27572, copy.getGeometry().getSRID());
+        assertEquals(27572, g.getSRID());
 
         Point point = new GeometryFactory().createPoint((new Coordinate(1.1d, 1.2d)));
         // SRID 0
@@ -640,7 +641,7 @@ public class TestSpatial extends TestDb {
     }
 
     private void checkSRID(byte[] bytes, int srid) {
-        Point point = (Point) ValueGeometry.get(bytes).getGeometry();
+        Point point = (Point) ValueGeometry.getFromEWKB(bytes).getGeometry();
         assertEquals(1.1, point.getX());
         assertEquals(1.2, point.getY());
         assertEquals(srid, point.getSRID());
@@ -697,13 +698,6 @@ public class TestSpatial extends TestDb {
         ValueGeometry valueGeometry3 = ValueGeometry.getFromGeometry(geometry);
         assertEquals(valueGeometry, valueGeometry3);
         assertEquals(geometry.getSRID(), valueGeometry3.getGeometry().getSRID());
-        // Check illegal geometry (no WKB representation)
-        try {
-            ValueGeometry.get("POINT EMPTY");
-            fail("expected this to throw IllegalArgumentException");
-        } catch (IllegalArgumentException ex) {
-            // expected
-        }
     }
 
     /**
@@ -723,6 +717,11 @@ public class TestSpatial extends TestDb {
             assertEquals("geometry",
                     columnMeta.getString("TYPE_NAME").toLowerCase());
             assertFalse(columnMeta.next());
+
+            ResultSet rs = stat.executeQuery("select point_table(1, 1)");
+            assertTrue(rs.next());
+            ResultSet rs2 = (ResultSet) rs.getObject(1);
+            assertEquals("GEOMETRY", rs2.getMetaData().getColumnTypeName(1));
         }
         deleteDb("spatial");
     }

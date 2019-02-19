@@ -1,14 +1,12 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.expression.aggregate;
 
 import org.h2.engine.Database;
-import org.h2.expression.aggregate.Aggregate.AggregateType;
 import org.h2.message.DbException;
-import org.h2.util.ValueHashMap;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
@@ -20,38 +18,34 @@ import org.h2.value.ValueNull;
  * Data stored while calculating an aggregate.
  */
 class AggregateDataDefault extends AggregateData {
+
     private final AggregateType aggregateType;
+    private final int dataType;
     private long count;
-    private ValueHashMap<AggregateDataDefault> distinctValues;
     private Value value;
     private double m2, mean;
 
     /**
      * @param aggregateType the type of the aggregate operation
+     * @param dataType the data type of the computed result
      */
-    AggregateDataDefault(AggregateType aggregateType) {
+    AggregateDataDefault(AggregateType aggregateType, int dataType) {
         this.aggregateType = aggregateType;
+        this.dataType = dataType;
     }
 
     @Override
-    void add(Database database, int dataType, boolean distinct, Value v) {
+    void add(Database database, Value v) {
         if (v == ValueNull.INSTANCE) {
             return;
         }
         count++;
-        if (distinct) {
-            if (distinctValues == null) {
-                distinctValues = ValueHashMap.newInstance();
-            }
-            distinctValues.put(v, this);
-            return;
-        }
         switch (aggregateType) {
         case SUM:
             if (value == null) {
                 value = v.convertTo(dataType);
             } else {
-                v = v.convertTo(value.getType());
+                v = v.convertTo(value.getValueType());
                 value = value.add(v);
             }
             break;
@@ -59,7 +53,7 @@ class AggregateDataDefault extends AggregateData {
             if (value == null) {
                 value = v.convertTo(DataType.getAddProofType(dataType));
             } else {
-                v = v.convertTo(value.getType());
+                v = v.convertTo(value.getValueType());
                 value = value.add(v);
             }
             break;
@@ -91,7 +85,7 @@ class AggregateDataDefault extends AggregateData {
             }
             break;
         }
-        case BOOL_AND:
+        case EVERY:
             v = v.convertTo(Value.BOOLEAN);
             if (value == null) {
                 value = v;
@@ -99,7 +93,7 @@ class AggregateDataDefault extends AggregateData {
                 value = ValueBoolean.get(value.getBoolean() && v.getBoolean());
             }
             break;
-        case BOOL_OR:
+        case ANY:
             v = v.convertTo(Value.BOOLEAN);
             if (value == null) {
                 value = v;
@@ -127,11 +121,7 @@ class AggregateDataDefault extends AggregateData {
     }
 
     @Override
-    Value getValue(Database database, int dataType, boolean distinct) {
-        if (distinct) {
-            count = 0;
-            groupDistinct(database, dataType);
-        }
+    Value getValue(Database database, int dataType) {
         Value v = null;
         switch (aggregateType) {
         case SUM:
@@ -139,8 +129,8 @@ class AggregateDataDefault extends AggregateData {
         case MAX:
         case BIT_OR:
         case BIT_AND:
-        case BOOL_OR:
-        case BOOL_AND:
+        case ANY:
+        case EVERY:
             v = value;
             break;
         case AVG:
@@ -186,20 +176,10 @@ class AggregateDataDefault extends AggregateData {
         if (by == 0) {
             return ValueNull.INSTANCE;
         }
-        int type = Value.getHigherOrder(a.getType(), Value.LONG);
+        int type = Value.getHigherOrder(a.getValueType(), Value.LONG);
         Value b = ValueLong.get(by).convertTo(type);
         a = a.convertTo(type).divide(b);
         return a;
-    }
-
-    private void groupDistinct(Database database, int dataType) {
-        if (distinctValues == null) {
-            return;
-        }
-        count = 0;
-        for (Value v : distinctValues.keys()) {
-            add(database, dataType, false, v);
-        }
     }
 
 }

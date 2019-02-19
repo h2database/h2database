@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -50,21 +50,24 @@ public class ConstraintCheck extends Constraint {
     @Override
     public String getCreateSQLForCopy(Table forTable, String quotedName) {
         StringBuilder buff = new StringBuilder("ALTER TABLE ");
-        buff.append(forTable.getSQL()).append(" ADD CONSTRAINT ");
+        forTable.getSQL(buff).append(" ADD CONSTRAINT ");
         if (forTable.isHidden()) {
             buff.append("IF NOT EXISTS ");
         }
         buff.append(quotedName);
         if (comment != null) {
-            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
+            buff.append(" COMMENT ");
+            StringUtils.quoteStringSQL(buff, comment);
         }
-        buff.append(" CHECK").append(StringUtils.enclose(expr.getSQL()))
-                .append(" NOCHECK");
+        buff.append(" CHECK(");
+        expr.getUnenclosedSQL(buff).append(") NOCHECK");
         return buff.toString();
     }
 
     private String getShortDescription() {
-        return getName() + ": " + expr.getSQL();
+        StringBuilder builder = new StringBuilder().append(getName()).append(": ");
+        expr.getSQL(builder);
+        return builder.toString();
     }
 
     @Override
@@ -140,8 +143,10 @@ public class ConstraintCheck extends Constraint {
             // don't check at startup
             return;
         }
-        String sql = "SELECT 1 FROM " + filter.getTable().getSQL() +
-                " WHERE NOT(" + expr.getSQL() + ")";
+        StringBuilder builder = new StringBuilder().append("SELECT 1 FROM ");
+        filter.getTable().getSQL(builder).append(" WHERE NOT(");
+        expr.getSQL(builder).append(')');
+        String sql = builder.toString();
         ResultInterface r = session.prepare(sql).query(1);
         if (r.next()) {
             throw DbException.get(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, getName());

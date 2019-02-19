@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0, Version 1.0,
-and under the Eclipse Public License, Version 1.0
+Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+and the EPL 1.0 (http://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
@@ -115,8 +115,8 @@ build jarClient
 
 <h3>Using Apache Lucene</h3>
 <p>
-Apache Lucene 3.6.2 is used for testing.
-Newer versions may work, however they are not tested.
+Apache Lucene 5.5.5 is used for testing.
+Newer versions up to 7.6.0 can also be used.
 </p>
 
 <h2 id="maven2">Using Maven 2</h2>
@@ -216,8 +216,7 @@ If you'd like to contribute bug fixes or new features, please consider the follo
     The formatting options (<code>eclipseCodeStyle</code>) are also included.
 </li><li>Please provide test cases and integrate them into the test suite.
     For Java level tests, see <code>src/test/org/h2/test/TestAll.java</code>.
-    For SQL level tests, see <code>src/test/org/h2/test/test.in.txt</code> or
-    <code>testSimple.in.txt</code>.
+    For SQL level tests, see SQL files in <code>src/test/org/h2/test/scripts</code>.
 </li><li>The test cases should cover at least 90% of the changed and new code;
     use a code coverage tool to verify that (see above).
     or use the build target <code>coverage</code>.

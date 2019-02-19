@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -16,8 +16,8 @@ import org.h2.command.dml.Query;
 import org.h2.command.dml.SelectUnion;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
-import org.h2.expression.Comparison;
 import org.h2.expression.Parameter;
+import org.h2.expression.condition.Comparison;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;

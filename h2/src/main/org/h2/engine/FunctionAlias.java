@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -203,13 +203,13 @@ public class FunctionAlias extends SchemaObjectBase {
     }
 
     @Override
-    public String getSQL() {
+    public StringBuilder getSQL(StringBuilder builder) {
         // TODO can remove this method once FUNCTIONS_IN_SCHEMA is enabled
         if (database.getSettings().functionsInSchema ||
                 !getSchema().getName().equals(Constants.SCHEMA_MAIN)) {
-            return super.getSQL();
+            return super.getSQL(builder);
         }
-        return Parser.quoteIdentifier(getName());
+        return Parser.quoteIdentifier(builder, getName());
     }
 
     @Override
@@ -223,10 +223,11 @@ public class FunctionAlias extends SchemaObjectBase {
             buff.append(" NOBUFFER");
         }
         if (source != null) {
-            buff.append(" AS ").append(StringUtils.quoteStringSQL(source));
+            buff.append(" AS ");
+            StringUtils.quoteStringSQL(buff, source);
         } else {
-            buff.append(" FOR ").append(Parser.quoteIdentifier(
-                    className + "." + methodName));
+            buff.append(" FOR ");
+            Parser.quoteIdentifier(buff, className + "." + methodName);
         }
         return buff.toString();
     }
@@ -402,7 +403,7 @@ public class FunctionAlias extends SchemaObjectBase {
                 Object o;
                 if (Value.class.isAssignableFrom(paramClass)) {
                     o = v;
-                } else if (v.getType() == Value.ARRAY &&
+                } else if (v.getValueType() == Value.ARRAY &&
                         paramClass.isArray() &&
                         paramClass.getComponentType() != Object.class) {
                     Value[] array = ((ValueArray) v).getList();

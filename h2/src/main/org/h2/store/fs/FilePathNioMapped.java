@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -170,11 +170,7 @@ class FileNioMapped extends FileBase {
             dst.position(dst.position() + len);
             pos += len;
             return len;
-        } catch (IllegalArgumentException e) {
-            EOFException e2 = new EOFException("EOF");
-            e2.initCause(e);
-            throw e2;
-        } catch (BufferUnderflowException e) {
+        } catch (IllegalArgumentException | BufferUnderflowException e) {
             EOFException e2 = new EOFException("EOF");
             e2.initCause(e);
             throw e2;

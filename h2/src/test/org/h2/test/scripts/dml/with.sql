@@ -1,4 +1,4 @@
--- Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (http://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -130,3 +130,33 @@ WITH CTE_TEST AS (SELECT 1, 2) ((SELECT * FROM CTE_TEST));
 > - -
 > 1 2
 > rows: 1
+
+CREATE TABLE TEST(A INT, B INT) AS SELECT 1, 2;
+> ok
+
+WITH CTE_TEST AS (TABLE TEST) ((SELECT * FROM CTE_TEST));
+> A B
+> - -
+> 1 2
+> rows: 1
+
+WITH CTE_TEST AS (TABLE TEST) ((TABLE CTE_TEST));
+> A B
+> - -
+> 1 2
+> rows: 1
+
+WITH CTE_TEST AS (VALUES (1, 2)) ((SELECT * FROM CTE_TEST));
+> C1 C2
+> -- --
+> 1  2
+> rows: 1
+
+WITH CTE_TEST AS (TABLE TEST) ((SELECT A, B FROM CTE_TEST2));
+> exception TABLE_OR_VIEW_NOT_FOUND_1
+
+WITH CTE_TEST AS (TABLE TEST) ((SELECT A, B, C FROM CTE_TEST));
+> exception COLUMN_NOT_FOUND_1
+
+DROP TABLE TEST;
+> ok

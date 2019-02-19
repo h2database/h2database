@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -12,7 +12,6 @@ import java.sql.Statement;
 import java.util.Arrays;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
-import org.h2.util.StatementBuilder;
 
 /**
  * Test for optimizer hint SET FORCE_JOIN_ORDER.
@@ -111,13 +110,15 @@ public class TestOptimizerHints extends TestDb {
     }
 
     private void checkPlanComma(Statement s, String ... t) throws SQLException {
-        StatementBuilder from = new StatementBuilder();
-        for (String table : t) {
-            from.appendExceptFirst(", ");
-            from.append(table);
+        StringBuilder builder = new StringBuilder("select 1 from ");
+        for (int i = 0, l = t.length; i < l; i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            builder.append(t[i]);
         }
-        String plan = plan(s, "select 1 from " + from.toString() + " where t1.id = t2.t1_id "
-                + "and t2.id = t4.t2_id and t3.id = t4.t3_id");
+        builder.append(" where t1.id = t2.t1_id and t2.id = t4.t2_id and t3.id = t4.t3_id");
+        String plan = plan(s, builder.toString());
         int prev = plan.indexOf("FROM PUBLIC." + t[0].toUpperCase());
         for (int i = 1; i < t.length; i++) {
             int next = plan.indexOf("INNER JOIN PUBLIC." + t[i].toUpperCase());
@@ -128,22 +129,22 @@ public class TestOptimizerHints extends TestDb {
 
     private void checkPlanJoin(Statement s, boolean on, boolean left,
             String... t) throws SQLException {
-        StatementBuilder from = new StatementBuilder();
+        StringBuilder builder = new StringBuilder("select 1 from ");
         for (int i = 0; i < t.length; i++) {
             if (i != 0) {
                 if (left) {
-                    from.append(" left join ");
+                    builder.append(" left join ");
                 } else {
-                    from.append(" inner join ");
+                    builder.append(" inner join ");
                 }
             }
-            from.append(t[i]);
+            builder.append(t[i]);
             if (on && i != 0) {
-                from.append(" on 1=1 ");
+                builder.append(" on 1=1 ");
             }
         }
-        String plan = plan(s, "select 1 from " + from.toString() + " where t1.id = t2.t1_id "
-                + "and t2.id = t4.t2_id and t3.id = t4.t3_id");
+        builder.append(" where t1.id = t2.t1_id and t2.id = t4.t2_id and t3.id = t4.t3_id");
+        String plan = plan(s, builder.toString());
         int prev = plan.indexOf("FROM PUBLIC." + t[0].toUpperCase());
         for (int i = 1; i < t.length; i++) {
             int next = plan.indexOf(

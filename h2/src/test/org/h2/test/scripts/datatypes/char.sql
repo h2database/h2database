@@ -1,4 +1,4 @@
--- Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (http://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -16,4 +16,60 @@ SELECT COLUMN_NAME, DATA_TYPE, TYPE_NAME, COLUMN_TYPE FROM INFORMATION_SCHEMA.CO
 > rows (ordered): 3
 
 DROP TABLE TEST;
+> ok
+
+CREATE TABLE TEST(C CHAR(2));
+> ok
+
+INSERT INTO TEST VALUES 'aa', 'b';
+> update count: 2
+
+SELECT * FROM TEST WHERE C = 'b';
+>> b
+
+SELECT * FROM TEST WHERE C = 'b ';
+>> b
+
+SELECT * FROM TEST WHERE C = 'b  ';
+>> b
+
+SELECT C || 'x' V FROM TEST;
+> V
+> ---
+> aax
+> bx
+> rows: 2
+
+DROP TABLE TEST;
+> ok
+
+SET MODE PostgreSQL;
+> ok
+
+CREATE TABLE TEST(C CHAR(2));
+> ok
+
+INSERT INTO TEST VALUES 'aa', 'b';
+> update count: 2
+
+SELECT * FROM TEST WHERE C = 'b';
+>> b
+
+SELECT * FROM TEST WHERE C = 'b ';
+>> b
+
+SELECT * FROM TEST WHERE C = 'b  ';
+>> b
+
+SELECT C || 'x' V FROM TEST;
+> V
+> ---
+> aax
+> bx
+> rows: 2
+
+DROP TABLE TEST;
+> ok
+
+SET MODE Regular;
 > ok

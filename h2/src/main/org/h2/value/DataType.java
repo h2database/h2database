@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -39,7 +39,6 @@ import org.h2.jdbc.JdbcClob;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.jdbc.JdbcLob;
 import org.h2.message.DbException;
-import org.h2.tools.SimpleResultSet;
 import org.h2.util.JdbcUtils;
 import org.h2.util.LocalDateTimeUtils;
 import org.h2.util.Utils;
@@ -79,7 +78,10 @@ public class DataType {
      */
     private static final ArrayList<DataType> TYPES = new ArrayList<>(96);
     private static final HashMap<String, DataType> TYPES_BY_NAME = new HashMap<>(128);
-    private static final HashMap<Integer, DataType> TYPES_BY_VALUE_TYPE = new HashMap<>(64);
+    /**
+     * Mapping from Value type numbers to DataType.
+     */
+    static final DataType[] TYPES_BY_VALUE_TYPE = new DataType[Value.TYPE_COUNT];
 
     /**
      * The value type of this data type.
@@ -168,19 +170,9 @@ public class DataType {
     public int defaultScale;
 
     /**
-     * The default display size.
-     */
-    public int defaultDisplaySize;
-
-    /**
      * If this data type should not be listed in the database meta data.
      */
     public boolean hidden;
-
-    /**
-     * The number of bytes required for an object.
-     */
-    public int memory;
 
     static {
         Class<?> g;
@@ -200,79 +192,56 @@ public class DataType {
         }
         JSON_CLASS = j;
 
+        DataType dataType = new DataType();
+        dataType.defaultPrecision = dataType.maxPrecision = ValueNull.PRECISION;
         add(Value.NULL, Types.NULL,
-                new DataType(),
-                new String[]{"NULL"},
-                // the value is always in the cache
-                0
+                dataType,
+                new String[]{"NULL"}
         );
         add(Value.STRING, Types.VARCHAR,
                 createString(true),
                 new String[]{"VARCHAR", "CHARACTER VARYING", "VARCHAR2", "NVARCHAR", "NVARCHAR2",
-                    "VARCHAR_CASESENSITIVE", "TID"},
-                // 24 for ValueString, 24 for String
-                48
+                    "VARCHAR_CASESENSITIVE", "TID"}
         );
         add(Value.STRING, Types.LONGVARCHAR,
                 createString(true),
-                new String[]{"LONGVARCHAR", "LONGNVARCHAR"},
-                48
+                new String[]{"LONGVARCHAR", "LONGNVARCHAR"}
         );
         add(Value.STRING_FIXED, Types.CHAR,
                 createString(true),
-                new String[]{"CHAR", "CHARACTER", "NCHAR"},
-                48
+                new String[]{"CHAR", "CHARACTER", "NCHAR"}
         );
         add(Value.STRING_IGNORECASE, Types.VARCHAR,
                 createString(false),
-                new String[]{"VARCHAR_IGNORECASE"},
-                48
+                new String[]{"VARCHAR_IGNORECASE"}
         );
         add(Value.BOOLEAN, Types.BOOLEAN,
-                createDecimal(ValueBoolean.PRECISION, ValueBoolean.PRECISION,
-                        0, ValueBoolean.DISPLAY_SIZE, false, false),
-                new String[]{"BOOLEAN", "BIT", "BOOL"},
-                // the value is always in the cache
-                0
+                createNumeric(ValueBoolean.PRECISION, 0, false),
+                new String[]{"BOOLEAN", "BIT", "BOOL"}
         );
         add(Value.BYTE, Types.TINYINT,
-                createDecimal(ValueByte.PRECISION, ValueByte.PRECISION, 0,
-                        ValueByte.DISPLAY_SIZE, false, false),
-                new String[]{"TINYINT"},
-                // the value is almost always in the cache
-                1
+                createNumeric(ValueByte.PRECISION, 0, false),
+                new String[]{"TINYINT"}
         );
         add(Value.SHORT, Types.SMALLINT,
-                createDecimal(ValueShort.PRECISION, ValueShort.PRECISION, 0,
-                        ValueShort.DISPLAY_SIZE, false, false),
-                new String[]{"SMALLINT", "YEAR", "INT2"},
-                // in many cases the value is in the cache
-                20
+                createNumeric(ValueShort.PRECISION, 0, false),
+                new String[]{"SMALLINT", "YEAR", "INT2"}
         );
         add(Value.INT, Types.INTEGER,
-                createDecimal(ValueInt.PRECISION, ValueInt.PRECISION, 0,
-                        ValueInt.DISPLAY_SIZE, false, false),
-                new String[]{"INTEGER", "INT", "MEDIUMINT", "INT4", "SIGNED"},
-                // in many cases the value is in the cache
-                20
+                createNumeric(ValueInt.PRECISION, 0, false),
+                new String[]{"INTEGER", "INT", "MEDIUMINT", "INT4", "SIGNED"}
         );
         add(Value.INT, Types.INTEGER,
-                createDecimal(ValueInt.PRECISION, ValueInt.PRECISION, 0,
-                        ValueInt.DISPLAY_SIZE, false, true),
-                new String[]{"SERIAL"},
-                20
+                createNumeric(ValueInt.PRECISION, 0, true),
+                new String[]{"SERIAL"}
         );
         add(Value.LONG, Types.BIGINT,
-                createDecimal(ValueLong.PRECISION, ValueLong.PRECISION, 0,
-                        ValueLong.DISPLAY_SIZE, false, false),
-                new String[]{"BIGINT", "INT8", "LONG"},
-                24
+                createNumeric(ValueLong.PRECISION, 0, false),
+                new String[]{"BIGINT", "INT8", "LONG"}
         );
         add(Value.LONG, Types.BIGINT,
-                createDecimal(ValueLong.PRECISION, ValueLong.PRECISION, 0,
-                        ValueLong.DISPLAY_SIZE, false, true),
-                new String[]{"IDENTITY", "BIGSERIAL"},
-                24
+                createNumeric(ValueLong.PRECISION, 0, true),
+                new String[]{"IDENTITY", "BIGSERIAL"}
         );
         if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
             addDecimal();
@@ -282,44 +251,32 @@ public class DataType {
             addDecimal();
         }
         add(Value.FLOAT, Types.REAL,
-                createDecimal(ValueFloat.PRECISION, ValueFloat.PRECISION,
-                        0, ValueFloat.DISPLAY_SIZE, false, false),
-                new String[] {"REAL", "FLOAT4"},
-                24
+                createNumeric(ValueFloat.PRECISION, 0, false),
+                new String[] {"REAL", "FLOAT4"}
         );
         add(Value.DOUBLE, Types.DOUBLE,
-                createDecimal(ValueDouble.PRECISION, ValueDouble.PRECISION,
-                        0, ValueDouble.DISPLAY_SIZE, false, false),
-                new String[] { "DOUBLE", "DOUBLE PRECISION" },
-                24
+                createNumeric(ValueDouble.PRECISION, 0, false),
+                new String[] { "DOUBLE", "DOUBLE PRECISION" }
         );
         add(Value.DOUBLE, Types.FLOAT,
-                createDecimal(ValueDouble.PRECISION, ValueDouble.PRECISION,
-                        0, ValueDouble.DISPLAY_SIZE, false, false),
-                new String[] {"FLOAT", "FLOAT8" },
-                24
+                createNumeric(ValueDouble.PRECISION, 0, false),
+                new String[] {"FLOAT", "FLOAT8" }
         );
         add(Value.TIME, Types.TIME,
                 createDate(ValueTime.MAXIMUM_PRECISION, ValueTime.DEFAULT_PRECISION,
                         "TIME", true, ValueTime.DEFAULT_SCALE, ValueTime.MAXIMUM_SCALE),
-                new String[]{"TIME", "TIME WITHOUT TIME ZONE"},
-                // 24 for ValueTime, 32 for java.sql.Time
-                56
+                new String[]{"TIME", "TIME WITHOUT TIME ZONE"}
         );
         add(Value.DATE, Types.DATE,
                 createDate(ValueDate.PRECISION, ValueDate.PRECISION,
                         "DATE", false, 0, 0),
-                new String[]{"DATE"},
-                // 24 for ValueDate, 32 for java.sql.Date
-                56
+                new String[]{"DATE"}
         );
         add(Value.TIMESTAMP, Types.TIMESTAMP,
                 createDate(ValueTimestamp.MAXIMUM_PRECISION, ValueTimestamp.DEFAULT_PRECISION,
                         "TIMESTAMP", true, ValueTimestamp.DEFAULT_SCALE, ValueTimestamp.MAXIMUM_SCALE),
                 new String[]{"TIMESTAMP", "TIMESTAMP WITHOUT TIME ZONE",
-                        "DATETIME", "DATETIME2", "SMALLDATETIME"},
-                // 24 for ValueTimestamp, 32 for java.sql.Timestamp
-                56
+                        "DATETIME", "DATETIME2", "SMALLDATETIME"}
         );
         // 2014 is the value of Types.TIMESTAMP_WITH_TIMEZONE
         // use the value instead of the reference because the code has to
@@ -329,110 +286,94 @@ public class DataType {
                 createDate(ValueTimestampTimeZone.MAXIMUM_PRECISION, ValueTimestampTimeZone.DEFAULT_PRECISION,
                         "TIMESTAMP_TZ", true, ValueTimestampTimeZone.DEFAULT_SCALE,
                         ValueTimestampTimeZone.MAXIMUM_SCALE),
-                new String[]{"TIMESTAMP WITH TIME ZONE"},
-                // 26 for ValueTimestampTimeZone, 32 for java.sql.Timestamp
-                58
+                new String[]{"TIMESTAMP WITH TIME ZONE"}
         );
         add(Value.BYTES, Types.VARBINARY,
                 createString(false),
-                new String[]{"VARBINARY", "BINARY VARYING"},
-                32
+                new String[]{"VARBINARY", "BINARY VARYING"}
         );
         add(Value.BYTES, Types.BINARY,
                 createString(false),
-                new String[]{"BINARY", "RAW", "BYTEA", "LONG RAW"},
-                32
+                new String[]{"BINARY", "RAW", "BYTEA", "LONG RAW"}
         );
         add(Value.BYTES, Types.LONGVARBINARY,
                 createString(false),
-                new String[]{"LONGVARBINARY"},
-                32
+                new String[]{"LONGVARBINARY"}
         );
+        dataType = new DataType();
+        dataType.prefix = dataType.suffix = "'";
+        dataType.defaultPrecision = dataType.maxPrecision = ValueUuid.PRECISION;
         add(Value.UUID, Types.BINARY,
                 createString(false),
                 // UNIQUEIDENTIFIER is the MSSQL mode equivalent
-                new String[]{"UUID", "UNIQUEIDENTIFIER"},
-                32
+                new String[]{"UUID", "UNIQUEIDENTIFIER"}
         );
         add(Value.JAVA_OBJECT, Types.OTHER,
                 createString(false),
-                new String[]{"OTHER", "OBJECT", "JAVA_OBJECT"},
-                24
+                new String[]{"OTHER", "OBJECT", "JAVA_OBJECT"}
         );
         add(Value.BLOB, Types.BLOB,
                 createLob(),
                 new String[]{"BLOB", "BINARY LARGE OBJECT", "TINYBLOB", "MEDIUMBLOB",
-                    "LONGBLOB", "IMAGE", "OID"},
-                // 80 for ValueLob, 24 for String
-                104
+                    "LONGBLOB", "IMAGE", "OID"}
         );
         add(Value.CLOB, Types.CLOB,
                 createLob(),
                 new String[]{"CLOB", "CHARACTER LARGE OBJECT", "TINYTEXT", "TEXT", "MEDIUMTEXT",
-                    "LONGTEXT", "NTEXT", "NCLOB"},
-                // 80 for ValueLob, 24 for String
-                104
+                    "LONGTEXT", "NTEXT", "NCLOB"}
         );
         add(Value.GEOMETRY, Types.OTHER,
-                createString(false),
-                new String[]{"GEOMETRY"},
-                32
+                createGeometry(),
+                new String[]{"GEOMETRY"}
         );
         add(Value.JSON, Types.OTHER,
                 createString(false),
-                new String[] {"JSON"},
-                32
-        );
-        DataType dataType = new DataType();
-        dataType.prefix = "(";
-        dataType.suffix = "')";
-        add(Value.ARRAY, Types.ARRAY,
-                dataType,
-                new String[]{"ARRAY"},
-                32
+                new String[] {"JSON"}
         );
         dataType = new DataType();
+        dataType.prefix = "ARRAY[";
+        dataType.suffix = "]";
+        add(Value.ARRAY, Types.ARRAY,
+                dataType,
+                new String[]{"ARRAY"}
+        );
+        dataType = new DataType();
+        dataType.maxPrecision = dataType.defaultPrecision = Integer.MAX_VALUE;
         add(Value.RESULT_SET, DataType.TYPE_RESULT_SET,
                 dataType,
-                new String[]{"RESULT_SET"},
-                400
+                new String[]{"RESULT_SET"}
         );
         dataType = createString(false);
         dataType.supportsPrecision = false;
         dataType.supportsScale = false;
         add(Value.ENUM, Types.OTHER,
                 dataType,
-                new String[]{"ENUM"},
-                48
+                new String[]{"ENUM"}
         );
         for (int i = Value.INTERVAL_YEAR; i <= Value.INTERVAL_MINUTE_TO_SECOND; i++) {
             addInterval(i);
         }
-        for (Integer i : TYPES_BY_VALUE_TYPE.keySet()) {
-            Value.getOrder(i);
-        }
+        // Row value doesn't have a type name
+        dataType = new DataType();
+        dataType.type = Value.ROW;
+        dataType.name = "ROW";
+        dataType.sqlType = Types.OTHER;
+        dataType.prefix = "ROW(";
+        dataType.suffix = ")";
+        TYPES_BY_VALUE_TYPE[Value.ROW] = dataType;
     }
 
     private static void addDecimal() {
         add(Value.DECIMAL, Types.DECIMAL,
-                createDecimal(Integer.MAX_VALUE,
-                        ValueDecimal.DEFAULT_PRECISION,
-                        ValueDecimal.DEFAULT_SCALE,
-                        ValueDecimal.DEFAULT_DISPLAY_SIZE, true, false),
-                new String[]{"DECIMAL", "DEC"},
-                // 40 for ValueDecimal,
-                64
+                createNumeric(Integer.MAX_VALUE, ValueDecimal.DEFAULT_PRECISION, ValueDecimal.DEFAULT_SCALE),
+                new String[]{"DECIMAL", "DEC"}
         );
     }
 
     private static void addNumeric() {
         add(Value.DECIMAL, Types.NUMERIC,
-                createDecimal(Integer.MAX_VALUE,
-                        ValueDecimal.DEFAULT_PRECISION,
-                        ValueDecimal.DEFAULT_SCALE,
-                        ValueDecimal.DEFAULT_DISPLAY_SIZE, true, false),
-                new String[]{"NUMERIC", "NUMBER"},
-                64
+                createNumeric(Integer.MAX_VALUE, ValueDecimal.DEFAULT_PRECISION, ValueDecimal.DEFAULT_SCALE),
+                new String[]{"NUMERIC", "NUMBER"}
         );
     }
 
@@ -449,18 +390,17 @@ public class DataType {
             dataType.supportsScale = true;
             dataType.defaultScale = ValueInterval.DEFAULT_SCALE;
             dataType.maxScale = ValueInterval.MAXIMUM_SCALE;
+            dataType.params = "PRECISION,SCALE";
+        } else {
+            dataType.params = "PRECISION";
         }
-        dataType.defaultDisplaySize = ValueInterval.getDisplaySize(type, ValueInterval.DEFAULT_PRECISION,
-                // Scale will be ignored if it is not supported
-                ValueInterval.DEFAULT_SCALE);
         add(type, Types.OTHER, dataType,
-                new String[]{("INTERVAL " + name).intern()},
-                36
+                new String[]{("INTERVAL " + name).intern()}
         );
     }
 
     private static void add(int type, int sqlType,
-            DataType dataType, String[] names, int memory) {
+            DataType dataType, String[] names) {
         for (int i = 0; i < names.length; i++) {
             DataType dt = new DataType();
             dt.type = type;
@@ -478,21 +418,36 @@ public class DataType {
             dt.supportsScale = dataType.supportsScale;
             dt.defaultPrecision = dataType.defaultPrecision;
             dt.defaultScale = dataType.defaultScale;
-            dt.defaultDisplaySize = dataType.defaultDisplaySize;
             dt.caseSensitive = dataType.caseSensitive;
             dt.hidden = i > 0;
-            dt.memory = memory;
             for (DataType t2 : TYPES) {
                 if (t2.sqlType == dt.sqlType) {
                     dt.sqlTypePos++;
                 }
             }
             TYPES_BY_NAME.put(dt.name, dt);
-            if (TYPES_BY_VALUE_TYPE.get(type) == null) {
-                TYPES_BY_VALUE_TYPE.put(type, dt);
+            if (TYPES_BY_VALUE_TYPE[type] == null) {
+                TYPES_BY_VALUE_TYPE[type] = dt;
             }
             TYPES.add(dt);
         }
+    }
+
+    /**
+     * Create a width numeric data type without parameters.
+     *
+     * @param precision precision
+     * @param scale scale
+     * @param autoInc whether the data type is an auto-increment type
+     * @return data type
+     */
+    public static DataType createNumeric(int precision, int scale, boolean autoInc) {
+        DataType dataType = new DataType();
+        dataType.defaultPrecision = dataType.maxPrecision = precision;
+        dataType.defaultScale = dataType.maxScale = dataType.minScale = scale;
+        dataType.decimal = true;
+        dataType.autoIncrement = autoInc;
+        return dataType;
     }
 
     /**
@@ -501,26 +456,18 @@ public class DataType {
      * @param maxPrecision maximum supported precision
      * @param defaultPrecision default precision
      * @param defaultScale default scale
-     * @param defaultDisplaySize default display size
-     * @param needsPrecisionAndScale where precision and scale are supported
-     * @param autoInc whether the data type is an auto-increment type
      * @return data type
      */
-    public static DataType createDecimal(int maxPrecision,
-            int defaultPrecision, int defaultScale, int defaultDisplaySize,
-            boolean needsPrecisionAndScale, boolean autoInc) {
+    public static DataType createNumeric(int maxPrecision, int defaultPrecision, int defaultScale) {
         DataType dataType = new DataType();
         dataType.maxPrecision = maxPrecision;
         dataType.defaultPrecision = defaultPrecision;
         dataType.defaultScale = defaultScale;
-        dataType.defaultDisplaySize = defaultDisplaySize;
-        if (needsPrecisionAndScale) {
-            dataType.params = "PRECISION,SCALE";
-            dataType.supportsPrecision = true;
-            dataType.supportsScale = true;
-        }
+        dataType.params = "PRECISION,SCALE";
+        dataType.supportsPrecision = true;
+        dataType.supportsScale = true;
+        dataType.maxScale = maxPrecision;
         dataType.decimal = true;
-        dataType.autoIncrement = autoInc;
         return dataType;
     }
 
@@ -541,11 +488,13 @@ public class DataType {
         dataType.prefix = prefix + " '";
         dataType.suffix = "'";
         dataType.maxPrecision = maxPrecision;
-        dataType.supportsScale = supportsScale;
-        dataType.maxScale = maxScale;
         dataType.defaultPrecision = precision;
-        dataType.defaultScale = scale;
-        dataType.defaultDisplaySize = precision;
+        if (supportsScale) {
+            dataType.params = "SCALE";
+            dataType.supportsScale = true;
+            dataType.maxScale = maxScale;
+            dataType.defaultScale = scale;
+        }
         return dataType;
     }
 
@@ -558,7 +507,6 @@ public class DataType {
         dataType.supportsPrecision = true;
         dataType.maxPrecision = Integer.MAX_VALUE;
         dataType.defaultPrecision = Integer.MAX_VALUE;
-        dataType.defaultDisplaySize = Integer.MAX_VALUE;
         return dataType;
     }
 
@@ -567,6 +515,16 @@ public class DataType {
         t.maxPrecision = Long.MAX_VALUE;
         t.defaultPrecision = Long.MAX_VALUE;
         return t;
+    }
+
+    private static DataType createGeometry() {
+        DataType dataType = new DataType();
+        dataType.prefix = "'";
+        dataType.suffix = "'";
+        dataType.params = "TYPE,SRID";
+        dataType.maxPrecision = Integer.MAX_VALUE;
+        dataType.defaultPrecision = Integer.MAX_VALUE;
+        return dataType;
     }
 
     /**
@@ -785,12 +743,25 @@ public class DataType {
                     ValueInt.get(value);
                 break;
             }
+            case Value.ROW: {
+                Object[] list = (Object[]) rs.getObject(columnIndex);
+                if (list == null) {
+                    return ValueNull.INSTANCE;
+                }
+                int len = list.length;
+                Value[] values = new Value[len];
+                for (int i = 0; i < len; i++) {
+                    values[i] = DataType.convertToValue(session, list[i], Value.NULL);
+                }
+                v = ValueRow.get(values);
+                break;
+            }
             case Value.RESULT_SET: {
                 ResultSet x = (ResultSet) rs.getObject(columnIndex);
                 if (x == null) {
                     return ValueNull.INSTANCE;
                 }
-                return ValueResultSet.get(x);
+                return ValueResultSet.get(session, x, Integer.MAX_VALUE);
             }
             case Value.GEOMETRY: {
                 Object x = rs.getObject(columnIndex);
@@ -934,7 +905,7 @@ public class DataType {
         case Value.RESULT_SET:
             return ResultSet.class.getName();
         case Value.GEOMETRY:
-            return GEOMETRY_CLASS_NAME;
+            return GEOMETRY_CLASS != null ? GEOMETRY_CLASS_NAME : String.class.getName();
         case Value.INTERVAL_YEAR:
         case Value.INTERVAL_MONTH:
         case Value.INTERVAL_DAY:
@@ -970,14 +941,19 @@ public class DataType {
         if (type == Value.UNKNOWN) {
             throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "?");
         }
-        DataType dt = TYPES_BY_VALUE_TYPE.get(type);
-        if (dt == null && JdbcUtils.customDataTypesHandler != null) {
-            dt = JdbcUtils.customDataTypesHandler.getDataTypeById(type);
+        if (type >= Value.NULL && type < Value.TYPE_COUNT) {
+            DataType dt = TYPES_BY_VALUE_TYPE[type];
+            if (dt != null) {
+                return dt;
+            }
         }
-        if (dt == null) {
-            dt = TYPES_BY_VALUE_TYPE.get(Value.NULL);
+        if (JdbcUtils.customDataTypesHandler != null) {
+            DataType dt = JdbcUtils.customDataTypesHandler.getDataTypeById(type);
+            if (dt != null) {
+                return dt;
+            }
         }
-        return dt;
+        return TYPES_BY_VALUE_TYPE[Value.NULL];
     }
 
     /**
@@ -1215,23 +1191,23 @@ public class DataType {
         } else if (x instanceof Value) {
             return (Value) x;
         } else if (x instanceof Long) {
-            return ValueLong.get(((Long) x).longValue());
+            return ValueLong.get((Long) x);
         } else if (x instanceof Integer) {
-            return ValueInt.get(((Integer) x).intValue());
+            return ValueInt.get((Integer) x);
         } else if (x instanceof BigInteger) {
             return ValueDecimal.get(new BigDecimal((BigInteger) x));
         } else if (x instanceof BigDecimal) {
             return ValueDecimal.get((BigDecimal) x);
         } else if (x instanceof Boolean) {
-            return ValueBoolean.get(((Boolean) x).booleanValue());
+            return ValueBoolean.get((Boolean) x);
         } else if (x instanceof Byte) {
-            return ValueByte.get(((Byte) x).byteValue());
+            return ValueByte.get((Byte) x);
         } else if (x instanceof Short) {
-            return ValueShort.get(((Short) x).shortValue());
+            return ValueShort.get((Short) x);
         } else if (x instanceof Float) {
-            return ValueFloat.get(((Float) x).floatValue());
+            return ValueFloat.get((Float) x);
         } else if (x instanceof Double) {
-            return ValueDouble.get(((Double) x).doubleValue());
+            return ValueDouble.get((Double) x);
         } else if (x instanceof byte[]) {
             return ValueBytes.get((byte[]) x);
         } else if (x instanceof Date) {
@@ -1283,10 +1259,7 @@ public class DataType {
                 throw DbException.convert(e);
             }
         } else if (x instanceof ResultSet) {
-            if (x instanceof SimpleResultSet) {
-                return ValueResultSet.get((ResultSet) x);
-            }
-            return ValueResultSet.getCopy((ResultSet) x, Integer.MAX_VALUE);
+            return ValueResultSet.get(session, (ResultSet) x, Integer.MAX_VALUE);
         } else if (x instanceof UUID) {
             return ValueUuid.get((UUID) x);
         }
@@ -1320,6 +1293,8 @@ public class DataType {
         } else if (x instanceof Interval) {
             Interval i = (Interval) x;
             return ValueInterval.from(i.getQualifier(), i.isNegative(), i.getLeading(), i.getRemaining());
+        } else if (clazz == LocalDateTimeUtils.PERIOD) {
+            return LocalDateTimeUtils.periodToValue(x);
         } else if (clazz == LocalDateTimeUtils.DURATION) {
             return LocalDateTimeUtils.durationToValue(x);
         } else {
@@ -1348,7 +1323,7 @@ public class DataType {
     /**
      * Check whether a given object is a Geometry object.
      *
-     * @param x the the object
+     * @param x the object
      * @return true if it is a Geometry object
      */
     public static boolean isGeometry(Object x) {
@@ -1443,6 +1418,61 @@ public class DataType {
      */
     public static boolean isStringType(int type) {
         return type == Value.STRING || type == Value.STRING_FIXED || type == Value.STRING_IGNORECASE;
+    }
+
+    /**
+     * Check if the given type may have extended type information.
+     *
+     * @param type the value type
+     * @return true if the value type may have extended type information
+     */
+    public static boolean isExtInfoType(int type) {
+        return type == Value.GEOMETRY || type == Value.ENUM;
+    }
+
+    /**
+     * Check if the given type has total ordering.
+     *
+     * @param type the value type
+     * @return true if the value type has total ordering
+     */
+    public static boolean hasTotalOrdering(int type) {
+        switch (type) {
+        case Value.BOOLEAN:
+        case Value.BYTE:
+        case Value.SHORT:
+        case Value.INT:
+        case Value.LONG:
+        // Negative zeroes and NaNs are normalized
+        case Value.DOUBLE:
+        case Value.FLOAT:
+        case Value.TIME:
+        case Value.DATE:
+        case Value.TIMESTAMP:
+        case Value.BYTES:
+        // Serialized data is compared
+        case Value.JAVA_OBJECT:
+        case Value.UUID:
+        // EWKB is used
+        case Value.GEOMETRY:
+        case Value.ENUM:
+        case Value.INTERVAL_YEAR:
+        case Value.INTERVAL_MONTH:
+        case Value.INTERVAL_DAY:
+        case Value.INTERVAL_HOUR:
+        case Value.INTERVAL_MINUTE:
+        case Value.INTERVAL_SECOND:
+        case Value.INTERVAL_YEAR_TO_MONTH:
+        case Value.INTERVAL_DAY_TO_HOUR:
+        case Value.INTERVAL_DAY_TO_MINUTE:
+        case Value.INTERVAL_DAY_TO_SECOND:
+        case Value.INTERVAL_HOUR_TO_MINUTE:
+        case Value.INTERVAL_HOUR_TO_SECOND:
+        case Value.INTERVAL_MINUTE_TO_SECOND:
+            return true;
+        default:
+            return false;
+        }
     }
 
     /**
@@ -1609,7 +1639,7 @@ public class DataType {
         } else if (paramClass == Array.class) {
             return new JdbcArray(conn, v, 0);
         }
-        switch (v.getType()) {
+        switch (v.getValueType()) {
         case Value.JAVA_OBJECT: {
             Object o = SysProperties.serializeJavaObject ? JdbcUtils.deserialize(v.getBytes(),
                     conn.getSession().getDataHandler()) : v.getObject();

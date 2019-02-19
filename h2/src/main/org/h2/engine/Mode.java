@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -188,9 +188,26 @@ public class Mode {
     public boolean allowDB2TimestampFormat;
 
     /**
+     * Discard SQLServer table hints (e.g. "SELECT * FROM table WITH (NOLOCK)")
+     */
+    public boolean discardWithTableHints;
+
+    /**
+     * Use "IDENTITY" as an alias for "auto_increment" (SQLServer style)
+     */
+    public boolean useIdentityAsAutoIncrement;
+
+    /**
      * Convert (VAR)CHAR to VAR(BINARY) and vice versa with UTF-8 encoding instead of HEX.
      */
     public boolean charToBinaryInUtf8;
+
+    /**
+     * If {@code true}, datetime value function return the same value within a
+     * transaction, if {@code false} datetime value functions return the same
+     * value within a command.
+     */
+    public boolean dateTimeValueWithinTransaction;
 
     /**
      * An optional Set of hidden/disallowed column types.
@@ -211,6 +228,7 @@ public class Mode {
     static {
         Mode mode = new Mode(ModeEnum.REGULAR);
         mode.nullConcatIsNull = true;
+        mode.dateTimeValueWithinTransaction = true;
         add(mode);
 
         mode = new Mode(ModeEnum.DB2);
@@ -256,15 +274,17 @@ public class Mode {
         mode.allowPlusForStringConcat = true;
         mode.swapConvertFunctionParameters = true;
         mode.supportPoundSymbolForColumnNames = true;
+        mode.discardWithTableHints = true;
+        mode.useIdentityAsAutoIncrement = true;
         // MS SQL Server does not support client info properties. See
         // https://msdn.microsoft.com/en-Us/library/dd571296%28v=sql.110%29.aspx
         mode.supportedClientInfoPropertiesRegEx = null;
-        DataType dt = DataType.createDecimal(19, 19, 4, 21, false, false);
+        DataType dt = DataType.createNumeric(19, 4, false);
         dt.type = Value.DECIMAL;
         dt.sqlType = Types.NUMERIC;
         dt.name = "MONEY";
         mode.typeByNameMap.put("MONEY", dt);
-        dt = DataType.createDecimal(10, 10, 4, 12, false, false);
+        dt = DataType.createNumeric(10, 4, false);
         dt.type = Value.DECIMAL;
         dt.sqlType = Types.NUMERIC;
         dt.name = "SMALLMONEY";
@@ -328,17 +348,19 @@ public class Mode {
         disallowedTypes.add("TINYINT");
         disallowedTypes.add("BLOB");
         mode.disallowedTypes = disallowedTypes;
-        dt = DataType.createDecimal(19, 19, 2, 21, false, false);
+        dt = DataType.createNumeric(19, 2, false);
         dt.type = Value.DECIMAL;
         dt.sqlType = Types.NUMERIC;
         dt.name = "MONEY";
         mode.typeByNameMap.put("MONEY", dt);
+        mode.dateTimeValueWithinTransaction = true;
         add(mode);
 
         mode = new Mode(ModeEnum.Ignite);
         mode.nullConcatIsNull = true;
         mode.allowAffinityKey = true;
         mode.indexDefinitionInCreateTable = true;
+        mode.dateTimeValueWithinTransaction = true;
         add(mode);
     }
 

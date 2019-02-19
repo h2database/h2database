@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -110,8 +110,10 @@ public class Schema extends DbObjectBase {
         if (system) {
             return null;
         }
-        return "CREATE SCHEMA IF NOT EXISTS " +
-            getSQL() + " AUTHORIZATION " + owner.getSQL();
+        StringBuilder builder = new StringBuilder("CREATE SCHEMA IF NOT EXISTS ");
+        getSQL(builder).append(" AUTHORIZATION ");
+        owner.getSQL(builder);
+        return builder.toString();
     }
 
     @Override
@@ -270,7 +272,7 @@ public class Schema extends DbObjectBase {
      * @param obj the object to add
      */
     public void add(SchemaObject obj) {
-        if (SysProperties.CHECK && obj.getSchema() != this) {
+        if (obj.getSchema() != this) {
             DbException.throwInternalError("wrong schema");
         }
         String name = obj.getName();

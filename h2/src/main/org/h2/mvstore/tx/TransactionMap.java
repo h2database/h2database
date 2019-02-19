@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -9,21 +9,32 @@ import org.h2.mvstore.Cursor;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.Page;
+import org.h2.mvstore.RootReference;
 import org.h2.mvstore.type.DataType;
+import org.h2.value.VersionedValue;
 
 import java.util.AbstractMap;
+import java.util.AbstractSet;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 /**
  * A map that supports transactions.
  *
+ * <p>
+ * <b>Methods of this class may be changed at any time without notice.</b> If
+ * you use this class directly make sure that your application or library
+ * requires exactly the same version of MVStore or H2 jar as the version that
+ * you use during its development and build.
+ * </p>
+ *
  * @param <K> the key type
  * @param <V> the value type
  */
-public class TransactionMap<K, V> {
+public class TransactionMap<K, V> extends AbstractMap<K, V> {
 
     /**
      * The map used for writing (the latest version).
@@ -36,7 +47,7 @@ public class TransactionMap<K, V> {
     /**
      * The transaction which is used for this map.
      */
-    final Transaction transaction;
+    private final Transaction transaction;
 
     TransactionMap(Transaction transaction, MVMap<K, VersionedValue> map) {
         this.transaction = transaction;
@@ -51,6 +62,19 @@ public class TransactionMap<K, V> {
      */
     public TransactionMap<K, V> getInstance(Transaction transaction) {
         return new TransactionMap<>(transaction, map);
+    }
+
+    /**
+     * Get the number of entries, as a integer. {@link Integer#MAX_VALUE} is
+     * returned if there are more than this entries.
+     *
+     * @return the number of entries, as an integer
+     * @see #sizeAsLong()
+     */
+    @Override
+    public final int size() {
+        long size = sizeAsLong();
+        return size > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) size;
     }
 
     /**
@@ -77,21 +101,21 @@ public class TransactionMap<K, V> {
         // In order to get such a "snapshot", we wait for a moment of silence,
         // when none of the variables concurrently changes it's value.
         BitSet committingTransactions;
-        MVMap.RootReference mapRootReference;
-        MVMap.RootReference[] undoLogRootReferences;
+        RootReference mapRootReference;
+        RootReference[] undoLogRootReferences;
         long undoLogSize;
         do {
             committingTransactions = store.committingTransactions.get();
-            mapRootReference = map.getRoot();
+            mapRootReference = map.flushAndGetRoot();
             BitSet opentransactions = store.openTransactions.get();
-            undoLogRootReferences = new MVMap.RootReference[opentransactions.length()];
+            undoLogRootReferences = new RootReference[opentransactions.length()];
             undoLogSize = 0;
             for (int i = opentransactions.nextSetBit(0); i >= 0; i = opentransactions.nextSetBit(i+1)) {
                 MVMap<Long, Object[]> undoLog = store.undoLogs[i];
                 if (undoLog != null) {
-                    MVMap.RootReference rootReference = undoLog.getRoot();
+                    RootReference rootReference = undoLog.flushAndGetRoot();
                     undoLogRootReferences[i] = rootReference;
-                    undoLogSize += rootReference.root.getTotalCount() + rootReference.getAppendCounter();
+                    undoLogSize += rootReference.getTotalCount();
                 }
             }
         } while(committingTransactions != store.committingTransactions.get() ||
@@ -102,7 +126,7 @@ public class TransactionMap<K, V> {
         // should be considered as committed.
         // Subsequent processing uses this snapshot info only.
         Page mapRootPage = mapRootReference.root;
-        long size = mapRootPage.getTotalCount();
+        long size = mapRootReference.getTotalCount();
         // if we are looking at the map without any uncommitted values
         if (undoLogSize == 0) {
             return size;
@@ -124,7 +148,7 @@ public class TransactionMap<K, V> {
                     int txId = TransactionStore.getTransactionId(operationId);
                     boolean isVisible = txId == transaction.transactionId ||
                                             committingTransactions.get(txId);
-                    Object v = isVisible ? currentValue.value : currentValue.getCommittedValue();
+                    Object v = isVisible ? currentValue.getCurrentValue() : currentValue.getCommittedValue();
                     if (v == null) {
                         --size;
                     }
@@ -133,7 +157,7 @@ public class TransactionMap<K, V> {
         } else {
             // The undo logs are much smaller than the map - scan all undo logs,
             // and then lookup relevant map entry.
-            for (MVMap.RootReference undoLogRootReference : undoLogRootReferences) {
+            for (RootReference undoLogRootReference : undoLogRootReferences) {
                 if (undoLogRootReference != null) {
                     Cursor<Long, Object[]> cursor = new Cursor<>(undoLogRootReference.root, null);
                     while (cursor.hasNext()) {
@@ -155,7 +179,8 @@ public class TransactionMap<K, V> {
                                     int txId = TransactionStore.getTransactionId(operationId);
                                     boolean isVisible = txId == transaction.transactionId ||
                                             committingTransactions.get(txId);
-                                    Object v = isVisible ? currentValue.value : currentValue.getCommittedValue();
+                                    Object v = isVisible ? currentValue.getCurrentValue()
+                                            : currentValue.getCommittedValue();
                                     if (v == null) {
                                         --size;
                                     }
@@ -177,8 +202,10 @@ public class TransactionMap<K, V> {
      *
      * @param key the key
      * @throws IllegalStateException if a lock timeout occurs
+     * @throws ClassCastException if type of the specified key is not compatible with this map
      */
-    public V remove(K key) {
+    @Override
+    public V remove(Object key) {
         return set(key, (V)null);
     }
 
@@ -193,6 +220,7 @@ public class TransactionMap<K, V> {
      * @return the old value
      * @throws IllegalStateException if a lock timeout occurs
      */
+    @Override
     public V put(K key, V value) {
         DataUtils.checkArgument(value != null, "The value may not be null");
         return set(key, value);
@@ -207,11 +235,22 @@ public class TransactionMap<K, V> {
      * @param value the new value (not null)
      * @return the old value
      */
+    // Do not add @Override, code should be compatible with Java 7
     public V putIfAbsent(K key, V value) {
         DataUtils.checkArgument(value != null, "The value may not be null");
         TxDecisionMaker decisionMaker = new TxDecisionMaker.PutIfAbsentDecisionMaker(map.getId(), key, value,
                 transaction);
         return set(key, decisionMaker);
+    }
+
+    /**
+     * Appends entry to underlying map. This method may be used concurrently,
+     * but latest appended values are not guaranteed to be visible.
+     * @param key should be higher in map's order than any existing key
+     * @param value to be appended
+     */
+    public void append(K key, V value) {
+        map.append(key, VersionedValueUncommitted.getInstance(transaction.log(map.getId(), key, null), value, null));
     }
 
     /**
@@ -238,19 +277,19 @@ public class TransactionMap<K, V> {
      */
     public V putCommitted(K key, V value) {
         DataUtils.checkArgument(value != null, "The value may not be null");
-        VersionedValue newValue = VersionedValue.getInstance(value);
+        VersionedValue newValue = VersionedValueCommitted.getInstance(value);
         VersionedValue oldValue = map.put(key, newValue);
         @SuppressWarnings("unchecked")
-        V result = (V) (oldValue == null ? null : oldValue.value);
+        V result = (V) (oldValue == null ? null : oldValue.getCurrentValue());
         return result;
     }
 
-    private V set(K key, V value) {
+    private V set(Object key, V value) {
         TxDecisionMaker decisionMaker = new TxDecisionMaker.PutDecisionMaker(map.getId(), key, value, transaction);
         return set(key, decisionMaker);
     }
 
-    private V set(K key, TxDecisionMaker decisionMaker) {
+    private V set(Object key, TxDecisionMaker decisionMaker) {
         TransactionStore store = transaction.store;
         Transaction blockingTransaction;
         long sequenceNumWhenStarted;
@@ -262,23 +301,22 @@ public class TransactionMap<K, V> {
             // since TxDecisionMaker has it embedded,
             // MVRTreeMap has weird traversal logic based on it,
             // and any non-null value will do
-            result = map.put(key, VersionedValue.DUMMY, decisionMaker);
+            @SuppressWarnings("unchecked")
+            K k = (K) key;
+            result = map.operate(k, VersionedValue.DUMMY, decisionMaker);
 
             MVMap.Decision decision = decisionMaker.getDecision();
             assert decision != null;
             assert decision != MVMap.Decision.REPEAT;
             blockingTransaction = decisionMaker.getBlockingTransaction();
             if (decision != MVMap.Decision.ABORT || blockingTransaction == null) {
-                transaction.blockingMap = null;
-                transaction.blockingKey = null;
                 @SuppressWarnings("unchecked")
-                V res = result == null ? null : (V) result.value;
+                V res = result == null ? null : (V) result.getCurrentValue();
                 return res;
             }
             decisionMaker.reset();
-            transaction.blockingMap = map;
-            transaction.blockingKey = key;
-        } while (blockingTransaction.sequenceNum > sequenceNumWhenStarted || transaction.waitFor(blockingTransaction));
+        } while (blockingTransaction.sequenceNum > sequenceNumWhenStarted
+                || transaction.waitFor(blockingTransaction, map, key));
 
         throw DataUtils.newIllegalStateException(DataUtils.ERROR_TRANSACTION_LOCKED,
                 "Map entry <{0}> with key <{1}> and value {2} is locked by tx {3} and can not be updated by tx {4}"
@@ -342,9 +380,11 @@ public class TransactionMap<K, V> {
      *
      * @param key the key
      * @return the value or null
+     * @throws ClassCastException if type of the specified key is not compatible with this map
      */
+    @Override
     @SuppressWarnings("unchecked")
-    public V get(K key) {
+    public V get(Object key) {
         VersionedValue data = map.get(key);
         if (data == null) {
             // doesn't exist or deleted by a committed transaction
@@ -353,12 +393,12 @@ public class TransactionMap<K, V> {
         long id = data.getOperationId();
         if (id == 0) {
             // it is committed
-            return (V)data.value;
+            return (V)data.getCurrentValue();
         }
         int tx = TransactionStore.getTransactionId(id);
         if (tx == transaction.transactionId || transaction.store.committingTransactions.get().get(tx)) {
             // added by this transaction or another transaction which is committed by now
-            return (V)data.value;
+            return (V) data.getCurrentValue();
         } else {
             return (V) data.getCommittedValue();
         }
@@ -369,8 +409,10 @@ public class TransactionMap<K, V> {
      *
      * @param key the key
      * @return true if the map contains an entry for this key
+     * @throws ClassCastException if type of the specified key is not compatible with this map
      */
-    public boolean containsKey(K key) {
+    @Override
+    public boolean containsKey(Object key) {
         return get(key) != null;
     }
 
@@ -403,9 +445,32 @@ public class TransactionMap<K, V> {
     /**
      * Clear the map.
      */
+    @Override
     public void clear() {
         // TODO truncate transactionally?
         map.clear();
+    }
+
+    @Override
+    public Set<Entry<K, V>> entrySet() {
+        return new AbstractSet<Entry<K, V>>() {
+
+            @Override
+            public Iterator<Entry<K, V>> iterator() {
+                return entryIterator(null, null);
+            }
+
+            @Override
+            public int size() {
+                return TransactionMap.this.size();
+            }
+
+            @Override
+            public boolean contains(Object o) {
+                return TransactionMap.this.containsKey(o);
+            }
+
+        };
     }
 
     /**
@@ -602,7 +667,7 @@ public class TransactionMap<K, V> {
         @Override
         @SuppressWarnings("unchecked")
         protected Map.Entry<K, V> registerCurrent(K key, VersionedValue data) {
-            return new AbstractMap.SimpleImmutableEntry<>(key, (V) data.value);
+            return new AbstractMap.SimpleImmutableEntry<>(key, (V) data.getCurrentValue());
         }
     }
 
@@ -613,8 +678,8 @@ public class TransactionMap<K, V> {
         private final boolean includeAllUncommitted;
         private X current;
 
-        protected TMIterator(TransactionMap<K,?> transactionMap, K from, K to, boolean includeAllUncommitted) {
-            Transaction transaction = transactionMap.transaction;
+        TMIterator(TransactionMap<K,?> transactionMap, K from, K to, boolean includeAllUncommitted) {
+            Transaction transaction = transactionMap.getTransaction();
             this.transactionId = transaction.transactionId;
             TransactionStore store = transaction.store;
             MVMap<K, VersionedValue> map = transactionMap.map;
@@ -624,10 +689,10 @@ public class TransactionMap<K, V> {
             // In order to get such a "snapshot", we wait for a moment of silence,
             // when neither of the variables concurrently changes it's value.
             BitSet committingTransactions;
-            MVMap.RootReference mapRootReference;
+            RootReference mapRootReference;
             do {
                 committingTransactions = store.committingTransactions.get();
-                mapRootReference = map.getRoot();
+                mapRootReference = map.flushAndGetRoot();
             } while (committingTransactions != store.committingTransactions.get());
             // Now we have a snapshot, where mapRootReference points to state of the map
             // and committingTransactions mask tells us which of seemingly uncommitted changes
@@ -657,12 +722,13 @@ public class TransactionMap<K, V> {
                                 // current value comes from another uncommitted transaction
                                 // take committed value instead
                                 Object committedValue = data.getCommittedValue();
-                                data = committedValue == null ? null : VersionedValue.getInstance(committedValue);
+                                data = committedValue == null ? null
+                                        : VersionedValueCommitted.getInstance(committedValue);
                             }
                         }
                     }
                 }
-                if (data != null && (data.value != null ||
+                if (data != null && (data.getCurrentValue() != null ||
                         includeAllUncommitted && transactionId !=
                                                     TransactionStore.getTransactionId(data.getOperationId()))) {
                     current = registerCurrent(key, data);
@@ -693,4 +759,5 @@ public class TransactionMap<K, V> {
                     "Removal is not supported");
         }
     }
+
 }

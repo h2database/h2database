@@ -1,9 +1,14 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.index;
+
+import static org.h2.util.geometry.GeometryUtils.MAX_X;
+import static org.h2.util.geometry.GeometryUtils.MAX_Y;
+import static org.h2.util.geometry.GeometryUtils.MIN_X;
+import static org.h2.util.geometry.GeometryUtils.MIN_Y;
 
 import java.util.Iterator;
 import org.h2.command.dml.AllColumnsForPlan;
@@ -23,8 +28,6 @@ import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueGeometry;
 import org.h2.value.ValueNull;
-import org.locationtech.jts.geom.Envelope;
-import org.locationtech.jts.geom.Geometry;
 
 /**
  * This is an index based on a MVR-TreeMap.
@@ -84,7 +87,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
         }
         this.needRebuild = create;
         if (!database.isStarting()) {
-            if (columns[0].column.getType() != Value.GEOMETRY) {
+            if (columns[0].column.getType().getValueType() != Value.GEOMETRY) {
                 throw DbException.getUnsupportedException(
                         "spatial index on non-geometry column, " +
                         columns[0].column.getCreateSQL());
@@ -131,14 +134,13 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
             return null;
         }
         Value v = row.getValue(columnIds[0]);
-        if (v == ValueNull.INSTANCE) {
+        double[] env;
+        if (v == ValueNull.INSTANCE ||
+                (env = ((ValueGeometry) v.convertTo(Value.GEOMETRY)).getEnvelopeNoCopy()) == null) {
             return new SpatialKey(row.getKey());
         }
-        Geometry g = ((ValueGeometry) v.convertTo(Value.GEOMETRY)).getGeometryNoCopy();
-        Envelope env = g.getEnvelopeInternal();
         return new SpatialKey(row.getKey(),
-                (float) env.getMinX(), (float) env.getMaxX(),
-                (float) env.getMinY(), (float) env.getMaxY());
+                (float) env[MIN_X], (float) env[MAX_X], (float) env[MIN_Y], (float) env[MAX_Y]);
     }
 
     @Override

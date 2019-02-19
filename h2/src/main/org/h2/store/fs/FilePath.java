@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -74,6 +74,7 @@ public abstract class FilePath {
                     "org.h2.store.fs.FilePathSplit",
                     "org.h2.store.fs.FilePathNio",
                     "org.h2.store.fs.FilePathNioMapped",
+                    "org.h2.store.fs.FilePathAsync",
                     "org.h2.store.fs.FilePathZip",
                     "org.h2.store.fs.FilePathRetryOnInterrupt"
             }) {
@@ -217,6 +218,7 @@ public abstract class FilePath {
      * @param append if true, the file will grow, if false, the file will be
      *            truncated first
      * @return the output stream
+     * @throws IOException If an I/O error occurs
      */
     public abstract OutputStream newOutputStream(boolean append) throws IOException;
 
@@ -225,6 +227,7 @@ public abstract class FilePath {
      *
      * @param mode the access mode. Supported are r, rw, rws, rwd
      * @return the file object
+     * @throws IOException If an I/O error occurs
      */
     public abstract FileChannel open(String mode) throws IOException;
 
@@ -232,6 +235,7 @@ public abstract class FilePath {
      * Create an input stream to read from the file.
      *
      * @return the input stream
+     * @throws IOException If an I/O error occurs
      */
     public abstract InputStream newInputStream() throws IOException;
 
@@ -246,14 +250,11 @@ public abstract class FilePath {
      * Create a new temporary file.
      *
      * @param suffix the suffix
-     * @param deleteOnExit if the file should be deleted when the virtual
-     *            machine exists
      * @param inTempDir if the file should be stored in the temporary directory
      * @return the name of the created file
      */
     @SuppressWarnings("unused")
-    public FilePath createTempFile(String suffix, boolean deleteOnExit,
-            boolean inTempDir) throws IOException {
+    public FilePath createTempFile(String suffix, boolean inTempDir) throws IOException {
         while (true) {
             FilePath p = getPath(name + getNextTempFileNamePart(false) + suffix);
             if (p.exists() || !p.createFile()) {
@@ -303,7 +304,7 @@ public abstract class FilePath {
     /**
      * Convert a file to a path. This is similar to
      * <code>java.nio.file.spi.FileSystemProvider.getPath</code>, but may
-     * return an object even if the scheme doesn't match in case of the the
+     * return an object even if the scheme doesn't match in case of the
      * default file provider.
      *
      * @param path the path

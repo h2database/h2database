@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -252,7 +252,17 @@ public class SetTypes {
      */
     public static final int AUTHENTICATOR = 48;
 
-    private static final int COUNT = AUTHENTICATOR + 1;
+    /**
+     * The type of a SET LOCAL_RESULT_FACTORY statement.
+     */
+    public static final int LOCAL_RESULT_FACTORY = 49;
+
+    /**
+     * The type of a SET UUID_COLLATION statement.
+     */
+    public static final int UUID_COLLATION = 50;
+
+    private static final int COUNT = UUID_COLLATION + 1;
 
     private static final ArrayList<String> TYPES;
 
@@ -311,6 +321,8 @@ public class SetTypes {
         list.add(BUILTIN_ALIAS_OVERRIDE, "BUILTIN_ALIAS_OVERRIDE");
         list.add(COLUMN_NAME_RULES, "COLUMN_NAME_RULES");
         list.add(AUTHENTICATOR, "AUTHENTICATOR");
+        list.add(LOCAL_RESULT_FACTORY, "LOCAL_RESULT_FACTORY");
+        list.add(UUID_COLLATION, "UUID_COLLATION");
         TYPES = list;
     }
 

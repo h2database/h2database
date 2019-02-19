@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -191,7 +191,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             String name = generateConstraintName(table);
             ConstraintCheck check = new ConstraintCheck(getSchema(), id, name, table);
             TableFilter filter = new TableFilter(session, table, null, false, null, 0, null);
-            checkExpression.mapColumns(filter, 0);
+            checkExpression.mapColumns(filter, 0, Expression.MAP_INITIAL);
             checkExpression = checkExpression.optimize(session);
             check.setExpression(checkExpression);
             check.setTableFilter(filter);
@@ -208,8 +208,9 @@ public class AlterTableAddConstraint extends SchemaCommand {
             }
             session.getUser().checkRight(refTable, Right.ALL);
             if (!refTable.canReference()) {
-                throw DbException.getUnsupportedException("Reference " +
-                        refTable.getSQL());
+                StringBuilder builder = new StringBuilder("Reference ");
+                refTable.getSQL(builder);
+                throw DbException.getUnsupportedException(builder.toString());
             }
             boolean isOwner = false;
             IndexColumn.mapColumns(indexColumns, table);

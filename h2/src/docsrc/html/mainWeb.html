@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0, Version 1.0,
-and under the Eclipse Public License, Version 1.0
+Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+and the EPL 1.0 (http://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
@@ -29,7 +29,7 @@ Welcome to H2, the Java SQL database. The main features of H2 are:
 <li>Very fast, open source, JDBC API
 </li><li>Embedded and server modes; in-memory databases
 </li><li>Browser based Console application
-</li><li>Small footprint: around 1.5 MB jar file size
+</li><li>Small footprint: around 2 MB jar file size
 </li></ul>
 
 <table style="border: 0px; width: 470px;">
@@ -60,9 +60,9 @@ Welcome to H2, the Java SQL database. The main features of H2 are:
             <tr><td style="border: 0px; background-color: #eee;">
                 <h2 style="margin-top: 1em;">Support</h2>
                 <p>
-                    <a href="http://stackoverflow.com/questions/tagged/h2">Stack Overflow (tag H2)</a><br /><br />
-                    <a href="http://groups.google.com/group/h2-database">Google Group English</a>,
-                    <a href="http://groups.google.co.jp/group/h2-database-jp">Japanese</a><br /><br />
+                    <a href="https://stackoverflow.com/questions/tagged/h2">Stack Overflow (tag H2)</a><br /><br />
+                    <a href="https://groups.google.com/forum/#!forum/h2-database">Google Group English</a>,
+                    <a href="https://groups.google.com/forum/#!forum/h2-database-jp">Japanese</a><br /><br />
                     For non-technical issues, use: <br />
                     <script type="text/javascript">
                     <!--
@@ -86,8 +86,8 @@ Welcome to H2, the Java SQL database. The main features of H2 are:
         <th>H2</th>
         <th><a href="http://db.apache.org/derby">Derby</a></th>
         <th><a href="http://hsqldb.org">HSQLDB</a></th>
-        <th><a href="http://mysql.com">MySQL</a></th>
-        <th><a href="http://www.postgresql.org">PostgreSQL</a></th>
+        <th><a href="https://www.mysql.com/">MySQL</a></th>
+        <th><a href="https://www.postgresql.org/">PostgreSQL</a></th>
         </tr><tr>
         <td>Pure Java</td>
         <td class="compareY">Yes</td>
@@ -131,17 +131,21 @@ Welcome to H2, the Java SQL database. The main features of H2 are:
         <td class="compareY">Yes</td>
         <td class="compareY">Yes</td>
         </tr><tr>
-        <td>Footprint (jar/dll size)</td>
-        <td>~1 MB</td>
+        <td>Footprint (embedded)</td>
         <td>~2 MB</td>
+        <td>~3 MB</td>
+        <td>~1.5 MB</td>
+        <td>&#8212;</td>
+        <td>&#8212;</td>
+        </tr><tr>
+        <td>Footprint (client)</td>
+        <td>~500 KB</td>
+        <td>~600 KB</td>
+        <td>~1.5 MB</td>
         <td>~1 MB</td>
-        <td>~4 MB</td>
-        <td>~6 MB</td>
+        <td>~700 KB</td>
         </tr>
     </table>
-    <p>
-    See also the <a href="features.html#comparison">detailed comparison</a>.
-    </p>
 </td></tr>
 
 <tr><td colspan="3" style="border: 0px; background-color: #eee;">
@@ -154,7 +158,7 @@ Welcome to H2, the Java SQL database. The main features of H2 are:
             or <a href="http://www.h2database.com/html/newsfeed-rss.xml">Header only (RSS)</a>.
             </p><p>
                 <b>Email Newsletter:</b> Subscribe to
-                <a href="https://groups.google.com/group/h2database-news/subscribe">
+                <a href="https://groups.google.com/forum/#!forum/h2database-news/join">
                 H2 Database News (Google account required)</a>
                 to get informed about new releases.
                 Your email address is only used in this context.

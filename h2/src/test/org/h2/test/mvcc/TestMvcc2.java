@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -126,22 +126,14 @@ public class TestMvcc2 extends TestDb {
     }
 
     private void testSelectForUpdate() throws SQLException {
-        Connection conn = getConnection("mvcc2;SELECT_FOR_UPDATE_MVCC=true");
-        Connection conn2 = getConnection("mvcc2;SELECT_FOR_UPDATE_MVCC=true");
+        Connection conn = getConnection("mvcc2");
+        Connection conn2 = getConnection("mvcc2");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key, name varchar)");
         conn.setAutoCommit(false);
         stat.execute("insert into test select x, 'Hello' from system_range(1, 10)");
         stat.execute("select * from test where id = 3 for update");
         conn.commit();
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, stat).
-                execute("select sum(id) from test for update");
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, stat).
-                execute("select distinct id from test for update");
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, stat).
-                execute("select id from test group by id for update");
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, stat).
-                execute("select t1.id from test t1, test t2 for update");
         stat.execute("select * from test where id = 3 for update");
         conn2.setAutoCommit(false);
         conn2.createStatement().execute("select * from test where id = 4 for update");

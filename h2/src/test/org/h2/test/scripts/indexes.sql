@@ -1,4 +1,4 @@
--- Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (http://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -303,4 +303,50 @@ select 1 from test group by x;
 > rows: 0
 
 drop table test;
+> ok
+
+CREATE TABLE TEST(A INT, B INT, C INT);
+> ok
+
+CREATE INDEX T_A1 ON TEST(A);
+> ok
+
+CREATE INDEX T_A_B ON TEST(A, B);
+> ok
+
+CREATE INDEX T_A_C ON TEST(A, C);
+> ok
+
+EXPLAIN SELECT * FROM TEST WHERE A = 0;
+>> SELECT TEST.A, TEST.B, TEST.C FROM PUBLIC.TEST /* PUBLIC.T_A1: A = 0 */ WHERE A = 0
+
+EXPLAIN SELECT * FROM TEST WHERE A = 0 AND B >= 0;
+>> SELECT TEST.A, TEST.B, TEST.C FROM PUBLIC.TEST /* PUBLIC.T_A_B: A = 0 AND B >= 0 */ WHERE (A = 0) AND (B >= 0)
+
+EXPLAIN SELECT * FROM TEST WHERE A > 0 AND B >= 0;
+>> SELECT TEST.A, TEST.B, TEST.C FROM PUBLIC.TEST /* PUBLIC.T_A_B: A > 0 AND B >= 0 */ WHERE (A > 0) AND (B >= 0)
+
+INSERT INTO TEST (SELECT X / 100, X, X FROM SYSTEM_RANGE(1, 3000));
+> update count: 3000
+
+EXPLAIN SELECT * FROM TEST WHERE A = 0;
+>> SELECT TEST.A, TEST.B, TEST.C FROM PUBLIC.TEST /* PUBLIC.T_A1: A = 0 */ WHERE A = 0
+
+EXPLAIN SELECT * FROM TEST WHERE A = 0 AND B >= 0;
+>> SELECT TEST.A, TEST.B, TEST.C FROM PUBLIC.TEST /* PUBLIC.T_A_B: A = 0 AND B >= 0 */ WHERE (A = 0) AND (B >= 0)
+
+EXPLAIN SELECT * FROM TEST WHERE A > 0 AND B >= 0;
+>> SELECT TEST.A, TEST.B, TEST.C FROM PUBLIC.TEST /* PUBLIC.T_A_B: A > 0 AND B >= 0 */ WHERE (A > 0) AND (B >= 0)
+
+-- Test that creation order of indexes has no effect
+CREATE INDEX T_A2 ON TEST(A);
+> ok
+
+DROP INDEX T_A1;
+> ok
+
+EXPLAIN SELECT * FROM TEST WHERE A = 0;
+>> SELECT TEST.A, TEST.B, TEST.C FROM PUBLIC.TEST /* PUBLIC.T_A2: A = 0 */ WHERE A = 0
+
+DROP TABLE TEST;
 > ok

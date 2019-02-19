@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -10,10 +10,10 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Date;
 import java.util.Random;
+import org.h2.expression.function.DateTimeFunctions;
 import org.h2.message.DbException;
 import org.h2.test.TestBase;
 import org.h2.test.utils.AssertThrows;
-import org.h2.util.DateTimeFunctions;
 import org.h2.util.StringUtils;
 
 /**
@@ -281,14 +281,22 @@ public class TestStringUtils extends TestBase {
     }
 
     private void testTrimSubstring() {
-        assertEquals("", StringUtils.trimSubstring("", 0, 0));
-        assertEquals("", StringUtils.trimSubstring("    ", 0, 0));
-        assertEquals("", StringUtils.trimSubstring("    ", 4, 4));
-        assertEquals("select", StringUtils.trimSubstring(" select  from", 1, 7));
-        assertEquals("a b", StringUtils.trimSubstring(" a b ", 1, 4));
+        testTrimSubstringImpl("", "", 0, 0);
+        testTrimSubstringImpl("", "    ", 0, 0);
+        testTrimSubstringImpl("", "    ", 4, 4);
+        testTrimSubstringImpl("select", " select  from", 1, 7);
+        testTrimSubstringImpl("a b", " a b ", 1, 4);
+        testTrimSubstringImpl("a b", " a b ", 1, 5);
+        testTrimSubstringImpl("b", " a b ", 2, 5);
         new AssertThrows(StringIndexOutOfBoundsException.class) { @Override
             public void test() { StringUtils.trimSubstring(" with (", 1, 8); }
         };
+    }
+
+    private void testTrimSubstringImpl(String expected, String string, int startIndex, int endIndex) {
+        assertEquals(expected, StringUtils.trimSubstring(string, startIndex, endIndex));
+        assertEquals(expected, StringUtils
+                .trimSubstring(new StringBuilder(endIndex - startIndex), string, startIndex, endIndex).toString());
     }
 
 }

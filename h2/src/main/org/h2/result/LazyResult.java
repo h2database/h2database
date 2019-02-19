@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -8,6 +8,7 @@ package org.h2.result;
 import org.h2.engine.SessionInterface;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
 /**
@@ -139,23 +140,8 @@ public abstract class LazyResult implements ResultInterface {
     }
 
     @Override
-    public int getColumnType(int i) {
+    public TypeInfo getColumnType(int i) {
         return expressions[i].getType();
-    }
-
-    @Override
-    public long getColumnPrecision(int i) {
-        return expressions[i].getPrecision();
-    }
-
-    @Override
-    public int getColumnScale(int i) {
-        return expressions[i].getScale();
-    }
-
-    @Override
-    public int getDisplaySize(int i) {
-        return expressions[i].getDisplaySize();
     }
 
     @Override
@@ -185,11 +171,4 @@ public abstract class LazyResult implements ResultInterface {
         return null;
     }
 
-    @Override
-    public boolean containsDistinct(Value[] values) {
-        // We have to make sure that we do not allow lazy
-        // evaluation when this call is needed:
-        // WHERE x IN (SELECT ...).
-        throw DbException.throwInternalError();
-    }
 }

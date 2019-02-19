@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: Alessandro Ventura
  */
@@ -19,8 +19,8 @@ public class AuthenticationInfo {
 
     private String realm;
 
-    /*
-     * Can be used by authenticator to hold informations
+    /**
+     * Can be used by authenticator to hold information.
      */
     Object nestedIdentity;
 
@@ -58,14 +58,16 @@ public class AuthenticationInfo {
     }
 
     /**
-     * get nested identity
+     * Gets nested identity object that can be used by authenticator to hold information.
+     *
+     * @return nested identity object.
      */
     public Object getNestedIdentity() {
         return nestedIdentity;
     }
 
     /**
-     * Method used by authenticators to hold informations about authenticated
+     * Method used by authenticators to hold information about authenticated
      * user
      *
      * @param nestedIdentity
@@ -75,6 +77,9 @@ public class AuthenticationInfo {
         this.nestedIdentity = nestedIdentity;
     }
 
+    /**
+     * Clean authentication data.
+     */
     public void clean() {
         this.password = null;
         this.nestedIdentity = null;

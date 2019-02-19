@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -15,6 +15,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
@@ -34,7 +35,7 @@ import org.h2.mvstore.db.MVTable;
 import org.h2.mvstore.db.MVTableEngine;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionStore;
-import org.h2.mvstore.tx.VersionedValue;
+import org.h2.value.VersionedValue;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SortOrder;
@@ -114,10 +115,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private boolean autoCommitAtTransactionEnd;
     private String currentTransactionName;
     private volatile long cancelAtNs;
-    private boolean closed;
     private final long sessionStart = System.currentTimeMillis();
     private ValueTimestampTimeZone transactionStart;
-    private long currentCommandStart;
+    private ValueTimestampTimeZone currentCommandStart;
     private HashMap<String, Value> variables;
     private HashSet<ResultInterface> temporaryResults;
     private int queryTimeout;
@@ -160,7 +160,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private ArrayList<Value> temporaryLobs;
 
     private Transaction transaction;
-    private State state = State.INIT;
+    private final AtomicReference<State> state = new AtomicReference<>(State.INIT);
     private long startStatement = -1;
 
     /**
@@ -393,8 +393,10 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             localTempTables = database.newStringMap();
         }
         if (localTempTables.get(table.getName()) != null) {
-            throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1,
-                    table.getSQL()+" AS "+table.getName());
+            StringBuilder builder = new StringBuilder();
+            table.getSQL(builder).append(" AS ");
+            Parser.quoteIdentifier(table.getName());
+            throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, builder.toString());
         }
         modificationId++;
         localTempTables.put(table.getName(), table);
@@ -411,7 +413,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         boolean wasLocked = database.lockMeta(this);
         try {
             modificationId++;
-            localTempTables.remove(table.getName());
+            if (localTempTables != null) {
+                localTempTables.remove(table.getName());
+            }
             synchronized (database) {
                 table.removeChildrenAndResources(this);
             }
@@ -596,7 +600,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      * @return the prepared statement
      */
     public Command prepareLocal(String sql) {
-        if (closed) {
+        if (isClosed()) {
             throw DbException.get(ErrorCode.CONNECTION_BROKEN_1,
                     "session closed");
         }
@@ -670,16 +674,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     public void commit(boolean ddl) {
         checkCommitRollback();
 
-        int rowCount = getDatabase().getSettings().analyzeSample / 10;
-        if (tablesToAnalyze != null) {
-            for (Table table : tablesToAnalyze) {
-                Analyze.analyzeTable(this, table, rowCount, false);
-            }
-            // analyze can lock the meta
-            database.unlockMeta(this);
-        }
-        tablesToAnalyze = null;
-
         currentTransactionName = null;
         transactionStart = null;
         if (transaction != null) {
@@ -717,7 +711,27 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             }
         }
 
+        if (tablesToAnalyze != null) {
+            if (database.isMVStore()) {
+                // table analysis will cause a new transaction(s) to be opened,
+                // so we need to commit afterwards whatever leftovers might be
+                analyzeTables();
+                commit(true);
+            } else {
+                analyzeTables();
+            }
+        }
         endTransaction();
+    }
+
+    private void analyzeTables() {
+        int rowCount = getDatabase().getSettings().analyzeSample / 10;
+        for (Table table : tablesToAnalyze) {
+            Analyze.analyzeTable(this, table, rowCount, false);
+        }
+        // analyze can lock the meta
+        database.unlockMeta(this);
+        tablesToAnalyze = null;
     }
 
     private void removeTemporaryLobs(boolean onTimeout) {
@@ -867,8 +881,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     @Override
     public void close() {
-        if (!closed) {
-            state = State.CLOSED;
+        // this is the only operation that can be invoked concurrently
+        // so, we should prevent double-closure
+        if (state.getAndSet(State.CLOSED) != State.CLOSED) {
             try {
                 database.checkPowerOff();
 
@@ -886,7 +901,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                 // want to take the meta lock using the system session.
                 database.unlockMeta(this);
             } finally {
-                closed = true;
                 database.removeSession(this);
             }
         }
@@ -968,10 +982,8 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     }
 
     private void unlockAll() {
-        if (SysProperties.CHECK) {
-            if (undoLog != null && undoLog.size() > 0) {
-                DbException.throwInternalError();
-            }
+        if (undoLog != null && undoLog.size() > 0) {
+            DbException.throwInternalError();
         }
         if (!locks.isEmpty()) {
             for (Table t : locks) {
@@ -1028,11 +1040,11 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     @Override
     public Trace getTrace() {
-        if (trace != null && !closed) {
+        if (trace != null && !isClosed()) {
             return trace;
         }
         String traceModuleName = "jdbc[" + id + "]";
-        if (closed) {
+        if (isClosed()) {
             return new TraceSystem(null).getTrace(traceModuleName);
         }
         trace = database.getTraceSystem().getTrace(traceModuleName);
@@ -1194,7 +1206,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     @Override
     public boolean isClosed() {
-        return closed;
+        return state.get() == State.CLOSED;
     }
 
     public void setThrottle(int throttle) {
@@ -1205,8 +1217,8 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      * Wait for some time if this session is throttled (slowed down).
      */
     public void throttle() {
-        if (currentCommandStart == 0) {
-            currentCommandStart = System.currentTimeMillis();
+        if (currentCommandStart == null) {
+            currentCommandStart = CurrentTimestamp.get();
         }
         if (throttleNs == 0) {
             return;
@@ -1215,15 +1227,17 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         if (lastThrottle + TimeUnit.MILLISECONDS.toNanos(Constants.THROTTLE_DELAY) > time) {
             return;
         }
-        State prevState = this.state;
-        lastThrottle = time + throttleNs;
-        try {
-            this.state = State.SLEEP;
-            Thread.sleep(TimeUnit.NANOSECONDS.toMillis(throttleNs));
-        } catch (Exception e) {
-            // ignore InterruptedException
-        } finally {
-            this.state = prevState;
+        State prevState = this.state.get();
+        if (prevState != State.CLOSED) {
+            lastThrottle = time + throttleNs;
+            try {
+                state.compareAndSet(prevState, State.SLEEP);
+                Thread.sleep(TimeUnit.NANOSECONDS.toMillis(throttleNs));
+            } catch (Exception e) {
+                // ignore InterruptedException
+            } finally {
+                state.compareAndSet(State.SLEEP, prevState);
+            }
         }
     }
 
@@ -1240,18 +1254,25 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      *            from
      */
     public void setCurrentCommand(Command command, Object generatedKeysRequest) {
-        this.currentCommand = command;
+        currentCommand = command;
         // Preserve generated keys in case of a new query due to possible nested
         // queries in update
         if (command != null && !command.isQuery()) {
             getGeneratedKeys().clear(generatedKeysRequest);
         }
-        if (queryTimeout > 0 && command != null) {
-            currentCommandStart = System.currentTimeMillis();
-            long now = System.nanoTime();
-            cancelAtNs = now + TimeUnit.MILLISECONDS.toNanos(queryTimeout);
+        if (command != null) {
+            if (queryTimeout > 0) {
+                currentCommandStart = CurrentTimestamp.get();
+                long now = System.nanoTime();
+                cancelAtNs = now + TimeUnit.MILLISECONDS.toNanos(queryTimeout);
+            } else {
+                currentCommandStart = null;
+            }
         }
-        state = command == null ? State.SLEEP : State.RUNNING;
+        State currentState = state.get();
+        if(currentState != State.CLOSED) {
+            state.compareAndSet(currentState, command == null ? State.SLEEP : State.RUNNING);
+        }
     }
 
     /**
@@ -1285,7 +1306,10 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         return currentCommand;
     }
 
-    public long getCurrentCommandStart() {
+    public ValueTimestampTimeZone getCurrentCommandStart() {
+        if (currentCommandStart == null) {
+            currentCommandStart = CurrentTimestamp.get();
+        }
         return currentCommandStart;
     }
 
@@ -1342,7 +1366,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      */
     public void removeAtCommit(Value v) {
         final String key = v.toString();
-        if (SysProperties.CHECK && !v.isLinkedToTable()) {
+        if (!v.isLinkedToTable()) {
             DbException.throwInternalError(key);
         }
         if (removeLobMap == null) {
@@ -1730,7 +1754,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     @Override
     public void addTemporaryLob(Value v) {
-        if (!DataType.isLargeObject(v.getType())) {
+        if (!DataType.isLargeObject(v.getValueType())) {
             return;
         }
         if (v.getTableId() == LobStorageFrontend.TABLE_RESULT
@@ -1765,11 +1789,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     }
 
     public State getState() {
-        return getBlockingSessionId() != 0 ? State.BLOCKED : state;
-    }
-
-    public void setState(State state) {
-        this.state = state;
+        return getBlockingSessionId() != 0 ? State.BLOCKED : state.get();
     }
 
     public int getBlockingSessionId() {
@@ -1815,7 +1835,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     private static Row getRowFromVersionedValue(MVTable table, long recKey,
                                                 VersionedValue versionedValue) {
-        Object value = versionedValue == null ? null : versionedValue.value;
+        Object value = versionedValue == null ? null : versionedValue.getCurrentValue();
         if (value == null) {
             return null;
         }

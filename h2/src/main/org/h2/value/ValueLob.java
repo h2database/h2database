@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -98,8 +98,8 @@ public class ValueLob extends Value {
      * @return result of comparison
      */
     static int compare(Value v1, Value v2) {
-        int valueType = v1.getType();
-        assert valueType == v2.getType();
+        int valueType = v1.getValueType();
+        assert valueType == v2.getValueType();
         if (v1 instanceof ValueLobDb && v2 instanceof ValueLobDb) {
             byte[] small1 = v1.getSmall(), small2 = v2.getSmall();
             if (small1 != null && small2 != null) {
@@ -110,7 +110,7 @@ public class ValueLob extends Value {
                 }
             }
         }
-        long minPrec = Math.min(v1.getPrecision(), v2.getPrecision());
+        long minPrec = Math.min(v1.getType().getPrecision(), v2.getType().getPrecision());
         if (valueType == Value.BLOB) {
             try (InputStream is1 = v1.getInputStream();
                     InputStream is2 = v2.getInputStream()) {
@@ -184,6 +184,7 @@ public class ValueLob extends Value {
      * either Value.BLOB or Value.CLOB
      */
     private final int valueType;
+    private TypeInfo type;
     private final long precision;
     private final DataHandler handler;
     private int tableId;
@@ -208,7 +209,7 @@ public class ValueLob extends Value {
 
     private static String getFileName(DataHandler handler, int tableId,
             int objectId) {
-        if (SysProperties.CHECK && tableId == 0 && objectId == 0) {
+        if (tableId == 0 && objectId == 0) {
             DbException.throwInternalError("0 LOB");
         }
         String table = tableId < 0 ? ".temp" : ".t" + tableId;
@@ -275,7 +276,7 @@ public class ValueLob extends Value {
 
     private static int getNewObjectId(DataHandler h) {
         String path = h.getDatabasePath();
-        if ((path != null) && (path.length() == 0)) {
+        if (path != null && path.isEmpty()) {
             path = new File(Utils.getProperty("java.io.tmpdir", "."),
                     SysProperties.PREFIX_TEMP_FILE).getAbsolutePath();
         }
@@ -366,17 +367,13 @@ public class ValueLob extends Value {
      * except when converting to BLOB or CLOB.
      *
      * @param t the new type
-     * @param precision the precision of the column to convert this value to.
-     *        The special constant <code>-1</code> is used to indicate that
-     *        the precision plays no role when converting the value
      * @param mode the database mode
      * @param column the column (if any), used for to improve the error message if conversion fails
-     * @param enumerators the ENUM datatype enumerators (if any),
-     *        for dealing with ENUM conversions
+     * @param extTypeInfo the extended data type information, or null
      * @return the converted value
      */
     @Override
-    public Value convertTo(int t, int precision, Mode mode, Object column, String[] enumerators) {
+    protected Value convertTo(int t, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
         if (t == valueType) {
             return this;
         } else if (t == Value.CLOB) {
@@ -384,7 +381,7 @@ public class ValueLob extends Value {
         } else if (t == Value.BLOB) {
             return ValueLobDb.createTempBlob(getInputStream(), -1, handler);
         }
-        return super.convertTo(t, precision, mode, column, null);
+        return super.convertTo(t, mode, column, null);
     }
 
     @Override
@@ -449,13 +446,17 @@ public class ValueLob extends Value {
     }
 
     @Override
-    public int getType() {
-        return valueType;
+    public TypeInfo getType() {
+        TypeInfo type = this.type;
+        if (type == null) {
+            this.type = type = new TypeInfo(valueType, precision, 0, MathUtils.convertLongToInt(precision), null);
+        }
+        return type;
     }
 
     @Override
-    public long getPrecision() {
-        return precision;
+    public int getValueType() {
+        return valueType;
     }
 
     @Override
@@ -559,7 +560,7 @@ public class ValueLob extends Value {
     @Override
     public void set(PreparedStatement prep, int parameterIndex)
             throws SQLException {
-        long p = getPrecision();
+        long p = precision;
         if (p > Integer.MAX_VALUE || p <= 0) {
             p = -1;
         }
@@ -571,24 +572,23 @@ public class ValueLob extends Value {
     }
 
     @Override
-    public String getSQL() {
-        String s;
+    public StringBuilder getSQL(StringBuilder builder) {
         if (valueType == Value.CLOB) {
-            s = getString();
-            return StringUtils.quoteStringSQL(s);
+            StringUtils.quoteStringSQL(builder, getString());
+        } else {
+            builder.append("X'");
+            StringUtils.convertBytesToHex(builder, getBytes()).append('\'');
         }
-        byte[] buff = getBytes();
-        s = StringUtils.convertBytesToHex(buff);
-        return "X'" + s + "'";
+        return builder;
     }
 
     @Override
     public String getTraceSQL() {
         StringBuilder buff = new StringBuilder();
         if (valueType == Value.CLOB) {
-            buff.append("SPACE(").append(getPrecision());
+            buff.append("SPACE(").append(precision);
         } else {
-            buff.append("CAST(REPEAT('00', ").append(getPrecision()).append(") AS BINARY");
+            buff.append("CAST(REPEAT('00', ").append(precision).append(") AS BINARY");
         }
         buff.append(" /* ").append(fileName).append(" */)");
         return buff.toString();
@@ -602,11 +602,6 @@ public class ValueLob extends Value {
     @Override
     public byte[] getSmall() {
         return null;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return MathUtils.convertLongToInt(getPrecision());
     }
 
     @Override

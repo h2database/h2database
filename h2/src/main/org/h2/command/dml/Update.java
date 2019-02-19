@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -7,6 +7,7 @@ package org.h2.command.dml;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Objects;
 
 import org.h2.api.ErrorCode;
@@ -26,8 +27,6 @@ import org.h2.table.Column;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.StatementBuilder;
-import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -52,6 +51,8 @@ public class Update extends Prepared {
 
     private final ArrayList<Column> columns = Utils.newSmallArrayList();
     private final HashMap<Column, Expression> expressionMap  = new HashMap<>();
+
+    private HashSet<Long> updatedKeysCollector;
 
     public Update(Session session) {
         super(session);
@@ -88,12 +89,20 @@ public class Update extends Prepared {
         }
     }
 
+    /**
+     * Sets the collector of updated keys.
+     *
+     * @param updatedKeysCollector the collector of updated keys
+     */
+    public void setUpdatedKeysCollector(HashSet<Long> updatedKeysCollector) {
+        this.updatedKeysCollector = updatedKeysCollector;
+    }
+
     @Override
     public int update() {
         targetTableFilter.startQuery(session);
         targetTableFilter.reset();
-        RowList rows = new RowList(session);
-        try {
+        try (RowList rows = new RowList(session)) {
             Table table = targetTableFilter.getTable();
             session.getUser().checkRight(table, Right.UPDATE);
             table.fire(session, Trigger.UPDATE, true);
@@ -135,7 +144,8 @@ public class Update extends Prepared {
                         }
                         newRow.setValue(i, newValue);
                     }
-                    newRow.setKey(oldRow.getKey());
+                    long key = oldRow.getKey();
+                    newRow.setKey(key);
                     if (setOnUpdate || updateToCurrentValuesReturnsZero) {
                         setOnUpdate = false;
                         for (int i = 0; i < columnCount; i++) {
@@ -164,8 +174,16 @@ public class Update extends Prepared {
                         done = table.fireBeforeRow(session, oldRow, newRow);
                     }
                     if (!done) {
-                        rows.add(oldRow);
-                        rows.add(newRow);
+                        if (table.isMVStore()) {
+                            done = table.lockRow(session, oldRow) == null;
+                        }
+                        if (!done) {
+                            rows.add(oldRow);
+                            rows.add(newRow);
+                            if (updatedKeysCollector != null) {
+                                updatedKeysCollector.add(key);
+                            }
+                        }
                     }
                     count++;
                 }
@@ -180,7 +198,6 @@ public class Update extends Prepared {
             // the cached row is already updated - we need the old values
             table.updateRows(this, session, rows);
             if (table.fireRow()) {
-                rows.invalidateCache();
                 for (rows.reset(); rows.hasNext();) {
                     Row o = rows.next();
                     Row n = rows.next();
@@ -189,42 +206,44 @@ public class Update extends Prepared {
             }
             table.fire(session, Trigger.UPDATE, false);
             return count;
-        } finally {
-            rows.close();
         }
     }
 
     @Override
     public String getPlanSQL() {
-        StatementBuilder buff = new StatementBuilder("UPDATE ");
-        buff.append(targetTableFilter.getPlanSQL(false)).append("\nSET\n    ");
-        for (Column c : columns) {
-            Expression e = expressionMap.get(c);
-            buff.appendExceptFirst(",\n    ");
-            buff.append(c.getName()).append(" = ").append(e.getSQL());
+        StringBuilder builder = new StringBuilder("UPDATE ");
+        targetTableFilter.getPlanSQL(builder, false).append("\nSET\n    ");
+        for (int i = 0, size = columns.size(); i < size; i++) {
+            if (i > 0) {
+                builder.append(",\n    ");
+            }
+            Column c = columns.get(i);
+            c.getSQL(builder).append(" = ");
+            expressionMap.get(c).getSQL(builder);
         }
         if (condition != null) {
-            buff.append("\nWHERE ").append(StringUtils.unEnclose(condition.getSQL()));
+            builder.append("\nWHERE ");
+            condition.getUnenclosedSQL(builder);
         }
         if (limitExpr != null) {
-            buff.append("\nLIMIT ").append(
-                    StringUtils.unEnclose(limitExpr.getSQL()));
+            builder.append("\nLIMIT ");
+            limitExpr.getUnenclosedSQL(builder);
         }
-        return buff.toString();
+        return builder.toString();
     }
 
     @Override
     public void prepare() {
         if (condition != null) {
-            condition.mapColumns(targetTableFilter, 0);
+            condition.mapColumns(targetTableFilter, 0, Expression.MAP_INITIAL);
             condition = condition.optimize(session);
             condition.createIndexConditions(session, targetTableFilter);
         }
         for (Column c : columns) {
             Expression e = expressionMap.get(c);
-            e.mapColumns(targetTableFilter, 0);
+            e.mapColumns(targetTableFilter, 0, Expression.MAP_INITIAL);
             if (sourceTableFilter!=null){
-                e.mapColumns(sourceTableFilter, 0);
+                e.mapColumns(sourceTableFilter, 0, Expression.MAP_INITIAL);
             }
             expressionMap.put(c, e.optimize(session));
         }

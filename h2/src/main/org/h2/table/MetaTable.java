@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -27,6 +27,7 @@ import org.h2.constraint.ConstraintUnique;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
+import org.h2.engine.Domain;
 import org.h2.engine.FunctionAlias;
 import org.h2.engine.FunctionAlias.JavaMethod;
 import org.h2.engine.QueryStatisticsData;
@@ -36,7 +37,6 @@ import org.h2.engine.Session;
 import org.h2.engine.Setting;
 import org.h2.engine.User;
 import org.h2.engine.UserAggregate;
-import org.h2.engine.UserDataType;
 import org.h2.expression.ValueExpression;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -165,6 +165,9 @@ public class MetaTable extends Table {
                     "TABLE_NAME",
                     "COLUMN_NAME",
                     "ORDINAL_POSITION INT",
+                    "DOMAIN_CATALOG",
+                    "DOMAIN_SCHEMA",
+                    "DOMAIN_NAME",
                     "COLUMN_DEFAULT",
                     "IS_NULLABLE",
                     "DATA_TYPE INT",
@@ -843,9 +846,10 @@ public class MetaTable extends Table {
                 String collation = database.getCompareMode().getName();
                 for (int j = 0; j < cols.length; j++) {
                     Column c = cols[j];
+                    Domain domain = c.getDomain();
                     DataType dataType = c.getDataType();
                     ValueInt precision = ValueInt.get(c.getPrecisionAsInt());
-                    ValueInt scale = ValueInt.get(c.getScale());
+                    ValueInt scale = ValueInt.get(c.getType().getScale());
                     Sequence sequence = c.getSequence();
                     boolean hasDateTimePrecision;
                     int type = dataType.type;
@@ -876,6 +880,12 @@ public class MetaTable extends Table {
                             identifier(c.getName()),
                             // ORDINAL_POSITION
                             ValueInt.get(j + 1),
+                            // DOMAIN_CATALOG
+                            domain != null ? catalog : null,
+                            // DOMAIN_SCHEMA
+                            domain != null ? Constants.SCHEMA_MAIN : null,
+                            // DOMAIN_NAME
+                            domain != null ? domain.getName() : null,
                             // COLUMN_DEFAULT
                             c.getDefaultSQL(),
                             // IS_NULLABLE
@@ -1752,7 +1762,7 @@ public class MetaTable extends Table {
                         // CONSTANT_NAME
                         identifier(constant.getName()),
                         // DATA_TYPE
-                        ValueInt.get(DataType.convertTypeToSQLType(expr.getType())),
+                        ValueInt.get(DataType.convertTypeToSQLType(expr.getType().getValueType())),
                         // REMARKS
                         replaceNullWithEmpty(constant.getComment()),
                         // SQL
@@ -1764,7 +1774,7 @@ public class MetaTable extends Table {
             break;
         }
         case DOMAINS: {
-            for (UserDataType dt : database.getAllUserDataTypes()) {
+            for (Domain dt : database.getAllDomains()) {
                 Column col = dt.getColumn();
                 add(rows,
                         // DOMAIN_CATALOG
@@ -1782,7 +1792,7 @@ public class MetaTable extends Table {
                         // PRECISION
                         ValueInt.get(col.getPrecisionAsInt()),
                         // SCALE
-                        ValueInt.get(col.getScale()),
+                        ValueInt.get(col.getType().getScale()),
                         // TYPE_NAME
                         col.getDataType().name,
                         // SELECTIVITY INT
@@ -1838,14 +1848,9 @@ public class MetaTable extends Table {
             break;
         }
         case SESSIONS: {
-            long now = System.currentTimeMillis();
             for (Session s : database.getSessions(false)) {
                 if (admin || s == session) {
                     Command command = s.getCurrentCommand();
-                    long start = s.getCurrentCommandStart();
-                    if (start == 0) {
-                        start = now;
-                    }
                     int blockingSessionId = s.getBlockingSessionId();
                     add(rows,
                             // ID
@@ -1857,7 +1862,7 @@ public class MetaTable extends Table {
                             // STATEMENT
                             command == null ? null : command.toString(),
                             // STATEMENT_START
-                            DateTimeUtils.timestampTimeZoneFromMillis(start),
+                            command == null ? null : s.getCurrentCommandStart(),
                             // CONTAINS_UNCOMMITTED
                             ValueBoolean.get(s.containsUncommitted()),
                             // STATE
@@ -1891,11 +1896,12 @@ public class MetaTable extends Table {
         case SESSION_STATE: {
             for (String name : session.getVariableNames()) {
                 Value v = session.getVariable(name);
+                StringBuilder builder = new StringBuilder().append("SET @").append(name).append(' ');
+                v.getSQL(builder);
                 add(rows,
                         // KEY
                         "@" + name,
-                        // SQL
-                        "SET @" + name + " " + v.getSQL()
+                        builder.toString()
                 );
             }
             for (Table table : session.getLocalTempTables()) {
@@ -1908,17 +1914,18 @@ public class MetaTable extends Table {
             }
             String[] path = session.getSchemaSearchPath();
             if (path != null && path.length > 0) {
-                StatementBuilder buff = new StatementBuilder(
-                        "SET SCHEMA_SEARCH_PATH ");
-                for (String p : path) {
-                    buff.appendExceptFirst(", ");
-                    buff.append(StringUtils.quoteIdentifier(p));
+                StringBuilder builder = new StringBuilder("SET SCHEMA_SEARCH_PATH ");
+                for (int i = 0, l = path.length; i < l; i++) {
+                    if (i > 0) {
+                        builder.append(", ");
+                    }
+                    StringUtils.quoteIdentifier(builder, path[i]);
                 }
                 add(rows,
                         // KEY
                         "SCHEMA_SEARCH_PATH",
                         // SQL
-                        buff.toString()
+                        builder.toString()
                 );
             }
             String schema = session.getCurrentSchemaName();
@@ -1927,7 +1934,7 @@ public class MetaTable extends Table {
                         // KEY
                         "SCHEMA",
                         // SQL
-                        "SET SCHEMA " + StringUtils.quoteIdentifier(schema)
+                        StringUtils.quoteIdentifier(new StringBuilder("SET SCHEMA "), schema).toString()
                 );
             }
             break;

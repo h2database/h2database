@@ -1,8 +1,9 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0, and the
- * EPL 1.0 (http://h2database.com/html/license.html). Initial Developer: H2
- * Group Iso8601: Initial Developer: Robert Rathsack (firstName dot lastName at
- * gmx dot de)
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0, and the
+ * EPL 1.0 (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
+ * Iso8601: Initial Developer: Robert Rathsack (firstName dot lastName at gmx
+ * dot de)
  */
 package org.h2.util;
 
@@ -108,12 +109,12 @@ public class DateTimeUtils {
     private static volatile TimeZone timeZone;
 
     /**
-     * Observed JVM behaviour is that if the timezone of the host computer is
-     * changed while the JVM is running, the zone offset does not change but
-     * keeps the initial value. So it is correct to measure this once and use
-     * this value throughout the JVM's lifecycle. In any case, it is safer to
-     * use a fixed value throughout the duration of the JVM's life, rather than
-     * have this offset change, possibly midway through a long-running query.
+     * Raw offset doesn't change during DST transitions, but changes during
+     * other transitions that some time zones have. H2 1.4.193 and later
+     * versions use zone offset that is valid for startup time for performance
+     * reasons. This code is now used only by old PageStore engine and its
+     * datetime storage code has issues with all time zone transitions, so this
+     * buggy logic is preserved as is too.
      */
     private static int zoneOffsetMillis = createGregorianCalendar().get(Calendar.ZONE_OFFSET);
 
@@ -122,16 +123,17 @@ public class DateTimeUtils {
     }
 
     /**
-     * Returns local time zone.
+     * Returns local time zone offset for a specified timestamp.
      *
-     * @return local time zone
+     * @param ms milliseconds since Epoch in UTC
+     * @return local time zone offset
      */
-    static TimeZone getTimeZone() {
+    public static int getTimeZoneOffset(long ms) {
         TimeZone tz = timeZone;
         if (tz == null) {
             timeZone = tz = TimeZone.getDefault();
         }
-        return tz;
+        return tz.getOffset(ms);
     }
 
     /**
@@ -456,6 +458,14 @@ public class DateTimeUtils {
         return ((((hour * 60L) + minute) * 60) + second) * NANOS_PER_SECOND + nanos;
     }
 
+    /**
+     * Parse nanoseconds.
+     *
+     * @param s String to parse.
+     * @param start Begin position at the string to read.
+     * @param end End position at the string to read.
+     * @return Parsed nanoseconds.
+     */
     static int parseNanos(String s, int start, int end) {
         if (start >= end) {
             throw new IllegalArgumentException(s);
@@ -568,8 +578,9 @@ public class DateTimeUtils {
                     }
                 } else {
                     long millis = convertDateTimeValueToMillis(tz, dateValue, nanos / 1_000_000);
-                    dateValue = dateValueFromDate(millis);
-                    nanos = nanos % 1_000_000 + nanosFromDate(millis);
+                    millis += getTimeZoneOffset(millis);
+                    dateValue = dateValueFromLocalMillis(millis);
+                    nanos = nanos % 1_000_000 + nanosFromLocalMillis(millis);
                 }
             }
         }
@@ -1119,14 +1130,12 @@ public class DateTimeUtils {
     }
 
     /**
-     * Convert a UTC datetime in millis to an encoded date in the default
-     * timezone.
+     * Convert a local datetime in millis to an encoded date.
      *
      * @param ms the milliseconds
      * @return the date value
      */
-    public static long dateValueFromDate(long ms) {
-        ms += getTimeZone().getOffset(ms);
+    public static long dateValueFromLocalMillis(long ms) {
         long absoluteDay = ms / MILLIS_PER_DAY;
         // Round toward negative infinity
         if (ms < 0 && (absoluteDay * MILLIS_PER_DAY != ms)) {
@@ -1152,14 +1161,12 @@ public class DateTimeUtils {
     }
 
     /**
-     * Convert a time in milliseconds in UTC to the nanoseconds since midnight
-     * (in the default timezone).
+     * Convert a time in milliseconds in local time to the nanoseconds since midnight.
      *
      * @param ms the milliseconds
      * @return the nanoseconds
      */
-    public static long nanosFromDate(long ms) {
-        ms += getTimeZone().getOffset(ms);
+    public static long nanosFromLocalMillis(long ms) {
         long absoluteDay = ms / MILLIS_PER_DAY;
         // Round toward negative infinity
         if (ms < 0 && (absoluteDay * MILLIS_PER_DAY != ms)) {
@@ -1232,11 +1239,13 @@ public class DateTimeUtils {
     }
 
     /**
+     * Creates the instance of the {@link ValueTimestampTimeZone} from milliseconds.
+     *
      * @param ms milliseconds since 1970-01-01 (UTC)
      * @return timestamp with time zone with specified value and current time zone
      */
     public static ValueTimestampTimeZone timestampTimeZoneFromMillis(long ms) {
-        int offset = getTimeZone().getOffset(ms);
+        int offset = getTimeZoneOffset(ms);
         ms += offset;
         long absoluteDay = ms / MILLIS_PER_DAY;
         // Round toward negative infinity
@@ -1475,6 +1484,11 @@ public class DateTimeUtils {
         }
     }
 
+    /**
+     * Skip trailing zeroes.
+     *
+     * @param buff String buffer.
+     */
     static void stripTrailingZeroes(StringBuilder buff) {
         int i = buff.length() - 1;
         if (buff.charAt(i) == '0') {
@@ -1511,18 +1525,17 @@ public class DateTimeUtils {
     /**
      * Formats timestamp with time zone as string.
      *
+     * @param buff the target string builder
      * @param dateValue the year-month-day bit field
      * @param timeNanos nanoseconds since midnight
      * @param timeZoneOffsetMins the time zone offset in minutes
-     * @return formatted string
      */
-    public static String timestampTimeZoneToString(long dateValue, long timeNanos, short timeZoneOffsetMins) {
-        StringBuilder buff = new StringBuilder(ValueTimestampTimeZone.MAXIMUM_PRECISION);
+    public static void appendTimestampTimeZone(StringBuilder buff, long dateValue, long timeNanos,
+            short timeZoneOffsetMins) {
         appendDate(buff, dateValue);
         buff.append(' ');
         appendTime(buff, timeNanos);
         appendTimeZone(buff, timeZoneOffsetMins);
-        return buff.toString();
     }
 
     /**

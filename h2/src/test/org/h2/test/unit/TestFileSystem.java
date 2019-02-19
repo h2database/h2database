@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -16,6 +16,7 @@ import java.nio.channels.FileChannel.MapMode;
 import java.nio.channels.FileLock;
 import java.nio.channels.NonWritableChannelException;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -32,7 +33,6 @@ import org.h2.store.fs.FilePathEncrypt;
 import org.h2.store.fs.FilePathRec;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.test.TestDb;
 import org.h2.test.utils.AssertThrows;
 import org.h2.test.utils.FilePathDebug;
 import org.h2.tools.Backup;
@@ -43,7 +43,7 @@ import org.h2.util.Task;
 /**
  * Tests various file system.
  */
-public class TestFileSystem extends TestDb {
+public class TestFileSystem extends TestBase {
 
     /**
      * Run just this test.
@@ -83,6 +83,7 @@ public class TestFileSystem extends TestDb {
         String f = "split:10:" + getBaseDir() + "/fs";
         FileUtils.toRealPath(f);
         testFileSystem(getBaseDir() + "/fs");
+        testFileSystem("async:" + getBaseDir() + "/fs");
         testFileSystem("memFS:");
         testFileSystem("memLZF:");
         testFileSystem("nioMemFS:");
@@ -101,10 +102,7 @@ public class TestFileSystem extends TestDb {
                 testFileSystem("split:" + getBaseDir() + "/fs");
                 testFileSystem("split:nioMapped:" + getBaseDir() + "/fs");
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        } catch (Error e) {
+        } catch (Exception | Error e) {
             e.printStackTrace();
             throw e;
         } finally {
@@ -217,7 +215,7 @@ public class TestFileSystem extends TestDb {
     }
 
     private void testClasspath() throws IOException {
-        String resource = "org/h2/test/scripts/testSimple.in.txt";
+        String resource = "org/h2/test/scripts/testSimple.sql";
         InputStream in;
         in = getClass().getResourceAsStream("/" + resource);
         assertNotNull(in);
@@ -253,7 +251,7 @@ public class TestFileSystem extends TestDb {
         FileUtils.deleteRecursive(dir, false);
         Connection conn;
         Statement stat;
-        conn = getConnection("jdbc:h2:split:18:"+dir+"/test");
+        conn = DriverManager.getConnection("jdbc:h2:split:18:"+dir+"/test");
         stat = conn.createStatement();
         stat.execute(
                 "create table test(id int primary key, name varchar) " +
@@ -262,7 +260,7 @@ public class TestFileSystem extends TestDb {
         conn.close();
         Backup.execute(dir + "/test.zip", dir, "", true);
         DeleteDbFiles.execute("split:" + dir, "test", true);
-        conn = getConnection(
+        conn = DriverManager.getConnection(
                 "jdbc:h2:split:zip:"+dir+"/test.zip!/test");
         conn.createStatement().execute("select * from test where id=1");
         conn.close();
@@ -271,22 +269,22 @@ public class TestFileSystem extends TestDb {
 
     private void testDatabaseInMemFileSys() throws SQLException {
         org.h2.Driver.load();
-        deleteDb("fsMem");
-        String url = "jdbc:h2:" + getBaseDir() + "/fsMem";
-        Connection conn = getConnection(url, "sa", "sa");
+        String dir = getBaseDir() + "/fsMem";
+        FileUtils.deleteRecursive(dir, false);
+        String url = "jdbc:h2:" + dir + "/fsMem";
+        Connection conn = DriverManager.getConnection(url, "sa", "sa");
         conn.createStatement().execute(
                 "CREATE TABLE TEST AS SELECT * FROM DUAL");
         conn.createStatement().execute(
                 "BACKUP TO '" + getBaseDir() + "/fsMem.zip'");
         conn.close();
-        org.h2.tools.Restore.main("-file", getBaseDir() + "/fsMem.zip", "-dir",
-                "memFS:");
-        conn = getConnection("jdbc:h2:memFS:fsMem", "sa", "sa");
+        org.h2.tools.Restore.main("-file", getBaseDir() + "/fsMem.zip", "-dir", "memFS:");
+        conn = DriverManager.getConnection("jdbc:h2:memFS:fsMem", "sa", "sa");
         ResultSet rs = conn.createStatement()
                 .executeQuery("SELECT * FROM TEST");
         rs.close();
         conn.close();
-        deleteDb("fsMem");
+        FileUtils.deleteRecursive(dir, false);
         FileUtils.delete(getBaseDir() + "/fsMem.zip");
         FileUtils.delete("memFS:fsMem.mv.db");
     }
@@ -299,8 +297,9 @@ public class TestFileSystem extends TestDb {
             return;
         }
         org.h2.Driver.load();
-        String url = "jdbc:h2:" + getBaseDir() + "/fsJar";
-        Connection conn = getConnection(url, "sa", "sa");
+        String dir = getBaseDir() + "/fsJar";
+        String url = "jdbc:h2:" + dir + "/fsJar";
+        Connection conn = DriverManager.getConnection(url, "sa", "sa");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key, " +
                 "name varchar, b blob, c clob)");
@@ -312,12 +311,12 @@ public class TestFileSystem extends TestDb {
         byte[] b1 = rs.getBytes(3);
         String s1 = rs.getString(4);
         conn.close();
-        conn = getConnection(url, "sa", "sa");
+        conn = DriverManager.getConnection(url, "sa", "sa");
         stat = conn.createStatement();
         stat.execute("backup to '" + getBaseDir() + "/fsJar.zip'");
         conn.close();
 
-        deleteDb("fsJar");
+        FileUtils.deleteRecursive(dir, false);
         for (String f : FileUtils.newDirectoryStream(
                 "zip:" + getBaseDir() + "/fsJar.zip")) {
             assertFalse(FileUtils.isAbsolute(f));
@@ -336,7 +335,7 @@ public class TestFileSystem extends TestDb {
             testReadOnly(f);
         }
         String urlJar = "jdbc:h2:zip:" + getBaseDir() + "/fsJar.zip!/fsJar";
-        conn = getConnection(urlJar, "sa", "sa");
+        conn = DriverManager.getConnection(urlJar, "sa", "sa");
         stat = conn.createStatement();
         rs = stat.executeQuery("select * from test");
         rs.next();
@@ -372,7 +371,7 @@ public class TestFileSystem extends TestDb {
         new AssertThrows(IOException.class) {
             @Override
             public void test() throws IOException {
-                FileUtils.createTempFile(f, ".tmp", false, false);
+                FileUtils.createTempFile(f, ".tmp", false);
         }};
         final FileChannel channel = FileUtils.open(f, "r");
         new AssertThrows(IOException.class) {
@@ -672,7 +671,7 @@ public class TestFileSystem extends TestDb {
 
     private void testRandomAccess(String fsBase, int seed) throws Exception {
         StringBuilder buff = new StringBuilder();
-        String s = FileUtils.createTempFile(fsBase + "/tmp", ".tmp", false, false);
+        String s = FileUtils.createTempFile(fsBase + "/tmp", ".tmp", false);
         File file = new File(TestBase.BASE_TEST_DIR + "/tmp");
         file.getParentFile().mkdirs();
         file.delete();
@@ -786,7 +785,7 @@ public class TestFileSystem extends TestDb {
 
     private void testTempFile(String fsBase) throws Exception {
         int len = 10000;
-        String s = FileUtils.createTempFile(fsBase + "/tmp", ".tmp", false, false);
+        String s = FileUtils.createTempFile(fsBase + "/tmp", ".tmp", false);
         OutputStream out = FileUtils.newOutputStream(s, false);
         byte[] buffer = new byte[len];
         out.write(buffer);
@@ -806,7 +805,7 @@ public class TestFileSystem extends TestDb {
     }
 
     private void testConcurrent(String fsBase) throws Exception {
-        String s = FileUtils.createTempFile(fsBase + "/tmp", ".tmp", false, false);
+        String s = FileUtils.createTempFile(fsBase + "/tmp", ".tmp", false);
         File file = new File(TestBase.BASE_TEST_DIR + "/tmp");
         file.getParentFile().mkdirs();
         file.delete();

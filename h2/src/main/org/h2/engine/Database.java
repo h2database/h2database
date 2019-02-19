@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -41,6 +41,7 @@ import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.db.MVTableEngine;
+import org.h2.result.LocalResultFactory;
 import org.h2.result.Row;
 import org.h2.result.RowFactory;
 import org.h2.result.SearchRow;
@@ -139,7 +140,7 @@ public class Database implements DataHandler {
     private final HashMap<String, Setting> settings = new HashMap<>();
     private final HashMap<String, Schema> schemas = new HashMap<>();
     private final HashMap<String, Right> rights = new HashMap<>();
-    private final HashMap<String, UserDataType> userDataTypes = new HashMap<>();
+    private final HashMap<String, Domain> domains = new HashMap<>();
     private final HashMap<String, UserAggregate> aggregates = new HashMap<>();
     private final HashMap<String, Comment> comments = new HashMap<>();
     private final HashMap<String, TableEngine> tableEngines = new HashMap<>();
@@ -230,6 +231,7 @@ public class Database implements DataHandler {
     private int queryStatisticsMaxEntries = Constants.QUERY_STATISTICS_MAX_ENTRIES;
     private QueryStatisticsData queryStatisticsData;
     private RowFactory rowFactory = RowFactory.DEFAULT;
+    private LocalResultFactory resultFactory = LocalResultFactory.DEFAULT;
 
     private Authenticator authenticator;
 
@@ -369,6 +371,14 @@ public class Database implements DataHandler {
         this.rowFactory = rowFactory;
     }
 
+    public LocalResultFactory getResultFactory() {
+        return resultFactory;
+    }
+
+    public void setResultFactory(LocalResultFactory resultFactory) {
+        this.resultFactory = resultFactory;
+    }
+
     public static void setInitialPowerOffCount(int count) {
         initialPowerOffCount = count;
     }
@@ -402,8 +412,8 @@ public class Database implements DataHandler {
     }
 
     /**
-     * Compare two values with the current comparison mode. The values may not
-     * be of the same type.
+     * Compare two values with the current comparison mode. The values may have
+     * different data types including NULL.
      *
      * @param a the first value
      * @param b the second value
@@ -412,6 +422,21 @@ public class Database implements DataHandler {
      */
     public int compare(Value a, Value b) {
         return a.compareTo(b, mode, compareMode);
+    }
+
+    /**
+     * Compare two values with the current comparison mode. The values may have
+     * different data types including NULL.
+     *
+     * @param a the first value
+     * @param b the second value
+     * @param forEquality perform only check for equality (= or &lt;&gt;)
+     * @return 0 if both values are equal, -1 if the first value is smaller, 1
+     *         if the second value is larger, {@link Integer#MIN_VALUE} if order
+     *         is not defined due to NULL comparison
+     */
+    public int compareWithNull(Value a, Value b, boolean forEquality) {
+        return a.compareWithNull(b, forEquality, mode, compareMode);
     }
 
     /**
@@ -539,13 +564,15 @@ public class Database implements DataHandler {
                 if (store != null) {
                     store.closeImmediately();
                 }
-                if (pageStore != null) {
-                    try {
-                        pageStore.close();
-                    } catch (DbException e) {
-                        // ignore
+                synchronized(this) {
+                    if (pageStore != null) {
+                        try {
+                            pageStore.close();
+                        } catch (DbException e) {
+                            // ignore
+                        }
+                        pageStore = null;
                     }
-                    pageStore = null;
                 }
                 if (lock != null) {
                     stopServer();
@@ -630,7 +657,7 @@ public class Database implements DataHandler {
                 n = tokenizer.nextToken();
             }
         }
-        if (n == null || n.length() == 0) {
+        if (n == null || n.isEmpty()) {
             n = "unnamed";
         }
         return dbSettings.databaseToUpper ? StringUtils.toUpperEnglish(n) : n;
@@ -828,6 +855,8 @@ public class Database implements DataHandler {
                 lockMeta(systemSession);
                 addDatabaseObject(systemSession, setting);
             }
+            setSortSetting(SetTypes.BINARY_COLLATION, SysProperties.SORT_BINARY_UNSIGNED, true);
+            setSortSetting(SetTypes.UUID_COLLATION, SysProperties.SORT_UUID_UNSIGNED, false);
             // mark all ids used in the page store
             if (pageStore != null) {
                 BitSet f = pageStore.getObjectIds();
@@ -848,6 +877,30 @@ public class Database implements DataHandler {
         }
     }
 
+    /**
+     * Preserves a current default value of a sorting setting if it is not the
+     * same as default for older versions of H2 and if it was not modified by
+     * user.
+     *
+     * @param type
+     *            setting type
+     * @param defValue
+     *            current default value (may be modified via system properties)
+     * @param oldDefault
+     *            default value for old versions
+     */
+    private void setSortSetting(int type, boolean defValue, boolean oldDefault) {
+        if (defValue == oldDefault) {
+            return;
+        }
+        String name = SetTypes.getTypeName(type);
+        if (settings.get(name) == null) {
+            Setting setting = new Setting(this, allocateObjectId(), name);
+            setting.setStringValue(defValue ? CompareMode.UNSIGNED : CompareMode.SIGNED);
+            lockMeta(systemSession);
+            addDatabaseObject(systemSession, setting);
+        }
+    }
 
     private void handleUpgradeIssues() {
         if (store != null && !isReadOnly()) {
@@ -1029,9 +1082,11 @@ public class Database implements DataHandler {
      * @param session the session
      */
     public void unlockMeta(Session session) {
-        unlockMetaDebug(session);
-        meta.unlock(session);
-        session.unlock(meta);
+        if (meta != null) {
+            unlockMetaDebug(session);
+            meta.unlock(session);
+            session.unlock(meta);
+        }
     }
 
     /**
@@ -1064,10 +1119,8 @@ public class Database implements DataHandler {
             try {
                 Cursor cursor = metaIdIndex.find(session, r, r);
                 if (cursor.next()) {
-                    if (SysProperties.CHECK) {
-                        if (lockMode != Constants.LOCK_MODE_OFF && !wasLocked) {
-                            throw DbException.throwInternalError();
-                        }
+                    if (lockMode != Constants.LOCK_MODE_OFF && !wasLocked) {
+                        throw DbException.throwInternalError();
                     }
                     Row found = cursor.get();
                     meta.removeRow(session, found);
@@ -1098,6 +1151,10 @@ public class Database implements DataHandler {
         }
     }
 
+    /**
+     * Mark some database ids as unused.
+     * @param idsToRelease the ids to release
+     */
     void releaseDatabaseObjectIds(BitSet idsToRelease) {
         synchronized (objectIds) {
             objectIds.andNot(idsToRelease);
@@ -1123,8 +1180,8 @@ public class Database implements DataHandler {
         case DbObject.SCHEMA:
             result = schemas;
             break;
-        case DbObject.USER_DATATYPE:
-            result = userDataTypes;
+        case DbObject.DOMAIN:
+            result = domains;
             break;
         case DbObject.COMMENT:
             result = comments;
@@ -1253,13 +1310,13 @@ public class Database implements DataHandler {
     }
 
     /**
-     * Get the user defined data type if it exists, or null if not.
+     * Get the domain if it exists, or null if not.
      *
-     * @param name the name of the user defined data type
-     * @return the user defined data type or null
+     * @param name the name of the domain
+     * @return the domain or null
      */
-    public UserDataType findUserDataType(String name) {
-        return userDataTypes.get(name);
+    public Domain findDomain(String name) {
+        return domains.get(name);
     }
 
     /**
@@ -1336,10 +1393,7 @@ public class Database implements DataHandler {
         for (Session s : all) {
             if (s != except) {
                 try {
-                    // must roll back, otherwise the session is removed and
-                    // the transaction log that contains its uncommitted
-                    // operations as well
-                    s.rollback();
+                    // this will rollback outstanding transaction
                     s.close();
                 } catch (DbException e) {
                     trace.error(e, "disconnecting session #{0}", s.getId());
@@ -1355,12 +1409,27 @@ public class Database implements DataHandler {
      *            hook
      */
     void close(boolean fromShutdownHook) {
+        DbException b = backgroundException.getAndSet(null);
+        try {
+            closeImpl(fromShutdownHook);
+        } catch (Throwable t) {
+            if (b != null) {
+                t.addSuppressed(b);
+            }
+            throw t;
+        }
+        if (b != null) {
+            // wrap the exception, so we see it was thrown here
+            throw DbException.get(b.getErrorCode(), b, b.getMessage());
+        }
+    }
+
+    private void closeImpl(boolean fromShutdownHook) {
         try {
             synchronized (this) {
                 if (closing) {
                     return;
                 }
-                throwLastBackgroundException();
                 if (fileLockMethod == FileLockMethod.SERIALIZED &&
                         !reconnectChangePending) {
                     // another connection may have written something - don't write
@@ -1527,10 +1596,14 @@ public class Database implements DataHandler {
                             compactMode == CommandInterface.SHUTDOWN_DEFRAG ||
                             getSettings().defragAlways;
                     if (!compactFully && !mvStore.isReadOnly()) {
-                        try {
-                            store.compactFile(dbSettings.maxCompactTime);
-                        } catch (Throwable t) {
-                            trace.error(t, "compactFile");
+                        if (dbSettings.maxCompactTime > 0) {
+                            try {
+                                store.compactFile(dbSettings.maxCompactTime);
+                            } catch (Throwable t) {
+                                trace.error(t, "compactFile");
+                            }
+                        } else {
+                            mvStore.commit();
                         }
                     }
                     store.close(compactFully);
@@ -1727,8 +1800,8 @@ public class Database implements DataHandler {
         return new ArrayList<>(settings.values());
     }
 
-    public ArrayList<UserDataType> getAllUserDataTypes() {
-        return new ArrayList<>(userDataTypes.values());
+    public ArrayList<Domain> getAllDomains() {
+        return new ArrayList<>(domains.values());
     }
 
     public ArrayList<User> getAllUsers() {
@@ -1814,7 +1887,7 @@ public class Database implements DataHandler {
                 }
             }
         } else {
-            lockMeta(session);
+            boolean metaWasLocked = lockMeta(session);
             synchronized (this) {
                 int id = obj.getId();
                 removeMeta(session, id);
@@ -1823,6 +1896,9 @@ public class Database implements DataHandler {
                 if(id > 0) {
                     objectIds.set(id);
                 }
+            }
+            if (!metaWasLocked) {
+                unlockMeta(session);
             }
         }
     }
@@ -1897,8 +1973,7 @@ public class Database implements DataHandler {
             if (!persistent) {
                 name = "memFS:" + name;
             }
-            return FileUtils.createTempFile(name,
-                    Constants.SUFFIX_TEMP_FILE, true, inTempDir);
+            return FileUtils.createTempFile(name, Constants.SUFFIX_TEMP_FILE, inTempDir);
         } catch (IOException e) {
             throw DbException.convertIOException(e, databaseName);
         }
@@ -2044,7 +2119,7 @@ public class Database implements DataHandler {
     /**
      * Check if this database is disk-based.
      *
-     * @return true if it is disk-based, false it it is in-memory only.
+     * @return true if it is disk-based, false if it is in-memory only.
      */
     public boolean isPersistent() {
         return persistent;
@@ -2061,7 +2136,7 @@ public class Database implements DataHandler {
         }
         cacheSize = kb;
         if (pageStore != null) {
-            pageStore.getCache().setMaxMemory(kb);
+            pageStore.setMaxCacheMemory(kb);
         }
         if (store != null) {
             store.setCacheSize(Math.max(1, kb));
@@ -2258,7 +2333,7 @@ public class Database implements DataHandler {
     }
 
     public void setEventListenerClass(String className) {
-        if (className == null || className.length() == 0) {
+        if (className == null || className.isEmpty()) {
             eventListener = null;
         } else {
             try {
@@ -2654,19 +2729,21 @@ public class Database implements DataHandler {
             }
             return null;
         }
-        if (pageStore == null) {
-            pageStore = new PageStore(this, databaseName +
-                    Constants.SUFFIX_PAGE_FILE, accessModeData, cacheSize);
-            if (pageSize != Constants.DEFAULT_PAGE_SIZE) {
-                pageStore.setPageSize(pageSize);
+        synchronized (this) {
+            if (pageStore == null) {
+                pageStore = new PageStore(this, databaseName +
+                        Constants.SUFFIX_PAGE_FILE, accessModeData, cacheSize);
+                if (pageSize != Constants.DEFAULT_PAGE_SIZE) {
+                    pageStore.setPageSize(pageSize);
+                }
+                if (!readOnly && fileLockMethod == FileLockMethod.FS) {
+                    pageStore.setLockFile(true);
+                }
+                pageStore.setLogMode(logMode);
+                pageStore.open();
             }
-            if (!readOnly && fileLockMethod == FileLockMethod.FS) {
-                pageStore.setLockFile(true);
-            }
-            pageStore.setLogMode(logMode);
-            pageStore.open();
+            return pageStore;
         }
-        return pageStore;
     }
 
     /**
@@ -2762,7 +2839,7 @@ public class Database implements DataHandler {
         }
         long now = System.nanoTime();
         if (now > reconnectCheckNext + reconnectCheckDelayNs) {
-            if (SysProperties.CHECK && checkpointAllowed < 0) {
+            if (checkpointAllowed < 0) {
                 DbException.throwInternalError(Integer.toString(checkpointAllowed));
             }
             synchronized (reconnectSync) {
@@ -2831,8 +2908,7 @@ public class Database implements DataHandler {
         }
         synchronized (reconnectSync) {
             if (reconnectModified(true)) {
-                checkpointAllowed++;
-                if (SysProperties.CHECK && checkpointAllowed > 20) {
+                if (++checkpointAllowed > 20) {
                     throw DbException.throwInternalError(Integer.toString(checkpointAllowed));
                 }
                 return true;
@@ -2854,7 +2930,7 @@ public class Database implements DataHandler {
         synchronized (reconnectSync) {
             checkpointAllowed--;
         }
-        if (SysProperties.CHECK && checkpointAllowed < 0) {
+        if (checkpointAllowed < 0) {
             throw DbException.throwInternalError(Integer.toString(checkpointAllowed));
         }
     }
@@ -2915,27 +2991,32 @@ public class Database implements DataHandler {
         if (log < 0 || log > 2) {
             throw DbException.getInvalidValueException("LOG", log);
         }
-        if (pageStore != null) {
-            if (log != PageStore.LOG_MODE_SYNC ||
-                    pageStore.getLogMode() != PageStore.LOG_MODE_SYNC) {
-                // write the log mode in the trace file when enabling or
-                // disabling a dangerous mode
-                trace.error(null, "log {0}", log);
-            }
-            this.logMode = log;
-            pageStore.setLogMode(log);
-        }
         if (store != null) {
             this.logMode = log;
+            return;
+        }
+        synchronized (this) {
+            if (pageStore != null) {
+                if (log != PageStore.LOG_MODE_SYNC ||
+                        pageStore.getLogMode() != PageStore.LOG_MODE_SYNC) {
+                    // write the log mode in the trace file when enabling or
+                    // disabling a dangerous mode
+                    trace.error(null, "log {0}", log);
+                }
+                this.logMode = log;
+                pageStore.setLogMode(log);
+            }
         }
     }
 
     public int getLogMode() {
-        if (pageStore != null) {
-            return pageStore.getLogMode();
-        }
         if (store != null) {
             return logMode;
+        }
+        synchronized (this) {
+            if (pageStore != null) {
+                return pageStore.getLogMode();
+            }
         }
         return PageStore.LOG_MODE_OFF;
     }

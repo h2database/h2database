@@ -1,4 +1,4 @@
--- Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (http://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -178,3 +178,41 @@ SELECT EXTRACT(MICROSECOND FROM INTERVAL '11.123456789' SECOND);
 
 SELECT EXTRACT(NANOSECOND FROM INTERVAL '11.123456789' SECOND);
 >> 123456789
+
+SELECT D, ISO_YEAR(D) Y1, EXTRACT(ISO_YEAR FROM D) Y2, EXTRACT(ISOYEAR FROM D) Y3
+    FROM (VALUES DATE '2017-01-01', DATE '2017-01-02') V(D);
+> D          Y1   Y2   Y3
+> ---------- ---- ---- ----
+> 2017-01-01 2016 2016 2016
+> 2017-01-02 2017 2017 2017
+> rows: 2
+
+SELECT D, EXTRACT(ISO_DAY_OF_WEEK FROM D) D1, EXTRACT(ISODOW FROM D) D2
+    FROM (VALUES DATE '2019-02-03', DATE '2019-02-04') V(D);
+> D          D1 D2
+> ---------- -- --
+> 2019-02-03 7  7
+> 2019-02-04 1  1
+> rows: 2
+
+SELECT D, EXTRACT(DAY_OF_WEEK FROM D) D1, EXTRACT(DAY_OF_WEEK FROM D) D2, EXTRACT(DOW FROM D) D3
+    FROM (VALUES DATE '2019-02-02', DATE '2019-02-03') V(D);
+> D          D1 D2 D3
+> ---------- -- -- --
+> 2019-02-02 7  7  7
+> 2019-02-03 1  1  1
+> rows: 2
+
+SET MODE PostgreSQL;
+> ok
+
+SELECT D, EXTRACT(DAY_OF_WEEK FROM D) D1, EXTRACT(DAY_OF_WEEK FROM D) D2, EXTRACT(DOW FROM D) D3
+    FROM (VALUES DATE '2019-02-02', DATE '2019-02-03') V(D);
+> D          D1 D2 D3
+> ---------- -- -- --
+> 2019-02-02 7  7  6
+> 2019-02-03 1  1  0
+> rows: 2
+
+SET MODE Regular;
+> ok

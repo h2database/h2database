@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -14,6 +14,7 @@ import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.value.Transfer;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
 /**
@@ -77,23 +78,8 @@ public class ResultRemote implements ResultInterface {
     }
 
     @Override
-    public int getColumnType(int i) {
+    public TypeInfo getColumnType(int i) {
         return columns[i].columnType;
-    }
-
-    @Override
-    public long getColumnPrecision(int i) {
-        return columns[i].precision;
-    }
-
-    @Override
-    public int getColumnScale(int i) {
-        return columns[i].scale;
-    }
-
-    @Override
-    public int getDisplaySize(int i) {
-        return columns[i].displaySize;
     }
 
     @Override
@@ -281,9 +267,4 @@ public class ResultRemote implements ResultInterface {
         return result == null;
     }
 
-    @Override
-    public boolean containsDistinct(Value[] values) {
-        // We should never do this on remote result.
-        throw DbException.throwInternalError();
-    }
 }

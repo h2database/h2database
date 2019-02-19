@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -19,9 +19,9 @@ import org.h2.expression.Alias;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
-import org.h2.expression.Function;
 import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
+import org.h2.expression.function.FunctionCall;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
@@ -52,8 +52,14 @@ public abstract class Query extends Prepared {
      */
     Expression[] expressionArray;
 
+    /**
+     * Describes elements of the ORDER BY clause of a query.
+     */
     ArrayList<SelectOrderBy> orderList;
 
+    /**
+     *  A sort order represents an ORDER BY clause in a query.
+     */
     SortOrder sort;
 
     /**
@@ -276,8 +282,9 @@ public abstract class Query extends Prepared {
      * Update all aggregate function values.
      *
      * @param s the session
+     * @param stage select stage
      */
-    public abstract void updateAggregate(Session s);
+    public abstract void updateAggregate(Session s, int stage);
 
     /**
      * Call the before triggers on all tables.
@@ -313,6 +320,15 @@ public abstract class Query extends Prepared {
     }
 
     /**
+     * Returns whether results support random access.
+     *
+     * @return whether results support random access
+     */
+    public boolean isRandomAccessResult() {
+        return randomAccessResult;
+    }
+
+    /**
      * Whether results need to support random access.
      *
      * @param b the new value
@@ -343,6 +359,10 @@ public abstract class Query extends Prepared {
         if (!cacheableChecked) {
             long max = getMaxDataModificationId();
             noCache = max == Long.MAX_VALUE;
+            if (!isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR) ||
+                    !isEverything(ExpressionVisitor.INDEPENDENT_VISITOR)) {
+                noCache = true;
+            }
             cacheableChecked = true;
         }
         if (noCache) {
@@ -351,22 +371,14 @@ public abstract class Query extends Prepared {
         Database db = s.getDatabase();
         for (int i = 0; i < params.length; i++) {
             Value a = lastParams[i], b = params[i];
-            if (a.getType() != b.getType() || !db.areEqual(a, b)) {
+            if (a.getValueType() != b.getValueType() || !db.areEqual(a, b)) {
                 return false;
             }
         }
-        if (!isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR) ||
-                !isEverything(ExpressionVisitor.INDEPENDENT_VISITOR)) {
-            return false;
-        }
-        if (db.getModificationDataId() > lastEval &&
-                getMaxDataModificationId() > lastEval) {
-            return false;
-        }
-        return true;
+        return getMaxDataModificationId() <= lastEval;
     }
 
-    public final Value[] getParameterValues() {
+    private  Value[] getParameterValues() {
         ArrayList<Parameter> list = getParameters();
         if (list == null) {
             return new Value[0];
@@ -400,7 +412,7 @@ public abstract class Query extends Prepared {
         }
         fireBeforeSelectTriggers();
         if (noCache || !session.getDatabase().getOptimizeReuseResults() ||
-                session.isLazyQueryExecution()) {
+                (session.isLazyQueryExecution() && !neverLazy)) {
             return queryWithoutCacheLazyCheck(limit, target);
         }
         Value[] params = getParameterValues();
@@ -462,6 +474,18 @@ public abstract class Query extends Prepared {
         }
     }
 
+    /**
+     * Initialize the 'ORDER BY' or 'DISTINCT' expressions.
+     *
+     * @param session the session
+     * @param expressions the select list expressions
+     * @param expressionSQL the select list SQL snippets
+     * @param e the expression.
+     * @param visible the number of visible columns in the select list
+     * @param mustBeInResult all order by expressions must be in the select list
+     * @param filters the table filters.
+     * @return index on the expression in the {@link #expressions} list.
+     */
     static int initExpression(Session session, ArrayList<Expression> expressions,
             ArrayList<String> expressionSQL, Expression e, int visible, boolean mustBeInResult,
             ArrayList<TableFilter> filters) {
@@ -558,8 +582,8 @@ public abstract class Query extends Prepared {
             }
         }
         int count = expr.getSubexpressionCount();
-        if (expr instanceof Function) {
-            if (!((Function) expr).isDeterministic()) {
+        if (expr instanceof FunctionCall) {
+            if (!((FunctionCall) expr).isDeterministic()) {
                 return false;
             }
         } else if (count <= 0) {
@@ -577,14 +601,13 @@ public abstract class Query extends Prepared {
 
     /**
      * Create a {@link SortOrder} object given the list of {@link SelectOrderBy}
-     * objects. The expression list is extended if necessary.
+     * objects.
      *
      * @param orderList a list of {@link SelectOrderBy} elements
      * @param expressionCount the number of columns in the query
      * @return the {@link SortOrder} object
      */
-    public SortOrder prepareOrder(ArrayList<SelectOrderBy> orderList,
-            int expressionCount) {
+    public SortOrder prepareOrder(ArrayList<SelectOrderBy> orderList, int expressionCount) {
         int size = orderList.size();
         int[] index = new int[size];
         int[] sortType = new int[size];
@@ -592,8 +615,7 @@ public abstract class Query extends Prepared {
             SelectOrderBy o = orderList.get(i);
             int idx;
             boolean reverse = false;
-            Expression expr = o.columnIndexExpr;
-            Value v = expr.getValue(null);
+            Value v = o.columnIndexExpr.getValue(null);
             if (v == ValueNull.INSTANCE) {
                 // parameter not yet set - order by first column
                 idx = 0;
@@ -612,11 +634,7 @@ public abstract class Query extends Prepared {
             int type = o.sortType;
             if (reverse) {
                 // TODO NULLS FIRST / LAST should be inverted too?
-                if ((type & SortOrder.DESCENDING) != 0) {
-                    type &= ~SortOrder.DESCENDING;
-                } else {
-                    type |= SortOrder.DESCENDING;
-                }
+                type ^= SortOrder.DESCENDING;
             }
             sortType[i] = type;
         }
@@ -699,6 +717,11 @@ public abstract class Query extends Prepared {
         return visitor.getMaxDataModificationId();
     }
 
+    /**
+     * Appends query limits info to the plan.
+     *
+     * @param buff query plan string builder.
+     */
     void appendLimitToSQL(StringBuilder buff) {
         if (offsetExpr != null) {
             String count = StringUtils.unEnclose(offsetExpr.getSQL());

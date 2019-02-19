@@ -56,6 +56,9 @@ Update org.h2.engine.Constants.java:
         set BUILD_DATE to today
         increment BUILD_ID
 
+Update org.h2.value.Transfer.java:
+    if the last TCP_PROTOCOL_VERSION_## doesn't have a release date set it to current BUILD_DATE
+
 Update changelog.html:
     * create a new "Next Version (unreleased)" with an empty list
     * add a new version

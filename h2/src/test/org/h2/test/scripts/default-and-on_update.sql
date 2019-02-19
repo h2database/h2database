@@ -1,4 +1,4 @@
--- Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (http://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -88,10 +88,10 @@ ALTER TABLE TEST ALTER COLUMN V SET ON UPDATE NULL;
 
 SELECT COLUMN_NAME, COLUMN_DEFAULT, COLUMN_ON_UPDATE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'TEST' ORDER BY COLUMN_NAME;
 > COLUMN_NAME COLUMN_DEFAULT              COLUMN_ON_UPDATE
-> ----------- --------------------------- -------------------
+> ----------- --------------------------- -----------------
 > ID          null                        null
 > V           (NEXT VALUE FOR PUBLIC.SEQ) NULL
-> V2          null                        CURRENT_TIMESTAMP()
+> V2          null                        CURRENT_TIMESTAMP
 > rows (ordered): 3
 
 ALTER TABLE TEST ALTER COLUMN V DROP ON UPDATE;
@@ -99,10 +99,10 @@ ALTER TABLE TEST ALTER COLUMN V DROP ON UPDATE;
 
 SELECT COLUMN_NAME, COLUMN_DEFAULT, COLUMN_ON_UPDATE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'TEST' ORDER BY COLUMN_NAME;
 > COLUMN_NAME COLUMN_DEFAULT              COLUMN_ON_UPDATE
-> ----------- --------------------------- -------------------
+> ----------- --------------------------- -----------------
 > ID          null                        null
 > V           (NEXT VALUE FOR PUBLIC.SEQ) null
-> V2          null                        CURRENT_TIMESTAMP()
+> V2          null                        CURRENT_TIMESTAMP
 > rows (ordered): 3
 
 DROP TABLE TEST;

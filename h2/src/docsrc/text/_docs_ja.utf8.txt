@@ -265,13 +265,13 @@ Phantom Reads (ファントムリード)
 # Possible with: read uncommitted, read committed 
 
 @advanced_1088_h3
-テーブルレベルロック
+#Multi-Version Concurrency Control (MVCC)
 
 @advanced_1089_p
 # The database allows multiple concurrent connections to the same database. To make sure all connections only see consistent data, table level locking is used by default. This mechanism does not allow high concurrency, but is very fast. Shared locks and exclusive locks are supported. Before reading from a table, the database tries to add a shared lock to the table (this is only possible if there is no exclusive lock on the object by another connection). If the shared lock is added successfully, the table can be read. It is allowed that other connections also have a shared lock on the same object. If a connection wants to write to a table (update or delete a row), an exclusive lock is required. To get the exclusive lock, other connection must not have any locks on the object. After the connection commits, all locks are released. This database keeps all locks in memory. When a lock is released, and multiple connections are waiting for it, one of them is picked at random. 
 
 @advanced_1090_h3
-ロックタイムアウト
+#Table Level Locking (PageStore engine)
 
 @advanced_1091_p
 # If a connection cannot get a lock on an object, the connection waits for some amount of time (the lock timeout). During this time, hopefully the connection holding the lock commits and it is then possible to get the lock. If this is not possible because the other connection does not release the lock for some time, the unsuccessful connection will get a lock timeout exception. The lock timeout can be set individually for each connection. 
@@ -541,13 +541,13 @@ ODBC設定
 Data Source
 
 @advanced_1180_td
-H2 Test
+#~/test;ifexists=true
 
 @advanced_1181_td
-ODBCデータソース�?��??称
+# The database name. This can include connections settings. By default, the database is stored in the current working directory where the Server is started except when the -baseDir setting is used. The name must be at least 3 characters. 
 
 @advanced_1182_td
-Database
+#Servername
 
 @advanced_1183_td
 #~/test;ifexists=true
@@ -559,7 +559,7 @@ Database
 #Servername
 
 @advanced_1186_td
-localhost
+#Username
 
 @advanced_1187_td
 サー�?ー�??�?�?��?��?�IPアドレス
@@ -571,7 +571,7 @@ localhost
 #Username
 
 @advanced_1190_td
-sa
+#false (disabled)
 
 @advanced_1191_td
 データベース�?�ユーザー�??
@@ -619,7 +619,7 @@ PGプロトコルサ�?ート�?�制�?
 # PostgreSQL ODBC Driver Setup requires a database password; that means it is not possible to connect to H2 databases without password. This is a limitation of the ODBC driver. 
 
 @advanced_1206_h3
-セキュリティ考慮
+#Using Microsoft Access
 
 @advanced_1207_p
 # Currently, the PG Server does not support challenge response or encrypt passwords. This may be a problem if an attacker can listen to the data transferred between the ODBC driver and the server, because the password is readable to the attacker. Also, it is currently not possible to use encrypted SSL connections. Therefore the ODBC driver should not be used where security is important. 
@@ -1093,7 +1093,7 @@ HTTPS 接続
 # Limitations: Recursive queries need to be of the type <code>UNION ALL</code>, and the recursion needs to be on the second part of the query. No tables or views with the name of the table expression may exist. Different table expression names need to be used when using multiple distinct table expressions within the same transaction and for the same session. All columns of the table expression are of type <code>VARCHAR</code>, and may need to be cast to the required data type. Views with recursive queries are not supported. Subqueries and <code>INSERT INTO ... FROM</code> with recursive queries are not supported. Parameters are only supported within the last <code>SELECT</code> statement (a workaround is to use session variables like <code>@start</code> within the table expression). The syntax is: 
 
 @advanced_1364_h2
-システムプロパティ�?�ら読�?�込�?�れ�?�設定
+#Setting the Server Bind Address
 
 @advanced_1365_p
 # Some settings of the database can be set on the command line using <code>-DpropertyName=value</code>. It is usually not required to change those settings manually. The settings are case sensitive. Example: 
@@ -2128,10 +2128,10 @@ Centralリ�?ジトリ�?�利用
 #[API CHANGE]</strong> #439: the JDBC type of TIMESTAMP WITH TIME ZONE changed from Types.OTHER (1111) to Types.TIMESTAMP_WITH_TIMEZONE (2014) 
 
 @changelog_1064_li
-##430: Subquery not cached if number of rows exceeds MAX_MEMORY_ROWS.
+#PR #1637: Remove explicit unboxing 
 
 @changelog_1065_li
-##411: "TIMEZONE" should be "TIME ZONE" in type "TIMESTAMP WITH TIMEZONE".
+#PR #1635: Optimize UUID to VARCHAR conversion and use correct time check in Engine.openSession() 
 
 @changelog_1066_li
 #PR #418, Implement Connection#createArrayOf and PreparedStatement#setArray. 
@@ -2140,7 +2140,7 @@ Centralリ�?ジトリ�?�利用
 #PR #427, Add MySQL compatibility functions UNIX_TIMESTAMP, FROM_UNIXTIME and DATE. 
 
 @changelog_1068_li
-##429: Tables not found : Fix some Turkish locale bugs around uppercasing.
+#PR #1630: fix duplicate words typos in comments and javadoc 
 
 @changelog_1069_li
 #Fixed bug in metadata locking, obscure combination of DDL and SELECT SEQUENCE.NEXTVAL required. 
@@ -3745,7 +3745,7 @@ ORDER BY, GROUP BY, HAVING, UNION, LIMIT, TOP
 #Well tested (high code coverage, randomized stress tests) 
 
 @features_1086_h2
-他�?�データベースエンジン�?�比較�?�る
+#H2 in Use
 
 @features_1087_p
 # This comparison is based on H2 1.3, <a href="http://db.apache.org/derby">Apache Derby version 10.8</a>, <a href="http://hsqldb.org">HSQLDB 2.2</a>, <a href="http://mysql.com">MySQL 5.5</a>, <a href="http://www.postgresql.org">PostgreSQL 9.0</a>. 
@@ -3808,13 +3808,13 @@ Pure Java
 #In-Memory Mode
 
 @features_1107_td
-対応
+# jdbc:h2:~/test
 
 @features_1108_td
-対応
+ jdbc:h2:file:/data/sample
 
 @features_1109_td
-対応
+# jdbc:h2:file:C:/data/sample (Windows only)
 
 @features_1110_td
 �?�対応
@@ -3826,7 +3826,7 @@ Pure Java
 #Explain Plan
 
 @features_1113_td
-対応
+# jdbc:h2:mem:&lt;databaseName&gt;
 
 @features_1114_td
 #Yes *12
@@ -3838,16 +3838,16 @@ Pure Java
 対応
 
 @features_1117_td
-対応
+# jdbc:h2:tcp://&lt;server&gt;[:&lt;port&gt;]/[&lt;path&gt;]&lt;databaseName&gt;
 
 @features_1118_td
 #Built-in Clustering / Replication
 
 @features_1119_td
-対応
+# jdbc:h2:tcp://dbserv:8084/~/sample
 
 @features_1120_td
-対応
+# jdbc:h2:tcp://localhost/mem:test
 
 @features_1121_td
 �?�対応
@@ -3856,10 +3856,10 @@ Pure Java
 対応
 
 @features_1123_td
-対応
+# jdbc:h2:ssl://&lt;server&gt;[:&lt;port&gt;]/[&lt;path&gt;]&lt;databaseName&gt;
 
 @features_1124_td
-暗�?�化データベース
+# jdbc:h2:ssl://localhost:8085/~/sample; 
 
 @features_1125_td
 対応
@@ -3871,16 +3871,16 @@ Pure Java
 #Yes *10
 
 @features_1128_td
-�?�対応
+# jdbc:h2:file:~/secure;CIPHER=AES
 
 @features_1129_td
 �?�対応
 
 @features_1130_td
-リンクテーブル
+# jdbc:h2:&lt;url&gt;;FILE_LOCK={FILE|SOCKET|NO}
 
 @features_1131_td
-対応
+# jdbc:h2:file:~/private;CIPHER=AES;FILE_LOCK=SOCKET
 
 @features_1132_td
 �?�対応
@@ -3895,73 +3895,73 @@ Pure Java
 対応
 
 @features_1136_td
-ODBCドライ�?
+# jdbc:h2:&lt;url&gt;;DB_CLOSE_ON_EXIT=FALSE 
 
 @features_1137_td
 対応
 
 @features_1138_td
-�?�対応
+ jdbc:h2:&lt;url&gt;;INIT=RUNSCRIPT FROM '~/create.sql'
 
 @features_1139_td
-�?�対応
+# jdbc:h2:file:~/sample;INIT=RUNSCRIPT FROM '~/create.sql'\;RUNSCRIPT FROM '~/populate.sql'
 
 @features_1140_td
 対応
 
 @features_1141_td
-対応
+# jdbc:h2:&lt;url&gt;[;USER=&lt;username&gt;][;PASSWORD=&lt;value&gt;]
 
 @features_1142_td
-フルテキストサー�?
+# jdbc:h2:file:~/sample;USER=sa;PASSWORD=123
 
 @features_1143_td
 対応
 
 @features_1144_td
-対応
+# jdbc:h2:&lt;url&gt;;TRACE_LEVEL_FILE=&lt;level 0..3&gt;
 
 @features_1145_td
-�?�対応
+# jdbc:h2:file:~/sample;TRACE_LEVEL_FILE=3
 
 @features_1146_td
 対応
 
 @features_1147_td
-対応
+# jdbc:h2:&lt;url&gt;;IGNORE_UNKNOWN_SETTINGS=TRUE
 
 @features_1148_td
 #Domains (User-Defined Types)
 
 @features_1149_td
-対応
+# jdbc:h2:&lt;url&gt;;ACCESS_MODE_DATA=rws
 
 @features_1150_td
 �?�対応
 
 @features_1151_td
-対応
+# jdbc:h2:zip:&lt;zipFileName&gt;!/&lt;databaseName&gt;
 
 @features_1152_td
-対応
+# jdbc:h2:zip:~/db.zip!/test 
 
 @features_1153_td
 対応
 
 @features_1154_td
-データベース�?��?��?�ファイル
+# jdbc:h2:&lt;url&gt;;MODE=&lt;databaseType&gt;
 
 @features_1155_td
-少
+# jdbc:h2:~/test;MODE=MYSQL 
 
 @features_1156_td
 多
 
 @features_1157_td
-少
+# jdbc:h2:&lt;url&gt;;AUTO_RECONNECT=TRUE
 
 @features_1158_td
-多
+# jdbc:h2:tcp://localhost/~/test;AUTO_RECONNECT=TRUE 
 
 @features_1159_td
 多
@@ -3982,7 +3982,7 @@ ODBCドライ�?
 対応
 
 @features_1165_td
-対応
+# jdbc:h2:&lt;url&gt;;&lt;setting&gt;=&lt;value&gt;[;&lt;setting&gt;=&lt;value&gt;...]
 
 @features_1166_td
 #Multi Version Concurrency
@@ -4177,7 +4177,7 @@ ODBCドライ�?
 対応
 
 @features_1230_td
-対応
+#SELECT * FROM TEST;
 
 @features_1231_td
 #Yes *6
@@ -4189,34 +4189,34 @@ ODBCドライ�?
 対応
 
 @features_1234_td
-�?�対応
+#SELECT * FROM TEST WHERE 1=0 FOR UPDATE;
 
 @features_1235_td
 対応
 
 @features_1236_td
-�?�対応
+#INSERT INTO TEST VALUES(1, 'Hello');
 
 @features_1237_td
-対応
+# INSERT INTO TEST SELECT * FROM TEST;
 
 @features_1238_td
 #CLOB/BLOB Compression
 
 @features_1239_td
-対応
+# DELETE FROM TEST;
 
 @features_1240_td
 �?�対応
 
 @features_1241_td
-�?�対応
+#ALTER TABLE TEST ...;
 
 @features_1242_td
-�?�対応
+# CREATE INDEX ... ON TEST ...;
 
 @features_1243_td
-対応
+# DROP INDEX ...;
 
 @features_1244_td
 フットプリント (jar/dll size)
@@ -4621,7 +4621,7 @@ jdbc:h2:mem:
 # For more information about the algorithms, see <a href="advanced.html#file_locking_protocols">Advanced / File Locking Protocols</a>. 
 
 @features_1378_h2
-�?��?��?�存在�?�る場�?��?��?��?データベースを開�??
+#Page Size
 
 @features_1379_p
 # By default, when an application calls <code>DriverManager.getConnection(url, ...)</code> and the database specified in the URL does not yet exist, a new (empty) database is created. In some situations, it is better to restrict creating new databases, and only allow to open existing databases. To do this, add <code>;IFEXISTS=TRUE</code> to the database URL. In this case, if the database does not already exist, an exception is thrown when trying to connect. The connection only succeeds when the database already exists. The complete URL may look like this: 
@@ -5422,7 +5422,7 @@ SimpleResultSetを使用�?�る
 #History &amp; Roadmap
 
 @fragments_1027_a
-ライセンス
+#History &amp; Roadmap
 
 @fragments_1028_a
 ビルド
@@ -7492,7 +7492,7 @@ ODBCドライ�?
 対応
 
 @mainWeb_1059_td
-フットプリント (jar/dll size)
+#Footprint (embedded)
 
 @mainWeb_1060_td
 #~1 MB
@@ -12049,7 +12049,7 @@ CSV (Comma Separated Values) サ�?ート
 # A fast way to load or import data (sometimes called 'bulk load') from a CSV file is to combine table creation with import. Optionally, the column names and data types can be set when creating the table. Another option is to use <code>INSERT INTO ... SELECT</code>. 
 
 @tutorial_1217_h3
-データベース内�?�らCSVファイル�?�書�??込む
+#Importing Data from a CSV File
 
 @tutorial_1218_p
 # The built-in function <code>CSVWRITE</code> can be used to create a CSV file from a query. Example: 
@@ -12178,7 +12178,7 @@ Javaアプリケーション�?�らCSVファイルを読�?�込む
 # allows converting a database to a SQL script for backup or migration. 
 
 @tutorial_1260_code
-Server
+#Script
 
 @tutorial_1261_li
 # is used in the server mode to start a H2 server. 
@@ -12298,7 +12298,7 @@ Java Web Start / JNLP
 # For H2, opening a connection is fast if the database is already open. Still, using a connection pool improves performance if you open and close connections a lot. A simple connection pool is included in H2. It is based on the <a href="http://www.source-code.biz/snippets/java/8.htm">Mini Connection Pool Manager</a> from Christian d'Heureuse. There are other, more complex, open source connection pools available, for example the <a href="http://jakarta.apache.org/commons/dbcp/">Apache Commons DBCP</a>. For H2, it is about twice as faster to get a connection from the built-in connection pool than to get one using <code>DriverManager.getConnection()</code>.The build-in connection pool is used as follows: 
 
 @tutorial_1300_h2
-フルテキストサー�?
+#Using a Connection Pool
 
 @tutorial_1301_p
 # H2 includes two fulltext search implementations. One is using Apache Lucene, and the other (the native implementation) stores the index data in special tables in the database. 

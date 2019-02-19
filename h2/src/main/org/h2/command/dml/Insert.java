@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -12,18 +12,17 @@ import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
-import org.h2.command.Prepared;
 import org.h2.engine.GeneratedKeys;
 import org.h2.engine.Mode;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
-import org.h2.expression.Comparison;
-import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
+import org.h2.expression.condition.Comparison;
+import org.h2.expression.condition.ConditionAndOr;
 import org.h2.index.Index;
 import org.h2.index.PageDataIndex;
 import org.h2.message.DbException;
@@ -34,8 +33,6 @@ import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.StatementBuilder;
-import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -43,11 +40,10 @@ import org.h2.value.ValueNull;
  * This class represents the statement
  * INSERT
  */
-public class Insert extends Prepared implements ResultTarget {
+public class Insert extends CommandWithValues implements ResultTarget {
 
     private Table table;
     private Column[] columns;
-    private final ArrayList<Expression[]> list = Utils.newSmallArrayList();
     private Query query;
     private boolean sortedInsertMode;
     private int rowNumber;
@@ -117,19 +113,18 @@ public class Insert extends Prepared implements ResultTarget {
         duplicateKeyAssignmentMap.put(column, expression);
     }
 
-    /**
-     * Add a row to this merge statement.
-     *
-     * @param expr the list of values
-     */
-    public void addRow(Expression[] expr) {
-        list.add(expr);
-    }
-
     @Override
     public int update() {
         Index index = null;
         if (sortedInsertMode) {
+            if (!session.getDatabase().isMVStore()) {
+                /*
+                 * Take exclusive lock, otherwise two different inserts running at
+                 * the same time, the second might accidentally get
+                 * sorted-insert-mode.
+                 */
+                table.lock(session, /* exclusive */true, /* forceLockEvenInMvcc */true);
+            }
             index = table.getScanIndex(session);
             index.setSortedInsertMode(true);
         }
@@ -149,14 +144,14 @@ public class Insert extends Prepared implements ResultTarget {
         rowNumber = 0;
         GeneratedKeys generatedKeys = session.getGeneratedKeys();
         generatedKeys.initialize(table);
-        int listSize = list.size();
+        int listSize = valuesExpressionList.size();
         if (listSize > 0) {
             Mode mode = session.getDatabase().getMode();
             int columnLen = columns.length;
             for (int x = 0; x < listSize; x++) {
                 generatedKeys.nextRow();
                 Row newRow = table.getTemplateRow();
-                Expression[] expr = list.get(x);
+                Expression[] expr = valuesExpressionList.get(x);
                 setCurrentRowNumber(x + 1);
                 for (int i = 0; i < columnLen; i++) {
                     Column c = columns[i];
@@ -273,59 +268,48 @@ public class Insert extends Prepared implements ResultTarget {
 
     @Override
     public String getPlanSQL() {
-        StatementBuilder buff = new StatementBuilder("INSERT INTO ");
-        buff.append(table.getSQL()).append('(');
-        for (Column c : columns) {
-            buff.appendExceptFirst(", ");
-            buff.append(c.getSQL());
-        }
-        buff.append(")\n");
+        StringBuilder builder = new StringBuilder("INSERT INTO ");
+        table.getSQL(builder).append('(');
+        Column.writeColumns(builder, columns);
+        builder.append(")\n");
         if (insertFromSelect) {
-            buff.append("DIRECT ");
+            builder.append("DIRECT ");
         }
         if (sortedInsertMode) {
-            buff.append("SORTED ");
+            builder.append("SORTED ");
         }
-        if (!list.isEmpty()) {
-            buff.append("VALUES ");
+        if (!valuesExpressionList.isEmpty()) {
+            builder.append("VALUES ");
             int row = 0;
-            if (list.size() > 1) {
-                buff.append('\n');
+            if (valuesExpressionList.size() > 1) {
+                builder.append('\n');
             }
-            for (Expression[] expr : list) {
+            for (Expression[] expr : valuesExpressionList) {
                 if (row++ > 0) {
-                    buff.append(",\n");
+                    builder.append(",\n");
                 }
-                buff.append('(');
-                buff.resetCount();
-                for (Expression e : expr) {
-                    buff.appendExceptFirst(", ");
-                    if (e == null) {
-                        buff.append("DEFAULT");
-                    } else {
-                        buff.append(e.getSQL());
-                    }
-                }
-                buff.append(')');
+                builder.append('(');
+                Expression.writeExpressions(builder, expr);
+                builder.append(')');
             }
         } else {
-            buff.append(query.getPlanSQL());
+            builder.append(query.getPlanSQL());
         }
-        return buff.toString();
+        return builder.toString();
     }
 
     @Override
     public void prepare() {
         if (columns == null) {
-            if (!list.isEmpty() && list.get(0).length == 0) {
+            if (!valuesExpressionList.isEmpty() && valuesExpressionList.get(0).length == 0) {
                 // special case where table is used as a sequence
                 columns = new Column[0];
             } else {
                 columns = table.getColumns();
             }
         }
-        if (!list.isEmpty()) {
-            for (Expression[] expr : list) {
+        if (!valuesExpressionList.isEmpty()) {
+            for (Expression[] expr : valuesExpressionList) {
                 if (expr.length != columns.length) {
                     throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
                 }
@@ -333,7 +317,7 @@ public class Insert extends Prepared implements ResultTarget {
                     Expression e = expr[i];
                     if (e != null) {
                         if(sourceTableFilter!=null){
-                            e.mapColumns(sourceTableFilter, 0);
+                            e.mapColumns(sourceTableFilter, 0, Expression.MAP_INITIAL);
                         }
                         e = e.optimize(session);
                         if (e instanceof Parameter) {
@@ -400,11 +384,11 @@ public class Insert extends Prepared implements ResultTarget {
 
         ArrayList<String> variableNames = new ArrayList<>(
                 duplicateKeyAssignmentMap.size());
-        Expression[] row = (currentRow == null) ? list.get(getCurrentRowNumber() - 1)
+        Expression[] row = (currentRow == null) ? valuesExpressionList.get((int) getCurrentRowNumber() - 1)
                 : new Expression[columns.length];
         for (int i = 0; i < columns.length; i++) {
-            String key = table.getSchema().getName() + "." +
-                    table.getName() + "." + columns[i].getName();
+            StringBuilder builder = table.getSQL(new StringBuilder()).append('.');
+            String key = columns[i].getSQL(builder).toString();
             variableNames.add(key);
             Value value;
             if (currentRow != null) {
@@ -416,21 +400,26 @@ public class Insert extends Prepared implements ResultTarget {
             session.setVariable(key, value);
         }
 
-        StatementBuilder buff = new StatementBuilder("UPDATE ");
-        buff.append(table.getSQL()).append(" SET ");
+        StringBuilder builder = new StringBuilder("UPDATE ");
+        table.getSQL(builder).append(" SET ");
+        boolean f = false;
         for (Column column : duplicateKeyAssignmentMap.keySet()) {
-            buff.appendExceptFirst(", ");
+            if (f) {
+                builder.append(", ");
+            }
+            f = true;
             Expression ex = duplicateKeyAssignmentMap.get(column);
-            buff.append(column.getSQL()).append('=').append(ex.getSQL());
+            column.getSQL(builder).append('=');
+            ex.getSQL(builder);
         }
-        buff.append(" WHERE ");
+        builder.append(" WHERE ");
         Index foundIndex = (Index) de.getSource();
         if (foundIndex == null) {
             throw DbException.getUnsupportedException(
                     "Unable to apply ON DUPLICATE KEY UPDATE, no index found!");
         }
-        buff.append(prepareUpdateCondition(foundIndex, row).getSQL());
-        String sql = buff.toString();
+        prepareUpdateCondition(foundIndex, row).getSQL(builder);
+        String sql = builder.toString();
         Update command = (Update) session.prepare(sql);
         command.setUpdateToCurrentValuesReturnsZero(true);
         for (Parameter param : command.getParameters()) {

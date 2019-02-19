@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -28,11 +28,10 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.RowList;
 import org.h2.schema.Schema;
-import org.h2.util.MathUtils;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueTime;
@@ -156,9 +155,8 @@ public class TableLink extends Table {
             precision = convertPrecision(sqlType, precision);
             int scale = rs.getInt("DECIMAL_DIGITS");
             scale = convertScale(sqlType, scale);
-            int displaySize = MathUtils.convertLongToInt(precision);
             int type = DataType.convertSQLTypeToValueType(sqlType, sqlTypeName);
-            Column col = new Column(n, type, precision, scale, displaySize);
+            Column col = new Column(n, TypeInfo.getTypeInfo(type, precision, scale, null));
             col.setTable(this, i++);
             columnList.add(col);
             columnMap.put(n, col);
@@ -185,9 +183,8 @@ public class TableLink extends Table {
                     precision = convertPrecision(sqlType, precision);
                     int scale = rsMeta.getScale(i + 1);
                     scale = convertScale(sqlType, scale);
-                    int displaySize = rsMeta.getColumnDisplaySize(i + 1);
                     int type = DataType.getValueTypeFromResultSet(rsMeta, i + 1);
-                    Column col = new Column(n, type, precision, scale, displaySize);
+                    Column col = new Column(n, TypeInfo.getTypeInfo(type, precision, scale, null));
                     col.setTable(this, i++);
                     columnList.add(col);
                     columnMap.put(n, col);
@@ -356,7 +353,8 @@ public class TableLink extends Table {
 
     @Override
     public String getDropSQL() {
-        return "DROP TABLE IF EXISTS " + getSQL();
+        StringBuilder builder = new StringBuilder("DROP TABLE IF EXISTS ");
+        return getSQL(builder).toString();
     }
 
     @Override
@@ -370,21 +368,18 @@ public class TableLink extends Table {
             }
             buff.append("TEMPORARY ");
         }
-        buff.append("LINKED TABLE ").append(getSQL());
+        buff.append("LINKED TABLE ");
+        getSQL(buff);
         if (comment != null) {
-            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
+            buff.append(" COMMENT ");
+            StringUtils.quoteStringSQL(buff, comment);
         }
-        buff.append('(').
-            append(StringUtils.quoteStringSQL(driver)).
-            append(", ").
-            append(StringUtils.quoteStringSQL(url)).
-            append(", ").
-            append(StringUtils.quoteStringSQL(user)).
-            append(", ").
-            append(StringUtils.quoteStringSQL(password)).
-            append(", ").
-            append(StringUtils.quoteStringSQL(originalTable)).
-            append(')');
+        buff.append('(');
+        StringUtils.quoteStringSQL(buff, driver).append(", ");
+        StringUtils.quoteStringSQL(buff, url).append(", ");
+        StringUtils.quoteStringSQL(buff, user).append(", ");
+        StringUtils.quoteStringSQL(buff, password).append(", ");
+        StringUtils.quoteStringSQL(buff, originalTable).append(')');
         if (emitUpdates) {
             buff.append(" EMIT UPDATES");
         }
@@ -503,19 +498,21 @@ public class TableLink extends Table {
                         prep = conn.getConnection().prepareStatement(sql);
                     }
                     if (trace.isDebugEnabled()) {
-                        StatementBuilder buff = new StatementBuilder();
-                        buff.append(getName()).append(":\n").append(sql);
+                        StringBuilder builder = new StringBuilder(getName()).append(":\n").append(sql);
                         if (params != null && !params.isEmpty()) {
-                            buff.append(" {");
-                            int i = 1;
-                            for (Value v : params) {
-                                buff.appendExceptFirst(", ");
-                                buff.append(i++).append(": ").append(v.getSQL());
+                            builder.append(" {");
+                            for (int i = 0, l = params.size(); i < l;) {
+                                Value v = params.get(i);
+                                if (i > 0) {
+                                    builder.append(", ");
+                                }
+                                builder.append(++i).append(": ");
+                                v.getSQL(builder);
                             }
-                            buff.append('}');
+                            builder.append('}');
                         }
-                        buff.append(';');
-                        trace.debug(buff.toString());
+                        builder.append(';');
+                        trace.debug(builder.toString());
                     }
                     if (params != null) {
                         for (int i = 0, size = params.size(); i < size; i++) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -1984,14 +1984,14 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
     }
 
     /**
-     * Returns null.
+     * Returns empty string.
      *
      * @param columnIndex (1,2,...)
-     * @return null
+     * @return empty string
      */
     @Override
     public String getCatalogName(int columnIndex) {
-        return null;
+        return "";
     }
 
     /**
@@ -2040,25 +2040,25 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
     }
 
     /**
-     * Returns null.
+     * Returns empty string.
      *
      * @param columnIndex (1,2,...)
-     * @return null
+     * @return empty string
      */
     @Override
     public String getSchemaName(int columnIndex) {
-        return null;
+        return "";
     }
 
     /**
-     * Returns null.
+     * Returns empty string.
      *
      * @param columnIndex (1,2,...)
-     * @return null
+     * @return empty string
      */
     @Override
     public String getTableName(int columnIndex) {
-        return null;
+        return "";
     }
 
     // ---- unsupported / result set -----------------------------------

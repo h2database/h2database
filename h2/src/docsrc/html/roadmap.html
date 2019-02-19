@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0, Version 1.0,
-and under the Eclipse Public License, Version 1.0
+Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+and the EPL 1.0 (http://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
@@ -60,14 +60,9 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     DBMS_METADATA.GET_DDL / GET_DEPENDENT_DDL.
 </li><li>Clustering: support mixed clustering mode (one embedded, others in server mode).
 </li><li>Clustering: reads should be randomly distributed (optional) or to a designated database on RAM (parameter: READ_FROM=3).
-</li><li>Window functions: RANK() and DENSE_RANK(), partition using OVER().
-    select *, count(*) over() as fullCount from ... limit 4;
 </li><li>PostgreSQL catalog: use BEFORE SELECT triggers instead of views over metadata tables.
-</li><li>Compatibility: automatically load functions from a script depending on the mode - see FunctionsMySQL.java, issue 211.
 </li><li>Test very large databases and LOBs (up to 256 GB).
 </li><li>Store all temp files in the temp directory.
-</li><li>Don't use temp files, specially not deleteOnExit (bug 4513817: File.deleteOnExit consumes memory).
-    Also to allow opening client / server (remote) connections when using LOBs.
 </li><li>Make DDL (Data Definition) operations transactional.
 </li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED).
 </li><li>Groovy Stored Procedures: http://groovy.codehaus.org/GSQL
@@ -88,7 +83,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Index usage for (ID, NAME)=(1, 'Hi'); document.
 </li><li>Set a connection read only (Connection.setReadOnly) or using a connection parameter.
 </li><li>Access rights: finer grained access control (grant access for specific functions).
-</li><li>ROW_NUMBER() OVER([PARTITION BY columnName][ORDER BY columnName]).
 </li><li>Version check: docs / web console (using Javascript), and maybe in the library (using TCP/IP).
 </li><li>Web server classloader: override findResource / getResourceFrom.
 </li><li>Cost for embedded temporary view is calculated wrong, if result is constant.
@@ -121,7 +115,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>The HELP information schema can be directly exposed in the Console.
 </li><li>Maybe use the 0x1234 notation for binary fields, see MS SQL Server.
 </li><li>Support Oracle CONNECT BY in some way: http://www.adp-gmbh.ch/ora/sql/connect_by.html http://philip.greenspun.com/sql/trees.html
-</li><li>SQL Server 2005, Oracle: support COUNT(*) OVER(). See http://www.orafusion.com/art_anlytc.htm
 </li><li>SQL 2003: http://www.wiscorp.com/sql_2003_standard.zip
 </li><li>Version column (number/sequence and timestamp based).
 </li><li>Test and document UPDATE TEST SET (ID, NAME) = (SELECT ID*10, NAME || '!' FROM TEST T WHERE T.ID=TEST.ID).
@@ -414,7 +407,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Issue 196: Function based indexes
 </li><li>Fix the disk space leak (killing the process at the exact right moment will increase
     the disk space usage; this space is not re-used). See TestDiskSpaceLeak.java
-</li><li>ROWNUM: Oracle compatibility when used within a subquery. Issue 198.
 </li><li>Allow to access the database over HTTP (possibly using port 80) and a servlet in a REST way.
 </li><li>ODBC: encrypted databases are not supported because the ;CIPHER= can not be set.
 </li><li>Support CLOB and BLOB update, specially conn.createBlob().setBinaryStream(1);

@@ -61,6 +61,7 @@ import static org.h2.util.ParserUtil.VALUES;
 import static org.h2.util.ParserUtil.WHERE;
 import static org.h2.util.ParserUtil.WINDOW;
 import static org.h2.util.ParserUtil.WITH;
+import static org.h2.util.ParserUtil._ROWID_;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -511,6 +512,8 @@ public class Parser {
             "QUALIFY",
             // ROW
             "ROW",
+            // _ROWID_
+            "_ROWID_",
             // ROWNUM
             "ROWNUM",
             // SELECT
@@ -3808,6 +3811,9 @@ public class Parser {
         if (expr != null) {
             return expr;
         }
+        if (readIf(_ROWID_)) {
+            return new ExpressionColumn(database, null, objectName, Column.ROWID);
+        }
         String name = readColumnIdentifier();
         Schema s = database.findSchema(objectName);
         if (readIf(OPEN_PAREN)) {
@@ -3818,6 +3824,9 @@ public class Parser {
             expr = readWildcardOrSequenceValue(schema, objectName);
             if (expr != null) {
                 return expr;
+            }
+            if (readIf(_ROWID_)) {
+                return new ExpressionColumn(database, schema, objectName, Column.ROWID);
             }
             name = readColumnIdentifier();
             if (readIf(OPEN_PAREN)) {
@@ -4049,6 +4058,10 @@ public class Parser {
         case NULL:
             read();
             r = ValueExpression.getNull();
+            break;
+        case _ROWID_:
+            read();
+            r = new ExpressionColumn(database, null, null, Column.ROWID);
             break;
         case VALUE:
             r = ValueExpression.get(currentValue);

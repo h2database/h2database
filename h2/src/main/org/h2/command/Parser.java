@@ -1166,40 +1166,53 @@ public class Parser {
     }
 
     private Column readTableColumn(TableFilter filter) {
-        String columnName = readColumnIdentifier();
-        if (readIf(DOT)) {
-            String tableAlias = columnName;
+        boolean rowId = false;
+        String columnName = null;
+        if (currentTokenType == _ROWID_ && database.getSettings().rowId) {
+            read();
+            rowId = true;
+        } else {
             columnName = readColumnIdentifier();
             if (readIf(DOT)) {
-                String schema = tableAlias;
-                tableAlias = columnName;
-                columnName = readColumnIdentifier();
-                if (readIf(DOT)) {
-                    String catalogName = schema;
-                    schema = tableAlias;
-                    tableAlias = columnName;
+                String tableAlias = columnName;
+                if (currentTokenType == _ROWID_ && database.getSettings().rowId) {
+                    read();
+                    rowId = true;
+                } else {
                     columnName = readColumnIdentifier();
-                    if (!equalsToken(catalogName, database.getShortName())) {
-                        throw DbException.get(ErrorCode.DATABASE_NOT_FOUND_1,
-                                catalogName);
+                    if (readIf(DOT)) {
+                        String schema = tableAlias;
+                        tableAlias = columnName;
+                        if (currentTokenType == _ROWID_ && database.getSettings().rowId) {
+                            read();
+                            rowId = true;
+                        } else {
+                            columnName = readColumnIdentifier();
+                            if (readIf(DOT)) {
+                                if (!equalsToken(schema, database.getShortName())) {
+                                    throw DbException.get(ErrorCode.DATABASE_NOT_FOUND_1, schema);
+                                }
+                                schema = tableAlias;
+                                tableAlias = columnName;
+                                if (currentTokenType == _ROWID_ && database.getSettings().rowId) {
+                                    read();
+                                    rowId = true;
+                                } else {
+                                    columnName = readColumnIdentifier();
+                                }
+                            }
+                        }
+                        if (!equalsToken(schema, filter.getTable().getSchema().getName())) {
+                            throw DbException.get(ErrorCode.SCHEMA_NOT_FOUND_1, schema);
+                        }
                     }
                 }
-                if (!equalsToken(schema, filter.getTable().getSchema()
-                        .getName())) {
-                    throw DbException.get(ErrorCode.SCHEMA_NOT_FOUND_1, schema);
+                if (!equalsToken(tableAlias, filter.getTableAlias())) {
+                    throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableAlias);
                 }
             }
-            if (!equalsToken(tableAlias, filter.getTableAlias())) {
-                throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1,
-                        tableAlias);
-            }
         }
-        if (database.getSettings().rowId) {
-            if (Column.ROWID.equals(columnName)) {
-                return filter.getRowIdColumn();
-            }
-        }
-        return filter.getTable().getColumn(columnName);
+        return rowId ? filter.getRowIdColumn() : filter.getTable().getColumn(columnName);
     }
 
     private Update parseUpdate() {
@@ -1359,11 +1372,11 @@ public class Parser {
     }
 
     private Column parseColumn(Table table) {
-        String id = readColumnIdentifier();
-        if (database.getSettings().rowId && Column.ROWID.equals(id)) {
+        if (currentTokenType == _ROWID_ && database.getSettings().rowId) {
+            read();
             return table.getRowIdColumn();
         }
-        return table.getColumn(id);
+        return table.getColumn(readColumnIdentifier());
     }
 
     /**
@@ -1389,7 +1402,7 @@ public class Parser {
                 .resolveTableOrView(session, database.sysIdentifier("HELP"));
         Function function = Function.getFunction(database, "UPPER");
         function.setParameter(0, new ExpressionColumn(database, informationSchema,
-                database.sysIdentifier("HELP"), database.sysIdentifier("TOPIC")));
+                database.sysIdentifier("HELP"), database.sysIdentifier("TOPIC"), false));
         function.doneWithParameters();
         TableFilter filter = new TableFilter(session, table, null, rightsChecked, select, 0, null);
         select.addTableFilter(filter, true);
@@ -2314,10 +2327,10 @@ public class Parser {
                             join.addNaturalJoinColumn(c);
                             Expression tableExpr = new ExpressionColumn(
                                     database, tableSchema,
-                                    last.getTableAlias(), tableColumnName);
+                                    last.getTableAlias(), tableColumnName, false);
                             Expression joinExpr = new ExpressionColumn(
                                     database, joinSchema, join.getTableAlias(),
-                                    joinColumnName);
+                                    joinColumnName, false);
                             Expression equal = new Comparison(session,
                                     Comparison.EQUAL, tableExpr, joinExpr);
                             if (on == null) {
@@ -3799,7 +3812,7 @@ public class Parser {
                         }
                     }
                 }
-                exceptColumns.add(new ExpressionColumn(database, s, t, name));
+                exceptColumns.add(new ExpressionColumn(database, s, t, name, false));
             } while (readIfMore(true));
             wildcard.setExceptColumns(exceptColumns);
         }
@@ -3812,7 +3825,7 @@ public class Parser {
             return expr;
         }
         if (readIf(_ROWID_)) {
-            return new ExpressionColumn(database, null, objectName, Column.ROWID);
+            return new ExpressionColumn(database, null, objectName, Column.ROWID, true);
         }
         String name = readColumnIdentifier();
         Schema s = database.findSchema(objectName);
@@ -3826,7 +3839,7 @@ public class Parser {
                 return expr;
             }
             if (readIf(_ROWID_)) {
-                return new ExpressionColumn(database, schema, objectName, Column.ROWID);
+                return new ExpressionColumn(database, schema, objectName, Column.ROWID, true);
             }
             name = readColumnIdentifier();
             if (readIf(OPEN_PAREN)) {
@@ -3850,11 +3863,11 @@ public class Parser {
                     return expr;
                 }
                 name = readColumnIdentifier();
-                return new ExpressionColumn(database, schema, objectName, name);
+                return new ExpressionColumn(database, schema, objectName, name, false);
             }
-            return new ExpressionColumn(database, schema, objectName, name);
+            return new ExpressionColumn(database, schema, objectName, name, false);
         }
-        return new ExpressionColumn(database, null, objectName, name);
+        return new ExpressionColumn(database, null, objectName, name, false);
     }
 
     private Parameter readParameter() {
@@ -3947,7 +3960,7 @@ public class Parser {
                 } else if (readIf(DOT)) {
                     r = readTermObjectDot(name);
                 } else {
-                    r = new ExpressionColumn(database, null, null, name);
+                    r = new ExpressionColumn(database, null, null, name, false);
                 }
             } else {
                 read();
@@ -4061,7 +4074,7 @@ public class Parser {
             break;
         case _ROWID_:
             read();
-            r = new ExpressionColumn(database, null, null, Column.ROWID);
+            r = new ExpressionColumn(database, null, null, Column.ROWID, true);
             break;
         case VALUE:
             r = ValueExpression.get(currentValue);
@@ -4254,7 +4267,7 @@ public class Parser {
             }
             break;
         }
-        return new ExpressionColumn(database, null, null, name);
+        return new ExpressionColumn(database, null, null, name, false);
     }
 
     private Expression readInterval() {
@@ -4331,7 +4344,7 @@ public class Parser {
             return readFunctionWithoutParameters("CURRENT_DATE");
         }
         // No match, parse CURRENT as a column
-        return new ExpressionColumn(database, null, null, name);
+        return new ExpressionColumn(database, null, null, name, false);
     }
 
     private Expression readCase() {

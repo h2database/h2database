@@ -59,6 +59,11 @@ public class ValueJson extends Value {
     }
 
     @Override
+    public int getValueType() {
+        return JSON;
+    }
+
+    @Override
     public String getString() {
         return string;
     }
@@ -113,11 +118,5 @@ public class ValueJson extends Value {
     public StringBuilder getSQL(StringBuilder builder) {
         // TODO Auto-generated method stub
         return null;
-    }
-
-    @Override
-    public int getValueType() {
-        // TODO Auto-generated method stub
-        return 0;
     }
 }

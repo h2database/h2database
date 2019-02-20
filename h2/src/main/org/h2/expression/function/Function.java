@@ -1761,7 +1761,7 @@ public class Function extends Expression implements FunctionCall {
             throw DbException.fromUser(sqlState, msgText);
         }
         case JSON_FIELD: {
-            if(v0.getType() == TypeInfo.TYPE_JSON) {
+            if(v0.getValueType() == Value.JSON) {
                 JsonNode json = ((ValueJson) v0).getObject();
                 if (json.isArray() && v1.getType() == TypeInfo.TYPE_JSON) {
                     Integer key = v1.getInt();
@@ -1776,7 +1776,7 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case JSON_FIELD_TEXT: {
-            if(v0.getType() == TypeInfo.TYPE_JSON) {
+            if(v0.getValueType() == Value.JSON) {
                 JsonNode json = ((ValueJson) v0).getObject();
                 if (json.isArray() && v1.getType() == TypeInfo.TYPE_JSON) {
                     Integer key = v1.getInt();
@@ -1793,7 +1793,7 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case JSON_FIELD_PATH: {
-            if(v0.getType() == TypeInfo.TYPE_JSON && v1.getType() == TypeInfo.TYPE_ARRAY) {
+            if(v0.getValueType() == Value.JSON && v1.getValueType() == Value.ARRAY) {
                 JsonNode json = ((ValueJson) v0).getObject();
                 boolean isNull = false;
                 for(Value v: ((ValueArray) v1).getList()){
@@ -1809,12 +1809,15 @@ public class Function extends Expression implements FunctionCall {
                 } else {
                     result = ValueNull.INSTANCE;
                 }
+            } else if (v0.getValueType() == Value.JSON) {
+                result = ValueNull.INSTANCE;
             } else {
                 throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
             }
+            break;
         }
         case JSON_FIELD_PATH_TEXT: {
-            if(v0.getType() == TypeInfo.TYPE_JSON && v1.getType() == TypeInfo.TYPE_ARRAY) {
+            if(v0.getValueType() == Value.JSON && v1.getValueType() == Value.ARRAY) {
                 JsonNode json = ((ValueJson) v0).getObject();
                 boolean isNull = false;
                 for (Value v: ((ValueArray) v1).getList()) {
@@ -1830,13 +1833,15 @@ public class Function extends Expression implements FunctionCall {
                 } else {
                     result = ValueNull.INSTANCE;
                 }
+            } else if (v0.getValueType() == Value.JSON) {
+                result = ValueNull.INSTANCE;
             } else {
                 throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
             }
             break;
         }
         case JSON_CONTAINS: {
-            if(v0.getType() == TypeInfo.TYPE_JSON && v1.getType() == TypeInfo.TYPE_JSON) {
+            if(v0.getValueType() == Value.JSON && v1.getValueType() == Value.JSON) {
                 JsonNode first = ((ValueJson) v0).getObject();
                 JsonNode second = ((ValueJson) v1).getObject();
                 if (first.isObject() && second.isObject()) {
@@ -1853,8 +1858,10 @@ public class Function extends Expression implements FunctionCall {
                         }
                     }
                     result = ValueBoolean.get(isTrue);
+                } else if (v0.getValueType() == Value.JSON) {
+                  result = ValueBoolean.FALSE;  
                 } else {
-                    throw DbException.throwInternalError("json comparison implemented only for ObjectNodes");
+                    throw DbException.throwInternalError("JSON comparison implemented only for ObjectNodes");
                 }
             } else {
                 throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
@@ -1862,7 +1869,7 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case JSON_EXISTS: {
-            if(v0.getType() == TypeInfo.TYPE_JSON) {
+            if(v0.getValueType() == Value.JSON) {
                 JsonNode json = ((ValueJson) v0).getObject();
                 if (json.isArray() && v1.getType() == TypeInfo.TYPE_INT) {
                     Integer key = v1.getInt();
@@ -1877,7 +1884,7 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case JSON_EXISTS_ANY: {
-            if(v0.getType() == TypeInfo.TYPE_JSON  && v1.getType() == TypeInfo.TYPE_ARRAY) {
+            if(v0.getValueType() == Value.JSON  && v1.getValueType() == Value.ARRAY) {
                 JsonNode json = ((ValueJson) v0).getObject();
                 boolean isTrue = false;
                 if (json.isArray()) {
@@ -1896,13 +1903,15 @@ public class Function extends Expression implements FunctionCall {
                     }
                 }
                 result = ValueBoolean.get(isTrue);
+            } else if (v0.getValueType() == Value.JSON) {
+                result = ValueBoolean.FALSE;
             } else {
                 throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
             }
             break;
         }
         case JSON_EXISTS_ALL: {
-            if(v0.getType() == TypeInfo.TYPE_JSON && v1.getType() == TypeInfo.TYPE_ARRAY) {
+            if(v0.getValueType() == Value.JSON && v1.getValueType() == Value.ARRAY) {
                 JsonNode json = ((ValueJson) v0).getObject();
                 boolean isTrue = true;
                 for (Value v : ((ValueArray) v1).getList()) {
@@ -1912,13 +1921,15 @@ public class Function extends Expression implements FunctionCall {
                     }
                 }
                 result = ValueBoolean.get(isTrue);
+            } else if (v0.getValueType() == Value.JSON) {
+                result = ValueBoolean.FALSE;
             } else {
                 throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
             }
             break;
         }
         case JSON_CONCAT: {
-            if(v0.getType() == TypeInfo.TYPE_JSON && v1.getType() == TypeInfo.TYPE_JSON) {
+            if(v0.getValueType() == Value.JSON && v1.getValueType() == Value.JSON) {
                 JsonNode first = ((ValueJson) v0).getObject();
                 JsonNode second = ((ValueJson) v1).getObject();
                 if(first.isObject() && second.isObject()) {
@@ -1934,7 +1945,7 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case JSON_DELETE_FIELD: {
-            if(v0.getType() == TypeInfo.TYPE_JSON) {
+            if(v0.getValueType() == Value.JSON) {
                 JsonNode json = ((ValueJson) v0).getObject();
                 String key = v1.getString();
                 if (json.isObject()) {
@@ -1949,6 +1960,10 @@ public class Function extends Expression implements FunctionCall {
             }
             break;
         }
+        /* 
+         * Jackson library hasn't such method.
+         * For implementing of this function required O(n^2) 
+         */
         case JSON_DELETE_PATH: {
             throw DbException.throwInternalError("Unimplemented");
         }

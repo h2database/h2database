@@ -328,7 +328,7 @@ public class DataType {
         );
         add(Value.JSON, Types.OTHER,
                 createString(false),
-                new String[] {"JSON"}
+                new String[]{"JSON"}
         );
         dataType = new DataType();
         dataType.prefix = "ARRAY[";

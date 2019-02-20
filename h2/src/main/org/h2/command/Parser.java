@@ -423,62 +423,62 @@ public class Parser {
     private static final int NOT_TILDE = COLON_EQ + 1;
     
     /**
-     * The PostrgerSQL token "->"
+     * The PostgreSQL token "->"
      */
     private static final int JSON_FIELD = NOT_TILDE + 1;
     
     /**
-     * The PostrgerSQL token "->>"
+     * The PostgreSQL token "->>"
      */
     private static final int JSON_FIELD_TEXT = JSON_FIELD + 1;
     
     /**
-     * The PostrgerSQL token "#>"
+     * The PostgreSQL token "#>"
      */
     private static final int JSON_FIELD_PATH = JSON_FIELD_TEXT+ 1;
     
     /**
-     * The PostrgerSQL token "#>>"
+     * The PostgreSQL token "#>>"
      */
     private static final int JSON_FIELD_PATH_TEXT = JSON_FIELD_PATH + 1;
     
     /**
-     * The PostrgerSQL token "@>"
+     * The PostgreSQL token "@>"
      */
     private static final int JSON_CONTAINS_LEFT = JSON_FIELD_PATH_TEXT + 1;
     
     /**
-     * The PostrgerSQL token "<@"
+     * The PostgreSQL token "<@"
      */
     private static final int JSON_CONTAINS_RIGHT = JSON_CONTAINS_LEFT + 1;
     
     /**
-     * The PostrgerSQL token "?"
+     * The PostgreSQL token "?"
      */
     private static final int JSON_EXISTS = JSON_CONTAINS_RIGHT + 1;
     
     /**
-     * The PostrgerSQL token "?|"
+     * The PostgreSQL token "?|"
      */
     private static final int JSON_EXISTS_ANY = JSON_EXISTS + 1;
     
     /**
-     * The PostrgerSQL token "?&"
+     * The PostgreSQL token "?&"
      */
     private static final int JSON_EXISTS_ALL = JSON_EXISTS_ANY + 1;
     
     /**
-     * The PostrgerSQL token "||"
+     * The PostgreSQL token "||"
      */
     private static final int JSON_CONCAT = JSON_EXISTS_ALL + 1;
     
     /**
-     * The PostrgerSQL token "-"
+     * The PostgreSQL token "-"
      */
     private static final int JSON_DELETE_FIELD = JSON_CONCAT + 1;
     
     /**
-     * The PostrgerSQL token "--"
+     * The PostgreSQL token "-#"
      */
     private static final int JSON_DELETE_PATH = JSON_DELETE_FIELD + 1;
 

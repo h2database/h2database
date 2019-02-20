@@ -4161,7 +4161,7 @@ public class Parser {
                 } else if (currentTokenType >= JSON_FIELD && currentTokenType <= JSON_DELETE_PATH) {
                     Function fun = null;
                     while (currentTokenType >= JSON_FIELD && currentTokenType <= JSON_DELETE_PATH) {
-                        if(fun != null && fun.getClass() == Function.class && fun.getType() != TypeInfo.TYPE_JSON) {
+                        if(fun != null && fun.getClass() == Function.class && Function.getFunctionInfo(fun.getName()).returnDataType != Value.JSON) {
                             throw getSyntaxError();
                         }
                         fun = getJsonFunction(fun == null ? new ExpressionColumn(database, null, null, name) : fun);

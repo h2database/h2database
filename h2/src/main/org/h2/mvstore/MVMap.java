@@ -1757,9 +1757,13 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 }
                 p = replacePage(pos, p, unsavedMemoryHolder);
                 rootPage = p;
-                if(lockedRootReference == null && !updateRoot(rootReference, p, attempt)) {
-                    decisionMaker.reset();
-                    continue;
+                if (lockedRootReference == null) {
+                    if (!updateRoot(rootReference, p, attempt)) {
+                        decisionMaker.reset();
+                        continue;
+                    } else {
+                        notifyWaiters();
+                    }
                 }
             } finally {
                 if(lockedRootReference != null) {
@@ -1810,9 +1814,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         if(attempt > 4) {
             if (attempt <= 12) {
                 Thread.yield();
-            } else if (attempt <= 24) {
+            } else if (attempt <= 70 - 2 * contention) {
                 try {
-                    Thread.sleep(0, 10 * contention + 5);
+                    Thread.sleep(contention);
                 } catch (InterruptedException ex) {
                     throw new RuntimeException(ex);
                 }
@@ -1820,7 +1824,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 synchronized (lock) {
                     notificationRequested = true;
                     try {
-                        lock.wait(100);
+                        lock.wait(5);
                     } catch (InterruptedException ignore) {
                     }
                 }
@@ -1850,13 +1854,17 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             success = root.compareAndSet(rootReference, updatedRootReference);
         } while(!success);
 
+        notifyWaiters();
+        return updatedRootReference;
+    }
+
+    private void notifyWaiters() {
         if (notificationRequested) {
             synchronized (lock) {
                 notificationRequested = false;
-                lock.notifyAll();
+                lock.notify();
             }
         }
-        return updatedRootReference;
     }
 
     private static CursorPos traverseDown(Page p, Object key) {

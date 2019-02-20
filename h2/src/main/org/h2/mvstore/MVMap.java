@@ -1755,10 +1755,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                         break;
                     }
                 }
-                p = replacePage(pos, p, unsavedMemoryHolder);
-                rootPage = p;
+                rootPage = replacePage(pos, p, unsavedMemoryHolder);
                 if (lockedRootReference == null) {
-                    if (!updateRoot(rootReference, p, attempt)) {
+                    if (!updateRoot(rootReference, rootPage, attempt)) {
                         decisionMaker.reset();
                         continue;
                     } else {

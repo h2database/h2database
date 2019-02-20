@@ -1763,7 +1763,7 @@ public class Function extends Expression implements FunctionCall {
         case JSON_FIELD: {
             if(v0.getValueType() == Value.JSON) {
                 JsonNode json = ((ValueJson) v0).getObject();
-                if (json.isArray() && v1.getType() == TypeInfo.TYPE_JSON) {
+                if (json.isArray() && v1.getValueType() >= Value.BYTE && v1.getValueType() <= Value.DECIMAL) {
                     Integer key = v1.getInt();
                     result = json.has(key) ? ValueJson.get(json.get(key)) : ValueNull.INSTANCE;
                 } else {
@@ -1778,7 +1778,7 @@ public class Function extends Expression implements FunctionCall {
         case JSON_FIELD_TEXT: {
             if(v0.getValueType() == Value.JSON) {
                 JsonNode json = ((ValueJson) v0).getObject();
-                if (json.isArray() && v1.getType() == TypeInfo.TYPE_JSON) {
+                if (json.isArray() && v1.getValueType() >= Value.BYTE && v1.getValueType() <= Value.DECIMAL) {
                     Integer key = v1.getInt();
                     result = json.has(key) ? ValueJson.get(json.get(key)) : ValueNull.INSTANCE;
                 } else {

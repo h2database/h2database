@@ -3842,7 +3842,7 @@ public class Parser {
                 int len = args.length;
                 Value[] arr = (Value[]) Array.newInstance(Value.class, len);
                 for (int i = 0; i < len; i++) {
-                    Value v = args[i].matches(".*\\D*.*") ? ValueString.get(args[i]) : ValueInt.get(new Integer(args[i]));
+                    Value v = StringUtils.isNumber(args[i]) ? ValueInt.get(new Integer(args[i])) : ValueString.get(args[i]);
                     arr[i] = v;
                 }
                 arg1 = ValueExpression.get(ValueArray.get(arr));
@@ -3861,7 +3861,7 @@ public class Parser {
                 int len = args.length;
                 Value[] arr = (Value[]) Array.newInstance(Value.class, len);
                 for (int i = 0; i < len; i++) {
-                    Value v = args[i].matches(".*\\D*.*") ? ValueString.get(args[i]) : ValueInt.get(new Integer(args[i]));
+                    Value v = StringUtils.isNumber(args[i]) ? ValueInt.get(new Integer(args[i])) : ValueString.get(args[i]);
                     arr[i] = v;
                 }
                 arg1 = ValueExpression.get(ValueArray.get(arr));
@@ -3891,7 +3891,7 @@ public class Parser {
                 int len = args.length;
                 Value[] arr = (Value[]) Array.newInstance(Value.class, len);
                 for (int i = 0; i < len; i++) {
-                    Value v = args[i].matches(".*\\D*.*") ? ValueString.get(args[i]) : ValueInt.get(new Integer(args[i]));
+                    Value v = StringUtils.isNumber(args[i]) ? ValueInt.get(new Integer(args[i])) : ValueString.get(args[i]);
                     arr[i] = v;
                 }
                 arg1 = ValueExpression.get(ValueArray.get(arr));
@@ -3910,7 +3910,7 @@ public class Parser {
                 int len = args.length;
                 Value[] arr = (Value[]) Array.newInstance(Value.class, len);
                 for (int i = 0; i < len; i++) {
-                    Value v = args[i].matches(".*\\D*.*") ? ValueString.get(args[i]) : ValueInt.get(new Integer(args[i]));
+                    Value v = StringUtils.isNumber(args[i]) ? ValueInt.get(new Integer(args[i])) : ValueString.get(args[i]);
                     arr[i] = v;
                 }
                 arg1 = ValueExpression.get(ValueArray.get(arr));
@@ -3939,7 +3939,7 @@ public class Parser {
                     int len = args.length;
                     Value[] arr = (Value[]) Array.newInstance(Value.class, len);
                     for (int i = 0; i < len; i++) {
-                        Value v = args[i].matches(".*\\D*.*") ? ValueString.get(args[i]) : ValueInt.get(new Integer(args[i]));
+                        Value v = StringUtils.isNumber(args[i]) ? ValueInt.get(new Integer(args[i])) : ValueString.get(args[i]);
                         arr[i] = v;
                     }
                     arg1 = ValueExpression.get(ValueArray.get(arr));

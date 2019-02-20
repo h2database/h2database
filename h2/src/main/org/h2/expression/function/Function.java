@@ -1797,8 +1797,10 @@ public class Function extends Expression implements FunctionCall {
                 JsonNode json = ((ValueJson) v0).getObject();
                 boolean isNull = false;
                 for(Value v: ((ValueArray) v1).getList()){
-                    if(json.has(v.getString())) {
+                    if(json.isObject() && json.has(v.getString())) {
                         json = json.get(v.getString());
+                    } else if (json.isArray() && v.getValueType() == Value.INT && json.has(v.getInt())) {
+                        json = json.get(v.getInt());
                     } else {
                         isNull = true;
                         break;
@@ -1820,10 +1822,12 @@ public class Function extends Expression implements FunctionCall {
             if(v0.getValueType() == Value.JSON && v1.getValueType() == Value.ARRAY) {
                 JsonNode json = ((ValueJson) v0).getObject();
                 boolean isNull = false;
-                for (Value v: ((ValueArray) v1).getList()) {
-                    if (json.has(v.getString())) {
+                for(Value v: ((ValueArray) v1).getList()){
+                    if(json.isObject() && json.has(v.getString())) {
                         json = json.get(v.getString());
-                    } else {                        
+                    } else if (json.isArray() && v.getValueType() == Value.INT && json.has(v.getInt())) {
+                        json = json.get(v.getInt());
+                    } else {
                         isNull = true;
                         break;
                     }

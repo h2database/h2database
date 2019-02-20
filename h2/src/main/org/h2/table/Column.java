@@ -84,6 +84,7 @@ public class Column {
     private String comment;
     private boolean primaryKey;
     private boolean visible = true;
+    private boolean rowId;
     private Domain domain;
 
     /**
@@ -288,11 +289,11 @@ public class Column {
     }
 
     public String getSQL() {
-        return Parser.quoteIdentifier(name);
+        return rowId ? name : Parser.quoteIdentifier(name);
     }
 
     public StringBuilder getSQL(StringBuilder builder) {
-        return Parser.quoteIdentifier(builder, name);
+        return rowId ? builder.append(name) : Parser.quoteIdentifier(builder, name);
     }
 
     public String getName() {
@@ -321,6 +322,24 @@ public class Column {
 
     public void setDomain(Domain domain) {
         this.domain = domain;
+    }
+
+    /**
+     * Returns whether this column is a row identity column.
+     *
+     * @return true for _ROWID_ column, false otherwise
+     */
+    public boolean isRowId() {
+        return rowId;
+    }
+
+    /**
+     * Set row identity flag.
+     *
+     * @param rowId true _ROWID_ column, false otherwise
+     */
+    public void setRowId(boolean rowId) {
+        this.rowId = rowId;
     }
 
     /**

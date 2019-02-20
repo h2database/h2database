@@ -729,6 +729,7 @@ public class RegularTable extends TableBase {
         if (rowIdColumn == null) {
             rowIdColumn = new Column(Column.ROWID, Value.LONG);
             rowIdColumn.setTable(this, -1);
+            rowIdColumn.setRowId(true);
         }
         return rowIdColumn;
     }

@@ -876,6 +876,7 @@ public class MVTable extends TableBase {
         if (rowIdColumn == null) {
             rowIdColumn = new Column(Column.ROWID, Value.LONG);
             rowIdColumn.setTable(this, SearchRow.ROWID_INDEX);
+            rowIdColumn.setRowId(true);
         }
         return rowIdColumn;
     }

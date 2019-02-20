@@ -89,6 +89,7 @@ public class ValueDataType implements DataType {
     private static final byte INTERVAL = 26;
     private static final byte ROW = 27;
     private static final byte INT_0_15 = 32;
+    private static final byte JSON = 40;
     private static final byte LONG_0_7 = 48;
     private static final byte DECIMAL_0_1 = 56;
     private static final byte DECIMAL_SMALL_0 = 58;
@@ -504,14 +505,8 @@ public class ValueDataType implements DataType {
         }
         case Value.JSON: {
             String s = v.getString();
-            int len = s.length();
-            if (len < 32) {
-                buff.put((byte) (Value.JSON)).put((byte)len).
-                    putStringData(s, len);
-            } else {
-                buff.put((byte) type);
-                writeString(buff, s);
-            }
+            buff.put(JSON);
+            writeString(buff, s);
             break;
         }
         default:
@@ -687,7 +682,7 @@ public class ValueDataType implements DataType {
             buff.get(b, 0, len);
             return ValueGeometry.get(b);
         }
-        case Value.JSON: {
+        case JSON: {
             try {
                 String str = readString(buff);
                 return ValueJson.get(str);

@@ -104,6 +104,7 @@ public class Data {
     private static final byte INTERVAL = 26;
     private static final byte ROW = 27;
     private static final byte INT_0_15 = 32;
+    private static final byte JSON = 32;
     private static final byte LONG_0_7 = 48;
     private static final byte DECIMAL_0_1 = 56;
     private static final byte DECIMAL_SMALL_0 = 58;
@@ -755,7 +756,7 @@ public class Data {
             writeVarLong(interval.getRemaining());
             break;
         }
-        case ValueJson.JSON: {
+        case Value.JSON: {
             ValueJson json = (ValueJson) v;
             String s = json.getString();
             int len = s.length();
@@ -964,7 +965,7 @@ public class Data {
             return ValueInterval.from(IntervalQualifier.valueOf(ordinal), negative, readVarLong(),
                     ordinal < 5 ? 0 : readVarLong());
         }
-        case Value.JSON: {
+        case JSON: {
             try {
                 return ValueJson.get(readString());
             } catch (IOException e) {
@@ -1246,6 +1247,8 @@ public class Data {
             ValueInterval interval = (ValueInterval) v;
             return 2 + getVarLongLen(interval.getLeading()) + getVarLongLen(interval.getRemaining());
         }
+        case Value.JSON:
+            return v.toString().length();
         default:
             if (JdbcUtils.customDataTypesHandler != null) {
                 byte[] b = v.getBytesNoCopy();

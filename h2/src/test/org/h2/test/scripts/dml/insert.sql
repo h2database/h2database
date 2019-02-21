@@ -28,3 +28,19 @@ TABLE TEST;
 
 DROP TABLE TEST;
 > ok
+
+CREATE TABLE TEST(ID INT);
+> ok
+
+-- TODO Do we need _ROWID_ support here?
+INSERT INTO TEST(_ROWID_, ID) VALUES (2, 3);
+> update count: 1
+
+SELECT _ROWID_, ID FROM TEST;
+> _ROWID_ ID
+> ------- --
+> 2       3
+> rows: 1
+
+DROP TABLE TEST;
+> ok

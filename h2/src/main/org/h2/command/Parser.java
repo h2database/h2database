@@ -3759,10 +3759,12 @@ public class Parser {
         return function;
     }
 
-    private Expression readWildcardOrSequenceValue(String schema,
-            String objectName) {
+    private Expression readWildcardRowidOrSequenceValue(String schema, String objectName) {
         if (readIf(ASTERISK)) {
             return parseWildcard(schema, objectName);
+        }
+        if (readIf(_ROWID_)) {
+            return new ExpressionColumn(database, schema, objectName, Column.ROWID, true);
         }
         if (schema == null) {
             schema = session.getCurrentSchemaName();
@@ -3820,12 +3822,9 @@ public class Parser {
     }
 
     private Expression readTermObjectDot(String objectName) {
-        Expression expr = readWildcardOrSequenceValue(null, objectName);
+        Expression expr = readWildcardRowidOrSequenceValue(null, objectName);
         if (expr != null) {
             return expr;
-        }
-        if (readIf(_ROWID_)) {
-            return new ExpressionColumn(database, null, objectName, Column.ROWID, true);
         }
         String name = readColumnIdentifier();
         Schema s = database.findSchema(objectName);
@@ -3834,12 +3833,9 @@ public class Parser {
         } else if (readIf(DOT)) {
             String schema = objectName;
             objectName = name;
-            expr = readWildcardOrSequenceValue(schema, objectName);
+            expr = readWildcardRowidOrSequenceValue(schema, objectName);
             if (expr != null) {
                 return expr;
-            }
-            if (readIf(_ROWID_)) {
-                return new ExpressionColumn(database, schema, objectName, Column.ROWID, true);
             }
             name = readColumnIdentifier();
             if (readIf(OPEN_PAREN)) {
@@ -3858,7 +3854,7 @@ public class Parser {
                 }
                 schema = objectName;
                 objectName = name;
-                expr = readWildcardOrSequenceValue(schema, objectName);
+                expr = readWildcardRowidOrSequenceValue(schema, objectName);
                 if (expr != null) {
                     return expr;
                 }

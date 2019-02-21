@@ -1168,14 +1168,14 @@ public class Parser {
     private Column readTableColumn(TableFilter filter) {
         boolean rowId = false;
         String columnName = null;
-        if (currentTokenType == _ROWID_ && database.getSettings().rowId) {
+        if (currentTokenType == _ROWID_) {
             read();
             rowId = true;
         } else {
             columnName = readColumnIdentifier();
             if (readIf(DOT)) {
                 String tableAlias = columnName;
-                if (currentTokenType == _ROWID_ && database.getSettings().rowId) {
+                if (currentTokenType == _ROWID_) {
                     read();
                     rowId = true;
                 } else {
@@ -1183,7 +1183,7 @@ public class Parser {
                     if (readIf(DOT)) {
                         String schema = tableAlias;
                         tableAlias = columnName;
-                        if (currentTokenType == _ROWID_ && database.getSettings().rowId) {
+                        if (currentTokenType == _ROWID_) {
                             read();
                             rowId = true;
                         } else {
@@ -1194,7 +1194,7 @@ public class Parser {
                                 }
                                 schema = tableAlias;
                                 tableAlias = columnName;
-                                if (currentTokenType == _ROWID_ && database.getSettings().rowId) {
+                                if (currentTokenType == _ROWID_) {
                                     read();
                                     rowId = true;
                                 } else {
@@ -1372,7 +1372,7 @@ public class Parser {
     }
 
     private Column parseColumn(Table table) {
-        if (currentTokenType == _ROWID_ && database.getSettings().rowId) {
+        if (currentTokenType == _ROWID_) {
             read();
             return table.getRowIdColumn();
         }

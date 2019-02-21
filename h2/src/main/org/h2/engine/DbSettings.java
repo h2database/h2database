@@ -299,12 +299,6 @@ public class DbSettings extends SettingsBase {
     public final boolean reuseSpace = get("REUSE_SPACE", true);
 
     /**
-     * Database setting <code>ROWID</code> (default: true).<br />
-     * If set, each table has a pseudo-column _ROWID_.
-     */
-    public final boolean rowId = get("ROWID", true);
-
-    /**
      * Database setting <code>SHARE_LINKED_CONNECTIONS</code>
      * (default: true).<br />
      * Linked connections should be shared, that means connections to the same

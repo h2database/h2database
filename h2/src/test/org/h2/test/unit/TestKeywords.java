@@ -79,12 +79,10 @@ public class TestKeywords extends TestBase {
         try (Connection conn = DriverManager.getConnection("jdbc:h2:mem:keywords")) {
             Statement stat = conn.createStatement();
             for (String s : set) {
-                // _ROWID_ is a special virtual column
-                String column = s.equals("_ROWID_") ? "C" : s;
                 try {
-                    stat.execute("CREATE TABLE " + s + '(' + column + " INT)");
-                    stat.execute("INSERT INTO " + s + '(' + column + ") VALUES (10)");
-                    try (ResultSet rs = stat.executeQuery("SELECT " + column + " FROM " + s)) {
+                    stat.execute("CREATE TABLE " + s + '(' + s + " INT)");
+                    stat.execute("INSERT INTO " + s + '(' + s + ") VALUES (10)");
+                    try (ResultSet rs = stat.executeQuery("SELECT " + s + " FROM " + s)) {
                         assertTrue(rs.next());
                         assertEquals(10, rs.getInt(1));
                         assertFalse(rs.next());

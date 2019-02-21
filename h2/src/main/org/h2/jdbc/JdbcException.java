@@ -15,7 +15,7 @@ public interface JdbcException {
      *
      * @return the H2-specific error code
      */
-    public int getErrorCode();
+    int getErrorCode();
 
     /**
      * INTERNAL

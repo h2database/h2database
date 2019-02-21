@@ -73,7 +73,7 @@ public class TestPgServer extends TestDb {
         }
         deleteDb("pgserver");
         Connection conn = getConnection(
-                "mem:pgserver;DATABASE_TO_UPPER=false", "sa", "sa");
+                "mem:pgserver;DATABASE_TO_LOWER=true", "sa", "sa");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int, name varchar(255))");
         Server server = createPgServer("-baseDir", getBaseDir(),

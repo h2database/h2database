@@ -14,6 +14,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Locale;
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
@@ -57,6 +58,7 @@ public class TestCompatibility extends TestDb {
         testUnknownSet();
 
         conn.close();
+        testIdentifiers();
         deleteDb("compatibility");
 
         testUnknownURL();
@@ -71,7 +73,7 @@ public class TestCompatibility extends TestDb {
     }
 
     private void testCaseSensitiveIdentifiers() throws SQLException {
-        Connection c = getConnection("compatibility;DATABASE_TO_UPPER=FALSE");
+        Connection c = getConnection("compatibility;DATABASE_TO_UPPER=FALSE;CASE_INSENSITIVE_IDENTIFIERS=TRUE");
         Statement stat = c.createStatement();
         stat.execute("create table test(id int primary key, name varchar) " +
                 "as select 1, 'hello'");
@@ -680,6 +682,62 @@ public class TestCompatibility extends TestDb {
     private void testUnknownSet() throws SQLException {
         Statement stat = conn.createStatement();
         assertThrows(ErrorCode.UNKNOWN_MODE_1, stat).execute("SET MODE Unknown");
+    }
+
+    private void testIdentifiers() throws SQLException {
+        deleteDb("compatibility");
+        testIdentifiers(false, false, false);
+        testIdentifiers(false, false, true);
+        testIdentifiers(true, false, false);
+        testIdentifiers(true, false, true);
+        testIdentifiers(false, true, false);
+        testIdentifiers(false, true, true);
+    }
+
+    private void testIdentifiers(boolean upper, boolean lower, boolean caseInsensitiveIdentifiers) throws SQLException
+    {
+        try (Connection conn = getConnection("compatibility;DATABASE_TO_UPPER=" + upper + ";DATABASE_TO_LOWER=" + lower
+                + ";CASE_INSENSITIVE_IDENTIFIERS=" + caseInsensitiveIdentifiers)) {
+            Statement stat = conn.createStatement();
+            stat.execute("CREATE TABLE Test(Id INT) AS VALUES 2");
+            String schema = "PUBLIC", table = "Test", column = "Id";
+            if (upper) {
+                table = table.toUpperCase(Locale.ROOT);
+                column = column.toUpperCase(Locale.ROOT);
+            } else if (lower) {
+                schema = schema.toLowerCase(Locale.ROOT);
+                table = table.toLowerCase(Locale.ROOT);
+                column = column.toLowerCase(Locale.ROOT);
+            }
+            try (ResultSet rs = stat.executeQuery("SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME"
+                    + " FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME ILIKE 'Test'")) {
+                assertTrue(rs.next());
+                assertEquals(schema, rs.getString(1));
+                assertEquals(table, rs.getString(2));
+                assertEquals(column, rs.getString(3));
+            }
+            testIdentifiers(stat, "Test", "Id", true);
+            boolean ok = upper || lower || caseInsensitiveIdentifiers;
+            testIdentifiers(stat, "TEST", "ID", ok);
+            testIdentifiers(stat, "test", "id", ok);
+            testIdentifiers(stat, '"' + table + '"', '"' + column + '"', true);
+            testIdentifiers(stat, "\"TeSt\"", "\"iD\"", caseInsensitiveIdentifiers);
+        } finally {
+            deleteDb("compatibility");
+        }
+    }
+
+    private void testIdentifiers(Statement stat, String table, String column, boolean ok) throws SQLException {
+        String query = "SELECT _ROWID_, " + column + " FROM " + table;
+        if (ok) {
+            try (ResultSet rs = stat.executeQuery(query)) {
+                assertTrue(rs.next());
+                assertEquals(1L, rs.getLong(1));
+                assertEquals(2, rs.getInt(2));
+            }
+        } else {
+            assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, stat).executeQuery(query);
+        }
     }
 
     private void testUnknownURL() throws SQLException {

@@ -168,7 +168,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      */
     private BitSet idsToRelease;
 
-
     public Session(Database database, User user, int id) {
         this.database = database;
         this.queryTimeout = database.getSettings().maxQueryTimeout;
@@ -176,7 +175,10 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         this.user = user;
         this.id = id;
         this.lockTimeout = database.getLockTimeout();
-        this.currentSchemaName = Constants.SCHEMA_MAIN;
+        // PageStore creates a system session before initialization of the main schema
+        Schema mainSchema = database.getMainSchema();
+        this.currentSchemaName = mainSchema != null ? mainSchema.getName()
+                : database.sysIdentifier(Constants.SCHEMA_MAIN);
         this.columnNamerConfiguration = ColumnNamerConfiguration.getDefault();
     }
 

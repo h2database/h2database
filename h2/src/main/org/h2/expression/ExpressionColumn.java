@@ -36,6 +36,7 @@ public class ExpressionColumn extends Expression {
     private final String schemaName;
     private final String tableAlias;
     private final String columnName;
+    private final boolean rowId;
     private ColumnResolver columnResolver;
     private int queryLevel;
     private Column column;
@@ -47,14 +48,16 @@ public class ExpressionColumn extends Expression {
         this.schemaName = null;
         this.tableAlias = null;
         this.columnName = null;
+        this.rowId = column.isRowId();
     }
 
     public ExpressionColumn(Database database, String schemaName,
-            String tableAlias, String columnName) {
+            String tableAlias, String columnName, boolean rowId) {
         this.database = database;
         this.schemaName = schemaName;
         this.tableAlias = tableAlias;
         this.columnName = columnName;
+        this.rowId = rowId;
     }
 
     @Override
@@ -71,6 +74,8 @@ public class ExpressionColumn extends Expression {
             } else {
                 column.getSQL(builder);
             }
+        } else if (rowId) {
+            builder.append(columnName);
         } else {
             Parser.quoteIdentifier(builder, columnName);
         }
@@ -91,6 +96,13 @@ public class ExpressionColumn extends Expression {
                 schemaName, resolver.getSchemaName())) {
             return;
         }
+        if (rowId) {
+            Column col = resolver.getRowIdColumn();
+            if (col != null) {
+                mapColumn(resolver, col, level);
+            }
+            return;
+        }
         for (Column col : resolver.getColumns()) {
             String n = resolver.getDerivedColumnName(col);
             boolean derived;
@@ -105,13 +117,6 @@ public class ExpressionColumn extends Expression {
                 if (derived) {
                     derivedName = n;
                 }
-                return;
-            }
-        }
-        if (database.equalsIdentifiers(Column.ROWID, columnName)) {
-            Column col = resolver.getRowIdColumn();
-            if (col != null) {
-                mapColumn(resolver, col, level);
                 return;
             }
         }

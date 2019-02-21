@@ -343,7 +343,6 @@ public class Schema extends DbObjectBase {
             if (synonym != null) {
                 return synonym.getSynonymFor();
             }
-            return null;
         }
         return table;
     }

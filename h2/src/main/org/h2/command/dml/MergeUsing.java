@@ -23,6 +23,7 @@ import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.RowImpl;
+import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.Utils;
@@ -422,7 +423,7 @@ public class MergeUsing extends Prepared {
         targetMatchQuery = new Select(session, null);
         ArrayList<Expression> expressions = new ArrayList<>(1);
         expressions.add(new ExpressionColumn(session.getDatabase(), targetTable.getSchema().getName(),
-                targetTableFilter.getTableAlias(), "_ROWID_"));
+                targetTableFilter.getTableAlias(), Column.ROWID, true));
         targetMatchQuery.setExpressions(expressions);
         targetMatchQuery.addTableFilter(targetTableFilter, true);
         targetMatchQuery.addCondition(onCondition);

@@ -69,7 +69,7 @@ public class CreateIndex extends SchemaCommand {
             }
             throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
         }
-        if (getSchema().findIndex(session, indexName) != null) {
+        if (indexName != null && getSchema().findIndex(session, indexName) != null) {
             if (ifNotExists) {
                 return 0;
             }

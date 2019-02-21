@@ -228,9 +228,14 @@ public class ParserUtil {
     public static final int ROW = QUALIFY + 1;
 
     /**
+     * The token "_ROWID_".
+     */
+    public static final int _ROWID_ = ROW + 1;
+
+    /**
      * The token "ROWNUM".
      */
-    public static final int ROWNUM = ROW + 1;
+    public static final int ROWNUM = _ROWID_ + 1;
 
     /**
      * The token "SELECT".
@@ -352,10 +357,7 @@ public class ParserUtil {
          */
         char c = s.charAt(start);
         if (ignoreCase) {
-            /*
-             * Convert a-z to A-Z. This method is safe, because only A-Z
-             * characters are considered below.
-             */
+            // Convert a-z to A-Z and 0x7f to _ (need special handling).
             c &= 0xffdf;
         }
         switch (c) {
@@ -537,6 +539,12 @@ public class ParserUtil {
                 return WITH;
             }
             return IDENTIFIER;
+        case '_':
+            // Cannot use eq() because 0x7f can be converted to '_' (0x5f)
+            if (end - start == 7 && "_ROWID_".regionMatches(ignoreCase, 0, s, start, 7)) {
+                return _ROWID_;
+            }
+            //$FALL-THROUGH$
         default:
             return IDENTIFIER;
         }

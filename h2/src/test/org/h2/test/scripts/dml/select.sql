@@ -640,3 +640,17 @@ SELECT * FROM
 > ----- -
 > 36    2
 > rows: 1
+
+CREATE TABLE TEST("_ROWID_" INT) AS VALUES 2;
+> ok
+
+SELECT _ROWID_ S1, TEST._ROWID_ S2, PUBLIC.TEST._ROWID_ S3, SCRIPT.PUBLIC.TEST._ROWID_ S4,
+    "_ROWID_" U1, TEST."_ROWID_" U2, PUBLIC.TEST."_ROWID_" U3, SCRIPT.PUBLIC.TEST."_ROWID_" U4
+    FROM TEST;
+> S1 S2 S3 S4 U1 U2 U3 U4
+> -- -- -- -- -- -- -- --
+> 1  1  1  1  2  2  2  2
+> rows: 1
+
+DROP TABLE TEST;
+> ok

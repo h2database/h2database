@@ -1049,7 +1049,7 @@ public class Select extends Query {
             }
             String name = filter.getDerivedColumnName(c);
             ExpressionColumn ec = new ExpressionColumn(
-                    session.getDatabase(), null, alias, name != null ? name : c.getName());
+                    session.getDatabase(), null, alias, name != null ? name : c.getName(), false);
             expressions.add(index++, ec);
         }
         return index;

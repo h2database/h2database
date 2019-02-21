@@ -6,6 +6,7 @@
 package org.h2.engine;
 
 import java.util.HashMap;
+import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.util.Utils;
 
@@ -56,14 +57,27 @@ public class DbSettings extends SettingsBase {
     public final int analyzeSample = get("ANALYZE_SAMPLE", 10_000);
 
     /**
+     * Database setting <code>DATABASE_TO_LOWER</code> (default: false).<br />
+     * Database short names are converted to lowercase for the DATABASE()
+     * function, and in the CATALOG column of all database meta data methods.
+     * Setting this to "true" is experimental.
+     */
+    public final boolean databaseToLower;
+
+    /**
      * Database setting <code>DATABASE_TO_UPPER</code> (default: true).<br />
      * Database short names are converted to uppercase for the DATABASE()
      * function, and in the CATALOG column of all database meta data methods.
-     * Setting this to "false" is experimental. When set to false, all
-     * identifier names (table names, column names) are case sensitive (except
-     * aggregate, built-in functions, data types, and keywords).
      */
-    public final boolean databaseToUpper = get("DATABASE_TO_UPPER", true);
+    public final boolean databaseToUpper;
+
+    /**
+     * Database setting <code>CASE_INSENSITIVE_IDENTIFIERS</code> (default:
+     * false).<br />
+     * When set to true, all identifier names (table names, column names) are
+     * case insensitive. Setting this to "true" is experimental.
+     */
+    public final boolean caseInsensitiveIdentifiers = get("CASE_INSENSITIVE_IDENTIFIERS", false);
 
     /**
      * Database setting <code>DB_CLOSE_ON_EXIT</code> (default: true).<br />
@@ -285,12 +299,6 @@ public class DbSettings extends SettingsBase {
     public final boolean reuseSpace = get("REUSE_SPACE", true);
 
     /**
-     * Database setting <code>ROWID</code> (default: true).<br />
-     * If set, each table has a pseudo-column _ROWID_.
-     */
-    public final boolean rowId = get("ROWID", true);
-
-    /**
      * Database setting <code>SHARE_LINKED_CONNECTIONS</code>
      * (default: true).<br />
      * Linked connections should be shared, that means connections to the same
@@ -337,6 +345,18 @@ public class DbSettings extends SettingsBase {
         if (s.get("NESTED_JOINS") != null || Utils.getProperty("h2.nestedJoins", null) != null) {
             throw DbException.getUnsupportedException("NESTED_JOINS setting is not available since 1.4.197");
         }
+        boolean lower = get("DATABASE_TO_LOWER", false);
+        boolean upperSet = containsKey("DATABASE_TO_UPPER");
+        boolean upper = get("DATABASE_TO_UPPER", true);
+        if (lower && upper) {
+            if (upperSet) {
+                throw DbException.get(ErrorCode.UNSUPPORTED_SETTING_COMBINATION,
+                        "DATABASE_TO_LOWER & DATABASE_TO_UPPER");
+            }
+            upper = false;
+        }
+        databaseToLower = lower;
+        databaseToUpper = upper;
     }
 
     /**

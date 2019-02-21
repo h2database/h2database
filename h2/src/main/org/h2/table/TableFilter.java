@@ -1053,10 +1053,7 @@ public class TableFilter implements ColumnResolver {
 
     @Override
     public Column getRowIdColumn() {
-        if (session.getDatabase().getSettings().rowId) {
-            return table.getRowIdColumn();
-        }
-        return null;
+        return table.getRowIdColumn();
     }
 
     @Override

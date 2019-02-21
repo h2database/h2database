@@ -2797,7 +2797,7 @@ CURRENT ROW
 
 "Other Grammar","Term","
 value
-    | columnName
+    | column
     | ?[ int ]
     | NEXT VALUE FOR sequenceName
     | function
@@ -2806,13 +2806,20 @@ value
     | select
     | case
     | caseWhen
-    | tableAlias.columnName
     | userDefinedFunctionName
 ","
 A value. Parameters can be indexed, for example ""?1"" meaning the first parameter.
-Each table has a pseudo-column named ""_ROWID_"" that contains the unique row identifier.
 ","
 'Hello'
+"
+
+"Other Grammar","Column","
+[[schemaName.]tableAlias.] { columnName | _ROWID_ }
+","
+A column name with optional table alias and schema.
+_ROWID_ can be used to access unique row identifier.
+","
+ID
 "
 
 "Other Grammar","Time","

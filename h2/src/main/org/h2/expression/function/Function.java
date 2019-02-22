@@ -167,8 +167,8 @@ public class Function extends Expression implements FunctionCall {
     public static final int JSON_FIELD = 350, JSON_FIELD_TEXT = 351,
             JSON_FIELD_PATH = 352, JSON_FIELD_PATH_TEXT = 353,
             JSON_CONTAINS = 354, JSON_EXISTS = 355, JSON_EXISTS_ANY = 356,
-            JSON_EXISTS_ALL = 357, JSON_CONCAT = 358, JSON_DELETE_FIELD = 359,
-            JSON_DELETE_PATH = 360;
+            JSON_EXISTS_ALL = 357, JSON_CONCAT = 358, JSON_DELETE_FIELD = 359;
+//            JSON_DELETE_PATH = 360
 
     protected static final int VAR_ARGS = -1;
 
@@ -487,7 +487,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("JSON_EXISTS_ALL", JSON_EXISTS_ALL, 2, Value.BOOLEAN);
         addFunction("JSON_CONCAT", JSON_CONCAT, 2, Value.JSON);
         addFunction("JSON_DELETE_FIELD", JSON_DELETE_FIELD, 2, Value.JSON);
-        addFunction("JSON_DELETE_PATH", JSON_DELETE_PATH, 2, Value.JSON);
+//        addFunction("JSON_DELETE_PATH", JSON_DELETE_PATH, 2, Value.JSON);
 
         // TableFunction
         addFunctionWithNull("TABLE", TABLE, VAR_ARGS, Value.RESULT_SET);
@@ -1960,9 +1960,9 @@ public class Function extends Expression implements FunctionCall {
          * Jackson library hasn't such method.
          * For implementing of this function required O(n^2) 
          */
-        case JSON_DELETE_PATH: {
-            throw DbException.throwInternalError("Unimplemented");
-        }
+//        case JSON_DELETE_PATH: {
+//            throw DbException.throwInternalError("Unimplemented");
+//        }
         default:
             throw DbException.throwInternalError("type=" + info.type);
         }

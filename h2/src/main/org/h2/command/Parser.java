@@ -472,10 +472,10 @@ public class Parser {
      */
     private static final int JSON_CONCAT = JSON_EXISTS_ALL + 1;
     
-    /**
-     * The PostgreSQL token "-#"
-     */
-    private static final int JSON_DELETE_PATH = JSON_CONCAT + 1;
+//    /**
+//     * The PostgreSQL token "-#"
+//     */
+//    private static final int JSON_DELETE_PATH = JSON_DELETE_FIELD + 1;
 
     private static final String[] TOKENS = {
             // Unused
@@ -4133,9 +4133,9 @@ public class Parser {
                     r = readTermObjectDot(name);
                 } else if (readIf(OPEN_PAREN)) {
                     r = readFunction(null, name);
-                } else if (currentTokenType >= JSON_FIELD && currentTokenType <= JSON_DELETE_PATH) {
+                } else if (currentTokenType >= JSON_FIELD && currentTokenType <= JSON_CONCAT) {
                     Function fun = null;
-                    while (currentTokenType >= JSON_FIELD && currentTokenType <= JSON_DELETE_PATH) {
+                    while (currentTokenType >= JSON_FIELD && currentTokenType <= JSON_CONCAT) {
                         if(fun != null && fun.getClass() == Function.class && Function.getFunctionInfo(fun.getName()).returnDataType != Value.JSON) {
                             throw getSyntaxError();
                         }
@@ -5455,8 +5455,6 @@ public class Parser {
                 return JSON_FIELD_PATH;
             } else if ("#>>".equals(s)) {
                 return JSON_FIELD_PATH_TEXT;
-            } else if ("#-".equals(s)) {
-                return JSON_DELETE_PATH;
             }
             break;
         case '@':

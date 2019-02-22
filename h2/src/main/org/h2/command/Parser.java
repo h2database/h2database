@@ -473,14 +473,9 @@ public class Parser {
     private static final int JSON_CONCAT = JSON_EXISTS_ALL + 1;
     
     /**
-     * The PostgreSQL token "-"
-     */
-    private static final int JSON_DELETE_FIELD = JSON_CONCAT + 1;
-    
-    /**
      * The PostgreSQL token "-#"
      */
-    private static final int JSON_DELETE_PATH = JSON_DELETE_FIELD + 1;
+    private static final int JSON_DELETE_PATH = JSON_CONCAT + 1;
 
     private static final String[] TOKENS = {
             // Unused
@@ -3926,26 +3921,6 @@ public class Parser {
                 arg1 = ValueExpression.get(currentValue);
                 break;
             }
-            case JSON_DELETE_FIELD: {
-                String param = currentValue.getString();
-                if (!(param.startsWith("{") && param.endsWith("}"))) {
-                    fun = Function.getFunction(database, "JSON_DELETE_FIELD");
-                    arg1 = ValueExpression.get(currentValue);
-                } else {
-                    fun = Function.getFunction(database, "JSON_REMOVE_ALL");
-                    String[] args;
-                    param = param.substring(1, param.length() - 1);
-                    args = param.replaceAll(" ", "").split(",");
-                    int len = args.length;
-                    Value[] arr = (Value[]) Array.newInstance(Value.class, len);
-                    for (int i = 0; i < len; i++) {
-                        Value v = StringUtils.isNumber(args[i]) ? ValueInt.get(new Integer(args[i])) : ValueString.get(args[i]);
-                        arr[i] = v;
-                    }
-                    arg1 = ValueExpression.get(ValueArray.get(arr));
-                }
-                break;
-            }
             default:
                 throw getSyntaxError();
         }
@@ -5473,8 +5448,6 @@ public class Parser {
                 return JSON_FIELD;
             } else if ("->>".equals(s)) {
                 return JSON_FIELD_TEXT;
-            } else if ("-".equals(s)) {
-                return JSON_DELETE_FIELD;
             }
             break;
         case '#':

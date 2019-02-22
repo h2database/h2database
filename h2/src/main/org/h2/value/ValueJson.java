@@ -37,7 +37,7 @@ public class ValueJson extends Value {
     
     ValueJson(JsonNode json) {
         this.json = json;
-        this.string = json.toString().replaceAll("\n", "");
+        this.string = json.toString();
     }
     
     public static ValueJson get(String str) throws IOException {
@@ -97,12 +97,22 @@ public class ValueJson extends Value {
     @Override
     public Value subtract(Value v) {
         JsonNode json = this.json;
-        if (json.isArray()) {
+        String toSub = v.getString();
+        if (json.isObject() && json.has(toSub)) {
+            /* Used copy to save original object */
+            ObjectNode result = json.deepCopy();
             String key = v.getString();
-            return get(((ObjectNode) json).remove(key));
-        } else if (json.isArray() && v.getType() == TypeInfo.TYPE_INT) {
-            Integer key = v.getInt();
-            return get(((ArrayNode) json).remove(key));
+            result.remove(key);
+            return get(result);
+        } else if (json.isArray()) {
+            ArrayNode result = mapper.createArrayNode();
+            String value = v.getString();
+            for (JsonNode node : json) {
+                if (!node.asText().equals(value)) {
+                    result.add(node);
+                }
+            }
+            return get(result);
         } else {
             return this;
         }

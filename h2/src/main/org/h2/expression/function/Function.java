@@ -1950,15 +1950,7 @@ public class Function extends Expression implements FunctionCall {
         }
         case JSON_DELETE_FIELD: {
             if(v0.getValueType() == Value.JSON) {
-                JsonNode json = ((ValueJson) v0).getObject();
-                String key = v1.getString();
-                if (json.isObject()) {
-                    ObjectNode objJson = (ObjectNode) json;
-                    objJson.remove(key);
-                    result = ValueJson.get(objJson);
-                } else {
-                    throw DbException.throwInternalError("json remove implemented only for ObjectNodes");
-                }
+                result = v0.subtract(v1);
             } else {
                 throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
             }

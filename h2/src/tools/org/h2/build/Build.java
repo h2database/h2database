@@ -230,7 +230,7 @@ public class Build extends BuildBase {
     }
 
     private static String getTargetJavaVersion() {
-        return "1.7"; // System.getProperty("version");
+        return System.getProperty("version");
     }
 
     private void compileMVStore(boolean debugInfo) {

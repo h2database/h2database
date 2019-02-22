@@ -224,6 +224,8 @@ public abstract class MVTempResult implements ResultExternal {
 
     /**
      * If any value in the rows is a ValueEnum, apply custom type conversion.
+     *
+     * @param row the array of values (modified in-place if needed)
      */
     final void fixEnum(Value[] row) {
         for (int i = 0, l = expressions.length; i < l; i++) {

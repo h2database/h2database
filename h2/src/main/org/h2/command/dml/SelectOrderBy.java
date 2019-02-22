@@ -30,6 +30,11 @@ public class SelectOrderBy {
      */
     public int sortType;
 
+    /**
+     * Appends the order by expression to the specified builder.
+     *
+     * @param builder the string builder
+     */
     public void getSQL(StringBuilder builder) {
         if (expression != null) {
             builder.append('=');

@@ -292,6 +292,13 @@ public class Column {
         return rowId ? name : Parser.quoteIdentifier(name);
     }
 
+    /**
+     * Appends the column name to the specified builder.
+     * The name is quoted, unless if this is a row id column.
+     *
+     * @param builder the string builder
+     * @return the specified string builder
+     */
     public StringBuilder getSQL(StringBuilder builder) {
         return rowId ? builder.append(name) : Parser.quoteIdentifier(builder, name);
     }

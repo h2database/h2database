@@ -69,11 +69,10 @@ Update newsfeed.sql:
     * (146, '1.4.197', '2017-06-10'),
     * remove oldest entry in that list
 
+Noel: I assume I commit at this point?
+
 ## Skipped
 
-The following can be skipped currently, as sourceError.html and source.html
-are no longer working (they can be removed, or fixed):
-* Minor version change: change sourceError.html and source.html
 * If a beta, change download.html: Version ${version} (${versionDate}), Beta
 * If a beta, change mainWeb.html: Version ${version} (${versionDate}), Beta
 
@@ -82,8 +81,7 @@ The following can be skipped currently; benchmarks should probably be removed:
 
 ## Build the Release
 
-Switch to Java 1.7.
-In Build.java, comment "-Xdoclint:none", but don't commit that change.
+In Build.java, uncomment "-Xdoclint:none", but don't commit that change.
 
 Run the following commands:
 Non-Windows:
@@ -104,11 +102,14 @@ Check docs, versions and links in main, downloads, build numbers.
 
 Check the PDF file size.
 
+Noel: Uploading - I don't know what the following 3 lines mean - I can ftp to h2database.com, but I don't know
+where to put what files from the local build.
+
 Upload (http and https) to ftp://h2database.com/javadoc
 Upload (http and https) to ftp://h2database.com
 Upload (http and https) to ftp://h2database.com/m2-repo
 
-Github: create a release.
+Github: create a release, https://github.com/h2database/h2database/releases
 
 Newsletter: send (always to BCC!), the following:
 
@@ -118,9 +119,11 @@ Create tweet at http://twitter.com
 
 ## Sign files and publish files on Maven Central
 
-Switch to Java 1.7.
-In Build.java, comment "-Xdoclint:none", but don't commit that change.
+In Build.java, uncomment "-Xdoclint:none", but don't commit that change.
 
+Noel: Maven - I can't do this stage? Am I supposed to create a ticket to get a login?
+
+	create a /data folder (i.e. in the root of your filesystem)
     ./build.sh clean compile jar mavenDeployCentral
     cd /data/h2database/m2-repo/com/h2database
     # remove sha and md5 files:
@@ -144,6 +147,6 @@ In Build.java, comment "-Xdoclint:none", but don't commit that change.
     # - Upload Mode: Artifact Bundle, Select Bundle to Upload... - /data/.../bundle.jar
     # - Upload Bundle - Staging Repositories - select comh2database - Release - Confirm
 
-Update statistics.
+Update statistics. (Noel:what does this mean?)
 
 Change version in pom.xml, commit.

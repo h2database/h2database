@@ -273,7 +273,9 @@ public class WebServer implements Service {
      * @param key key, or null
      */
     public void setKey(String key) {
-        this.key = key;
+        if (!allowOthers) {
+            this.key = key;
+        }
     }
 
     @Override
@@ -509,6 +511,9 @@ public class WebServer implements Service {
     }
 
     void setAllowOthers(boolean b) {
+        if (b) {
+            key = null;
+        }
         allowOthers = b;
     }
 

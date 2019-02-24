@@ -90,7 +90,7 @@ public class Console extends Tool implements ShutdownHandler {
         boolean tcpShutdown = false, tcpShutdownForce = false;
         String tcpPassword = "";
         String tcpShutdownServer = "";
-        boolean ifExists = false;
+        boolean ifExists = false, webAllowOthers = false;
         for (int i = 0; args != null && i < args.length; i++) {
             String arg = args[i];
             if (arg == null) {
@@ -112,6 +112,7 @@ public class Console extends Tool implements ShutdownHandler {
                     webStart = true;
                 } else if ("-webAllowOthers".equals(arg)) {
                     // no parameters
+                    webAllowOthers = true;
                 } else if ("-webDaemon".equals(arg)) {
                     // no parameters
                 } else if ("-webSSL".equals(arg)) {
@@ -200,7 +201,8 @@ public class Console extends Tool implements ShutdownHandler {
 
         if (webStart) {
             try {
-                String webKey = ifExists ? null : StringUtils.convertBytesToHex(MathUtils.secureRandomBytes(32));
+                String webKey = ifExists || webAllowOthers ? null
+                        : StringUtils.convertBytesToHex(MathUtils.secureRandomBytes(32));
                 web = Server.createWebServer(args, webKey);
                 web.setShutdownHandler(this);
                 web.start();

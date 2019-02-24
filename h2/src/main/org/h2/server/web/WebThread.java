@@ -78,6 +78,9 @@ class WebThread extends WebApp implements Runnable {
         if (requestedFile.length() == 0) {
             return "index.do";
         }
+        if (requestedFile.charAt(0) == '?') {
+            return "index.do" + requestedFile;
+        }
         return requestedFile;
     }
 
@@ -122,10 +125,12 @@ class WebThread extends WebApp implements Runnable {
             attributes = new Properties();
             int paramIndex = file.indexOf('?');
             session = null;
+            String key = null;
             if (paramIndex >= 0) {
                 String attrib = file.substring(paramIndex + 1);
                 parseAttributes(attrib);
                 String sessionId = attributes.getProperty("jsessionid");
+                key = attributes.getProperty("key");
                 file = file.substring(0, paramIndex);
                 session = server.getSession(sessionId);
             }
@@ -150,6 +155,9 @@ class WebThread extends WebApp implements Runnable {
                     message += "Content-Length: " + bytes.length + "\r\n";
                 } else {
                     if (session != null && file.endsWith(".jsp")) {
+                        if (key != null) {
+                            session.put("key", key);
+                        }
                         String page = new String(bytes, StandardCharsets.UTF_8);
                         if (SysProperties.CONSOLE_STREAM) {
                             Iterator<String> it = (Iterator<String>) session.map.remove("chunks");

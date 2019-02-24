@@ -9,6 +9,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import org.h2.server.ShutdownHandler;
 import org.h2.util.JdbcUtils;
+import org.h2.util.MathUtils;
+import org.h2.util.StringUtils;
 import org.h2.util.Tool;
 import org.h2.util.Utils;
 
@@ -88,6 +90,7 @@ public class Console extends Tool implements ShutdownHandler {
         boolean tcpShutdown = false, tcpShutdownForce = false;
         String tcpPassword = "";
         String tcpShutdownServer = "";
+        boolean ifExists = false;
         for (int i = 0; args != null && i < args.length; i++) {
             String arg = args[i];
             if (arg == null) {
@@ -168,6 +171,7 @@ public class Console extends Tool implements ShutdownHandler {
                 // no parameters
             } else if ("-ifExists".equals(arg)) {
                 // no parameters
+                ifExists = true;
             } else if ("-baseDir".equals(arg)) {
                 i++;
             } else {
@@ -196,7 +200,8 @@ public class Console extends Tool implements ShutdownHandler {
 
         if (webStart) {
             try {
-                web = Server.createWebServer(args);
+                String webKey = ifExists ? null : StringUtils.convertBytesToHex(MathUtils.secureRandomBytes(32));
+                web = Server.createWebServer(args, webKey);
                 web.setShutdownHandler(this);
                 web.start();
                 if (printStatus) {

@@ -168,6 +168,7 @@ public class WebServer implements Service {
     private ShutdownHandler shutdownHandler;
     private Thread listenerThread;
     private boolean ifExists = true;
+    private String key;
     private boolean trace;
     private TranslateThread translateThread;
     private boolean allowChunked = true;
@@ -266,6 +267,15 @@ public class WebServer implements Service {
         return startDateTime;
     }
 
+    /**
+     * Sets the key for privileged connections.
+     *
+     * @param key key, or null
+     */
+    public void setKey(String key) {
+        this.key = key;
+    }
+
     @Override
     public void init(String... args) {
         // set the serverPropertiesDir, because it's used in loadProperties()
@@ -336,8 +346,12 @@ public class WebServer implements Service {
 
     private void updateURL() {
         try {
-            url = (ssl ? "https" : "http") + "://" +
-                    NetUtils.getLocalAddress() + ":" + port;
+            StringBuilder builder = new StringBuilder(ssl ? "https" : "http").append("://")
+                    .append(NetUtils.getLocalAddress()).append(':').append(port);
+            if (key != null) {
+                builder.append("?key=").append(key);
+            }
+            url = builder.toString();
         } catch (NoClassDefFoundError e) {
             // Google App Engine does not allow java.net.InetAddress
         }
@@ -718,10 +732,11 @@ public class WebServer implements Service {
      * @param databaseUrl the database URL
      * @param user the user name
      * @param password the password
+     * @param userKey the key of privileged user
      * @return the database connection
      */
     Connection getConnection(String driver, String databaseUrl, String user,
-            String password) throws SQLException {
+            String password, String userKey) throws SQLException {
         driver = driver.trim();
         databaseUrl = databaseUrl.trim();
         Properties p = new Properties();
@@ -730,8 +745,10 @@ public class WebServer implements Service {
         // encrypted H2 database with empty user password doesn't work
         p.setProperty("password", password);
         if (databaseUrl.startsWith("jdbc:h2:")) {
-            if (ifExists) {
-                databaseUrl += ";IFEXISTS=TRUE";
+            if (key == null || !key.equals(userKey)) {
+                if (ifExists) {
+                    databaseUrl += ";IFEXISTS=TRUE";
+                }
             }
         }
         return JdbcUtils.getConnection(driver, databaseUrl, p);

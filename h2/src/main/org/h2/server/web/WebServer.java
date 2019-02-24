@@ -169,6 +169,7 @@ public class WebServer implements Service {
     private Thread listenerThread;
     private boolean ifExists = true;
     private String key;
+    private boolean allowSecureCreation;
     private boolean trace;
     private TranslateThread translateThread;
     private boolean allowChunked = true;
@@ -268,6 +269,15 @@ public class WebServer implements Service {
     }
 
     /**
+     * Returns the key for privileged connections.
+     *
+     * @return key key, or null
+     */
+    String getKey() {
+        return key;
+    }
+
+    /**
      * Sets the key for privileged connections.
      *
      * @param key key, or null
@@ -275,6 +285,16 @@ public class WebServer implements Service {
     public void setKey(String key) {
         if (!allowOthers) {
             this.key = key;
+        }
+    }
+
+    /**
+     * @param allowSecureCreation
+     *            whether creation of databases using the key should be allowed
+     */
+    public void setAllowSecureCreation(boolean allowSecureCreation) {
+        if (!allowOthers) {
+            this.allowSecureCreation = allowSecureCreation;
         }
     }
 
@@ -750,7 +770,7 @@ public class WebServer implements Service {
         // encrypted H2 database with empty user password doesn't work
         p.setProperty("password", password);
         if (databaseUrl.startsWith("jdbc:h2:")) {
-            if (key == null || !key.equals(userKey)) {
+            if (!allowSecureCreation || key == null || !key.equals(userKey)) {
                 if (ifExists) {
                     databaseUrl += ";IFEXISTS=TRUE";
                 }

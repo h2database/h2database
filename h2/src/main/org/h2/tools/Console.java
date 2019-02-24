@@ -201,9 +201,9 @@ public class Console extends Tool implements ShutdownHandler {
 
         if (webStart) {
             try {
-                String webKey = ifExists || webAllowOthers ? null
+                String webKey = webAllowOthers ? null
                         : StringUtils.convertBytesToHex(MathUtils.secureRandomBytes(32));
-                web = Server.createWebServer(args, webKey);
+                web = Server.createWebServer(args, webKey, !ifExists);
                 web.setShutdownHandler(this);
                 web.start();
                 if (printStatus) {

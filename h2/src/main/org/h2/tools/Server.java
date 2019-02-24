@@ -426,19 +426,24 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * @return the server
      */
     public static Server createWebServer(String... args) throws SQLException {
-        return createWebServer(args, null);
+        return createWebServer(args, null, false);
     }
 
     /**
      * Create a new web server, but does not start it yet.
      *
-     * @param args the argument list
-     * @param key key, or null
+     * @param args
+     *            the argument list
+     * @param key
+     *            key, or null
+     * @param allowSecureCreation
+     *            whether creation of databases using the key should be allowed
      * @return the server
      */
-    static Server createWebServer(String[] args, String key) throws SQLException {
+    static Server createWebServer(String[] args, String key, boolean allowSecureCreation) throws SQLException {
         WebServer service = new WebServer();
         service.setKey(key);
+        service.setAllowSecureCreation(allowSecureCreation);
         Server server = new Server(service, args);
         service.setShutdownHandler(server);
         return server;

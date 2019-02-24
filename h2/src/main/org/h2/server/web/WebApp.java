@@ -281,6 +281,10 @@ public class WebApp {
         if (b != null && b) {
             return true;
         }
+        String key = server.getKey();
+        if (key != null && key.equals(session.get("key"))) {
+            return true;
+        }
         session.put("adminBack", file);
         return false;
     }

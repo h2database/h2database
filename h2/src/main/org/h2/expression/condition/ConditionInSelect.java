@@ -41,6 +41,11 @@ public class ConditionInSelect extends Condition {
         this.database = database;
         this.left = left;
         this.query = query;
+        /*
+         * Need to do it now because other methods may be invoked in different
+         * order.
+         */
+        query.setRandomAccessResult(true);
         this.all = all;
         this.compareType = compareType;
     }
@@ -140,7 +145,6 @@ public class ConditionInSelect extends Condition {
     @Override
     public Expression optimize(Session session) {
         left = left.optimize(session);
-        query.setRandomAccessResult(true);
         session.optimizeQueryExpression(query);
         // Can not optimize: the data may change
         return this;

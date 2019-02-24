@@ -357,6 +357,9 @@ public class WebServer implements Service {
         for (String[] lang : LANGUAGES) {
             languages.add(lang[0]);
         }
+        if (allowOthers) {
+            key = null;
+        }
         updateURL();
     }
 

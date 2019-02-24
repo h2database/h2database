@@ -281,6 +281,10 @@ public class WebApp {
         if (b != null && b) {
             return true;
         }
+        String key = server.getKey();
+        if (key != null && key.equals(session.get("key"))) {
+            return true;
+        }
         session.put("adminBack", file);
         return false;
     }
@@ -937,7 +941,7 @@ public class WebApp {
             prof.startCollecting();
             Connection conn;
             try {
-                conn = server.getConnection(driver, url, user, password);
+                conn = server.getConnection(driver, url, user, password, null);
             } finally {
                 prof.stopCollecting();
                 profOpen = prof.getTop(3);
@@ -998,7 +1002,7 @@ public class WebApp {
         session.put("maxrows", "1000");
         boolean isH2 = url.startsWith("jdbc:h2:");
         try {
-            Connection conn = server.getConnection(driver, url, user, password);
+            Connection conn = server.getConnection(driver, url, user, password, (String) session.get("key"));
             session.setConnection(conn);
             session.put("url", url);
             session.put("user", user);

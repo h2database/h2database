@@ -1705,6 +1705,14 @@ public class Select extends Query {
         }
         comp = comp.optimize(session);
         boolean addToCondition = true;
+        if (isWindowQuery) {
+            if (qualify == null) {
+                qualify = comp;
+            } else {
+                qualify = new ConditionAndOr(ConditionAndOr.AND, comp, qualify);
+            }
+            return;
+        }
         if (isGroupQuery) {
             addToCondition = false;
             for (int i = 0; groupIndex != null && i < groupIndex.length; i++) {

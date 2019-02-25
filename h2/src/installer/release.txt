@@ -136,15 +136,15 @@ In Build.java, comment "-Xdoclint:none", but don't commit that change.
     # http://central.sonatype.org/pages/ossrh-guide.html
     # http://central.sonatype.org/pages/manual-staging-bundle-creation-and-deployment.html
     # https://oss.sonatype.org/#welcome - Log In "t..."
-    # sometimes this doesn't work reliably and you will have to retry
+    # sometimes this doesn't work reliably and you will have to retry
     # - Staging Upload
     # - Upload Mode: Artifact Bundle, Select Bundle to Upload... - /data/h2database/.../h2/.../bundle.jar
     # - Upload Bundle
-    # - Staging Repositories - Refresh - select comh2database-<...> - Release - Confirm
+    # - Staging Repositories - Refresh - select comh2database-<...> - Release - Confirm
     # - Staging Upload
     # - Upload Mode: Artifact Bundle, Select Bundle to Upload... - /data/h2database/.../h2-mvstore/.../bundle.jar
     # - Upload Bundle
-    # - Staging Repositories - Refresh - select comh2database-<...> - Release - Confirm
+    # - Staging Repositories - Refresh - select comh2database-<...> - Release - Confirm
 
 Update statistics.
 

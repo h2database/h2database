@@ -44,7 +44,11 @@ Non-window aggregate functions are allowed in this clause.
 7. QUALIFY filters rows after evaluation of window functions.
 Aggregate and window functions are allowed in this clause.
 
-8. DISTINCT removes duplicates. If DISTINCT ON is used only the specified expressions are checked for duplicates.
+8. DISTINCT removes duplicates.
+If DISTINCT ON is used only the specified expressions are checked for duplicates;
+ORDER BY clause, if any, is used to determine preserved rows.
+First row is each DISTINCT ON group is preserved.
+In absence of ORDER BY preserved rows are not determined, database may choose any row from each DISTINCT ON group.
 
 9. UNION, EXCEPT (MINUS), and INTERSECT combine the result of this query with the results of another query.
 Multiple set operators (UNION, INTERSECT, MINUS, EXCEPT) are evaluated from left to right.

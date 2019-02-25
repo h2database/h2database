@@ -56,7 +56,12 @@ class MVSortedTempResult extends MVTempResult {
      * {@link #contains(Value[])} method is invoked. Only the root result should
      * have an index if required.
      */
-    private MVMap<ValueRow, Boolean> index;
+    private MVMap<ValueRow, Object> index;
+
+    /**
+     * Used for DISTINCT ON in presence of ORDER BY.
+     */
+    private ValueDataType orderedDistinctOnType;
 
     /**
      * Cursor for the {@link #next()} method.
@@ -172,7 +177,11 @@ class MVSortedTempResult extends MVTempResult {
         if (distinct && length != visibleColumnCount || distinctIndexes != null) {
             int count = distinctIndexes != null ? distinctIndexes.length : visibleColumnCount;
             ValueDataType distinctType = new ValueDataType(database, new int[count]);
-            Builder<ValueRow, Boolean> indexBuilder = new MVMap.Builder<ValueRow, Boolean>().keyType(distinctType);
+            Builder<ValueRow, Object> indexBuilder = new MVMap.Builder<ValueRow, Object>().keyType(distinctType);
+            if (distinctIndexes != null && sort != null) {
+                indexBuilder.valueType(keyType);
+                orderedDistinctOnType = keyType;
+            }
             index = store.openMap("idx", indexBuilder);
         }
     }
@@ -189,8 +198,21 @@ class MVSortedTempResult extends MVTempResult {
                     newValues[i] = values[distinctIndexes[i]];
                 }
                 ValueRow distinctRow = ValueRow.get(newValues);
-                if (index.putIfAbsent(distinctRow, true) != null) {
-                    return rowCount;
+                if (orderedDistinctOnType == null) {
+                    if (index.putIfAbsent(distinctRow, true) != null) {
+                        return rowCount;
+                    }
+                } else {
+                    ValueRow previous = (ValueRow) index.get(distinctRow);
+                    if (previous == null) {
+                        index.put(distinctRow, key);
+                    } else if (orderedDistinctOnType.compare(previous, key) > 0) {
+                        map.remove(previous);
+                        rowCount--;
+                        index.put(distinctRow, key);
+                    } else {
+                        return rowCount;
+                    }
                 }
             } else if (expressions.length != visibleColumnCount) {
                 ValueRow distinctRow = ValueRow.get(Arrays.copyOf(values, visibleColumnCount));

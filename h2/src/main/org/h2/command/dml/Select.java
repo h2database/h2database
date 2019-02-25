@@ -1825,7 +1825,7 @@ public class Select extends Query {
 
     @Override
     public boolean allowGlobalConditions() {
-        return offsetExpr == null && (limitExpr == null || sort == null);
+        return offsetExpr == null && (limitExpr == null && distinctExpressions == null || sort == null);
     }
 
     public SortOrder getSortOrder() {

@@ -73,7 +73,7 @@ This clause can be used to reuse the same definition in multiple functions.
 If FOR UPDATE is specified, the tables or rows are locked for writing.
 This clause is not allowed in DISTINCT queries and in queries with non-window aggregates, GROUP BY, or HAVING clauses.
 When using default MVStore engine only the selected rows are locked as in an UPDATE statement;
-locking behavior for rows that were excluded from result using OFFSET / FETCH is undefined.
+locking behavior for rows that were excluded from result using OFFSET / FETCH or QUALIFY is undefined.
 With PageStore engine the whole tables are locked.
 ","
 SELECT * FROM TEST;

@@ -1859,6 +1859,7 @@ public class Select extends Query {
         protected Value[] fetchNextRow() {
             while ((sampleSize <= 0 || rowNumber < sampleSize) && topTableFilter.next()) {
                 setCurrentRowNumber(rowNumber + 1);
+                // This method may lock rows
                 if (isSelectConditionMet()) {
                     ++rowNumber;
                     Value[] row = new Value[columnCount];
@@ -1876,7 +1877,8 @@ public class Select extends Query {
         protected boolean skipNextRow() {
             while ((sampleSize <= 0 || rowNumber < sampleSize) && topTableFilter.next()) {
                 setCurrentRowNumber(rowNumber + 1);
-                if (isSelectConditionMet()) {
+                // This method does not lock rows
+                if (isConditionMet()) {
                     ++rowNumber;
                     return true;
                 }

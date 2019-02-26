@@ -706,8 +706,7 @@ public class Select extends Query {
         }
         ArrayList<Row>[] forUpdateRows = initForUpdateRows();
         int sampleSize = getSampleSizeValue(session);
-        LazyResultQueryFlat lazyResult = new LazyResultQueryFlat(expressionArray,
-                sampleSize, columnCount);
+        LazyResultQueryFlat lazyResult = new LazyResultQueryFlat(expressionArray, sampleSize, columnCount);
         skipOffset(lazyResult, offset, quickOffset);
         if (result == null) {
             return lazyResult;
@@ -770,7 +769,7 @@ public class Select extends Query {
 
     private static void skipOffset(LazyResultSelect lazyResult, long offset, boolean quickOffset) {
         if (quickOffset) {
-            while (offset > 0 && lazyResult.next()) {
+            while (offset > 0 && lazyResult.skip()) {
                 offset--;
             }
         }
@@ -1883,8 +1882,7 @@ public class Select extends Query {
 
         @Override
         protected Value[] fetchNextRow() {
-            while ((sampleSize <= 0 || rowNumber < sampleSize) &&
-                    topTableFilter.next()) {
+            while ((sampleSize <= 0 || rowNumber < sampleSize) && topTableFilter.next()) {
                 setCurrentRowNumber(rowNumber + 1);
                 if (isConditionMet()) {
                     ++rowNumber;
@@ -1897,6 +1895,18 @@ public class Select extends Query {
                 }
             }
             return null;
+        }
+
+        @Override
+        protected boolean skipNextRow() {
+            while ((sampleSize <= 0 || rowNumber < sampleSize) && topTableFilter.next()) {
+                setCurrentRowNumber(rowNumber + 1);
+                if (isConditionMet()) {
+                    ++rowNumber;
+                    return true;
+                }
+            }
+            return false;
         }
     }
 

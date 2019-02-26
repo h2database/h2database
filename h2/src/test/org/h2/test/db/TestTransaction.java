@@ -31,11 +31,13 @@ public class TestTransaction extends TestDb {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        TestBase.createCaller().init().test();
+        TestBase init = TestBase.createCaller().init();
+        init.config.multiThreaded = true;
+        init.test();
     }
 
     @Override
-    public void test() throws SQLException {
+    public void test() throws Exception {
         testClosingConnectionWithSessionTempTable();
         testClosingConnectionWithLockedTable();
         testConstraintCreationRollback();
@@ -45,6 +47,7 @@ public class TestTransaction extends TestDb {
         testRollback();
         testRollback2();
         testForUpdate();
+        testForUpdate2();
         testSetTransaction();
         testReferential();
         testSavepoint();
@@ -216,6 +219,81 @@ public class TestTransaction extends TestDb {
                 execute("update test set name = 'Hallo' where id = 1");
         conn2.close();
         conn.close();
+    }
+
+    private void testForUpdate2() throws Exception {
+        // Exclude some configurations to avoid spending too much time in sleep()
+        if (config.mvStore && !config.multiThreaded || config.networked || config.cipher != null) {
+            return;
+        }
+        deleteDb("transaction");
+        Connection conn1 = getConnection("transaction");
+        Connection conn2 = getConnection("transaction");
+        Statement stat1 = conn1.createStatement();
+        stat1.execute("CREATE TABLE TEST (ID INT PRIMARY KEY, V INT)");
+        stat1.execute("INSERT INTO TEST VALUES (1, 0)");
+        conn1.setAutoCommit(false);
+        conn2.createStatement().execute("SET LOCK_TIMEOUT 2000");
+        if (config.mvStore) {
+            testForUpdate2(conn1, stat1, conn2, false);
+        }
+        testForUpdate2(conn1, stat1, conn2, true);
+        conn1.close();
+        conn2.close();
+    }
+
+    void testForUpdate2(Connection conn1, Statement stat1, Connection conn2, boolean forUpdate)
+            throws Exception {
+        testForUpdate2(conn1, stat1, conn2, forUpdate, false);
+        testForUpdate2(conn1, stat1, conn2, forUpdate, true);
+    }
+
+    void testForUpdate2(Connection conn1, Statement stat1, Connection conn2, boolean forUpdate,
+            boolean window) throws Exception {
+        testForUpdate2(conn1, stat1, conn2, forUpdate, window, false);
+        testForUpdate2(conn1, stat1, conn2, forUpdate, window, true);
+    }
+
+    void testForUpdate2(Connection conn1, Statement stat1, final Connection conn2, boolean forUpdate,
+            boolean window, boolean excluded) throws Exception {
+        stat1.execute("UPDATE TEST SET V = 1 WHERE ID = 1");
+        conn1.commit();
+        stat1.execute("UPDATE TEST SET V = 2 WHERE ID = 1");
+        final int[] res = new int[1];
+        final Exception[] ex = new Exception[1];
+        StringBuilder builder = new StringBuilder("SELECT V");
+        if (window) {
+            builder.append(", RANK() OVER (ORDER BY ID)");
+        }
+        builder.append(" FROM TEST WHERE ID = 1");
+        if (excluded) {
+            builder.append(" AND V = 1");
+        }
+        if (forUpdate) {
+            builder.append(" FOR UPDATE");
+        }
+        String query = builder.toString();
+        final PreparedStatement prep2 = conn2.prepareStatement(query);
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    ResultSet resultSet = prep2.executeQuery();
+                    res[0] = resultSet.next() ? resultSet.getInt(1) : -1;
+                    conn2.commit();
+                } catch (SQLException e) {
+                    ex[0] = e;
+                }
+            }
+        };
+        t.start();
+        Thread.sleep(500);
+        conn1.commit();
+        t.join();
+        if (ex[0] != null) {
+            throw ex[0];
+        }
+        assertEquals(forUpdate ? excluded ? -1 : 2 : 1, res[0]);
     }
 
     private void testRollback() throws SQLException {

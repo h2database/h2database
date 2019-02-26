@@ -35,7 +35,6 @@ import org.h2.result.LazyResult;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
-import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
@@ -425,6 +424,18 @@ public class Select extends Query {
         return count;
     }
 
+    boolean isConditionMetForUpdate() {
+        if (isConditionMet()) {
+            int count = filters.size();
+            for (int i = 0; i < count; i++) {
+                TableFilter tableFilter = filters.get(i);
+                tableFilter.set(tableFilter.getTable().lockRow(session, tableFilter.get()));
+            }
+            return isConditionMet();
+        }
+        return false;
+    }
+
     boolean isConditionMet() {
         return condition == null || condition.getBooleanValue(session);
     }
@@ -498,12 +509,10 @@ public class Select extends Query {
         long rowNumber = 0;
         setCurrentRowNumber(0);
         int sampleSize = getSampleSizeValue(session);
-        ArrayList<Row>[] forUpdateRows = initForUpdateRows();
         while (topTableFilter.next()) {
             setCurrentRowNumber(rowNumber + 1);
-            if (isConditionMet()) {
+            if (isForUpdateMvcc ? isConditionMetForUpdate() : isConditionMet()) {
                 rowNumber++;
-                addForUpdateRow(forUpdateRows);
                 groupData.nextSource();
                 updateAgg(columnCount, stage);
                 if (sampleSize > 0 && rowNumber >= sampleSize) {
@@ -511,7 +520,6 @@ public class Select extends Query {
                 }
             }
         }
-        lockForUpdateRows(forUpdateRows);
         groupData.done();
     }
 
@@ -704,9 +712,10 @@ public class Select extends Query {
                 limitRows = Long.MAX_VALUE;
             }
         }
-        ArrayList<Row>[] forUpdateRows = initForUpdateRows();
         int sampleSize = getSampleSizeValue(session);
-        LazyResultQueryFlat lazyResult = new LazyResultQueryFlat(expressionArray, sampleSize, columnCount);
+        LazyResultQueryFlat lazyResult = isForUpdateMvcc
+                ? new LazyResultQueryFlatForUpdate(expressionArray, sampleSize, columnCount)
+                : new LazyResultQueryFlat(expressionArray, sampleSize, columnCount);
         skipOffset(lazyResult, offset, quickOffset);
         if (result == null) {
             return lazyResult;
@@ -716,7 +725,6 @@ public class Select extends Query {
         }
         Value[] row = null;
         while (result.getRowCount() < limitRows && lazyResult.next()) {
-            addForUpdateRow(forUpdateRows);
             row = lazyResult.currentRow();
             result.addRow(row);
         }
@@ -727,44 +735,11 @@ public class Select extends Query {
                 if (sort.compare(expected, row) != 0) {
                     break;
                 }
-                addForUpdateRow(forUpdateRows);
                 result.addRow(row);
             }
             result.limitsWereApplied();
         }
-        lockForUpdateRows(forUpdateRows);
         return null;
-    }
-
-    private ArrayList<Row>[] initForUpdateRows() {
-        if (!this.isForUpdateMvcc) {
-            return null;
-        }
-        int count = filters.size();
-        @SuppressWarnings("unchecked")
-        ArrayList<Row>[] rows = new ArrayList[count];
-        for (int i = 0; i < count; i++) {
-            rows[i] = Utils.<Row>newSmallArrayList();
-        }
-        return rows;
-    }
-
-    private void addForUpdateRow(ArrayList<Row>[] forUpdateRows) {
-        if (forUpdateRows != null) {
-            int count = filters.size();
-            for (int i = 0; i < count; i++) {
-                filters.get(i).lockRowAdd(forUpdateRows[i]);
-            }
-        }
-    }
-
-    private void lockForUpdateRows(ArrayList<Row>[] forUpdateRows) {
-        if (forUpdateRows != null) {
-            int count = filters.size();
-            for (int i = 0; i < count; i++) {
-                filters.get(i).lockRows(forUpdateRows[i]);
-            }
-        }
     }
 
     private static void skipOffset(LazyResultSelect lazyResult, long offset, boolean quickOffset) {
@@ -1871,7 +1846,7 @@ public class Select extends Query {
     /**
      * Lazy execution for a flat query.
      */
-    private final class LazyResultQueryFlat extends LazyResultSelect {
+    private class LazyResultQueryFlat extends LazyResultSelect {
 
         int sampleSize;
 
@@ -1884,7 +1859,7 @@ public class Select extends Query {
         protected Value[] fetchNextRow() {
             while ((sampleSize <= 0 || rowNumber < sampleSize) && topTableFilter.next()) {
                 setCurrentRowNumber(rowNumber + 1);
-                if (isConditionMet()) {
+                if (isSelectConditionMet()) {
                     ++rowNumber;
                     Value[] row = new Value[columnCount];
                     for (int i = 0; i < columnCount; i++) {
@@ -1901,12 +1876,32 @@ public class Select extends Query {
         protected boolean skipNextRow() {
             while ((sampleSize <= 0 || rowNumber < sampleSize) && topTableFilter.next()) {
                 setCurrentRowNumber(rowNumber + 1);
-                if (isConditionMet()) {
+                if (isSelectConditionMet()) {
                     ++rowNumber;
                     return true;
                 }
             }
             return false;
+        }
+
+        boolean isSelectConditionMet() {
+            return isConditionMet();
+        }
+    }
+
+
+    /**
+     * Lazy execution for a flat for update query.
+     */
+    private final class LazyResultQueryFlatForUpdate extends LazyResultQueryFlat {
+
+        LazyResultQueryFlatForUpdate(Expression[] expressions, int sampleSize, int columnCount) {
+            super(expressions, sampleSize, columnCount);
+        }
+
+        @Override
+        boolean isSelectConditionMet() {
+            return isConditionMetForUpdate();
         }
     }
 

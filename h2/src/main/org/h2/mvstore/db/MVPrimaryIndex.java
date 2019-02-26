@@ -215,20 +215,6 @@ public class MVPrimaryIndex extends BaseIndex {
     }
 
     /**
-     * Lock a set of rows.
-     *
-     * @param session database session
-     * @param rowsForUpdate rows to lock
-     */
-    void lockRows(Session session, Iterable<Row> rowsForUpdate) {
-        TransactionMap<Value, Value> map = getMap(session);
-        for (Row row : rowsForUpdate) {
-            long key = row.getKey();
-            lockRow(map, key);
-        }
-    }
-
-    /**
      * Lock a single row.
      *
      * @param session database session

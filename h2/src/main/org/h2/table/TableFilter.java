@@ -606,8 +606,6 @@ public class TableFilter implements ColumnResolver {
      * @param current the current row
      */
     public void set(Row current) {
-        // this is currently only used so that check constraints work - to set
-        // the current (new) row
         this.current = current;
         this.currentSearchRow = current;
     }
@@ -1175,15 +1173,6 @@ public class TableFilter implements ColumnResolver {
         if (state == FOUND) {
             rows.add(get());
         }
-    }
-
-    /**
-     * Lock the given rows.
-     *
-     * @param forUpdateRows the rows to lock
-     */
-    public void lockRows(Iterable<Row> forUpdateRows) {
-        table.lockRows(session, forUpdateRows);
     }
 
     public TableFilter getNestedJoin() {

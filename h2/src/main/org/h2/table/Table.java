@@ -177,18 +177,6 @@ public abstract class Table extends SchemaObjectBase {
     public abstract void removeRow(Session session, Row row);
 
     /**
-     * Locks rows, preventing any updated to them, except from the session specified.
-     *
-     * @param session the session
-     * @param rowsForUpdate rows to lock
-     */
-    public void lockRows(Session session, Iterable<Row> rowsForUpdate) {
-        for (Row row : rowsForUpdate) {
-            lockRow(session, row);
-        }
-    }
-
-    /**
      * Locks row, preventing any updated to it, except from the session specified.
      *
      * @param session the session

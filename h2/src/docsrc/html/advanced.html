@@ -472,21 +472,143 @@ Other database engines may commit the transaction in this case when the result s
 <h3>Keywords / Reserved Words</h3>
 <p>
 There is a list of keywords that can't be used as identifiers (table names, column names and so on),
-unless they are quoted (surrounded with double quotes). The list is currently:
-</p><p>
-<code>
-ALL, ARRAY, CASE, CHECK, CONSTRAINT, CROSS, CURRENT_DATE,
-CURRENT_TIME, CURRENT_TIMESTAMP, CURRENT_USER, DISTINCT, EXCEPT,
-EXISTS, FALSE, FETCH, FOR, FOREIGN, FROM, FULL, GROUP, HAVING,
-IF, INNER, INTERSECT, INTERSECTS, INTERVAL, IS, JOIN, LIKE,
-LIMIT, LOCALTIME, LOCALTIMESTAMP, MINUS, NATURAL, NOT, NULL,
-OFFSET, ON, ORDER, PRIMARY, QUALIFY, ROW, _ROWID_, ROWNUM, SELECT,
-SYSDATE, SYSTIME, SYSTIMESTAMP, TABLE, TODAY, TOP, TRUE, UNION,
-UNIQUE, VALUES, WHERE, WINDOW, WITH
-</code>
-</p><p>
-Certain words of this list are keywords because they are functions that can be used without '()',
-for example <code>CURRENT_TIMESTAMP</code>.
+unless they are quoted (surrounded with double quotes).
+The following tokens are keywords in H2:
+</p>
+<table class="main">
+<thead>
+<tr>
+<th>Keyword</th>
+<th>H2</th>
+<th>SQL:&#8203;2011</th>
+<th>SQL:&#8203;2008</th>
+<th>SQL:&#8203;2003</th>
+<th>SQL:&#8203;1999</th>
+<th>SQL-92</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>ALL</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>ARRAY</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td></td></tr>
+<tr><td>CASE</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>CHECK</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>CONSTRAINT</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>CROSS</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>CURRENT_DATE</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>CURRENT_TIME</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>CURRENT_TIMESTAMP</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>CURRENT_USER</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>DISTINCT</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>EXCEPT</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>EXISTS</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>NR</td><td>+</td></tr>
+<tr><td>FALSE</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>FETCH</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>FOR</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>FOREIGN</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>FROM</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>FULL</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>GROUP</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>HAVING</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>IF</td>
+<td>+</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>INNER</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>INTERSECT</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>INTERSECTS</td>
+<td>+</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>INTERVAL</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>IS</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>JOIN</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>LIKE</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>LIMIT</td>
+<td>+</td><td>NR</td><td>NR</td><td></td><td>+</td><td></td></tr>
+<tr><td>LOCALTIME</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td></td></tr>
+<tr><td>LOCALTIMESTAMP</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td></td></tr>
+<tr><td>MINUS</td>
+<td>+</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>NATURAL</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>NOT</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>NULL</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>OFFSET</td>
+<td>+</td><td>+</td><td>+</td><td></td><td></td><td></td></tr>
+<tr><td>ON</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>ORDER</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>PRIMARY</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>QUALIFY</td>
+<td>+</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>ROW</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td></td></tr>
+<tr><td>_ROWID_</td>
+<td>+</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>ROWNUM</td>
+<td>+</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>SELECT</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>SYSDATE</td>
+<td>+</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>SYSTIME</td>
+<td>+</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>SYSTIMESTAMP</td>
+<td>+</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>TABLE</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>TODAY</td>
+<td>+</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>TOP</td>
+<td>+</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>TRUE</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>UNION</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>UNIQUE</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>VALUES</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>WHERE</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>WINDOW</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td></td><td></td></tr>
+<tr><td>WITH</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+</tbody>
+</table>
+<p>
+Most of them are also reserved (+) or non-reserved (NR) words in the SQL Standard.
+Newer versions of H2 may have more keywords than older ones.
 </p>
 
 <h2 id="standards_compliance">Standards Compliance</h2>

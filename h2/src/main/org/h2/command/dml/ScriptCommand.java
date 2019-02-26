@@ -78,6 +78,7 @@ public class ScriptCommand extends ScriptBase {
     // true if we're generating the DROP statements
     private boolean drop;
     private boolean simple;
+    private boolean withColumns;
     private LocalResult result;
     private String lineSeparatorString;
     private byte[] lineSeparator;
@@ -387,9 +388,13 @@ public class ScriptCommand extends ScriptBase {
         Cursor cursor = index.find(session, null, null);
         Column[] columns = table.getColumns();
         StringBuilder builder = new StringBuilder("INSERT INTO ");
-        table.getSQL(builder).append('(');
-        Column.writeColumns(builder, columns);
-        builder.append(") VALUES");
+        table.getSQL(builder);
+        if (withColumns) {
+            builder.append('(');
+            Column.writeColumns(builder, columns);
+            builder.append(')');
+        }
+        builder.append(" VALUES");
         if (!simple) {
             builder.append('\n');
         }
@@ -705,6 +710,10 @@ public class ScriptCommand extends ScriptBase {
 
     public void setSimple(boolean simple) {
         this.simple = simple;
+    }
+
+    public void setWithColumns(boolean withColumns) {
+        this.withColumns = withColumns;
     }
 
     public void setCharset(Charset charset) {

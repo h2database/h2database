@@ -7032,12 +7032,16 @@ public class Parser {
     private ScriptCommand parseScript() {
         ScriptCommand command = new ScriptCommand(session);
         boolean data = true, passwords = true, settings = true;
-        boolean dropTables = false, simple = false;
-        if (readIf("SIMPLE")) {
-            simple = true;
-        }
+        boolean dropTables = false, simple = false, withColumns = false;
         if (readIf("NODATA")) {
             data = false;
+        } else {
+            if (readIf("SIMPLE")) {
+                simple = true;
+            }
+            if (readIf("COLUMNS")) {
+                withColumns = true;
+            }
         }
         if (readIf("NOPASSWORDS")) {
             passwords = false;
@@ -7057,6 +7061,7 @@ public class Parser {
         command.setSettings(settings);
         command.setDrop(dropTables);
         command.setSimple(simple);
+        command.setWithColumns(withColumns);
         if (readIf("TO")) {
             command.setFileNameExpr(readExpression());
             if (readIf("COMPRESSION")) {

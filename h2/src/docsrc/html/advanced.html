@@ -547,7 +547,7 @@ The following tokens are keywords in H2:
 <tr><td>LIKE</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>LIMIT</td>
-<td>+</td><td>NR</td><td>NR</td><td></td><td>+</td><td></td></tr>
+<td>+</td><td></td><td></td><td></td><td>+</td><td></td></tr>
 <tr><td>LOCALTIME</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td></td></tr>
 <tr><td>LOCALTIMESTAMP</td>
@@ -579,17 +579,17 @@ The following tokens are keywords in H2:
 <tr><td>SELECT</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>SYSDATE</td>
-<td>+</td><td></td><td></td><td></td><td></td><td></td></tr>
+<td>CS</td><td></td><td></td><td></td><td></td><td></td></tr>
 <tr><td>SYSTIME</td>
-<td>+</td><td></td><td></td><td></td><td></td><td></td></tr>
+<td>CS</td><td></td><td></td><td></td><td></td><td></td></tr>
 <tr><td>SYSTIMESTAMP</td>
-<td>+</td><td></td><td></td><td></td><td></td><td></td></tr>
+<td>CS</td><td></td><td></td><td></td><td></td><td></td></tr>
 <tr><td>TABLE</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>TODAY</td>
-<td>+</td><td></td><td></td><td></td><td></td><td></td></tr>
+<td>CS</td><td></td><td></td><td></td><td></td><td></td></tr>
 <tr><td>TOP</td>
-<td>+</td><td></td><td></td><td></td><td></td><td></td></tr>
+<td>CS</td><td></td><td></td><td></td><td></td><td></td></tr>
 <tr><td>TRUE</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>UNION</td>
@@ -607,7 +607,9 @@ The following tokens are keywords in H2:
 </tbody>
 </table>
 <p>
-Most of them are also reserved (+) or non-reserved (NR) words in the SQL Standard.
+Some keywords in H2 are context-sensitive (CS), such keywords may be used as identifiers in some places,
+but cannot be used as identifiers in others.
+Most keywords in H2 are also reserved (+) or non-reserved (NR) words in the SQL Standard.
 Newer versions of H2 may have more keywords than older ones.
 </p>
 

@@ -1172,14 +1172,14 @@ public class TestCases extends TestDb {
                 "    P.SALARY,\n" +
                 "    O.ID,\n" +
                 "    O.NAME\n" +
-                "FROM PUBLIC.ORGANIZATION O\n" +
-                "    /* PUBLIC.PRIMARY_KEY_D: ID = ?1 */\n" +
-                "    /* WHERE O.ID = ?1\n" +
+                "FROM PUBLIC.PERSON P\n" +
+                "    /* PUBLIC.PRIMARY_KEY_8: ID = ?1 */\n" +
+                "    /* WHERE P.ID = ?1\n" +
                 "    */\n" +
                 "    /* scanCount: 2 */\n" +
-                "INNER JOIN PUBLIC.PERSON P\n" +
-                "    /* PUBLIC.PRIMARY_KEY_8: ID = O.ID\n" +
-                "        AND ID = ?1\n" +
+                "INNER JOIN PUBLIC.ORGANIZATION O\n" +
+                "    /* PUBLIC.PRIMARY_KEY_D: ID = ?1\n" +
+                "        AND ID = P.ID\n" +
                 "     */\n" +
                 "    ON 1=1\n" +
                 "    /* scanCount: 2 */\n" +

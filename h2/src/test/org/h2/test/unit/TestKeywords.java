@@ -87,6 +87,12 @@ public class TestKeywords extends TestBase {
                         assertEquals(10, rs.getInt(1));
                         assertFalse(rs.next());
                     }
+                    try (ResultSet rs = stat.executeQuery("SELECT SUM(" + s + ") " + s + " FROM " + s)) {
+                        assertTrue(rs.next());
+                        assertEquals(10, rs.getInt(1));
+                        assertFalse(rs.next());
+                        assertEquals(s, rs.getMetaData().getColumnLabel(1));
+                    }
                 } catch (Throwable t) {
                     throw new AssertionError(s + " cannot be used as identifier.", t);
                 }

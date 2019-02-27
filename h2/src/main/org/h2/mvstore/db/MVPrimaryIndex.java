@@ -362,11 +362,7 @@ public class MVPrimaryIndex extends BaseIndex {
      * @return the maximum number of rows
      */
     public long getRowCountMax() {
-        try {
-            return dataMap.sizeAsLongMax();
-        } catch (IllegalStateException e) {
-            throw DbException.get(ErrorCode.OBJECT_CLOSED, e);
-        }
+        return dataMap.sizeAsLongMax();
     }
 
     @Override

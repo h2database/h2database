@@ -231,7 +231,6 @@ public class TestTransaction extends TestDb {
         Connection conn2 = getConnection("transaction");
         Statement stat1 = conn1.createStatement();
         stat1.execute("CREATE TABLE TEST (ID INT PRIMARY KEY, V INT)");
-        stat1.execute("INSERT INTO TEST VALUES (1, 0)");
         conn1.setAutoCommit(false);
         conn2.createStatement().execute("SET LOCK_TIMEOUT 2000");
         if (config.mvStore) {
@@ -250,15 +249,16 @@ public class TestTransaction extends TestDb {
 
     void testForUpdate2(Connection conn1, Statement stat1, Connection conn2, boolean forUpdate,
             boolean window) throws Exception {
-        testForUpdate2(conn1, stat1, conn2, forUpdate, window, false);
-        testForUpdate2(conn1, stat1, conn2, forUpdate, window, true);
+        testForUpdate2(conn1, stat1, conn2, forUpdate, window, false, false);
+        testForUpdate2(conn1, stat1, conn2, forUpdate, window, false, true);
+        testForUpdate2(conn1, stat1, conn2, forUpdate, window, true, false);
     }
 
     void testForUpdate2(Connection conn1, Statement stat1, final Connection conn2, boolean forUpdate,
-            boolean window, boolean excluded) throws Exception {
-        stat1.execute("UPDATE TEST SET V = 1 WHERE ID = 1");
+            boolean window, boolean deleted, boolean excluded) throws Exception {
+        stat1.execute("MERGE INTO TEST KEY(ID) VALUES (1, 1)");
         conn1.commit();
-        stat1.execute("UPDATE TEST SET V = 2 WHERE ID = 1");
+        stat1.execute(deleted ? "DELETE FROM TEST WHERE ID = 1" : "UPDATE TEST SET V = 2 WHERE ID = 1");
         final int[] res = new int[1];
         final Exception[] ex = new Exception[1];
         StringBuilder builder = new StringBuilder("SELECT V");
@@ -293,7 +293,7 @@ public class TestTransaction extends TestDb {
         if (ex[0] != null) {
             throw ex[0];
         }
-        assertEquals(forUpdate ? excluded ? -1 : 2 : 1, res[0]);
+        assertEquals(forUpdate ? (deleted || excluded) ? -1 : 2 : 1, res[0]);
     }
 
     private void testRollback() throws SQLException {

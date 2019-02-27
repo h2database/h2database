@@ -367,6 +367,18 @@ public class ParserUtil {
             } else if (eq("ARRAY", s, ignoreCase, start, end)) {
                 return ARRAY;
             }
+            if (additionalKeywords) {
+                if (eq("AND", s, ignoreCase, start, end) || eq("AS", s, ignoreCase, start, end)) {
+                    return KEYWORD;
+                }
+            }
+            return IDENTIFIER;
+        case 'B':
+            if (additionalKeywords) {
+                if (eq("BETWEEN", s, ignoreCase, start, end)) {
+                    return KEYWORD;
+                }
+            }
             return IDENTIFIER;
         case 'C':
             if (eq("CASE", s, ignoreCase, start, end)) {
@@ -413,6 +425,11 @@ public class ParserUtil {
             } else if (eq("FALSE", s, ignoreCase, start, end)) {
                 return FALSE;
             }
+            if (additionalKeywords) {
+                if (eq("FILTER", s, ignoreCase, start, end)) {
+                    return KEYWORD;
+                }
+            }
             return IDENTIFIER;
         case 'G':
             if (eq("GROUP", s, ignoreCase, start, end)) {
@@ -438,6 +455,11 @@ public class ParserUtil {
             } else if (eq("IS", s, ignoreCase, start, end)) {
                 return IS;
             }
+            if (additionalKeywords) {
+                if (eq("ILIKE", s, ignoreCase, start, end) || eq("IN", s, ignoreCase, start, end)) {
+                    return KEYWORD;
+                }
+            }
             return IDENTIFIER;
         case 'J':
             if (eq("JOIN", s, ignoreCase, start, end)) {
@@ -453,6 +475,11 @@ public class ParserUtil {
                 return LOCALTIME;
             } else if (eq("LOCALTIMESTAMP", s, ignoreCase, start, end)) {
                 return LOCALTIMESTAMP;
+            }
+            if (additionalKeywords) {
+                if (eq("LEFT", s, ignoreCase, start, end)) {
+                    return KEYWORD;
+                }
             }
             return IDENTIFIER;
         case 'M':
@@ -477,6 +504,11 @@ public class ParserUtil {
             } else if (eq("ORDER", s, ignoreCase, start, end)) {
                 return ORDER;
             }
+            if (additionalKeywords) {
+                if (eq("OR", s, ignoreCase, start, end) || eq("OVER", s, ignoreCase, start, end)) {
+                    return KEYWORD;
+                }
+            }
             return IDENTIFIER;
         case 'P':
             if (eq("PRIMARY", s, ignoreCase, start, end)) {
@@ -493,6 +525,11 @@ public class ParserUtil {
                 return ROW;
             } else if (eq("ROWNUM", s, ignoreCase, start, end)) {
                 return ROWNUM;
+            }
+            if (additionalKeywords) {
+                if (eq("REGEXP", s, ignoreCase, start, end) || eq("RIGHT", s, ignoreCase, start, end)) {
+                    return KEYWORD;
+                }
             }
             return IDENTIFIER;
         case 'S':

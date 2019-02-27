@@ -785,3 +785,20 @@ SELECT T1.X1, T2.X2, T3.X3, T4.X4, T5.X5 FROM (
 > -- -- -- -- --
 > 1  1  1  1  1
 > rows: 1
+
+CREATE TABLE A(X INT);
+> ok
+
+CREATE TABLE B(Y INT);
+> ok
+
+CREATE TABLE C(Z INT);
+> ok
+
+SELECT A.X FROM A JOIN B ON A.X = B.Y AND B.Y >= COALESCE((SELECT Z FROM C FETCH FIRST ROW ONLY), 0);
+> X
+> -
+> rows: 0
+
+DROP TABLE A, B, C;
+> ok

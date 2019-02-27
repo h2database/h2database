@@ -94,6 +94,11 @@ public class TableFilter implements ColumnResolver {
     private Expression filterCondition;
 
     /**
+     * Initial ON condition.
+     */
+    private Expression onCondition;
+
+    /**
      * The complete join condition.
      */
     private Expression joinCondition;
@@ -709,15 +714,29 @@ public class TableFilter implements ColumnResolver {
      * @param on the condition
      */
     public void mapAndAddFilter(Expression on) {
+        this.onCondition = on;
         on.mapColumns(this, 0, Expression.MAP_INITIAL);
         addFilterCondition(on, true);
-        on.createIndexConditions(session, this);
         if (nestedJoin != null) {
             on.mapColumns(nestedJoin, 0, Expression.MAP_INITIAL);
-            on.createIndexConditions(session, nestedJoin);
         }
         if (join != null) {
             join.mapAndAddFilter(on);
+        }
+    }
+
+    public void createIndexConditions() {
+        if (onCondition != null) {
+            onCondition.createIndexConditions(session, this);
+            if (nestedJoin != null) {
+                onCondition.createIndexConditions(session, nestedJoin);
+            }
+        }
+        if (join != null) {
+            join.createIndexConditions();
+        }
+        if (nestedJoin != null) {
+            nestedJoin.createIndexConditions();
         }
     }
 

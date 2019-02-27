@@ -1382,6 +1382,7 @@ public class Select extends Query {
     private double preparePlan(boolean parse) {
         TableFilter[] topArray = topFilters.toArray(new TableFilter[0]);
         for (TableFilter t : topArray) {
+            t.createIndexConditions();
             t.setFullCondition(condition);
         }
 

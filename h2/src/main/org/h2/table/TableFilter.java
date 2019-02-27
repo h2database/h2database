@@ -711,13 +711,26 @@ public class TableFilter implements ColumnResolver {
     public void mapAndAddFilter(Expression on) {
         on.mapColumns(this, 0, Expression.MAP_INITIAL);
         addFilterCondition(on, true);
-        on.createIndexConditions(session, this);
         if (nestedJoin != null) {
             on.mapColumns(nestedJoin, 0, Expression.MAP_INITIAL);
-            on.createIndexConditions(session, nestedJoin);
         }
         if (join != null) {
             join.mapAndAddFilter(on);
+        }
+    }
+
+    public void createIndexConditions() {
+        if (joinCondition != null) {
+            joinCondition.createIndexConditions(session, this);
+            if (nestedJoin != null) {
+                joinCondition.createIndexConditions(session, nestedJoin);
+            }
+        }
+        if (join != null) {
+            join.createIndexConditions();
+        }
+        if (nestedJoin != null) {
+            nestedJoin.createIndexConditions();
         }
     }
 

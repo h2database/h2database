@@ -744,33 +744,46 @@ DROP TABLE C;
 
 CREATE TABLE T1(X1 INT);
 > ok
+
 CREATE TABLE T2(X2 INT);
 > ok
+
 CREATE TABLE T3(X3 INT);
 > ok
+
 CREATE TABLE T4(X4 INT);
 > ok
+
 CREATE TABLE T5(X5 INT);
 > ok
 
 INSERT INTO T1 VALUES (1);
 > update count: 1
+
 INSERT INTO T1 VALUES (NULL);
 > update count: 1
+
 INSERT INTO T2 VALUES (1);
 > update count: 1
+
 INSERT INTO T2 VALUES (NULL);
 > update count: 1
+
 INSERT INTO T3 VALUES (1);
 > update count: 1
+
 INSERT INTO T3 VALUES (NULL);
 > update count: 1
+
 INSERT INTO T4 VALUES (1);
 > update count: 1
+
 INSERT INTO T4 VALUES (NULL);
 > update count: 1
+
 INSERT INTO T5 VALUES (1);
 > update count: 1
+
 INSERT INTO T5 VALUES (NULL);
 > update count: 1
 

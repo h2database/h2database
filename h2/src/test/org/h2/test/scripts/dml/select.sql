@@ -480,7 +480,6 @@ SELECT G / 10 G1, G / 10 G2, SUM(T.V) S FROM TEST T GROUP BY G / 10, G / 10;
 > 2  2  4
 > rows: 2
 
-
 SELECT G / 10 G1, G / 10 G2, SUM(T.V) S FROM TEST T GROUP BY G2;
 > G1 G2 S
 > -- -- -

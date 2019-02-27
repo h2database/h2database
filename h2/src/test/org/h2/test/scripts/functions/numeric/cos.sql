@@ -14,5 +14,3 @@ select cos(null) vn, cos(-1) r1 from test;
 > ---- ------------------
 > null 0.5403023058681398
 > rows: 1
-
-

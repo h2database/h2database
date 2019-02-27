@@ -20,4 +20,3 @@ select isnull(null, '1') x1, isnull(null, null) xn, isnull('a', 'b') xa from tes
 > -- ---- --
 > 1  null a
 > rows: 1
-

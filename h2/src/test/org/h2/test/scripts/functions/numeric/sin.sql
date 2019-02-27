@@ -14,5 +14,3 @@ select sin(null) vn, sin(-1) r1 from test;
 > ---- -------------------
 > null -0.8414709848078965
 > rows: 1
-
-

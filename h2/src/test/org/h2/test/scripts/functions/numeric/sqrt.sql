@@ -14,6 +14,3 @@ select sqrt(null) vn, sqrt(0) e0, sqrt(1) e1, sqrt(4) e2, sqrt(100) e10, sqrt(0.
 > ---- --- --- --- ---- ---
 > null 0.0 1.0 2.0 10.0 0.5
 > rows: 1
-
-
-

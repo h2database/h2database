@@ -14,4 +14,3 @@ select acos(null) vn, acos(-1) r1 from test;
 > ---- -----------------
 > null 3.141592653589793
 > rows: 1
-

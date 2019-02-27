@@ -476,6 +476,11 @@ public class ParserUtil {
             } else if (eq("LOCALTIMESTAMP", s, ignoreCase, start, end)) {
                 return LOCALTIMESTAMP;
             }
+            if (additionalKeywords) {
+                if (eq("LEFT", s, ignoreCase, start, end)) {
+                    return KEYWORD;
+                }
+            }
             return IDENTIFIER;
         case 'M':
             if (eq("MINUS", s, ignoreCase, start, end)) {
@@ -522,7 +527,7 @@ public class ParserUtil {
                 return ROWNUM;
             }
             if (additionalKeywords) {
-                if (eq("REGEXP", s, ignoreCase, start, end)) {
+                if (eq("REGEXP", s, ignoreCase, start, end) || eq("RIGHT", s, ignoreCase, start, end)) {
                     return KEYWORD;
                 }
             }

@@ -87,7 +87,7 @@ public class TestKeywords extends TestBase {
                         assertEquals(10, rs.getInt(1));
                         assertFalse(rs.next());
                     }
-                    try (ResultSet rs = stat.executeQuery("SELECT SUM(" + s + ") " + s + " FROM " + s)) {
+                    try (ResultSet rs = stat.executeQuery("SELECT SUM(" + s + ") " + s + " FROM " + s + ' ' + s)) {
                         assertTrue(rs.next());
                         assertEquals(10, rs.getInt(1));
                         assertFalse(rs.next());

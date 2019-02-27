@@ -23,7 +23,6 @@ select count(*), count(*) filter (where v >= 4) from test;
 > 13       9
 > rows: 1
 
-
 select count(*), count(*) filter (where v >= 4) from test where v <= 10;
 > COUNT(*) COUNT(*) FILTER (WHERE (V >= 4))
 > -------- --------------------------------

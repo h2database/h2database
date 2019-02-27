@@ -14,6 +14,3 @@ select tan(null) vn, tan(-1) r1 from test;
 > ---- -------------------
 > null -1.5574077246549023
 > rows: 1
-
-
-

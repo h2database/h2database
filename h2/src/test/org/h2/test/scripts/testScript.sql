@@ -2523,6 +2523,7 @@ insert into address(id, name, name2) values(2, 'test@abc', 'test@acme');
 > exception CHECK_CONSTRAINT_VIOLATED_1
 
 @reconnect
+
 insert into address(id, name, name2) values(3, 'test_abc', 'test@gmail');
 > exception CHECK_CONSTRAINT_VIOLATED_1
 
@@ -7954,4 +7955,3 @@ select * from test where year in (select distinct year from test order by year d
 
 drop table test;
 > ok
-

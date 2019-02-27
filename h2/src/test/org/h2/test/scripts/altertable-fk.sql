@@ -24,4 +24,3 @@ INSERT INTO user_group (ID) VALUES (1);
 
 DELETE FROM user_group;
 > update count: 1
-

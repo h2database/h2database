@@ -14,5 +14,3 @@ select cot(null) vn, cot(-1) r1 from test;
 > ---- -------------------
 > null -0.6420926159343306
 > rows: 1
-
-

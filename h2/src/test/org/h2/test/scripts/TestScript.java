@@ -5,12 +5,14 @@
  */
 package org.h2.test.scripts;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.io.PrintStream;
+import java.io.RandomAccessFile;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
@@ -46,6 +48,8 @@ import org.h2.util.StringUtils;
 public class TestScript extends TestDb {
 
     private static final String BASE_DIR = "org/h2/test/scripts/";
+
+    private static final boolean FIX_OUTPUT = false;
 
     private static final Field COMMAND;
 
@@ -232,7 +236,16 @@ public class TestScript extends TestDb {
         if (statements == null) {
             println("Running commands in " + scriptFileName);
         }
-        final String outFile = "test.out.txt";
+        String outFile;
+        if (FIX_OUTPUT) {
+            outFile = scriptFileName;
+            int idx = outFile.lastIndexOf('/');
+            if (idx >= 0) {
+                outFile = outFile.substring(idx + 1);
+            }
+        } else {
+            outFile = "test.out.txt";
+        }
         conn = getConnection("script");
         stat = conn.createStatement();
         out = new PrintStream(new FileOutputStream(outFile));
@@ -240,10 +253,31 @@ public class TestScript extends TestDb {
         testFile(BASE_DIR + scriptFileName);
         conn.close();
         out.close();
+        if (FIX_OUTPUT) {
+            File file = new File(outFile);
+            // If there are two trailing newline characters remove one
+            try (RandomAccessFile r = new RandomAccessFile(file, "rw")) {
+                byte[] separator = System.lineSeparator().getBytes(StandardCharsets.ISO_8859_1);
+                int separatorLength = separator.length;
+                long length = r.length() - (separatorLength * 2);
+                truncate: if (length >= 0) {
+                    r.seek(length);
+                    for (int i = 0; i < 2; i++) {
+                        for (int j = 0; j < separatorLength; j++) {
+                            if (r.readByte() != separator[j]) {
+                                break truncate;
+                            }
+                        }
+                    }
+                    r.setLength(length + separatorLength);
+                }
+            }
+            file.renameTo(new File("h2/src/test/org/h2/test/scripts/" + scriptFileName));
+            return;
+        }
         if (errors.length() > 0) {
             throw new Exception("errors in " + scriptFileName + " found");
         }
-        // new File(outFile).delete();
     }
 
     private String readLine() throws IOException {
@@ -253,6 +287,7 @@ public class TestScript extends TestDb {
 
     private String readNextLine() throws IOException {
         String s;
+        boolean comment = false;
         while ((s = in.readLine()) != null) {
             if (s.startsWith("#")) {
                 int end = s.indexOf('#', 1);
@@ -276,17 +311,31 @@ public class TestScript extends TestDb {
                 switch (flag) {
                 case "mvStore":
                     if (config.mvStore == val) {
+                        out.print("#" + (val ? '+' : '-') + flag + '#');
                         break;
                     } else {
+                        if (FIX_OUTPUT) {
+                            write("#" + (val ? '+' : '-') + flag + '#' + s);
+                        }
                         continue;
                     }
                 default:
                     fail("Unknown flag \"" + flag + '\"');
                 }
+            } else if (s.startsWith("--")) {
+                write(s);
+                comment = true;
+                continue;
             }
-            s = s.trim();
+            if (!FIX_OUTPUT) {
+                s = s.trim();
+            }
             if (!s.isEmpty()) {
                 break;
+            }
+            if (comment) {
+                write("");
+                comment = false;
             }
         }
         return s;
@@ -322,14 +371,20 @@ public class TestScript extends TestDb {
                 } else {
                     switch (sql) {
                     case "@reconnect":
+                        write(sql);
+                        write("");
                         if (!config.memory) {
                             reconnect(conn.getAutoCommit());
                         }
                         break;
                     case "@reconnect on":
+                        write(sql);
+                        write("");
                         allowReconnect = true;
                         break;
                     case "@reconnect off":
+                        write(sql);
+                        write("");
                         allowReconnect = false;
                         break;
                     default:

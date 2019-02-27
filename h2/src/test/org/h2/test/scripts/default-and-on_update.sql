@@ -29,7 +29,6 @@ SELECT * FROM TEST ORDER BY ID;
 > 3  3000
 > rows (ordered): 2
 
-
 UPDATE TEST SET V = 3 WHERE ID = 3;
 > update count: 1
 

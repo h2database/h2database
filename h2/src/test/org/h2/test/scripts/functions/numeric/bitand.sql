@@ -14,7 +14,3 @@ select bitand(null, 1) vn, bitand(1, null) vn1, bitand(null, null) vn2, bitand(3
 > ---- ---- ---- --
 > null null null 2
 > rows: 1
-
-
-
-

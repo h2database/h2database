@@ -14,6 +14,3 @@ select exp(null) vn, left(exp(1), 4) v1, left(exp(1.1), 4) v2, left(exp(-1.1), 4
 > ---- ---- ---- ---- ---- ----
 > null 2.71 3.00 0.33 6.68 0.14
 > rows: 1
-
-
-

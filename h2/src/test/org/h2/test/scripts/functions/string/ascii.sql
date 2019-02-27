@@ -14,7 +14,3 @@ select ascii(null) en, ascii('') en, ascii('Abc') e65 from test;
 > ---- ---- ---
 > null null 65
 > rows: 1
-
-
-
-

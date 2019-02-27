@@ -718,9 +718,8 @@ public class Select extends Query {
             }
         }
         int sampleSize = getSampleSizeValue(session);
-        LazyResultQueryFlat lazyResult = isForUpdateMvcc
-                ? new LazyResultQueryFlatForUpdate(expressionArray, sampleSize, columnCount)
-                : new LazyResultQueryFlat(expressionArray, sampleSize, columnCount);
+        LazyResultQueryFlat lazyResult = new LazyResultQueryFlat(expressionArray, columnCount, sampleSize,
+                isForUpdateMvcc);
         skipOffset(lazyResult, offset, quickOffset);
         if (result == null) {
             return lazyResult;
@@ -1851,13 +1850,16 @@ public class Select extends Query {
     /**
      * Lazy execution for a flat query.
      */
-    private class LazyResultQueryFlat extends LazyResultSelect {
+    private final class LazyResultQueryFlat extends LazyResultSelect {
 
-        int sampleSize;
+        private int sampleSize;
 
-        LazyResultQueryFlat(Expression[] expressions, int sampleSize, int columnCount) {
+        private boolean forUpdate;
+
+        LazyResultQueryFlat(Expression[] expressions, int columnCount, int sampleSize, boolean forUpdate) {
             super(expressions, columnCount);
             this.sampleSize = sampleSize;
+            this.forUpdate = forUpdate;
         }
 
         @Override
@@ -1865,7 +1867,7 @@ public class Select extends Query {
             while ((sampleSize <= 0 || rowNumber < sampleSize) && topTableFilter.next()) {
                 setCurrentRowNumber(rowNumber + 1);
                 // This method may lock rows
-                if (isSelectConditionMet()) {
+                if (forUpdate ? isConditionMetForUpdate() : isConditionMet()) {
                     ++rowNumber;
                     Value[] row = new Value[columnCount];
                     for (int i = 0; i < columnCount; i++) {
@@ -1891,25 +1893,6 @@ public class Select extends Query {
             return false;
         }
 
-        boolean isSelectConditionMet() {
-            return isConditionMet();
-        }
-    }
-
-
-    /**
-     * Lazy execution for a flat for update query.
-     */
-    private final class LazyResultQueryFlatForUpdate extends LazyResultQueryFlat {
-
-        LazyResultQueryFlatForUpdate(Expression[] expressions, int sampleSize, int columnCount) {
-            super(expressions, sampleSize, columnCount);
-        }
-
-        @Override
-        boolean isSelectConditionMet() {
-            return isConditionMetForUpdate();
-        }
     }
 
     /**

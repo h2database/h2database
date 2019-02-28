@@ -721,6 +721,7 @@ public class TableFilter implements ColumnResolver {
 
     public void createIndexConditions() {
         if (joinCondition != null) {
+            joinCondition = joinCondition.optimize(session);
             joinCondition.createIndexConditions(session, this);
             if (nestedJoin != null) {
                 joinCondition.createIndexConditions(session, nestedJoin);

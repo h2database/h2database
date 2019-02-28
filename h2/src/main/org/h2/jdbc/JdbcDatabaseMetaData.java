@@ -16,7 +16,6 @@ import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.h2.engine.Constants;
-import org.h2.engine.Mode.ModeEnum;
 import org.h2.engine.SessionInterface;
 import org.h2.engine.SessionRemote;
 import org.h2.engine.SysProperties;
@@ -1539,7 +1538,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
 
     /**
      * Gets the comma-separated list of all SQL keywords that are not supported as
-     * table/column/index name, in addition to the SQL-2003 keywords. The list
+     * table/column/index name, in addition to the SQL:2003 keywords. The list
      * returned is:
      * <pre>
      * IF,ILIKE,INTERSECTS,
@@ -1551,7 +1550,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * SYSDATE,SYSTIME,SYSTIMESTAMP,
      * TODAY,TOP
      * </pre>
-     * The complete list of keywords (including SQL-2003 keywords) is:
+     * The complete list of keywords (including SQL:2003 keywords) is:
      * <pre>
      * ALL, AND, ARRAY, AS,
      * BETWEEN,
@@ -2594,98 +2593,100 @@ public class JdbcDatabaseMetaData extends TraceObject implements
 
     /**
      * Checks if for CREATE TABLE Test(ID INT), getTables returns Test as the
-     * table name.
+     * table name and identifiers are case sensitive.
      *
-     * @return false
+     * @return true is so, false otherwise
      */
     @Override
-    public boolean supportsMixedCaseIdentifiers() {
+    public boolean supportsMixedCaseIdentifiers() throws SQLException{
         debugCodeCall("supportsMixedCaseIdentifiers");
-        return false;
-    }
-
-    /**
-     * Checks if a table created with CREATE TABLE "Test"(ID INT) is a different
-     * table than a table created with CREATE TABLE TEST(ID INT).
-     *
-     * @return true usually, and false in MySQL mode
-     */
-    @Override
-    public boolean supportsMixedCaseQuotedIdentifiers() throws SQLException {
-        debugCodeCall("supportsMixedCaseQuotedIdentifiers");
-        return conn.getMode().getEnum() != ModeEnum.MySQL;
+        JdbcConnection.Settings settings = conn.getSettings();
+        return !settings.databaseToUpper && !settings.databaseToLower && !settings.caseInsensitiveIdentifiers;
     }
 
     /**
      * Checks if for CREATE TABLE Test(ID INT), getTables returns TEST as the
      * table name.
      *
-     * @return true usually, and false in MySQL mode
+     * @return true is so, false otherwise
      */
     @Override
     public boolean storesUpperCaseIdentifiers() throws SQLException {
         debugCodeCall("storesUpperCaseIdentifiers");
-        return conn.getMode().getEnum() != ModeEnum.MySQL;
+        return conn.getSettings().databaseToUpper;
     }
 
     /**
      * Checks if for CREATE TABLE Test(ID INT), getTables returns test as the
      * table name.
      *
-     * @return false usually, and true in MySQL mode
+     * @return true is so, false otherwise
      */
     @Override
     public boolean storesLowerCaseIdentifiers() throws SQLException {
         debugCodeCall("storesLowerCaseIdentifiers");
-        return conn.getMode().getEnum() == ModeEnum.MySQL;
+        return conn.getSettings().databaseToLower;
     }
 
     /**
      * Checks if for CREATE TABLE Test(ID INT), getTables returns Test as the
-     * table name.
+     * table name and identifiers are not case sensitive.
      *
-     * @return false
+     * @return true is so, false otherwise
      */
     @Override
-    public boolean storesMixedCaseIdentifiers() {
+    public boolean storesMixedCaseIdentifiers() throws SQLException {
         debugCodeCall("storesMixedCaseIdentifiers");
-        return false;
+        JdbcConnection.Settings settings = conn.getSettings();
+        return !settings.databaseToUpper && !settings.databaseToLower && settings.caseInsensitiveIdentifiers;
+    }
+
+    /**
+     * Checks if a table created with CREATE TABLE "Test"(ID INT) is a different
+     * table than a table created with CREATE TABLE "TEST"(ID INT).
+     *
+     * @return true is so, false otherwise
+     */
+    @Override
+    public boolean supportsMixedCaseQuotedIdentifiers() throws SQLException {
+        debugCodeCall("supportsMixedCaseQuotedIdentifiers");
+        return !conn.getSettings().caseInsensitiveIdentifiers;
     }
 
     /**
      * Checks if for CREATE TABLE "Test"(ID INT), getTables returns TEST as the
      * table name.
      *
-     * @return false usually, and true in MySQL mode
+     * @return false
      */
     @Override
     public boolean storesUpperCaseQuotedIdentifiers() throws SQLException {
         debugCodeCall("storesUpperCaseQuotedIdentifiers");
-        return conn.getMode().getEnum() == ModeEnum.MySQL;
+        return false;
     }
 
     /**
      * Checks if for CREATE TABLE "Test"(ID INT), getTables returns test as the
      * table name.
      *
-     * @return false usually, and true in MySQL mode
+     * @return false
      */
     @Override
     public boolean storesLowerCaseQuotedIdentifiers() throws SQLException {
         debugCodeCall("storesLowerCaseQuotedIdentifiers");
-        return conn.getMode().getEnum() == ModeEnum.MySQL;
+        return false;
     }
 
     /**
      * Checks if for CREATE TABLE "Test"(ID INT), getTables returns Test as the
-     * table name.
+     * table name and identifiers are case insensitive.
      *
-     * @return true usually, and false in MySQL mode
+     * @return true is so, false otherwise
      */
     @Override
     public boolean storesMixedCaseQuotedIdentifiers() throws SQLException {
         debugCodeCall("storesMixedCaseQuotedIdentifiers");
-        return conn.getMode().getEnum() != ModeEnum.MySQL;
+        return conn.getSettings().caseInsensitiveIdentifiers;
     }
 
     /**

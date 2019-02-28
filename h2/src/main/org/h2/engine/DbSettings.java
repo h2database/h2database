@@ -357,6 +357,9 @@ public class DbSettings extends SettingsBase {
         }
         databaseToLower = lower;
         databaseToUpper = upper;
+        HashMap<String, String> settings = getSettings();
+        settings.put("DATABASE_TO_LOWER", Boolean.toString(lower));
+        settings.put("DATABASE_TO_UPPER", Boolean.toString(upper));
     }
 
     /**

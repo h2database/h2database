@@ -527,7 +527,7 @@ public class TestMetaData extends TestDb {
         assertFalse(meta.storesLowerCaseIdentifiers());
         assertFalse(meta.storesLowerCaseQuotedIdentifiers());
         assertFalse(meta.storesMixedCaseIdentifiers());
-        assertTrue(meta.storesMixedCaseQuotedIdentifiers());
+        assertFalse(meta.storesMixedCaseQuotedIdentifiers());
         assertTrue(meta.storesUpperCaseIdentifiers());
         assertFalse(meta.storesUpperCaseQuotedIdentifiers());
         assertTrue(meta.supportsAlterTableWithAddColumn());

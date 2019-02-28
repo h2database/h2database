@@ -1275,7 +1275,7 @@ public class Database implements DataHandler {
      * @return the role or null
      */
     public Role findRole(String roleName) {
-        return roles.get(roleName);
+        return roles.get(StringUtils.toUpperEnglish(roleName));
     }
 
     /**
@@ -1309,7 +1309,7 @@ public class Database implements DataHandler {
      * @return the user or null
      */
     public User findUser(String name) {
-        return users.get(name);
+        return users.get(StringUtils.toUpperEnglish(name));
     }
 
     /**

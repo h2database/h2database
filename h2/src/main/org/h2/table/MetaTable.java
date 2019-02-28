@@ -705,9 +705,6 @@ public class MetaTable extends Table {
     }
 
     private ArrayList<Table> getTablesByName(Session session, String tableName) {
-        if (database.getMode().lowerCaseIdentifiers) {
-            tableName = StringUtils.toUpperEnglish(tableName);
-        }
         ArrayList<Table> tables = database.getTableOrViewByName(tableName);
         for (Table temp : session.getLocalTempTables()) {
             if (temp.getName().equals(tableName)) {
@@ -769,12 +766,12 @@ public class MetaTable extends Table {
         }
 
         ArrayList<Row> rows = Utils.newSmallArrayList();
-        String catalog = identifier(database.getShortName());
+        String catalog = database.getShortName();
         boolean admin = session.getUser().isAdmin();
         switch (type) {
         case TABLES: {
             for (Table table : getAllTables(session)) {
-                String tableName = identifier(table.getName());
+                String tableName = table.getName();
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
                 }
@@ -803,7 +800,7 @@ public class MetaTable extends Table {
                         // TABLE_CATALOG
                         catalog,
                         // TABLE_SCHEMA
-                        identifier(table.getSchema().getName()),
+                        table.getSchema().getName(),
                         // TABLE_NAME
                         tableName,
                         // TABLE_TYPE
@@ -833,7 +830,7 @@ public class MetaTable extends Table {
             // 10x faster
             final ArrayList<Table> tablesToList;
             if (indexFrom != null && indexFrom.equals(indexTo)) {
-                String tableName = identifier(indexFrom.getString());
+                String tableName = indexFrom.getString();
                 if (tableName == null) {
                     break;
                 }
@@ -842,7 +839,7 @@ public class MetaTable extends Table {
                 tablesToList = getAllTables(session);
             }
             for (Table table : tablesToList) {
-                String tableName = identifier(table.getName());
+                String tableName = table.getName();
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
                 }
@@ -880,11 +877,11 @@ public class MetaTable extends Table {
                             // TABLE_CATALOG
                             catalog,
                             // TABLE_SCHEMA
-                            identifier(table.getSchema().getName()),
+                            table.getSchema().getName(),
                             // TABLE_NAME
                             tableName,
                             // COLUMN_NAME
-                            identifier(c.getName()),
+                            c.getName(),
                             // ORDINAL_POSITION
                             ValueInt.get(j + 1),
                             // DOMAIN_CATALOG
@@ -953,7 +950,7 @@ public class MetaTable extends Table {
             // 10x faster
             final ArrayList<Table> tablesToList;
             if (indexFrom != null && indexFrom.equals(indexTo)) {
-                String tableName = identifier(indexFrom.getString());
+                String tableName = indexFrom.getString();
                 if (tableName == null) {
                     break;
                 }
@@ -962,7 +959,7 @@ public class MetaTable extends Table {
                 tablesToList = getAllTables(session);
             }
             for (Table table : tablesToList) {
-                String tableName = identifier(table.getName());
+                String tableName = table.getName();
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
                 }
@@ -998,17 +995,17 @@ public class MetaTable extends Table {
                                 // TABLE_CATALOG
                                 catalog,
                                 // TABLE_SCHEMA
-                                identifier(table.getSchema().getName()),
+                                table.getSchema().getName(),
                                 // TABLE_NAME
                                 tableName,
                                 // NON_UNIQUE
                                 ValueBoolean.get(!index.getIndexType().isUnique()),
                                 // INDEX_NAME
-                                identifier(index.getName()),
+                                index.getName(),
                                 // ORDINAL_POSITION
                                 ValueShort.get((short) (k + 1)),
                                 // COLUMN_NAME
-                                identifier(column.getName()),
+                                column.getName(),
                                 // CARDINALITY
                                 ValueInt.get(0),
                                 // PRIMARY_KEY
@@ -1220,9 +1217,9 @@ public class MetaTable extends Table {
                         // SEQUENCE_CATALOG
                         catalog,
                         // SEQUENCE_SCHEMA
-                        identifier(s.getSchema().getName()),
+                        s.getSchema().getName(),
                         // SEQUENCE_NAME
-                        identifier(s.getName()),
+                        s.getName(),
                         // CURRENT_VALUE
                         ValueLong.get(s.getCurrentValue()),
                         // INCREMENT
@@ -1295,8 +1292,8 @@ public class MetaTable extends Table {
                                 schema = table.getSchema();
                             }
                         }
-                        String tableName = (table != null) ? identifier(table.getName()) : "";
-                        String schemaName = (schema != null) ? identifier(schema.getName()) : "";
+                        String tableName = (table != null) ? table.getName() : "";
+                        String schemaName = (schema != null) ? schema.getName() : "";
                         if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                             continue;
                         }
@@ -1355,7 +1352,7 @@ public class MetaTable extends Table {
                             // ALIAS_SCHEMA
                             alias.getSchema().getName(),
                             // ALIAS_NAME
-                            identifier(alias.getName()),
+                            alias.getName(),
                             // JAVA_CLASS
                             alias.getJavaClassName(),
                             // JAVA_METHOD
@@ -1387,7 +1384,7 @@ public class MetaTable extends Table {
                         // ALIAS_SCHEMA
                         database.getMainSchema().getName(),
                         // ALIAS_NAME
-                        identifier(agg.getName()),
+                        agg.getName(),
                         // JAVA_CLASS
                         agg.getJavaClassName(),
                         // JAVA_METHOD
@@ -1431,7 +1428,7 @@ public class MetaTable extends Table {
                                 // ALIAS_SCHEMA
                                 alias.getSchema().getName(),
                                 // ALIAS_NAME
-                                identifier(alias.getName()),
+                                alias.getName(),
                                 // JAVA_CLASS
                                 alias.getJavaClassName(),
                                 // JAVA_METHOD
@@ -1476,7 +1473,7 @@ public class MetaTable extends Table {
                                 // ALIAS_SCHEMA
                                 alias.getSchema().getName(),
                                 // ALIAS_NAME
-                                identifier(alias.getName()),
+                                alias.getName(),
                                 // JAVA_CLASS
                                 alias.getJavaClassName(),
                                 // JAVA_METHOD
@@ -1520,7 +1517,7 @@ public class MetaTable extends Table {
                         // CATALOG_NAME
                         catalog,
                         // SCHEMA_NAME
-                        identifier(schema.getName()),
+                        schema.getName(),
                         // SCHEMA_OWNER
                         identifier(schema.getOwner().getName()),
                         // DEFAULT_CHARACTER_SET_NAME
@@ -1547,7 +1544,7 @@ public class MetaTable extends Table {
                 if (hideTable(table, session)) {
                     continue;
                 }
-                String tableName = identifier(table.getName());
+                String tableName = table.getName();
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
                 }
@@ -1566,7 +1563,7 @@ public class MetaTable extends Table {
                 if (hideTable(table, session)) {
                     continue;
                 }
-                String tableName = identifier(table.getName());
+                String tableName = table.getName();
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
                 }
@@ -1595,7 +1592,7 @@ public class MetaTable extends Table {
                 if (table.getTableType() != TableType.VIEW) {
                     continue;
                 }
-                String tableName = identifier(table.getName());
+                String tableName = table.getName();
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
                 }
@@ -1604,7 +1601,7 @@ public class MetaTable extends Table {
                         // TABLE_CATALOG
                         catalog,
                         // TABLE_SCHEMA
-                        identifier(table.getSchema().getName()),
+                        table.getSchema().getName(),
                         // TABLE_NAME
                         tableName,
                         // VIEW_DEFINITION
@@ -1649,7 +1646,7 @@ public class MetaTable extends Table {
                 IndexColumn[] refCols = ref.getRefColumns();
                 Table tab = ref.getTable();
                 Table refTab = ref.getRefTable();
-                String tableName = identifier(refTab.getName());
+                String tableName = refTab.getName();
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
                 }
@@ -1660,19 +1657,19 @@ public class MetaTable extends Table {
                             // PKTABLE_CATALOG
                             catalog,
                             // PKTABLE_SCHEMA
-                            identifier(refTab.getSchema().getName()),
+                            refTab.getSchema().getName(),
                             // PKTABLE_NAME
-                            identifier(refTab.getName()),
+                            refTab.getName(),
                             // PKCOLUMN_NAME
-                            identifier(refCols[j].column.getName()),
+                            refCols[j].column.getName(),
                             // FKTABLE_CATALOG
                             catalog,
                             // FKTABLE_SCHEMA
-                            identifier(tab.getSchema().getName()),
+                            tab.getSchema().getName(),
                             // FKTABLE_NAME
-                            identifier(tab.getName()),
+                            tab.getName(),
                             // FKCOLUMN_NAME
-                            identifier(cols[j].column.getName()),
+                            cols[j].column.getName(),
                             // ORDINAL_POSITION
                             ValueShort.get((short) (j + 1)),
                             // UPDATE_RULE
@@ -1680,9 +1677,9 @@ public class MetaTable extends Table {
                             // DELETE_RULE
                             delete,
                             // FK_NAME
-                            identifier(ref.getName()),
+                            ref.getName(),
                             // PK_NAME
-                            identifier(ref.getUniqueIndex().getName()),
+                            ref.getUniqueIndex().getName(),
                             // DEFERRABILITY
                             ValueShort.get((short) DatabaseMetaData.importedKeyNotDeferrable)
                     );
@@ -1706,7 +1703,7 @@ public class MetaTable extends Table {
                 if (index != null) {
                     uniqueIndexName = index.getName();
                 }
-                String tableName = identifier(table.getName());
+                String tableName = table.getName();
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
                 }
@@ -1731,16 +1728,16 @@ public class MetaTable extends Table {
                         // CONSTRAINT_CATALOG
                         catalog,
                         // CONSTRAINT_SCHEMA
-                        identifier(constraint.getSchema().getName()),
+                        constraint.getSchema().getName(),
                         // CONSTRAINT_NAME
-                        identifier(constraint.getName()),
+                        constraint.getName(),
                         // CONSTRAINT_TYPE
                         constraintType == Constraint.Type.PRIMARY_KEY ?
                                 constraintType.getSqlName() : constraintType.name(),
                         // TABLE_CATALOG
                         catalog,
                         // TABLE_SCHEMA
-                        identifier(table.getSchema().getName()),
+                        table.getSchema().getName(),
                         // TABLE_NAME
                         tableName,
                         // UNIQUE_INDEX_NAME
@@ -1768,9 +1765,9 @@ public class MetaTable extends Table {
                         // CONSTANT_CATALOG
                         catalog,
                         // CONSTANT_SCHEMA
-                        identifier(constant.getSchema().getName()),
+                        constant.getSchema().getName(),
                         // CONSTANT_NAME
-                        identifier(constant.getName()),
+                        constant.getName(),
                         // DATA_TYPE
                         ValueInt.get(DataType.convertTypeToSQLType(expr.getType().getValueType())),
                         // REMARKS
@@ -1792,7 +1789,7 @@ public class MetaTable extends Table {
                         // DOMAIN_SCHEMA
                         database.getMainSchema().getName(),
                         // DOMAIN_NAME
-                        identifier(dt.getName()),
+                        dt.getName(),
                         // COLUMN_DEFAULT
                         col.getDefaultSQL(),
                         // IS_NULLABLE
@@ -1828,17 +1825,17 @@ public class MetaTable extends Table {
                         // TRIGGER_CATALOG
                         catalog,
                         // TRIGGER_SCHEMA
-                        identifier(trigger.getSchema().getName()),
+                        trigger.getSchema().getName(),
                         // TRIGGER_NAME
-                        identifier(trigger.getName()),
+                        trigger.getName(),
                         // TRIGGER_TYPE
                         trigger.getTypeNameList(),
                         // TABLE_CATALOG
                         catalog,
                         // TABLE_SCHEMA
-                        identifier(table.getSchema().getName()),
+                        table.getSchema().getName(),
                         // TABLE_NAME
-                        identifier(table.getName()),
+                        table.getName(),
                         // BEFORE
                         ValueBoolean.get(trigger.isBefore()),
                         // JAVA_CLASS
@@ -1989,9 +1986,9 @@ public class MetaTable extends Table {
                         // SYNONYM_CATALOG
                         catalog,
                         // SYNONYM_SCHEMA
-                        identifier(synonym.getSchema().getName()),
+                        synonym.getSchema().getName(),
                         // SYNONYM_NAME
-                        identifier(synonym.getName()),
+                        synonym.getName(),
                         // SYNONYM_FOR
                         synonym.getSynonymForName(),
                         // SYNONYM_FOR_SCHEMA
@@ -2016,7 +2013,7 @@ public class MetaTable extends Table {
                 if (hideTable(table, session)) {
                     continue;
                 }
-                String tableName = identifier(table.getName());
+                String tableName = table.getName();
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
                 }
@@ -2024,15 +2021,15 @@ public class MetaTable extends Table {
                         // CONSTRAINT_CATALOG
                         catalog,
                         // CONSTRAINT_SCHEMA
-                        identifier(constraint.getSchema().getName()),
+                        constraint.getSchema().getName(),
                         // CONSTRAINT_NAME
-                        identifier(constraint.getName()),
+                        constraint.getName(),
                         // CONSTRAINT_TYPE
                         constraintType.getSqlName(),
                         // TABLE_CATALOG
                         catalog,
                         // TABLE_SCHEMA
-                        identifier(table.getSchema().getName()),
+                        table.getSchema().getName(),
                         // TABLE_NAME
                         tableName,
                         // IS_DEFERRABLE
@@ -2052,7 +2049,7 @@ public class MetaTable extends Table {
                 if (hideTable(table, session)) {
                     continue;
                 }
-                String tableName = identifier(table.getName());
+                String tableName = table.getName();
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
                 }
@@ -2094,13 +2091,13 @@ public class MetaTable extends Table {
                             // CONSTRAINT_CATALOG
                             catalog,
                             // CONSTRAINT_SCHEMA
-                            identifier(constraint.getSchema().getName()),
+                            constraint.getSchema().getName(),
                             // CONSTRAINT_NAME
-                            identifier(constraint.getName()),
+                            constraint.getName(),
                             // TABLE_CATALOG
                             catalog,
                             // TABLE_SCHEMA
-                            identifier(table.getSchema().getName()),
+                            table.getSchema().getName(),
                             // TABLE_NAME
                             tableName,
                             // COLUMN_NAME
@@ -2135,13 +2132,13 @@ public class MetaTable extends Table {
                         // CONSTRAINT_CATALOG
                         catalog,
                         // CONSTRAINT_SCHEMA
-                        identifier(constraint.getSchema().getName()),
+                        constraint.getSchema().getName(),
                         // CONSTRAINT_NAME
-                        identifier(constraint.getName()),
+                        constraint.getName(),
                         // UNIQUE_CONSTRAINT_CATALOG
                         catalog,
                         // UNIQUE_CONSTRAINT_SCHEMA
-                        identifier(unique.getSchema().getName()),
+                        unique.getSchema().getName(),
                         // UNIQUE_CONSTRAINT_NAME
                         unique.getName(),
                         // MATCH_OPTION
@@ -2248,9 +2245,9 @@ public class MetaTable extends Table {
                     // TABLE_CATALOG
                     catalog,
                     // TABLE_SCHEMA
-                    identifier(table.getSchema().getName()),
+                    table.getSchema().getName(),
                     // TABLE_NAME
-                    identifier(table.getName()),
+                    table.getName(),
                     // PRIVILEGE_TYPE
                     right,
                     // IS_GRANTABLE
@@ -2265,11 +2262,11 @@ public class MetaTable extends Table {
                     // TABLE_CATALOG
                     catalog,
                     // TABLE_SCHEMA
-                    identifier(table.getSchema().getName()),
+                    table.getSchema().getName(),
                     // TABLE_NAME
-                    identifier(table.getName()),
+                    table.getName(),
                     // COLUMN_NAME
-                    identifier(column),
+                    column,
                     // PRIVILEGE_TYPE
                     right,
                     // IS_GRANTABLE

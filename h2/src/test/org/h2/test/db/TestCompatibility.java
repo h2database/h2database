@@ -315,13 +315,15 @@ public class TestCompatibility extends TestDb {
     }
 
     private void testMySQL() throws SQLException {
+        // need to reconnect to change DATABASE_TO_LOWER
+        conn.close();
+        conn = getConnection("compatibility;MODE=MYSQL;DATABASE_TO_LOWER=TRUE");
         Statement stat = conn.createStatement();
-        stat.execute("set mode mysql");
         stat.execute("create schema test_schema");
         stat.execute("use test_schema");
-        assertResult("TEST_SCHEMA", stat, "select schema()");
+        assertResult("test_schema", stat, "select schema()");
         stat.execute("use public");
-        assertResult("PUBLIC", stat, "select schema()");
+        assertResult("public", stat, "select schema()");
 
         stat.execute("SELECT 1");
         stat.execute("DROP TABLE IF EXISTS TEST");
@@ -372,17 +374,17 @@ public class TestCompatibility extends TestDb {
         }
         // need to reconnect, because meta data tables may be initialized
         conn.close();
-        conn = getConnection("compatibility;MODE=MYSQL");
+        conn = getConnection("compatibility;MODE=MYSQL;DATABASE_TO_LOWER=TRUE");
         stat = conn.createStatement();
         testLog(Math.log(10), stat);
 
         DatabaseMetaData meta = conn.getMetaData();
         assertTrue(meta.storesLowerCaseIdentifiers());
-        assertTrue(meta.storesLowerCaseQuotedIdentifiers());
+        assertFalse(meta.storesLowerCaseQuotedIdentifiers());
         assertFalse(meta.storesMixedCaseIdentifiers());
         assertFalse(meta.storesMixedCaseQuotedIdentifiers());
         assertFalse(meta.storesUpperCaseIdentifiers());
-        assertTrue(meta.storesUpperCaseQuotedIdentifiers());
+        assertFalse(meta.storesUpperCaseQuotedIdentifiers());
 
         stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
                 ResultSet.CONCUR_UPDATABLE);
@@ -422,7 +424,7 @@ public class TestCompatibility extends TestDb {
 
         // Check if mysql comments are supported, ensure clean connection
         conn.close();
-        conn = getConnection("compatibility;MODE=MYSQL");
+        conn = getConnection("compatibility;MODE=MYSQL;DATABASE_TO_LOWER=TRUE");
         stat = conn.createStatement();
         stat.execute("DROP TABLE IF EXISTS TEST_NO_COMMENT");
         stat.execute("CREATE table TEST_NO_COMMENT " +
@@ -449,6 +451,8 @@ public class TestCompatibility extends TestDb {
         stat.execute("ALTER TABLE TEST_COMMENT_ENGINE DROP INDEX CommentUnique");
         stat.execute("CREATE INDEX IDX_ATTACHMENT_ID ON TEST_COMMENT_ENGINE (ATTACHMENT_ID)");
         stat.execute("DROP INDEX IDX_ATTACHMENT_ID ON TEST_COMMENT_ENGINE");
+
+        stat.execute("DROP ALL OBJECTS");
 
         conn.close();
         conn = getConnection("compatibility");

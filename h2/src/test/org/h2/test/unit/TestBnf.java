@@ -39,7 +39,7 @@ public class TestBnf extends TestDb {
             testModes(conn);
             testProcedures(conn, false);
         }
-        try (Connection conn = getConnection("bnf;mode=mysql")) {
+        try (Connection conn = getConnection("bnf;mode=mysql;database_to_lower=true")) {
             testProcedures(conn, true);
         }
     }

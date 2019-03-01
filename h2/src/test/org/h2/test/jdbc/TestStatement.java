@@ -507,6 +507,7 @@ public class TestStatement extends TestDb {
         assertTrue(stat.isSimpleIdentifier("\u02B0"));
 
         conn.close();
+        deleteDb("statement");
         conn = getConnection("statement;DATABASE_TO_LOWER=TRUE");
 
         stat = (JdbcStatement) conn.createStatement();
@@ -526,6 +527,7 @@ public class TestStatement extends TestDb {
         assertFalse(stat.isSimpleIdentifier("today"));
 
         conn.close();
+        deleteDb("statement");
         conn = getConnection("statement;DATABASE_TO_UPPER=FALSE");
 
         stat = (JdbcStatement) conn.createStatement();

@@ -731,8 +731,8 @@ public class TestCompatibility extends TestDb {
             testIdentifiers(stat, "`test`", "`id`", ok);
             testIdentifiers(stat, '"' + table + '"', '"' + column + '"', true);
             testIdentifiers(stat, "\"TeSt\"", "\"iD\"", caseInsensitiveIdentifiers);
-            stat.execute("CREATE TABLE T2(```` INT, `\"'\"` INT) AS VALUES (1, 2)");
-            try (ResultSet rs = stat.executeQuery("SELECT ````, `\"'\"` FROM T2")) {
+            stat.execute("CREATE TABLE T2(\"`\" INT, `\"'\"` INT) AS VALUES (1, 2)");
+            try (ResultSet rs = stat.executeQuery("SELECT ````, \"\"\"'\"\"\" FROM T2")) {
                 assertTrue(rs.next());
                 assertEquals(1, rs.getInt(1));
                 assertEquals(2, rs.getInt(2));

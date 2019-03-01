@@ -4649,7 +4649,7 @@ public class Parser {
             String result = null;
             while (true) {
                 for (int begin = i;; i++) {
-                    if (chars[i] == '"') {
+                    if (chars[i] == c) {
                         if (result == null) {
                             result = sqlCommand.substring(begin, i);
                         } else {
@@ -4658,7 +4658,7 @@ public class Parser {
                         break;
                     }
                 }
-                if (chars[++i] != '"') {
+                if (chars[++i] != c) {
                     break;
                 }
                 i++;
@@ -5044,19 +5044,19 @@ public class Parser {
                 break;
             case '`':
                 // MySQL alias for ", but not case sensitive
-                command[i] = '"';
-                changed = true;
                 type = types[i] = CHAR_QUOTED;
                 startLoop = i;
                 while (command[++i] != '`') {
                     checkRunOver(i, len, startLoop);
                     c = command[i];
                     if (identifiersToUpper || identifiersToLower) {
-                        c = identifiersToUpper ? Character.toUpperCase(c) : Character.toLowerCase(c);
+                        char u = identifiersToUpper ? Character.toUpperCase(c) : Character.toLowerCase(c);
+                        if (u != c) {
+                            command[i] = u;
+                            changed = true;
+                        }
                     }
-                    command[i] = c;
                 }
-                command[i] = '"';
                 break;
             case '"':
                 type = types[i] = CHAR_QUOTED;

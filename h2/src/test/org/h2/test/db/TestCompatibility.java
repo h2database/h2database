@@ -317,6 +317,7 @@ public class TestCompatibility extends TestDb {
     private void testMySQL() throws SQLException {
         // need to reconnect to change DATABASE_TO_LOWER
         conn.close();
+        deleteDb("compatibility");
         conn = getConnection("compatibility;MODE=MYSQL;DATABASE_TO_LOWER=TRUE");
         Statement stat = conn.createStatement();
         stat.execute("create schema test_schema");
@@ -455,6 +456,7 @@ public class TestCompatibility extends TestDb {
         stat.execute("DROP ALL OBJECTS");
 
         conn.close();
+        deleteDb("compatibility");
         conn = getConnection("compatibility");
     }
 
@@ -721,11 +723,20 @@ public class TestCompatibility extends TestDb {
                 assertEquals(column, rs.getString(3));
             }
             testIdentifiers(stat, "Test", "Id", true);
+            testIdentifiers(stat, "`Test`", "`Id`", true);
             boolean ok = upper || lower || caseInsensitiveIdentifiers;
             testIdentifiers(stat, "TEST", "ID", ok);
+            testIdentifiers(stat, "`TEST`", "`ID`", ok);
             testIdentifiers(stat, "test", "id", ok);
+            testIdentifiers(stat, "`test`", "`id`", ok);
             testIdentifiers(stat, '"' + table + '"', '"' + column + '"', true);
             testIdentifiers(stat, "\"TeSt\"", "\"iD\"", caseInsensitiveIdentifiers);
+            stat.execute("CREATE TABLE T2(```` INT, `\"'\"` INT) AS VALUES (1, 2)");
+            try (ResultSet rs = stat.executeQuery("SELECT ````, `\"'\"` FROM T2")) {
+                assertTrue(rs.next());
+                assertEquals(1, rs.getInt(1));
+                assertEquals(2, rs.getInt(2));
+            }
         } finally {
             deleteDb("compatibility");
         }

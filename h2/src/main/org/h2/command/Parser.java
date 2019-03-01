@@ -4649,7 +4649,7 @@ public class Parser {
             String result = null;
             while (true) {
                 for (int begin = i;; i++) {
-                    if (chars[i] == '\"') {
+                    if (chars[i] == '"') {
                         if (result == null) {
                             result = sqlCommand.substring(begin, i);
                         } else {
@@ -4658,7 +4658,7 @@ public class Parser {
                         break;
                     }
                 }
-                if (chars[++i] != '\"') {
+                if (chars[++i] != '"') {
                     break;
                 }
                 i++;
@@ -5051,14 +5051,17 @@ public class Parser {
                 while (command[++i] != '`') {
                     checkRunOver(i, len, startLoop);
                     c = command[i];
-                    command[i] = Character.toUpperCase(c);
+                    if (identifiersToUpper || identifiersToLower) {
+                        c = identifiersToUpper ? Character.toUpperCase(c) : Character.toLowerCase(c);
+                    }
+                    command[i] = c;
                 }
                 command[i] = '"';
                 break;
-            case '\"':
+            case '"':
                 type = types[i] = CHAR_QUOTED;
                 startLoop = i;
-                while (command[++i] != '\"') {
+                while (command[++i] != '"') {
                     checkRunOver(i, len, startLoop);
                 }
                 break;

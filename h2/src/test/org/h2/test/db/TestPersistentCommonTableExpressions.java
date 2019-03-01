@@ -43,25 +43,25 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
         String[] expectedColumnTypes = new String[]{"VARCHAR", numericName};
         String[] expectedColumnNames = new String[]{"VAL",
                 "SUM((SELECT\n" +
-                "    X\n" +
-                "FROM PUBLIC.\"\" BB\n" +
+                "    \"X\"\n" +
+                "FROM \"PUBLIC\".\"\" \"BB\"\n" +
                 "    /* SELECT\n" +
-                "        SUM(1) AS X,\n" +
-                "        A\n" +
-                "    FROM PUBLIC.B\n" +
-                "        /++ PUBLIC.B.tableScan ++/\n" +
-                "        /++ WHERE A IS ?1\n" +
+                "        SUM(1) AS \"X\",\n" +
+                "        \"A\"\n" +
+                "    FROM \"PUBLIC\".\"B\"\n" +
+                "        /++ \"PUBLIC\".\"B\".tableScan ++/\n" +
+                "        /++ WHERE \"A\" IS ?1\n" +
                 "        ++/\n" +
                 "        /++ scanCount: 4 ++/\n" +
-                "    INNER JOIN PUBLIC.C\n" +
-                "        /++ PUBLIC.C.tableScan ++/\n" +
+                "    INNER JOIN \"PUBLIC\".\"C\"\n" +
+                "        /++ \"PUBLIC\".\"C\".tableScan ++/\n" +
                 "        ON 1=1\n" +
-                "    WHERE (A IS ?1)\n" +
-                "        AND (B.VAL = C.B)\n" +
-                "    GROUP BY A: A IS A.VAL\n" +
+                "    WHERE (\"A\" IS ?1)\n" +
+                "        AND (\"B\".\"VAL\" = \"C\".\"B\")\n" +
+                "    GROUP BY \"A\": \"A\" IS \"A\".\"VAL\"\n" +
                 "     */\n" +
                 "    /* scanCount: 1 */\n" +
-                "WHERE BB.A IS A.VAL))"};
+                "WHERE \"BB\".\"A\" IS \"A\".\"VAL\"))"};
 
         String setupSQL =
                 "DROP TABLE IF EXISTS A;                           "

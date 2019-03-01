@@ -452,7 +452,7 @@ public class TestSpatial extends TestDb {
                 "where polygon && 'POLYGON ((1 1, 1 2, 2 2, 1 1))'::Geometry");
         rs.next();
         if (config.mvStore) {
-            assertContains(rs.getString(1), "/* PUBLIC.IDX_TEST_POLYGON: POLYGON &&");
+            assertContains(rs.getString(1), "/* \"PUBLIC\".\"IDX_TEST_POLYGON\": \"POLYGON\" &&");
         }
 
         // TODO equality should probably also use the spatial index

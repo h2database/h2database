@@ -53,6 +53,7 @@ public class TestStatement extends TestDb {
         testIdentityMerge();
         testIdentity();
         conn.close();
+        testIdentifiers();
         deleteDb("statement");
     }
 
@@ -330,23 +331,6 @@ public class TestStatement extends TestDb {
         assertNull(stat.getWarnings());
         assertTrue(conn == stat.getConnection());
 
-        assertEquals("SOME_ID", statBC.enquoteIdentifier("SOME_ID", false));
-        assertEquals("\"SOME ID\"", statBC.enquoteIdentifier("SOME ID", false));
-        assertEquals("\"SOME_ID\"", statBC.enquoteIdentifier("SOME_ID", true));
-        assertEquals("\"FROM\"", statBC.enquoteIdentifier("FROM", false));
-        assertEquals("\"Test\"", statBC.enquoteIdentifier("Test", false));
-        assertEquals("\"TODAY\"", statBC.enquoteIdentifier("TODAY", false));
-        // Other lower case characters don't have upper case mappings
-        assertEquals("\u02B0", statBC.enquoteIdentifier("\u02B0", false));
-
-        assertTrue(statBC.isSimpleIdentifier("SOME_ID"));
-        assertFalse(statBC.isSimpleIdentifier("SOME ID"));
-        assertFalse(statBC.isSimpleIdentifier("FROM"));
-        assertFalse(statBC.isSimpleIdentifier("Test"));
-        assertFalse(statBC.isSimpleIdentifier("TODAY"));
-        // Other lower case characters don't have upper case mappings
-        assertTrue(statBC.isSimpleIdentifier("\u02B0"));
-
         stat.close();
     }
 
@@ -487,6 +471,86 @@ public class TestStatement extends TestDb {
         assertEquals(1, ((JdbcPreparedStatementBackwardsCompat) ps).executeLargeUpdate());
         assertEquals(1, ((JdbcStatementBackwardsCompat) ps).getLargeUpdateCount());
         stat.execute("drop table test");
+    }
+
+    private void testIdentifiers() throws SQLException {
+        Connection conn = getConnection("statement");
+
+        JdbcStatement stat = (JdbcStatement) conn.createStatement();
+        assertEquals("SOME_ID", stat.enquoteIdentifier("SOME_ID", false));
+        assertEquals("\"SOME ID\"", stat.enquoteIdentifier("SOME ID", false));
+        assertEquals("\"SOME_ID\"", stat.enquoteIdentifier("SOME_ID", true));
+        assertEquals("\"FROM\"", stat.enquoteIdentifier("FROM", false));
+        assertEquals("\"Test\"", stat.enquoteIdentifier("Test", false));
+        assertEquals("\"test\"", stat.enquoteIdentifier("test", false));
+        assertEquals("\"TODAY\"", stat.enquoteIdentifier("TODAY", false));
+        assertEquals("\"Test\"", stat.enquoteIdentifier("\"Test\"", false));
+        assertEquals("\"Test\"", stat.enquoteIdentifier("\"Test\"", true));
+        assertEquals("\"\"\"Test\"", stat.enquoteIdentifier("\"\"\"Test\"", true));
+        try {
+            stat.enquoteIdentifier("\"Test", true);
+            fail();
+        } catch (SQLException ex) {
+            // OK
+        }
+        // Other lower case characters don't have upper case mappings
+        assertEquals("\u02B0", stat.enquoteIdentifier("\u02B0", false));
+
+        assertTrue(stat.isSimpleIdentifier("SOME_ID"));
+        assertFalse(stat.isSimpleIdentifier("SOME ID"));
+        assertFalse(stat.isSimpleIdentifier("FROM"));
+        assertFalse(stat.isSimpleIdentifier("Test"));
+        assertFalse(stat.isSimpleIdentifier("test"));
+        assertFalse(stat.isSimpleIdentifier("TODAY"));
+        // Other lower case characters don't have upper case mappings
+        assertTrue(stat.isSimpleIdentifier("\u02B0"));
+
+        conn.close();
+        conn = getConnection("statement;DATABASE_TO_LOWER=TRUE");
+
+        stat = (JdbcStatement) conn.createStatement();
+        assertEquals("some_id", stat.enquoteIdentifier("some_id", false));
+        assertEquals("\"some id\"", stat.enquoteIdentifier("some id", false));
+        assertEquals("\"some_id\"", stat.enquoteIdentifier("some_id", true));
+        assertEquals("\"from\"", stat.enquoteIdentifier("from", false));
+        assertEquals("\"Test\"", stat.enquoteIdentifier("Test", false));
+        assertEquals("\"TEST\"", stat.enquoteIdentifier("TEST", false));
+        assertEquals("\"today\"", stat.enquoteIdentifier("today", false));
+
+        assertTrue(stat.isSimpleIdentifier("some_id"));
+        assertFalse(stat.isSimpleIdentifier("some id"));
+        assertFalse(stat.isSimpleIdentifier("from"));
+        assertFalse(stat.isSimpleIdentifier("Test"));
+        assertFalse(stat.isSimpleIdentifier("TEST"));
+        assertFalse(stat.isSimpleIdentifier("today"));
+
+        conn.close();
+        conn = getConnection("statement;DATABASE_TO_UPPER=FALSE");
+
+        stat = (JdbcStatement) conn.createStatement();
+        assertEquals("SOME_ID", stat.enquoteIdentifier("SOME_ID", false));
+        assertEquals("some_id", stat.enquoteIdentifier("some_id", false));
+        assertEquals("\"SOME ID\"", stat.enquoteIdentifier("SOME ID", false));
+        assertEquals("\"some id\"", stat.enquoteIdentifier("some id", false));
+        assertEquals("\"SOME_ID\"", stat.enquoteIdentifier("SOME_ID", true));
+        assertEquals("\"some_id\"", stat.enquoteIdentifier("some_id", true));
+        assertEquals("\"FROM\"", stat.enquoteIdentifier("FROM", false));
+        assertEquals("\"from\"", stat.enquoteIdentifier("from", false));
+        assertEquals("Test", stat.enquoteIdentifier("Test", false));
+        assertEquals("\"TODAY\"", stat.enquoteIdentifier("TODAY", false));
+        assertEquals("\"today\"", stat.enquoteIdentifier("today", false));
+
+        assertTrue(stat.isSimpleIdentifier("SOME_ID"));
+        assertTrue(stat.isSimpleIdentifier("some_id"));
+        assertFalse(stat.isSimpleIdentifier("SOME ID"));
+        assertFalse(stat.isSimpleIdentifier("some id"));
+        assertFalse(stat.isSimpleIdentifier("FROM"));
+        assertFalse(stat.isSimpleIdentifier("from"));
+        assertTrue(stat.isSimpleIdentifier("Test"));
+        assertFalse(stat.isSimpleIdentifier("TODAY"));
+        assertFalse(stat.isSimpleIdentifier("today"));
+
+        conn.close();
     }
 
 }

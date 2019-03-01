@@ -36,10 +36,10 @@ SELECT * FROM UNNEST(ARRAY[1], ARRAY[2, 3, 4], ARRAY[5, 6]) WITH ORDINALITY;
 > rows: 3
 
 EXPLAIN SELECT * FROM UNNEST(ARRAY[1]);
->> SELECT UNNEST.C1 FROM UNNEST(ARRAY [1]) /* function */
+>> SELECT "UNNEST"."C1" FROM UNNEST(ARRAY [1]) /* function */
 
 EXPLAIN SELECT * FROM UNNEST(ARRAY[1]) WITH ORDINALITY;
->> SELECT UNNEST.C1, UNNEST.NORD FROM UNNEST(ARRAY [1]) WITH ORDINALITY /* function */
+>> SELECT "UNNEST"."C1", "UNNEST"."NORD" FROM UNNEST(ARRAY [1]) WITH ORDINALITY /* function */
 
 SELECT 1 IN(UNNEST(ARRAY[1, 2, 3]));
 >> TRUE
@@ -48,8 +48,8 @@ SELECT 4 IN(UNNEST(ARRAY[1, 2, 3]));
 >> FALSE
 
 SELECT X, X IN(UNNEST(ARRAY[2, 4])) FROM SYSTEM_RANGE(1, 5);
-> X X IN(2, 4)
-> - ----------
+> X "X" IN(2, 4)
+> - ------------
 > 1 FALSE
 > 2 TRUE
 > 3 FALSE
@@ -60,8 +60,8 @@ SELECT X, X IN(UNNEST(ARRAY[2, 4])) FROM SYSTEM_RANGE(1, 5);
 SELECT X, X IN(UNNEST(?)) FROM SYSTEM_RANGE(1, 5);
 {
 2
-> X X = ANY(?1)
-> - -----------
+> X "X" = ANY(?1)
+> - -------------
 > 1 FALSE
 > 2 TRUE
 > 3 FALSE
@@ -78,8 +78,8 @@ INSERT INTO TEST VALUES (2, ARRAY[2, 4]), (3, ARRAY[2, 5]);
 > update count: 2
 
 SELECT A, B, A IN(UNNEST(B)) FROM TEST;
-> A B      A IN(UNNEST(B))
-> - ------ ---------------
+> A B      "A" IN(UNNEST("B"))
+> - ------ -------------------
 > 2 [2, 4] TRUE
 > 3 [2, 5] FALSE
 > rows: 2

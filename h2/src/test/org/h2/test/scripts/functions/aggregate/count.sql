@@ -12,20 +12,20 @@ insert into test values (1), (2), (3), (4), (5), (6), (7), (8), (9), (10), (11),
 > update count: 13
 
 select count(v), count(v) filter (where v >= 4) from test where v <= 10;
-> COUNT(V) COUNT(V) FILTER (WHERE (V >= 4))
-> -------- --------------------------------
-> 10       7
+> COUNT("V") COUNT("V") FILTER (WHERE ("V" >= 4))
+> ---------- ------------------------------------
+> 10         7
 > rows: 1
 
 select count(*), count(*) filter (where v >= 4) from test;
-> COUNT(*) COUNT(*) FILTER (WHERE (V >= 4))
-> -------- --------------------------------
+> COUNT(*) COUNT(*) FILTER (WHERE ("V" >= 4))
+> -------- ----------------------------------
 > 13       9
 > rows: 1
 
 select count(*), count(*) filter (where v >= 4) from test where v <= 10;
-> COUNT(*) COUNT(*) FILTER (WHERE (V >= 4))
-> -------- --------------------------------
+> COUNT(*) COUNT(*) FILTER (WHERE ("V" >= 4))
+> -------- ----------------------------------
 > 10       7
 > rows: 1
 
@@ -33,15 +33,15 @@ create index test_idx on test(v);
 > ok
 
 select count(v), count(v) filter (where v >= 4) from test where v <= 10;
-> COUNT(V) COUNT(V) FILTER (WHERE (V >= 4))
-> -------- --------------------------------
-> 10       7
+> COUNT("V") COUNT("V") FILTER (WHERE ("V" >= 4))
+> ---------- ------------------------------------
+> 10         7
 > rows: 1
 
 select count(v), count(v) filter (where v >= 4) from test;
-> COUNT(V) COUNT(V) FILTER (WHERE (V >= 4))
-> -------- --------------------------------
-> 12       9
+> COUNT("V") COUNT("V") FILTER (WHERE ("V" >= 4))
+> ---------- ------------------------------------
+> 12         9
 > rows: 1
 
 drop table test;

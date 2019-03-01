@@ -12,27 +12,27 @@ insert into test values (1), (2), (3), (4), (5), (6), (7), (8), (9), (10), (11),
 > update count: 12
 
 select sum(v), sum(v) filter (where v >= 4) from test where v <= 10;
-> SUM(V) SUM(V) FILTER (WHERE (V >= 4))
-> ------ ------------------------------
-> 55     49
+> SUM("V") SUM("V") FILTER (WHERE ("V" >= 4))
+> -------- ----------------------------------
+> 55       49
 > rows: 1
 
 create index test_idx on test(v);
 > ok
 
 select sum(v), sum(v) filter (where v >= 4) from test where v <= 10;
-> SUM(V) SUM(V) FILTER (WHERE (V >= 4))
-> ------ ------------------------------
-> 55     49
+> SUM("V") SUM("V") FILTER (WHERE ("V" >= 4))
+> -------- ----------------------------------
+> 55       49
 > rows: 1
 
 insert into test values (1), (2), (8);
 > update count: 3
 
 select sum(v), sum(all v), sum(distinct v) from test;
-> SUM(V) SUM(V) SUM(DISTINCT V)
-> ------ ------ ---------------
-> 89     89     78
+> SUM("V") SUM("V") SUM(DISTINCT "V")
+> -------- -------- -----------------
+> 89       89       78
 > rows: 1
 
 drop table test;
@@ -65,8 +65,8 @@ SELECT SUM(ID) FROM TEST;
 >> null
 
 SELECT SUM(ID) OVER () FROM TEST;
-> SUM(ID) OVER ()
-> ---------------
+> SUM("ID") OVER ()
+> -----------------
 > rows: 0
 
 DROP TABLE TEST;

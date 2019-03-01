@@ -10,8 +10,8 @@ INSERT INTO TEST(T1, T2) VALUES (TIME '10:00:00', TIME WITHOUT TIME ZONE '10:00:
 > update count: 1
 
 SELECT T1, T2, T1 = T2 FROM TEST;
-> T1       T2       T1 = T2
-> -------- -------- -------
+> T1       T2       "T1" = "T2"
+> -------- -------- -----------
 > 10:00:00 10:00:00 TRUE
 > rows: 1
 

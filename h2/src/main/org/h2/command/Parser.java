@@ -8106,9 +8106,6 @@ public class Parser {
         if (s == null) {
             return "\"\"";
         }
-        if (ParserUtil.isSimpleIdentifier(s, true, false)) {
-            return s;
-        }
         return StringUtils.quoteIdentifier(s);
     }
 
@@ -8123,9 +8120,6 @@ public class Parser {
     public static StringBuilder quoteIdentifier(StringBuilder builder, String s) {
         if (s == null) {
             return builder.append("\"\"");
-        }
-        if (ParserUtil.isSimpleIdentifier(s, true, false)) {
-            return builder.append(s);
         }
         return StringUtils.quoteIdentifier(builder, s);
     }

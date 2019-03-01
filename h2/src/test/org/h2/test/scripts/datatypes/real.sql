@@ -21,10 +21,10 @@ SELECT COLUMN_NAME, DATA_TYPE, TYPE_NAME, COLUMN_TYPE FROM INFORMATION_SCHEMA.CO
 
 SCRIPT NODATA NOPASSWORDS NOSETTINGS TABLE TEST;
 > SCRIPT
-> ---------------------------------------------------------------------------------
-> -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> CREATE MEMORY TABLE PUBLIC.TEST( D1 REAL, D2 FLOAT4, D3 FLOAT(0), D4 FLOAT(24) );
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
+> ---------------------------------------------------------------------------------------------
+> -- 0 +/- SELECT COUNT(*) FROM "PUBLIC"."TEST";
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "D1" REAL, "D2" FLOAT4, "D3" FLOAT(0), "D4" FLOAT(24) );
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > rows: 3
 
 DROP TABLE TEST;

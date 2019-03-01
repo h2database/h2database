@@ -49,8 +49,8 @@ insert into card (rank, suit) values (8, 'diamonds'), (10, 'clubs'), (7, 'hearts
 > update count: 3
 
 select suit, count(rank) from card group by suit order by suit, count(rank);
-> SUIT     COUNT(RANK)
-> -------- -----------
+> SUIT     COUNT("RANK")
+> -------- -------------
 > null     1
 > hearts   2
 > clubs    2
@@ -287,7 +287,7 @@ CREATE TABLE TEST(E ENUM('a', 'b'));
 > ok
 
 EXPLAIN SELECT * FROM TEST WHERE E = 'a';
->> SELECT TEST.E FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ WHERE E = 'a'
+>> SELECT "TEST"."E" FROM "PUBLIC"."TEST" /* "PUBLIC"."TEST".tableScan */ WHERE "E" = 'a'
 
 INSERT INTO TEST VALUES ('a');
 > update count: 1

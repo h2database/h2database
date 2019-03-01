@@ -21,18 +21,18 @@ SELECT * FROM TEST WINDOW W AS W1, W1 AS ();
 
 SELECT *, ROW_NUMBER() OVER W1, ROW_NUMBER() OVER W2 FROM TEST
     WINDOW W1 AS (W2 ORDER BY ID), W2 AS (PARTITION BY CATEGORY ORDER BY ID DESC);
-> ID R CATEGORY ROW_NUMBER() OVER (PARTITION BY CATEGORY ORDER BY ID) ROW_NUMBER() OVER (PARTITION BY CATEGORY ORDER BY ID DESC)
-> -- - -------- ----------------------------------------------------- ----------------------------------------------------------
-> 1  4 1        1                                                     2
-> 2  3 1        2                                                     1
-> 3  2 2        1                                                     2
-> 4  1 2        2                                                     1
+> ID R CATEGORY ROW_NUMBER() OVER (PARTITION BY "CATEGORY" ORDER BY "ID") ROW_NUMBER() OVER (PARTITION BY "CATEGORY" ORDER BY "ID" DESC)
+> -- - -------- --------------------------------------------------------- --------------------------------------------------------------
+> 1  4 1        1                                                         2
+> 2  3 1        2                                                         1
+> 3  2 2        1                                                         2
+> 4  1 2        2                                                         1
 > rows: 4
 
 SELECT *, LAST_VALUE(ID) OVER W FROM TEST
     WINDOW W AS (PARTITION BY CATEGORY ORDER BY ID RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING EXCLUDE CURRENT ROW);
-> ID R CATEGORY LAST_VALUE(ID) OVER (PARTITION BY CATEGORY ORDER BY ID RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING EXCLUDE CURRENT ROW)
-> -- - -------- -------------------------------------------------------------------------------------------------------------------------------------
+> ID R CATEGORY LAST_VALUE("ID") OVER (PARTITION BY "CATEGORY" ORDER BY "ID" RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING EXCLUDE CURRENT ROW)
+> -- - -------- -------------------------------------------------------------------------------------------------------------------------------------------
 > 1  4 1        2
 > 2  3 1        1
 > 3  2 2        4
@@ -64,22 +64,22 @@ INSERT INTO TEST VALUES
 > update count: 6
 
 SELECT ROW_NUMBER() OVER (ORDER  /**/ BY CATEGORY), SUM(ID) FROM TEST GROUP BY CATEGORY HAVING SUM(ID) = 12;
-> ROW_NUMBER() OVER (ORDER BY CATEGORY) SUM(ID)
-> ------------------------------------- -------
-> 1                                     12
+> ROW_NUMBER() OVER (ORDER BY "CATEGORY") SUM("ID")
+> --------------------------------------- ---------
+> 1                                       12
 > rows: 1
 
 SELECT ROW_NUMBER() OVER (ORDER  /**/ BY CATEGORY), SUM(ID) FROM TEST GROUP BY CATEGORY HAVING CATEGORY = 2;
-> ROW_NUMBER() OVER (ORDER BY CATEGORY) SUM(ID)
-> ------------------------------------- -------
-> 1                                     12
+> ROW_NUMBER() OVER (ORDER BY "CATEGORY") SUM("ID")
+> --------------------------------------- ---------
+> 1                                       12
 > rows: 1
 
 SELECT ROW_NUMBER() OVER (ORDER BY CATEGORY), SUM(ID) FROM TEST GROUP BY CATEGORY HAVING CATEGORY > 1;
-> ROW_NUMBER() OVER (ORDER BY CATEGORY) SUM(ID)
-> ------------------------------------- -------
-> 1                                     12
-> 2                                     48
+> ROW_NUMBER() OVER (ORDER BY "CATEGORY") SUM("ID")
+> --------------------------------------- ---------
+> 1                                       12
+> 2                                       48
 > rows: 2
 
 DROP TABLE TEST;
@@ -98,15 +98,15 @@ INSERT INTO TEST VALUES
 > update count: 6
 
 SELECT ROW_NUMBER() OVER (ORDER BY CATEGORY), SUM(ID) FROM TEST GROUP BY CATEGORY HAVING SUM(ID) = 12;
-> ROW_NUMBER() OVER (ORDER BY CATEGORY) SUM(ID)
-> ------------------------------------- -------
-> 1                                     12
+> ROW_NUMBER() OVER (ORDER BY "CATEGORY") SUM("ID")
+> --------------------------------------- ---------
+> 1                                       12
 > rows: 1
 
 SELECT ROW_NUMBER() OVER (ORDER BY CATEGORY), SUM(ID) FROM TEST GROUP BY CATEGORY HAVING CATEGORY;
-> ROW_NUMBER() OVER (ORDER BY CATEGORY) SUM(ID)
-> ------------------------------------- -------
-> 1                                     12
+> ROW_NUMBER() OVER (ORDER BY "CATEGORY") SUM("ID")
+> --------------------------------------- ---------
+> 1                                       12
 > rows: 1
 
 SELECT SUM(ID) OVER (ORDER BY ID ROWS NULL PRECEDING) P FROM TEST;

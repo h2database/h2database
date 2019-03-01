@@ -21,6 +21,16 @@ public class Setting extends DbObjectBase {
         super(database, id, settingName, Trace.SETTING);
     }
 
+    @Override
+    public String getSQL() {
+        return getName();
+    }
+
+    @Override
+    public StringBuilder getSQL(StringBuilder builder) {
+        return builder.append(getName());
+    }
+
     public void setIntValue(int value) {
         intValue = value;
     }

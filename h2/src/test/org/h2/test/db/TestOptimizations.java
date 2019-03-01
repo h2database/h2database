@@ -115,7 +115,7 @@ public class TestOptimizations extends TestDb {
     private void testExplainRoundTrip() throws Exception {
         Connection conn = getConnection("optimizations");
         assertExplainRoundTrip(conn,
-                "select x from dual where x > any(select x from dual)");
+                "SELECT \"X\" FROM DUAL WHERE \"X\" > ANY(SELECT \"X\" FROM DUAL)");
         conn.close();
     }
 
@@ -124,14 +124,14 @@ public class TestOptimizations extends TestDb {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("explain " + sql);
         rs.next();
-        String plan = rs.getString(1).toLowerCase();
+        String plan = rs.getString(1);
         plan = plan.replaceAll("\\s+", " ");
         plan = plan.replaceAll("/\\*[^\\*]*\\*/", "");
         plan = plan.replaceAll("\\s+", " ");
-        plan = StringUtils.replaceAll(plan, "system_range(1, 1)", "dual");
+        plan = StringUtils.replaceAll(plan, "SYSTEM_RANGE(1, 1)", "DUAL");
         plan = plan.replaceAll("\\( ", "\\(");
         plan = plan.replaceAll(" \\)", "\\)");
-        assertEquals(plan, sql);
+        assertEquals(sql, plan);
     }
 
     private void testOrderByExpression() throws Exception {
@@ -217,7 +217,7 @@ public class TestOptimizations extends TestDb {
                 "where exists(select 1 from test, test, test) and id = 10");
         rs.next();
         // ensure the ID = 10 part is evaluated first
-        assertContains(rs.getString(1), "WHERE (ID = 10)");
+        assertContains(rs.getString(1), "WHERE (\"ID\" = 10)");
         stat.execute("drop table test");
         conn.close();
     }
@@ -484,7 +484,7 @@ public class TestOptimizations extends TestDb {
         assertTrue(resultSet.next());
         // String constant '5' has been converted to int constant 5 on
         // optimization
-        assertTrue(resultSet.getString(1).endsWith("X = 5"));
+        assertTrue(resultSet.getString(1).endsWith("\"X\" = 5"));
 
         stat.execute("drop table test");
 
@@ -615,7 +615,7 @@ public class TestOptimizations extends TestDb {
                 "from test where id in (400, 300)");
         rs.next();
         String plan = rs.getString(1);
-        if (plan.indexOf("/* PUBLIC.PRIMARY_KEY_") < 0) {
+        if (plan.indexOf("/* \"PUBLIC\".\"PRIMARY_KEY_") < 0) {
             fail("Expected using the primary key, got: " + plan);
         }
         conn.close();
@@ -1026,7 +1026,7 @@ public class TestOptimizations extends TestDb {
                 "EXPLAIN PLAN FOR SELECT * FROM my_table WHERE K1=7 " +
                 "ORDER BY K1, VAL");
         rs.next();
-        assertContains(rs.getString(1), "/* PUBLIC.MY_INDEX: K1 = 7 */");
+        assertContains(rs.getString(1), "/* \"PUBLIC\".\"MY_INDEX\": \"K1\" = 7 */");
 
         stat.execute("DROP TABLE my_table");
 
@@ -1039,7 +1039,7 @@ public class TestOptimizations extends TestDb {
                 "EXPLAIN PLAN FOR SELECT * FROM my_table WHERE K1=7 " +
                 "ORDER BY K1, K2, VAL");
         rs.next();
-        assertContains(rs.getString(1), "/* PUBLIC.MY_INDEX2: K1 = 7 */");
+        assertContains(rs.getString(1), "/* \"PUBLIC\".\"MY_INDEX2\": \"K1\" = 7 */");
 
         conn.close();
     }
@@ -1135,7 +1135,7 @@ public class TestOptimizations extends TestDb {
         ResultSet rs = stat.executeQuery("EXPLAIN PLAN FOR SELECT * " +
                 "FROM test WHERE ID=1 OR ID=2 OR ID=3 OR ID=4 OR ID=5");
         rs.next();
-        assertContains(rs.getString(1), "ID IN(1, 2, 3, 4, 5)");
+        assertContains(rs.getString(1), "\"ID\" IN(1, 2, 3, 4, 5)");
 
         rs = stat.executeQuery("SELECT COUNT(*) FROM test " +
                 "WHERE ID=1 OR ID=2 OR ID=3 OR ID=4 OR ID=5");
@@ -1171,11 +1171,11 @@ public class TestOptimizations extends TestDb {
                 "FROM table_b b JOIN table_a a ON b.table_a_id = a.id GROUP BY b.table_a_id " +
                 "HAVING A.ACTIVE = TRUE");
         rs.next();
-        assertContains(rs.getString(1), "/* PUBLIC.TABLE_B_IDX: TABLE_A_ID = A.ID */");
+        assertContains(rs.getString(1), "/* \"PUBLIC\".\"TABLE_B_IDX\": \"TABLE_A_ID\" = \"A\".\"ID\" */");
 
         rs = stat.executeQuery("EXPLAIN ANALYZE SELECT MAX(id) FROM table_b GROUP BY table_a_id");
         rs.next();
-        assertContains(rs.getString(1), "/* PUBLIC.TABLE_B_IDX");
+        assertContains(rs.getString(1), "/* \"PUBLIC\".\"TABLE_B_IDX\"");
         conn.close();
     }
 

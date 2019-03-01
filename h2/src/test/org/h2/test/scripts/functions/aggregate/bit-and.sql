@@ -15,8 +15,8 @@ insert into test values
 > update count: 12
 
 select bit_and(v), bit_and(v) filter (where v <= 0xffffffff0fff) from test where v >= 0xff0fffffffff;
-> BIT_AND(V)      BIT_AND(V) FILTER (WHERE (V <= 281474976649215))
-> --------------- ------------------------------------------------
+> BIT_AND("V")    BIT_AND("V") FILTER (WHERE ("V" <= 281474976649215))
+> --------------- ----------------------------------------------------
 > 280375465082880 280375465086975
 > rows: 1
 
@@ -24,8 +24,8 @@ create index test_idx on test(v);
 > ok
 
 select bit_and(v), bit_and(v) filter (where v <= 0xffffffff0fff) from test where v >= 0xff0fffffffff;
-> BIT_AND(V)      BIT_AND(V) FILTER (WHERE (V <= 281474976649215))
-> --------------- ------------------------------------------------
+> BIT_AND("V")    BIT_AND("V") FILTER (WHERE ("V" <= 281474976649215))
+> --------------- ----------------------------------------------------
 > 280375465082880 280375465086975
 > rows: 1
 

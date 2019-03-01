@@ -43,19 +43,19 @@ public class TestOptimizerHints extends TestDb {
         String plan;
 
         plan = plan(s, "select * from t1, t2 where t1.id = t2.t1_id");
-        assertContains(plan, "INNER JOIN PUBLIC.T2");
+        assertContains(plan, "INNER JOIN \"PUBLIC\".\"T2\"");
 
         plan = plan(s, "select * from t2, t1 where t1.id = t2.t1_id");
-        assertContains(plan, "INNER JOIN PUBLIC.T1");
+        assertContains(plan, "INNER JOIN \"PUBLIC\".\"T1\"");
 
         plan = plan(s, "select * from t2, t1 where t1.id = 1");
-        assertContains(plan, "INNER JOIN PUBLIC.T1");
+        assertContains(plan, "INNER JOIN \"PUBLIC\".\"T1\"");
 
         plan = plan(s, "select * from t2, t1 where t1.id = t2.t1_id and t2.id = 1");
-        assertContains(plan, "INNER JOIN PUBLIC.T1");
+        assertContains(plan, "INNER JOIN \"PUBLIC\".\"T1\"");
 
         plan = plan(s, "select * from t1, t2 where t1.id = t2.t1_id and t2.id = 1");
-        assertContains(plan, "INNER JOIN PUBLIC.T2");
+        assertContains(plan, "INNER JOIN \"PUBLIC\".\"T2\"");
 
         checkPlanComma(s, "t1", "t2", "t3", "t4");
         checkPlanComma(s, "t4", "t2", "t3", "t1");
@@ -119,9 +119,9 @@ public class TestOptimizerHints extends TestDb {
         }
         builder.append(" where t1.id = t2.t1_id and t2.id = t4.t2_id and t3.id = t4.t3_id");
         String plan = plan(s, builder.toString());
-        int prev = plan.indexOf("FROM PUBLIC." + t[0].toUpperCase());
+        int prev = plan.indexOf("FROM \"PUBLIC\".\"" + t[0].toUpperCase() + '"');
         for (int i = 1; i < t.length; i++) {
-            int next = plan.indexOf("INNER JOIN PUBLIC." + t[i].toUpperCase());
+            int next = plan.indexOf("INNER JOIN \"PUBLIC\".\"" + t[i].toUpperCase() + '"');
             assertTrue("Wrong plan for : " + Arrays.toString(t) + "\n" + plan, next > prev);
             prev = next;
         }

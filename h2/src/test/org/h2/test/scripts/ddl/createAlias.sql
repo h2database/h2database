@@ -25,9 +25,9 @@ SELECT MY_SQRT(2.0) MS, SQRT(2.0);
 > rows: 1
 
 SELECT MY_SQRT(SUM(X)), SUM(X), MY_SQRT(55) FROM SYSTEM_RANGE(1, 10);
-> PUBLIC.MY_SQRT(SUM(X)) SUM(X) PUBLIC.MY_SQRT(55)
-> ---------------------- ------ ------------------
-> 7.416198487095663      55     7.416198487095663
+> "PUBLIC"."MY_SQRT"(SUM("X")) SUM("X") "PUBLIC"."MY_SQRT"(55)
+> ---------------------------- -------- ----------------------
+> 7.416198487095663            55       7.416198487095663
 > rows: 1
 
 SELECT MY_SQRT(-1.0) MS, SQRT(NULL) S;
@@ -38,9 +38,9 @@ SELECT MY_SQRT(-1.0) MS, SQRT(NULL) S;
 
 SCRIPT NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> ------------------------------------------------------------
-> CREATE FORCE ALIAS PUBLIC.MY_SQRT FOR "java.lang.Math.sqrt";
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
+> ----------------------------------------------------------------
+> CREATE FORCE ALIAS "PUBLIC"."MY_SQRT" FOR "java.lang.Math.sqrt";
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > rows: 2
 
 SELECT ALIAS_NAME, JAVA_CLASS, JAVA_METHOD, DATA_TYPE, COLUMN_COUNT, RETURNS_RESULT, REMARKS FROM INFORMATION_SCHEMA.FUNCTION_ALIASES;

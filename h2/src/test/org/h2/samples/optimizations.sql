@@ -22,8 +22,8 @@ SELECT COUNT(*) FROM TEST;
 EXPLAIN SELECT COUNT(*) FROM TEST;
 --> SELECT
 -->        COUNT(*)
--->    FROM PUBLIC.TEST
--->        /* PUBLIC.TEST.tableScan */
+-->    FROM "PUBLIC"."TEST"
+-->        /* "PUBLIC"."TEST".tableScan */
 -->    /* direct lookup */
 ;
 
@@ -58,9 +58,9 @@ SELECT DISTINCT TYPE FROM TEST ORDER BY TYPE LIMIT 3;
 -- Display the query plan - 'index sorted' means the index is used to order
 EXPLAIN SELECT DISTINCT TYPE FROM TEST ORDER BY TYPE LIMIT 3;
 --> SELECT DISTINCT
--->        TYPE
--->    FROM PUBLIC.TEST
--->        /* PUBLIC.IDX_TEST_TYPE */
+-->        "TYPE"
+-->    FROM "PUBLIC"."TEST"
+-->        /* "PUBLIC"."IDX_TEST_TYPE" */
 -->    ORDER BY 1
 -->    FETCH FIRST 3 ROWS ONLY
 -->    /* distinct */
@@ -93,10 +93,10 @@ SELECT MIN(VALUE), MAX(VALUE) FROM TEST;
 -- Display the query plan - 'direct lookup' means it's optimized
 EXPLAIN SELECT MIN(VALUE), MAX(VALUE) FROM TEST;
 --> SELECT
--->        MIN(VALUE),
--->        MAX(VALUE)
--->    FROM PUBLIC.TEST
--->        /* PUBLIC.IDX_TEST_VALUE */
+-->        MIN("VALUE"),
+-->        MAX("VALUE")
+-->    FROM "PUBLIC"."TEST"
+-->        /* "PUBLIC"."IDX_TEST_VALUE" */
 -->    /* direct lookup */
 ;
 
@@ -137,26 +137,26 @@ EXPLAIN SELECT TYPE, (SELECT VALUE FROM TEST T2 WHERE T.TYPE = T2.TYPE
 ORDER BY TYPE, VALUE LIMIT 1) MIN
 FROM (SELECT DISTINCT TYPE FROM TEST) T ORDER BY TYPE;
 --> SELECT
--->        TYPE,
+-->        "TYPE",
 -->        (SELECT
--->            VALUE
--->        FROM PUBLIC.TEST T2
--->            /* PUBLIC.IDX_TEST_TYPE_VALUE: TYPE = T.TYPE */
--->        WHERE T.TYPE = T2.TYPE
--->        ORDER BY =TYPE, 1
+-->            "VALUE"
+-->        FROM "PUBLIC"."TEST" "T2"
+-->            /* "PUBLIC"."IDX_TEST_TYPE_VALUE": "TYPE" = "T"."TYPE" */
+-->        WHERE "T"."TYPE" = "T2"."TYPE"
+-->        ORDER BY ="TYPE", 1
 -->        FETCH FIRST ROW ONLY
--->        /* index sorted */) AS MIN
+-->        /* index sorted */) AS "MIN"
 -->    FROM (
 -->        SELECT DISTINCT
--->            TYPE
--->        FROM PUBLIC.TEST
--->            /* PUBLIC.IDX_TEST_TYPE_VALUE */
+-->            "TYPE"
+-->        FROM "PUBLIC"."TEST"
+-->            /* "PUBLIC"."IDX_TEST_TYPE_VALUE" */
 -->        /* distinct */
--->    ) T
+-->    ) "T"
 -->        /* SELECT DISTINCT
--->            TYPE
--->        FROM PUBLIC.TEST
--->            /++ PUBLIC.IDX_TEST_TYPE_VALUE ++/
+-->            "TYPE"
+-->        FROM "PUBLIC"."TEST"
+-->            /++ "PUBLIC"."IDX_TEST_TYPE_VALUE" ++/
 -->        /++ distinct ++/
 -->         */
 -->    ORDER BY 1
@@ -190,9 +190,9 @@ SELECT VALUE FROM TEST ORDER BY VALUE LIMIT 3;
 -- Display the query plan - 'index sorted' means the index is used
 EXPLAIN SELECT VALUE FROM TEST ORDER BY VALUE LIMIT 10;
 --> SELECT
--->        VALUE
--->    FROM PUBLIC.TEST
--->        /* PUBLIC.IDX_TEST_VALUE */
+-->        "VALUE"
+-->    FROM "PUBLIC"."TEST"
+-->        /* "PUBLIC"."IDX_TEST_VALUE" */
 -->    ORDER BY 1
 -->    FETCH FIRST 10 ROWS ONLY
 -->    /* index sorted */
@@ -211,9 +211,9 @@ SELECT VALUE FROM TEST ORDER BY VALUE DESC LIMIT 3;
 -- Display the query plan - 'index sorted' means the index is used
 EXPLAIN SELECT VALUE FROM TEST ORDER BY VALUE DESC LIMIT 10;
 --> SELECT
--->        VALUE
--->    FROM PUBLIC.TEST
--->        /* PUBLIC.IDX_TEST_VALUE_D */
+-->        "VALUE"
+-->    FROM "PUBLIC"."TEST"
+-->        /* "PUBLIC"."IDX_TEST_VALUE_D" */
 -->    ORDER BY 1 DESC
 -->    FETCH FIRST 10 ROWS ONLY
 -->    /* index sorted */
@@ -239,10 +239,10 @@ SELECT * FROM TEST WHERE ID IN(1, 1000);
 -- Display the query plan
 EXPLAIN SELECT * FROM TEST WHERE ID IN(1, 1000);
 --> SELECT
--->        TEST.ID
--->    FROM PUBLIC.TEST
--->        /* PUBLIC.PRIMARY_KEY_2: ID IN(1, 1000) */
--->    WHERE ID IN(1, 1000)
+-->        "TEST"."ID"
+-->    FROM "PUBLIC"."TEST"
+-->        /* "PUBLIC"."PRIMARY_KEY_2": "ID" IN(1, 1000) */
+-->    WHERE "ID" IN(1, 1000)
 ;
 
 DROP TABLE TEST;
@@ -261,12 +261,12 @@ INSERT INTO TEST SELECT X, MOD(X, 10) FROM SYSTEM_RANGE(1, 1000);
 -- Display the query plan
 EXPLAIN SELECT * FROM TEST WHERE ID IN (10, 20) AND DATA IN (1, 2);
 --> SELECT
--->        TEST.ID,
--->        TEST.DATA
--->    FROM PUBLIC.TEST
--->        /* PUBLIC.PRIMARY_KEY_2: ID IN(10, 20) */
--->    WHERE (ID IN(10, 20))
--->        AND (DATA IN(1, 2))
+-->        "TEST"."ID",
+-->        "TEST"."DATA"
+-->    FROM "PUBLIC"."TEST"
+-->        /* "PUBLIC"."PRIMARY_KEY_2": "ID" IN(10, 20) */
+-->    WHERE ("ID" IN(10, 20))
+-->        AND ("DATA" IN(1, 2))
 ;
 
 DROP TABLE TEST;
@@ -284,11 +284,11 @@ INSERT INTO TEST SELECT X, X/10 FROM SYSTEM_RANGE(1, 100);
 -- Display the query plan
 EXPLAIN SELECT ID X, COUNT(*) FROM TEST GROUP BY ID;
 --> SELECT
--->        ID AS X,
+-->        "ID" AS "X",
 -->        COUNT(*)
--->    FROM PUBLIC.TEST
--->        /* PUBLIC.PRIMARY_KEY_2 */
--->    GROUP BY ID
+-->    FROM "PUBLIC"."TEST"
+-->        /* "PUBLIC"."PRIMARY_KEY_2" */
+-->    GROUP BY "ID"
 -->    /* group sorted */
 ;
 

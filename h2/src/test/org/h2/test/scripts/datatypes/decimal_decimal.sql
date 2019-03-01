@@ -37,11 +37,11 @@ NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL
 SELECT ID, CAST(XT AS NUMBER(10,1)),
 CAST(X_SM AS NUMBER(10,1)), CAST(XB AS NUMBER(10,1)), CAST(XD AS NUMBER(10,1)),
 CAST(XD2 AS NUMBER(10,1)), CAST(XR AS NUMBER(10,1)) FROM TEST;
-> ID   CAST(XT AS DECIMAL(10, 1)) CAST(X_SM AS DECIMAL(10, 1)) CAST(XB AS DECIMAL(10, 1)) CAST(XD AS DECIMAL(10, 1)) CAST(XD2 AS DECIMAL(10, 1)) CAST(XR AS DECIMAL(10, 1))
-> ---- -------------------------- ---------------------------- -------------------------- -------------------------- --------------------------- --------------------------
-> -1   -1.0                       -1.0                         -1.0                       -1.0                       -1.0                        -1.0
-> 0    0.0                        0.0                          0.0                        0.0                        0.0                         0.0
-> 1    1.0                        1.0                          1.0                        1.0                        1.0                         1.0
-> 4    4.0                        4.0                          4.0                        4.0                        4.0                         4.0
-> null null                       null                         null                       null                       null                        null
+> ID   CAST("XT" AS DECIMAL(10, 1)) CAST("X_SM" AS DECIMAL(10, 1)) CAST("XB" AS DECIMAL(10, 1)) CAST("XD" AS DECIMAL(10, 1)) CAST("XD2" AS DECIMAL(10, 1)) CAST("XR" AS DECIMAL(10, 1))
+> ---- ---------------------------- ------------------------------ ---------------------------- ---------------------------- ----------------------------- ----------------------------
+> -1   -1.0                         -1.0                           -1.0                         -1.0                         -1.0                          -1.0
+> 0    0.0                          0.0                            0.0                          0.0                          0.0                           0.0
+> 1    1.0                          1.0                            1.0                          1.0                          1.0                           1.0
+> 4    4.0                          4.0                            4.0                          4.0                          4.0                           4.0
+> null null                         null                           null                         null                         null                          null
 > rows: 5

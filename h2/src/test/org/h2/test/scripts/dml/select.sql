@@ -213,10 +213,10 @@ SELECT * FROM TEST FETCH FIRST 1 ROW WITH TIES;
 > exception WITH_TIES_WITHOUT_ORDER_BY
 
 EXPLAIN SELECT * FROM TEST ORDER BY A, B OFFSET 3 ROWS FETCH NEXT 1 ROW WITH TIES;
->> SELECT TEST.A, TEST.B, TEST.C FROM PUBLIC.TEST /* PUBLIC.TEST_A_B_IDX */ ORDER BY 1, 2 OFFSET 3 ROWS FETCH NEXT ROW WITH TIES /* index sorted */
+>> SELECT "TEST"."A", "TEST"."B", "TEST"."C" FROM "PUBLIC"."TEST" /* "PUBLIC"."TEST_A_B_IDX" */ ORDER BY 1, 2 OFFSET 3 ROWS FETCH NEXT ROW WITH TIES /* index sorted */
 
 EXPLAIN SELECT * FROM TEST ORDER BY A, B OFFSET 3 ROWS FETCH NEXT 1 PERCENT ROWS WITH TIES;
->> SELECT TEST.A, TEST.B, TEST.C FROM PUBLIC.TEST /* PUBLIC.TEST_A_B_IDX */ ORDER BY 1, 2 OFFSET 3 ROWS FETCH NEXT 1 PERCENT ROWS WITH TIES /* index sorted */
+>> SELECT "TEST"."A", "TEST"."B", "TEST"."C" FROM "PUBLIC"."TEST" /* "PUBLIC"."TEST_A_B_IDX" */ ORDER BY 1, 2 OFFSET 3 ROWS FETCH NEXT 1 PERCENT ROWS WITH TIES /* index sorted */
 
 DROP TABLE TEST;
 > ok
@@ -245,8 +245,8 @@ INSERT INTO TEST VALUES (1, 1), (1, 2), (2, 1), (2, 2), (2, 3);
 > update count: 5
 
 SELECT A, COUNT(B) FROM TEST GROUP BY A ORDER BY A OFFSET 1;
-> A COUNT(B)
-> - --------
+> A COUNT("B")
+> - ----------
 > 2 3
 > rows (ordered): 1
 
@@ -604,8 +604,8 @@ FROM (SELECT 1 X), (VALUES (1, 2), (2, 1), (3, 3)) T(A, B);
 
 SELECT A, SUM(S) OVER (ORDER BY S) FROM
     (SELECT A, SUM(B) FROM (VALUES (1, 2), (1, 3), (3, 5), (3, 10)) V(A, B) GROUP BY A) S(A, S);
-> A SUM(S) OVER (ORDER BY S)
-> - ------------------------
+> A SUM("S") OVER (ORDER BY "S")
+> - ----------------------------
 > 1 5
 > 3 20
 > rows: 2
@@ -635,9 +635,9 @@ SELECT * FROM
             (VALUES (1, 2)) V(A, B)
         ) T(X, Y)
     );
-> X * X Y
-> ----- -
-> 36    2
+> "X" * "X" Y
+> --------- -
+> 36        2
 > rows: 1
 
 CREATE TABLE TEST("_ROWID_" INT) AS VALUES 2;

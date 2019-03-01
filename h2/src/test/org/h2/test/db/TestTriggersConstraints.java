@@ -624,17 +624,17 @@ public class TestTriggersConstraints extends TestDb implements Trigger {
         ResultSet rs;
         rs = stat.executeQuery("SCRIPT");
         checkRows(rs, new String[] {
-                "CREATE FORCE TRIGGER PUBLIC.INS_BEFORE " +
-                    "BEFORE INSERT ON PUBLIC.TEST " +
+                "CREATE FORCE TRIGGER \"PUBLIC\".\"INS_BEFORE\" " +
+                    "BEFORE INSERT ON \"PUBLIC\".\"TEST\" " +
                     "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\";",
-                "CREATE FORCE TRIGGER PUBLIC.INS_AFTER " +
-                    "AFTER INSERT ON PUBLIC.TEST " +
+                "CREATE FORCE TRIGGER \"PUBLIC\".\"INS_AFTER\" " +
+                    "AFTER INSERT ON \"PUBLIC\".\"TEST\" " +
                     "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\";",
-                "CREATE FORCE TRIGGER PUBLIC.UPD_BEFORE " +
-                    "BEFORE UPDATE ON PUBLIC.TEST " +
+                "CREATE FORCE TRIGGER \"PUBLIC\".\"UPD_BEFORE\" " +
+                    "BEFORE UPDATE ON \"PUBLIC\".\"TEST\" " +
                     "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\";",
-                "CREATE FORCE TRIGGER PUBLIC.INS_AFTER_ROLLBACK " +
-                    "AFTER INSERT, ROLLBACK ON PUBLIC.TEST " +
+                "CREATE FORCE TRIGGER \"PUBLIC\".\"INS_AFTER_ROLLBACK\" " +
+                    "AFTER INSERT, ROLLBACK ON \"PUBLIC\".\"TEST\" " +
                     "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\";",
                         });
         while (rs.next()) {

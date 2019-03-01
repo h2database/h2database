@@ -13,30 +13,30 @@ SELECT NTILE(3) OVER (ORDER BY X) FROM (SELECT * FROM SYSTEM_RANGE(1, 1));
 >> 1
 
 SELECT NTILE(1) OVER (ORDER BY X) FROM (SELECT * FROM SYSTEM_RANGE(1, 2));
-> NTILE(1) OVER (ORDER BY X)
-> --------------------------
+> NTILE(1) OVER (ORDER BY "X")
+> ----------------------------
 > 1
 > 1
 > rows: 2
 
 SELECT NTILE(2) OVER (ORDER BY X) FROM (SELECT * FROM SYSTEM_RANGE(1, 2)) ORDER BY X;
-> NTILE(2) OVER (ORDER BY X)
-> --------------------------
+> NTILE(2) OVER (ORDER BY "X")
+> ----------------------------
 > 1
 > 2
 > rows (ordered): 2
 
 SELECT NTILE(2) OVER (ORDER BY X) FROM (SELECT * FROM SYSTEM_RANGE(1, 3)) ORDER BY X;
-> NTILE(2) OVER (ORDER BY X)
-> --------------------------
+> NTILE(2) OVER (ORDER BY "X")
+> ----------------------------
 > 1
 > 1
 > 2
 > rows (ordered): 3
 
 SELECT NTILE(2) OVER (ORDER BY X) FROM (SELECT * FROM SYSTEM_RANGE(1, 4)) ORDER BY X;
-> NTILE(2) OVER (ORDER BY X)
-> --------------------------
+> NTILE(2) OVER (ORDER BY "X")
+> ----------------------------
 > 1
 > 1
 > 2
@@ -44,8 +44,8 @@ SELECT NTILE(2) OVER (ORDER BY X) FROM (SELECT * FROM SYSTEM_RANGE(1, 4)) ORDER 
 > rows (ordered): 4
 
 SELECT NTILE(2) OVER (ORDER BY X) FROM (SELECT * FROM SYSTEM_RANGE(1, 5)) ORDER BY X;
-> NTILE(2) OVER (ORDER BY X)
-> --------------------------
+> NTILE(2) OVER (ORDER BY "X")
+> ----------------------------
 > 1
 > 1
 > 1
@@ -54,8 +54,8 @@ SELECT NTILE(2) OVER (ORDER BY X) FROM (SELECT * FROM SYSTEM_RANGE(1, 5)) ORDER 
 > rows (ordered): 5
 
 SELECT NTILE(2) OVER (ORDER BY X) FROM (SELECT * FROM SYSTEM_RANGE(1, 6)) ORDER BY X;
-> NTILE(2) OVER (ORDER BY X)
-> --------------------------
+> NTILE(2) OVER (ORDER BY "X")
+> ----------------------------
 > 1
 > 1
 > 1
@@ -65,16 +65,16 @@ SELECT NTILE(2) OVER (ORDER BY X) FROM (SELECT * FROM SYSTEM_RANGE(1, 6)) ORDER 
 > rows (ordered): 6
 
 SELECT NTILE(10) OVER (ORDER BY X) FROM (SELECT * FROM SYSTEM_RANGE(1, 3)) ORDER BY X;
-> NTILE(10) OVER (ORDER BY X)
-> ---------------------------
+> NTILE(10) OVER (ORDER BY "X")
+> -----------------------------
 > 1
 > 2
 > 3
 > rows (ordered): 3
 
 SELECT NTILE(10) OVER (ORDER BY X) FROM (SELECT * FROM SYSTEM_RANGE(1, 22)) ORDER BY X;
-> NTILE(10) OVER (ORDER BY X)
-> ---------------------------
+> NTILE(10) OVER (ORDER BY "X")
+> -----------------------------
 > 1
 > 1
 > 1
@@ -103,8 +103,8 @@ SELECT NTILE(0) OVER (ORDER BY X) FROM (SELECT * FROM SYSTEM_RANGE(1, 1));
 > exception INVALID_VALUE_2
 
 SELECT NTILE(X) OVER (ORDER BY X) FROM (SELECT * FROM SYSTEM_RANGE(1, 6)) ORDER BY X;
-> NTILE(X) OVER (ORDER BY X)
-> --------------------------
+> NTILE("X") OVER (ORDER BY "X")
+> ------------------------------
 > 1
 > 1
 > 2
@@ -120,8 +120,8 @@ SELECT NTILE(X) OVER (ORDER BY X RANGE CURRENT ROW) FROM (SELECT * FROM SYSTEM_R
 > exception SYNTAX_ERROR_1
 
 SELECT NTILE(100000000000) OVER (ORDER BY X) FROM (SELECT * FROM SYSTEM_RANGE(1, 4));
-> NTILE(100000000000) OVER (ORDER BY X)
-> -------------------------------------
+> NTILE(100000000000) OVER (ORDER BY "X")
+> ---------------------------------------
 > 1
 > 2
 > 3

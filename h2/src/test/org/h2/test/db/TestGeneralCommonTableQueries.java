@@ -520,7 +520,7 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
 
         String[] expectedRowData = new String[]{"|6"};
         String[] expectedColumnTypes = new String[]{"BIGINT"};
-        String[] expectedColumnNames = new String[]{"SUM(N)"};
+        String[] expectedColumnNames = new String[]{"SUM(\"N\")"};
 
         // back up the config - to restore it after this test
         TestAll backupConfig = config;
@@ -558,7 +558,7 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
 
         String[] expectedRowData = new String[]{"|6"};
         String[] expectedColumnTypes = new String[]{"BIGINT"};
-        String[] expectedColumnNames = new String[]{"SUM(N)"};
+        String[] expectedColumnNames = new String[]{"SUM(\"N\")"};
 
         String setupSQL = "DROP ALL OBJECTS;";
         String withQuery = "select sum(n) from ("

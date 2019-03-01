@@ -14,17 +14,17 @@ insert into test values ('1'), ('2'), ('3'), ('4'), ('5'), ('6'), ('7'), ('8'), 
 select listagg(v, '-') within group (order by v asc),
     listagg(v, '-') within group (order by v desc) filter (where v >= '4')
     from test where v >= '2';
-> LISTAGG(V, '-') WITHIN GROUP (ORDER BY V) LISTAGG(V, '-') WITHIN GROUP (ORDER BY V DESC) FILTER (WHERE (V >= '4'))
-> ----------------------------------------- ------------------------------------------------------------------------
-> 2-3-4-5-6-7-8-9                           9-8-7-6-5-4
+> LISTAGG("V", '-') WITHIN GROUP (ORDER BY "V") LISTAGG("V", '-') WITHIN GROUP (ORDER BY "V" DESC) FILTER (WHERE ("V" >= '4'))
+> --------------------------------------------- ------------------------------------------------------------------------------
+> 2-3-4-5-6-7-8-9                               9-8-7-6-5-4
 > rows: 1
 
 select group_concat(v order by v asc separator '-'),
     group_concat(v order by v desc separator '-') filter (where v >= '4')
     from test where v >= '2';
-> LISTAGG(V, '-') WITHIN GROUP (ORDER BY V) LISTAGG(V, '-') WITHIN GROUP (ORDER BY V DESC) FILTER (WHERE (V >= '4'))
-> ----------------------------------------- ------------------------------------------------------------------------
-> 2-3-4-5-6-7-8-9                           9-8-7-6-5-4
+> LISTAGG("V", '-') WITHIN GROUP (ORDER BY "V") LISTAGG("V", '-') WITHIN GROUP (ORDER BY "V" DESC) FILTER (WHERE ("V" >= '4'))
+> --------------------------------------------- ------------------------------------------------------------------------------
+> 2-3-4-5-6-7-8-9                               9-8-7-6-5-4
 > rows: 1
 
 create index test_idx on test(v);
@@ -33,17 +33,17 @@ create index test_idx on test(v);
 select group_concat(v order by v asc separator '-'),
     group_concat(v order by v desc separator '-') filter (where v >= '4')
     from test where v >= '2';
-> LISTAGG(V, '-') WITHIN GROUP (ORDER BY V) LISTAGG(V, '-') WITHIN GROUP (ORDER BY V DESC) FILTER (WHERE (V >= '4'))
-> ----------------------------------------- ------------------------------------------------------------------------
-> 2-3-4-5-6-7-8-9                           9-8-7-6-5-4
+> LISTAGG("V", '-') WITHIN GROUP (ORDER BY "V") LISTAGG("V", '-') WITHIN GROUP (ORDER BY "V" DESC) FILTER (WHERE ("V" >= '4'))
+> --------------------------------------------- ------------------------------------------------------------------------------
+> 2-3-4-5-6-7-8-9                               9-8-7-6-5-4
 > rows: 1
 
 select group_concat(v order by v asc separator '-'),
     group_concat(v order by v desc separator '-') filter (where v >= '4')
     from test;
-> LISTAGG(V, '-') WITHIN GROUP (ORDER BY V) LISTAGG(V, '-') WITHIN GROUP (ORDER BY V DESC) FILTER (WHERE (V >= '4'))
-> ----------------------------------------- ------------------------------------------------------------------------
-> 1-2-3-4-5-6-7-8-9                         9-8-7-6-5-4
+> LISTAGG("V", '-') WITHIN GROUP (ORDER BY "V") LISTAGG("V", '-') WITHIN GROUP (ORDER BY "V" DESC) FILTER (WHERE ("V" >= '4'))
+> --------------------------------------------- ------------------------------------------------------------------------------
+> 1-2-3-4-5-6-7-8-9                             9-8-7-6-5-4
 > rows: 1
 
 drop table test;
@@ -56,20 +56,20 @@ insert into test(v) values (7), (2), (8), (3), (7), (3), (9), (-1);
 > update count: 8
 
 select group_concat(v) from test;
-> LISTAGG(V)
+> LISTAGG("V")
 > ----------------
 > 7,2,8,3,7,3,9,-1
 > rows: 1
 
 select group_concat(distinct v) from test;
-> LISTAGG(DISTINCT V)
-> -------------------
+> LISTAGG(DISTINCT "V")
+> ---------------------
 > -1,2,3,7,8,9
 > rows: 1
 
 select group_concat(distinct v order by v desc) from test;
-> LISTAGG(DISTINCT V) WITHIN GROUP (ORDER BY V DESC)
-> --------------------------------------------------
+> LISTAGG(DISTINCT "V") WITHIN GROUP (ORDER BY "V" DESC)
+> ------------------------------------------------------
 > 9,8,7,3,2,-1
 > rows: 1
 
@@ -80,16 +80,16 @@ create table test(g varchar, v int) as values ('-', 1), ('-', 2), ('-', 3), ('|'
 > ok
 
 select g, listagg(v, g) from test group by g;
-> G LISTAGG(V, G)
-> - -------------
+> G LISTAGG("V", "G")
+> - -----------------
 > * null
 > - 1-2-3
 > | 4|5|6
 > rows: 3
 
 select g, listagg(v, g) over (partition by g) from test order by v;
-> G LISTAGG(V, G) OVER (PARTITION BY G)
-> - -----------------------------------
+> G LISTAGG("V", "G") OVER (PARTITION BY "G")
+> - -----------------------------------------
 > * null
 > - 1-2-3
 > - 1-2-3
@@ -100,8 +100,8 @@ select g, listagg(v, g) over (partition by g) from test order by v;
 > rows (ordered): 7
 
 select g, listagg(v, g on overflow error) within group (order by v) filter (where v <> 2) over (partition by g) from test order by v;
-> G LISTAGG(V, G) WITHIN GROUP (ORDER BY V) FILTER (WHERE (V <> 2)) OVER (PARTITION BY G)
-> - -------------------------------------------------------------------------------------
+> G LISTAGG("V", "G") WITHIN GROUP (ORDER BY "V") FILTER (WHERE ("V" <> 2)) OVER (PARTITION BY "G")
+> - -----------------------------------------------------------------------------------------------
 > * null
 > - 1-3
 > - 1-3
@@ -112,8 +112,8 @@ select g, listagg(v, g on overflow error) within group (order by v) filter (wher
 > rows (ordered): 7
 
 select listagg(distinct v, '-') from test;
-> LISTAGG(DISTINCT V, '-')
-> ------------------------
+> LISTAGG(DISTINCT "V", '-')
+> --------------------------
 > 1-2-3-4-5-6
 > rows: 1
 

@@ -20,7 +20,7 @@ INSERT INTO TEST VALUES ('POINT(1 2)'), (NULL), ('POINT(3 1)');
 
 SELECT ENVELOPE(V), ENVELOPE(V) FILTER (WHERE V <> 'POINT(3 1)') FILTERED1,
     ENVELOPE(V) FILTER (WHERE V <> 'POINT(1 2)') FILTERED2 FROM TEST;
-> ENVELOPE(V)                         FILTERED1             FILTERED2
+> ENVELOPE("V")                       FILTERED1             FILTERED2
 > ----------------------------------- --------------------- ---------------------
 > POLYGON ((1 1, 1 2, 3 2, 3 1, 1 1)) LINESTRING (1 1, 1 2) LINESTRING (1 1, 3 1)
 > rows: 1
@@ -89,8 +89,8 @@ SELECT ENVELOPE(V) FROM TEST;
 
 SELECT ESTIMATED_ENVELOPE('TEST', 'V');
 #+mvStore#>> POLYGON ((68 78, 68 99951, 99903 99951, 99903 78, 68 78))
-#-mvStore#>> null
 
+#-mvStore#>> null
 TRUNCATE TABLE TEST;
 > ok
 

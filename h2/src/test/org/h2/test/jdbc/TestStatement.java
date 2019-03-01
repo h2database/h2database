@@ -53,6 +53,7 @@ public class TestStatement extends TestDb {
         testIdentityMerge();
         testIdentity();
         conn.close();
+        deleteDb("statement");
         testIdentifiers();
         deleteDb("statement");
     }

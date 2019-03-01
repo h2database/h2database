@@ -284,12 +284,31 @@ public class ParserUtil {
 
     private static final int UPPER_OR_OTHER_LETTER =
             1 << Character.UPPERCASE_LETTER
-            | 1 << Character.TITLECASE_LETTER
             | 1 << Character.MODIFIER_LETTER
             | 1 << Character.OTHER_LETTER;
 
     private static final int UPPER_OR_OTHER_LETTER_OR_DIGIT =
             UPPER_OR_OTHER_LETTER
+            | 1 << Character.DECIMAL_DIGIT_NUMBER;
+
+    private static final int LOWER_OR_OTHER_LETTER =
+            1 << Character.LOWERCASE_LETTER
+            | 1 << Character.MODIFIER_LETTER
+            | 1 << Character.OTHER_LETTER;
+
+    private static final int LOWER_OR_OTHER_LETTER_OR_DIGIT =
+            LOWER_OR_OTHER_LETTER
+            | 1 << Character.DECIMAL_DIGIT_NUMBER;
+
+    private static final int LETTER =
+            1 << Character.UPPERCASE_LETTER
+            | 1 << Character.LOWERCASE_LETTER
+            | 1 << Character.TITLECASE_LETTER
+            | 1 << Character.MODIFIER_LETTER
+            | 1 << Character.OTHER_LETTER;
+
+    private static final int LETTER_OR_DIGIT =
+            LETTER
             | 1 << Character.DECIMAL_DIGIT_NUMBER;
 
     private ParserUtil() {
@@ -316,26 +335,44 @@ public class ParserUtil {
      * Is this a simple identifier (in the JDBC specification sense).
      *
      * @param s identifier to check
+     * @param databaseToUpper whether unquoted identifiers are converted to upper case
+     * @param databaseToLower whether unquoted identifiers are converted to lower case
      * @return is specified identifier may be used without quotes
      * @throws NullPointerException if s is {@code null}
      */
-    public static boolean isSimpleIdentifier(String s) {
+    public static boolean isSimpleIdentifier(String s, boolean databaseToUpper, boolean databaseToLower) {
         int length = s.length();
         if (length == 0) {
             return false;
         }
+        int startFlags, partFlags;
+        if (databaseToUpper) {
+            if (databaseToLower) {
+                throw new IllegalArgumentException("databaseToUpper && databaseToLower");
+            } else {
+                startFlags = UPPER_OR_OTHER_LETTER;
+                partFlags = UPPER_OR_OTHER_LETTER_OR_DIGIT;
+            }
+        } else {
+            if (databaseToLower) {
+                startFlags = LOWER_OR_OTHER_LETTER;
+                partFlags = LOWER_OR_OTHER_LETTER_OR_DIGIT;
+            } else {
+                startFlags = LETTER;
+                partFlags = LETTER_OR_DIGIT;
+            }
+        }
         char c = s.charAt(0);
-        // lowercase a-z is quoted as well
-        if ((UPPER_OR_OTHER_LETTER >>> Character.getType(c) & 1) == 0 && c != '_') {
+        if ((startFlags >>> Character.getType(c) & 1) == 0 && c != '_') {
             return false;
         }
         for (int i = 1; i < length; i++) {
             c = s.charAt(i);
-            if ((UPPER_OR_OTHER_LETTER_OR_DIGIT >>> Character.getType(c) & 1) == 0 && c != '_') {
+            if ((partFlags >>> Character.getType(c) & 1) == 0 && c != '_') {
                 return false;
             }
         }
-        return getSaveTokenType(s, false, 0, length, true) == IDENTIFIER;
+        return getSaveTokenType(s, !databaseToUpper, 0, length, true) == IDENTIFIER;
     }
 
     /**

@@ -484,6 +484,15 @@ public class TestStatement extends TestDb {
         assertEquals("\"Test\"", stat.enquoteIdentifier("Test", false));
         assertEquals("\"test\"", stat.enquoteIdentifier("test", false));
         assertEquals("\"TODAY\"", stat.enquoteIdentifier("TODAY", false));
+        assertEquals("\"Test\"", stat.enquoteIdentifier("\"Test\"", false));
+        assertEquals("\"Test\"", stat.enquoteIdentifier("\"Test\"", true));
+        assertEquals("\"\"\"Test\"", stat.enquoteIdentifier("\"\"\"Test\"", true));
+        try {
+            stat.enquoteIdentifier("\"Test", true);
+            fail();
+        } catch (SQLException ex) {
+            // OK
+        }
         // Other lower case characters don't have upper case mappings
         assertEquals("\u02B0", stat.enquoteIdentifier("\u02B0", false));
 

@@ -16,7 +16,7 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
+import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
 
@@ -162,7 +162,7 @@ public class JavaFunction extends Expression implements FunctionCall {
             return getExpressionColumns(session, rs.getResult());
         case Value.ARRAY:
         case Value.ROW:
-            return getExpressionColumns(session, (ValueArray) getValue(session));
+            return getExpressionColumns(session, (ValueCollectionBase) getValue(session));
         }
         return super.getExpressionColumns(session);
     }

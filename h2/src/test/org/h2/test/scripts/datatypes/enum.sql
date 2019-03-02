@@ -287,7 +287,7 @@ CREATE TABLE TEST(E ENUM('a', 'b'));
 > ok
 
 EXPLAIN SELECT * FROM TEST WHERE E = 'a';
->> SELECT TEST.E FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ WHERE E = 'a'
+>> SELECT "TEST"."E" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ WHERE "E" = 'a'
 
 INSERT INTO TEST VALUES ('a');
 > update count: 1

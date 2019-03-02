@@ -71,13 +71,13 @@ public class RangeTable extends Table {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
         builder.append(NAME).append('(');
-        min.getSQL(builder).append(", ");
-        max.getSQL(builder);
+        min.getSQL(builder, alwaysQuote).append(", ");
+        max.getSQL(builder, alwaysQuote);
         if (step != null) {
             builder.append(", ");
-            step.getSQL(builder);
+            step.getSQL(builder, alwaysQuote);
         }
         return builder.append(')');
     }

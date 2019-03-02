@@ -56,9 +56,10 @@ public interface FunctionCall {
     /**
      * Get the SQL snippet of the function (including arguments).
      *
+     * @param alwaysQuote quote all identifiers
      * @return the SQL snippet.
      */
-    String getSQL();
+    String getSQL(boolean alwaysQuote);
 
     /**
      * Whether the function always returns the same result for the same

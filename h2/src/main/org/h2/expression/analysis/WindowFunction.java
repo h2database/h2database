@@ -433,7 +433,7 @@ public class WindowFunction extends DataAnalysisOperation {
             case NTH_VALUE:
                 break;
             default:
-                String sql = getSQL();
+                String sql = getSQL(false);
                 throw DbException.getSyntaxError(sql, sql.length() - 1);
             }
         }
@@ -444,12 +444,12 @@ public class WindowFunction extends DataAnalysisOperation {
             case NTILE:
             case LEAD:
             case LAG:
-                String sql = getSQL();
+                String sql = getSQL(false);
                 throw DbException.getSyntaxError(sql, sql.length() - 1, "ORDER BY");
             default:
             }
         } else if (type == WindowFunctionType.RATIO_TO_REPORT) {
-            String sql = getSQL();
+            String sql = getSQL(false);
             throw DbException.getSyntaxError(sql, sql.length() - 1);
         }
         super.optimize(session);
@@ -495,11 +495,11 @@ public class WindowFunction extends DataAnalysisOperation {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
         String name = type.getSQL();
         builder.append(name).append('(');
         if (args != null) {
-            writeExpressions(builder, args);
+            writeExpressions(builder, args, alwaysQuote);
         }
         builder.append(')');
         if (fromLast && type == WindowFunctionType.NTH_VALUE) {
@@ -517,7 +517,7 @@ public class WindowFunction extends DataAnalysisOperation {
             default:
             }
         }
-        return appendTailConditions(builder);
+        return appendTailConditions(builder, alwaysQuote);
     }
 
     @Override

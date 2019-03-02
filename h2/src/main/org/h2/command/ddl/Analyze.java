@@ -113,11 +113,11 @@ public class Analyze extends DefineCommand {
                 buff.append("MAX(NULL)");
             } else {
                 buff.append("SELECTIVITY(");
-                col.getSQL(buff).append(')');
+                col.getSQL(buff, true).append(')');
             }
         }
         buff.append(" FROM ");
-        table.getSQL(buff);
+        table.getSQL(buff, true);
         if (sample > 0) {
             buff.append(" FETCH FIRST ROW ONLY SAMPLE_SIZE ? ");
         }

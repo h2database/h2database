@@ -102,7 +102,7 @@ public class CreateView extends SchemaCommand {
             if (params != null && !params.isEmpty()) {
                 throw DbException.getUnsupportedException("parameters in views");
             }
-            querySQL = select.getPlanSQL();
+            querySQL = select.getPlanSQL(true);
         }
         Column[] columnTemplatesAsUnknowns = null;
         Column[] columnTemplatesAsStrings = null;

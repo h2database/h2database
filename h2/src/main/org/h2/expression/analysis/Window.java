@@ -39,8 +39,10 @@ public final class Window {
      *            string builder
      * @param orderBy
      *            ORDER BY clause, or null
+     * @param alwaysQuote
+     *            quote all identifiers
      */
-    public static void appendOrderBy(StringBuilder builder, ArrayList<SelectOrderBy> orderBy) {
+    public static void appendOrderBy(StringBuilder builder, ArrayList<SelectOrderBy> orderBy, boolean alwaysQuote) {
         if (orderBy != null && !orderBy.isEmpty()) {
             if (builder.charAt(builder.length() - 1) != '(') {
                 builder.append(' ');
@@ -51,7 +53,7 @@ public final class Window {
                 if (i > 0) {
                     builder.append(", ");
                 }
-                o.expression.getSQL(builder);
+                o.expression.getSQL(builder, alwaysQuote);
                 SortOrder.typeToString(builder, o.sortType);
             }
         }
@@ -220,10 +222,11 @@ public final class Window {
      *
      * @param builder
      *            string builder
+     * @param alwaysQuote quote all identifiers
      * @return the specified string builder
-     * @see Expression#getSQL(StringBuilder)
+     * @see Expression#getSQL(StringBuilder, boolean)
      */
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
         builder.append("OVER (");
         if (partitionBy != null) {
             builder.append("PARTITION BY ");
@@ -231,15 +234,15 @@ public final class Window {
                 if (i > 0) {
                     builder.append(", ");
                 }
-                partitionBy.get(i).getUnenclosedSQL(builder);
+                partitionBy.get(i).getUnenclosedSQL(builder, alwaysQuote);
             }
         }
-        appendOrderBy(builder, orderBy);
+        appendOrderBy(builder, orderBy, alwaysQuote);
         if (frame != null) {
             if (builder.charAt(builder.length() - 1) != '(') {
                 builder.append(' ');
             }
-            frame.getSQL(builder);
+            frame.getSQL(builder, alwaysQuote);
         }
         return builder.append(')');
     }
@@ -271,7 +274,7 @@ public final class Window {
 
     @Override
     public String toString() {
-        return getSQL(new StringBuilder()).toString();
+        return getSQL(new StringBuilder(), false).toString();
     }
 
 }

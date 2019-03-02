@@ -530,8 +530,8 @@ public abstract class Query extends Prepared {
                     Expression ec2 = ec.getNonAliasExpression();
                     if (ec2 instanceof ExpressionColumn) {
                         ExpressionColumn c2 = (ExpressionColumn) ec2;
-                        String ta = exprCol.getSQL();
-                        String tb = c2.getSQL();
+                        String ta = exprCol.getSQL(true);
+                        String tb = c2.getSQL(true);
                         String s2 = c2.getColumnName();
                         if (db.equalsIdentifiers(col, s2) && db.equalsIdentifiers(ta, tb)) {
                             return j;
@@ -540,7 +540,7 @@ public abstract class Query extends Prepared {
                 }
             }
         } else if (expressionSQL != null) {
-            String s = e.getSQL();
+            String s = e.getSQL(true);
             for (int j = 0, size = expressionSQL.size(); j < size; j++) {
                 if (db.equalsIdentifiers(expressionSQL.get(j), s)) {
                     return j;
@@ -550,11 +550,11 @@ public abstract class Query extends Prepared {
         if (expressionSQL == null
                 || mustBeInResult && session.getDatabase().getMode().getEnum() != ModeEnum.MySQL
                         && !checkOrderOther(session, e, expressionSQL)) {
-            throw DbException.get(ErrorCode.ORDER_BY_NOT_IN_RESULT, e.getSQL());
+            throw DbException.get(ErrorCode.ORDER_BY_NOT_IN_RESULT, e.getSQL(false));
         }
         int idx = expressions.size();
         expressions.add(e);
-        expressionSQL.add(e.getSQL());
+        expressionSQL.add(e.getSQL(true));
         return idx;
     }
 
@@ -575,7 +575,7 @@ public abstract class Query extends Prepared {
             // ValueExpression or other
             return true;
         }
-        String exprSQL = expr.getSQL();
+        String exprSQL = expr.getSQL(true);
         for (String sql: expressionSQL) {
             if (session.getDatabase().equalsIdentifiers(exprSQL, sql)) {
                 return true;
@@ -720,24 +720,25 @@ public abstract class Query extends Prepared {
     /**
      * Appends query limits info to the plan.
      *
-     * @param buff query plan string builder.
+     * @param builder query plan string builder.
+     * @param alwaysQuote quote all identifiers
      */
-    void appendLimitToSQL(StringBuilder buff) {
+    void appendLimitToSQL(StringBuilder builder, boolean alwaysQuote) {
         if (offsetExpr != null) {
-            String count = StringUtils.unEnclose(offsetExpr.getSQL());
-            buff.append("\nOFFSET ").append(count).append("1".equals(count) ? " ROW" : " ROWS");
+            String count = StringUtils.unEnclose(offsetExpr.getSQL(alwaysQuote));
+            builder.append("\nOFFSET ").append(count).append("1".equals(count) ? " ROW" : " ROWS");
         }
         if (limitExpr != null) {
-            buff.append("\nFETCH ").append(offsetExpr != null ? "NEXT" : "FIRST");
-            String count = StringUtils.unEnclose(limitExpr.getSQL());
+            builder.append("\nFETCH ").append(offsetExpr != null ? "NEXT" : "FIRST");
+            String count = StringUtils.unEnclose(limitExpr.getSQL(alwaysQuote));
             boolean withCount = fetchPercent || !"1".equals(count);
             if (withCount) {
-                buff.append(' ').append(count);
+                builder.append(' ').append(count);
                 if (fetchPercent) {
-                    buff.append(" PERCENT");
+                    builder.append(" PERCENT");
                 }
             }
-            buff.append(!withCount ? " ROW" : " ROWS")
+            builder.append(!withCount ? " ROW" : " ROWS")
                     .append(withTies ? " WITH TIES" : " ONLY");
         }
     }

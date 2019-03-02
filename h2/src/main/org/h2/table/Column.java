@@ -94,14 +94,16 @@ public class Column {
      *            string builder
      * @param columns
      *            columns
+     * @param alwaysQuote
+     *            quote all identifiers
      * @return the specified string builder
      */
-    public static StringBuilder writeColumns(StringBuilder builder, Column[] columns) {
+    public static StringBuilder writeColumns(StringBuilder builder, Column[] columns, boolean alwaysQuote) {
         for (int i = 0, l = columns.length; i < l; i++) {
             if (i > 0) {
                 builder.append(", ");
             }
-            columns[i].getSQL(builder);
+            columns[i].getSQL(builder, alwaysQuote);
         }
         return builder;
     }
@@ -117,15 +119,17 @@ public class Column {
      *            separator
      * @param suffix
      *            additional SQL to append after each column
+     * @param alwaysQuote
+     *            quote all identifiers
      * @return the specified string builder
      */
     public static StringBuilder writeColumns(StringBuilder builder, Column[] columns, String separator,
-            String suffix) {
+            String suffix, boolean alwaysQuote) {
         for (int i = 0, l = columns.length; i < l; i++) {
             if (i > 0) {
                 builder.append(separator);
             }
-            columns[i].getSQL(builder).append(suffix);
+            columns[i].getSQL(builder, alwaysQuote).append(suffix);
         }
         return builder;
     }
@@ -288,8 +292,8 @@ public class Column {
         return columnId;
     }
 
-    public String getSQL() {
-        return rowId ? name : Parser.quoteIdentifier(name);
+    public String getSQL(boolean alwaysQuote) {
+        return rowId ? name : Parser.quoteIdentifier(name, alwaysQuote);
     }
 
     /**
@@ -297,10 +301,11 @@ public class Column {
      * The name is quoted, unless if this is a row id column.
      *
      * @param builder the string builder
+     * @param alwaysQuote quote all identifiers
      * @return the specified string builder
      */
-    public StringBuilder getSQL(StringBuilder builder) {
-        return rowId ? builder.append(name) : Parser.quoteIdentifier(builder, name);
+    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+        return rowId ? builder.append(name) : Parser.quoteIdentifier(builder, name, alwaysQuote);
     }
 
     public String getName() {
@@ -416,9 +421,7 @@ public class Column {
             }
             // Both TRUE and NULL are ok
             if (v != ValueNull.INSTANCE && !v.getBoolean()) {
-                throw DbException.get(
-                        ErrorCode.CHECK_CONSTRAINT_VIOLATED_1,
-                        checkConstraint.getSQL());
+                throw DbException.get(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, checkConstraint.getSQL(false));
             }
         }
         value = value.convertScale(mode.convertOnlyToSmallerScale, type.getScale());
@@ -529,7 +532,7 @@ public class Column {
     private String getCreateSQL(boolean includeName) {
         StringBuilder buff = new StringBuilder();
         if (includeName && name != null) {
-            Parser.quoteIdentifier(buff, name).append(' ');
+            Parser.quoteIdentifier(buff, name, true).append(' ');
         }
         if (originalSQL != null) {
             buff.append(originalSQL);
@@ -544,15 +547,15 @@ public class Column {
         if (defaultExpression != null) {
             if (isComputed) {
                 buff.append(" AS ");
-                defaultExpression.getSQL(buff);
+                defaultExpression.getSQL(buff, true);
             } else if (defaultExpression != null) {
                 buff.append(" DEFAULT ");
-                defaultExpression.getSQL(buff);
+                defaultExpression.getSQL(buff, true);
             }
         }
         if (onUpdateExpression != null) {
             buff.append(" ON UPDATE ");
-            onUpdateExpression.getSQL(buff);
+            onUpdateExpression.getSQL(buff, true);
         }
         if (!nullable) {
             buff.append(" NOT NULL");
@@ -564,7 +567,7 @@ public class Column {
         }
         if (sequence != null) {
             buff.append(" SEQUENCE ");
-            sequence.getSQL(buff);
+            sequence.getSQL(buff, true);
         }
         if (selectivity != 0) {
             buff.append(" SELECTIVITY ").append(selectivity);
@@ -689,7 +692,7 @@ public class Column {
         }
         if (checkConstraint == null) {
             checkConstraint = expr;
-        } else if (!expr.getSQL().equals(checkConstraintSQL)) {
+        } else if (!expr.getSQL(true).equals(checkConstraintSQL)) {
             checkConstraint = new ConditionAndOr(ConditionAndOr.AND, checkConstraint, expr);
         }
         checkConstraintSQL = getCheckConstraintSQL(session, name);
@@ -719,18 +722,18 @@ public class Column {
         synchronized (this) {
             String oldName = name;
             name = asColumnName;
-            sql = checkConstraint.getSQL();
+            sql = checkConstraint.getSQL(true);
             name = oldName;
         }
         return parser.parseExpression(sql);
     }
 
     String getDefaultSQL() {
-        return defaultExpression == null ? null : defaultExpression.getSQL();
+        return defaultExpression == null ? null : defaultExpression.getSQL(true);
     }
 
     String getOnUpdateSQL() {
-        return onUpdateExpression == null ? null : onUpdateExpression.getSQL();
+        return onUpdateExpression == null ? null : onUpdateExpression.getSQL(true);
     }
 
     int getPrecisionAsInt() {
@@ -750,7 +753,7 @@ public class Column {
      */
     String getCheckConstraintSQL(Session session, String asColumnName) {
         Expression constraint = getCheckConstraint(session, asColumnName);
-        return constraint == null ? "" : constraint.getSQL();
+        return constraint == null ? "" : constraint.getSQL(true);
     }
 
     public void setComment(String comment) {

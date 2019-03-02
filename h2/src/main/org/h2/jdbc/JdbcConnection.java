@@ -71,27 +71,27 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
     /**
      * Database settings.
      */
-    static final class Settings {
+    public static final class Settings {
 
         /**
          * The database mode.
          */
-        final Mode mode;
+        public final Mode mode;
 
         /**
          * Whether unquoted identifiers are converted to upper case.
          */
-        final boolean databaseToUpper;
+        public final boolean databaseToUpper;
 
         /**
          * Whether unquoted identifiers are converted to lower case.
          */
-        final boolean databaseToLower;
+        public final boolean databaseToLower;
 
         /**
          * Whether all identifiers are case insensitive.
          */
-        final boolean caseInsensitiveIdentifiers;
+        public final boolean caseInsensitiveIdentifiers;
 
         /**
          * Creates new instance of database settings.
@@ -2136,7 +2136,10 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
         return getSettings().mode;
     }
 
-    Settings getSettings() throws SQLException {
+    /**
+     * INTERNAL
+     */
+    public Settings getSettings() throws SQLException {
         Settings settings = this.settings;
         if (settings == null) {
             String modeName = ModeEnum.REGULAR.name();

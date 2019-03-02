@@ -122,7 +122,7 @@ public class ValueExpression extends Expression {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
         if (this == DEFAULT) {
             builder.append("DEFAULT");
         } else {

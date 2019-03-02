@@ -292,7 +292,7 @@ public class ScriptCommand extends ScriptBase {
                     if (table.canGetRowCount()) {
                         StringBuilder builder = new StringBuilder("-- ").append(table.getRowCountApproximation())
                                 .append(" +/- SELECT COUNT(*) FROM ");
-                        table.getSQL(builder);
+                        table.getSQL(builder, false);
                         add(builder.toString(), false);
                     }
                     if (data) {
@@ -388,10 +388,10 @@ public class ScriptCommand extends ScriptBase {
         Cursor cursor = index.find(session, null, null);
         Column[] columns = table.getColumns();
         StringBuilder builder = new StringBuilder("INSERT INTO ");
-        table.getSQL(builder);
+        table.getSQL(builder, true);
         if (withColumns) {
             builder.append('(');
-            Column.writeColumns(builder, columns);
+            Column.writeColumns(builder, columns, true);
             builder.append(')');
         }
         builder.append(" VALUES");

@@ -73,6 +73,7 @@ public class Explain extends Prepared {
         ExpressionColumn expr = new ExpressionColumn(db, column);
         Expression[] expressions = { expr };
         result = db.getResultFactory().create(session, expressions, 1);
+        boolean alwaysQuote = true;
         if (maxrows >= 0) {
             String plan;
             if (executeCommand) {
@@ -93,7 +94,7 @@ public class Explain extends Prepared {
                 } else {
                     command.update();
                 }
-                plan = command.getPlanSQL();
+                plan = command.getPlanSQL(alwaysQuote);
                 Map<String, Integer> statistics = null;
                 if (store != null) {
                     statistics = store.statisticsEnd();
@@ -124,7 +125,7 @@ public class Explain extends Prepared {
                     }
                 }
             } else {
-                plan = command.getPlanSQL();
+                plan = command.getPlanSQL(alwaysQuote);
             }
             add(plan);
         }

@@ -764,9 +764,10 @@ public class TableFilter implements ColumnResolver {
      *
      * @param builder string builder to append to
      * @param isJoin if this is a joined table
+     * @param alwaysQuote quote all identifiers
      * @return the specified builder
      */
-    public StringBuilder getPlanSQL(StringBuilder builder, boolean isJoin) {
+    public StringBuilder getPlanSQL(StringBuilder builder, boolean isJoin, boolean alwaysQuote) {
         if (isJoin) {
             if (joinOuter) {
                 builder.append("LEFT OUTER JOIN ");
@@ -778,7 +779,7 @@ public class TableFilter implements ColumnResolver {
             StringBuilder buffNested = new StringBuilder();
             TableFilter n = nestedJoin;
             do {
-                n.getPlanSQL(buffNested, n != nestedJoin).append('\n');
+                n.getPlanSQL(buffNested, n != nestedJoin, alwaysQuote).append('\n');
                 n = n.getJoin();
             } while (n != null);
             String nested = buffNested.toString();
@@ -797,23 +798,23 @@ public class TableFilter implements ColumnResolver {
                     // otherwise the nesting is unclear
                     builder.append("1=1");
                 } else {
-                    joinCondition.getUnenclosedSQL(builder);
+                    joinCondition.getUnenclosedSQL(builder, alwaysQuote);
                 }
             }
             return builder;
         }
         if (table.isView() && ((TableView) table).isRecursive()) {
-            table.getSchema().getSQL(builder).append('.');
-            Parser.quoteIdentifier(builder, table.getName());
+            table.getSchema().getSQL(builder, alwaysQuote).append('.');
+            Parser.quoteIdentifier(builder, table.getName(), alwaysQuote);
         } else {
-            table.getSQL(builder);
+            table.getSQL(builder, alwaysQuote);
         }
         if (table.isView() && ((TableView) table).isInvalid()) {
             throw DbException.get(ErrorCode.VIEW_IS_INVALID_2, table.getName(), "not compiled");
         }
         if (alias != null) {
             builder.append(' ');
-            Parser.quoteIdentifier(builder, alias);
+            Parser.quoteIdentifier(builder, alias, alwaysQuote);
             if (derivedColumnMap != null) {
                 builder.append('(');
                 boolean f = false;
@@ -822,7 +823,7 @@ public class TableFilter implements ColumnResolver {
                         builder.append(", ");
                     }
                     f = true;
-                    Parser.quoteIdentifier(builder, name);
+                    Parser.quoteIdentifier(builder, name, alwaysQuote);
                 }
                 builder.append(')');
             }
@@ -836,7 +837,7 @@ public class TableFilter implements ColumnResolver {
                 } else {
                     first = false;
                 }
-                Parser.quoteIdentifier(builder, index);
+                Parser.quoteIdentifier(builder, index, alwaysQuote);
             }
             builder.append(")");
         }
@@ -861,7 +862,7 @@ public class TableFilter implements ColumnResolver {
                 planBuff.append(": ");
                 for (IndexCondition condition : indexConditions) {
                     planBuff.appendExceptFirst("\n    AND ");
-                    planBuff.append(condition.getSQL());
+                    planBuff.append(condition.getSQL(false));
                 }
             }
             String plan = StringUtils.quoteRemarkSQL(planBuff.toString());
@@ -877,12 +878,12 @@ public class TableFilter implements ColumnResolver {
                 // unclear
                 builder.append("1=1");
             } else {
-                joinCondition.getUnenclosedSQL(builder);
+                joinCondition.getUnenclosedSQL(builder, alwaysQuote);
             }
         }
         if (filterCondition != null) {
             builder.append('\n');
-            String condition = StringUtils.unEnclose(filterCondition.getSQL());
+            String condition = StringUtils.unEnclose(filterCondition.getSQL(false));
             condition = "/* WHERE " + StringUtils.quoteRemarkSQL(condition) + "\n*/";
             StringUtils.indent(builder, condition, 4, false);
         }

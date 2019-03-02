@@ -333,10 +333,10 @@ public class TestOuterJoins extends TestDb {
                 "right outer join t3 on t1.b=t3.a right outer join t2 on t2.b=t1.a");
         assertTrue(rs.next());
         sql = cleanRemarks(rs.getString(1));
-        assertEquals("SELECT DISTINCT T1.A, T2.A, T3.A FROM PUBLIC.T2 " +
-                "LEFT OUTER JOIN ( PUBLIC.T3 " +
-                "LEFT OUTER JOIN PUBLIC.T1 ON T1.B = T3.A ) " +
-                "ON T2.B = T1.A", sql);
+        assertEquals("SELECT DISTINCT \"T1\".\"A\", \"T2\".\"A\", \"T3\".\"A\" FROM \"PUBLIC\".\"T2\" " +
+                "LEFT OUTER JOIN ( \"PUBLIC\".\"T3\" " +
+                "LEFT OUTER JOIN \"PUBLIC\".\"T1\" ON \"T1\".\"B\" = \"T3\".\"A\" ) " +
+                "ON \"T2\".\"B\" = \"T1\".\"A\"", sql);
         rs = stat.executeQuery("select distinct t1.a, t2.a, t3.a from t1 " +
                 "right outer join t3 on t1.b=t3.a right outer join t2 on t2.b=t1.a");
         // expected:
@@ -374,8 +374,9 @@ public class TestOuterJoins extends TestDb {
                 "inner join b on a.x = b.x right outer join c on c.x = a.x");
         assertTrue(rs.next());
         sql = cleanRemarks(rs.getString(1));
-        assertEquals("SELECT A.X, B.X, C.X FROM PUBLIC.C LEFT OUTER JOIN " +
-                "( PUBLIC.A INNER JOIN PUBLIC.B ON A.X = B.X ) ON C.X = A.X", sql);
+        assertEquals("SELECT \"A\".\"X\", \"B\".\"X\", \"C\".\"X\" FROM \"PUBLIC\".\"C\" LEFT OUTER JOIN " +
+                "( \"PUBLIC\".\"A\" INNER JOIN \"PUBLIC\".\"B\" " +
+                "ON \"A\".\"X\" = \"B\".\"X\" ) ON \"C\".\"X\" = \"A\".\"X\"", sql);
         rs = stat.executeQuery("select a.x, b.x, c.x from a " +
                 "inner join b on a.x = b.x " +
                 "right outer join c on c.x = a.x");
@@ -419,11 +420,11 @@ public class TestOuterJoins extends TestDb {
                 "on a.x = c.x");
         assertTrue(rs.next());
         sql = cleanRemarks(rs.getString(1));
-        assertEquals("SELECT A.X, B.X, C.X, C.Y FROM PUBLIC.A " +
-                "LEFT OUTER JOIN ( PUBLIC.B " +
-                "LEFT OUTER JOIN PUBLIC.C " +
-                "ON B.X = C.Y ) " +
-                "ON A.X = C.X", sql);
+        assertEquals("SELECT \"A\".\"X\", \"B\".\"X\", \"C\".\"X\", \"C\".\"Y\" FROM \"PUBLIC\".\"A\" " +
+                "LEFT OUTER JOIN ( \"PUBLIC\".\"B\" " +
+                "LEFT OUTER JOIN \"PUBLIC\".\"C\" " +
+                "ON \"B\".\"X\" = \"C\".\"Y\" ) " +
+                "ON \"A\".\"X\" = \"C\".\"X\"", sql);
         rs = stat.executeQuery("select * from a " +
                 "left outer join (b " +
                 "left outer join c " +
@@ -500,9 +501,9 @@ public class TestOuterJoins extends TestDb {
                 "inner join c on c.x = 1) on a.x = b.x");
         assertTrue(rs.next());
         sql = cleanRemarks(rs.getString(1));
-        assertEquals("SELECT A.X, B.X, C.X FROM PUBLIC.A " +
-                "LEFT OUTER JOIN ( PUBLIC.B " +
-                "INNER JOIN PUBLIC.C ON C.X = 1 ) ON A.X = B.X", sql);
+        assertEquals("SELECT \"A\".\"X\", \"B\".\"X\", \"C\".\"X\" FROM \"PUBLIC\".\"A\" " +
+                "LEFT OUTER JOIN ( \"PUBLIC\".\"B\" " +
+                "INNER JOIN \"PUBLIC\".\"C\" ON \"C\".\"X\" = 1 ) ON \"A\".\"X\" = \"B\".\"X\"", sql);
         stat.execute("drop table a, b, c");
 
         stat.execute("create table test(id int primary key)");
@@ -547,12 +548,12 @@ public class TestOuterJoins extends TestDb {
                 "on b.pk = b_base.pk and b_base.deleted = 0) on 1=1");
         assertTrue(rs.next());
         sql = cleanRemarks(rs.getString(1));
-        assertEquals("SELECT A.PK, A_BASE.PK, B.PK, B_BASE.PK " +
-                "FROM PUBLIC.BASE A_BASE " +
-                "LEFT OUTER JOIN ( PUBLIC.B " +
-                "INNER JOIN PUBLIC.BASE B_BASE " +
-                "ON (B_BASE.DELETED = 0) AND (B.PK = B_BASE.PK) ) " +
-                "ON TRUE INNER JOIN PUBLIC.A ON 1=1 WHERE A.PK = A_BASE.PK", sql);
+        assertEquals("SELECT \"A\".\"PK\", \"A_BASE\".\"PK\", \"B\".\"PK\", \"B_BASE\".\"PK\" " +
+                "FROM \"PUBLIC\".\"BASE\" \"A_BASE\" " +
+                "LEFT OUTER JOIN ( \"PUBLIC\".\"B\" " +
+                "INNER JOIN \"PUBLIC\".\"BASE\" \"B_BASE\" " +
+                "ON (\"B_BASE\".\"DELETED\" = 0) AND (\"B\".\"PK\" = \"B_BASE\".\"PK\") ) " +
+                "ON TRUE INNER JOIN \"PUBLIC\".\"A\" ON 1=1 WHERE \"A\".\"PK\" = \"A_BASE\".\"PK\"", sql);
         rs = stat.executeQuery("select a.pk, a_base.pk, b.pk, b_base.pk from a " +
                 "inner join base a_base on a.pk = a_base.pk " +
                 "left outer join (b inner join base b_base " +

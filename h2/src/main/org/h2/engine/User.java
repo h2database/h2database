@@ -98,7 +98,7 @@ public class User extends RightOwner {
      */
     public void checkRight(Table table, int rightMask) {
         if (!hasRight(table, rightMask)) {
-            throw DbException.get(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, table.getSQL());
+            throw DbException.get(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, table.getSQL(false));
         }
     }
 
@@ -157,7 +157,7 @@ public class User extends RightOwner {
      */
     public String getCreateSQL(boolean password) {
         StringBuilder buff = new StringBuilder("CREATE USER IF NOT EXISTS ");
-        getSQL(buff);
+        getSQL(buff, true);
         if (comment != null) {
             buff.append(" COMMENT ");
             StringUtils.quoteStringSQL(buff, comment);

@@ -78,7 +78,7 @@ public class ConstraintReferential extends Constraint {
     public String getCreateSQLForCopy(Table forTable, Table forRefTable,
             String quotedName, boolean internalIndex) {
         StringBuilder builder = new StringBuilder("ALTER TABLE ");
-        forTable.getSQL(builder).append(" ADD CONSTRAINT ");
+        forTable.getSQL(builder, true).append(" ADD CONSTRAINT ");
         if (forTable.isHidden()) {
             builder.append("IF NOT EXISTS ");
         }
@@ -90,25 +90,25 @@ public class ConstraintReferential extends Constraint {
         IndexColumn[] cols = columns;
         IndexColumn[] refCols = refColumns;
         builder.append(" FOREIGN KEY(");
-        IndexColumn.writeColumns(builder, cols);
+        IndexColumn.writeColumns(builder, cols, true);
         builder.append(')');
         if (internalIndex && indexOwner && forTable == this.table) {
             builder.append(" INDEX ");
-            index.getSQL(builder);
+            index.getSQL(builder, true);
         }
         builder.append(" REFERENCES ");
         if (this.table == this.refTable) {
             // self-referencing constraints: need to use new table
-            forTable.getSQL(builder);
+            forTable.getSQL(builder, true);
         } else {
-            forRefTable.getSQL(builder);
+            forRefTable.getSQL(builder, true);
         }
         builder.append('(');
-        IndexColumn.writeColumns(builder, refCols);
+        IndexColumn.writeColumns(builder, refCols, true);
         builder.append(')');
         if (internalIndex && refIndexOwner && forTable == this.table) {
             builder.append(" INDEX ");
-            refIndex.getSQL(builder);
+            refIndex.getSQL(builder, true);
         }
         if (deleteAction != ConstraintActionType.RESTRICT) {
             builder.append(" ON DELETE ").append(deleteAction.getSqlName());
@@ -130,11 +130,11 @@ public class ConstraintReferential extends Constraint {
      */
     private String getShortDescription(Index searchIndex, SearchRow check) {
         StringBuilder builder = new StringBuilder(getName()).append(": ");
-        table.getSQL(builder).append(" FOREIGN KEY(");
-        IndexColumn.writeColumns(builder, columns);
+        table.getSQL(builder, false).append(" FOREIGN KEY(");
+        IndexColumn.writeColumns(builder, columns, false);
         builder.append(") REFERENCES ");
-        refTable.getSQL(builder).append('(');
-        IndexColumn.writeColumns(builder, refColumns);
+        refTable.getSQL(builder, false).append('(');
+        IndexColumn.writeColumns(builder, refColumns, false);
         builder.append(')');
         if (searchIndex != null && check != null) {
             builder.append(" (");
@@ -155,12 +155,12 @@ public class ConstraintReferential extends Constraint {
 
     @Override
     public String getCreateSQLWithoutIndexes() {
-        return getCreateSQLForCopy(table, refTable, getSQL(), false);
+        return getCreateSQLForCopy(table, refTable, getSQL(true), false);
     }
 
     @Override
     public String getCreateSQL() {
-        return getCreateSQLForCopy(table, getSQL());
+        return getCreateSQLForCopy(table, getSQL(true));
     }
 
     public void setColumns(IndexColumn[] cols) {
@@ -478,7 +478,7 @@ public class ConstraintReferential extends Constraint {
         StringBuilder builder = new StringBuilder();
         if (deleteAction == ConstraintActionType.CASCADE) {
             builder.append("DELETE FROM ");
-            table.getSQL(builder);
+            table.getSQL(builder, true);
         } else {
             appendUpdate(builder);
         }
@@ -555,12 +555,12 @@ public class ConstraintReferential extends Constraint {
 
     private void appendUpdate(StringBuilder builder) {
         builder.append("UPDATE ");
-        table.getSQL(builder).append(" SET ");
+        table.getSQL(builder, true).append(" SET ");
         for (int i = 0, l = columns.length; i < l; i++) {
             if (i > 0) {
                 builder.append(", ");
             }
-            columns[i].column.getSQL(builder).append("=?");
+            columns[i].column.getSQL(builder, true).append("=?");
         }
     }
 
@@ -570,7 +570,7 @@ public class ConstraintReferential extends Constraint {
             if (i > 0) {
                 builder.append(" AND ");
             }
-            columns[i].column.getSQL(builder).append("=?");
+            columns[i].column.getSQL(builder, true).append("=?");
         }
     }
 
@@ -608,21 +608,21 @@ public class ConstraintReferential extends Constraint {
         }
         session.startStatementWithinTransaction();
         StringBuilder builder = new StringBuilder("SELECT 1 FROM (SELECT ");
-        IndexColumn.writeColumns(builder, columns);
+        IndexColumn.writeColumns(builder, columns, true);
         builder.append(" FROM ");
-        table.getSQL(builder).append(" WHERE ");
-        IndexColumn.writeColumns(builder, columns, " AND ", " IS NOT NULL ");
+        table.getSQL(builder, true).append(" WHERE ");
+        IndexColumn.writeColumns(builder, columns, " AND ", " IS NOT NULL ", true);
         builder.append(" ORDER BY ");
-        IndexColumn.writeColumns(builder, columns);
+        IndexColumn.writeColumns(builder, columns, true);
         builder.append(") C WHERE NOT EXISTS(SELECT 1 FROM ");
-        refTable.getSQL(builder).append(" P WHERE ");
+        refTable.getSQL(builder, true).append(" P WHERE ");
         for (int i = 0, l = columns.length; i < l; i++) {
             if (i > 0) {
                 builder.append(" AND ");
             }
             builder.append("C.");
-            columns[i].getSQL(builder).append('=').append("P.");
-            refColumns[i].getSQL(builder);
+            columns[i].getSQL(builder, true).append('=').append("P.");
+            refColumns[i].getSQL(builder, true);
         }
         builder.append(')');
         ResultInterface r = session.prepare(builder.toString()).query(1);

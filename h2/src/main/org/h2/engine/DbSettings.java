@@ -58,16 +58,16 @@ public class DbSettings extends SettingsBase {
 
     /**
      * Database setting <code>DATABASE_TO_LOWER</code> (default: false).<br />
-     * Database short names are converted to lowercase for the DATABASE()
-     * function, and in the CATALOG column of all database meta data methods.
-     * Setting this to "true" is experimental.
+     * When set to true unquoted identifiers and short name of database are
+     * converted to lower case. Value of this setting should not be changed
+     * after creation of database. Setting this to "true" is experimental.
      */
     public final boolean databaseToLower;
 
     /**
      * Database setting <code>DATABASE_TO_UPPER</code> (default: true).<br />
-     * Database short names are converted to uppercase for the DATABASE()
-     * function, and in the CATALOG column of all database meta data methods.
+     * When set to true unquoted identifiers and short name of database are
+     * converted to upper case.
      */
     public final boolean databaseToUpper;
 

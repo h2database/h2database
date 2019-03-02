@@ -130,7 +130,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
 
     @Override
     public String getPlanSQL() {
-        return query == null ? null : query.getPlanSQL();
+        return query == null ? null : query.getPlanSQL(false);
     }
 
     @Override
@@ -390,7 +390,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
             }
         }
 
-        String sql = q.getPlanSQL();
+        String sql = q.getPlanSQL(true);
         q = prepareSubQuery(sql, session, masks, filters, filter, sortOrder);
         return q;
     }

@@ -481,11 +481,11 @@ insert into test(id) direct sorted select x from system_range(1, 100);
 > update count: 100
 
 explain insert into test(id) direct sorted select x from system_range(1, 100);
->> INSERT INTO PUBLIC.TEST(ID) DIRECT SORTED SELECT X FROM SYSTEM_RANGE(1, 100) /* PUBLIC.RANGE_INDEX */
+>> INSERT INTO "PUBLIC"."TEST"("ID") DIRECT SORTED SELECT "X" FROM SYSTEM_RANGE(1, 100) /* PUBLIC.RANGE_INDEX */
 
 explain select * from test limit 10 sample_size 10;
-#+mvStore#>> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ FETCH FIRST 10 ROWS ONLY SAMPLE_SIZE 10
-#-mvStore#>> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ FETCH FIRST 10 ROWS ONLY SAMPLE_SIZE 10
+#+mvStore#>> SELECT "TEST"."ID" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ FETCH FIRST 10 ROWS ONLY SAMPLE_SIZE 10
+#-mvStore#>> SELECT "TEST"."ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */ FETCH FIRST 10 ROWS ONLY SAMPLE_SIZE 10
 
 drop table test;
 > ok
@@ -497,7 +497,7 @@ insert into test values(1), (2), (3), (4);
 > update count: 4
 
 explain analyze select * from test where id is null;
->> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID IS NULL */ /* scanCount: 1 */ WHERE ID IS NULL
+>> SELECT "TEST"."ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2: ID IS NULL */ /* scanCount: 1 */ WHERE "ID" IS NULL
 
 drop table test;
 > ok
@@ -767,11 +767,11 @@ create memory table test(id int);
 
 script nodata nopasswords nosettings;
 > SCRIPT
-> -----------------------------------------------
+> --------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> CREATE DOMAIN INT AS VARCHAR;
-> CREATE MEMORY TABLE PUBLIC.TEST( ID INT );
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
+> CREATE DOMAIN "INT" AS VARCHAR;
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" "INT" );
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > rows: 4
 
 SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'TEST';
@@ -1111,11 +1111,11 @@ select * from test order by id;
 
 script nopasswords nosettings;
 > SCRIPT
-> -------------------------------------------------------------------------------------------------------------------------------
+> -----------------------------------------------------------------------------------------------------------------------------------
 > -- 3 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> CREATE MEMORY TABLE PUBLIC.TEST( ID INT, D DOUBLE, F FLOAT );
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
-> INSERT INTO PUBLIC.TEST VALUES (0, POWER(0, -1), POWER(0, -1)), (1, (-POWER(0, -1)), (-POWER(0, -1))), (2, SQRT(-1), SQRT(-1));
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" INT, "D" DOUBLE, "F" FLOAT );
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
+> INSERT INTO "PUBLIC"."TEST" VALUES (0, POWER(0, -1), POWER(0, -1)), (1, (-POWER(0, -1)), (-POWER(0, -1))), (2, SQRT(-1), SQRT(-1));
 > rows: 4
 
 DROP TABLE TEST;
@@ -1157,8 +1157,8 @@ insert into t2 select x from system_range(1, 1000);
 > update count: 1000
 
 explain select count(*) from t1 where t1.id in ( select t2.id from t2 );
-#+mvStore#>> SELECT COUNT(*) FROM PUBLIC.T1 /* PUBLIC.PRIMARY_KEY_A: ID IN(SELECT T2.ID FROM PUBLIC.T2 /++ PUBLIC.T2.tableScan ++/) */ WHERE T1.ID IN( SELECT T2.ID FROM PUBLIC.T2 /* PUBLIC.T2.tableScan */)
-#-mvStore#>> SELECT COUNT(*) FROM PUBLIC.T1 /* PUBLIC.PRIMARY_KEY_A: ID IN(SELECT T2.ID FROM PUBLIC.T2 /++ PUBLIC.PRIMARY_KEY_A5 ++/) */ WHERE T1.ID IN( SELECT T2.ID FROM PUBLIC.T2 /* PUBLIC.PRIMARY_KEY_A5 */)
+#+mvStore#>> SELECT COUNT(*) FROM "PUBLIC"."T1" /* PUBLIC.PRIMARY_KEY_A: ID IN(SELECT T2.ID FROM PUBLIC.T2 /++ PUBLIC.T2.tableScan ++/) */ WHERE "T1"."ID" IN( SELECT "T2"."ID" FROM "PUBLIC"."T2" /* PUBLIC.T2.tableScan */)
+#-mvStore#>> SELECT COUNT(*) FROM "PUBLIC"."T1" /* PUBLIC.PRIMARY_KEY_A: ID IN(SELECT T2.ID FROM PUBLIC.T2 /++ PUBLIC.PRIMARY_KEY_A5 ++/) */ WHERE "T1"."ID" IN( SELECT "T2"."ID" FROM "PUBLIC"."T2" /* PUBLIC.PRIMARY_KEY_A5 */)
 
 select count(*) from t1 where t1.id in ( select t2.id from t2 );
 > COUNT(*)
@@ -1210,7 +1210,7 @@ update test set b = default where a = 2;
 > update count: 1
 
 explain update test set b = default where a = 2;
->> UPDATE PUBLIC.TEST /* PUBLIC.TEST.tableScan */ SET B = DEFAULT WHERE A = 2
+>> UPDATE "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ SET "B" = DEFAULT WHERE "A" = 2
 
 select * from test;
 > A B
@@ -1450,7 +1450,7 @@ where cnt < 1000 order by dir_num asc;
 explain select * from (select dir_num, count(*) as cnt from multi_pages  t, b_holding bh
 where t.bh_id=bh.id and bh.site='Hello' group by dir_num) as x
 where cnt < 1000 order by dir_num asc;
->> SELECT X.DIR_NUM, X.CNT FROM ( SELECT DIR_NUM, COUNT(*) AS CNT FROM PUBLIC.MULTI_PAGES T INNER JOIN PUBLIC.B_HOLDING BH ON 1=1 WHERE (BH.SITE = 'Hello') AND (T.BH_ID = BH.ID) GROUP BY DIR_NUM ) X /* SELECT DIR_NUM, COUNT(*) AS CNT FROM PUBLIC.MULTI_PAGES T /++ PUBLIC.MULTI_PAGES.tableScan ++/ INNER JOIN PUBLIC.B_HOLDING BH /++ PUBLIC.PRIMARY_KEY_3: ID = T.BH_ID ++/ ON 1=1 WHERE (BH.SITE = 'Hello') AND (T.BH_ID = BH.ID) GROUP BY DIR_NUM HAVING COUNT(*) <= ?1: CNT < 1000 */ WHERE CNT < 1000 ORDER BY 1
+>> SELECT "X"."DIR_NUM", "X"."CNT" FROM ( SELECT "DIR_NUM", COUNT(*) AS "CNT" FROM "PUBLIC"."MULTI_PAGES" "T" INNER JOIN "PUBLIC"."B_HOLDING" "BH" ON 1=1 WHERE ("BH"."SITE" = 'Hello') AND ("T"."BH_ID" = "BH"."ID") GROUP BY "DIR_NUM" ) "X" /* SELECT DIR_NUM, COUNT(*) AS CNT FROM PUBLIC.MULTI_PAGES T /++ PUBLIC.MULTI_PAGES.tableScan ++/ INNER JOIN PUBLIC.B_HOLDING BH /++ PUBLIC.PRIMARY_KEY_3: ID = T.BH_ID ++/ ON 1=1 WHERE (BH.SITE = 'Hello') AND (T.BH_ID = BH.ID) GROUP BY DIR_NUM HAVING COUNT(*) <= ?1: CNT < 1000 */ WHERE "CNT" < 1000 ORDER BY 1
 
 select dir_num, count(*) as cnt from multi_pages  t, b_holding bh
 where t.bh_id=bh.id and bh.site='Hello' group by dir_num
@@ -1480,11 +1480,11 @@ insert into test values(1), (2), (3);
 > update count: 3
 
 explain select * from test where id = 1;
->> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ WHERE ID = 1
+>> SELECT "TEST"."ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ WHERE "ID" = 1
 
 EXPLAIN SELECT * FROM TEST WHERE ID = (SELECT MAX(ID) FROM TEST);
-#+mvStore#>> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID = (SELECT MAX(ID) FROM PUBLIC.TEST /++ PUBLIC.TEST.tableScan ++/ /++ direct lookup ++/) */ WHERE ID = (SELECT MAX(ID) FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ /* direct lookup */)
-#-mvStore#>> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID = (SELECT MAX(ID) FROM PUBLIC.TEST /++ PUBLIC.PRIMARY_KEY_2 ++/ /++ direct lookup ++/) */ WHERE ID = (SELECT MAX(ID) FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ /* direct lookup */)
+#+mvStore#>> SELECT "TEST"."ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2: ID = (SELECT MAX(ID) FROM PUBLIC.TEST /++ PUBLIC.TEST.tableScan ++/ /++ direct lookup ++/) */ WHERE "ID" = (SELECT MAX("ID") FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ /* direct lookup */)
+#-mvStore#>> SELECT "TEST"."ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2: ID = (SELECT MAX(ID) FROM PUBLIC.TEST /++ PUBLIC.PRIMARY_KEY_2 ++/ /++ direct lookup ++/) */ WHERE "ID" = (SELECT MAX("ID") FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */ /* direct lookup */)
 
 drop table test;
 > ok
@@ -1496,10 +1496,10 @@ insert into test values(1), (2), (3);
 > update count: 3
 
 explain select * from test where id = 3;
->> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID = 3 */ WHERE ID = 3
+>> SELECT "TEST"."ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2: ID = 3 */ WHERE "ID" = 3
 
 explain select * from test where id = 255;
->> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID = 255 */ WHERE ID = 255
+>> SELECT "TEST"."ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2: ID = 255 */ WHERE "ID" = 255
 
 drop table test;
 > ok
@@ -1511,7 +1511,7 @@ insert into test values(1), (2), (3);
 > update count: 3
 
 explain select * from test where id in(1, 2, null);
->> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID IN(1, 2, NULL) */ WHERE ID IN(1, 2, NULL)
+>> SELECT "TEST"."ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2: ID IN(1, 2, NULL) */ WHERE "ID" IN(1, 2, NULL)
 
 drop table test;
 > ok
@@ -1781,7 +1781,7 @@ select * from test where name = -1 and name = id;
 > rows: 1
 
 explain select * from test where name = -1 and name = id;
->> SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID = -1 */ WHERE ((NAME = -1) AND (NAME = ID)) AND (ID = -1)
+>> SELECT "TEST"."ID", "TEST"."NAME" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2: ID = -1 */ WHERE (("NAME" = -1) AND ("NAME" = "ID")) AND ("ID" = -1)
 
 DROP TABLE TEST;
 > ok
@@ -1822,10 +1822,10 @@ INSERT INTO TEST VALUES(1, TRUE, 'Hello'), (2, FALSE, 'World');
 > update count: 2
 
 EXPLAIN SELECT * FROM TEST WHERE FLAG;
->> SELECT TEST.ID, TEST.FLAG, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.IDX_FLAG: FLAG = TRUE */ WHERE FLAG
+>> SELECT "TEST"."ID", "TEST"."FLAG", "TEST"."NAME" FROM "PUBLIC"."TEST" /* PUBLIC.IDX_FLAG: FLAG = TRUE */ WHERE "FLAG"
 
 EXPLAIN SELECT * FROM TEST WHERE FLAG AND NAME>'I';
->> SELECT TEST.ID, TEST.FLAG, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.IDX_FLAG: FLAG = TRUE AND NAME > 'I' */ WHERE FLAG AND (NAME > 'I')
+>> SELECT "TEST"."ID", "TEST"."FLAG", "TEST"."NAME" FROM "PUBLIC"."TEST" /* PUBLIC.IDX_FLAG: FLAG = TRUE AND NAME > 'I' */ WHERE "FLAG" AND ("NAME" > 'I')
 
 DROP TABLE TEST;
 > ok
@@ -1855,7 +1855,7 @@ create table test(id int);
 > ok
 
 explain select id+1 a from test group by id+1;
->> SELECT (ID + 1) AS A FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ GROUP BY ID + 1
+>> SELECT ("ID" + 1) AS "A" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ GROUP BY "ID" + 1
 
 drop table test;
 > ok
@@ -2127,18 +2127,18 @@ script nopasswords nosettings blocksize 10;
 > SCRIPT
 > --------------------------------------------------------------------------------------------------------------
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_2 PRIMARY KEY(ID);
+> ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_2" PRIMARY KEY("ID");
 > CALL SYSTEM_COMBINE_BLOB(-1);
 > CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_BLOB FOR "org.h2.command.dml.ScriptCommand.combineBlob";
 > CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_CLOB FOR "org.h2.command.dml.ScriptCommand.combineClob";
-> CREATE MEMORY TABLE PUBLIC.TEST( ID INT NOT NULL, DATA CLOB );
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" INT NOT NULL, "DATA" CLOB );
 > CREATE PRIMARY KEY SYSTEM_LOB_STREAM_PRIMARY_KEY ON SYSTEM_LOB_STREAM(ID, PART);
 > CREATE TABLE IF NOT EXISTS SYSTEM_LOB_STREAM(ID INT NOT NULL, PART INT NOT NULL, CDATA VARCHAR, BDATA BINARY);
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > DROP ALIAS IF EXISTS SYSTEM_COMBINE_BLOB;
 > DROP ALIAS IF EXISTS SYSTEM_COMBINE_CLOB;
 > DROP TABLE IF EXISTS SYSTEM_LOB_STREAM;
-> INSERT INTO PUBLIC.TEST VALUES (1, SYSTEM_COMBINE_CLOB(0));
+> INSERT INTO "PUBLIC"."TEST" VALUES (1, SYSTEM_COMBINE_CLOB(0));
 > INSERT INTO SYSTEM_LOB_STREAM VALUES(0, 0, 'abc ', NULL);
 > INSERT INTO SYSTEM_LOB_STREAM VALUES(0, 1, ' ', NULL);
 > INSERT INTO SYSTEM_LOB_STREAM VALUES(0, 2, ' ', NULL);
@@ -2287,10 +2287,10 @@ create table test(id int, name varchar);
 > ok
 
 explain select * from test;
->> SELECT TEST.ID, TEST.NAME FROM TEST_SCHEMA.TEST /* TEST_SCHEMA.TEST.tableScan */
+>> SELECT "TEST"."ID", "TEST"."NAME" FROM "TEST_SCHEMA"."TEST" /* TEST_SCHEMA.TEST.tableScan */
 
 explain select * from public.test;
->> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */
+>> SELECT "TEST"."ID" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
 
 drop schema TEST_SCHEMA cascade;
 > ok
@@ -2498,10 +2498,10 @@ insert into test values('AA');
 
 script nodata nopasswords nosettings;
 > SCRIPT
-> ---------------------------------------------------------------------------
+> -------------------------------------------------------------------------------------
 > -- 2 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> CREATE MEMORY TABLE PUBLIC.TEST( NAME VARCHAR CHECK (NAME = UPPER(NAME)) );
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "NAME" VARCHAR CHECK ("NAME" = UPPER("NAME")) );
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > rows: 3
 
 drop table test;
@@ -2561,33 +2561,33 @@ select * from test;
 > rows: 1
 
 select DOMAIN_NAME, COLUMN_DEFAULT, IS_NULLABLE, DATA_TYPE, PRECISION, SCALE, TYPE_NAME, SELECTIVITY, CHECK_CONSTRAINT, REMARKS, SQL from information_schema.domains;
-> DOMAIN_NAME COLUMN_DEFAULT IS_NULLABLE DATA_TYPE PRECISION  SCALE TYPE_NAME SELECTIVITY CHECK_CONSTRAINT                                                REMARKS SQL
-> ----------- -------------- ----------- --------- ---------- ----- --------- ----------- --------------------------------------------------------------- ------- ------------------------------------------------------------------------------------------------------------------------------
-> EMAIL       null           YES         12        200        0     VARCHAR   50          (POSITION('@', VALUE) > 1)                                              CREATE DOMAIN EMAIL AS VARCHAR(200) CHECK (POSITION('@', VALUE) > 1)
-> GMAIL       '@gmail.com'   YES         12        200        0     VARCHAR   50          ((POSITION('@', VALUE) > 1) AND (POSITION('gmail', VALUE) > 1))         CREATE DOMAIN GMAIL AS VARCHAR(200) DEFAULT '@gmail.com' CHECK ((POSITION('@', VALUE) > 1) AND (POSITION('gmail', VALUE) > 1))
-> STRING      ''             NO          12        255        0     VARCHAR   50                                                                                  CREATE DOMAIN STRING AS VARCHAR(255) DEFAULT '' NOT NULL
-> STRING1     null           YES         12        2147483647 0     VARCHAR   50                                                                                  CREATE DOMAIN STRING1 AS VARCHAR
-> STRING2     null           NO          12        2147483647 0     VARCHAR   50                                                                                  CREATE DOMAIN STRING2 AS VARCHAR NOT NULL
-> STRING3     '<empty>'      YES         12        2147483647 0     VARCHAR   50                                                                                  CREATE DOMAIN STRING3 AS VARCHAR DEFAULT '<empty>'
-> STRING_X    '<empty>'      YES         12        2147483647 0     VARCHAR   50                                                                                  CREATE DOMAIN STRING_X AS VARCHAR DEFAULT '<empty>'
+> DOMAIN_NAME COLUMN_DEFAULT IS_NULLABLE DATA_TYPE PRECISION  SCALE TYPE_NAME SELECTIVITY CHECK_CONSTRAINT                                                    REMARKS SQL
+> ----------- -------------- ----------- --------- ---------- ----- --------- ----------- ------------------------------------------------------------------- ------- ------------------------------------------------------------------------------------------------------------------------------------
+> EMAIL       null           YES         12        200        0     VARCHAR   50          (POSITION('@', "VALUE") > 1)                                                CREATE DOMAIN "EMAIL" AS VARCHAR(200) CHECK (POSITION('@', "VALUE") > 1)
+> GMAIL       '@gmail.com'   YES         12        200        0     VARCHAR   50          ((POSITION('@', "VALUE") > 1) AND (POSITION('gmail', "VALUE") > 1))         CREATE DOMAIN "GMAIL" AS VARCHAR(200) DEFAULT '@gmail.com' CHECK ((POSITION('@', "VALUE") > 1) AND (POSITION('gmail', "VALUE") > 1))
+> STRING      ''             NO          12        255        0     VARCHAR   50                                                                                      CREATE DOMAIN "STRING" AS VARCHAR(255) DEFAULT '' NOT NULL
+> STRING1     null           YES         12        2147483647 0     VARCHAR   50                                                                                      CREATE DOMAIN "STRING1" AS VARCHAR
+> STRING2     null           NO          12        2147483647 0     VARCHAR   50                                                                                      CREATE DOMAIN "STRING2" AS VARCHAR NOT NULL
+> STRING3     '<empty>'      YES         12        2147483647 0     VARCHAR   50                                                                                      CREATE DOMAIN "STRING3" AS VARCHAR DEFAULT '<empty>'
+> STRING_X    '<empty>'      YES         12        2147483647 0     VARCHAR   50                                                                                      CREATE DOMAIN "STRING_X" AS VARCHAR DEFAULT '<empty>'
 > rows: 7
 
 script nodata nopasswords nosettings;
 > SCRIPT
-> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.ADDRESS;
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> ALTER TABLE PUBLIC.ADDRESS ADD CONSTRAINT PUBLIC.CONSTRAINT_E PRIMARY KEY(ID);
-> CREATE DOMAIN EMAIL AS VARCHAR(200) CHECK (POSITION('@', VALUE) > 1);
-> CREATE DOMAIN GMAIL AS VARCHAR(200) DEFAULT '@gmail.com' CHECK ((POSITION('@', VALUE) > 1) AND (POSITION('gmail', VALUE) > 1));
-> CREATE DOMAIN STRING AS VARCHAR(255) DEFAULT '' NOT NULL;
-> CREATE DOMAIN STRING1 AS VARCHAR;
-> CREATE DOMAIN STRING2 AS VARCHAR NOT NULL;
-> CREATE DOMAIN STRING3 AS VARCHAR DEFAULT '<empty>';
-> CREATE DOMAIN STRING_X AS VARCHAR DEFAULT '<empty>';
-> CREATE MEMORY TABLE PUBLIC.ADDRESS( ID INT NOT NULL, NAME EMAIL CHECK (POSITION('@', NAME) > 1), NAME2 GMAIL DEFAULT '@gmail.com' CHECK ((POSITION('@', NAME2) > 1) AND (POSITION('gmail', NAME2) > 1)) );
-> CREATE MEMORY TABLE PUBLIC.TEST( A STRING DEFAULT '' NOT NULL, B STRING1, C STRING2 NOT NULL, D STRING3 DEFAULT '<empty>' );
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
+> ALTER TABLE "PUBLIC"."ADDRESS" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_E" PRIMARY KEY("ID");
+> CREATE DOMAIN "EMAIL" AS VARCHAR(200) CHECK (POSITION('@', "VALUE") > 1);
+> CREATE DOMAIN "GMAIL" AS VARCHAR(200) DEFAULT '@gmail.com' CHECK ((POSITION('@', "VALUE") > 1) AND (POSITION('gmail', "VALUE") > 1));
+> CREATE DOMAIN "STRING" AS VARCHAR(255) DEFAULT '' NOT NULL;
+> CREATE DOMAIN "STRING1" AS VARCHAR;
+> CREATE DOMAIN "STRING2" AS VARCHAR NOT NULL;
+> CREATE DOMAIN "STRING3" AS VARCHAR DEFAULT '<empty>';
+> CREATE DOMAIN "STRING_X" AS VARCHAR DEFAULT '<empty>';
+> CREATE MEMORY TABLE "PUBLIC"."ADDRESS"( "ID" INT NOT NULL, "NAME" "EMAIL" CHECK (POSITION('@', "NAME") > 1), "NAME2" "GMAIL" DEFAULT '@gmail.com' CHECK ((POSITION('@', "NAME2") > 1) AND (POSITION('gmail', "NAME2") > 1)) );
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "A" "STRING" DEFAULT '' NOT NULL, "B" "STRING1", "C" "STRING2" NOT NULL, "D" "STRING3" DEFAULT '<empty>' );
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > rows: 13
 
 drop table test;
@@ -2637,11 +2637,11 @@ create memory table a(k10 blob(10k), m20 blob(20m), g30 clob(30g));
 
 script NODATA NOPASSWORDS NOSETTINGS drop;
 > SCRIPT
-> -------------------------------------------------------------------------------------------
+> -----------------------------------------------------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.A;
-> CREATE MEMORY TABLE PUBLIC.A( K10 BLOB(10240), M20 BLOB(20971520), G30 CLOB(32212254720) );
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
-> DROP TABLE IF EXISTS PUBLIC.A CASCADE;
+> CREATE MEMORY TABLE "PUBLIC"."A"( "K10" BLOB(10240), "M20" BLOB(20971520), "G30" CLOB(32212254720) );
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
+> DROP TABLE IF EXISTS "PUBLIC"."A" CASCADE;
 > rows: 4
 
 create table b();
@@ -2903,7 +2903,7 @@ select * from test2 where name like 'HELLO';
 > rows: 1
 
 explain plan for select * from test2, test where test2.name = test.name;
->> SELECT TEST2.ID, TEST2.NAME, TEST.ID, TEST.NAME FROM PUBLIC.TEST2 /* PUBLIC.TEST2.tableScan */ INNER JOIN PUBLIC.TEST /* PUBLIC.TEST.tableScan */ ON 1=1 WHERE TEST2.NAME = TEST.NAME
+>> SELECT "TEST2"."ID", "TEST2"."NAME", "TEST"."ID", "TEST"."NAME" FROM "PUBLIC"."TEST2" /* PUBLIC.TEST2.tableScan */ INNER JOIN "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ ON 1=1 WHERE "TEST2"."NAME" = "TEST"."NAME"
 
 select * from test2, test where test2.name = test.name;
 > ID NAME  ID NAME
@@ -2913,7 +2913,7 @@ select * from test2, test where test2.name = test.name;
 > rows: 2
 
 explain plan for select * from test, test2 where test2.name = test.name;
->> SELECT TEST.ID, TEST.NAME, TEST2.ID, TEST2.NAME FROM PUBLIC.TEST2 /* PUBLIC.TEST2.tableScan */ INNER JOIN PUBLIC.TEST /* PUBLIC.TEST.tableScan */ ON 1=1 WHERE TEST2.NAME = TEST.NAME
+>> SELECT "TEST"."ID", "TEST"."NAME", "TEST2"."ID", "TEST2"."NAME" FROM "PUBLIC"."TEST2" /* PUBLIC.TEST2.tableScan */ INNER JOIN "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ ON 1=1 WHERE "TEST2"."NAME" = "TEST"."NAME"
 
 select * from test, test2 where test2.name = test.name;
 > ID NAME  ID NAME
@@ -2926,7 +2926,7 @@ create index idx_test2_name on test2(name);
 > ok
 
 explain plan for select * from test2, test where test2.name = test.name;
->> SELECT TEST2.ID, TEST2.NAME, TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ INNER JOIN PUBLIC.TEST2 /* PUBLIC.IDX_TEST2_NAME: NAME = TEST.NAME */ ON 1=1 WHERE TEST2.NAME = TEST.NAME
+>> SELECT "TEST2"."ID", "TEST2"."NAME", "TEST"."ID", "TEST"."NAME" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ INNER JOIN "PUBLIC"."TEST2" /* PUBLIC.IDX_TEST2_NAME: NAME = TEST.NAME */ ON 1=1 WHERE "TEST2"."NAME" = "TEST"."NAME"
 
 select * from test2, test where test2.name = test.name;
 > ID NAME  ID NAME
@@ -2936,7 +2936,7 @@ select * from test2, test where test2.name = test.name;
 > rows: 2
 
 explain plan for select * from test, test2 where test2.name = test.name;
->> SELECT TEST.ID, TEST.NAME, TEST2.ID, TEST2.NAME FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ INNER JOIN PUBLIC.TEST2 /* PUBLIC.IDX_TEST2_NAME: NAME = TEST.NAME */ ON 1=1 WHERE TEST2.NAME = TEST.NAME
+>> SELECT "TEST"."ID", "TEST"."NAME", "TEST2"."ID", "TEST2"."NAME" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ INNER JOIN "PUBLIC"."TEST2" /* PUBLIC.IDX_TEST2_NAME: NAME = TEST.NAME */ ON 1=1 WHERE "TEST2"."NAME" = "TEST"."NAME"
 
 select * from test, test2 where test2.name = test.name;
 > ID NAME  ID NAME
@@ -2998,7 +2998,7 @@ INSERT INTO TEST VALUES(1, 'Hello');
 > update count: 1
 
 explain select t0.id, t1.id from test t0, test t1 order by t0.id, t1.id;
->> SELECT T0.ID, T1.ID FROM PUBLIC.TEST T0 /* PUBLIC.TEST.tableScan */ INNER JOIN PUBLIC.TEST T1 /* PUBLIC.TEST.tableScan */ ON 1=1 ORDER BY 1, 2
+>> SELECT "T0"."ID", "T1"."ID" FROM "PUBLIC"."TEST" "T0" /* PUBLIC.TEST.tableScan */ INNER JOIN "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ ON 1=1 ORDER BY 1, 2
 
 INSERT INTO TEST VALUES(2, 'World');
 > update count: 1
@@ -3022,7 +3022,7 @@ where exists (select 1 from test t4 where t2.id=t4.id);
 > rows: 2
 
 explain select * from test t1 where id in(select id from test t2 where t1.id=t2.id);
->> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST.tableScan */ WHERE ID IN( SELECT ID FROM PUBLIC.TEST T2 /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ WHERE T1.ID = T2.ID)
+>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ WHERE "ID" IN( SELECT "ID" FROM "PUBLIC"."TEST" "T2" /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ WHERE "T1"."ID" = "T2"."ID")
 
 select * from test t1 where id in(select id from test t2 where t1.id=t2.id);
 > ID NAME
@@ -3032,7 +3032,7 @@ select * from test t1 where id in(select id from test t2 where t1.id=t2.id);
 > rows: 2
 
 explain select * from test t1 where id in(id, id+1);
->> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST.tableScan */ WHERE ID IN(ID, (ID + 1))
+>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ WHERE "ID" IN("ID", ("ID" + 1))
 
 select * from test t1 where id in(id, id+1);
 > ID NAME
@@ -3042,7 +3042,7 @@ select * from test t1 where id in(id, id+1);
 > rows: 2
 
 explain select * from test t1 where id in(id);
->> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST.tableScan */ WHERE ID = ID
+>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ WHERE "ID" = "ID"
 
 select * from test t1 where id in(id);
 > ID NAME
@@ -3052,8 +3052,8 @@ select * from test t1 where id in(id);
 > rows: 2
 
 explain select * from test t1 where id in(select id from test);
-#+mvStore#>> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /++ PUBLIC.TEST.tableScan ++/) */ WHERE ID IN( SELECT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */)
-#-mvStore#>> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /++ PUBLIC.PRIMARY_KEY_2 ++/) */ WHERE ID IN( SELECT ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */)
+#+mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /++ PUBLIC.TEST.tableScan ++/) */ WHERE "ID" IN( SELECT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */)
+#-mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /++ PUBLIC.PRIMARY_KEY_2 ++/) */ WHERE "ID" IN( SELECT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */)
 
 select * from test t1 where id in(select id from test);
 > ID NAME
@@ -3063,8 +3063,8 @@ select * from test t1 where id in(select id from test);
 > rows: 2
 
 explain select * from test t1 where id in(1, select max(id) from test);
-#+mvStore#>> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(1, (SELECT MAX(ID) FROM PUBLIC.TEST /++ PUBLIC.TEST.tableScan ++/ /++ direct lookup ++/)) */ WHERE ID IN(1, (SELECT MAX(ID) FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ /* direct lookup */))
-#-mvStore#>> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(1, (SELECT MAX(ID) FROM PUBLIC.TEST /++ PUBLIC.PRIMARY_KEY_2 ++/ /++ direct lookup ++/)) */ WHERE ID IN(1, (SELECT MAX(ID) FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ /* direct lookup */))
+#+mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(1, (SELECT MAX(ID) FROM PUBLIC.TEST /++ PUBLIC.TEST.tableScan ++/ /++ direct lookup ++/)) */ WHERE "ID" IN(1, (SELECT MAX("ID") FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ /* direct lookup */))
+#-mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(1, (SELECT MAX(ID) FROM PUBLIC.TEST /++ PUBLIC.PRIMARY_KEY_2 ++/ /++ direct lookup ++/)) */ WHERE "ID" IN(1, (SELECT MAX("ID") FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */ /* direct lookup */))
 
 select * from test t1 where id in(1, select max(id) from test);
 > ID NAME
@@ -3074,7 +3074,7 @@ select * from test t1 where id in(1, select max(id) from test);
 > rows: 2
 
 explain select * from test t1 where id in(1, select max(id) from test t2 where t1.id=t2.id);
->> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST.tableScan */ WHERE ID IN(1, (SELECT MAX(ID) FROM PUBLIC.TEST T2 /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ WHERE T1.ID = T2.ID))
+>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ WHERE "ID" IN(1, (SELECT MAX("ID") FROM "PUBLIC"."TEST" "T2" /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ WHERE "T1"."ID" = "T2"."ID"))
 
 select * from test t1 where id in(1, select max(id) from test t2 where t1.id=t2.id);
 > ID NAME
@@ -3344,27 +3344,27 @@ CREATE memory TABLE sp2(S_NO VARCHAR(5), p_no VARCHAR(5), qty INT, constraint c1
 
 script NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> -------------------------------------------------------------------------------------------------------------------
+> -----------------------------------------------------------------------------------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.P;
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.S;
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.SP1;
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.SP2;
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> ALTER TABLE PUBLIC.P ADD CONSTRAINT PUBLIC.CONSTRAINT_50_0 PRIMARY KEY(P_NO);
-> ALTER TABLE PUBLIC.S ADD CONSTRAINT PUBLIC.CONSTRAINT_5 PRIMARY KEY(S_NO);
-> ALTER TABLE PUBLIC.SP1 ADD CONSTRAINT PUBLIC.CONSTRAINT_1 FOREIGN KEY(S_NO) REFERENCES PUBLIC.S(S_NO) NOCHECK;
-> ALTER TABLE PUBLIC.SP1 ADD CONSTRAINT PUBLIC.CONSTRAINT_14 FOREIGN KEY(P_NO) REFERENCES PUBLIC.P(P_NO) NOCHECK;
-> ALTER TABLE PUBLIC.SP1 ADD CONSTRAINT PUBLIC.CONSTRAINT_141 PRIMARY KEY(S_NO, P_NO);
-> ALTER TABLE PUBLIC.SP2 ADD CONSTRAINT PUBLIC.C1 FOREIGN KEY(S_NO) REFERENCES PUBLIC.S(S_NO) NOCHECK;
-> ALTER TABLE PUBLIC.SP2 ADD CONSTRAINT PUBLIC.CONSTRAINT_1417 PRIMARY KEY(S_NO, P_NO);
-> ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_2 PRIMARY KEY(ID);
-> ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_27 FOREIGN KEY(PARENT) REFERENCES PUBLIC.TEST(ID) NOCHECK;
-> CREATE MEMORY TABLE PUBLIC.P( P_NO VARCHAR(5) NOT NULL, DESCR VARCHAR(16), COLOR VARCHAR(8) );
-> CREATE MEMORY TABLE PUBLIC.S( S_NO VARCHAR(5) NOT NULL, NAME VARCHAR(16), CITY VARCHAR(16) );
-> CREATE MEMORY TABLE PUBLIC.SP1( S_NO VARCHAR(5) NOT NULL, P_NO VARCHAR(5) NOT NULL, QTY INT );
-> CREATE MEMORY TABLE PUBLIC.SP2( S_NO VARCHAR(5) NOT NULL, P_NO VARCHAR(5) NOT NULL, QTY INT );
-> CREATE MEMORY TABLE PUBLIC.TEST( ID INT NOT NULL, PARENT INT );
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
+> ALTER TABLE "PUBLIC"."P" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_50_0" PRIMARY KEY("P_NO");
+> ALTER TABLE "PUBLIC"."S" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_5" PRIMARY KEY("S_NO");
+> ALTER TABLE "PUBLIC"."SP1" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_1" FOREIGN KEY("S_NO") REFERENCES "PUBLIC"."S"("S_NO") NOCHECK;
+> ALTER TABLE "PUBLIC"."SP1" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_14" FOREIGN KEY("P_NO") REFERENCES "PUBLIC"."P"("P_NO") NOCHECK;
+> ALTER TABLE "PUBLIC"."SP1" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_141" PRIMARY KEY("S_NO", "P_NO");
+> ALTER TABLE "PUBLIC"."SP2" ADD CONSTRAINT "PUBLIC"."C1" FOREIGN KEY("S_NO") REFERENCES "PUBLIC"."S"("S_NO") NOCHECK;
+> ALTER TABLE "PUBLIC"."SP2" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_1417" PRIMARY KEY("S_NO", "P_NO");
+> ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_2" PRIMARY KEY("ID");
+> ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_27" FOREIGN KEY("PARENT") REFERENCES "PUBLIC"."TEST"("ID") NOCHECK;
+> CREATE MEMORY TABLE "PUBLIC"."P"( "P_NO" VARCHAR(5) NOT NULL, "DESCR" VARCHAR(16), "COLOR" VARCHAR(8) );
+> CREATE MEMORY TABLE "PUBLIC"."S"( "S_NO" VARCHAR(5) NOT NULL, "NAME" VARCHAR(16), "CITY" VARCHAR(16) );
+> CREATE MEMORY TABLE "PUBLIC"."SP1"( "S_NO" VARCHAR(5) NOT NULL, "P_NO" VARCHAR(5) NOT NULL, "QTY" INT );
+> CREATE MEMORY TABLE "PUBLIC"."SP2"( "S_NO" VARCHAR(5) NOT NULL, "P_NO" VARCHAR(5) NOT NULL, "QTY" INT );
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" INT NOT NULL, "PARENT" INT );
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > rows: 20
 
 drop table test;
@@ -3414,8 +3414,8 @@ drop table test;
 
 script NOPASSWORDS NOSETTINGS drop;
 > SCRIPT
-> -----------------------------------------------
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
+> -------------------------------------------------
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > rows: 1
 
 create local temporary table test1 (id identity);
@@ -3473,8 +3473,8 @@ create table test(id int primary key);
 > ok
 
 explain select * from test a inner join test b left outer join test c on c.id = a.id;
-#+mvStore#>> SELECT A.ID, C.ID, B.ID FROM PUBLIC.TEST A /* PUBLIC.TEST.tableScan */ LEFT OUTER JOIN PUBLIC.TEST C /* PUBLIC.PRIMARY_KEY_2: ID = A.ID */ ON C.ID = A.ID INNER JOIN PUBLIC.TEST B /* PUBLIC.TEST.tableScan */ ON 1=1
-#-mvStore#>> SELECT A.ID, C.ID, B.ID FROM PUBLIC.TEST A /* PUBLIC.PRIMARY_KEY_2 */ LEFT OUTER JOIN PUBLIC.TEST C /* PUBLIC.PRIMARY_KEY_2: ID = A.ID */ ON C.ID = A.ID INNER JOIN PUBLIC.TEST B /* PUBLIC.PRIMARY_KEY_2 */ ON 1=1
+#+mvStore#>> SELECT "A"."ID", "C"."ID", "B"."ID" FROM "PUBLIC"."TEST" "A" /* PUBLIC.TEST.tableScan */ LEFT OUTER JOIN "PUBLIC"."TEST" "C" /* PUBLIC.PRIMARY_KEY_2: ID = A.ID */ ON "C"."ID" = "A"."ID" INNER JOIN "PUBLIC"."TEST" "B" /* PUBLIC.TEST.tableScan */ ON 1=1
+#-mvStore#>> SELECT "A"."ID", "C"."ID", "B"."ID" FROM "PUBLIC"."TEST" "A" /* PUBLIC.PRIMARY_KEY_2 */ LEFT OUTER JOIN "PUBLIC"."TEST" "C" /* PUBLIC.PRIMARY_KEY_2: ID = A.ID */ ON "C"."ID" = "A"."ID" INNER JOIN "PUBLIC"."TEST" "B" /* PUBLIC.PRIMARY_KEY_2 */ ON 1=1
 
 SELECT T.ID FROM TEST "T";
 > ID
@@ -3664,16 +3664,16 @@ create trigger test_trigger before insert on s.test call "org.h2.test.db.TestTri
 
 script NOPASSWORDS NOSETTINGS drop;
 > SCRIPT
-> ---------------------------------------------------------------------------------------------------------------------
+> -----------------------------------------------------------------------------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM S.TEST;
-> CREATE FORCE TRIGGER S.TEST_TRIGGER BEFORE INSERT ON S.TEST QUEUE 1024 CALL "org.h2.test.db.TestTriggersConstraints";
-> CREATE INDEX S.INDEX_ID ON S.TEST(ID);
-> CREATE MEMORY TABLE S.TEST( ID INT );
-> CREATE SCHEMA IF NOT EXISTS S AUTHORIZATION SA;
-> CREATE SEQUENCE S.SEQ START WITH 10 CACHE 1;
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
-> DROP SEQUENCE IF EXISTS S.SEQ;
-> DROP TABLE IF EXISTS S.TEST CASCADE;
+> CREATE FORCE TRIGGER "S"."TEST_TRIGGER" BEFORE INSERT ON "S"."TEST" QUEUE 1024 CALL "org.h2.test.db.TestTriggersConstraints";
+> CREATE INDEX "S"."INDEX_ID" ON "S"."TEST"("ID");
+> CREATE MEMORY TABLE "S"."TEST"( "ID" INT );
+> CREATE SCHEMA IF NOT EXISTS "S" AUTHORIZATION "SA";
+> CREATE SEQUENCE "S"."SEQ" START WITH 10 CACHE 1;
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
+> DROP SEQUENCE IF EXISTS "S"."SEQ";
+> DROP TABLE IF EXISTS "S"."TEST" CASCADE;
 > rows: 9
 
 drop trigger s.test_trigger;
@@ -3699,15 +3699,15 @@ alter table test rename column id to i;
 
 script NOPASSWORDS NOSETTINGS drop;
 > SCRIPT
-> ---------------------------------------------------------------------------------------------------
+> -------------------------------------------------------------------------------------------------------------------
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.ABC FOREIGN KEY(I) REFERENCES PUBLIC.TEST(I) NOCHECK;
-> ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_2 PRIMARY KEY(I);
-> CREATE INDEX PUBLIC.IDX_N_ID ON PUBLIC.TEST(NAME, I);
-> CREATE MEMORY TABLE PUBLIC.TEST( I INT NOT NULL, NAME VARCHAR(255), Y INT AS (I + 1) );
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
-> DROP TABLE IF EXISTS PUBLIC.TEST CASCADE;
-> INSERT INTO PUBLIC.TEST VALUES (1, 'Hello', 2);
+> ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."ABC" FOREIGN KEY("I") REFERENCES "PUBLIC"."TEST"("I") NOCHECK;
+> ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_2" PRIMARY KEY("I");
+> CREATE INDEX "PUBLIC"."IDX_N_ID" ON "PUBLIC"."TEST"("NAME", "I");
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "I" INT NOT NULL, "NAME" VARCHAR(255), "Y" INT AS ("I" + 1) );
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
+> DROP TABLE IF EXISTS "PUBLIC"."TEST" CASCADE;
+> INSERT INTO "PUBLIC"."TEST" VALUES (1, 'Hello', 2);
 > rows: 8
 
 INSERT INTO TEST(i, name) VALUES(2, 'World');
@@ -3965,14 +3965,14 @@ create sequence test_seq;
 
 script NODATA NOPASSWORDS NOSETTINGS drop;
 > SCRIPT
-> ---------------------------------------------------------------------------
+> -------------------------------------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_2 PRIMARY KEY(ID);
-> CREATE MEMORY TABLE PUBLIC.TEST( ID INT NOT NULL, IM_IE VARCHAR(10) );
-> CREATE SEQUENCE PUBLIC.TEST_SEQ START WITH 1;
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
-> DROP SEQUENCE IF EXISTS PUBLIC.TEST_SEQ;
-> DROP TABLE IF EXISTS PUBLIC.TEST CASCADE;
+> ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_2" PRIMARY KEY("ID");
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" INT NOT NULL, "IM_IE" VARCHAR(10) );
+> CREATE SEQUENCE "PUBLIC"."TEST_SEQ" START WITH 1;
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
+> DROP SEQUENCE IF EXISTS "PUBLIC"."TEST_SEQ";
+> DROP TABLE IF EXISTS "PUBLIC"."TEST" CASCADE;
 > rows: 7
 
 drop sequence test_seq;
@@ -4319,12 +4319,12 @@ update test set (id, name)=(select id+1, name || 'Ho' from test t1 where test.id
 > update count: 2
 
 explain update test set (id, name)=(id+1, name || 'Hi');
-#+mvStore#>> UPDATE PUBLIC.TEST /* PUBLIC.TEST.tableScan */ SET ID = ARRAY_GET(ROW ((ID + 1), (NAME || 'Hi')), 1), NAME = ARRAY_GET(ROW ((ID + 1), (NAME || 'Hi')), 2)
-#-mvStore#>> UPDATE PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ SET ID = ARRAY_GET(ROW ((ID + 1), (NAME || 'Hi')), 1), NAME = ARRAY_GET(ROW ((ID + 1), (NAME || 'Hi')), 2)
+#+mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ SET "ID" = ARRAY_GET(ROW (("ID" + 1), ("NAME" || 'Hi')), 1), "NAME" = ARRAY_GET(ROW (("ID" + 1), ("NAME" || 'Hi')), 2)
+#-mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */ SET "ID" = ARRAY_GET(ROW (("ID" + 1), ("NAME" || 'Hi')), 1), "NAME" = ARRAY_GET(ROW (("ID" + 1), ("NAME" || 'Hi')), 2)
 
 explain update test set (id, name)=(select id+1, name || 'Ho' from test t1 where test.id=t1.id);
-#+mvStore#>> UPDATE PUBLIC.TEST /* PUBLIC.TEST.tableScan */ SET ID = ARRAY_GET((SELECT (ID + 1), (NAME || 'Ho') FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE TEST.ID = T1.ID), 1), NAME = ARRAY_GET((SELECT (ID + 1), (NAME || 'Ho') FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE TEST.ID = T1.ID), 2)
-#-mvStore#>> UPDATE PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ SET ID = ARRAY_GET((SELECT (ID + 1), (NAME || 'Ho') FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE TEST.ID = T1.ID), 1), NAME = ARRAY_GET((SELECT (ID + 1), (NAME || 'Ho') FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE TEST.ID = T1.ID), 2)
+#+mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ SET "ID" = ARRAY_GET((SELECT ("ID" + 1), ("NAME" || 'Ho') FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE "TEST"."ID" = "T1"."ID"), 1), "NAME" = ARRAY_GET((SELECT ("ID" + 1), ("NAME" || 'Ho') FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE "TEST"."ID" = "T1"."ID"), 2)
+#-mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */ SET "ID" = ARRAY_GET((SELECT ("ID" + 1), ("NAME" || 'Ho') FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE "TEST"."ID" = "T1"."ID"), 1), "NAME" = ARRAY_GET((SELECT ("ID" + 1), ("NAME" || 'Ho') FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = TEST.ID */ WHERE "TEST"."ID" = "T1"."ID"), 2)
 
 select * from test;
 > ID NAME
@@ -4351,14 +4351,14 @@ insert into test values(2, 'Cafe', X'cafe');
 
 script simple nopasswords nosettings;
 > SCRIPT
-> ---------------------------------------------------------------------------
+> -------------------------------------------------------------------------------------
 > -- 3 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_2 PRIMARY KEY(ID);
-> CREATE MEMORY TABLE PUBLIC.TEST( ID INT NOT NULL, C CLOB, B BLOB );
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
-> INSERT INTO PUBLIC.TEST VALUES(0, NULL, NULL);
-> INSERT INTO PUBLIC.TEST VALUES(1, '', X'');
-> INSERT INTO PUBLIC.TEST VALUES(2, 'Cafe', X'cafe');
+> ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_2" PRIMARY KEY("ID");
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" INT NOT NULL, "C" CLOB, "B" BLOB );
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
+> INSERT INTO "PUBLIC"."TEST" VALUES(0, NULL, NULL);
+> INSERT INTO "PUBLIC"."TEST" VALUES(1, '', X'');
+> INSERT INTO "PUBLIC"."TEST" VALUES(2, 'Cafe', X'cafe');
 > rows: 7
 
 drop table test;
@@ -4378,19 +4378,19 @@ insert into b select id+10, p+10 from b;
 > update count: 10
 
 explain select * from b b0, b b1, b b2 where b1.p = b0.id and b2.p = b1.id and b0.id=10;
->> SELECT B0.ID, B0.P, B1.ID, B1.P, B2.ID, B2.P FROM PUBLIC.B B0 /* PUBLIC.PRIMARY_KEY_4: ID = 10 */ /* WHERE B0.ID = 10 */ INNER JOIN PUBLIC.B B1 /* PUBLIC.BP: P = B0.ID */ ON 1=1 /* WHERE B1.P = B0.ID */ INNER JOIN PUBLIC.B B2 /* PUBLIC.BP: P = B1.ID */ ON 1=1 WHERE (B0.ID = 10) AND ((B1.P = B0.ID) AND (B2.P = B1.ID))
+>> SELECT "B0"."ID", "B0"."P", "B1"."ID", "B1"."P", "B2"."ID", "B2"."P" FROM "PUBLIC"."B" "B0" /* PUBLIC.PRIMARY_KEY_4: ID = 10 */ /* WHERE B0.ID = 10 */ INNER JOIN "PUBLIC"."B" "B1" /* PUBLIC.BP: P = B0.ID */ ON 1=1 /* WHERE B1.P = B0.ID */ INNER JOIN "PUBLIC"."B" "B2" /* PUBLIC.BP: P = B1.ID */ ON 1=1 WHERE ("B0"."ID" = 10) AND (("B1"."P" = "B0"."ID") AND ("B2"."P" = "B1"."ID"))
 
 explain select * from b b0, b b1, b b2, b b3 where b1.p = b0.id and b2.p = b1.id and b3.p = b2.id and b0.id=10;
->> SELECT B0.ID, B0.P, B1.ID, B1.P, B2.ID, B2.P, B3.ID, B3.P FROM PUBLIC.B B0 /* PUBLIC.PRIMARY_KEY_4: ID = 10 */ /* WHERE B0.ID = 10 */ INNER JOIN PUBLIC.B B1 /* PUBLIC.BP: P = B0.ID */ ON 1=1 /* WHERE B1.P = B0.ID */ INNER JOIN PUBLIC.B B2 /* PUBLIC.BP: P = B1.ID */ ON 1=1 /* WHERE B2.P = B1.ID */ INNER JOIN PUBLIC.B B3 /* PUBLIC.BP: P = B2.ID */ ON 1=1 WHERE (B0.ID = 10) AND ((B3.P = B2.ID) AND ((B1.P = B0.ID) AND (B2.P = B1.ID)))
+>> SELECT "B0"."ID", "B0"."P", "B1"."ID", "B1"."P", "B2"."ID", "B2"."P", "B3"."ID", "B3"."P" FROM "PUBLIC"."B" "B0" /* PUBLIC.PRIMARY_KEY_4: ID = 10 */ /* WHERE B0.ID = 10 */ INNER JOIN "PUBLIC"."B" "B1" /* PUBLIC.BP: P = B0.ID */ ON 1=1 /* WHERE B1.P = B0.ID */ INNER JOIN "PUBLIC"."B" "B2" /* PUBLIC.BP: P = B1.ID */ ON 1=1 /* WHERE B2.P = B1.ID */ INNER JOIN "PUBLIC"."B" "B3" /* PUBLIC.BP: P = B2.ID */ ON 1=1 WHERE ("B0"."ID" = 10) AND (("B3"."P" = "B2"."ID") AND (("B1"."P" = "B0"."ID") AND ("B2"."P" = "B1"."ID")))
 
 explain select * from b b0, b b1, b b2, b b3, b b4 where b1.p = b0.id and b2.p = b1.id and b3.p = b2.id and b4.p = b3.id and b0.id=10;
->> SELECT B0.ID, B0.P, B1.ID, B1.P, B2.ID, B2.P, B3.ID, B3.P, B4.ID, B4.P FROM PUBLIC.B B0 /* PUBLIC.PRIMARY_KEY_4: ID = 10 */ /* WHERE B0.ID = 10 */ INNER JOIN PUBLIC.B B1 /* PUBLIC.BP: P = B0.ID */ ON 1=1 /* WHERE B1.P = B0.ID */ INNER JOIN PUBLIC.B B2 /* PUBLIC.BP: P = B1.ID */ ON 1=1 /* WHERE B2.P = B1.ID */ INNER JOIN PUBLIC.B B3 /* PUBLIC.BP: P = B2.ID */ ON 1=1 /* WHERE B3.P = B2.ID */ INNER JOIN PUBLIC.B B4 /* PUBLIC.BP: P = B3.ID */ ON 1=1 WHERE (B0.ID = 10) AND ((B4.P = B3.ID) AND ((B3.P = B2.ID) AND ((B1.P = B0.ID) AND (B2.P = B1.ID))))
+>> SELECT "B0"."ID", "B0"."P", "B1"."ID", "B1"."P", "B2"."ID", "B2"."P", "B3"."ID", "B3"."P", "B4"."ID", "B4"."P" FROM "PUBLIC"."B" "B0" /* PUBLIC.PRIMARY_KEY_4: ID = 10 */ /* WHERE B0.ID = 10 */ INNER JOIN "PUBLIC"."B" "B1" /* PUBLIC.BP: P = B0.ID */ ON 1=1 /* WHERE B1.P = B0.ID */ INNER JOIN "PUBLIC"."B" "B2" /* PUBLIC.BP: P = B1.ID */ ON 1=1 /* WHERE B2.P = B1.ID */ INNER JOIN "PUBLIC"."B" "B3" /* PUBLIC.BP: P = B2.ID */ ON 1=1 /* WHERE B3.P = B2.ID */ INNER JOIN "PUBLIC"."B" "B4" /* PUBLIC.BP: P = B3.ID */ ON 1=1 WHERE ("B0"."ID" = 10) AND (("B4"."P" = "B3"."ID") AND (("B3"."P" = "B2"."ID") AND (("B1"."P" = "B0"."ID") AND ("B2"."P" = "B1"."ID"))))
 
 analyze;
 > ok
 
 explain select * from b b0, b b1, b b2, b b3, b b4 where b1.p = b0.id and b2.p = b1.id and b3.p = b2.id and b4.p = b3.id and b0.id=10;
->> SELECT B0.ID, B0.P, B1.ID, B1.P, B2.ID, B2.P, B3.ID, B3.P, B4.ID, B4.P FROM PUBLIC.B B0 /* PUBLIC.PRIMARY_KEY_4: ID = 10 */ /* WHERE B0.ID = 10 */ INNER JOIN PUBLIC.B B1 /* PUBLIC.BP: P = B0.ID */ ON 1=1 /* WHERE B1.P = B0.ID */ INNER JOIN PUBLIC.B B2 /* PUBLIC.BP: P = B1.ID */ ON 1=1 /* WHERE B2.P = B1.ID */ INNER JOIN PUBLIC.B B3 /* PUBLIC.BP: P = B2.ID */ ON 1=1 /* WHERE B3.P = B2.ID */ INNER JOIN PUBLIC.B B4 /* PUBLIC.BP: P = B3.ID */ ON 1=1 WHERE (B0.ID = 10) AND ((B4.P = B3.ID) AND ((B3.P = B2.ID) AND ((B1.P = B0.ID) AND (B2.P = B1.ID))))
+>> SELECT "B0"."ID", "B0"."P", "B1"."ID", "B1"."P", "B2"."ID", "B2"."P", "B3"."ID", "B3"."P", "B4"."ID", "B4"."P" FROM "PUBLIC"."B" "B0" /* PUBLIC.PRIMARY_KEY_4: ID = 10 */ /* WHERE B0.ID = 10 */ INNER JOIN "PUBLIC"."B" "B1" /* PUBLIC.BP: P = B0.ID */ ON 1=1 /* WHERE B1.P = B0.ID */ INNER JOIN "PUBLIC"."B" "B2" /* PUBLIC.BP: P = B1.ID */ ON 1=1 /* WHERE B2.P = B1.ID */ INNER JOIN "PUBLIC"."B" "B3" /* PUBLIC.BP: P = B2.ID */ ON 1=1 /* WHERE B3.P = B2.ID */ INNER JOIN "PUBLIC"."B" "B4" /* PUBLIC.BP: P = B3.ID */ ON 1=1 WHERE ("B0"."ID" = 10) AND (("B4"."P" = "B3"."ID") AND (("B3"."P" = "B2"."ID") AND (("B1"."P" = "B0"."ID") AND ("B2"."P" = "B1"."ID"))))
 
 drop table if exists b;
 > ok
@@ -4416,7 +4416,7 @@ insert into test values
 > update count: 10
 
 EXPLAIN SELECT * FROM TEST WHERE ID = 3;
->> SELECT TEST.ID, TEST.FIRST_NAME, TEST.NAME, TEST.STATE FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID = 3 */ WHERE ID = 3
+>> SELECT "TEST"."ID", "TEST"."FIRST_NAME", "TEST"."NAME", "TEST"."STATE" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2: ID = 3 */ WHERE "ID" = 3
 
 SELECT SELECTIVITY(ID), SELECTIVITY(FIRST_NAME),
 SELECTIVITY(NAME), SELECTIVITY(STATE)
@@ -4427,13 +4427,13 @@ FROM TEST WHERE ROWNUM()<100000;
 > rows: 1
 
 explain select * from test where name='Smith' and first_name='Tom' and state=0;
->> SELECT TEST.ID, TEST.FIRST_NAME, TEST.NAME, TEST.STATE FROM PUBLIC.TEST /* PUBLIC.IDX_FIRST_NAME: FIRST_NAME = 'Tom' */ WHERE (STATE = 0) AND ((NAME = 'Smith') AND (FIRST_NAME = 'Tom'))
+>> SELECT "TEST"."ID", "TEST"."FIRST_NAME", "TEST"."NAME", "TEST"."STATE" FROM "PUBLIC"."TEST" /* PUBLIC.IDX_FIRST_NAME: FIRST_NAME = 'Tom' */ WHERE ("STATE" = 0) AND (("NAME" = 'Smith') AND ("FIRST_NAME" = 'Tom'))
 
 alter table test alter column name selectivity 100;
 > ok
 
 explain select * from test where name='Smith' and first_name='Tom' and state=0;
->> SELECT TEST.ID, TEST.FIRST_NAME, TEST.NAME, TEST.STATE FROM PUBLIC.TEST /* PUBLIC.IDX_NAME: NAME = 'Smith' */ WHERE (STATE = 0) AND ((NAME = 'Smith') AND (FIRST_NAME = 'Tom'))
+>> SELECT "TEST"."ID", "TEST"."FIRST_NAME", "TEST"."NAME", "TEST"."STATE" FROM "PUBLIC"."TEST" /* PUBLIC.IDX_NAME: NAME = 'Smith' */ WHERE ("STATE" = 0) AND (("NAME" = 'Smith') AND ("FIRST_NAME" = 'Tom'))
 
 drop table test;
 > ok
@@ -4447,7 +4447,7 @@ INSERT INTO O SELECT X, X+1 FROM SYSTEM_RANGE(1, 1000);
 EXPLAIN SELECT A.X FROM O B, O A, O F, O D, O C, O E, O G, O H, O I, O J
 WHERE 1=J.X and J.Y=I.X AND I.Y=H.X AND H.Y=G.X AND G.Y=F.X AND F.Y=E.X
 AND E.Y=D.X AND D.Y=C.X AND C.Y=B.X AND B.Y=A.X;
->> SELECT A.X FROM PUBLIC.O J /* PUBLIC.PRIMARY_KEY_4: X = 1 */ /* WHERE J.X = 1 */ INNER JOIN PUBLIC.O I /* PUBLIC.PRIMARY_KEY_4: X = J.Y */ ON 1=1 /* WHERE J.Y = I.X */ INNER JOIN PUBLIC.O H /* PUBLIC.PRIMARY_KEY_4: X = I.Y */ ON 1=1 /* WHERE I.Y = H.X */ INNER JOIN PUBLIC.O G /* PUBLIC.PRIMARY_KEY_4: X = H.Y */ ON 1=1 /* WHERE H.Y = G.X */ INNER JOIN PUBLIC.O F /* PUBLIC.PRIMARY_KEY_4: X = G.Y */ ON 1=1 /* WHERE G.Y = F.X */ INNER JOIN PUBLIC.O E /* PUBLIC.PRIMARY_KEY_4: X = F.Y */ ON 1=1 /* WHERE F.Y = E.X */ INNER JOIN PUBLIC.O D /* PUBLIC.PRIMARY_KEY_4: X = E.Y */ ON 1=1 /* WHERE E.Y = D.X */ INNER JOIN PUBLIC.O C /* PUBLIC.PRIMARY_KEY_4: X = D.Y */ ON 1=1 /* WHERE D.Y = C.X */ INNER JOIN PUBLIC.O B /* PUBLIC.PRIMARY_KEY_4: X = C.Y */ ON 1=1 /* WHERE C.Y = B.X */ INNER JOIN PUBLIC.O A /* PUBLIC.PRIMARY_KEY_4: X = B.Y */ ON 1=1 WHERE (B.Y = A.X) AND ((C.Y = B.X) AND ((D.Y = C.X) AND ((E.Y = D.X) AND ((F.Y = E.X) AND ((G.Y = F.X) AND ((H.Y = G.X) AND ((I.Y = H.X) AND ((J.X = 1) AND (J.Y = I.X)))))))))
+>> SELECT "A"."X" FROM "PUBLIC"."O" "J" /* PUBLIC.PRIMARY_KEY_4: X = 1 */ /* WHERE J.X = 1 */ INNER JOIN "PUBLIC"."O" "I" /* PUBLIC.PRIMARY_KEY_4: X = J.Y */ ON 1=1 /* WHERE J.Y = I.X */ INNER JOIN "PUBLIC"."O" "H" /* PUBLIC.PRIMARY_KEY_4: X = I.Y */ ON 1=1 /* WHERE I.Y = H.X */ INNER JOIN "PUBLIC"."O" "G" /* PUBLIC.PRIMARY_KEY_4: X = H.Y */ ON 1=1 /* WHERE H.Y = G.X */ INNER JOIN "PUBLIC"."O" "F" /* PUBLIC.PRIMARY_KEY_4: X = G.Y */ ON 1=1 /* WHERE G.Y = F.X */ INNER JOIN "PUBLIC"."O" "E" /* PUBLIC.PRIMARY_KEY_4: X = F.Y */ ON 1=1 /* WHERE F.Y = E.X */ INNER JOIN "PUBLIC"."O" "D" /* PUBLIC.PRIMARY_KEY_4: X = E.Y */ ON 1=1 /* WHERE E.Y = D.X */ INNER JOIN "PUBLIC"."O" "C" /* PUBLIC.PRIMARY_KEY_4: X = D.Y */ ON 1=1 /* WHERE D.Y = C.X */ INNER JOIN "PUBLIC"."O" "B" /* PUBLIC.PRIMARY_KEY_4: X = C.Y */ ON 1=1 /* WHERE C.Y = B.X */ INNER JOIN "PUBLIC"."O" "A" /* PUBLIC.PRIMARY_KEY_4: X = B.Y */ ON 1=1 WHERE ("B"."Y" = "A"."X") AND (("C"."Y" = "B"."X") AND (("D"."Y" = "C"."X") AND (("E"."Y" = "D"."X") AND (("F"."Y" = "E"."X") AND (("G"."Y" = "F"."X") AND (("H"."Y" = "G"."X") AND (("I"."Y" = "H"."X") AND (("J"."X" = 1) AND ("J"."Y" = "I"."X")))))))))
 
 DROP TABLE O;
 > ok
@@ -4475,7 +4475,7 @@ AND DID=D.ID AND EID=E.ID AND FID=F.ID AND GID=G.ID AND HID=H.ID;
 EXPLAIN SELECT COUNT(*) FROM PARENT, CHILD A, CHILD B, CHILD C, CHILD D, CHILD E, CHILD F, CHILD G, CHILD H
 WHERE AID=A.ID AND BID=B.ID AND CID=C.ID
 AND DID=D.ID AND EID=E.ID AND FID=F.ID AND GID=G.ID AND HID=H.ID;
->> SELECT COUNT(*) FROM PUBLIC.PARENT /* PUBLIC.PARENT.tableScan */ INNER JOIN PUBLIC.CHILD A /* PUBLIC.PRIMARY_KEY_3: ID = AID */ ON 1=1 /* WHERE AID = A.ID */ INNER JOIN PUBLIC.CHILD B /* PUBLIC.PRIMARY_KEY_3: ID = BID */ ON 1=1 /* WHERE BID = B.ID */ INNER JOIN PUBLIC.CHILD C /* PUBLIC.PRIMARY_KEY_3: ID = CID */ ON 1=1 /* WHERE CID = C.ID */ INNER JOIN PUBLIC.CHILD D /* PUBLIC.PRIMARY_KEY_3: ID = DID */ ON 1=1 /* WHERE DID = D.ID */ INNER JOIN PUBLIC.CHILD E /* PUBLIC.PRIMARY_KEY_3: ID = EID */ ON 1=1 /* WHERE EID = E.ID */ INNER JOIN PUBLIC.CHILD F /* PUBLIC.PRIMARY_KEY_3: ID = FID */ ON 1=1 /* WHERE FID = F.ID */ INNER JOIN PUBLIC.CHILD G /* PUBLIC.PRIMARY_KEY_3: ID = GID */ ON 1=1 /* WHERE GID = G.ID */ INNER JOIN PUBLIC.CHILD H /* PUBLIC.PRIMARY_KEY_3: ID = HID */ ON 1=1 WHERE (HID = H.ID) AND ((GID = G.ID) AND ((FID = F.ID) AND ((EID = E.ID) AND ((DID = D.ID) AND ((CID = C.ID) AND ((AID = A.ID) AND (BID = B.ID)))))))
+>> SELECT COUNT(*) FROM "PUBLIC"."PARENT" /* PUBLIC.PARENT.tableScan */ INNER JOIN "PUBLIC"."CHILD" "A" /* PUBLIC.PRIMARY_KEY_3: ID = AID */ ON 1=1 /* WHERE AID = A.ID */ INNER JOIN "PUBLIC"."CHILD" "B" /* PUBLIC.PRIMARY_KEY_3: ID = BID */ ON 1=1 /* WHERE BID = B.ID */ INNER JOIN "PUBLIC"."CHILD" "C" /* PUBLIC.PRIMARY_KEY_3: ID = CID */ ON 1=1 /* WHERE CID = C.ID */ INNER JOIN "PUBLIC"."CHILD" "D" /* PUBLIC.PRIMARY_KEY_3: ID = DID */ ON 1=1 /* WHERE DID = D.ID */ INNER JOIN "PUBLIC"."CHILD" "E" /* PUBLIC.PRIMARY_KEY_3: ID = EID */ ON 1=1 /* WHERE EID = E.ID */ INNER JOIN "PUBLIC"."CHILD" "F" /* PUBLIC.PRIMARY_KEY_3: ID = FID */ ON 1=1 /* WHERE FID = F.ID */ INNER JOIN "PUBLIC"."CHILD" "G" /* PUBLIC.PRIMARY_KEY_3: ID = GID */ ON 1=1 /* WHERE GID = G.ID */ INNER JOIN "PUBLIC"."CHILD" "H" /* PUBLIC.PRIMARY_KEY_3: ID = HID */ ON 1=1 WHERE ("HID" = "H"."ID") AND (("GID" = "G"."ID") AND (("FID" = "F"."ID") AND (("EID" = "E"."ID") AND (("DID" = "D"."ID") AND (("CID" = "C"."ID") AND (("AID" = "A"."ID") AND ("BID" = "B"."ID")))))))
 
 CREATE TABLE FAMILY(ID INT PRIMARY KEY, PARENTID INT);
 > ok
@@ -4486,7 +4486,7 @@ INSERT INTO FAMILY SELECT X, X-1 FROM SYSTEM_RANGE(0, 1000);
 EXPLAIN SELECT COUNT(*) FROM CHILD A, CHILD B, FAMILY, CHILD C, CHILD D, PARENT, CHILD E, CHILD F, CHILD G
 WHERE FAMILY.ID=1 AND FAMILY.PARENTID=PARENT.ID
 AND AID=A.ID AND BID=B.ID AND CID=C.ID AND DID=D.ID AND EID=E.ID AND FID=F.ID AND GID=G.ID;
->> SELECT COUNT(*) FROM PUBLIC.FAMILY /* PUBLIC.PRIMARY_KEY_7: ID = 1 */ /* WHERE FAMILY.ID = 1 */ INNER JOIN PUBLIC.PARENT /* PUBLIC.PRIMARY_KEY_8: ID = FAMILY.PARENTID */ ON 1=1 /* WHERE FAMILY.PARENTID = PARENT.ID */ INNER JOIN PUBLIC.CHILD A /* PUBLIC.PRIMARY_KEY_3: ID = AID */ ON 1=1 /* WHERE AID = A.ID */ INNER JOIN PUBLIC.CHILD B /* PUBLIC.PRIMARY_KEY_3: ID = BID */ ON 1=1 /* WHERE BID = B.ID */ INNER JOIN PUBLIC.CHILD C /* PUBLIC.PRIMARY_KEY_3: ID = CID */ ON 1=1 /* WHERE CID = C.ID */ INNER JOIN PUBLIC.CHILD D /* PUBLIC.PRIMARY_KEY_3: ID = DID */ ON 1=1 /* WHERE DID = D.ID */ INNER JOIN PUBLIC.CHILD E /* PUBLIC.PRIMARY_KEY_3: ID = EID */ ON 1=1 /* WHERE EID = E.ID */ INNER JOIN PUBLIC.CHILD F /* PUBLIC.PRIMARY_KEY_3: ID = FID */ ON 1=1 /* WHERE FID = F.ID */ INNER JOIN PUBLIC.CHILD G /* PUBLIC.PRIMARY_KEY_3: ID = GID */ ON 1=1 WHERE (GID = G.ID) AND ((FID = F.ID) AND ((EID = E.ID) AND ((DID = D.ID) AND ((CID = C.ID) AND ((BID = B.ID) AND ((AID = A.ID) AND ((FAMILY.ID = 1) AND (FAMILY.PARENTID = PARENT.ID))))))))
+>> SELECT COUNT(*) FROM "PUBLIC"."FAMILY" /* PUBLIC.PRIMARY_KEY_7: ID = 1 */ /* WHERE FAMILY.ID = 1 */ INNER JOIN "PUBLIC"."PARENT" /* PUBLIC.PRIMARY_KEY_8: ID = FAMILY.PARENTID */ ON 1=1 /* WHERE FAMILY.PARENTID = PARENT.ID */ INNER JOIN "PUBLIC"."CHILD" "A" /* PUBLIC.PRIMARY_KEY_3: ID = AID */ ON 1=1 /* WHERE AID = A.ID */ INNER JOIN "PUBLIC"."CHILD" "B" /* PUBLIC.PRIMARY_KEY_3: ID = BID */ ON 1=1 /* WHERE BID = B.ID */ INNER JOIN "PUBLIC"."CHILD" "C" /* PUBLIC.PRIMARY_KEY_3: ID = CID */ ON 1=1 /* WHERE CID = C.ID */ INNER JOIN "PUBLIC"."CHILD" "D" /* PUBLIC.PRIMARY_KEY_3: ID = DID */ ON 1=1 /* WHERE DID = D.ID */ INNER JOIN "PUBLIC"."CHILD" "E" /* PUBLIC.PRIMARY_KEY_3: ID = EID */ ON 1=1 /* WHERE EID = E.ID */ INNER JOIN "PUBLIC"."CHILD" "F" /* PUBLIC.PRIMARY_KEY_3: ID = FID */ ON 1=1 /* WHERE FID = F.ID */ INNER JOIN "PUBLIC"."CHILD" "G" /* PUBLIC.PRIMARY_KEY_3: ID = GID */ ON 1=1 WHERE ("GID" = "G"."ID") AND (("FID" = "F"."ID") AND (("EID" = "E"."ID") AND (("DID" = "D"."ID") AND (("CID" = "C"."ID") AND (("BID" = "B"."ID") AND (("AID" = "A"."ID") AND (("FAMILY"."ID" = 1) AND ("FAMILY"."PARENTID" = "PARENT"."ID"))))))))
 
 DROP TABLE FAMILY;
 > ok
@@ -4733,11 +4733,11 @@ CREATE MEMORY TABLE TEST(ID INT PRIMARY KEY);
 
 SCRIPT NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> ---------------------------------------------------------------------------
+> -------------------------------------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_2 PRIMARY KEY(ID);
-> CREATE MEMORY TABLE PUBLIC.TEST( ID INT NOT NULL );
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
+> ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_2" PRIMARY KEY("ID");
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" INT NOT NULL );
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > rows: 4
 
 ALTER TABLE TEST ADD CREATEDATE VARCHAR(255) DEFAULT '2001-01-01' NOT NULL;
@@ -4817,19 +4817,19 @@ SELECT * FROM TEST_SEQ ORDER BY ID;
 
 SCRIPT SIMPLE NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> --------------------------------------------------------------------------------------------------------------------------------------------------------------
+> --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > -- 4 +/- SELECT COUNT(*) FROM PUBLIC.TEST_SEQ;
-> ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_2 PRIMARY KEY(ID);
-> CREATE INDEX PUBLIC.IDXNAME ON PUBLIC.TEST(NAME);
-> CREATE MEMORY TABLE PUBLIC.TEST( ID INT NOT NULL, NAME VARCHAR(255) DEFAULT 1, CREATEDATE VARCHAR(255) DEFAULT '2001-01-01' NOT NULL, MODIFY_DATE TIMESTAMP );
-> CREATE MEMORY TABLE PUBLIC.TEST_SEQ( ID INT DEFAULT 20 NOT NULL, DATA VARCHAR );
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
-> INSERT INTO PUBLIC.TEST VALUES(1, 'Hi', '2001-01-01', NULL);
-> INSERT INTO PUBLIC.TEST_SEQ VALUES(-1, '-1');
-> INSERT INTO PUBLIC.TEST_SEQ VALUES(1, '1');
-> INSERT INTO PUBLIC.TEST_SEQ VALUES(10, '10');
-> INSERT INTO PUBLIC.TEST_SEQ VALUES(20, '20');
+> ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_2" PRIMARY KEY("ID");
+> CREATE INDEX "PUBLIC"."IDXNAME" ON "PUBLIC"."TEST"("NAME");
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" INT NOT NULL, "NAME" VARCHAR(255) DEFAULT 1, "CREATEDATE" VARCHAR(255) DEFAULT '2001-01-01' NOT NULL, "MODIFY_DATE" TIMESTAMP );
+> CREATE MEMORY TABLE "PUBLIC"."TEST_SEQ"( "ID" INT DEFAULT 20 NOT NULL, "DATA" VARCHAR );
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
+> INSERT INTO "PUBLIC"."TEST" VALUES(1, 'Hi', '2001-01-01', NULL);
+> INSERT INTO "PUBLIC"."TEST_SEQ" VALUES(-1, '-1');
+> INSERT INTO "PUBLIC"."TEST_SEQ" VALUES(1, '1');
+> INSERT INTO "PUBLIC"."TEST_SEQ" VALUES(10, '10');
+> INSERT INTO "PUBLIC"."TEST_SEQ" VALUES(20, '20');
 > rows: 12
 
 CREATE UNIQUE INDEX IDX_NAME_ID ON TEST(ID, NAME);
@@ -4852,12 +4852,12 @@ DROP TABLE TEST_SEQ;
 
 SCRIPT NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> ---------------------------------------------------------------------------------------------------------------------------------
+> -------------------------------------------------------------------------------------------------------------------------------------------
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_2 PRIMARY KEY(ID);
-> CREATE MEMORY TABLE PUBLIC.TEST( ID INT NOT NULL, CREATEDATE VARCHAR(255) DEFAULT '2001-01-01' NOT NULL, MODIFY_DATE TIMESTAMP );
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
-> INSERT INTO PUBLIC.TEST VALUES (1, '2001-01-01', NULL);
+> ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_2" PRIMARY KEY("ID");
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" INT NOT NULL, "CREATEDATE" VARCHAR(255) DEFAULT '2001-01-01' NOT NULL, "MODIFY_DATE" TIMESTAMP );
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
+> INSERT INTO "PUBLIC"."TEST" VALUES (1, '2001-01-01', NULL);
 > rows: 5
 
 ALTER TABLE TEST ADD NAME VARCHAR(255) NULL BEFORE CREATEDATE;
@@ -4865,12 +4865,12 @@ ALTER TABLE TEST ADD NAME VARCHAR(255) NULL BEFORE CREATEDATE;
 
 SCRIPT NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> ----------------------------------------------------------------------------------------------------------------------------------------------------
+> ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_2 PRIMARY KEY(ID);
-> CREATE MEMORY TABLE PUBLIC.TEST( ID INT NOT NULL, NAME VARCHAR(255), CREATEDATE VARCHAR(255) DEFAULT '2001-01-01' NOT NULL, MODIFY_DATE TIMESTAMP );
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
-> INSERT INTO PUBLIC.TEST VALUES (1, NULL, '2001-01-01', NULL);
+> ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_2" PRIMARY KEY("ID");
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" INT NOT NULL, "NAME" VARCHAR(255), "CREATEDATE" VARCHAR(255) DEFAULT '2001-01-01' NOT NULL, "MODIFY_DATE" TIMESTAMP );
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
+> INSERT INTO "PUBLIC"."TEST" VALUES (1, NULL, '2001-01-01', NULL);
 > rows: 5
 
 UPDATE TEST SET NAME = 'Hi';
@@ -4938,11 +4938,11 @@ CREATE MEMORY TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR);
 
 SCRIPT NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> ---------------------------------------------------------------------------
+> -------------------------------------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_2 PRIMARY KEY(ID);
-> CREATE MEMORY TABLE PUBLIC.TEST( ID INT NOT NULL, NAME VARCHAR );
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
+> ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_2" PRIMARY KEY("ID");
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" INT NOT NULL, "NAME" VARCHAR );
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > rows: 4
 
 INSERT INTO TEST(ID, NAME) VALUES(1, 'Hi'), (2, 'World');
@@ -4996,7 +4996,7 @@ SELECT LIMIT (1+0) (2+0) NAME, -ID, ID _ID_ FROM TEST ORDER BY _ID_;
 > rows (ordered): 2
 
 EXPLAIN SELECT LIMIT (1+0) (2+0) * FROM TEST ORDER BY ID;
->> SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ ORDER BY 1 OFFSET 1 ROW FETCH NEXT 2 ROWS ONLY /* index sorted */
+>> SELECT "TEST"."ID", "TEST"."NAME" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */ ORDER BY 1 OFFSET 1 ROW FETCH NEXT 2 ROWS ONLY /* index sorted */
 
 SELECT * FROM TEST ORDER BY ID LIMIT 2+0 OFFSET 1+0;
 > ID NAME
@@ -5044,10 +5044,10 @@ SELECT * FROM (SELECT ID FROM TEST GROUP BY ID);
 > rows: 5
 
 EXPLAIN SELECT * FROM TEST UNION ALL SELECT * FROM TEST ORDER BY ID LIMIT 2+0 OFFSET 1+0;
->> (SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */) UNION ALL (SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */) ORDER BY 1 OFFSET 1 ROW FETCH NEXT 2 ROWS ONLY
+>> (SELECT "TEST"."ID", "TEST"."NAME" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */) UNION ALL (SELECT "TEST"."ID", "TEST"."NAME" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */) ORDER BY 1 OFFSET 1 ROW FETCH NEXT 2 ROWS ONLY
 
 EXPLAIN DELETE FROM TEST WHERE ID=1;
->> DELETE FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ WHERE ID = 1
+>> DELETE FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ WHERE "ID" = 1
 
 DROP TABLE TEST;
 > ok
@@ -5065,7 +5065,7 @@ SELECT * FROM TEST2COL WHERE A=0 AND B=0;
 > rows: 1
 
 EXPLAIN SELECT * FROM TEST2COL WHERE A=0 AND B=0;
->> SELECT TEST2COL.A, TEST2COL.B, TEST2COL.C FROM PUBLIC.TEST2COL /* PUBLIC.PRIMARY_KEY_E: A = 0 AND B = 0 */ WHERE ((A = 0) AND (B = 0)) AND (A = B)
+>> SELECT "TEST2COL"."A", "TEST2COL"."B", "TEST2COL"."C" FROM "PUBLIC"."TEST2COL" /* PUBLIC.PRIMARY_KEY_E: A = 0 AND B = 0 */ WHERE (("A" = 0) AND ("B" = 0)) AND ("A" = "B")
 
 SELECT * FROM TEST2COL WHERE A=0;
 > A B C
@@ -5075,7 +5075,7 @@ SELECT * FROM TEST2COL WHERE A=0;
 > rows: 2
 
 EXPLAIN SELECT * FROM TEST2COL WHERE A=0;
->> SELECT TEST2COL.A, TEST2COL.B, TEST2COL.C FROM PUBLIC.TEST2COL /* PUBLIC.PRIMARY_KEY_E: A = 0 */ WHERE A = 0
+>> SELECT "TEST2COL"."A", "TEST2COL"."B", "TEST2COL"."C" FROM "PUBLIC"."TEST2COL" /* PUBLIC.PRIMARY_KEY_E: A = 0 */ WHERE "A" = 0
 
 SELECT * FROM TEST2COL WHERE B=0;
 > A B C
@@ -5085,7 +5085,7 @@ SELECT * FROM TEST2COL WHERE B=0;
 > rows: 2
 
 EXPLAIN SELECT * FROM TEST2COL WHERE B=0;
->> SELECT TEST2COL.A, TEST2COL.B, TEST2COL.C FROM PUBLIC.TEST2COL /* PUBLIC.TEST2COL.tableScan */ WHERE B = 0
+>> SELECT "TEST2COL"."A", "TEST2COL"."B", "TEST2COL"."C" FROM "PUBLIC"."TEST2COL" /* PUBLIC.TEST2COL.tableScan */ WHERE "B" = 0
 
 DROP TABLE TEST2COL;
 > ok
@@ -5213,72 +5213,72 @@ INSERT INTO TEST VALUES(?, ?);
 > update count: 3
 
 EXPLAIN INSERT INTO TEST VALUES(1, 'Test');
->> INSERT INTO PUBLIC.TEST(ID, NAME) VALUES (1, 'Test')
+>> INSERT INTO "PUBLIC"."TEST"("ID", "NAME") VALUES (1, 'Test')
 
 EXPLAIN INSERT INTO TEST VALUES(1, 'Test'), (2, 'World');
->> INSERT INTO PUBLIC.TEST(ID, NAME) VALUES (1, 'Test'), (2, 'World')
+>> INSERT INTO "PUBLIC"."TEST"("ID", "NAME") VALUES (1, 'Test'), (2, 'World')
 
 EXPLAIN INSERT INTO TEST SELECT DISTINCT ID+1, NAME FROM TEST;
->> INSERT INTO PUBLIC.TEST(ID, NAME) SELECT DISTINCT (ID + 1), NAME FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */
+>> INSERT INTO "PUBLIC"."TEST"("ID", "NAME") SELECT DISTINCT ("ID" + 1), "NAME" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
 
 EXPLAIN SELECT DISTINCT ID + 1, NAME FROM TEST;
->> SELECT DISTINCT (ID + 1), NAME FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */
+>> SELECT DISTINCT ("ID" + 1), "NAME" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
 
 EXPLAIN SELECT * FROM TEST WHERE 1=0;
->> SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan: FALSE */ WHERE FALSE
+>> SELECT "TEST"."ID", "TEST"."NAME" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan: FALSE */ WHERE FALSE
 
 EXPLAIN SELECT TOP 1 * FROM TEST FOR UPDATE;
->> SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ FETCH FIRST ROW ONLY FOR UPDATE
+>> SELECT "TEST"."ID", "TEST"."NAME" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ FETCH FIRST ROW ONLY FOR UPDATE
 
 EXPLAIN SELECT COUNT(NAME) FROM TEST WHERE ID=1;
->> SELECT COUNT(NAME) FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ WHERE ID = 1
+>> SELECT COUNT("NAME") FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ WHERE "ID" = 1
 
 EXPLAIN SELECT * FROM TEST WHERE (ID>=1 AND ID<=2)  OR (ID>0 AND ID<3) AND (ID<>6) ORDER BY NAME NULLS FIRST, 1 NULLS LAST, (1+1) DESC;
->> SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ WHERE ((ID >= 1) AND (ID <= 2)) OR ((ID <> 6) AND ((ID > 0) AND (ID < 3))) ORDER BY 2 NULLS FIRST, 1 NULLS LAST, =2 DESC
+>> SELECT "TEST"."ID", "TEST"."NAME" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ WHERE (("ID" >= 1) AND ("ID" <= 2)) OR (("ID" <> 6) AND (("ID" > 0) AND ("ID" < 3))) ORDER BY 2 NULLS FIRST, 1 NULLS LAST, =2 DESC
 
 EXPLAIN SELECT * FROM TEST WHERE ID=1 GROUP BY NAME, ID;
->> SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ WHERE ID = 1 GROUP BY NAME, ID
+>> SELECT "TEST"."ID", "TEST"."NAME" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ WHERE "ID" = 1 GROUP BY "NAME", "ID"
 
 EXPLAIN PLAN FOR UPDATE TEST SET NAME='Hello', ID=1 WHERE NAME LIKE 'T%' ESCAPE 'x';
-#+mvStore#>> UPDATE PUBLIC.TEST /* PUBLIC.TEST.tableScan */ SET NAME = 'Hello', ID = 1 WHERE NAME LIKE 'T%' ESCAPE 'x'
-#-mvStore#>> UPDATE PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ SET NAME = 'Hello', ID = 1 WHERE NAME LIKE 'T%' ESCAPE 'x'
+#+mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ SET "NAME" = 'Hello', "ID" = 1 WHERE "NAME" LIKE 'T%' ESCAPE 'x'
+#-mvStore#>> UPDATE "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */ SET "NAME" = 'Hello', "ID" = 1 WHERE "NAME" LIKE 'T%' ESCAPE 'x'
 
 EXPLAIN PLAN FOR DELETE FROM TEST;
-#+mvStore#>> DELETE FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */
-#-mvStore#>> DELETE FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */
+#+mvStore#>> DELETE FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
+#-mvStore#>> DELETE FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */
 
 EXPLAIN PLAN FOR SELECT NAME, COUNT(*) FROM TEST GROUP BY NAME HAVING COUNT(*) > 1;
->> SELECT NAME, COUNT(*) FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ GROUP BY NAME HAVING COUNT(*) > 1
+>> SELECT "NAME", COUNT(*) FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ GROUP BY "NAME" HAVING COUNT(*) > 1
 
 EXPLAIN PLAN FOR SELECT * FROM test t1 inner join test t2 on t1.id=t2.id and t2.name is not null where t1.id=1;
->> SELECT T1.ID, T1.NAME, T2.ID, T2.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ /* WHERE T1.ID = 1 */ INNER JOIN PUBLIC.TEST T2 /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ ON 1=1 WHERE (T1.ID = 1) AND ((T2.NAME IS NOT NULL) AND (T1.ID = T2.ID))
+>> SELECT "T1"."ID", "T1"."NAME", "T2"."ID", "T2"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ /* WHERE T1.ID = 1 */ INNER JOIN "PUBLIC"."TEST" "T2" /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ ON 1=1 WHERE ("T1"."ID" = 1) AND (("T2"."NAME" IS NOT NULL) AND ("T1"."ID" = "T2"."ID"))
 
 EXPLAIN PLAN FOR SELECT * FROM test t1 left outer join test t2 on t1.id=t2.id and t2.name is not null where t1.id=1;
->> SELECT T1.ID, T1.NAME, T2.ID, T2.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ /* WHERE T1.ID = 1 */ LEFT OUTER JOIN PUBLIC.TEST T2 /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ ON (T2.NAME IS NOT NULL) AND (T1.ID = T2.ID) WHERE T1.ID = 1
+>> SELECT "T1"."ID", "T1"."NAME", "T2"."ID", "T2"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ /* WHERE T1.ID = 1 */ LEFT OUTER JOIN "PUBLIC"."TEST" "T2" /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ ON ("T2"."NAME" IS NOT NULL) AND ("T1"."ID" = "T2"."ID") WHERE "T1"."ID" = 1
 
 EXPLAIN PLAN FOR SELECT * FROM test t1 left outer join test t2 on t1.id=t2.id and t2.name is null where t1.id=1;
->> SELECT T1.ID, T1.NAME, T2.ID, T2.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ /* WHERE T1.ID = 1 */ LEFT OUTER JOIN PUBLIC.TEST T2 /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ ON (T2.NAME IS NULL) AND (T1.ID = T2.ID) WHERE T1.ID = 1
+>> SELECT "T1"."ID", "T1"."NAME", "T2"."ID", "T2"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ /* WHERE T1.ID = 1 */ LEFT OUTER JOIN "PUBLIC"."TEST" "T2" /* PUBLIC.PRIMARY_KEY_2: ID = T1.ID */ ON ("T2"."NAME" IS NULL) AND ("T1"."ID" = "T2"."ID") WHERE "T1"."ID" = 1
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE EXISTS(SELECT * FROM TEST T2 WHERE T1.ID-1 = T2.ID);
->> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST.tableScan */ WHERE EXISTS( SELECT T2.ID, T2.NAME FROM PUBLIC.TEST T2 /* PUBLIC.PRIMARY_KEY_2: ID = (T1.ID - 1) */ WHERE (T1.ID - 1) = T2.ID)
+>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ WHERE EXISTS( SELECT "T2"."ID", "T2"."NAME" FROM "PUBLIC"."TEST" "T2" /* PUBLIC.PRIMARY_KEY_2: ID = (T1.ID - 1) */ WHERE ("T1"."ID" - 1) = "T2"."ID")
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID IN(1, 2);
->> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(1, 2) */ WHERE ID IN(1, 2)
+>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(1, 2) */ WHERE "ID" IN(1, 2)
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID IN(SELECT ID FROM TEST);
-#+mvStore#>> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /++ PUBLIC.TEST.tableScan ++/) */ WHERE ID IN( SELECT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */)
-#-mvStore#>> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /++ PUBLIC.PRIMARY_KEY_2 ++/) */ WHERE ID IN( SELECT ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */)
+#+mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /++ PUBLIC.TEST.tableScan ++/) */ WHERE "ID" IN( SELECT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */)
+#-mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.PRIMARY_KEY_2: ID IN(SELECT ID FROM PUBLIC.TEST /++ PUBLIC.PRIMARY_KEY_2 ++/) */ WHERE "ID" IN( SELECT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */)
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID NOT IN(SELECT ID FROM TEST);
-#+mvStore#>> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST.tableScan */ WHERE NOT (ID IN( SELECT ID FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */))
-#-mvStore#>> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST.tableScan */ WHERE NOT (ID IN( SELECT ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */))
+#+mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ WHERE NOT ("ID" IN( SELECT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */))
+#-mvStore#>> SELECT "T1"."ID", "T1"."NAME" FROM "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ WHERE NOT ("ID" IN( SELECT "ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */))
 
 EXPLAIN PLAN FOR SELECT CAST(ID AS VARCHAR(255)) FROM TEST;
-#+mvStore#>> SELECT CAST(ID AS VARCHAR(255)) FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */
-#-mvStore#>> SELECT CAST(ID AS VARCHAR(255)) FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */
+#+mvStore#>> SELECT CAST("ID" AS VARCHAR(255)) FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
+#-mvStore#>> SELECT CAST("ID" AS VARCHAR(255)) FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */
 
 EXPLAIN PLAN FOR SELECT LEFT(NAME, 2) FROM TEST;
->> SELECT LEFT(NAME, 2) FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */
+>> SELECT LEFT("NAME", 2) FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
 
 SELECT * FROM test t1 inner join test t2 on t1.id=t2.id and t2.name is not null where t1.id=1;
 > ID NAME  ID NAME
@@ -5312,7 +5312,7 @@ SELECT * FROM SYSTEM_RANGE(1,2) UNION ALL SELECT * FROM SYSTEM_RANGE(1,2) ORDER 
 > rows (ordered): 4
 
 EXPLAIN (SELECT * FROM SYSTEM_RANGE(1,2) UNION ALL SELECT * FROM SYSTEM_RANGE(1,2) ORDER BY 1);
->> (SELECT SYSTEM_RANGE.X FROM SYSTEM_RANGE(1, 2) /* PUBLIC.RANGE_INDEX */) UNION ALL (SELECT SYSTEM_RANGE.X FROM SYSTEM_RANGE(1, 2) /* PUBLIC.RANGE_INDEX */) ORDER BY 1
+>> (SELECT "SYSTEM_RANGE"."X" FROM SYSTEM_RANGE(1, 2) /* PUBLIC.RANGE_INDEX */) UNION ALL (SELECT "SYSTEM_RANGE"."X" FROM SYSTEM_RANGE(1, 2) /* PUBLIC.RANGE_INDEX */) ORDER BY 1
 
 CREATE TABLE CHILDREN(ID INT PRIMARY KEY, NAME VARCHAR(255), CLASS INT);
 > ok
@@ -5353,7 +5353,7 @@ SELECT * FROM CHILDREN UNION ALL SELECT * FROM CHILDREN ORDER BY ID, NAME FOR UP
 > rows (ordered): 8
 
 EXPLAIN SELECT * FROM CHILDREN UNION ALL SELECT * FROM CHILDREN ORDER BY ID, NAME FOR UPDATE;
->> (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN.tableScan */ FOR UPDATE) UNION ALL (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN.tableScan */ FOR UPDATE) ORDER BY 1, 2 FOR UPDATE
+>> (SELECT "CHILDREN"."ID", "CHILDREN"."NAME", "CHILDREN"."CLASS" FROM "PUBLIC"."CHILDREN" /* PUBLIC.CHILDREN.tableScan */ FOR UPDATE) UNION ALL (SELECT "CHILDREN"."ID", "CHILDREN"."NAME", "CHILDREN"."CLASS" FROM "PUBLIC"."CHILDREN" /* PUBLIC.CHILDREN.tableScan */ FOR UPDATE) ORDER BY 1, 2 FOR UPDATE
 
 SELECT 'Child', ID, NAME FROM CHILDREN UNION SELECT 'Class', ID, NAME FROM CLASSES;
 > 'Child' ID NAME
@@ -5370,7 +5370,7 @@ SELECT 'Child', ID, NAME FROM CHILDREN UNION SELECT 'Class', ID, NAME FROM CLASS
 > rows: 9
 
 EXPLAIN SELECT 'Child', ID, NAME FROM CHILDREN UNION SELECT 'Class', ID, NAME FROM CLASSES;
->> (SELECT 'Child', ID, NAME FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN.tableScan */) UNION (SELECT 'Class', ID, NAME FROM PUBLIC.CLASSES /* PUBLIC.CLASSES.tableScan */)
+>> (SELECT 'Child', "ID", "NAME" FROM "PUBLIC"."CHILDREN" /* PUBLIC.CHILDREN.tableScan */) UNION (SELECT 'Class', "ID", "NAME" FROM "PUBLIC"."CLASSES" /* PUBLIC.CLASSES.tableScan */)
 
 SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE CLASS=0;
 > ID NAME  CLASS
@@ -5381,11 +5381,11 @@ SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE CLASS=0;
 > rows: 3
 
 EXPLAIN SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE CLASS=0;
->> (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN.tableScan */) EXCEPT (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN.tableScan */ WHERE CLASS = 0)
+>> (SELECT "CHILDREN"."ID", "CHILDREN"."NAME", "CHILDREN"."CLASS" FROM "PUBLIC"."CHILDREN" /* PUBLIC.CHILDREN.tableScan */) EXCEPT (SELECT "CHILDREN"."ID", "CHILDREN"."NAME", "CHILDREN"."CLASS" FROM "PUBLIC"."CHILDREN" /* PUBLIC.CHILDREN.tableScan */ WHERE "CLASS" = 0)
 
 EXPLAIN SELECT CLASS FROM CHILDREN INTERSECT SELECT ID FROM CLASSES;
-#+mvStore#>> (SELECT CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN.tableScan */) INTERSECT (SELECT ID FROM PUBLIC.CLASSES /* PUBLIC.CLASSES.tableScan */)
-#-mvStore#>> (SELECT CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN.tableScan */) INTERSECT (SELECT ID FROM PUBLIC.CLASSES /* PUBLIC.PRIMARY_KEY_5 */)
+#+mvStore#>> (SELECT "CLASS" FROM "PUBLIC"."CHILDREN" /* PUBLIC.CHILDREN.tableScan */) INTERSECT (SELECT "ID" FROM "PUBLIC"."CLASSES" /* PUBLIC.CLASSES.tableScan */)
+#-mvStore#>> (SELECT "CLASS" FROM "PUBLIC"."CHILDREN" /* PUBLIC.CHILDREN.tableScan */) INTERSECT (SELECT "ID" FROM "PUBLIC"."CLASSES" /* PUBLIC.PRIMARY_KEY_5 */)
 
 SELECT CLASS FROM CHILDREN INTERSECT SELECT ID FROM CLASSES;
 > CLASS
@@ -5396,7 +5396,7 @@ SELECT CLASS FROM CHILDREN INTERSECT SELECT ID FROM CLASSES;
 > rows: 3
 
 EXPLAIN SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE CLASS=0;
->> (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN.tableScan */) EXCEPT (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN.tableScan */ WHERE CLASS = 0)
+>> (SELECT "CHILDREN"."ID", "CHILDREN"."NAME", "CHILDREN"."CLASS" FROM "PUBLIC"."CHILDREN" /* PUBLIC.CHILDREN.tableScan */) EXCEPT (SELECT "CHILDREN"."ID", "CHILDREN"."NAME", "CHILDREN"."CLASS" FROM "PUBLIC"."CHILDREN" /* PUBLIC.CHILDREN.tableScan */ WHERE "CLASS" = 0)
 
 SELECT * FROM CHILDREN CH, CLASSES CL WHERE CH.CLASS = CL.ID;
 > ID NAME  CLASS ID NAME
@@ -5484,7 +5484,7 @@ SELECT * FROM V_UNION WHERE ID=1;
 > rows: 2
 
 EXPLAIN SELECT * FROM V_UNION WHERE ID=1;
->> SELECT V_UNION.ID, V_UNION.NAME, V_UNION.CLASS FROM PUBLIC.V_UNION /* (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID IS ?1 ++/ /++ scanCount: 2 ++/ WHERE CHILDREN.ID IS ?1) UNION ALL (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID IS ?1 ++/ /++ scanCount: 2 ++/ WHERE CHILDREN.ID IS ?1): ID = 1 */ WHERE ID = 1
+>> SELECT "V_UNION"."ID", "V_UNION"."NAME", "V_UNION"."CLASS" FROM "PUBLIC"."V_UNION" /* (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID IS ?1 ++/ /++ scanCount: 2 ++/ WHERE CHILDREN.ID IS ?1) UNION ALL (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID IS ?1 ++/ /++ scanCount: 2 ++/ WHERE CHILDREN.ID IS ?1): ID = 1 */ WHERE "ID" = 1
 
 CREATE VIEW V_EXCEPT AS SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE ID=2;
 > ok
@@ -5496,7 +5496,7 @@ SELECT * FROM V_EXCEPT WHERE ID=1;
 > rows: 1
 
 EXPLAIN SELECT * FROM V_EXCEPT WHERE ID=1;
->> SELECT V_EXCEPT.ID, V_EXCEPT.NAME, V_EXCEPT.CLASS FROM PUBLIC.V_EXCEPT /* (SELECT DISTINCT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID IS ?1 ++/ /++ scanCount: 2 ++/ WHERE CHILDREN.ID IS ?1) EXCEPT (SELECT DISTINCT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = 2 ++/ /++ scanCount: 2 ++/ WHERE ID = 2): ID = 1 */ WHERE ID = 1
+>> SELECT "V_EXCEPT"."ID", "V_EXCEPT"."NAME", "V_EXCEPT"."CLASS" FROM "PUBLIC"."V_EXCEPT" /* (SELECT DISTINCT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID IS ?1 ++/ /++ scanCount: 2 ++/ WHERE CHILDREN.ID IS ?1) EXCEPT (SELECT DISTINCT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = 2 ++/ /++ scanCount: 2 ++/ WHERE ID = 2): ID = 1 */ WHERE "ID" = 1
 
 CREATE VIEW V_INTERSECT AS SELECT ID, NAME FROM CHILDREN INTERSECT SELECT * FROM CLASSES;
 > ok
@@ -5507,7 +5507,7 @@ SELECT * FROM V_INTERSECT WHERE ID=1;
 > rows: 0
 
 EXPLAIN SELECT * FROM V_INTERSECT WHERE ID=1;
->> SELECT V_INTERSECT.ID, V_INTERSECT.NAME FROM PUBLIC.V_INTERSECT /* (SELECT DISTINCT ID, NAME FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID IS ?1 ++/ /++ scanCount: 2 ++/ WHERE ID IS ?1) INTERSECT (SELECT DISTINCT CLASSES.ID, CLASSES.NAME FROM PUBLIC.CLASSES /++ PUBLIC.PRIMARY_KEY_5: ID IS ?1 ++/ /++ scanCount: 2 ++/ WHERE CLASSES.ID IS ?1): ID = 1 */ WHERE ID = 1
+>> SELECT "V_INTERSECT"."ID", "V_INTERSECT"."NAME" FROM "PUBLIC"."V_INTERSECT" /* (SELECT DISTINCT ID, NAME FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID IS ?1 ++/ /++ scanCount: 2 ++/ WHERE ID IS ?1) INTERSECT (SELECT DISTINCT CLASSES.ID, CLASSES.NAME FROM PUBLIC.CLASSES /++ PUBLIC.PRIMARY_KEY_5: ID IS ?1 ++/ /++ scanCount: 2 ++/ WHERE CLASSES.ID IS ?1): ID = 1 */ WHERE "ID" = 1
 
 DROP VIEW V_UNION;
 > ok
@@ -5602,9 +5602,9 @@ CREATE VIEW TEST_A_SUB AS SELECT * FROM TEST_A WHERE ID < 2;
 
 SELECT TABLE_NAME, SQL FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='VIEW';
 > TABLE_NAME SQL
-> ---------- -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> TEST_ALL   CREATE FORCE VIEW PUBLIC.TEST_ALL(AID, A_NAME, BID, B_NAME) AS SELECT A.ID AS AID, A.NAME AS A_NAME, B.ID AS BID, B.NAME AS B_NAME FROM PUBLIC.TEST_A A INNER JOIN PUBLIC.TEST_B B ON 1=1 WHERE A.ID = B.ID
-> TEST_A_SUB CREATE FORCE VIEW PUBLIC.TEST_A_SUB(ID, NAME) AS SELECT TEST_A.ID, TEST_A.NAME FROM PUBLIC.TEST_A WHERE ID < 2
+> ---------- -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> TEST_ALL   CREATE FORCE VIEW "PUBLIC"."TEST_ALL"("AID", "A_NAME", "BID", "B_NAME") AS SELECT "A"."ID" AS "AID", "A"."NAME" AS "A_NAME", "B"."ID" AS "BID", "B"."NAME" AS "B_NAME" FROM "PUBLIC"."TEST_A" "A" INNER JOIN "PUBLIC"."TEST_B" "B" ON 1=1 WHERE "A"."ID" = "B"."ID"
+> TEST_A_SUB CREATE FORCE VIEW "PUBLIC"."TEST_A_SUB"("ID", "NAME") AS SELECT "TEST_A"."ID", "TEST_A"."NAME" FROM "PUBLIC"."TEST_A" WHERE "ID" < 2
 > rows: 2
 
 SELECT * FROM TEST_A_SUB WHERE NAME IS NOT NULL;
@@ -6158,14 +6158,14 @@ CAST(XT AS TIMESTAMP) D2TS, CAST(XD AS TIMESTAMP) D2TS FROM TEST;
 
 SCRIPT SIMPLE NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> -----------------------------------------------------------------------------------------------------------------
+> ---------------------------------------------------------------------------------------------------------------------
 > -- 4 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> CREATE MEMORY TABLE PUBLIC.TEST( ID INT, XT TIME, XD DATE, XTS TIMESTAMP(9) );
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
-> INSERT INTO PUBLIC.TEST VALUES(0, TIME '00:00:00', DATE '0001-02-03', TIMESTAMP '0002-03-04 00:00:00');
-> INSERT INTO PUBLIC.TEST VALUES(1, TIME '01:02:03', DATE '0004-05-06', TIMESTAMP '0007-08-09 00:01:02');
-> INSERT INTO PUBLIC.TEST VALUES(2, TIME '23:59:59', DATE '1999-12-31', TIMESTAMP '1999-12-31 23:59:59.123456789');
-> INSERT INTO PUBLIC.TEST VALUES(NULL, NULL, NULL, NULL);
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" INT, "XT" TIME, "XD" DATE, "XTS" TIMESTAMP(9) );
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
+> INSERT INTO "PUBLIC"."TEST" VALUES(0, TIME '00:00:00', DATE '0001-02-03', TIMESTAMP '0002-03-04 00:00:00');
+> INSERT INTO "PUBLIC"."TEST" VALUES(1, TIME '01:02:03', DATE '0004-05-06', TIMESTAMP '0007-08-09 00:01:02');
+> INSERT INTO "PUBLIC"."TEST" VALUES(2, TIME '23:59:59', DATE '1999-12-31', TIMESTAMP '1999-12-31 23:59:59.123456789');
+> INSERT INTO "PUBLIC"."TEST" VALUES(NULL, NULL, NULL, NULL);
 > rows: 7
 
 DROP TABLE TEST;
@@ -7048,14 +7048,14 @@ CREATE MEMORY TABLE CHILD(ID INT, PARENT_ID INT, FOREIGN KEY(PARENT_ID) REFERENC
 
 SCRIPT NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> ------------------------------------------------------------------------------------------------------------------------
+> ----------------------------------------------------------------------------------------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.CHILD;
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.PARENT;
-> ALTER TABLE PUBLIC.CHILD ADD CONSTRAINT PUBLIC.CONSTRAINT_3 FOREIGN KEY(PARENT_ID) REFERENCES PUBLIC.PARENT(ID) NOCHECK;
-> ALTER TABLE PUBLIC.PARENT ADD CONSTRAINT PUBLIC.CONSTRAINT_8 PRIMARY KEY(ID);
-> CREATE MEMORY TABLE PUBLIC.CHILD( ID INT, PARENT_ID INT );
-> CREATE MEMORY TABLE PUBLIC.PARENT( ID INT NOT NULL );
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
+> ALTER TABLE "PUBLIC"."CHILD" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_3" FOREIGN KEY("PARENT_ID") REFERENCES "PUBLIC"."PARENT"("ID") NOCHECK;
+> ALTER TABLE "PUBLIC"."PARENT" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_8" PRIMARY KEY("ID");
+> CREATE MEMORY TABLE "PUBLIC"."CHILD"( "ID" INT, "PARENT_ID" INT );
+> CREATE MEMORY TABLE "PUBLIC"."PARENT"( "ID" INT NOT NULL );
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > rows: 7
 
 DROP TABLE PARENT;
@@ -7111,11 +7111,11 @@ ALTER TABLE TEST ADD CONSTRAINT C1 FOREIGN KEY(A_INT) REFERENCES TEST(B_INT);
 
 SCRIPT NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> ----------------------------------------------------------------------------------------------------------
+> --------------------------------------------------------------------------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.C1 FOREIGN KEY(A_INT) REFERENCES PUBLIC.TEST(B_INT) NOCHECK;
-> CREATE MEMORY TABLE PUBLIC.TEST( A_INT INT NOT NULL, B_INT INT NOT NULL );
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
+> ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."C1" FOREIGN KEY("A_INT") REFERENCES "PUBLIC"."TEST"("B_INT") NOCHECK;
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "A_INT" INT NOT NULL, "B_INT" INT NOT NULL );
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > rows: 4
 
 ALTER TABLE TEST DROP CONSTRAINT C1;
@@ -7255,21 +7255,21 @@ SELECT * FROM B_TEST;
 
 SCRIPT NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> ----------------------------------------------------------------------------------------------------------------------------------------------------------
+> --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.A_TEST;
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.B_TEST;
-> ALTER TABLE PUBLIC.A_TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_7 PRIMARY KEY(A_INT);
-> ALTER TABLE PUBLIC.A_TEST ADD CONSTRAINT PUBLIC.DATE_UNIQUE UNIQUE(A_DATE);
-> ALTER TABLE PUBLIC.A_TEST ADD CONSTRAINT PUBLIC.DATE_UNIQUE_2 UNIQUE(A_DATE);
-> ALTER TABLE PUBLIC.A_TEST ADD CONSTRAINT PUBLIC.MIN_LENGTH CHECK(LENGTH(A_VARCHAR) > 1) NOCHECK;
-> ALTER TABLE PUBLIC.B_TEST ADD CONSTRAINT PUBLIC.B_UNIQUE UNIQUE(B_INT);
-> ALTER TABLE PUBLIC.B_TEST ADD CONSTRAINT PUBLIC.C3 FOREIGN KEY(B_INT) REFERENCES PUBLIC.A_TEST(A_INT) ON DELETE SET DEFAULT ON UPDATE SET DEFAULT NOCHECK;
-> ALTER TABLE PUBLIC.B_TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_76 CHECK(LENGTH(B_VARCHAR) > 1) NOCHECK;
-> ALTER TABLE PUBLIC.B_TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_760 PRIMARY KEY(B_INT);
-> CREATE MEMORY TABLE PUBLIC.A_TEST( A_INT INT NOT NULL, A_VARCHAR VARCHAR(255) DEFAULT 'x', A_DATE DATE, A_DECIMAL DECIMAL(10, 2) );
-> CREATE MEMORY TABLE PUBLIC.B_TEST( B_INT INT DEFAULT -1 NOT NULL, B_VARCHAR VARCHAR(255) DEFAULT NULL );
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
-> INSERT INTO PUBLIC.B_TEST VALUES (-1, 'XX');
+> ALTER TABLE "PUBLIC"."A_TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_7" PRIMARY KEY("A_INT");
+> ALTER TABLE "PUBLIC"."A_TEST" ADD CONSTRAINT "PUBLIC"."DATE_UNIQUE" UNIQUE("A_DATE");
+> ALTER TABLE "PUBLIC"."A_TEST" ADD CONSTRAINT "PUBLIC"."DATE_UNIQUE_2" UNIQUE("A_DATE");
+> ALTER TABLE "PUBLIC"."A_TEST" ADD CONSTRAINT "PUBLIC"."MIN_LENGTH" CHECK(LENGTH("A_VARCHAR") > 1) NOCHECK;
+> ALTER TABLE "PUBLIC"."B_TEST" ADD CONSTRAINT "PUBLIC"."B_UNIQUE" UNIQUE("B_INT");
+> ALTER TABLE "PUBLIC"."B_TEST" ADD CONSTRAINT "PUBLIC"."C3" FOREIGN KEY("B_INT") REFERENCES "PUBLIC"."A_TEST"("A_INT") ON DELETE SET DEFAULT ON UPDATE SET DEFAULT NOCHECK;
+> ALTER TABLE "PUBLIC"."B_TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_76" CHECK(LENGTH("B_VARCHAR") > 1) NOCHECK;
+> ALTER TABLE "PUBLIC"."B_TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_760" PRIMARY KEY("B_INT");
+> CREATE MEMORY TABLE "PUBLIC"."A_TEST"( "A_INT" INT NOT NULL, "A_VARCHAR" VARCHAR(255) DEFAULT 'x', "A_DATE" DATE, "A_DECIMAL" DECIMAL(10, 2) );
+> CREATE MEMORY TABLE "PUBLIC"."B_TEST"( "B_INT" INT DEFAULT -1 NOT NULL, "B_VARCHAR" VARCHAR(255) DEFAULT NULL );
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
+> INSERT INTO "PUBLIC"."B_TEST" VALUES (-1, 'XX');
 > rows: 14
 
 DROP TABLE A_TEST;
@@ -7356,24 +7356,24 @@ SELECT * FROM CHILD;
 
 SCRIPT SIMPLE NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.FAMILY;
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.PARENT;
 > -- 4 +/- SELECT COUNT(*) FROM PUBLIC.CHILD;
-> ALTER TABLE PUBLIC.CHILD ADD CONSTRAINT PUBLIC.CONSTRAINT_3 UNIQUE(ID, PARENTID);
-> ALTER TABLE PUBLIC.CHILD ADD CONSTRAINT PUBLIC.PARENT_CHILD FOREIGN KEY(PARENTID, FAMILY_ID) REFERENCES PUBLIC.PARENT(ID, FAMILY_ID) ON DELETE SET NULL ON UPDATE CASCADE NOCHECK;
-> ALTER TABLE PUBLIC.PARENT ADD CONSTRAINT PUBLIC.PARENT_FAMILY FOREIGN KEY(FAMILY_ID) REFERENCES PUBLIC.FAMILY(ID) NOCHECK;
-> CREATE INDEX PUBLIC.FAMILY_ID_NAME ON PUBLIC.FAMILY(ID, NAME);
-> CREATE MEMORY TABLE PUBLIC.CHILD( ID INT, PARENTID INT, FAMILY_ID INT, NAME VARCHAR(20) );
-> CREATE MEMORY TABLE PUBLIC.FAMILY( ID INT, NAME VARCHAR(20) );
-> CREATE MEMORY TABLE PUBLIC.PARENT( ID INT, FAMILY_ID INT, NAME VARCHAR(20) );
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
-> INSERT INTO PUBLIC.CHILD VALUES(100, 3, 1, 'Simon');
-> INSERT INTO PUBLIC.CHILD VALUES(101, 3, 1, 'Sabine');
-> INSERT INTO PUBLIC.CHILD VALUES(200, NULL, NULL, 'Jim');
-> INSERT INTO PUBLIC.CHILD VALUES(201, NULL, NULL, 'Johann');
-> INSERT INTO PUBLIC.FAMILY VALUES(1, 'Capone');
-> INSERT INTO PUBLIC.PARENT VALUES(3, 1, 'Sue');
+> ALTER TABLE "PUBLIC"."CHILD" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_3" UNIQUE("ID", "PARENTID");
+> ALTER TABLE "PUBLIC"."CHILD" ADD CONSTRAINT "PUBLIC"."PARENT_CHILD" FOREIGN KEY("PARENTID", "FAMILY_ID") REFERENCES "PUBLIC"."PARENT"("ID", "FAMILY_ID") ON DELETE SET NULL ON UPDATE CASCADE NOCHECK;
+> ALTER TABLE "PUBLIC"."PARENT" ADD CONSTRAINT "PUBLIC"."PARENT_FAMILY" FOREIGN KEY("FAMILY_ID") REFERENCES "PUBLIC"."FAMILY"("ID") NOCHECK;
+> CREATE INDEX "PUBLIC"."FAMILY_ID_NAME" ON "PUBLIC"."FAMILY"("ID", "NAME");
+> CREATE MEMORY TABLE "PUBLIC"."CHILD"( "ID" INT, "PARENTID" INT, "FAMILY_ID" INT, "NAME" VARCHAR(20) );
+> CREATE MEMORY TABLE "PUBLIC"."FAMILY"( "ID" INT, "NAME" VARCHAR(20) );
+> CREATE MEMORY TABLE "PUBLIC"."PARENT"( "ID" INT, "FAMILY_ID" INT, "NAME" VARCHAR(20) );
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
+> INSERT INTO "PUBLIC"."CHILD" VALUES(100, 3, 1, 'Simon');
+> INSERT INTO "PUBLIC"."CHILD" VALUES(101, 3, 1, 'Sabine');
+> INSERT INTO "PUBLIC"."CHILD" VALUES(200, NULL, NULL, 'Jim');
+> INSERT INTO "PUBLIC"."CHILD" VALUES(201, NULL, NULL, 'Johann');
+> INSERT INTO "PUBLIC"."FAMILY" VALUES(1, 'Capone');
+> INSERT INTO "PUBLIC"."PARENT" VALUES(3, 1, 'Sue');
 > rows: 17
 
 ALTER TABLE CHILD DROP CONSTRAINT PARENT_CHILD;
@@ -7381,23 +7381,23 @@ ALTER TABLE CHILD DROP CONSTRAINT PARENT_CHILD;
 
 SCRIPT SIMPLE NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> --------------------------------------------------------------------------------------------------------------------------
+> ------------------------------------------------------------------------------------------------------------------------------------------
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.FAMILY;
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.PARENT;
 > -- 4 +/- SELECT COUNT(*) FROM PUBLIC.CHILD;
-> ALTER TABLE PUBLIC.CHILD ADD CONSTRAINT PUBLIC.CONSTRAINT_3 UNIQUE(ID, PARENTID);
-> ALTER TABLE PUBLIC.PARENT ADD CONSTRAINT PUBLIC.PARENT_FAMILY FOREIGN KEY(FAMILY_ID) REFERENCES PUBLIC.FAMILY(ID) NOCHECK;
-> CREATE INDEX PUBLIC.FAMILY_ID_NAME ON PUBLIC.FAMILY(ID, NAME);
-> CREATE MEMORY TABLE PUBLIC.CHILD( ID INT, PARENTID INT, FAMILY_ID INT, NAME VARCHAR(20) );
-> CREATE MEMORY TABLE PUBLIC.FAMILY( ID INT, NAME VARCHAR(20) );
-> CREATE MEMORY TABLE PUBLIC.PARENT( ID INT, FAMILY_ID INT, NAME VARCHAR(20) );
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
-> INSERT INTO PUBLIC.CHILD VALUES(100, 3, 1, 'Simon');
-> INSERT INTO PUBLIC.CHILD VALUES(101, 3, 1, 'Sabine');
-> INSERT INTO PUBLIC.CHILD VALUES(200, NULL, NULL, 'Jim');
-> INSERT INTO PUBLIC.CHILD VALUES(201, NULL, NULL, 'Johann');
-> INSERT INTO PUBLIC.FAMILY VALUES(1, 'Capone');
-> INSERT INTO PUBLIC.PARENT VALUES(3, 1, 'Sue');
+> ALTER TABLE "PUBLIC"."CHILD" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_3" UNIQUE("ID", "PARENTID");
+> ALTER TABLE "PUBLIC"."PARENT" ADD CONSTRAINT "PUBLIC"."PARENT_FAMILY" FOREIGN KEY("FAMILY_ID") REFERENCES "PUBLIC"."FAMILY"("ID") NOCHECK;
+> CREATE INDEX "PUBLIC"."FAMILY_ID_NAME" ON "PUBLIC"."FAMILY"("ID", "NAME");
+> CREATE MEMORY TABLE "PUBLIC"."CHILD"( "ID" INT, "PARENTID" INT, "FAMILY_ID" INT, "NAME" VARCHAR(20) );
+> CREATE MEMORY TABLE "PUBLIC"."FAMILY"( "ID" INT, "NAME" VARCHAR(20) );
+> CREATE MEMORY TABLE "PUBLIC"."PARENT"( "ID" INT, "FAMILY_ID" INT, "NAME" VARCHAR(20) );
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
+> INSERT INTO "PUBLIC"."CHILD" VALUES(100, 3, 1, 'Simon');
+> INSERT INTO "PUBLIC"."CHILD" VALUES(101, 3, 1, 'Sabine');
+> INSERT INTO "PUBLIC"."CHILD" VALUES(200, NULL, NULL, 'Jim');
+> INSERT INTO "PUBLIC"."CHILD" VALUES(201, NULL, NULL, 'Johann');
+> INSERT INTO "PUBLIC"."FAMILY" VALUES(1, 'Capone');
+> INSERT INTO "PUBLIC"."PARENT" VALUES(3, 1, 'Sue');
 > rows: 16
 
 DELETE FROM PARENT;
@@ -7463,11 +7463,11 @@ CREATE MEMORY TABLE TEST(A INT, B INT, FOREIGN KEY (B) REFERENCES(A) ON UPDATE R
 
 SCRIPT NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> ------------------------------------------------------------------------------------------------------------
+> ----------------------------------------------------------------------------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_2 FOREIGN KEY(B) REFERENCES PUBLIC.TEST(A) NOCHECK;
-> CREATE MEMORY TABLE PUBLIC.TEST( A INT, B INT );
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
+> ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_2" FOREIGN KEY("B") REFERENCES "PUBLIC"."TEST"("A") NOCHECK;
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "A" INT, "B" INT );
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > rows: 4
 
 DROP TABLE TEST;
@@ -7512,17 +7512,17 @@ ALTER INDEX IDX_ID RENAME TO IDX_ID2;
 
 SCRIPT NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> ---------------------------------------------------------------------------
+> -------------------------------------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST2;
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> ALTER TABLE PUBLIC.TEST ADD CONSTRAINT PUBLIC.CONSTRAINT_2 PRIMARY KEY(ID);
-> CREATE INDEX PUBLIC.IDX_ID2 ON PUBLIC.TEST2(ID);
-> CREATE MEMORY TABLE PUBLIC.TEST( ID INT NOT NULL, NAME VARCHAR(255) );
-> CREATE MEMORY TABLE PUBLIC.TEST2( ID INT );
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
-> CREATE USER IF NOT EXISTS TEST PASSWORD '';
-> CREATE USER IF NOT EXISTS TEST2 PASSWORD '';
-> CREATE USER IF NOT EXISTS TEST_ADMIN PASSWORD '' ADMIN;
+> ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_2" PRIMARY KEY("ID");
+> CREATE INDEX "PUBLIC"."IDX_ID2" ON "PUBLIC"."TEST2"("ID");
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" INT NOT NULL, "NAME" VARCHAR(255) );
+> CREATE MEMORY TABLE "PUBLIC"."TEST2"( "ID" INT );
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
+> CREATE USER IF NOT EXISTS "TEST" PASSWORD '';
+> CREATE USER IF NOT EXISTS "TEST2" PASSWORD '';
+> CREATE USER IF NOT EXISTS "TEST_ADMIN" PASSWORD '' ADMIN;
 > rows: 10
 
 SELECT NAME, ADMIN FROM INFORMATION_SCHEMA.USERS;
@@ -7566,9 +7566,9 @@ ALTER USER SECURE SET SALT '112233' HASH '2233445566';
 
 SCRIPT NOSETTINGS;
 > SCRIPT
-> -----------------------------------------------------------------
-> CREATE USER IF NOT EXISTS SA SALT '' HASH '' ADMIN;
-> CREATE USER IF NOT EXISTS SECURE SALT '112233' HASH '2233445566';
+> -------------------------------------------------------------------
+> CREATE USER IF NOT EXISTS "SA" SALT '' HASH '' ADMIN;
+> CREATE USER IF NOT EXISTS "SECURE" SALT '112233' HASH '2233445566';
 > rows: 2
 
 SET PASSWORD '123';

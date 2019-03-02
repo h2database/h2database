@@ -54,12 +54,12 @@ public class Rownum extends Expression {
     }
 
     @Override
-    public String getSQL() {
+    public String getSQL(boolean alwaysQuote) {
         return "ROWNUM()";
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
         return builder.append("ROWNUM()");
     }
 

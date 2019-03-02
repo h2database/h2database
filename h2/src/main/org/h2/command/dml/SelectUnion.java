@@ -399,9 +399,9 @@ public class SelectUnion extends Query {
     }
 
     @Override
-    public String getPlanSQL() {
+    public String getPlanSQL(boolean alwaysQuote) {
         StringBuilder buff = new StringBuilder();
-        buff.append('(').append(left.getPlanSQL()).append(')');
+        buff.append('(').append(left.getPlanSQL(alwaysQuote)).append(')');
         switch (unionType) {
         case UNION_ALL:
             buff.append("\nUNION ALL\n");
@@ -418,15 +418,15 @@ public class SelectUnion extends Query {
         default:
             DbException.throwInternalError("type=" + unionType);
         }
-        buff.append('(').append(right.getPlanSQL()).append(')');
+        buff.append('(').append(right.getPlanSQL(alwaysQuote)).append(')');
         Expression[] exprList = expressions.toArray(new Expression[0]);
         if (sort != null) {
-            buff.append("\nORDER BY ").append(sort.getSQL(exprList, exprList.length));
+            buff.append("\nORDER BY ").append(sort.getSQL(exprList, exprList.length, alwaysQuote));
         }
-        appendLimitToSQL(buff);
+        appendLimitToSQL(buff, alwaysQuote);
         if (sampleSizeExpr != null) {
             buff.append("\nSAMPLE_SIZE ");
-            sampleSizeExpr.getUnenclosedSQL(buff);
+            sampleSizeExpr.getUnenclosedSQL(buff, alwaysQuote);
         }
         if (isForUpdate) {
             buff.append("\nFOR UPDATE");

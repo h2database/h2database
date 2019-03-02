@@ -102,14 +102,14 @@ public class Wildcard extends Expression {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
         if (table != null) {
             StringUtils.quoteIdentifier(builder, table).append('.');
         }
         builder.append('*');
         if (exceptColumns != null) {
             builder.append(" EXCEPT (");
-            writeExpressions(builder, exceptColumns);
+            writeExpressions(builder, exceptColumns, alwaysQuote);
             builder.append(')');
         }
         return builder;

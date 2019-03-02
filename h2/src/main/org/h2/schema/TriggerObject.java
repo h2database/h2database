@@ -336,7 +336,7 @@ public class TriggerObject extends SchemaObjectBase {
         }
         buff.append(getTypeNameList());
         buff.append(" ON ");
-        targetTable.getSQL(buff);
+        targetTable.getSQL(buff, true);
         if (rowBased) {
             buff.append(" FOR EACH ROW");
         }
@@ -347,7 +347,7 @@ public class TriggerObject extends SchemaObjectBase {
         }
         if (triggerClassName != null) {
             buff.append(" CALL ");
-            Parser.quoteIdentifier(buff, triggerClassName);
+            Parser.quoteIdentifier(buff, triggerClassName, true);
         } else {
             buff.append(" AS ");
             StringUtils.quoteStringSQL(buff, triggerSource);
@@ -382,7 +382,7 @@ public class TriggerObject extends SchemaObjectBase {
 
     @Override
     public String getCreateSQL() {
-        return getCreateSQLForCopy(table, getSQL());
+        return getCreateSQLForCopy(table, getSQL(true));
     }
 
     @Override

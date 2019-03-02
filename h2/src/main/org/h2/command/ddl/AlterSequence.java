@@ -55,7 +55,7 @@ public class AlterSequence extends SchemaCommand {
         table = column.getTable();
         sequence = column.getSequence();
         if (sequence == null && !ifExists) {
-            throw DbException.get(ErrorCode.SEQUENCE_NOT_FOUND_1, column.getSQL());
+            throw DbException.get(ErrorCode.SEQUENCE_NOT_FOUND_1, column.getSQL(false));
         }
     }
 

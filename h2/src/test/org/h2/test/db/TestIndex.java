@@ -178,7 +178,7 @@ public class TestIndex extends TestDb {
             fail();
         } catch (SQLException e) {
             String m = e.getMessage();
-            int start = m.indexOf('\"'), end = m.indexOf('\"', start + 1);
+            int start = m.indexOf('"'), end = m.lastIndexOf('"');
             String s = m.substring(start + 1, end);
             for (String t : expected) {
                 assertContains(s, t);

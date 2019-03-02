@@ -1046,7 +1046,7 @@ public class Select extends Query {
             for (int i = 0; i < visibleColumnCount; i++) {
                 Expression expr = expressions.get(i);
                 expr = expr.getNonAliasExpression();
-                String sql = expr.getSQL();
+                String sql = expr.getSQL(true);
                 expressionSQL.add(sql);
             }
         } else {
@@ -1102,7 +1102,7 @@ public class Select extends Query {
             groupIndex = new int[size];
             for (int i = 0; i < size; i++) {
                 Expression expr = group.get(i);
-                String sql = expr.getSQL();
+                String sql = expr.getSQL(true);
                 int found = -1;
                 for (int j = 0; j < expSize; j++) {
                     String s2 = expressionSQL.get(j);
@@ -1436,7 +1436,7 @@ public class Select extends Query {
     }
 
     @Override
-    public String getPlanSQL() {
+    public String getPlanSQL(boolean alwaysQuote) {
         // can not use the field sqlStatement because the parameter
         // indexes may be incorrect: ? may be in fact ?2 for a subquery
         // but indexes may be set manually as well
@@ -1453,11 +1453,11 @@ public class Select extends Query {
                     // views.
                 } else {
                     builder.append("WITH RECURSIVE ");
-                    t.getSchema().getSQL(builder).append('.');
-                    Parser.quoteIdentifier(builder, t.getName()).append('(');
-                    Column.writeColumns(builder, t.getColumns());
+                    t.getSchema().getSQL(builder, alwaysQuote).append('.');
+                    Parser.quoteIdentifier(builder, t.getName(), alwaysQuote).append('(');
+                    Column.writeColumns(builder, t.getColumns(), alwaysQuote);
                     builder.append(") AS ");
-                    t.getSQL(builder).append('\n');
+                    t.getSQL(builder, alwaysQuote).append('\n');
                 }
             }
         }
@@ -1466,7 +1466,7 @@ public class Select extends Query {
             builder.append(" DISTINCT");
             if (distinctExpressions != null) {
                 builder.append(" ON(");
-                Expression.writeExpressions(builder, distinctExpressions);
+                Expression.writeExpressions(builder, distinctExpressions, alwaysQuote);
                 builder.append(')');
             }
         }
@@ -1475,7 +1475,7 @@ public class Select extends Query {
                 builder.append(',');
             }
             builder.append('\n');
-            StringUtils.indent(builder, exprList[i].getSQL(), 4, false);
+            StringUtils.indent(builder, exprList[i].getSQL( alwaysQuote), 4, false);
         }
         builder.append("\nFROM ");
         TableFilter filter = topTableFilter;
@@ -1485,7 +1485,7 @@ public class Select extends Query {
                 if (i > 0) {
                     builder.append('\n');
                 }
-                filter.getPlanSQL(builder, i++ > 0);
+                filter.getPlanSQL(builder, i++ > 0, alwaysQuote);
                 filter = filter.getJoin();
             } while (filter != null);
         } else {
@@ -1495,14 +1495,14 @@ public class Select extends Query {
                     if (i > 0) {
                         builder.append('\n');
                     }
-                    f.getPlanSQL(builder, i++ > 0);
+                    f.getPlanSQL(builder, i++ > 0, alwaysQuote);
                     f = f.getJoin();
                 } while (f != null);
             }
         }
         if (condition != null) {
             builder.append("\nWHERE ");
-            condition.getUnenclosedSQL(builder);
+            condition.getUnenclosedSQL(builder, alwaysQuote);
         }
         if (groupIndex != null) {
             builder.append("\nGROUP BY ");
@@ -1510,7 +1510,7 @@ public class Select extends Query {
                 if (i > 0) {
                     builder.append(", ");
                 }
-                exprList[groupIndex[i]].getNonAliasExpression().getUnenclosedSQL(builder);
+                exprList[groupIndex[i]].getNonAliasExpression().getUnenclosedSQL(builder, alwaysQuote);
             }
         } else if (group != null) {
             builder.append("\nGROUP BY ");
@@ -1518,14 +1518,14 @@ public class Select extends Query {
                 if (i > 0) {
                     builder.append(", ");
                 }
-                group.get(i).getUnenclosedSQL(builder);
+                group.get(i).getUnenclosedSQL(builder, alwaysQuote);
             }
         }
         getFilterSQL(builder, "\nHAVING ", exprList, having, havingIndex);
         getFilterSQL(builder, "\nQUALIFY ", exprList, qualify, qualifyIndex);
         if (sort != null) {
             builder.append("\nORDER BY ").append(
-                    sort.getSQL(exprList, visibleColumnCount));
+                    sort.getSQL(exprList, visibleColumnCount, alwaysQuote));
         }
         if (orderList != null) {
             builder.append("\nORDER BY ");
@@ -1533,13 +1533,13 @@ public class Select extends Query {
                 if (i > 0) {
                     builder.append(", ");
                 }
-                orderList.get(i).getSQL(builder);
+                orderList.get(i).getSQL(builder, alwaysQuote);
             }
         }
-        appendLimitToSQL(builder);
+        appendLimitToSQL(builder, alwaysQuote);
         if (sampleSizeExpr != null) {
             builder.append("\nSAMPLE_SIZE ");
-            sampleSizeExpr.getUnenclosedSQL(builder);
+            sampleSizeExpr.getUnenclosedSQL(builder, alwaysQuote);
         }
         if (isForUpdate) {
             builder.append("\nFOR UPDATE");
@@ -1566,10 +1566,10 @@ public class Select extends Query {
             int conditionIndex) {
         if (condition != null) {
             builder.append(sql);
-            condition.getUnenclosedSQL(builder);
+            condition.getUnenclosedSQL(builder, true);
         } else if (conditionIndex >= 0) {
             builder.append(sql);
-            exprList[conditionIndex].getUnenclosedSQL(builder);
+            exprList[conditionIndex].getUnenclosedSQL(builder, true);
         }
     }
 

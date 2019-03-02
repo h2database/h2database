@@ -167,7 +167,7 @@ public class Insert extends CommandWithValues implements ResultTarget {
                                 generatedKeys.add(c);
                             }
                         } catch (DbException ex) {
-                            throw setRow(ex, x, getSQL(expr));
+                            throw setRow(ex, x, getSimpleSQL(expr));
                         }
                     }
                 }
@@ -267,10 +267,10 @@ public class Insert extends CommandWithValues implements ResultTarget {
     }
 
     @Override
-    public String getPlanSQL() {
+    public String getPlanSQL(boolean alwaysQuote) {
         StringBuilder builder = new StringBuilder("INSERT INTO ");
-        table.getSQL(builder).append('(');
-        Column.writeColumns(builder, columns);
+        table.getSQL(builder, alwaysQuote).append('(');
+        Column.writeColumns(builder, columns, alwaysQuote);
         builder.append(")\n");
         if (insertFromSelect) {
             builder.append("DIRECT ");
@@ -289,11 +289,11 @@ public class Insert extends CommandWithValues implements ResultTarget {
                     builder.append(",\n");
                 }
                 builder.append('(');
-                Expression.writeExpressions(builder, expr);
+                Expression.writeExpressions(builder, expr, alwaysQuote);
                 builder.append(')');
             }
         } else {
-            builder.append(query.getPlanSQL());
+            builder.append(query.getPlanSQL(alwaysQuote));
         }
         return builder.toString();
     }
@@ -387,8 +387,8 @@ public class Insert extends CommandWithValues implements ResultTarget {
         Expression[] row = (currentRow == null) ? valuesExpressionList.get((int) getCurrentRowNumber() - 1)
                 : new Expression[columns.length];
         for (int i = 0; i < columns.length; i++) {
-            StringBuilder builder = table.getSQL(new StringBuilder()).append('.');
-            String key = columns[i].getSQL(builder).toString();
+            StringBuilder builder = table.getSQL(new StringBuilder(), true).append('.');
+            String key = columns[i].getSQL(builder, true).toString();
             variableNames.add(key);
             Value value;
             if (currentRow != null) {
@@ -401,7 +401,7 @@ public class Insert extends CommandWithValues implements ResultTarget {
         }
 
         StringBuilder builder = new StringBuilder("UPDATE ");
-        table.getSQL(builder).append(" SET ");
+        table.getSQL(builder, true).append(" SET ");
         boolean f = false;
         for (Column column : duplicateKeyAssignmentMap.keySet()) {
             if (f) {
@@ -409,8 +409,8 @@ public class Insert extends CommandWithValues implements ResultTarget {
             }
             f = true;
             Expression ex = duplicateKeyAssignmentMap.get(column);
-            column.getSQL(builder).append('=');
-            ex.getSQL(builder);
+            column.getSQL(builder, true).append('=');
+            ex.getSQL(builder, true);
         }
         builder.append(" WHERE ");
         Index foundIndex = (Index) de.getSource();
@@ -418,7 +418,7 @@ public class Insert extends CommandWithValues implements ResultTarget {
             throw DbException.getUnsupportedException(
                     "Unable to apply ON DUPLICATE KEY UPDATE, no index found!");
         }
-        prepareUpdateCondition(foundIndex, row).getSQL(builder);
+        prepareUpdateCondition(foundIndex, row).getSQL(builder, true);
         String sql = builder.toString();
         Update command = (Update) session.prepare(sql);
         command.setUpdateToCurrentValuesReturnsZero(true);

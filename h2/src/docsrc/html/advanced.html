@@ -1564,7 +1564,8 @@ INSERT INTO GEO_TABLE(THE_GEOM) VALUES
     ('POINT(500 505)'),
     ('LINESTRING(550 551, 525 512, 565 566)'),
     ('POLYGON ((550 521, 580 540, 570 564, 512 566, 550 521))');
-CREATE SPATIAL INDEX GEO_TABLE_SPATIAL_INDEX ON GEO_TABLE(THE_GEOM);
+CREATE SPATIAL INDEX GEO_TABLE_SPATIAL_INDEX
+    ON GEO_TABLE(THE_GEOM);
 </pre>
 <p>
 To query the table using geometry envelope intersection,
@@ -1572,23 +1573,26 @@ use the operation <code>&amp;&amp;</code>, as in PostGIS:
 </p>
 <pre>
 SELECT * FROM GEO_TABLE
-WHERE THE_GEOM &amp;&amp; 'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))';
+    WHERE THE_GEOM &amp;&amp;
+    'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))';
 </pre>
 <p>
 You can verify that the spatial index is used using the "explain plan" feature:
 </p>
 <pre>
 EXPLAIN SELECT * FROM GEO_TABLE
-WHERE THE_GEOM &amp;&amp; 'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))';
+    WHERE THE_GEOM &amp;&amp;
+    'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))';
 -- Result
 SELECT
-    GEO_TABLE.GID,
-    GEO_TABLE.THE_GEOM
-FROM PUBLIC.GEO_TABLE
+    "GEO_TABLE"."GID",
+    "GEO_TABLE"."THE_GEOM"
+FROM "PUBLIC"."GEO_TABLE"
     /* PUBLIC.GEO_TABLE_SPATIAL_INDEX:
-    THE_GEOM &amp;&amp; 'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))' */
-WHERE INTERSECTS(THE_GEOM,
-    'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))')
+    THE_GEOM &amp;&amp;
+    'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))'::Geometry */
+WHERE INTERSECTS("THE_GEOM",
+    'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))'::Geometry)
 </pre>
 <p>
 For persistent databases, the spatial index is stored on disk;

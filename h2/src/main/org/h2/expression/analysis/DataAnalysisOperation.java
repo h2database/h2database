@@ -121,12 +121,12 @@ public abstract class DataAnalysisOperation extends Expression {
     public final void mapColumns(ColumnResolver resolver, int level, int state) {
         if (over != null) {
             if (state != MAP_INITIAL) {
-                throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
+                throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL(false));
             }
             state = MAP_IN_WINDOW;
         } else {
             if (state == MAP_IN_AGGREGATE) {
-                throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
+                throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL(false));
             }
             state = MAP_IN_AGGREGATE;
         }
@@ -195,7 +195,7 @@ public abstract class DataAnalysisOperation extends Expression {
     }
 
     private DbException getSingleSortKeyException() {
-        String sql = getSQL();
+        String sql = getSQL(false);
         return DbException.getSyntaxError(sql, sql.length() - 1, "exactly one sort key is required for RANGE units");
     }
 
@@ -376,7 +376,7 @@ public abstract class DataAnalysisOperation extends Expression {
     public Value getValue(Session session) {
         SelectGroups groupData = select.getGroupDataIfCurrent(over != null);
         if (groupData == null) {
-            throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
+            throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL(false));
         }
         return over == null ? getAggregatedValue(session, getGroupData(groupData, true))
                 : getWindowResult(session, groupData);
@@ -514,12 +514,14 @@ public abstract class DataAnalysisOperation extends Expression {
      *
      * @param builder
      *            string builder
+     * @param alwaysQuote
+     *            quote all identifiers
      * @return the builder object
      */
-    protected StringBuilder appendTailConditions(StringBuilder builder) {
+    protected StringBuilder appendTailConditions(StringBuilder builder, boolean alwaysQuote) {
         if (over != null) {
             builder.append(' ');
-            over.getSQL(builder);
+            over.getSQL(builder, alwaysQuote);
         }
         return builder;
     }

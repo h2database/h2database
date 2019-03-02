@@ -1565,12 +1565,13 @@ public class Recover extends Tool implements DataHandler {
             Integer objectId = entry.getKey();
             String name = entry.getValue();
             if (objectIdSet.contains(objectId)) {
-                if (name.startsWith("INFORMATION_SCHEMA.LOB")) {
+                if (isLobTable(name)) {
                     setStorage(objectId);
                     writer.println("DELETE FROM " + name + ";");
                     writer.println("INSERT INTO " + name + " SELECT * FROM " + storageName + ";");
-                    if (name.startsWith("INFORMATION_SCHEMA.LOBS")) {
-                        writer.println("UPDATE " + name + " SET \"TABLE\" = " +
+                    if (name.equals("INFORMATION_SCHEMA.LOBS")
+                            || name.equalsIgnoreCase("\"INFORMATION_SCHEMA\".\"LOBS\"")) {
+                        writer.println("UPDATE " + name + " SET `TABLE` = " +
                                 LobStorageFrontend.TABLE_TEMP + ";");
                         deleteLobs = true;
                     }
@@ -1582,7 +1583,7 @@ public class Recover extends Tool implements DataHandler {
             String name = entry.getValue();
             if (objectIdSet.contains(objectId)) {
                 setStorage(objectId);
-                if (name.startsWith("INFORMATION_SCHEMA.LOB")) {
+                if (isLobTable(name)) {
                     continue;
                 }
                 writer.println("INSERT INTO " + name + " SELECT * FROM " + storageName + ";");
@@ -1597,7 +1598,7 @@ public class Recover extends Tool implements DataHandler {
         writer.println("DROP ALIAS READ_BLOB_DB;");
         writer.println("DROP ALIAS READ_CLOB_DB;");
         if (deleteLobs) {
-            writer.println("DELETE FROM INFORMATION_SCHEMA.LOBS WHERE \"TABLE\" = " +
+            writer.println("DELETE FROM INFORMATION_SCHEMA.LOBS WHERE `TABLE` = " +
                     LobStorageFrontend.TABLE_TEMP + ";");
         }
         for (MetaRecord m : schema) {
@@ -1606,6 +1607,11 @@ public class Recover extends Tool implements DataHandler {
                 writer.println(sql + ";");
             }
         }
+    }
+
+    private static boolean isLobTable(String name) {
+        return name.startsWith("INFORMATION_SCHEMA.LOB") || name.startsWith("\"INFORMATION_SCHEMA\".\"LOB")
+                || name.startsWith("\"information_schema\".\"lob");
     }
 
     private static boolean isSchemaObjectTypeDelayed(MetaRecord m) {

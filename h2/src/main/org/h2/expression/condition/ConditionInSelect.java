@@ -157,9 +157,9 @@ public class ConditionInSelect extends Condition {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
         builder.append('(');
-        left.getSQL(builder).append(' ');
+        left.getSQL(builder, alwaysQuote).append(' ');
         if (all) {
             builder.append(Comparison.getCompareOperator(compareType)).
                 append(" ALL");
@@ -172,7 +172,7 @@ public class ConditionInSelect extends Condition {
             }
         }
         builder.append("(\n");
-        return StringUtils.indent(builder, query.getPlanSQL(), 4, false).append("))");
+        return StringUtils.indent(builder, query.getPlanSQL(alwaysQuote), 4, false).append("))");
     }
 
     @Override

@@ -210,24 +210,24 @@ public class Update extends Prepared {
     }
 
     @Override
-    public String getPlanSQL() {
+    public String getPlanSQL(boolean alwaysQuote) {
         StringBuilder builder = new StringBuilder("UPDATE ");
-        targetTableFilter.getPlanSQL(builder, false).append("\nSET\n    ");
+        targetTableFilter.getPlanSQL(builder, false, alwaysQuote).append("\nSET\n    ");
         for (int i = 0, size = columns.size(); i < size; i++) {
             if (i > 0) {
                 builder.append(",\n    ");
             }
             Column c = columns.get(i);
-            c.getSQL(builder).append(" = ");
-            expressionMap.get(c).getSQL(builder);
+            c.getSQL(builder, alwaysQuote).append(" = ");
+            expressionMap.get(c).getSQL(builder, alwaysQuote);
         }
         if (condition != null) {
             builder.append("\nWHERE ");
-            condition.getUnenclosedSQL(builder);
+            condition.getUnenclosedSQL(builder, alwaysQuote);
         }
         if (limitExpr != null) {
             builder.append("\nLIMIT ");
-            limitExpr.getUnenclosedSQL(builder);
+            limitExpr.getUnenclosedSQL(builder, alwaysQuote);
         }
         return builder.toString();
     }

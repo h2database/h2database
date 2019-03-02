@@ -46,13 +46,15 @@ public abstract class Expression {
      *
      * @param builder the builder to append the SQL to
      * @param expressions the list of expressions
+     * @param alwaysQuote quote all identifiers
      */
-    public static void writeExpressions(StringBuilder builder, List<? extends Expression> expressions) {
+    public static void writeExpressions(StringBuilder builder, List<? extends Expression> expressions,
+            boolean alwaysQuote) {
         for (int i = 0, length = expressions.size(); i < length; i++) {
             if (i > 0) {
                 builder.append(", ");
             }
-            expressions.get(i).getSQL(builder);
+            expressions.get(i).getSQL(builder, alwaysQuote);
         }
     }
 
@@ -61,8 +63,9 @@ public abstract class Expression {
      *
      * @param builder the builder to append the SQL to
      * @param expressions the list of expressions
+     * @param alwaysQuote quote all identifiers
      */
-    public static void writeExpressions(StringBuilder builder, Expression[] expressions) {
+    public static void writeExpressions(StringBuilder builder, Expression[] expressions, boolean alwaysQuote) {
         for (int i = 0, length = expressions.length; i < length; i++) {
             if (i > 0) {
                 builder.append(", ");
@@ -71,7 +74,7 @@ public abstract class Expression {
             if (e == null) {
                 builder.append("DEFAULT");
             } else {
-                e.getSQL(builder);
+                e.getSQL(builder, alwaysQuote);
             }
         }
     }
@@ -124,10 +127,11 @@ public abstract class Expression {
      * This may not always be the original SQL statement,
      * specially after optimization.
      *
+     * @param alwaysQuote quote all identifiers
      * @return the SQL statement
      */
-    public String getSQL() {
-        return getSQL(new StringBuilder()).toString();
+    public String getSQL(boolean alwaysQuote) {
+        return getSQL(new StringBuilder(), alwaysQuote).toString();
     }
 
     /**
@@ -137,9 +141,10 @@ public abstract class Expression {
      *
      * @param builder
      *            string builder
+     * @param alwaysQuote quote all identifiers
      * @return the specified string builder
      */
-    public abstract StringBuilder getSQL(StringBuilder builder);
+    public abstract StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote);
 
     /**
      * Appends the SQL statement of this expression to the specified builder.
@@ -148,11 +153,13 @@ public abstract class Expression {
      *
      * @param builder
      *            string builder
+     * @param alwaysQuote
+     *            quote all identifiers
      * @return the specified string builder
      */
-    public StringBuilder getUnenclosedSQL(StringBuilder builder) {
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, boolean alwaysQuote) {
         int first = builder.length();
-        int last = getSQL(builder).length() - 1;
+        int last = getSQL(builder, alwaysQuote).length() - 1;
         if (last > first && builder.charAt(first) == '(' && builder.charAt(last) == ')') {
             builder.setLength(last);
             builder.deleteCharAt(first);
@@ -316,7 +323,7 @@ public abstract class Expression {
      * @return the alias name
      */
     public String getAlias() {
-        return getUnenclosedSQL(new StringBuilder()).toString();
+        return getUnenclosedSQL(new StringBuilder(), false).toString();
     }
 
     /**
@@ -349,7 +356,7 @@ public abstract class Expression {
      */
     @Override
     public String toString() {
-        return getSQL();
+        return getSQL(false);
     }
 
     /**

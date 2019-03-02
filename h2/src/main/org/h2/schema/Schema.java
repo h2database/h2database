@@ -111,8 +111,8 @@ public class Schema extends DbObjectBase {
             return null;
         }
         StringBuilder builder = new StringBuilder("CREATE SCHEMA IF NOT EXISTS ");
-        getSQL(builder).append(" AUTHORIZATION ");
-        owner.getSQL(builder);
+        getSQL(builder, true).append(" AUTHORIZATION ");
+        owner.getSQL(builder, true);
         return builder.toString();
     }
 

@@ -99,7 +99,7 @@ public class Merge extends CommandWithValues {
                                 generatedKeys.add(c);
                             }
                         } catch (DbException ex) {
-                            throw setRow(ex, count, getSQL(expr));
+                            throw setRow(ex, count, getSimpleSQL(expr));
                         }
                     }
                 }
@@ -154,7 +154,7 @@ public class Merge extends CommandWithValues {
             Column col = keys[i];
             Value v = row.getValue(col.getColumnId());
             if (v == null) {
-                throw DbException.get(ErrorCode.COLUMN_CONTAINS_NULL_VALUES_1, col.getSQL());
+                throw DbException.get(ErrorCode.COLUMN_CONTAINS_NULL_VALUES_1, col.getSQL(false));
             }
             Parameter p = k.get(columns.length + i);
             p.setValue(v);
@@ -199,19 +199,19 @@ public class Merge extends CommandWithValues {
                 throw e;
             }
         } else if (count != 1) {
-            throw DbException.get(ErrorCode.DUPLICATE_KEY_1, targetTable.getSQL());
+            throw DbException.get(ErrorCode.DUPLICATE_KEY_1, targetTable.getSQL(false));
         }
     }
 
     @Override
-    public String getPlanSQL() {
+    public String getPlanSQL(boolean alwaysQuote) {
         StringBuilder builder = new StringBuilder("MERGE INTO ");
-        targetTable.getSQL(builder).append('(');
-        Column.writeColumns(builder, columns);
+        targetTable.getSQL(builder, alwaysQuote).append('(');
+        Column.writeColumns(builder, columns, alwaysQuote);
         builder.append(')');
         if (keys != null) {
             builder.append(" KEY(");
-            Column.writeColumns(builder, keys);
+            Column.writeColumns(builder, keys, alwaysQuote);
             builder.append(')');
         }
         builder.append('\n');
@@ -223,11 +223,11 @@ public class Merge extends CommandWithValues {
                     builder.append(", ");
                 }
                 builder.append('(');
-                Expression.writeExpressions(builder, expr);
+                Expression.writeExpressions(builder, expr, alwaysQuote);
                 builder.append(')');
             }
         } else {
-            builder.append(query.getPlanSQL());
+            builder.append(query.getPlanSQL(alwaysQuote));
         }
         return builder.toString();
     }
@@ -268,9 +268,9 @@ public class Merge extends CommandWithValues {
             keys = idx.getColumns();
         }
         StringBuilder builder = new StringBuilder("UPDATE ");
-        targetTable.getSQL(builder).append(" SET ");
-        Column.writeColumns(builder, columns, ", ", "=?").append(" WHERE ");
-        Column.writeColumns(builder, keys, " AND ", "=?");
+        targetTable.getSQL(builder, true).append(" SET ");
+        Column.writeColumns(builder, columns, ", ", "=?", true).append(" WHERE ");
+        Column.writeColumns(builder, keys, " AND ", "=?", true);
         update = session.prepare(builder.toString());
     }
 

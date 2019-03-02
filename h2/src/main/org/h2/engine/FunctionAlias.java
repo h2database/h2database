@@ -199,22 +199,22 @@ public class FunctionAlias extends SchemaObjectBase {
 
     @Override
     public String getDropSQL() {
-        return "DROP ALIAS IF EXISTS " + getSQL();
+        return "DROP ALIAS IF EXISTS " + getSQL(true);
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
         // TODO can remove this method once FUNCTIONS_IN_SCHEMA is enabled
         if (database.getSettings().functionsInSchema || getSchema().getId() != Constants.MAIN_SCHEMA_ID) {
-            return super.getSQL(builder);
+            return super.getSQL(builder, alwaysQuote);
         }
-        return Parser.quoteIdentifier(builder, getName());
+        return Parser.quoteIdentifier(builder, getName(), alwaysQuote);
     }
 
     @Override
     public String getCreateSQL() {
         StringBuilder buff = new StringBuilder("CREATE FORCE ALIAS ");
-        buff.append(getSQL());
+        buff.append(getSQL(true));
         if (deterministic) {
             buff.append(" DETERMINISTIC");
         }
@@ -226,7 +226,7 @@ public class FunctionAlias extends SchemaObjectBase {
             StringUtils.quoteStringSQL(buff, source);
         } else {
             buff.append(" FOR ");
-            Parser.quoteIdentifier(buff, className + "." + methodName);
+            Parser.quoteIdentifier(buff, className + "." + methodName, true);
         }
         return buff.toString();
     }

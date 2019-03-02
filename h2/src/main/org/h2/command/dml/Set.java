@@ -150,7 +150,7 @@ public class Set extends Prepared {
             }
             Table table = database.getFirstUserTable();
             if (table != null) {
-                throw DbException.get(ErrorCode.COLLATION_CHANGE_WITH_DATA_TABLE_1, table.getSQL());
+                throw DbException.get(ErrorCode.COLLATION_CHANGE_WITH_DATA_TABLE_1, table.getSQL(false));
             }
             addOrUpdateSetting(name, buff.toString(), 0);
             database.setCompareMode(compareMode);
@@ -170,7 +170,7 @@ public class Set extends Prepared {
             if (currentMode.isBinaryUnsigned() != unsigned) {
                 Table table = database.getFirstUserTable();
                 if (table != null) {
-                    throw DbException.get(ErrorCode.COLLATION_CHANGE_WITH_DATA_TABLE_1, table.getSQL());
+                    throw DbException.get(ErrorCode.COLLATION_CHANGE_WITH_DATA_TABLE_1, table.getSQL(false));
                 }
             }
             CompareMode newMode = CompareMode.getInstance(currentMode.getName(),
@@ -193,7 +193,7 @@ public class Set extends Prepared {
             if (currentMode.isUuidUnsigned() != unsigned) {
                 Table table = database.getFirstUserTable();
                 if (table != null) {
-                    throw DbException.get(ErrorCode.COLLATION_CHANGE_WITH_DATA_TABLE_1, table.getSQL());
+                    throw DbException.get(ErrorCode.COLLATION_CHANGE_WITH_DATA_TABLE_1, table.getSQL(false));
                 }
             }
             CompareMode newMode = CompareMode.getInstance(currentMode.getName(),
@@ -274,9 +274,7 @@ public class Set extends Prepared {
             session.getUser().checkAdmin();
             Table table = database.getFirstUserTable();
             if (table != null) {
-                throw DbException.get(ErrorCode.
-                        JAVA_OBJECT_SERIALIZER_CHANGE_WITH_DATA_TABLE,
-                        table.getSQL());
+                throw DbException.get(ErrorCode.JAVA_OBJECT_SERIALIZER_CHANGE_WITH_DATA_TABLE, table.getSQL(false));
             }
             database.setJavaObjectSerializerName(stringValue);
             addOrUpdateSetting(name, stringValue, 0);

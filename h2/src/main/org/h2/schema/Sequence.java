@@ -212,7 +212,7 @@ public class Sequence extends SchemaObjectBase {
             return null;
         }
         StringBuilder builder = new StringBuilder("DROP SEQUENCE IF EXISTS ");
-        return getSQL(builder).toString();
+        return getSQL(builder, true).toString();
     }
 
     @Override
@@ -224,7 +224,7 @@ public class Sequence extends SchemaObjectBase {
     public synchronized String getCreateSQL() {
         long v = writeWithMargin ? valueWithMargin : value;
         StringBuilder buff = new StringBuilder("CREATE SEQUENCE ");
-        getSQL(buff).append(" START WITH ").append(v);
+        getSQL(buff, true).append(" START WITH ").append(v);
         if (increment != 1) {
             buff.append(" INCREMENT BY ").append(increment);
         }

@@ -1708,7 +1708,7 @@ public class MetaTable extends Table {
                     continue;
                 }
                 if (constraintType == Constraint.Type.CHECK) {
-                    checkExpression = ((ConstraintCheck) constraint).getExpression().getSQL();
+                    checkExpression = ((ConstraintCheck) constraint).getExpression().getSQL(true);
                 } else if (constraintType == Constraint.Type.UNIQUE ||
                         constraintType == Constraint.Type.PRIMARY_KEY) {
                     indexColumns = ((ConstraintUnique) constraint).getColumns();
@@ -1773,7 +1773,7 @@ public class MetaTable extends Table {
                         // REMARKS
                         replaceNullWithEmpty(constant.getComment()),
                         // SQL
-                        expr.getSQL(),
+                        expr.getSQL(true),
                         // ID
                         ValueInt.get(constant.getId())
                     );

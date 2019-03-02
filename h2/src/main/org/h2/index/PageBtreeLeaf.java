@@ -229,7 +229,7 @@ public class PageBtreeLeaf extends PageBtree {
         SearchRow delete = getRow(at);
         if (index.compareRows(row, delete) != 0 || delete.getKey() != row.getKey()) {
             throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1,
-                    index.getSQL(new StringBuilder()).append(": ").append(row).toString());
+                    index.getSQL(new StringBuilder(), false).append(": ").append(row).toString());
         }
         index.getPageStore().logUndo(this, data);
         if (entryCount == 1) {

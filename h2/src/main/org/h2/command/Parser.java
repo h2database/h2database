@@ -1362,8 +1362,7 @@ public class Parser {
             do {
                 Column column = parseColumn(table);
                 if (!set.add(column)) {
-                    throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1,
-                            column.getSQL());
+                    throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, column.getSQL(false));
                 }
                 columns.add(column);
             } while (readIfMore(false));
@@ -3206,7 +3205,7 @@ public class Parser {
                 if (readIf(ORDER)) {
                     read("BY");
                     Expression expr2 = readExpression();
-                    String sql = expr.getSQL(), sql2 = expr2.getSQL();
+                    String sql = expr.getSQL(true), sql2 = expr2.getSQL(true);
                     if (!sql.equals(sql2)) {
                         throw DbException.getSyntaxError(ErrorCode.IDENTICAL_EXPRESSIONS_SHOULD_BE_USED, sqlCommand,
                                 lastParseIndex, sql, sql2);
@@ -4649,7 +4648,7 @@ public class Parser {
             String result = null;
             while (true) {
                 for (int begin = i;; i++) {
-                    if (chars[i] == '\"') {
+                    if (chars[i] == c) {
                         if (result == null) {
                             result = sqlCommand.substring(begin, i);
                         } else {
@@ -4658,7 +4657,7 @@ public class Parser {
                         break;
                     }
                 }
-                if (chars[++i] != '\"') {
+                if (chars[++i] != c) {
                     break;
                 }
                 i++;
@@ -5044,21 +5043,24 @@ public class Parser {
                 break;
             case '`':
                 // MySQL alias for ", but not case sensitive
-                command[i] = '"';
-                changed = true;
                 type = types[i] = CHAR_QUOTED;
                 startLoop = i;
                 while (command[++i] != '`') {
                     checkRunOver(i, len, startLoop);
                     c = command[i];
-                    command[i] = Character.toUpperCase(c);
+                    if (identifiersToUpper || identifiersToLower) {
+                        char u = identifiersToUpper ? Character.toUpperCase(c) : Character.toLowerCase(c);
+                        if (u != c) {
+                            command[i] = u;
+                            changed = true;
+                        }
+                    }
                 }
-                command[i] = '"';
                 break;
-            case '\"':
+            case '"':
                 type = types[i] = CHAR_QUOTED;
                 startLoop = i;
-                while (command[++i] != '\"') {
+                while (command[++i] != '"') {
                     checkRunOver(i, len, startLoop);
                 }
                 break;
@@ -5506,7 +5508,7 @@ public class Parser {
             TypeInfo type = templateColumn.getType();
             dataType = DataType.getDataType(type.getValueType());
             comment = templateColumn.getComment();
-            original = forTable ? domain.getSQL() : templateColumn.getOriginalSQL();
+            original = forTable ? domain.getSQL(true) : templateColumn.getOriginalSQL();
             precision = type.getPrecision();
             scale = type.getScale();
             extTypeInfo = type.getExtTypeInfo();
@@ -8100,13 +8102,14 @@ public class Parser {
      * Add double quotes around an identifier if required.
      *
      * @param s the identifier
+     * @param alwaysQuote quote all identifiers
      * @return the quoted identifier
      */
-    public static String quoteIdentifier(String s) {
+    public static String quoteIdentifier(String s, boolean alwaysQuote) {
         if (s == null) {
             return "\"\"";
         }
-        if (ParserUtil.isSimpleIdentifier(s, true, false)) {
+        if (!alwaysQuote && ParserUtil.isSimpleIdentifier(s, false, false)) {
             return s;
         }
         return StringUtils.quoteIdentifier(s);
@@ -8118,13 +8121,14 @@ public class Parser {
      *
      * @param builder string builder to append to
      * @param s the identifier
+     * @param alwaysQuote quote all identifiers
      * @return the specified builder
      */
-    public static StringBuilder quoteIdentifier(StringBuilder builder, String s) {
+    public static StringBuilder quoteIdentifier(StringBuilder builder, String s, boolean alwaysQuote) {
         if (s == null) {
             return builder.append("\"\"");
         }
-        if (ParserUtil.isSimpleIdentifier(s, true, false)) {
+        if (!alwaysQuote && ParserUtil.isSimpleIdentifier(s, false, false)) {
             return builder.append(s);
         }
         return StringUtils.quoteIdentifier(builder, s);

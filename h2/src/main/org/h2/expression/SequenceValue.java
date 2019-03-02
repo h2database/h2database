@@ -53,9 +53,9 @@ public class SequenceValue extends Expression {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
         builder.append("(NEXT VALUE FOR ");
-        return sequence.getSQL(builder).append(')');
+        return sequence.getSQL(builder, alwaysQuote).append(')');
     }
 
     @Override

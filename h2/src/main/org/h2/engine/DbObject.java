@@ -97,9 +97,10 @@ public interface DbObject {
     /**
      * Get the SQL name of this object (may be quoted).
      *
+     * @param alwaysQuote quote all identifiers
      * @return the SQL name
      */
-    String getSQL();
+    String getSQL(boolean alwaysQuote);
 
     /**
      * Appends the SQL name of this object (may be quoted) to the specified
@@ -107,9 +108,10 @@ public interface DbObject {
      *
      * @param builder
      *            string builder
+     * @param alwaysQuote quote all identifiers
      * @return the specified string builder
      */
-    StringBuilder getSQL(StringBuilder builder);
+    StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote);
 
     /**
      * Get the list of dependent children (for tables, this includes indexes and

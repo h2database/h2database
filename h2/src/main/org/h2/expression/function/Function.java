@@ -606,7 +606,7 @@ public class Function extends Expression implements FunctionCall {
         case COT: {
             double d = Math.tan(v0.getDouble());
             if (d == 0.0) {
-                throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+                throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL(false));
             }
             result = ValueDouble.get(1. / d);
             break;
@@ -1218,7 +1218,7 @@ public class Function extends Expression implements FunctionCall {
         case MOD: {
             long x = v1.getLong();
             if (x == 0) {
-                throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+                throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL(false));
             }
             result = ValueLong.get(v0.getLong() % x);
             break;
@@ -1716,9 +1716,9 @@ public class Function extends Expression implements FunctionCall {
         case VALUES: {
             Expression a0 = args[0];
             StringBuilder builder = new StringBuilder();
-            Parser.quoteIdentifier(builder, a0.getSchemaName()).append('.');
-            Parser.quoteIdentifier(builder, a0.getTableName()).append('.');
-            Parser.quoteIdentifier(builder, a0.getColumnName());
+            Parser.quoteIdentifier(builder, a0.getSchemaName(), true).append('.');
+            Parser.quoteIdentifier(builder, a0.getTableName(), true).append('.');
+            Parser.quoteIdentifier(builder, a0.getColumnName(), true);
             result = session.getVariable(builder.toString());
             break;
         }
@@ -2471,7 +2471,7 @@ public class Function extends Expression implements FunctionCall {
             typeInfo = args[1].getType();
             if (!(p0 instanceof Variable)) {
                 throw DbException.get(
-                        ErrorCode.CAN_ONLY_ASSIGN_TO_VARIABLE_1, p0.getSQL());
+                        ErrorCode.CAN_ONLY_ASSIGN_TO_VARIABLE_1, p0.getSQL(false));
             }
             break;
         case FILE_READ: {
@@ -2578,22 +2578,22 @@ public class Function extends Expression implements FunctionCall {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
         builder.append(info.name);
         if (info.type == CASE) {
             if (args[0] != null) {
                 builder.append(' ');
-                args[0].getSQL(builder);
+                args[0].getSQL(builder, alwaysQuote);
             }
             for (int i = 1, len = args.length - 1; i < len; i += 2) {
                 builder.append(" WHEN ");
-                args[i].getSQL(builder);
+                args[i].getSQL(builder, alwaysQuote);
                 builder.append(" THEN ");
-                args[i + 1].getSQL(builder);
+                args[i + 1].getSQL(builder, alwaysQuote);
             }
             if (args.length % 2 == 0) {
                 builder.append(" ELSE ");
-                args[args.length - 1].getSQL(builder);
+                args[args.length - 1].getSQL(builder, alwaysQuote);
             }
             return builder.append(" END");
         }
@@ -2603,26 +2603,26 @@ public class Function extends Expression implements FunctionCall {
         }
         switch (info.type) {
         case CAST: {
-            args[0].getSQL(builder).append(" AS ").append(new Column(null, type).getCreateSQL());
+            args[0].getSQL(builder, alwaysQuote).append(" AS ").append(new Column(null, type).getCreateSQL());
             break;
         }
         case CONVERT: {
             if (database.getMode().swapConvertFunctionParameters) {
                 builder.append(new Column(null, type).getCreateSQL()).append(',');
-                args[0].getSQL(builder);
+                args[0].getSQL(builder, alwaysQuote);
             } else {
-                args[0].getSQL(builder).append(',').append(new Column(null, type).getCreateSQL());
+                args[0].getSQL(builder, alwaysQuote).append(',').append(new Column(null, type).getCreateSQL());
             }
             break;
         }
         case EXTRACT: {
             ValueString v = (ValueString) ((ValueExpression) args[0]).getValue(null);
             builder.append(v.getString()).append(" FROM ");
-            args[1].getSQL(builder);
+            args[1].getSQL(builder, alwaysQuote);
             break;
         }
         default:
-            writeExpressions(builder, args);
+            writeExpressions(builder, args, alwaysQuote);
         }
         if (addParentheses) {
             builder.append(')');

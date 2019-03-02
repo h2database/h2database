@@ -62,12 +62,12 @@ public class TestIndexHints extends TestDb {
         assertTrue(rs.next());
         String plan = rs.getString(1);
         rs.close();
-        assertTrue(plan.contains("/* PUBLIC.\"Idx3\":"));
+        assertTrue(plan.contains("/* PUBLIC.Idx3:"));
         assertTrue(plan.contains("USE INDEX (\"Idx3\")"));
         rs = stat.executeQuery("EXPLAIN ANALYZE " + plan);
         assertTrue(rs.next());
         plan = rs.getString(1);
-        assertTrue(plan.contains("/* PUBLIC.\"Idx3\":"));
+        assertTrue(plan.contains("/* PUBLIC.Idx3:"));
         assertTrue(plan.contains("USE INDEX (\"Idx3\")"));
     }
 
@@ -110,12 +110,12 @@ public class TestIndexHints extends TestDb {
         ResultSet rs = conn.createStatement().executeQuery("explain analyze select * " +
                 "from test use index(idx1, idx2) where x=1 and y=1");
         rs.next();
-        assertTrue(rs.getString(1).contains("USE INDEX (IDX1, IDX2)"));
+        assertTrue(rs.getString(1).contains("USE INDEX (\"IDX1\", \"IDX2\")"));
 
         ResultSet rs2 = conn.createStatement().executeQuery("explain analyze select * " +
                 "from test use index(idx2, idx1) where x=1 and y=1");
         rs2.next();
-        assertTrue(rs2.getString(1).contains("USE INDEX (IDX2, IDX1)"));
+        assertTrue(rs2.getString(1).contains("USE INDEX (\"IDX2\", \"IDX1\")"));
     }
 
     private void testWithEmptyIndexHintsList() throws SQLException {

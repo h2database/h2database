@@ -114,9 +114,10 @@ public class SortOrder implements Comparator<Value[]> {
      *
      * @param list the expression list
      * @param visible the number of columns in the select list
+     * @param alwaysQuote quote all identifiers
      * @return the SQL snippet
      */
-    public String getSQL(Expression[] list, int visible) {
+    public String getSQL(Expression[] list, int visible, boolean alwaysQuote) {
         StringBuilder builder = new StringBuilder();
         int i = 0;
         for (int idx : queryColumnIndexes) {
@@ -127,7 +128,7 @@ public class SortOrder implements Comparator<Value[]> {
                 builder.append(idx + 1);
             } else {
                 builder.append('=');
-                list[idx].getUnenclosedSQL(builder);
+                list[idx].getUnenclosedSQL(builder, alwaysQuote);
             }
             typeToString(builder, sortTypes[i++]);
         }

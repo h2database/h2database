@@ -611,13 +611,11 @@ public class ErrorCode {
     public static final int PARAMETER_NOT_SET_1 = 90012;
 
     /**
-     * The error with code <code>90013</code> is thrown when trying to open a
-     * database that does not exist remotely without enabling remote database
-     * creation first, or using the flag IFEXISTS=TRUE, or when trying to access
+     * The error with code <code>90013</code> is thrown when when trying to access
      * a database object with a catalog name that does not match the database
      * name.
      * <pre>
-     * jdbc:h2:./database_that_does_not_exist
+     * SELECT * FROM database_that_does_not_exist.table_name
      * </pre>
      */
     public static final int DATABASE_NOT_FOUND_1 = 90013;
@@ -2052,7 +2050,17 @@ public class ErrorCode {
     public static final int FOR_UPDATE_IS_NOT_ALLOWED_IN_DISTINCT_OR_GROUPED_SELECT = 90145;
 
 
-    // next is 90146
+    /**
+     * The error with code <code>90146</code> is thrown when trying to open a
+     * database that does not exist remotely without enabling remote database
+     * creation first, or using the flag IFEXISTS=TRUE
+     * <pre>
+     * jdbc:h2:./database_that_does_not_exist
+     * </pre>
+     */
+    public static final int DATABASE_NOT_FOUND_2 = 90146;
+    
+    // next is 90147
 
     private ErrorCode() {
         // utility class

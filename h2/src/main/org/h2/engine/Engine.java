@@ -64,7 +64,7 @@ public class Engine implements SessionFactory {
             }
             if (database == null) {
                 if (ifExists && !Database.exists(name)) {
-                    throw DbException.get(ErrorCode.DATABASE_NOT_FOUND_1, name);
+                    throw DbException.get(ErrorCode.DATABASE_NOT_FOUND_2, name);
                 }
                 database = new Database(ci, cipher);
                 opened = true;

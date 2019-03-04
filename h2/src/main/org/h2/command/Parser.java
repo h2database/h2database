@@ -236,6 +236,7 @@ import org.h2.value.ValueDate;
 import org.h2.value.ValueDecimal;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueInterval;
+import org.h2.value.ValueJson;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueRow;
@@ -5154,10 +5155,8 @@ public class Parser {
                         checkRunOver(i, len, startLoop);
                     }
                 } else  if (command[i + 1] == '>' && command [i + 2] == '>'){
-                    checkRunOver(i, len, i - 2);
                     type = types[i++] = types[i++] = CHAR_SPECIAL_3;
                 } else if (command[i + 1] == '>') {
-                    checkRunOver(i, len, i - 1);
                     type = types[i++] = CHAR_SPECIAL_3;
                 } else {
                     type = CHAR_SPECIAL_1;
@@ -5192,7 +5191,6 @@ public class Parser {
             case '?':
                 if (lastType == CHAR_NAME || lastType == CHAR_VALUE) {
                     if (command[i + 1] == '|' || command[i + 1] == '&') {
-                        checkRunOver(i, len, i - 1);
                         type = types[i++] = CHAR_SPECIAL_3;
                     } else {
                         type = CHAR_SPECIAL_3;
@@ -5203,7 +5201,6 @@ public class Parser {
                 break;
             case '@':
                 if (command[i + 1] == '>') {
-                    checkRunOver(i, len, i - 1);
                     type = types[i++] = CHAR_SPECIAL_3;
                     break;
                 } else {
@@ -5224,7 +5221,6 @@ public class Parser {
                 break;
             case '<':
                 if (command[i + 1] == '@') {
-                    checkRunOver(i, len, i - 1);
                     type = types[i++] = CHAR_SPECIAL_3;
                     break;
                 }
@@ -5294,10 +5290,8 @@ public class Parser {
                 if (database.getMode().supportPoundSymbolForColumnNames) {
                     type = CHAR_NAME;
                 } else if (command[i + 1] == '>' && command[i + 2] == '>') {
-                    checkRunOver(i, len, i - 2);
                     type = types[i++] = types[i++] = CHAR_SPECIAL_3;
                 } else if (command[i + 1] == '>') {
-                    checkRunOver(i, len, i - 1);
                     type = types[i++] = CHAR_SPECIAL_3;
                 } else {
                     type = CHAR_SPECIAL_1;

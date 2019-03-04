@@ -46,13 +46,13 @@ EXPLAIN MERGE INTO TEST(ID, NAME) KEY(ID) VALUES(3, 'How do you do');
 >> MERGE INTO PUBLIC.TEST(ID, NAME) KEY(ID) VALUES (3, 'How do you do')
 
 MERGE INTO TEST(ID, NAME) KEY(NAME) VALUES(3, 'Fine');
-> exception LOCK_TIMEOUT_1
+> exception DUPLICATE_KEY_1
 
 MERGE INTO TEST(ID, NAME) KEY(NAME) VALUES(4, 'Fine!');
 > update count: 1
 
 MERGE INTO TEST(ID, NAME) KEY(NAME) VALUES(4, 'Fine! And you');
-> exception LOCK_TIMEOUT_1
+> exception DUPLICATE_KEY_1
 
 MERGE INTO TEST(ID, NAME) KEY(NAME, ID) VALUES(5, 'I''m ok');
 > update count: 1
@@ -91,6 +91,17 @@ SELECT * FROM TEST;
 > 8  Fine!
 > 9  I'm ok
 > rows: 10
+
+DROP TABLE TEST;
+> ok
+
+-- Test for the index matching logic in org.h2.command.dml.Merge
+
+CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE1 INT, VALUE2 INT, UNIQUE(VALUE1, VALUE2));
+> ok
+
+MERGE INTO TEST KEY (ID) VALUES (1, 2, 3), (2, 2, 3);
+> exception DUPLICATE_KEY_1
 
 DROP TABLE TEST;
 > ok

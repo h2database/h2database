@@ -182,14 +182,17 @@ public class Merge extends CommandWithValues {
                     if (index != null) {
                         // verify the index columns match the key
                         Column[] indexColumns = index.getColumns();
-                        boolean indexMatchesKeys = true;
+                        boolean indexMatchesKeys;
                         if (indexColumns.length <= keys.length) {
+                            indexMatchesKeys = true;
                             for (int i = 0; i < indexColumns.length; i++) {
                                 if (indexColumns[i] != keys[i]) {
                                     indexMatchesKeys = false;
                                     break;
                                 }
                             }
+                        } else {
+                            indexMatchesKeys = false;
                         }
                         if (indexMatchesKeys) {
                             throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, targetTable.getName());

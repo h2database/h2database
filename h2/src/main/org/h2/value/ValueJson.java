@@ -117,6 +117,32 @@ public class ValueJson extends Value {
             return this;
         }
     }
+    
+    @Override
+    public Value add(Value v) {
+        JsonNode l = this.json.deepCopy();
+        JsonNode r = ((ValueJson) v).getObject();
+        if (l.isArray()) {
+            ArrayNode lA = (ArrayNode) l;
+            if (r.isArray()) {
+                ArrayNode rA = (ArrayNode) r;
+                lA.addAll(rA);
+            } else {
+                lA.add(r);
+            }
+            return get(lA);
+        } else if (l.isObject() && r.isObject()){
+           ObjectNode lO = (ObjectNode) l;
+           ObjectNode rO = (ObjectNode) r;
+           lO.putAll(rO);
+           return get(lO);
+        } else {
+            ArrayNode result = mapper.createArrayNode();
+            result.add(l).add(r);
+            return get(result);
+        }
+            
+    }
 
     @Override
     public int compareTypeSafe(Value v, CompareMode mode) {

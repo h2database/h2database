@@ -5231,7 +5231,7 @@ public class Parser {
             case '|':
                 if (command[i + 1] == '|') {
                     checkRunOver(i, len, i - 1);
-                    type = types[i++] = CHAR_SPECIAL_3;
+                    type = types[i++] = CHAR_SPECIAL_2;
                     break;
                 }
             case '!':

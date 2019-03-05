@@ -6,7 +6,6 @@
 package org.h2.command.dml;
 
 import java.util.ArrayList;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.Command;
@@ -21,9 +20,11 @@ import org.h2.expression.Expression;
 import org.h2.expression.Parameter;
 import org.h2.index.Index;
 import org.h2.message.DbException;
+import org.h2.mvstore.db.MVPrimaryIndex;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.table.Column;
+import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
@@ -181,15 +182,25 @@ public class Merge extends CommandWithValues {
                     Index index = (Index) e.getSource();
                     if (index != null) {
                         // verify the index columns match the key
-                        Column[] indexColumns = index.getColumns();
-                        boolean indexMatchesKeys = true;
+                        Column[] indexColumns;
+                        if (index instanceof MVPrimaryIndex) {
+                            MVPrimaryIndex foundMV = (MVPrimaryIndex) index;
+                            indexColumns = new Column[] {
+                                    foundMV.getIndexColumns()[foundMV.getMainIndexColumn()].column };
+                        } else {
+                            indexColumns = index.getColumns();
+                        }
+                        boolean indexMatchesKeys;
                         if (indexColumns.length <= keys.length) {
+                            indexMatchesKeys = true;
                             for (int i = 0; i < indexColumns.length; i++) {
                                 if (indexColumns[i] != keys[i]) {
                                     indexMatchesKeys = false;
                                     break;
                                 }
                             }
+                        } else {
+                            indexMatchesKeys = false;
                         }
                         if (indexMatchesKeys) {
                             throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, targetTable.getName());

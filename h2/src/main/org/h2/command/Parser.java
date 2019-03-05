@@ -61,7 +61,7 @@ import static org.h2.util.ParserUtil.VALUES;
 import static org.h2.util.ParserUtil.WHERE;
 import static org.h2.util.ParserUtil.WINDOW;
 import static org.h2.util.ParserUtil.WITH;
-
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -3865,13 +3865,37 @@ public class Parser {
             }
             case JSON_CONTAINS_LEFT: {
                 fun = Function.getFunction(database, "JSON_CONTAINS");
-                arg1 = ValueExpression.get(currentValue);
+                if (currentValue != null && currentValue.getValueType() == Value.JSON) {
+                    arg1 = ValueExpression.get(currentValue);
+                    break;
+                } else {
+                    Value v;
+                    try {
+                        v = ValueJson.get(currentValue.getString());
+                    } catch (IOException e) {
+                        addExpected("JSON");
+                        throw getSyntaxError();
+                    }
+                    arg1 = ValueExpression.get(v);
+                }
                 break;
             }
             case JSON_CONTAINS_RIGHT: {
                 fun = Function.getFunction(database, "JSON_CONTAINS");
                 arg1 = arg0;
-                arg0 = ValueExpression.get(currentValue);
+                if (currentValue != null && currentValue.getValueType() == Value.JSON) {
+                    arg0 = ValueExpression.get(currentValue);
+                    break;
+                } else {
+                    Value v;
+                    try {
+                        v = ValueJson.get(currentValue.getString());
+                    } catch (IOException e) {
+                        addExpected("JSON");
+                        throw getSyntaxError();
+                    }
+                    arg0 = ValueExpression.get(v);
+                }
                 break;
             }
             case JSON_EXISTS_ANY: {
@@ -4855,7 +4879,6 @@ public class Parser {
                 }
                 i++;
             }
-//            currentToken = sqlCommand.substring(start, i);
             currentTokenType = getJsonType(sqlCommand.substring(start, i));
             parseIndex = i;
             return;

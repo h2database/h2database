@@ -1868,7 +1868,10 @@ public class Function extends Expression implements FunctionCall {
                     throw DbException.throwInternalError("JSON comparison implemented only for ObjectNodes");
                 }
             } else {
-                throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
+                throw DbException.throwInternalError(
+                        "Can work only with json. ValueType of v0: "
+                        + v0.getValueType() + " ValueType of v1:"
+                        + v1.getValueType());
             }
             break;
         }

@@ -234,7 +234,7 @@ System.out.println(map.get(1));
 <p>
 To support multiple concurrent open transactions, a transaction utility is included,
 the <code>TransactionStore</code>.
-The tool supports PostgreSQL style "read committed" transaction isolation
+The tool supports "read committed" transaction isolation
 with savepoints, two-phase commit, and other features typically available in a database.
 There is no limit on the size of a transaction
 (the log is written to disk for large or long running transactions).

@@ -412,7 +412,7 @@ public class ParserUtil {
             return IDENTIFIER;
         case 'B':
             if (additionalKeywords) {
-                if (eq("BETWEEN", s, ignoreCase, start, end)) {
+                if (eq("BETWEEN", s, ignoreCase, start, end) || eq("BOTH", s, ignoreCase, start, end)) {
                     return KEYWORD;
                 }
             }
@@ -514,7 +514,7 @@ public class ParserUtil {
                 return LOCALTIMESTAMP;
             }
             if (additionalKeywords) {
-                if (eq("LEFT", s, ignoreCase, start, end)) {
+                if (eq("LEADING", s, ignoreCase, start, end) || eq("LEFT", s, ignoreCase, start, end)) {
                     return KEYWORD;
                 }
             }
@@ -587,7 +587,8 @@ public class ParserUtil {
                 return TRUE;
             }
             if (additionalKeywords) {
-                if (eq("TODAY", s, ignoreCase, start, end) || eq("TOP", s, ignoreCase, start, end)) {
+                if (eq("TODAY", s, ignoreCase, start, end) || eq("TOP", s, ignoreCase, start, end)
+                        || eq("TRAILING", s, ignoreCase, start, end)) {
                     return KEYWORD;
                 }
             }

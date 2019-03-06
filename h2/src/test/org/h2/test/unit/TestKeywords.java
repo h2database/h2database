@@ -93,6 +93,13 @@ public class TestKeywords extends TestBase {
                         assertFalse(rs.next());
                         assertEquals(s, rs.getMetaData().getColumnLabel(1));
                     }
+                    stat.execute("DROP TABLE " + s);
+                    stat.execute("CREATE TABLE TEST(" + s + " VARCHAR) AS VALUES '-'");
+                    try (ResultSet rs = stat.executeQuery("SELECT TRIM(" + s + " FROM '--a--') FROM TEST")) {
+                        assertTrue(rs.next());
+                        assertEquals("a", rs.getString(1));
+                    }
+                    stat.execute("DROP TABLE TEST");
                 } catch (Throwable t) {
                     throw new AssertionError(s + " cannot be used as identifier.", t);
                 }

@@ -638,7 +638,8 @@ public class TestTableEngines extends TestDb {
                 + "INNER JOIN \"PUBLIC\".\"T\" /* batched:test PUBLIC.T_IDX_A: A = Z.A */ ON 1=1 "
                 + "WHERE \"Z\".\"A\" = \"T\".\"A\"");
         checkPlan(stat, "SELECT 1 FROM \"PUBLIC\".\"U\" /* PUBLIC.U_IDX_B */ "
-                + "INNER JOIN ( (SELECT \"A\", \"B\" FROM \"PUBLIC\".\"T\") UNION (SELECT \"B\", \"A\" FROM \"PUBLIC\".\"U\") ) \"Z\" "
+                + "INNER JOIN ( (SELECT \"A\", \"B\" FROM \"PUBLIC\".\"T\") "
+                + "UNION (SELECT \"B\", \"A\" FROM \"PUBLIC\".\"U\") ) \"Z\" "
                 + "/* batched:view (SELECT A, B FROM PUBLIC.T "
                 + "/++ batched:test PUBLIC.T_IDX_B: B IS ?1 ++/ "
                 + "WHERE B IS ?1) UNION (SELECT B, A FROM PUBLIC.U "

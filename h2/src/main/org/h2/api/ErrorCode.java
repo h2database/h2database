@@ -2059,7 +2059,7 @@ public class ErrorCode {
      * </pre>
      */
     public static final int DATABASE_NOT_FOUND_2 = 90146;
-    
+
     // next is 90147
 
     private ErrorCode() {

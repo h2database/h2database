@@ -463,7 +463,8 @@ public class TestMetaData extends TestDb {
 
         assertEquals("schema", meta.getSchemaTerm());
         assertEquals("\\", meta.getSearchStringEscape());
-        assertEquals("IF,ILIKE,INTERSECTS," //
+        assertEquals("GROUPS," //
+                + "IF,ILIKE,INTERSECTS," //
                 + "LIMIT," //
                 + "MINUS," //
                 + "OFFSET," //

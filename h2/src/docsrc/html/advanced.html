@@ -41,6 +41,8 @@ Advanced
     Two Phase Commit</a><br />
 <a href="#compatibility">
     Compatibility</a><br />
+<a href="#keywords">
+    Keywords / Reserved Words</a><br />
 <a href="#standards_compliance">
     Standards Compliance</a><br />
 <a href="#windows_service">
@@ -469,7 +471,7 @@ For a query, this means the transaction is committed even before the application
 Other database engines may commit the transaction in this case when the result set is closed.
 </p>
 
-<h3>Keywords / Reserved Words</h3>
+<h2 id="keywords">Keywords / Reserved Words</h2>
 <p>
 There is a list of keywords that can't be used as identifiers (table names, column names and so on),
 unless they are quoted (surrounded with double quotes).
@@ -498,6 +500,8 @@ The following tokens are keywords in H2:
 <td>CS</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>BETWEEN</td>
 <td>CS</td><td>+</td><td>+</td><td>+</td><td>NR</td><td>+</td></tr>
+<tr><td>BOTH</td>
+<td>CS</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>CASE</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>CHECK</td>
@@ -536,6 +540,8 @@ The following tokens are keywords in H2:
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>GROUP</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>GROUPS</td>
+<td>CS</td><td>+</td><td></td><td></td><td></td><td></td></tr>
 <tr><td>HAVING</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>IF</td>
@@ -556,6 +562,8 @@ The following tokens are keywords in H2:
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>JOIN</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>LEADING</td>
+<td>CS</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>LEFT</td>
 <td>CS</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>LIKE</td>
@@ -584,10 +592,14 @@ The following tokens are keywords in H2:
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>OVER</td>
 <td>CS</td><td>+</td><td>+</td><td>+</td><td></td><td></td></tr>
+<tr><td>PARTITION</td>
+<td>CS</td><td>+</td><td>+</td><td>+</td><td></td><td></td></tr>
 <tr><td>PRIMARY</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>QUALIFY</td>
 <td>+</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>RANGE</td>
+<td>CS</td><td>+</td><td>+</td><td>+</td><td></td><td></td></tr>
 <tr><td>REGEXP</td>
 <td>CS</td><td></td><td></td><td></td><td></td><td></td></tr>
 <tr><td>RIGHT</td>
@@ -598,6 +610,8 @@ The following tokens are keywords in H2:
 <td>+</td><td></td><td></td><td></td><td></td><td></td></tr>
 <tr><td>ROWNUM</td>
 <td>+</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>ROWS</td>
+<td>CS</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>SELECT</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>SYSDATE</td>
@@ -612,6 +626,8 @@ The following tokens are keywords in H2:
 <td>CS</td><td></td><td></td><td></td><td></td><td></td></tr>
 <tr><td>TOP</td>
 <td>CS</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>TRAILING</td>
+<td>CS</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>TRUE</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>UNION</td>

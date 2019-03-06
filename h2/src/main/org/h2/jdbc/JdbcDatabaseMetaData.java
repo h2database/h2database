@@ -1541,6 +1541,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * table/column/index name, in addition to the SQL:2003 keywords. The list
      * returned is:
      * <pre>
+     * GROUPS
      * IF,ILIKE,INTERSECTS,
      * LIMIT,
      * MINUS,
@@ -1558,7 +1559,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * DISTINCT,
      * EXCEPT, EXISTS,
      * FALSE, FETCH, FILTER, FOR, FOREIGN, FROM, FULL,
-     * GROUP,
+     * GROUP, GROUPS
      * HAVING,
      * IF, ILIKE, IN, INNER, INTERSECT, INTERSECTS, INTERVAL, IS,
      * JOIN,
@@ -1566,9 +1567,9 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * MINUS,
      * NATURAL, NOT, NULL,
      * OFFSET, ON, OR, ORDER, OVER,
-     * PRIMARY,
+     * PARTITION, PRIMARY,
      * QUALIFY,
-     * REGEXP, RIGHT, ROW, _ROWID_, ROWNUM,
+     * RANGE, REGEXP, RIGHT, ROW, _ROWID_, ROWNUM, ROWS,
      * SELECT, SYSDATE, SYSTIME, SYSTIMESTAMP,
      * TABLE, TODAY, TOP, TRAILING, TRUE,
      * UNION, UNIQUE,
@@ -1581,7 +1582,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public String getSQLKeywords() {
         debugCodeCall("getSQLKeywords");
-        return "IF,ILIKE,INTERSECTS," //
+        return "GROUPS," //
+                + "IF,ILIKE,INTERSECTS," //
                 + "LIMIT," //
                 + "MINUS," //
                 + "OFFSET," //

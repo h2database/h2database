@@ -472,6 +472,11 @@ public class ParserUtil {
             if (eq("GROUP", s, ignoreCase, start, end)) {
                 return GROUP;
             }
+            if (additionalKeywords) {
+                if (eq("GROUPS", s, ignoreCase, start, end)) {
+                    return KEYWORD;
+                }
+            }
             return IDENTIFIER;
         case 'H':
             if (eq("HAVING", s, ignoreCase, start, end)) {
@@ -551,6 +556,11 @@ public class ParserUtil {
             if (eq("PRIMARY", s, ignoreCase, start, end)) {
                 return PRIMARY;
             }
+            if (additionalKeywords) {
+                if (eq("PARTITION", s, ignoreCase, start, end)) {
+                    return KEYWORD;
+                }
+            }
             return IDENTIFIER;
         case 'Q':
             if (eq("QUALIFY", s, ignoreCase, start, end)) {
@@ -564,7 +574,8 @@ public class ParserUtil {
                 return ROWNUM;
             }
             if (additionalKeywords) {
-                if (eq("REGEXP", s, ignoreCase, start, end) || eq("RIGHT", s, ignoreCase, start, end)) {
+                if (eq("RANGE", s, ignoreCase, start, end) || eq("REGEXP", s, ignoreCase, start, end)
+                        || eq("ROWS", s, ignoreCase, start, end) || eq("RIGHT", s, ignoreCase, start, end)) {
                     return KEYWORD;
                 }
             }

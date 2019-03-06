@@ -100,6 +100,9 @@ public class TestKeywords extends TestBase {
                         assertEquals("a", rs.getString(1));
                     }
                     stat.execute("DROP TABLE TEST");
+                    try (ResultSet rs = stat
+                            .executeQuery("SELECT ROW_NUMBER() OVER(" + s + ") WINDOW " + s + " AS ()")) {
+                    }
                 } catch (Throwable t) {
                     throw new AssertionError(s + " cannot be used as identifier.", t);
                 }

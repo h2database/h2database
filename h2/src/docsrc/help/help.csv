@@ -4810,7 +4810,7 @@ If specified field is a HOUR, MINUTE, SECOND, MILLISECOND, etc and value is a DA
 Fields DAY, MONTH, YEAR, WEEK, etc are not allowed for TIME values.
 Fields TIMEZONE_HOUR and TIMEZONE_MINUTE are only allowed for TIMESTAMP WITH TIME ZONE values.
 ","
-DATEADD('MONTH', 1, DATE '2001-01-31')
+DATEADD(MONTH, 1, DATE '2001-01-31')
 "
 
 "Functions (Time and Date)","DATEDIFF","

@@ -4509,7 +4509,7 @@ RTRIM(NAME)
 "
 
 "Functions (String)","TRIM","
-TRIM ( [ { LEADING | TRAILING | BOTH } [ string ] FROM ] string )
+TRIM ( [ [ LEADING | TRAILING | BOTH ] [ string ] FROM ] string )
 ","
 Removes all leading spaces, trailing spaces, or spaces at both ends, from a string.
 Other characters can be removed as well.

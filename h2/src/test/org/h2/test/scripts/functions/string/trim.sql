@@ -23,3 +23,9 @@ SELECT TRIM(BOTH B) FROM TEST;
 
 DROP TABLE TEST;
 > ok
+
+select TRIM(' ' FROM '  abc   ') from dual;
+> 'abc'
+> -----
+> abc
+> rows: 1

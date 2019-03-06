@@ -9,7 +9,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map.Entry;
 
 import org.h2.command.Parser;
 import org.h2.test.TestBase;
@@ -25,6 +26,14 @@ import org.objectweb.asm.Opcodes;
  */
 public class TestKeywords extends TestBase {
 
+    private enum TokenType {
+        IDENTIFIER,
+
+        KEYWORD,
+
+        CONTEXT_SENSITIVE_KEYWORD;
+    }
+
     /**
      * Run just this test.
      *
@@ -37,13 +46,13 @@ public class TestKeywords extends TestBase {
 
     @Override
     public void test() throws Exception {
-        final HashSet<String> set = new HashSet<>();
+        final HashMap<String, TokenType> tokens = new HashMap<>();
         ClassReader r = new ClassReader(Parser.class.getResourceAsStream("Parser.class"));
         r.accept(new ClassVisitor(Opcodes.ASM7) {
             @Override
             public FieldVisitor visitField(int access, String name, String descriptor, String signature,
                     Object value) {
-                add(set, value);
+                add(value);
                 return null;
             }
 
@@ -53,18 +62,18 @@ public class TestKeywords extends TestBase {
                 return new MethodVisitor(Opcodes.ASM7) {
                     @Override
                     public void visitLdcInsn(Object value) {
-                        add(set, value);
+                        add(value);
                     }
                 };
             }
 
-            void add(HashSet<String> set, Object value) {
+            void add(Object value) {
                 if (!(value instanceof String)) {
                     return;
                 }
                 String s = (String) value;
                 int l = s.length();
-                if (l == 0 || ParserUtil.getSaveTokenType(s, false, 0, l, true) != ParserUtil.IDENTIFIER) {
+                if (l == 0) {
                     return;
                 }
                 for (int i = 0; i < l; i++) {
@@ -73,38 +82,91 @@ public class TestKeywords extends TestBase {
                         return;
                     }
                 }
-                set.add(s);
+                final TokenType type;
+                switch (ParserUtil.getSaveTokenType(s, false, 0, l, true)) {
+                case ParserUtil.IDENTIFIER:
+                    type = TokenType.IDENTIFIER;
+                    break;
+                case ParserUtil.KEYWORD:
+                    type = TokenType.CONTEXT_SENSITIVE_KEYWORD;
+                    break;
+                default:
+                    type = TokenType.KEYWORD;
+                }
+                tokens.put(s, type);
             }
         }, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
         try (Connection conn = DriverManager.getConnection("jdbc:h2:mem:keywords")) {
             Statement stat = conn.createStatement();
-            for (String s : set) {
+            for (Entry<String, TokenType> entry : tokens.entrySet()) {
+                String s = entry.getKey();
+                TokenType type = entry.getValue();
+                Throwable exception1 = null, exception2 = null;
                 try {
                     stat.execute("CREATE TABLE " + s + '(' + s + " INT)");
                     stat.execute("INSERT INTO " + s + '(' + s + ") VALUES (10)");
-                    try (ResultSet rs = stat.executeQuery("SELECT " + s + " FROM " + s)) {
-                        assertTrue(rs.next());
-                        assertEquals(10, rs.getInt(1));
-                        assertFalse(rs.next());
-                    }
-                    try (ResultSet rs = stat.executeQuery("SELECT SUM(" + s + ") " + s + " FROM " + s + ' ' + s)) {
-                        assertTrue(rs.next());
-                        assertEquals(10, rs.getInt(1));
-                        assertFalse(rs.next());
-                        assertEquals(s, rs.getMetaData().getColumnLabel(1));
-                    }
-                    stat.execute("DROP TABLE " + s);
-                    stat.execute("CREATE TABLE TEST(" + s + " VARCHAR) AS VALUES '-'");
-                    try (ResultSet rs = stat.executeQuery("SELECT TRIM(" + s + " FROM '--a--') FROM TEST")) {
-                        assertTrue(rs.next());
-                        assertEquals("a", rs.getString(1));
-                    }
-                    stat.execute("DROP TABLE TEST");
-                    try (ResultSet rs = stat
-                            .executeQuery("SELECT ROW_NUMBER() OVER(" + s + ") WINDOW " + s + " AS ()")) {
-                    }
                 } catch (Throwable t) {
-                    throw new AssertionError(s + " cannot be used as identifier.", t);
+                    exception1 = t;
+                }
+                if (exception1 == null) {
+                    try {
+                        try (ResultSet rs = stat.executeQuery("SELECT " + s + " FROM " + s)) {
+                            assertTrue(rs.next());
+                            assertEquals(10, rs.getInt(1));
+                            assertFalse(rs.next());
+                        }
+                        try (ResultSet rs = stat.executeQuery("SELECT SUM(" + s + ") " + s + " FROM " + s + ' ' + s)) {
+                            assertTrue(rs.next());
+                            assertEquals(10, rs.getInt(1));
+                            assertFalse(rs.next());
+                            assertEquals(s, rs.getMetaData().getColumnLabel(1));
+                        }
+                        stat.execute("DROP TABLE " + s);
+                        stat.execute("CREATE TABLE TEST(" + s + " VARCHAR) AS VALUES '-'");
+                        String str;
+                        try (ResultSet rs = stat.executeQuery("SELECT TRIM(" + s + " FROM '--a--') FROM TEST")) {
+                            assertTrue(rs.next());
+                            str = rs.getString(1);
+                        }
+                        stat.execute("DROP TABLE TEST");
+                        try (ResultSet rs = stat
+                                .executeQuery("SELECT ROW_NUMBER() OVER(" + s + ") WINDOW " + s + " AS ()")) {
+                        }
+                        if (!"a".equals(str)) {
+                            exception2 = new AssertionError();
+                        }
+                    } catch (Throwable t) {
+                        exception2 = t;
+                        stat.execute("DROP TABLE IF EXISTS TEST");
+                    }
+                }
+                switch (type) {
+                case IDENTIFIER:
+                    if (exception1 != null) {
+                        throw new AssertionError(s + " must be a keyword.", exception1);
+                    }
+                    if (exception2 != null) {
+                        throw new AssertionError(s + " must be a context-sensitive keyword.", exception2);
+                    }
+                    break;
+                case KEYWORD:
+                    if (exception1 == null && exception2 == null) {
+                        throw new AssertionError(s + " may be removed from a list of keywords.");
+                    }
+                    if (exception1 == null) {
+                        throw new AssertionError(s + " may be a context-sensitive keyword.");
+                    }
+                    break;
+                case CONTEXT_SENSITIVE_KEYWORD:
+                    if (exception1 != null) {
+                        throw new AssertionError(s + " must be a keyword.", exception1);
+                    }
+                    if (exception2 == null) {
+                        throw new AssertionError(s + " may be removed from a list of context-sensitive keywords.");
+                    }
+                    break;
+                default:
+                    fail();
                 }
             }
         }

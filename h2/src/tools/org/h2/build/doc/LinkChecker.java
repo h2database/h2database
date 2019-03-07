@@ -32,7 +32,9 @@ public class LinkChecker {
         "#build_index",
         "#datatypes_index",
         "#faq_index",
+        "#commands_index",
         "#grammar_index",
+        "#functions_index",
         "#tutorial_index"
     };
 

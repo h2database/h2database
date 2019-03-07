@@ -141,7 +141,7 @@ on the client side.
 <p>
 By default, this database stores large LOB (CLOB and BLOB) objects separate from the main table data.
 Small LOB objects are stored in-place, the threshold can be set using
-<a href="grammar.html#set_max_length_inplace_lob" class="notranslate" >MAX_LENGTH_INPLACE_LOB</a>,
+<a href="commands.html#set_max_length_inplace_lob" class="notranslate" >MAX_LENGTH_INPLACE_LOB</a>,
 but there is still an overhead to use CLOB/BLOB. Because of this, BLOB and CLOB
 should never be used for columns with a maximum size below about 200 bytes.
 The best threshold depends on the use case; reading in-place objects is faster
@@ -155,7 +155,7 @@ The following feature is only available for the PageStore storage engine.
 For the MVStore engine (the default for H2 version 1.4.x),
 append <code>;COMPRESS=TRUE</code> to the database URL instead.
 CLOB and BLOB values can be compressed by using
-<a href="grammar.html#set_compress_lob" class="notranslate" >SET COMPRESS_LOB</a>.
+<a href="commands.html#set_compress_lob" class="notranslate" >SET COMPRESS_LOB</a>.
 The LZF algorithm is faster but needs more disk space. By default compression is disabled, which usually speeds up write
 operations. If you store many large compressible values such as XML, HTML, text, and uncompressed binary files,
 then compressing can save a lot of disk space (sometimes more than 50%), and read operations may even be faster.
@@ -188,7 +188,7 @@ If multiple linked tables point to the same database (using the same database UR
 is shared. To disable this, set the system property <code>h2.shareLinkedConnections=false</code>.
 </p>
 <p>
-The statement <a href="grammar.html#create_linked_table" class="notranslate" >CREATE LINKED TABLE</a>
+The statement <a href="commands.html#create_linked_table" class="notranslate" >CREATE LINKED TABLE</a>
 supports an optional schema name parameter.
 </p>
 <p>
@@ -223,7 +223,7 @@ For details, see the sample application <code>org.h2.samples.UpdatableView</code
 <p>
 Please note that most data definition language (DDL) statements,
 such as "create table", commit the current transaction.
-See the <a href="grammar.html">Grammar</a> for details.
+See the <a href="commands.html">Commands</a> for details.
 </p>
 <p>
 Transaction isolation is provided for all data manipulation language (DML) statements.

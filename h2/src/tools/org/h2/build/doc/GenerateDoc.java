@@ -76,6 +76,8 @@ public class GenerateDoc {
                 help + "= 'Commands (DDL)' ORDER BY ID", true, false);
         map("commandsOther",
                 help + "= 'Commands (Other)' ORDER BY ID", true, false);
+        map("literals",
+                help + "= 'Literals' ORDER BY ID", true, false);
         map("datetimeFields",
                 help + "= 'Datetime fields' ORDER BY ID", true, false);
         map("otherGrammar",

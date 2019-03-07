@@ -719,7 +719,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                     // No success in detection.
                     throw new Exception(
                             "Browser detection failed, and java property 'h2.browser' " +
-                             "and environment variable BROWSER are not set to a browser executable.");
+                            "and environment variable BROWSER are not set to a browser executable.");
                 }
             }
         } catch (Exception e) {

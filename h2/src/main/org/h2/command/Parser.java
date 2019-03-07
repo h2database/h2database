@@ -198,7 +198,6 @@ import org.h2.expression.condition.ConditionIn;
 import org.h2.expression.condition.ConditionInParameter;
 import org.h2.expression.condition.ConditionInSelect;
 import org.h2.expression.condition.ConditionNot;
-import org.h2.expression.function.DateTimeFunctions;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionCall;
 import org.h2.expression.function.JavaFunction;
@@ -3521,8 +3520,7 @@ public class Parser {
             break;
         }
         case Function.EXTRACT: {
-            function.setParameter(0,
-                    ValueExpression.get(ValueString.get(currentToken)));
+            function.setParameter(0, ValueExpression.get(ValueString.get(currentToken)));
             read();
             read(FROM);
             function.setParameter(1, readExpression());
@@ -3531,13 +3529,12 @@ public class Parser {
         }
         case Function.DATE_ADD:
         case Function.DATE_DIFF: {
-            if (DateTimeFunctions.isDatePart(currentToken)) {
-                function.setParameter(0,
-                        ValueExpression.get(ValueString.get(currentToken)));
-                read();
+            if (currentTokenType == VALUE) {
+                function.setParameter(0, ValueExpression.get(currentValue.convertTo(Value.STRING)));
             } else {
-                function.setParameter(0, readExpression());
+                function.setParameter(0, ValueExpression.get(ValueString.get(currentToken)));
             }
+            read();
             read(COMMA);
             function.setParameter(1, readExpression());
             read(COMMA);

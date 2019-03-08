@@ -432,6 +432,11 @@ public class TableLink extends Table {
     }
 
     @Override
+    public Row lockRow(Session session, Row row) {
+        return row;
+    }
+
+    @Override
     public void close(Session session) {
         if (conn != null) {
             try {

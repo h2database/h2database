@@ -6,6 +6,7 @@
 package org.h2.store.fs;
 
 import java.io.EOFException;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -101,6 +102,8 @@ public class FileUtils {
         return FilePath.get(fileName).isAbsolute()
                 // Allows Windows to recognize "/path" as absolute.
                 // Makes the same configuration work on all platforms.
+                || fileName.startsWith(File.pathSeparator)
+                // Just in case of non-normalized path on Windows
                 || fileName.startsWith("/");
     }
 

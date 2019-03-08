@@ -427,6 +427,13 @@ public class MergeUsing extends Prepared {
         targetMatchQuery.setExpressions(expressions);
         targetMatchQuery.addTableFilter(targetTableFilter, true);
         targetMatchQuery.addCondition(onCondition);
+        boolean forUpdate = false;
+        for (When w : when) {
+            if (w instanceof WhenNotMatched) {
+                forUpdate = true;
+            }
+        }
+        targetMatchQuery.setForUpdate(forUpdate);
         targetMatchQuery.init();
         targetMatchQuery.prepare();
     }

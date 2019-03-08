@@ -125,7 +125,14 @@ public class Update extends Prepared {
                     break;
                 }
                 if (condition == null || condition.getBooleanValue(session)) {
-                    Row oldRow = targetTableFilter.get();
+                    Row oldRow = targetTableFilter.getTable().lockRow(session, targetTableFilter.get());
+                    if (oldRow == null) {
+                        continue;
+                    }
+                    targetTableFilter.set(oldRow);
+                    if (condition != null && !condition.getBooleanValue(session)) {
+                        continue;
+                    }
                     Row newRow = table.getTemplateRow();
                     boolean setOnUpdate = false;
                     for (int i = 0; i < columnCount; i++) {

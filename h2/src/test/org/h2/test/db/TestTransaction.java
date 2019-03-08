@@ -48,6 +48,7 @@ public class TestTransaction extends TestDb {
         testRollback2();
         testForUpdate();
         testForUpdate2();
+        testUpdate();
         testSetTransaction();
         testReferential();
         testSavepoint();
@@ -294,6 +295,61 @@ public class TestTransaction extends TestDb {
             throw ex[0];
         }
         assertEquals(forUpdate ? (deleted || excluded) ? -1 : 2 : 1, res[0]);
+    }
+
+    private void testUpdate() throws Exception {
+        deleteDb("transaction");
+        final Connection conn1 = getConnection("transaction");
+        conn1.setAutoCommit(false);
+        Connection conn2 = getConnection("transaction");
+        conn2.setAutoCommit(false);
+        Statement stat1 = conn1.createStatement();
+        Statement stat2 = conn2.createStatement();
+        stat1.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE BOOLEAN) AS "
+                + "SELECT X, FALSE FROM GENERATE_SERIES(1, 50)");
+        conn1.commit();
+        stat1.executeQuery("SELECT * FROM TEST").close();
+        stat2.executeQuery("SELECT * FROM TEST").close();
+        final int[] r = new int[1];
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                int sum = 0;
+                try {
+                    PreparedStatement prep = conn1.prepareStatement(
+                            "UPDATE TEST SET VALUE = TRUE WHERE ID = ? AND NOT VALUE");
+                    for (int i = 1; i <= 50; i++) {
+                        prep.setInt(1, i);
+                        prep.addBatch();
+                    }
+                    int[] a = prep.executeBatch();
+                    for (int i : a) {
+                        sum += i;
+                    }
+                    conn1.commit();
+                } catch (SQLException e) {
+                    // Ignore
+                }
+                r[0] = sum;
+            }
+        };
+        t.start();
+        int sum = 0;
+        PreparedStatement prep = conn2.prepareStatement(
+                "UPDATE TEST SET VALUE = TRUE WHERE ID = ? AND NOT VALUE");
+        for (int i = 1; i <= 50; i++) {
+            prep.setInt(1, i);
+            prep.addBatch();
+        }
+        int[] a = prep.executeBatch();
+        for (int i : a) {
+            sum += i;
+        }
+        conn2.commit();
+        t.join();
+        assertEquals(50, sum + r[0]);
+        conn2.close();
+        conn1.close();
     }
 
     private void testRollback() throws SQLException {

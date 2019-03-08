@@ -97,7 +97,14 @@ public class Delete extends Prepared {
                         }
                         if (!done) {
                             if (table.isMVStore()) {
-                                done = table.lockRow(session, row) == null;
+                                row = table.lockRow(session, row);
+                                if (row == null) {
+                                    continue;
+                                }
+                                targetTableFilter.set(row);
+                                if (condition != null && !condition.getBooleanValue(session)) {
+                                    continue;
+                                }
                             }
                             if (!done) {
                                 rows.add(row);

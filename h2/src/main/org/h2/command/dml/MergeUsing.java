@@ -415,8 +415,12 @@ public class MergeUsing extends Prepared {
         // Prepare each of the sub-commands ready to aid in the MERGE
         // collaboration
         targetTableFilter.doneWithIndexConditions();
+        boolean forUpdate = false;
         for (When w : when) {
             w.prepare();
+            if (w instanceof WhenNotMatched) {
+                forUpdate = true;
+            }
         }
 
         // setup the targetMatchQuery - for detecting if the target row exists
@@ -427,12 +431,6 @@ public class MergeUsing extends Prepared {
         targetMatchQuery.setExpressions(expressions);
         targetMatchQuery.addTableFilter(targetTableFilter, true);
         targetMatchQuery.addCondition(onCondition);
-        boolean forUpdate = false;
-        for (When w : when) {
-            if (w instanceof WhenNotMatched) {
-                forUpdate = true;
-            }
-        }
         targetMatchQuery.setForUpdate(forUpdate);
         targetMatchQuery.init();
         targetMatchQuery.prepare();

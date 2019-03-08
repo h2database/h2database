@@ -119,19 +119,23 @@ public class Update extends Prepared {
                     limitRows = v.getInt();
                 }
             }
+            boolean mvStore = session.getDatabase().isMVStore();
             while (targetTableFilter.next()) {
                 setCurrentRowNumber(count+1);
                 if (limitRows >= 0 && count >= limitRows) {
                     break;
                 }
                 if (condition == null || condition.getBooleanValue(session)) {
-                    Row oldRow = targetTableFilter.getTable().lockRow(session, targetTableFilter.get());
-                    if (oldRow == null) {
-                        continue;
-                    }
-                    targetTableFilter.set(oldRow);
-                    if (condition != null && !condition.getBooleanValue(session)) {
-                        continue;
+                    Row oldRow = targetTableFilter.get();
+                    if (mvStore) {
+                        oldRow = targetTableFilter.getTable().lockRow(session, oldRow);
+                        if (oldRow == null) {
+                            continue;
+                        }
+                        targetTableFilter.set(oldRow);
+                        if (condition != null && !condition.getBooleanValue(session)) {
+                            continue;
+                        }
                     }
                     Row newRow = table.getTemplateRow();
                     boolean setOnUpdate = false;

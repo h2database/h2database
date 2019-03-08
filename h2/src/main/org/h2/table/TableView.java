@@ -372,11 +372,6 @@ public class TableView extends Table {
     }
 
     @Override
-    public Row lockRow(Session session, Row row) {
-        return row;
-    }
-
-    @Override
     public boolean isLockedExclusively() {
         return false;
     }

@@ -119,7 +119,6 @@ public class Update extends Prepared {
                     limitRows = v.getInt();
                 }
             }
-            boolean mvStore = session.getDatabase().isMVStore();
             while (targetTableFilter.next()) {
                 setCurrentRowNumber(count+1);
                 if (limitRows >= 0 && count >= limitRows) {
@@ -127,8 +126,8 @@ public class Update extends Prepared {
                 }
                 if (condition == null || condition.getBooleanValue(session)) {
                     Row oldRow = targetTableFilter.get();
-                    if (mvStore) {
-                        oldRow = targetTableFilter.getTable().lockRow(session, oldRow);
+                    if (table.isMVStore()) {
+                        oldRow = table.lockRow(session, oldRow);
                         if (oldRow == null) {
                             continue;
                         }
@@ -185,9 +184,6 @@ public class Update extends Prepared {
                         done = table.fireBeforeRow(session, oldRow, newRow);
                     }
                     if (!done) {
-                        if (table.isMVStore()) {
-                            done = table.lockRow(session, oldRow) == null;
-                        }
                         if (!done) {
                             rows.add(oldRow);
                             rows.add(newRow);

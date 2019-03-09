@@ -58,7 +58,6 @@ import org.h2.store.PageStore;
 import org.h2.tools.Csv;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
@@ -1717,12 +1716,14 @@ public class MetaTable extends Table {
                 }
                 String columnList = null;
                 if (indexColumns != null) {
-                    StatementBuilder buff = new StatementBuilder();
-                    for (IndexColumn col : indexColumns) {
-                        buff.appendExceptFirst(",");
-                        buff.append(col.column.getName());
+                    StringBuilder builder = new StringBuilder();
+                    for (int i = 0, length = indexColumns.length; i < length; i++) {
+                        if (i > 0) {
+                            builder.append(',');
+                        }
+                        builder.append(indexColumns[i].column.getName());
                     }
-                    columnList = buff.toString();
+                    columnList = builder.toString();
                 }
                 add(rows,
                         // CONSTRAINT_CATALOG
@@ -1829,7 +1830,7 @@ public class MetaTable extends Table {
                         // TRIGGER_NAME
                         trigger.getName(),
                         // TRIGGER_TYPE
-                        trigger.getTypeNameList(),
+                        trigger.getTypeNameList(new StringBuilder()).toString(),
                         // TABLE_CATALOG
                         catalog,
                         // TABLE_SCHEMA

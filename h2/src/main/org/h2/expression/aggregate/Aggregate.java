@@ -34,7 +34,6 @@ import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.StatementBuilder;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
@@ -532,24 +531,22 @@ public class Aggregate extends AbstractAggregate {
         if (orderByList != null || distinct) {
             sortWithOrderBy(array);
         }
-        StatementBuilder buff = new StatementBuilder();
+        StringBuilder builder = new StringBuilder();
         String sep = args.length < 2 ? "," : collectingData.getSharedArgument().getString();
-        for (Value val : array) {
+        for (int i = 0, length = array.length; i < length; i++) {
+            Value val = array[i];
             String s;
-            if (val.getValueType() == Value.ARRAY) {
+            if (orderByList != null) {
                 s = ((ValueArray) val).getList()[0].getString();
             } else {
                 s = val.getString();
             }
-            if (s == null) {
-                continue;
+            if (sep != null && i > 0) {
+                builder.append(sep);
             }
-            if (sep != null) {
-                buff.appendExceptFirst(sep);
-            }
-            buff.append(s);
+            builder.append(s);
         }
-        return ValueString.get(buff.toString());
+        return ValueString.get(builder.toString());
     }
 
     private Value getHistogram(Session session, AggregateData data) {

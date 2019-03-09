@@ -59,7 +59,6 @@ import org.h2.util.JdbcUtils;
 import org.h2.util.Profiler;
 import org.h2.util.ScriptReader;
 import org.h2.util.SortedProperties;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
 import org.h2.util.Utils;
@@ -1544,19 +1543,15 @@ public class WebApp {
             }
         }
         time = System.currentTimeMillis() - time;
-        StatementBuilder buff = new StatementBuilder();
-        buff.append(time).append(" ms: ").append(count).append(" * ");
-        if (prepared) {
-            buff.append("(Prepared) ");
-        } else {
-            buff.append("(Statement) ");
+        StringBuilder builder = new StringBuilder().append(time).append(" ms: ").append(count).append(" * ")
+                .append(prepared ? "(Prepared) " : "(Statement) ").append('(');
+        for (int i = 0, size = params.size(); i < size; i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            builder.append(params.get(i) == 0 ? "i" : "rnd");
         }
-        buff.append('(');
-        for (int p : params) {
-            buff.appendExceptFirst(", ");
-            buff.append(p == 0 ? "i" : "rnd");
-        }
-        return buff.append(") ").append(sql).toString();
+        return builder.append(") ").append(sql).toString();
     }
 
     private String getCommandHistoryString() {

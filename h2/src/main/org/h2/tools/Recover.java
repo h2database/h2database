@@ -67,7 +67,6 @@ import org.h2.util.IOUtils;
 import org.h2.util.IntArray;
 import org.h2.util.MathUtils;
 import org.h2.util.SmallLRUCache;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Tool;
@@ -1627,19 +1626,20 @@ public class Recover extends Tool implements DataHandler {
     private void createTemporaryTable(PrintWriter writer) {
         if (!objectIdSet.contains(storageId)) {
             objectIdSet.add(storageId);
-            StatementBuilder buff = new StatementBuilder("CREATE TABLE ");
-            buff.append(storageName).append('(');
+            writer.write("CREATE TABLE ");
+            writer.write(storageName);
+            writer.write('(');
             for (int i = 0; i < recordLength; i++) {
-                buff.appendExceptFirst(", ");
-                buff.append('C').append(i).append(' ');
-                String columnType = columnTypeMap.get(storageName + "." + i);
-                if (columnType == null) {
-                    buff.append("VARCHAR");
-                } else {
-                    buff.append(columnType);
+                if (i > 0) {
+                    writer.print(", ");
                 }
+                writer.write('C');
+                writer.print(i);
+                writer.write(' ');
+                String columnType = columnTypeMap.get(storageName + "." + i);
+                writer.write(columnType == null ? "VARCHAR" : columnType);
             }
-            writer.println(buff.append(");").toString());
+            writer.println(");");
             writer.flush();
         }
     }

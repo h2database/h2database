@@ -28,7 +28,6 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
@@ -843,7 +842,7 @@ public class TableFilter implements ColumnResolver {
         }
         if (index != null) {
             builder.append('\n');
-            StatementBuilder planBuff = new StatementBuilder();
+            StringBuilder planBuilder = new StringBuilder();
             if (joinBatch != null) {
                 IndexLookupBatch lookupBatch = joinBatch.getLookupBatch(joinFilterId);
                 if (lookupBatch == null) {
@@ -851,25 +850,26 @@ public class TableFilter implements ColumnResolver {
                         throw DbException.throwInternalError(Integer.toString(joinFilterId));
                     }
                 } else {
-                    planBuff.append("batched:");
-                    String batchPlan = lookupBatch.getPlanSQL();
-                    planBuff.append(batchPlan);
-                    planBuff.append(" ");
+                    planBuilder.append("batched:").append(lookupBatch.getPlanSQL()).append(' ');
                 }
             }
-            planBuff.append(index.getPlanSQL());
+            planBuilder.append(index.getPlanSQL());
             if (!indexConditions.isEmpty()) {
-                planBuff.append(": ");
-                for (IndexCondition condition : indexConditions) {
-                    planBuff.appendExceptFirst("\n    AND ");
-                    planBuff.append(condition.getSQL(false));
+                planBuilder.append(": ");
+                for (int i = 0, size = indexConditions.size(); i < size; i++) {
+                    if (i > 0) {
+                        planBuilder.append("\n    AND ");
+                    }
+                    planBuilder.append(indexConditions.get(i).getSQL(false));
                 }
             }
-            String plan = StringUtils.quoteRemarkSQL(planBuff.toString());
+            String plan = StringUtils.quoteRemarkSQL(planBuilder.toString());
+            planBuilder.setLength(0);
+            planBuilder.append("/* ").append(plan);
             if (plan.indexOf('\n') >= 0) {
-                plan += "\n";
+                planBuilder.append('\n');
             }
-            StringUtils.indent(builder, "/* " + plan + " */", 4, false);
+            StringUtils.indent(builder, planBuilder.append(" */").toString(), 4, false);
         }
         if (isJoin) {
             builder.append("\n    ON ");

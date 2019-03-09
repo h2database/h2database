@@ -19,7 +19,6 @@ import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.table.Column;
 import org.h2.table.TableType;
-import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 
 /**
@@ -387,36 +386,47 @@ public class IndexCondition {
 
     @Override
     public String toString() {
-        return "column=" + column +
-                ", compareType=" + compareTypeToString(compareType) +
-                ", expression=" + expression +
-                ", expressionList=" + expressionList +
-                ", expressionQuery=" + expressionQuery;
+        StringBuilder builder = new StringBuilder("column=").append(column).append(", compareType=");
+        return compareTypeToString(builder, compareType)
+            .append(", expression=").append(expression)
+            .append(", expressionList=").append(expressionList)
+            .append(", expressionQuery=").append(expressionQuery).toString();
     }
 
-    private static String compareTypeToString(int i) {
-        StatementBuilder s = new StatementBuilder();
+    private static StringBuilder compareTypeToString(StringBuilder builder, int i) {
+        boolean f = false;
         if ((i & EQUALITY) == EQUALITY) {
-            s.appendExceptFirst("&");
-            s.append("EQUALITY");
+            f = true;
+            builder.append("EQUALITY");
         }
         if ((i & START) == START) {
-            s.appendExceptFirst("&");
-            s.append("START");
+            if (f) {
+                builder.append(", ");
+            }
+            f = true;
+            builder.append("START");
         }
         if ((i & END) == END) {
-            s.appendExceptFirst("&");
-            s.append("END");
+            if (f) {
+                builder.append(", ");
+            }
+            f = true;
+            builder.append("END");
         }
         if ((i & ALWAYS_FALSE) == ALWAYS_FALSE) {
-            s.appendExceptFirst("&");
-            s.append("ALWAYS_FALSE");
+            if (f) {
+                builder.append(", ");
+            }
+            f = true;
+            builder.append("ALWAYS_FALSE");
         }
         if ((i & SPATIAL_INTERSECTS) == SPATIAL_INTERSECTS) {
-            s.appendExceptFirst("&");
-            s.append("SPATIAL_INTERSECTS");
+            if (f) {
+                builder.append(", ");
+            }
+            builder.append("SPATIAL_INTERSECTS");
         }
-        return s.toString();
+        return builder;
     }
 
 }

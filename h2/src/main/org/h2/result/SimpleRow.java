@@ -6,7 +6,6 @@
 package org.h2.result;
 
 import org.h2.engine.Constants;
-import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 
 /**
@@ -61,17 +60,7 @@ public class SimpleRow implements SearchRow {
 
     @Override
     public String toString() {
-        StatementBuilder buff = new StatementBuilder("( /* key:");
-        buff.append(getKey());
-        if (version != 0) {
-            buff.append(" v:").append(version);
-        }
-        buff.append(" */ ");
-        for (Value v : data) {
-            buff.appendExceptFirst(", ");
-            buff.append(v == null ? "null" : v.getTraceSQL());
-        }
-        return buff.append(')').toString();
+        return RowImpl.toString(key, version, false, data);
     }
 
     @Override

@@ -431,14 +431,16 @@ public class Select extends Query {
             boolean notChanged = true;
             for (int i = 0; i < count; i++) {
                 TableFilter tableFilter = filters.get(i);
-                Row row = tableFilter.get();
-                Row lockedRow = tableFilter.getTable().lockRow(session, row);
-                if (lockedRow == null) {
-                    return false;
-                }
-                if (!row.hasSharedData(lockedRow)) {
-                    tableFilter.set(lockedRow);
-                    notChanged = false;
+                if (!tableFilter.isJoinOuter() && !tableFilter.isJoinOuterIndirect()) {
+                    Row row = tableFilter.get();
+                    Row lockedRow = tableFilter.getTable().lockRow(session, row);
+                    if (lockedRow == null) {
+                        return false;
+                    }
+                    if (!row.hasSharedData(lockedRow)) {
+                        tableFilter.set(lockedRow);
+                        notChanged = false;
+                    }
                 }
             }
             return notChanged || isConditionMet();

@@ -416,6 +416,13 @@ public class TestTransaction extends TestDb {
     }
 
     private void testDelete() throws Exception {
+        String sql1 = "DELETE FROM TEST WHERE ID = ? AND NOT VALUE";
+        String sql2 = "UPDATE TEST SET VALUE = TRUE WHERE ID = ? AND NOT VALUE";
+        testDeleteImpl(sql1, sql2);
+        testDeleteImpl(sql2, sql1);
+    }
+
+    private void testDeleteImpl(final String sql1, String sql2) throws Exception {
         final int count = 50;
         deleteDb("transaction");
         final Connection conn1 = getConnection("transaction");
@@ -435,8 +442,7 @@ public class TestTransaction extends TestDb {
             public void run() {
                 int sum = 0;
                 try {
-                    PreparedStatement prep = conn1.prepareStatement(
-                            "DELETE FROM TEST WHERE ID = ? AND NOT VALUE");
+                    PreparedStatement prep = conn1.prepareStatement(sql1);
                     for (int i = 1; i <= count; i++) {
                         prep.setInt(1, i);
                         prep.addBatch();
@@ -455,7 +461,7 @@ public class TestTransaction extends TestDb {
         t.start();
         int sum = 0;
         PreparedStatement prep = conn2.prepareStatement(
-                "UPDATE TEST SET VALUE = TRUE WHERE ID = ? AND NOT VALUE");
+                sql2);
         for (int i = 1; i <= count; i++) {
             prep.setInt(1, i);
             prep.addBatch();

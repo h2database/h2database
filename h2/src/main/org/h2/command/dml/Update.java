@@ -127,13 +127,16 @@ public class Update extends Prepared {
                 if (condition == null || condition.getBooleanValue(session)) {
                     Row oldRow = targetTableFilter.get();
                     if (table.isMVStore()) {
-                        oldRow = table.lockRow(session, oldRow);
-                        if (oldRow == null) {
+                        Row lockedRow = table.lockRow(session, oldRow);
+                        if (lockedRow == null) {
                             continue;
                         }
-                        targetTableFilter.set(oldRow);
-                        if (condition != null && !condition.getBooleanValue(session)) {
-                            continue;
+                        if (!oldRow.hasSharedData(lockedRow)) {
+                            oldRow = lockedRow;
+                            targetTableFilter.set(oldRow);
+                            if (condition != null && !condition.getBooleanValue(session)) {
+                                continue;
+                            }
                         }
                     }
                     Row newRow = table.getTemplateRow();

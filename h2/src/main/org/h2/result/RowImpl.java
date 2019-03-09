@@ -161,4 +161,13 @@ public class RowImpl implements Row {
     public Value[] getValueList() {
         return data;
     }
+
+    @Override
+    public boolean hasSharedData(Row other) {
+        if (other.getClass() == RowImpl.class) {
+            RowImpl o = (RowImpl) other;
+            return data == o.data;
+        }
+        return false;
+    }
 }

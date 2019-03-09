@@ -126,6 +126,19 @@ public class Update extends Prepared {
                 }
                 if (condition == null || condition.getBooleanValue(session)) {
                     Row oldRow = targetTableFilter.get();
+                    if (table.isMVStore()) {
+                        Row lockedRow = table.lockRow(session, oldRow);
+                        if (lockedRow == null) {
+                            continue;
+                        }
+                        if (!oldRow.hasSharedData(lockedRow)) {
+                            oldRow = lockedRow;
+                            targetTableFilter.set(oldRow);
+                            if (condition != null && !condition.getBooleanValue(session)) {
+                                continue;
+                            }
+                        }
+                    }
                     Row newRow = table.getTemplateRow();
                     boolean setOnUpdate = false;
                     for (int i = 0; i < columnCount; i++) {
@@ -174,9 +187,6 @@ public class Update extends Prepared {
                         done = table.fireBeforeRow(session, oldRow, newRow);
                     }
                     if (!done) {
-                        if (table.isMVStore()) {
-                            done = table.lockRow(session, oldRow) == null;
-                        }
                         if (!done) {
                             rows.add(oldRow);
                             rows.add(newRow);

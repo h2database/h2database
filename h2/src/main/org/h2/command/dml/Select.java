@@ -428,15 +428,22 @@ public class Select extends Query {
     boolean isConditionMetForUpdate() {
         if (isConditionMet()) {
             int count = filters.size();
+            boolean notChanged = true;
             for (int i = 0; i < count; i++) {
                 TableFilter tableFilter = filters.get(i);
-                Row row = tableFilter.getTable().lockRow(session, tableFilter.get());
-                if (row == null) {
-                    return false;
+                if (!tableFilter.isJoinOuter() && !tableFilter.isJoinOuterIndirect()) {
+                    Row row = tableFilter.get();
+                    Row lockedRow = tableFilter.getTable().lockRow(session, row);
+                    if (lockedRow == null) {
+                        return false;
+                    }
+                    if (!row.hasSharedData(lockedRow)) {
+                        tableFilter.set(lockedRow);
+                        notChanged = false;
+                    }
                 }
-                tableFilter.set(row);
             }
-            return isConditionMet();
+            return notChanged || isConditionMet();
         }
         return false;
     }

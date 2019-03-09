@@ -24,7 +24,6 @@ import org.h2.mvstore.db.MVPrimaryIndex;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.table.Column;
-import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;

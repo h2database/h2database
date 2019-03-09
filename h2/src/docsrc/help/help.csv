@@ -72,8 +72,9 @@ This clause can be used to reuse the same definition in multiple functions.
 
 If FOR UPDATE is specified, the tables or rows are locked for writing.
 This clause is not allowed in DISTINCT queries and in queries with non-window aggregates, GROUP BY, or HAVING clauses.
-When using default MVStore engine only the selected rows are locked as in an UPDATE statement;
-locking behavior for rows that were excluded from result using OFFSET / FETCH or QUALIFY is undefined.
+When using default MVStore engine only the selected rows are locked as in an UPDATE statement.
+Rows from the right side of a left join and from the left side of a right join, including nested joins, aren't locked.
+Locking behavior for rows that were excluded from result using OFFSET / FETCH or QUALIFY is undefined.
 Rows are processed one by one. Committed row is read, tested with WHERE criteria, locked, read again and re-tested,
 because its value may be changed by concurrent transaction before lock acquisition.
 With PageStore engine the whole tables are locked.

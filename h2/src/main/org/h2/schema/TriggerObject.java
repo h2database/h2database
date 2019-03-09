@@ -353,6 +353,12 @@ public class TriggerObject extends SchemaObjectBase {
         return builder.toString();
     }
 
+    /**
+     * Append the trigger types to the given string builder.
+     *
+     * @param builder the builder
+     * @return the passed string builder
+     */
     public StringBuilder getTypeNameList(StringBuilder builder) {
         boolean f = false;
         if ((typeMask & Trigger.INSERT) != 0) {

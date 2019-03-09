@@ -292,6 +292,12 @@ public class Column {
         return columnId;
     }
 
+    /**
+     * Get the SQL representation of the column.
+     *
+     * @param alwaysQuote whether to always quote the name
+     * @return the SQL representation
+     */
     public String getSQL(boolean alwaysQuote) {
         return rowId ? name : Parser.quoteIdentifier(name, alwaysQuote);
     }

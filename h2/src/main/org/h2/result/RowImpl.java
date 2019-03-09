@@ -9,7 +9,6 @@ import java.util.Arrays;
 
 import org.h2.engine.Constants;
 import org.h2.store.Data;
-import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
 
@@ -129,22 +128,28 @@ public class RowImpl implements Row {
 
     @Override
     public String toString() {
-        StatementBuilder buff = new StatementBuilder("( /* key:");
-        buff.append(getKey());
+        return toString(key, version, deleted, data);
+    }
+
+    static String toString(long key, int version, boolean isDeleted, Value[] data) {
+        StringBuilder builder = new StringBuilder("( /* key:").append(key);
         if (version != 0) {
-            buff.append(" v:").append(version);
+            builder.append(" v:").append(version);
         }
-        if (isDeleted()) {
-            buff.append(" deleted");
+        if (isDeleted) {
+            builder.append(" deleted");
         }
-        buff.append(" */ ");
+        builder.append(" */ ");
         if (data != null) {
-            for (Value v : data) {
-                buff.appendExceptFirst(", ");
-                buff.append(v == null ? "null" : v.getTraceSQL());
+            for (int i = 0, length = data.length; i < length; i++) {
+                if (i > 0) {
+                    builder.append(", ");
+                }
+                Value v = data[i];
+                builder.append(v == null ? "null" : v.getTraceSQL());
             }
         }
-        return buff.append(')').toString();
+        return builder.append(')').toString();
     }
 
     @Override

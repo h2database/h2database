@@ -338,7 +338,7 @@ This is achieved using different database URLs. Settings in the URLs are not cas
     <td><a href="#compatibility">Compatibility mode</a></td>
     <td class="notranslate">
         jdbc:h2:&lt;url&gt;;MODE=&lt;databaseType&gt;<br />
-        jdbc:h2:~/test;MODE=MYSQL
+        jdbc:h2:~/test;MODE=MYSQL;DATABASE_TO_LOWER=TRUE
     </td>
 </tr>
 <tr>
@@ -428,8 +428,9 @@ and the file password (in addition to the user password) when connecting to the 
 
 <h3>Creating a New Database with File Encryption</h3>
 <p>
-By default, a new database is automatically created if it does not exist yet.
-To create an encrypted database, connect to it as it would already exist.
+By default, a new database is automatically created if it does not exist yet
+when the <a href="#database_url">embedded</a> url is used.
+To create an encrypted database, connect to it as it would already exist locally using the embedded URL.
 </p>
 
 <h3>Connecting to an Encrypted Database</h3>
@@ -894,8 +895,10 @@ or the SQL statement <code>SET MODE MSSQLServer</code>.
 
 <h3>MySQL Compatibility Mode</h3>
 <p>
-To use the MySQL mode, use the database URL <code>jdbc:h2:~/test;MODE=MySQL</code>
-or the SQL statement <code>SET MODE MySQL</code>. Use this mode for compatibility with MariaDB too.
+To use the MySQL mode, use the database URL <code>jdbc:h2:~/test;MODE=MySQL;DATABASE_TO_LOWER=TRUE</code>.
+Use this mode for compatibility with MariaDB too.
+When case-insensitive identifiers are needed append <code>;CASE_INSENSITIVE_IDENTIFIERS=TRUE</code> to URL.
+Do not change value of DATABASE_TO_LOWER after creation of database.
 </p>
 <ul><li>When inserting data, if a column is defined to be <code>NOT NULL</code>
     and <code>NULL</code> is inserted,
@@ -904,7 +907,6 @@ or the SQL statement <code>SET MODE MySQL</code>. Use this mode for compatibilit
 </li><li>Creating indexes in the <code>CREATE TABLE</code> statement is allowed using
     <code>INDEX(..)</code> or <code>KEY(..)</code>.
     Example: <code>create table test(id int primary key, name varchar(255), key idx_name(name));</code>
-</li><li>Meta data calls return identifiers in lower case.
 </li><li>When converting a floating point number to an integer, the fractional
     digits are not truncated, but the value is rounded.
 </li><li>Concatenating <code>NULL</code> with another value
@@ -944,8 +946,8 @@ or the SQL statement <code>SET MODE Oracle</code>.
 
 <h3>PostgreSQL Compatibility Mode</h3>
 <p>
-To use the PostgreSQL mode, use the database URL <code>jdbc:h2:~/test;MODE=PostgreSQL</code>
-or the SQL statement <code>SET MODE PostgreSQL</code>.
+To use the PostgreSQL mode, use the database URL <code>jdbc:h2:~/test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE</code>.
+Do not change value of DATABASE_TO_LOWER after creation of database.
 </p>
 <ul><li>For aliased columns, <code>ResultSetMetaData.getColumnName()</code>
     returns the alias name and <code>getTableName()</code> returns

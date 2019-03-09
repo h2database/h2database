@@ -203,8 +203,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
         }
         case CommandInterface.ALTER_TABLE_DROP_COLUMN: {
             if (table.getColumns().length - columnsToRemove.size() < 1) {
-                throw DbException.get(ErrorCode.CANNOT_DROP_LAST_COLUMN,
-                        columnsToRemove.get(0).getSQL());
+                throw DbException.get(ErrorCode.CANNOT_DROP_LAST_COLUMN, columnsToRemove.get(0).getSQL(false));
             }
             table.dropMultipleColumnsConstraintsAndIndexes(session, columnsToRemove);
             copyData(table);
@@ -237,8 +236,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
                 .getDependenciesVisitor(dependencies);
         defaultExpression.isEverything(visitor);
         if (dependencies.contains(table)) {
-            throw DbException.get(ErrorCode.COLUMN_IS_REFERENCED_1,
-                    defaultExpression.getSQL());
+            throw DbException.get(ErrorCode.COLUMN_IS_REFERENCED_1, defaultExpression.getSQL(false));
         }
     }
 
@@ -297,7 +295,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             checkViews(table, newTable);
         } catch (DbException e) {
             StringBuilder builder = new StringBuilder("DROP TABLE ");
-            newTable.getSQL(builder);
+            newTable.getSQL(builder, true);
             execute(builder.toString(), true);
             throw e;
         }
@@ -307,7 +305,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             table.removeDependentView(view);
         }
         StringBuilder builder = new StringBuilder("DROP TABLE ");
-        table.getSQL(builder).append(" IGNORE");
+        table.getSQL(builder, true).append(" IGNORE");
         execute(builder.toString(), true);
         db.renameSchemaObject(session, newTable, tableName);
         for (DbObject child : newTable.getChildren()) {
@@ -412,10 +410,10 @@ public class AlterTableAlterColumn extends CommandWithColumns {
                 if (def == null) {
                     columnList.append("NULL");
                 } else {
-                    def.getSQL(columnList);
+                    def.getSQL(columnList, true);
                 }
             } else {
-                nc.getSQL(columnList);
+                nc.getSQL(columnList, true);
             }
         }
         String newTableName = newTable.getName();
@@ -445,7 +443,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             } else if (child.getType() == DbObject.TABLE_OR_VIEW) {
                 DbException.throwInternalError();
             }
-            String quotedName = Parser.quoteIdentifier(tempName + "_" + child.getName());
+            String quotedName = Parser.quoteIdentifier(tempName + "_" + child.getName(), true);
             String sql = null;
             if (child instanceof ConstraintReferential) {
                 ConstraintReferential r = (ConstraintReferential) child;
@@ -484,7 +482,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
         }
         StringBuilder buff = new StringBuilder();
         buff.append("INSERT INTO ");
-        newTable.getSQL(buff);
+        newTable.getSQL(buff, true);
         buff.append(" SELECT ");
         if (columnList.length() == 0) {
             // special case: insert into test select * from
@@ -493,14 +491,14 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             buff.append(columnList);
         }
         buff.append(" FROM ");
-        table.getSQL(buff);
+        table.getSQL(buff, true);
         try {
             execute(buff.toString(), true);
         } catch (Throwable t) {
             // data was not inserted due to data conversion error or some
             // unexpected reason
             StringBuilder builder = new StringBuilder("DROP TABLE ");
-            newTable.getSQL(builder);
+            newTable.getSQL(builder, true);
             execute(builder.toString(), true);
             throw t;
         }
@@ -562,7 +560,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
                 try {
                     session.prepare(sql);
                 } catch (DbException e) {
-                    throw DbException.get(ErrorCode.COLUMN_IS_REFERENCED_1, e, view.getSQL());
+                    throw DbException.get(ErrorCode.COLUMN_IS_REFERENCED_1, e, view.getSQL(false));
                 }
                 checkViewsAreValid(view);
             }
@@ -584,24 +582,21 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             }
             IndexType indexType = index.getIndexType();
             if (indexType.isPrimaryKey() || indexType.isHash()) {
-                throw DbException.get(
-                        ErrorCode.COLUMN_IS_PART_OF_INDEX_1, index.getSQL());
+                throw DbException.get(ErrorCode.COLUMN_IS_PART_OF_INDEX_1, index.getSQL(false));
             }
         }
     }
 
     private void checkNoNullValues(Table table) {
         StringBuilder builder = new StringBuilder("SELECT COUNT(*) FROM ");
-        table.getSQL(builder).append(" WHERE ");
-        oldColumn.getSQL(builder).append(" IS NULL");
+        table.getSQL(builder, true).append(" WHERE ");
+        oldColumn.getSQL(builder, true).append(" IS NULL");
         String sql = builder.toString();
         Prepared command = session.prepare(sql);
         ResultInterface result = command.query(0);
         result.next();
         if (result.currentRow()[0].getInt() > 0) {
-            throw DbException.get(
-                    ErrorCode.COLUMN_CONTAINS_NULL_VALUES_1,
-                    oldColumn.getSQL());
+            throw DbException.get(ErrorCode.COLUMN_CONTAINS_NULL_VALUES_1, oldColumn.getSQL(false));
         }
     }
 

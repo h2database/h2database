@@ -43,7 +43,7 @@ public class ConstraintUnique extends Constraint {
 
     private String getCreateSQLForCopy(Table forTable, String quotedName, boolean internalIndex) {
         StringBuilder builder = new StringBuilder("ALTER TABLE ");
-        forTable.getSQL(builder).append(" ADD CONSTRAINT ");
+        forTable.getSQL(builder, true).append(" ADD CONSTRAINT ");
         if (forTable.isHidden()) {
             builder.append("IF NOT EXISTS ");
         }
@@ -57,24 +57,24 @@ public class ConstraintUnique extends Constraint {
             if (i > 0) {
                 builder.append(", ");
             }
-            columns[i].column.getSQL(builder);
+            columns[i].column.getSQL(builder, true);
         }
         builder.append(')');
         if (internalIndex && indexOwner && forTable == this.table) {
             builder.append(" INDEX ");
-            index.getSQL(builder);
+            index.getSQL(builder, true);
         }
         return builder.toString();
     }
 
     @Override
     public String getCreateSQLWithoutIndexes() {
-        return getCreateSQLForCopy(table, getSQL(), false);
+        return getCreateSQLForCopy(table, getSQL(true), false);
     }
 
     @Override
     public String getCreateSQL() {
-        return getCreateSQLForCopy(table, getSQL());
+        return getCreateSQLForCopy(table, getSQL(true));
     }
 
     public void setColumns(IndexColumn[] columns) {

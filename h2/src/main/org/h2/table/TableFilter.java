@@ -28,7 +28,6 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
@@ -606,8 +605,6 @@ public class TableFilter implements ColumnResolver {
      * @param current the current row
      */
     public void set(Row current) {
-        // this is currently only used so that check constraints work - to set
-        // the current (new) row
         this.current = current;
         this.currentSearchRow = current;
     }
@@ -713,13 +710,27 @@ public class TableFilter implements ColumnResolver {
     public void mapAndAddFilter(Expression on) {
         on.mapColumns(this, 0, Expression.MAP_INITIAL);
         addFilterCondition(on, true);
-        on.createIndexConditions(session, this);
         if (nestedJoin != null) {
             on.mapColumns(nestedJoin, 0, Expression.MAP_INITIAL);
-            on.createIndexConditions(session, nestedJoin);
         }
         if (join != null) {
             join.mapAndAddFilter(on);
+        }
+    }
+
+    public void createIndexConditions() {
+        if (joinCondition != null) {
+            joinCondition = joinCondition.optimize(session);
+            joinCondition.createIndexConditions(session, this);
+            if (nestedJoin != null) {
+                joinCondition.createIndexConditions(session, nestedJoin);
+            }
+        }
+        if (join != null) {
+            join.createIndexConditions();
+        }
+        if (nestedJoin != null) {
+            nestedJoin.createIndexConditions();
         }
     }
 
@@ -752,9 +763,10 @@ public class TableFilter implements ColumnResolver {
      *
      * @param builder string builder to append to
      * @param isJoin if this is a joined table
+     * @param alwaysQuote quote all identifiers
      * @return the specified builder
      */
-    public StringBuilder getPlanSQL(StringBuilder builder, boolean isJoin) {
+    public StringBuilder getPlanSQL(StringBuilder builder, boolean isJoin, boolean alwaysQuote) {
         if (isJoin) {
             if (joinOuter) {
                 builder.append("LEFT OUTER JOIN ");
@@ -766,7 +778,7 @@ public class TableFilter implements ColumnResolver {
             StringBuilder buffNested = new StringBuilder();
             TableFilter n = nestedJoin;
             do {
-                n.getPlanSQL(buffNested, n != nestedJoin).append('\n');
+                n.getPlanSQL(buffNested, n != nestedJoin, alwaysQuote).append('\n');
                 n = n.getJoin();
             } while (n != null);
             String nested = buffNested.toString();
@@ -785,23 +797,23 @@ public class TableFilter implements ColumnResolver {
                     // otherwise the nesting is unclear
                     builder.append("1=1");
                 } else {
-                    joinCondition.getUnenclosedSQL(builder);
+                    joinCondition.getUnenclosedSQL(builder, alwaysQuote);
                 }
             }
             return builder;
         }
         if (table.isView() && ((TableView) table).isRecursive()) {
-            table.getSchema().getSQL(builder).append('.');
-            Parser.quoteIdentifier(builder, table.getName());
+            table.getSchema().getSQL(builder, alwaysQuote).append('.');
+            Parser.quoteIdentifier(builder, table.getName(), alwaysQuote);
         } else {
-            table.getSQL(builder);
+            table.getSQL(builder, alwaysQuote);
         }
         if (table.isView() && ((TableView) table).isInvalid()) {
             throw DbException.get(ErrorCode.VIEW_IS_INVALID_2, table.getName(), "not compiled");
         }
         if (alias != null) {
             builder.append(' ');
-            Parser.quoteIdentifier(builder, alias);
+            Parser.quoteIdentifier(builder, alias, alwaysQuote);
             if (derivedColumnMap != null) {
                 builder.append('(');
                 boolean f = false;
@@ -810,7 +822,7 @@ public class TableFilter implements ColumnResolver {
                         builder.append(", ");
                     }
                     f = true;
-                    Parser.quoteIdentifier(builder, name);
+                    Parser.quoteIdentifier(builder, name, alwaysQuote);
                 }
                 builder.append(')');
             }
@@ -824,13 +836,13 @@ public class TableFilter implements ColumnResolver {
                 } else {
                     first = false;
                 }
-                Parser.quoteIdentifier(builder, index);
+                Parser.quoteIdentifier(builder, index, alwaysQuote);
             }
             builder.append(")");
         }
         if (index != null) {
             builder.append('\n');
-            StatementBuilder planBuff = new StatementBuilder();
+            StringBuilder planBuilder = new StringBuilder();
             if (joinBatch != null) {
                 IndexLookupBatch lookupBatch = joinBatch.getLookupBatch(joinFilterId);
                 if (lookupBatch == null) {
@@ -838,25 +850,26 @@ public class TableFilter implements ColumnResolver {
                         throw DbException.throwInternalError(Integer.toString(joinFilterId));
                     }
                 } else {
-                    planBuff.append("batched:");
-                    String batchPlan = lookupBatch.getPlanSQL();
-                    planBuff.append(batchPlan);
-                    planBuff.append(" ");
+                    planBuilder.append("batched:").append(lookupBatch.getPlanSQL()).append(' ');
                 }
             }
-            planBuff.append(index.getPlanSQL());
+            planBuilder.append(index.getPlanSQL());
             if (!indexConditions.isEmpty()) {
-                planBuff.append(": ");
-                for (IndexCondition condition : indexConditions) {
-                    planBuff.appendExceptFirst("\n    AND ");
-                    planBuff.append(condition.getSQL());
+                planBuilder.append(": ");
+                for (int i = 0, size = indexConditions.size(); i < size; i++) {
+                    if (i > 0) {
+                        planBuilder.append("\n    AND ");
+                    }
+                    planBuilder.append(indexConditions.get(i).getSQL(false));
                 }
             }
-            String plan = StringUtils.quoteRemarkSQL(planBuff.toString());
+            String plan = StringUtils.quoteRemarkSQL(planBuilder.toString());
+            planBuilder.setLength(0);
+            planBuilder.append("/* ").append(plan);
             if (plan.indexOf('\n') >= 0) {
-                plan += "\n";
+                planBuilder.append('\n');
             }
-            StringUtils.indent(builder, "/* " + plan + " */", 4, false);
+            StringUtils.indent(builder, planBuilder.append(" */").toString(), 4, false);
         }
         if (isJoin) {
             builder.append("\n    ON ");
@@ -865,12 +878,12 @@ public class TableFilter implements ColumnResolver {
                 // unclear
                 builder.append("1=1");
             } else {
-                joinCondition.getUnenclosedSQL(builder);
+                joinCondition.getUnenclosedSQL(builder, alwaysQuote);
             }
         }
         if (filterCondition != null) {
             builder.append('\n');
-            String condition = StringUtils.unEnclose(filterCondition.getSQL());
+            String condition = StringUtils.unEnclose(filterCondition.getSQL(false));
             condition = "/* WHERE " + StringUtils.quoteRemarkSQL(condition) + "\n*/";
             StringUtils.indent(builder, condition, 4, false);
         }
@@ -1053,10 +1066,7 @@ public class TableFilter implements ColumnResolver {
 
     @Override
     public Column getRowIdColumn() {
-        if (session.getDatabase().getSettings().rowId) {
-            return table.getRowIdColumn();
-        }
-        return null;
+        return table.getRowIdColumn();
     }
 
     @Override
@@ -1178,15 +1188,6 @@ public class TableFilter implements ColumnResolver {
         if (state == FOUND) {
             rows.add(get());
         }
-    }
-
-    /**
-     * Lock the given rows.
-     *
-     * @param forUpdateRows the rows to lock
-     */
-    public void lockRows(Iterable<Row> forUpdateRows) {
-        table.lockRows(session, forUpdateRows);
     }
 
     public TableFilter getNestedJoin() {

@@ -184,7 +184,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
             Value old = map.remove(key);
             if (old == null) {
                 StringBuilder builder = new StringBuilder();
-                getSQL(builder).append(": ").append(row.getKey());
+                getSQL(builder, false).append(": ").append(row.getKey());
                 throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, builder.toString());
             }
         } catch (IllegalStateException e) {

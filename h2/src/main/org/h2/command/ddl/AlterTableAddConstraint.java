@@ -107,7 +107,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             }
             throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
         }
-        if (getSchema().findConstraint(session, constraintName) != null) {
+        if (constraintName != null && getSchema().findConstraint(session, constraintName) != null) {
             if (ifNotExists) {
                 return 0;
             }
@@ -209,7 +209,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             session.getUser().checkRight(refTable, Right.ALL);
             if (!refTable.canReference()) {
                 StringBuilder builder = new StringBuilder("Reference ");
-                refTable.getSQL(builder);
+                refTable.getSQL(builder, false);
                 throw DbException.getUnsupportedException(builder.toString());
             }
             boolean isOwner = false;

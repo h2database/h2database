@@ -33,7 +33,7 @@ import org.h2.util.StringUtils;
  */
 public class PrepareTranslation {
     private static final String MAIN_LANGUAGE = "en";
-    private static final String[] EXCLUDE = { "datatypes.html",
+    private static final String[] EXCLUDE = { "commands.html", "datatypes.html",
             "functions.html", "grammar.html" };
 
     /**

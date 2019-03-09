@@ -735,11 +735,6 @@ public class MVTable extends TableBase {
     }
 
     @Override
-    public void lockRows(Session session, Iterable<Row> rowsForUpdate) {
-        primaryIndex.lockRows(session, rowsForUpdate);
-    }
-
-    @Override
     public Row lockRow(Session session, Row row) {
         return primaryIndex.lockRow(session, row);
     }
@@ -876,13 +871,14 @@ public class MVTable extends TableBase {
         if (rowIdColumn == null) {
             rowIdColumn = new Column(Column.ROWID, Value.LONG);
             rowIdColumn.setTable(this, SearchRow.ROWID_INDEX);
+            rowIdColumn.setRowId(true);
         }
         return rowIdColumn;
     }
 
     @Override
     public String toString() {
-        return getSQL();
+        return getSQL(false);
     }
 
     @Override

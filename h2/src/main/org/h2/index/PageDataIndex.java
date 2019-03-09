@@ -140,10 +140,10 @@ public class PageDataIndex extends PageIndex {
 
     public DbException getNewDuplicateKeyException() {
         StringBuilder builder = new StringBuilder("PRIMARY KEY ON ");
-        table.getSQL(builder);
+        table.getSQL(builder, false);
         if (mainIndexColumn >= 0 && mainIndexColumn < indexColumns.length) {
             builder.append('(');
-            indexColumns[mainIndexColumn].getSQL(builder).append(')');
+            indexColumns[mainIndexColumn].getSQL(builder, false).append(')');
         }
         DbException e = DbException.get(ErrorCode.DUPLICATE_KEY_1, builder.toString());
         e.setSource(this);
@@ -480,7 +480,7 @@ public class PageDataIndex extends PageIndex {
 
     @Override
     public String getPlanSQL() {
-        return table.getSQL(new StringBuilder()).append(".tableScan").toString();
+        return table.getSQL(new StringBuilder(), false).append(".tableScan").toString();
     }
 
     int getMemoryPerPage() {

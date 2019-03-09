@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Objects;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
-import org.h2.command.Parser;
 import org.h2.command.dml.SetTypes;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
@@ -20,6 +19,7 @@ import org.h2.security.auth.Authenticator;
 import org.h2.store.FileLock;
 import org.h2.store.FileLockMethod;
 import org.h2.util.MathUtils;
+import org.h2.util.ParserUtil;
 import org.h2.util.ThreadDeadlockDetector;
 import org.h2.util.Utils;
 
@@ -64,7 +64,7 @@ public class Engine implements SessionFactory {
             }
             if (database == null) {
                 if (ifExists && !Database.exists(name)) {
-                    throw DbException.get(ErrorCode.DATABASE_NOT_FOUND_1, name);
+                    throw DbException.get(ErrorCode.DATABASE_NOT_FOUND_2, name);
                 }
                 database = new Database(ci, cipher);
                 opened = true;
@@ -224,9 +224,12 @@ public class Engine implements SessionFactory {
                     continue;
                 }
                 String value = ci.getProperty(setting);
+                if (!ParserUtil.isSimpleIdentifier(setting, false, false)) {
+                    throw DbException.get(ErrorCode.UNSUPPORTED_SETTING_1, setting);
+                }
                 try {
                     CommandInterface command = session.prepareCommand(
-                            "SET " + Parser.quoteIdentifier(setting) + " " + value,
+                            "SET " + setting + ' ' + value,
                             Integer.MAX_VALUE);
                     command.executeUpdate(false);
                 } catch (DbException e) {

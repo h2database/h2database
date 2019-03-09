@@ -7,7 +7,6 @@ package org.h2.command.ddl;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
-import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
@@ -56,13 +55,12 @@ public class AlterSequence extends SchemaCommand {
         table = column.getTable();
         sequence = column.getSequence();
         if (sequence == null && !ifExists) {
-            throw DbException.get(ErrorCode.SEQUENCE_NOT_FOUND_1, column.getSQL());
+            throw DbException.get(ErrorCode.SEQUENCE_NOT_FOUND_1, column.getSQL(false));
         }
     }
 
     @Override
     public int update() {
-        Database db = session.getDatabase();
         if (sequence == null) {
             sequence = getSchema().findSequence(sequenceName);
             if (sequence == null) {
@@ -87,7 +85,7 @@ public class AlterSequence extends SchemaCommand {
             sequence.modify(options.getStartValue(session), options.getMinValue(sequence, session),
                     options.getMaxValue(sequence, session), options.getIncrement(session));
         }
-        db.updateMeta(session, sequence);
+        sequence.flush(session);
         return 0;
     }
 

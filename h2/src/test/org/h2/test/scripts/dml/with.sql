@@ -36,14 +36,13 @@ explain with recursive r(n) as (
     (select 1) union all (select n+1 from r where n < 3)
 )
 select n from r;
->> WITH RECURSIVE PUBLIC.R(N) AS ( (SELECT 1 FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */) UNION ALL (SELECT (N + 1) FROM PUBLIC.R /* PUBLIC.R.tableScan */ WHERE N < 3) ) SELECT N FROM PUBLIC.R R /* null */
+>> WITH RECURSIVE "PUBLIC"."R"("N") AS ( (SELECT 1 FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */) UNION ALL (SELECT ("N" + 1) FROM "PUBLIC"."R" /* PUBLIC.R.tableScan */ WHERE "N" < 3) ) SELECT "N" FROM "PUBLIC"."R" "R" /* null */
 
 explain with recursive "r"(n) as (
     (select 1) union all (select n+1 from "r" where n < 3)
 )
 select n from "r";
->> WITH RECURSIVE PUBLIC."r"(N) AS ( (SELECT 1 FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */) UNION ALL (SELECT (N + 1) FROM PUBLIC."r" /* PUBLIC."r".tableScan */ WHERE N < 3) ) SELECT N FROM PUBLIC."r" "r" /* null */
-
+>> WITH RECURSIVE "PUBLIC"."r"("N") AS ( (SELECT 1 FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */) UNION ALL (SELECT ("N" + 1) FROM "PUBLIC"."r" /* PUBLIC.r.tableScan */ WHERE "N" < 3) ) SELECT "N" FROM "PUBLIC"."r" "r" /* null */
 
 select sum(n) from (
     with recursive r(n) as (
@@ -80,6 +79,7 @@ select 0 from (
 > 0
 > -
 > rows: 0
+
 with
     r0(n,k) as (select -1, 0),
     r1(n,k) as ((select 1, 0) union all (select n+1,k+1 from r1 where n <= 3)),

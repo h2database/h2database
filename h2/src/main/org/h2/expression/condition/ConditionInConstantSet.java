@@ -111,10 +111,10 @@ public class ConditionInConstantSet extends Condition {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
         builder.append('(');
-        left.getSQL(builder).append(" IN(");
-        writeExpressions(builder, valueList);
+        left.getSQL(builder, alwaysQuote).append(" IN(");
+        writeExpressions(builder, valueList, alwaysQuote);
         return builder.append("))");
     }
 

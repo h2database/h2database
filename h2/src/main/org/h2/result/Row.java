@@ -66,4 +66,19 @@ public interface Row extends SearchRow {
      * @return values
      */
     Value[] getValueList();
+
+    /**
+     * Check whether this row and the specified row share the same underlying
+     * data with values. This method must return {@code false} when values are
+     * not equal and may return either {@code true} or {@code false} when they
+     * are equal. This method may be used only for optimizations and should not
+     * perform any slow checks, such as equality checks for all pairs of values.
+     *
+     * @param other
+     *            the other row
+     * @return {@code true} if rows share the same underlying data,
+     *         {@code false} otherwise or when unknown
+     */
+    boolean hasSharedData(Row other);
+
 }

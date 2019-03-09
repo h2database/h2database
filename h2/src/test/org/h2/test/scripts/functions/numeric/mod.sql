@@ -14,7 +14,3 @@ select mod(null, 1) vn, mod(1, null) vn1, mod(null, null) vn2, mod(10, 2) e1 fro
 > ---- ---- ---- --
 > null null null 0
 > rows: 1
-
-
-
-

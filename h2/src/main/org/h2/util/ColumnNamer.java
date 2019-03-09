@@ -66,7 +66,7 @@ public class ColumnNamer {
                 columnName = getColumnName(columnExp.getColumnName(), DEFAULT_COLUMN_NAME);
                 if (columnName == null) {
                     // try a name derived from the column expression plan SQL
-                    columnName = getColumnName(columnExp.getSQL(), DEFAULT_COLUMN_NAME);
+                    columnName = getColumnName(columnExp.getSQL(false), DEFAULT_COLUMN_NAME);
                     // go with a innocuous default name pattern
                     if (columnName == null) {
                         columnName = configuration.getDefaultColumnNamePattern()

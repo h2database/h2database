@@ -49,7 +49,6 @@ import org.h2.util.CacheObject;
 import org.h2.util.CacheWriter;
 import org.h2.util.IntArray;
 import org.h2.util.IntIntHashMap;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
@@ -1766,18 +1765,20 @@ public class PageStore implements CacheWriter {
             int type = index instanceof PageDataIndex ?
                     META_TYPE_DATA_INDEX : META_TYPE_BTREE_INDEX;
             IndexColumn[] columns = index.getIndexColumns();
-            StatementBuilder buff = new StatementBuilder();
-            for (IndexColumn col : columns) {
-                buff.appendExceptFirst(",");
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0, length = columns.length; i < length; i++) {
+                if (i > 0) {
+                    builder.append(',');
+                }
+                IndexColumn col = columns[i];
                 int id = col.column.getColumnId();
-                buff.append(id);
+                builder.append(id);
                 int sortType = col.sortType;
                 if (sortType != 0) {
-                    buff.append('/');
-                    buff.append(sortType);
+                    builder.append('/').append(sortType);
                 }
             }
-            String columnList = buff.toString();
+            String columnList = builder.toString();
             CompareMode mode = table.getCompareMode();
             StringBuilder options = new StringBuilder().append(mode.getName()).append(',').append(mode.getStrength())
                     .append(',');

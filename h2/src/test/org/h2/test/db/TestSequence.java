@@ -319,16 +319,16 @@ public class TestSequence extends TestDb {
             script.add(rs.getString(1));
         }
         Collections.sort(script);
-        assertEquals("CREATE SEQUENCE PUBLIC.A START WITH 1;", script.get(0));
-        assertEquals("CREATE SEQUENCE PUBLIC.B START " +
+        assertEquals("CREATE SEQUENCE \"PUBLIC\".\"A\" START WITH 1;", script.get(0));
+        assertEquals("CREATE SEQUENCE \"PUBLIC\".\"B\" START " +
                 "WITH 5 INCREMENT BY 2 " +
                 "MINVALUE 3 MAXVALUE 7 CYCLE CACHE 1;", script.get(1));
-        assertEquals("CREATE SEQUENCE PUBLIC.C START " +
+        assertEquals("CREATE SEQUENCE \"PUBLIC\".\"C\" START " +
                 "WITH 3 MINVALUE 2 MAXVALUE 9 CACHE 2;",
                 script.get(2));
-        assertEquals("CREATE SEQUENCE PUBLIC.D START " +
+        assertEquals("CREATE SEQUENCE \"PUBLIC\".\"D\" START " +
                 "WITH 1 CACHE 1;", script.get(3));
-        assertEquals("CREATE SEQUENCE PUBLIC.E START " +
+        assertEquals("CREATE SEQUENCE \"PUBLIC\".\"E\" START " +
                 "WITH 1 CACHE 1;", script.get(4));
         conn.close();
     }

@@ -168,6 +168,8 @@ public class WebServer implements Service {
     private ShutdownHandler shutdownHandler;
     private Thread listenerThread;
     private boolean ifExists = true;
+    private String key;
+    private boolean allowSecureCreation;
     private boolean trace;
     private TranslateThread translateThread;
     private boolean allowChunked = true;
@@ -266,6 +268,36 @@ public class WebServer implements Service {
         return startDateTime;
     }
 
+    /**
+     * Returns the key for privileged connections.
+     *
+     * @return key key, or null
+     */
+    String getKey() {
+        return key;
+    }
+
+    /**
+     * Sets the key for privileged connections.
+     *
+     * @param key key, or null
+     */
+    public void setKey(String key) {
+        if (!allowOthers) {
+            this.key = key;
+        }
+    }
+
+    /**
+     * @param allowSecureCreation
+     *            whether creation of databases using the key should be allowed
+     */
+    public void setAllowSecureCreation(boolean allowSecureCreation) {
+        if (!allowOthers) {
+            this.allowSecureCreation = allowSecureCreation;
+        }
+    }
+
     @Override
     public void init(String... args) {
         // set the serverPropertiesDir, because it's used in loadProperties()
@@ -325,6 +357,9 @@ public class WebServer implements Service {
         for (String[] lang : LANGUAGES) {
             languages.add(lang[0]);
         }
+        if (allowOthers) {
+            key = null;
+        }
         updateURL();
     }
 
@@ -336,8 +371,12 @@ public class WebServer implements Service {
 
     private void updateURL() {
         try {
-            url = (ssl ? "https" : "http") + "://" +
-                    NetUtils.getLocalAddress() + ":" + port;
+            StringBuilder builder = new StringBuilder(ssl ? "https" : "http").append("://")
+                    .append(NetUtils.getLocalAddress()).append(':').append(port);
+            if (key != null) {
+                builder.append("?key=").append(key);
+            }
+            url = builder.toString();
         } catch (NoClassDefFoundError e) {
             // Google App Engine does not allow java.net.InetAddress
         }
@@ -495,6 +534,9 @@ public class WebServer implements Service {
     }
 
     void setAllowOthers(boolean b) {
+        if (b) {
+            key = null;
+        }
         allowOthers = b;
     }
 
@@ -718,10 +760,11 @@ public class WebServer implements Service {
      * @param databaseUrl the database URL
      * @param user the user name
      * @param password the password
+     * @param userKey the key of privileged user
      * @return the database connection
      */
     Connection getConnection(String driver, String databaseUrl, String user,
-            String password) throws SQLException {
+            String password, String userKey) throws SQLException {
         driver = driver.trim();
         databaseUrl = databaseUrl.trim();
         Properties p = new Properties();
@@ -730,8 +773,10 @@ public class WebServer implements Service {
         // encrypted H2 database with empty user password doesn't work
         p.setProperty("password", password);
         if (databaseUrl.startsWith("jdbc:h2:")) {
-            if (ifExists) {
-                databaseUrl += ";IFEXISTS=TRUE";
+            if (!allowSecureCreation || key == null || !key.equals(userKey)) {
+                if (ifExists) {
+                    databaseUrl += ";IFEXISTS=TRUE";
+                }
             }
         }
         return JdbcUtils.getConnection(driver, databaseUrl, p);
@@ -867,7 +912,10 @@ public class WebServer implements Service {
     }
 
     /**
-     * true if admin password not configure, or admin password correct.
+     * Check the admin password.
+     *
+     * @param the password to test
+     * @return true if admin password not configure, or admin password correct
      */
     boolean checkAdminPassword(String password) {
         if (adminPassword == null) {

@@ -14,7 +14,3 @@ select bitxor(null, 1) vn, bitxor(1, null) vn1, bitxor(null, null) vn2, bitxor(3
 > ---- ---- ---- --
 > null null null 5
 > rows: 1
-
-
-
-

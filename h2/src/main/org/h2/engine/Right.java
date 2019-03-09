@@ -135,21 +135,21 @@ public class Right extends DbObjectBase {
         StringBuilder buff = new StringBuilder();
         buff.append("GRANT ");
         if (grantedRole != null) {
-            grantedRole.getSQL(buff);
+            grantedRole.getSQL(buff, true);
         } else {
             buff.append(getRights());
             if (object != null) {
                 if (object instanceof Schema) {
                     buff.append(" ON SCHEMA ");
-                    object.getSQL(buff);
+                    object.getSQL(buff, true);
                 } else if (object instanceof Table) {
                     buff.append(" ON ");
-                    object.getSQL(buff);
+                    object.getSQL(buff, true);
                 }
             }
         }
         buff.append(" TO ");
-        grantee.getSQL(buff);
+        grantee.getSQL(buff, true);
         return buff.toString();
     }
 

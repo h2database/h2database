@@ -41,8 +41,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 
 <h2>Priority 1</h2>
 <ul><li>Bugfixes.
-</li><li>More tests with MULTI_THREADED=1 (and MULTI_THREADED with MVCC):
-    Online backup (using the 'backup' statement).
 </li><li>Server side cursors.
 </li></ul>
 
@@ -54,7 +52,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     COMMENT: allow owner of object to change it.
     Issue 208: Access rights for schemas.
 </li><li>Test multi-threaded in-memory db access.
-</li><li>MySQL, MS SQL Server compatibility: support case sensitive (mixed case) identifiers without quotes.
 </li><li>Support GRANT SELECT, UPDATE ON [schemaName.] *.
 </li><li>Migrate database tool (also from other database engines). For Oracle, maybe use
     DBMS_METADATA.GET_DDL / GET_DEPENDENT_DDL.
@@ -320,7 +317,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Connection pool: 'reset session' command (delete temp tables, rollback, auto-commit true).
 </li><li>Improve SQL documentation, see http://www.w3schools.com/sql/
 </li><li>MySQL compatibility: DatabaseMetaData.stores*() methods should return the same values. Test with SquirrelSQL.
-</li><li>MS SQL Server compatibility: support DATEPART syntax.
 </li><li>Sybase/DB2/Oracle compatibility: support out parameters in stored procedures - See http://code.google.com/p/h2database/issues/detail?id=83
 </li><li>Combine Server and Console tool (only keep Server).
 </li><li>Store the Lucene index in the database itself.
@@ -339,7 +335,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>FTP: problems with multithreading?
 </li><li>FTP: implement SFTP / FTPS
 </li><li>FTP: access to a database (.csv for a table, a directory for a schema, a file for a lob, a script.sql file).
-</li><li>More secure default configuration if remote access is enabled.
 </li><li>Improve database file locking (maybe use native file locking). The current approach seems to be problematic
     if the file system is on a remote share (see Google Group 'Lock file modification time is in the future').
 </li><li>Document internal features such as BELONGS_TO_TABLE, NULL_TO_DEFAULT, SEQUENCE.
@@ -366,7 +361,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Document/example how to create and read an encrypted script file.
 </li><li>Fulltext search (Lucene): only prefix column names with _ if they already start with _. Instead of DATA / QUERY / modified use _DATA, _QUERY, _MODIFIED if possible.
 </li><li>Support a way to create or read compressed encrypted script files using an API.
-</li><li>Scripting language support (Javascript).
 </li><li>The network client should better detect if the server is not an H2 server and fail early.
 </li><li>H2 Console: support CLOB/BLOB upload.
 </li><li>Database file lock: detect hibernate / standby / very slow threads (compare system time).
@@ -504,7 +498,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>MS SQL Server compatibility: support @@ROWCOUNT.
 </li><li>Issue 311: Serialized lock mode: executeQuery of write operations fails.
 </li><li>PostgreSQL compatibility: support PgAdmin III (specially the function current_setting).
-</li><li>Support SELECT ... FOR UPDATE with joins (supported by PostgreSQL, MySQL, and HSQLDB; but not Derby).
 </li><li>Support SELECT ... FOR UPDATE OF [field-list] (supported by PostgreSQL, MySQL, and HSQLDB; but not Derby).
 </li><li>Support SELECT ... FOR UPDATE OF [table-list] (supported by PostgreSQL, HSQLDB, Sybase).
 </li><li>TRANSACTION_ID() for in-memory databases.

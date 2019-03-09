@@ -425,6 +425,29 @@ public class Select extends Query {
         return count;
     }
 
+    boolean isConditionMetForUpdate() {
+        if (isConditionMet()) {
+            int count = filters.size();
+            boolean notChanged = true;
+            for (int i = 0; i < count; i++) {
+                TableFilter tableFilter = filters.get(i);
+                if (!tableFilter.isJoinOuter() && !tableFilter.isJoinOuterIndirect()) {
+                    Row row = tableFilter.get();
+                    Row lockedRow = tableFilter.getTable().lockRow(session, row);
+                    if (lockedRow == null) {
+                        return false;
+                    }
+                    if (!row.hasSharedData(lockedRow)) {
+                        tableFilter.set(lockedRow);
+                        notChanged = false;
+                    }
+                }
+            }
+            return notChanged || isConditionMet();
+        }
+        return false;
+    }
+
     boolean isConditionMet() {
         return condition == null || condition.getBooleanValue(session);
     }
@@ -498,12 +521,10 @@ public class Select extends Query {
         long rowNumber = 0;
         setCurrentRowNumber(0);
         int sampleSize = getSampleSizeValue(session);
-        ArrayList<Row>[] forUpdateRows = initForUpdateRows();
         while (topTableFilter.next()) {
             setCurrentRowNumber(rowNumber + 1);
-            if (isConditionMet()) {
+            if (isForUpdateMvcc ? isConditionMetForUpdate() : isConditionMet()) {
                 rowNumber++;
-                addForUpdateRow(forUpdateRows);
                 groupData.nextSource();
                 updateAgg(columnCount, stage);
                 if (sampleSize > 0 && rowNumber >= sampleSize) {
@@ -511,7 +532,6 @@ public class Select extends Query {
                 }
             }
         }
-        lockForUpdateRows(forUpdateRows);
         groupData.done();
     }
 
@@ -704,10 +724,9 @@ public class Select extends Query {
                 limitRows = Long.MAX_VALUE;
             }
         }
-        ArrayList<Row>[] forUpdateRows = initForUpdateRows();
         int sampleSize = getSampleSizeValue(session);
-        LazyResultQueryFlat lazyResult = new LazyResultQueryFlat(expressionArray,
-                sampleSize, columnCount);
+        LazyResultQueryFlat lazyResult = new LazyResultQueryFlat(expressionArray, columnCount, sampleSize,
+                isForUpdateMvcc);
         skipOffset(lazyResult, offset, quickOffset);
         if (result == null) {
             return lazyResult;
@@ -717,7 +736,6 @@ public class Select extends Query {
         }
         Value[] row = null;
         while (result.getRowCount() < limitRows && lazyResult.next()) {
-            addForUpdateRow(forUpdateRows);
             row = lazyResult.currentRow();
             result.addRow(row);
         }
@@ -728,49 +746,16 @@ public class Select extends Query {
                 if (sort.compare(expected, row) != 0) {
                     break;
                 }
-                addForUpdateRow(forUpdateRows);
                 result.addRow(row);
             }
             result.limitsWereApplied();
         }
-        lockForUpdateRows(forUpdateRows);
         return null;
-    }
-
-    private ArrayList<Row>[] initForUpdateRows() {
-        if (!this.isForUpdateMvcc) {
-            return null;
-        }
-        int count = filters.size();
-        @SuppressWarnings("unchecked")
-        ArrayList<Row>[] rows = new ArrayList[count];
-        for (int i = 0; i < count; i++) {
-            rows[i] = Utils.<Row>newSmallArrayList();
-        }
-        return rows;
-    }
-
-    private void addForUpdateRow(ArrayList<Row>[] forUpdateRows) {
-        if (forUpdateRows != null) {
-            int count = filters.size();
-            for (int i = 0; i < count; i++) {
-                filters.get(i).lockRowAdd(forUpdateRows[i]);
-            }
-        }
-    }
-
-    private void lockForUpdateRows(ArrayList<Row>[] forUpdateRows) {
-        if (forUpdateRows != null) {
-            int count = filters.size();
-            for (int i = 0; i < count; i++) {
-                filters.get(i).lockRows(forUpdateRows[i]);
-            }
-        }
     }
 
     private static void skipOffset(LazyResultSelect lazyResult, long offset, boolean quickOffset) {
         if (quickOffset) {
-            while (offset > 0 && lazyResult.next()) {
+            while (offset > 0 && lazyResult.skip()) {
                 offset--;
             }
         }
@@ -1049,7 +1034,7 @@ public class Select extends Query {
             }
             String name = filter.getDerivedColumnName(c);
             ExpressionColumn ec = new ExpressionColumn(
-                    session.getDatabase(), null, alias, name != null ? name : c.getName());
+                    session.getDatabase(), null, alias, name != null ? name : c.getName(), false);
             expressions.add(index++, ec);
         }
         return index;
@@ -1068,7 +1053,7 @@ public class Select extends Query {
             for (int i = 0; i < visibleColumnCount; i++) {
                 Expression expr = expressions.get(i);
                 expr = expr.getNonAliasExpression();
-                String sql = expr.getSQL();
+                String sql = expr.getSQL(true);
                 expressionSQL.add(sql);
             }
         } else {
@@ -1124,7 +1109,7 @@ public class Select extends Query {
             groupIndex = new int[size];
             for (int i = 0; i < size; i++) {
                 Expression expr = group.get(i);
-                String sql = expr.getSQL();
+                String sql = expr.getSQL(true);
                 int found = -1;
                 for (int j = 0; j < expSize; j++) {
                     String s2 = expressionSQL.get(j);
@@ -1404,6 +1389,7 @@ public class Select extends Query {
     private double preparePlan(boolean parse) {
         TableFilter[] topArray = topFilters.toArray(new TableFilter[0]);
         for (TableFilter t : topArray) {
+            t.createIndexConditions();
             t.setFullCondition(condition);
         }
 
@@ -1457,7 +1443,7 @@ public class Select extends Query {
     }
 
     @Override
-    public String getPlanSQL() {
+    public String getPlanSQL(boolean alwaysQuote) {
         // can not use the field sqlStatement because the parameter
         // indexes may be incorrect: ? may be in fact ?2 for a subquery
         // but indexes may be set manually as well
@@ -1474,11 +1460,11 @@ public class Select extends Query {
                     // views.
                 } else {
                     builder.append("WITH RECURSIVE ");
-                    t.getSchema().getSQL(builder).append('.');
-                    Parser.quoteIdentifier(builder, t.getName()).append('(');
-                    Column.writeColumns(builder, t.getColumns());
+                    t.getSchema().getSQL(builder, alwaysQuote).append('.');
+                    Parser.quoteIdentifier(builder, t.getName(), alwaysQuote).append('(');
+                    Column.writeColumns(builder, t.getColumns(), alwaysQuote);
                     builder.append(") AS ");
-                    t.getSQL(builder).append('\n');
+                    t.getSQL(builder, alwaysQuote).append('\n');
                 }
             }
         }
@@ -1487,7 +1473,7 @@ public class Select extends Query {
             builder.append(" DISTINCT");
             if (distinctExpressions != null) {
                 builder.append(" ON(");
-                Expression.writeExpressions(builder, distinctExpressions);
+                Expression.writeExpressions(builder, distinctExpressions, alwaysQuote);
                 builder.append(')');
             }
         }
@@ -1496,7 +1482,7 @@ public class Select extends Query {
                 builder.append(',');
             }
             builder.append('\n');
-            StringUtils.indent(builder, exprList[i].getSQL(), 4, false);
+            StringUtils.indent(builder, exprList[i].getSQL( alwaysQuote), 4, false);
         }
         builder.append("\nFROM ");
         TableFilter filter = topTableFilter;
@@ -1506,7 +1492,7 @@ public class Select extends Query {
                 if (i > 0) {
                     builder.append('\n');
                 }
-                filter.getPlanSQL(builder, i++ > 0);
+                filter.getPlanSQL(builder, i++ > 0, alwaysQuote);
                 filter = filter.getJoin();
             } while (filter != null);
         } else {
@@ -1516,14 +1502,14 @@ public class Select extends Query {
                     if (i > 0) {
                         builder.append('\n');
                     }
-                    f.getPlanSQL(builder, i++ > 0);
+                    f.getPlanSQL(builder, i++ > 0, alwaysQuote);
                     f = f.getJoin();
                 } while (f != null);
             }
         }
         if (condition != null) {
             builder.append("\nWHERE ");
-            condition.getUnenclosedSQL(builder);
+            condition.getUnenclosedSQL(builder, alwaysQuote);
         }
         if (groupIndex != null) {
             builder.append("\nGROUP BY ");
@@ -1531,7 +1517,7 @@ public class Select extends Query {
                 if (i > 0) {
                     builder.append(", ");
                 }
-                exprList[groupIndex[i]].getNonAliasExpression().getUnenclosedSQL(builder);
+                exprList[groupIndex[i]].getNonAliasExpression().getUnenclosedSQL(builder, alwaysQuote);
             }
         } else if (group != null) {
             builder.append("\nGROUP BY ");
@@ -1539,14 +1525,14 @@ public class Select extends Query {
                 if (i > 0) {
                     builder.append(", ");
                 }
-                group.get(i).getUnenclosedSQL(builder);
+                group.get(i).getUnenclosedSQL(builder, alwaysQuote);
             }
         }
         getFilterSQL(builder, "\nHAVING ", exprList, having, havingIndex);
         getFilterSQL(builder, "\nQUALIFY ", exprList, qualify, qualifyIndex);
         if (sort != null) {
             builder.append("\nORDER BY ").append(
-                    sort.getSQL(exprList, visibleColumnCount));
+                    sort.getSQL(exprList, visibleColumnCount, alwaysQuote));
         }
         if (orderList != null) {
             builder.append("\nORDER BY ");
@@ -1554,13 +1540,13 @@ public class Select extends Query {
                 if (i > 0) {
                     builder.append(", ");
                 }
-                orderList.get(i).getSQL(builder);
+                orderList.get(i).getSQL(builder, alwaysQuote);
             }
         }
-        appendLimitToSQL(builder);
+        appendLimitToSQL(builder, alwaysQuote);
         if (sampleSizeExpr != null) {
             builder.append("\nSAMPLE_SIZE ");
-            sampleSizeExpr.getUnenclosedSQL(builder);
+            sampleSizeExpr.getUnenclosedSQL(builder, alwaysQuote);
         }
         if (isForUpdate) {
             builder.append("\nFOR UPDATE");
@@ -1587,10 +1573,10 @@ public class Select extends Query {
             int conditionIndex) {
         if (condition != null) {
             builder.append(sql);
-            condition.getUnenclosedSQL(builder);
+            condition.getUnenclosedSQL(builder, true);
         } else if (conditionIndex >= 0) {
             builder.append(sql);
-            exprList[conditionIndex].getUnenclosedSQL(builder);
+            exprList[conditionIndex].getUnenclosedSQL(builder, true);
         }
     }
 
@@ -1705,6 +1691,14 @@ public class Select extends Query {
         }
         comp = comp.optimize(session);
         boolean addToCondition = true;
+        if (isWindowQuery) {
+            if (qualify == null) {
+                qualify = comp;
+            } else {
+                qualify = new ConditionAndOr(ConditionAndOr.AND, comp, qualify);
+            }
+            return;
+        }
         if (isGroupQuery) {
             addToCondition = false;
             for (int i = 0; groupIndex != null && i < groupIndex.length; i++) {
@@ -1817,7 +1811,7 @@ public class Select extends Query {
 
     @Override
     public boolean allowGlobalConditions() {
-        return offsetExpr == null && (limitExpr == null || sort == null);
+        return offsetExpr == null && (limitExpr == null && distinctExpressions == null || sort == null);
     }
 
     public SortOrder getSortOrder() {
@@ -1866,19 +1860,22 @@ public class Select extends Query {
      */
     private final class LazyResultQueryFlat extends LazyResultSelect {
 
-        int sampleSize;
+        private int sampleSize;
 
-        LazyResultQueryFlat(Expression[] expressions, int sampleSize, int columnCount) {
+        private boolean forUpdate;
+
+        LazyResultQueryFlat(Expression[] expressions, int columnCount, int sampleSize, boolean forUpdate) {
             super(expressions, columnCount);
             this.sampleSize = sampleSize;
+            this.forUpdate = forUpdate;
         }
 
         @Override
         protected Value[] fetchNextRow() {
-            while ((sampleSize <= 0 || rowNumber < sampleSize) &&
-                    topTableFilter.next()) {
+            while ((sampleSize <= 0 || rowNumber < sampleSize) && topTableFilter.next()) {
                 setCurrentRowNumber(rowNumber + 1);
-                if (isConditionMet()) {
+                // This method may lock rows
+                if (forUpdate ? isConditionMetForUpdate() : isConditionMet()) {
                     ++rowNumber;
                     Value[] row = new Value[columnCount];
                     for (int i = 0; i < columnCount; i++) {
@@ -1890,6 +1887,20 @@ public class Select extends Query {
             }
             return null;
         }
+
+        @Override
+        protected boolean skipNextRow() {
+            while ((sampleSize <= 0 || rowNumber < sampleSize) && topTableFilter.next()) {
+                setCurrentRowNumber(rowNumber + 1);
+                // This method does not lock rows
+                if (isConditionMet()) {
+                    ++rowNumber;
+                    return true;
+                }
+            }
+            return false;
+        }
+
     }
 
     /**

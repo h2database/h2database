@@ -654,9 +654,11 @@ public class Build extends BuildBase {
         compileTools();
         mkdir("docs/javadocImpl2");
         javadoc("-sourcepath", "src/main" +
-                File.pathSeparator + "src/test" +
+                // need to be disabled if not enough memory
+                // File.pathSeparator + "src/test" +
                 File.pathSeparator + "src/tools",
-                "-Xdoclint:none",
+                // need to be disabled for java 7
+                // "-Xdoclint:none",
                 "-noindex",
                 "-tag", "h2.resource",
                 "-d", "docs/javadocImpl2",

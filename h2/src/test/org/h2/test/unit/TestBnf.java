@@ -39,7 +39,8 @@ public class TestBnf extends TestDb {
             testModes(conn);
             testProcedures(conn, false);
         }
-        try (Connection conn = getConnection("bnf;mode=mysql")) {
+        deleteDb("bnf");
+        try (Connection conn = getConnection("bnf;mode=mysql;database_to_lower=true")) {
             testProcedures(conn, true);
         }
     }
@@ -93,12 +94,10 @@ public class TestBnf extends TestDb {
         assertFalse(dbContents.isFirebird());
         assertEquals(null, dbContents.quoteIdentifier(null));
         if (isMySQLMode) {
-            assertTrue(dbContents.isH2ModeMySQL());
-            assertEquals("TEST", dbContents.quoteIdentifier("TEST"));
-            assertEquals("TEST", dbContents.quoteIdentifier("Test"));
-            assertEquals("TEST", dbContents.quoteIdentifier("test"));
+            assertEquals("\"TEST\"", dbContents.quoteIdentifier("TEST"));
+            assertEquals("\"Test\"", dbContents.quoteIdentifier("Test"));
+            assertEquals("test", dbContents.quoteIdentifier("test"));
         } else {
-            assertFalse(dbContents.isH2ModeMySQL());
             assertEquals("TEST", dbContents.quoteIdentifier("TEST"));
             assertEquals("\"Test\"", dbContents.quoteIdentifier("Test"));
             assertEquals("\"test\"", dbContents.quoteIdentifier("test"));

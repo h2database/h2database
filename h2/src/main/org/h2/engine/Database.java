@@ -82,7 +82,7 @@ import org.h2.util.TempFileDeleter;
 import org.h2.util.Utils;
 import org.h2.value.CaseInsensitiveMap;
 import org.h2.value.CompareMode;
-import org.h2.value.NullableKeyConcurrentMap;
+import org.h2.value.CaseInsensitiveConcurrentMap;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 
@@ -660,7 +660,8 @@ public class Database implements DataHandler {
         if (n == null || n.isEmpty()) {
             n = "unnamed";
         }
-        return dbSettings.databaseToUpper ? StringUtils.toUpperEnglish(n) : n;
+        return dbSettings.databaseToUpper ? StringUtils.toUpperEnglish(n)
+                : dbSettings.databaseToLower ? StringUtils.toLowerEnglish(n) : n;
     }
 
     private synchronized void open(int traceLevelFile, int traceLevelSystemOut, ConnectionInfo ci) {
@@ -788,12 +789,14 @@ public class Database implements DataHandler {
             store.getTransactionStore().init();
         }
         systemUser = new User(this, 0, SYSTEM_USER_NAME, true);
-        mainSchema = new Schema(this, 0, Constants.SCHEMA_MAIN, systemUser, true);
-        infoSchema = new Schema(this, -1, "INFORMATION_SCHEMA", systemUser, true);
+        mainSchema = new Schema(this, Constants.MAIN_SCHEMA_ID, sysIdentifier(Constants.SCHEMA_MAIN), systemUser,
+                true);
+        infoSchema = new Schema(this, Constants.INFORMATION_SCHEMA_ID, sysIdentifier("INFORMATION_SCHEMA"), systemUser,
+                true);
         schemas.put(mainSchema.getName(), mainSchema);
         schemas.put(infoSchema.getName(), infoSchema);
-        publicRole = new Role(this, 0, Constants.PUBLIC_ROLE_NAME, true);
-        roles.put(Constants.PUBLIC_ROLE_NAME, publicRole);
+        publicRole = new Role(this, 0, sysIdentifier(Constants.PUBLIC_ROLE_NAME), true);
+        roles.put(publicRole.getName(), publicRole);
         systemUser.setAdmin(true);
         systemSession = new Session(this, systemUser, ++nextSessionId);
         lobSession = new Session(this, systemUser, ++nextSessionId);
@@ -1272,7 +1275,7 @@ public class Database implements DataHandler {
      * @return the role or null
      */
     public Role findRole(String roleName) {
-        return roles.get(roleName);
+        return roles.get(StringUtils.toUpperEnglish(roleName));
     }
 
     /**
@@ -1306,7 +1309,7 @@ public class Database implements DataHandler {
      * @return the user or null
      */
     public User findUser(String name) {
-        return users.get(name);
+        return users.get(StringUtils.toUpperEnglish(name));
     }
 
     /**
@@ -1685,6 +1688,15 @@ public class Database implements DataHandler {
             objectIds.set(i);
         }
         return i;
+    }
+
+    /**
+     * Returns main schema (usually PUBLIC).
+     *
+     * @return main schema (usually PUBLIC)
+     */
+    public Schema getMainSchema() {
+        return mainSchema;
     }
 
     public ArrayList<UserAggregate> getAllAggregates() {
@@ -2107,8 +2119,7 @@ public class Database implements DataHandler {
                 Table t = getDependentTable(obj, null);
                 if (t != null) {
                     obj.getSchema().add(obj);
-                    throw DbException.get(ErrorCode.CANNOT_DROP_2, obj.getSQL(),
-                            t.getSQL());
+                    throw DbException.get(ErrorCode.CANNOT_DROP_2, obj.getSQL(false), t.getSQL(false));
                 }
                 obj.removeChildrenAndResources(session);
             }
@@ -2760,8 +2771,8 @@ public class Database implements DataHandler {
                     continue;
                 }
                 // exclude the LOB_MAP that the Recover tool creates
-                if (table.getName().equals("LOB_BLOCKS") && table.getSchema()
-                        .getName().equals("INFORMATION_SCHEMA")) {
+                if (table.getSchema().getId() == Constants.INFORMATION_SCHEMA_ID
+                        && table.getName().equalsIgnoreCase("LOB_BLOCKS")) {
                     continue;
                 }
                 return table;
@@ -3041,9 +3052,7 @@ public class Database implements DataHandler {
      * @return the hash map
      */
     public <V> HashMap<String, V> newStringMap() {
-        return dbSettings.databaseToUpper ?
-                new HashMap<String, V>() :
-                new CaseInsensitiveMap<V>();
+        return dbSettings.caseInsensitiveIdentifiers ? new CaseInsensitiveMap<V>() : new HashMap<String, V>();
     }
 
     /**
@@ -3054,7 +3063,8 @@ public class Database implements DataHandler {
      * @return the hash map
      */
     public <V> ConcurrentHashMap<String, V> newConcurrentStringMap() {
-        return new NullableKeyConcurrentMap<>(!dbSettings.databaseToUpper);
+        return dbSettings.caseInsensitiveIdentifiers ? new CaseInsensitiveConcurrentMap<V>()
+                : new ConcurrentHashMap<String, V>();
     }
 
     /**
@@ -3066,7 +3076,33 @@ public class Database implements DataHandler {
      * @return true if they match
      */
     public boolean equalsIdentifiers(String a, String b) {
-        return a.equals(b) || (!dbSettings.databaseToUpper && a.equalsIgnoreCase(b));
+        return a.equals(b) || dbSettings.caseInsensitiveIdentifiers && a.equalsIgnoreCase(b);
+    }
+
+    /**
+     * Returns identifier in upper or lower case depending on database settings.
+     *
+     * @param upperName
+     *            identifier in the upper case
+     * @return identifier in upper or lower case
+     */
+    public String sysIdentifier(String upperName) {
+        assert isUpperSysIdentifier(upperName);
+        return dbSettings.databaseToLower ? StringUtils.toLowerEnglish(upperName) : upperName;
+    }
+
+    private static boolean isUpperSysIdentifier(String upperName) {
+        int l = upperName.length();
+        if (l == 0) {
+            return false;
+        }
+        for (int i = 0; i < l; i++) {
+            int ch = upperName.charAt(i);
+            if (ch < 'A' || ch > 'Z' && ch != '_') {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override

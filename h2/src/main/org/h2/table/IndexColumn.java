@@ -36,14 +36,15 @@ public class IndexColumn {
      *            string builder
      * @param columns
      *            index columns
+     * @param alwaysQuote quote all identifiers
      * @return the specified string builder
      */
-    public static StringBuilder writeColumns(StringBuilder builder, IndexColumn[] columns) {
+    public static StringBuilder writeColumns(StringBuilder builder, IndexColumn[] columns, boolean alwaysQuote) {
         for (int i = 0, l = columns.length; i < l; i++) {
             if (i > 0) {
                 builder.append(", ");
             }
-            columns[i].getSQL(builder);
+            columns[i].getSQL(builder,  alwaysQuote);
         }
         return builder;
     }
@@ -59,15 +60,16 @@ public class IndexColumn {
      *            separator
      * @param suffix
      *            additional SQL to append after each column
+     * @param alwaysQuote quote all identifiers
      * @return the specified string builder
      */
     public static StringBuilder writeColumns(StringBuilder builder, IndexColumn[] columns, String separator,
-            String suffix) {
+            String suffix, boolean alwaysQuote) {
         for (int i = 0, l = columns.length; i < l; i++) {
             if (i > 0) {
                 builder.append(separator);
             }
-            columns[i].getSQL(builder).append(suffix);
+            columns[i].getSQL(builder, alwaysQuote).append(suffix);
         }
         return builder;
     }
@@ -77,10 +79,12 @@ public class IndexColumn {
      *
      * @param builder
      *            string builder
+     * @param alwaysQuote
+     *            quote all identifiers
      * @return the specified string builder
      */
-    public StringBuilder getSQL(StringBuilder builder) {
-        SortOrder.typeToString(column.getSQL(builder), sortType);
+    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+        SortOrder.typeToString(column.getSQL(builder, alwaysQuote), sortType);
         return builder;
     }
 
@@ -114,6 +118,6 @@ public class IndexColumn {
 
     @Override
     public String toString() {
-        return getSQL(new StringBuilder("IndexColumn ")).toString();
+        return getSQL(new StringBuilder("IndexColumn "), false).toString();
     }
 }

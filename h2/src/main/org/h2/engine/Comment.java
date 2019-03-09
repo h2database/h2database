@@ -16,13 +16,13 @@ import org.h2.util.StringUtils;
 public class Comment extends DbObjectBase {
 
     private final int objectType;
-    private final String objectName;
+    private final String quotedObjectName;
     private String commentText;
 
     public Comment(Database database, int id, DbObject obj) {
         super(database, id,  getKey(obj), Trace.DATABASE);
         this.objectType = obj.getType();
-        this.objectName = obj.getSQL();
+        this.quotedObjectName = obj.getSQL(true);
     }
 
     @Override
@@ -70,7 +70,7 @@ public class Comment extends DbObjectBase {
     public String getCreateSQL() {
         StringBuilder buff = new StringBuilder("COMMENT ON ");
         buff.append(getTypeName(objectType)).append(' ').
-                append(objectName).append(" IS ");
+                append(quotedObjectName).append(" IS ");
         if (commentText == null) {
             buff.append("NULL");
         } else {
@@ -103,7 +103,7 @@ public class Comment extends DbObjectBase {
      */
     static String getKey(DbObject obj) {
         StringBuilder builder = new StringBuilder(getTypeName(obj.getType())).append(' ');
-        obj.getSQL(builder);
+        obj.getSQL(builder, true);
         return builder.toString();
     }
 

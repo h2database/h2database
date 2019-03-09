@@ -15,22 +15,22 @@ public class Constants {
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE = "2018-03-18";
+    public static final String BUILD_DATE = "2019-02-22";
 
     /**
      * The build date of the last stable release.
      */
-    public static final String BUILD_DATE_STABLE = "2017-06-10";
+    public static final String BUILD_DATE_STABLE = "2018-03-18";
 
     /**
      * The build id is incremented for each public release.
      */
-    public static final int BUILD_ID = 197;
+    public static final int BUILD_ID = 198;
 
     /**
      * The build id of the last stable release.
      */
-    public static final int BUILD_ID_STABLE = 196;
+    public static final int BUILD_ID_STABLE = 197;
 
     /**
      * Whether this is a snapshot version.
@@ -101,7 +101,7 @@ public class Constants {
 
     /**
      * The TCP protocol version number 18.
-     * @since 1.4.198 (TODO)
+     * @since 1.4.198 (2019-02-22)
      */
     public static final int TCP_PROTOCOL_VERSION_18 = 18;
 
@@ -400,6 +400,16 @@ public class Constants {
      * The number of bytes in random salt that is used to hash passwords.
      */
     public static final int SALT_LEN = 8;
+
+    /**
+     * The identity of INFORMATION_SCHEMA.
+     */
+    public static final int INFORMATION_SCHEMA_ID = -1;
+
+    /**
+     * The identity of PUBLIC schema.
+     */
+    public static final int MAIN_SCHEMA_ID = 0;
 
     /**
      * The name of the default schema.

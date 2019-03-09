@@ -161,6 +161,11 @@ public class TcpServerThread implements Runnable {
                 transfer.setSession(session);
                 server.addConnection(threadId, originalURL, ci.getUserName());
                 trace("Connected");
+            } catch (OutOfMemoryError e) {
+                // catch this separately otherwise such errors will never hit the console
+                server.traceError(e);
+                sendError(e);
+                stop = true;
             } catch (Throwable e) {
                 sendError(e);
                 stop = true;

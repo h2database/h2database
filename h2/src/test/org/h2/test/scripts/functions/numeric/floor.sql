@@ -14,9 +14,3 @@ select floor(null) vn, floor(1) v1, floor(1.1) v2, floor(-1.1) v3, floor(1.9) v4
 > ---- --- --- ---- --- ----
 > null 1.0 1.0 -2.0 1.0 -2.0
 > rows: 1
-
-
-
-
-
-

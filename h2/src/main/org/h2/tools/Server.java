@@ -426,7 +426,24 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * @return the server
      */
     public static Server createWebServer(String... args) throws SQLException {
+        return createWebServer(args, null, false);
+    }
+
+    /**
+     * Create a new web server, but does not start it yet.
+     *
+     * @param args
+     *            the argument list
+     * @param key
+     *            key, or null
+     * @param allowSecureCreation
+     *            whether creation of databases using the key should be allowed
+     * @return the server
+     */
+    static Server createWebServer(String[] args, String key, boolean allowSecureCreation) throws SQLException {
         WebServer service = new WebServer();
+        service.setKey(key);
+        service.setAllowSecureCreation(allowSecureCreation);
         Server server = new Server(service, args);
         service.setShutdownHandler(server);
         return server;
@@ -492,7 +509,12 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
         try {
             started = true;
             service.start();
-            String name = service.getName() + " (" + service.getURL() + ")";
+            String url = service.getURL();
+            int idx = url.indexOf('?');
+            if (idx >= 0) {
+                url = url.substring(0, idx);
+            }
+            String name = service.getName() + " (" + url + ')';
             Thread t = new Thread(this, name);
             t.setDaemon(service.isDaemon());
             t.start();
@@ -696,8 +718,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 if (!ok) {
                     // No success in detection.
                     throw new Exception(
-                            "Browser detection failed and system property " +
-                            SysProperties.H2_BROWSER + " not set");
+                            "Browser detection failed, and java property 'h2.browser' " +
+                            "and environment variable BROWSER are not set to a browser executable.");
                 }
             }
         } catch (Exception e) {

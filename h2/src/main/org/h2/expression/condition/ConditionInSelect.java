@@ -41,6 +41,11 @@ public class ConditionInSelect extends Condition {
         this.database = database;
         this.left = left;
         this.query = query;
+        /*
+         * Need to do it now because other methods may be invoked in different
+         * order.
+         */
+        query.setRandomAccessResult(true);
         this.all = all;
         this.compareType = compareType;
     }
@@ -140,7 +145,6 @@ public class ConditionInSelect extends Condition {
     @Override
     public Expression optimize(Session session) {
         left = left.optimize(session);
-        query.setRandomAccessResult(true);
         session.optimizeQueryExpression(query);
         // Can not optimize: the data may change
         return this;
@@ -153,9 +157,9 @@ public class ConditionInSelect extends Condition {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
         builder.append('(');
-        left.getSQL(builder).append(' ');
+        left.getSQL(builder, alwaysQuote).append(' ');
         if (all) {
             builder.append(Comparison.getCompareOperator(compareType)).
                 append(" ALL");
@@ -168,7 +172,7 @@ public class ConditionInSelect extends Condition {
             }
         }
         builder.append("(\n");
-        return StringUtils.indent(builder, query.getPlanSQL(), 4, false).append("))");
+        return StringUtils.indent(builder, query.getPlanSQL(alwaysQuote), 4, false).append("))");
     }
 
     @Override

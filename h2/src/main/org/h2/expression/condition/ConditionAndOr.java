@@ -44,9 +44,9 @@ public class ConditionAndOr extends Condition {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
         builder.append('(');
-        left.getSQL(builder);
+        left.getSQL(builder, alwaysQuote);
         switch (andOrType) {
         case AND:
             builder.append("\n    AND ");
@@ -57,7 +57,7 @@ public class ConditionAndOr extends Condition {
         default:
             throw DbException.throwInternalError("andOrType=" + andOrType);
         }
-        return right.getSQL(builder).append(')');
+        return right.getSQL(builder, alwaysQuote).append(')');
     }
 
     @Override
@@ -324,18 +324,18 @@ public class ConditionAndOr extends Condition {
         }
         Expression leftLeft = left.getSubexpression(0), leftRight = left.getSubexpression(1);
         Expression rightLeft = right.getSubexpression(0), rightRight = right.getSubexpression(1);
-        String leftLeftSQL = leftLeft.getSQL(), rightLeftSQL = rightLeft.getSQL();
+        String leftLeftSQL = leftLeft.getSQL(true), rightLeftSQL = rightLeft.getSQL(true);
         Expression combinedExpression;
         if (leftLeftSQL.equals(rightLeftSQL)) {
             combinedExpression = new ConditionAndOr(OR, leftRight, rightRight);
             return new ConditionAndOr(AND, leftLeft, combinedExpression);
         }
-        String rightRightSQL = rightRight.getSQL();
+        String rightRightSQL = rightRight.getSQL(true);
         if (leftLeftSQL.equals(rightRightSQL)) {
             combinedExpression = new ConditionAndOr(OR, leftRight, rightLeft);
             return new ConditionAndOr(AND, leftLeft, combinedExpression);
         }
-        String leftRightSQL = leftRight.getSQL();
+        String leftRightSQL = leftRight.getSQL(true);
         if (leftRightSQL.equals(rightLeftSQL)) {
             combinedExpression = new ConditionAndOr(OR, leftLeft, rightRight);
             return new ConditionAndOr(AND, leftRight, combinedExpression);

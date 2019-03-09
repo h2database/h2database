@@ -51,7 +51,7 @@ public class GUIConsole extends Console implements ActionListener, MouseListener
     private Button startBrowser;
 
     private Frame createFrame;
-    private TextField pathField, userField, passwordField;
+    private TextField pathField, userField, passwordField, passwordConfirmationField;
     private Button createButton;
     private TextArea errorArea;
 
@@ -318,6 +318,7 @@ public class GUIConsole extends Console implements ActionListener, MouseListener
 
         constraints = new GridBagConstraints();
         constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.insets = new Insets(10, 0, 0, 0);
         constraints.gridx = 0;
         constraints.gridy = 0;
         Label urlLabel = new Label("Database path:", Label.LEFT);
@@ -328,7 +329,7 @@ public class GUIConsole extends Console implements ActionListener, MouseListener
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.gridy = 0;
         constraints.weightx = 1d;
-        constraints.insets = new Insets(0, 5, 0, 0);
+        constraints.insets = new Insets(10, 5, 0, 0);
         constraints.gridx = 1;
         pathField = new TextField();
         pathField.setFont(font);
@@ -370,13 +371,33 @@ public class GUIConsole extends Console implements ActionListener, MouseListener
         constraints.gridx = 1;
         passwordField = new TextField();
         passwordField.setFont(font);
+        passwordField.setEchoChar('*');
         mainPanel.add(passwordField, constraints);
+
+        constraints = new GridBagConstraints();
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.gridx = 0;
+        constraints.gridy = 3;
+        Label passwordConfirmationLabel = new Label("Password confirmation:", Label.LEFT);
+        passwordConfirmationLabel.setFont(font);
+        mainPanel.add(passwordConfirmationLabel, constraints);
+
+        constraints = new GridBagConstraints();
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.gridy = 3;
+        constraints.weightx = 1d;
+        constraints.insets = new Insets(0, 5, 0, 0);
+        constraints.gridx = 1;
+        passwordConfirmationField = new TextField();
+        passwordConfirmationField.setFont(font);
+        passwordConfirmationField.setEchoChar('*');
+        mainPanel.add(passwordConfirmationField, constraints);
 
         constraints = new GridBagConstraints();
         constraints.gridx = 0;
         constraints.gridwidth = 2;
         constraints.insets = new Insets(10, 0, 0, 0);
-        constraints.gridy = 3;
+        constraints.gridy = 4;
         constraints.anchor = GridBagConstraints.EAST;
         createButton = new Button("Create");
         createButton.setFocusable(false);
@@ -387,7 +408,7 @@ public class GUIConsole extends Console implements ActionListener, MouseListener
 
         constraints = new GridBagConstraints();
         constraints.fill = GridBagConstraints.HORIZONTAL;
-        constraints.gridy = 4;
+        constraints.gridy = 5;
         constraints.weightx = 1d;
         constraints.insets = new Insets(10, 0, 0, 0);
         constraints.gridx = 0;
@@ -406,11 +427,10 @@ public class GUIConsole extends Console implements ActionListener, MouseListener
         constraints.gridy = 0;
         createFrame.add(mainPanel, constraints);
 
-        int width = 300, height = 300;
+        int width = 400, height = 400;
         createFrame.setSize(width, height);
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        createFrame.setLocation((screenSize.width - width) / 2,
-                (screenSize.height - height) / 2);
+        createFrame.pack();
+        createFrame.setLocationRelativeTo(null);
         try {
             createFrame.setVisible(true);
         } catch (Throwable t) {
@@ -431,7 +451,13 @@ public class GUIConsole extends Console implements ActionListener, MouseListener
         if (web == null || createFrame == null) {
             return;
         }
-        String path = pathField.getText(), user = userField.getText(), password = passwordField.getText();
+        String path = pathField.getText(), user = userField.getText(), password = passwordField.getText(),
+                passwordConfirmation = passwordConfirmationField.getText();
+        if (!password.equals(passwordConfirmation)) {
+            errorArea.setForeground(Color.RED);
+            errorArea.setText("Passwords don't match");
+            return;
+        }
         if (password.isEmpty()) {
             errorArea.setForeground(Color.RED);
             errorArea.setText("Specify a password");

@@ -16,7 +16,7 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
+import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
 
@@ -81,14 +81,14 @@ public class JavaFunction extends Expression implements FunctionCall {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
         // TODO always append the schema once FUNCTIONS_IN_SCHEMA is enabled
         if (functionAlias.getDatabase().getSettings().functionsInSchema ||
-                !functionAlias.getSchema().getName().equals(Constants.SCHEMA_MAIN)) {
-            Parser.quoteIdentifier(builder, functionAlias.getSchema().getName()).append('.');
+                functionAlias.getSchema().getId() != Constants.MAIN_SCHEMA_ID) {
+            Parser.quoteIdentifier(builder, functionAlias.getSchema().getName(), alwaysQuote).append('.');
         }
-        Parser.quoteIdentifier(builder, functionAlias.getName()).append('(');
-        writeExpressions(builder, this.args);
+        Parser.quoteIdentifier(builder, functionAlias.getName(), alwaysQuote).append('(');
+        writeExpressions(builder, this.args, alwaysQuote);
         return builder.append(')');
     }
 
@@ -162,7 +162,7 @@ public class JavaFunction extends Expression implements FunctionCall {
             return getExpressionColumns(session, rs.getResult());
         case Value.ARRAY:
         case Value.ROW:
-            return getExpressionColumns(session, (ValueArray) getValue(session));
+            return getExpressionColumns(session, (ValueCollectionBase) getValue(session));
         }
         return super.getExpressionColumns(session);
     }

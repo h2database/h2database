@@ -659,7 +659,7 @@ public class RegularTable extends TableBase {
 
     @Override
     public String toString() {
-        return getSQL();
+        return getSQL(false);
     }
 
     @Override
@@ -729,6 +729,7 @@ public class RegularTable extends TableBase {
         if (rowIdColumn == null) {
             rowIdColumn = new Column(Column.ROWID, Value.LONG);
             rowIdColumn.setTable(this, -1);
+            rowIdColumn.setRowId(true);
         }
         return rowIdColumn;
     }

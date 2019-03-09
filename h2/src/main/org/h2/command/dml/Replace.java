@@ -87,7 +87,7 @@ public class Replace extends CommandWithValues {
                             Value v = c.convert(e.getValue(session), mode);
                             newRow.setValue(index, v);
                         } catch (DbException ex) {
-                            throw setRow(ex, count, getSQL(expr));
+                            throw setRow(ex, count, getSimpleSQL(expr));
                         }
                     }
                 }
@@ -164,7 +164,7 @@ public class Replace extends CommandWithValues {
         } else if (count == 1) {
             return 2;
         }
-        throw DbException.get(ErrorCode.DUPLICATE_KEY_1, table.getSQL());
+        throw DbException.get(ErrorCode.DUPLICATE_KEY_1, table.getSQL(false));
     }
 
     private int update(Row row) {
@@ -184,7 +184,7 @@ public class Replace extends CommandWithValues {
             Column col = keys[i];
             Value v = row.getValue(col.getColumnId());
             if (v == null) {
-                throw DbException.get(ErrorCode.COLUMN_CONTAINS_NULL_VALUES_1, col.getSQL());
+                throw DbException.get(ErrorCode.COLUMN_CONTAINS_NULL_VALUES_1, col.getSQL(false));
             }
             Parameter p = k.get(columns.length + i);
             p.setValue(v);
@@ -193,10 +193,10 @@ public class Replace extends CommandWithValues {
     }
 
     @Override
-    public String getPlanSQL() {
+    public String getPlanSQL(boolean alwaysQuote) {
         StringBuilder builder = new StringBuilder("REPLACE INTO ");
-        table.getSQL(builder).append('(');
-        Column.writeColumns(builder, columns);
+        table.getSQL(builder, alwaysQuote).append('(');
+        Column.writeColumns(builder, columns, alwaysQuote);
         builder.append(')');
         builder.append('\n');
         if (!valuesExpressionList.isEmpty()) {
@@ -207,11 +207,11 @@ public class Replace extends CommandWithValues {
                     builder.append(", ");
                 }
                 builder.append('(');
-                Expression.writeExpressions(builder, expr);
+                Expression.writeExpressions(builder, expr, alwaysQuote);
                 builder.append(')');
             }
         } else {
-            builder.append(query.getPlanSQL());
+            builder.append(query.getPlanSQL(alwaysQuote));
         }
         return builder.toString();
     }
@@ -266,9 +266,9 @@ public class Replace extends CommandWithValues {
             }
         }
         StringBuilder builder = new StringBuilder("UPDATE ");
-        table.getSQL(builder).append(" SET ");
-        Column.writeColumns(builder, columns, ", ", "=?").append(" WHERE ");
-        Column.writeColumns(builder, keys, " AND ", "=?");
+        table.getSQL(builder, true).append(" SET ");
+        Column.writeColumns(builder, columns, ", ", "=?", true).append(" WHERE ");
+        Column.writeColumns(builder, keys, " AND ", "=?", true);
         update = session.prepare(builder.toString());
     }
 

@@ -30,12 +30,18 @@ public class SelectOrderBy {
      */
     public int sortType;
 
-    public void getSQL(StringBuilder builder) {
+    /**
+     * Appends the order by expression to the specified builder.
+     *
+     * @param builder the string builder
+     * @param alwaysQuote quote all identifiers
+     */
+    public void getSQL(StringBuilder builder, boolean alwaysQuote) {
         if (expression != null) {
             builder.append('=');
-            expression.getSQL(builder);
+            expression.getSQL(builder, alwaysQuote);
         } else {
-            columnIndexExpr.getUnenclosedSQL(builder);
+            columnIndexExpr.getUnenclosedSQL(builder, alwaysQuote);
         }
         SortOrder.typeToString(builder, sortType);
     }

@@ -47,7 +47,6 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 import org.h2.tools.SimpleResultSet;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
@@ -632,8 +631,9 @@ public class FullTextLucene extends FullText {
             doc.add(new Field(LUCENE_FIELD_MODIFIED,
                     DateTools.timeToString(time, DateTools.Resolution.SECOND),
                     TextField.TYPE_STORED));
-            StatementBuilder buff = new StatementBuilder();
-            for (int index : indexColumns) {
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0, length = indexColumns.length; i < length; i++) {
+                int index = indexColumns[i];
                 String columnName = columns[index];
                 String data = asString(row[index], columnTypes[index]);
                 // column names that start with _
@@ -643,12 +643,14 @@ public class FullTextLucene extends FullText {
                     columnName = LUCENE_FIELD_COLUMN_PREFIX + columnName;
                 }
                 doc.add(new Field(columnName, data, TextField.TYPE_NOT_STORED));
-                buff.appendExceptFirst(" ");
-                buff.append(data);
+                if (i > 0) {
+                    builder.append(' ');
+                }
+                builder.append(data);
             }
             FieldType dataFieldType = STORE_DOCUMENT_TEXT_IN_INDEX ?
                     TextField.TYPE_STORED : TextField.TYPE_NOT_STORED;
-            doc.add(new Field(LUCENE_FIELD_DATA, buff.toString(), dataFieldType));
+            doc.add(new Field(LUCENE_FIELD_DATA, builder.toString(), dataFieldType));
             try {
                 indexAccess.writer.addDocument(doc);
                 if (commitIndex) {

@@ -24,7 +24,6 @@ import org.h2.schema.SchemaObjectBase;
 import org.h2.table.Table;
 import org.h2.util.JdbcUtils;
 import org.h2.util.SourceCompiler;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -177,12 +176,16 @@ public class FunctionAlias extends SchemaObjectBase {
     }
 
     private static String getMethodSignature(Method m) {
-        StatementBuilder buff = new StatementBuilder(m.getName());
+        StringBuilder buff = new StringBuilder(m.getName());
         buff.append('(');
-        for (Class<?> p : m.getParameterTypes()) {
-            // do not use a space here, because spaces are removed
-            // in CreateFunctionAlias.setJavaClassMethod()
-            buff.appendExceptFirst(",");
+        Class<?>[] parameterTypes = m.getParameterTypes();
+        for (int i = 0, length = parameterTypes.length; i < length; i++) {
+            if (i > 0) {
+                // do not use a space here, because spaces are removed
+                // in CreateFunctionAlias.setJavaClassMethod()
+                buff.append(',');
+            }
+            Class<?> p = parameterTypes[i];
             if (p.isArray()) {
                 buff.append(p.getComponentType().getName()).append("[]");
             } else {
@@ -459,14 +462,15 @@ public class FunctionAlias extends SchemaObjectBase {
                         return ValueNull.INSTANCE;
                     }
                 } catch (InvocationTargetException e) {
-                    StatementBuilder buff = new StatementBuilder(method.getName());
-                    buff.append('(');
-                    for (Object o : params) {
-                        buff.appendExceptFirst(", ");
-                        buff.append(o == null ? "null" : o.toString());
+                    StringBuilder builder = new StringBuilder(method.getName()).append('(');
+                    for (int i = 0, length = params.length; i < length; i++) {
+                        if (i > 0) {
+                            builder.append(", ");
+                        }
+                        builder.append(params[i]);
                     }
-                    buff.append(')');
-                    throw DbException.convertInvocation(e, buff.toString());
+                    builder.append(')');
+                    throw DbException.convertInvocation(e, builder.toString());
                 } catch (Exception e) {
                     throw DbException.convert(e);
                 }

@@ -1829,7 +1829,7 @@ public class MetaTable extends Table {
                         // TRIGGER_NAME
                         trigger.getName(),
                         // TRIGGER_TYPE
-                        trigger.getTypeNameList(),
+                        trigger.getTypeNameList(new StringBuilder()).toString(),
                         // TABLE_CATALOG
                         catalog,
                         // TABLE_SCHEMA

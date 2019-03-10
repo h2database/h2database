@@ -26,8 +26,6 @@ import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.util.IOUtils;
-import org.h2.util.SmallLRUCache;
-import org.h2.util.SynchronizedVerifier;
 import org.h2.util.Task;
 
 /**
@@ -178,13 +176,11 @@ public class TestMultiThread extends TestDb implements Runnable {
                 }
             };
             t.execute();
-            SynchronizedVerifier.setDetect(SmallLRUCache.class, true);
             for (int i = 0; i < 1000; i++) {
                 conn.prepareStatement("select * from test_view where x" +
                         r.nextInt(len) + "=1");
             }
             t.get();
-            SynchronizedVerifier.setDetect(SmallLRUCache.class, false);
         }
     }
 

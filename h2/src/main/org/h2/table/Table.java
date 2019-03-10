@@ -184,12 +184,7 @@ public abstract class Table extends SchemaObjectBase {
      * @return locked row, or null if row does not exist anymore
      */
     public Row lockRow(Session session, Row row) {
-        Row newRow = row.getCopy();
-        removeRow(session, row);
-        session.log(this, UndoLogRecord.DELETE, row);
-        addRow(session, newRow);
-        session.log(this, UndoLogRecord.INSERT, newRow);
-        return row;
+        throw DbException.getUnsupportedException("lockRow()");
     }
 
     /**

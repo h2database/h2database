@@ -5,8 +5,6 @@
  */
 package org.h2.result;
 
-import java.util.Arrays;
-
 import org.h2.engine.Constants;
 import org.h2.store.Data;
 import org.h2.value.Value;
@@ -19,7 +17,6 @@ public class RowImpl implements Row {
     private long key;
     private final Value[] data;
     private int memory;
-    private int version;
     private boolean deleted;
 
     public RowImpl(Value[] data, int memory) {
@@ -27,35 +24,9 @@ public class RowImpl implements Row {
         this.memory = memory;
     }
 
-    /**
-     * Get a copy of the row that is distinct from (not equal to) this row.
-     * This is used for FOR UPDATE to allow pseudo-updating a row.
-     *
-     * @return a new row with the same data
-     */
     @Override
-    public Row getCopy() {
-        Value[] d2 = Arrays.copyOf(data, data.length);
-        RowImpl r2 = new RowImpl(d2, memory);
-        r2.key = key;
-        r2.version = version + 1;
-        return r2;
-    }
-
-    @Override
-    public void setKeyAndVersion(SearchRow row) {
+    public void setKey(SearchRow row) {
         setKey(row.getKey());
-        setVersion(row.getVersion());
-    }
-
-    @Override
-    public int getVersion() {
-        return version;
-    }
-
-    @Override
-    public void setVersion(int version) {
-        this.version = version;
     }
 
     @Override
@@ -128,23 +99,19 @@ public class RowImpl implements Row {
 
     @Override
     public String toString() {
-        return toString(key, version, deleted, data);
+        return toString(key, deleted, data);
     }
 
     /**
      * Convert a row to a string.
      *
      * @param key the key
-     * @param version the version
      * @param isDeleted whether the row is deleted
      * @param data the row data
      * @return the string representation
      */
-    static String toString(long key, int version, boolean isDeleted, Value[] data) {
+    static String toString(long key, boolean isDeleted, Value[] data) {
         StringBuilder builder = new StringBuilder("( /* key:").append(key);
-        if (version != 0) {
-            builder.append(" v:").append(version);
-        }
         if (isDeleted) {
             builder.append(" deleted");
         }

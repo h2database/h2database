@@ -14,7 +14,6 @@ import org.h2.value.Value;
 public class SimpleRow implements SearchRow {
 
     private long key;
-    private int version;
     private final Value[] data;
     private int memory;
 
@@ -38,14 +37,8 @@ public class SimpleRow implements SearchRow {
     }
 
     @Override
-    public void setKeyAndVersion(SearchRow row) {
+    public void setKey(SearchRow row) {
         key = row.getKey();
-        version = row.getVersion();
-    }
-
-    @Override
-    public int getVersion() {
-        return version;
     }
 
     @Override
@@ -60,7 +53,7 @@ public class SimpleRow implements SearchRow {
 
     @Override
     public String toString() {
-        return RowImpl.toString(key, version, false, data);
+        return RowImpl.toString(key, false, data);
     }
 
     @Override

@@ -46,18 +46,11 @@ public interface SearchRow {
     void setValue(int index, Value v);
 
     /**
-     * Set the position and version to match another row.
+     * Set the position to match another row.
      *
      * @param old the other row.
      */
-    void setKeyAndVersion(SearchRow old);
-
-    /**
-     * Get the version of the row.
-     *
-     * @return the version
-     */
-    int getVersion();
+    void setKey(SearchRow old);
 
     /**
      * Set the unique key of the row.

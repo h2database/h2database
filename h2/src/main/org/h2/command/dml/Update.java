@@ -182,17 +182,11 @@ public class Update extends Prepared {
                         }
                     }
                     table.validateConvertUpdateSequence(session, newRow);
-                    boolean done = false;
-                    if (table.fireRow()) {
-                        done = table.fireBeforeRow(session, oldRow, newRow);
-                    }
-                    if (!done) {
-                        if (!done) {
-                            rows.add(oldRow);
-                            rows.add(newRow);
-                            if (updatedKeysCollector != null) {
-                                updatedKeysCollector.add(key);
-                            }
+                    if (!table.fireRow() || !table.fireBeforeRow(session, oldRow, newRow)) {
+                        rows.add(oldRow);
+                        rows.add(newRow);
+                        if (updatedKeysCollector != null) {
+                            updatedKeysCollector.add(key);
                         }
                     }
                     count++;

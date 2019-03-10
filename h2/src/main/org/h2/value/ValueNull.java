@@ -29,12 +29,6 @@ public class ValueNull extends Value {
     public static final ValueNull INSTANCE = new ValueNull();
 
     /**
-     * This special instance is used as a marker for deleted entries in a map.
-     * It should not be used anywhere else.
-     */
-    public static final ValueNull DELETED = new ValueNull();
-
-    /**
      * The precision of NULL.
      */
     static final int PRECISION = 1;

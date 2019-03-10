@@ -2875,8 +2875,7 @@ windowName | windowSpecification
 ","
 A window name or inline specification for a window function or aggregate.
 
-Window functions are currently experimental in H2 and should be used with caution.
-They also may require a lot of memory for large queries.
+Window functions in H2 may require a lot of memory for large queries.
 ","
 W1
 (ORDER BY ID)
@@ -5524,8 +5523,7 @@ ROW_NUMBER() OVER windowNameOrSpecification
 Returns the number of the current row starting with 1.
 Window frame clause is not allowed for this function.
 
-Window functions are currently experimental in H2 and should be used with caution.
-They also may require a lot of memory for large queries.
+Window functions in H2 may require a lot of memory for large queries.
 ","
 SELECT ROW_NUMBER() OVER (), * FROM TEST;
 SELECT ROW_NUMBER() OVER (ORDER BY ID), * FROM TEST;
@@ -5542,8 +5540,7 @@ It means that gaps in ranks are possible.
 This function requires window order clause.
 Window frame clause is not allowed for this function.
 
-Window functions are currently experimental in H2 and should be used with caution.
-They also may require a lot of memory for large queries.
+Window functions in H2 may require a lot of memory for large queries.
 ","
 SELECT RANK() OVER (ORDER BY ID), * FROM TEST;
 SELECT RANK() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
@@ -5559,8 +5556,7 @@ Gaps in ranks are not possible.
 This function requires window order clause.
 Window frame clause is not allowed for this function.
 
-Window functions are currently experimental in H2 and should be used with caution.
-They also may require a lot of memory for large queries.
+Window functions in H2 may require a lot of memory for large queries.
 ","
 SELECT DENSE_RANK() OVER (ORDER BY ID), * FROM TEST;
 SELECT DENSE_RANK() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
@@ -5575,8 +5571,7 @@ where RANK is a rank of the row and NR is a number of rows in window partition w
 Note that result is always 0 if window order clause is not specified.
 Window frame clause is not allowed for this function.
 
-Window functions are currently experimental in H2 and should be used with caution.
-They also may require a lot of memory for large queries.
+Window functions in H2 may require a lot of memory for large queries.
 ","
 SELECT PERCENT_RANK() OVER (ORDER BY ID), * FROM TEST;
 SELECT PERCENT_RANK() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
@@ -5592,8 +5587,7 @@ and NR is a number of rows in window partition with this row.
 Note that result is always 1 if window order clause is not specified.
 Window frame clause is not allowed for this function.
 
-Window functions are currently experimental in H2 and should be used with caution.
-They also may require a lot of memory for large queries.
+Window functions in H2 may require a lot of memory for large queries.
 ","
 SELECT CUME_DIST() OVER (ORDER BY ID), * FROM TEST;
 SELECT CUME_DIST() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
@@ -5610,8 +5604,7 @@ For example, if 5 rows are distributed into 2 groups this function returns 1 for
 This function requires window order clause.
 Window frame clause is not allowed for this function.
 
-Window functions are currently experimental in H2 and should be used with caution.
-They also may require a lot of memory for large queries.
+Window functions in H2 may require a lot of memory for large queries.
 ","
 SELECT NTILE(10) OVER (ORDER BY ID), * FROM TEST;
 SELECT NTILE(5) OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
@@ -5630,8 +5623,7 @@ If offset is 0 the value from the current row is returned unconditionally.
 This function requires window order clause.
 Window frame clause is not allowed for this function.
 
-Window functions are currently experimental in H2 and should be used with caution.
-They also may require a lot of memory for large queries.
+Window functions in H2 may require a lot of memory for large queries.
 ","
 SELECT LEAD(X) OVER (ORDER BY ID), * FROM TEST;
 SELECT LEAD(X, 2, 0) IGNORE NULLS OVER (
@@ -5652,8 +5644,7 @@ If offset is 0 the value from the current row is returned unconditionally.
 This function requires window order clause.
 Window frame clause is not allowed for this function.
 
-Window functions are currently experimental in H2 and should be used with caution.
-They also may require a lot of memory for large queries.
+Window functions in H2 may require a lot of memory for large queries.
 ","
 SELECT LAG(X) OVER (ORDER BY ID), * FROM TEST;
 SELECT LAG(X, 2, 0) IGNORE NULLS OVER (
@@ -5668,8 +5659,7 @@ OVER windowNameOrSpecification
 Returns the first value in a window.
 If IGNORE NULLS is specified null values are skipped and the function returns first non-null value, if any.
 
-Window functions are currently experimental in H2 and should be used with caution.
-They also may require a lot of memory for large queries.
+Window functions in H2 may require a lot of memory for large queries.
 ","
 SELECT FIRST_VALUE(X) OVER (ORDER BY ID), * FROM TEST;
 SELECT FIRST_VALUE(X) IGNORE NULLS OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
@@ -5685,8 +5675,7 @@ if there is no non-null value it returns NULL.
 Note that the last value is actually a value in the current group of rows
 if window order clause is specified and window frame clause is not specified.
 
-Window functions are currently experimental in H2 and should be used with caution.
-They also may require a lot of memory for large queries.
+Window functions in H2 may require a lot of memory for large queries.
 ","
 SELECT LAST_VALUE(X) OVER (ORDER BY ID), * FROM TEST;
 SELECT LAST_VALUE(X) IGNORE NULLS OVER (
@@ -5707,8 +5696,7 @@ If number of considered rows is less than specified relative number this functio
 Note that the last row is actually a last row in the current group of rows
 if window order clause is specified and window frame clause is not specified.
 
-Window functions are currently experimental in H2 and should be used with caution.
-They also may require a lot of memory for large queries.
+Window functions in H2 may require a lot of memory for large queries.
 ","
 SELECT NTH_VALUE(X) OVER (ORDER BY ID), * FROM TEST;
 SELECT NTH_VALUE(X) IGNORE NULLS OVER (
@@ -5725,8 +5713,7 @@ Returns the ratio of a value to the sum of all values.
 If argument is NULL or sum of all values is 0, then the value of function is NULL.
 Window ordering and window frame clauses are not allowed for this function.
 
-Window functions are currently experimental in H2 and should be used with caution.
-They also may require a lot of memory for large queries.
+Window functions in H2 may require a lot of memory for large queries.
 ","
 SELECT X, RATIO_TO_REPORT(X) OVER (PARTITION BY CATEGORY), CATEGORY FROM TEST;
 "

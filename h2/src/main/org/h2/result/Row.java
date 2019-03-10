@@ -17,21 +17,6 @@ public interface Row extends SearchRow {
     Row[] EMPTY_ARRAY = {};
 
     /**
-     * Get a copy of the row that is distinct from (not equal to) this row.
-     * This is used for FOR UPDATE to allow pseudo-updating a row.
-     *
-     * @return a new row with the same data
-     */
-    Row getCopy();
-
-    /**
-     * Set version.
-     *
-     * @param version row version
-     */
-    void setVersion(int version);
-
-    /**
      * Get the number of bytes required for the data.
      *
      * @param dummy the template buffer

@@ -54,7 +54,6 @@ public class RowList implements AutoCloseable {
         int columnCount = r.getColumnCount();
         buff.writeInt(columnCount);
         buff.writeLong(r.getKey());
-        buff.writeInt(r.getVersion());
         buff.writeByte(r.isDeleted() ? (byte) 1 : (byte) 0);
         for (int i = 0; i < columnCount; i++) {
             Value v = r.getValue(i);
@@ -167,7 +166,6 @@ public class RowList implements AutoCloseable {
         int mem = buff.readInt();
         int columnCount = buff.readInt();
         long key = buff.readLong();
-        int version = buff.readInt();
         boolean deleted = buff.readByte() != 0;
         Value[] values = new Value[columnCount];
         for (int i = 0; i < columnCount; i++) {
@@ -188,7 +186,6 @@ public class RowList implements AutoCloseable {
         }
         Row row = session.createRow(values, mem);
         row.setKey(key);
-        row.setVersion(version);
         row.setDeleted(deleted);
         return row;
     }

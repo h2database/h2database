@@ -433,13 +433,17 @@ public class Select extends Query {
                 TableFilter tableFilter = filters.get(i);
                 if (!tableFilter.isJoinOuter() && !tableFilter.isJoinOuterIndirect()) {
                     Row row = tableFilter.get();
-                    Row lockedRow = tableFilter.getTable().lockRow(session, row);
-                    if (lockedRow == null) {
-                        return false;
-                    }
-                    if (!row.hasSharedData(lockedRow)) {
-                        tableFilter.set(lockedRow);
-                        notChanged = false;
+                    Table table = tableFilter.getTable();
+                    // Views, function tables, links, etc. do not support locks
+                    if (table.isMVStore()) {
+                        Row lockedRow = table.lockRow(session, row);
+                        if (lockedRow == null) {
+                            return false;
+                        }
+                        if (!row.hasSharedData(lockedRow)) {
+                            tableFilter.set(lockedRow);
+                            notChanged = false;
+                        }
                     }
                 }
             }

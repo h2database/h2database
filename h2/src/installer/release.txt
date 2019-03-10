@@ -1,5 +1,9 @@
 # Checklist for a release
 
+## Switch to Java 1.7
+
+    . setjava.sh 1.7
+
 ## Formatting, Spellchecking, Javadocs
 
     git pull
@@ -24,7 +28,7 @@ To verify, run
 
     ./build.sh clean jarClient
 
-If this fails with eg. "Expected file size 400 - 500 KB, got: 1687", then
+If this fails with eg. "Expected file size 400 - 600 KB, got: 1687", then
 find out where the dependency is, and resolve. As follows:
 start by renaming Database to Database2:
 
@@ -42,7 +46,7 @@ After everything is resolved, rename the classes back.
 
 To ensure the MVStore jar file is not too large
 (does not reference the database code by accident).
-The file size should be about 200 KB:
+The file size should be about 300 KB:
 
     ./build.sh jarMVStore
 

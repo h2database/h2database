@@ -102,6 +102,14 @@ public class RowImpl implements Row {
         return toString(key, deleted, data);
     }
 
+    /**
+     * Convert a row to a string.
+     *
+     * @param key the key
+     * @param isDeleted whether the row is deleted
+     * @param data the row data
+     * @return the string representation
+     */
     static String toString(long key, boolean isDeleted, Value[] data) {
         StringBuilder builder = new StringBuilder("( /* key:").append(key);
         if (isDeleted) {

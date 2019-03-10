@@ -244,20 +244,20 @@ public class TestTransaction extends TestDb {
         conn2.close();
     }
 
-    void testForUpdate2(Connection conn1, Statement stat1, Connection conn2, boolean forUpdate)
+    private void testForUpdate2(Connection conn1, Statement stat1, Connection conn2, boolean forUpdate)
             throws Exception {
         testForUpdate2(conn1, stat1, conn2, forUpdate, false);
         testForUpdate2(conn1, stat1, conn2, forUpdate, true);
     }
 
-    void testForUpdate2(Connection conn1, Statement stat1, Connection conn2, boolean forUpdate,
+    private void testForUpdate2(Connection conn1, Statement stat1, Connection conn2, boolean forUpdate,
             boolean window) throws Exception {
         testForUpdate2(conn1, stat1, conn2, forUpdate, window, false, false);
         testForUpdate2(conn1, stat1, conn2, forUpdate, window, false, true);
         testForUpdate2(conn1, stat1, conn2, forUpdate, window, true, false);
     }
 
-    void testForUpdate2(Connection conn1, Statement stat1, final Connection conn2, boolean forUpdate,
+    private void testForUpdate2(Connection conn1, Statement stat1, final Connection conn2, boolean forUpdate,
             boolean window, boolean deleted, boolean excluded) throws Exception {
         stat1.execute("MERGE INTO TEST KEY(ID) VALUES (1, 1)");
         conn1.commit();

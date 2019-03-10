@@ -718,6 +718,9 @@ public class TableFilter implements ColumnResolver {
         }
     }
 
+    /**
+     * Create the index conditions for this filter if needed.
+     */
     public void createIndexConditions() {
         if (joinCondition != null) {
             joinCondition = joinCondition.optimize(session);

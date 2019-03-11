@@ -341,8 +341,7 @@ public class TypeInfo {
             }
         case Value.ENUM:
             if (extTypeInfo instanceof ExtTypeInfoEnum) {
-                long enumPrecision = ((ExtTypeInfoEnum) extTypeInfo).getType().getPrecision();
-                return new TypeInfo(Value.ENUM, enumPrecision, 0, ValueEnum.DISPLAY_SIZE, extTypeInfo);
+		return ((ExtTypeInfoEnum) extTypeInfo).getType();
             } else {
                 return TYPE_ENUM_UNDEFINED;
             }

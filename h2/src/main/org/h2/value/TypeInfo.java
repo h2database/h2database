@@ -341,7 +341,7 @@ public class TypeInfo {
             }
         case Value.ENUM:
             if (extTypeInfo instanceof ExtTypeInfoEnum) {
-                return new TypeInfo(Value.ENUM, ValueEnum.PRECISION, 0, ValueEnum.DISPLAY_SIZE, extTypeInfo);
+		return ((ExtTypeInfoEnum) extTypeInfo).getType();
             } else {
                 return TYPE_ENUM_UNDEFINED;
             }

@@ -1330,6 +1330,9 @@ public class Select extends Query {
                     }
                 }
             }
+            if (sortUsingIndex && isForUpdateMvcc && !topTableFilter.getIndex().isRowIdIndex()) {
+                sortUsingIndex = false;
+            }
         }
         if (!isQuickAggregateQuery && isGroupQuery &&
                 getGroupByExpressionCount() > 0) {

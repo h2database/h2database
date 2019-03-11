@@ -60,6 +60,11 @@ public class MVDelegateIndex extends BaseIndex implements MVIndex {
     }
 
     @Override
+    public boolean isRowIdIndex() {
+        return true;
+    }
+
+    @Override
     public boolean canGetFirstOrLast() {
         return true;
     }

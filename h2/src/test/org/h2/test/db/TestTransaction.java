@@ -48,6 +48,7 @@ public class TestTransaction extends TestDb {
         testRollback2();
         testForUpdate();
         testForUpdate2();
+        testForUpdate3();
         testUpdate();
         testMergeUsing();
         testDelete();
@@ -297,6 +298,53 @@ public class TestTransaction extends TestDb {
             throw ex[0];
         }
         assertEquals(forUpdate ? (deleted || excluded) ? -1 : 2 : 1, res[0]);
+    }
+
+    private void testForUpdate3() throws Exception {
+        // Exclude some configurations to avoid spending too much time in sleep()
+        if (config.mvStore && !config.multiThreaded || config.networked || config.cipher != null) {
+            return;
+        }
+        deleteDb("transaction");
+        Connection conn1 = getConnection("transaction");
+        final Connection conn2 = getConnection("transaction");
+        Statement stat1 = conn1.createStatement();
+        stat1.execute("CREATE TABLE TEST (ID INT PRIMARY KEY, V INT UNIQUE)");
+        conn1.setAutoCommit(false);
+        conn2.createStatement().execute("SET LOCK_TIMEOUT 2000");
+        stat1.execute("MERGE INTO TEST KEY(ID) VALUES (1, 1), (2, 2), (3, 3), (4, 4)");
+        conn1.commit();
+        stat1.execute("UPDATE TEST SET V = 10 - V");
+        final Exception[] ex = new Exception[1];
+        StringBuilder builder = new StringBuilder("SELECT V FROM TEST ORDER BY V FOR UPDATE");
+        String query = builder.toString();
+        final PreparedStatement prep2 = conn2.prepareStatement(query);
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    ResultSet resultSet = prep2.executeQuery();
+                    int previous = -1;
+                    while (resultSet.next()) {
+                        int value = resultSet.getInt(1);
+                        assertTrue(previous + ">=" + value, previous < value);
+                        previous = value;
+                    }
+                    conn2.commit();
+                } catch (SQLException e) {
+                    ex[0] = e;
+                }
+            }
+        };
+        t.start();
+        Thread.sleep(500);
+        conn1.commit();
+        t.join();
+        if (ex[0] != null) {
+            throw ex[0];
+        }
+        conn1.close();
+        conn2.close();
     }
 
     private void testUpdate() throws Exception {

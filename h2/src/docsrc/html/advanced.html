@@ -278,12 +278,11 @@ When using the isolation level 'serializable', dirty reads, non-repeatable reads
 <h3 id="mvcc">Multi-Version Concurrency Control (MVCC)</h3>
 <p>
 With default MVStore engine delete, insert and update operations only issue a shared lock on the table.
-An exclusive lock is still used when adding or removing columns,
-when dropping the table, and when using <code>SELECT ... FOR UPDATE</code>.
+An exclusive lock is still used when adding or removing columns or when dropping the table.
 Connections only 'see' committed data, and own changes. That means, if connection A updates
 a row but doesn't commit this change yet, connection B will see the old value.
 Only when the change is committed, the new value is visible by other connections
-(read committed). If multiple connections concurrently try to update the same row, the
+(read committed). If multiple connections concurrently try to lock or update the same row, the
 database waits until it can apply the change, but at most until the lock timeout expires.
 </p>
 

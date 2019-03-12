@@ -62,6 +62,8 @@ Update org.h2.engine.Constants.java:
     if the last TCP_PROTOCOL_VERSION_##
         doesn't have a release date set it to current BUILD_DATE
 
+Update h2/pom.xml.
+
 Update changelog.html:
     * create a new "Next Version (unreleased)" with an empty list
     * add a new version
@@ -74,8 +76,6 @@ Update newsfeed.sql:
 
 ## Skipped
 
-The following can be skipped currently, as sourceError.html and source.html
-are no longer working (they can be removed, or fixed):
 * Minor version change: change sourceError.html and source.html
 * If a beta, change download.html: Version ${version} (${versionDate}), Beta
 * If a beta, change mainWeb.html: Version ${version} (${versionDate}), Beta

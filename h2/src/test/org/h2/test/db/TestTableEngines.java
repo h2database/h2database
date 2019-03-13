@@ -43,7 +43,7 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.IndexColumn;
-import org.h2.table.RegularTable;
+import org.h2.table.PageStoreTable;
 import org.h2.table.SubQueryInfo;
 import org.h2.table.Table;
 import org.h2.table.TableBase;
@@ -1143,7 +1143,7 @@ public class TestTableEngines extends TestDb {
         /**
          * A table able to handle affinity indexes.
          */
-        private static class AffinityTable extends RegularTable {
+        private static class AffinityTable extends PageStoreTable {
 
             /**
              * A (no-op) affinity index.

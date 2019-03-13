@@ -12,7 +12,7 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.IndexColumn;
-import org.h2.table.RegularTable;
+import org.h2.table.PageStoreTable;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -23,11 +23,11 @@ import org.h2.value.ValueNull;
 public class TreeIndex extends BaseIndex {
 
     private TreeNode root;
-    private final RegularTable tableData;
+    private final PageStoreTable tableData;
     private long rowCount;
     private boolean closed;
 
-    public TreeIndex(RegularTable table, int id, String indexName,
+    public TreeIndex(PageStoreTable table, int id, String indexName,
             IndexColumn[] columns, IndexType indexType) {
         super(table, id, indexName, columns, indexType);
         tableData = table;

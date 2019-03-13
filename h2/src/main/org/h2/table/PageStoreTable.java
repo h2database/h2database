@@ -44,11 +44,9 @@ import org.h2.value.DataType;
 import org.h2.value.Value;
 
 /**
- * Most tables are an instance of this class. For this table, the data is stored
- * in the database. The actual data is not kept here, instead it is kept in the
- * indexes. There is at least one index, the scan index.
+ * A table store in a PageStore.
  */
-public class RegularTable extends TableBase {
+public class PageStoreTable extends TableBase {
 
     private Index scanIndex;
     private long rowCount;
@@ -72,7 +70,7 @@ public class RegularTable extends TableBase {
     private int nextAnalyze;
     private Column rowIdColumn;
 
-    public RegularTable(CreateTableData data) {
+    public PageStoreTable(CreateTableData data) {
         super(data);
         nextAnalyze = database.getSettings().analyzeAuto;
         this.isHidden = data.isHidden;
@@ -515,8 +513,8 @@ public class RegularTable extends TableBase {
                     buff.append(", ");
                 }
                 buff.append(t.toString());
-                if (t instanceof RegularTable) {
-                    if (((RegularTable) t).lockExclusiveSession == s) {
+                if (t instanceof PageStoreTable) {
+                    if (((PageStoreTable) t).lockExclusiveSession == s) {
                         buff.append(" (exclusive)");
                     } else {
                         buff.append(" (shared)");
@@ -532,7 +530,7 @@ public class RegularTable extends TableBase {
     public ArrayList<Session> checkDeadlock(Session session, Session clash,
             Set<Session> visited) {
         // only one deadlock check at any given time
-        synchronized (RegularTable.class) {
+        synchronized (PageStoreTable.class) {
             if (clash == null) {
                 // verification is started
                 clash = session;

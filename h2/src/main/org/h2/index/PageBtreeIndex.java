@@ -19,7 +19,7 @@ import org.h2.store.Page;
 import org.h2.store.PageStore;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
-import org.h2.table.RegularTable;
+import org.h2.table.PageStoreTable;
 import org.h2.table.TableFilter;
 import org.h2.util.MathUtils;
 import org.h2.value.Value;
@@ -34,13 +34,13 @@ public class PageBtreeIndex extends PageIndex {
     private static int memoryChangeRequired;
 
     private final PageStore store;
-    private final RegularTable tableData;
+    private final PageStoreTable tableData;
     private final boolean needRebuild;
     private long rowCount;
     private int memoryPerPage;
     private int memoryCount;
 
-    public PageBtreeIndex(RegularTable table, int id, String indexName,
+    public PageBtreeIndex(PageStoreTable table, int id, String indexName,
             IndexColumn[] columns,
             IndexType indexType, boolean create, Session session) {
         super(table, id, indexName, columns, indexType);

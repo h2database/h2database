@@ -24,7 +24,6 @@ import static org.h2.util.geometry.GeometryUtils.toCanonicalDouble;
 
 import java.io.ByteArrayOutputStream;
 
-import org.h2.engine.SysProperties;
 import org.h2.util.Bits;
 import org.h2.util.StringUtils;
 import org.h2.util.geometry.GeometryUtils.DimensionSystemTarget;
@@ -146,7 +145,7 @@ public final class EWKBUtils {
             writeDouble(x);
             writeDouble(y);
             if ((dimensionSystem & DIMENSION_SYSTEM_XYZ) != 0) {
-                writeDouble(!SysProperties.MIXED_GEOMETRIES && check ? checkFinite(z) : z);
+                writeDouble(check ? checkFinite(z) : z);
             }
             if ((dimensionSystem & DIMENSION_SYSTEM_XYM) != 0) {
                 writeDouble(check ? checkFinite(m) : m);

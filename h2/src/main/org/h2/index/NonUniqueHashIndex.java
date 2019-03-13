@@ -18,7 +18,7 @@ import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
-import org.h2.table.RegularTable;
+import org.h2.table.PageStoreTable;
 import org.h2.table.TableFilter;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
@@ -37,10 +37,10 @@ public class NonUniqueHashIndex extends BaseIndex {
     private final int indexColumn;
     private final boolean totalOrdering;
     private Map<Value, ArrayList<Long>> rows;
-    private final RegularTable tableData;
+    private final PageStoreTable tableData;
     private long rowCount;
 
-    public NonUniqueHashIndex(RegularTable table, int id, String indexName,
+    public NonUniqueHashIndex(PageStoreTable table, int id, String indexName,
             IndexColumn[] columns, IndexType indexType) {
         super(table, id, indexName, columns, indexType);
         Column column = columns[0].column;

@@ -28,7 +28,7 @@ import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.mvstore.db.MVTableEngine;
-import org.h2.table.RegularTable;
+import org.h2.table.PageStoreTable;
 import org.h2.table.Table;
 import org.h2.table.TableLink;
 import org.h2.table.TableSynonym;
@@ -705,7 +705,7 @@ public class Schema extends DbObjectBase {
                 }
                 return database.getTableEngine(data.tableEngine).createTable(data);
             }
-            return new RegularTable(data);
+            return new PageStoreTable(data);
         }
     }
 

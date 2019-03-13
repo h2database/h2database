@@ -27,22 +27,22 @@ public class FileStore {
     /**
      * The number of read operations.
      */
-    protected final AtomicLong readCount = new AtomicLong(0);
+    protected final AtomicLong readCount = new AtomicLong();
 
     /**
      * The number of read bytes.
      */
-    protected final AtomicLong readBytes = new AtomicLong(0);
+    protected final AtomicLong readBytes = new AtomicLong();
 
     /**
      * The number of write operations.
      */
-    protected final AtomicLong writeCount = new AtomicLong(0);
+    protected final AtomicLong writeCount = new AtomicLong();
 
     /**
      * The number of written bytes.
      */
-    protected final AtomicLong writeBytes = new AtomicLong(0);
+    protected final AtomicLong writeBytes = new AtomicLong();
 
     /**
      * The free spaces between the chunks. The first block to use is block 2

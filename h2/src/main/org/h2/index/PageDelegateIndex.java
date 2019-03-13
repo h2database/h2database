@@ -14,7 +14,7 @@ import org.h2.result.SortOrder;
 import org.h2.store.PageStore;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
-import org.h2.table.RegularTable;
+import org.h2.table.PageStoreTable;
 import org.h2.table.TableFilter;
 
 /**
@@ -24,7 +24,7 @@ public class PageDelegateIndex extends PageIndex {
 
     private final PageDataIndex mainIndex;
 
-    public PageDelegateIndex(RegularTable table, int id, String name,
+    public PageDelegateIndex(PageStoreTable table, int id, String name,
             IndexType indexType, PageDataIndex mainIndex, boolean create,
             Session session) {
         super(table, id, name,

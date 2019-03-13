@@ -103,11 +103,21 @@ public abstract class RegularTable extends TableBase {
         });
     }
 
+    /**
+     * Whether the table contains a CLOB or BLOB.
+     */
     protected final boolean containsLargeObject;
 
+    /**
+     * The session (if any) that has exclusively locked this table.
+     */
     protected volatile Session lockExclusiveSession;
 
-    // using a ConcurrentHashMap as a set
+    /**
+     * The set of sessions (if any) that have a shared lock on the table. Here
+     * we are using using a ConcurrentHashMap as a set, as there is no
+     * ConcurrentHashSet.
+     */
     protected final ConcurrentHashMap<Session, Session> lockSharedSessions = new ConcurrentHashMap<>();
 
     private Column rowIdColumn;

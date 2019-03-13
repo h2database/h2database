@@ -40,7 +40,7 @@ public class MVPrimaryIndex extends BaseIndex {
     private final MVTable mvTable;
     private final String mapName;
     private final TransactionMap<Value, Value> dataMap;
-    private final AtomicLong lastKey = new AtomicLong(0);
+    private final AtomicLong lastKey = new AtomicLong();
     private int mainIndexColumn = SearchRow.ROWID_INDEX;
 
     public MVPrimaryIndex(Database db, MVTable table, int id,

@@ -75,8 +75,8 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener,
     private PrintWriter logWriter;
     private volatile int maxConnections = DEFAULT_MAX_CONNECTIONS;
     private volatile int timeout = DEFAULT_TIMEOUT;
-    private AtomicInteger activeConnections = new AtomicInteger(0);
-    private AtomicBoolean isDisposed = new AtomicBoolean(false);
+    private AtomicInteger activeConnections = new AtomicInteger();
+    private AtomicBoolean isDisposed = new AtomicBoolean();
 
     protected JdbcConnectionPool(ConnectionPoolDataSource dataSource) {
         this.dataSource = dataSource;

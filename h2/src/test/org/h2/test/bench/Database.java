@@ -46,7 +46,7 @@ class Database {
     private final ArrayList<Object[]> results = new ArrayList<>();
     private int totalTime;
     private int totalGCTime;
-    private final AtomicInteger executedStatements = new AtomicInteger(0);
+    private final AtomicInteger executedStatements = new AtomicInteger();
     private int threadCount;
 
     private Server serverH2;

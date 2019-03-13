@@ -63,6 +63,7 @@ Update org.h2.engine.Constants.java:
         doesn't have a release date set it to current BUILD_DATE
 
 Update h2/pom.xml.
+    set ...-SNAPSHOT to the next version
 
 Update changelog.html:
     * create a new "Next Version (unreleased)" with an empty list

@@ -24,7 +24,6 @@ import static org.h2.util.geometry.GeometryUtils.toCanonicalDouble;
 import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Method;
 
-import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.util.geometry.EWKBUtils.EWKBTarget;
 import org.h2.util.geometry.GeometryUtils.DimensionSystemTarget;
@@ -206,8 +205,7 @@ public final class JTSUtils {
             coordinates.setOrdinate(index, X, checkFinite(x));
             coordinates.setOrdinate(index, Y, checkFinite(y));
             coordinates.setOrdinate(index, Z,
-                    (dimensionSystem & DIMENSION_SYSTEM_XYZ) != 0 ? SysProperties.MIXED_GEOMETRIES ? z : checkFinite(z)
-                            : Double.NaN);
+                    (dimensionSystem & DIMENSION_SYSTEM_XYZ) != 0 ? checkFinite(z) : Double.NaN);
             if ((dimensionSystem & DIMENSION_SYSTEM_XYM) != 0) {
                 coordinates.setOrdinate(index, M, checkFinite(m));
             }

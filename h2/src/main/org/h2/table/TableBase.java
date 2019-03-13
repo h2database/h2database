@@ -72,8 +72,7 @@ public abstract class TableBase extends Table {
             this.tableEngineParams = Collections.emptyList();
         }
         setTemporary(data.temporary);
-        Column[] cols = data.columns.toArray(new Column[0]);
-        setColumns(cols);
+        setColumns(data.columns.toArray(new Column[0]));
     }
 
     @Override

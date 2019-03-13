@@ -7,17 +7,10 @@ package org.h2.table;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.command.ddl.CreateTableData;
-import org.h2.constraint.Constraint;
-import org.h2.constraint.ConstraintReferential;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
@@ -40,21 +33,14 @@ import org.h2.schema.SchemaObject;
 import org.h2.util.MathUtils;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
-import org.h2.value.DataType;
-import org.h2.value.Value;
 
 /**
  * A table store in a PageStore.
  */
-public class PageStoreTable extends TableBase {
+public class PageStoreTable extends RegularTable {
 
     private Index scanIndex;
     private long rowCount;
-    private volatile Session lockExclusiveSession;
-
-    // using a ConcurrentHashMap as a set
-    private ConcurrentHashMap<Session, Session> lockSharedSessions =
-            new ConcurrentHashMap<>();
 
     /**
      * The queue of sessions waiting to lock the table. It is a FIFO queue to
@@ -64,24 +50,13 @@ public class PageStoreTable extends TableBase {
     private final Trace traceLock;
     private final ArrayList<Index> indexes = Utils.newSmallArrayList();
     private long lastModificationId;
-    private final boolean containsLargeObject;
     private final PageDataIndex mainIndex;
     private int changesSinceAnalyze;
     private int nextAnalyze;
-    private Column rowIdColumn;
 
     public PageStoreTable(CreateTableData data) {
         super(data);
         nextAnalyze = database.getSettings().analyzeAuto;
-        this.isHidden = data.isHidden;
-        boolean b = false;
-        for (Column col : getColumns()) {
-            if (DataType.isLargeObject(col.getType().getValueType())) {
-                b = true;
-                break;
-            }
-        }
-        containsLargeObject = b;
         if (data.persistData && database.isPersistent()) {
             mainIndex = new PageDataIndex(this, data.id,
                     IndexColumn.wrap(getColumns()),
@@ -288,31 +263,6 @@ public class PageStoreTable extends TableBase {
     }
 
     @Override
-    public boolean canGetRowCount() {
-        return true;
-    }
-
-    private static void addRowsToIndex(Session session, ArrayList<Row> list,
-            Index index) {
-        final Index idx = index;
-        Collections.sort(list, new Comparator<Row>() {
-            @Override
-            public int compare(Row r1, Row r2) {
-                return idx.compareRows(r1, r2);
-            }
-        });
-        for (Row row : list) {
-            index.add(session, row);
-        }
-        list.clear();
-    }
-
-    @Override
-    public boolean canDrop() {
-        return true;
-    }
-
-    @Override
     public long getRowCount(Session session) {
         return rowCount;
     }
@@ -492,105 +442,12 @@ public class PageStoreTable extends TableBase {
         }
         return false;
     }
-    private static String getDeadlockDetails(ArrayList<Session> sessions, boolean exclusive) {
-        // We add the thread details here to make it easier for customers to
-        // match up these error messages with their own logs.
-        StringBuilder buff = new StringBuilder();
-        for (Session s : sessions) {
-            Table lock = s.getWaitForLock();
-            Thread thread = s.getWaitForLockThread();
-            buff.append("\nSession ").
-                append(s.toString()).
-                append(" on thread ").
-                append(thread.getName()).
-                append(" is waiting to lock ").
-                append(lock.toString()).
-                append(exclusive ? " (exclusive)" : " (shared)").
-                append(" while locking ");
-            int i = 0;
-            for (Table t : s.getLocks()) {
-                if (i++ > 0) {
-                    buff.append(", ");
-                }
-                buff.append(t.toString());
-                if (t instanceof PageStoreTable) {
-                    if (((PageStoreTable) t).lockExclusiveSession == s) {
-                        buff.append(" (exclusive)");
-                    } else {
-                        buff.append(" (shared)");
-                    }
-                }
-            }
-            buff.append('.');
-        }
-        return buff.toString();
-    }
-
-    @Override
-    public ArrayList<Session> checkDeadlock(Session session, Session clash,
-            Set<Session> visited) {
-        // only one deadlock check at any given time
-        synchronized (PageStoreTable.class) {
-            if (clash == null) {
-                // verification is started
-                clash = session;
-                visited = new HashSet<>();
-            } else if (clash == session) {
-                // we found a cycle where this session is involved
-                return new ArrayList<>(0);
-            } else if (visited.contains(session)) {
-                // we have already checked this session.
-                // there is a cycle, but the sessions in the cycle need to
-                // find it out themselves
-                return null;
-            }
-            visited.add(session);
-            ArrayList<Session> error = null;
-            for (Session s : lockSharedSessions.keySet()) {
-                if (s == session) {
-                    // it doesn't matter if we have locked the object already
-                    continue;
-                }
-                Table t = s.getWaitForLock();
-                if (t != null) {
-                    error = t.checkDeadlock(s, clash, visited);
-                    if (error != null) {
-                        error.add(session);
-                        break;
-                    }
-                }
-            }
-            // take a local copy so we don't see inconsistent data, since we are
-            // not locked while checking the lockExclusiveSession value
-            Session copyOfLockExclusiveSession = lockExclusiveSession;
-            if (error == null && copyOfLockExclusiveSession != null) {
-                Table t = copyOfLockExclusiveSession.getWaitForLock();
-                if (t != null) {
-                    error = t.checkDeadlock(copyOfLockExclusiveSession, clash, visited);
-                    if (error != null) {
-                        error.add(session);
-                    }
-                }
-            }
-            return error;
-        }
-    }
 
     private void traceLock(Session session, boolean exclusive, String s) {
         if (traceLock.isDebugEnabled()) {
             traceLock.debug("{0} {1} {2} {3}", session.getId(),
                     exclusive ? "exclusive write lock" : "shared read lock", s, getName());
         }
-    }
-
-    @Override
-    public boolean isLockedExclusively() {
-        return lockExclusiveSession != null;
-    }
-
-    @Override
-    public boolean isLockedExclusivelyBy(Session session) {
-        return lockExclusiveSession == session;
     }
 
     @Override
@@ -651,56 +508,13 @@ public class PageStoreTable extends TableBase {
         database.removeMeta(session, getId());
         scanIndex = null;
         lockExclusiveSession = null;
-        lockSharedSessions = null;
+        lockSharedSessions.clear();
         invalidate();
-    }
-
-    @Override
-    public String toString() {
-        return getSQL(false);
-    }
-
-    @Override
-    public void checkRename() {
-        // ok
-    }
-
-    @Override
-    public void checkSupportAlter() {
-        // ok
-    }
-
-    @Override
-    public boolean canTruncate() {
-        if (getCheckForeignKeyConstraints() && database.getReferentialIntegrity()) {
-            ArrayList<Constraint> constraints = getConstraints();
-            if (constraints != null) {
-                for (Constraint c : constraints) {
-                    if (c.getConstraintType() != Constraint.Type.REFERENTIAL) {
-                        continue;
-                    }
-                    ConstraintReferential ref = (ConstraintReferential) c;
-                    if (ref.getRefTable() == this) {
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
-    }
-
-    @Override
-    public TableType getTableType() {
-        return TableType.TABLE;
     }
 
     @Override
     public long getMaxDataModificationId() {
         return lastModificationId;
-    }
-
-    public boolean getContainsLargeObject() {
-        return containsLargeObject;
     }
 
     @Override
@@ -715,21 +529,6 @@ public class PageStoreTable extends TableBase {
 
     public void setCompareMode(CompareMode compareMode) {
         this.compareMode = compareMode;
-    }
-
-    @Override
-    public boolean isDeterministic() {
-        return true;
-    }
-
-    @Override
-    public Column getRowIdColumn() {
-        if (rowIdColumn == null) {
-            rowIdColumn = new Column(Column.ROWID, Value.LONG);
-            rowIdColumn.setTable(this, -1);
-            rowIdColumn.setRowId(true);
-        }
-        return rowIdColumn;
     }
 
 }

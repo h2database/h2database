@@ -450,6 +450,8 @@ public class Parser {
     
     /**
      * The PostgreSQL token "<@"
+     * Implemented using of "<<@" in case of collision
+     * with SMALLER-AT combination
      */
     private static final int JSON_CONTAINS_RIGHT = JSON_CONTAINS_LEFT + 1;
     
@@ -662,7 +664,7 @@ public class Parser {
             // JSON_CONTAINS_LEFT
             "@>",
             // JSON_CONTAINS_RIGHT
-            "<@",
+            "<<@",
             // JSON_EXISTS_ANY
             "?|",
             // JSON_EXISTS_ALL
@@ -5225,7 +5227,6 @@ public class Parser {
             case '@':
                 if (command[i + 1] == '>') {
                     type = types[i++] = CHAR_SPECIAL_3;
-                    break;
                 } else {
                     type = CHAR_SPECIAL_1;
                 }
@@ -5243,8 +5244,9 @@ public class Parser {
                 type = CHAR_SPECIAL_1;
                 break;
             case '<':
-                if (command[i + 1] == '@') {
-                    type = types[i++] = CHAR_SPECIAL_3;
+                if (command[i + 1] == '<' && command[i + 2] == '@') {
+                    type = types[i] = types[i + 1] = CHAR_SPECIAL_3;
+                    i += 2;
                     break;
                 }
             case '|':
@@ -5480,7 +5482,7 @@ public class Parser {
             }
             break;
         case '<':
-            if("<@".equals(s)) {
+            if("<<@".equals(s)) {
                 return JSON_CONTAINS_RIGHT;
             }
             break;

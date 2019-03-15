@@ -147,7 +147,7 @@ public class TestScript extends TestDb {
 
         for (String s : new String[] { "array", "bigint", "binary", "blob",
                 "boolean", "char", "clob", "date", "decimal", decimal2, "double", "enum",
-                "geometry", "identity", "int", "interval", "other", "real", "row", "smallint",
+                "geometry", "identity", "int", "interval", "json", "other", "real", "row", "smallint",
                 "time", "timestamp-with-timezone", "timestamp", "tinyint",
                 "uuid", "varchar", "varchar-ignorecase" }) {
             testScript("datatypes/" + s + ".sql");
@@ -372,7 +372,7 @@ public class TestScript extends TestDb {
         if (statements != null) {
             statements.add(sql);
         }
-        if (sql.indexOf('?') == -1) {
+        if (sql.indexOf('?') == -1 || sql.indexOf("?'") != -1 || sql.indexOf("?|") != -1 || sql.indexOf("?&") != -1) {
             processStatement(sql);
         } else {
             String param = readLine();

@@ -167,6 +167,9 @@ public class TestClearReferences extends TestBase {
             } else if (e.toString().contains("slf4j")) {
                 // slf4j is not in the classpath, OK
                 return;
+            } else if (e.toString().contains("fasterxml")) {
+                // fasterxml is not in the classpath, OK
+                return;
             }
             throw e;
         }
@@ -216,6 +219,11 @@ public class TestClearReferences extends TestBase {
                 continue;
             }
             if (o.getClass().isArray() && o.getClass().getComponentType().isPrimitive()) {
+                continue;
+            }
+            // fasterxml library
+            if (o.getClass().getName().contains("fasterxml")
+                    || field.toString().contains("fasterxml")) {
                 continue;
             }
             clearField(instance.getClass().getName() + "." + field.getName() + " = " + o);

@@ -160,10 +160,10 @@ public class ConditionInParameter extends Condition {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
         builder.append('(');
-        left.getSQL(builder).append(" = ANY(");
-        return parameter.getSQL(builder).append("))");
+        left.getSQL(builder, alwaysQuote).append(" = ANY(");
+        return parameter.getSQL(builder, alwaysQuote).append("))");
     }
 
     @Override

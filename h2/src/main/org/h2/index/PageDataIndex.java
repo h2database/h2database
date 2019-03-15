@@ -18,7 +18,7 @@ import org.h2.store.Page;
 import org.h2.store.PageStore;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
-import org.h2.table.RegularTable;
+import org.h2.table.PageStoreTable;
 import org.h2.table.TableFilter;
 import org.h2.util.MathUtils;
 import org.h2.value.Value;
@@ -32,7 +32,7 @@ import org.h2.value.ValueNull;
 public class PageDataIndex extends PageIndex {
 
     private final PageStore store;
-    private final RegularTable tableData;
+    private final PageStoreTable tableData;
     private long lastKey;
     private long rowCount;
     private int mainIndexColumn = -1;
@@ -45,7 +45,7 @@ public class PageDataIndex extends PageIndex {
     private int memoryPerPage;
     private int memoryCount;
 
-    public PageDataIndex(RegularTable table, int id, IndexColumn[] columns,
+    public PageDataIndex(PageStoreTable table, int id, IndexColumn[] columns,
             IndexType indexType, boolean create, Session session) {
         super(table, id, table.getName() + "_DATA", columns, indexType);
 
@@ -140,10 +140,10 @@ public class PageDataIndex extends PageIndex {
 
     public DbException getNewDuplicateKeyException() {
         StringBuilder builder = new StringBuilder("PRIMARY KEY ON ");
-        table.getSQL(builder);
+        table.getSQL(builder, false);
         if (mainIndexColumn >= 0 && mainIndexColumn < indexColumns.length) {
             builder.append('(');
-            indexColumns[mainIndexColumn].getSQL(builder).append(')');
+            indexColumns[mainIndexColumn].getSQL(builder, false).append(')');
         }
         DbException e = DbException.get(ErrorCode.DUPLICATE_KEY_1, builder.toString());
         e.setSource(this);
@@ -480,7 +480,7 @@ public class PageDataIndex extends PageIndex {
 
     @Override
     public String getPlanSQL() {
-        return table.getSQL(new StringBuilder()).append(".tableScan").toString();
+        return table.getSQL(new StringBuilder(), false).append(".tableScan").toString();
     }
 
     int getMemoryPerPage() {

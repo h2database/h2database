@@ -66,6 +66,12 @@ select column_type from information_schema.columns where COLUMN_NAME = 'SUIT';
 alter table card alter column suit enum('hearts', 'clubs', 'spades', 'diamonds');
 > ok
 
+alter table card alter column suit enum('hearts', 'clubs', 'spades', 'diamonds', 'long_enum_value_of_128_chars_00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000');
+> ok
+
+insert into card (rank, suit) values (11, 'long_enum_value_of_128_chars_00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000');
+> update count: 1
+
 --- ENUM integer-based operations
 
 select rank from card where suit = 1;
@@ -258,8 +264,8 @@ SELECT * FROM V3;
 SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE COLUMN_NAME = 'E' ORDER BY TABLE_NAME;
 > TABLE_CATALOG TABLE_SCHEMA TABLE_NAME COLUMN_NAME ORDINAL_POSITION DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME COLUMN_DEFAULT IS_NULLABLE DATA_TYPE CHARACTER_MAXIMUM_LENGTH CHARACTER_OCTET_LENGTH NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE DATETIME_PRECISION INTERVAL_TYPE INTERVAL_PRECISION CHARACTER_SET_NAME COLLATION_NAME TYPE_NAME NULLABLE IS_COMPUTED SELECTIVITY CHECK_CONSTRAINT SEQUENCE_NAME REMARKS SOURCE_DATA_TYPE COLUMN_TYPE    COLUMN_ON_UPDATE IS_VISIBLE
 > ------------- ------------ ---------- ----------- ---------------- -------------- ------------- ----------- -------------- ----------- --------- ------------------------ ---------------------- ----------------- ----------------------- ------------- ------------------ ------------- ------------------ ------------------ -------------- --------- -------- ----------- ----------- ---------------- ------------- ------- ---------------- -------------- ---------------- ----------
-> SCRIPT        PUBLIC       TEST       E           1                null           null          null        null           YES         1111      10                       10                     10                10                      0             null               null          null               Unicode            OFF            ENUM      1        FALSE       50                           null                  null             ENUM('A', 'B') null             TRUE
-> SCRIPT        PUBLIC       V          E           1                null           null          null        null           YES         1111      10                       10                     10                10                      0             null               null          null               Unicode            OFF            ENUM      1        FALSE       50                           null                  null             ENUM('A', 'B') null             TRUE
+> SCRIPT        PUBLIC       TEST       E           1                null           null          null        null           YES         1111      1                        1                      1                 10                      0             null               null          null               Unicode            OFF            ENUM      1        FALSE       50                           null                  null             ENUM('A', 'B') null             TRUE
+> SCRIPT        PUBLIC       V          E           1                null           null          null        null           YES         1111      1                        1                      1                 10                      0             null               null          null               Unicode            OFF            ENUM      1        FALSE       50                           null                  null             ENUM('A', 'B') null             TRUE
 > SCRIPT        PUBLIC       V1         E           1                null           null          null        null           YES         4         10                       10                     10                10                      0             null               null          null               Unicode            OFF            INTEGER   1        FALSE       50                           null                  null             INTEGER        null             TRUE
 > SCRIPT        PUBLIC       V2         E           1                null           null          null        null           YES         4         10                       10                     10                10                      0             null               null          null               Unicode            OFF            INTEGER   1        FALSE       50                           null                  null             INTEGER        null             TRUE
 > SCRIPT        PUBLIC       V3         E           1                null           null          null        null           YES         4         10                       10                     10                10                      0             null               null          null               Unicode            OFF            INTEGER   1        FALSE       50                           null                  null             INTEGER        null             TRUE
@@ -287,7 +293,7 @@ CREATE TABLE TEST(E ENUM('a', 'b'));
 > ok
 
 EXPLAIN SELECT * FROM TEST WHERE E = 'a';
->> SELECT TEST.E FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ WHERE E = 'a'
+>> SELECT "TEST"."E" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ WHERE "E" = 'a'
 
 INSERT INTO TEST VALUES ('a');
 > update count: 1

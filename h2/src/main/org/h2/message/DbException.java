@@ -587,6 +587,7 @@ public class DbException extends RuntimeException {
             return new JdbcSQLDataException(message, sql, state, errorCode, cause, stackTrace);
         case URL_RELATIVE_TO_CWD:
         case DATABASE_NOT_FOUND_1:
+        case DATABASE_NOT_FOUND_2:
         case TRACE_CONNECTION_NOT_CLOSED:
         case DATABASE_ALREADY_OPEN_1:
         case FILE_CORRUPTED_1:

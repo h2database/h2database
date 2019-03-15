@@ -14,4 +14,3 @@ select hextoraw(null) en, rawtohex(null) en1, hextoraw(rawtohex('abc')) abc from
 > ---- ---- ---
 > null null abc
 > rows: 1
-

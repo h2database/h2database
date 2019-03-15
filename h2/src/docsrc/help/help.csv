@@ -44,7 +44,11 @@ Non-window aggregate functions are allowed in this clause.
 7. QUALIFY filters rows after evaluation of window functions.
 Aggregate and window functions are allowed in this clause.
 
-8. DISTINCT removes duplicates. If DISTINCT ON is used only the specified expressions are checked for duplicates.
+8. DISTINCT removes duplicates.
+If DISTINCT ON is used only the specified expressions are checked for duplicates;
+ORDER BY clause, if any, is used to determine preserved rows.
+First row is each DISTINCT ON group is preserved.
+In absence of ORDER BY preserved rows are not determined, database may choose any row from each DISTINCT ON group.
 
 9. UNION, EXCEPT (MINUS), and INTERSECT combine the result of this query with the results of another query.
 Multiple set operators (UNION, INTERSECT, MINUS, EXCEPT) are evaluated from left to right.
@@ -68,9 +72,16 @@ This clause can be used to reuse the same definition in multiple functions.
 
 If FOR UPDATE is specified, the tables or rows are locked for writing.
 This clause is not allowed in DISTINCT queries and in queries with non-window aggregates, GROUP BY, or HAVING clauses.
-When using default MVStore engine only the selected rows are locked as in an UPDATE statement;
-locking behavior for rows that were excluded from result using OFFSET / FETCH is undefined.
-With PageStore engine the whole tables are locked.
+When using default MVStore engine only the selected rows are locked as in an UPDATE statement.
+Rows from the right side of a left join and from the left side of a right join, including nested joins, aren't locked.
+Locking behavior for rows that were excluded from result using OFFSET / FETCH / LIMIT / TOP or QUALIFY is undefined,
+to avoid possible locking of excessive rows try to filter out unneeded rows with the WHERE criteria when possible.
+Rows are processed one by one. Committed row is read, tested with WHERE criteria, locked, read again and re-tested,
+because its value may be changed by concurrent transaction before lock acquisition.
+Note that new uncommitted rows from other transactions are not visible due to read committed isolation level
+and therefore cannot be locked.
+With PageStore engine the whole tables are locked;
+to avoid deadlocks with this engine always lock the tables in the same order in all transactions.
 ","
 SELECT * FROM TEST;
 SELECT * FROM TEST ORDER BY NAME;
@@ -219,7 +230,8 @@ RUNSCRIPT FROM 'classpath:/com/acme/test.sql'
 "
 
 "Commands (DML)","SCRIPT","
-SCRIPT [ SIMPLE ] [ NODATA ] [ NOPASSWORDS ] [ NOSETTINGS ]
+SCRIPT { [ NODATA ] | [ SIMPLE ] [ COLUMNS ] }
+[ NOPASSWORDS ] [ NOSETTINGS ]
 [ DROP ] [ BLOCKSIZE blockSizeInt ]
 [ TO fileNameString scriptCompressionEncryption
     [ CHARSET charsetString ] ]
@@ -228,8 +240,9 @@ SCRIPT [ SIMPLE ] [ NODATA ] [ NOPASSWORDS ] [ NOSETTINGS ]
 ","
 Creates a SQL script from the database.
 
-SIMPLE does not use multi-row insert statements.
 NODATA will not emit INSERT statements.
+SIMPLE does not use multi-row insert statements.
+COLUMNS includes column name lists into insert statements.
 If the DROP option is specified, drop statements are created for tables, views,
 and sequences. If the block size is set, CLOB and BLOB values larger than this
 size are split into separate blocks.
@@ -1918,6 +1931,292 @@ Admin rights are required to execute this command.
 SHUTDOWN COMPACT
 "
 
+"Literals","Value","
+string | dollarQuotedString | numeric | dateAndTime | boolean | bytes
+    | interval | array | null
+","
+A literal value of any data type, or null.
+","
+10
+"
+
+"Literals","Array","
+ARRAY '[' [ expression, [,...] ] ']'
+","
+An array of values.
+","
+ARRAY[1, 2]
+ARRAY[1]
+ARRAY[]
+"
+
+"Literals","Boolean","
+TRUE | FALSE
+","
+A boolean value.
+","
+TRUE
+"
+
+"Literals","Bytes","
+X'hex'
+","
+A binary value. The hex value is not case sensitive.
+","
+X'01FF'
+"
+
+"Literals","Date","
+DATE 'yyyy-MM-dd'
+","
+A date literal. The limitations are the same as for the Java data type
+""java.sql.Date"", but for compatibility with other databases the suggested minimum
+and maximum years are 0001 and 9999.
+","
+DATE '2004-12-31'
+"
+
+"Literals","Date and time","
+date | time | timestamp | timestampWithTimeZone
+","
+A literal value of any date-time data type.
+","
+TIMESTAMP '1999-01-31 10:00:00'
+"
+
+"Literals","Decimal","
+[ + | - ] { { number [ . number ] } | { . number } }
+[ E [ + | - ] expNumber [...] ] ]
+","
+A decimal number with fixed precision and scale.
+Internally, ""java.lang.BigDecimal"" is used.
+To ensure the floating point representation is used, use CAST(X AS DOUBLE).
+There are some special decimal values: to represent positive infinity, use ""POWER(0, -1)"";
+for negative infinity, use ""(-POWER(0, -1))""; for -0.0, use ""(-CAST(0 AS DOUBLE))"";
+for ""NaN"" (not a number), use ""SQRT(-1)"".
+","
+SELECT -1600.05
+SELECT CAST(0 AS DOUBLE)
+SELECT -1.4e-10
+"
+
+"Literals","Dollar Quoted String","
+$$anythingExceptTwoDollarSigns$$
+","
+A string starts and ends with two dollar signs. Two dollar signs are not allowed
+within the text. A whitespace is required before the first set of dollar signs.
+No escaping is required within the text.
+","
+$$John's car$$
+"
+
+"Literals","Hex Number","
+[ + | - ] 0x hex
+","
+A number written in hexadecimal notation.
+","
+0xff
+"
+
+"Literals","Int","
+[ + | - ] number
+","
+The maximum integer number is 2147483647, the minimum is -2147483648.
+","
+10
+"
+
+"Literals","Long","
+[ + | - ] number
+","
+Long numbers are between -9223372036854775808 and 9223372036854775807.
+","
+100000
+"
+
+"Literals","Null","
+NULL
+","
+NULL is a value without data type and means 'unknown value'.
+","
+NULL
+"
+
+"Literals","Number","
+digit [...]
+","
+The maximum length of the number depends on the data type used.
+","
+100
+"
+
+"Literals","Numeric","
+decimal | int | long | hexNumber
+","
+The data type of a numeric value is always the lowest possible for the given value.
+If the number contains a dot this is decimal; otherwise it is int, long, or decimal (depending on the value).
+","
+SELECT -1600.05
+SELECT CAST(0 AS DOUBLE)
+SELECT -1.4e-10
+"
+
+"Literals","String","
+'anythingExceptSingleQuote'
+","
+A string starts and ends with a single quote. Two single quotes can be used to
+create a single quote inside a string.
+","
+'John''s car'
+"
+
+"Literals","Time","
+TIME [ WITHOUT TIME ZONE ] 'hh:mm:ss[.nnnnnnnnn]'
+","
+A time literal. A value is between 0:00:00 and 23:59:59.999999999
+and has nanosecond resolution.
+","
+TIME '23:59:59'
+"
+
+"Literals","Timestamp","
+TIMESTAMP [ WITHOUT TIME ZONE ] 'yyyy-MM-dd hh:mm:ss[.nnnnnnnnn]'
+","
+A timestamp literal. The limitations are the same as for the Java data type
+""java.sql.Timestamp"", but for compatibility with other databases the suggested
+minimum and maximum years are 0001 and 9999.
+","
+TIMESTAMP '2005-12-31 23:59:59'
+"
+
+"Literals","Timestamp with time zone","
+TIMESTAMP WITH TIME ZONE 'yyyy-MM-dd hh:mm:ss[.nnnnnnnnn]
+[Z | { - | + } timeZoneOffsetString | timeZoneNameString ]'
+","
+A timestamp with time zone literal.
+If name of time zone is specified it will be converted to time zone offset.
+","
+TIMESTAMP WITH TIME ZONE '2005-12-31 23:59:59Z'
+TIMESTAMP WITH TIME ZONE '2005-12-31 23:59:59-10:00'
+TIMESTAMP WITH TIME ZONE '2005-12-31 23:59:59.123+05'
+TIMESTAMP WITH TIME ZONE '2005-12-31 23:59:59.123456789 Europe/London'
+"
+
+"Literals","Interval","
+intervalYear | intervalMonth | intervalDay | intervalHour | intervalMinute
+    | intervalSecond | intervalYearToMonth | intervalDayToHour
+    | intervalDayToMinute | intervalDayToSecond | intervalHourToMinute
+    | intervalHourToSecond | intervalMinuteToSecond
+","
+An interval literal.
+","
+INTERVAL '1-2' YEAR TO MONTH
+"
+
+"Literals","INTERVAL YEAR","
+INTERVAL [-|+] '[-|+]yearInt' YEAR
+","
+An INTERVAL YEAR literal.
+","
+INTERVAL '10' YEAR
+"
+
+"Literals","INTERVAL MONTH","
+INTERVAL [-|+] '[-|+]monthInt' MONTH
+","
+An INTERVAL MONTH literal.
+","
+INTERVAL '10' MONTH
+"
+
+"Literals","INTERVAL DAY","
+INTERVAL [-|+] '[-|+]dayInt' DAY
+","
+An INTERVAL DAY literal.
+","
+INTERVAL '10' DAY
+"
+
+"Literals","INTERVAL HOUR","
+INTERVAL [-|+] '[-|+]hourInt' HOUR
+","
+An INTERVAL HOUR literal.
+","
+INTERVAL '10' HOUR
+"
+
+"Literals","INTERVAL MINUTE","
+INTERVAL [-|+] '[-|+]minuteInt' MINUTE
+","
+An INTERVAL MINUTE literal.
+","
+INTERVAL '10' MINUTE
+"
+
+"Literals","INTERVAL SECOND","
+INTERVAL [-|+] '[-|+]secondInt[.nnnnnnnnn]' SECOND
+","
+An INTERVAL SECOND literal.
+","
+INTERVAL '10.123' SECOND
+"
+
+"Literals","INTERVAL YEAR TO MONTH","
+INTERVAL [-|+] '[-|+]yearInt-monthInt' YEAR TO MONTH
+","
+An INTERVAL YEAR TO MONTH literal.
+","
+INTERVAL '1-6' YEAR TO MONTH
+"
+
+"Literals","INTERVAL DAY TO HOUR","
+INTERVAL [-|+] '[-|+]dayInt hoursInt' DAY TO HOUR
+","
+An INTERVAL DAY TO HOUR literal.
+","
+INTERVAL '10 11' DAY TO HOUR
+"
+
+"Literals","INTERVAL DAY TO MINUTE","
+INTERVAL [-|+] '[-|+]dayInt hh:mm' DAY TO MINUTE
+","
+An INTERVAL DAY TO MINUTE literal.
+","
+INTERVAL '10 11:12' DAY TO MINUTE
+"
+
+"Literals","INTERVAL DAY TO SECOND","
+INTERVAL [-|+] '[-|+]dayInt hh:mm:ss[.nnnnnnnnn]' DAY TO SECOND
+","
+An INTERVAL DAY TO SECOND literal.
+","
+INTERVAL '10 11:12:13.123' DAY TO SECOND
+"
+
+"Literals","INTERVAL HOUR TO MINUTE","
+INTERVAL [-|+] '[-|+]hh:mm' HOUR TO MINUTE
+","
+An INTERVAL HOUR TO MINUTE literal.
+","
+INTERVAL '10:11' HOUR TO MINUTE
+"
+
+"Literals","INTERVAL HOUR TO SECOND","
+INTERVAL [-|+] '[-|+]hh:mm:ss[.nnnnnnnnn]' HOUR TO SECOND
+","
+An INTERVAL HOUR TO SECOND literal.
+","
+INTERVAL '10:11:12.123' HOUR TO SECOND
+"
+
+"Literals","INTERVAL MINUTE TO SECOND","
+INTERVAL [-|+] '[-|+]mm:ss[.nnnnnnnnn]' MINUTE TO SECOND
+","
+An INTERVAL MINUTE TO SECOND literal.
+","
+INTERVAL '11:12.123' MINUTE TO SECOND
+"
+
 "Datetime fields","Datetime field","
 yearField | monthField | dayOfMonthField
     | hourField | minuteField | secondField
@@ -2105,32 +2404,6 @@ condition [ { AND condition } [...] ]
 Value or condition.
 ","
 ID=1 AND NAME='Hi'
-"
-
-"Other Grammar","Array","
-ARRAY '[' [ expression, [,...] ] ']'
-","
-An array of values.
-","
-ARRAY[1, 2]
-ARRAY[1]
-ARRAY[]
-"
-
-"Other Grammar","Boolean","
-TRUE | FALSE
-","
-A boolean value.
-","
-TRUE
-"
-
-"Other Grammar","Bytes","
-X'hex'
-","
-A binary value. The hex value is not case sensitive.
-","
-X'01FF'
 "
 
 "Other Grammar","Case","
@@ -2348,48 +2621,12 @@ A data type definition.
 INT
 "
 
-"Other Grammar","Date","
-DATE 'yyyy-MM-dd'
-","
-A date literal. The limitations are the same as for the Java data type
-""java.sql.Date"", but for compatibility with other databases the suggested minimum
-and maximum years are 0001 and 9999.
-","
-DATE '2004-12-31'
-"
-
-"Other Grammar","Decimal","
-[ + | - ] { { number [ . number ] } | { . number } }
-[ E [ + | - ] expNumber [...] ] ]
-","
-A decimal number with fixed precision and scale.
-Internally, ""java.lang.BigDecimal"" is used.
-To ensure the floating point representation is used, use CAST(X AS DOUBLE).
-There are some special decimal values: to represent positive infinity, use ""POWER(0, -1)"";
-for negative infinity, use ""(-POWER(0, -1))""; for -0.0, use ""(-CAST(0 AS DOUBLE))"";
-for ""NaN"" (not a number), use ""SQRT(-1)"".
-","
-SELECT -1600.05
-SELECT CAST(0 AS DOUBLE)
-SELECT -1.4e-10
-"
-
 "Other Grammar","Digit","
 0-9
 ","
 A digit.
 ","
 0
-"
-
-"Other Grammar","Dollar Quoted String","
-$$anythingExceptTwoDollarSigns$$
-","
-A string starts and ends with two dollar signs. Two dollar signs are not allowed
-within the text. A whitespace is required before the first set of dollar signs.
-No escaping is required within the text.
-","
-$$John's car$$
 "
 
 "Other Grammar","Expression","
@@ -2415,14 +2652,6 @@ The hexadecimal representation of a number or of bytes. Two characters are one
 byte.
 ","
 cafe
-"
-
-"Other Grammar","Hex Number","
-[ + | - ] 0x hex
-","
-A number written in hexadecimal notation.
-","
-0xff
 "
 
 "Other Grammar","Index Column","
@@ -2451,22 +2680,6 @@ VALUES { DEFAULT|expression | [ROW] ({DEFAULT|expression} [,...]) }, [,...]
 Values for INSERT statement.
 ","
 VALUES (1, 'Test')
-"
-
-"Other Grammar","Int","
-[ + | - ] number
-","
-The maximum integer number is 2147483647, the minimum is -2147483648.
-","
-10
-"
-
-"Other Grammar","Long","
-[ + | - ] number
-","
-Long numbers are between -9223372036854775808 and 9223372036854775807.
-","
-100000
 "
 
 "Other Grammar","Merge when clause","
@@ -2507,33 +2720,6 @@ WHEN NOT MATCHED THEN INSERT (ID, NAME) VALUES (S.ID, S.NAME)
 Names are not case sensitive. There is no maximum name length.
 ","
 TEST
-"
-
-"Other Grammar","Null","
-NULL
-","
-NULL is a value without data type and means 'unknown value'.
-","
-NULL
-"
-
-"Other Grammar","Number","
-digit [...]
-","
-The maximum length of the number depends on the data type used.
-","
-100
-"
-
-"Other Grammar","Numeric","
-decimal | int | long | hexNumber
-","
-The data type of a numeric value is always the lowest possible for the given value.
-If the number contains a dot this is decimal; otherwise it is int, long, or decimal (depending on the value).
-","
-SELECT -1600.05
-SELECT CAST(0 AS DOUBLE)
-SELECT -1.4e-10
 "
 
 "Other Grammar","Operand","
@@ -2646,15 +2832,6 @@ NAME = 'Test', VALUE = 2
 (A, B) = (SELECT X, Y FROM OTHER T2 WHERE T1.ID = T2.ID)
 "
 
-"Other Grammar","String","
-'anythingExceptSingleQuote'
-","
-A string starts and ends with a single quote. Two single quotes can be used to
-create a single quote inside a string.
-","
-'John''s car'
-"
-
 "Other Grammar","Summand","
 factor [ { { + | - } factor } [...] ]
 ","
@@ -2702,8 +2879,7 @@ windowName | windowSpecification
 ","
 A window name or inline specification for a window function or aggregate.
 
-Window functions are currently experimental in H2 and should be used with caution.
-They also may require a lot of memory for large queries.
+Window functions in H2 may require a lot of memory for large queries.
 ","
 W1
 (ORDER BY ID)
@@ -2797,7 +2973,7 @@ CURRENT ROW
 
 "Other Grammar","Term","
 value
-    | columnName
+    | column
     | ?[ int ]
     | NEXT VALUE FOR sequenceName
     | function
@@ -2806,177 +2982,20 @@ value
     | select
     | case
     | caseWhen
-    | tableAlias.columnName
     | userDefinedFunctionName
 ","
 A value. Parameters can be indexed, for example ""?1"" meaning the first parameter.
-Each table has a pseudo-column named ""_ROWID_"" that contains the unique row identifier.
 ","
 'Hello'
 "
 
-"Other Grammar","Time","
-TIME [ WITHOUT TIME ZONE ] 'hh:mm:ss[.nnnnnnnnn]'
+"Other Grammar","Column","
+[[schemaName.]tableAlias.] { columnName | _ROWID_ }
 ","
-A time literal. A value is between 0:00:00 and 23:59:59.999999999
-and has nanosecond resolution.
+A column name with optional table alias and schema.
+_ROWID_ can be used to access unique row identifier.
 ","
-TIME '23:59:59'
-"
-
-"Other Grammar","Timestamp","
-TIMESTAMP [ WITHOUT TIME ZONE ] 'yyyy-MM-dd hh:mm:ss[.nnnnnnnnn]'
-","
-A timestamp literal. The limitations are the same as for the Java data type
-""java.sql.Timestamp"", but for compatibility with other databases the suggested
-minimum and maximum years are 0001 and 9999.
-","
-TIMESTAMP '2005-12-31 23:59:59'
-"
-
-"Other Grammar","Timestamp with time zone","
-TIMESTAMP WITH TIME ZONE 'yyyy-MM-dd hh:mm:ss[.nnnnnnnnn]
-[Z | { - | + } timeZoneOffsetString | timeZoneNameString ]'
-","
-A timestamp with time zone literal.
-If name of time zone is specified it will be converted to time zone offset.
-","
-TIMESTAMP WITH TIME ZONE '2005-12-31 23:59:59Z'
-TIMESTAMP WITH TIME ZONE '2005-12-31 23:59:59-10:00'
-TIMESTAMP WITH TIME ZONE '2005-12-31 23:59:59.123+05'
-TIMESTAMP WITH TIME ZONE '2005-12-31 23:59:59.123456789 Europe/London'
-"
-
-"Other Grammar","Date and time","
-date | time | timestamp | timestampWithTimeZone
-","
-A literal value of any date-time data type.
-","
-TIMESTAMP '1999-01-31 10:00:00'
-"
-
-"Other Grammar","INTERVAL YEAR","
-INTERVAL [-|+] '[-|+]yearInt' YEAR
-","
-An INTERVAL YEAR literal.
-","
-INTERVAL '10' YEAR
-"
-
-"Other Grammar","INTERVAL MONTH","
-INTERVAL [-|+] '[-|+]monthInt' MONTH
-","
-An INTERVAL MONTH literal.
-","
-INTERVAL '10' MONTH
-"
-
-"Other Grammar","INTERVAL DAY","
-INTERVAL [-|+] '[-|+]dayInt' DAY
-","
-An INTERVAL DAY literal.
-","
-INTERVAL '10' DAY
-"
-
-"Other Grammar","INTERVAL HOUR","
-INTERVAL [-|+] '[-|+]hourInt' HOUR
-","
-An INTERVAL HOUR literal.
-","
-INTERVAL '10' HOUR
-"
-
-"Other Grammar","INTERVAL MINUTE","
-INTERVAL [-|+] '[-|+]minuteInt' MINUTE
-","
-An INTERVAL MINUTE literal.
-","
-INTERVAL '10' MINUTE
-"
-
-"Other Grammar","INTERVAL SECOND","
-INTERVAL [-|+] '[-|+]secondInt[.nnnnnnnnn]' SECOND
-","
-An INTERVAL SECOND literal.
-","
-INTERVAL '10.123' SECOND
-"
-
-"Other Grammar","INTERVAL YEAR TO MONTH","
-INTERVAL [-|+] '[-|+]yearInt-monthInt' YEAR TO MONTH
-","
-An INTERVAL YEAR TO MONTH literal.
-","
-INTERVAL '1-6' YEAR TO MONTH
-"
-
-"Other Grammar","INTERVAL DAY TO HOUR","
-INTERVAL [-|+] '[-|+]dayInt hoursInt' DAY TO HOUR
-","
-An INTERVAL DAY TO HOUR literal.
-","
-INTERVAL '10 11' DAY TO HOUR
-"
-
-"Other Grammar","INTERVAL DAY TO MINUTE","
-INTERVAL [-|+] '[-|+]dayInt hh:mm' DAY TO MINUTE
-","
-An INTERVAL DAY TO MINUTE literal.
-","
-INTERVAL '10 11:12' DAY TO MINUTE
-"
-
-"Other Grammar","INTERVAL DAY TO SECOND","
-INTERVAL [-|+] '[-|+]dayInt hh:mm:ss[.nnnnnnnnn]' DAY TO SECOND
-","
-An INTERVAL DAY TO SECOND literal.
-","
-INTERVAL '10 11:12:13.123' DAY TO SECOND
-"
-
-"Other Grammar","INTERVAL HOUR TO MINUTE","
-INTERVAL [-|+] '[-|+]hh:mm' HOUR TO MINUTE
-","
-An INTERVAL HOUR TO MINUTE literal.
-","
-INTERVAL '10:11' HOUR TO MINUTE
-"
-
-"Other Grammar","INTERVAL HOUR TO SECOND","
-INTERVAL [-|+] '[-|+]hh:mm:ss[.nnnnnnnnn]' HOUR TO SECOND
-","
-An INTERVAL HOUR TO SECOND literal.
-","
-INTERVAL '10:11:12.123' HOUR TO SECOND
-"
-
-"Other Grammar","INTERVAL MINUTE TO SECOND","
-INTERVAL [-|+] '[-|+]mm:ss[.nnnnnnnnn]' MINUTE TO SECOND
-","
-An INTERVAL MINUTE TO SECOND literal.
-","
-INTERVAL '11:12.123' MINUTE TO SECOND
-"
-
-"Other Grammar","Interval","
-intervalYear | intervalMonth | intervalDay | intervalHour | intervalMinute
-    | intervalSecond | intervalYearToMonth | intervalDayToHour
-    | intervalDayToMinute | intervalDayToSecond | intervalHourToMinute
-    | intervalHourToSecond | intervalMinuteToSecond
-","
-An interval literal.
-","
-INTERVAL '1-2' YEAR TO MONTH
-"
-
-"Other Grammar","Value","
-string | dollarQuotedString | numeric | dateAndTime | boolean | bytes
-    | interval | array | null
-","
-A literal value of any data type, or null.
-","
-10
+ID
 "
 
 "Data Types","INT Type","
@@ -3865,7 +3884,7 @@ ENVELOPE(X)
 "
 
 "Functions (Numeric)","ABS","
-ABS(numeric|interval)
+ABS( { numeric | interval } )
 ","
 Returns the absolute value of a specified value.
 The returned value is of the same data type as the parameter.
@@ -4201,7 +4220,7 @@ CALL SECURE_RAND(16)
 "
 
 "Functions (Numeric)","SIGN","
-SIGN(numeric|interval)
+SIGN( { numeric | interval } )
 ","
 Returns -1 if the value is smaller than 0, 0 if zero, and otherwise 1.
 ","
@@ -4494,7 +4513,7 @@ RTRIM(NAME)
 "
 
 "Functions (String)","TRIM","
-TRIM ( [ { LEADING | TRAILING | BOTH } [ string ] FROM ] string )
+TRIM ( [ [ LEADING | TRAILING | BOTH ] [ string ] FROM ] string )
 ","
 Removes all leading spaces, trailing spaces, or spaces at both ends, from a string.
 Other characters can be removed as well.
@@ -4795,7 +4814,7 @@ If specified field is a HOUR, MINUTE, SECOND, MILLISECOND, etc and value is a DA
 Fields DAY, MONTH, YEAR, WEEK, etc are not allowed for TIME values.
 Fields TIMEZONE_HOUR and TIMEZONE_MINUTE are only allowed for TIMESTAMP WITH TIME ZONE values.
 ","
-DATEADD('MONTH', 1, DATE '2001-01-31')
+DATEADD(MONTH, 1, DATE '2001-01-31')
 "
 
 "Functions (Time and Date)","DATEDIFF","
@@ -5508,8 +5527,7 @@ ROW_NUMBER() OVER windowNameOrSpecification
 Returns the number of the current row starting with 1.
 Window frame clause is not allowed for this function.
 
-Window functions are currently experimental in H2 and should be used with caution.
-They also may require a lot of memory for large queries.
+Window functions in H2 may require a lot of memory for large queries.
 ","
 SELECT ROW_NUMBER() OVER (), * FROM TEST;
 SELECT ROW_NUMBER() OVER (ORDER BY ID), * FROM TEST;
@@ -5526,8 +5544,7 @@ It means that gaps in ranks are possible.
 This function requires window order clause.
 Window frame clause is not allowed for this function.
 
-Window functions are currently experimental in H2 and should be used with caution.
-They also may require a lot of memory for large queries.
+Window functions in H2 may require a lot of memory for large queries.
 ","
 SELECT RANK() OVER (ORDER BY ID), * FROM TEST;
 SELECT RANK() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
@@ -5543,8 +5560,7 @@ Gaps in ranks are not possible.
 This function requires window order clause.
 Window frame clause is not allowed for this function.
 
-Window functions are currently experimental in H2 and should be used with caution.
-They also may require a lot of memory for large queries.
+Window functions in H2 may require a lot of memory for large queries.
 ","
 SELECT DENSE_RANK() OVER (ORDER BY ID), * FROM TEST;
 SELECT DENSE_RANK() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
@@ -5559,8 +5575,7 @@ where RANK is a rank of the row and NR is a number of rows in window partition w
 Note that result is always 0 if window order clause is not specified.
 Window frame clause is not allowed for this function.
 
-Window functions are currently experimental in H2 and should be used with caution.
-They also may require a lot of memory for large queries.
+Window functions in H2 may require a lot of memory for large queries.
 ","
 SELECT PERCENT_RANK() OVER (ORDER BY ID), * FROM TEST;
 SELECT PERCENT_RANK() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
@@ -5576,8 +5591,7 @@ and NR is a number of rows in window partition with this row.
 Note that result is always 1 if window order clause is not specified.
 Window frame clause is not allowed for this function.
 
-Window functions are currently experimental in H2 and should be used with caution.
-They also may require a lot of memory for large queries.
+Window functions in H2 may require a lot of memory for large queries.
 ","
 SELECT CUME_DIST() OVER (ORDER BY ID), * FROM TEST;
 SELECT CUME_DIST() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
@@ -5594,8 +5608,7 @@ For example, if 5 rows are distributed into 2 groups this function returns 1 for
 This function requires window order clause.
 Window frame clause is not allowed for this function.
 
-Window functions are currently experimental in H2 and should be used with caution.
-They also may require a lot of memory for large queries.
+Window functions in H2 may require a lot of memory for large queries.
 ","
 SELECT NTILE(10) OVER (ORDER BY ID), * FROM TEST;
 SELECT NTILE(5) OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
@@ -5614,8 +5627,7 @@ If offset is 0 the value from the current row is returned unconditionally.
 This function requires window order clause.
 Window frame clause is not allowed for this function.
 
-Window functions are currently experimental in H2 and should be used with caution.
-They also may require a lot of memory for large queries.
+Window functions in H2 may require a lot of memory for large queries.
 ","
 SELECT LEAD(X) OVER (ORDER BY ID), * FROM TEST;
 SELECT LEAD(X, 2, 0) IGNORE NULLS OVER (
@@ -5636,8 +5648,7 @@ If offset is 0 the value from the current row is returned unconditionally.
 This function requires window order clause.
 Window frame clause is not allowed for this function.
 
-Window functions are currently experimental in H2 and should be used with caution.
-They also may require a lot of memory for large queries.
+Window functions in H2 may require a lot of memory for large queries.
 ","
 SELECT LAG(X) OVER (ORDER BY ID), * FROM TEST;
 SELECT LAG(X, 2, 0) IGNORE NULLS OVER (
@@ -5652,8 +5663,7 @@ OVER windowNameOrSpecification
 Returns the first value in a window.
 If IGNORE NULLS is specified null values are skipped and the function returns first non-null value, if any.
 
-Window functions are currently experimental in H2 and should be used with caution.
-They also may require a lot of memory for large queries.
+Window functions in H2 may require a lot of memory for large queries.
 ","
 SELECT FIRST_VALUE(X) OVER (ORDER BY ID), * FROM TEST;
 SELECT FIRST_VALUE(X) IGNORE NULLS OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
@@ -5669,8 +5679,7 @@ if there is no non-null value it returns NULL.
 Note that the last value is actually a value in the current group of rows
 if window order clause is specified and window frame clause is not specified.
 
-Window functions are currently experimental in H2 and should be used with caution.
-They also may require a lot of memory for large queries.
+Window functions in H2 may require a lot of memory for large queries.
 ","
 SELECT LAST_VALUE(X) OVER (ORDER BY ID), * FROM TEST;
 SELECT LAST_VALUE(X) IGNORE NULLS OVER (
@@ -5691,8 +5700,7 @@ If number of considered rows is less than specified relative number this functio
 Note that the last row is actually a last row in the current group of rows
 if window order clause is specified and window frame clause is not specified.
 
-Window functions are currently experimental in H2 and should be used with caution.
-They also may require a lot of memory for large queries.
+Window functions in H2 may require a lot of memory for large queries.
 ","
 SELECT NTH_VALUE(X) OVER (ORDER BY ID), * FROM TEST;
 SELECT NTH_VALUE(X) IGNORE NULLS OVER (
@@ -5709,8 +5717,7 @@ Returns the ratio of a value to the sum of all values.
 If argument is NULL or sum of all values is 0, then the value of function is NULL.
 Window ordering and window frame clauses are not allowed for this function.
 
-Window functions are currently experimental in H2 and should be used with caution.
-They also may require a lot of memory for large queries.
+Window functions in H2 may require a lot of memory for large queries.
 ","
 SELECT X, RATIO_TO_REPORT(X) OVER (PARTITION BY CATEGORY), CATEGORY FROM TEST;
 "

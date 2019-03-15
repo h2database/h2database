@@ -228,9 +228,14 @@ public class ParserUtil {
     public static final int ROW = QUALIFY + 1;
 
     /**
+     * The token "_ROWID_".
+     */
+    public static final int _ROWID_ = ROW + 1;
+
+    /**
      * The token "ROWNUM".
      */
-    public static final int ROWNUM = ROW + 1;
+    public static final int ROWNUM = _ROWID_ + 1;
 
     /**
      * The token "SELECT".
@@ -279,12 +284,31 @@ public class ParserUtil {
 
     private static final int UPPER_OR_OTHER_LETTER =
             1 << Character.UPPERCASE_LETTER
-            | 1 << Character.TITLECASE_LETTER
             | 1 << Character.MODIFIER_LETTER
             | 1 << Character.OTHER_LETTER;
 
     private static final int UPPER_OR_OTHER_LETTER_OR_DIGIT =
             UPPER_OR_OTHER_LETTER
+            | 1 << Character.DECIMAL_DIGIT_NUMBER;
+
+    private static final int LOWER_OR_OTHER_LETTER =
+            1 << Character.LOWERCASE_LETTER
+            | 1 << Character.MODIFIER_LETTER
+            | 1 << Character.OTHER_LETTER;
+
+    private static final int LOWER_OR_OTHER_LETTER_OR_DIGIT =
+            LOWER_OR_OTHER_LETTER
+            | 1 << Character.DECIMAL_DIGIT_NUMBER;
+
+    private static final int LETTER =
+            1 << Character.UPPERCASE_LETTER
+            | 1 << Character.LOWERCASE_LETTER
+            | 1 << Character.TITLECASE_LETTER
+            | 1 << Character.MODIFIER_LETTER
+            | 1 << Character.OTHER_LETTER;
+
+    private static final int LETTER_OR_DIGIT =
+            LETTER
             | 1 << Character.DECIMAL_DIGIT_NUMBER;
 
     private ParserUtil() {
@@ -311,26 +335,44 @@ public class ParserUtil {
      * Is this a simple identifier (in the JDBC specification sense).
      *
      * @param s identifier to check
+     * @param databaseToUpper whether unquoted identifiers are converted to upper case
+     * @param databaseToLower whether unquoted identifiers are converted to lower case
      * @return is specified identifier may be used without quotes
      * @throws NullPointerException if s is {@code null}
      */
-    public static boolean isSimpleIdentifier(String s) {
+    public static boolean isSimpleIdentifier(String s, boolean databaseToUpper, boolean databaseToLower) {
         int length = s.length();
         if (length == 0) {
             return false;
         }
+        int startFlags, partFlags;
+        if (databaseToUpper) {
+            if (databaseToLower) {
+                throw new IllegalArgumentException("databaseToUpper && databaseToLower");
+            } else {
+                startFlags = UPPER_OR_OTHER_LETTER;
+                partFlags = UPPER_OR_OTHER_LETTER_OR_DIGIT;
+            }
+        } else {
+            if (databaseToLower) {
+                startFlags = LOWER_OR_OTHER_LETTER;
+                partFlags = LOWER_OR_OTHER_LETTER_OR_DIGIT;
+            } else {
+                startFlags = LETTER;
+                partFlags = LETTER_OR_DIGIT;
+            }
+        }
         char c = s.charAt(0);
-        // lowercase a-z is quoted as well
-        if ((UPPER_OR_OTHER_LETTER >>> Character.getType(c) & 1) == 0 && c != '_') {
+        if ((startFlags >>> Character.getType(c) & 1) == 0 && c != '_') {
             return false;
         }
         for (int i = 1; i < length; i++) {
             c = s.charAt(i);
-            if ((UPPER_OR_OTHER_LETTER_OR_DIGIT >>> Character.getType(c) & 1) == 0 && c != '_') {
+            if ((partFlags >>> Character.getType(c) & 1) == 0 && c != '_') {
                 return false;
             }
         }
-        return getSaveTokenType(s, false, 0, length, true) == IDENTIFIER;
+        return getSaveTokenType(s, !databaseToUpper, 0, length, true) == IDENTIFIER;
     }
 
     /**
@@ -352,10 +394,7 @@ public class ParserUtil {
          */
         char c = s.charAt(start);
         if (ignoreCase) {
-            /*
-             * Convert a-z to A-Z. This method is safe, because only A-Z
-             * characters are considered below.
-             */
+            // Convert a-z to A-Z and 0x7f to _ (need special handling).
             c &= 0xffdf;
         }
         switch (c) {
@@ -364,6 +403,18 @@ public class ParserUtil {
                 return ALL;
             } else if (eq("ARRAY", s, ignoreCase, start, end)) {
                 return ARRAY;
+            }
+            if (additionalKeywords) {
+                if (eq("AND", s, ignoreCase, start, end) || eq("AS", s, ignoreCase, start, end)) {
+                    return KEYWORD;
+                }
+            }
+            return IDENTIFIER;
+        case 'B':
+            if (additionalKeywords) {
+                if (eq("BETWEEN", s, ignoreCase, start, end) || eq("BOTH", s, ignoreCase, start, end)) {
+                    return KEYWORD;
+                }
             }
             return IDENTIFIER;
         case 'C':
@@ -411,10 +462,20 @@ public class ParserUtil {
             } else if (eq("FALSE", s, ignoreCase, start, end)) {
                 return FALSE;
             }
+            if (additionalKeywords) {
+                if (eq("FILTER", s, ignoreCase, start, end)) {
+                    return KEYWORD;
+                }
+            }
             return IDENTIFIER;
         case 'G':
             if (eq("GROUP", s, ignoreCase, start, end)) {
                 return GROUP;
+            }
+            if (additionalKeywords) {
+                if (eq("GROUPS", s, ignoreCase, start, end)) {
+                    return KEYWORD;
+                }
             }
             return IDENTIFIER;
         case 'H':
@@ -436,6 +497,11 @@ public class ParserUtil {
             } else if (eq("IS", s, ignoreCase, start, end)) {
                 return IS;
             }
+            if (additionalKeywords) {
+                if (eq("ILIKE", s, ignoreCase, start, end) || eq("IN", s, ignoreCase, start, end)) {
+                    return KEYWORD;
+                }
+            }
             return IDENTIFIER;
         case 'J':
             if (eq("JOIN", s, ignoreCase, start, end)) {
@@ -451,6 +517,11 @@ public class ParserUtil {
                 return LOCALTIME;
             } else if (eq("LOCALTIMESTAMP", s, ignoreCase, start, end)) {
                 return LOCALTIMESTAMP;
+            }
+            if (additionalKeywords) {
+                if (eq("LEADING", s, ignoreCase, start, end) || eq("LEFT", s, ignoreCase, start, end)) {
+                    return KEYWORD;
+                }
             }
             return IDENTIFIER;
         case 'M':
@@ -475,10 +546,20 @@ public class ParserUtil {
             } else if (eq("ORDER", s, ignoreCase, start, end)) {
                 return ORDER;
             }
+            if (additionalKeywords) {
+                if (eq("OR", s, ignoreCase, start, end) || eq("OVER", s, ignoreCase, start, end)) {
+                    return KEYWORD;
+                }
+            }
             return IDENTIFIER;
         case 'P':
             if (eq("PRIMARY", s, ignoreCase, start, end)) {
                 return PRIMARY;
+            }
+            if (additionalKeywords) {
+                if (eq("PARTITION", s, ignoreCase, start, end)) {
+                    return KEYWORD;
+                }
             }
             return IDENTIFIER;
         case 'Q':
@@ -491,6 +572,12 @@ public class ParserUtil {
                 return ROW;
             } else if (eq("ROWNUM", s, ignoreCase, start, end)) {
                 return ROWNUM;
+            }
+            if (additionalKeywords) {
+                if (eq("RANGE", s, ignoreCase, start, end) || eq("REGEXP", s, ignoreCase, start, end)
+                        || eq("ROWS", s, ignoreCase, start, end) || eq("RIGHT", s, ignoreCase, start, end)) {
+                    return KEYWORD;
+                }
             }
             return IDENTIFIER;
         case 'S':
@@ -511,7 +598,8 @@ public class ParserUtil {
                 return TRUE;
             }
             if (additionalKeywords) {
-                if (eq("TODAY", s, ignoreCase, start, end) || eq("TOP", s, ignoreCase, start, end)) {
+                if (eq("TODAY", s, ignoreCase, start, end) || eq("TOP", s, ignoreCase, start, end)
+                        || eq("TRAILING", s, ignoreCase, start, end)) {
                     return KEYWORD;
                 }
             }
@@ -537,6 +625,12 @@ public class ParserUtil {
                 return WITH;
             }
             return IDENTIFIER;
+        case '_':
+            // Cannot use eq() because 0x7f can be converted to '_' (0x5f)
+            if (end - start == 7 && "_ROWID_".regionMatches(ignoreCase, 0, s, start, 7)) {
+                return _ROWID_;
+            }
+            //$FALL-THROUGH$
         default:
             return IDENTIFIER;
         }

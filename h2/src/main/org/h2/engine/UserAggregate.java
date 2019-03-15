@@ -60,14 +60,14 @@ public class UserAggregate extends DbObjectBase {
     @Override
     public String getDropSQL() {
         StringBuilder builder = new StringBuilder("DROP AGGREGATE IF EXISTS ");
-        return getSQL(builder).toString();
+        return getSQL(builder, true).toString();
     }
 
     @Override
     public String getCreateSQL() {
         StringBuilder builder = new StringBuilder("CREATE FORCE AGGREGATE ");
-        getSQL(builder).append(" FOR ");
-        Parser.quoteIdentifier(builder, className);
+        getSQL(builder, true).append(" FOR ");
+        Parser.quoteIdentifier(builder, className, true);
         return builder.toString();
     }
 

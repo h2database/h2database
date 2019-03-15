@@ -67,7 +67,6 @@ import org.h2.util.IOUtils;
 import org.h2.util.IntArray;
 import org.h2.util.MathUtils;
 import org.h2.util.SmallLRUCache;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Tool;
@@ -1565,12 +1564,13 @@ public class Recover extends Tool implements DataHandler {
             Integer objectId = entry.getKey();
             String name = entry.getValue();
             if (objectIdSet.contains(objectId)) {
-                if (name.startsWith("INFORMATION_SCHEMA.LOB")) {
+                if (isLobTable(name)) {
                     setStorage(objectId);
                     writer.println("DELETE FROM " + name + ";");
                     writer.println("INSERT INTO " + name + " SELECT * FROM " + storageName + ";");
-                    if (name.startsWith("INFORMATION_SCHEMA.LOBS")) {
-                        writer.println("UPDATE " + name + " SET \"TABLE\" = " +
+                    if (name.equals("INFORMATION_SCHEMA.LOBS")
+                            || name.equalsIgnoreCase("\"INFORMATION_SCHEMA\".\"LOBS\"")) {
+                        writer.println("UPDATE " + name + " SET `TABLE` = " +
                                 LobStorageFrontend.TABLE_TEMP + ";");
                         deleteLobs = true;
                     }
@@ -1582,7 +1582,7 @@ public class Recover extends Tool implements DataHandler {
             String name = entry.getValue();
             if (objectIdSet.contains(objectId)) {
                 setStorage(objectId);
-                if (name.startsWith("INFORMATION_SCHEMA.LOB")) {
+                if (isLobTable(name)) {
                     continue;
                 }
                 writer.println("INSERT INTO " + name + " SELECT * FROM " + storageName + ";");
@@ -1597,7 +1597,7 @@ public class Recover extends Tool implements DataHandler {
         writer.println("DROP ALIAS READ_BLOB_DB;");
         writer.println("DROP ALIAS READ_CLOB_DB;");
         if (deleteLobs) {
-            writer.println("DELETE FROM INFORMATION_SCHEMA.LOBS WHERE \"TABLE\" = " +
+            writer.println("DELETE FROM INFORMATION_SCHEMA.LOBS WHERE `TABLE` = " +
                     LobStorageFrontend.TABLE_TEMP + ";");
         }
         for (MetaRecord m : schema) {
@@ -1606,6 +1606,11 @@ public class Recover extends Tool implements DataHandler {
                 writer.println(sql + ";");
             }
         }
+    }
+
+    private static boolean isLobTable(String name) {
+        return name.startsWith("INFORMATION_SCHEMA.LOB") || name.startsWith("\"INFORMATION_SCHEMA\".\"LOB")
+                || name.startsWith("\"information_schema\".\"lob");
     }
 
     private static boolean isSchemaObjectTypeDelayed(MetaRecord m) {
@@ -1621,19 +1626,20 @@ public class Recover extends Tool implements DataHandler {
     private void createTemporaryTable(PrintWriter writer) {
         if (!objectIdSet.contains(storageId)) {
             objectIdSet.add(storageId);
-            StatementBuilder buff = new StatementBuilder("CREATE TABLE ");
-            buff.append(storageName).append('(');
+            writer.write("CREATE TABLE ");
+            writer.write(storageName);
+            writer.write('(');
             for (int i = 0; i < recordLength; i++) {
-                buff.appendExceptFirst(", ");
-                buff.append('C').append(i).append(' ');
-                String columnType = columnTypeMap.get(storageName + "." + i);
-                if (columnType == null) {
-                    buff.append("VARCHAR");
-                } else {
-                    buff.append(columnType);
+                if (i > 0) {
+                    writer.print(", ");
                 }
+                writer.write('C');
+                writer.print(i);
+                writer.write(' ');
+                String columnType = columnTypeMap.get(storageName + "." + i);
+                writer.write(columnType == null ? "VARCHAR" : columnType);
             }
-            writer.println(buff.append(");").toString());
+            writer.println(");");
             writer.flush();
         }
     }

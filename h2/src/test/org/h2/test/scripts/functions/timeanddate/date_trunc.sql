@@ -372,7 +372,6 @@ SELECT DATE_TRUNC('second', '2015-05-29 00:00:00');
 SELECT DATE_TRUNC('SECOND', '2015-05-29 00:00:00');
 >> 2015-05-29 00:00:00
 
-
 --
 -- Test time unit 'MINUTE'
 --
@@ -598,7 +597,6 @@ select DATE_TRUNC('day', '2015-05-29 15:14:13');
 select DATE_TRUNC('DAY', '2015-05-29 15:14:13');
 >> 2015-05-29 00:00:00
 
-
 --
 -- Test time unit 'WEEK'
 --
@@ -817,7 +815,6 @@ SELECT DATE_TRUNC('quarter', '2015-12-29 15:14:13');
 
 SELECT DATE_TRUNC('QUARTER', '2015-12-29 15:14:13');
 >> 2015-10-01 00:00:00
-
 
 --
 -- Test time unit 'YEAR'
@@ -1073,4 +1070,3 @@ SELECT DATE_TRUNC('', '');
 
 SELECT DATE_TRUNC('YEAR', '');
 > exception INVALID_DATETIME_CONSTANT_2
-

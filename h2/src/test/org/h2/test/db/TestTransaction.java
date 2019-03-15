@@ -31,11 +31,13 @@ public class TestTransaction extends TestDb {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        TestBase.createCaller().init().test();
+        TestBase init = TestBase.createCaller().init();
+        init.config.multiThreaded = true;
+        init.test();
     }
 
     @Override
-    public void test() throws SQLException {
+    public void test() throws Exception {
         testClosingConnectionWithSessionTempTable();
         testClosingConnectionWithLockedTable();
         testConstraintCreationRollback();
@@ -45,6 +47,11 @@ public class TestTransaction extends TestDb {
         testRollback();
         testRollback2();
         testForUpdate();
+        testForUpdate2();
+        testForUpdate3();
+        testUpdate();
+        testMergeUsing();
+        testDelete();
         testSetTransaction();
         testReferential();
         testSavepoint();
@@ -216,6 +223,306 @@ public class TestTransaction extends TestDb {
                 execute("update test set name = 'Hallo' where id = 1");
         conn2.close();
         conn.close();
+    }
+
+    private void testForUpdate2() throws Exception {
+        // Exclude some configurations to avoid spending too much time in sleep()
+        if (config.mvStore && !config.multiThreaded || config.networked || config.cipher != null) {
+            return;
+        }
+        deleteDb("transaction");
+        Connection conn1 = getConnection("transaction");
+        Connection conn2 = getConnection("transaction");
+        Statement stat1 = conn1.createStatement();
+        stat1.execute("CREATE TABLE TEST (ID INT PRIMARY KEY, V INT)");
+        conn1.setAutoCommit(false);
+        conn2.createStatement().execute("SET LOCK_TIMEOUT 2000");
+        if (config.mvStore) {
+            testForUpdate2(conn1, stat1, conn2, false);
+        }
+        testForUpdate2(conn1, stat1, conn2, true);
+        conn1.close();
+        conn2.close();
+    }
+
+    private void testForUpdate2(Connection conn1, Statement stat1, Connection conn2, boolean forUpdate)
+            throws Exception {
+        testForUpdate2(conn1, stat1, conn2, forUpdate, false);
+        testForUpdate2(conn1, stat1, conn2, forUpdate, true);
+    }
+
+    private void testForUpdate2(Connection conn1, Statement stat1, Connection conn2, boolean forUpdate,
+            boolean window) throws Exception {
+        testForUpdate2(conn1, stat1, conn2, forUpdate, window, false, false);
+        testForUpdate2(conn1, stat1, conn2, forUpdate, window, false, true);
+        testForUpdate2(conn1, stat1, conn2, forUpdate, window, true, false);
+    }
+
+    private void testForUpdate2(Connection conn1, Statement stat1, final Connection conn2, boolean forUpdate,
+            boolean window, boolean deleted, boolean excluded) throws Exception {
+        stat1.execute("MERGE INTO TEST KEY(ID) VALUES (1, 1)");
+        conn1.commit();
+        stat1.execute(deleted ? "DELETE FROM TEST WHERE ID = 1" : "UPDATE TEST SET V = 2 WHERE ID = 1");
+        final int[] res = new int[1];
+        final Exception[] ex = new Exception[1];
+        StringBuilder builder = new StringBuilder("SELECT V");
+        if (window) {
+            builder.append(", RANK() OVER (ORDER BY ID)");
+        }
+        builder.append(" FROM TEST WHERE ID = 1");
+        if (excluded) {
+            builder.append(" AND V = 1");
+        }
+        if (forUpdate) {
+            builder.append(" FOR UPDATE");
+        }
+        String query = builder.toString();
+        final PreparedStatement prep2 = conn2.prepareStatement(query);
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    ResultSet resultSet = prep2.executeQuery();
+                    res[0] = resultSet.next() ? resultSet.getInt(1) : -1;
+                    conn2.commit();
+                } catch (SQLException e) {
+                    ex[0] = e;
+                }
+            }
+        };
+        t.start();
+        Thread.sleep(500);
+        conn1.commit();
+        t.join();
+        if (ex[0] != null) {
+            throw ex[0];
+        }
+        assertEquals(forUpdate ? (deleted || excluded) ? -1 : 2 : 1, res[0]);
+    }
+
+    private void testForUpdate3() throws Exception {
+        // Exclude some configurations to avoid spending too much time in sleep()
+        if (config.mvStore && !config.multiThreaded || config.networked || config.cipher != null) {
+            return;
+        }
+        deleteDb("transaction");
+        Connection conn1 = getConnection("transaction");
+        final Connection conn2 = getConnection("transaction");
+        Statement stat1 = conn1.createStatement();
+        stat1.execute("CREATE TABLE TEST (ID INT PRIMARY KEY, V INT UNIQUE)");
+        conn1.setAutoCommit(false);
+        conn2.createStatement().execute("SET LOCK_TIMEOUT 2000");
+        stat1.execute("MERGE INTO TEST KEY(ID) VALUES (1, 1), (2, 2), (3, 3), (4, 4)");
+        conn1.commit();
+        stat1.execute("UPDATE TEST SET V = 10 - V");
+        final Exception[] ex = new Exception[1];
+        StringBuilder builder = new StringBuilder("SELECT V FROM TEST ORDER BY V FOR UPDATE");
+        String query = builder.toString();
+        final PreparedStatement prep2 = conn2.prepareStatement(query);
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    ResultSet resultSet = prep2.executeQuery();
+                    int previous = -1;
+                    while (resultSet.next()) {
+                        int value = resultSet.getInt(1);
+                        assertTrue(previous + ">=" + value, previous < value);
+                        previous = value;
+                    }
+                    conn2.commit();
+                } catch (SQLException e) {
+                    ex[0] = e;
+                }
+            }
+        };
+        t.start();
+        Thread.sleep(500);
+        conn1.commit();
+        t.join();
+        if (ex[0] != null) {
+            throw ex[0];
+        }
+        conn1.close();
+        conn2.close();
+    }
+
+    private void testUpdate() throws Exception {
+        final int count = 50;
+        deleteDb("transaction");
+        final Connection conn1 = getConnection("transaction");
+        conn1.setAutoCommit(false);
+        Connection conn2 = getConnection("transaction");
+        conn2.setAutoCommit(false);
+        Statement stat1 = conn1.createStatement();
+        Statement stat2 = conn2.createStatement();
+        stat1.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE BOOLEAN) AS "
+                + "SELECT X, FALSE FROM GENERATE_SERIES(1, " + count + ')');
+        conn1.commit();
+        stat1.executeQuery("SELECT * FROM TEST").close();
+        stat2.executeQuery("SELECT * FROM TEST").close();
+        final int[] r = new int[1];
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                int sum = 0;
+                try {
+                    PreparedStatement prep = conn1.prepareStatement(
+                            "UPDATE TEST SET VALUE = TRUE WHERE ID = ? AND NOT VALUE");
+                    for (int i = 1; i <= count; i++) {
+                        prep.setInt(1, i);
+                        prep.addBatch();
+                    }
+                    int[] a = prep.executeBatch();
+                    for (int i : a) {
+                        sum += i;
+                    }
+                    conn1.commit();
+                } catch (SQLException e) {
+                    // Ignore
+                }
+                r[0] = sum;
+            }
+        };
+        t.start();
+        int sum = 0;
+        PreparedStatement prep = conn2.prepareStatement(
+                "UPDATE TEST SET VALUE = TRUE WHERE ID = ? AND NOT VALUE");
+        for (int i = 1; i <= count; i++) {
+            prep.setInt(1, i);
+            prep.addBatch();
+        }
+        int[] a = prep.executeBatch();
+        for (int i : a) {
+            sum += i;
+        }
+        conn2.commit();
+        t.join();
+        assertEquals(count, sum + r[0]);
+        conn2.close();
+        conn1.close();
+    }
+
+    private void testMergeUsing() throws Exception {
+        final int count = 50;
+        deleteDb("transaction");
+        final Connection conn1 = getConnection("transaction");
+        conn1.setAutoCommit(false);
+        Connection conn2 = getConnection("transaction");
+        conn2.setAutoCommit(false);
+        Statement stat1 = conn1.createStatement();
+        Statement stat2 = conn2.createStatement();
+        stat1.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE BOOLEAN) AS "
+                + "SELECT X, FALSE FROM GENERATE_SERIES(1, " + count + ')');
+        conn1.commit();
+        stat1.executeQuery("SELECT * FROM TEST").close();
+        stat2.executeQuery("SELECT * FROM TEST").close();
+        final int[] r = new int[1];
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                int sum = 0;
+                try {
+                    PreparedStatement prep = conn1.prepareStatement(
+                            "MERGE INTO TEST T USING (SELECT ?1::INT X) S ON T.ID = S.X AND NOT T.VALUE"
+                            + " WHEN MATCHED THEN UPDATE SET T.VALUE = TRUE"
+                            + " WHEN NOT MATCHED THEN INSERT VALUES (10000 + ?1, FALSE)");
+                    for (int i = 1; i <= count; i++) {
+                        prep.setInt(1, i);
+                        prep.addBatch();
+                    }
+                    int[] a = prep.executeBatch();
+                    for (int i : a) {
+                        sum += i;
+                    }
+                    conn1.commit();
+                } catch (SQLException e) {
+                    // Ignore
+                }
+                r[0] = sum;
+            }
+        };
+        t.start();
+        int sum = 0;
+        PreparedStatement prep = conn2.prepareStatement(
+                "MERGE INTO TEST T USING (SELECT ?1::INT X) S ON T.ID = S.X AND NOT T.VALUE"
+                + " WHEN MATCHED THEN UPDATE SET T.VALUE = TRUE"
+                + " WHEN NOT MATCHED THEN INSERT VALUES (10000 + ?1, FALSE)");
+        for (int i = 1; i <= count; i++) {
+            prep.setInt(1, i);
+            prep.addBatch();
+        }
+        int[] a = prep.executeBatch();
+        for (int i : a) {
+            sum += i;
+        }
+        conn2.commit();
+        t.join();
+        assertEquals(count * 2, sum + r[0]);
+        conn2.close();
+        conn1.close();
+    }
+
+    private void testDelete() throws Exception {
+        String sql1 = "DELETE FROM TEST WHERE ID = ? AND NOT VALUE";
+        String sql2 = "UPDATE TEST SET VALUE = TRUE WHERE ID = ? AND NOT VALUE";
+        testDeleteImpl(sql1, sql2);
+        testDeleteImpl(sql2, sql1);
+    }
+
+    private void testDeleteImpl(final String sql1, String sql2) throws Exception {
+        final int count = 50;
+        deleteDb("transaction");
+        final Connection conn1 = getConnection("transaction");
+        conn1.setAutoCommit(false);
+        Connection conn2 = getConnection("transaction");
+        conn2.setAutoCommit(false);
+        Statement stat1 = conn1.createStatement();
+        Statement stat2 = conn2.createStatement();
+        stat1.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE BOOLEAN) AS "
+                + "SELECT X, FALSE FROM GENERATE_SERIES(1, " + count + ')');
+        conn1.commit();
+        stat1.executeQuery("SELECT * FROM TEST").close();
+        stat2.executeQuery("SELECT * FROM TEST").close();
+        final int[] r = new int[1];
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                int sum = 0;
+                try {
+                    PreparedStatement prep = conn1.prepareStatement(sql1);
+                    for (int i = 1; i <= count; i++) {
+                        prep.setInt(1, i);
+                        prep.addBatch();
+                    }
+                    int[] a = prep.executeBatch();
+                    for (int i : a) {
+                        sum += i;
+                    }
+                    conn1.commit();
+                } catch (SQLException e) {
+                    // Ignore
+                }
+                r[0] = sum;
+            }
+        };
+        t.start();
+        int sum = 0;
+        PreparedStatement prep = conn2.prepareStatement(
+                sql2);
+        for (int i = 1; i <= count; i++) {
+            prep.setInt(1, i);
+            prep.addBatch();
+        }
+        int[] a = prep.executeBatch();
+        for (int i : a) {
+            sum += i;
+        }
+        conn2.commit();
+        t.join();
+        assertEquals(count, sum + r[0]);
+        conn2.close();
+        conn1.close();
     }
 
     private void testRollback() throws SQLException {

@@ -21,6 +21,16 @@ public class Setting extends DbObjectBase {
         super(database, id, settingName, Trace.SETTING);
     }
 
+    @Override
+    public String getSQL(boolean alwaysQuote) {
+        return getName();
+    }
+
+    @Override
+    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+        return builder.append(getName());
+    }
+
     public void setIntValue(int value) {
         intValue = value;
     }
@@ -50,7 +60,7 @@ public class Setting extends DbObjectBase {
     @Override
     public String getCreateSQL() {
         StringBuilder buff = new StringBuilder("SET ");
-        getSQL(buff).append(' ');
+        getSQL(buff, true).append(' ');
         if (stringValue != null) {
             buff.append(stringValue);
         } else {

@@ -71,6 +71,27 @@ public abstract class LazyResult implements ResultInterface {
         return false;
     }
 
+    /**
+     * Go to the next row and skip it.
+     *
+     * @return true if a row exists
+     */
+    public boolean skip() {
+        if (closed || afterLast) {
+            return false;
+        }
+        currentRow = null;
+        if (nextRow != null) {
+            nextRow = null;
+            return true;
+        }
+        if (skipNextRow()) {
+            return true;
+        }
+        afterLast = true;
+        return false;
+    }
+
     @Override
     public boolean hasNext() {
         if (closed || afterLast) {
@@ -88,6 +109,15 @@ public abstract class LazyResult implements ResultInterface {
      * @return next row or null
      */
     protected abstract Value[] fetchNextRow();
+
+    /**
+     * Skip next row.
+     *
+     * @return true if next row was available
+     */
+    protected boolean skipNextRow() {
+        return fetchNextRow() != null;
+    }
 
     @Override
     public boolean isAfterLast() {

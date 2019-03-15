@@ -21,7 +21,6 @@ import java.nio.charset.StandardCharsets;
 
 import org.h2.util.IOUtils;
 import org.h2.util.NetUtils;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 
 /**
@@ -230,12 +229,14 @@ public class FtpClient {
         int last = message.indexOf(')');
         String[] address = StringUtils.arraySplit(
                 message.substring(first, last), ',', true);
-        StatementBuilder buff = new StatementBuilder();
+        StringBuilder builder = new StringBuilder();
         for (int i = 0; i < 4; i++) {
-            buff.appendExceptFirst(".");
-            buff.append(address[i]);
+            if (i > 0) {
+                builder.append('.');
+            }
+            builder.append(address[i]);
         }
-        String ip = buff.toString();
+        String ip = builder.toString();
         InetAddress addr = InetAddress.getByName(ip);
         int port = (Integer.parseInt(address[4]) << 8) | Integer.parseInt(address[5]);
         Socket socketData = NetUtils.createSocket(addr, port, false);

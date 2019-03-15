@@ -169,6 +169,15 @@ public class Function extends Expression implements FunctionCall {
             JSON_CONTAINS = 354, JSON_EXISTS = 355, JSON_EXISTS_ANY = 356,
             JSON_EXISTS_ALL = 357, JSON_CONCAT = 358, JSON_DELETE_FIELD = 359;
 //            JSON_DELETE_PATH = 360
+    /**
+     * The flags for TRIM(LEADING ...) function.
+     */
+    public static final int TRIM_LEADING = 1;
+
+    /**
+     * The flags for TRIM(TRAILING ...) function.
+     */
+    public static final int TRIM_TRAILING = 2;
 
     protected static final int VAR_ARGS = -1;
 
@@ -179,6 +188,7 @@ public class Function extends Expression implements FunctionCall {
 
     protected final FunctionInfo info;
     private ArrayList<Expression> varArgs;
+    private int flags;
     protected TypeInfo type;
 
     private final Database database;
@@ -603,6 +613,24 @@ public class Function extends Expression implements FunctionCall {
         }
     }
 
+    /**
+     * Set the flags for this function.
+     *
+     * @param flags the flags to set
+     */
+    public void setFlags(int flags) {
+        this.flags = flags;
+    }
+
+    /**
+     * Returns the flags.
+     *
+     * @return the flags
+     */
+    public int getFlags() {
+        return flags;
+    }
+
     @Override
     public Value getValue(Session session) {
         return getValueWithArgs(session, args);
@@ -636,7 +664,7 @@ public class Function extends Expression implements FunctionCall {
         case COT: {
             double d = Math.tan(v0.getDouble());
             if (d == 0.0) {
-                throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+                throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL(false));
             }
             result = ValueDouble.get(1. / d);
             break;
@@ -1248,7 +1276,7 @@ public class Function extends Expression implements FunctionCall {
         case MOD: {
             long x = v1.getLong();
             if (x == 0) {
-                throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+                throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL(false));
             }
             result = ValueLong.get(v0.getLong() % x);
             break;
@@ -1373,7 +1401,7 @@ public class Function extends Expression implements FunctionCall {
             break;
         case TRIM:
             result = ValueString.get(StringUtils.trim(v0.getString(),
-                    true, true, v1 == null ? " " : v1.getString()),
+                    (flags & TRIM_LEADING) != 0, (flags & TRIM_TRAILING) != 0, v1 == null ? " " : v1.getString()),
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case RTRIM:
@@ -1746,9 +1774,9 @@ public class Function extends Expression implements FunctionCall {
         case VALUES: {
             Expression a0 = args[0];
             StringBuilder builder = new StringBuilder();
-            Parser.quoteIdentifier(builder, a0.getSchemaName()).append('.');
-            Parser.quoteIdentifier(builder, a0.getTableName()).append('.');
-            Parser.quoteIdentifier(builder, a0.getColumnName());
+            Parser.quoteIdentifier(builder, a0.getSchemaName(), true).append('.');
+            Parser.quoteIdentifier(builder, a0.getTableName(), true).append('.');
+            Parser.quoteIdentifier(builder, a0.getColumnName(), true);
             result = session.getVariable(builder.toString());
             break;
         }
@@ -2707,7 +2735,7 @@ public class Function extends Expression implements FunctionCall {
             typeInfo = args[1].getType();
             if (!(p0 instanceof Variable)) {
                 throw DbException.get(
-                        ErrorCode.CAN_ONLY_ASSIGN_TO_VARIABLE_1, p0.getSQL());
+                        ErrorCode.CAN_ONLY_ASSIGN_TO_VARIABLE_1, p0.getSQL(false));
             }
             break;
         case FILE_READ: {
@@ -2814,22 +2842,22 @@ public class Function extends Expression implements FunctionCall {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
         builder.append(info.name);
         if (info.type == CASE) {
             if (args[0] != null) {
                 builder.append(' ');
-                args[0].getSQL(builder);
+                args[0].getSQL(builder, alwaysQuote);
             }
             for (int i = 1, len = args.length - 1; i < len; i += 2) {
                 builder.append(" WHEN ");
-                args[i].getSQL(builder);
+                args[i].getSQL(builder, alwaysQuote);
                 builder.append(" THEN ");
-                args[i + 1].getSQL(builder);
+                args[i + 1].getSQL(builder, alwaysQuote);
             }
             if (args.length % 2 == 0) {
                 builder.append(" ELSE ");
-                args[args.length - 1].getSQL(builder);
+                args[args.length - 1].getSQL(builder, alwaysQuote);
             }
             return builder.append(" END");
         }
@@ -2838,27 +2866,42 @@ public class Function extends Expression implements FunctionCall {
             builder.append('(');
         }
         switch (info.type) {
+        case TRIM: {
+            switch (flags) {
+            case TRIM_LEADING:
+                builder.append("LEADING ");
+                break;
+            case TRIM_TRAILING:
+                builder.append("TRAILING ");
+                break;
+            }
+            if (args.length > 1) {
+                args[1].getSQL(builder, alwaysQuote).append(" FROM ");
+            }
+            args[0].getSQL(builder, alwaysQuote);
+            break;
+        }
         case CAST: {
-            args[0].getSQL(builder).append(" AS ").append(new Column(null, type).getCreateSQL());
+            args[0].getSQL(builder, alwaysQuote).append(" AS ").append(new Column(null, type).getCreateSQL());
             break;
         }
         case CONVERT: {
             if (database.getMode().swapConvertFunctionParameters) {
                 builder.append(new Column(null, type).getCreateSQL()).append(',');
-                args[0].getSQL(builder);
+                args[0].getSQL(builder, alwaysQuote);
             } else {
-                args[0].getSQL(builder).append(',').append(new Column(null, type).getCreateSQL());
+                args[0].getSQL(builder, alwaysQuote).append(',').append(new Column(null, type).getCreateSQL());
             }
             break;
         }
         case EXTRACT: {
             ValueString v = (ValueString) ((ValueExpression) args[0]).getValue(null);
             builder.append(v.getString()).append(" FROM ");
-            args[1].getSQL(builder);
+            args[1].getSQL(builder, alwaysQuote);
             break;
         }
         default:
-            writeExpressions(builder, args);
+            writeExpressions(builder, args, alwaysQuote);
         }
         if (addParentheses) {
             builder.append(')');

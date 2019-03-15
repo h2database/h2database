@@ -23,6 +23,7 @@ import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.RowImpl;
+import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.Utils;
@@ -388,9 +389,9 @@ public class MergeUsing extends Prepared {
     }
 
     @Override
-    public String getPlanSQL() {
+    public String getPlanSQL(boolean alwaysQuote) {
         StringBuilder builder = new StringBuilder("MERGE INTO ");
-        targetTable.getSQL(builder).append('\n').append("USING ").append(query.getPlanSQL());
+        targetTable.getSQL(builder, alwaysQuote).append('\n').append("USING ").append(query.getPlanSQL(alwaysQuote));
         // TODO add aliases and WHEN clauses to make plan SQL more like original SQL
         return builder.toString();
     }
@@ -414,18 +415,23 @@ public class MergeUsing extends Prepared {
         // Prepare each of the sub-commands ready to aid in the MERGE
         // collaboration
         targetTableFilter.doneWithIndexConditions();
+        boolean forUpdate = false;
         for (When w : when) {
             w.prepare();
+            if (w instanceof WhenNotMatched) {
+                forUpdate = true;
+            }
         }
 
         // setup the targetMatchQuery - for detecting if the target row exists
         targetMatchQuery = new Select(session, null);
         ArrayList<Expression> expressions = new ArrayList<>(1);
         expressions.add(new ExpressionColumn(session.getDatabase(), targetTable.getSchema().getName(),
-                targetTableFilter.getTableAlias(), "_ROWID_"));
+                targetTableFilter.getTableAlias(), Column.ROWID, true));
         targetMatchQuery.setExpressions(expressions);
         targetMatchQuery.addTableFilter(targetTableFilter, true);
         targetMatchQuery.addCondition(onCondition);
+        targetMatchQuery.setForUpdate(forUpdate);
         targetMatchQuery.init();
         targetMatchQuery.prepare();
     }

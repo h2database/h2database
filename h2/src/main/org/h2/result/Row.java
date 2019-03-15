@@ -17,21 +17,6 @@ public interface Row extends SearchRow {
     Row[] EMPTY_ARRAY = {};
 
     /**
-     * Get a copy of the row that is distinct from (not equal to) this row.
-     * This is used for FOR UPDATE to allow pseudo-updating a row.
-     *
-     * @return a new row with the same data
-     */
-    Row getCopy();
-
-    /**
-     * Set version.
-     *
-     * @param version row version
-     */
-    void setVersion(int version);
-
-    /**
      * Get the number of bytes required for the data.
      *
      * @param dummy the template buffer
@@ -66,4 +51,19 @@ public interface Row extends SearchRow {
      * @return values
      */
     Value[] getValueList();
+
+    /**
+     * Check whether this row and the specified row share the same underlying
+     * data with values. This method must return {@code false} when values are
+     * not equal and may return either {@code true} or {@code false} when they
+     * are equal. This method may be used only for optimizations and should not
+     * perform any slow checks, such as equality checks for all pairs of values.
+     *
+     * @param other
+     *            the other row
+     * @return {@code true} if rows share the same underlying data,
+     *         {@code false} otherwise or when unknown
+     */
+    boolean hasSharedData(Row other);
+
 }

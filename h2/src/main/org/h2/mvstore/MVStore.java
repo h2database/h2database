@@ -1445,7 +1445,7 @@ public class MVStore implements AutoCloseable {
         assert lastChunk != null;
         final ThreadPoolExecutor executorService = new ThreadPoolExecutor(10, 10, 10L, TimeUnit.SECONDS,
                 new ArrayBlockingQueue<Runnable>(keysPerPage + 1));
-        final AtomicInteger executingThreadCounter = new AtomicInteger(0);
+        final AtomicInteger executingThreadCounter = new AtomicInteger();
         try {
             ChunkIdsCollector collector = new ChunkIdsCollector(meta.getId());
             long oldestVersionToKeep = getOldestVersionToKeep();

@@ -65,7 +65,7 @@ public class TestSelectCountNonNullColumn extends TestDb {
             assertEquals(expect, rs.getLong(1));
         } else {
             // System.out.println(rs.getString(1));
-            assertEquals("SELECT\n    COUNT(*)\nFROM PUBLIC.SIMPLE\n"
+            assertEquals("SELECT\n    COUNT(*)\nFROM \"PUBLIC\".\"SIMPLE\"\n"
                     + "    /* PUBLIC.PRIMARY_KEY_9 */\n"
                     + "/* direct lookup */", rs.getString(1));
         }
@@ -82,8 +82,8 @@ public class TestSelectCountNonNullColumn extends TestDb {
             assertEquals(expect, rs.getLong(1));
         } else {
             assertEquals("SELECT\n"
-                    + "    COUNT(KEY)\n"
-                    + "FROM PUBLIC.SIMPLE\n"
+                    + "    COUNT(\"KEY\")\n"
+                    + "FROM \"PUBLIC\".\"SIMPLE\"\n"
                     + "    /* PUBLIC.PRIMARY_KEY_9 */\n"
                     + "/* direct lookup */", rs.getString(1));
         }
@@ -100,7 +100,7 @@ public class TestSelectCountNonNullColumn extends TestDb {
             assertEquals(expect, rs.getLong(1));
         } else {
             // System.out.println(rs.getString(1));
-            assertEquals("SELECT\n" + "    COUNT(NAME)\n" + "FROM PUBLIC.SIMPLE\n"
+            assertEquals("SELECT\n" + "    COUNT(\"NAME\")\n" + "FROM \"PUBLIC\".\"SIMPLE\"\n"
                     + "    /* PUBLIC.SIMPLE.tableScan */", rs.getString(1));
         }
     }

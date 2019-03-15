@@ -149,12 +149,14 @@ public class WindowFrameBound {
      * @param following
      *            if false return SQL for starting clause, if true return SQL
      *            for following clause
+     * @param alwaysQuote
+     *            quote all identifiers
      * @return the specified string builder
-     * @see Expression#getSQL(StringBuilder)
+     * @see Expression#getSQL(StringBuilder, boolean)
      */
-    public StringBuilder getSQL(StringBuilder builder, boolean following) {
+    public StringBuilder getSQL(StringBuilder builder, boolean following, boolean alwaysQuote) {
         if (type == WindowFrameBoundType.PRECEDING || type == WindowFrameBoundType.FOLLOWING) {
-            value.getSQL(builder).append(' ');
+            value.getSQL(builder, alwaysQuote).append(' ');
         }
         return builder.append(type.getSQL());
     }

@@ -34,7 +34,6 @@ import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.StatementBuilder;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
@@ -532,24 +531,22 @@ public class Aggregate extends AbstractAggregate {
         if (orderByList != null || distinct) {
             sortWithOrderBy(array);
         }
-        StatementBuilder buff = new StatementBuilder();
+        StringBuilder builder = new StringBuilder();
         String sep = args.length < 2 ? "," : collectingData.getSharedArgument().getString();
-        for (Value val : array) {
+        for (int i = 0, length = array.length; i < length; i++) {
+            Value val = array[i];
             String s;
-            if (val.getValueType() == Value.ARRAY) {
+            if (orderByList != null) {
                 s = ((ValueArray) val).getList()[0].getString();
             } else {
                 s = val.getString();
             }
-            if (s == null) {
-                continue;
+            if (sep != null && i > 0) {
+                builder.append(sep);
             }
-            if (sep != null) {
-                buff.appendExceptFirst(sep);
-            }
-            buff.append(s);
+            builder.append(s);
         }
-        return ValueString.get(buff.toString());
+        return ValueString.get(builder.toString());
     }
 
     private Value getHistogram(Session session, AggregateData data) {
@@ -668,7 +665,7 @@ public class Aggregate extends AbstractAggregate {
                 // example: sum(id > 3) (count the rows)
                 type = TypeInfo.TYPE_LONG;
             } else if (!DataType.supportsAdd(dataType)) {
-                throw DbException.get(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getSQL());
+                throw DbException.get(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getSQL(false));
             } else {
                 type = TypeInfo.getTypeInfo(DataType.getAddProofType(dataType));
             }
@@ -676,7 +673,7 @@ public class Aggregate extends AbstractAggregate {
         }
         case AVG:
             if (!DataType.supportsAdd(type.getValueType())) {
-                throw DbException.get(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getSQL());
+                throw DbException.get(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getSQL(false));
             }
             break;
         case MIN:
@@ -723,7 +720,7 @@ public class Aggregate extends AbstractAggregate {
         case BIT_AND:
         case BIT_OR:
             if (!DataType.supportsAdd(type.getValueType())) {
-                throw DbException.get(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getSQL());
+                throw DbException.get(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getSQL(false));
             }
             break;
         case ARRAY_AGG:
@@ -748,23 +745,23 @@ public class Aggregate extends AbstractAggregate {
         super.setEvaluatable(tableFilter, b);
     }
 
-    private StringBuilder getSQLArrayAggregate(StringBuilder builder) {
+    private StringBuilder getSQLArrayAggregate(StringBuilder builder, boolean alwaysQuote) {
         builder.append("ARRAY_AGG(");
         if (distinct) {
             builder.append("DISTINCT ");
         }
-        args[0].getSQL(builder);
-        Window.appendOrderBy(builder, orderByList);
+        args[0].getSQL(builder, alwaysQuote);
+        Window.appendOrderBy(builder, orderByList, alwaysQuote);
         builder.append(')');
-        return appendTailConditions(builder);
+        return appendTailConditions(builder, alwaysQuote);
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
         String text;
         switch (aggregateType) {
         case COUNT_ALL:
-            return appendTailConditions(builder.append("COUNT(*)"));
+            return appendTailConditions(builder.append("COUNT(*)"), alwaysQuote);
         case COUNT:
             text = "COUNT";
             break;
@@ -835,7 +832,7 @@ public class Aggregate extends AbstractAggregate {
             text = "LISTAGG";
             break;
         case ARRAY_AGG:
-            return getSQLArrayAggregate(builder);
+            return getSQLArrayAggregate(builder, alwaysQuote);
         case MODE:
             text = "MODE";
             break;
@@ -857,18 +854,18 @@ public class Aggregate extends AbstractAggregate {
             }
             Expression arg = args[i];
             if (arg instanceof Subquery) {
-                arg.getSQL(builder);
+                arg.getSQL(builder, alwaysQuote);
             } else {
-                arg.getUnenclosedSQL(builder);
+                arg.getUnenclosedSQL(builder, alwaysQuote);
             }
         }
         builder.append(')');
         if (orderByList != null) {
             builder.append(" WITHIN GROUP (");
-            Window.appendOrderBy(builder, orderByList);
+            Window.appendOrderBy(builder, orderByList, alwaysQuote);
             builder.append(')');
         }
-        return appendTailConditions(builder);
+        return appendTailConditions(builder, alwaysQuote);
     }
 
     private Index getMinMaxColumnIndex() {

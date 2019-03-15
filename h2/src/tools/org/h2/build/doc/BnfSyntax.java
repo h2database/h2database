@@ -69,7 +69,9 @@ public class BnfSyntax implements BnfVisitor {
         }
         String page = "grammar.html";
         String section = found.getSection();
-        if (section.startsWith("Data Types") || section.startsWith("Interval Data Types")) {
+        if (section.startsWith("Commands")) {
+            page = "commands.html";
+        } if (section.startsWith("Data Types") || section.startsWith("Interval Data Types")) {
             page = "datatypes.html";
         } else if (section.startsWith("Functions")) {
             page = "functions.html";

@@ -18,7 +18,7 @@ import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
-import org.h2.table.RegularTable;
+import org.h2.table.PageStoreTable;
 import org.h2.table.TableFilter;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -34,11 +34,11 @@ public class HashIndex extends BaseIndex {
      */
     private final int indexColumn;
     private final boolean totalOrdering;
-    private final RegularTable tableData;
+    private final PageStoreTable tableData;
     private Map<Value, Long> rows;
     private final ArrayList<Long> nullRows = new ArrayList<>();
 
-    public HashIndex(RegularTable table, int id, String indexName, IndexColumn[] columns, IndexType indexType) {
+    public HashIndex(PageStoreTable table, int id, String indexName, IndexColumn[] columns, IndexType indexType) {
         super(table, id, indexName, columns, indexType);
         Column column = columns[0].column;
         indexColumn = column.getColumnId();

@@ -126,6 +126,19 @@ public class Update extends Prepared {
                 }
                 if (condition == null || condition.getBooleanValue(session)) {
                     Row oldRow = targetTableFilter.get();
+                    if (table.isMVStore()) {
+                        Row lockedRow = table.lockRow(session, oldRow);
+                        if (lockedRow == null) {
+                            continue;
+                        }
+                        if (!oldRow.hasSharedData(lockedRow)) {
+                            oldRow = lockedRow;
+                            targetTableFilter.set(oldRow);
+                            if (condition != null && !condition.getBooleanValue(session)) {
+                                continue;
+                            }
+                        }
+                    }
                     Row newRow = table.getTemplateRow();
                     boolean setOnUpdate = false;
                     for (int i = 0; i < columnCount; i++) {
@@ -169,20 +182,11 @@ public class Update extends Prepared {
                         }
                     }
                     table.validateConvertUpdateSequence(session, newRow);
-                    boolean done = false;
-                    if (table.fireRow()) {
-                        done = table.fireBeforeRow(session, oldRow, newRow);
-                    }
-                    if (!done) {
-                        if (table.isMVStore()) {
-                            done = table.lockRow(session, oldRow) == null;
-                        }
-                        if (!done) {
-                            rows.add(oldRow);
-                            rows.add(newRow);
-                            if (updatedKeysCollector != null) {
-                                updatedKeysCollector.add(key);
-                            }
+                    if (!table.fireRow() || !table.fireBeforeRow(session, oldRow, newRow)) {
+                        rows.add(oldRow);
+                        rows.add(newRow);
+                        if (updatedKeysCollector != null) {
+                            updatedKeysCollector.add(key);
                         }
                     }
                     count++;
@@ -210,24 +214,24 @@ public class Update extends Prepared {
     }
 
     @Override
-    public String getPlanSQL() {
+    public String getPlanSQL(boolean alwaysQuote) {
         StringBuilder builder = new StringBuilder("UPDATE ");
-        targetTableFilter.getPlanSQL(builder, false).append("\nSET\n    ");
+        targetTableFilter.getPlanSQL(builder, false, alwaysQuote).append("\nSET\n    ");
         for (int i = 0, size = columns.size(); i < size; i++) {
             if (i > 0) {
                 builder.append(",\n    ");
             }
             Column c = columns.get(i);
-            c.getSQL(builder).append(" = ");
-            expressionMap.get(c).getSQL(builder);
+            c.getSQL(builder, alwaysQuote).append(" = ");
+            expressionMap.get(c).getSQL(builder, alwaysQuote);
         }
         if (condition != null) {
             builder.append("\nWHERE ");
-            condition.getUnenclosedSQL(builder);
+            condition.getUnenclosedSQL(builder, alwaysQuote);
         }
         if (limitExpr != null) {
             builder.append("\nLIMIT ");
-            limitExpr.getUnenclosedSQL(builder);
+            limitExpr.getUnenclosedSQL(builder, alwaysQuote);
         }
         return builder.toString();
     }

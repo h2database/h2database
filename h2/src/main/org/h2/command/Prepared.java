@@ -280,9 +280,10 @@ public abstract class Prepared {
     /**
      * Get the SQL statement with the execution plan.
      *
+     * @param alwaysQuote quote all identifiers
      * @return the execution plan
      */
-    public String getPlanSQL() {
+    public String getPlanSQL(boolean alwaysQuote) {
         return null;
     }
 
@@ -422,9 +423,9 @@ public abstract class Prepared {
      * @param list the expression list
      * @return the SQL snippet
      */
-    protected static String getSQL(Expression[] list) {
+    protected static String getSimpleSQL(Expression[] list) {
         StringBuilder builder = new StringBuilder();
-        Expression.writeExpressions(builder, list);
+        Expression.writeExpressions(builder, list, false);
         return builder.toString();
     }
 

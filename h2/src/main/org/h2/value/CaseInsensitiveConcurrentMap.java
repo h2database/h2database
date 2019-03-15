@@ -5,15 +5,16 @@
  */
 package org.h2.value;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.h2.util.StringUtils;
 
 /**
- * A hash map with a case-insensitive string key.
+ * A concurrent hash map with case-insensitive string keys.
  *
  * @param <V> the value type
  */
-public class CaseInsensitiveMap<V> extends HashMap<String, V> {
+public class CaseInsensitiveConcurrentMap<V> extends ConcurrentHashMap<String, V> {
 
     private static final long serialVersionUID = 1L;
 

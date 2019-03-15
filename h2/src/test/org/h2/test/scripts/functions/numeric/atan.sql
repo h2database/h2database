@@ -14,4 +14,3 @@ select atan(null) vn, atan(-1) r1 from test;
 > ---- -------------------
 > null -0.7853981633974483
 > rows: 1
-

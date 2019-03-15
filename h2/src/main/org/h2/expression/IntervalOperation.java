@@ -114,10 +114,10 @@ public class IntervalOperation extends Expression {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
         builder.append('(');
-        left.getSQL(builder).append(' ').append(getOperationToken()).append(' ');
-        return right.getSQL(builder).append(')');
+        left.getSQL(builder, alwaysQuote).append(' ').append(getOperationToken()).append(' ');
+        return right.getSQL(builder, alwaysQuote).append(')');
     }
 
     private char getOperationToken() {

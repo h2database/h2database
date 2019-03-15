@@ -93,9 +93,9 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      */
     protected DbException getDuplicateKeyException(String key) {
         StringBuilder builder = new StringBuilder();
-        getSQL(builder).append(" ON ");
-        table.getSQL(builder).append('(');
-        builder.append(getColumnListSQL());
+        getSQL(builder, false).append(" ON ");
+        table.getSQL(builder, false).append('(');
+        builder.append(getColumnListSQL(false));
         builder.append(')');
         if (key != null) {
             builder.append(" VALUES ").append(key);
@@ -107,7 +107,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
 
     @Override
     public String getPlanSQL() {
-        return getSQL();
+        return getSQL(false);
     }
 
     @Override
@@ -408,10 +408,11 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     /**
      * Get the list of columns as a string.
      *
+     * @param alwaysQuote quote all identifiers
      * @return the list of columns
      */
-    private String getColumnListSQL() {
-        return IndexColumn.writeColumns(new StringBuilder(), indexColumns).toString();
+    private String getColumnListSQL(boolean alwaysQuote) {
+        return IndexColumn.writeColumns(new StringBuilder(), indexColumns, alwaysQuote).toString();
     }
 
     @Override
@@ -424,18 +425,18 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         }
         buff.append(quotedName);
         buff.append(" ON ");
-        targetTable.getSQL(buff);
+        targetTable.getSQL(buff, true);
         if (comment != null) {
             buff.append(" COMMENT ");
             StringUtils.quoteStringSQL(buff, comment);
         }
-        buff.append('(').append(getColumnListSQL()).append(')');
+        buff.append('(').append(getColumnListSQL(true)).append(')');
         return buff.toString();
     }
 
     @Override
     public String getCreateSQL() {
-        return getCreateSQLForCopy(table, getSQL());
+        return getCreateSQLForCopy(table, getSQL(true));
     }
 
     @Override

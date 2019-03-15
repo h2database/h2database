@@ -20,4 +20,3 @@ select insert('World', 2, 4, 'e') welt, insert('Hello', 2, 1, 'a') hallo from te
 > ---- -----
 > We   Hallo
 > rows: 1
-

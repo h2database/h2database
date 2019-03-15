@@ -42,7 +42,7 @@ public class TestExclusive extends TestDb {
         Connection conn2 = getConnection("exclusive");
         final Statement stat2 = conn2.createStatement();
         stat.execute("set exclusive true");
-        final AtomicInteger state = new AtomicInteger(0);
+        final AtomicInteger state = new AtomicInteger();
         Task task = new Task() {
             @Override
             public void call() throws SQLException {

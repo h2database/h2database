@@ -91,17 +91,21 @@ public class Delete extends Prepared {
                 if (condition == null || condition.getBooleanValue(session)) {
                     Row row = targetTableFilter.get();
                     if (keysFilter == null || keysFilter.contains(row.getKey())) {
-                        boolean done = false;
-                        if (table.fireRow()) {
-                            done = table.fireBeforeRow(session, row, null);
+                        if (table.isMVStore()) {
+                            Row lockedRow = table.lockRow(session, row);
+                            if (lockedRow == null) {
+                                continue;
+                            }
+                            if (!row.hasSharedData(lockedRow)) {
+                                row = lockedRow;
+                                targetTableFilter.set(row);
+                                if (condition != null && !condition.getBooleanValue(session)) {
+                                    continue;
+                                }
+                            }
                         }
-                        if (!done) {
-                            if (table.isMVStore()) {
-                                done = table.lockRow(session, row) == null;
-                            }
-                            if (!done) {
-                                rows.add(row);
-                            }
+                        if (!table.fireRow() || !table.fireBeforeRow(session, row, null)) {
+                            rows.add(row);
                         }
                         count++;
                         if (limitRows >= 0 && count >= limitRows) {
@@ -131,17 +135,17 @@ public class Delete extends Prepared {
     }
 
     @Override
-    public String getPlanSQL() {
+    public String getPlanSQL(boolean alwaysQuote) {
         StringBuilder buff = new StringBuilder();
         buff.append("DELETE FROM ");
-        targetTableFilter.getPlanSQL(buff, false);
+        targetTableFilter.getPlanSQL(buff, false, alwaysQuote);
         if (condition != null) {
             buff.append("\nWHERE ");
-            condition.getUnenclosedSQL(buff);
+            condition.getUnenclosedSQL(buff, alwaysQuote);
         }
         if (limitExpr != null) {
             buff.append("\nLIMIT (");
-            limitExpr.getUnenclosedSQL(buff).append(')');
+            limitExpr.getUnenclosedSQL(buff, alwaysQuote).append(')');
         }
         return buff.toString();
     }

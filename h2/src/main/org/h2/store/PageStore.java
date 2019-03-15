@@ -40,7 +40,7 @@ import org.h2.schema.Schema;
 import org.h2.store.fs.FileUtils;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
-import org.h2.table.RegularTable;
+import org.h2.table.PageStoreTable;
 import org.h2.table.Table;
 import org.h2.table.TableType;
 import org.h2.util.Cache;
@@ -49,7 +49,6 @@ import org.h2.util.CacheObject;
 import org.h2.util.CacheWriter;
 import org.h2.util.IntArray;
 import org.h2.util.IntIntHashMap;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
@@ -160,7 +159,7 @@ public class PageStore implements CacheWriter {
 
     private PageLog log;
     private Schema metaSchema;
-    private RegularTable metaTable;
+    private PageStoreTable metaTable;
     private PageDataIndex metaIndex;
     private final IntIntHashMap metaRootPageId = new IntIntHashMap();
     private final HashMap<Integer, PageIndex> metaObjects = new HashMap<>();
@@ -1603,7 +1602,7 @@ public class PageStore implements CacheWriter {
         data.persistIndexes = true;
         data.create = false;
         data.session = pageStoreSession;
-        metaTable = new RegularTable(data);
+        metaTable = new PageStoreTable(data);
         metaIndex = (PageDataIndex) metaTable.getScanIndex(
                 pageStoreSession);
         metaObjects.clear();
@@ -1684,7 +1683,7 @@ public class PageStore implements CacheWriter {
             data.persistIndexes = true;
             data.create = false;
             data.session = session;
-            RegularTable table = new RegularTable(data);
+            PageStoreTable table = new PageStoreTable(data);
             boolean binaryUnsigned = SysProperties.SORT_BINARY_UNSIGNED;
             if (options.length > 3) {
                 binaryUnsigned = Boolean.parseBoolean(options[3]);
@@ -1703,7 +1702,7 @@ public class PageStore implements CacheWriter {
                 throw DbException.get(ErrorCode.FILE_CORRUPTED_1,
                         "Table not found:" + parent + " for " + row + " meta:" + metaObjects);
             }
-            RegularTable table = (RegularTable) p.getTable();
+            PageStoreTable table = (PageStoreTable) p.getTable();
             Column[] tableCols = table.getColumns();
             int len = columns.length;
             IndexColumn[] cols = new IndexColumn[len];
@@ -1766,18 +1765,20 @@ public class PageStore implements CacheWriter {
             int type = index instanceof PageDataIndex ?
                     META_TYPE_DATA_INDEX : META_TYPE_BTREE_INDEX;
             IndexColumn[] columns = index.getIndexColumns();
-            StatementBuilder buff = new StatementBuilder();
-            for (IndexColumn col : columns) {
-                buff.appendExceptFirst(",");
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0, length = columns.length; i < length; i++) {
+                if (i > 0) {
+                    builder.append(',');
+                }
+                IndexColumn col = columns[i];
                 int id = col.column.getColumnId();
-                buff.append(id);
+                builder.append(id);
                 int sortType = col.sortType;
                 if (sortType != 0) {
-                    buff.append('/');
-                    buff.append(sortType);
+                    builder.append('/').append(sortType);
                 }
             }
-            String columnList = buff.toString();
+            String columnList = builder.toString();
             CompareMode mode = table.getCompareMode();
             StringBuilder options = new StringBuilder().append(mode.getName()).append(',').append(mode.getStrength())
                     .append(',');

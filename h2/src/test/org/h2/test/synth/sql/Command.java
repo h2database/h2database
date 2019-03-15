@@ -7,7 +7,6 @@ package org.h2.test.synth.sql;
 
 import java.sql.SQLException;
 import java.util.HashMap;
-import org.h2.util.StatementBuilder;
 
 /**
  * Represents a statement.
@@ -288,20 +287,21 @@ class Command {
     }
 
     private Result select(DbInterface db) throws SQLException {
-        StatementBuilder buff = new StatementBuilder("SELECT ");
-        for (String s : selectList) {
-            buff.appendExceptFirst(", ");
-            buff.append(s);
+        StringBuilder builder = new StringBuilder("SELECT ");
+        for (int i = 0, length = selectList.length; i < length; i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            builder.append(selectList[i]);
         }
-        buff.append("  FROM ").append(table.getName()).append(" M").
-            append(' ').append(join);
+        builder.append("  FROM ").append(table.getName()).append(" M").append(' ').append(join);
         if (condition != null) {
-            buff.append("  WHERE ").append(condition);
+            builder.append("  WHERE ").append(condition);
         }
         if (order.trim().length() > 0) {
-            buff.append("  ORDER BY ").append(order);
+            builder.append("  ORDER BY ").append(order);
         }
-        return db.select(buff.toString());
+        return db.select(builder.toString());
     }
 
     /**

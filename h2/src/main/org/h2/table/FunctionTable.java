@@ -226,13 +226,13 @@ public class FunctionTable extends Table {
     }
 
     @Override
-    public String getSQL() {
-        return function.getSQL();
+    public String getSQL(boolean alwaysQuote) {
+        return function.getSQL(alwaysQuote);
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
-        return builder.append(function.getSQL());
+    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+        return builder.append(function.getSQL(alwaysQuote));
     }
 
     @Override

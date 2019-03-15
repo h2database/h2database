@@ -14,7 +14,3 @@ select bitor(null, 1) vn, bitor(1, null) vn1, bitor(null, null) vn2, bitor(3, 6)
 > ---- ---- ---- --
 > null null null 7
 > rows: 1
-
-
-
-

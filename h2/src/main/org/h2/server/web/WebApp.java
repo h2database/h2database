@@ -59,7 +59,6 @@ import org.h2.util.JdbcUtils;
 import org.h2.util.Profiler;
 import org.h2.util.ScriptReader;
 import org.h2.util.SortedProperties;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
 import org.h2.util.Utils;
@@ -279,6 +278,10 @@ public class WebApp {
     private boolean checkAdmin(String file) {
         Boolean b = (Boolean) session.get("admin");
         if (b != null && b) {
+            return true;
+        }
+        String key = server.getKey();
+        if (key != null && key.equals(session.get("key"))) {
             return true;
         }
         session.put("adminBack", file);
@@ -937,7 +940,7 @@ public class WebApp {
             prof.startCollecting();
             Connection conn;
             try {
-                conn = server.getConnection(driver, url, user, password);
+                conn = server.getConnection(driver, url, user, password, null);
             } finally {
                 prof.stopCollecting();
                 profOpen = prof.getTop(3);
@@ -998,7 +1001,7 @@ public class WebApp {
         session.put("maxrows", "1000");
         boolean isH2 = url.startsWith("jdbc:h2:");
         try {
-            Connection conn = server.getConnection(driver, url, user, password);
+            Connection conn = server.getConnection(driver, url, user, password, (String) session.get("key"));
             session.setConnection(conn);
             session.put("url", url);
             session.put("user", user);
@@ -1540,19 +1543,15 @@ public class WebApp {
             }
         }
         time = System.currentTimeMillis() - time;
-        StatementBuilder buff = new StatementBuilder();
-        buff.append(time).append(" ms: ").append(count).append(" * ");
-        if (prepared) {
-            buff.append("(Prepared) ");
-        } else {
-            buff.append("(Statement) ");
+        StringBuilder builder = new StringBuilder().append(time).append(" ms: ").append(count).append(" * ")
+                .append(prepared ? "(Prepared) " : "(Statement) ").append('(');
+        for (int i = 0, size = params.size(); i < size; i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            builder.append(params.get(i) == 0 ? "i" : "rnd");
         }
-        buff.append('(');
-        for (int p : params) {
-            buff.appendExceptFirst(", ");
-            buff.append(p == 0 ? "i" : "rnd");
-        }
-        return buff.append(") ").append(sql).toString();
+        return builder.append(") ").append(sql).toString();
     }
 
     private String getCommandHistoryString() {

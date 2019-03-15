@@ -107,8 +107,9 @@ public class TestShell extends TestBase {
             testOut.println("");
             read("Driver");
             testOut.println("sa");
-            read("User");
             testOut.println("sa");
+            testOut.println("sa");
+            read("User");
             read("Password");
         }
         read("Commands are case insensitive");

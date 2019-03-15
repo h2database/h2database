@@ -14,8 +14,3 @@ select ceil(null) vn, ceil(1) v1, ceiling(1.1) v2, ceil(-1.1) v3, ceiling(1.9) v
 > ---- --- --- ---- --- ----
 > null 1.0 2.0 -1.0 2.0 -1.0
 > rows: 1
-
-
-
-
-

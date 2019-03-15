@@ -316,7 +316,8 @@ public class LocalResultImpl implements LocalResult {
         if (isAnyDistinct()) {
             if (distinctRows != null) {
                 ValueRow array = getDistinctRow(values);
-                if (!distinctRows.containsKey(array)) {
+                Value[] previous = distinctRows.get(array);
+                if (previous == null || sort != null && sort.compare(previous, values) > 0) {
                     distinctRows.put(array, values);
                 }
                 rowCount = distinctRows.size();

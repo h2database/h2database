@@ -14,4 +14,3 @@ select asin(null) vn, asin(-1) r1  from test;
 > ---- -------------------
 > null -1.5707963267948966
 > rows: 1
-

@@ -5,11 +5,8 @@
  */
 package org.h2.result;
 
-import java.util.Arrays;
-
 import org.h2.engine.Constants;
 import org.h2.store.Data;
-import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
 
@@ -20,7 +17,6 @@ public class RowImpl implements Row {
     private long key;
     private final Value[] data;
     private int memory;
-    private int version;
     private boolean deleted;
 
     public RowImpl(Value[] data, int memory) {
@@ -28,35 +24,9 @@ public class RowImpl implements Row {
         this.memory = memory;
     }
 
-    /**
-     * Get a copy of the row that is distinct from (not equal to) this row.
-     * This is used for FOR UPDATE to allow pseudo-updating a row.
-     *
-     * @return a new row with the same data
-     */
     @Override
-    public Row getCopy() {
-        Value[] d2 = Arrays.copyOf(data, data.length);
-        RowImpl r2 = new RowImpl(d2, memory);
-        r2.key = key;
-        r2.version = version + 1;
-        return r2;
-    }
-
-    @Override
-    public void setKeyAndVersion(SearchRow row) {
+    public void setKey(SearchRow row) {
         setKey(row.getKey());
-        setVersion(row.getVersion());
-    }
-
-    @Override
-    public int getVersion() {
-        return version;
-    }
-
-    @Override
-    public void setVersion(int version) {
-        this.version = version;
     }
 
     @Override
@@ -129,22 +99,33 @@ public class RowImpl implements Row {
 
     @Override
     public String toString() {
-        StatementBuilder buff = new StatementBuilder("( /* key:");
-        buff.append(getKey());
-        if (version != 0) {
-            buff.append(" v:").append(version);
+        return toString(key, deleted, data);
+    }
+
+    /**
+     * Convert a row to a string.
+     *
+     * @param key the key
+     * @param isDeleted whether the row is deleted
+     * @param data the row data
+     * @return the string representation
+     */
+    static String toString(long key, boolean isDeleted, Value[] data) {
+        StringBuilder builder = new StringBuilder("( /* key:").append(key);
+        if (isDeleted) {
+            builder.append(" deleted");
         }
-        if (isDeleted()) {
-            buff.append(" deleted");
-        }
-        buff.append(" */ ");
+        builder.append(" */ ");
         if (data != null) {
-            for (Value v : data) {
-                buff.appendExceptFirst(", ");
-                buff.append(v == null ? "null" : v.getTraceSQL());
+            for (int i = 0, length = data.length; i < length; i++) {
+                if (i > 0) {
+                    builder.append(", ");
+                }
+                Value v = data[i];
+                builder.append(v == null ? "null" : v.getTraceSQL());
             }
         }
-        return buff.append(')').toString();
+        return builder.append(')').toString();
     }
 
     @Override
@@ -160,5 +141,14 @@ public class RowImpl implements Row {
     @Override
     public Value[] getValueList() {
         return data;
+    }
+
+    @Override
+    public boolean hasSharedData(Row other) {
+        if (other.getClass() == RowImpl.class) {
+            RowImpl o = (RowImpl) other;
+            return data == o.data;
+        }
+        return false;
     }
 }

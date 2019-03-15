@@ -38,8 +38,3 @@ select octet_length(null) en, octet_length('') e0, octet_length('ab') e4 from te
 > ---- -- --
 > null 0  4
 > rows: 1
-
-
-
-
-

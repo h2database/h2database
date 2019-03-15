@@ -143,12 +143,14 @@ public class IntArray {
 
     @Override
     public String toString() {
-        StatementBuilder buff = new StatementBuilder("{");
+        StringBuilder builder = new StringBuilder("{");
         for (int i = 0; i < size; i++) {
-            buff.appendExceptFirst(", ");
-            buff.append(data[i]);
+            if (i > 0) {
+                builder.append(", ");
+            }
+            builder.append(data[i]);
         }
-        return buff.append('}').toString();
+        return builder.append('}').toString();
     }
 
     /**

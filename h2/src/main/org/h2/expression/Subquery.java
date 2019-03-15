@@ -75,8 +75,8 @@ public class Subquery extends Expression {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
-        return builder.append('(').append(query.getPlanSQL()).append(')');
+    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+        return builder.append('(').append(query.getPlanSQL(alwaysQuote)).append(')');
     }
 
     @Override

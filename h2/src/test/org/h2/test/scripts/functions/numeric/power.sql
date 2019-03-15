@@ -14,7 +14,3 @@ select power(null, null) en, power(2, 3) e8, power(16, 0.5) e4 from test;
 > ---- --- ---
 > null 8.0 4.0
 > rows: 1
-
-
-
-

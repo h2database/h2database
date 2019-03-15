@@ -40,7 +40,7 @@ public class MVPrimaryIndex extends BaseIndex {
     private final MVTable mvTable;
     private final String mapName;
     private final TransactionMap<Value, Value> dataMap;
-    private final AtomicLong lastKey = new AtomicLong(0);
+    private final AtomicLong lastKey = new AtomicLong();
     private int mainIndexColumn = SearchRow.ROWID_INDEX;
 
     public MVPrimaryIndex(Database db, MVTable table, int id,
@@ -70,7 +70,7 @@ public class MVPrimaryIndex extends BaseIndex {
 
     @Override
     public String getPlanSQL() {
-        return table.getSQL(new StringBuilder()).append(".tableScan").toString();
+        return table.getSQL(new StringBuilder(), false).append(".tableScan").toString();
     }
 
     public void setMainIndexColumn(int mainIndexColumn) {
@@ -117,10 +117,10 @@ public class MVPrimaryIndex extends BaseIndex {
             Value oldValue = map.putIfAbsent(key, ValueArray.get(row.getValueList()));
             if (oldValue != null) {
                 StringBuilder builder = new StringBuilder("PRIMARY KEY ON ");
-                table.getSQL(builder);
+                table.getSQL(builder, false);
                 if (mainIndexColumn >= 0 && mainIndexColumn < indexColumns.length) {
                     builder.append('(');
-                    indexColumns[mainIndexColumn].getSQL(builder).append(')');
+                    indexColumns[mainIndexColumn].getSQL(builder, false).append(')');
                 }
                 int errorCode = ErrorCode.CONCURRENT_UPDATE_1;
                 if (map.get(key) != null) {
@@ -158,7 +158,7 @@ public class MVPrimaryIndex extends BaseIndex {
             Value old = map.remove(ValueLong.get(row.getKey()));
             if (old == null) {
                 StringBuilder builder = new StringBuilder();
-                getSQL(builder).append(": ").append(row.getKey());
+                getSQL(builder, false).append(": ").append(row.getKey());
                 throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, builder.toString());
             }
         } catch (IllegalStateException e) {
@@ -199,7 +199,7 @@ public class MVPrimaryIndex extends BaseIndex {
             Value existing = map.put(ValueLong.get(key), ValueArray.get(newRow.getValueList()));
             if (existing == null) {
                 StringBuilder builder = new StringBuilder();
-                getSQL(builder).append(": ").append(key);
+                getSQL(builder, false).append(": ").append(key);
                 throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, builder.toString());
             }
         } catch (IllegalStateException e) {
@@ -211,20 +211,6 @@ public class MVPrimaryIndex extends BaseIndex {
         // syntax
         if (newRow.getKey() > lastKey.get()) {
             lastKey.set(newRow.getKey());
-        }
-    }
-
-    /**
-     * Lock a set of rows.
-     *
-     * @param session database session
-     * @param rowsForUpdate rows to lock
-     */
-    void lockRows(Session session, Iterable<Row> rowsForUpdate) {
-        TransactionMap<Value, Value> map = getMap(session);
-        for (Row row : rowsForUpdate) {
-            long key = row.getKey();
-            lockRow(map, key);
         }
     }
 
@@ -286,7 +272,7 @@ public class MVPrimaryIndex extends BaseIndex {
         Value v = map.get(ValueLong.get(key));
         if (v == null) {
             throw DbException.get(ErrorCode.ROW_NOT_FOUND_IN_PRIMARY_INDEX,
-                    getSQL(), String.valueOf(key));
+                    getSQL(false), String.valueOf(key));
         }
         return getRow(session, key, (ValueArray) v);
     }
@@ -376,11 +362,7 @@ public class MVPrimaryIndex extends BaseIndex {
      * @return the maximum number of rows
      */
     public long getRowCountMax() {
-        try {
-            return dataMap.sizeAsLongMax();
-        } catch (IllegalStateException e) {
-            throw DbException.get(ErrorCode.OBJECT_CLOSED, e);
-        }
+        return dataMap.sizeAsLongMax();
     }
 
     @Override

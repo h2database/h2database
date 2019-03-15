@@ -17,12 +17,12 @@ INSERT INTO TEST VALUES (1, 'A', 'B', 'A', 'B');
 
 SELECT COLUMN_NAME, DOMAIN_CATALOG, DOMAIN_SCHEMA, DOMAIN_NAME, NULLABLE, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
 > COLUMN_NAME DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME NULLABLE COLUMN_TYPE
-> ----------- -------------- ------------- ----------- -------- -------------
+> ----------- -------------- ------------- ----------- -------- ---------------
 > I           null           null          null        0        INT NOT NULL
-> E1          SCRIPT         PUBLIC        E           1        E
-> E2          SCRIPT         PUBLIC        E           0        E NOT NULL
-> E3          SCRIPT         PUBLIC        E_NN        0        E_NN NOT NULL
-> E4          SCRIPT         PUBLIC        E_NN        1        E_NN NULL
+> E1          SCRIPT         PUBLIC        E           1        "E"
+> E2          SCRIPT         PUBLIC        E           0        "E" NOT NULL
+> E3          SCRIPT         PUBLIC        E_NN        0        "E_NN" NOT NULL
+> E4          SCRIPT         PUBLIC        E_NN        1        "E_NN" NULL
 > rows (ordered): 5
 
 DROP DOMAIN E RESTRICT;

@@ -36,6 +36,7 @@ public class ExpressionColumn extends Expression {
     private final String schemaName;
     private final String tableAlias;
     private final String columnName;
+    private final boolean rowId;
     private ColumnResolver columnResolver;
     private int queryLevel;
     private Column column;
@@ -47,32 +48,36 @@ public class ExpressionColumn extends Expression {
         this.schemaName = null;
         this.tableAlias = null;
         this.columnName = null;
+        this.rowId = column.isRowId();
     }
 
     public ExpressionColumn(Database database, String schemaName,
-            String tableAlias, String columnName) {
+            String tableAlias, String columnName, boolean rowId) {
         this.database = database;
         this.schemaName = schemaName;
         this.tableAlias = tableAlias;
         this.columnName = columnName;
+        this.rowId = rowId;
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
         if (schemaName != null) {
-            Parser.quoteIdentifier(builder, schemaName).append('.');
+            Parser.quoteIdentifier(builder, schemaName, alwaysQuote).append('.');
         }
         if (tableAlias != null) {
-            Parser.quoteIdentifier(builder, tableAlias).append('.');
+            Parser.quoteIdentifier(builder, tableAlias, alwaysQuote).append('.');
         }
         if (column != null) {
             if (derivedName != null) {
-                Parser.quoteIdentifier(builder, derivedName);
+                Parser.quoteIdentifier(builder, derivedName, alwaysQuote);
             } else {
-                column.getSQL(builder);
+                column.getSQL(builder, alwaysQuote);
             }
+        } else if (rowId) {
+            builder.append(columnName);
         } else {
-            Parser.quoteIdentifier(builder, columnName);
+            Parser.quoteIdentifier(builder, columnName, alwaysQuote);
         }
         return builder;
     }
@@ -91,6 +96,13 @@ public class ExpressionColumn extends Expression {
                 schemaName, resolver.getSchemaName())) {
             return;
         }
+        if (rowId) {
+            Column col = resolver.getRowIdColumn();
+            if (col != null) {
+                mapColumn(resolver, col, level);
+            }
+            return;
+        }
         for (Column col : resolver.getColumns()) {
             String n = resolver.getDerivedColumnName(col);
             boolean derived;
@@ -105,13 +117,6 @@ public class ExpressionColumn extends Expression {
                 if (derived) {
                     derivedName = n;
                 }
-                return;
-            }
-        }
-        if (database.equalsIdentifiers(Column.ROWID, columnName)) {
-            Column col = resolver.getRowIdColumn();
-            if (col != null) {
-                mapColumn(resolver, col, level);
                 return;
             }
         }
@@ -175,7 +180,7 @@ public class ExpressionColumn extends Expression {
     public void updateAggregate(Session session, int stage) {
         Select select = columnResolver.getSelect();
         if (select == null) {
-            throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
+            throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL(false));
         }
         SelectGroups groupData = select.getGroupDataIfCurrent(false);
         if (groupData == null) {
@@ -187,7 +192,7 @@ public class ExpressionColumn extends Expression {
             groupData.setCurrentGroupExprData(this, columnResolver.getValue(column));
         } else if (!select.isGroupWindowStage2()) {
             if (!database.areEqual(columnResolver.getValue(column), v)) {
-                throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
+                throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL(false));
             }
         }
     }
@@ -203,16 +208,16 @@ public class ExpressionColumn extends Expression {
                     return v;
                 }
                 if (select.isGroupWindowStage2()) {
-                    throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
+                    throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL(false));
                 }
             }
         }
         Value value = columnResolver.getValue(column);
         if (value == null) {
             if (select == null) {
-                throw DbException.get(ErrorCode.NULL_NOT_ALLOWED, getSQL());
+                throw DbException.get(ErrorCode.NULL_NOT_ALLOWED, getSQL(false));
             } else {
-                throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
+                throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL(false));
             }
         }
         /*
@@ -325,13 +330,13 @@ public class ExpressionColumn extends Expression {
             return true;
         case ExpressionVisitor.GET_COLUMNS1:
             if (column == null) {
-                throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, getSQL());
+                throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, getSQL(false));
             }
             visitor.addColumn1(column);
             return true;
         case ExpressionVisitor.GET_COLUMNS2:
             if (column == null) {
-                throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, getSQL());
+                throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, getSQL(false));
             }
             visitor.addColumn2(column);
             return true;

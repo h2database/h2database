@@ -72,14 +72,13 @@ public abstract class TableBase extends Table {
             this.tableEngineParams = Collections.emptyList();
         }
         setTemporary(data.temporary);
-        Column[] cols = data.columns.toArray(new Column[0]);
-        setColumns(cols);
+        setColumns(data.columns.toArray(new Column[0]));
     }
 
     @Override
     public String getDropSQL() {
         StringBuilder builder = new StringBuilder("DROP TABLE IF EXISTS ");
-        getSQL(builder).append(" CASCADE");
+        getSQL(builder, true).append(" CASCADE");
         return builder.toString();
     }
 
@@ -107,7 +106,7 @@ public abstract class TableBase extends Table {
         if (isHidden) {
             buff.append("IF NOT EXISTS ");
         }
-        getSQL(buff);
+        getSQL(buff, true);
         if (comment != null) {
             buff.append(" COMMENT ");
             StringUtils.quoteStringSQL(buff, comment);

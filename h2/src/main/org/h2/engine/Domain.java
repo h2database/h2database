@@ -29,13 +29,13 @@ public class Domain extends DbObjectBase {
     @Override
     public String getDropSQL() {
         StringBuilder builder = new StringBuilder("DROP DOMAIN IF EXISTS ");
-        return getSQL(builder).toString();
+        return getSQL(builder, true).toString();
     }
 
     @Override
     public String getCreateSQL() {
         StringBuilder builder = new StringBuilder("CREATE DOMAIN ");
-        getSQL(builder).append(" AS ");
+        getSQL(builder, true).append(" AS ");
         builder.append(column.getCreateSQL());
         return builder.toString();
     }

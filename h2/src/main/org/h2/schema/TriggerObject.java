@@ -22,7 +22,6 @@ import org.h2.result.Row;
 import org.h2.table.Table;
 import org.h2.util.JdbcUtils;
 import org.h2.util.SourceCompiler;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -325,64 +324,80 @@ public class TriggerObject extends SchemaObjectBase {
 
     @Override
     public String getCreateSQLForCopy(Table targetTable, String quotedName) {
-        StringBuilder buff = new StringBuilder("CREATE FORCE TRIGGER ");
-        buff.append(quotedName);
+        StringBuilder builder = new StringBuilder("CREATE FORCE TRIGGER ");
+        builder.append(quotedName);
         if (insteadOf) {
-            buff.append(" INSTEAD OF ");
+            builder.append(" INSTEAD OF ");
         } else if (before) {
-            buff.append(" BEFORE ");
+            builder.append(" BEFORE ");
         } else {
-            buff.append(" AFTER ");
+            builder.append(" AFTER ");
         }
-        buff.append(getTypeNameList());
-        buff.append(" ON ");
-        targetTable.getSQL(buff);
+        getTypeNameList(builder).append(" ON ");
+        targetTable.getSQL(builder, true);
         if (rowBased) {
-            buff.append(" FOR EACH ROW");
+            builder.append(" FOR EACH ROW");
         }
         if (noWait) {
-            buff.append(" NOWAIT");
+            builder.append(" NOWAIT");
         } else {
-            buff.append(" QUEUE ").append(queueSize);
+            builder.append(" QUEUE ").append(queueSize);
         }
         if (triggerClassName != null) {
-            buff.append(" CALL ");
-            Parser.quoteIdentifier(buff, triggerClassName);
+            builder.append(" CALL ");
+            Parser.quoteIdentifier(builder, triggerClassName, true);
         } else {
-            buff.append(" AS ");
-            StringUtils.quoteStringSQL(buff, triggerSource);
+            builder.append(" AS ");
+            StringUtils.quoteStringSQL(builder, triggerSource);
         }
-        return buff.toString();
+        return builder.toString();
     }
 
-    public String getTypeNameList() {
-        StatementBuilder buff = new StatementBuilder();
+    /**
+     * Append the trigger types to the given string builder.
+     *
+     * @param builder the builder
+     * @return the passed string builder
+     */
+    public StringBuilder getTypeNameList(StringBuilder builder) {
+        boolean f = false;
         if ((typeMask & Trigger.INSERT) != 0) {
-            buff.appendExceptFirst(", ");
-            buff.append("INSERT");
+            f = true;
+            builder.append("INSERT");
         }
         if ((typeMask & Trigger.UPDATE) != 0) {
-            buff.appendExceptFirst(", ");
-            buff.append("UPDATE");
+            if (f) {
+                builder.append(", ");
+            }
+            f = true;
+            builder.append("UPDATE");
         }
         if ((typeMask & Trigger.DELETE) != 0) {
-            buff.appendExceptFirst(", ");
-            buff.append("DELETE");
+            if (f) {
+                builder.append(", ");
+            }
+            f = true;
+            builder.append("DELETE");
         }
         if ((typeMask & Trigger.SELECT) != 0) {
-            buff.appendExceptFirst(", ");
-            buff.append("SELECT");
+            if (f) {
+                builder.append(", ");
+            }
+            f = true;
+            builder.append("SELECT");
         }
         if (onRollback) {
-            buff.appendExceptFirst(", ");
-            buff.append("ROLLBACK");
+            if (f) {
+                builder.append(", ");
+            }
+            builder.append("ROLLBACK");
         }
-        return buff.toString();
+        return builder;
     }
 
     @Override
     public String getCreateSQL() {
-        return getCreateSQLForCopy(table, getSQL());
+        return getCreateSQLForCopy(table, getSQL(true));
     }
 
     @Override

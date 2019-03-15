@@ -89,7 +89,6 @@ public class ValueDataType implements DataType {
     private static final byte INTERVAL = 26;
     private static final byte ROW = 27;
     private static final byte INT_0_15 = 32;
-    private static final byte JSON = 40;
     private static final byte LONG_0_7 = 48;
     private static final byte DECIMAL_0_1 = 56;
     private static final byte DECIMAL_SMALL_0 = 58;
@@ -104,6 +103,7 @@ public class ValueDataType implements DataType {
     private static final int BYTES_0_31 = 100;
     private static final int SPATIAL_KEY_2D = 132;
     private static final int CUSTOM_DATA_TYPE = 133;
+    private static final int JSON = 134;
 
     final DataHandler handler;
     final CompareMode compareMode;
@@ -505,7 +505,7 @@ public class ValueDataType implements DataType {
         }
         case Value.JSON: {
             String s = v.getString();
-            buff.put(JSON);
+            buff.put((byte) JSON);
             writeString(buff, s);
             break;
         }

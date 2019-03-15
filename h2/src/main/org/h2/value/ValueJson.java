@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.util.Iterator;
 
 import org.h2.message.DbException;
+import org.h2.util.Utils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -16,28 +17,35 @@ public class ValueJson extends Value {
     
     private JsonNode json;
     private String string;
+    private int binarySize;
     
     private static final ObjectMapper mapper = new ObjectMapper();
     
     ValueJson(String str) throws IOException {
-        char c = str.charAt(0);
+        int memFirst = Utils.getMemoryUsed();
+        if (str == null) {
+            this.json=mapper.createObjectNode();
+            this.string = this.json.toString();
+        }
+        this.string = str.replaceAll("\n", "");
+        char c = this.string.charAt(0);
         if ('{' == c) {
-            ObjectNode node = (ObjectNode) mapper.readTree(str);
+            ObjectNode node = (ObjectNode) mapper.readTree(this.string);
             this.json = node;
         } else if ('[' == c) {
             ObjectMapper mapper = new ObjectMapper();
-            ArrayNode arr = (ArrayNode) mapper.readTree(str);
+            ArrayNode arr = (ArrayNode) mapper.readTree(this.string);
             this.json = arr;
         } else {
-            TextNode stringVal = new TextNode(str);
+            TextNode stringVal = new TextNode(this.string);
             this.json = stringVal;
         }
-        this.string = str.replaceAll("\n", "");
+        this.binarySize = Utils.getMemoryUsed() - memFirst;
     }
     
     ValueJson(JsonNode json) {
         this.json = json;
-        this.string = json.toString();
+        this.string = json.toString().replaceAll("\n", "");
     }
     
     public static ValueJson get(String str) throws IOException {
@@ -50,7 +58,7 @@ public class ValueJson extends Value {
 
     @Override
     public String getSQL() {
-        return String.format("'%s'::JSON", getString());
+        return String.format("'%s'", getString());
     }
 
     @Override
@@ -71,6 +79,16 @@ public class ValueJson extends Value {
     @Override
     public JsonNode getObject() {
         return json;
+    }
+    
+    /*
+     * approximate evaluation
+     * At least 2 bytes per char symbol and 6 bytes per binary object 
+     * Plus 88+40 bytes on empty value
+     */
+    @Override
+    public int getMemory() {
+        return binarySize * 8 + 128;
     }
 
     @Override
@@ -152,7 +170,11 @@ public class ValueJson extends Value {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
-        // TODO Auto-generated method stub
-        return null;
+        return builder.append(getString()).append("::JSON");
+    }
+    
+    @Override
+    public String toString() {
+        return getString();
     }
 }

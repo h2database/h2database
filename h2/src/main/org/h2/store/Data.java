@@ -104,7 +104,6 @@ public class Data {
     private static final byte INTERVAL = 26;
     private static final byte ROW = 27;
     private static final byte INT_0_15 = 32;
-    private static final byte JSON = 32;
     private static final byte LONG_0_7 = 48;
     private static final byte DECIMAL_0_1 = 56;
     private static final byte DECIMAL_SMALL_0 = 58;
@@ -121,6 +120,7 @@ public class Data {
     private static final int LOCAL_DATE = 133;
     private static final int LOCAL_TIMESTAMP = 134;
     private static final int CUSTOM_DATA_TYPE = 135;
+    private static final int JSON = 136;
 
     private static final long MILLIS_PER_MINUTE = 1000 * 60;
 
@@ -759,14 +759,8 @@ public class Data {
         case Value.JSON: {
             ValueJson json = (ValueJson) v;
             String s = json.getString();
-            int len = s.length();
-            if (len < 32) {
-                writeByte((byte) (STRING_0_31 + len));
-                writeStringWithoutLength(s, len);
-            } else {
-                writeByte((byte) type);
-                writeString(s);
-            }
+            writeByte((byte) JSON);
+            writeString(s);
             break;
         }
         default:
@@ -1248,7 +1242,8 @@ public class Data {
             return 2 + getVarLongLen(interval.getLeading()) + getVarLongLen(interval.getRemaining());
         }
         case Value.JSON:
-            return v.toString().length();
+            ValueJson json = (ValueJson) v;
+            return 2 + json.getString().length();
         default:
             if (JdbcUtils.customDataTypesHandler != null) {
                 byte[] b = v.getBytesNoCopy();

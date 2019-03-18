@@ -3086,12 +3086,12 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     /**
      * Gets the SQL State type.
      *
-     * @return DatabaseMetaData.sqlStateSQL99
+     * @return {@link DatabaseMetaData#sqlStateSQL}
      */
     @Override
     public int getSQLStateType() {
         debugCodeCall("getSQLStateType");
-        return DatabaseMetaData.sqlStateSQL99;
+        return DatabaseMetaData.sqlStateSQL;
     }
 
     /**

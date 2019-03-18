@@ -64,6 +64,7 @@ public class Set extends Prepared {
         case SetTypes.SCHEMA:
         case SetTypes.SCHEMA_SEARCH_PATH:
         case SetTypes.RETENTION_TIME:
+        case SetTypes.LAZY_QUERY_EXECUTION:
             return true;
         default:
         }

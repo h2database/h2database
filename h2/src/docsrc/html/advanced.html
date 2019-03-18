@@ -98,7 +98,10 @@ Advanced
 
 <h3>Statements that Return a Result Set</h3>
 <p>
-The following statements return a result set: <code>SELECT, EXPLAIN, CALL, SCRIPT, SHOW, HELP</code>.
+The following statements return a result set: <code>SELECT</code>, <code>TABLE</code>, <code>VALUES</code>,
+<code>EXPLAIN</code>, <code>CALL</code>, <code>SCRIPT</code>, <code>SHOW</code>, <code>HELP</code>.
+<code>EXECUTE</code> may return either a result set or an update count.
+Result of a <code>WITH</code> statement depends on inner command.
 All other statements return an update count.
 </p>
 

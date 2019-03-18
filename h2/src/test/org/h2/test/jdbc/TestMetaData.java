@@ -457,8 +457,7 @@ public class TestMetaData extends TestDb {
 
         assertEquals(ResultSet.CLOSE_CURSORS_AT_COMMIT,
                 meta.getResultSetHoldability());
-        assertEquals(DatabaseMetaData.sqlStateSQL99,
-                meta.getSQLStateType());
+        assertEquals(DatabaseMetaData.sqlStateSQL, meta.getSQLStateType());
         assertFalse(meta.locatorsUpdateCopy());
 
         assertEquals("schema", meta.getSchemaTerm());

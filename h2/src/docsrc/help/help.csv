@@ -13,7 +13,7 @@ selectExpression [,...]
 [ GROUP BY expression [,...] ] [ HAVING expression ]
 [ WINDOW { { windowName AS windowSpecification } [,...] } ]
 [ QUALIFY expression ]
-[ { UNION [ ALL ] | EXCEPT | MINUS | INTERSECT } select ]
+[ { UNION [ ALL ] | EXCEPT | MINUS | INTERSECT } query ]
 [ ORDER BY order [,...] ]
 [ LIMIT expression [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] ]
 [ [ OFFSET expression { ROW | ROWS } ]
@@ -151,7 +151,7 @@ CALL 15*25
 
 "Commands (DML)","EXPLAIN","
 EXPLAIN { [ PLAN FOR ] | ANALYZE }
-{ select | insert | update | delete | merge }
+{ query | insert | update | delete | merge }
 ","
 Shows the execution plan for a statement.
 When using EXPLAIN ANALYZE, the statement is actually executed, and the query plan
@@ -163,7 +163,7 @@ EXPLAIN SELECT * FROM TEST WHERE ID=1
 "Commands (DML)","MERGE","
 MERGE INTO tableName [ ( columnName [,...] ) ]
 [ KEY ( columnName [,...] ) ]
-{ insertValues | select }
+{ insertValues | query }
 ","
 Updates existing rows, and insert rows that don't exist. If no key column is
 specified, the primary key columns are used to find the row. If more than one
@@ -174,7 +174,7 @@ MERGE INTO TEST KEY(ID) VALUES(2, 'World')
 
 "Commands (DML)","MERGE USING","
 MERGE INTO targetTableName [ [AS] targetAlias]
-USING { ( select ) | sourceTableName }[ [AS] sourceAlias ]
+USING { ( query ) | sourceTableName }[ [AS] sourceAlias ]
 ON expression
 mergeWhenClause [,...]
 ","
@@ -310,8 +310,8 @@ VALUES (1, 'Hello'), (2, 'World');
 "
 
 "Commands (DML)","WITH","
-WITH [ RECURSIVE ] { name [( columnName [,...] )] AS ( select ) [,...] }
-{ select | insert | update | merge | delete | createTable }
+WITH [ RECURSIVE ] { name [( columnName [,...] )] AS ( query ) [,...] }
+{ query | insert | update | merge | delete | createTable }
 ","
 Can be used to create a recursive or non-recursive query (common table expression).
 For recursive queries the first select has to be a UNION.
@@ -800,7 +800,7 @@ TABLE [ IF NOT EXISTS ] name
 [ ENGINE tableEngineName ]
 [ WITH tableEngineParamName [,...] ]
 [ NOT PERSISTENT ] [ TRANSACTIONAL ]
-[ AS select [ WITH [ NO ] DATA ] ]","
+[ AS query [ WITH [ NO ] DATA ] ]","
 Creates a new table.
 
 Cached tables (the default for regular tables) are persistent,
@@ -912,7 +912,7 @@ CREATE USER GUEST PASSWORD 'abc'
 
 "Commands (DDL)","CREATE VIEW","
 CREATE [ OR REPLACE ] [ FORCE ] VIEW [ IF NOT EXISTS ] newViewName
-[ ( columnName [,...] ) ] AS select
+[ ( columnName [,...] ) ] AS query
 ","
 Creates a new view. If the force option is used, then the view is created even
 if the underlying table(s) don't exist.
@@ -1524,9 +1524,7 @@ If true, then large results are retrieved in chunks.
 
 Note that not all queries support this feature, queries which do not are processed normally.
 
-Admin rights are required to execute this command, as it affects all connections.
-This command commits an open transaction in this connection.
-This setting is not persistent.
+This command does not commit a transaction, and rollback does not affect it.
 This setting can be appended to the database URL: ""jdbc:h2:test;LAZY_QUERY_EXECUTION=1""
 ","
 SET LAZY_QUERY_EXECUTION 1
@@ -2492,7 +2490,7 @@ The operator ""&&"" means overlapping; it can only be used with geometry types.
 "
 
 "Other Grammar","Condition","
-operand [ conditionRightHandSide ] | NOT condition | EXISTS ( select )
+operand [ conditionRightHandSide ] | NOT condition | EXISTS ( query )
 ","
 Boolean value or condition.
 ","
@@ -2500,11 +2498,11 @@ ID<>2
 "
 
 "Other Grammar","Condition Right Hand Side","
-compare { { { ALL | ANY | SOME } ( select ) } | operand }
+compare { { { ALL | ANY | SOME } ( query ) } | operand }
     | IS [ NOT ] NULL
     | IS [ NOT ] [ DISTINCT FROM ] operand
     | BETWEEN operand AND operand
-    | IN ( { select | expression [,...] } )
+    | IN ( { query | expression [,...] } )
     | [ NOT ] [ LIKE | ILIKE ] operand [ ESCAPE string ]
     | [ NOT ] REGEXP operand
 ","
@@ -2666,7 +2664,7 @@ NAME
 
 "Other Grammar","Insert columns and source","
 { [ ( columnName [,...] ) ]
-    { insertValues | [ DIRECT ] [ SORTED ] select | DEFAULT VALUES } }
+    { insertValues | [ DIRECT ] [ SORTED ] query | DEFAULT VALUES } }
     | { SET { columnName = { DEFAULT | expression } } [,...] }
 ","
 Names of columns and their values for INSERT statement.
@@ -2739,6 +2737,16 @@ expression is a single parameter, then the value is interpreted as a column
 number. Negative column numbers reverse the sort order.
 ","
 NAME DESC NULLS LAST
+"
+
+"Other Grammar","Query","
+select | explicitTable | tableValue
+","
+A query, such as SELECT, explicit table, or table value.
+","
+SELECT ID FROM TEST;
+TABLE TEST;
+VALUES (1, 2), (3, 4);
 "
 
 "Other Grammar","Quoted Name","
@@ -2823,7 +2831,7 @@ START WITH 1
 
 "Other Grammar","Set clause list","
 { { columnName = { DEFAULT | expression } } [,...] }
-    | { ( columnName [,...] ) = {rowValueExpression|(select)} }
+    | { ( columnName [,...] ) = {rowValueExpression|(query)} }
 ","
 List of SET clauses.
 ","
@@ -2843,7 +2851,10 @@ ID + 20
 "
 
 "Other Grammar","Table Expression","
-{ [ schemaName. ] tableName | ( select ) | valuesExpression }
+{ [ schemaName. ] tableName
+    | ( query )
+    | unnest
+    | table }
 [ [ AS ] newTableAlias [ ( columnName [,...] ) ] ]
 [ USE INDEX ([ indexName [,...] ]) ]
 [ { { LEFT | RIGHT } [ OUTER ] | [ INNER ] | CROSS | NATURAL }
@@ -2979,7 +2990,7 @@ value
     | function
     | { - | + } term
     | ( expression )
-    | select
+    | query
     | case
     | caseWhen
     | userDefinedFunctionName
@@ -3637,7 +3648,7 @@ LISTAGG(ID, ', ') WITHIN GROUP (ORDER BY ID) OVER (ORDER BY ID)
 "
 
 "Functions (Aggregate)","ARRAY_AGG","
-ARRAY_AGG ( [ DISTINCT|ALL ] string
+ARRAY_AGG ( [ DISTINCT|ALL ] value
 [ ORDER BY { expression [ ASC | DESC ] } [,...] ] )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
@@ -3850,7 +3861,7 @@ MEDIAN(X)
 "
 
 "Functions (Aggregate)","MODE","
-{ MODE( value ) [ ORDER BY expression [ ASC | DESC ] ] }
+{ MODE( value ) [ ORDER BY value [ ASC | DESC ] ] }
     | { MODE() WITHIN GROUP (ORDER BY expression [ ASC | DESC ]) }
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","

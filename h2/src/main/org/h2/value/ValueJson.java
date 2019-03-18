@@ -8,11 +8,8 @@ package org.h2.value;
 import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Iterator;
 
-import org.h2.message.DbException;
 import org.h2.util.StringUtils;
-import org.h2.util.Utils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -28,7 +25,6 @@ public class ValueJson extends Value {
     private static final ObjectMapper mapper = new ObjectMapper();
     
     ValueJson(String str) throws IOException {
-        int memFirst = Utils.getMemoryUsed();
         if (str == null) {
             this.json=mapper.createObjectNode();
             this.string = this.json.toString();
@@ -46,7 +42,7 @@ public class ValueJson extends Value {
             TextNode stringVal = new TextNode(this.string);
             this.json = stringVal;
         }
-        this.binarySize = Utils.getMemoryUsed() - memFirst;
+        this.binarySize = string.length();
     }
     
     ValueJson(JsonNode json) {

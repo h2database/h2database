@@ -2841,7 +2841,10 @@ ID + 20
 "
 
 "Other Grammar","Table Expression","
-{ [ schemaName. ] tableName | ( select ) | valuesExpression }
+{ [ schemaName. ] tableName
+    | ( select )
+    | unnest
+    | table }
 [ [ AS ] newTableAlias [ ( columnName [,...] ) ] ]
 [ USE INDEX ([ indexName [,...] ]) ]
 [ { { LEFT | RIGHT } [ OUTER ] | [ INNER ] | CROSS | NATURAL }

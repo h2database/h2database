@@ -122,7 +122,16 @@ public class MVStoreTool {
             long pageCount = 0;
             for (long pos = 0; pos < fileSize;) {
                 block.rewind();
-                DataUtils.readFully(file, pos, block);
+                // Fixbug - An IllegalStateException that wraps EOFException is thrown when partial writes happens 
+                //in the case of power off or file system issues.
+                // So we should skip the broken block at end of the DB file.
+                try {
+                    DataUtils.readFully(file, pos, block);
+                } catch (IllegalStateException e){
+                    pos += blockSize;
+                    pw.printf("ERROR illegal position %d%n", pos);
+                    continue;
+                }
                 block.rewind();
                 int headerType = block.get();
                 if (headerType == 'H') {

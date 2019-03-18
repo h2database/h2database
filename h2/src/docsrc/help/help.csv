@@ -3635,7 +3635,7 @@ LISTAGG(ID, ', ') WITHIN GROUP (ORDER BY ID) OVER (ORDER BY ID)
 "
 
 "Functions (Aggregate)","ARRAY_AGG","
-ARRAY_AGG ( [ DISTINCT|ALL ] string
+ARRAY_AGG ( [ DISTINCT|ALL ] value
 [ ORDER BY { expression [ ASC | DESC ] } [,...] ] )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
@@ -3848,7 +3848,7 @@ MEDIAN(X)
 "
 
 "Functions (Aggregate)","MODE","
-{ MODE( value ) [ ORDER BY expression [ ASC | DESC ] ] }
+{ MODE( value ) [ ORDER BY value [ ASC | DESC ] ] }
     | { MODE() WITHIN GROUP (ORDER BY expression [ ASC | DESC ]) }
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","

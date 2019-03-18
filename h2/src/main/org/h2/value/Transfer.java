@@ -610,6 +610,7 @@ public class Transfer {
         case Value.JSON:
             writeInt(JSON);
             writeString(v.getString());
+            break;
         default:
             if (JdbcUtils.customDataTypesHandler != null) {
                 writeInt(type);

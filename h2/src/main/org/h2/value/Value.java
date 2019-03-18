@@ -447,14 +447,14 @@ public abstract class Value extends VersionedValue {
             return 44_000;
         case ENUM:
             return 45_000;
+        case JSON:
+            return 46_000;
         case ARRAY:
             return 50_000;
         case ROW:
             return 51_000;
         case RESULT_SET:
             return 52_000;
-        case JSON:
-            return 53_000;
         default:
             if (JdbcUtils.customDataTypesHandler != null) {
                 return JdbcUtils.customDataTypesHandler.getDataTypeOrder(type);
@@ -835,9 +835,7 @@ public abstract class Value extends VersionedValue {
                 }
                 throw getDataConversionError(targetType);
             }
-        } catch (NumberFormatException e) {
-            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, getString());
-        } catch (IOException e) {
+        } catch (NumberFormatException | IOException e) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, getString());
         }
     }

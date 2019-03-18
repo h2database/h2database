@@ -1,3 +1,8 @@
+/*
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Initial Developer: Lazarev Nikita <lazarevn@ispras.ru>
+ */
 package org.h2.value;
 
 import java.io.IOException;
@@ -6,6 +11,7 @@ import java.sql.SQLException;
 import java.util.Iterator;
 
 import org.h2.message.DbException;
+import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -54,11 +60,6 @@ public class ValueJson extends Value {
     
     public static Value get(JsonNode json){
         return new ValueJson(json);
-    }
-
-    @Override
-    public String getSQL() {
-        return String.format("'%s'", getString());
     }
 
     @Override
@@ -164,17 +165,24 @@ public class ValueJson extends Value {
 
     @Override
     public int compareTypeSafe(Value v, CompareMode mode) {
-        // TODO Auto-generated method stub
-        return 0;
+        JsonNode other = ((ValueJson) v).json;
+        if (this.json.equals(other)) {
+            return 0;
+        }
+        if ((this.json.isNumber()) && other.isNumber()) {
+            double d1 = this.json.asDouble();
+            double d2 = other.asDouble();
+            return Double.compare(d1, d2);
+        }
+        int comp = this.json.asText().compareTo(other.asText());
+        if (comp == 0) {
+            return Integer.compare(this.json.hashCode(), other.hashCode());
+        }
+        return comp;
     }
 
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
-        return builder.append(getString()).append("::JSON");
-    }
-    
-    @Override
-    public String toString() {
-        return getString();
+        return StringUtils.quoteStringSQL(builder, string).append("::JSON");
     }
 }

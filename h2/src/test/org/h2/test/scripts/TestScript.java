@@ -158,7 +158,7 @@ public class TestScript extends TestDb {
         }
         for (String s : new String[] { "alterTableAdd", "alterTableAlterColumn", "alterTableDropColumn",
                 "alterTableRename", "createAlias", "createSequence", "createSynonym", "createTable", "createTrigger",
-                "createView", "dropDomain", "dropIndex", "dropSchema", "truncateTable" }) {
+                "createView", "dropAllObjects", "dropDomain", "dropIndex", "dropSchema", "truncateTable" }) {
             testScript("ddl/" + s + ".sql");
         }
         for (String s : new String[] { "delete", "error_reporting", "insert", "insertIgnore", "merge", "mergeUsing",

@@ -1,6 +1,6 @@
 /*
  * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.unit;
@@ -123,7 +123,7 @@ public class TestStringUtils extends TestBase {
                     StringUtils.xmlComment("Test Comment\nZeile2")
                     + StringUtils.xmlNode("channel", null,
                         StringUtils.xmlNode("title", null, "H2 Database Engine")
-                        + StringUtils.xmlNode("link", null, "http://www.h2database.com")
+                        + StringUtils.xmlNode("link", null, "https://h2database.com")
                         + StringUtils.xmlNode("description", null, "H2 Database Engine")
                         + StringUtils.xmlNode("language", null, "en-us")
                         + StringUtils.xmlNode("pubDate", null,
@@ -135,7 +135,7 @@ public class TestStringUtils extends TestBase {
                         + StringUtils.xmlNode("item", null,
                                 StringUtils.xmlNode("title", null,
                                 "New Version 0.9.9.9.9")
-                                + StringUtils.xmlNode("link", null, "http://www.h2database.com")
+                                + StringUtils.xmlNode("link", null, "https://h2database.com")
                                 + StringUtils.xmlNode("description", null,
                                         StringUtils.xmlCData("\nNew Features\nTest\n")))));
         assertEquals(
@@ -149,14 +149,14 @@ public class TestStringUtils extends TestBase {
                         + "    -->\n"
                         + "    <channel>\n"
                         + "        <title>H2 Database Engine</title>\n"
-                        + "        <link>http://www.h2database.com</link>\n"
+                        + "        <link>https://h2database.com</link>\n"
                         + "        <description>H2 Database Engine</description>\n"
                         + "        <language>en-us</language>\n"
                         + "        <pubDate>Sat, 3 Feb 2001 04:05:06 GMT</pubDate>\n"
                         + "        <lastBuildDate>Sat, 3 Feb 2001 04:05:06 GMT</lastBuildDate>\n"
                         + "        <item>\n"
                         + "            <title>New Version 0.9.9.9.9</title>\n"
-                        + "            <link>http://www.h2database.com</link>\n"
+                        + "            <link>https://h2database.com</link>\n"
                         + "            <description>\n"
                         + "                <![CDATA[\n"
                         + "                New Features\n"

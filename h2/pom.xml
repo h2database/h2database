@@ -7,7 +7,7 @@
   <version>1.4.200-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>H2 Database Engine</name>
-  <url>http://www.h2database.com</url>
+  <url>https://h2database.com</url>
   <description>H2 Database Engine</description>
 
   <licenses>

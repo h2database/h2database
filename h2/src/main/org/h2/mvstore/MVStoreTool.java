@@ -122,8 +122,9 @@ public class MVStoreTool {
             long pageCount = 0;
             for (long pos = 0; pos < fileSize;) {
                 block.rewind();
-                // Fixbug - An IllegalStateException that wraps EOFException is thrown when partial writes happens 
-                //in the case of power off or file system issues.
+                // Bugfix - An IllegalStateException that wraps EOFException is
+                // thrown when partial writes happens in the case of power off
+                // or file system issues.
                 // So we should skip the broken block at end of the DB file.
                 try {
                     DataUtils.readFully(file, pos, block);

@@ -1,6 +1,6 @@
 /*
  * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.mvstore;
@@ -122,8 +122,9 @@ public class MVStoreTool {
             long pageCount = 0;
             for (long pos = 0; pos < fileSize;) {
                 block.rewind();
-                // Fixbug - An IllegalStateException that wraps EOFException is thrown when partial writes happens 
-                //in the case of power off or file system issues.
+                // Bugfix - An IllegalStateException that wraps EOFException is
+                // thrown when partial writes happens in the case of power off
+                // or file system issues.
                 // So we should skip the broken block at end of the DB file.
                 try {
                     DataUtils.readFully(file, pos, block);

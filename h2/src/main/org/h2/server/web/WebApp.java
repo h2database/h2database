@@ -1,6 +1,6 @@
 /*
  * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.server.web;
@@ -862,7 +862,7 @@ public class WebApp {
                 error += " " + se.getSQLState() + "/" + se.getErrorCode();
                 if (isH2) {
                     int code = se.getErrorCode();
-                    error += " <a href=\"http://h2database.com/javadoc/" +
+                    error += " <a href=\"https://h2database.com/javadoc/" +
                             "org/h2/api/ErrorCode.html#c" + code +
                             "\">(${text.a.help})</a>";
                 }
@@ -903,7 +903,7 @@ public class WebApp {
                 String file = element.substring(open + 1, colon);
                 String lineNumber = element.substring(colon + 1, element.length());
                 String fullFileName = packageName.replace('.', '/') + "/" + file;
-                result.append("<a href=\"http://h2database.com/html/source.html?file=");
+                result.append("<a href=\"https://h2database.com/html/source.html?file=");
                 result.append(fullFileName);
                 result.append("&line=");
                 result.append(lineNumber);

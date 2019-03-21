@@ -1126,13 +1126,17 @@ public class MVStore implements AutoCloseable {
      * @return the new version (incremented if there were changes)
      */
     public long tryCommit() {
+        return tryCommit(/*calledFromBackgroundThread*/false);
+    }
+
+    public long tryCommit(boolean calledFromBackgroundThread) {
         // we need to prevent re-entrance, which may be possible,
         // because meta map is modified within storeNow() and that
         // causes beforeWrite() call with possibility of going back here
         if ((!storeLock.isHeldByCurrentThread() || currentStoreVersion < 0) &&
                 storeLock.tryLock()) {
             try {
-                store();
+                store(/*calledFromBackgroundThread*/false);
             } finally {
                 storeLock.unlock();
             }
@@ -1163,7 +1167,7 @@ public class MVStore implements AutoCloseable {
         if(!storeLock.isHeldByCurrentThread() || currentStoreVersion < 0) {
             storeLock.lock();
             try {
-                store();
+                store(/*calledFromBackgroundThread*/false);
             } finally {
                 storeLock.unlock();
             }
@@ -1171,7 +1175,7 @@ public class MVStore implements AutoCloseable {
         return currentVersion;
     }
 
-    private void store() {
+    private void store(boolean calledFromBackgroundThread) {
         try {
             if (isOpenOrStopping() && hasUnsavedChangesInternal()) {
                 currentStoreVersion = currentVersion;
@@ -1187,7 +1191,7 @@ public class MVStore implements AutoCloseable {
                                 DataUtils.ERROR_WRITING_FAILED, "This store is read-only");
                     }
                     try {
-                        storeNow();
+                        storeNow(calledFromBackgroundThread);
                     } catch (IllegalStateException e) {
                         panic(e);
                     } catch (Throwable e) {
@@ -1202,10 +1206,10 @@ public class MVStore implements AutoCloseable {
         }
     }
 
-    private void storeNow() {
+    private void storeNow(boolean calledFromBackgroundThread) {
         assert storeLock.isHeldByCurrentThread();
         long time = getTimeSinceCreation();
-        freeUnusedIfNeeded(time);
+        freeUnusedIfNeeded(time, calledFromBackgroundThread);
         int currentUnsavedPageCount = unsavedMemory;
         long storeVersion = currentStoreVersion;
         long version = ++currentVersion;
@@ -1392,8 +1396,13 @@ public class MVStore implements AutoCloseable {
      * Try to free unused chunks. This method doesn't directly write, but can
      * change the metadata, and therefore cause a background write.
      */
-    private void freeUnusedIfNeeded(long time) {
+    private void freeUnusedIfNeeded(long time, boolean calledFromBackgroundThread) {
         int freeDelay = retentionTime / 5;
+        /* Bias this decision so most of the time we perform the unused chunk scan on the
+         * background thread. This prevents commits sometimes taking a rather long time.
+         */
+        if (!calledFromBackgroundThread)
+            freeDelay += autoCommitDelay * 2;
         if (time - lastFreeUnusedChunks >= freeDelay) {
             // set early in case it fails (out of memory or so)
             lastFreeUnusedChunks = time;
@@ -2760,7 +2769,7 @@ public class MVStore implements AutoCloseable {
             if (time <= lastCommitTime + autoCommitDelay) {
                 return;
             }
-            tryCommit();
+            tryCommit(/*calledFromBackgroundThread*/true);
             if (autoCompactFillRate > 0) {
                 // whether there were file read or write operations since
                 // the last time

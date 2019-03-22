@@ -442,14 +442,13 @@ public class FullTextLucene extends FullText {
                 // will trigger writing results to disk.
                 int maxResults = (limit == 0 ? 100 : limit) + offset;
                 TopDocs docs = searcher.search(query, maxResults);
+                long totalHits = TOTAL_HITS.getLong(docs);
                 if (limit == 0) {
-                    // TopDocs.totalHits is long now
-                    // (https://issues.apache.org/jira/browse/LUCENE-7872)
-                    // but in this context it's safe to cast
-                    limit = (int) TOTAL_HITS.getLong(docs);
+                    // in this context it's safe to cast
+                    limit = (int) totalHits;
                 }
                 for (int i = 0, len = docs.scoreDocs.length; i < limit
-                        && i + offset < docs.totalHits
+                        && i + offset < totalHits
                         && i + offset < len; i++) {
                     ScoreDoc sd = docs.scoreDocs[i + offset];
                     Document doc = searcher.doc(sd.doc);

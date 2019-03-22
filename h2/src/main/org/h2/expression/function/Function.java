@@ -18,7 +18,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -80,10 +79,6 @@ import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueUuid;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * This class implements most built-in functions of this database.
@@ -1790,14 +1785,7 @@ public class Function extends Expression implements FunctionCall {
         }
         case JSON_FIELD: {
             if(v0.getValueType() == Value.JSON) {
-                JsonNode json = ((ValueJson) v0).getObject();
-                if (json.isArray() && v1.getValueType() >= Value.BYTE && v1.getValueType() <= Value.DECIMAL) {
-                    Integer key = v1.getInt();
-                    result = json.has(key) ? ValueJson.get(json.get(key)) : ValueNull.INSTANCE;
-                } else {
-                    String key = v1.getString();
-                    result = json.has(key) ? ValueJson.get(json.get(key)) : ValueNull.INSTANCE;
-                }
+                result = ((ValueJson) v0).getField(v1);
             } else {
                 throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
             }
@@ -1805,40 +1793,18 @@ public class Function extends Expression implements FunctionCall {
         }
         case JSON_FIELD_TEXT: {
             if(v0.getValueType() == Value.JSON) {
-                JsonNode json = ((ValueJson) v0).getObject();
-                if (json.isArray() && v1.getValueType() >= Value.BYTE && v1.getValueType() <= Value.DECIMAL) {
-                    Integer key = v1.getInt();
-                    result = json.has(key) ? ValueJson.get(json.get(key)) : ValueNull.INSTANCE;
-                } else {
-                    String key = v1.getString();
-                    result = json.has(key) ? ValueString.get(json.get(key).toString()) : ValueNull.INSTANCE;
-                }
-                
-            }
-            else {
+                ValueJson json = (ValueJson) v0;
+                Value field = json.getField(v1);
+                result = field.getValueType() == Value.NULL ? ValueString.get(ValueNull.INSTANCE.toString()) :
+                    ValueString.get(field.getString());
+            } else {
                 throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
             }
             break;
         }
         case JSON_FIELD_PATH: {
             if(v0.getValueType() == Value.JSON && v1.getValueType() == Value.ARRAY) {
-                JsonNode json = ((ValueJson) v0).getObject();
-                boolean isNull = false;
-                for(Value v: ((ValueArray) v1).getList()){
-                    if(json.isObject() && json.has(v.getString())) {
-                        json = json.get(v.getString());
-                    } else if (json.isArray() && v.getValueType() == Value.INT && json.has(v.getInt())) {
-                        json = json.get(v.getInt());
-                    } else {
-                        isNull = true;
-                        break;
-                    }
-                }
-                if (!isNull) {
-                    result = ValueJson.get(json);
-                } else {
-                    result = ValueNull.INSTANCE;
-                }
+                result = ((ValueJson) v0).getFieldOnPath((ValueArray) v1);
             } else if (v0.getValueType() == Value.JSON) {
                 result = ValueNull.INSTANCE;
             } else {
@@ -1848,25 +1814,13 @@ public class Function extends Expression implements FunctionCall {
         }
         case JSON_FIELD_PATH_TEXT: {
             if(v0.getValueType() == Value.JSON && v1.getValueType() == Value.ARRAY) {
-                JsonNode json = ((ValueJson) v0).getObject();
-                boolean isNull = false;
-                for(Value v: ((ValueArray) v1).getList()){
-                    if(json.isObject() && json.has(v.getString())) {
-                        json = json.get(v.getString());
-                    } else if (json.isArray() && v.getValueType() == Value.INT && json.has(v.getInt())) {
-                        json = json.get(v.getInt());
-                    } else {
-                        isNull = true;
-                        break;
-                    }
-                }
-                if (!isNull) {
-                    result = ValueString.get(json.toString());
-                } else {
-                    result = ValueNull.INSTANCE;
-                }
+                ValueJson json = (ValueJson) v0;
+                ValueArray array = (ValueArray) v1;
+                Value field = json.getFieldOnPath(array);
+                result = field.getValueType() == Value.NULL ? ValueString.get(ValueNull.INSTANCE.toString()) :
+                    ValueString.get(field.getString());
             } else if (v0.getValueType() == Value.JSON) {
-                result = ValueNull.INSTANCE;
+                result = ValueString.get(ValueNull.INSTANCE.getString());
             } else {
                 throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
             }
@@ -1874,27 +1828,9 @@ public class Function extends Expression implements FunctionCall {
         }
         case JSON_CONTAINS: {
             if(v0.getValueType() == Value.JSON && v1.getValueType() == Value.JSON) {
-                JsonNode first = ((ValueJson) v0).getObject();
-                JsonNode second = ((ValueJson) v1).getObject();
-                if (first.isObject() && second.isObject()) {
-                    ObjectNode objFirst = (ObjectNode) first; 
-                    ObjectNode objSecond = (ObjectNode) second;
-                    Iterator<String> keys = objSecond.fieldNames();
-                    boolean isTrue = true;
-                    while (keys.hasNext()) {
-                        String key = keys.next();
-                        JsonNode val = objSecond.get(key);
-                        if (!objFirst.has(key) || !objFirst.get(key).equals(val)) {
-                            isTrue = false;
-                            break;
-                        }
-                    }
-                    result = ValueBoolean.get(isTrue);
-                } else if (v0.getValueType() == Value.JSON) {
-                  result = ValueBoolean.FALSE;  
-                } else {
-                    throw DbException.throwInternalError("JSON comparison implemented only for ObjectNodes");
-                }
+                ValueJson l = (ValueJson) v0;
+                ValueJson r = (ValueJson) v1;
+                result = l.contains(r);
             } else {
                 throw DbException.throwInternalError(
                         "Can work only with json. ValueType of v0: "
@@ -1905,14 +1841,7 @@ public class Function extends Expression implements FunctionCall {
         }
         case JSON_EXISTS: {
             if(v0.getValueType() == Value.JSON) {
-                JsonNode json = ((ValueJson) v0).getObject();
-                if (json.isArray() && v1.getType() == TypeInfo.TYPE_INT) {
-                    Integer key = v1.getInt();
-                    result = ValueBoolean.get(json.has(key));
-                } else {
-                    String key = v1.getString();
-                    result = ValueBoolean.get(json.has(key));
-                }
+                result = ((ValueJson) v0).exists(v1);
             } else {
                 throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
             }
@@ -1920,24 +1849,9 @@ public class Function extends Expression implements FunctionCall {
         }
         case JSON_EXISTS_ANY: {
             if(v0.getValueType() == Value.JSON  && v1.getValueType() == Value.ARRAY) {
-                JsonNode json = ((ValueJson) v0).getObject();
-                boolean isTrue = false;
-                if (json.isArray()) {
-                    for (Value v: ((ValueArray) v1).getList()) {
-                        if (v.getType() == TypeInfo.TYPE_INT && json.has(v.getInt())) {
-                            isTrue = true;
-                            break;
-                        }
-                    }
-                } else {
-                    for (Value v: ((ValueArray) v1).getList()) {
-                        if (json.has(v.getString())) {
-                            isTrue = true;
-                            break;
-                        }
-                    }
-                }
-                result = ValueBoolean.get(isTrue);
+                ValueJson json = (ValueJson) v0;
+                ValueArray array = (ValueArray) v1;
+                result = json.existsAny(array);
             } else if (v0.getValueType() == Value.JSON) {
                 result = ValueBoolean.FALSE;
             } else {
@@ -1947,33 +1861,11 @@ public class Function extends Expression implements FunctionCall {
         }
         case JSON_EXISTS_ALL: {
             if(v0.getValueType() == Value.JSON && v1.getValueType() == Value.ARRAY) {
-                JsonNode json = ((ValueJson) v0).getObject();
-                boolean isTrue = true;
-                for (Value v : ((ValueArray) v1).getList()) {
-                    if(!json.has(v.getString())) {
-                        isTrue = false;
-                        break;
-                    }
-                }
-                result = ValueBoolean.get(isTrue);
+                ValueJson json = (ValueJson) v0;
+                ValueArray array = (ValueArray) v1;
+                result = json.existsAll(array);
             } else if (v0.getValueType() == Value.JSON) {
                 result = ValueBoolean.FALSE;
-            } else {
-                throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
-            }
-            break;
-        }
-        case JSON_CONCAT: {
-            if(v0.getValueType() == Value.JSON && v1.getValueType() == Value.JSON) {
-                JsonNode first = ((ValueJson) v0).getObject();
-                JsonNode second = ((ValueJson) v1).getObject();
-                if(first.isObject() && second.isObject()) {
-                    ObjectNode objFirst = (ObjectNode) first;
-                    ObjectNode objSecond = (ObjectNode) second;
-                    result = ValueJson.get(objFirst.putAll(objSecond));
-                } else {
-                    throw DbException.throwInternalError("json comparison implemented only for ObjectNodes");
-                }
             } else {
                 throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
             }

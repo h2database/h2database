@@ -333,6 +333,11 @@ public class DataType {
         for (int i = Value.INTERVAL_YEAR; i <= Value.INTERVAL_MINUTE_TO_SECOND; i++) {
             addInterval(i);
         }
+        // Maybe another suffix is needed
+        add(Value.JSON, Types.OTHER,
+                createString(false),
+                new String[]{"JSON"}
+        );
         // Row value doesn't have a type name
         dataType = new DataType();
         dataType.type = Value.ROW;
@@ -770,6 +775,16 @@ public class DataType {
                 return ValueInterval.from(interval.getQualifier(), interval.isNegative(),
                         interval.getLeading(), interval.getRemaining());
             }
+            case Value.JSON: {
+                Object x = rs.getObject(columnIndex);
+                if(x == null) {
+                    return ValueNull.INSTANCE;
+                } else if (x.getClass()== String.class) {
+                    return ValueJson.get((String) x);
+                } else {
+                    return ValueJson.get(x.toString());
+                }
+            }
             default:
                 if (JdbcUtils.customDataTypesHandler != null) {
                     return JdbcUtils.customDataTypesHandler.getValue(type,
@@ -886,6 +901,8 @@ public class DataType {
         case Value.INTERVAL_MINUTE_TO_SECOND:
             // "org.h2.api.Interval"
             return Interval.class.getName();
+        case Value.JSON:
+            return String.class.getName();
         default:
             if (JdbcUtils.customDataTypesHandler != null) {
                 return JdbcUtils.customDataTypesHandler.getDataTypeClassName(type);
@@ -948,6 +965,8 @@ public class DataType {
             case Types.JAVA_OBJECT:
                 if (sqlTypeName.equalsIgnoreCase("geometry")) {
                     return Value.GEOMETRY;
+                } else if (sqlTypeName.equalsIgnoreCase("json")) {
+                    return Value.JSON;
                 }
         }
         return convertSQLTypeToValueType(sqlType);
@@ -1050,6 +1069,10 @@ public class DataType {
             x = Utils.getNonPrimitiveClass(x);
         }
         if (String.class == x) {
+            /*
+             *  Here it can be checked for
+             *  compliance with JSON format
+             */
             return Value.STRING;
         } else if (Integer.class == x) {
             return Value.INT;

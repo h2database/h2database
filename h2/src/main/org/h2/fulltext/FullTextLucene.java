@@ -76,11 +76,21 @@ public class FullTextLucene extends FullText {
      */
     private static final String IN_MEMORY_PREFIX = "mem:";
 
-    private static final java.lang.reflect.Field TOTAL_HITS;
+    /**
+     * TopDocs.totalHits field. May have int, long, or TotalHits type.
+     */
+    private static final java.lang.reflect.Field TOP_DOCS_TOTAL_HITS;
+
+    /**
+     * TotalHits.value field of type long (Lucene 8.0.0+), or null.
+     */
+    private static final java.lang.reflect.Field TOTAL_HITS_VALUE;
 
     static {
         try {
-            TOTAL_HITS = TopDocs.class.getField("totalHits");
+            TOP_DOCS_TOTAL_HITS = TopDocs.class.getField("totalHits");
+            Class<?> type = TOP_DOCS_TOTAL_HITS.getType();
+            TOTAL_HITS_VALUE = type.isPrimitive() ? null : type.getField("value");
         } catch (ReflectiveOperationException e) {
             throw DbException.get(ErrorCode.GENERAL_ERROR_1, e,
                     "Field org.apache.lucene.search.TopDocs.totalHits is not found");
@@ -442,14 +452,14 @@ public class FullTextLucene extends FullText {
                 // will trigger writing results to disk.
                 int maxResults = (limit == 0 ? 100 : limit) + offset;
                 TopDocs docs = searcher.search(query, maxResults);
+                long totalHits = TOTAL_HITS_VALUE != null ? TOTAL_HITS_VALUE.getLong(TOP_DOCS_TOTAL_HITS.get(docs))
+                        : TOP_DOCS_TOTAL_HITS.getLong(docs);
                 if (limit == 0) {
-                    // TopDocs.totalHits is long now
-                    // (https://issues.apache.org/jira/browse/LUCENE-7872)
-                    // but in this context it's safe to cast
-                    limit = (int) TOTAL_HITS.getLong(docs);
+                    // in this context it's safe to cast
+                    limit = (int) totalHits;
                 }
                 for (int i = 0, len = docs.scoreDocs.length; i < limit
-                        && i + offset < docs.totalHits
+                        && i + offset < totalHits
                         && i + offset < len; i++) {
                     ScoreDoc sd = docs.scoreDocs[i + offset];
                     Document doc = searcher.doc(sd.doc);

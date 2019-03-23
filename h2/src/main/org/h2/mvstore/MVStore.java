@@ -1401,11 +1401,15 @@ public class MVStore implements AutoCloseable {
             // set early in case it fails (out of memory or so)
             lastFreeUnusedChunks = time;
             freeUnusedChunks();
+        } else {
+            applyFreedSpace(currentVersion);
         }
     }
 
     private void freeUnusedChunks() {
         assert storeLock.isHeldByCurrentThread();
+        long version = currentVersion;
+        applyFreedSpace(version);
         if (lastChunk != null && reuseSpace) {
             long oldestVersionToKeep = getOldestVersionToKeep();
             Set<Integer> referenced = collectReferencedChunks(oldestVersionToKeep);
@@ -1415,7 +1419,7 @@ public class MVStore implements AutoCloseable {
             try {
                 // to block re-entrance into commit() / tryCommit(), which is otherwise be possible
                 // due to meta.remove() and meta.put(), we set the following field
-                currentStoreVersion = currentVersion;
+                currentStoreVersion = version;
                 reuseSpace = false;     // to block possible re-entrance into this method
                 for (Iterator<Chunk> iterator = chunks.values().iterator(); iterator.hasNext(); ) {
                     Chunk c = iterator.next();
@@ -1709,13 +1713,16 @@ public class MVStore implements AutoCloseable {
             synchronized (freedPageSpace) {
                 for (Chunk f : freedPageSpace.values()) {
                     Chunk c = chunks.get(f.id);
+                    assert c != null : f.id;
                     if (c != null) { // skip if was already removed
                         c.maxLenLive += f.maxLenLive;
                         c.pageCountLive += f.pageCountLive;
+                        assert c.pageCountLive >= 0 : c;
                         if (c.pageCountLive < 0 && c.pageCountLive > -MARKED_FREE) {
                             // can happen after a rollback
                             c.pageCountLive = 0;
                         }
+                        assert c.maxLenLive >= 0 : c;
                         if (c.maxLenLive < 0 && c.maxLenLive > -MARKED_FREE) {
                             // can happen after a rollback
                             c.maxLenLive = 0;
@@ -1939,6 +1946,7 @@ public class MVStore implements AutoCloseable {
         // in case of pwer failure, since we are going to move older chunks
         // to the end of the file
         writeStoreHeader();
+        sync();
         for (Chunk c : move) {
             moveChunk(c, true);
         }

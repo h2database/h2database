@@ -518,36 +518,48 @@ public class MVStoreTool {
      */
     public static void compact(MVStore source, MVStore target) {
         int autoCommitDelay = target.getAutoCommitDelay();
-        int retentionTime = target.getRetentionTime();
-        target.setAutoCommitDelay(0);
-        target.setRetentionTime(Integer.MAX_VALUE); // disable unused chunks collection
-        MVMap<String, String> sourceMeta = source.getMetaMap();
-        MVMap<String, String> targetMeta = target.getMetaMap();
-        for (Entry<String, String> m : sourceMeta.entrySet()) {
-            String key = m.getKey();
-            if (key.startsWith("chunk.")) {
-                // ignore
-            } else if (key.startsWith("map.")) {
-                // ignore
-            } else if (key.startsWith("name.")) {
-                // ignore
-            } else if (key.startsWith("root.")) {
-                // ignore
-            } else {
-                targetMeta.put(key, m.getValue());
+        boolean reuseSpace = target.getReuseSpace();
+        try {
+            target.setReuseSpace(false);  // disable unused chunks collection
+            target.setAutoCommitDelay(0); // disable autocommit
+            MVMap<String, String> sourceMeta = source.getMetaMap();
+            MVMap<String, String> targetMeta = target.getMetaMap();
+            for (Entry<String, String> m : sourceMeta.entrySet()) {
+                String key = m.getKey();
+                if (key.startsWith("chunk.")) {
+                    // ignore
+                } else if (key.startsWith("map.")) {
+                    // ignore
+                } else if (key.startsWith("name.")) {
+                    // ignore
+                } else if (key.startsWith("root.")) {
+                    // ignore
+                } else {
+                    targetMeta.put(key, m.getValue());
+                }
             }
+            // We are going to cheat a little bit in the copyFrom() by employing "incomplete" pages,
+            // which would be spared of saving, but save copmleted pages underneath,
+            // and those may appear as dead (non-reachable).
+            // That's why it is important to preserve all chunks
+            // created in the process, especially if retention time
+            // is set to a lower value, or even 0.
+            for (String mapName : source.getMapNames()) {
+                MVMap.Builder<Object, Object> mp =
+                        new MVMap.Builder<>().
+                                keyType(new GenericDataType()).
+                                valueType(new GenericDataType());
+                MVMap<Object, Object> sourceMap = source.openMap(mapName, mp);
+                MVMap<Object, Object> targetMap = target.openMap(mapName, mp);
+                targetMap.copyFrom(sourceMap);
+            }
+            // this will end hacky mode of operation with incomplete pages
+            // end ensure that all pages are saved
+            target.commit();
+        } finally {
+            target.setAutoCommitDelay(autoCommitDelay);
+            target.setReuseSpace(reuseSpace);
         }
-        for (String mapName : source.getMapNames()) {
-            MVMap.Builder<Object, Object> mp =
-                    new MVMap.Builder<>().
-                    keyType(new GenericDataType()).
-                    valueType(new GenericDataType());
-            MVMap<Object, Object> sourceMap = source.openMap(mapName, mp);
-            MVMap<Object, Object> targetMap = target.openMap(mapName, mp);
-            targetMap.copyFrom(sourceMap);
-        }
-        target.setRetentionTime(retentionTime);
-        target.setAutoCommitDelay(autoCommitDelay);
     }
 
     /**

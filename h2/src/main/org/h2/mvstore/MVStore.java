@@ -1400,15 +1400,15 @@ public class MVStore implements AutoCloseable {
         if (time - lastFreeUnusedChunks >= freeDelay) {
             // set early in case it fails (out of memory or so)
             lastFreeUnusedChunks = time;
-            freeUnusedChunks(true);
+            freeUnusedChunks();
         }
     }
 
-    private void freeUnusedChunks(boolean fast) {
+    private void freeUnusedChunks() {
         assert storeLock.isHeldByCurrentThread();
         if (lastChunk != null && reuseSpace) {
             long oldestVersionToKeep = getOldestVersionToKeep();
-            Set<Integer> referenced = collectReferencedChunks(fast);
+            Set<Integer> referenced = collectReferencedChunks(oldestVersionToKeep);
             long time = getTimeSinceCreation();
 
             long currentStoreVersionBackup = currentStoreVersion;
@@ -1451,40 +1451,32 @@ public class MVStore implements AutoCloseable {
 
     /**
      * Collect ids for chunks that are in use.
-     * @param fast if true, simplified version is used, which assumes that recent chunks
-     *            are still in-use and do not scan recent versions of the store.
-     *            Also is this case only oldest available version of the store is scanned.
-     * @return set of chunk ids in-use, or null if all chunks should be considered in-use
+     * We assume that recent chunks are still in-use and do not scan recent (used by open transactions)
+     * versions of the store. Only oldest available version of the store is scanned.
+     * @param oldestVersionToKeep version of the store to scan, chunks with newer versions are
+     *                            implicitly considered as being in use
+     * @return set of chunk ids in-use
      */
-    private Set<Integer> collectReferencedChunks(boolean fast) {
+    private Set<Integer> collectReferencedChunks(long oldestVersionToKeep) {
         assert lastChunk != null;
         final ThreadPoolExecutor executorService = new ThreadPoolExecutor(10, 10, 10L, TimeUnit.SECONDS,
                 new ArrayBlockingQueue<Runnable>(keysPerPage + 1));
         final AtomicInteger executingThreadCounter = new AtomicInteger();
         try {
             ChunkIdsCollector collector = new ChunkIdsCollector(meta.getId());
-            long oldestVersionToKeep = getOldestVersionToKeep();
             RootReference rootReference = meta.flushAndGetRoot();
-            if (fast) {
-                RootReference previous;
-                while (rootReference.version >= oldestVersionToKeep && (previous = rootReference.previous) != null) {
-                    rootReference = previous;
-                }
-                inspectVersion(rootReference, collector, executorService, executingThreadCounter, null);
+            RootReference previous;
+            while (rootReference.version >= oldestVersionToKeep && (previous = rootReference.previous) != null) {
+                rootReference = previous;
+            }
+            inspectVersion(rootReference, collector, executorService, executingThreadCounter, null);
 
-                Page rootPage = rootReference.root;
-                long pos = rootPage.getPos();
-                assert rootPage.isSaved();
-                int chunkId = DataUtils.getPageChunkId(pos);
-                while (++chunkId <= lastChunk.id) {
-                    collector.registerChunk(chunkId);
-                }
-            } else {
-                Set<Long> inspectedRoots = new HashSet<>();
-                do {
-                    inspectVersion(rootReference, collector, executorService, executingThreadCounter, inspectedRoots);
-                } while (rootReference.version >= oldestVersionToKeep
-                        && (rootReference = rootReference.previous) != null);
+            Page rootPage = rootReference.root;
+            long pos = rootPage.getPos();
+            assert rootPage.isSaved();
+            int chunkId = DataUtils.getPageChunkId(pos);
+            while (++chunkId <= lastChunk.id) {
+                collector.registerChunk(chunkId);
             }
             return collector.getReferenced();
         } finally {
@@ -1892,7 +1884,7 @@ public class MVStore implements AutoCloseable {
                 boolean oldReuse = reuseSpace;
                 try {
                     retentionTime = -1;
-                    freeUnusedChunks(false);
+                    freeUnusedChunks();
                     if (fileStore.getFillRate() <= targetFillRate) {
                         long start = fileStore.getFirstFree() / BLOCK_SIZE;
                         ArrayList<Chunk> move = findChunksToMove(start, moveSize);
@@ -2188,7 +2180,7 @@ public class MVStore implements AutoCloseable {
             }
         }
         meta.rewrite(set);
-        freeUnusedChunks(false);
+        freeUnusedChunks();
         commit();
     }
 

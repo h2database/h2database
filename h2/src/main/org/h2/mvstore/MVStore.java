@@ -1413,7 +1413,6 @@ public class MVStore implements AutoCloseable {
                 for (Iterator<Chunk> iterator = chunks.values().iterator(); iterator.hasNext(); ) {
                     Chunk c = iterator.next();
                     if (c.block != Long.MAX_VALUE && c.version < oldestVersionToKeep && !referenced.contains(c.id)) {
-                        assert c.unusedAtVersion > 0 : c;
                         if (canOverwriteChunk(c, time, oldestVersionToKeep)) {
                             iterator.remove();
                             if (meta.remove(Chunk.getMetaKey(c.id)) != null) {
@@ -1702,21 +1701,17 @@ public class MVStore implements AutoCloseable {
             synchronized (freedPageSpace) {
                 for (Chunk f : freedPageSpace.values()) {
                     Chunk c = chunks.get(f.id);
-                    assert c != null : f.id;
                     if (c != null) { // skip if was already removed
                         c.maxLenLive += f.maxLenLive;
                         c.pageCountLive += f.pageCountLive;
-                        assert c.pageCountLive >= 0 : c;
                         if (c.pageCountLive < 0 && c.pageCountLive > -MARKED_FREE) {
                             // can happen after a rollback
                             c.pageCountLive = 0;
                         }
-                        assert c.maxLenLive >= 0 : c;
                         if (c.maxLenLive < 0 && c.maxLenLive > -MARKED_FREE) {
                             // can happen after a rollback
                             c.maxLenLive = 0;
                         }
-                        assert (c.pageCountLive == 0) == (c.maxLenLive == 0) : c;
                         if (c.pageCountLive == 0 && c.maxLenLive == 0) {
                             c.unusedAtVersion = storeVersion;
                         }

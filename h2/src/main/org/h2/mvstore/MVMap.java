@@ -1078,6 +1078,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 return rootReference;
             } else if (isClosed()) {
                 if (rootReference.version < store.getOldestVersionToKeep()) {
+                    clear();
+                    store.deregisterMapRoot(id);
                     return null;
                 }
                 return rootReference;

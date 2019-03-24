@@ -975,9 +975,7 @@ public class MVStore implements AutoCloseable {
                                 for (MVMap<?, ?> map : maps.values()) {
                                     if (map.isClosed()) {
                                         map.clear();
-                                        if (meta.remove(MVMap.getMapRootKey(map.getId())) != null) {
-                                            markMetaChanged();
-                                        }
+                                        deregisterMapRoot(map.getId());
                                     }
                                 }
                                 commit();
@@ -1107,11 +1105,6 @@ public class MVStore implements AutoCloseable {
         for (Iterator<MVMap<?, ?>> iter = maps.values().iterator(); iter.hasNext(); ) {
             MVMap<?, ?> map = iter.next();
             if (map.setWriteVersion(version) == null) {
-                assert map.isClosed();
-                assert map.getVersion() < getOldestVersionToKeep();
-                map.clear();
-                meta.remove(MVMap.getMapRootKey(map.getId()));
-                markMetaChanged();
                 iter.remove();
             }
         }
@@ -1258,10 +1251,6 @@ public class MVStore implements AutoCloseable {
             MVMap<?, ?> map = iter.next();
             RootReference rootReference = map.setWriteVersion(version);
             if (rootReference == null) {
-                assert map.isClosed();
-                assert map.getVersion() < getOldestVersionToKeep();
-                map.clear();
-                meta.remove(MVMap.getMapRootKey(map.getId()));
                 iter.remove();
             } else if (map.getCreateVersion() <= storeVersion && // if map was created after storing started, skip it
                     !map.isVolatile() &&
@@ -2733,10 +2722,14 @@ public class MVStore implements AutoCloseable {
             markMetaChanged();
         }
         if (!delayed) {
-            if (meta.remove(MVMap.getMapRootKey(id)) != null) {
-                markMetaChanged();
-            }
+            deregisterMapRoot(id);
             maps.remove(id);
+        }
+    }
+
+    void deregisterMapRoot(int mapId) {
+        if (meta.remove(MVMap.getMapRootKey(mapId)) != null) {
+            markMetaChanged();
         }
     }
 

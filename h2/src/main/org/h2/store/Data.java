@@ -42,6 +42,7 @@ import org.h2.value.ValueGeometry;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueJavaObject;
+import org.h2.value.ValueJson;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueLobDb;
 import org.h2.value.ValueLong;
@@ -119,6 +120,7 @@ public class Data {
     private static final int LOCAL_DATE = 133;
     private static final int LOCAL_TIMESTAMP = 134;
     private static final int CUSTOM_DATA_TYPE = 135;
+    private static final int JSON = 136;
 
     private static final long MILLIS_PER_MINUTE = 1000 * 60;
 
@@ -754,6 +756,11 @@ public class Data {
             writeVarLong(interval.getRemaining());
             break;
         }
+        case Value.JSON: {
+            writeByte((byte) JSON);
+            writeString(v.getString());
+            break;
+        }
         default:
             if (JdbcUtils.customDataTypesHandler != null) {
                 byte[] b = v.getBytesNoCopy();
@@ -961,6 +968,10 @@ public class Data {
             }
             throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1,
                     "No CustomDataTypesHandler has been set up");
+        }
+        case JSON: {
+            String s = readString();
+            return ValueJson.get(s);
         }
         default:
             if (type >= INT_0_15 && type < INT_0_15 + 16) {
@@ -1225,6 +1236,9 @@ public class Data {
             ValueInterval interval = (ValueInterval) v;
             return 2 + getVarLongLen(interval.getLeading()) + getVarLongLen(interval.getRemaining());
         }
+        case Value.JSON:
+            String s = v.getString();
+            return 1 + getStringLen(s);
         default:
             if (JdbcUtils.customDataTypesHandler != null) {
                 byte[] b = v.getBytesNoCopy();

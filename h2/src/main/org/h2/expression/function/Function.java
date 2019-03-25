@@ -70,6 +70,7 @@ import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInt;
+import org.h2.value.ValueJson;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
@@ -153,6 +154,16 @@ public class Function extends Expression implements FunctionCall {
      */
     public static final int H2VERSION = 231;
 
+    public static final int ROW_NUMBER = 300;
+    
+    /**
+     * Json functions.
+     */
+    public static final int JSON_FIELD = 350, JSON_FIELD_TEXT = 351,
+            JSON_FIELD_PATH = 352, JSON_FIELD_PATH_TEXT = 353,
+            JSON_CONTAINS = 354, JSON_EXISTS = 355, JSON_EXISTS_ANY = 356,
+            JSON_EXISTS_ALL = 357, JSON_CONCAT = 358, JSON_DELETE_FIELD = 359;
+//            JSON_DELETE_PATH = 360
     /**
      * The flags for TRIM(LEADING ...) function.
      */
@@ -469,6 +480,19 @@ public class Function extends Expression implements FunctionCall {
         addFunctionWithNull("SIGNAL", SIGNAL, 2, Value.NULL);
         addFunctionNotDeterministic("ESTIMATED_ENVELOPE", ESTIMATED_ENVELOPE, 2, Value.LONG);
         addFunction("H2VERSION", H2VERSION, 0, Value.STRING);
+        
+        // JSON
+        addFunction("JSON_FIELD", JSON_FIELD, 2, Value.JSON);
+        addFunction("JSON_FIELD_TEXT", JSON_FIELD_TEXT, 2, Value.STRING);
+        addFunction("JSON_FIELD_PATH", JSON_FIELD_PATH, 2, Value.JSON);
+        addFunction("JSON_FIELD_PATH_TEXT", JSON_FIELD_PATH_TEXT, 2, Value.STRING);
+        addFunction("JSON_CONTAINS", JSON_CONTAINS, 2, Value.BOOLEAN);
+        addFunction("JSON_EXISTS", JSON_EXISTS, 2, Value.BOOLEAN);
+        addFunction("JSON_EXISTS_ANY", JSON_EXISTS_ANY, 2, Value.BOOLEAN);
+        addFunction("JSON_EXISTS_ALL", JSON_EXISTS_ALL, 2, Value.BOOLEAN);
+        addFunction("JSON_CONCAT", JSON_CONCAT, 2, Value.JSON);
+        addFunction("JSON_DELETE_FIELD", JSON_DELETE_FIELD, 2, Value.JSON);
+//        addFunction("JSON_DELETE_PATH", JSON_DELETE_PATH, 2, Value.JSON);
 
         // TableFunction
         addFunctionWithNull("TABLE", TABLE, VAR_ARGS, Value.RESULT_SET);
@@ -1759,6 +1783,109 @@ public class Function extends Expression implements FunctionCall {
             String msgText = v1.getString();
             throw DbException.fromUser(sqlState, msgText);
         }
+        case JSON_FIELD: {
+            if(v0.getValueType() == Value.JSON) {
+                result = ((ValueJson) v0).getField(v1);
+            } else {
+                throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
+            }
+            break;
+        }
+        case JSON_FIELD_TEXT: {
+            if(v0.getValueType() == Value.JSON) {
+                ValueJson json = (ValueJson) v0;
+                Value field = json.getField(v1);
+                result = field.getValueType() == Value.NULL ? ValueString.get(ValueNull.INSTANCE.toString()) :
+                    ValueString.get(field.getString());
+            } else {
+                throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
+            }
+            break;
+        }
+        case JSON_FIELD_PATH: {
+            if(v0.getValueType() == Value.JSON && v1.getValueType() == Value.ARRAY) {
+                result = ((ValueJson) v0).getFieldOnPath((ValueArray) v1);
+            } else if (v0.getValueType() == Value.JSON) {
+                result = ValueNull.INSTANCE;
+            } else {
+                throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
+            }
+            break;
+        }
+        case JSON_FIELD_PATH_TEXT: {
+            if(v0.getValueType() == Value.JSON && v1.getValueType() == Value.ARRAY) {
+                ValueJson json = (ValueJson) v0;
+                ValueArray array = (ValueArray) v1;
+                Value field = json.getFieldOnPath(array);
+                result = field.getValueType() == Value.NULL ? ValueString.get(ValueNull.INSTANCE.toString()) :
+                    ValueString.get(field.getString());
+            } else if (v0.getValueType() == Value.JSON) {
+                result = ValueString.get(ValueNull.INSTANCE.getString());
+            } else {
+                throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
+            }
+            break;
+        }
+        case JSON_CONTAINS: {
+            if(v0.getValueType() == Value.JSON && v1.getValueType() == Value.JSON) {
+                ValueJson l = (ValueJson) v0;
+                ValueJson r = (ValueJson) v1;
+                result = l.contains(r);
+            } else {
+                throw DbException.throwInternalError(
+                        "Can work only with json. ValueType of v0: "
+                        + v0.getValueType() + " ValueType of v1:"
+                        + v1.getValueType());
+            }
+            break;
+        }
+        case JSON_EXISTS: {
+            if(v0.getValueType() == Value.JSON) {
+                result = ((ValueJson) v0).exists(v1);
+            } else {
+                throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
+            }
+            break;
+        }
+        case JSON_EXISTS_ANY: {
+            if(v0.getValueType() == Value.JSON  && v1.getValueType() == Value.ARRAY) {
+                ValueJson json = (ValueJson) v0;
+                ValueArray array = (ValueArray) v1;
+                result = json.existsAny(array);
+            } else if (v0.getValueType() == Value.JSON) {
+                result = ValueBoolean.FALSE;
+            } else {
+                throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
+            }
+            break;
+        }
+        case JSON_EXISTS_ALL: {
+            if(v0.getValueType() == Value.JSON && v1.getValueType() == Value.ARRAY) {
+                ValueJson json = (ValueJson) v0;
+                ValueArray array = (ValueArray) v1;
+                result = json.existsAll(array);
+            } else if (v0.getValueType() == Value.JSON) {
+                result = ValueBoolean.FALSE;
+            } else {
+                throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
+            }
+            break;
+        }
+        case JSON_DELETE_FIELD: {
+            if(v0.getValueType() == Value.JSON) {
+                result = v0.subtract(v1);
+            } else {
+                throw DbException.throwInternalError("cannot get json field of non-json " + v0.getString());
+            }
+            break;
+        }
+        /* 
+         * Jackson library hasn't such method.
+         * For implementing of this function required O(n^2) 
+         */
+//        case JSON_DELETE_PATH: {
+//            throw DbException.throwInternalError("Unimplemented");
+//        }
         default:
             throw DbException.throwInternalError("type=" + info.type);
         }

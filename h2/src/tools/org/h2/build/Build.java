@@ -190,6 +190,10 @@ public class Build extends BuildBase {
             File.pathSeparator + "ext/jts-core-1.15.0.jar" +
             File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
             File.pathSeparator + "ext/slf4j-nop-1.6.0.jar" +
+            File.pathSeparator + "ext/jts-core-1.15.0.jar" +
+            File.pathSeparator + "ext/jackson-core-2.9.8.jar" +
+            File.pathSeparator + "ext/jackson-databind-2.9.8.jar" +
+            File.pathSeparator + "ext/jackson-annotations-2.9.8.jar" +
             File.pathSeparator + javaToolsJar;
         // Run tests
         execJava(args(
@@ -269,6 +273,9 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
                 File.pathSeparator + "ext/jts-core-1.15.0.jar" +
+                File.pathSeparator + "ext/jackson-core-2.9.8.jar" +
+                File.pathSeparator + "ext/jackson-databind-2.9.8.jar" +
+                File.pathSeparator + "ext/jackson-annotations-2.9.8.jar" +
                 File.pathSeparator + "ext/asm-7.0.jar" +
                 File.pathSeparator + javaToolsJar;
         FileList files;
@@ -384,6 +391,15 @@ public class Build extends BuildBase {
         downloadOrVerify("ext/junit-4.12.jar",
                 "junit", "junit", "4.12",
                 "2973d150c0dc1fefe998f834810d68f278ea58ec", offline);
+        downloadOrVerify("ext/jackson-core-2.9.8.jar",
+                "com.fasterxml.jackson.core", "jackson-core", "2.9.8",
+                "0f5a654e4675769c716e5b387830d19b501ca191", offline);
+        downloadOrVerify("ext/jackson-databind-2.9.8.jar",
+                "com.fasterxml.jackson.core", "jackson-databind", "2.9.8",
+                "11283f21cc480aa86c4df7a0a3243ec508372ed2", offline);
+        downloadOrVerify("ext/jackson-annotations-2.9.8.jar",
+                "com.fasterxml.jackson.core", "jackson-annotations", "2.9.8",
+                "ba7f0e6f8f1b28d251eeff2a5604bed34c53ff35", offline);
         downloadUsingMaven("ext/asm-7.0.jar",
                 "org.ow2.asm", "asm", "7.0",
                 "d74d4ba0dee443f68fb2dcb7fcdb945a2cd89912");
@@ -671,6 +687,9 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
                 File.pathSeparator + "ext/jts-core-1.15.0.jar" +
+                File.pathSeparator + "ext/jackson-core-2.9.8.jar" +
+                File.pathSeparator + "ext/jackson-databind-2.9.8.jar" +
+                File.pathSeparator + "ext/jackson-annotations-2.9.8.jar",
                 File.pathSeparator + "ext/asm-7.0.jar" +
                 File.pathSeparator + "ext/junit-4.12.jar",
                 "-subpackages", "org.h2");
@@ -688,7 +707,11 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-queryparser-5.5.5.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
-                File.pathSeparator + "ext/jts-core-1.15.0.jar",
+                File.pathSeparator + "ext/jts-core-1.15.0.jar" +
+                File.pathSeparator + "ext/jts-core-1.15.0.jar" +
+                File.pathSeparator + "ext/jackson-core-2.9.8.jar" +
+                File.pathSeparator + "ext/jackson-databind-2.9.8.jar" +
+                File.pathSeparator + "ext/jackson-annotations-2.9.8.jar",
                 "-subpackages", "org.h2.mvstore",
                 "-exclude", "org.h2.mvstore.db");
 
@@ -706,6 +729,9 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
                 File.pathSeparator + "ext/jts-core-1.15.0.jar" +
+                File.pathSeparator + "ext/jackson-core-2.9.8.jar" +
+                File.pathSeparator + "ext/jackson-databind-2.9.8.jar" +
+                File.pathSeparator + "ext/jackson-annotations-2.9.8.jar",
                 File.pathSeparator + "ext/asm-7.0.jar" +
                 File.pathSeparator + "ext/junit-4.12.jar",
                 "-subpackages", "org.h2",
@@ -909,7 +935,10 @@ public class Build extends BuildBase {
                     "ext/lucene-core-5.5.5.jar" +
                     File.pathSeparator + "ext/lucene-analyzers-common-5.5.5.jar" +
                     File.pathSeparator + "ext/lucene-queryparser-5.5.5.jar" +
-                    File.pathSeparator + "ext/jts-core-1.15.0.jar",
+                    File.pathSeparator + "ext/jts-core-1.15.0.jar" +
+                    File.pathSeparator + "ext/jackson-core-2.9.8.jar" +
+                    File.pathSeparator + "ext/jackson-databind-2.9.8.jar" +
+                    File.pathSeparator + "ext/jackson-annotations-2.9.8.jar",
                     "-docletpath", "bin" + File.pathSeparator + "temp",
                     "-doclet", "org.h2.build.doclet.ResourceDoclet");
         }
@@ -969,6 +998,10 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/jts-core-1.15.0.jar" +
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
                 File.pathSeparator + "ext/slf4j-nop-1.6.0.jar" +
+                File.pathSeparator + "ext/jts-core-1.15.0.jar" +
+                File.pathSeparator + "ext/jackson-core-2.9.8.jar" +
+                File.pathSeparator + "ext/jackson-databind-2.9.8.jar" +
+                File.pathSeparator + "ext/jackson-annotations-2.9.8.jar" +
                 File.pathSeparator + "ext/asm-7.0.jar" +
                 File.pathSeparator + javaToolsJar;
         int version = getJavaVersion();

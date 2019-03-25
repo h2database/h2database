@@ -42,6 +42,7 @@ import org.h2.value.ValueGeometry;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueJavaObject;
+import org.h2.value.ValueJson;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueLobDb;
 import org.h2.value.ValueLong;
@@ -119,6 +120,7 @@ public class Data {
     private static final int LOCAL_DATE = 133;
     private static final int LOCAL_TIMESTAMP = 134;
     private static final int CUSTOM_DATA_TYPE = 135;
+    private static final int JSON = 136;
 
     private static final long MILLIS_PER_MINUTE = 1000 * 60;
 
@@ -754,6 +756,13 @@ public class Data {
             writeVarLong(interval.getRemaining());
             break;
         }
+        case Value.JSON: {
+            ValueJson json = (ValueJson) v;
+            String s = json.getString();
+            writeByte((byte) JSON);
+            writeString(s);
+            break;
+        }
         default:
             if (JdbcUtils.customDataTypesHandler != null) {
                 byte[] b = v.getBytesNoCopy();
@@ -949,6 +958,13 @@ public class Data {
             }
             return ValueInterval.from(IntervalQualifier.valueOf(ordinal), negative, readVarLong(),
                     ordinal < 5 ? 0 : readVarLong());
+        }
+        case JSON: {
+            try {
+                return ValueJson.get(readString());
+            } catch (IOException e) {
+                return ValueNull.INSTANCE;
+            }
         }
         case CUSTOM_DATA_TYPE: {
             if (JdbcUtils.customDataTypesHandler != null) {
@@ -1225,6 +1241,9 @@ public class Data {
             ValueInterval interval = (ValueInterval) v;
             return 2 + getVarLongLen(interval.getLeading()) + getVarLongLen(interval.getRemaining());
         }
+        case Value.JSON:
+            ValueJson json = (ValueJson) v;
+            return 2 + json.getString().length();
         default:
             if (JdbcUtils.customDataTypesHandler != null) {
                 byte[] b = v.getBytesNoCopy();

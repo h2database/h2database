@@ -6,6 +6,7 @@
 package org.h2.test.unit;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -40,6 +41,7 @@ import org.h2.value.ValueGeometry;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueJavaObject;
+import org.h2.value.ValueJson;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
@@ -246,6 +248,15 @@ public class TestValueMemory extends TestBase implements DataHandler {
         case Value.INTERVAL_HOUR_TO_MINUTE:
             return ValueInterval.from(IntervalQualifier.valueOf(type - Value.INTERVAL_YEAR),
                     random.nextBoolean(), random.nextInt(Integer.MAX_VALUE), random.nextInt(12));
+        case Value.JSON:
+            if (DataType.JSON_CLASS == null) {
+                return ValueNull.INSTANCE;
+            }
+            try {
+                return ValueJson.get("{\"key\":\"val\"}");
+            } catch (IOException e) {
+                throw new AssertionError("Can't create type=" + type);
+            }
         default:
             throw new AssertionError("type=" + type);
         }

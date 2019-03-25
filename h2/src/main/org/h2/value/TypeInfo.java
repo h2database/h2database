@@ -146,6 +146,11 @@ public class TypeInfo {
      * ROW (row value) type with parameters.
      */
     public static final TypeInfo TYPE_ROW;
+    
+    /**
+     * JSON type with parameters.
+     */
+    public static final TypeInfo TYPE_JSON;
 
     private static final TypeInfo[] TYPE_INFOS_BY_VALUE_TYPE;
 
@@ -215,6 +220,7 @@ public class TypeInfo {
         TYPE_INTERVAL_DAY_TO_SECOND = infos[Value.INTERVAL_DAY_TO_SECOND];
         TYPE_INTERVAL_HOUR_TO_SECOND = infos[Value.INTERVAL_HOUR_TO_SECOND];
         infos[Value.ROW] = TYPE_ROW = new TypeInfo(Value.ROW, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
+        infos[Value.JSON] = TYPE_JSON = new TypeInfo(Value.JSON, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
         TYPE_INFOS_BY_VALUE_TYPE = infos;
     }
 
@@ -276,6 +282,7 @@ public class TypeInfo {
         case Value.JAVA_OBJECT:
         case Value.UUID:
         case Value.ROW:
+        case Value.JSON:
             return TYPE_INFOS_BY_VALUE_TYPE[type];
         case Value.UNKNOWN:
             return TYPE_UNKNOWN;

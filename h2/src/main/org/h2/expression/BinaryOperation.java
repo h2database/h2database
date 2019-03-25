@@ -116,6 +116,8 @@ public class BinaryOperation extends Expression {
                     return ValueNull.INSTANCE;
                 }
                 return l;
+            } else if (l.getValueType() == Value.JSON && r.getValueType() == Value.JSON) {
+                return l.add(r);
             }
             String s1 = l.getString(), s2 = r.getString();
             StringBuilder buff = new StringBuilder(s1.length() + s2.length());
@@ -171,6 +173,10 @@ public class BinaryOperation extends Expression {
                     type = TypeInfo.getTypeInfo(Value.STRING, precision, 0, null);
                     break;
                 }
+            }
+            if (l.getValueType() == Value.JSON && r.getValueType() == Value.JSON) {
+                type = TypeInfo.TYPE_JSON;
+                break;
             }
             type = TypeInfo.TYPE_STRING;
             break;

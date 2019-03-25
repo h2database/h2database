@@ -185,6 +185,7 @@ public class TestPreparedStatement extends TestDb {
         testInterval(conn);
         testInterval8(conn);
         testArray(conn);
+        testAggregationFilter(conn);
         testSetObject(conn);
         testPreparedSubquery(conn);
         testLikeIndex(conn);
@@ -549,6 +550,14 @@ public class TestPreparedStatement extends TestDb {
         rs.next();
         assertEquals("2", rs.getString(1));
         assertFalse(rs.next());
+    }
+
+    private void testAggregationFilter(Connection conn) throws SQLException {
+        PreparedStatement prep = conn.prepareStatement(
+                "SELECT sum(1 / a) FILTER (WHERE a <> 0) FROM (VALUES (1), (0)) t(a)");
+        ResultSet rs = prep.executeQuery();
+        rs.next();
+        assertTrue(rs.getInt(1) == 1);
     }
 
     private void testEnum(Connection conn) throws SQLException {

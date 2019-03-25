@@ -184,6 +184,8 @@ public class MVStore implements AutoCloseable {
     private final AtomicReference<BackgroundWriterThread> backgroundWriterThread = new AtomicReference<>();
 
     private volatile boolean reuseSpace = true;
+    
+    private boolean freeUnusedOnBackgroundThread = true;
 
     private volatile int state;
 
@@ -1394,6 +1396,11 @@ public class MVStore implements AutoCloseable {
      */
     private void freeUnusedIfNeeded(long time) {
         int freeDelay = retentionTime / 5;
+        /* Bias this decision so most of the time we perform the unused chunk scan on the
+         * background thread. This prevents commits sometimes taking a rather long time.
+         */
+        if (freeUnusedOnBackgroundThread && backgroundWriterThread.get() != null && !isBackgroundThread())
+            return;
         if (time - lastFreeUnusedChunks >= freeDelay) {
             // set early in case it fails (out of memory or so)
             lastFreeUnusedChunks = time;
@@ -2859,6 +2866,16 @@ public class MVStore implements AutoCloseable {
                 break;
             }
         }
+    }
+
+    /**
+     * This defaults to true. Note that setting this has no effect if
+     * auto-commit delay is set to zero.
+     *
+     * @param b true if we should free unused on background thread
+     */
+    public void setFreeUnusedOnBackgroundThread(boolean b) {
+        this.freeUnusedOnBackgroundThread = b;
     }
 
     /**

@@ -784,6 +784,10 @@ public class Transfer {
             return ValueInterval.from(IntervalQualifier.valueOf(ordinal), negative, readLong(),
                     ordinal < 5 ? 0 : readLong());
         }
+        case JSON: {
+            String s = readString();
+            return ValueJson.get(s);
+        }
         default:
             if (JdbcUtils.customDataTypesHandler != null) {
                 return JdbcUtils.customDataTypesHandler.convert(

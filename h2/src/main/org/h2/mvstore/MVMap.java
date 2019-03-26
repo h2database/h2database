@@ -1078,6 +1078,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 return rootReference;
             } else if (isClosed()) {
                 if (rootReference.version < store.getOldestVersionToKeep()) {
+                    clear();
+                    store.deregisterMapRoot(id);
                     return null;
                 }
                 return rootReference;
@@ -1114,12 +1116,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param sourceMap the source map
      */
     final void copyFrom(MVMap<K, V> sourceMap) {
-        // We are going to cheat a little bit in the copy()
-        // by temporary setting map's root to some arbitrary nodes.
-        // This will allow for newly created ones to be saved.
-        // That's why it's important to preserve all chunks
-        // created in the process, especially if retention time
-        // is set to a lower value, or even 0.
         MVStore.TxCounter txCounter = store.registerVersionUsage();
         try {
             beforeWrite();
@@ -1129,7 +1125,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
     }
 
-    private Page copy(Page source, Page parent, int index) {
+    private void copy(Page source, Page parent, int index) {
         Page target = source.copy(this);
         if (parent == null) {
             setInitialRoot(target, INITIAL_VERSION);
@@ -1151,7 +1147,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         if (store.isSaveNeeded()) {
             store.commit();
         }
-        return target;
     }
 
     /**

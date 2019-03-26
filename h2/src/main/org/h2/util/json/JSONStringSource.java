@@ -250,6 +250,7 @@ public final class JSONStringSource {
 
     private String readString(int length) {
         builder.setLength(0);
+        boolean inSurrogate = false;
         for (;;) {
             if (index >= length) {
                 throw new IllegalArgumentException();
@@ -257,6 +258,9 @@ public final class JSONStringSource {
             char ch = string.charAt(index++);
             switch (ch) {
             case '"':
+                if (inSurrogate) {
+                    throw new IllegalArgumentException();
+                }
                 return builder.toString();
             case '\\':
                 ch = string.charAt(index++);
@@ -264,41 +268,62 @@ public final class JSONStringSource {
                 case '"':
                 case '/':
                 case '\\':
-                    builder.append(ch);
+                    appendNonSurrogate(ch, inSurrogate);
                     break;
                 case 'b':
-                    builder.append('\b');
+                    appendNonSurrogate('\b', inSurrogate);
                     break;
                 case 'f':
-                    builder.append('\f');
+                    appendNonSurrogate('\f', inSurrogate);
                     break;
                 case 'n':
-                    builder.append('\n');
+                    appendNonSurrogate('\n', inSurrogate);
                     break;
                 case 'r':
-                    builder.append('\r');
+                    appendNonSurrogate('\r', inSurrogate);
                     break;
                 case 't':
-                    builder.append('\t');
+                    appendNonSurrogate('\t', inSurrogate);
                     break;
                 case 'u':
                     if (index + 3 >= length) {
                         throw new IllegalArgumentException();
                     }
                     try {
-                        builder.append((char) Integer.parseInt(string.substring(index, index += 4), 16));
+                        ch = (char) Integer.parseInt(string.substring(index, index += 4), 16);
                     } catch (NumberFormatException e) {
                         throw new IllegalArgumentException();
                     }
+                    inSurrogate = appendChar(ch, inSurrogate);
                     break;
                 default:
                     throw new IllegalArgumentException();
                 }
                 break;
             default:
-                builder.append(ch);
+                inSurrogate = appendChar(ch, inSurrogate);
             }
         }
+    }
+
+    private void appendNonSurrogate(char ch, boolean inSurrogate) {
+        if (inSurrogate) {
+            throw new IllegalArgumentException();
+        }
+        builder.append(ch);
+    }
+
+    private boolean appendChar(char ch, boolean inSurrogate) {
+        if (inSurrogate != Character.isLowSurrogate(ch)) {
+            throw new IllegalArgumentException();
+        }
+        if (inSurrogate) {
+            inSurrogate = false;
+        } else if (Character.isHighSurrogate(ch)) {
+            inSurrogate = true;
+        }
+        builder.append(ch);
+        return inSurrogate;
     }
 
 }

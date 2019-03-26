@@ -45,6 +45,8 @@ public class TestJsonUtils extends TestBase {
         testSourcesAndTargets("{\"1\" : [[[[[[[[[[11.1e-100]]]], null]]], {\n\r}]]]}",
                 "{\"1\":[[[[[[[[[[1.11E-99]]]],null]]],{}]]]}");
         testSourcesAndTargets("{\"b\":false,\"a\":1,\"a\":null}", "{\"b\":false,\"a\":1,\"a\":null}");
+        testSourcesAndTargets("\"\uD800\uDFFF\"", "\"\uD800\uDFFF\"");
+        testSourcesAndTargets("\"\\uD800\\uDFFF\"", "\"\uD800\uDFFF\"");
         testSourcesAndTargetsError("");
         testSourcesAndTargetsError(".1");
         testSourcesAndTargetsError("1.");
@@ -76,6 +78,16 @@ public class TestJsonUtils extends TestBase {
         testSourcesAndTargetsError("tru");
         testSourcesAndTargetsError("truE");
         testSourcesAndTargetsError("True");
+        testSourcesAndTargetsError("\"\uD800\"");
+        testSourcesAndTargetsError("\"\\uD800\"");
+        testSourcesAndTargetsError("\"\uDC00\"");
+        testSourcesAndTargetsError("\"\\uDC00\"");
+        testSourcesAndTargetsError("\"\uDBFF \"");
+        testSourcesAndTargetsError("\"\\uDBFF \"");
+        testSourcesAndTargetsError("\"\uDBFF\\\"");
+        testSourcesAndTargetsError("\"\\uDBFF\\\"");
+        testSourcesAndTargetsError("\"\uDFFF\uD800\"");
+        testSourcesAndTargetsError("\"\\uDFFF\\uD800\"");
     }
 
     private void testSourcesAndTargets(String src, String expected) throws Exception {

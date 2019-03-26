@@ -184,7 +184,7 @@ public class MVStore implements AutoCloseable {
     private final AtomicReference<BackgroundWriterThread> backgroundWriterThread = new AtomicReference<>();
 
     private volatile boolean reuseSpace = true;
-    
+
     private boolean freeUnusedOnBackgroundThread = true;
 
     private volatile int state;

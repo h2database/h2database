@@ -9,10 +9,13 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import org.h2.util.StringUtils;
 
+/**
+ * Implementation of the JSON data type.
+ */
 public class ValueJson extends Value {
-    
+
     private String value;
-    
+
     ValueJson (String s) {
         this.value = s;
     }
@@ -41,7 +44,7 @@ public class ValueJson extends Value {
     public Object getObject() {
         return value;
     }
-    
+
     @Override
     public int getMemory() {
         return value.length() * 2 + 94;
@@ -75,7 +78,7 @@ public class ValueJson extends Value {
         String other = ((ValueJson) v).value;
         return mode.compareString(value, other, false);
     }
-    
+
     public static Value get(String s) {
         return new ValueJson(s);
     }

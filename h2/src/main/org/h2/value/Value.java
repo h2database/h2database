@@ -245,7 +245,7 @@ public abstract class Value extends VersionedValue {
      * The value type for ROW values.
      */
     public static final int ROW = 39;
-    
+
     /**
      * The value type for JSON values.
      */

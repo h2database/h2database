@@ -1335,14 +1335,24 @@ public abstract class Value extends VersionedValue {
 
     private ValueJson convertToJson() {
         switch (getValueType()) {
+        case BYTE:
+        case SHORT:
+        case INT:
+            return ValueJson.get(getInt());
+        case LONG:
+            return ValueJson.get(getLong());
+        case FLOAT:
+        case DOUBLE:
+        case DECIMAL:
+            return ValueJson.get(getBigDecimal());
         case BYTES:
         case BLOB:
-            return new ValueJson(getBytesNoCopy());
+            return ValueJson.get(getBytesNoCopy());
         case STRING:
         case STRING_IGNORECASE:
         case STRING_FIXED:
         case CLOB:
-            return new ValueJson(getString());
+            return ValueJson.get(getString());
         default:
             throw getDataConversionError(Value.JSON);
         }

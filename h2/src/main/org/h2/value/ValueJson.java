@@ -5,6 +5,7 @@
  */
 package org.h2.value;
 
+import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import org.h2.api.ErrorCode;
@@ -19,20 +20,8 @@ public class ValueJson extends Value {
 
     private String value;
 
-    ValueJson(String s) {
-        try {
-            value = JSONStringSource.normalize(s);
-        } catch (RuntimeException ex) {
-            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, s);
-        }
-    }
-
-    ValueJson(byte[] bytes) {
-        try {
-            value = JSONStringSource.normalize(bytes);
-        } catch (RuntimeException ex) {
-            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, StringUtils.convertBytesToHex(bytes));
-        }
+    private ValueJson(String value) {
+        this.value = value;
     }
 
     @Override
@@ -86,7 +75,38 @@ public class ValueJson extends Value {
         return mode.compareString(value, other, false);
     }
 
-    public static Value get(String s) {
+    public static ValueJson get(String s) {
+        try {
+            s = JSONStringSource.normalize(s);
+        } catch (RuntimeException ex) {
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, s);
+        }
+        return getInternal(s);
+    }
+
+    public static ValueJson get(byte[] bytes) {
+        String s;
+        try {
+            s = JSONStringSource.normalize(bytes);
+        } catch (RuntimeException ex) {
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, StringUtils.convertBytesToHex(bytes));
+        }
+        return getInternal(s);
+    }
+
+    public static ValueJson get(int number) {
+        return getInternal(Integer.toString(number));
+    }
+
+    public static ValueJson get(long number) {
+        return getInternal(Long.toString(number));
+    }
+
+    public static ValueJson get(BigDecimal number) {
+        return getInternal(number.toString());
+    }
+
+    private static ValueJson getInternal(String s) {
         return new ValueJson(s);
     }
 

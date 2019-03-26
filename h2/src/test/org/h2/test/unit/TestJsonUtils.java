@@ -41,6 +41,7 @@ public class TestJsonUtils extends TestBase {
         testSourcesAndTargets("\uFEFF-1", "-1");
         testSourcesAndTargets("1.2", "1.2");
         testSourcesAndTargets("1.2e+1", "12");
+        testSourcesAndTargets("10000.0", "10000.0");
         testSourcesAndTargets("\t\r\n 1.2E-1 ", "0.12");
         testSourcesAndTargets("9.99e99", "9.99E+99");
         testSourcesAndTargets("\"\"", "\"\"");

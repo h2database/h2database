@@ -1130,9 +1130,10 @@ public abstract class Value extends VersionedValue {
         switch (getValueType()) {
         case JAVA_OBJECT:
         case BLOB:
+        case GEOMETRY:
             return ValueBytes.getNoCopy(getBytesNoCopy());
         case UUID:
-        case GEOMETRY:
+        case JSON:
             return ValueBytes.getNoCopy(getBytes());
         case BYTE:
             return ValueBytes.getNoCopy(new byte[] { getByte() });
@@ -1232,7 +1233,11 @@ public abstract class Value extends VersionedValue {
     private ValueLobDb convertToBlob() {
         switch (getValueType()) {
         case BYTES:
+        case GEOMETRY:
             return ValueLobDb.createSmallLob(Value.BLOB, getBytesNoCopy());
+        case UUID:
+        case JSON:
+            return ValueLobDb.createSmallLob(Value.BLOB, getBytes());
         case TIMESTAMP_TZ:
             throw getDataConversionError(BLOB);
         }

@@ -6,6 +6,7 @@
 package org.h2.value;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import org.h2.api.ErrorCode;
@@ -62,6 +63,11 @@ public class ValueJson extends Value {
     @Override
     public String getString() {
         return value;
+    }
+
+    @Override
+    public byte[] getBytes() {
+        return value.getBytes(StandardCharsets.UTF_8);
     }
 
     @Override

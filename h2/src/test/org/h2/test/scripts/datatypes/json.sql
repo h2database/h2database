@@ -22,7 +22,16 @@ INSERT INTO TEST VALUES
 @reconnect
 
 SELECT ID, DATA FROM TEST;
->> <4 rows>
+> ID DATA
+> -- --------------------------------------------------
+> 1  {"tag1":"simple string","tag2":333,"tag3":[1,2,3]}
+> 2  {"tag1":"another string","tag4":{"lvl1":"lvl2"}}
+> 3  ["string",5555,{"arr":"yes"}]
+> 4  {"1":"val1"}
+> rows: 4
 
-DROP TABLE TEST IF EXISTS;
+INSERT INTO TEST VALUES (5, '}');
+> exception DATA_CONVERSION_ERROR_1
+
+DROP TABLE TEST;
 > ok

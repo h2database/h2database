@@ -7,7 +7,10 @@ package org.h2.value;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import org.h2.api.ErrorCode;
+import org.h2.message.DbException;
 import org.h2.util.StringUtils;
+import org.h2.util.json.JSONStringSource;
 
 /**
  * Implementation of the JSON data type.
@@ -16,8 +19,12 @@ public class ValueJson extends Value {
 
     private String value;
 
-    ValueJson (String s) {
-        this.value = s;
+    ValueJson(String s) {
+        try {
+            value = JSONStringSource.normalize(s);
+        } catch (RuntimeException ex) {
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, s);
+        }
     }
 
     @Override
@@ -55,22 +62,14 @@ public class ValueJson extends Value {
         prep.setString(parameterIndex, value);
     }
 
-    /*
-     * The simplest version
-     * In fact {"foo":1,"bar":2} must be equal to {"bar":2, "foo":1}
-     */
     @Override
     public int hashCode() {
         return value.hashCode();
     }
 
-    /*
-     * Similar to hashCode()
-     */
     @Override
     public boolean equals(Object other) {
-        return other instanceof ValueJson &&
-                this.value.equals(((ValueJson) other).value);
+        return other instanceof ValueJson && value.equals(((ValueJson) other).value);
     }
 
     @Override

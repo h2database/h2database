@@ -45,13 +45,15 @@ public class TestDefrag  extends TestDb
                             " AS SELECT x, x || SPACE(200) FROM SYSTEM_RANGE(1,10000000)");
             }
             long origSize = dbFile.length();
+            trace("before defrag: " + origSize);
             assertTrue(origSize > 4_000_000_000L);
             try (Statement st = c.createStatement()) {
                 st.execute("shutdown defrag");
             }
-            long compactedSize = dbFile.length();
-            assertTrue(compactedSize < 400_000_000);
         }
+        long compactedSize = dbFile.length();
+        trace("after defrag: " + compactedSize);
+        assertTrue(compactedSize < 400_000_000);
 
         try (Connection c = getConnection(dbName + ";LAZY_QUERY_EXECUTION=1")) {
             try (Statement st = c.createStatement()) {

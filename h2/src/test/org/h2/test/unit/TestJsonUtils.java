@@ -5,6 +5,9 @@
  */
 package org.h2.test.unit;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
 import org.h2.test.TestBase;
 import org.h2.util.json.JSONStringSource;
 import org.h2.util.json.JSONStringTarget;
@@ -13,6 +16,9 @@ import org.h2.util.json.JSONStringTarget;
  * Tests the classes from org.h2.util.json package.
  */
 public class TestJsonUtils extends TestBase {
+
+    private static final Charset[] CHARSETS = { StandardCharsets.UTF_8, StandardCharsets.UTF_16BE,
+            StandardCharsets.UTF_16LE, Charset.forName("UTF-32BE"), Charset.forName("UTF-32LE") };
 
     /**
      * Run just this test.
@@ -31,6 +37,7 @@ public class TestJsonUtils extends TestBase {
 
     private void testSourcesAndTargets() throws Exception {
         testSourcesAndTargets("1", "1");
+        testSourcesAndTargets("\uFEFF0", "0");
         testSourcesAndTargets("\uFEFF-1", "-1");
         testSourcesAndTargets("1.2", "1.2");
         testSourcesAndTargets("1.2e+1", "12");
@@ -94,6 +101,11 @@ public class TestJsonUtils extends TestBase {
         JSONStringTarget target = new JSONStringTarget();
         JSONStringSource.parse(src, target);
         assertEquals(expected, target.getString());
+        for (Charset charset : CHARSETS) {
+            target = new JSONStringTarget();
+            JSONStringSource.parse(src.getBytes(charset), target);
+            assertEquals(expected, target.getString());
+        }
     }
 
     private void testSourcesAndTargetsError(String src) throws Exception {

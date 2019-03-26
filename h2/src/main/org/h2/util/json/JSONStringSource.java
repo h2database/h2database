@@ -6,6 +6,8 @@
 package org.h2.util.json;
 
 import java.math.BigDecimal;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * JSON string source.
@@ -30,6 +32,68 @@ public final class JSONStringSource {
     }
 
     /**
+     * Parses source bytes to a specified target.
+     *
+     * @param bytes
+     *            source
+     * @param target
+     *            target
+     */
+    public static void parse(byte[] bytes, JSONTarget target) {
+        int length = bytes.length;
+        Charset charset = StandardCharsets.UTF_8;
+        if (length >= 4) {
+            byte b0 = bytes[0];
+            byte b1 = bytes[1];
+            byte b2 = bytes[2];
+            byte b3 = bytes[3];
+            switch (b0) {
+            case -2:
+                if (b1 == -1) {
+                    charset = StandardCharsets.UTF_16BE;
+                }
+                break;
+            case -1:
+                if (b1 == -2) {
+                    if (b2 == 0 && b3 == 0) {
+                        charset = Charset.forName("UTF-32LE");
+                    } else {
+                        charset = StandardCharsets.UTF_16LE;
+                    }
+                }
+                break;
+            case 0:
+                if (b1 != 0) {
+                    charset = StandardCharsets.UTF_16BE;
+                } else if (b2 == 0 && b3 != 0 || b2 == -2 && b3 == -1) {
+                    charset = Charset.forName("UTF-32BE");
+                }
+                break;
+            default:
+                if (b1 == 0) {
+                    if (b2 == 0 && b3 == 0) {
+                        charset = Charset.forName("UTF-32LE");
+                    } else {
+                        charset = StandardCharsets.UTF_16LE;
+                    }
+                }
+                break;
+            }
+        } else if (length >= 2) {
+            byte b0 = bytes[0];
+            byte b1 = bytes[1];
+            if (b0 != 0) {
+                if (b1 == 0) {
+                    charset = StandardCharsets.UTF_16LE;
+                }
+            } else if (b1 != 0) {
+                charset = StandardCharsets.UTF_16BE;
+            }
+        }
+        new JSONStringSource(new String(bytes, charset), target).parse();
+    }
+
+    /**
      * Normalizes textual JSON representation.
      *
      * @param string
@@ -39,6 +103,19 @@ public final class JSONStringSource {
     public static String normalize(String string) {
         JSONStringTarget target = new JSONStringTarget();
         JSONStringSource.parse(string, target);
+        return target.getString();
+    }
+
+    /**
+     * Converts bytes into normalized String JSON representation.
+     *
+     * @param bytes
+     *            source representation
+     * @return normalized representation
+     */
+    public static String normalize(byte[] bytes) {
+        JSONStringTarget target = new JSONStringTarget();
+        JSONStringSource.parse(bytes, target);
         return target.getString();
     }
 

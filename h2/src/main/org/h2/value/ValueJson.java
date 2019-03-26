@@ -27,6 +27,14 @@ public class ValueJson extends Value {
         }
     }
 
+    ValueJson(byte[] bytes) {
+        try {
+            value = JSONStringSource.normalize(bytes);
+        } catch (RuntimeException ex) {
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, StringUtils.convertBytesToHex(bytes));
+        }
+    }
+
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
         return StringUtils.quoteStringSQL(builder, value).append("::JSON");

@@ -9,6 +9,9 @@ SELECT CAST('{"tag1":"simple string"}' AS JSON);
 SELECT '{"tag1":"simple string"}'::JSON;
 >> {"tag1":"simple string"}
 
+SELECT X'31'::JSON;
+>> 1
+
 CREATE TABLE TEST (ID INT, DATA JSON);
 > ok
 

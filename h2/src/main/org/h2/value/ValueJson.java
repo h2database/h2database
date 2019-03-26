@@ -18,7 +18,27 @@ import org.h2.util.json.JSONStringSource;
  */
 public class ValueJson extends Value {
 
-    private String value;
+    /**
+     * {@code null} JSON value.
+     */
+    public static final ValueJson NULL = new ValueJson("null");
+
+    /**
+     * {@code true} JSON value.
+     */
+    public static final ValueJson TRUE = new ValueJson("true");
+
+    /**
+     * {@code false} JSON value.
+     */
+    public static final ValueJson FALSE = new ValueJson("false");
+
+    /**
+     * {@code 0} JSON value.
+     */
+    public static final ValueJson ZERO = new ValueJson("0");
+
+    private final String value;
 
     private ValueJson(String value) {
         this.value = value;
@@ -94,6 +114,10 @@ public class ValueJson extends Value {
         return getInternal(s);
     }
 
+    public static ValueJson get(boolean bool) {
+        return bool ? TRUE : FALSE;
+    }
+
     public static ValueJson get(int number) {
         return getInternal(Integer.toString(number));
     }
@@ -107,6 +131,25 @@ public class ValueJson extends Value {
     }
 
     private static ValueJson getInternal(String s) {
+        int l = s.length();
+        switch (l) {
+        case 1:
+            if ("0".equals(s)) {
+                return ZERO;
+            }
+            break;
+        case 4:
+            if ("true".equals(s)) {
+                return TRUE;
+            } else if ("null".equals(s)) {
+                return NULL;
+            }
+            break;
+        case 5:
+            if ("false".equals(s)) {
+                return FALSE;
+            }
+        }
         return new ValueJson(s);
     }
 

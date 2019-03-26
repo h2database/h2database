@@ -12,6 +12,12 @@ SELECT '{"tag1":"simple string"}'::JSON;
 SELECT X'31'::JSON;
 >> 1
 
+SELECT 0::JSON;
+>> 0
+
+SELECT '0'::JSON;
+>> 0
+
 SELECT 1::JSON;
 >> 1
 
@@ -29,6 +35,21 @@ SELECT CAST(1e100::DOUBLE AS JSON);
 
 SELECT CAST(1e100::NUMERIC AS JSON);
 >> 1E+100
+
+SELECT CAST(TRUE AS JSON);
+>> true
+
+SELECT CAST('true' AS JSON);
+>> true
+
+SELECT CAST(FALSE AS JSON);
+>> false
+
+SELECT CAST('false' AS JSON);
+>> false
+
+SELECT CAST('null' AS JSON);
+>> null
 
 CREATE TABLE TEST (ID INT, DATA JSON);
 > ok

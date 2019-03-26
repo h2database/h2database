@@ -1035,7 +1035,8 @@ public abstract class Page implements Cloneable
         public String toString() {
             return "Cnt:" + count + ", pos:" + DataUtils.getPageChunkId(pos) +
                     "-" + DataUtils.getPageOffset(pos) + ":" + DataUtils.getPageMaxLength(pos) +
-                    ((page == null ? DataUtils.getPageType(pos) == 0 : page.isLeaf()) ? " leaf" : " node") + ", " + page;
+                    ((page == null ? DataUtils.getPageType(pos) == 0 : page.isLeaf()) ? " leaf" : " node") +
+                    ", " + page;
         }
     }
 

@@ -174,7 +174,7 @@ public class TestScript extends TestDb {
             testScript("functions/aggregate/" + s + ".sql");
         }
         for (String s : new String[] { "abs", "acos", "asin", "atan", "atan2",
-                "bitand", "bitget", "bitor", "bitxor", "ceil", "compress",
+                "bitand", "bitget", "bitnot", "bitor", "bitxor", "ceil", "compress",
                 "cos", "cosh", "cot", "decrypt", "degrees", "encrypt", "exp",
                 "expand", "floor", "hash", "length", "log", "mod", "ora-hash", "pi",
                 "power", "radians", "rand", "random-uuid", "round",

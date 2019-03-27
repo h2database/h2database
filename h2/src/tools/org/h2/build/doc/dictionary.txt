@@ -57,7 +57,7 @@ below bench benchmark benchmarks beneficial benefit bennet berger berkeley
 berlini bern bernd berne best beta better between beverages beware beyond bfff
 bgcolor biased bid biel bienne big bigger biggest bigint biginteger bigserial
 bilinear bilingual billion bin binaries binary bind bindings bio biodiversity
-biological bipush birth birthday biscuits bit bitand bitmap bitor bits bitwise
+biological bipush birth birthday biscuits bit bitand bitmap bitnot bitor bits bitwise
 bitxor biz bjorn black blank blanked blanks bleyl blind blitz blob blobs block
 blocked blocking blockquote blocks blocksize blog blogs bloom blue blume blur bnf
 bnot boat bob bocher bodies body bogus bohlen bold bom bonita boo book

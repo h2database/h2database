@@ -4054,6 +4054,16 @@ The second parameter is zero-indexed; the least significant bit has position 0.
 BITGET(A, 1)
 "
 
+"Functions (Numeric)","BITNOT","
+BITNOT(long)
+","
+The bitwise NOT operation.
+This method returns a long.
+See also Java operator ~.
+","
+BITNOT(A)
+"
+
 "Functions (Numeric)","BITOR","
 BITOR(long, long)
 ","

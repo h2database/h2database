@@ -5,16 +5,44 @@
  */
 package org.h2.value;
 
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import org.h2.api.ErrorCode;
+import org.h2.message.DbException;
 import org.h2.util.StringUtils;
+import org.h2.util.json.JSONStringSource;
 
+/**
+ * Implementation of the JSON data type.
+ */
 public class ValueJson extends Value {
-    
-    private String value;
-    
-    ValueJson (String s) {
-        this.value = s;
+
+    /**
+     * {@code null} JSON value.
+     */
+    public static final ValueJson NULL = new ValueJson("null");
+
+    /**
+     * {@code true} JSON value.
+     */
+    public static final ValueJson TRUE = new ValueJson("true");
+
+    /**
+     * {@code false} JSON value.
+     */
+    public static final ValueJson FALSE = new ValueJson("false");
+
+    /**
+     * {@code 0} JSON value.
+     */
+    public static final ValueJson ZERO = new ValueJson("0");
+
+    private final String value;
+
+    private ValueJson(String value) {
+        this.value = value;
     }
 
     @Override
@@ -38,10 +66,15 @@ public class ValueJson extends Value {
     }
 
     @Override
+    public byte[] getBytes() {
+        return value.getBytes(StandardCharsets.UTF_8);
+    }
+
+    @Override
     public Object getObject() {
         return value;
     }
-    
+
     @Override
     public int getMemory() {
         return value.length() * 2 + 94;
@@ -52,22 +85,14 @@ public class ValueJson extends Value {
         prep.setString(parameterIndex, value);
     }
 
-    /*
-     * The simplest version
-     * In fact {"foo":1,"bar":2} must be equal to {"bar":2, "foo":1}
-     */
     @Override
     public int hashCode() {
         return value.hashCode();
     }
 
-    /*
-     * Similar to hashCode()
-     */
     @Override
     public boolean equals(Object other) {
-        return other instanceof ValueJson &&
-                this.value.equals(((ValueJson) other).value);
+        return other instanceof ValueJson && value.equals(((ValueJson) other).value);
     }
 
     @Override
@@ -75,8 +100,62 @@ public class ValueJson extends Value {
         String other = ((ValueJson) v).value;
         return mode.compareString(value, other, false);
     }
-    
-    public static Value get(String s) {
+
+    public static ValueJson get(String s) {
+        try {
+            s = JSONStringSource.normalize(s);
+        } catch (RuntimeException ex) {
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, s);
+        }
+        return getInternal(s);
+    }
+
+    public static ValueJson get(byte[] bytes) {
+        String s;
+        try {
+            s = JSONStringSource.normalize(bytes);
+        } catch (RuntimeException ex) {
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, StringUtils.convertBytesToHex(bytes));
+        }
+        return getInternal(s);
+    }
+
+    public static ValueJson get(boolean bool) {
+        return bool ? TRUE : FALSE;
+    }
+
+    public static ValueJson get(int number) {
+        return getInternal(Integer.toString(number));
+    }
+
+    public static ValueJson get(long number) {
+        return getInternal(Long.toString(number));
+    }
+
+    public static ValueJson get(BigDecimal number) {
+        return getInternal(number.toString());
+    }
+
+    private static ValueJson getInternal(String s) {
+        int l = s.length();
+        switch (l) {
+        case 1:
+            if ("0".equals(s)) {
+                return ZERO;
+            }
+            break;
+        case 4:
+            if ("true".equals(s)) {
+                return TRUE;
+            } else if ("null".equals(s)) {
+                return NULL;
+            }
+            break;
+        case 5:
+            if ("false".equals(s)) {
+                return FALSE;
+            }
+        }
         return new ValueJson(s);
     }
 

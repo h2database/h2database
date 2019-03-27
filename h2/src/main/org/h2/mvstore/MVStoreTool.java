@@ -539,7 +539,7 @@ public class MVStoreTool {
                 }
             }
             // We are going to cheat a little bit in the copyFrom() by employing "incomplete" pages,
-            // which would be spared of saving, but save copmleted pages underneath,
+            // which would be spared of saving, but save completed pages underneath,
             // and those may appear as dead (non-reachable).
             // That's why it is important to preserve all chunks
             // created in the process, especially if retention time

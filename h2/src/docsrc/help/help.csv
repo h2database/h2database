@@ -3334,9 +3334,9 @@ second mapped to 1, and so on.
 
 Duplicate and empty values are not permitted.
 ","
-
 ENUM('clubs', 'diamonds', 'hearts', 'spades')
 "
+
 "Data Types","GEOMETRY Type","
 GEOMETRY
     [({ GEOMETRY |
@@ -3374,6 +3374,18 @@ GEOMETRY(POINT)
 GEOMETRY(POINT Z)
 GEOMETRY(POINT Z, 4326)
 GEOMETRY(GEOMETRY, 4326)
+"
+
+"Data Types","JSON Type","
+JSON
+","
+A RFC 8259-compliant JSON text.
+Mapped to ""java.lang.String"" (byte[] is also supported).
+
+Order of object members is preserved as is.
+Duplicate object member names are allowed.
+","
+JSON
 "
 
 "Data Types","INTERVAL Type","

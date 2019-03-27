@@ -585,7 +585,7 @@ public class TestValue extends TestDb {
         testTypeInfoInterval1(Value.INTERVAL_HOUR_TO_MINUTE);
         testTypeInfoInterval2(Value.INTERVAL_HOUR_TO_SECOND);
         testTypeInfoInterval2(Value.INTERVAL_MINUTE_TO_SECOND);
-        
+
         testTypeInfoCheck(Value.JSON, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, TypeInfo.TYPE_JSON,
                 TypeInfo.getTypeInfo(Value.JSON));
     }

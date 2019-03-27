@@ -184,7 +184,7 @@ public class MVStore implements AutoCloseable {
     private final AtomicReference<BackgroundWriterThread> backgroundWriterThread = new AtomicReference<>();
 
     private volatile boolean reuseSpace = true;
-    
+
     private boolean freeUnusedOnBackgroundThread = true;
 
     private volatile int state;
@@ -1449,9 +1449,9 @@ public class MVStore implements AutoCloseable {
     }
 
     /**
-     * Collect ids for chunks that are in use.
-     * We assume that recent chunks are still in-use and do not scan recent (used by open transactions)
-     * versions of the store. Only oldest available version of the store is scanned.
+     * Collect ids for chunks that are in use. We assume that recent chunks are
+     * still in-use and do not scan recent (used by open transactions) versions
+     * of the store. Only oldest available version of the store is scanned.
      * @param oldestVersionToKeep version of the store to scan, chunks with newer versions are
      *                            implicitly considered as being in use
      * @return set of chunk ids in-use
@@ -1934,7 +1934,7 @@ public class MVStore implements AutoCloseable {
 
     private void compactMoveChunks(ArrayList<Chunk> move) {
         // this will ensure better recognition of the last chunk
-        // in case of pwer failure, since we are going to move older chunks
+        // in case of power failure, since we are going to move older chunks
         // to the end of the file
         writeStoreHeader();
         sync();

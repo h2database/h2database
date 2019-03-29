@@ -44,7 +44,7 @@ public final class EWKTUtils {
      * 0-based type names of geometries, subtract 1 from type code to get index
      * in this array.
      */
-    private static final String[] TYPES = { //
+    static final String[] TYPES = { //
             "POINT", //
             "LINESTRING", //
             "POLYGON", //
@@ -146,31 +146,7 @@ public final class EWKTUtils {
             if (inMulti) {
                 return;
             }
-            switch (type) {
-            case POINT:
-                output.append("POINT");
-                break;
-            case LINE_STRING:
-                output.append("LINESTRING");
-                break;
-            case POLYGON:
-                output.append("POLYGON");
-                break;
-            case MULTI_POINT:
-                output.append("MULTIPOINT");
-                break;
-            case MULTI_LINE_STRING:
-                output.append("MULTILINESTRING");
-                break;
-            case MULTI_POLYGON:
-                output.append("MULTIPOLYGON");
-                break;
-            case GEOMETRY_COLLECTION:
-                output.append("GEOMETRYCOLLECTION");
-                break;
-            default:
-                throw new IllegalArgumentException();
-            }
+            output.append(TYPES[type - 1]);
             switch (dimensionSystem) {
             case DIMENSION_SYSTEM_XYZ:
                 output.append(" Z");

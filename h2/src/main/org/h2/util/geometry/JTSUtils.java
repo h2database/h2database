@@ -171,7 +171,7 @@ public final class JTSUtils {
         }
 
         @Override
-        protected void endCollectionItem(Target target, int index, int total) {
+        protected void endCollectionItem(Target target, int type, int index, int total) {
             subgeometries[index] = ((GeometryTarget) target).getGeometry();
         }
 
@@ -413,7 +413,7 @@ public final class JTSUtils {
             for (int i = 0; i < numItems; i++) {
                 Target innerTarget = target.startCollectionItem(i, numItems);
                 parseGeometry(gc.getGeometryN(i), innerTarget, type);
-                target.endCollectionItem(innerTarget, i, numItems);
+                target.endCollectionItem(innerTarget, type, i, numItems);
             }
             target.endCollection(type);
         } else {

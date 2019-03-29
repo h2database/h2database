@@ -436,7 +436,7 @@ public final class EWKBUtils {
             for (int i = 0; i < numItems; i++) {
                 Target innerTarget = target.startCollectionItem(i, numItems);
                 parseEWKB(source, innerTarget, type);
-                target.endCollectionItem(innerTarget, i, numItems);
+                target.endCollectionItem(innerTarget, type, i, numItems);
             }
             target.endCollection(type);
             break;

@@ -171,7 +171,7 @@ public final class EWKTUtils {
         }
 
         @Override
-        protected void endCollectionItem(Target target, int index, int total) {
+        protected void endCollectionItem(Target target, int type, int index, int total) {
             if (index + 1 == total) {
                 output.append(')');
             }
@@ -801,7 +801,7 @@ public final class EWKTUtils {
                     }
                     Target innerTarget = target.startCollectionItem(i, numItems);
                     parseEWKT(source, innerTarget, type, dimensionSystem);
-                    target.endCollectionItem(innerTarget, i, numItems);
+                    target.endCollectionItem(innerTarget, type, i, numItems);
                 }
                 source.read(')');
             }
@@ -822,7 +822,7 @@ public final class EWKTUtils {
             target.startPoint();
             double[] c = points.get(i);
             target.addCoordinate(c[X], c[Y], c[Z], c[M], 0, 1);
-            target.endCollectionItem(innerTarget, i, numItems);
+            target.endCollectionItem(innerTarget, MULTI_POINT, i, numItems);
         }
     }
 

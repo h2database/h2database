@@ -341,6 +341,7 @@ public final class JTSUtils {
                 CoordinateSequence sequence = p.getCoordinateSequence();
                 addCoordinate(sequence, target, 0, 1, getMeasures(sequence));
             }
+            target.endObject(POINT);
         } else if (geometry instanceof LineString) {
             if (parentType != 0 && parentType != MULTI_LINE_STRING && parentType != GEOMETRY_COLLECTION) {
                 throw new IllegalArgumentException();
@@ -356,6 +357,7 @@ public final class JTSUtils {
             for (int i = 0; i < numPoints; i++) {
                 addCoordinate(cs, target, i, numPoints, measures);
             }
+            target.endObject(LINE_STRING);
         } else if (geometry instanceof Polygon) {
             if (parentType != 0 && parentType != MULTI_POLYGON && parentType != GEOMETRY_COLLECTION) {
                 throw new IllegalArgumentException();
@@ -390,6 +392,7 @@ public final class JTSUtils {
                 }
                 target.endNonEmptyPolygon();
             }
+            target.endObject(POLYGON);
         } else if (geometry instanceof GeometryCollection) {
             if (parentType != 0 && parentType != GEOMETRY_COLLECTION) {
                 throw new IllegalArgumentException();
@@ -415,11 +418,10 @@ public final class JTSUtils {
                 parseGeometry(gc.getGeometryN(i), innerTarget, type);
                 target.endCollectionItem(innerTarget, type, i, numItems);
             }
-            target.endCollection(type);
+            target.endObject(type);
         } else {
             throw new IllegalArgumentException();
         }
-
     }
 
     private static void addRing(CoordinateSequence sequence, Target target, int size, int measures) {

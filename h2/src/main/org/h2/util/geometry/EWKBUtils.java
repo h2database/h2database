@@ -438,12 +438,12 @@ public final class EWKBUtils {
                 parseEWKB(source, innerTarget, type);
                 target.endCollectionItem(innerTarget, type, i, numItems);
             }
-            target.endCollection(type);
             break;
         }
         default:
             throw new IllegalArgumentException();
         }
+        target.endObject(type);
     }
 
     private static void addRing(EWKBSource source, Target target, boolean useZ, boolean useM, int size) {

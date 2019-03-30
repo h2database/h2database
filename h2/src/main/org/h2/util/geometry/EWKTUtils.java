@@ -178,8 +178,11 @@ public final class EWKTUtils {
         }
 
         @Override
-        protected void endCollection(int type) {
-            if (type != GEOMETRY_COLLECTION) {
+        protected void endObject(int type) {
+            switch (type) {
+            case MULTI_POINT:
+            case MULTI_LINE_STRING:
+            case MULTI_POLYGON:
                 inMulti = false;
             }
         }
@@ -773,6 +776,7 @@ public final class EWKTUtils {
         default:
             throw new IllegalArgumentException();
         }
+        target.endObject(type);
         if (parentType == 0 && source.hasData()) {
             throw new IllegalArgumentException();
         }
@@ -802,7 +806,6 @@ public final class EWKTUtils {
                 source.read(')');
             }
         }
-        target.endCollection(type);
     }
 
     private static void parseMultiPointAlternative(EWKTSource source, Target target, int dimensionSystem) {

@@ -125,12 +125,12 @@ public final class GeometryUtils {
         }
 
         /**
-         * Invoked after writing of a collection.
+         * Invoked after writing of the object.
          *
          * @param type
-         *            type of collection, see {@link #startCollection(int, int)}
+         *            type of the object
          */
-        protected void endCollection(int type) {
+        protected void endObject(int type) {
         }
 
         /**

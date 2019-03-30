@@ -4084,6 +4084,28 @@ See also Java operator ^.
 BITXOR(A, B)
 "
 
+"Functions (Numeric)","LSHIFT","
+LSHIFT(long, int)
+","
+The bitwise left shift operation.
+Shifts the first argument by the number of bits given by the second argument.
+This method returns a long.
+See also Java operator <<.
+","
+LSHIFT(A, B)
+"
+
+"Functions (Numeric)","RSHIFT","
+RSHIFT(long, int)
+","
+The bitwise right shift operation.
+Shifts the first argument by the number of bits given by the second argument.
+This method returns a long.
+See also Java operator >>.
+","
+RSHIFT(A, B)
+"
+
 "Functions (Numeric)","MOD","
 MOD(long, long)
 ","

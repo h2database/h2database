@@ -91,7 +91,7 @@ public class Function extends Expression implements FunctionCall {
             TRUNCATE = 27, SECURE_RAND = 28, HASH = 29, ENCRYPT = 30,
             DECRYPT = 31, COMPRESS = 32, EXPAND = 33, ZERO = 34,
             RANDOM_UUID = 35, COSH = 36, SINH = 37, TANH = 38, LN = 39,
-            BITGET = 40, ORA_HASH = 41, BITNOT = 42;
+            BITGET = 40, ORA_HASH = 41, BITNOT = 42, LSHIFT = 43, RSHIFT = 44;
 
     public static final int ASCII = 50, BIT_LENGTH = 51, CHAR = 52,
             CHAR_LENGTH = 53, CONCAT = 54, DIFFERENCE = 55, HEXTORAW = 56,
@@ -213,6 +213,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("LOG", LOG, 1, Value.DOUBLE);
         addFunction("LN", LN, 1, Value.DOUBLE);
         addFunction("LOG10", LOG10, 1, Value.DOUBLE);
+        addFunction("LSHIFT", LSHIFT, 2, Value.LONG);
         addFunction("MOD", MOD, 2, Value.LONG);
         addFunction("PI", PI, 0, Value.DOUBLE);
         addFunction("POWER", POWER, 2, Value.DOUBLE);
@@ -223,6 +224,7 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotDeterministic("RANDOM", RAND, VAR_ARGS, Value.DOUBLE);
         addFunction("ROUND", ROUND, VAR_ARGS, Value.DOUBLE);
         addFunction("ROUNDMAGIC", ROUNDMAGIC, 1, Value.DOUBLE);
+        addFunction("RSHIFT", RSHIFT, 2, Value.LONG);
         addFunction("SIGN", SIGN, 1, Value.INT);
         addFunction("SIN", SIN, 1, Value.DOUBLE);
         addFunction("SINH", SINH, 1, Value.DOUBLE);
@@ -1247,6 +1249,12 @@ public class Function extends Expression implements FunctionCall {
             break;
         case BITXOR:
             result = ValueLong.get(v0.getLong() ^ v1.getLong());
+            break;
+        case LSHIFT:
+            result = ValueLong.get(v0.getLong() << v1.getInt());
+            break;
+        case RSHIFT:
+            result = ValueLong.get(v0.getLong() >> v1.getInt());
             break;
         case MOD: {
             long x = v1.getLong();

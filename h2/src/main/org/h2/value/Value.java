@@ -31,6 +31,7 @@ import org.h2.util.DateTimeUtils;
 import org.h2.util.IntervalUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
+import org.h2.util.geometry.GeoJsonUtils;
 
 /**
  * This is the base class for all value classes.
@@ -1360,6 +1361,10 @@ public abstract class Value extends VersionedValue {
         case STRING_FIXED:
         case CLOB:
             return ValueJson.get(getString());
+        case GEOMETRY: {
+            ValueGeometry vg = (ValueGeometry) this;
+            return ValueJson.get(GeoJsonUtils.ewkbToGeoJson(vg.getBytesNoCopy(), vg.getDimensionSystem()));
+        }
         default:
             throw getDataConversionError(Value.JSON);
         }

@@ -200,7 +200,9 @@ public final class GeoJsonUtils {
         }
 
         private void writeDouble(double v) {
-            output.valueNumber(BigDecimal.valueOf(GeometryUtils.checkFinite(v)).stripTrailingZeros());
+            BigDecimal d = BigDecimal.valueOf(GeometryUtils.checkFinite(v));
+            // stripTrailingZeros() does not work with 0.0 on Java 7
+            output.valueNumber(d.signum() != 0 ? d.stripTrailingZeros() : BigDecimal.ZERO);
         }
 
     }

@@ -763,13 +763,9 @@ public final class EWKTUtils {
             break;
         }
         case MULTI_POINT:
-            parseCollection(source, target, MULTI_POINT, parentType, dimensionSystem);
-            break;
         case MULTI_LINE_STRING:
-            parseCollection(source, target, MULTI_LINE_STRING, parentType, dimensionSystem);
-            break;
         case MULTI_POLYGON:
-            parseCollection(source, target, MULTI_POLYGON, parentType, dimensionSystem);
+            parseCollection(source, target, type, parentType, dimensionSystem);
             break;
         case GEOMETRY_COLLECTION:
             parseCollection(source, target, GEOMETRY_COLLECTION, parentType, 0);

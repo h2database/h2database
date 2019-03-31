@@ -209,7 +209,6 @@ public final class JSONStringSource {
         for (;;) {
             switch (skipWhitespace(length)) {
             case ',':
-                target.valueSeparator();
                 if (skipWhitespace(length) != '"') {
                     throw new IllegalArgumentException();
                 }
@@ -235,7 +234,6 @@ public final class JSONStringSource {
         for (;;) {
             switch (skipWhitespace(length)) {
             case ',':
-                target.valueSeparator();
                 parseValue(length);
                 break;
             case ']':

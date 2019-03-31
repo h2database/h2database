@@ -97,7 +97,6 @@ public final class GeoJsonUtils {
 
         @Override
         protected void startPolygonInner(int numInner) {
-            output.valueSeparator();
             output.startArray();
             if (numInner == 0) {
                 output.endArray();
@@ -122,9 +121,6 @@ public final class GeoJsonUtils {
 
         @Override
         protected Target startCollectionItem(int index, int total) {
-            if (index != 0) {
-                output.valueSeparator();
-            }
             if (inMultiLine) {
                 output.startArray();
             }
@@ -167,19 +163,13 @@ public final class GeoJsonUtils {
                     writeStartObject(POINT);
                 }
             }
-            if (index > 0) {
-                output.valueSeparator();
-            }
             output.startArray();
             writeDouble(x);
-            output.valueSeparator();
             writeDouble(y);
             if ((dimensionSystem & DIMENSION_SYSTEM_XYZ) != 0) {
-                output.valueSeparator();
                 writeDouble(z);
             }
             if ((dimensionSystem & DIMENSION_SYSTEM_XYM) != 0) {
-                output.valueSeparator();
                 writeDouble(m);
             }
             output.endArray();
@@ -192,7 +182,6 @@ public final class GeoJsonUtils {
             output.startObject();
             output.member("type");
             output.valueString(TYPES[type - 1]);
-            output.valueSeparator();
             output.member(type != GEOMETRY_COLLECTION ? "coordinates" : "geometries");
             if (type != POINT) {
                 output.startArray();

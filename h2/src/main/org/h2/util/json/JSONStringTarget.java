@@ -16,6 +16,8 @@ public final class JSONStringTarget extends JSONTarget {
 
     private final StringBuilder builder;
 
+    private boolean needSeparator;
+
     /**
      * Creates new instance of JSON String target.
      */
@@ -25,53 +27,68 @@ public final class JSONStringTarget extends JSONTarget {
 
     @Override
     public void startObject() {
+        beforeValue();
         builder.append('{');
     }
 
     @Override
     public void endObject() {
         builder.append('}');
+        afterValue();
     }
 
     @Override
     public void startArray() {
+        beforeValue();
         builder.append('[');
     }
 
     @Override
     public void endArray() {
         builder.append(']');
+        afterValue();
     }
 
     @Override
     public void member(String name) {
+        beforeValue();
         writeString(name);
         builder.append(':');
     }
 
     @Override
     public void valueNull() {
+        beforeValue();
         builder.append("null");
+        afterValue();
     }
 
     @Override
     public void valueFalse() {
+        beforeValue();
         builder.append("false");
+        afterValue();
     }
 
     @Override
     public void valueTrue() {
+        beforeValue();
         builder.append("true");
+        afterValue();
     }
 
     @Override
     public void valueNumber(BigDecimal number) {
+        beforeValue();
         builder.append(number.toString());
+        afterValue();
     }
 
     @Override
     public void valueString(String string) {
+        beforeValue();
         writeString(string);
+        afterValue();
     }
 
     private void writeString(String s) {
@@ -113,9 +130,15 @@ public final class JSONStringTarget extends JSONTarget {
         builder.append('"');
     }
 
-    @Override
-    public void valueSeparator() {
-        builder.append(',');
+    private void beforeValue() {
+        if (needSeparator) {
+            needSeparator = false;
+            builder.append(',');
+        }
+    }
+
+    private void afterValue() {
+        needSeparator = true;
     }
 
     /**

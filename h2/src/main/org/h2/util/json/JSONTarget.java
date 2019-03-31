@@ -71,9 +71,4 @@ public abstract class JSONTarget {
      */
     public abstract void valueString(String string);
 
-    /**
-     * A separator between values.
-     */
-    public abstract void valueSeparator();
-
 }

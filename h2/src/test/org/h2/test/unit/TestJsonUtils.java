@@ -5,8 +5,10 @@
  */
 package org.h2.test.unit;
 
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.Callable;
 
 import org.h2.test.TestBase;
 import org.h2.util.json.JSONStringSource;
@@ -32,7 +34,147 @@ public class TestJsonUtils extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testJsonStringTargetErrorDetection();
         testSourcesAndTargets();
+    }
+
+    private void testJsonStringTargetErrorDetection() throws Exception {
+        JSONStringTarget target;
+        // Unexpected end of object or array
+        target = new JSONStringTarget();
+        try {
+            target.endObject();
+            fail();
+        } catch (RuntimeException expected) {
+        }
+        target = new JSONStringTarget();
+        try {
+            target.endArray();
+            fail();
+        } catch (RuntimeException expected) {
+        }
+        // Unexpected member without object
+        target = new JSONStringTarget();
+        try {
+            target.member("1");
+            fail();
+        } catch (RuntimeException expected) {
+        }
+        // Unexpected member inside array
+        target = new JSONStringTarget();
+        target.startArray();
+        try {
+            target.member("1");
+            fail();
+        } catch (RuntimeException expected) {
+        }
+        // Unexpected member without value
+        target = new JSONStringTarget();
+        target.startObject();
+        target.member("1");
+        try {
+            target.member("2");
+            fail();
+        } catch (RuntimeException expected) {
+        }
+        target = new JSONStringTarget();
+        target.startObject();
+        target.member("1");
+        try {
+            target.endObject();
+            fail();
+        } catch (RuntimeException expected) {
+        }
+        // Unexpected value without member name
+        testJsonStringTargetErrorDetectionAllValues(new Callable<JSONStringTarget>() {
+            @Override
+            public JSONStringTarget call() throws Exception {
+                JSONStringTarget target = new JSONStringTarget();
+                target.startObject();
+                return target;
+            }
+        });
+        // Unexpected second value
+        testJsonStringTargetErrorDetectionAllValues(new Callable<JSONStringTarget>() {
+            @Override
+            public JSONStringTarget call() throws Exception {
+                JSONStringTarget target = new JSONStringTarget();
+                target.valueNull();
+                return target;
+            }
+        });
+        // No value
+        target = new JSONStringTarget();
+        try {
+            target.getString();
+            fail();
+        } catch (RuntimeException expected) {
+        }
+        // Unclosed object
+        target = new JSONStringTarget();
+        target.startObject();
+        try {
+            target.getString();
+            fail();
+        } catch (RuntimeException expected) {
+        }
+        // Unclosed array
+        target = new JSONStringTarget();
+        target.startObject();
+        try {
+            target.getString();
+            fail();
+        } catch (RuntimeException expected) {
+        }
+        // End of array after start of object or vice versa
+        target = new JSONStringTarget();
+        target.startObject();
+        try {
+            target.endArray();
+            fail();
+        } catch (RuntimeException expected) {
+        }
+        target = new JSONStringTarget();
+        target.startArray();
+        try {
+            target.endObject();
+            fail();
+        } catch (RuntimeException expected) {
+        }
+    }
+
+    private void testJsonStringTargetErrorDetectionAllValues(Callable<JSONStringTarget> initializer) throws Exception {
+        JSONStringTarget target;
+        target = initializer.call();
+        try {
+            target.valueNull();
+            fail();
+        } catch (RuntimeException expected) {
+        }
+        target = initializer.call();
+        try {
+            target.valueFalse();
+            fail();
+        } catch (RuntimeException expected) {
+        }
+        target = initializer.call();
+        try {
+            target.valueTrue();
+            fail();
+        } catch (RuntimeException expected) {
+        }
+        target = initializer.call();
+        try {
+            target.valueNumber(BigDecimal.ONE);
+            fail();
+        } catch (RuntimeException expected) {
+        }
+        target = initializer.call();
+        try {
+            target.valueString("string");
+            fail();
+        } catch (RuntimeException expected) {
+        }
     }
 
     private void testSourcesAndTargets() throws Exception {

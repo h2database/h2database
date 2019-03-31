@@ -7,6 +7,8 @@ package org.h2.util.json;
 
 import java.math.BigDecimal;
 
+import org.h2.util.ByteStack;
+
 /**
  * JSON String target.
  */
@@ -14,25 +16,39 @@ public final class JSONStringTarget extends JSONTarget {
 
     private static final char[] HEX = "0123456789abcdef".toCharArray();
 
+    private static final byte OBJECT = 1;
+
+    private static final byte ARRAY = 2;
+
     private final StringBuilder builder;
 
+    private final ByteStack stack;
+
     private boolean needSeparator;
+
+    private boolean afterName;
 
     /**
      * Creates new instance of JSON String target.
      */
     public JSONStringTarget() {
         builder = new StringBuilder();
+        stack = new ByteStack();
     }
 
     @Override
     public void startObject() {
         beforeValue();
+        afterName = false;
+        stack.push(OBJECT);
         builder.append('{');
     }
 
     @Override
     public void endObject() {
+        if (afterName || stack.pop() != OBJECT) {
+            throw new IllegalStateException();
+        }
         builder.append('}');
         afterValue();
     }
@@ -40,17 +56,26 @@ public final class JSONStringTarget extends JSONTarget {
     @Override
     public void startArray() {
         beforeValue();
+        afterName = false;
+        stack.push(ARRAY);
         builder.append('[');
     }
 
     @Override
     public void endArray() {
+        if (stack.pop() != ARRAY) {
+            throw new IllegalStateException();
+        }
         builder.append(']');
         afterValue();
     }
 
     @Override
     public void member(String name) {
+        if (afterName || stack.isEmpty() || stack.peek() == ARRAY) {
+            throw new IllegalStateException();
+        }
+        afterName = true;
         beforeValue();
         writeString(name);
         builder.append(':');
@@ -131,7 +156,15 @@ public final class JSONStringTarget extends JSONTarget {
     }
 
     private void beforeValue() {
+        if (!afterName) {
+            if (!stack.isEmpty() && stack.peek() != ARRAY) {
+                throw new IllegalStateException();
+            }
+        }
         if (needSeparator) {
+            if (stack.isEmpty()) {
+                throw new IllegalStateException();
+            }
             needSeparator = false;
             builder.append(',');
         }
@@ -139,12 +172,16 @@ public final class JSONStringTarget extends JSONTarget {
 
     private void afterValue() {
         needSeparator = true;
+        afterName = false;
     }
 
     /**
      * @return the result string
      */
     public String getString() {
+        if (!stack.isEmpty() || afterName || builder.length() == 0) {
+            throw new IllegalStateException();
+        }
         return builder.toString();
     }
 

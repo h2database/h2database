@@ -1363,7 +1363,7 @@ public abstract class Value extends VersionedValue {
             return ValueJson.get(getString());
         case GEOMETRY: {
             ValueGeometry vg = (ValueGeometry) this;
-            return ValueJson.get(GeoJsonUtils.ewkbToGeoJson(vg.getBytesNoCopy(), vg.getDimensionSystem()));
+            return ValueJson.getInternal(GeoJsonUtils.ewkbToGeoJson(vg.getBytesNoCopy(), vg.getDimensionSystem()));
         }
         default:
             throw getDataConversionError(Value.JSON);

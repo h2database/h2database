@@ -175,6 +175,11 @@ public final class JSONStringTarget extends JSONTarget {
         afterName = false;
     }
 
+    @Override
+    public boolean isValueSeparatorExpected() {
+        return needSeparator;
+    }
+
     /**
      * @return the result string
      */

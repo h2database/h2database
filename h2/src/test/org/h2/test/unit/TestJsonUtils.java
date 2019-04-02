@@ -36,6 +36,7 @@ public class TestJsonUtils extends TestBase {
     public void test() throws Exception {
         testJsonStringTargetErrorDetection();
         testSourcesAndTargets();
+        testLongNesting();
     }
 
     private void testJsonStringTargetErrorDetection() throws Exception {
@@ -210,11 +211,16 @@ public class TestJsonUtils extends TestBase {
         testSourcesAndTargetsError("\"\\u000");
         testSourcesAndTargetsError("\"\\u0000");
         testSourcesAndTargetsError("{,}");
+        testSourcesAndTargetsError("{,,}");
         testSourcesAndTargetsError("{}}");
         testSourcesAndTargetsError("[]]");
         testSourcesAndTargetsError("\"\\uZZZZ\"");
         testSourcesAndTargetsError("\"\\x\"");
         testSourcesAndTargetsError("[1,");
+        testSourcesAndTargetsError("[1,,2]");
+        testSourcesAndTargetsError("[1,]");
+        testSourcesAndTargetsError("{\"a\":1,]");
+        testSourcesAndTargetsError("[1 2]");
         testSourcesAndTargetsError("{\"a\"-1}");
         testSourcesAndTargetsError("[1;2]");
         testSourcesAndTargetsError("{\"a\":1,b:2}");
@@ -255,11 +261,25 @@ public class TestJsonUtils extends TestBase {
         JSONStringTarget target = new JSONStringTarget();
         try {
             JSONStringSource.parse(src, target);
-        } catch (IllegalArgumentException expected) {
+            target.getString();
+        } catch (IllegalArgumentException | IllegalStateException expected) {
             // Expected
             return;
         }
         fail();
+    }
+
+    private void testLongNesting() {
+        final int halfLevel = 2048;
+        StringBuilder builder = new StringBuilder(halfLevel * 8);
+        for (int i = 0; i < halfLevel; i++) {
+            builder.append("{\"a\":[");
+        }
+        for (int i = 0; i < halfLevel; i++) {
+            builder.append("]}");
+        }
+        String string = builder.toString();
+        assertEquals(string, JSONStringSource.normalize(string));
     }
 
 }

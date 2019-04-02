@@ -72,7 +72,7 @@ public final class JSONStringTarget extends JSONTarget {
 
     @Override
     public void member(String name) {
-        if (afterName || stack.isEmpty() || stack.peek() == ARRAY) {
+        if (afterName || stack.peek(-1) != OBJECT) {
             throw new IllegalStateException();
         }
         afterName = true;
@@ -162,10 +162,8 @@ public final class JSONStringTarget extends JSONTarget {
     }
 
     private void beforeValue() {
-        if (!afterName) {
-            if (!stack.isEmpty() && stack.peek() != ARRAY) {
-                throw new IllegalStateException();
-            }
+        if (!afterName && stack.peek(-1) == OBJECT) {
+            throw new IllegalStateException();
         }
         if (needSeparator) {
             if (stack.isEmpty()) {

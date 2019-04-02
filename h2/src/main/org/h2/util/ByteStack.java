@@ -62,14 +62,14 @@ public final class ByteStack {
     /**
      * Looks at the item at the top of this stack without removing it.
      *
-     * @return the item at the top of this stack
-     * @throws NoSuchElementException
-     *             if stack is empty
+     * @param defaultValue
+     *            value to return if stack is empty
+     * @return the item at the top of this stack, or default value
      */
-    public byte peek() {
+    public int peek(int defaultValue) {
         int index = size - 1;
         if (index < 0) {
-            throw new NoSuchElementException();
+            return defaultValue;
         }
         return array[index];
     }

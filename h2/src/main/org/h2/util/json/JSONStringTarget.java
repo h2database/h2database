@@ -46,7 +46,7 @@ public final class JSONStringTarget extends JSONTarget {
 
     @Override
     public void endObject() {
-        if (afterName || stack.pop() != OBJECT) {
+        if (afterName || stack.isEmpty() || stack.pop() != OBJECT) {
             throw new IllegalStateException();
         }
         builder.append('}');
@@ -63,7 +63,7 @@ public final class JSONStringTarget extends JSONTarget {
 
     @Override
     public void endArray() {
-        if (stack.pop() != ARRAY) {
+        if (stack.isEmpty() || stack.pop() != ARRAY) {
             throw new IllegalStateException();
         }
         builder.append(']');

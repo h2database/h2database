@@ -186,7 +186,7 @@ public class TestJsonUtils extends TestBase {
         testSourcesAndTargets("1.2e+1", "12");
         testSourcesAndTargets("10000.0", "10000.0");
         testSourcesAndTargets("\t\r\n 1.2E-1 ", "0.12");
-        testSourcesAndTargets("9.99e99", "9.99E+99");
+        testSourcesAndTargets("9.99e99", "9.99E99");
         testSourcesAndTargets("\"\"", "\"\"");
         testSourcesAndTargets("\"\\b\\f\\t\\r\\n\\\"\\/\\\\\\u0019\\u0020\"", "\"\\b\\f\\t\\r\\n\\\"/\\\\\\u0019 \"");
         testSourcesAndTargets("{ }", "{}");

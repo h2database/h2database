@@ -105,7 +105,13 @@ public final class JSONStringTarget extends JSONTarget {
     @Override
     public void valueNumber(BigDecimal number) {
         beforeValue();
-        builder.append(number.toString());
+        String s = number.toString();
+        int index = s.indexOf('E');
+        if (index >= 0 && s.charAt(++index) == '+') {
+            builder.append(s, 0, index).append(s, index + 1, s.length());
+        } else {
+            builder.append(s);
+        }
         afterValue();
     }
 

@@ -7,6 +7,8 @@ package org.h2.util.json;
 
 import java.math.BigDecimal;
 
+import org.h2.util.ByteStack;
+
 /**
  * JSON String target.
  */
@@ -14,64 +16,110 @@ public final class JSONStringTarget extends JSONTarget {
 
     private static final char[] HEX = "0123456789abcdef".toCharArray();
 
+    private static final byte OBJECT = 1;
+
+    private static final byte ARRAY = 2;
+
     private final StringBuilder builder;
+
+    private final ByteStack stack;
+
+    private boolean needSeparator;
+
+    private boolean afterName;
 
     /**
      * Creates new instance of JSON String target.
      */
     public JSONStringTarget() {
         builder = new StringBuilder();
+        stack = new ByteStack();
     }
 
     @Override
     public void startObject() {
+        beforeValue();
+        afterName = false;
+        stack.push(OBJECT);
         builder.append('{');
     }
 
     @Override
     public void endObject() {
+        if (afterName || stack.poll(-1) != OBJECT) {
+            throw new IllegalStateException();
+        }
         builder.append('}');
+        afterValue();
     }
 
     @Override
     public void startArray() {
+        beforeValue();
+        afterName = false;
+        stack.push(ARRAY);
         builder.append('[');
     }
 
     @Override
     public void endArray() {
+        if (stack.poll(-1) != ARRAY) {
+            throw new IllegalStateException();
+        }
         builder.append(']');
+        afterValue();
     }
 
     @Override
     public void member(String name) {
+        if (afterName || stack.peek(-1) != OBJECT) {
+            throw new IllegalStateException();
+        }
+        afterName = true;
+        beforeValue();
         writeString(name);
         builder.append(':');
     }
 
     @Override
     public void valueNull() {
+        beforeValue();
         builder.append("null");
+        afterValue();
     }
 
     @Override
     public void valueFalse() {
+        beforeValue();
         builder.append("false");
+        afterValue();
     }
 
     @Override
     public void valueTrue() {
+        beforeValue();
         builder.append("true");
+        afterValue();
     }
 
     @Override
     public void valueNumber(BigDecimal number) {
-        builder.append(number.toString());
+        beforeValue();
+        String s = number.toString();
+        int index = s.indexOf('E');
+        if (index >= 0 && s.charAt(++index) == '+') {
+            builder.append(s, 0, index).append(s, index + 1, s.length());
+        } else {
+            builder.append(s);
+        }
+        afterValue();
     }
 
     @Override
     public void valueString(String string) {
+        beforeValue();
         writeString(string);
+        afterValue();
     }
 
     private void writeString(String s) {
@@ -113,15 +161,34 @@ public final class JSONStringTarget extends JSONTarget {
         builder.append('"');
     }
 
-    @Override
-    public void valueSeparator() {
-        builder.append(',');
+    private void beforeValue() {
+        if (!afterName && stack.peek(-1) == OBJECT) {
+            throw new IllegalStateException();
+        }
+        if (needSeparator) {
+            if (stack.isEmpty()) {
+                throw new IllegalStateException();
+            }
+            needSeparator = false;
+            builder.append(',');
+        }
     }
 
-    /**
-     * @return the result string
-     */
-    public String getString() {
+    private void afterValue() {
+        needSeparator = true;
+        afterName = false;
+    }
+
+    @Override
+    public boolean isValueSeparatorExpected() {
+        return needSeparator;
+    }
+
+    @Override
+    public String getResult() {
+        if (!stack.isEmpty() || afterName || builder.length() == 0) {
+            throw new IllegalStateException();
+        }
         return builder.toString();
     }
 

@@ -5,12 +5,16 @@
  */
 package org.h2.test.unit;
 
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.Callable;
 
 import org.h2.test.TestBase;
 import org.h2.util.json.JSONStringSource;
 import org.h2.util.json.JSONStringTarget;
+import org.h2.util.json.JSONTarget;
+import org.h2.util.json.JSONValueTarget;
 
 /**
  * Tests the classes from org.h2.util.json package.
@@ -19,6 +23,20 @@ public class TestJsonUtils extends TestBase {
 
     private static final Charset[] CHARSETS = { StandardCharsets.UTF_8, StandardCharsets.UTF_16BE,
             StandardCharsets.UTF_16LE, Charset.forName("UTF-32BE"), Charset.forName("UTF-32LE") };
+
+    private static final Callable<JSONTarget> STRING_TARGET = new Callable<JSONTarget>() {
+        @Override
+        public JSONTarget call() throws Exception {
+            return new JSONStringTarget();
+        }
+    };
+
+    private static final Callable<JSONTarget> VALUE_TARGET = new Callable<JSONTarget>() {
+        @Override
+        public JSONTarget call() throws Exception {
+            return new JSONValueTarget();
+        }
+    };
 
     /**
      * Run just this test.
@@ -32,7 +50,153 @@ public class TestJsonUtils extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testTargetErrorDetection();
         testSourcesAndTargets();
+        testLongNesting();
+    }
+
+    private void testTargetErrorDetection() throws Exception {
+        testTargetErrorDetection(STRING_TARGET);
+        testTargetErrorDetection(VALUE_TARGET);
+    }
+
+    private void testTargetErrorDetection(final Callable<JSONTarget> constructor) throws Exception {
+        JSONTarget target;
+        // Unexpected end of object or array
+        target = constructor.call();
+        try {
+            target.endObject();
+            fail();
+        } catch (RuntimeException expected) {
+        }
+        target = constructor.call();
+        try {
+            target.endArray();
+            fail();
+        } catch (RuntimeException expected) {
+        }
+        // Unexpected member without object
+        target = constructor.call();
+        try {
+            target.member("1");
+            fail();
+        } catch (RuntimeException expected) {
+        }
+        // Unexpected member inside array
+        target = constructor.call();
+        target.startArray();
+        try {
+            target.member("1");
+            fail();
+        } catch (RuntimeException expected) {
+        }
+        // Unexpected member without value
+        target = constructor.call();
+        target.startObject();
+        target.member("1");
+        try {
+            target.member("2");
+            fail();
+        } catch (RuntimeException expected) {
+        }
+        target = constructor.call();
+        target.startObject();
+        target.member("1");
+        try {
+            target.endObject();
+            fail();
+        } catch (RuntimeException expected) {
+        }
+        // Unexpected value without member name
+        testJsonStringTargetErrorDetectionAllValues(new Callable<JSONTarget>() {
+            @Override
+            public JSONTarget call() throws Exception {
+                JSONTarget target = constructor.call();
+                target.startObject();
+                return target;
+            }
+        });
+        // Unexpected second value
+        testJsonStringTargetErrorDetectionAllValues(new Callable<JSONTarget>() {
+            @Override
+            public JSONTarget call() throws Exception {
+                JSONTarget target = constructor.call();
+                target.valueNull();
+                return target;
+            }
+        });
+        // No value
+        target = constructor.call();
+        try {
+            target.getResult();
+            fail();
+        } catch (RuntimeException expected) {
+        }
+        // Unclosed object
+        target = constructor.call();
+        target.startObject();
+        try {
+            target.getResult();
+            fail();
+        } catch (RuntimeException expected) {
+        }
+        // Unclosed array
+        target = constructor.call();
+        target.startObject();
+        try {
+            target.getResult();
+            fail();
+        } catch (RuntimeException expected) {
+        }
+        // End of array after start of object or vice versa
+        target = constructor.call();
+        target.startObject();
+        try {
+            target.endArray();
+            fail();
+        } catch (RuntimeException expected) {
+        }
+        target = constructor.call();
+        target.startArray();
+        try {
+            target.endObject();
+            fail();
+        } catch (RuntimeException expected) {
+        }
+    }
+
+    private void testJsonStringTargetErrorDetectionAllValues(Callable<JSONTarget> initializer) throws Exception {
+        JSONTarget target;
+        target = initializer.call();
+        try {
+            target.valueNull();
+            fail();
+        } catch (RuntimeException expected) {
+        }
+        target = initializer.call();
+        try {
+            target.valueFalse();
+            fail();
+        } catch (RuntimeException expected) {
+        }
+        target = initializer.call();
+        try {
+            target.valueTrue();
+            fail();
+        } catch (RuntimeException expected) {
+        }
+        target = initializer.call();
+        try {
+            target.valueNumber(BigDecimal.ONE);
+            fail();
+        } catch (RuntimeException expected) {
+        }
+        target = initializer.call();
+        try {
+            target.valueString("string");
+            fail();
+        } catch (RuntimeException expected) {
+        }
     }
 
     private void testSourcesAndTargets() throws Exception {
@@ -43,12 +207,12 @@ public class TestJsonUtils extends TestBase {
         testSourcesAndTargets("1.2e+1", "12");
         testSourcesAndTargets("10000.0", "10000.0");
         testSourcesAndTargets("\t\r\n 1.2E-1 ", "0.12");
-        testSourcesAndTargets("9.99e99", "9.99E+99");
+        testSourcesAndTargets("9.99e99", "9.99E99");
         testSourcesAndTargets("\"\"", "\"\"");
         testSourcesAndTargets("\"\\b\\f\\t\\r\\n\\\"\\/\\\\\\u0019\\u0020\"", "\"\\b\\f\\t\\r\\n\\\"/\\\\\\u0019 \"");
         testSourcesAndTargets("{ }", "{}");
         testSourcesAndTargets("{\"a\" : 1}", "{\"a\":1}");
-        testSourcesAndTargets("{\"a\" : 1, \"b\":[]}", "{\"a\":1,\"b\":[]}");
+        testSourcesAndTargets("{\"a\" : 1, \"b\":[], \"c\":{}}", "{\"a\":1,\"b\":[],\"c\":{}}");
         testSourcesAndTargets("{\"a\" : 1, \"b\":[1,null, true,false,{}]}", "{\"a\":1,\"b\":[1,null,true,false,{}]}");
         testSourcesAndTargets("{\"1\" : [[[[[[[[[[11.1e-100]]]], null]]], {\n\r}]]]}",
                 "{\"1\":[[[[[[[[[[1.11E-99]]]],null]]],{}]]]}");
@@ -68,11 +232,16 @@ public class TestJsonUtils extends TestBase {
         testSourcesAndTargetsError("\"\\u000");
         testSourcesAndTargetsError("\"\\u0000");
         testSourcesAndTargetsError("{,}");
+        testSourcesAndTargetsError("{,,}");
         testSourcesAndTargetsError("{}}");
         testSourcesAndTargetsError("[]]");
         testSourcesAndTargetsError("\"\\uZZZZ\"");
         testSourcesAndTargetsError("\"\\x\"");
         testSourcesAndTargetsError("[1,");
+        testSourcesAndTargetsError("[1,,2]");
+        testSourcesAndTargetsError("[1,]");
+        testSourcesAndTargetsError("{\"a\":1,]");
+        testSourcesAndTargetsError("[1 2]");
         testSourcesAndTargetsError("{\"a\"-1}");
         testSourcesAndTargetsError("[1;2]");
         testSourcesAndTargetsError("{\"a\":1,b:2}");
@@ -99,25 +268,47 @@ public class TestJsonUtils extends TestBase {
     }
 
     private void testSourcesAndTargets(String src, String expected) throws Exception {
-        JSONStringTarget target = new JSONStringTarget();
+        JSONTarget target = new JSONStringTarget();
         JSONStringSource.parse(src, target);
-        assertEquals(expected, target.getString());
+        assertEquals(expected, target.getResult());
+        target = new JSONValueTarget();
+        JSONStringSource.parse(src, target);
+        assertEquals(expected, target.getResult().toString());
         for (Charset charset : CHARSETS) {
             target = new JSONStringTarget();
             JSONStringSource.parse(src.getBytes(charset), target);
-            assertEquals(expected, target.getString());
+            assertEquals(expected, target.getResult());
         }
     }
 
     private void testSourcesAndTargetsError(String src) throws Exception {
-        JSONStringTarget target = new JSONStringTarget();
+        testSourcesAndTargetsError(src, STRING_TARGET);
+        testSourcesAndTargetsError(src, VALUE_TARGET);
+    }
+
+    private void testSourcesAndTargetsError(String src, Callable<JSONTarget> constructor) throws Exception {
+        JSONTarget target = constructor.call();
         try {
             JSONStringSource.parse(src, target);
-        } catch (IllegalArgumentException expected) {
+            target.getResult();
+        } catch (IllegalArgumentException | IllegalStateException expected) {
             // Expected
             return;
         }
         fail();
+    }
+
+    private void testLongNesting() {
+        final int halfLevel = 2048;
+        StringBuilder builder = new StringBuilder(halfLevel * 8);
+        for (int i = 0; i < halfLevel; i++) {
+            builder.append("{\"a\":[");
+        }
+        for (int i = 0; i < halfLevel; i++) {
+            builder.append("]}");
+        }
+        String string = builder.toString();
+        assertEquals(string, JSONStringSource.normalize(string));
     }
 
 }

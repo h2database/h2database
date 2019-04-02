@@ -72,8 +72,17 @@ public abstract class JSONTarget {
     public abstract void valueString(String string);
 
     /**
-     * A separator between values.
+     * Returns whether value separator expected before the next member or value.
+     *
+     * @return {@code true} if it is, {@code false} otherwise
      */
-    public abstract void valueSeparator();
+    public abstract boolean isValueSeparatorExpected();
+
+    /**
+     * Returns the result.
+     *
+     * @return the result
+     */
+    public abstract Object getResult();
 
 }

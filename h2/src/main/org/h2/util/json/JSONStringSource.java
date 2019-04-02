@@ -9,6 +9,8 @@ import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
+import org.h2.util.StringUtils;
+
 /**
  * JSON string source.
  */
@@ -103,7 +105,7 @@ public final class JSONStringSource {
     public static String normalize(String string) {
         JSONStringTarget target = new JSONStringTarget();
         JSONStringSource.parse(string, target);
-        return target.getString();
+        return target.getResult();
     }
 
     /**
@@ -116,7 +118,7 @@ public final class JSONStringSource {
     public static String normalize(byte[] bytes) {
         JSONStringTarget target = new JSONStringTarget();
         JSONStringSource.parse(bytes, target);
-        return target.getString();
+        return target.getResult();
     }
 
     private JSONStringSource(String string, JSONTarget target) {
@@ -134,149 +136,108 @@ public final class JSONStringSource {
         if (string.charAt(index) == '\uFEFF') {
             index++;
         }
-        parseValue(length);
-        for (int index = this.index; index < length; index++) {
-            if (!isWhitespace(string.charAt(index))) {
-                throw new IllegalArgumentException();
-            }
-        }
-    }
-
-    private void parseValue(int length) {
-        switch (skipWhitespace(length)) {
-        case 'f':
-            if (index + 4 > length || !string.regionMatches(index, "false", 1, 4)) {
-                throw new IllegalArgumentException();
-            }
-            target.valueFalse();
-            index += 4;
-            break;
-        case 'n':
-            if (index + 3 > length || !string.regionMatches(index, "null", 1, 3)) {
-                throw new IllegalArgumentException();
-            }
-            index += 3;
-            target.valueNull();
-            break;
-        case 't':
-            if (index + 3 > length || !string.regionMatches(index, "true", 1, 3)) {
-                throw new IllegalArgumentException();
-            }
-            index += 3;
-            target.valueTrue();
-            break;
-        case '{':
-            parseObject(length);
-            break;
-        case '[':
-            parseArray(length);
-            break;
-        case '"':
-            target.valueString(readString(length));
-            break;
-        case '-':
-            parseNumber(length, false);
-            break;
-        case '0':
-        case '1':
-        case '2':
-        case '3':
-        case '4':
-        case '5':
-        case '6':
-        case '7':
-        case '8':
-        case '9':
-            parseNumber(length, true);
-            break;
-        default:
-            throw new IllegalArgumentException();
-        }
-    }
-
-    private void parseObject(int length) {
-        target.startObject();
-        switch (skipWhitespace(length)) {
-        case '"':
-            parseMember(length);
-            break;
-        case '}':
-            target.endObject();
-            return;
-        default:
-            throw new IllegalArgumentException();
-        }
-        for (;;) {
-            switch (skipWhitespace(length)) {
-            case ',':
-                target.valueSeparator();
-                if (skipWhitespace(length) != '"') {
+        boolean comma = false;
+        for (int ch; (ch = nextChar(length)) >= 0;) {
+            if (ch == '}' || ch == ']') {
+                if (comma) {
                     throw new IllegalArgumentException();
                 }
-                parseMember(length);
+                if (ch == '}') {
+                    target.endObject();
+                } else {
+                    target.endArray();
+                }
+                continue;
+            }
+            if (ch == ',') {
+                if (comma || !target.isValueSeparatorExpected()) {
+                    throw new IllegalArgumentException();
+                }
+                comma = true;
+                continue;
+            }
+            if (comma != target.isValueSeparatorExpected()) {
+                throw new IllegalArgumentException();
+            }
+            comma = false;
+            switch (ch) {
+            case 'f':
+                if (index + 4 > length || !string.regionMatches(index, "false", 1, 4)) {
+                    throw new IllegalArgumentException();
+                }
+                target.valueFalse();
+                index += 4;
                 break;
-            case '}':
-                target.endObject();
-                return;
+            case 'n':
+                if (index + 3 > length || !string.regionMatches(index, "null", 1, 3)) {
+                    throw new IllegalArgumentException();
+                }
+                index += 3;
+                target.valueNull();
+                break;
+            case 't':
+                if (index + 3 > length || !string.regionMatches(index, "true", 1, 3)) {
+                    throw new IllegalArgumentException();
+                }
+                index += 3;
+                target.valueTrue();
+                break;
+            case '{':
+                target.startObject();
+                break;
+            case '[':
+                target.startArray();
+                break;
+            case '"': {
+                String s = readString(length);
+                ch = nextChar(length);
+                if (ch == ':') {
+                    target.member(s);
+                } else {
+                    if (ch >= 0) {
+                        index--;
+                    }
+                    target.valueString(s);
+                }
+                break;
+            }
+            case '-':
+                parseNumber(length, false);
+                break;
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+                parseNumber(length, true);
+                break;
             default:
                 throw new IllegalArgumentException();
             }
         }
     }
 
-    private void parseArray(int length) {
-        target.startArray();
-        if (skipWhitespace(length) == ']') {
-            target.endArray();
-            return;
-        }
-        index--;
-        parseValue(length);
-        for (;;) {
-            switch (skipWhitespace(length)) {
-            case ',':
-                target.valueSeparator();
-                parseValue(length);
-                break;
-            case ']':
-                target.endArray();
-                return;
-            default:
-                throw new IllegalArgumentException();
-            }
-        }
-    }
-
-    private void parseMember(int length) {
-        target.member(readString(length));
-        if (skipWhitespace(length) != ':') {
-            throw new IllegalArgumentException();
-        }
-        parseValue(length);
-    }
-
-    private char skipWhitespace(int length) {
+    private int nextChar(int length) {
         int index = this.index;
         while (index < length) {
             char ch = string.charAt(index++);
-            if (!isWhitespace(ch)) {
+            switch (ch) {
+            case '\t':
+            case '\n':
+            case '\r':
+            case ' ':
+                break;
+            default:
                 this.index = index;
                 return ch;
             }
         }
-        throw new IllegalArgumentException();
-    }
-
-    private static boolean isWhitespace(char ch) {
-        switch (ch) {
-        case '\t':
-        case '\n':
-        case '\r':
-        case ' ':
-            return true;
-        default:
-            return false;
-        }
+        return -1;
     }
 
     private void parseNumber(int length, boolean positive) {
@@ -401,6 +362,11 @@ public final class JSONStringSource {
         }
         builder.append(ch);
         return inSurrogate;
+    }
+
+    @Override
+    public String toString() {
+        return StringUtils.addAsterisk(string, index);
     }
 
 }

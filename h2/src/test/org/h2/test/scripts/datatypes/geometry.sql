@@ -102,14 +102,26 @@ DROP TABLE TEST;
 SELECT CAST('POINT EMPTY'::GEOMETRY AS JSON);
 >> null
 
+SELECT CAST('null'::JSON AS GEOMETRY);
+>> POINT EMPTY
+
 SELECT CAST('POINT (1 2)'::GEOMETRY AS JSON);
 >> {"type":"Point","coordinates":[1,2]}
+
+SELECT CAST('{"type":"Point","coordinates":[1,2]}'::JSON AS GEOMETRY);
+>> POINT (1 2)
 
 SELECT CAST('POINT Z (1 2 3)'::GEOMETRY AS JSON);
 >> {"type":"Point","coordinates":[1,2,3]}
 
+SELECT CAST('{"type":"Point","coordinates":[1,2,3]}'::JSON AS GEOMETRY);
+>> POINT Z (1 2 3)
+
 SELECT CAST('POINT ZM (1 2 3 4)'::GEOMETRY AS JSON);
 >> {"type":"Point","coordinates":[1,2,3,4]}
+
+SELECT CAST('{"type":"Point","coordinates":[1,2,3,4]}'::JSON AS GEOMETRY);
+>> POINT ZM (1 2 3 4)
 
 SELECT CAST('POINT M (1 2 4)'::GEOMETRY AS JSON);
 > exception DATA_CONVERSION_ERROR_1
@@ -117,56 +129,113 @@ SELECT CAST('POINT M (1 2 4)'::GEOMETRY AS JSON);
 SELECT CAST('LINESTRING EMPTY'::GEOMETRY AS JSON);
 >> {"type":"LineString","coordinates":[]}
 
+SELECT CAST('{"type":"LineString","coordinates":[]}'::JSON AS GEOMETRY);
+>> LINESTRING EMPTY
+
 SELECT CAST('LINESTRING (1 2, 3 4)'::GEOMETRY AS JSON);
 >> {"type":"LineString","coordinates":[[1,2],[3,4]]}
+
+SELECT CAST('{"type":"LineString","coordinates":[[1,2],[3,4]]}'::JSON AS GEOMETRY);
+>> LINESTRING (1 2, 3 4)
 
 SELECT CAST('POLYGON EMPTY'::GEOMETRY AS JSON);
 >> {"type":"Polygon","coordinates":[]}
 
-SELECT CAST('POLYGON ((-1 -2, 10 1, 2 20, -1 -2))'::GEOMETRY AS JSON);
->> {"type":"Polygon","coordinates":[[[-1,-2],[1E+1,1],[2,2E+1],[-1,-2]]]}
+SELECT CAST('{"type":"Polygon","coordinates":[]}'::JSON AS GEOMETRY);
+>> POLYGON EMPTY
 
-SELECT CAST('POLYGON ((-1 -2, 10 1, 2 20, -1 -2), (0.5 0.5, 1 0.5, 1 1, 0.5 0.5))'::GEOMETRY AS JSON);
->> {"type":"Polygon","coordinates":[[[-1,-2],[1E+1,1],[2,2E+1],[-1,-2]],[[0.5,0.5],[1,0.5],[1,1],[0.5,0.5]]]}
+SELECT CAST('POLYGON ((-1 -2, 10 1, 2 20, -1 -2))'::GEOMETRY AS JSON);
+>> {"type":"Polygon","coordinates":[[[-1,-2],[1E1,1],[2,2E1],[-1,-2]]]}
+
+SELECT CAST('{"type":"Polygon","coordinates":[[[-1,-2],[1E1,1],[2,2E1],[-1,-2]]]}'::JSON AS GEOMETRY);
+>> POLYGON ((-1 -2, 10 1, 2 20, -1 -2))
+
+SELECT CAST('POLYGON ((-1 -2, 10 1, 2 20, -1 -2), (0.5 0.5, 1 0.5, 1 1, 0.5 0.5), EMPTY)'::GEOMETRY AS JSON);
+>> {"type":"Polygon","coordinates":[[[-1,-2],[1E1,1],[2,2E1],[-1,-2]],[[0.5,0.5],[1,0.5],[1,1],[0.5,0.5]],[]]}
+
+SELECT CAST('{"type":"Polygon","coordinates":[[[-1,-2],[1E1,1],[2,2E1],[-1,-2]],[[0.5,0.5],[1,0.5],[1,1],[0.5,0.5]],[]]}'::JSON AS GEOMETRY);
+>> POLYGON ((-1 -2, 10 1, 2 20, -1 -2), (0.5 0.5, 1 0.5, 1 1, 0.5 0.5), EMPTY)
 
 SELECT CAST('MULTIPOINT EMPTY'::GEOMETRY AS JSON);
 >> {"type":"MultiPoint","coordinates":[]}
 
+SELECT CAST('{"type":"MultiPoint","coordinates":[]}'::JSON AS GEOMETRY);
+>> MULTIPOINT EMPTY
+
 SELECT CAST('MULTIPOINT ((1 2))'::GEOMETRY AS JSON);
 >> {"type":"MultiPoint","coordinates":[[1,2]]}
+
+SELECT CAST('{"type":"MultiPoint","coordinates":[[1,2]]}'::JSON AS GEOMETRY);
+>> MULTIPOINT ((1 2))
 
 SELECT CAST('MULTIPOINT ((1 2), (3 4))'::GEOMETRY AS JSON);
 >> {"type":"MultiPoint","coordinates":[[1,2],[3,4]]}
 
+SELECT CAST('{"type":"MultiPoint","coordinates":[[1,2],[3,4]]}'::JSON AS GEOMETRY);
+>> MULTIPOINT ((1 2), (3 4))
+
 SELECT CAST('MULTIPOINT ((1 0), EMPTY, EMPTY, (2 2))'::GEOMETRY AS JSON);
 >> {"type":"MultiPoint","coordinates":[[1,0],null,null,[2,2]]}
+
+SELECT CAST('{"type":"MultiPoint","coordinates":[[1,0],null,null,[2,2]]}'::JSON AS GEOMETRY);
+>> MULTIPOINT ((1 0), EMPTY, EMPTY, (2 2))
 
 SELECT CAST('MULTILINESTRING EMPTY'::GEOMETRY AS JSON);
 >> {"type":"MultiLineString","coordinates":[]}
 
+SELECT CAST('{"type":"MultiLineString","coordinates":[]}'::JSON AS GEOMETRY);
+>> MULTILINESTRING EMPTY
+
 SELECT CAST('MULTILINESTRING ((1 2, 3 4, 5 7))'::GEOMETRY AS JSON);
 >> {"type":"MultiLineString","coordinates":[[[1,2],[3,4],[5,7]]]}
 
-SELECT CAST('MULTILINESTRING ((1 2, 3 4, 5 7), (-1 -1, 0 0, 2 2, 4 6.01))'::GEOMETRY AS JSON);
->> {"type":"MultiLineString","coordinates":[[[1,2],[3,4],[5,7]],[[-1,-1],[0,0],[2,2],[4,6.01]]]}
+SELECT CAST('{"type":"MultiLineString","coordinates":[[[1,2],[3,4],[5,7]]]}'::JSON AS GEOMETRY);
+>> MULTILINESTRING ((1 2, 3 4, 5 7))
+
+SELECT CAST('MULTILINESTRING ((1 2, 3 4, 5 7), (-1 -1, 0 0, 2 2, 4 6.01), EMPTY)'::GEOMETRY AS JSON);
+>> {"type":"MultiLineString","coordinates":[[[1,2],[3,4],[5,7]],[[-1,-1],[0,0],[2,2],[4,6.01]],[]]}
+
+SELECT CAST('{"type":"MultiLineString","coordinates":[[[1,2],[3,4],[5,7]],[[-1,-1],[0,0],[2,2],[4,6.01]],[]]}'::JSON AS GEOMETRY);
+>> MULTILINESTRING ((1 2, 3 4, 5 7), (-1 -1, 0 0, 2 2, 4 6.01), EMPTY)
 
 SELECT CAST('MULTIPOLYGON EMPTY'::GEOMETRY AS JSON);
 >> {"type":"MultiPolygon","coordinates":[]}
 
+SELECT CAST('{"type":"MultiPolygon","coordinates":[]}'::JSON AS GEOMETRY);
+>> MULTIPOLYGON EMPTY
+
 SELECT CAST('MULTIPOLYGON (((-1 -2, 10 1, 2 20, -1 -2)))'::GEOMETRY AS JSON);
->> {"type":"MultiPolygon","coordinates":[[[[-1,-2],[1E+1,1],[2,2E+1],[-1,-2]]]]}
+>> {"type":"MultiPolygon","coordinates":[[[[-1,-2],[1E1,1],[2,2E1],[-1,-2]]]]}
+
+SELECT CAST('{"type":"MultiPolygon","coordinates":[[[[-1,-2],[1E1,1],[2,2E1],[-1,-2]]]]}'::JSON AS GEOMETRY);
+>> MULTIPOLYGON (((-1 -2, 10 1, 2 20, -1 -2)))
 
 SELECT CAST('MULTIPOLYGON (((-1 -2, 10 1, 2 20, -1 -2)), ((1 2, 2 2, 3 3, 1 2)))'::GEOMETRY AS JSON);
->> {"type":"MultiPolygon","coordinates":[[[[-1,-2],[1E+1,1],[2,2E+1],[-1,-2]]],[[[1,2],[2,2],[3,3],[1,2]]]]}
+>> {"type":"MultiPolygon","coordinates":[[[[-1,-2],[1E1,1],[2,2E1],[-1,-2]]],[[[1,2],[2,2],[3,3],[1,2]]]]}
+
+SELECT CAST('{"type":"MultiPolygon","coordinates":[[[[-1,-2],[1E1,1],[2,2E1],[-1,-2]]],[[[1,2],[2,2],[3,3],[1,2]]]]}'::JSON AS GEOMETRY);
+>> MULTIPOLYGON (((-1 -2, 10 1, 2 20, -1 -2)), ((1 2, 2 2, 3 3, 1 2)))
 
 SELECT CAST('MULTIPOLYGON (((-1 -2, 10 1, 2 20, -1 -2), (0.5 0.5, 1 0.5, 1 1, 0.5 0.5)))'::GEOMETRY AS JSON);
->> {"type":"MultiPolygon","coordinates":[[[[-1,-2],[1E+1,1],[2,2E+1],[-1,-2]],[[0.5,0.5],[1,0.5],[1,1],[0.5,0.5]]]]}
+>> {"type":"MultiPolygon","coordinates":[[[[-1,-2],[1E1,1],[2,2E1],[-1,-2]],[[0.5,0.5],[1,0.5],[1,1],[0.5,0.5]]]]}
+
+SELECT CAST('{"type":"MultiPolygon","coordinates":[[[[-1,-2],[1E1,1],[2,2E1],[-1,-2]],[[0.5,0.5],[1,0.5],[1,1],[0.5,0.5]]]]}'::JSON AS GEOMETRY);
+>> MULTIPOLYGON (((-1 -2, 10 1, 2 20, -1 -2), (0.5 0.5, 1 0.5, 1 1, 0.5 0.5)))
 
 SELECT CAST('GEOMETRYCOLLECTION EMPTY'::GEOMETRY AS JSON);
 >> {"type":"GeometryCollection","geometries":[]}
 
+SELECT CAST('{"type":"GeometryCollection","geometries":[]}'::JSON AS GEOMETRY);
+>> GEOMETRYCOLLECTION EMPTY
+
 SELECT CAST('GEOMETRYCOLLECTION (POINT (1 2))'::GEOMETRY AS JSON);
 >> {"type":"GeometryCollection","geometries":[{"type":"Point","coordinates":[1,2]}]}
 
+SELECT CAST('{"type":"GeometryCollection","geometries":[{"type":"Point","coordinates":[1,2]}]}'::JSON AS GEOMETRY);
+>> GEOMETRYCOLLECTION (POINT (1 2))
+
 SELECT CAST('GEOMETRYCOLLECTION (GEOMETRYCOLLECTION (POINT (1 3)), MULTIPOINT ((4 8)))'::GEOMETRY AS JSON);
 >> {"type":"GeometryCollection","geometries":[{"type":"GeometryCollection","geometries":[{"type":"Point","coordinates":[1,3]}]},{"type":"MultiPoint","coordinates":[[4,8]]}]}
+
+SELECT CAST('{"type":"GeometryCollection","geometries":[{"type":"GeometryCollection","geometries":[{"type":"Point","coordinates":[1,3]}]},{"type":"MultiPoint","coordinates":[[4,8]]}]}'::JSON AS GEOMETRY);
+>> GEOMETRYCOLLECTION (GEOMETRYCOLLECTION (POINT (1 3)), MULTIPOINT ((4 8)))

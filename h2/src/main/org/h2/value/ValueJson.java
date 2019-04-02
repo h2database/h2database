@@ -101,6 +101,15 @@ public class ValueJson extends Value {
         return mode.compareString(value, other, false);
     }
 
+    /**
+     * Returns JSON value with the specified content.
+     *
+     * @param s
+     *            JSON representation, will be normalized
+     * @return JSON value
+     * @throws DbException
+     *             on invalid JSON
+     */
     public static ValueJson get(String s) {
         try {
             s = JSONStringSource.normalize(s);
@@ -110,6 +119,15 @@ public class ValueJson extends Value {
         return getInternal(s);
     }
 
+    /**
+     * Returns JSON value with the specified content.
+     *
+     * @param bytes
+     *            JSON representation, will be normalized
+     * @return JSON value
+     * @throws DbException
+     *             on invalid JSON
+     */
     public static ValueJson get(byte[] bytes) {
         String s;
         try {
@@ -120,23 +138,64 @@ public class ValueJson extends Value {
         return getInternal(s);
     }
 
+    /**
+     * Returns JSON value with the specified boolean content.
+     *
+     * @param bool
+     *            boolean value
+     * @return JSON value
+     */
     public static ValueJson get(boolean bool) {
         return bool ? TRUE : FALSE;
     }
 
+    /**
+     * Returns JSON value with the specified numeric content.
+     *
+     * @param number
+     *            integer value
+     * @return JSON value
+     */
     public static ValueJson get(int number) {
         return getInternal(Integer.toString(number));
     }
 
+    /**
+     * Returns JSON value with the specified numeric content.
+     *
+     * @param number
+     *            long value
+     * @return JSON value
+     */
     public static ValueJson get(long number) {
         return getInternal(Long.toString(number));
     }
 
+    /**
+     * Returns JSON value with the specified numeric content.
+     *
+     * @param number
+     *            big decimal value
+     * @return JSON value
+     */
     public static ValueJson get(BigDecimal number) {
-        return getInternal(number.toString());
+        String s = number.toString();
+        int index = s.indexOf('E');
+        if (index >= 0 && s.charAt(++index) == '+') {
+            int length = s.length();
+            s = new StringBuilder(length - 1).append(s, 0, index).append(s, index + 1, length).toString();
+        }
+        return getInternal(s);
     }
 
-    private static ValueJson getInternal(String s) {
+    /**
+     * Returns JSON value with the specified content.
+     *
+     * @param s
+     *            normalized JSON representation
+     * @return JSON value
+     */
+    static ValueJson getInternal(String s) {
         int l = s.length();
         switch (l) {
         case 1:

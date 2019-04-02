@@ -184,10 +184,8 @@ public final class JSONStringTarget extends JSONTarget {
         return needSeparator;
     }
 
-    /**
-     * @return the result string
-     */
-    public String getString() {
+    @Override
+    public String getResult() {
         if (!stack.isEmpty() || afterName || builder.length() == 0) {
             throw new IllegalStateException();
         }

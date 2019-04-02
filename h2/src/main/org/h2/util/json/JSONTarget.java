@@ -78,4 +78,11 @@ public abstract class JSONTarget {
      */
     public abstract boolean isValueSeparatorExpected();
 
+    /**
+     * Returns the result.
+     *
+     * @return the result
+     */
+    public abstract Object getResult();
+
 }

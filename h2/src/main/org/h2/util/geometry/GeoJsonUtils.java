@@ -213,7 +213,7 @@ public final class GeoJsonUtils {
         JSONStringTarget output = new JSONStringTarget();
         GeoJsonTarget target = new GeoJsonTarget(output, dimensionSystem);
         EWKBUtils.parseEWKB(ewkb, target);
-        return output.getString();
+        return output.getResult();
     }
 
     private GeoJsonUtils() {

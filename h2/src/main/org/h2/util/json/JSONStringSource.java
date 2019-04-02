@@ -105,7 +105,7 @@ public final class JSONStringSource {
     public static String normalize(String string) {
         JSONStringTarget target = new JSONStringTarget();
         JSONStringSource.parse(string, target);
-        return target.getString();
+        return target.getResult();
     }
 
     /**
@@ -118,7 +118,7 @@ public final class JSONStringSource {
     public static String normalize(byte[] bytes) {
         JSONStringTarget target = new JSONStringTarget();
         JSONStringSource.parse(bytes, target);
-        return target.getString();
+        return target.getResult();
     }
 
     private JSONStringSource(String string, JSONTarget target) {

@@ -179,7 +179,13 @@ public class ValueJson extends Value {
      * @return JSON value
      */
     public static ValueJson get(BigDecimal number) {
-        return getInternal(number.toString());
+        String s = number.toString();
+        int index = s.indexOf('E');
+        if (index >= 0 && s.charAt(++index) == '+') {
+            int length = s.length();
+            s = new StringBuilder(length - 1).append(s, 0, index).append(s, index + 1, length).toString();
+        }
+        return getInternal(s);
     }
 
     /**

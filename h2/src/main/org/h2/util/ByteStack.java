@@ -60,6 +60,22 @@ public final class ByteStack {
     }
 
     /**
+     * Removes the item at the top of this stack and returns that item.
+     *
+     * @param defaultValue
+     *            value to return if stack is empty
+     * @return the item at the top of this stack, or default value
+     */
+    public int poll(int defaultValue) {
+        int index = size - 1;
+        if (index < 0) {
+            return defaultValue;
+        }
+        size = index;
+        return array[index];
+    }
+
+    /**
      * Looks at the item at the top of this stack without removing it.
      *
      * @param defaultValue

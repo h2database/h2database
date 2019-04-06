@@ -1885,7 +1885,8 @@ public class MVStore implements AutoCloseable {
                     freeUnusedChunks();
                     if (fileStore.getFillRate() <= targetFillRate) {
                         long start = fileStore.getFirstFree() / BLOCK_SIZE;
-                        ArrayList<Chunk> move = findChunksToMove(start, moveSize);
+                        long maxBlocksToMove = moveSize / BLOCK_SIZE;
+                        Iterable<Chunk> move = findChunksToMove(start, maxBlocksToMove);
                         compactMoveChunks(move);
                     }
                 } finally {
@@ -1898,41 +1899,32 @@ public class MVStore implements AutoCloseable {
         }
     }
 
-    private ArrayList<Chunk> findChunksToMove(long startBlock, long moveSize) {
-        ArrayList<Chunk> move = new ArrayList<>();
-        for (Chunk c : chunks.values()) {
-            if (c.block > startBlock) {
-                move.add(c);
-            }
-        }
-        // sort by block
-        Collections.sort(move, new Comparator<Chunk>() {
-            @Override
-            public int compare(Chunk o1, Chunk o2) {
-                return Long.signum(o1.block - o2.block);
-            }
-        });
-        // find which is the last block to keep
-        int count = 0;
+    private Iterable<Chunk> findChunksToMove(long startBlock, long moveSize) {
+        PriorityQueue<Chunk> queue = new PriorityQueue<>(this.chunks.size() / 2 + 1,
+                new Comparator<Chunk>() {
+                    @Override
+                    public int compare(Chunk o1, Chunk o2) {
+                        return Long.signum(o2.block - o1.block);
+                    }
+                });
         long size = 0;
-        for (Chunk c : move) {
-            long chunkSize = c.len * (long) BLOCK_SIZE;
-            size += chunkSize;
-            if (size > moveSize) {
-                break;
+        for (Chunk chunk : chunks.values()) {
+            if (chunk.block > startBlock) {
+                queue.offer(chunk);
+                size += chunk.len;
+                while (size > moveSize) {
+                    Chunk removed = queue.poll();
+                    if (removed == null) {
+                        break;
+                    }
+                    size -= removed.len;
+                }
             }
-            count++;
         }
-        // move the first block (so the first gap is moved),
-        // and the one at the end (so the file shrinks)
-        while (move.size() > count && move.size() > 1) {
-            move.remove(1);
-        }
-
-        return move;
+        return queue;
     }
 
-    private void compactMoveChunks(ArrayList<Chunk> move) {
+    private void compactMoveChunks(Iterable<Chunk> move) {
         // this will ensure better recognition of the last chunk
         // in case of power failure, since we are going to move older chunks
         // to the end of the file

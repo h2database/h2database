@@ -157,12 +157,7 @@ public class ValueDecimal extends Value {
     @Override
     public String getString() {
         if (valueString == null) {
-            String p = value.toPlainString();
-            if (p.length() < 40) {
-                valueString = p;
-            } else {
-                valueString = value.toString();
-            }
+            valueString = value.toString();
         }
         return valueString;
     }

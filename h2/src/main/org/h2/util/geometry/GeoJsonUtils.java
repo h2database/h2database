@@ -236,18 +236,22 @@ public final class GeoJsonUtils {
      *
      * @param json
      *            geometry object in GeoJson format
+     * @param srid
+     *            the SRID of geometry
      * @return GeoJson representation of the specified geometry
      * @throws DbException
      *             on unsupported dimension system
      */
-    public static byte[] geoJsonToEwkb(String json) {
+    public static byte[] geoJsonToEwkb(String json, int srid) {
         JSONValueTarget t = new JSONValueTarget();
         JSONStringSource.parse(json, t);
         JSONValue v = t.getResult();
         DimensionSystemTarget dst = new DimensionSystemTarget();
         parse(v, dst);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        parse(v, new EWKBTarget(baos, dst.getDimensionSystem()));
+        EWKBTarget target = new EWKBTarget(baos, dst.getDimensionSystem());
+        target.init(srid);
+        parse(v, target);
         return baos.toByteArray();
     }
 

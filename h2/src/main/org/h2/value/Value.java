@@ -1280,9 +1280,17 @@ public abstract class Value extends VersionedValue {
             //$FALL-THROUGH$
         case TIMESTAMP_TZ:
             throw getDataConversionError(GEOMETRY);
-        case JSON:
-            result = ValueGeometry.get(GeoJsonUtils.geoJsonToEwkb(getString()));
+        case JSON: {
+            int srid = 0;
+            if (extTypeInfo != null) {
+                Integer s = extTypeInfo.getSrid();
+                if (s != null) {
+                    srid = s;
+                }
+            }
+            result = ValueGeometry.get(GeoJsonUtils.geoJsonToEwkb(getString(), srid));
             break;
+        }
         default:
             result = ValueGeometry.get(getString());
         }

@@ -53,7 +53,6 @@ public class ValueDecimal extends Value {
 
     private final BigDecimal value;
     private TypeInfo type;
-    private String valueString;
 
     private ValueDecimal(BigDecimal value) {
         if (value == null) {
@@ -156,15 +155,7 @@ public class ValueDecimal extends Value {
 
     @Override
     public String getString() {
-        if (valueString == null) {
-            String p = value.toPlainString();
-            if (p.length() < 40) {
-                valueString = p;
-            } else {
-                valueString = value.toString();
-            }
-        }
-        return valueString;
+        return value.toString();
     }
 
     @Override

@@ -126,6 +126,15 @@ SELECT CAST('{"type":"Point","coordinates":[1,2,3,4]}'::JSON AS GEOMETRY);
 SELECT CAST('POINT M (1 2 4)'::GEOMETRY AS JSON);
 > exception DATA_CONVERSION_ERROR_1
 
+SELECT CAST('SRID=4326;POINT (1 2)'::GEOMETRY AS JSON);
+>> {"type":"Point","coordinates":[1,2]}
+
+SELECT CAST('{"type":"Point","coordinates":[1,2]}'::JSON AS GEOMETRY(POINT));
+>> POINT (1 2)
+
+SELECT CAST('{"type":"Point","coordinates":[1,2]}'::JSON AS GEOMETRY(GEOMETRY, 4326));
+>> SRID=4326;POINT (1 2)
+
 SELECT CAST('LINESTRING EMPTY'::GEOMETRY AS JSON);
 >> {"type":"LineString","coordinates":[]}
 

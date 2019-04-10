@@ -263,9 +263,14 @@ public class ParserUtil {
     public static final int UNIQUE = UNION + 1;
 
     /**
+     * The token "USING".
+     */
+    public static final int USING = UNIQUE + 1;
+
+    /**
      * The token "VALUES".
      */
-    public static final int VALUES = UNIQUE + 1;
+    public static final int VALUES = USING + 1;
 
     /**
      * The token "WHERE".
@@ -609,6 +614,8 @@ public class ParserUtil {
                 return UNIQUE;
             } else if (eq("UNION", s, ignoreCase, start, end)) {
                 return UNION;
+            } else if (eq("USING", s, ignoreCase, start, end)) {
+                return USING;
             }
             return IDENTIFIER;
         case 'V':

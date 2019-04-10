@@ -799,6 +799,9 @@ SELECT T1.X1, T2.X2, T3.X3, T4.X4, T5.X5 FROM (
 > 1  1  1  1  1
 > rows: 1
 
+DROP TABLE T1, T2, T3, T4, T5;
+> ok
+
 CREATE TABLE A(X INT);
 > ok
 
@@ -825,4 +828,27 @@ SELECT * FROM TEST X LEFT OUTER JOIN TEST Y ON Y.A = X.A || '1';
 > rows: 0
 
 DROP TABLE TEST;
+> ok
+
+CREATE TABLE T1(A INT, B INT) AS VALUES (1, 10), (2, 20), (4, 40), (6, 6);
+> ok
+
+CREATE TABLE T2(A INT, B INT) AS VALUES (1, 100), (2, 200), (5, 500), (6, 6);
+> ok
+
+SELECT T1.B, T2.B FROM T1 INNER JOIN T2 USING (A);
+> B  B
+> -- ---
+> 10 100
+> 20 200
+> 6  6
+> rows: 3
+
+SELECT T1.B, T2.B FROM T1 INNER JOIN T2 USING (A, B);
+> B B
+> - -
+> 6 6
+> rows: 1
+
+DROP TABLE T1, T2;
 > ok

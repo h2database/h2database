@@ -82,18 +82,18 @@ public class TransactionCommand extends Prepared {
         case CommandInterface.SHUTDOWN_DEFRAG: {
             session.getUser().checkAdmin();
             session.commit(false);
-            if (type == CommandInterface.SHUTDOWN_COMPACT ||
-                    type == CommandInterface.SHUTDOWN_DEFRAG) {
-                session.getDatabase().setCompactMode(type);
-            }
-            // close the database, but don't update the persistent setting
-            session.getDatabase().setCloseDelay(0);
-            Database db = session.getDatabase();
             // throttle, to allow testing concurrent
             // execution of shutdown and query
             session.throttle();
-            for (Session s : db.getSessions(false)) {
-                s.close();
+            Database db = session.getDatabase();
+            if (db.setExclusiveSession(session, true)) {
+                if (type == CommandInterface.SHUTDOWN_COMPACT ||
+                        type == CommandInterface.SHUTDOWN_DEFRAG) {
+                    db.setCompactMode(type);
+                }
+                // close the database, but don't update the persistent setting
+                db.setCloseDelay(0);
+                session.close();
             }
             break;
         }

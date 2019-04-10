@@ -280,7 +280,7 @@ public class Set extends Prepared {
             int value = getIntValue();
             switch (value) {
             case 0:
-                database.setExclusiveSession(null, false);
+                database.unsetExclusiveSession(session);
                 break;
             case 1:
                 database.setExclusiveSession(session, false);

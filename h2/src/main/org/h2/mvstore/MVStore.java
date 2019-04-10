@@ -1245,7 +1245,6 @@ public class MVStore implements AutoCloseable {
         c.len = Integer.MAX_VALUE;
         c.time = time;
         c.version = version;
-        c.mapId = lastMapId.get();
         c.next = Long.MAX_VALUE;
         chunks.put(c.id, c);
         ArrayList<Page> changed = new ArrayList<>();
@@ -1295,6 +1294,11 @@ public class MVStore implements AutoCloseable {
 
         Page metaRoot = metaRootReference.root;
         metaRoot.writeUnsavedRecursive(c, buff);
+
+        // last allocated map id should be captured after the meta map was saved, because
+        // this will ensure that concurrently created map, which made it into meta before save,
+        // will have it's id reflected in mapid field of currently written chunk
+        c.mapId = lastMapId.get();
 
         int chunkLength = buff.position();
 

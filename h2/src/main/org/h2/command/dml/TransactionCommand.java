@@ -86,15 +86,14 @@ public class TransactionCommand extends Prepared {
             // execution of shutdown and query
             session.throttle();
             Database db = session.getDatabase();
-            if (db.setExclusiveSession(session, true)) {
-                if (type == CommandInterface.SHUTDOWN_COMPACT ||
-                        type == CommandInterface.SHUTDOWN_DEFRAG) {
-                    db.setCompactMode(type);
-                }
-                // close the database, but don't update the persistent setting
-                db.setCloseDelay(0);
-                session.close();
+            db.setExclusiveSession(session, true);
+            if (type == CommandInterface.SHUTDOWN_COMPACT ||
+                    type == CommandInterface.SHUTDOWN_DEFRAG) {
+                db.setCompactMode(type);
             }
+            // close the database, but don't update the persistent setting
+            db.setCloseDelay(0);
+            session.close();
             break;
         }
         default:

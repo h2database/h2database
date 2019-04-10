@@ -2655,26 +2655,25 @@ public class Database implements DataHandler {
      *
      * @param session the session
      * @param closeOthers whether other sessions are closed
-     * @return true if success, false otherwise
      */
-    public boolean setExclusiveSession(Session session, boolean closeOthers) {
+    public void setExclusiveSession(Session session, boolean closeOthers) {
         if (!exclusiveSession.compareAndSet(null, session)) {
-            return false;
+            throw DbException.get(ErrorCode.DATABASE_IS_IN_EXCLUSIVE_MODE);
         }
         if (closeOthers) {
             closeAllSessionsException(session);
         }
-        return true;
     }
 
     /**
      * Stop exclusiv access the database by provided session.
      *
      * @param session the session
-     * @return true if success, false otherwise
      */
-    public boolean unsetExclusiveSession(Session session) {
-        return exclusiveSession.compareAndSet(session, null);
+    public void unsetExclusiveSession(Session session) {
+        if (!exclusiveSession.compareAndSet(session, null)) {
+            throw DbException.get(ErrorCode.DATABASE_IS_IN_EXCLUSIVE_MODE);
+        }
     }
 
     @Override

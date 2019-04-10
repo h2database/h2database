@@ -93,22 +93,8 @@ public class TransactionCommand extends Prepared {
             // execution of shutdown and query
             session.throttle();
             for (Session s : db.getSessions(false)) {
-                if (db.isMultiThreaded()) {
-                    synchronized (s) {
-                        s.rollback();
-                    }
-                } else {
-                    // if not multi-threaded, the session could already own
-                    // the lock, which would result in a deadlock
-                    // the other session can not concurrently do anything
-                    // because the current session has locked the database
-                    s.rollback();
-                }
-                if (s != session) {
-                    s.close();
-                }
+                s.close();
             }
-            session.close();
             break;
         }
         default:

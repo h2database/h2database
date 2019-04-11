@@ -280,13 +280,19 @@ public class Set extends Prepared {
             int value = getIntValue();
             switch (value) {
             case 0:
-                database.setExclusiveSession(null, false);
+                if (!database.unsetExclusiveSession(session)) {
+                    throw DbException.get(ErrorCode.DATABASE_IS_IN_EXCLUSIVE_MODE);
+                }
                 break;
             case 1:
-                database.setExclusiveSession(session, false);
+                if (!database.setExclusiveSession(session, false)) {
+                    throw DbException.get(ErrorCode.DATABASE_IS_IN_EXCLUSIVE_MODE);
+                }
                 break;
             case 2:
-                database.setExclusiveSession(session, true);
+                if (!database.setExclusiveSession(session, true)) {
+                    throw DbException.get(ErrorCode.DATABASE_IS_IN_EXCLUSIVE_MODE);
+                }
                 break;
             default:
                 throw DbException.getInvalidValueException("EXCLUSIVE", value);

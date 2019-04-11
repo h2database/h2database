@@ -411,22 +411,7 @@ public class MVStore implements AutoCloseable {
             }
             lastCommitTime = getTimeSinceCreation();
 
-            Set<String> rootsToRemove = new HashSet<>();
-            for (Iterator<String> it = meta.keyIterator("root."); it.hasNext();) {
-                String key = it.next();
-                if (!key.startsWith("root.")) {
-                    break;
-                }
-                String mapId = key.substring(key.lastIndexOf('.') + 1);
-                if(!meta.containsKey("map."+mapId)) {
-                    rootsToRemove.add(key);
-                }
-            }
-
-            for (String key : rootsToRemove) {
-                meta.remove(key);
-                markMetaChanged();
-            }
+            scrubMetaMap();
 
             // setAutoCommitDelay starts the thread, but only if
             // the parameter is different from the old value
@@ -435,6 +420,63 @@ public class MVStore implements AutoCloseable {
         } else {
             autoCommitMemory = 0;
             autoCompactFillRate = 0;
+        }
+    }
+
+    private void scrubMetaMap() {
+        Set<String> keysToRemove = new HashSet<>();
+
+        // ensure that there is only one name mapped to this id
+        // this could be a leftover of an unfinished map rename
+        for (Iterator<String> it = meta.keyIterator("name."); it.hasNext();) {
+            String key = it.next();
+            if (!key.startsWith("name.")) {
+                break;
+            }
+            String mapName = key.substring("name.".length());
+            int mapId = DataUtils.parseHexInt(meta.get(key));
+            String realMapName = getMapName(mapId);
+            if(!mapName.equals(realMapName)) {
+                keysToRemove.add(key);
+            }
+        }
+
+        // remove roots of non-existent maps (leftover after unfinished map removal)
+        for (Iterator<String> it = meta.keyIterator("root."); it.hasNext();) {
+            String key = it.next();
+            if (!key.startsWith("root.")) {
+                break;
+            }
+            String mapIdStr = key.substring(key.lastIndexOf('.') + 1);
+            if(!meta.containsKey("map." + mapIdStr)) {
+                meta.remove(key);
+                markMetaChanged();
+                keysToRemove.add(key);
+            }
+        }
+
+        for (String key : keysToRemove) {
+            meta.remove(key);
+            markMetaChanged();
+        }
+
+        for (Iterator<String> it = meta.keyIterator("map."); it.hasNext();) {
+            String key = it.next();
+            if (!key.startsWith("map.")) {
+                break;
+            }
+            String mapName = DataUtils.getMapName(meta.get(key));
+            String mapIdStr = key.substring("map.".length());
+            // ensure that last map id is not smaller than max of any existing map ids
+            int mapId = DataUtils.parseHexInt(mapIdStr);
+            if (mapId > lastMapId.get()) {
+                lastMapId.set(mapId);
+            }
+            // each map should have a proper name
+            if(!mapIdStr.equals(meta.get("name." + mapName))) {
+                meta.put("name." + mapName, mapIdStr);
+                markMetaChanged();
+            }
         }
     }
 
@@ -1245,7 +1287,6 @@ public class MVStore implements AutoCloseable {
         c.len = Integer.MAX_VALUE;
         c.time = time;
         c.version = version;
-        c.mapId = lastMapId.get();
         c.next = Long.MAX_VALUE;
         chunks.put(c.id, c);
         ArrayList<Page> changed = new ArrayList<>();
@@ -1295,6 +1336,11 @@ public class MVStore implements AutoCloseable {
 
         Page metaRoot = metaRootReference.root;
         metaRoot.writeUnsavedRecursive(c, buff);
+
+        // last allocated map id should be captured after the meta map was saved, because
+        // this will ensure that concurrently created map, which made it into meta before save,
+        // will have it's id reflected in mapid field of currently written chunk
+        c.mapId = lastMapId.get();
 
         int chunkLength = buff.position();
 

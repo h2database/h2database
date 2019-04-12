@@ -6,6 +6,7 @@
 package org.h2.table;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
@@ -43,8 +44,17 @@ import org.h2.value.ValueNull;
  */
 public class TableFilter implements ColumnResolver {
 
-    private static final int BEFORE_FIRST = 0, FOUND = 1, AFTER_LAST = 2,
-            NULL_ROW = 3;
+    private static final int BEFORE_FIRST = 0, FOUND = 1, AFTER_LAST = 2, NULL_ROW = 3;
+
+    /**
+     * Comparator that uses order in form as a sort key.
+     */
+    public static final Comparator<TableFilter> ORDER_IN_FORM_COMPARATOR = new Comparator<TableFilter>() {
+        @Override
+        public int compare(TableFilter o1, TableFilter o2) {
+            return Integer.compare(o1.getOrderInFrom(), o2.getOrderInFrom());
+        }
+    };
 
     /**
      * Whether this is a direct or indirect (nested) outer join

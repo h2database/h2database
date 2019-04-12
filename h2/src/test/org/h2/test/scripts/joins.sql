@@ -13,10 +13,10 @@ create table c(c int) as select x from system_range(1, 2);
 > ok
 
 select * from a inner join b on a=b right outer join c on c=a;
-> C A    B
-> - ---- ----
-> 1 1    1
-> 2 null null
+> A    B    C
+> ---- ---- -
+> 1    1    1
+> null null 2
 > rows: 2
 
 select * from c left outer join (a inner join b on b=a) on c=a;
@@ -549,10 +549,10 @@ select * from t1 left join t2 on t1.id=t2.id;
 > rows: 2
 
 select * from t1 right join t2 on t1.id=t2.id;
-> ID NAME  ID   NAME
-> -- ----- ---- ----
-> 1  Hallo 1    hi
-> 3  Welt  null null
+> ID   NAME ID NAME
+> ---- ---- -- -----
+> 1    hi   1  Hallo
+> null null 3  Welt
 > rows: 2
 
 select * from t1 cross join t2;
@@ -650,11 +650,11 @@ SELECT * FROM PARENT P LEFT OUTER JOIN CHILD C ON P.ID = C.PARENTID;
 > rows: 3
 
 SELECT * FROM CHILD C RIGHT OUTER JOIN PARENT P ON P.ID = C.PARENTID;
-> ID NAME ID   PARENTID NAME
-> -- ---- ---- -------- ------
-> 1  Sue  100  1        Simon
-> 1  Sue  101  1        Sabine
-> 2  Joe  null null     null
+> ID   PARENTID NAME   ID NAME
+> ---- -------- ------ -- ----
+> 100  1        Simon  1  Sue
+> 101  1        Sabine 1  Sue
+> null null     null   2  Joe
 > rows: 3
 
 DROP TABLE PARENT;

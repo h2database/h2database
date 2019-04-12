@@ -1512,7 +1512,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         if (database.getLobSession() == this) {
             return;
         }
-        while (true) {
+        while (!isClosed()) {
             Session exclusive = database.getExclusiveSession();
             if (exclusive == null || exclusive == this) {
                 break;

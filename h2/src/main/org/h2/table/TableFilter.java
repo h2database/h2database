@@ -128,7 +128,7 @@ public class TableFilter implements ColumnResolver {
      */
     private TableFilter nestedJoin;
 
-    private HashMap<Column, Column> commonJoinColumns;
+    private LinkedHashMap<Column, Column> commonJoinColumns;
     private TableFilter commonJoinColumnsFilter;
     private ArrayList<Column> commonJoinColumnsToExclude;
     private boolean foundOne;
@@ -1205,7 +1205,7 @@ public class TableFilter implements ColumnResolver {
      */
     public void addCommonJoinColumns(Column leftColumn, Column replacementColumn, TableFilter replacementFilter) {
         if (commonJoinColumns == null) {
-            commonJoinColumns = new HashMap<>();
+            commonJoinColumns = new LinkedHashMap<>();
             commonJoinColumnsFilter = replacementFilter;
         } else {
             assert commonJoinColumnsFilter == replacementFilter;
@@ -1231,7 +1231,7 @@ public class TableFilter implements ColumnResolver {
      *
      * @return common join columns map, or {@code null}
      */
-    public HashMap<Column, Column> getCommonJoinColumns() {
+    public LinkedHashMap<Column, Column> getCommonJoinColumns() {
         return commonJoinColumns;
     }
 

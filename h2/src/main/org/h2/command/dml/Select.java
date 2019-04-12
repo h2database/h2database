@@ -11,6 +11,7 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.Parser;
@@ -1033,7 +1034,7 @@ public class Select extends Query {
                 index = addExpandedColumn(filter, index, except, alias, c);
             }
         } else {
-            HashMap<Column, Column> commonJoinColumns = filter.getCommonJoinColumns();
+            LinkedHashMap<Column, Column> commonJoinColumns = filter.getCommonJoinColumns();
             if (commonJoinColumns != null) {
                 TableFilter replacementFilter = filter.getCommonJoinColumnsFilter();
                 String replacementAlias = replacementFilter.getTableAlias();

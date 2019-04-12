@@ -2309,9 +2309,13 @@ public class Parser {
                 String schema2 = table2.getSchema().getName();
                 Expression on = null;
                 for (Column column1 : table1.getColumns()) {
-                    String columnName1 = column1.getName();
-                    if (table2.doesColumnExist(columnName1)) {
-                        on = addJoinColumn(on, last, join, schema1, schema2, column1, table2.getColumn(columnName1));
+                    String columnName1 = last.getDerivedColumnName(column1);
+                    if (columnName1 == null) {
+                        columnName1 = column1.getName();
+                    }
+                    Column column2 = join.getColumn(columnName1, true);
+                    if (column2 != null) {
+                        on = addJoinColumn(on, last, join, schema1, schema2, column1, column2);
                     }
                 }
                 addJoin(top, join, false, on);
@@ -2335,8 +2339,8 @@ public class Parser {
             String schema2 = table2.getSchema().getName();
             do {
                 String columnName = readColumnIdentifier();
-                on = addJoinColumn(on, filter1, filter2, schema1, schema2, table1.getColumn(columnName),
-                        table2.getColumn(columnName));
+                on = addJoinColumn(on, filter1, filter2, schema1, schema2, filter1.getColumn(columnName, false),
+                        filter2.getColumn(columnName, false));
             } while (readIfMore(true));
         }
         return on;
@@ -2346,10 +2350,16 @@ public class Parser {
             String schema2, Column column1, Column column2) {
         filter1.addCommonJoinColumnLeft(column1);
         filter2.addCommonJoinColumnRight(column2);
-        Expression tableExpr = new ExpressionColumn(database, schema1, filter1.getTableAlias(), column1.getName(),
-                false);
-        Expression joinExpr = new ExpressionColumn(database, schema2, filter2.getTableAlias(), column2.getName(),
-                false);
+        String columnName1 = filter1.getDerivedColumnName(column1);
+        if (columnName1 == null) {
+            columnName1 = column1.getName();
+        }
+        String columnName2 = filter2.getDerivedColumnName(column2);
+        if (columnName2 == null) {
+            columnName2 = column2.getName();
+        }
+        Expression tableExpr = new ExpressionColumn(database, schema1, filter1.getTableAlias(), columnName1, false);
+        Expression joinExpr = new ExpressionColumn(database, schema2, filter2.getTableAlias(), columnName2, false);
         Expression equal = new Comparison(session, Comparison.EQUAL, tableExpr, joinExpr);
         if (on == null) {
             on = equal;

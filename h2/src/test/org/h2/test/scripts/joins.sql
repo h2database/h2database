@@ -873,3 +873,19 @@ SELECT * FROM T1 INNER JOIN T2 USING (B, A);
 
 DROP TABLE T1, T2;
 > ok
+
+SELECT *
+    FROM (VALUES(1, 'A'), (2, 'B')) T1(A, B)
+    JOIN (VALUES(2, 'C'), (3, 'D')) T2(A, C) USING (A);
+> A B C
+> - - -
+> 2 B C
+> rows: 1
+
+SELECT *
+    FROM (VALUES(1, 'A'), (2, 'B')) T1(A, B)
+    NATURAL JOIN (VALUES(2, 'C'), (3, 'D')) T2(A, C);
+> A B C
+> - - -
+> 2 B C
+> rows: 1

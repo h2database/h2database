@@ -8,11 +8,13 @@ package org.h2.table;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map.Entry;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.command.dml.Select;
+import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -1043,6 +1045,39 @@ public class TableFilter implements ColumnResolver {
     public String getDerivedColumnName(Column column) {
         HashMap<Column, String> map = derivedColumnMap;
         return map != null ? map.get(column) : null;
+    }
+
+    /**
+     * Get the column with the given name.
+     *
+     * @param columnName
+     *            the column name
+     * @param ifExists
+     *            if (@code true) return {@code null} if column does not exist
+     * @return the column
+     * @throws DbException
+     *             if the column was not found and {@code ifExists} is
+     *             {@code false}
+     */
+    public Column getColumn(String columnName, boolean ifExists) {
+        HashMap<Column, String> map = derivedColumnMap;
+        if (map != null) {
+            Database database = session.getDatabase();
+            for (Entry<Column, String> entry : map.entrySet()) {
+                if (database.equalsIdentifiers(columnName, entry.getValue())) {
+                    return entry.getKey();
+                }
+            }
+            if (ifExists) {
+                return null;
+            } else {
+                throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, columnName);
+            }
+        }
+        if (ifExists && !table.doesColumnExist(columnName)) {
+            return null;
+        }
+        return table.getColumn(columnName);
     }
 
     /**

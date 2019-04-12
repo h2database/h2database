@@ -128,7 +128,12 @@ public class TableFilter implements ColumnResolver {
      */
     private TableFilter nestedJoin;
 
+    /**
+     * Map of common join columns, used for NATURAL joins and USING clause of
+     * other joins. This map preserves original order of the columns.
+     */
     private LinkedHashMap<Column, Column> commonJoinColumns;
+
     private TableFilter commonJoinColumnsFilter;
     private ArrayList<Column> commonJoinColumnsToExclude;
     private boolean foundOne;
@@ -136,6 +141,10 @@ public class TableFilter implements ColumnResolver {
     private final int hashCode;
     private final int orderInFrom;
 
+    /**
+     * Map of derived column names. This map preserves original order of the
+     * columns.
+     */
     private LinkedHashMap<Column, String> derivedColumnMap;
 
     /**

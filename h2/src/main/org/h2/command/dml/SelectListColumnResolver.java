@@ -53,8 +53,13 @@ public class SelectListColumnResolver implements ColumnResolver {
     }
 
     @Override
-    public String getDerivedColumnName(Column column) {
-        return null;
+    public String getColumnName(Column column) {
+        return column.getName();
+    }
+
+    @Override
+    public boolean hasDerivedColumnList() {
+        return false;
     }
 
     @Override

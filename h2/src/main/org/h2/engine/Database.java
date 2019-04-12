@@ -2668,7 +2668,7 @@ public class Database implements DataHandler {
     }
 
     /**
-     * Stop exclusiv access the database by provided session.
+     * Stop exclusive access the database by provided session.
      *
      * @param session the session
      * @return true if success, false otherwise

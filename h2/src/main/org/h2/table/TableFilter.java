@@ -47,9 +47,9 @@ public class TableFilter implements ColumnResolver {
     private static final int BEFORE_FIRST = 0, FOUND = 1, AFTER_LAST = 2, NULL_ROW = 3;
 
     /**
-     * Comparator that uses order in form as a sort key.
+     * Comparator that uses order in FROM clause as a sort key.
      */
-    public static final Comparator<TableFilter> ORDER_IN_FORM_COMPARATOR = new Comparator<TableFilter>() {
+    public static final Comparator<TableFilter> ORDER_IN_FROM_COMPARATOR = new Comparator<TableFilter>() {
         @Override
         public int compare(TableFilter o1, TableFilter o2) {
             return Integer.compare(o1.getOrderInFrom(), o2.getOrderInFrom());

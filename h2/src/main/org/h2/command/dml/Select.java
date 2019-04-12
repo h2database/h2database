@@ -1069,7 +1069,7 @@ public class Select extends Query {
         if (checkInit) {
             DbException.throwInternalError();
         }
-        Collections.sort(filters, TableFilter.ORDER_IN_FORM_COMPARATOR);
+        Collections.sort(filters, TableFilter.ORDER_IN_FROM_COMPARATOR);
         expandColumnList();
         visibleColumnCount = expressions.size();
         ArrayList<String> expressionSQL;

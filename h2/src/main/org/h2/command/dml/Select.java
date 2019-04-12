@@ -8,8 +8,10 @@ package org.h2.command.dml;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.Parser;
@@ -998,7 +1000,7 @@ public class Select extends Query {
                     exceptTableColumns = w.mapExceptColumns();
                 }
                 for (TableFilter filter : filters) {
-                    i = expandColumnList(filter, i, exceptTableColumns);
+                    i = expandColumnList(filter, i, false, exceptTableColumns);
                 }
             } else {
                 Database db = session.getDatabase();
@@ -1019,22 +1021,35 @@ public class Select extends Query {
                 if (filter == null) {
                     throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableAlias);
                 }
-                i = expandColumnList(filter, i, exceptTableColumns);
+                i = expandColumnList(filter, i, true, exceptTableColumns);
             }
         }
     }
 
-    private int expandColumnList(TableFilter filter, int index, HashMap<Column, ExpressionColumn> except) {
+    private int expandColumnList(TableFilter filter, int index, boolean forAlias,
+            HashMap<Column, ExpressionColumn> except) {
         String alias = filter.getTableAlias();
-        ArrayList<Column> commonJoinColumns = filter.getCommonJoinColumnsLeft();
-        if (commonJoinColumns != null) {
-            for (Column c : commonJoinColumns) {
+        if (forAlias) {
+            for (Column c : filter.getTable().getColumns()) {
                 index = addExpandedColumn(filter, index, except, alias, c);
             }
-        }
-        for (Column c : filter.getTable().getColumns()) {
-            if (commonJoinColumns == null || !commonJoinColumns.contains(c)) {
-                index = addExpandedColumn(filter, index, except, alias, c);
+        } else {
+            LinkedHashMap<Column, Column> commonJoinColumns = filter.getCommonJoinColumns();
+            if (commonJoinColumns != null) {
+                TableFilter replacementFilter = filter.getCommonJoinColumnsFilter();
+                String replacementAlias = replacementFilter.getTableAlias();
+                for (Column c : commonJoinColumns.values()) {
+                    if (!filter.isCommonJoinColumnToExclude(c)) {
+                        index = addExpandedColumn(replacementFilter, index, except, replacementAlias, c);
+                    }
+                }
+            }
+            for (Column c : filter.getTable().getColumns()) {
+                if (commonJoinColumns == null || !commonJoinColumns.containsKey(c)) {
+                    if (!filter.isCommonJoinColumnToExclude(c)) {
+                        index = addExpandedColumn(filter, index, except, alias, c);
+                    }
+                }
             }
         }
         return index;
@@ -1042,7 +1057,7 @@ public class Select extends Query {
 
     private int addExpandedColumn(TableFilter filter, int index, HashMap<Column, ExpressionColumn> except,
             String alias, Column c) {
-        if ((except == null || except.remove(c) == null) && c.getVisible() && !filter.isCommonJoinColumnRight(c)) {
+        if ((except == null || except.remove(c) == null) && c.getVisible()) {
             ExpressionColumn ec = new ExpressionColumn(
                     session.getDatabase(), null, alias, filter.getColumnName(c), false);
             expressions.add(index++, ec);
@@ -1055,6 +1070,7 @@ public class Select extends Query {
         if (checkInit) {
             DbException.throwInternalError();
         }
+        Collections.sort(filters, TableFilter.ORDER_IN_FROM_COMPARATOR);
         expandColumnList();
         visibleColumnCount = expressions.size();
         ArrayList<String> expressionSQL;

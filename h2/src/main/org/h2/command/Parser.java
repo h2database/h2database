@@ -2273,7 +2273,7 @@ public class Parser {
                 // the right hand side is the 'inner' table usually
                 join = readTableFilter();
                 join = readJoin(join);
-                Expression on = readJoinSpecification(top, join);
+                Expression on = readJoinSpecification(top, join, true);
                 addJoin(join, top, true, on);
                 top = join;
             } else if (readIf("LEFT")) {
@@ -2281,7 +2281,7 @@ public class Parser {
                 read(JOIN);
                 join = readTableFilter();
                 join = readJoin(join);
-                Expression on = readJoinSpecification(top, join);
+                Expression on = readJoinSpecification(top, join, false);
                 addJoin(top, join, true, on);
             } else if (readIf(FULL)) {
                 throw getSyntaxError();
@@ -2289,12 +2289,12 @@ public class Parser {
                 read(JOIN);
                 join = readTableFilter();
                 top = readJoin(top);
-                Expression on = readJoinSpecification(top, join);
+                Expression on = readJoinSpecification(top, join, false);
                 addJoin(top, join, false, on);
             } else if (readIf(JOIN)) {
                 join = readTableFilter();
                 top = readJoin(top);
-                Expression on = readJoinSpecification(top, join);
+                Expression on = readJoinSpecification(top, join, false);
                 addJoin(top, join, false, on);
             } else if (readIf(CROSS)) {
                 read(JOIN);
@@ -2311,7 +2311,7 @@ public class Parser {
                 for (Column column1 : table1.getColumns()) {
                     Column column2 = join.getColumn(last.getColumnName(column1), true);
                     if (column2 != null) {
-                        on = addJoinColumn(on, last, join, schema1, schema2, column1, column2);
+                        on = addJoinColumn(on, last, join, schema1, schema2, column1, column2, false);
                     }
                 }
                 addJoin(top, join, false, on);
@@ -2323,7 +2323,7 @@ public class Parser {
         return top;
     }
 
-    private Expression readJoinSpecification(TableFilter filter1, TableFilter filter2) {
+    private Expression readJoinSpecification(TableFilter filter1, TableFilter filter2, boolean rightJoin) {
         Expression on = null;
         if (readIf(ON)) {
             on = readExpression();
@@ -2336,16 +2336,21 @@ public class Parser {
             do {
                 String columnName = readColumnIdentifier();
                 on = addJoinColumn(on, filter1, filter2, schema1, schema2, filter1.getColumn(columnName, false),
-                        filter2.getColumn(columnName, false));
+                        filter2.getColumn(columnName, false), rightJoin);
             } while (readIfMore(true));
         }
         return on;
     }
 
     private Expression addJoinColumn(Expression on, TableFilter filter1, TableFilter filter2, String schema1,
-            String schema2, Column column1, Column column2) {
-        filter1.addCommonJoinColumnLeft(column1);
-        filter2.addCommonJoinColumnRight(column2);
+            String schema2, Column column1, Column column2, boolean rightJoin) {
+        if (rightJoin) {
+            filter1.addCommonJoinColumns(column1, column2, filter2);
+            filter2.addCommonJoinColumnToExclude(column2);
+        } else {
+            filter1.addCommonJoinColumns(column1, column1, filter1);
+            filter2.addCommonJoinColumnToExclude(column2);
+        }
         Expression tableExpr = new ExpressionColumn(database, schema1, filter1.getTableAlias(),
                 filter1.getColumnName(column1), false);
         Expression joinExpr = new ExpressionColumn(database, schema2, filter2.getTableAlias(),

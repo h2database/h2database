@@ -3464,8 +3464,8 @@ create table test(id int primary key);
 > ok
 
 explain select * from test a inner join test b left outer join test c on c.id = a.id;
-#+mvStore#>> SELECT "A"."ID", "C"."ID", "B"."ID" FROM "PUBLIC"."TEST" "A" /* PUBLIC.TEST.tableScan */ LEFT OUTER JOIN "PUBLIC"."TEST" "C" /* PUBLIC.PRIMARY_KEY_2: ID = A.ID */ ON "C"."ID" = "A"."ID" INNER JOIN "PUBLIC"."TEST" "B" /* PUBLIC.TEST.tableScan */ ON 1=1
-#-mvStore#>> SELECT "A"."ID", "C"."ID", "B"."ID" FROM "PUBLIC"."TEST" "A" /* PUBLIC.PRIMARY_KEY_2 */ LEFT OUTER JOIN "PUBLIC"."TEST" "C" /* PUBLIC.PRIMARY_KEY_2: ID = A.ID */ ON "C"."ID" = "A"."ID" INNER JOIN "PUBLIC"."TEST" "B" /* PUBLIC.PRIMARY_KEY_2 */ ON 1=1
+#+mvStore#>> SELECT "A"."ID", "B"."ID", "C"."ID" FROM "PUBLIC"."TEST" "A" /* PUBLIC.TEST.tableScan */ LEFT OUTER JOIN "PUBLIC"."TEST" "C" /* PUBLIC.PRIMARY_KEY_2: ID = A.ID */ ON "C"."ID" = "A"."ID" INNER JOIN "PUBLIC"."TEST" "B" /* PUBLIC.TEST.tableScan */ ON 1=1
+#-mvStore#>> SELECT "A"."ID", "B"."ID", "C"."ID" FROM "PUBLIC"."TEST" "A" /* PUBLIC.PRIMARY_KEY_2 */ LEFT OUTER JOIN "PUBLIC"."TEST" "C" /* PUBLIC.PRIMARY_KEY_2: ID = A.ID */ ON "C"."ID" = "A"."ID" INNER JOIN "PUBLIC"."TEST" "B" /* PUBLIC.PRIMARY_KEY_2 */ ON 1=1
 
 SELECT T.ID FROM TEST "T";
 > ID

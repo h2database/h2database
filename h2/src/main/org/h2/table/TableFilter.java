@@ -128,7 +128,9 @@ public class TableFilter implements ColumnResolver {
      */
     private TableFilter nestedJoin;
 
-    private ArrayList<Column> commonJoinColumnsLeft, commonJoinColumnsRight;
+    private HashMap<Column, Column> commonJoinColumns;
+    private TableFilter commonJoinColumnsFilter;
+    private ArrayList<Column> commonJoinColumnsToExclude;
     private boolean foundOne;
     private Expression fullCondition;
     private final int hashCode;
@@ -1193,45 +1195,64 @@ public class TableFilter implements ColumnResolver {
     /**
      * Add a column to the common join column list for a left table filter.
      *
-     * @param c the column to add
+     * @param leftColumn
+     *            the column on the left side
+     * @param replacementColumn
+     *            the column to use instead, may be the same as column on the
+     *            left side
+     * @param replacementFilter
+     *            the table filter for replacement columns
      */
-    public void addCommonJoinColumnLeft(Column c) {
-        if (commonJoinColumnsLeft == null) {
-            commonJoinColumnsLeft = Utils.newSmallArrayList();
+    public void addCommonJoinColumns(Column leftColumn, Column replacementColumn, TableFilter replacementFilter) {
+        if (commonJoinColumns == null) {
+            commonJoinColumns = new HashMap<>();
+            commonJoinColumnsFilter = replacementFilter;
+        } else {
+            assert commonJoinColumnsFilter == replacementFilter;
         }
-        commonJoinColumnsLeft.add(c);
+        commonJoinColumns.put(leftColumn, replacementColumn);
     }
 
     /**
-     * Add a column to the common join column list of a right table filter.
+     * Add an excluded column to the common join column list.
      *
-     * @param c the column to add
+     * @param columnToExclude
+     *            the column to exclude
      */
-    public void addCommonJoinColumnRight(Column c) {
-        if (commonJoinColumnsRight == null) {
-            commonJoinColumnsRight = Utils.newSmallArrayList();
+    public void addCommonJoinColumnToExclude(Column columnToExclude) {
+        if (commonJoinColumnsToExclude == null) {
+            commonJoinColumnsToExclude = Utils.newSmallArrayList();
         }
-        commonJoinColumnsRight.add(c);
+        commonJoinColumnsToExclude.add(columnToExclude);
     }
 
     /**
-     * Returns common join columns of a left table filter.
+     * Returns common join columns map.
      *
-     * @return common join columns of a left table filter, or {@code null}
+     * @return common join columns map, or {@code null}
      */
-    public ArrayList<Column> getCommonJoinColumnsLeft() {
-        return commonJoinColumnsLeft;
+    public HashMap<Column, Column> getCommonJoinColumns() {
+        return commonJoinColumns;
     }
 
     /**
-     * Check if the given column is a common join column of a right table
-     * filter.
+     * Returns common join columns table filter.
      *
-     * @param c the column to check
-     * @return true if this is a common join column
+     * @return common join columns table filter, or {@code null}
      */
-    public boolean isCommonJoinColumnRight(Column c) {
-        return commonJoinColumnsRight != null && commonJoinColumnsRight.contains(c);
+    public TableFilter getCommonJoinColumnsFilter() {
+        return commonJoinColumnsFilter;
+    }
+
+    /**
+     * Check if the given column is an excluded common join column.
+     *
+     * @param c
+     *            the column to check
+     * @return true if this is an excluded common join column
+     */
+    public boolean isCommonJoinColumnToExclude(Column c) {
+        return commonJoinColumnsToExclude != null && commonJoinColumnsToExclude.contains(c);
     }
 
     @Override

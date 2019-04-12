@@ -1027,15 +1027,21 @@ public class Select extends Query {
 
     private int expandColumnList(TableFilter filter, int index, HashMap<Column, ExpressionColumn> except) {
         String alias = filter.getTableAlias();
-        ArrayList<Column> commonJoinColumns = filter.getCommonJoinColumnsLeft();
+        HashMap<Column, Column> commonJoinColumns = filter.getCommonJoinColumns();
         if (commonJoinColumns != null) {
-            for (Column c : commonJoinColumns) {
-                index = addExpandedColumn(filter, index, except, alias, c);
+            TableFilter replacementFilter = filter.getCommonJoinColumnsFilter();
+            String replacementAlias = replacementFilter.getTableAlias();
+            for (Column c : commonJoinColumns.values()) {
+                if (!filter.isCommonJoinColumnToExclude(c)) {
+                    index = addExpandedColumn(replacementFilter, index, except, replacementAlias, c);
+                }
             }
         }
         for (Column c : filter.getTable().getColumns()) {
-            if (commonJoinColumns == null || !commonJoinColumns.contains(c)) {
-                index = addExpandedColumn(filter, index, except, alias, c);
+            if (commonJoinColumns == null || !commonJoinColumns.containsKey(c)) {
+                if (!filter.isCommonJoinColumnToExclude(c)) {
+                    index = addExpandedColumn(filter, index, except, alias, c);
+                }
             }
         }
         return index;
@@ -1043,7 +1049,7 @@ public class Select extends Query {
 
     private int addExpandedColumn(TableFilter filter, int index, HashMap<Column, ExpressionColumn> except,
             String alias, Column c) {
-        if ((except == null || except.remove(c) == null) && c.getVisible() && !filter.isCommonJoinColumnRight(c)) {
+        if ((except == null || except.remove(c) == null) && c.getVisible()) {
             ExpressionColumn ec = new ExpressionColumn(
                     session.getDatabase(), null, alias, filter.getColumnName(c), false);
             expressions.add(index++, ec);

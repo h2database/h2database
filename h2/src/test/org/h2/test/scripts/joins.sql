@@ -884,6 +884,24 @@ SELECT *
 
 SELECT *
     FROM (VALUES(1, 'A'), (2, 'B')) T1(A, B)
+    LEFT JOIN (VALUES(2, 'C'), (3, 'D')) T2(A, C) USING (A);
+> A B C
+> - - ----
+> 1 A null
+> 2 B C
+> rows: 2
+
+SELECT *
+    FROM (VALUES(1, 'A'), (2, 'B')) T1(A, B)
+    RIGHT JOIN (VALUES(2, 'C'), (3, 'D')) T2(A, C) USING (A);
+> A B    C
+> - ---- -
+> 2 B    C
+> 3 null D
+> rows: 2
+
+SELECT *
+    FROM (VALUES(1, 'A'), (2, 'B')) T1(A, B)
     NATURAL JOIN (VALUES(2, 'C'), (3, 'D')) T2(A, C);
 > A B C
 > - - -

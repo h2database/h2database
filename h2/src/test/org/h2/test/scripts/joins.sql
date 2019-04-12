@@ -844,6 +844,14 @@ SELECT T1.B, T2.B FROM T1 INNER JOIN T2 USING (A);
 > 6  6
 > rows: 3
 
+SELECT * FROM T1 INNER JOIN T2 USING (A);
+> A B  B
+> - -- ---
+> 1 10 100
+> 2 20 200
+> 6 6  6
+> rows: 3
+
 SELECT T1.B, T2.B FROM T1 INNER JOIN T2 USING (A, B);
 > B B
 > - -

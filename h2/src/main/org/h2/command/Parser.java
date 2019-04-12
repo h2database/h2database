@@ -2311,9 +2311,7 @@ public class Parser {
                 for (Column column1 : table1.getColumns()) {
                     String columnName1 = column1.getName();
                     if (table2.doesColumnExist(columnName1)) {
-                        Column column2 = table2.getColumn(columnName1);
-                        join.addNaturalJoinColumn(column2);
-                        on = addJoinColumn(on, last, join, schema1, schema2, columnName1, column2.getName());
+                        on = addJoinColumn(on, last, join, schema1, schema2, column1, table2.getColumn(columnName1));
                     }
                 }
                 addJoin(top, join, false, on);
@@ -2337,17 +2335,20 @@ public class Parser {
             String schema2 = table2.getSchema().getName();
             do {
                 String columnName = readColumnIdentifier();
-                on = addJoinColumn(on, filter1, filter2, schema1, schema2, table1.getColumn(columnName).getName(),
-                        table2.getColumn(columnName).getName());
+                on = addJoinColumn(on, filter1, filter2, schema1, schema2, table1.getColumn(columnName),
+                        table2.getColumn(columnName));
             } while (readIfMore(true));
         }
         return on;
     }
 
     private Expression addJoinColumn(Expression on, TableFilter filter1, TableFilter filter2, String schema1,
-            String schema2, String columnName1, String columnName2) {
-        Expression tableExpr = new ExpressionColumn(database, schema1, filter1.getTableAlias(), columnName1, false);
-        Expression joinExpr = new ExpressionColumn(database, schema2, filter2.getTableAlias(), columnName2, false);
+            String schema2, Column column1, Column column2) {
+        filter2.addCommonJoinColumn(column2);
+        Expression tableExpr = new ExpressionColumn(database, schema1, filter1.getTableAlias(), column1.getName(),
+                false);
+        Expression joinExpr = new ExpressionColumn(database, schema2, filter2.getTableAlias(), column2.getName(),
+                false);
         Expression equal = new Comparison(session, Comparison.EQUAL, tableExpr, joinExpr);
         if (on == null) {
             on = equal;

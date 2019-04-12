@@ -1033,7 +1033,7 @@ public class Select extends Query {
             if (!c.getVisible()) {
                 continue;
             }
-            if (filter.isNaturalJoinColumn(c)) {
+            if (filter.isCommonJoinColumn(c)) {
                 continue;
             }
             String name = filter.getDerivedColumnName(c);

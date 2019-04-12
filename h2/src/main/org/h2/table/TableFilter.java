@@ -116,7 +116,7 @@ public class TableFilter implements ColumnResolver {
      */
     private TableFilter nestedJoin;
 
-    private ArrayList<Column> naturalJoinColumns;
+    private ArrayList<Column> commonJoinColumns;
     private boolean foundOne;
     private Expression fullCondition;
     private final int hashCode;
@@ -1141,25 +1141,25 @@ public class TableFilter implements ColumnResolver {
     }
 
     /**
-     * Add a column to the natural join key column list.
+     * Add a column to the common join column list.
      *
      * @param c the column to add
      */
-    public void addNaturalJoinColumn(Column c) {
-        if (naturalJoinColumns == null) {
-            naturalJoinColumns = Utils.newSmallArrayList();
+    public void addCommonJoinColumn(Column c) {
+        if (commonJoinColumns == null) {
+            commonJoinColumns = Utils.newSmallArrayList();
         }
-        naturalJoinColumns.add(c);
+        commonJoinColumns.add(c);
     }
 
     /**
-     * Check if the given column is a natural join column.
+     * Check if the given column is a common join column.
      *
      * @param c the column to check
-     * @return true if this is a joined natural join column
+     * @return true if this is a common join column
      */
-    public boolean isNaturalJoinColumn(Column c) {
-        return naturalJoinColumns != null && naturalJoinColumns.contains(c);
+    public boolean isCommonJoinColumn(Column c) {
+        return commonJoinColumns != null && commonJoinColumns.contains(c);
     }
 
     @Override

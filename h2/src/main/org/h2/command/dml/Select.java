@@ -1043,9 +1043,8 @@ public class Select extends Query {
     private int addExpandedColumn(TableFilter filter, int index, HashMap<Column, ExpressionColumn> except,
             String alias, Column c) {
         if ((except == null || except.remove(c) == null) && c.getVisible() && !filter.isCommonJoinColumnRight(c)) {
-            String name = filter.getDerivedColumnName(c);
             ExpressionColumn ec = new ExpressionColumn(
-                    session.getDatabase(), null, alias, name != null ? name : c.getName(), false);
+                    session.getDatabase(), null, alias, filter.getColumnName(c), false);
             expressions.add(index++, ec);
         }
         return index;

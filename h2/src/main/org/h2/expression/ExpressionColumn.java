@@ -35,12 +35,11 @@ public class ExpressionColumn extends Expression {
     private final Database database;
     private final String schemaName;
     private final String tableAlias;
-    private final String columnName;
+    private String columnName;
     private final boolean rowId;
     private ColumnResolver columnResolver;
     private int queryLevel;
     private Column column;
-    private String derivedName;
 
     public ExpressionColumn(Database database, Column column) {
         this.database = database;
@@ -69,8 +68,8 @@ public class ExpressionColumn extends Expression {
             Parser.quoteIdentifier(builder, tableAlias, alwaysQuote).append('.');
         }
         if (column != null) {
-            if (derivedName != null) {
-                Parser.quoteIdentifier(builder, derivedName, alwaysQuote);
+            if (columnResolver != null && columnResolver.hasDerivedColumnList()) {
+                Parser.quoteIdentifier(builder, columnName, alwaysQuote);
             } else {
                 column.getSQL(builder, alwaysQuote);
             }
@@ -104,18 +103,11 @@ public class ExpressionColumn extends Expression {
             return;
         }
         for (Column col : resolver.getColumns()) {
-            String n = resolver.getDerivedColumnName(col);
-            boolean derived;
-            if (n == null) {
-                n = col.getName();
-                derived  = false;
-            } else {
-                derived = true;
-            }
+            String n = resolver.getColumnName(col);
             if (database.equalsIdentifiers(columnName, n)) {
                 mapColumn(resolver, col, level);
-                if (derived) {
-                    derivedName = n;
+                if (resolver.hasDerivedColumnList()) {
+                    columnName = n;
                 }
                 return;
             }
@@ -274,10 +266,7 @@ public class ExpressionColumn extends Expression {
     public String getAlias() {
         if (column != null) {
             if (columnResolver != null) {
-                String name = columnResolver.getDerivedColumnName(column);
-                if (name != null) {
-                    return name;
-                }
+                return columnResolver.getColumnName(column);
             }
             return column.getName();
         }

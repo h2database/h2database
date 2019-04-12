@@ -1042,9 +1042,14 @@ public class TableFilter implements ColumnResolver {
     }
 
     @Override
-    public String getDerivedColumnName(Column column) {
+    public String getColumnName(Column column) {
         HashMap<Column, String> map = derivedColumnMap;
-        return map != null ? map.get(column) : null;
+        return map != null ? map.get(column) : column.getName();
+    }
+
+    @Override
+    public boolean hasDerivedColumnList() {
+        return derivedColumnMap != null;
     }
 
     /**

@@ -1026,16 +1026,23 @@ public class Select extends Query {
 
     private int expandColumnList(TableFilter filter, int index, HashMap<Column, ExpressionColumn> except) {
         String alias = filter.getTableAlias();
+        ArrayList<Column> commonJoinColumns = filter.getCommonJoinColumnsLeft();
+        if (commonJoinColumns != null) {
+            for (Column c : commonJoinColumns) {
+                index = addExpandedColumn(filter, index, except, alias, c);
+            }
+        }
         for (Column c : filter.getTable().getColumns()) {
-            if (except != null && except.remove(c) != null) {
-                continue;
+            if (commonJoinColumns == null || !commonJoinColumns.contains(c)) {
+                index = addExpandedColumn(filter, index, except, alias, c);
             }
-            if (!c.getVisible()) {
-                continue;
-            }
-            if (filter.isCommonJoinColumn(c)) {
-                continue;
-            }
+        }
+        return index;
+    }
+
+    private int addExpandedColumn(TableFilter filter, int index, HashMap<Column, ExpressionColumn> except,
+            String alias, Column c) {
+        if ((except == null || except.remove(c) == null) && c.getVisible() && !filter.isCommonJoinColumnRight(c)) {
             String name = filter.getDerivedColumnName(c);
             ExpressionColumn ec = new ExpressionColumn(
                     session.getDatabase(), null, alias, name != null ? name : c.getName(), false);

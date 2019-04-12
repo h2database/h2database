@@ -2344,7 +2344,8 @@ public class Parser {
 
     private Expression addJoinColumn(Expression on, TableFilter filter1, TableFilter filter2, String schema1,
             String schema2, Column column1, Column column2) {
-        filter2.addCommonJoinColumn(column2);
+        filter1.addCommonJoinColumnLeft(column1);
+        filter2.addCommonJoinColumnRight(column2);
         Expression tableExpr = new ExpressionColumn(database, schema1, filter1.getTableAlias(), column1.getName(),
                 false);
         Expression joinExpr = new ExpressionColumn(database, schema2, filter2.getTableAlias(), column2.getName(),

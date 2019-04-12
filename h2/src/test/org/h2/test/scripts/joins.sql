@@ -830,10 +830,10 @@ SELECT * FROM TEST X LEFT OUTER JOIN TEST Y ON Y.A = X.A || '1';
 DROP TABLE TEST;
 > ok
 
-CREATE TABLE T1(A INT, B INT) AS VALUES (1, 10), (2, 20), (4, 40), (6, 6);
+CREATE TABLE T1(A INT, B INT) AS VALUES (1, 10), (2, 20), (4, 40), (6, 6), (7, 7);
 > ok
 
-CREATE TABLE T2(A INT, B INT) AS VALUES (1, 100), (2, 200), (5, 500), (6, 6);
+CREATE TABLE T2(A INT, B INT) AS VALUES (1, 100), (2, 200), (5, 500), (6, 6), (8, 7);
 > ok
 
 SELECT T1.B, T2.B FROM T1 INNER JOIN T2 USING (A);
@@ -852,8 +852,21 @@ SELECT * FROM T1 INNER JOIN T2 USING (A);
 > 6 6  6
 > rows: 3
 
+SELECT * FROM T1 INNER JOIN T2 USING (B);
+> B A A
+> - - -
+> 6 6 6
+> 7 7 8
+> rows: 2
+
 SELECT T1.B, T2.B FROM T1 INNER JOIN T2 USING (A, B);
 > B B
+> - -
+> 6 6
+> rows: 1
+
+SELECT * FROM T1 INNER JOIN T2 USING (B, A);
+> B A
 > - -
 > 6 6
 > rows: 1

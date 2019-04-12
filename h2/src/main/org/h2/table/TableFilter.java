@@ -116,7 +116,7 @@ public class TableFilter implements ColumnResolver {
      */
     private TableFilter nestedJoin;
 
-    private ArrayList<Column> commonJoinColumns;
+    private ArrayList<Column> commonJoinColumnsLeft, commonJoinColumnsRight;
     private boolean foundOne;
     private Expression fullCondition;
     private final int hashCode;
@@ -1141,25 +1141,47 @@ public class TableFilter implements ColumnResolver {
     }
 
     /**
-     * Add a column to the common join column list.
+     * Add a column to the common join column list for a left table filter.
      *
      * @param c the column to add
      */
-    public void addCommonJoinColumn(Column c) {
-        if (commonJoinColumns == null) {
-            commonJoinColumns = Utils.newSmallArrayList();
+    public void addCommonJoinColumnLeft(Column c) {
+        if (commonJoinColumnsLeft == null) {
+            commonJoinColumnsLeft = Utils.newSmallArrayList();
         }
-        commonJoinColumns.add(c);
+        commonJoinColumnsLeft.add(c);
     }
 
     /**
-     * Check if the given column is a common join column.
+     * Add a column to the common join column list of a right table filter.
+     *
+     * @param c the column to add
+     */
+    public void addCommonJoinColumnRight(Column c) {
+        if (commonJoinColumnsRight == null) {
+            commonJoinColumnsRight = Utils.newSmallArrayList();
+        }
+        commonJoinColumnsRight.add(c);
+    }
+
+    /**
+     * Returns common join columns of a left table filter.
+     *
+     * @return common join columns of a left table filter, or {@code null}
+     */
+    public ArrayList<Column> getCommonJoinColumnsLeft() {
+        return commonJoinColumnsLeft;
+    }
+
+    /**
+     * Check if the given column is a common join column of a right table
+     * filter.
      *
      * @param c the column to check
      * @return true if this is a common join column
      */
-    public boolean isCommonJoinColumn(Column c) {
-        return commonJoinColumns != null && commonJoinColumns.contains(c);
+    public boolean isCommonJoinColumnRight(Column c) {
+        return commonJoinColumnsRight != null && commonJoinColumnsRight.contains(c);
     }
 
     @Override

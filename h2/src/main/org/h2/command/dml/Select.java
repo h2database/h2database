@@ -999,7 +999,7 @@ public class Select extends Query {
                     exceptTableColumns = w.mapExceptColumns();
                 }
                 for (TableFilter filter : filters) {
-                    i = expandColumnList(filter, i, exceptTableColumns);
+                    i = expandColumnList(filter, i, false, exceptTableColumns);
                 }
             } else {
                 Database db = session.getDatabase();
@@ -1020,27 +1020,34 @@ public class Select extends Query {
                 if (filter == null) {
                     throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableAlias);
                 }
-                i = expandColumnList(filter, i, exceptTableColumns);
+                i = expandColumnList(filter, i, true, exceptTableColumns);
             }
         }
     }
 
-    private int expandColumnList(TableFilter filter, int index, HashMap<Column, ExpressionColumn> except) {
+    private int expandColumnList(TableFilter filter, int index, boolean forAlias,
+            HashMap<Column, ExpressionColumn> except) {
         String alias = filter.getTableAlias();
-        HashMap<Column, Column> commonJoinColumns = filter.getCommonJoinColumns();
-        if (commonJoinColumns != null) {
-            TableFilter replacementFilter = filter.getCommonJoinColumnsFilter();
-            String replacementAlias = replacementFilter.getTableAlias();
-            for (Column c : commonJoinColumns.values()) {
-                if (!filter.isCommonJoinColumnToExclude(c)) {
-                    index = addExpandedColumn(replacementFilter, index, except, replacementAlias, c);
+        if (forAlias) {
+            for (Column c : filter.getTable().getColumns()) {
+                index = addExpandedColumn(filter, index, except, alias, c);
+            }
+        } else {
+            HashMap<Column, Column> commonJoinColumns = filter.getCommonJoinColumns();
+            if (commonJoinColumns != null) {
+                TableFilter replacementFilter = filter.getCommonJoinColumnsFilter();
+                String replacementAlias = replacementFilter.getTableAlias();
+                for (Column c : commonJoinColumns.values()) {
+                    if (!filter.isCommonJoinColumnToExclude(c)) {
+                        index = addExpandedColumn(replacementFilter, index, except, replacementAlias, c);
+                    }
                 }
             }
-        }
-        for (Column c : filter.getTable().getColumns()) {
-            if (commonJoinColumns == null || !commonJoinColumns.containsKey(c)) {
-                if (!filter.isCommonJoinColumnToExclude(c)) {
-                    index = addExpandedColumn(filter, index, except, alias, c);
+            for (Column c : filter.getTable().getColumns()) {
+                if (commonJoinColumns == null || !commonJoinColumns.containsKey(c)) {
+                    if (!filter.isCommonJoinColumnToExclude(c)) {
+                        index = addExpandedColumn(filter, index, except, alias, c);
+                    }
                 }
             }
         }

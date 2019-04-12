@@ -596,15 +596,25 @@ create table INVOICE_LINE(line_id int, invoiceid int, customerid int, line_text 
 insert into INVOICE_LINE values(10, 1, 0, 'Super Soap'), (20, 1, 0, 'Regular Soap');
 > update count: 2
 
-select c.*, i.*, l.* from customer c natural join invoice i natural join INVOICE_LINE l;
+select * from customer c natural join invoice i natural join INVOICE_LINE l;
 > CUSTOMERID CUSTOMER_NAME INVOICEID INVOICE_TEXT LINE_ID LINE_TEXT
 > ---------- ------------- --------- ------------ ------- ------------
 > 0          Acme          1         Soap         10      Super Soap
 > 0          Acme          1         Soap         20      Regular Soap
 > rows: 2
 
-explain select c.*, i.*, l.* from customer c natural join invoice i natural join INVOICE_LINE l;
+explain select * from customer c natural join invoice i natural join INVOICE_LINE l;
 >> SELECT "C"."CUSTOMERID", "C"."CUSTOMER_NAME", "I"."INVOICEID", "I"."INVOICE_TEXT", "L"."LINE_ID", "L"."LINE_TEXT" FROM "PUBLIC"."INVOICE" "I" /* PUBLIC.INVOICE.tableScan */ INNER JOIN "PUBLIC"."INVOICE_LINE" "L" /* PUBLIC.INVOICE_LINE.tableScan */ ON 1=1 /* WHERE (PUBLIC.I.CUSTOMERID = PUBLIC.L.CUSTOMERID) AND (PUBLIC.I.INVOICEID = PUBLIC.L.INVOICEID) */ INNER JOIN "PUBLIC"."CUSTOMER" "C" /* PUBLIC.CUSTOMER.tableScan */ ON 1=1 WHERE ("PUBLIC"."C"."CUSTOMERID" = "PUBLIC"."I"."CUSTOMERID") AND (("PUBLIC"."I"."CUSTOMERID" = "PUBLIC"."L"."CUSTOMERID") AND ("PUBLIC"."I"."INVOICEID" = "PUBLIC"."L"."INVOICEID"))
+
+select c.*, i.*, l.* from customer c natural join invoice i natural join INVOICE_LINE l;
+> CUSTOMERID CUSTOMER_NAME CUSTOMERID INVOICEID INVOICE_TEXT LINE_ID INVOICEID CUSTOMERID LINE_TEXT
+> ---------- ------------- ---------- --------- ------------ ------- --------- ---------- ------------
+> 0          Acme          0          1         Soap         10      1         0          Super Soap
+> 0          Acme          0          1         Soap         20      1         0          Regular Soap
+> rows: 2
+
+explain select c.*, i.*, l.* from customer c natural join invoice i natural join INVOICE_LINE l;
+>> SELECT "C"."CUSTOMERID", "C"."CUSTOMER_NAME", "I"."CUSTOMERID", "I"."INVOICEID", "I"."INVOICE_TEXT", "L"."LINE_ID", "L"."INVOICEID", "L"."CUSTOMERID", "L"."LINE_TEXT" FROM "PUBLIC"."INVOICE" "I" /* PUBLIC.INVOICE.tableScan */ INNER JOIN "PUBLIC"."INVOICE_LINE" "L" /* PUBLIC.INVOICE_LINE.tableScan */ ON 1=1 /* WHERE (PUBLIC.I.CUSTOMERID = PUBLIC.L.CUSTOMERID) AND (PUBLIC.I.INVOICEID = PUBLIC.L.INVOICEID) */ INNER JOIN "PUBLIC"."CUSTOMER" "C" /* PUBLIC.CUSTOMER.tableScan */ ON 1=1 WHERE ("PUBLIC"."C"."CUSTOMERID" = "PUBLIC"."I"."CUSTOMERID") AND (("PUBLIC"."I"."CUSTOMERID" = "PUBLIC"."L"."CUSTOMERID") AND ("PUBLIC"."I"."INVOICEID" = "PUBLIC"."L"."INVOICEID"))
 
 drop table customer;
 > ok
@@ -898,6 +908,15 @@ SELECT *
 > - ---- -
 > 2 B    C
 > 3 null D
+> rows: 2
+
+SELECT T1.*, T2.*
+    FROM (VALUES(1, 'A'), (2, 'B')) T1(A, B)
+    RIGHT JOIN (VALUES(2, 'C'), (3, 'D')) T2(A, C) USING (A);
+> A    B    A C
+> ---- ---- - -
+> 2    B    2 C
+> null null 3 D
 > rows: 2
 
 SELECT *

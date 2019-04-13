@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.Map.Entry;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.Parser;
@@ -28,6 +29,7 @@ import org.h2.expression.analysis.DataAnalysisOperation;
 import org.h2.expression.analysis.Window;
 import org.h2.expression.condition.Comparison;
 import org.h2.expression.condition.ConditionAndOr;
+import org.h2.expression.function.Function;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -52,6 +54,7 @@ import org.h2.table.TableView;
 import org.h2.util.ColumnNamer;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
+import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueRow;
@@ -1038,9 +1041,27 @@ public class Select extends Query {
             if (commonJoinColumns != null) {
                 TableFilter replacementFilter = filter.getCommonJoinColumnsFilter();
                 String replacementAlias = replacementFilter.getTableAlias();
-                for (Column c : commonJoinColumns.values()) {
-                    if (!filter.isCommonJoinColumnToExclude(c)) {
-                        index = addExpandedColumn(replacementFilter, index, except, replacementAlias, c);
+                for (Entry<Column, Column> entry : commonJoinColumns.entrySet()) {
+                    Column left = entry.getKey(), right = entry.getValue();
+                    if (!filter.isCommonJoinColumnToExclude(right)
+                            && (except == null || except.remove(left) == null && except.remove(right) == null)) {
+                        Database database = session.getDatabase();
+                        Expression e;
+                        if (left == right
+                                || DataType.hasTotalOrdering(left.getType().getValueType())
+                                && DataType.hasTotalOrdering(right.getType().getValueType())) {
+                            e = new ExpressionColumn(database, null, replacementAlias,
+                                    replacementFilter.getColumnName(right), false);
+                        } else {
+                            Function f = Function.getFunction(database, "COALESCE");
+                            f.setParameter(0, new ExpressionColumn(database, null, alias,
+                                    filter.getColumnName(left), false));
+                            f.setParameter(1, new ExpressionColumn(database, null, replacementAlias,
+                                    replacementFilter.getColumnName(right), false));
+                            f.doneWithParameters();
+                            e = new Alias(f, left.getName(), true);
+                        }
+                        expressions.add(index++, e);
                     }
                 }
             }

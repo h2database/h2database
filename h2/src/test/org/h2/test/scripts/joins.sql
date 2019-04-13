@@ -926,3 +926,52 @@ SELECT *
 > - - -
 > 2 B C
 > rows: 1
+
+CREATE TABLE T1(A NUMERIC PRIMARY KEY, B VARCHAR) AS (VALUES (1.0, 'A'), (2.0, 'B'));
+> ok
+
+CREATE TABLE T2(A NUMERIC PRIMARY KEY, C VARCHAR) AS (VALUES (2.00, 'C'), (3.00, 'D'));
+> ok
+
+SELECT * FROM T1 RIGHT JOIN T2 USING (A);
+> A    B    C
+> ---- ---- -
+> 2.0  B    C
+> 3.00 null D
+> rows: 2
+
+EXPLAIN SELECT * FROM T1 RIGHT JOIN T2 USING (A);
+>> SELECT COALESCE("T1"."A", "T2"."A") AS "A", "T1"."B", "T2"."C" FROM "PUBLIC"."T2" /* PUBLIC.T2.tableScan */ LEFT OUTER JOIN "PUBLIC"."T1" /* PUBLIC.PRIMARY_KEY_A: A = PUBLIC.T2.A */ ON "PUBLIC"."T1"."A" = "PUBLIC"."T2"."A"
+
+ALTER TABLE T1 ALTER COLUMN A INT;
+> ok
+
+ALTER TABLE T2 ALTER COLUMN A INT;
+> ok
+
+SELECT * FROM T1 RIGHT JOIN T2 USING (A);
+> A B    C
+> - ---- -
+> 2 B    C
+> 3 null D
+> rows: 2
+
+EXPLAIN SELECT * FROM T1 RIGHT JOIN T2 USING (A);
+>> SELECT "T2"."A", "T1"."B", "T2"."C" FROM "PUBLIC"."T2" /* PUBLIC.T2.tableScan */ LEFT OUTER JOIN "PUBLIC"."T1" /* PUBLIC.PRIMARY_KEY_B: A = PUBLIC.T2.A */ ON "PUBLIC"."T1"."A" = "PUBLIC"."T2"."A"
+
+SELECT * EXCEPT (T1.A) FROM T1 RIGHT JOIN T2 USING (A);
+> B    C
+> ---- -
+> B    C
+> null D
+> rows: 2
+
+SELECT * EXCEPT (T2.A) FROM T1 RIGHT JOIN T2 USING (A);
+> B    C
+> ---- -
+> B    C
+> null D
+> rows: 2
+
+DROP TABLE T1, T2;
+> ok

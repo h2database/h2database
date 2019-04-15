@@ -1338,6 +1338,7 @@ public class TestMVStore extends TestBase {
         MVMap<String, String> m = s.openMap("data");
         s.commit();
         long first = s.getCurrentVersion();
+        assertEquals(1, first);
         m.put("0", "test");
         s.commit();
         m.put("1", "Hello");
@@ -1351,7 +1352,9 @@ public class TestMVStore extends TestBase {
         m.put("2", "Welt");
         MVMap<String, String> mFirst;
         mFirst = m.openVersion(first);
-        assertEquals(0, mFirst.size());
+        // openVersion() should restore map at last known state of the version specified
+        // not at the first known state, as it was before
+        assertEquals(1, mFirst.size());
         MVMap<String, String> mOld;
         assertEquals("Hallo", m.get("1"));
         assertEquals("Welt", m.get("2"));
@@ -1814,6 +1817,7 @@ public class TestMVStore extends TestBase {
             sleep(2);
             MVStore s = openStore(fileName);
             s.setRetentionTime(0);
+            s.setVersionsToKeep(0);
             MVMap<Integer, String> m = s.openMap("data");
             for (int i = 0; i < 100; i++) {
                 m.put(j + i, "Hello " + j);

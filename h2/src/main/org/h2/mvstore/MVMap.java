@@ -968,14 +968,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 version, createVersion);
         RootReference rootReference = getRoot();
         removeUnusedOldVersions(rootReference);
-        while (rootReference != null && rootReference.version > version) {
-            rootReference = rootReference.previous;
+        RootReference previous;
+        while ((previous = rootReference.previous) != null && previous.version >= version) {
+            rootReference = previous;
         }
-
-        if (rootReference == null) {
-            // smaller than all in-memory versions
-            MVMap<K, V> map = openReadOnly(store.getRootPos(getId(), version), version);
-            return map;
+        if (previous == null && version < store.getOldestVersionToKeep()) {
+            throw DataUtils.newIllegalArgumentException("Unknown version {0}", version);
         }
         MVMap<K, V> m = openReadOnly(rootReference.root, version);
         assert m.getVersion() <= version : m.getVersion() + " <= " + version;

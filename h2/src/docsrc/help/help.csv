@@ -2680,6 +2680,15 @@ Values for INSERT statement.
 VALUES (1, 'Test')
 "
 
+"Other Grammar","Join specification","
+ON expression | USING (columnName [,...])
+","
+Specifies a join condition or column names.
+","
+ON B.ID = A.PARENT_ID
+USING (ID)
+"
+
 "Other Grammar","Merge when clause","
 mergeWhenMatchedClause|mergeWhenNotMatchedClause
 ","
@@ -2858,13 +2867,13 @@ ID + 20
 [ [ AS ] newTableAlias [ ( columnName [,...] ) ] ]
 [ USE INDEX ([ indexName [,...] ]) ]
 [ { { LEFT | RIGHT } [ OUTER ] | [ INNER ] | CROSS | NATURAL }
-    JOIN tableExpression [ ON expression ] ]
+    JOIN tableExpression [ joinSpecification ] ]
 ","
-Joins a table. The join expression is not supported for cross and natural joins.
+Joins a table. The join specification is not supported for cross and natural joins.
 A natural join is an inner join, where the condition is automatically on the
 columns with the same name.
 ","
-TEST AS T LEFT JOIN TEST AS T1 ON T.ID = T1.ID
+TEST1 AS T1 LEFT JOIN TEST2 AS T2 ON T1.ID = T2.PARENT_ID
 "
 
 "Other Grammar","Within group specification","
@@ -3334,9 +3343,9 @@ second mapped to 1, and so on.
 
 Duplicate and empty values are not permitted.
 ","
-
 ENUM('clubs', 'diamonds', 'hearts', 'spades')
 "
+
 "Data Types","GEOMETRY Type","
 GEOMETRY
     [({ GEOMETRY |
@@ -3374,6 +3383,18 @@ GEOMETRY(POINT)
 GEOMETRY(POINT Z)
 GEOMETRY(POINT Z, 4326)
 GEOMETRY(GEOMETRY, 4326)
+"
+
+"Data Types","JSON Type","
+JSON
+","
+A RFC 8259-compliant JSON text.
+Mapped to ""java.lang.String"" (byte[] is also supported).
+
+Order of object members is preserved as is.
+Duplicate object member names are allowed.
+","
+JSON
 "
 
 "Data Types","INTERVAL Type","
@@ -4042,6 +4063,16 @@ The second parameter is zero-indexed; the least significant bit has position 0.
 BITGET(A, 1)
 "
 
+"Functions (Numeric)","BITNOT","
+BITNOT(long)
+","
+The bitwise NOT operation.
+This method returns a long.
+See also Java operator ~.
+","
+BITNOT(A)
+"
+
 "Functions (Numeric)","BITOR","
 BITOR(long, long)
 ","
@@ -4060,6 +4091,28 @@ This method returns a long.
 See also Java operator ^.
 ","
 BITXOR(A, B)
+"
+
+"Functions (Numeric)","LSHIFT","
+LSHIFT(long, int)
+","
+The bitwise left shift operation.
+Shifts the first argument by the number of bits given by the second argument.
+This method returns a long.
+See also Java operator <<.
+","
+LSHIFT(A, B)
+"
+
+"Functions (Numeric)","RSHIFT","
+RSHIFT(long, int)
+","
+The bitwise right shift operation.
+Shifts the first argument by the number of bits given by the second argument.
+This method returns a long.
+See also Java operator >>.
+","
+RSHIFT(A, B)
 "
 
 "Functions (Numeric)","MOD","

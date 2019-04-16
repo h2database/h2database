@@ -13,10 +13,10 @@ create table c(c int) as select x from system_range(1, 2);
 > ok
 
 select * from a inner join b on a=b right outer join c on c=a;
-> C A    B
-> - ---- ----
-> 1 1    1
-> 2 null null
+> A    B    C
+> ---- ---- -
+> 1    1    1
+> null null 2
 > rows: 2
 
 select * from c left outer join (a inner join b on b=a) on c=a;
@@ -549,10 +549,10 @@ select * from t1 left join t2 on t1.id=t2.id;
 > rows: 2
 
 select * from t1 right join t2 on t1.id=t2.id;
-> ID NAME  ID   NAME
-> -- ----- ---- ----
-> 1  Hallo 1    hi
-> 3  Welt  null null
+> ID   NAME ID NAME
+> ---- ---- -- -----
+> 1    hi   1  Hallo
+> null null 3  Welt
 > rows: 2
 
 select * from t1 cross join t2;
@@ -596,15 +596,25 @@ create table INVOICE_LINE(line_id int, invoiceid int, customerid int, line_text 
 insert into INVOICE_LINE values(10, 1, 0, 'Super Soap'), (20, 1, 0, 'Regular Soap');
 > update count: 2
 
-select c.*, i.*, l.* from customer c natural join invoice i natural join INVOICE_LINE l;
+select * from customer c natural join invoice i natural join INVOICE_LINE l;
 > CUSTOMERID CUSTOMER_NAME INVOICEID INVOICE_TEXT LINE_ID LINE_TEXT
 > ---------- ------------- --------- ------------ ------- ------------
 > 0          Acme          1         Soap         10      Super Soap
 > 0          Acme          1         Soap         20      Regular Soap
 > rows: 2
 
-explain select c.*, i.*, l.* from customer c natural join invoice i natural join INVOICE_LINE l;
+explain select * from customer c natural join invoice i natural join INVOICE_LINE l;
 >> SELECT "C"."CUSTOMERID", "C"."CUSTOMER_NAME", "I"."INVOICEID", "I"."INVOICE_TEXT", "L"."LINE_ID", "L"."LINE_TEXT" FROM "PUBLIC"."INVOICE" "I" /* PUBLIC.INVOICE.tableScan */ INNER JOIN "PUBLIC"."INVOICE_LINE" "L" /* PUBLIC.INVOICE_LINE.tableScan */ ON 1=1 /* WHERE (PUBLIC.I.CUSTOMERID = PUBLIC.L.CUSTOMERID) AND (PUBLIC.I.INVOICEID = PUBLIC.L.INVOICEID) */ INNER JOIN "PUBLIC"."CUSTOMER" "C" /* PUBLIC.CUSTOMER.tableScan */ ON 1=1 WHERE ("PUBLIC"."C"."CUSTOMERID" = "PUBLIC"."I"."CUSTOMERID") AND (("PUBLIC"."I"."CUSTOMERID" = "PUBLIC"."L"."CUSTOMERID") AND ("PUBLIC"."I"."INVOICEID" = "PUBLIC"."L"."INVOICEID"))
+
+select c.*, i.*, l.* from customer c natural join invoice i natural join INVOICE_LINE l;
+> CUSTOMERID CUSTOMER_NAME CUSTOMERID INVOICEID INVOICE_TEXT LINE_ID INVOICEID CUSTOMERID LINE_TEXT
+> ---------- ------------- ---------- --------- ------------ ------- --------- ---------- ------------
+> 0          Acme          0          1         Soap         10      1         0          Super Soap
+> 0          Acme          0          1         Soap         20      1         0          Regular Soap
+> rows: 2
+
+explain select c.*, i.*, l.* from customer c natural join invoice i natural join INVOICE_LINE l;
+>> SELECT "C"."CUSTOMERID", "C"."CUSTOMER_NAME", "I"."CUSTOMERID", "I"."INVOICEID", "I"."INVOICE_TEXT", "L"."LINE_ID", "L"."INVOICEID", "L"."CUSTOMERID", "L"."LINE_TEXT" FROM "PUBLIC"."INVOICE" "I" /* PUBLIC.INVOICE.tableScan */ INNER JOIN "PUBLIC"."INVOICE_LINE" "L" /* PUBLIC.INVOICE_LINE.tableScan */ ON 1=1 /* WHERE (PUBLIC.I.CUSTOMERID = PUBLIC.L.CUSTOMERID) AND (PUBLIC.I.INVOICEID = PUBLIC.L.INVOICEID) */ INNER JOIN "PUBLIC"."CUSTOMER" "C" /* PUBLIC.CUSTOMER.tableScan */ ON 1=1 WHERE ("PUBLIC"."C"."CUSTOMERID" = "PUBLIC"."I"."CUSTOMERID") AND (("PUBLIC"."I"."CUSTOMERID" = "PUBLIC"."L"."CUSTOMERID") AND ("PUBLIC"."I"."INVOICEID" = "PUBLIC"."L"."INVOICEID"))
 
 drop table customer;
 > ok
@@ -650,11 +660,11 @@ SELECT * FROM PARENT P LEFT OUTER JOIN CHILD C ON P.ID = C.PARENTID;
 > rows: 3
 
 SELECT * FROM CHILD C RIGHT OUTER JOIN PARENT P ON P.ID = C.PARENTID;
-> ID NAME ID   PARENTID NAME
-> -- ---- ---- -------- ------
-> 1  Sue  100  1        Simon
-> 1  Sue  101  1        Sabine
-> 2  Joe  null null     null
+> ID   PARENTID NAME   ID NAME
+> ---- -------- ------ -- ----
+> 100  1        Simon  1  Sue
+> 101  1        Sabine 1  Sue
+> null null     null   2  Joe
 > rows: 3
 
 DROP TABLE PARENT;
@@ -799,6 +809,9 @@ SELECT T1.X1, T2.X2, T3.X3, T4.X4, T5.X5 FROM (
 > 1  1  1  1  1
 > rows: 1
 
+DROP TABLE T1, T2, T3, T4, T5;
+> ok
+
 CREATE TABLE A(X INT);
 > ok
 
@@ -825,4 +838,140 @@ SELECT * FROM TEST X LEFT OUTER JOIN TEST Y ON Y.A = X.A || '1';
 > rows: 0
 
 DROP TABLE TEST;
+> ok
+
+CREATE TABLE T1(A INT, B INT) AS VALUES (1, 10), (2, 20), (4, 40), (6, 6), (7, 7);
+> ok
+
+CREATE TABLE T2(A INT, B INT) AS VALUES (1, 100), (2, 200), (5, 500), (6, 6), (8, 7);
+> ok
+
+SELECT T1.B, T2.B FROM T1 INNER JOIN T2 USING (A);
+> B  B
+> -- ---
+> 10 100
+> 20 200
+> 6  6
+> rows: 3
+
+SELECT * FROM T1 INNER JOIN T2 USING (A);
+> A B  B
+> - -- ---
+> 1 10 100
+> 2 20 200
+> 6 6  6
+> rows: 3
+
+SELECT * FROM T1 INNER JOIN T2 USING (B);
+> B A A
+> - - -
+> 6 6 6
+> 7 7 8
+> rows: 2
+
+SELECT T1.B, T2.B FROM T1 INNER JOIN T2 USING (A, B);
+> B B
+> - -
+> 6 6
+> rows: 1
+
+SELECT * FROM T1 INNER JOIN T2 USING (B, A);
+> B A
+> - -
+> 6 6
+> rows: 1
+
+DROP TABLE T1, T2;
+> ok
+
+SELECT *
+    FROM (VALUES(1, 'A'), (2, 'B')) T1(A, B)
+    JOIN (VALUES(2, 'C'), (3, 'D')) T2(A, C) USING (A);
+> A B C
+> - - -
+> 2 B C
+> rows: 1
+
+SELECT *
+    FROM (VALUES(1, 'A'), (2, 'B')) T1(A, B)
+    LEFT JOIN (VALUES(2, 'C'), (3, 'D')) T2(A, C) USING (A);
+> A B C
+> - - ----
+> 1 A null
+> 2 B C
+> rows: 2
+
+SELECT *
+    FROM (VALUES(1, 'A'), (2, 'B')) T1(A, B)
+    RIGHT JOIN (VALUES(2, 'C'), (3, 'D')) T2(A, C) USING (A);
+> A B    C
+> - ---- -
+> 2 B    C
+> 3 null D
+> rows: 2
+
+SELECT T1.*, T2.*
+    FROM (VALUES(1, 'A'), (2, 'B')) T1(A, B)
+    RIGHT JOIN (VALUES(2, 'C'), (3, 'D')) T2(A, C) USING (A);
+> A    B    A C
+> ---- ---- - -
+> 2    B    2 C
+> null null 3 D
+> rows: 2
+
+SELECT *
+    FROM (VALUES(1, 'A'), (2, 'B')) T1(A, B)
+    NATURAL JOIN (VALUES(2, 'C'), (3, 'D')) T2(A, C);
+> A B C
+> - - -
+> 2 B C
+> rows: 1
+
+CREATE TABLE T1(A NUMERIC PRIMARY KEY, B VARCHAR) AS (VALUES (1.0, 'A'), (2.0, 'B'));
+> ok
+
+CREATE TABLE T2(A NUMERIC PRIMARY KEY, C VARCHAR) AS (VALUES (2.00, 'C'), (3.00, 'D'));
+> ok
+
+SELECT * FROM T1 RIGHT JOIN T2 USING (A);
+> A    B    C
+> ---- ---- -
+> 2.0  B    C
+> 3.00 null D
+> rows: 2
+
+EXPLAIN SELECT * FROM T1 RIGHT JOIN T2 USING (A);
+>> SELECT COALESCE("T1"."A", "T2"."A") AS "A", "T1"."B", "T2"."C" FROM "PUBLIC"."T2" /* PUBLIC.T2.tableScan */ LEFT OUTER JOIN "PUBLIC"."T1" /* PUBLIC.PRIMARY_KEY_A: A = PUBLIC.T2.A */ ON "PUBLIC"."T1"."A" = "PUBLIC"."T2"."A"
+
+ALTER TABLE T1 ALTER COLUMN A INT;
+> ok
+
+ALTER TABLE T2 ALTER COLUMN A INT;
+> ok
+
+SELECT * FROM T1 RIGHT JOIN T2 USING (A);
+> A B    C
+> - ---- -
+> 2 B    C
+> 3 null D
+> rows: 2
+
+EXPLAIN SELECT * FROM T1 RIGHT JOIN T2 USING (A);
+>> SELECT "T2"."A", "T1"."B", "T2"."C" FROM "PUBLIC"."T2" /* PUBLIC.T2.tableScan */ LEFT OUTER JOIN "PUBLIC"."T1" /* PUBLIC.PRIMARY_KEY_B: A = PUBLIC.T2.A */ ON "PUBLIC"."T1"."A" = "PUBLIC"."T2"."A"
+
+SELECT * EXCEPT (T1.A) FROM T1 RIGHT JOIN T2 USING (A);
+> B    C
+> ---- -
+> B    C
+> null D
+> rows: 2
+
+SELECT * EXCEPT (T2.A) FROM T1 RIGHT JOIN T2 USING (A);
+> B    C
+> ---- -
+> B    C
+> null D
+> rows: 2
+
+DROP TABLE T1, T2;
 > ok

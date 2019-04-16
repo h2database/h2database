@@ -184,7 +184,7 @@ public class MVStore implements AutoCloseable {
     private final AtomicReference<BackgroundWriterThread> backgroundWriterThread = new AtomicReference<>();
 
     private volatile boolean reuseSpace = true;
-    
+
     private boolean freeUnusedOnBackgroundThread = true;
 
     private volatile int state;
@@ -411,22 +411,7 @@ public class MVStore implements AutoCloseable {
             }
             lastCommitTime = getTimeSinceCreation();
 
-            Set<String> rootsToRemove = new HashSet<>();
-            for (Iterator<String> it = meta.keyIterator("root."); it.hasNext();) {
-                String key = it.next();
-                if (!key.startsWith("root.")) {
-                    break;
-                }
-                String mapId = key.substring(key.lastIndexOf('.') + 1);
-                if(!meta.containsKey("map."+mapId)) {
-                    rootsToRemove.add(key);
-                }
-            }
-
-            for (String key : rootsToRemove) {
-                meta.remove(key);
-                markMetaChanged();
-            }
+            scrubMetaMap();
 
             // setAutoCommitDelay starts the thread, but only if
             // the parameter is different from the old value
@@ -435,6 +420,63 @@ public class MVStore implements AutoCloseable {
         } else {
             autoCommitMemory = 0;
             autoCompactFillRate = 0;
+        }
+    }
+
+    private void scrubMetaMap() {
+        Set<String> keysToRemove = new HashSet<>();
+
+        // ensure that there is only one name mapped to this id
+        // this could be a leftover of an unfinished map rename
+        for (Iterator<String> it = meta.keyIterator("name."); it.hasNext();) {
+            String key = it.next();
+            if (!key.startsWith("name.")) {
+                break;
+            }
+            String mapName = key.substring("name.".length());
+            int mapId = DataUtils.parseHexInt(meta.get(key));
+            String realMapName = getMapName(mapId);
+            if(!mapName.equals(realMapName)) {
+                keysToRemove.add(key);
+            }
+        }
+
+        // remove roots of non-existent maps (leftover after unfinished map removal)
+        for (Iterator<String> it = meta.keyIterator("root."); it.hasNext();) {
+            String key = it.next();
+            if (!key.startsWith("root.")) {
+                break;
+            }
+            String mapIdStr = key.substring(key.lastIndexOf('.') + 1);
+            if(!meta.containsKey("map." + mapIdStr)) {
+                meta.remove(key);
+                markMetaChanged();
+                keysToRemove.add(key);
+            }
+        }
+
+        for (String key : keysToRemove) {
+            meta.remove(key);
+            markMetaChanged();
+        }
+
+        for (Iterator<String> it = meta.keyIterator("map."); it.hasNext();) {
+            String key = it.next();
+            if (!key.startsWith("map.")) {
+                break;
+            }
+            String mapName = DataUtils.getMapName(meta.get(key));
+            String mapIdStr = key.substring("map.".length());
+            // ensure that last map id is not smaller than max of any existing map ids
+            int mapId = DataUtils.parseHexInt(mapIdStr);
+            if (mapId > lastMapId.get()) {
+                lastMapId.set(mapId);
+            }
+            // each map should have a proper name
+            if(!mapIdStr.equals(meta.get("name." + mapName))) {
+                meta.put("name." + mapName, mapIdStr);
+                markMetaChanged();
+            }
         }
     }
 
@@ -1245,7 +1287,6 @@ public class MVStore implements AutoCloseable {
         c.len = Integer.MAX_VALUE;
         c.time = time;
         c.version = version;
-        c.mapId = lastMapId.get();
         c.next = Long.MAX_VALUE;
         chunks.put(c.id, c);
         ArrayList<Page> changed = new ArrayList<>();
@@ -1295,6 +1336,11 @@ public class MVStore implements AutoCloseable {
 
         Page metaRoot = metaRootReference.root;
         metaRoot.writeUnsavedRecursive(c, buff);
+
+        // last allocated map id should be captured after the meta map was saved, because
+        // this will ensure that concurrently created map, which made it into meta before save,
+        // will have it's id reflected in mapid field of currently written chunk
+        c.mapId = lastMapId.get();
 
         int chunkLength = buff.position();
 
@@ -1449,9 +1495,9 @@ public class MVStore implements AutoCloseable {
     }
 
     /**
-     * Collect ids for chunks that are in use.
-     * We assume that recent chunks are still in-use and do not scan recent (used by open transactions)
-     * versions of the store. Only oldest available version of the store is scanned.
+     * Collect ids for chunks that are in use. We assume that recent chunks are
+     * still in-use and do not scan recent (used by open transactions) versions
+     * of the store. Only oldest available version of the store is scanned.
      * @param oldestVersionToKeep version of the store to scan, chunks with newer versions are
      *                            implicitly considered as being in use
      * @return set of chunk ids in-use
@@ -1885,7 +1931,8 @@ public class MVStore implements AutoCloseable {
                     freeUnusedChunks();
                     if (fileStore.getFillRate() <= targetFillRate) {
                         long start = fileStore.getFirstFree() / BLOCK_SIZE;
-                        ArrayList<Chunk> move = findChunksToMove(start, moveSize);
+                        long maxBlocksToMove = moveSize / BLOCK_SIZE;
+                        Iterable<Chunk> move = findChunksToMove(start, maxBlocksToMove);
                         compactMoveChunks(move);
                     }
                 } finally {
@@ -1898,43 +1945,34 @@ public class MVStore implements AutoCloseable {
         }
     }
 
-    private ArrayList<Chunk> findChunksToMove(long startBlock, long moveSize) {
-        ArrayList<Chunk> move = new ArrayList<>();
-        for (Chunk c : chunks.values()) {
-            if (c.block > startBlock) {
-                move.add(c);
-            }
-        }
-        // sort by block
-        Collections.sort(move, new Comparator<Chunk>() {
-            @Override
-            public int compare(Chunk o1, Chunk o2) {
-                return Long.signum(o1.block - o2.block);
-            }
-        });
-        // find which is the last block to keep
-        int count = 0;
+    private Iterable<Chunk> findChunksToMove(long startBlock, long moveSize) {
+        PriorityQueue<Chunk> queue = new PriorityQueue<>(this.chunks.size() / 2 + 1,
+                new Comparator<Chunk>() {
+                    @Override
+                    public int compare(Chunk o1, Chunk o2) {
+                        return Long.signum(o2.block - o1.block);
+                    }
+                });
         long size = 0;
-        for (Chunk c : move) {
-            long chunkSize = c.len * (long) BLOCK_SIZE;
-            size += chunkSize;
-            if (size > moveSize) {
-                break;
+        for (Chunk chunk : chunks.values()) {
+            if (chunk.block > startBlock) {
+                queue.offer(chunk);
+                size += chunk.len;
+                while (size > moveSize) {
+                    Chunk removed = queue.poll();
+                    if (removed == null) {
+                        break;
+                    }
+                    size -= removed.len;
+                }
             }
-            count++;
         }
-        // move the first block (so the first gap is moved),
-        // and the one at the end (so the file shrinks)
-        while (move.size() > count && move.size() > 1) {
-            move.remove(1);
-        }
-
-        return move;
+        return queue;
     }
 
-    private void compactMoveChunks(ArrayList<Chunk> move) {
+    private void compactMoveChunks(Iterable<Chunk> move) {
         // this will ensure better recognition of the last chunk
-        // in case of pwer failure, since we are going to move older chunks
+        // in case of power failure, since we are going to move older chunks
         // to the end of the file
         writeStoreHeader();
         sync();
@@ -2036,32 +2074,33 @@ public class MVStore implements AutoCloseable {
      * @return if a chunk was re-written
      */
     public boolean compact(int targetFillRate, int write) {
-        if (!reuseSpace) {
-            return false;
-        }
-        checkOpen();
-        // We can't wait forever for the lock here,
-        // because if called from the background thread,
-        // it might go into deadlock with concurrent database closure
-        // and attempt to stop this thread.
-        try {
-            if (!storeLock.isHeldByCurrentThread() &&
-                    storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
-                try {
-                    ArrayList<Chunk> old = findOldChunks(targetFillRate, write);
-                    if (old == null || old.isEmpty()) {
-                        return false;
+        if (reuseSpace) {
+            checkOpen();
+            // We can't wait forever for the lock here,
+            // because if called from the background thread,
+            // it might go into deadlock with concurrent database closure
+            // and attempt to stop this thread.
+            try {
+                if (!storeLock.isHeldByCurrentThread() &&
+                        storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
+                    try {
+                        Iterable<Chunk> old = findOldChunks(targetFillRate, write);
+                        if (old != null) {
+                            HashSet<Integer> idSet = createIdSet(old);
+                            if (!idSet.isEmpty()) {
+                                compactRewrite(idSet);
+                                return true;
+                            }
+                        }
+                    } finally {
+                        storeLock.unlock();
                     }
-                    compactRewrite(old);
-                    return true;
-                } finally {
-                    storeLock.unlock();
                 }
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
-            return false;
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         }
+        return false;
     }
 
     /**
@@ -2072,7 +2111,7 @@ public class MVStore implements AutoCloseable {
      *
      * @return the fill rate, in percent (100 is completely full)
      */
-    public int getCurrentFillRate() {
+    public int getChunksFillRate() {
         long maxLengthSum = 1;
         long maxLengthLiveSum = 1;
         long time = getTimeSinceCreation();
@@ -2097,80 +2136,61 @@ public class MVStore implements AutoCloseable {
         return fillRate;
     }
 
-    private ArrayList<Chunk> findOldChunks(int targetFillRate, int write) {
+    private Iterable<Chunk> findOldChunks(int targetFillRate, int writeLimit) {
         if (lastChunk == null) {
             // nothing to do
             return null;
         }
         long time = getTimeSinceCreation();
-        int fillRate = getCurrentFillRate();
+        int fillRate = getChunksFillRate();
         if (fillRate >= targetFillRate) {
             return null;
         }
 
-        // the 'old' list contains the chunks we want to free up
-        ArrayList<Chunk> old = new ArrayList<>();
+        // the queue will contain chunks we want to free up
+        PriorityQueue<Chunk> queue = new PriorityQueue<>(this.chunks.size() / 4 + 1,
+                new Comparator<Chunk>() {
+                    @Override
+                    public int compare(Chunk o1, Chunk o2) {
+                        int comp = Integer.compare(o2.collectPriority, o1.collectPriority);
+                        if (comp == 0) {
+                            comp = Long.compare(o2.maxLenLive, o2.maxLenLive);
+                        }
+                        return comp;
+                    }
+                });
+
+        long totalSize = 0;
         Chunk last = chunks.get(lastChunk.id);
-        for (Chunk c : chunks.values()) {
+        for (Chunk chunk : chunks.values()) {
             // only look at chunk older than the retention time
             // (it's possible to compact chunks earlier, but right
             // now we don't do that)
-            if (c.time + retentionTime <= time) {
-                long age = last.version - c.version + 1;
-                c.collectPriority = (int) (c.getFillRate() * 1000 / Math.max(1,age));
-                old.add(c);
+            int liveCount = chunk.pageCountLive;
+            if (liveCount > 0 && liveCount < chunk.pageCount) {
+                if (chunk.time + retentionTime <= time) {
+                    long age = last.version - chunk.version + 1;
+                    chunk.collectPriority = (int) (chunk.getFillRate() * 1000 / Math.max(1,age));
+                    totalSize += chunk.maxLenLive;
+                    queue.offer(chunk);
+                    while (totalSize > writeLimit) {
+                        Chunk removed = queue.poll();
+                        if (removed == null) {
+                            break;
+                        }
+                        totalSize -= removed.maxLenLive;
+                    }
+                }
             }
-        }
-        if (old.isEmpty()) {
-            return null;
         }
 
-        // sort the list, so the first entry should be collected first
-        Collections.sort(old, new Comparator<Chunk>() {
-            @Override
-            public int compare(Chunk o1, Chunk o2) {
-                int comp = Integer.compare(o1.collectPriority, o2.collectPriority);
-                if (comp == 0) {
-                    comp = Long.compare(o1.maxLenLive, o2.maxLenLive);
-                }
-                return comp;
-            }
-        });
-        // find out up to were in the old list we need to move
-        long written = 0;
-        int chunkCount = 0;
-        Chunk move = null;
-        for (Chunk c : old) {
-            if (move != null) {
-                if (c.collectPriority > 0 && written > write) {
-                    break;
-                }
-            }
-            written += c.maxLenLive;
-            chunkCount++;
-            move = c;
-        }
-        if (chunkCount < 1) {
+        if (queue.isEmpty()) {
             return null;
         }
-        // remove the chunks we want to keep from this list
-        boolean remove = false;
-        for (Iterator<Chunk> it = old.iterator(); it.hasNext();) {
-            Chunk c = it.next();
-            if (move == c) {
-                remove = true;
-            } else if (remove) {
-                it.remove();
-            }
-        }
-        return old;
+        return queue;
     }
 
-    private void compactRewrite(Iterable<Chunk> old) {
-        HashSet<Integer> set = new HashSet<>();
-        for (Chunk c : old) {
-            set.add(c.id);
-        }
+    private void compactRewrite(Set<Integer> set) {
         for (MVMap<?, ?> m : maps.values()) {
             @SuppressWarnings("unchecked")
             MVMap<Object, Object> map = (MVMap<Object, Object>) m;
@@ -2181,6 +2201,14 @@ public class MVStore implements AutoCloseable {
         meta.rewrite(set);
         freeUnusedChunks();
         commit();
+    }
+
+    private HashSet<Integer> createIdSet(Iterable<Chunk> toCompact) {
+        HashSet<Integer> set = new HashSet<>();
+        for (Chunk c : toCompact) {
+            set.add(c.id);
+        }
+        return set;
     }
 
     /**

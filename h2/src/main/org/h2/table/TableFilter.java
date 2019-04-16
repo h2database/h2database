@@ -6,13 +6,16 @@
 package org.h2.table;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map.Entry;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.command.dml.Select;
+import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -41,8 +44,17 @@ import org.h2.value.ValueNull;
  */
 public class TableFilter implements ColumnResolver {
 
-    private static final int BEFORE_FIRST = 0, FOUND = 1, AFTER_LAST = 2,
-            NULL_ROW = 3;
+    private static final int BEFORE_FIRST = 0, FOUND = 1, AFTER_LAST = 2, NULL_ROW = 3;
+
+    /**
+     * Comparator that uses order in FROM clause as a sort key.
+     */
+    public static final Comparator<TableFilter> ORDER_IN_FROM_COMPARATOR = new Comparator<TableFilter>() {
+        @Override
+        public int compare(TableFilter o1, TableFilter o2) {
+            return Integer.compare(o1.getOrderInFrom(), o2.getOrderInFrom());
+        }
+    };
 
     /**
      * Whether this is a direct or indirect (nested) outer join
@@ -116,12 +128,23 @@ public class TableFilter implements ColumnResolver {
      */
     private TableFilter nestedJoin;
 
-    private ArrayList<Column> naturalJoinColumns;
+    /**
+     * Map of common join columns, used for NATURAL joins and USING clause of
+     * other joins. This map preserves original order of the columns.
+     */
+    private LinkedHashMap<Column, Column> commonJoinColumns;
+
+    private TableFilter commonJoinColumnsFilter;
+    private ArrayList<Column> commonJoinColumnsToExclude;
     private boolean foundOne;
     private Expression fullCondition;
     private final int hashCode;
     private final int orderInFrom;
 
+    /**
+     * Map of derived column names. This map preserves original order of the
+     * columns.
+     */
     private LinkedHashMap<Column, String> derivedColumnMap;
 
     /**
@@ -1040,9 +1063,47 @@ public class TableFilter implements ColumnResolver {
     }
 
     @Override
-    public String getDerivedColumnName(Column column) {
+    public String getColumnName(Column column) {
         HashMap<Column, String> map = derivedColumnMap;
-        return map != null ? map.get(column) : null;
+        return map != null ? map.get(column) : column.getName();
+    }
+
+    @Override
+    public boolean hasDerivedColumnList() {
+        return derivedColumnMap != null;
+    }
+
+    /**
+     * Get the column with the given name.
+     *
+     * @param columnName
+     *            the column name
+     * @param ifExists
+     *            if (@code true) return {@code null} if column does not exist
+     * @return the column
+     * @throws DbException
+     *             if the column was not found and {@code ifExists} is
+     *             {@code false}
+     */
+    public Column getColumn(String columnName, boolean ifExists) {
+        HashMap<Column, String> map = derivedColumnMap;
+        if (map != null) {
+            Database database = session.getDatabase();
+            for (Entry<Column, String> entry : map.entrySet()) {
+                if (database.equalsIdentifiers(columnName, entry.getValue())) {
+                    return entry.getKey();
+                }
+            }
+            if (ifExists) {
+                return null;
+            } else {
+                throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, columnName);
+            }
+        }
+        if (ifExists && !table.doesColumnExist(columnName)) {
+            return null;
+        }
+        return table.getColumn(columnName);
     }
 
     /**
@@ -1141,25 +1202,66 @@ public class TableFilter implements ColumnResolver {
     }
 
     /**
-     * Add a column to the natural join key column list.
+     * Add a column to the common join column list for a left table filter.
      *
-     * @param c the column to add
+     * @param leftColumn
+     *            the column on the left side
+     * @param replacementColumn
+     *            the column to use instead, may be the same as column on the
+     *            left side
+     * @param replacementFilter
+     *            the table filter for replacement columns
      */
-    public void addNaturalJoinColumn(Column c) {
-        if (naturalJoinColumns == null) {
-            naturalJoinColumns = Utils.newSmallArrayList();
+    public void addCommonJoinColumns(Column leftColumn, Column replacementColumn, TableFilter replacementFilter) {
+        if (commonJoinColumns == null) {
+            commonJoinColumns = new LinkedHashMap<>();
+            commonJoinColumnsFilter = replacementFilter;
+        } else {
+            assert commonJoinColumnsFilter == replacementFilter;
         }
-        naturalJoinColumns.add(c);
+        commonJoinColumns.put(leftColumn, replacementColumn);
     }
 
     /**
-     * Check if the given column is a natural join column.
+     * Add an excluded column to the common join column list.
      *
-     * @param c the column to check
-     * @return true if this is a joined natural join column
+     * @param columnToExclude
+     *            the column to exclude
      */
-    public boolean isNaturalJoinColumn(Column c) {
-        return naturalJoinColumns != null && naturalJoinColumns.contains(c);
+    public void addCommonJoinColumnToExclude(Column columnToExclude) {
+        if (commonJoinColumnsToExclude == null) {
+            commonJoinColumnsToExclude = Utils.newSmallArrayList();
+        }
+        commonJoinColumnsToExclude.add(columnToExclude);
+    }
+
+    /**
+     * Returns common join columns map.
+     *
+     * @return common join columns map, or {@code null}
+     */
+    public LinkedHashMap<Column, Column> getCommonJoinColumns() {
+        return commonJoinColumns;
+    }
+
+    /**
+     * Returns common join columns table filter.
+     *
+     * @return common join columns table filter, or {@code null}
+     */
+    public TableFilter getCommonJoinColumnsFilter() {
+        return commonJoinColumnsFilter;
+    }
+
+    /**
+     * Check if the given column is an excluded common join column.
+     *
+     * @param c
+     *            the column to check
+     * @return true if this is an excluded common join column
+     */
+    public boolean isCommonJoinColumnToExclude(Column c) {
+        return commonJoinColumnsToExclude != null && commonJoinColumnsToExclude.contains(c);
     }
 
     @Override

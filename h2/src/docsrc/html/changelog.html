@@ -21,13 +21,49 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
-<li>-
-</li>
-</ul>
-
-<h2>Version 1.4.199 (2019-03-13)</h2>
-<ul>
 <li>Issue #1819: Trace.db file exceed file size limit (64MB)
+</li>
+<li>Issue #1861: Use COALESCE in named columns join for some data types
+</li>
+<li>PR #1860: Additional fix for deadlock on shutdown (exclusively in PageStore mode)
+</li>
+<li>Issue #1855: Wrong qualified asterisked projections in named column join
+</li>
+<li>Issue #1854: Wrong asterisked projection and result in named column right outer join
+</li>
+<li>Issue #1852: Named column joins doesn't work with the VALUES constructor and derived column lists
+</li>
+<li>Issue #1851: Wrong asterisked projection in named column joins
+</li>
+<li>PR #1850: Duplicate map identifiers
+</li>
+<li>PR #1849: Reimplement MVStore.findOldChunks() with PriorityQueue
+</li>
+<li>PR #1848: Reimplement MVStore.findChunksToMove() with PriorityQueue
+</li>
+<li>Issue #1843: Named columns join syntax is not supported
+</li>
+<li>Issue #1841: Deadlock during concurrent shutdown attempts with 1.4.199
+</li>
+<li>Issue #1834: NUMERIC does not preserve its scale for some values
+</li>
+<li>PR #1838: Implement conversion from JSON to GEOMETRY
+</li>
+<li>PR #1837: Implement conversion from GEOMETRY to JSON
+</li>
+<li>PR #1836: Add LSHIFT and RSHIFT function
+</li>
+<li>PR #1833: Add BITNOT function
+</li>
+<li>PR #1832: JSON validation and normalization
+</li>
+<li>PR #1829: MVStore chunks occupancy rate calculation fixes
+</li>
+<li>PR #1828: Basis for implementation of SQL/JSON standard
+</li>
+<li>PR #1827: Add support for Lucene 8.0.0
+</li>
+<li>Issue #1820: Performance problem on commit
 </li>
 <li>Issue #1822: Use https:// in h2database.com hyperlinks
 </li>
@@ -35,6 +71,10 @@ Change Log
 </li>
 <li>PR #1812: An IllegalStateException that wraps EOFException is thrown when partial writes happens
 </li>
+</ul>
+
+<h2>Version 1.4.199 (2019-03-13)</h2>
+<ul>
 <li>PR #1807: Reduce code duplication and remove h2.mixedGeometries
 </li>
 <li>PR #1806: Improve SELECT FOR UPDATE documentation

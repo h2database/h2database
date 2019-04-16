@@ -31,6 +31,7 @@ import org.h2.util.DateTimeUtils;
 import org.h2.util.IntervalUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
+import org.h2.util.geometry.GeoJsonUtils;
 
 /**
  * This is the base class for all value classes.
@@ -245,7 +246,7 @@ public abstract class Value extends VersionedValue {
      * The value type for ROW values.
      */
     public static final int ROW = 39;
-    
+
     /**
      * The value type for JSON values.
      */
@@ -821,7 +822,7 @@ public abstract class Value extends VersionedValue {
             case Value.INTERVAL_MINUTE_TO_SECOND:
                 return convertToIntervalDayTime(targetType);
             case Value.JSON:
-                return new ValueJson(getString());
+                return convertToJson();
             case ARRAY:
                 return convertToArray();
             case ROW:
@@ -1130,9 +1131,10 @@ public abstract class Value extends VersionedValue {
         switch (getValueType()) {
         case JAVA_OBJECT:
         case BLOB:
+        case GEOMETRY:
             return ValueBytes.getNoCopy(getBytesNoCopy());
         case UUID:
-        case GEOMETRY:
+        case JSON:
             return ValueBytes.getNoCopy(getBytes());
         case BYTE:
             return ValueBytes.getNoCopy(new byte[] { getByte() });
@@ -1232,7 +1234,11 @@ public abstract class Value extends VersionedValue {
     private ValueLobDb convertToBlob() {
         switch (getValueType()) {
         case BYTES:
+        case GEOMETRY:
             return ValueLobDb.createSmallLob(Value.BLOB, getBytesNoCopy());
+        case UUID:
+        case JSON:
+            return ValueLobDb.createSmallLob(Value.BLOB, getBytes());
         case TIMESTAMP_TZ:
             throw getDataConversionError(BLOB);
         }
@@ -1274,6 +1280,17 @@ public abstract class Value extends VersionedValue {
             //$FALL-THROUGH$
         case TIMESTAMP_TZ:
             throw getDataConversionError(GEOMETRY);
+        case JSON: {
+            int srid = 0;
+            if (extTypeInfo != null) {
+                Integer s = extTypeInfo.getSrid();
+                if (s != null) {
+                    srid = s;
+                }
+            }
+            result = ValueGeometry.get(GeoJsonUtils.geoJsonToEwkb(getString(), srid));
+            break;
+        }
         default:
             result = ValueGeometry.get(getString());
         }
@@ -1331,6 +1348,37 @@ public abstract class Value extends VersionedValue {
                     IntervalUtils.intervalToAbsolute((ValueInterval) this));
         }
         throw getDataConversionError(targetType);
+    }
+
+    private ValueJson convertToJson() {
+        switch (getValueType()) {
+        case BOOLEAN:
+            return ValueJson.get(getBoolean());
+        case BYTE:
+        case SHORT:
+        case INT:
+            return ValueJson.get(getInt());
+        case LONG:
+            return ValueJson.get(getLong());
+        case FLOAT:
+        case DOUBLE:
+        case DECIMAL:
+            return ValueJson.get(getBigDecimal());
+        case BYTES:
+        case BLOB:
+            return ValueJson.get(getBytesNoCopy());
+        case STRING:
+        case STRING_IGNORECASE:
+        case STRING_FIXED:
+        case CLOB:
+            return ValueJson.get(getString());
+        case GEOMETRY: {
+            ValueGeometry vg = (ValueGeometry) this;
+            return ValueJson.getInternal(GeoJsonUtils.ewkbToGeoJson(vg.getBytesNoCopy(), vg.getDimensionSystem()));
+        }
+        default:
+            throw getDataConversionError(Value.JSON);
+        }
     }
 
     private ValueArray convertToArray() {

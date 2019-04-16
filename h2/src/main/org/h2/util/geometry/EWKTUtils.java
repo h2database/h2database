@@ -44,7 +44,7 @@ public final class EWKTUtils {
      * 0-based type names of geometries, subtract 1 from type code to get index
      * in this array.
      */
-    private static final String[] TYPES = { //
+    static final String[] TYPES = { //
             "POINT", //
             "LINESTRING", //
             "POLYGON", //
@@ -146,31 +146,7 @@ public final class EWKTUtils {
             if (inMulti) {
                 return;
             }
-            switch (type) {
-            case POINT:
-                output.append("POINT");
-                break;
-            case LINE_STRING:
-                output.append("LINESTRING");
-                break;
-            case POLYGON:
-                output.append("POLYGON");
-                break;
-            case MULTI_POINT:
-                output.append("MULTIPOINT");
-                break;
-            case MULTI_LINE_STRING:
-                output.append("MULTILINESTRING");
-                break;
-            case MULTI_POLYGON:
-                output.append("MULTIPOLYGON");
-                break;
-            case GEOMETRY_COLLECTION:
-                output.append("GEOMETRYCOLLECTION");
-                break;
-            default:
-                throw new IllegalArgumentException();
-            }
+            output.append(TYPES[type - 1]);
             switch (dimensionSystem) {
             case DIMENSION_SYSTEM_XYZ:
                 output.append(" Z");
@@ -195,15 +171,18 @@ public final class EWKTUtils {
         }
 
         @Override
-        protected void endCollectionItem(Target target, int index, int total) {
+        protected void endCollectionItem(Target target, int type, int index, int total) {
             if (index + 1 == total) {
                 output.append(')');
             }
         }
 
         @Override
-        protected void endCollection(int type) {
-            if (type != GEOMETRY_COLLECTION) {
+        protected void endObject(int type) {
+            switch (type) {
+            case MULTI_POINT:
+            case MULTI_LINE_STRING:
+            case MULTI_POLYGON:
                 inMulti = false;
             }
         }
@@ -787,13 +766,9 @@ public final class EWKTUtils {
             break;
         }
         case MULTI_POINT:
-            parseCollection(source, target, MULTI_POINT, parentType, dimensionSystem);
-            break;
         case MULTI_LINE_STRING:
-            parseCollection(source, target, MULTI_LINE_STRING, parentType, dimensionSystem);
-            break;
         case MULTI_POLYGON:
-            parseCollection(source, target, MULTI_POLYGON, parentType, dimensionSystem);
+            parseCollection(source, target, type, parentType, dimensionSystem);
             break;
         case GEOMETRY_COLLECTION:
             parseCollection(source, target, GEOMETRY_COLLECTION, parentType, 0);
@@ -801,6 +776,7 @@ public final class EWKTUtils {
         default:
             throw new IllegalArgumentException();
         }
+        target.endObject(type);
         if (parentType == 0 && source.hasData()) {
             throw new IllegalArgumentException();
         }
@@ -825,12 +801,11 @@ public final class EWKTUtils {
                     }
                     Target innerTarget = target.startCollectionItem(i, numItems);
                     parseEWKT(source, innerTarget, type, dimensionSystem);
-                    target.endCollectionItem(innerTarget, i, numItems);
+                    target.endCollectionItem(innerTarget, type, i, numItems);
                 }
                 source.read(')');
             }
         }
-        target.endCollection(type);
     }
 
     private static void parseMultiPointAlternative(EWKTSource source, Target target, int dimensionSystem) {
@@ -846,7 +821,7 @@ public final class EWKTUtils {
             target.startPoint();
             double[] c = points.get(i);
             target.addCoordinate(c[X], c[Y], c[Z], c[M], 0, 1);
-            target.endCollectionItem(innerTarget, i, numItems);
+            target.endCollectionItem(innerTarget, MULTI_POINT, i, numItems);
         }
     }
 

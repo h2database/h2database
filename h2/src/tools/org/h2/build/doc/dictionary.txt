@@ -57,7 +57,7 @@ below bench benchmark benchmarks beneficial benefit bennet berger berkeley
 berlini bern bernd berne best beta better between beverages beware beyond bfff
 bgcolor biased bid biel bienne big bigger biggest bigint biginteger bigserial
 bilinear bilingual billion bin binaries binary bind bindings bio biodiversity
-biological bipush birth birthday biscuits bit bitand bitmap bitor bits bitwise
+biological bipush birth birthday biscuits bit bitand bitmap bitnot bitor bits bitwise
 bitxor biz bjorn black blank blanked blanks bleyl blind blitz blob blobs block
 blocked blocking blockquote blocks blocksize blog blogs bloom blue blume blur bnf
 bnot boat bob bocher bodies body bogus bohlen bold bom bonita boo book
@@ -379,7 +379,7 @@ longblob longer longest longitude longnvarchar longs longtext longvarbinary long
 look lookahead looking looks lookup lookups lookupswitch loop loopback looping
 loops loose lor lore lose losing loss losses lossless losslessly lost lot lots
 low lowast lower lowercase lowercased lowest loz lpad lrem lreturn lrm lru lsaquo
-lshl lshr lsm lsquo lstore lsub lte ltrim lucene lucerne lugano lukas lumber
+lshift lshl lshr lsm lsquo lstore lsub lte ltrim lucene lucerne lugano lukas lumber
 lumberjack luntbuild lushr lutin lxabcdef lxor lying lynx lzf mac macdonald
 machine machines maciej macr macro macromedia macros made magic magnolia magyar
 mahon mail mailing main mainly maintain maintained maintaining maintains
@@ -556,7 +556,7 @@ rmd rmdir rmerr rmi rmiregistry rnd rnfr rnto road roadmap roads robert roc rogu
 rojas role roles roll rollback rollbacks rolled rolling rollover rolls roman room
 root rooted roots rot rotate round rounded rounding roundmagic rounds routine routinely
 routines row rowcount rowid rowlock rownum rows rowscn rowsize roy royalty rpad rpm rsa
-rsaquo rsquo rss rtree rtrim ruby ruebezahl rule rules run rund rundll runnable
+rsaquo rshift rsquo rss rtree rtrim ruby ruebezahl rule rules run rund rundll runnable
 runner runners running runs runscript runtime rwd rws sabine safari safe safely
 safes safety said sainsbury salary sale sales saload salt salz sam same
 sameorigin samp sample samples sanitize sanity sans sastore sat satisfy saturday sauce
@@ -810,4 +810,5 @@ presorted inclusion contexts aax mwd percentile cont interpolate mwa hypothetica
 isodow isoyear psql
 
 waiters reliably httpsdocs privileged narrow spending swallow locally uncomment builders
-setjava lift hyperlinks
+setjava lift hyperlinks lazarevn nikita lazarev lvl ispras bias dbff fals tru dfff
+recognition spared hacky employing occupancy baos shifts littlejohn pushes scrub existent asterisked projections

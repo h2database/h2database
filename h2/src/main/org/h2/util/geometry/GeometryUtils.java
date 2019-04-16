@@ -114,21 +114,23 @@ public final class GeometryUtils {
          *
          * @param target
          *            the result of {@link #startCollectionItem(int, int)}
+         * @param type
+         *            type of collection
          * @param index
          *            0-based index of this item in the collection
          * @param total
          *            total number of items in the collection
          */
-        protected void endCollectionItem(Target target, int index, int total) {
+        protected void endCollectionItem(Target target, int type, int index, int total) {
         }
 
         /**
-         * Invoked after writing of a collection.
+         * Invoked after writing of the object.
          *
          * @param type
-         *            type of collection, see {@link #startCollection(int, int)}
+         *            type of the object
          */
-        protected void endCollection(int type) {
+        protected void endObject(int type) {
         }
 
         /**

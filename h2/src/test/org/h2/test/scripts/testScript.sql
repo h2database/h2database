@@ -3173,9 +3173,9 @@ drop table test;
 > ok
 
 call select 1.0/3.0*3.0, 100.0/2.0, -25.0/100.0, 0.0/3.0, 6.9/2.0, 0.72179425150347250912311550800000 / 5314251955.21;
-> SELECT 0.999999999999999999999999990, 50, -0.25, 0, 3.45, 1.35822361752313607260107721120531135706133161972E-10 FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */ /* scanCount: 2 */
-> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> ROW (0.999999999999999999999999990, 50, -0.25, 0, 3.45, 1.35822361752313607260107721120531135706133161972E-10)
+> SELECT 0.999999999999999999999999990, 5E+1, -0.25, 0, 3.45, 1.35822361752313607260107721120531135706133161972E-10 FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */ /* scanCount: 2 */
+> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> ROW (0.999999999999999999999999990, 5E+1, -0.25, 0, 3.45, 1.35822361752313607260107721120531135706133161972E-10)
 > rows: 1
 
 call (select x from dual where x is null);
@@ -3464,8 +3464,8 @@ create table test(id int primary key);
 > ok
 
 explain select * from test a inner join test b left outer join test c on c.id = a.id;
-#+mvStore#>> SELECT "A"."ID", "C"."ID", "B"."ID" FROM "PUBLIC"."TEST" "A" /* PUBLIC.TEST.tableScan */ LEFT OUTER JOIN "PUBLIC"."TEST" "C" /* PUBLIC.PRIMARY_KEY_2: ID = A.ID */ ON "C"."ID" = "A"."ID" INNER JOIN "PUBLIC"."TEST" "B" /* PUBLIC.TEST.tableScan */ ON 1=1
-#-mvStore#>> SELECT "A"."ID", "C"."ID", "B"."ID" FROM "PUBLIC"."TEST" "A" /* PUBLIC.PRIMARY_KEY_2 */ LEFT OUTER JOIN "PUBLIC"."TEST" "C" /* PUBLIC.PRIMARY_KEY_2: ID = A.ID */ ON "C"."ID" = "A"."ID" INNER JOIN "PUBLIC"."TEST" "B" /* PUBLIC.PRIMARY_KEY_2 */ ON 1=1
+#+mvStore#>> SELECT "A"."ID", "B"."ID", "C"."ID" FROM "PUBLIC"."TEST" "A" /* PUBLIC.TEST.tableScan */ LEFT OUTER JOIN "PUBLIC"."TEST" "C" /* PUBLIC.PRIMARY_KEY_2: ID = A.ID */ ON "C"."ID" = "A"."ID" INNER JOIN "PUBLIC"."TEST" "B" /* PUBLIC.TEST.tableScan */ ON 1=1
+#-mvStore#>> SELECT "A"."ID", "B"."ID", "C"."ID" FROM "PUBLIC"."TEST" "A" /* PUBLIC.PRIMARY_KEY_2 */ LEFT OUTER JOIN "PUBLIC"."TEST" "C" /* PUBLIC.PRIMARY_KEY_2: ID = A.ID */ ON "C"."ID" = "A"."ID" INNER JOIN "PUBLIC"."TEST" "B" /* PUBLIC.PRIMARY_KEY_2 */ ON 1=1
 
 SELECT T.ID FROM TEST "T";
 > ID

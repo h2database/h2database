@@ -67,4 +67,23 @@ public final class ExtTypeInfoGeometry extends ExtTypeInfo {
         return toSQL(type, srid);
     }
 
+    /**
+     * Returns the type and dimension system of geometries.
+     *
+     * @return the type and dimension system of geometries, or 0 if not
+     *         constrained
+     */
+    public int getType() {
+        return type;
+    }
+
+    /**
+     * Returns the SRID of geometries.
+     *
+     * @return the SRID of geometries, or {@code null} if not constrained
+     */
+    public Integer getSrid() {
+        return srid;
+    }
+
 }

@@ -79,7 +79,7 @@ public class TestFileLock extends TestDb implements Runnable {
     private void testFutureModificationDate() throws Exception {
         File f = new File(getFile());
         f.delete();
-        f.createNewFile();
+        assertTrue(f.createNewFile());
         f.setLastModified(System.currentTimeMillis() + 10000);
         FileLock lock = new FileLock(new TraceSystem(null), getFile(),
                 Constants.LOCK_SLEEP);

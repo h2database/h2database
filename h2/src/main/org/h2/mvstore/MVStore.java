@@ -1230,7 +1230,7 @@ public class MVStore implements AutoCloseable {
                     } catch (IllegalStateException e) {
                         panic(e);
                     } catch (Throwable e) {
-                        panic(DataUtils.newIllegalStateException(DataUtils.ERROR_INTERNAL, e.toString(), e));
+                        panic(DataUtils.newIllegalStateException(DataUtils.ERROR_INTERNAL, "{0}", e.toString(), e));
                     }
                 }
             }

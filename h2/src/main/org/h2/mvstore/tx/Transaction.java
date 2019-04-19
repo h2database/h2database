@@ -541,7 +541,7 @@ public class Transaction {
                                     + " modified by transaction %s%n",
                             transactionId, blockingMap.getName(), blockingKey, toWaitFor));
                     if (isDeadlocked(toWaitFor)) {
-                        throw DataUtils.newIllegalStateException(DataUtils.ERROR_TRANSACTIONS_DEADLOCK,
+                        throw DataUtils.newIllegalStateException(DataUtils.ERROR_TRANSACTIONS_DEADLOCK, "{0}",
                                 details.toString());
                     }
                 }

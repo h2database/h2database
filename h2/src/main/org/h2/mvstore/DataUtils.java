@@ -15,6 +15,7 @@ import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.h2.engine.Constants;
 import org.h2.util.StringUtils;
@@ -918,10 +919,15 @@ public final class DataUtils {
                 arguments[i] = s;
             }
         }
-        return MessageFormat.format(message, arguments) +
-                " [" + Constants.VERSION_MAJOR + "." +
-                Constants.VERSION_MINOR + "." + Constants.BUILD_ID +
-                "/" + errorCode + "]";
+
+        if (Pattern.matches(".*\\{\\d+,.*}.*", message)) {
+            return MessageFormat.format(message, arguments) +
+                    " [" + Constants.VERSION_MAJOR + "." +
+                    Constants.VERSION_MINOR + "." + Constants.BUILD_ID +
+                    "/" + errorCode + "]";
+        } else {
+            return message;
+        }
     }
 
     /**

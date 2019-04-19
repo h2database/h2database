@@ -9,12 +9,8 @@ import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.NoSuchElementException;
-import java.util.Random;
-import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -111,6 +107,7 @@ public class TestMVStore extends TestBase {
 
         // longer running tests
         testLargerThan2G();
+        testNotSerializable();
     }
 
     private void testRemoveMapRollback() {
@@ -2073,6 +2070,44 @@ public class TestMVStore extends TestBase {
             store.closeImmediately();
         }
         FileUtils.delete(fileName);
+    }
+
+    private void testNotSerializable() {
+        class Logic {
+            public void run() {
+                String fileName = getBaseDir() + "/" + getTestName();
+                boolean isError = false;
+                try {
+                    MVStore.Builder builder = new MVStore.Builder();
+                    builder.fileName(fileName);
+
+                    MVStore store = builder.open();
+
+                    Map<String, Object> data = new HashMap<>();
+                    data.put("name", "serialization test");
+                    data.put("numbers", new ArrayList<Integer>() {{
+                        add(1);
+                        add(2);
+                        add(3);
+                    }});
+                    Long id = System.currentTimeMillis();
+
+                    MVMap<Long, Map<String, Object>> map = store.openMap("data");
+                    map.put(id, data);
+                    store.commit();
+                } catch (IllegalStateException e) {
+                    if (e.getMessage().contains("Could not serialize")) {
+                        isError = true;
+                    }
+                }
+                FileUtils.delete(fileName);
+
+                assertTrue(isError);
+            }
+        }
+
+        Logic logic = new Logic();
+        logic.run();
     }
 
     /**

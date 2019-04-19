@@ -920,12 +920,12 @@ public final class DataUtils {
             }
         }
 
-        if (Pattern.matches(".*\\{\\d+,.*}.*", message)) {
+        try {
             return MessageFormat.format(message, arguments) +
                     " [" + Constants.VERSION_MAJOR + "." +
                     Constants.VERSION_MINOR + "." + Constants.BUILD_ID +
                     "/" + errorCode + "]";
-        } else {
+        } catch (IllegalArgumentException iae) {
             return message;
         }
     }

@@ -640,13 +640,13 @@ public class Schema extends DbObjectBase {
      *
      * @return a (possible empty) list of all objects
      */
-    public ArrayList<Table> getAllTablesAndViews() {
-        return new ArrayList<>(tablesAndViews.values());
+    public Collection<Table> getAllTablesAndViews() {
+        return tablesAndViews.values();
     }
 
 
-    public ArrayList<TableSynonym> getAllSynonyms() {
-        return new ArrayList<>(synonyms.values());
+    public Collection<TableSynonym> getAllSynonyms() {
+        return synonyms.values();
     }
 
     /**

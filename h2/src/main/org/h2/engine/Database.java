@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -1808,21 +1809,21 @@ public class Database implements DataHandler {
         return list;
     }
 
-    public ArrayList<Schema> getAllSchemas() {
+    public Collection<Schema> getAllSchemas() {
         initMetaTables();
-        return new ArrayList<>(schemas.values());
+        return schemas.values();
     }
 
-    public ArrayList<Setting> getAllSettings() {
-        return new ArrayList<>(settings.values());
+    public Collection<Setting> getAllSettings() {
+        return settings.values();
     }
 
-    public ArrayList<Domain> getAllDomains() {
-        return new ArrayList<>(domains.values());
+    public Collection<Domain> getAllDomains() {
+        return domains.values();
     }
 
-    public ArrayList<User> getAllUsers() {
-        return new ArrayList<>(users.values());
+    public Collection<User> getAllUsers() {
+        return users.values();
     }
 
     public String getCacheType() {

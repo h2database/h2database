@@ -1288,7 +1288,7 @@ public class Database implements DataHandler {
      */
     public Schema findSchema(String schemaName) {
         if (schemaName == null) {
-            throw DbException.get(ErrorCode.SCHEMA_NOT_FOUND_1, schemaName);
+            return null;
         }
         Schema schema = schemas.get(schemaName);
         if (schema == infoSchema) {

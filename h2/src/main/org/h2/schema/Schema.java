@@ -640,17 +640,13 @@ public class Schema extends DbObjectBase {
      *
      * @return a (possible empty) list of all objects
      */
-    public ArrayList<Table> getAllTablesAndViews() {
-        synchronized (database) {
-            return new ArrayList<>(tablesAndViews.values());
-        }
+    public Collection<Table> getAllTablesAndViews() {
+        return tablesAndViews.values();
     }
 
 
-    public ArrayList<TableSynonym> getAllSynonyms() {
-        synchronized (database) {
-            return new ArrayList<>(synonyms.values());
-        }
+    public Collection<TableSynonym> getAllSynonyms() {
+        return synonyms.values();
     }
 
     /**
@@ -660,9 +656,7 @@ public class Schema extends DbObjectBase {
      * @return the table or null if not found
      */
     public Table getTableOrViewByName(String name) {
-        synchronized (database) {
-            return tablesAndViews.get(name);
-        }
+        return tablesAndViews.get(name);
     }
 
     /**

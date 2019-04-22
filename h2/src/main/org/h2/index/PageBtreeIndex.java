@@ -436,7 +436,7 @@ public class PageBtreeIndex extends PageIndex {
 
     private void invalidateRowCount() {
         PageBtree root = getPage(rootPageId);
-        root.setRowCountStored(PageData.UNKNOWN_ROWCOUNT);
+        root.setRowCountStored(PageBtree.UNKNOWN_ROWCOUNT);
     }
 
     @Override

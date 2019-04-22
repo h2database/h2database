@@ -8029,6 +8029,10 @@ public class Parser {
                 parseReferences(ref, schema, tableName);
                 command.addConstraintCommand(ref);
             }
+            String comment = readCommentIf();
+            if (comment != null) {
+                column.setComment(comment);
+            }
         }
     }
 

@@ -51,7 +51,6 @@ public class TestRunscript extends TestDb implements Trigger {
         testCancelScript();
         testEncoding();
         testClobPrimaryKey();
-        testComment();
         deleteDb("runscript");
     }
 
@@ -536,26 +535,6 @@ public class TestRunscript extends TestDb implements Trigger {
         FileUtils.delete(getBaseDir() + "/backup.2.sql");
         FileUtils.delete(getBaseDir() + "/backup.3.sql");
 
-    }
-    private void testComment() throws SQLException {
-        deleteDb("runscript");
-        Connection conn;
-        conn = getConnection("runscript");
-        Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE TEST1(ID BIGINT(20) NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT 'COMMENT1', FIELD_NAME VARCHAR(100) NOT NULL COMMENT 'COMMENT2')");
-        stat.execute("script table TEST1");
-        ResultSet rs = stat.getResultSet();
-        StringBuilder builder = new StringBuilder();
-        while (rs.next()) {
-            builder.append(rs.getString(1));
-        }
-        final String res = builder.toString();
-        assertTrue("The comment 'COMMENT1' should  be present in the script",
-                res.contains("'COMMENT1'"));
-        assertTrue("The comment 'COMMENT2' should  be present in the script",
-                res.contains("'COMMENT2'"));
-        rs.close();
-        conn.close();
     }
 
     @Override

@@ -8013,6 +8013,12 @@ public class Parser {
             if (NullConstraintType.NULL_IS_NOT_ALLOWED == parseNotNullConstraint()) {
                 column.setNullable(false);
             }
+            if (column.getComment() == null) {
+                String comment = readCommentIf();
+                if (comment != null) {
+                    column.setComment(comment);
+                }
+            }
             if (readIf(CHECK)) {
                 Expression expr = readExpression();
                 column.addCheckConstraint(session, expr);

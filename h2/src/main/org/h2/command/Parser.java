@@ -8013,14 +8013,11 @@ public class Parser {
             if (NullConstraintType.NULL_IS_NOT_ALLOWED == parseNotNullConstraint()) {
                 column.setNullable(false);
             }
-            String comment = readCommentIf();
-            if (comment != null) {
-                if (column.getComment() != null) {
-                    addExpected(CHECK);
-                    addExpected("REFERENCES");
-                    throw getSyntaxError();
+            if (column.getComment() == null) {
+                String comment = readCommentIf();
+                if (comment != null) {
+                    column.setComment(comment);
                 }
-                column.setComment(comment);
             }
             if (readIf(CHECK)) {
                 Expression expr = readExpression();

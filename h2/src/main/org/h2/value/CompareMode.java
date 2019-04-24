@@ -138,6 +138,8 @@ public class CompareMode implements Comparator<Value> {
             } else if (name.startsWith(DEFAULT)) {
                 useICU4J = false;
                 name = name.substring(DEFAULT.length());
+            } else if (name.startsWith(CHARSET)) {
+                useICU4J = false;
             } else {
                 useICU4J = CAN_USE_ICU4J;
             }

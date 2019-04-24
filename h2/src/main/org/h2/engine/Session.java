@@ -678,16 +678,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         transactionStart = null;
         if (transaction != null) {
             try {
-                // increment the data mod count, so that other sessions
-                // see the changes
-                // TODO should not rely on locking
-                if (!locks.isEmpty()) {
-                    for (Table t : locks) {
-                        if (t instanceof MVTable) {
-                            ((MVTable) t).commit();
-                        }
-                    }
-                }
+                markUsedTablesAsUpdated();
                 transaction.commit();
             } finally {
                 transaction = null;
@@ -722,6 +713,17 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             }
         }
         endTransaction();
+    }
+
+    private void markUsedTablesAsUpdated() {
+        // TODO should not rely on locking
+        if (!locks.isEmpty()) {
+            for (Table t : locks) {
+                if (t instanceof MVTable) {
+                    ((MVTable) t).commit();
+                }
+            }
+        }
     }
 
     private void analyzeTables() {
@@ -823,6 +825,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             }
         }
         if (transaction != null) {
+            markUsedTablesAsUpdated();
             if (savepoint == null) {
                 transaction.rollback();
                 transaction = null;

@@ -200,6 +200,7 @@ public class TestPreparedStatement extends TestDb {
         testColumnMetaDataWithIn(conn);
         testValueResultSet(conn);
         testMultipleStatements(conn);
+        testAfterRollback(conn);
         conn.close();
         testPreparedStatementWithLiteralsNone();
         testPreparedStatementWithIndexedParameterAndLiteralsNone();
@@ -1786,4 +1787,35 @@ public class TestPreparedStatement extends TestDb {
         stmt.execute("DROP TABLE TEST");
     }
 
+    private void testAfterRollback(Connection conn) throws SQLException {
+        try (Statement stat = conn.createStatement()) {
+            try {
+                stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
+                conn.setAutoCommit(false);
+
+                // insert something into test table
+                stat.execute("INSERT INTO TEST VALUES(1, 'Hello')");
+
+                // execute 'SELECT count(*)' with prepared-statements
+                PreparedStatement pstmt = conn.prepareStatement("SELECT count(*) FROM TEST");
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    assertTrue(rs.next());
+                    assertEquals(1, rs.getInt(1));
+                }
+
+                // rollback the insert
+                conn.rollback();
+
+                // re-execute the pstmt.
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    assertTrue(rs.next());
+                    assertEquals(0, rs.getInt(1));
+                }
+            } finally {
+                // cleanup
+                stat.execute("DROP TABLE IF EXISTS TEST");
+                conn.setAutoCommit(true);
+            }
+        }
+    }
 }

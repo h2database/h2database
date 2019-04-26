@@ -8,12 +8,14 @@ package org.h2.engine;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import org.h2.api.ErrorCode;
@@ -703,13 +705,11 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         }
 
         if (tablesToAnalyze != null) {
+            analyzeTables();
             if (database.isMVStore()) {
-                // table analysis will cause a new transaction(s) to be opened,
+                // table analysis opens a new transaction(s),
                 // so we need to commit afterwards whatever leftovers might be
-                analyzeTables();
                 commit(true);
-            } else {
-                analyzeTables();
             }
         }
         endTransaction();
@@ -1491,18 +1491,42 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         return transactionStart;
     }
 
-    public Table[] getLocks() {
-        // copy the data without synchronizing
-        ArrayList<Table> copy = new ArrayList<>(locks.size());
-        for (Table lock : locks) {
-            try {
-                copy.add(lock);
-            } catch (Exception e) {
-                // ignore
-                break;
+    public Set<Table> getLocks() {
+        /*
+         * This implementation needs to be lock-free.
+         */
+        if (locks.isEmpty()) {
+            return Collections.emptySet();
+        }
+        /*
+         * Do not use ArrayList.toArray(T[]) here, its implementation is not
+         * thread-safe.
+         */
+        Object[] array = locks.toArray();
+        /*
+         * The returned array may contain null elements and may contain
+         * duplicates due to concurrent remove().
+         */
+        switch (array.length) {
+        case 1: {
+            Object table = array[0];
+            if (table != null) {
+                return Collections.singleton((Table) table);
             }
         }
-        return copy.toArray(new Table[0]);
+        //$FALL-THROUGH$
+        case 0:
+            return Collections.emptySet();
+        default: {
+            HashSet<Table> set = new HashSet<>();
+            for (Object table : array) {
+                if (table != null) {
+                    set.add((Table) table);
+                }
+            }
+            return set;
+        }
+        }
     }
 
     /**

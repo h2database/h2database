@@ -87,7 +87,7 @@ public class TraceSystem implements TraceWriter {
     private Writer fileWriter;
     private PrintWriter printWriter;
     /**
-     * Starts at -1 so that we check the filesize immediately upon open. This
+     * Starts at -1 so that we check the file size immediately upon open. This
      * Can be important if we open and close the trace file without managing to
      * have written CHECK_SIZE_EACH_WRITES bytes each time.
      */

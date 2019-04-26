@@ -2,6 +2,8 @@
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
+SET MODE MySQL;
+> ok
 
 create memory table sequence (id INT NOT NULL AUTO_INCREMENT, title varchar(255));
 > ok

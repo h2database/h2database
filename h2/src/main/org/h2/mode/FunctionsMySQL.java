@@ -24,6 +24,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
+import org.h2.value.ValueLong;
 
 /**
  * This class implements some MySQL-specific functions.
@@ -33,7 +34,7 @@ import org.h2.value.ValueString;
  */
 public class FunctionsMySQL extends FunctionsBase {
 
-    private static final int UNIX_TIMESTAMP = 1001, FROM_UNIXTIME = 1002, DATE = 1003;
+    private static final int UNIX_TIMESTAMP = 1001, FROM_UNIXTIME = 1002, DATE = 1003, LAST_INSERT_ID = 1004;
 
     private static final HashMap<String, FunctionInfo> FUNCTIONS = new HashMap<>();
 
@@ -44,6 +45,9 @@ public class FunctionsMySQL extends FunctionsBase {
                 VAR_ARGS, Value.STRING, false, true, false, true));
         FUNCTIONS.put("DATE", new FunctionInfo("DATE", DATE,
                 1, Value.DATE, false, true, false, true));
+        FUNCTIONS.put("LAST_INSERT_ID", new FunctionInfo("LAST_INSERT_ID", LAST_INSERT_ID,
+                VAR_ARGS, Value.LONG, false, false, true, true));
+
     }
 
     /**
@@ -176,6 +180,10 @@ public class FunctionsMySQL extends FunctionsBase {
             min = 1;
             max = 1;
             break;
+        case LAST_INSERT_ID:
+            min = 0;
+            max = 1;
+            break;
         default:
             DbException.throwInternalError("type=" + info.type);
             return;
@@ -235,6 +243,19 @@ public class FunctionsMySQL extends FunctionsBase {
             case Value.TIMESTAMP:
             case Value.TIMESTAMP_TZ:
                 result = v0.convertTo(Value.DATE);
+            }
+            break;
+        case LAST_INSERT_ID:
+            if (args.length == 0) {
+                result = session.getLastIdentity();
+            } else {
+                if (v0 == ValueNull.INSTANCE) {
+                    session.setLastIdentity(ValueLong.get(0));
+                    result = v0;
+                } else {
+                    result = v0.convertTo(Value.LONG);
+                    session.setLastIdentity(result);
+                }
             }
             break;
         default:

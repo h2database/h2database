@@ -66,12 +66,12 @@ public abstract class RegularTable extends TableBase {
             builder.append("\nSession ").append(s.toString()).append(" on thread ").append(thread.getName())
                     .append(" is waiting to lock ").append(lock.toString())
                     .append(exclusive ? " (exclusive)" : " (shared)").append(" while locking ");
-            Table[] locks = s.getLocks();
-            for (int i = 0, length = locks.length; i < length; i++) {
-                Table t = locks[i];
-                if (i > 0) {
+            boolean addComma = false;
+            for (Table t : s.getLocks()) {
+                if (addComma) {
                     builder.append(", ");
                 }
+                addComma = true;
                 builder.append(t.toString());
                 if (t instanceof RegularTable) {
                     if (((RegularTable) t).lockExclusiveSession == s) {

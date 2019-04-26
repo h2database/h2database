@@ -11,6 +11,7 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import javax.management.JMException;
 import javax.management.MBeanServer;
@@ -257,18 +258,15 @@ public class DatabaseInfo implements DatabaseInfoMBean {
                         .append(session.getCurrentCommandStart().getString())
                         .append('\n');
             }
-            Table[] t = session.getLocks();
-            if (t.length > 0) {
-                for (Table table : session.getLocks()) {
-                    if (table.isLockedExclusivelyBy(session)) {
-                        buff.append("write lock on ");
-                    } else {
-                        buff.append("read lock on ");
-                    }
-                    buff.append(table.getSchema().getName()).
-                            append('.').append(table.getName()).
-                            append('\n');
+            for (Table table : session.getLocks()) {
+                if (table.isLockedExclusivelyBy(session)) {
+                    buff.append("write lock on ");
+                } else {
+                    buff.append("read lock on ");
                 }
+                buff.append(table.getSchema().getName()).
+                        append('.').append(table.getName()).
+                        append('\n');
             }
             buff.append('\n');
         }

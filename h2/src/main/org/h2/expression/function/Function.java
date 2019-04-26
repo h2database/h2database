@@ -125,7 +125,7 @@ public class Function extends Expression implements FunctionCall {
     public static final int DATABASE = 150, USER = 151, CURRENT_USER = 152,
             IDENTITY = 153, SCOPE_IDENTITY = 154, AUTOCOMMIT = 155,
             READONLY = 156, DATABASE_PATH = 157, LOCK_TIMEOUT = 158,
-            DISK_SPACE_USED = 159, SIGNAL = 160, ESTIMATED_ENVELOPE = 161;
+            DISK_SPACE_USED = 159, SIGNAL = 160, ESTIMATED_ENVELOPE = 161, LAST_INSERT_ID = 162;
 
     private static final Pattern SIGNAL_PATTERN = Pattern.compile("[0-9A-Z]{5}");
 
@@ -389,8 +389,8 @@ public class Function extends Expression implements FunctionCall {
                 0, Value.LONG);
         addFunctionNotDeterministic("IDENTITY_VAL_LOCAL", IDENTITY,
                 0, Value.LONG);
-        addFunctionNotDeterministic("LAST_INSERT_ID", IDENTITY,
-                VAR_ARGS, Value.LONG);
+        addFunction("LAST_INSERT_ID", LAST_INSERT_ID,
+                VAR_ARGS, Value.LONG, false, false, true, true);
         addFunctionNotDeterministic("LASTVAL", IDENTITY,
                 0, Value.LONG);
         addFunctionNotDeterministic("AUTOCOMMIT", AUTOCOMMIT,
@@ -899,12 +899,19 @@ public class Function extends Expression implements FunctionCall {
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case IDENTITY:
+            result = session.getLastIdentity();
+            break;
+        case LAST_INSERT_ID:
             if (args.length == 0) {
                 result = session.getLastIdentity();
             } else {
-                final Value value = getNullOrValue(session, args, values, 0);
-                session.setLastIdentity(value);
-                result =  value;
+                if (v0 == ValueNull.INSTANCE) {
+                    session.setLastIdentity(ValueLong.get(0));
+                    result = v0;
+                } else {
+                    result = v0.convertTo(Value.LONG);
+                    session.setLastIdentity(result);
+                }
             }
             break;
         case SCOPE_IDENTITY:
@@ -2309,7 +2316,7 @@ public class Function extends Expression implements FunctionCall {
             min = 2;
             max = 3;
             break;
-        case IDENTITY:
+        case LAST_INSERT_ID:
             min = 0;
             max = 1;
             break;

@@ -198,10 +198,10 @@ public class TestScript extends TestDb {
                 "cast", "coalesce", "convert", "csvread", "csvwrite", "currval",
                 "database-path", "database", "decode", "disk-space-used",
                 "file-read", "file-write", "greatest", "h2version", "identity",
-                "ifnull", "least", "link-schema", "lock-mode", "lock-timeout",
+                "ifnull", "last-insert-id", "least", "link-schema", "lock-mode", "lock-timeout",
                 "memory-free", "memory-used", "nextval", "nullif", "nvl2",
                 "readonly", "rownum", "schema", "scope-identity", "session-id",
-                "set", "table", "transaction-id", "truncate-value", "unnest", "user", "last-insert-id" }) {
+                "set", "table", "transaction-id", "truncate-value", "unnest", "user" }) {
             testScript("functions/system/" + s + ".sql");
         }
         for (String s : new String[] { "add_months", "current_date", "current_timestamp",

@@ -390,7 +390,7 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotDeterministic("IDENTITY_VAL_LOCAL", IDENTITY,
                 0, Value.LONG);
         addFunctionNotDeterministic("LAST_INSERT_ID", IDENTITY,
-                0, Value.LONG);
+                VAR_ARGS, Value.LONG);
         addFunctionNotDeterministic("LASTVAL", IDENTITY,
                 0, Value.LONG);
         addFunctionNotDeterministic("AUTOCOMMIT", AUTOCOMMIT,
@@ -899,7 +899,13 @@ public class Function extends Expression implements FunctionCall {
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case IDENTITY:
-            result = session.getLastIdentity();
+            if (args.length == 0) {
+                result = session.getLastIdentity();
+            } else {
+                final Value value = getNullOrValue(session, args, values, 0);
+                session.setLastIdentity(value);
+                result =  value;
+            }
             break;
         case SCOPE_IDENTITY:
             result = session.getLastScopeIdentity();
@@ -2302,6 +2308,10 @@ public class Function extends Expression implements FunctionCall {
         case REGEXP_LIKE:
             min = 2;
             max = 3;
+            break;
+        case IDENTITY:
+            min = 0;
+            max = 1;
             break;
         default:
             DbException.throwInternalError("type=" + info.type);

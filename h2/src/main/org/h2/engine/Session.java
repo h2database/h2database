@@ -705,13 +705,11 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         }
 
         if (tablesToAnalyze != null) {
+            analyzeTables();
             if (database.isMVStore()) {
-                // table analysis will cause a new transaction(s) to be opened,
+                // table analysis opens a new transaction(s),
                 // so we need to commit afterwards whatever leftovers might be
-                analyzeTables();
                 commit(true);
-            } else {
-                analyzeTables();
             }
         }
         endTransaction();
@@ -1496,7 +1494,11 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     public Set<Table> getLocks() {
         /*
          * This implementation needs to be lock-free.
-         *
+         */
+        if (locks.isEmpty()) {
+            return Collections.emptySet();
+        }
+        /*
          * Do not use ArrayList.toArray(T[]) here, its implementation is not
          * thread-safe.
          */

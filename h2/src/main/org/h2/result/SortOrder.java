@@ -218,7 +218,7 @@ public class SortOrder implements Comparator<Value[]> {
      */
     public void sort(ArrayList<Value[]> rows, int offset, int limit) {
         int rowsSize = rows.size();
-        if (rows.isEmpty() || offset >= rowsSize || limit == 0) {
+        if (rowsSize == 0 || offset >= rowsSize || limit == 0) {
             return;
         }
         if (offset < 0) {

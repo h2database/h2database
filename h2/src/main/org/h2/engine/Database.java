@@ -145,7 +145,7 @@ public class Database implements DataHandler {
     private final ConcurrentHashMap<String, Domain> domains = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, UserAggregate> aggregates = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Comment> comments = new ConcurrentHashMap<>();
-    
+
     private final HashMap<String, TableEngine> tableEngines = new HashMap<>();
 
     private final Set<Session> userSessions =

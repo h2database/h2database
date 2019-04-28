@@ -210,6 +210,11 @@ public class Mode {
     public boolean dateTimeValueWithinTransaction;
 
     /**
+     * If {@code true}, FROM is optional in DELETE statement.
+     */
+    public boolean deleteWithoutFrom;
+
+    /**
      * An optional Set of hidden/disallowed column types.
      * Certain DBMSs don't support all column types provided by H2, such as
      * "NUMBER" when using PostgreSQL mode.
@@ -279,6 +284,7 @@ public class Mode {
         // MS SQL Server does not support client info properties. See
         // https://msdn.microsoft.com/en-Us/library/dd571296%28v=sql.110%29.aspx
         mode.supportedClientInfoPropertiesRegEx = null;
+        mode.deleteWithoutFrom = true;
         DataType dt = DataType.createNumeric(19, 4, false);
         dt.type = Value.DECIMAL;
         dt.sqlType = Types.NUMERIC;
@@ -320,6 +326,7 @@ public class Mode {
         mode.supportedClientInfoPropertiesRegEx =
                 Pattern.compile(".*\\..*");
         mode.prohibitEmptyInPredicate = true;
+        mode.deleteWithoutFrom = true;
         dt = DataType.createDate(/* 2001-01-01 23:59:59 */ 19, 19, "DATE", false, 0, 0);
         dt.type = Value.TIMESTAMP;
         dt.sqlType = Types.TIMESTAMP;

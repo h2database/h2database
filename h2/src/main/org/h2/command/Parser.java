@@ -1300,9 +1300,14 @@ public class Parser {
         }
         currentPrepared = command;
         int start = lastParseIndex;
-        if (!readIf(FROM) && database.getMode().getEnum() == ModeEnum.MySQL) {
-            readIdentifierWithSchema();
-            read(FROM);
+        Mode mode = database.getMode();
+        if (!mode.deleteWithoutFrom && !readIf(FROM)) {
+            if (mode.getEnum() == ModeEnum.MySQL) {
+                readIdentifierWithSchema();
+                read(FROM);
+            } else {
+                throw getSyntaxError();
+            }
         }
         TableFilter filter = readSimpleTableFilter(0, null);
         command.setTableFilter(filter);

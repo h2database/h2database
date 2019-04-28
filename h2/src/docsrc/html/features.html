@@ -892,6 +892,7 @@ or the SQL statement <code>SET MODE MSSQLServer</code>.
 </li><li><code>IDENTITY</code> can be used for automatic id generation on column level.
 </li><li>Table hints are discarded. Example: <code>SELECT * FROM table WITH (NOLOCK)</code>.
 </li><li>Datetime value functions return the same value within a command.
+</li><li>FROM keyword is optional in DELETE command.
 </li></ul>
 
 <h3>MySQL Compatibility Mode</h3>
@@ -943,6 +944,7 @@ or the SQL statement <code>SET MODE Oracle</code>.
 </li><li>REGEXP_REPLACE() uses \ for back-references.
 </li><li>DATE data type is treated like TIMESTAMP(0) data type.
 </li><li>Datetime value functions return the same value within a command.
+</li><li>FROM keyword is optional in DELETE command.
 </li></ul>
 
 <h3>PostgreSQL Compatibility Mode</h3>

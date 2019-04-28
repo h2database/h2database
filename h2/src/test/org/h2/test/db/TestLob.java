@@ -221,7 +221,7 @@ public class TestLob extends TestDb {
         Statement stat2 = conn2.createStatement();
         ResultSet rs = stat2.executeQuery("select data from lob");
         rs.next();
-        stat.execute("delete lob");
+        stat.execute("delete from lob");
         InputStream in = rs.getBinaryStream(1);
         in.read();
         conn2.close();

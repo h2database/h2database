@@ -117,7 +117,7 @@ class MVSortedTempResult extends MVTempResult {
      */
     MVSortedTempResult(Database database, Expression[] expressions, boolean distinct, int[] distinctIndexes,
             int visibleColumnCount, int resultColumnCount, SortOrder sort) {
-        super(database, expressions, visibleColumnCount);
+        super(database, expressions, visibleColumnCount, resultColumnCount);
         this.distinct = distinct;
         this.distinctIndexes = distinctIndexes;
         int[] sortTypes = new int[resultColumnCount];
@@ -216,7 +216,7 @@ class MVSortedTempResult extends MVTempResult {
                         return rowCount;
                     }
                 }
-            } else if (expressions.length != visibleColumnCount) {
+            } else if (visibleColumnCount != resultColumnCount) {
                 ValueRow distinctRow = ValueRow.get(Arrays.copyOf(values, visibleColumnCount));
                 if (index.putIfAbsent(distinctRow, true) != null) {
                     return rowCount;
@@ -245,7 +245,7 @@ class MVSortedTempResult extends MVTempResult {
             return parent.contains(values);
         }
         assert distinct;
-        if (expressions.length != visibleColumnCount) {
+        if (visibleColumnCount != resultColumnCount) {
             return index.containsKey(ValueRow.get(values));
         }
         return map.containsKey(getKey(values));
@@ -335,7 +335,7 @@ class MVSortedTempResult extends MVTempResult {
     @Override
     public int removeRow(Value[] values) {
         assert parent == null && distinct;
-        if (expressions.length != visibleColumnCount) {
+        if (visibleColumnCount != resultColumnCount) {
             throw DbException.getUnsupportedException("removeRow()");
         }
         // If an entry was removed decrement the counter

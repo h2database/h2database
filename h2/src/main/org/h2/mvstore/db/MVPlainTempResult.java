@@ -59,7 +59,7 @@ class MVPlainTempResult extends MVTempResult {
      *            count of columns
      */
     MVPlainTempResult(Database database, Expression[] expressions, int columnCount) {
-        super(database, expressions, columnCount);
+        super(database, expressions, columnCount, columnCount);
         ValueDataType valueType = new ValueDataType(database, new int[columnCount]);
         Builder<Long, ValueRow> builder = new MVMap.Builder<Long, ValueRow>()
                                                 .valueType(valueType).singleWriter();

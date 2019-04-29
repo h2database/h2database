@@ -104,6 +104,11 @@ public abstract class MVTempResult implements ResultExternal {
      */
     final int visibleColumnCount;
 
+    /**
+     * Total count of columns.
+     */
+    final int resultColumnCount;
+
     final boolean hasEnum;
 
     /**
@@ -152,6 +157,7 @@ public abstract class MVTempResult implements ResultExternal {
         this.store = parent.store;
         this.expressions = parent.expressions;
         this.visibleColumnCount = parent.visibleColumnCount;
+        this.resultColumnCount = parent.resultColumnCount;
         this.hasEnum = parent.hasEnum;
         this.tempFileDeleter = null;
         this.closeable = null;
@@ -167,8 +173,10 @@ public abstract class MVTempResult implements ResultExternal {
      *            column expressions
      * @param visibleColumnCount
      *            count of visible columns
+     * @param resultColumnCount
+     *            total count of columns
      */
-    MVTempResult(Database database, Expression[] expressions, int visibleColumnCount) {
+    MVTempResult(Database database, Expression[] expressions, int visibleColumnCount, int resultColumnCount) {
         try {
             String fileName = FileUtils.createTempFile("h2tmp", Constants.SUFFIX_TEMP_FILE, true);
             Builder builder = new MVStore.Builder().fileName(fileName).cacheSize(0).autoCommitDisabled();
@@ -179,8 +187,10 @@ public abstract class MVTempResult implements ResultExternal {
             store = builder.open();
             this.expressions = expressions;
             this.visibleColumnCount = visibleColumnCount;
+            this.resultColumnCount = resultColumnCount;
             boolean hasEnum = false;
-            for (Expression e : expressions) {
+            for (int i = 0; i < resultColumnCount; i++) {
+                Expression e = expressions[i];
                 if (e.getType().getValueType() == Value.ENUM) {
                     hasEnum = true;
                     break;
@@ -235,7 +245,7 @@ public abstract class MVTempResult implements ResultExternal {
      * @param row the array of values (modified in-place if needed)
      */
     final void fixEnum(Value[] row) {
-        for (int i = 0, l = expressions.length; i < l; i++) {
+        for (int i = 0, l = resultColumnCount; i < l; i++) {
             TypeInfo type = expressions[i].getType();
             if (type.getValueType() == Value.ENUM) {
                 row[i] = type.getExtTypeInfo().cast(row[i]);

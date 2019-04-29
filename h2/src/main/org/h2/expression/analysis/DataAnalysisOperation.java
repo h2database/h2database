@@ -170,9 +170,7 @@ public abstract class DataAnalysisOperation extends Expression {
                 int n = 0;
                 WindowFrameBound bound = frame.getStarting();
                 if (bound.isParameterized()) {
-                    if (orderBySize != 1) {
-                        throw getSingleSortKeyException();
-                    }
+                    checkOrderBy(frame.getUnits(), orderBySize);
                     if (bound.isVariable()) {
                         bound.setExpressionIndex(index);
                         n++;
@@ -180,9 +178,7 @@ public abstract class DataAnalysisOperation extends Expression {
                 }
                 bound = frame.getFollowing();
                 if (bound != null && bound.isParameterized()) {
-                    if (orderBySize != 1) {
-                        throw getSingleSortKeyException();
-                    }
+                    checkOrderBy(frame.getUnits(), orderBySize);
                     if (bound.isVariable()) {
                         bound.setExpressionIndex(index + n);
                         n++;
@@ -194,9 +190,24 @@ public abstract class DataAnalysisOperation extends Expression {
         return this;
     }
 
-    private DbException getSingleSortKeyException() {
-        String sql = getSQL(false);
-        return DbException.getSyntaxError(sql, sql.length() - 1, "exactly one sort key is required for RANGE units");
+    private void checkOrderBy(WindowFrameUnits units, int orderBySize) {
+        switch (units) {
+        case RANGE:
+            if (orderBySize != 1) {
+                String sql = getSQL(false);
+                throw DbException.getSyntaxError(sql, sql.length() - 1,
+                        "exactly one sort key is required for RANGE units");
+            }
+            break;
+        case GROUPS:
+            if (orderBySize < 1) {
+                String sql = getSQL(false);
+                throw DbException.getSyntaxError(sql, sql.length() - 1,
+                        "a sort key is required for GROUPS units");
+            }
+            break;
+        default:
+        }
     }
 
     @Override

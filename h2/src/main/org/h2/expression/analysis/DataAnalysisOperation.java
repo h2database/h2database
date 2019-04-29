@@ -395,18 +395,18 @@ public abstract class DataAnalysisOperation extends Expression {
     private Value getWindowResult(Session session, SelectGroups groupData) {
         PartitionData partition;
         Object data;
-        boolean forOrderBy = over.getOrderBy() != null;
+        boolean isOrdered = over.isOrdered();
         Value key = over.getCurrentKey(session);
         partition = groupData.getWindowExprData(this, key);
         if (partition == null) {
             // Window aggregates with FILTER clause may have no collected values
-            data = forOrderBy ? new ArrayList<>() : createAggregateData();
+            data = isOrdered ? new ArrayList<>() : createAggregateData();
             partition = new PartitionData(data);
             groupData.setWindowExprData(this, key, partition);
         } else {
             data = partition.getData();
         }
-        if (forOrderBy || !isAggregate()) {
+        if (isOrdered || !isAggregate()) {
             Value result = getOrderedResult(session, groupData, partition, data);
             if (result == null) {
                 return getAggregatedValue(session, null);

@@ -80,13 +80,10 @@ public abstract class MVTempResult implements ResultExternal {
      */
     public static ResultExternal of(Database database, Expression[] expressions, boolean distinct,
             int[] distinctIndexes, int visibleColumnCount, int resultColumnCount, SortOrder sort) {
-        if (distinct || distinctIndexes != null || sort != null) {
-            return new MVSortedTempResult(database, expressions, distinct, distinctIndexes, visibleColumnCount,
-                    resultColumnCount, sort);
-        } else {
-            assert visibleColumnCount == resultColumnCount;
-            return new MVPlainTempResult(database, expressions, visibleColumnCount);
-        }
+        return distinct || distinctIndexes != null || sort != null
+                ? new MVSortedTempResult(database, expressions, distinct, distinctIndexes, visibleColumnCount,
+                        resultColumnCount, sort)
+                : new MVPlainTempResult(database, expressions, visibleColumnCount, resultColumnCount);
     }
 
     /**

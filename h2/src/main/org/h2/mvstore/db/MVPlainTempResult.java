@@ -49,18 +49,23 @@ class MVPlainTempResult extends MVTempResult {
     }
 
     /**
-     * Creates a new plain temporary result.
+     * Creates a new plain temporary result. This result does not sort its rows,
+     * but it can be used in index-sorted queries and it can preserve additional
+     * columns for WITH TIES processing.
      *
      * @param database
      *            database
      * @param expressions
      *            column expressions
-     * @param columnCount
-     *            count of columns
+     * @param visibleColumnCount
+     *            count of visible columns
+     * @param resultColumnCount
+     *            the number of columns including visible columns and additional
+     *            virtual columns for ORDER BY clause
      */
-    MVPlainTempResult(Database database, Expression[] expressions, int columnCount) {
-        super(database, expressions, columnCount, columnCount);
-        ValueDataType valueType = new ValueDataType(database, new int[columnCount]);
+    MVPlainTempResult(Database database, Expression[] expressions, int visibleColumnCount, int resultColumnCount) {
+        super(database, expressions, visibleColumnCount, resultColumnCount);
+        ValueDataType valueType = new ValueDataType(database, new int[resultColumnCount]);
         Builder<Long, ValueRow> builder = new MVMap.Builder<Long, ValueRow>()
                                                 .valueType(valueType).singleWriter();
         map = store.openMap("tmp", builder);

@@ -30,6 +30,7 @@ public class LocalResultImpl implements LocalResult {
     private int maxMemoryRows;
     private Session session;
     private int visibleColumnCount;
+    private int resultColumnCount;
     private Expression[] expressions;
     private int rowId, rowCount;
     private ArrayList<Value[]> rows;
@@ -60,12 +61,18 @@ public class LocalResultImpl implements LocalResult {
     /**
      * Construct a local result object.
      *
-     * @param session the session
-     * @param expressions the expression array
-     * @param visibleColumnCount the number of visible columns
+     * @param session
+     *            the session
+     * @param expressions
+     *            the expression array
+     * @param visibleColumnCount
+     *            the number of visible columns
+     * @param resultColumnCount
+     *            the number of columns including visible columns and additional
+     *            virtual columns for ORDER BY and DISTINCT ON clauses
      */
     public LocalResultImpl(Session session, Expression[] expressions,
-            int visibleColumnCount) {
+            int visibleColumnCount, int resultColumnCount) {
         this.session = session;
         if (session == null) {
             this.maxMemoryRows = Integer.MAX_VALUE;
@@ -79,6 +86,7 @@ public class LocalResultImpl implements LocalResult {
         }
         rows = Utils.newSmallArrayList();
         this.visibleColumnCount = visibleColumnCount;
+        this.resultColumnCount = resultColumnCount;
         rowId = -1;
         this.expressions = expressions;
     }
@@ -119,6 +127,7 @@ public class LocalResultImpl implements LocalResult {
         copy.maxMemoryRows = this.maxMemoryRows;
         copy.session = (Session) targetSession;
         copy.visibleColumnCount = this.visibleColumnCount;
+        copy.resultColumnCount = this.resultColumnCount;
         copy.expressions = this.expressions;
         copy.rowId = -1;
         copy.rowCount = this.rowCount;
@@ -302,7 +311,7 @@ public class LocalResultImpl implements LocalResult {
 
     private void createExternalResult() {
         external = MVTempResult.of(session.getDatabase(), expressions, distinct, distinctIndexes, visibleColumnCount,
-                sort);
+                resultColumnCount, sort);
     }
 
     /**
@@ -312,6 +321,7 @@ public class LocalResultImpl implements LocalResult {
      */
     @Override
     public void addRow(Value[] values) {
+        assert values.length == resultColumnCount;
         cloneLobs(values);
         if (isAnyDistinct()) {
             if (distinctRows != null) {

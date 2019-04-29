@@ -55,12 +55,12 @@ class MVPlainTempResult extends MVTempResult {
      *            database
      * @param expressions
      *            column expressions
-     * @param visibleColumnCount
-     *            count of visible columns
+     * @param columnCount
+     *            count of columns
      */
-    MVPlainTempResult(Database database, Expression[] expressions, int visibleColumnCount) {
-        super(database, expressions, visibleColumnCount);
-        ValueDataType valueType = new ValueDataType(database, new int[expressions.length]);
+    MVPlainTempResult(Database database, Expression[] expressions, int columnCount) {
+        super(database, expressions, columnCount);
+        ValueDataType valueType = new ValueDataType(database, new int[columnCount]);
         Builder<Long, ValueRow> builder = new MVMap.Builder<Long, ValueRow>()
                                                 .valueType(valueType).singleWriter();
         map = store.openMap("tmp", builder);

@@ -108,24 +108,26 @@ class MVSortedTempResult extends MVTempResult {
      *            indexes of distinct columns for DISTINCT ON results
      * @param visibleColumnCount
      *            count of visible columns
+     * @param resultColumnCount
+     *            the number of columns including visible columns and additional
+     *            virtual columns for ORDER BY and DISTINCT ON clauses
      * @param sort
      *            sort order, or {@code null} if this result does not need any
      *            sorting
      */
     MVSortedTempResult(Database database, Expression[] expressions, boolean distinct, int[] distinctIndexes,
-            int visibleColumnCount, SortOrder sort) {
+            int visibleColumnCount, int resultColumnCount, SortOrder sort) {
         super(database, expressions, visibleColumnCount);
         this.distinct = distinct;
         this.distinctIndexes = distinctIndexes;
-        int length = expressions.length;
-        int[] sortTypes = new int[length];
+        int[] sortTypes = new int[resultColumnCount];
         int[] indexes;
         if (sort != null) {
             /*
              * If sorting is specified we need to reorder columns in requested order and set
              * sort types (ASC, DESC etc) for them properly.
              */
-            indexes = new int[length];
+            indexes = new int[resultColumnCount];
             int[] colIndex = sort.getQueryColumnIndexes();
             int len = colIndex.length;
             // This set is used to remember columns that are already included
@@ -143,7 +145,7 @@ class MVSortedTempResult extends MVTempResult {
              * order (ASC / 0) will be used for them.
              */
             int idx = 0;
-            for (int i = len; i < length; i++) {
+            for (int i = len; i < resultColumnCount; i++) {
                 idx = used.nextClearBit(idx);
                 indexes[i] = idx;
                 idx++;
@@ -154,7 +156,7 @@ class MVSortedTempResult extends MVTempResult {
              * reordered or have the same order.
              */
             sameOrder: {
-                for (int i = 0; i < length; i++) {
+                for (int i = 0; i < resultColumnCount; i++) {
                     if (indexes[i] != i) {
                         // Columns are reordered
                         break sameOrder;
@@ -174,7 +176,7 @@ class MVSortedTempResult extends MVTempResult {
         ValueDataType keyType = new ValueDataType(database, sortTypes);
         Builder<ValueRow, Long> builder = new MVMap.Builder<ValueRow, Long>().keyType(keyType);
         map = store.openMap("tmp", builder);
-        if (distinct && length != visibleColumnCount || distinctIndexes != null) {
+        if (distinct && resultColumnCount != visibleColumnCount || distinctIndexes != null) {
             int count = distinctIndexes != null ? distinctIndexes.length : visibleColumnCount;
             ValueDataType distinctType = new ValueDataType(database, new int[count]);
             Builder<ValueRow, Object> indexBuilder = new MVMap.Builder<ValueRow, Object>().keyType(distinctType);

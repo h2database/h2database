@@ -71,15 +71,22 @@ public abstract class MVTempResult implements ResultExternal {
      *            indexes of distinct columns for DISTINCT ON results
      * @param visibleColumnCount
      *            count of visible columns
+     * @param resultColumnCount
+     *            the number of columns including visible columns and additional
+     *            virtual columns for ORDER BY and DISTINCT ON clauses
      * @param sort
      *            sort order, or {@code null}
      * @return temporary result
      */
     public static ResultExternal of(Database database, Expression[] expressions, boolean distinct,
-            int[] distinctIndexes, int visibleColumnCount, SortOrder sort) {
-        return distinct || distinctIndexes != null || sort != null
-                ? new MVSortedTempResult(database, expressions, distinct, distinctIndexes, visibleColumnCount, sort)
-                : new MVPlainTempResult(database, expressions, visibleColumnCount);
+            int[] distinctIndexes, int visibleColumnCount, int resultColumnCount, SortOrder sort) {
+        if (distinct || distinctIndexes != null || sort != null) {
+            return new MVSortedTempResult(database, expressions, distinct, distinctIndexes, visibleColumnCount,
+                    resultColumnCount, sort);
+        } else {
+            assert visibleColumnCount == resultColumnCount;
+            return new MVPlainTempResult(database, expressions, visibleColumnCount);
+        }
     }
 
     /**

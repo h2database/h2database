@@ -194,7 +194,7 @@ public final class GeneratedKeys {
             return db.getResultFactory().create();
         }
         LocalResult result = db.getResultFactory().create(session,
-            expressionColumns.toArray(new Expression[0]), columnCount);
+                expressionColumns.toArray(new Expression[0]), columnCount, columnCount);
         for (Map<Column, Value> map : data) {
             Value[] row = new Value[columnCount];
             for (Map.Entry<Column, Value> entry : map.entrySet()) {

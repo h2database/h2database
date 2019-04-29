@@ -53,9 +53,9 @@ public class TestLocalResultFactory extends TestBase {
         /** Call counter for the factory methods. */
         static final AtomicInteger COUNTER = new AtomicInteger();
 
-        @Override public LocalResult create(Session session, Expression[] expressions, int visibleColumnCount) {
+        @Override public LocalResult create(Session session, Expression[] expressions, int visibleColumnCount, int resultColumnCount) {
             COUNTER.incrementAndGet();
-            return LocalResultFactory.DEFAULT.create(session, expressions, visibleColumnCount);
+            return LocalResultFactory.DEFAULT.create(session, expressions, visibleColumnCount, resultColumnCount);
         }
 
         @Override public LocalResult create() {

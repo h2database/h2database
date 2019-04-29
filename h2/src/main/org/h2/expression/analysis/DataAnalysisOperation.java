@@ -170,9 +170,7 @@ public abstract class DataAnalysisOperation extends Expression {
                 int n = 0;
                 WindowFrameBound bound = frame.getStarting();
                 if (bound.isParameterized()) {
-                    if (orderBySize != 1) {
-                        throw getSingleSortKeyException();
-                    }
+                    checkOrderBy(frame.getUnits(), orderBySize);
                     if (bound.isVariable()) {
                         bound.setExpressionIndex(index);
                         n++;
@@ -180,9 +178,7 @@ public abstract class DataAnalysisOperation extends Expression {
                 }
                 bound = frame.getFollowing();
                 if (bound != null && bound.isParameterized()) {
-                    if (orderBySize != 1) {
-                        throw getSingleSortKeyException();
-                    }
+                    checkOrderBy(frame.getUnits(), orderBySize);
                     if (bound.isVariable()) {
                         bound.setExpressionIndex(index + n);
                         n++;
@@ -194,9 +190,24 @@ public abstract class DataAnalysisOperation extends Expression {
         return this;
     }
 
-    private DbException getSingleSortKeyException() {
-        String sql = getSQL(false);
-        return DbException.getSyntaxError(sql, sql.length() - 1, "exactly one sort key is required for RANGE units");
+    private void checkOrderBy(WindowFrameUnits units, int orderBySize) {
+        switch (units) {
+        case RANGE:
+            if (orderBySize != 1) {
+                String sql = getSQL(false);
+                throw DbException.getSyntaxError(sql, sql.length() - 1,
+                        "exactly one sort key is required for RANGE units");
+            }
+            break;
+        case GROUPS:
+            if (orderBySize < 1) {
+                String sql = getSQL(false);
+                throw DbException.getSyntaxError(sql, sql.length() - 1,
+                        "a sort key is required for GROUPS units");
+            }
+            break;
+        default:
+        }
     }
 
     @Override
@@ -395,18 +406,18 @@ public abstract class DataAnalysisOperation extends Expression {
     private Value getWindowResult(Session session, SelectGroups groupData) {
         PartitionData partition;
         Object data;
-        boolean forOrderBy = over.getOrderBy() != null;
+        boolean isOrdered = over.isOrdered();
         Value key = over.getCurrentKey(session);
         partition = groupData.getWindowExprData(this, key);
         if (partition == null) {
             // Window aggregates with FILTER clause may have no collected values
-            data = forOrderBy ? new ArrayList<>() : createAggregateData();
+            data = isOrdered ? new ArrayList<>() : createAggregateData();
             partition = new PartitionData(data);
             groupData.setWindowExprData(this, key, partition);
         } else {
             data = partition.getData();
         }
-        if (forOrderBy || !isAggregate()) {
+        if (isOrdered || !isAggregate()) {
             Value result = getOrderedResult(session, groupData, partition, data);
             if (result == null) {
                 return getAggregatedValue(session, null);

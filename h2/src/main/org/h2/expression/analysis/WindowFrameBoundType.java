@@ -23,7 +23,7 @@ public enum WindowFrameBoundType {
     /**
      * CURRENT_ROW clause.
      */
-    CURRENT_ROW("CURRENT_ROW"),
+    CURRENT_ROW("CURRENT ROW"),
 
     /**
      * FOLLOWING clause.

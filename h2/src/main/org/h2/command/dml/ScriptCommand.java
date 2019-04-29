@@ -136,7 +136,7 @@ public class ScriptCommand extends ScriptBase {
     private LocalResult createResult() {
         Database db = session.getDatabase();
         return db.getResultFactory().create(session,
-                new Expression[] { new ExpressionColumn(db, new Column("SCRIPT", Value.STRING)) }, 1);
+                new Expression[] { new ExpressionColumn(db, new Column("SCRIPT", Value.STRING)) }, 1, 1);
     }
 
     @Override

@@ -11,7 +11,6 @@ import java.util.Iterator;
 
 import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectGroups;
-import org.h2.command.dml.SelectOrderBy;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.analysis.DataAnalysisOperation;
@@ -270,19 +269,18 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
 
     @Override
     protected void updateAggregate(Session session, SelectGroups groupData, int groupRowId) {
-        ArrayList<SelectOrderBy> orderBy;
         if (filterCondition == null || filterCondition.getBooleanValue(session)) {
             if (over != null) {
-                if ((orderBy = over.getOrderBy()) != null) {
-                    updateOrderedAggregate(session, groupData, groupRowId, orderBy);
+                if (over.isOrdered()) {
+                    updateOrderedAggregate(session, groupData, groupRowId, over.getOrderBy());
                 } else {
                     updateAggregate(session, getWindowData(session, groupData, false));
                 }
             } else {
                 updateAggregate(session, getGroupData(groupData, false));
             }
-        } else if (over != null && (orderBy = over.getOrderBy()) != null) {
-            updateOrderedAggregate(session, groupData, groupRowId, orderBy);
+        } else if (over != null && over.isOrdered()) {
+            updateOrderedAggregate(session, groupData, groupRowId, over.getOrderBy());
         }
     }
 

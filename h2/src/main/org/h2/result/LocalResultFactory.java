@@ -12,6 +12,7 @@ import org.h2.expression.Expression;
  * Creates local result.
  */
 public abstract class LocalResultFactory {
+
     /**
      * Default implementation of local result factory.
      */
@@ -20,15 +21,23 @@ public abstract class LocalResultFactory {
     /**
      * Create a local result object.
      *
-     * @param session the session
-     * @param expressions the expression array
-     * @param visibleColumnCount the number of visible columns
+     * @param session
+     *            the session
+     * @param expressions
+     *            the expression array
+     * @param visibleColumnCount
+     *            the number of visible columns
+     * @param resultColumnCount
+     *            the number of columns including visible columns and additional
+     *            virtual columns for ORDER BY and DISTINCT ON clauses
      * @return object to collect local result.
      */
-    public abstract LocalResult create(Session session, Expression[] expressions, int visibleColumnCount);
+    public abstract LocalResult create(Session session, Expression[] expressions, int visibleColumnCount,
+            int resultColumnCount);
 
     /**
      * Create a local result object.
+     *
      * @return object to collect local result.
      */
     public abstract LocalResult create();
@@ -37,16 +46,13 @@ public abstract class LocalResultFactory {
      * Default implementation of local result factory.
      */
     private static final class DefaultLocalResultFactory extends LocalResultFactory {
-        /**
-         *
-         */
         DefaultLocalResultFactory() {
-            //No-op.
         }
 
         @Override
-        public LocalResult create(Session session, Expression[] expressions, int visibleColumnCount) {
-            return new LocalResultImpl(session, expressions, visibleColumnCount);
+        public LocalResult create(Session session, Expression[] expressions, int visibleColumnCount,
+                int resultColumnCount) {
+            return new LocalResultImpl(session, expressions, visibleColumnCount, resultColumnCount);
         }
 
         @Override
@@ -54,4 +60,5 @@ public abstract class LocalResultFactory {
             return new LocalResultImpl();
         }
     }
+
 }

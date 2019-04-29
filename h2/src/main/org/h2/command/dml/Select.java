@@ -114,7 +114,13 @@ public class Select extends Query {
 
     private int[] distinctIndexes;
 
-    private int distinctColumnCount;
+    /**
+     * Number of columns including visible columns and additional virtual
+     * columns for ORDER BY and DISTINCT ON clauses. This number does not
+     * include virtual columns for HAVING and QUALIFY.
+     */
+    private int resultColumnCount;
+
     private ArrayList<Expression> group;
 
     /**
@@ -341,16 +347,23 @@ public class Select extends Query {
         if (isHavingNullOrFalse(row)) {
             return null;
         }
-        row = keepOnlyDistinct(row, columnCount);
-        return row;
+        return rowForResult(row, columnCount);
     }
 
-    private Value[] keepOnlyDistinct(Value[] row, int columnCount) {
-        if (columnCount == distinctColumnCount) {
+    /**
+     * Removes HAVING and QUALIFY columns from the row.
+     *
+     * @param row
+     *            the complete row
+     * @param columnCount
+     *            the number of columns to keep
+     * @return the same or the truncated row
+     */
+    private Value[] rowForResult(Value[] row, int columnCount) {
+        if (columnCount == resultColumnCount) {
             return row;
         }
-        // remove columns so that 'distinct' can filter duplicate rows
-        return Arrays.copyOf(row, distinctColumnCount);
+        return Arrays.copyOf(row, resultColumnCount);
     }
 
     private boolean isHavingNullOrFalse(Value[] row) {
@@ -592,8 +605,7 @@ public class Select extends Query {
                 offset--;
                 continue;
             }
-            row = keepOnlyDistinct(row, columnCount);
-            result.addRow(row);
+            result.addRow(rowForResult(row, columnCount));
         }
     }
 
@@ -784,7 +796,7 @@ public class Select extends Query {
     @Override
     public ResultInterface queryMeta() {
         LocalResult result = session.getDatabase().getResultFactory().create(session, expressionArray,
-                visibleColumnCount);
+                visibleColumnCount, resultColumnCount);
         result.done();
         return result;
     }
@@ -966,12 +978,12 @@ public class Select extends Query {
 
     private LocalResult createLocalResult(LocalResult old) {
         return old != null ? old : session.getDatabase().getResultFactory().create(session, expressionArray,
-                visibleColumnCount);
+                visibleColumnCount, resultColumnCount);
     }
 
     private LocalResult convertToDistinct(ResultInterface result) {
         LocalResult distinctResult = session.getDatabase().getResultFactory().create(session,
-            expressionArray, visibleColumnCount);
+            expressionArray, visibleColumnCount, resultColumnCount);
         distinctResult.setDistinct();
         result.reset();
         while (result.next()) {
@@ -1124,7 +1136,7 @@ public class Select extends Query {
             initOrder(session, expressions, expressionSQL, orderList,
                     visibleColumnCount, isAnyDistinct(), filters);
         }
-        distinctColumnCount = expressions.size();
+        resultColumnCount = expressions.size();
         if (having != null) {
             expressions.add(having);
             havingIndex = expressions.size() - 1;

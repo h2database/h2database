@@ -199,6 +199,7 @@ import org.h2.expression.condition.ConditionIn;
 import org.h2.expression.condition.ConditionInParameter;
 import org.h2.expression.condition.ConditionInSelect;
 import org.h2.expression.condition.ConditionNot;
+import org.h2.expression.condition.IsJsonPredicate;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionCall;
 import org.h2.expression.function.JavaFunction;
@@ -222,6 +223,7 @@ import org.h2.util.ParserUtil;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.util.geometry.EWKTUtils;
+import org.h2.util.json.JSONItemType;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.ExtTypeInfo;
@@ -2958,6 +2960,8 @@ public class Parser {
                         read(FROM);
                         r = new Comparison(session, Comparison.EQUAL_NULL_SAFE,
                                 r, readConcat());
+                    } else if (readIf("JSON")) {
+                        r = readJsonPredicate(r, true);
                     } else {
                         r = new Comparison(session,
                                 Comparison.NOT_EQUAL_NULL_SAFE, r, readConcat());
@@ -2968,6 +2972,8 @@ public class Parser {
                     read(FROM);
                     r = new Comparison(session, Comparison.NOT_EQUAL_NULL_SAFE,
                             r, readConcat());
+                } else if (readIf("JSON")) {
+                    r = readJsonPredicate(r, false);
                 } else {
                     r = new Comparison(session, Comparison.EQUAL_NULL_SAFE, r,
                             readConcat());
@@ -3056,6 +3062,31 @@ public class Parser {
             }
         }
         return r;
+    }
+
+    private Expression readJsonPredicate(Expression r, boolean not) {
+        JSONItemType itemType;
+        if (readIf("VALUE")) {
+            itemType = JSONItemType.VALUE;
+        } else if (readIf(ARRAY)) {
+            itemType = JSONItemType.ARRAY;
+        } else if (readIf("OBJECT")) {
+            itemType = JSONItemType.OBJECT;
+        } else if (readIf("SCALAR")) {
+            itemType = JSONItemType.SCALAR;
+        } else {
+            itemType = JSONItemType.VALUE;
+        }
+        boolean unique = false;
+        if (readIf(WITH)) {
+            read(UNIQUE);
+            readIf("KEYS");
+            unique = true;
+        } else if (readIf("WITHOUT")) {
+            read(UNIQUE);
+            readIf("KEYS");
+        }
+        return new IsJsonPredicate(r, not, unique, itemType);
     }
 
     private Expression readConcat() {

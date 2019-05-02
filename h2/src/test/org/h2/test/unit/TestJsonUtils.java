@@ -11,9 +11,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Callable;
 
 import org.h2.test.TestBase;
+import org.h2.util.json.JSONItemType;
 import org.h2.util.json.JSONStringSource;
 import org.h2.util.json.JSONStringTarget;
 import org.h2.util.json.JSONTarget;
+import org.h2.util.json.JSONValidationTargetWithUniqueKeys;
+import org.h2.util.json.JSONValidationTargetWithoutUniqueKeys;
 import org.h2.util.json.JSONValueTarget;
 
 /**
@@ -38,6 +41,20 @@ public class TestJsonUtils extends TestBase {
         }
     };
 
+    private static final Callable<JSONTarget> JSON_VALIDATION_TARGET_WITHOUT_UNIQUE_KEYS = new Callable<JSONTarget>() {
+        @Override
+        public JSONTarget call() throws Exception {
+            return new JSONValidationTargetWithoutUniqueKeys();
+        }
+    };
+
+    private static final Callable<JSONTarget> JSON_VALIDATION_TARGET_WITH_UNIQUE_KEYS = new Callable<JSONTarget>() {
+        @Override
+        public JSONTarget call() throws Exception {
+            return new JSONValidationTargetWithUniqueKeys();
+        }
+    };
+
     /**
      * Run just this test.
      *
@@ -58,6 +75,8 @@ public class TestJsonUtils extends TestBase {
     private void testTargetErrorDetection() throws Exception {
         testTargetErrorDetection(STRING_TARGET);
         testTargetErrorDetection(VALUE_TARGET);
+        testTargetErrorDetection(JSON_VALIDATION_TARGET_WITHOUT_UNIQUE_KEYS);
+        testTargetErrorDetection(JSON_VALIDATION_TARGET_WITH_UNIQUE_KEYS);
     }
 
     private void testTargetErrorDetection(final Callable<JSONTarget> constructor) throws Exception {
@@ -216,7 +235,8 @@ public class TestJsonUtils extends TestBase {
         testSourcesAndTargets("{\"a\" : 1, \"b\":[1,null, true,false,{}]}", "{\"a\":1,\"b\":[1,null,true,false,{}]}");
         testSourcesAndTargets("{\"1\" : [[[[[[[[[[11.1e-100]]]], null]]], {\n\r}]]]}",
                 "{\"1\":[[[[[[[[[[1.11E-99]]]],null]]],{}]]]}");
-        testSourcesAndTargets("{\"b\":false,\"a\":1,\"a\":null}", "{\"b\":false,\"a\":1,\"a\":null}");
+        testSourcesAndTargets("{\"b\":false,\"a\":1,\"a\":null}", "{\"b\":false,\"a\":1,\"a\":null}", true);
+        testSourcesAndTargets("[[{\"b\":false,\"a\":1,\"a\":null}]]", "[[{\"b\":false,\"a\":1,\"a\":null}]]", true);
         testSourcesAndTargets("\"\uD800\uDFFF\"", "\"\uD800\uDFFF\"");
         testSourcesAndTargets("\"\\uD800\\uDFFF\"", "\"\uD800\uDFFF\"");
         testSourcesAndTargetsError("");
@@ -268,12 +288,37 @@ public class TestJsonUtils extends TestBase {
     }
 
     private void testSourcesAndTargets(String src, String expected) throws Exception {
+        testSourcesAndTargets(src, expected, false);
+    }
+
+    private void testSourcesAndTargets(String src, String expected, boolean hasNonUniqueKeys) throws Exception {
+        JSONItemType itemType;
+        switch (expected.charAt(0)) {
+        case '[':
+            itemType = JSONItemType.ARRAY;
+            break;
+        case '{':
+            itemType = JSONItemType.OBJECT;
+            break;
+        default:
+            itemType = JSONItemType.SCALAR;
+        }
         JSONTarget target = new JSONStringTarget();
         JSONStringSource.parse(src, target);
         assertEquals(expected, target.getResult());
         target = new JSONValueTarget();
         JSONStringSource.parse(src, target);
         assertEquals(expected, target.getResult().toString());
+        target = new JSONValidationTargetWithoutUniqueKeys();
+        JSONStringSource.parse(src, target);
+        assertEquals(itemType, target.getResult());
+        if (hasNonUniqueKeys) {
+            testSourcesAndTargetsError(src, JSON_VALIDATION_TARGET_WITH_UNIQUE_KEYS);
+        } else {
+            target = new JSONValidationTargetWithUniqueKeys();
+            JSONStringSource.parse(src, target);
+            assertEquals(itemType, target.getResult());
+        }
         for (Charset charset : CHARSETS) {
             target = new JSONStringTarget();
             JSONStringSource.parse(src.getBytes(charset), target);
@@ -284,6 +329,8 @@ public class TestJsonUtils extends TestBase {
     private void testSourcesAndTargetsError(String src) throws Exception {
         testSourcesAndTargetsError(src, STRING_TARGET);
         testSourcesAndTargetsError(src, VALUE_TARGET);
+        testSourcesAndTargetsError(src, JSON_VALIDATION_TARGET_WITHOUT_UNIQUE_KEYS);
+        testSourcesAndTargetsError(src, JSON_VALIDATION_TARGET_WITH_UNIQUE_KEYS);
     }
 
     private void testSourcesAndTargetsError(String src, Callable<JSONTarget> constructor) throws Exception {

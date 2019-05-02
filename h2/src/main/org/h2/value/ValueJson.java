@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.util.StringUtils;
+import org.h2.util.json.JSONItemType;
 import org.h2.util.json.JSONStringSource;
 
 /**
@@ -73,6 +74,22 @@ public class ValueJson extends Value {
     @Override
     public Object getObject() {
         return value;
+    }
+
+    /**
+     * Returns JSON item type.
+     *
+     * @return JSON item type
+     */
+    public JSONItemType getItemType() {
+        switch (value.charAt(0)) {
+        case '[':
+            return JSONItemType.ARRAY;
+        case '{':
+            return JSONItemType.OBJECT;
+        default:
+            return JSONItemType.SCALAR;
+        }
     }
 
     @Override

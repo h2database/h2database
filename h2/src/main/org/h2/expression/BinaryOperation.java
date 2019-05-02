@@ -179,7 +179,7 @@ public class BinaryOperation extends Expression {
         switch (opType) {
         case CONCAT: {
             TypeInfo l = left.getType(), r = right.getType();
-            if (l.getValueType() == Value.ARRAY) {
+            if (l.getValueType() == Value.ARRAY || r.getValueType() == Value.ARRAY) {
                 type = TypeInfo.TYPE_ARRAY;
             } else {
                 if (DataType.isStringType(l.getValueType()) && DataType.isStringType(r.getValueType())) {

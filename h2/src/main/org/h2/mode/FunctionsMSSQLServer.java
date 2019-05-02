@@ -20,7 +20,7 @@ public final class FunctionsMSSQLServer extends FunctionsBase {
 
     static {
         copyFunction(FUNCTIONS, "LOCATE", "CHARINDEX");
-        copyFunction(FUNCTIONS, "CURRENT_DATE", "GETDATE");
+        copyFunction(FUNCTIONS, "LOCALTIMESTAMP", "GETDATE");
         copyFunction(FUNCTIONS, "LENGTH", "LEN");
         copyFunction(FUNCTIONS, "RANDOM_UUID", "NEWID");
     }

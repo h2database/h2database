@@ -157,7 +157,13 @@ public class IsJsonPredicate extends Condition {
 
     @Override
     public int getCost() {
-        return left.getCost() + 1000;
+        int cost = left.getCost();
+        if (left.getType().getValueType() == Value.JSON && (!withUniqueKeys || itemType == JSONItemType.SCALAR)) {
+            cost++;
+        } else {
+            cost += 10;
+        }
+        return cost;
     }
 
     @Override

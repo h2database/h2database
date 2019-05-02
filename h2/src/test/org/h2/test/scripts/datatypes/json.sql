@@ -83,3 +83,128 @@ INSERT INTO TEST VALUES (5, '}');
 
 DROP TABLE TEST;
 > ok
+
+CREATE TABLE TEST(ID INT, S VARCHAR, B VARBINARY, J JSON) AS VALUES
+    (1, '{"a":1,"a":2}', STRINGTOUTF8('{"a":1,"a":2}'), '{"a":1,"a":2}'),
+    (2, '{"a":1,"b":2}', STRINGTOUTF8('{"a":1,"b":2}'), '{"a":1,"b":2}'),
+    (3, '{"a":1,"b":2', STRINGTOUTF8('{"a":1,"b":2'), null),
+    (4, null, null, null);
+> ok
+
+SELECT S IS JSON, B IS JSON WITHOUT UNIQUE, J IS JSON WITHOUT UNIQUE KEYS FROM TEST ORDER BY ID;
+> S IS JSON B IS JSON J IS JSON
+> --------- --------- ---------
+> TRUE      TRUE      TRUE
+> TRUE      TRUE      TRUE
+> FALSE     FALSE     null
+> null      null      null
+> rows (ordered): 4
+
+SELECT S IS NOT JSON, B IS NOT JSON WITHOUT UNIQUE, J IS NOT JSON WITHOUT UNIQUE KEYS FROM TEST ORDER BY ID;
+> S IS NOT JSON B IS NOT JSON J IS NOT JSON
+> ------------- ------------- -------------
+> FALSE         FALSE         FALSE
+> FALSE         FALSE         FALSE
+> TRUE          TRUE          null
+> null          null          null
+> rows (ordered): 4
+
+SELECT S IS JSON WITH UNIQUE KEYS, B IS JSON WITH UNIQUE, J IS JSON WITH UNIQUE KEYS FROM TEST ORDER BY ID;
+> S IS JSON WITH UNIQUE KEYS B IS JSON WITH UNIQUE KEYS J IS JSON WITH UNIQUE KEYS
+> -------------------------- -------------------------- --------------------------
+> FALSE                      FALSE                      FALSE
+> TRUE                       TRUE                       TRUE
+> FALSE                      FALSE                      null
+> null                       null                       null
+> rows (ordered): 4
+
+SELECT S IS NOT JSON WITH UNIQUE KEYS, B IS NOT JSON WITH UNIQUE, J IS NOT JSON WITH UNIQUE KEYS FROM TEST ORDER BY ID;
+> S IS NOT JSON WITH UNIQUE KEYS B IS NOT JSON WITH UNIQUE KEYS J IS NOT JSON WITH UNIQUE KEYS
+> ------------------------------ ------------------------------ ------------------------------
+> TRUE                           TRUE                           TRUE
+> FALSE                          FALSE                          FALSE
+> TRUE                           TRUE                           null
+> null                           null                           null
+> rows (ordered): 4
+
+DROP TABLE TEST;
+> ok
+
+SELECT 1 IS JSON;
+>> FALSE
+
+SELECT 1 IS NOT JSON;
+>> TRUE
+
+CREATE TABLE TEST(ID INT, S VARCHAR) AS VALUES
+    (1, '[{"a":1}]'), (2, '{"a":[3]}'),
+    (3, 'null'), (4, '{"a":1,"a":2}'),
+    (5, 'X'), (6, NULL);
+> ok
+
+ALTER TABLE TEST ADD J JSON;
+> ok
+
+UPDATE TEST SET J = S WHERE S IS JSON;
+> update count: 4
+
+SELECT S IS JSON, S IS JSON VALUE, S IS JSON ARRAY, S IS JSON OBJECT, S IS JSON SCALAR FROM TEST ORDER BY ID;
+> S IS JSON S IS JSON S IS JSON ARRAY S IS JSON OBJECT S IS JSON SCALAR
+> --------- --------- --------------- ---------------- ----------------
+> TRUE      TRUE      TRUE            FALSE            FALSE
+> TRUE      TRUE      FALSE           TRUE             FALSE
+> TRUE      TRUE      FALSE           FALSE            TRUE
+> TRUE      TRUE      FALSE           TRUE             FALSE
+> FALSE     FALSE     FALSE           FALSE            FALSE
+> null      null      null            null             null
+> rows (ordered): 6
+
+SELECT J IS JSON, J IS JSON VALUE, J IS JSON ARRAY, J IS JSON OBJECT, J IS JSON SCALAR FROM TEST ORDER BY ID;
+> J IS JSON J IS JSON J IS JSON ARRAY J IS JSON OBJECT J IS JSON SCALAR
+> --------- --------- --------------- ---------------- ----------------
+> TRUE      TRUE      TRUE            FALSE            FALSE
+> TRUE      TRUE      FALSE           TRUE             FALSE
+> TRUE      TRUE      FALSE           FALSE            TRUE
+> TRUE      TRUE      FALSE           TRUE             FALSE
+> null      null      null            null             null
+> null      null      null            null             null
+> rows (ordered): 6
+
+SELECT J IS JSON WITH UNIQUE KEYS, J IS JSON VALUE WITH UNIQUE KEYS, J IS JSON ARRAY WITH UNIQUE KEYS,
+    J IS JSON OBJECT WITH UNIQUE KEYS, J IS JSON SCALAR WITH UNIQUE KEYS FROM TEST ORDER BY ID;
+> J IS JSON WITH UNIQUE KEYS J IS JSON WITH UNIQUE KEYS J IS JSON ARRAY WITH UNIQUE KEYS J IS JSON OBJECT WITH UNIQUE KEYS J IS JSON SCALAR WITH UNIQUE KEYS
+> -------------------------- -------------------------- -------------------------------- --------------------------------- ---------------------------------
+> TRUE                       TRUE                       TRUE                             FALSE                             FALSE
+> TRUE                       TRUE                       FALSE                            TRUE                              FALSE
+> TRUE                       TRUE                       FALSE                            FALSE                             TRUE
+> FALSE                      FALSE                      FALSE                            FALSE                             FALSE
+> null                       null                       null                             null                              null
+> null                       null                       null                             null                              null
+> rows (ordered): 6
+
+SELECT S IS NOT JSON, S IS NOT JSON VALUE, S IS NOT JSON ARRAY, S IS NOT JSON OBJECT, S IS NOT JSON SCALAR
+    FROM TEST ORDER BY ID;
+> S IS NOT JSON S IS NOT JSON S IS NOT JSON ARRAY S IS NOT JSON OBJECT S IS NOT JSON SCALAR
+> ------------- ------------- ------------------- -------------------- --------------------
+> FALSE         FALSE         FALSE               TRUE                 TRUE
+> FALSE         FALSE         TRUE                FALSE                TRUE
+> FALSE         FALSE         TRUE                TRUE                 FALSE
+> FALSE         FALSE         TRUE                FALSE                TRUE
+> TRUE          TRUE          TRUE                TRUE                 TRUE
+> null          null          null                null                 null
+> rows (ordered): 6
+
+SELECT NOT S IS NOT JSON, NOT S IS NOT JSON VALUE, NOT S IS NOT JSON ARRAY, NOT S IS NOT JSON OBJECT,
+    NOT S IS NOT JSON SCALAR FROM TEST ORDER BY ID;
+> S IS JSON S IS JSON S IS JSON ARRAY S IS JSON OBJECT S IS JSON SCALAR
+> --------- --------- --------------- ---------------- ----------------
+> TRUE      TRUE      TRUE            FALSE            FALSE
+> TRUE      TRUE      FALSE           TRUE             FALSE
+> TRUE      TRUE      FALSE           FALSE            TRUE
+> TRUE      TRUE      FALSE           TRUE             FALSE
+> FALSE     FALSE     FALSE           FALSE            FALSE
+> null      null      null            null             null
+> rows (ordered): 6
+
+DROP TABLE TEST;
+> ok

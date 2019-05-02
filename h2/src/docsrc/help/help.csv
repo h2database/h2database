@@ -2501,6 +2501,8 @@ ID<>2
 compare { { { ALL | ANY | SOME } ( query ) } | operand }
     | IS [ NOT ] NULL
     | IS [ NOT ] [ DISTINCT FROM ] operand
+    | IS [ NOT ] JSON [ VALUE | ARRAY | OBJECT | SCALAR ]
+        [ [ WITH | WITHOUT ] UNIQUE [ KEYS ] ]
     | BETWEEN operand AND operand
     | IN ( { query | expression [,...] } )
     | [ NOT ] [ LIKE | ILIKE ] operand [ ESCAPE string ]
@@ -2522,6 +2524,12 @@ Use parentheses around aggregate function.
 
 The conditions ""IS [ NOT ]"" and ""IS [ NOT ] DISTINCT FROM"" are null-safe, meaning
 NULL is considered the same as NULL, and the condition never evaluates to NULL.
+
+The conditions ""IS [ NOT ] JSON"" check whether value of the specified string,
+binary data, or a JSON is a valid JSON.
+If ""ARRAY"", ""OBJECT"", or ""SCALAR"" is specified, only JSON items of the specified type are considered as valid.
+If ""WITH UNIQUE [ KEYS ]"" is specified only JSON with unique keys is considered as valid.
+These conditions aren't null-safe, they return NULL if operand is NULL.
 
 When comparing with LIKE, the wildcards characters are ""_"" (any one character)
 and ""%"" (any characters). The database uses an index when comparing with LIKE

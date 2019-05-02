@@ -108,3 +108,15 @@ SET AUTOCOMMIT ON;
 > ok
 
 @reconnect on
+
+SELECT GETDATE();
+> exception FUNCTION_NOT_FOUND_1
+
+SET MODE MSSQLServer;
+> ok
+
+SELECT LOCALTIMESTAMP = GETDATE();
+>> TRUE
+
+SET MODE Regular;
+> ok

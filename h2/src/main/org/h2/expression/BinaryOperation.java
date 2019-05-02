@@ -5,6 +5,7 @@
  */
 package org.h2.expression;
 
+import java.util.Arrays;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.expression.IntervalOperation.IntervalOpType;
@@ -15,6 +16,7 @@ import org.h2.table.TableFilter;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueArray;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
@@ -27,7 +29,8 @@ public class BinaryOperation extends Expression {
     public enum OpType {
         /**
          * This operation represents a string concatenation as in
-         * 'Hello' || 'World'.
+         * {@code 'Hello' || 'World'} or an array concatenation as in
+         * {@code ARRAY[1, 2] || 3}.
          */
         CONCAT,
 
@@ -106,21 +109,32 @@ public class BinaryOperation extends Expression {
         }
         switch (opType) {
         case CONCAT: {
-            if (l == ValueNull.INSTANCE) {
-                if (mode.nullConcatIsNull) {
+            if (type.getValueType() == Value.ARRAY) {
+                if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
                     return ValueNull.INSTANCE;
                 }
-                return r;
-            } else if (r == ValueNull.INSTANCE) {
-                if (mode.nullConcatIsNull) {
-                    return ValueNull.INSTANCE;
+                Value[] leftValues = ((ValueArray) l).getList(), rightValues = ((ValueArray) r).getList();
+                int leftLength = leftValues.length, rightLength = rightValues.length;
+                Value[] values = Arrays.copyOf(leftValues, leftLength + rightLength);
+                System.arraycopy(rightValues, 0, values, leftLength, rightLength);
+                return ValueArray.get(values);
+            } else {
+                if (l == ValueNull.INSTANCE) {
+                    if (mode.nullConcatIsNull) {
+                        return ValueNull.INSTANCE;
+                    }
+                    return r;
+                } else if (r == ValueNull.INSTANCE) {
+                    if (mode.nullConcatIsNull) {
+                        return ValueNull.INSTANCE;
+                    }
+                    return l;
                 }
-                return l;
+                String s1 = l.getString(), s2 = r.getString();
+                StringBuilder buff = new StringBuilder(s1.length() + s2.length());
+                buff.append(s1).append(s2);
+                return ValueString.get(buff.toString());
             }
-            String s1 = l.getString(), s2 = r.getString();
-            StringBuilder buff = new StringBuilder(s1.length() + s2.length());
-            buff.append(s1).append(s2);
-            return ValueString.get(buff.toString());
         }
         case PLUS:
             if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
@@ -165,14 +179,18 @@ public class BinaryOperation extends Expression {
         switch (opType) {
         case CONCAT: {
             TypeInfo l = left.getType(), r = right.getType();
-            if (DataType.isStringType(l.getValueType()) && DataType.isStringType(r.getValueType())) {
-                long precision = l.getPrecision() + r.getPrecision();
-                if (precision >= 0 && precision < Integer.MAX_VALUE) {
-                    type = TypeInfo.getTypeInfo(Value.STRING, precision, 0, null);
-                    break;
+            if (l.getValueType() == Value.ARRAY) {
+                type = TypeInfo.TYPE_ARRAY;
+            } else {
+                if (DataType.isStringType(l.getValueType()) && DataType.isStringType(r.getValueType())) {
+                    long precision = l.getPrecision() + r.getPrecision();
+                    if (precision >= 0 && precision < Integer.MAX_VALUE) {
+                        type = TypeInfo.getTypeInfo(Value.STRING, precision, 0, null);
+                        break;
+                    }
                 }
+                type = TypeInfo.TYPE_STRING;
             }
-            type = TypeInfo.TYPE_STRING;
             break;
         }
         case PLUS:

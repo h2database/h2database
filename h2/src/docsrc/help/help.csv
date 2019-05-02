@@ -2746,6 +2746,7 @@ In compatibility modes result of string concatenation with NULL parameter can be
 ","
 'Hi' || ' Eva'
 ARRAY[1, 2] || 3
+1 || ARRAY[2, 3]
 ARRAY[1, 2] || ARRAY[3, 4]
 "
 

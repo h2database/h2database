@@ -329,12 +329,12 @@ public class Parser {
     /**
      * The token "||".
      */
-    private static final int STRING_CONCAT = PLUS_SIGN + 1;
+    private static final int CONCATENATION = PLUS_SIGN + 1;
 
     /**
      * The token "(".
      */
-    private static final int OPEN_PAREN = STRING_CONCAT + 1;
+    private static final int OPEN_PAREN = CONCATENATION + 1;
 
     /**
      * The token ")".
@@ -3061,7 +3061,7 @@ public class Parser {
     private Expression readConcat() {
         Expression r = readSum();
         while (true) {
-            if (readIf(STRING_CONCAT)) {
+            if (readIf(CONCATENATION)) {
                 r = new BinaryOperation(OpType.CONCAT, r, readSum());
             } else if (readIf(TILDE)) {
                 if (readIf(ASTERISK)) {
@@ -5223,7 +5223,7 @@ public class Parser {
             break;
         case '|':
             if (c1 == '|') {
-                return STRING_CONCAT;
+                return CONCATENATION;
             }
             break;
         case '&':

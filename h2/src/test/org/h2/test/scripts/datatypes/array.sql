@@ -94,3 +94,18 @@ INSERT INTO TEST VALUES ((1, 3));
 
 DROP TABLE TEST;
 > ok
+
+SELECT ARRAY[1, 2] || 3;
+>> [1, 2, 3]
+
+SELECT ARRAY[1, 2] || ARRAY[3];
+>> [1, 2, 3]
+
+SELECT ARRAY[1, 2] || ARRAY[3, 4];
+>> [1, 2, 3, 4]
+
+SELECT ARRAY[1, 2] || NULL;
+>> null
+
+SELECT NULL::ARRAY || ARRAY[2];
+>> null

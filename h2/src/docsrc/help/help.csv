@@ -2732,10 +2732,13 @@ TEST
 "Other Grammar","Operand","
 summand [ { || summand } [...] ]
 ","
-A value or a concatenation of values.
+Performs the concatenation of string or array values.
 In the default mode, the result is NULL if either parameter is NULL.
+In compatibility modes result of string concatenation with NULL parameter can be different.
 ","
 'Hi' || ' Eva'
+ARRAY[1, 2] || 3
+ARRAY[1, 2] || ARRAY[3, 4]
 "
 
 "Other Grammar","Order","

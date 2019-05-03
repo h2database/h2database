@@ -102,11 +102,11 @@ public class Update extends Prepared {
             session.getUser().checkRight(table, Right.UPDATE);
             table.fire(session, Trigger.UPDATE, true);
             table.lock(session, true, false);
-            int columnCount = table.getColumns().length;
             // get the old rows, compute the new rows
             setCurrentRowNumber(0);
             int count = 0;
             Column[] columns = table.getColumns();
+            int columnCount = columns.length;
             int limitRows = -1;
             if (limitExpr != null) {
                 Value v = limitExpr.getValue(session);
@@ -137,8 +137,8 @@ public class Update extends Prepared {
                     Row newRow = table.getTemplateRow();
                     boolean setOnUpdate = false;
                     for (int i = 0; i < columnCount; i++) {
-                        Expression newExpr = setClauseMap.get(columns[i]);
-                        Column column = table.getColumn(i);
+                        Column column = columns[i];
+                        Expression newExpr = setClauseMap.get(column);
                         Value newValue;
                         if (newExpr == null) {
                             if (column.getOnUpdateExpression() != null) {
@@ -165,8 +165,8 @@ public class Update extends Prepared {
                         }
                         if (setOnUpdate) {
                             for (int i = 0; i < columnCount; i++) {
-                                if (setClauseMap.get(columns[i]) == null) {
-                                    Column column = table.getColumn(i);
+                                Column column = columns[i];
+                                if (setClauseMap.get(column) == null) {
                                     if (column.getOnUpdateExpression() != null) {
                                         newRow.setValue(i, table.getOnUpdateValue(session, column));
                                     }

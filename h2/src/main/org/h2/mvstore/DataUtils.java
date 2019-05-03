@@ -304,6 +304,16 @@ public final class DataUtils {
      * Read a string.
      *
      * @param buff the source buffer
+     * @return the value
+     */
+    public static String readString(ByteBuffer buff) {
+        return readString(buff, readVarInt(buff));
+    }
+
+    /**
+     * Read a string.
+     *
+     * @param buff the source buffer
      * @param len the number of characters
      * @return the value
      */

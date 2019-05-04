@@ -130,6 +130,7 @@ public class TestScript extends TestDb {
             testScript("testSimple.sql");
         }
         testScript("comments.sql");
+        testScript("compatibility.sql");
         testScript("derived-column-names.sql");
         testScript("distinct.sql");
         testScript("dual.sql");

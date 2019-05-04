@@ -866,7 +866,12 @@ public class Parser {
                 } else if (readIf("DECLARE")) {
                     // support for DECLARE GLOBAL TEMPORARY TABLE...
                     c = parseCreate();
-                } else if (readIf("DEALLOCATE")) {
+                } else if (database.getMode().getEnum() != ModeEnum.MSSQLServer && readIf("DEALLOCATE")) {
+                    /*
+                     * PostgreSQL-style DEALLOCATE is disabled in MSSQLServer
+                     * mode because PostgreSQL-style EXECUTE is redefined in
+                     * this mode.
+                     */
                     c = parseDeallocate();
                 }
                 break;
@@ -874,8 +879,14 @@ public class Parser {
             case 'E':
                 if (readIf("EXPLAIN")) {
                     c = parseExplain();
-                } else if (readIf("EXECUTE")) {
-                    c = parseExecute();
+                } else if (database.getMode().getEnum() != ModeEnum.MSSQLServer) {
+                    if (readIf("EXECUTE")) {
+                        c = parseExecutePostgre();
+                    }
+                } else {
+                    if (readIf("EXEC") || readIf("EXECUTE")) {
+                        c = parseExecuteSQLServer();
+                    }
                 }
                 break;
             case 'g':
@@ -904,7 +915,12 @@ public class Parser {
                 break;
             case 'p':
             case 'P':
-                if (readIf("PREPARE")) {
+                if (database.getMode().getEnum() != ModeEnum.MSSQLServer && readIf("PREPARE")) {
+                    /*
+                     * PostgreSQL-style PREPARE is disabled in MSSQLServer mode
+                     * because PostgreSQL-style EXECUTE is redefined in this
+                     * mode.
+                     */
                     c = parsePrepare();
                 }
                 break;
@@ -1193,9 +1209,7 @@ public class Parser {
                         } else {
                             columnName = readColumnIdentifier();
                             if (readIf(DOT)) {
-                                if (!equalsToken(schema, database.getShortName())) {
-                                    throw DbException.get(ErrorCode.DATABASE_NOT_FOUND_1, schema);
-                                }
+                                checkDatabaseName(schema);
                                 schema = tableAlias;
                                 tableAlias = columnName;
                                 if (currentTokenType == _ROWID_) {
@@ -2388,7 +2402,7 @@ public class Parser {
         top.addJoin(join, outer, on);
     }
 
-    private Prepared parseExecute() {
+    private Prepared parseExecutePostgre() {
         ExecuteProcedure command = new ExecuteProcedure(session);
         String procedureName = readAliasIdentifier();
         Procedure p = session.getProcedure(procedureName);
@@ -2405,6 +2419,40 @@ public class Parser {
                 }
             }
         }
+        return command;
+    }
+
+    private Prepared parseExecuteSQLServer() {
+        Call command = new Call(session);
+        currentPrepared = command;
+        String schemaName = null;
+        String name = readColumnIdentifier();
+        if (readIf(DOT)) {
+            schemaName = name;
+            name = readColumnIdentifier();
+            if (readIf(DOT)) {
+                checkDatabaseName(schemaName);
+                schemaName = name;
+                name = readColumnIdentifier();
+            }
+        }
+        FunctionAlias functionAlias;
+        if (schemaName != null) {
+            Schema schema = database.getSchema(schemaName);
+            functionAlias = schema.findFunction(name);
+        } else {
+            functionAlias = findFunctionAlias(session.getCurrentSchemaName(), name);
+        }
+        if (functionAlias == null) {
+            throw DbException.get(ErrorCode.FUNCTION_NOT_FOUND_1, name);
+        }
+        Expression[] args;
+        ArrayList<Expression> argList = Utils.newSmallArrayList();
+        while (currentTokenType != SEMICOLON && currentTokenType != END) {
+            argList.add(readExpression());
+        }
+        args = argList.toArray(new Expression[0]);
+        command.setExpression(new JavaFunction(functionAlias, args));
         return command;
     }
 
@@ -3855,9 +3903,7 @@ public class Parser {
                         t = name;
                         name = readColumnIdentifier();
                         if (readIf(DOT)) {
-                            if (!equalsToken(database.getShortName(), s)) {
-                                throw DbException.get(ErrorCode.DATABASE_NOT_FOUND_1, s);
-                            }
+                            checkDatabaseName(s);
                             s = t;
                             t = name;
                             name = readColumnIdentifier();
@@ -3889,19 +3935,11 @@ public class Parser {
             }
             name = readColumnIdentifier();
             if (readIf(OPEN_PAREN)) {
-                String databaseName = schema;
-                if (!equalsToken(database.getShortName(), databaseName)) {
-                    throw DbException.get(ErrorCode.DATABASE_NOT_FOUND_1,
-                            databaseName);
-                }
+                checkDatabaseName(schema);
                 schema = objectName;
                 return readFunction(database.getSchema(schema), name);
             } else if (readIf(DOT)) {
-                String databaseName = schema;
-                if (!equalsToken(database.getShortName(), databaseName)) {
-                    throw DbException.get(ErrorCode.DATABASE_NOT_FOUND_1,
-                            databaseName);
-                }
+                checkDatabaseName(schema);
                 schema = objectName;
                 objectName = name;
                 expr = readWildcardRowidOrSequenceValue(schema, objectName);
@@ -3914,6 +3952,12 @@ public class Parser {
             return new ExpressionColumn(database, schema, objectName, name, false);
         }
         return new ExpressionColumn(database, null, objectName, name, false);
+    }
+
+    private void checkDatabaseName(String databaseName) {
+        if (!equalsToken(database.getShortName(), databaseName)) {
+            throw DbException.get(ErrorCode.DATABASE_NOT_FOUND_1, databaseName);
+        }
     }
 
     private Parameter readParameter() {

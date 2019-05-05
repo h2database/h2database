@@ -3,7 +3,13 @@
 -- Initial Developer: H2 Group
 --
 
+CREATE ALIAS MY_NO_ARG AS 'int f() { return 1; }';
+> ok
+
 CREATE ALIAS MY_SQRT FOR "java.lang.Math.sqrt";
+> ok
+
+CREATE ALIAS MY_REMAINDER FOR "java.lang.Math.IEEEremainder";
 > ok
 
 EXEC MY_SQRT 4;
@@ -24,8 +30,14 @@ PREPARE TEST AS SELECT 1;
 DEALLOCATE TEST;
 > exception SYNTAX_ERROR_2
 
+EXEC MY_NO_ARG;
+>> 1
+
 EXEC MY_SQRT 4;
 >> 2.0
+
+EXEC MY_REMAINDER 4, 3;
+>> 1.0
 
 EXECUTE MY_SQRT 4;
 >> 2.0
@@ -48,5 +60,11 @@ EXEC UNKNOWN_DATABASE.PUBLIC.MY_SQRT 4;
 SET MODE Regular;
 > ok
 
+DROP ALIAS MY_NO_ARG;
+> ok
+
 DROP ALIAS MY_SQRT;
+> ok
+
+DROP ALIAS MY_REMAINDER;
 > ok

@@ -2448,8 +2448,10 @@ public class Parser {
         }
         Expression[] args;
         ArrayList<Expression> argList = Utils.newSmallArrayList();
-        while (currentTokenType != SEMICOLON && currentTokenType != END) {
-            argList.add(readExpression());
+        if (currentTokenType != SEMICOLON && currentTokenType != END) {
+            do {
+                argList.add(readExpression());
+            } while (readIf(COMMA));
         }
         args = argList.toArray(new Expression[0]);
         command.setExpression(new JavaFunction(functionAlias, args));

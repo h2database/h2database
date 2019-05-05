@@ -42,8 +42,7 @@ public class StringDataType implements DataType {
 
     @Override
     public String read(ByteBuffer buff) {
-        int len = DataUtils.readVarInt(buff);
-        return DataUtils.readString(buff, len);
+        return DataUtils.readString(buff);
     }
 
     @Override

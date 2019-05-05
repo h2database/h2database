@@ -5,9 +5,9 @@
  */
 package org.h2.command.dml;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map.Entry;
 import java.util.Objects;
 
 import org.h2.api.ErrorCode;
@@ -27,7 +27,6 @@ import org.h2.table.Column;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -49,8 +48,7 @@ public class Update extends Prepared {
 
     private boolean updateToCurrentValuesReturnsZero;
 
-    private final ArrayList<Column> columns = Utils.newSmallArrayList();
-    private final HashMap<Column, Expression> expressionMap  = new HashMap<>();
+    private final LinkedHashMap<Column, Expression> setClauseMap  = new LinkedHashMap<>();
 
     private HashSet<Long> updatedKeysCollector;
 
@@ -77,12 +75,9 @@ public class Update extends Prepared {
      * @param expression the expression
      */
     public void setAssignment(Column column, Expression expression) {
-        if (expressionMap.containsKey(column)) {
-            throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, column
-                    .getName());
+        if (setClauseMap.put(column, expression) != null) {
+            throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, column.getName());
         }
-        columns.add(column);
-        expressionMap.put(column, expression);
         if (expression instanceof Parameter) {
             Parameter p = (Parameter) expression;
             p.setColumn(column);
@@ -107,11 +102,11 @@ public class Update extends Prepared {
             session.getUser().checkRight(table, Right.UPDATE);
             table.fire(session, Trigger.UPDATE, true);
             table.lock(session, true, false);
-            int columnCount = table.getColumns().length;
             // get the old rows, compute the new rows
             setCurrentRowNumber(0);
             int count = 0;
             Column[] columns = table.getColumns();
+            int columnCount = columns.length;
             int limitRows = -1;
             if (limitExpr != null) {
                 Value v = limitExpr.getValue(session);
@@ -142,8 +137,8 @@ public class Update extends Prepared {
                     Row newRow = table.getTemplateRow();
                     boolean setOnUpdate = false;
                     for (int i = 0; i < columnCount; i++) {
-                        Expression newExpr = expressionMap.get(columns[i]);
-                        Column column = table.getColumn(i);
+                        Column column = columns[i];
+                        Expression newExpr = setClauseMap.get(column);
                         Value newValue;
                         if (newExpr == null) {
                             if (column.getOnUpdateExpression() != null) {
@@ -170,8 +165,8 @@ public class Update extends Prepared {
                         }
                         if (setOnUpdate) {
                             for (int i = 0; i < columnCount; i++) {
-                                if (expressionMap.get(columns[i]) == null) {
-                                    Column column = table.getColumn(i);
+                                Column column = columns[i];
+                                if (setClauseMap.get(column) == null) {
                                     if (column.getOnUpdateExpression() != null) {
                                         newRow.setValue(i, table.getOnUpdateValue(session, column));
                                     }
@@ -217,13 +212,14 @@ public class Update extends Prepared {
     public String getPlanSQL(boolean alwaysQuote) {
         StringBuilder builder = new StringBuilder("UPDATE ");
         targetTableFilter.getPlanSQL(builder, false, alwaysQuote).append("\nSET\n    ");
-        for (int i = 0, size = columns.size(); i < size; i++) {
-            if (i > 0) {
+        boolean f = false;
+        for (Entry<Column, Expression> entry : setClauseMap.entrySet()) {
+            if (f) {
                 builder.append(",\n    ");
             }
-            Column c = columns.get(i);
-            c.getSQL(builder, alwaysQuote).append(" = ");
-            expressionMap.get(c).getSQL(builder, alwaysQuote);
+            f = true;
+            entry.getKey().getSQL(builder, alwaysQuote).append(" = ");
+            entry.getValue().getSQL(builder, alwaysQuote);
         }
         if (condition != null) {
             builder.append("\nWHERE ");
@@ -243,13 +239,13 @@ public class Update extends Prepared {
             condition = condition.optimize(session);
             condition.createIndexConditions(session, targetTableFilter);
         }
-        for (Column c : columns) {
-            Expression e = expressionMap.get(c);
+        for (Entry<Column, Expression> entry : setClauseMap.entrySet()) {
+            Expression e = entry.getValue();
             e.mapColumns(targetTableFilter, 0, Expression.MAP_INITIAL);
             if (sourceTableFilter!=null){
                 e.mapColumns(sourceTableFilter, 0, Expression.MAP_INITIAL);
             }
-            expressionMap.put(c, e.optimize(session));
+            entry.setValue(e.optimize(session));
         }
         TableFilter[] filters;
         if(sourceTableFilter==null){

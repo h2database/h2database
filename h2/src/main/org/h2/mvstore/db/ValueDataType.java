@@ -5,6 +5,10 @@
  */
 package org.h2.mvstore.db;
 
+import static org.h2.mvstore.DataUtils.readString;
+import static org.h2.mvstore.DataUtils.readVarInt;
+import static org.h2.mvstore.DataUtils.readVarLong;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -14,7 +18,6 @@ import org.h2.api.IntervalQualifier;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
 import org.h2.message.DbException;
-import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.rtree.SpatialDataType;
 import org.h2.mvstore.rtree.SpatialKey;
@@ -714,23 +717,6 @@ public class ValueDataType implements DataType {
             }
             throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "type: " + type);
         }
-    }
-
-    private static int readVarInt(ByteBuffer buff) {
-        return DataUtils.readVarInt(buff);
-    }
-
-    private static long readVarLong(ByteBuffer buff) {
-        return DataUtils.readVarLong(buff);
-    }
-
-    private static String readString(ByteBuffer buff, int len) {
-        return DataUtils.readString(buff, len);
-    }
-
-    private static String readString(ByteBuffer buff) {
-        int len = readVarInt(buff);
-        return DataUtils.readString(buff, len);
     }
 
     @Override

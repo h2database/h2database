@@ -7,6 +7,7 @@ package org.h2.command.dml;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map.Entry;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
@@ -106,11 +107,9 @@ public class Insert extends CommandWithValues implements ResultTarget {
         if (duplicateKeyAssignmentMap == null) {
             duplicateKeyAssignmentMap = new HashMap<>();
         }
-        if (duplicateKeyAssignmentMap.containsKey(column)) {
-            throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1,
-                    column.getName());
+        if (duplicateKeyAssignmentMap.put(column, expression) != null) {
+            throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, column.getName());
         }
-        duplicateKeyAssignmentMap.put(column, expression);
     }
 
     @Override
@@ -361,8 +360,7 @@ public class Insert extends CommandWithValues implements ResultTarget {
 
     @Override
     public boolean isCacheable() {
-        return duplicateKeyAssignmentMap == null ||
-                duplicateKeyAssignmentMap.isEmpty();
+        return duplicateKeyAssignmentMap == null;
     }
 
     /**
@@ -374,19 +372,18 @@ public class Insert extends CommandWithValues implements ResultTarget {
         if (de.getErrorCode() != ErrorCode.DUPLICATE_KEY_1) {
             throw de;
         }
-        if (duplicateKeyAssignmentMap == null ||
-                duplicateKeyAssignmentMap.isEmpty()) {
+        if (duplicateKeyAssignmentMap == null) {
             if (ignore) {
                 return false;
             }
             throw de;
         }
 
-        ArrayList<String> variableNames = new ArrayList<>(
-                duplicateKeyAssignmentMap.size());
+        int columnCount = columns.length;
+        ArrayList<String> variableNames = new ArrayList<>(columnCount);
         Expression[] row = (currentRow == null) ? valuesExpressionList.get((int) getCurrentRowNumber() - 1)
-                : new Expression[columns.length];
-        for (int i = 0; i < columns.length; i++) {
+                : new Expression[columnCount];
+        for (int i = 0; i < columnCount; i++) {
             StringBuilder builder = table.getSQL(new StringBuilder(), true).append('.');
             String key = columns[i].getSQL(builder, true).toString();
             variableNames.add(key);
@@ -403,14 +400,13 @@ public class Insert extends CommandWithValues implements ResultTarget {
         StringBuilder builder = new StringBuilder("UPDATE ");
         table.getSQL(builder, true).append(" SET ");
         boolean f = false;
-        for (Column column : duplicateKeyAssignmentMap.keySet()) {
+        for (Entry<Column, Expression> entry : duplicateKeyAssignmentMap.entrySet()) {
             if (f) {
                 builder.append(", ");
             }
             f = true;
-            Expression ex = duplicateKeyAssignmentMap.get(column);
-            column.getSQL(builder, true).append('=');
-            ex.getSQL(builder, true);
+            entry.getKey().getSQL(builder, true).append('=');
+            entry.getValue().getSQL(builder, true);
         }
         builder.append(" WHERE ");
         Index foundIndex = (Index) de.getSource();

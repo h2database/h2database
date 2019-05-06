@@ -1255,11 +1255,11 @@ public class Parser {
             Expression expression = readExpression();
             int columnCount = columns.size();
             if (columnCount == 1 && expression.getType().getValueType() != Value.ROW) {
-                // the expression is parsed as a simple value
+                // Row value special case
                 command.setAssignment(columns.get(0), expression);
             } else if (expression instanceof ExpressionList) {
                 ExpressionList list = (ExpressionList) expression;
-                if (columnCount != list.getSubexpressionCount()) {
+                if (list.getType().getValueType() != Value.ROW || columnCount != list.getSubexpressionCount()) {
                     throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
                 }
                 for (int i = 0; i < columnCount; i++) {

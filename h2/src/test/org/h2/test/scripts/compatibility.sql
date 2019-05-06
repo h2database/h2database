@@ -3,6 +3,8 @@
 -- Initial Developer: H2 Group
 --
 
+-- EXEC and EXECUTE in MSSQLServer mode
+
 CREATE ALIAS MY_NO_ARG AS 'int f() { return 1; }';
 > ok
 
@@ -67,4 +69,36 @@ DROP ALIAS MY_SQRT;
 > ok
 
 DROP ALIAS MY_REMAINDER;
+> ok
+
+-- UPDATE TOP (n) in MSSQLServer mode
+
+CREATE TABLE TEST(A INT, B INT) AS VALUES (1, 2), (3, 4), (5, 6);
+> ok
+
+UPDATE TOP (1) TEST SET B = 10;
+> exception TABLE_OR_VIEW_NOT_FOUND_1
+
+SET MODE MSSQLServer;
+> ok
+
+UPDATE TOP (1) TEST SET B = 10;
+> update count: 1
+
+SELECT COUNT(*) FILTER (WHERE B = 10) N, COUNT(*) FILTER (WHERE B <> 10) O FROM TEST;
+> N O
+> - -
+> 1 2
+> rows: 1
+
+UPDATE TEST SET B = 10 WHERE B <> 10;
+> update count: 2
+
+UPDATE TOP (1) TEST SET B = 10 LIMIT 1;
+> exception SYNTAX_ERROR_1
+
+SET MODE Regular;
+> ok
+
+DROP TABLE TEST;
 > ok

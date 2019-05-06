@@ -36,6 +36,21 @@ UPDATE TEST SET (B) = (7);
 SELECT B FROM TEST;
 >> 7
 
+UPDATE TEST SET (B) = (2, 3);
+> exception COLUMN_COUNT_DOES_NOT_MATCH
+
+UPDATE TEST SET (A, B) = ARRAY[3, 4];
+> exception COLUMN_COUNT_DOES_NOT_MATCH
+
+EXPLAIN UPDATE TEST SET (A) = ROW(3), B = 4;
+>> UPDATE "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ SET "A" = 3, "B" = 4
+
+EXPLAIN UPDATE TEST SET A = 3, (B) = 4;
+>> UPDATE "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ SET "A" = 3, "B" = 4
+
+UPDATE TEST SET (A, B) = (1, 2), (B, A) = (2, 1);
+> exception DUPLICATE_COLUMN_NAME_1
+
 DROP TABLE TEST;
 > ok
 

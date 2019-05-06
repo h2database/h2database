@@ -1237,42 +1237,58 @@ public class Parser {
         Update command = new Update(session);
         currentPrepared = command;
         int start = lastParseIndex;
+        Expression limit = null;
+        if (database.getMode().getEnum() == ModeEnum.MSSQLServer && readIf("TOP")) {
+            read(OPEN_PAREN);
+            limit = readTerm().optimize(session);
+            command.setLimit(limit);
+            read(CLOSE_PAREN);
+        }
         TableFilter filter = readSimpleTableFilter(0, null);
         command.setTableFilter(filter);
-        parseUpdateSetClause(command, filter, start, true);
+        parseUpdateSetClause(command, filter, start, limit == null);
         return command;
     }
 
     private void parseUpdateSetClause(Update command, TableFilter filter, int start, boolean allowExtensions) {
         read("SET");
-        if (readIf(OPEN_PAREN)) {
-            ArrayList<Column> columns = Utils.newSmallArrayList();
-            do {
-                Column column = readTableColumn(filter);
-                columns.add(column);
-            } while (readIfMore(true));
-            read(EQUAL);
-            Expression expression = readExpression();
-            if (columns.size() == 1 && expression.getType().getValueType() != Value.ROW) {
-                // the expression is parsed as a simple value
-                command.setAssignment(columns.get(0), expression);
-            } else {
-                for (int i = 0, size = columns.size(); i < size; i++) {
-                    Column column = columns.get(i);
-                    Function f = Function.getFunction(database, "ARRAY_GET");
-                    f.setParameter(0, expression);
-                    f.setParameter(1, ValueExpression.get(ValueInt.get(i + 1)));
-                    f.doneWithParameters();
-                    command.setAssignment(column, f);
+        do {
+            if (readIf(OPEN_PAREN)) {
+                ArrayList<Column> columns = Utils.newSmallArrayList();
+                do {
+                    Column column = readTableColumn(filter);
+                    columns.add(column);
+                } while (readIfMore(true));
+                read(EQUAL);
+                Expression expression = readExpression();
+                int columnCount = columns.size();
+                if (columnCount == 1 && expression.getType().getValueType() != Value.ROW) {
+                    // Row value special case
+                    command.setAssignment(columns.get(0), expression);
+                } else if (expression instanceof ExpressionList) {
+                    ExpressionList list = (ExpressionList) expression;
+                    if (list.getType().getValueType() != Value.ROW || columnCount != list.getSubexpressionCount()) {
+                        throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
+                    }
+                    for (int i = 0; i < columnCount; i++) {
+                        command.setAssignment(columns.get(i), list.getSubexpression(i));
+                    }
+                } else {
+                    for (int i = 0; i < columnCount; i++) {
+                        Column column = columns.get(i);
+                        Function f = Function.getFunction(database, "ARRAY_GET");
+                        f.setParameter(0, expression);
+                        f.setParameter(1, ValueExpression.get(ValueInt.get(i + 1)));
+                        f.doneWithParameters();
+                        command.setAssignment(column, f);
+                    }
                 }
-            }
-        } else {
-            do {
+            } else {
                 Column column = readTableColumn(filter);
                 read(EQUAL);
                 command.setAssignment(column, readExpressionOrDefault());
-            } while (readIf(COMMA));
-        }
+            }
+        } while (readIf(COMMA));
         if (readIf(WHERE)) {
             Expression condition = readExpression();
             command.setCondition(condition);

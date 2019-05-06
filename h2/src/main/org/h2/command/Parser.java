@@ -1237,9 +1237,16 @@ public class Parser {
         Update command = new Update(session);
         currentPrepared = command;
         int start = lastParseIndex;
+        Expression limit = null;
+        if (database.getMode().getEnum() == ModeEnum.MSSQLServer && readIf("TOP")) {
+            read(OPEN_PAREN);
+            limit = readTerm().optimize(session);
+            command.setLimit(limit);
+            read(CLOSE_PAREN);
+        }
         TableFilter filter = readSimpleTableFilter(0, null);
         command.setTableFilter(filter);
-        parseUpdateSetClause(command, filter, start, true);
+        parseUpdateSetClause(command, filter, start, limit == null);
         return command;
     }
 

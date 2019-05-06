@@ -1253,11 +1253,20 @@ public class Parser {
             } while (readIfMore(true));
             read(EQUAL);
             Expression expression = readExpression();
-            if (columns.size() == 1 && expression.getType().getValueType() != Value.ROW) {
+            int columnCount = columns.size();
+            if (columnCount == 1 && expression.getType().getValueType() != Value.ROW) {
                 // the expression is parsed as a simple value
                 command.setAssignment(columns.get(0), expression);
+            } else if (expression instanceof ExpressionList) {
+                ExpressionList list = (ExpressionList) expression;
+                if (columnCount != list.getSubexpressionCount()) {
+                    throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
+                }
+                for (int i = 0; i < columnCount; i++) {
+                    command.setAssignment(columns.get(i), list.getSubexpression(i));
+                }
             } else {
-                for (int i = 0, size = columns.size(); i < size; i++) {
+                for (int i = 0; i < columnCount; i++) {
                     Column column = columns.get(i);
                     Function f = Function.getFunction(database, "ARRAY_GET");
                     f.setParameter(0, expression);

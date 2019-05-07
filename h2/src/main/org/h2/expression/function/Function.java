@@ -1787,10 +1787,9 @@ public class Function extends Expression implements FunctionCall {
             String msgText = v1.getString();
             throw DbException.fromUser(sqlState, msgText);
         }
-        case JSON_OBJECT: {
+        case JSON_OBJECT:
             result = jsonObject(session, args);
             break;
-        }
         default:
             throw DbException.throwInternalError("type=" + info.type);
         }
@@ -2735,6 +2734,22 @@ public class Function extends Expression implements FunctionCall {
             ValueString v = (ValueString) ((ValueExpression) args[0]).getValue(null);
             builder.append(v.getString()).append(" FROM ");
             args[1].getSQL(builder, alwaysQuote);
+            break;
+        }
+        case JSON_OBJECT: {
+            for (int i = 0, l = args.length; i < l;) {
+                if (i > 0) {
+                    builder.append(", ");
+                }
+                args[i++].getSQL(builder, alwaysQuote).append(": ");
+                args[i++].getSQL(builder, alwaysQuote);
+            }
+            if ((flags & JSON_ABSENT_ON_NULL) != 0) {
+                builder.append(" ABSENT ON NULL");
+            }
+            if ((flags & JSON_WITH_UNIQUE_KEYS) != 0) {
+                builder.append(" WITH UNIQUE KEYS");
+            }
             break;
         }
         default:

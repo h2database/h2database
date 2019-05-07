@@ -3898,10 +3898,15 @@ public class Parser {
                 return false;
             }
         } else if (readIf("ABSENT")) {
-            read(ON);
-            read(NULL);
-            flags |= Function.JSON_ABSENT_ON_NULL;
-            result = true;
+            if (readIf(ON)) {
+                read(NULL);
+                flags |= Function.JSON_ABSENT_ON_NULL;
+                result = true;
+            } else {
+                parseIndex = start;
+                read();
+                return false;
+            }
         }
         if (!forArray) {
             if (readIf(WITH)) {
@@ -3910,9 +3915,16 @@ public class Parser {
                 flags |= Function.JSON_WITH_UNIQUE_KEYS;
                 result = true;
             } else if (readIf("WITHOUT")) {
-                read(UNIQUE);
-                read("KEYS");
-                result = true;
+                if (readIf(UNIQUE)) {
+                    read("KEYS");
+                    result = true;
+                } else if (result) {
+                    throw getSyntaxError();
+                } else {
+                    parseIndex = start;
+                    read();
+                    return false;
+                }
             }
         }
         if (result) {

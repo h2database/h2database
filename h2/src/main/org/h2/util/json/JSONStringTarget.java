@@ -20,6 +20,54 @@ public final class JSONStringTarget extends JSONTarget {
 
     private static final byte ARRAY = 2;
 
+    /**
+     * Encodes a JSON string and appends it to the specified string builder.
+     *
+     * @param builder
+     *            the string builder to append to
+     * @param s
+     *            the string to encode
+     * @return the specified string builder
+     */
+    public static StringBuilder encodeString(StringBuilder builder, String s) {
+        builder.append('"');
+        for (int i = 0, length = s.length(); i < length; i++) {
+            char c = s.charAt(i);
+            switch (c) {
+            case '\b':
+                builder.append("\\b");
+                break;
+            case '\t':
+                builder.append("\\t");
+                break;
+            case '\f':
+                builder.append("\\f");
+                break;
+            case '\n':
+                builder.append("\\n");
+                break;
+            case '\r':
+                builder.append("\\r");
+                break;
+            case '"':
+                builder.append("\\\"");
+                break;
+            case '\\':
+                builder.append("\\\\");
+                break;
+            default:
+                if (c >= ' ') {
+                    builder.append(c);
+                } else {
+                    builder.append("\\u00") //
+                            .append(HEX[c >>> 4 & 0xf]) //
+                            .append(HEX[c & 0xf]);
+                }
+            }
+        }
+        return builder.append('"');
+    }
+
     private final StringBuilder builder;
 
     private final ByteStack stack;
@@ -77,8 +125,7 @@ public final class JSONStringTarget extends JSONTarget {
         }
         afterName = true;
         beforeValue();
-        writeString(name);
-        builder.append(':');
+        encodeString(builder, name).append(':');
     }
 
     @Override
@@ -118,47 +165,8 @@ public final class JSONStringTarget extends JSONTarget {
     @Override
     public void valueString(String string) {
         beforeValue();
-        writeString(string);
+        encodeString(builder, string);
         afterValue();
-    }
-
-    private void writeString(String s) {
-        builder.append('"');
-        for (int i = 0, length = s.length(); i < length; i++) {
-            char c = s.charAt(i);
-            switch (c) {
-            case '\b':
-                builder.append("\\b");
-                break;
-            case '\t':
-                builder.append("\\t");
-                break;
-            case '\f':
-                builder.append("\\f");
-                break;
-            case '\n':
-                builder.append("\\n");
-                break;
-            case '\r':
-                builder.append("\\r");
-                break;
-            case '"':
-                builder.append("\\\"");
-                break;
-            case '\\':
-                builder.append("\\\\");
-                break;
-            default:
-                if (c >= ' ') {
-                    builder.append(c);
-                } else {
-                    builder.append("\\u00") //
-                            .append(HEX[c >>> 4 & 0xf]) //
-                            .append(HEX[c & 0xf]);
-                }
-            }
-        }
-        builder.append('"');
     }
 
     private void beforeValue() {

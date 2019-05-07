@@ -5799,6 +5799,21 @@ Window functions in H2 may require a lot of memory for large queries.
 SELECT X, RATIO_TO_REPORT(X) OVER (PARTITION BY CATEGORY), CATEGORY FROM TEST;
 "
 
+"Functions (JSON)","JSON_OBJECT","
+JSON_OBJECT(
+[{[KEY] string VALUE expression} | {string : expression} [,...]]
+[ { NULL | ABSENT } ON NULL ]
+[ { WITH | WITHOUT } UNIQUE KEYS ]
+)
+","
+Returns a JSON object constructed from the specified properties.
+If ABSENT ON NULL is specified properties with NULL value are not included in the object.
+If WITH UNIQUE KEYS is specified the constructed object is checked for uniqueness of keys,
+nested objects, if any, are checked too.
+","
+JSON_OBJECT('id': 100, 'name' : 'Joe');
+"
+
 "System Tables","Information Schema","
 INFORMATION_SCHEMA
 ","

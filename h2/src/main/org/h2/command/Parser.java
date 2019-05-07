@@ -3765,6 +3765,24 @@ public class Parser {
             tf.setColumns(columns);
             break;
         }
+        case Function.JSON_OBJECT: {
+            int i = 0;
+            if (!readJsonObjectFunctionFlags(function)) {
+                do {
+                    boolean withKey = readIf("KEY");
+                    function.setParameter(i++, readExpression());
+                    if (withKey) {
+                        read("VALUE");
+                    } else if (!readIf("VALUE")) {
+                        read(COLON);
+                    }
+                    function.setParameter(i++, readExpression());
+                } while (readIf(COMMA));
+                readJsonObjectFunctionFlags(function);
+            }
+            read(CLOSE_PAREN);
+            break;
+        }
         default:
             if (!readIf(CLOSE_PAREN)) {
                 int i = 0;
@@ -3853,6 +3871,35 @@ public class Parser {
             read("NULLS");
             function.setIgnoreNulls(true);
         }
+    }
+
+    private boolean readJsonObjectFunctionFlags(Function function) {
+        boolean result = false;
+        int flags = 0;
+        if (readIf(NULL)) {
+            read(ON);
+            read(NULL);
+            result = true;
+        } else if (readIf("ABSENT")) {
+            read(ON);
+            read(NULL);
+            flags |= Function.JSON_ABSENT_ON_NULL;
+            result = true;
+        }
+        if (readIf(WITH)) {
+            read(UNIQUE);
+            read("KEYS");
+            flags |= Function.JSON_WITH_UNIQUE_KEYS;
+            result = true;
+        } else if (readIf("WITHOUT")) {
+            read(UNIQUE);
+            read("KEYS");
+            result = true;
+        }
+        if (result) {
+            function.setFlags(flags);
+        }
+        return result;
     }
 
     private Expression readKeywordFunction(String name) {

@@ -14,6 +14,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -94,6 +95,8 @@ public class GenerateDoc {
                 help + "= 'Functions (System)' ORDER BY ID", true, false);
         map("functionsWindow",
                 help + "= 'Functions (Window)' ORDER BY ID", true, false);
+        map("functionsJson",
+                help + "= 'Functions (JSON)' ORDER BY ID", true, false);
         map("dataTypes",
                 help + "LIKE 'Data Types%' ORDER BY SECTION, ID", true, true);
         map("intervalDataTypes",
@@ -196,8 +199,9 @@ public class GenerateDoc {
             int div = 3;
             int part = (list.size() + div - 1) / div;
             for (int i = 0, start = 0; i < div; i++, start += part) {
-                List<HashMap<String, String>> listThird = list.subList(start,
-                        Math.min(start + part, list.size()));
+                int end = Math.min(start + part, list.size());
+                List<HashMap<String, String>> listThird = start <= end ? list.subList(start, end)
+                        : Collections.<HashMap<String, String>> emptyList();
                 session.put(key + "-" + i, listThird);
             }
         } finally {

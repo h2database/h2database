@@ -1174,8 +1174,6 @@ public class TestCases extends TestDb {
                 "    \"O\".\"NAME\"\n" +
                 "FROM \"PUBLIC\".\"PERSON\" \"P\"\n" +
                 "    /* PUBLIC.PRIMARY_KEY_8: ID = ?1 */\n" +
-                "    /* WHERE P.ID = ?1\n" +
-                "    */\n" +
                 "    /* scanCount: 2 */\n" +
                 "INNER JOIN \"PUBLIC\".\"ORGANIZATION\" \"O\"\n" +
                 "    /* PUBLIC.PRIMARY_KEY_D: ID = ?1\n" +
@@ -1183,9 +1181,8 @@ public class TestCases extends TestDb {
                 "     */\n" +
                 "    ON 1=1\n" +
                 "    /* scanCount: 2 */\n" +
-                "WHERE ((\"O\".\"ID\" = ?1)\n" +
-                "    AND (\"O\".\"ID\" = \"P\".\"ID\"))\n" +
-                "    AND (\"P\".\"ID\" = ?1)",
+                "WHERE (\"O\".\"ID\" = ?1)\n" +
+                "    AND (\"O\".\"ID\" = \"P\".\"ID\")",
             rs.getString(1));
 
         conn.close();

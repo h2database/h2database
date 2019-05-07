@@ -3,7 +3,7 @@
 -- Initial Developer: H2 Group
 --
 
-SELECT JSON_OBJECT('key1' : 10, 'key2' VALUE TRUE, KEY 'key3' VALUE 'str', 'key4' : NULL, 'key5' : '[1,2,3]'::JSON);
+SELECT JSON_OBJECT('key1' : 10, 'key2' VALUE TRUE, KEY 'key3' VALUE 'str', 'key4' : NULL, 'key5' : '[1,2,3]' FORMAT JSON);
 >> {"key1":10,"key2":true,"key3":"str","key4":null,"key5":[1,2,3]}
 
 SELECT JSON_OBJECT('key1' : NULL ABSENT ON NULL);

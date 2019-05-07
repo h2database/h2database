@@ -1778,7 +1778,7 @@ select * from test where name = -1 and name = id;
 > rows: 1
 
 explain select * from test where name = -1 and name = id;
->> SELECT "TEST"."ID", "TEST"."NAME" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2: ID = -1 */ WHERE (("NAME" = -1) AND ("NAME" = "ID")) AND ("ID" = -1)
+>> SELECT "TEST"."ID", "TEST"."NAME" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2: ID = -1 */ WHERE ("NAME" = -1) AND ("NAME" = "ID")
 
 DROP TABLE TEST;
 > ok
@@ -5056,7 +5056,7 @@ SELECT * FROM TEST2COL WHERE A=0 AND B=0;
 > rows: 1
 
 EXPLAIN SELECT * FROM TEST2COL WHERE A=0 AND B=0;
->> SELECT "TEST2COL"."A", "TEST2COL"."B", "TEST2COL"."C" FROM "PUBLIC"."TEST2COL" /* PUBLIC.PRIMARY_KEY_E: A = 0 AND B = 0 */ WHERE (("A" = 0) AND ("B" = 0)) AND ("A" = "B")
+>> SELECT "TEST2COL"."A", "TEST2COL"."B", "TEST2COL"."C" FROM "PUBLIC"."TEST2COL" /* PUBLIC.PRIMARY_KEY_E: A = 0 AND B = 0 */ WHERE ("A" = 0) AND ("B" = 0)
 
 SELECT * FROM TEST2COL WHERE A=0;
 > A B C

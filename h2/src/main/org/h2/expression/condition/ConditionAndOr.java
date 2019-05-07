@@ -34,6 +34,11 @@ public class ConditionAndOr extends Condition {
     private final int andOrType;
     private Expression left, right;
 
+    /**
+     * Additional condition for index only.
+     */
+    private Expression added;
+
     public ConditionAndOr(int andOrType, Expression left, Expression right) {
         this.andOrType = andOrType;
         this.left = left;
@@ -65,6 +70,9 @@ public class ConditionAndOr extends Condition {
         if (andOrType == AND) {
             left.createIndexConditions(session, filter);
             right.createIndexConditions(session, filter);
+            if (added != null) {
+                added.createIndexConditions(session, filter);
+            }
         }
     }
 
@@ -150,11 +158,9 @@ public class ConditionAndOr extends Condition {
             if (left instanceof Comparison && right instanceof Comparison) {
                 Comparison compLeft = (Comparison) left;
                 Comparison compRight = (Comparison) right;
-                Expression added = compLeft.getAdditional(
-                        session, compRight, true);
+                Expression added = compLeft.getAdditionalAnd(session, compRight);
                 if (added != null) {
-                    added = added.optimize(session);
-                    return new ConditionAndOr(AND, this, added);
+                    this.added = added.optimize(session);
                 }
             }
         }
@@ -162,12 +168,10 @@ public class ConditionAndOr extends Condition {
         if (andOrType == OR &&
                 session.getDatabase().getSettings().optimizeOr) {
             // try to add conditions (A=B AND B=1: add A=1)
-            if (left instanceof Comparison &&
-                    right instanceof Comparison) {
+            if (left instanceof Comparison && right instanceof Comparison) {
                 Comparison compLeft = (Comparison) left;
                 Comparison compRight = (Comparison) right;
-                Expression added = compLeft.getAdditional(
-                        session, compRight, false);
+                Expression added = compLeft.optimizeOr(session, compRight);
                 if (added != null) {
                     return added.optimize(session);
                 }

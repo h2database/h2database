@@ -5814,6 +5814,15 @@ nested objects, if any, are checked too.
 JSON_OBJECT('id': 100, 'name' : 'Joe');
 "
 
+"Functions (JSON)","JSON_ARRAY","
+JSON_ARRAY([expression [,...]] [ { NULL | ABSENT } ON NULL ])
+","
+Returns a JSON array constructed from the specified values.
+If ABSENT ON NULL is specified NULL values are not included in the array.
+","
+JSON_ARRAY(10, 15, 20);
+"
+
 "System Tables","Information Schema","
 INFORMATION_SCHEMA
 ","

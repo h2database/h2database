@@ -3767,7 +3767,7 @@ public class Parser {
         }
         case Function.JSON_OBJECT: {
             int i = 0;
-            if (!readJsonObjectFunctionFlags(function)) {
+            if (!readJsonObjectFunctionFlags(function, false)) {
                 do {
                     boolean withKey = readIf("KEY");
                     function.setParameter(i++, readExpression());
@@ -3778,7 +3778,18 @@ public class Parser {
                     }
                     function.setParameter(i++, readExpression());
                 } while (readIf(COMMA));
-                readJsonObjectFunctionFlags(function);
+                readJsonObjectFunctionFlags(function, false);
+            }
+            read(CLOSE_PAREN);
+            break;
+        }
+        case Function.JSON_ARRAY: {
+            int i = 0;
+            if (!readJsonObjectFunctionFlags(function, true)) {
+                do {
+                    function.setParameter(i++, readExpression());
+                } while (readIf(COMMA));
+                readJsonObjectFunctionFlags(function, true);
             }
             read(CLOSE_PAREN);
             break;
@@ -3873,28 +3884,36 @@ public class Parser {
         }
     }
 
-    private boolean readJsonObjectFunctionFlags(Function function) {
+    private boolean readJsonObjectFunctionFlags(Function function, boolean forArray) {
+        int start = lastParseIndex;
         boolean result = false;
         int flags = 0;
         if (readIf(NULL)) {
-            read(ON);
-            read(NULL);
-            result = true;
+            if (readIf(ON)) {
+                read(NULL);
+                result = true;
+            } else {
+                parseIndex = start;
+                read();
+                return false;
+            }
         } else if (readIf("ABSENT")) {
             read(ON);
             read(NULL);
             flags |= Function.JSON_ABSENT_ON_NULL;
             result = true;
         }
-        if (readIf(WITH)) {
-            read(UNIQUE);
-            read("KEYS");
-            flags |= Function.JSON_WITH_UNIQUE_KEYS;
-            result = true;
-        } else if (readIf("WITHOUT")) {
-            read(UNIQUE);
-            read("KEYS");
-            result = true;
+        if (!forArray) {
+            if (readIf(WITH)) {
+                read(UNIQUE);
+                read("KEYS");
+                flags |= Function.JSON_WITH_UNIQUE_KEYS;
+                result = true;
+            } else if (readIf("WITHOUT")) {
+                read(UNIQUE);
+                read("KEYS");
+                result = true;
+            }
         }
         if (result) {
             function.setFlags(flags);

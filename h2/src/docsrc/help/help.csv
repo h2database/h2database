@@ -5811,7 +5811,7 @@ If ABSENT ON NULL is specified properties with NULL value are not included in th
 If WITH UNIQUE KEYS is specified the constructed object is checked for uniqueness of keys,
 nested objects, if any, are checked too.
 ","
-JSON_OBJECT('id': 100, 'name' : 'Joe');
+JSON_OBJECT('id': 100, 'name' : 'Joe', 'groups': '[2,5]' FORMAT JSON);
 "
 
 "Functions (JSON)","JSON_ARRAY","
@@ -5821,6 +5821,7 @@ Returns a JSON array constructed from the specified values.
 If ABSENT ON NULL is specified NULL values are not included in the array.
 ","
 JSON_ARRAY(10, 15, 20);
+JSON_ARRAY(JSON_DATA_A FORMAT JSON, JSON_DATA_B FORMAT JSON);
 "
 
 "System Tables","Information Schema","

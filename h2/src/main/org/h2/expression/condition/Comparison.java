@@ -602,16 +602,14 @@ public class Comparison extends Condition {
 
     /**
      * Get an additional condition if possible. Example: given two conditions
-     * A=B AND B=C, the new condition A=C is returned. Given the two conditions
-     * A=1 OR A=2, the new condition A IN(1, 2) is returned.
+     * A=B AND B=C, the new condition A=C is returned.
      *
      * @param session the session
      * @param other the second condition
-     * @param and true for AND, false for OR
-     * @return null or the third condition
+     * @return null or the third condition for indexes
      */
-    Expression getAdditional(Session session, Comparison other, boolean and) {
-        if (compareType == other.compareType && compareType == EQUAL) {
+    Expression getAdditionalAnd(Session session, Comparison other) {
+        if (compareType == EQUAL && other.compareType == EQUAL) {
             boolean lc = left.isConstant();
             boolean rc = right.isConstant();
             boolean l2c = other.left.isConstant();
@@ -620,29 +618,48 @@ public class Comparison extends Condition {
             String l2 = other.left.getSQL(true);
             String r = right.getSQL(true);
             String r2 = other.right.getSQL(true);
-            if (and) {
-                // a=b AND a=c
-                // must not compare constants. example: NOT(B=2 AND B=3)
-                if (!(rc && r2c) && l.equals(l2)) {
-                    return new Comparison(session, EQUAL, right, other.right);
-                } else if (!(rc && l2c) && l.equals(r2)) {
-                    return new Comparison(session, EQUAL, right, other.left);
-                } else if (!(lc && r2c) && r.equals(l2)) {
-                    return new Comparison(session, EQUAL, left, other.right);
-                } else if (!(lc && l2c) && r.equals(r2)) {
-                    return new Comparison(session, EQUAL, left, other.left);
-                }
-            } else {
-                // a=b OR a=c
-                if (rc && r2c && l.equals(l2)) {
-                    return getConditionIn(session, left, right, other.right);
-                } else if (rc && l2c && l.equals(r2)) {
-                    return getConditionIn(session, left, right, other.left);
-                } else if (lc && r2c && r.equals(l2)) {
-                    return getConditionIn(session, right, left, other.right);
-                } else if (lc && l2c && r.equals(r2)) {
-                    return getConditionIn(session, right, left, other.left);
-                }
+            // a=b AND a=c
+            // must not compare constants. example: NOT(B=2 AND B=3)
+            if (!(rc && r2c) && l.equals(l2)) {
+                return new Comparison(session, EQUAL, right, other.right);
+            } else if (!(rc && l2c) && l.equals(r2)) {
+                return new Comparison(session, EQUAL, right, other.left);
+            } else if (!(lc && r2c) && r.equals(l2)) {
+                return new Comparison(session, EQUAL, left, other.right);
+            } else if (!(lc && l2c) && r.equals(r2)) {
+                return new Comparison(session, EQUAL, left, other.left);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Replace the OR condition with IN condition if possible. Example: given
+     * the two conditions A=1 OR A=2, the new condition A IN(1, 2) is returned.
+     *
+     * @param session the session
+     * @param other the second condition
+     * @return null or the joined IN condition
+     */
+    Expression optimizeOr(Session session, Comparison other) {
+        if (compareType == EQUAL && other.compareType == EQUAL) {
+            boolean lc = left.isConstant();
+            boolean rc = right.isConstant();
+            boolean l2c = other.left.isConstant();
+            boolean r2c = other.right.isConstant();
+            String l = left.getSQL(true);
+            String l2 = other.left.getSQL(true);
+            String r = right.getSQL(true);
+            String r2 = other.right.getSQL(true);
+            // a=b OR a=c
+            if (rc && r2c && l.equals(l2)) {
+                return getConditionIn(session, left, right, other.right);
+            } else if (rc && l2c && l.equals(r2)) {
+                return getConditionIn(session, left, right, other.left);
+            } else if (lc && r2c && r.equals(l2)) {
+                return getConditionIn(session, right, left, other.right);
+            } else if (lc && l2c && r.equals(r2)) {
+                return getConditionIn(session, right, left, other.left);
             }
         }
         return null;

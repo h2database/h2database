@@ -150,8 +150,7 @@ public class ConditionAndOr extends Condition {
             if (left instanceof Comparison && right instanceof Comparison) {
                 Comparison compLeft = (Comparison) left;
                 Comparison compRight = (Comparison) right;
-                Expression added = compLeft.getAdditional(
-                        session, compRight, true);
+                Expression added = compLeft.getAdditionalAnd(session, compRight);
                 if (added != null) {
                     added = added.optimize(session);
                     return new ConditionAndOr(AND, this, added);
@@ -162,12 +161,10 @@ public class ConditionAndOr extends Condition {
         if (andOrType == OR &&
                 session.getDatabase().getSettings().optimizeOr) {
             // try to add conditions (A=B AND B=1: add A=1)
-            if (left instanceof Comparison &&
-                    right instanceof Comparison) {
+            if (left instanceof Comparison && right instanceof Comparison) {
                 Comparison compLeft = (Comparison) left;
                 Comparison compRight = (Comparison) right;
-                Expression added = compLeft.getAdditional(
-                        session, compRight, false);
+                Expression added = compLeft.optimizeOr(session, compRight);
                 if (added != null) {
                     return added.optimize(session);
                 }

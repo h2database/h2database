@@ -174,6 +174,9 @@ public class TestScript extends TestDb {
                 "stddev-pop", "stddev-samp", "sum", "var-pop", "var-samp" }) {
             testScript("functions/aggregate/" + s + ".sql");
         }
+        for (String s : new String[] { "json_array", "json_object" }) {
+            testScript("functions/json/" + s + ".sql");
+        }
         for (String s : new String[] { "abs", "acos", "asin", "atan", "atan2",
                 "bitand", "bitget", "bitnot", "bitor", "bitxor", "ceil", "compress",
                 "cos", "cosh", "cot", "decrypt", "degrees", "encrypt", "exp",

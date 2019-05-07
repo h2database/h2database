@@ -167,9 +167,11 @@ import org.h2.engine.UserAggregate;
 import org.h2.expression.Alias;
 import org.h2.expression.BinaryOperation;
 import org.h2.expression.BinaryOperation.OpType;
+import org.h2.expression.Format.FormatEnum;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionList;
+import org.h2.expression.Format;
 import org.h2.expression.Parameter;
 import org.h2.expression.Rownum;
 import org.h2.expression.SequenceValue;
@@ -3765,6 +3767,35 @@ public class Parser {
             tf.setColumns(columns);
             break;
         }
+        case Function.JSON_OBJECT: {
+            int i = 0;
+            if (!readJsonObjectFunctionFlags(function, false)) {
+                do {
+                    boolean withKey = readIf("KEY");
+                    function.setParameter(i++, readExpression());
+                    if (withKey) {
+                        read("VALUE");
+                    } else if (!readIf("VALUE")) {
+                        read(COLON);
+                    }
+                    function.setParameter(i++, readExpression());
+                } while (readIf(COMMA));
+                readJsonObjectFunctionFlags(function, false);
+            }
+            read(CLOSE_PAREN);
+            break;
+        }
+        case Function.JSON_ARRAY: {
+            int i = 0;
+            if (!readJsonObjectFunctionFlags(function, true)) {
+                do {
+                    function.setParameter(i++, readExpression());
+                } while (readIf(COMMA));
+                readJsonObjectFunctionFlags(function, true);
+            }
+            read(CLOSE_PAREN);
+            break;
+        }
         default:
             if (!readIf(CLOSE_PAREN)) {
                 int i = 0;
@@ -3853,6 +3884,55 @@ public class Parser {
             read("NULLS");
             function.setIgnoreNulls(true);
         }
+    }
+
+    private boolean readJsonObjectFunctionFlags(Function function, boolean forArray) {
+        int start = lastParseIndex;
+        boolean result = false;
+        int flags = 0;
+        if (readIf(NULL)) {
+            if (readIf(ON)) {
+                read(NULL);
+                result = true;
+            } else {
+                parseIndex = start;
+                read();
+                return false;
+            }
+        } else if (readIf("ABSENT")) {
+            if (readIf(ON)) {
+                read(NULL);
+                flags |= Function.JSON_ABSENT_ON_NULL;
+                result = true;
+            } else {
+                parseIndex = start;
+                read();
+                return false;
+            }
+        }
+        if (!forArray) {
+            if (readIf(WITH)) {
+                read(UNIQUE);
+                read("KEYS");
+                flags |= Function.JSON_WITH_UNIQUE_KEYS;
+                result = true;
+            } else if (readIf("WITHOUT")) {
+                if (readIf(UNIQUE)) {
+                    read("KEYS");
+                    result = true;
+                } else if (result) {
+                    throw getSyntaxError();
+                } else {
+                    parseIndex = start;
+                    read();
+                    return false;
+                }
+            }
+        }
+        if (result) {
+            function.setFlags(flags);
+        }
+        return result;
     }
 
     private Expression readKeywordFunction(String name) {
@@ -4253,6 +4333,15 @@ public class Parser {
                 function.setDataType(col);
                 function.setParameter(0, r);
                 r = function;
+            }
+        }
+        int index = lastParseIndex;
+        if (readIf("FORMAT")) {
+            if (readIf("JSON")) {
+                return new Format(r, FormatEnum.JSON);
+            } else {
+                parseIndex = index;
+                read();
             }
         }
         return r;

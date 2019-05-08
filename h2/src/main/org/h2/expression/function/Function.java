@@ -33,6 +33,7 @@ import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
+import org.h2.expression.ExpressionWithFlags;
 import org.h2.expression.Format;
 import org.h2.expression.SequenceValue;
 import org.h2.expression.Subquery;
@@ -88,7 +89,7 @@ import org.h2.value.ValueUuid;
 /**
  * This class implements most built-in functions of this database.
  */
-public class Function extends Expression implements FunctionCall {
+public class Function extends Expression implements FunctionCall, ExpressionWithFlags {
     public static final int ABS = 0, ACOS = 1, ASIN = 2, ATAN = 3, ATAN2 = 4,
             BITAND = 5, BITOR = 6, BITXOR = 7, CEILING = 8, COS = 9, COT = 10,
             DEGREES = 11, EXP = 12, FLOOR = 13, LOG = 14, LOG10 = 15, MOD = 16,
@@ -606,20 +607,12 @@ public class Function extends Expression implements FunctionCall {
         }
     }
 
-    /**
-     * Set the flags for this function.
-     *
-     * @param flags the flags to set
-     */
+    @Override
     public void setFlags(int flags) {
         this.flags = flags;
     }
 
-    /**
-     * Returns the flags.
-     *
-     * @return the flags
-     */
+    @Override
     public int getFlags() {
         return flags;
     }
@@ -2787,19 +2780,12 @@ public class Function extends Expression implements FunctionCall {
                 args[i++].getSQL(builder, alwaysQuote).append(": ");
                 args[i++].getSQL(builder, alwaysQuote);
             }
-            if ((flags & JSON_ABSENT_ON_NULL) != 0) {
-                builder.append(" ABSENT ON NULL");
-            }
-            if ((flags & JSON_WITH_UNIQUE_KEYS) != 0) {
-                builder.append(" WITH UNIQUE KEYS");
-            }
+            getJsonFunctionFlagsSQL(builder, flags, false);
             break;
         }
         case JSON_ARRAY: {
             writeExpressions(builder, args, alwaysQuote);
-            if ((flags & JSON_ABSENT_ON_NULL) != 0) {
-                builder.append(" ABSENT ON NULL");
-            }
+            getJsonFunctionFlagsSQL(builder, flags, true);
             break;
         }
         default:
@@ -2809,6 +2795,24 @@ public class Function extends Expression implements FunctionCall {
             builder.append(')');
         }
         return builder;
+    }
+
+    /**
+     * Appends flags of a JSON function to the specified string builder.
+     *
+     * @param builder string builder to append to
+     * @param flags flags to append
+     * @param forArray whether the function is an array function
+     */
+    public static void getJsonFunctionFlagsSQL(StringBuilder builder, int flags, boolean forArray) {
+        if ((flags & JSON_ABSENT_ON_NULL) != 0) {
+            builder.append(" ABSENT ON NULL");
+        } else {
+            builder.append(" NULL ON NULL");
+        }
+        if (!forArray && (flags & JSON_WITH_UNIQUE_KEYS) != 0) {
+            builder.append(" WITH UNIQUE KEYS");
+        }
     }
 
     @Override

@@ -37,7 +37,17 @@ public class Format extends Expression {
 
     @Override
     public Value getValue(Session session) {
-        Value value = expr.getValue(session);
+        return getValue(expr.getValue(session));
+    }
+
+    /**
+     * Returns the value with applied format.
+     *
+     * @param value
+     *            the value
+     * @return the value with applied format
+     */
+    public Value getValue(Value value) {
         switch (value.getValueType()) {
         case Value.NULL:
             return ValueJson.NULL;
@@ -113,6 +123,19 @@ public class Format extends Expression {
     @Override
     public String getColumnName() {
         return expr.getColumnName();
+    }
+
+    @Override
+    public int getSubexpressionCount() {
+        return 1;
+    }
+
+    @Override
+    public Expression getSubexpression(int index) {
+        if (index != 0) {
+            throw new IndexOutOfBoundsException();
+        }
+        return expr;
     }
 
 }

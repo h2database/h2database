@@ -39,18 +39,36 @@ public class Subquery extends Expression {
             if (!result.next()) {
                 v = ValueNull.INSTANCE;
             } else {
-                Value[] values = result.currentRow();
-                if (result.getVisibleColumnCount() == 1) {
-                    v = values[0];
-                } else {
-                    v = ValueRow.get(values);
-                }
+                v = readRow(result);
                 if (result.hasNext()) {
                     throw DbException.get(ErrorCode.SCALAR_SUBQUERY_CONTAINS_MORE_THAN_ONE_ROW);
                 }
             }
             return v;
         }
+    }
+
+    /**
+     * Evaluates and returns all rows of the subquery.
+     *
+     * @param session
+     *            the session
+     * @return values in all rows
+     */
+    public ArrayList<Value> getAllRows(Session session) {
+        ArrayList<Value> list = new ArrayList<>();
+        query.setSession(session);
+        try (ResultInterface result = query.query(Integer.MAX_VALUE)) {
+            while (result.next()) {
+                list.add(readRow(result));
+            }
+        }
+        return list;
+    }
+
+    private static Value readRow(ResultInterface result) {
+        Value[] values = result.currentRow();
+        return result.getVisibleColumnCount() == 1 ? values[0] : ValueRow.get(values);
     }
 
     @Override

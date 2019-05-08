@@ -40,13 +40,13 @@ public class FunctionsMySQL extends FunctionsBase {
 
     static {
         FUNCTIONS.put("UNIX_TIMESTAMP", new FunctionInfo("UNIX_TIMESTAMP", UNIX_TIMESTAMP,
-                VAR_ARGS, Value.INT, false, false, false, true));
+                VAR_ARGS, Value.INT, false, false, false, true, false));
         FUNCTIONS.put("FROM_UNIXTIME", new FunctionInfo("FROM_UNIXTIME", FROM_UNIXTIME,
-                VAR_ARGS, Value.STRING, false, true, false, true));
+                VAR_ARGS, Value.STRING, false, true, false, true, false));
         FUNCTIONS.put("DATE", new FunctionInfo("DATE", DATE,
-                1, Value.DATE, false, true, false, true));
+                1, Value.DATE, false, true, false, true, false));
         FUNCTIONS.put("LAST_INSERT_ID", new FunctionInfo("LAST_INSERT_ID", LAST_INSERT_ID,
-                VAR_ARGS, Value.LONG, false, false, true, true));
+                VAR_ARGS, Value.LONG, false, false, true, true, false));
 
     }
 

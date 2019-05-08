@@ -248,7 +248,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
             return ValueInterval.from(IntervalQualifier.valueOf(type - Value.INTERVAL_YEAR),
                     random.nextBoolean(), random.nextInt(Integer.MAX_VALUE), random.nextInt(12));
         case Value.JSON:
-            return ValueJson.get("{\"key\":\"value\"}");
+            return ValueJson.fromJson("{\"key\":\"value\"}");
         default:
             throw new AssertionError("type=" + type);
         }

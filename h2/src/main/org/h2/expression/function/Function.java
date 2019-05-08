@@ -2235,8 +2235,7 @@ public class Function extends Expression implements FunctionCall {
             if (builder.length() > 1) {
                 builder.append(',');
             }
-            JSONStringTarget.encodeString(builder, name).append(':');
-            appendJson(builder, value);
+            JSONStringTarget.encodeString(builder, name).append(':').append(value.convertTo(Value.JSON).getString());
         }
         String result = builder.append('}').toString();
         if ((flags & JSON_WITH_UNIQUE_KEYS) != 0) {
@@ -2247,7 +2246,7 @@ public class Function extends Expression implements FunctionCall {
                         result.length() < 128 ? result : result.substring(0, 128) + "...");
             }
         }
-        return ValueJson.get(result);
+        return ValueJson.fromJson(result);
     }
 
     private Value jsonArray(Session session, Expression[] args) {
@@ -2264,21 +2263,9 @@ public class Function extends Expression implements FunctionCall {
             if (builder.length() > 1) {
                 builder.append(',');
             }
-            appendJson(builder, value);
-        }
-        return ValueJson.get(builder.append(']').toString());
-    }
-
-    private static void appendJson(StringBuilder builder, Value value) {
-        switch (value.getValueType()) {
-        case Value.STRING:
-        case Value.STRING_IGNORECASE:
-        case Value.STRING_FIXED:
-            JSONStringTarget.encodeString(builder, value.getString());
-            break;
-        default:
             builder.append(value.convertTo(Value.JSON).getString());
         }
+        return ValueJson.fromJson(builder.append(']').toString());
     }
 
     @Override

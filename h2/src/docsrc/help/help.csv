@@ -2024,6 +2024,19 @@ The maximum integer number is 2147483647, the minimum is -2147483648.
 10
 "
 
+"Literals","JSON","
+'jsonText' FORMAT JSON
+","
+A string with a RFC 8259-compliant JSON text and data format.
+JSON text is enclosed by single quotes.
+Two single quotes can be used to create a single quote inside a JSON text.
+JSON text is parsed into internal representation.
+Order of object members is preserved as is.
+Duplicate object member names are allowed.
+","
+'{""id"":10,""name"":""What''s this?""}' FORMAT JSON
+"
+
 "Literals","Long","
 [ + | - ] number
 ","
@@ -3403,6 +3416,9 @@ JSON
 ","
 A RFC 8259-compliant JSON text.
 Mapped to ""java.lang.String"" (byte[] is also supported).
+To set a JSON value with ""java.lang.String"" in a PreparedStatement use a ""FORMAT JSON"" data format
+(""INSERT INTO TEST(ID, DATA) VALUES (?, ? FORMAT JSON)"").
+Without the data format VARCHAR values are converted to a JSON string values.
 
 Order of object members is preserved as is.
 Duplicate object member names are allowed.

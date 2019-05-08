@@ -130,6 +130,7 @@ public class Bnf {
         addFixedRule("@digit@", RuleFixed.DIGIT);
         addFixedRule("@open_bracket@", RuleFixed.OPEN_BRACKET);
         addFixedRule("@close_bracket@", RuleFixed.CLOSE_BRACKET);
+        addFixedRule("json_text", RuleFixed.JSON_TEXT);
     }
 
     /**

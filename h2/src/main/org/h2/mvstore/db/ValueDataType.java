@@ -700,7 +700,7 @@ public class ValueDataType implements DataType {
         }
         case JSON: {
             String str = readString(buff);
-            return ValueJson.get(str);
+            return ValueJson.fromJson(str);
         }
         default:
             if (type >= INT_0_15 && type < INT_0_15 + 16) {

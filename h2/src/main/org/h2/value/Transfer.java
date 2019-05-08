@@ -786,7 +786,7 @@ public class Transfer {
         }
         case JSON: {
             String s = readString();
-            return ValueJson.get(s);
+            return ValueJson.fromJson(s);
         }
         default:
             if (JdbcUtils.customDataTypesHandler != null) {

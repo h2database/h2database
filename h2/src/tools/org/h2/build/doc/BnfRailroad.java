@@ -123,6 +123,8 @@ public class BnfRailroad implements BnfVisitor {
             return "[";
         case RuleFixed.CLOSE_BRACKET:
             return "]";
+        case RuleFixed.JSON_TEXT:
+            return "JSON text";
         default:
             throw new AssertionError("type="+type);
         }

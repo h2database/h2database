@@ -11,7 +11,6 @@ import org.h2.table.TableFilter;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueJson;
-import org.h2.value.ValueNull;
 
 /**
  * A format clause such as FORMAT JSON.
@@ -39,7 +38,17 @@ public class Format extends Expression {
     @Override
     public Value getValue(Session session) {
         Value value = expr.getValue(session);
-        return value == ValueNull.INSTANCE ? ValueJson.NULL : value.convertTo(Value.JSON);
+        switch (value.getValueType()) {
+        case Value.NULL:
+            return ValueJson.NULL;
+        case Value.STRING:
+        case Value.STRING_IGNORECASE:
+        case Value.STRING_FIXED:
+        case Value.CLOB:
+            return ValueJson.fromJson(value.getString());
+        default:
+            return value.convertTo(Value.JSON);
+        }
     }
 
     @Override

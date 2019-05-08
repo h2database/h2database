@@ -3945,8 +3945,7 @@ ENVELOPE(X)
 "
 "Functions (Aggregate)","JSON_OBJECTAGG","
 JSON_OBJECTAGG(
-{[KEY] keyExpression VALUE valueExpression}
-    | {keyExpression : valueExpression}
+{[KEY] string VALUE value} | {string : value}
 [ { NULL | ABSENT } ON NULL ]
 [ { WITH | WITHOUT } UNIQUE KEYS ]
 )
@@ -3958,7 +3957,8 @@ If WITH UNIQUE KEYS is specified the constructed object is checked for uniquenes
 nested objects, if any, are checked too.
 If no values are selected, the result is SQL NULL value.
 ","
-JSON_OBJECTAGG(NAME: VALUE);
+JSON_OBJECTAGG(NAME: VAL);
+JSON_OBJECTAGG(KEY NAME VALUE VAL);
 "
 
 "Functions (Aggregate)","JSON_ARRAYAGG","

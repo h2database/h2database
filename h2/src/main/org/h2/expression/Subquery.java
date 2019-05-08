@@ -6,6 +6,7 @@
 package org.h2.expression;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import org.h2.api.ErrorCode;
 import org.h2.command.dml.Query;
 import org.h2.engine.Session;
@@ -68,7 +69,9 @@ public class Subquery extends Expression {
 
     private static Value readRow(ResultInterface result) {
         Value[] values = result.currentRow();
-        return result.getVisibleColumnCount() == 1 ? values[0] : ValueRow.get(values);
+        int visible = result.getVisibleColumnCount();
+        return visible == 1 ? values[0]
+                : ValueRow.get(visible == values.length ? values : Arrays.copyOf(values, visible));
     }
 
     @Override

@@ -77,6 +77,9 @@ public class Format extends Expression {
         if (expr.isConstant()) {
             return ValueExpression.get(getValue(session));
         }
+        if (expr instanceof Format && format == ((Format) expr).format) {
+            return expr;
+        }
         return this;
     }
 

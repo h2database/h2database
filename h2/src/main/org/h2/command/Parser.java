@@ -4335,14 +4335,18 @@ public class Parser {
                 r = function;
             }
         }
-        int index = lastParseIndex;
-        if (readIf("FORMAT")) {
-            if (readIf("JSON")) {
-                return new Format(r, FormatEnum.JSON);
-            } else {
-                parseIndex = index;
-                read();
+        for (;;) {
+            int index = lastParseIndex;
+            if (readIf("FORMAT")) {
+                if (readIf("JSON")) {
+                    r = new Format(r, FormatEnum.JSON);
+                    continue;
+                } else {
+                    parseIndex = index;
+                    read();
+                }
             }
+            break;
         }
         return r;
     }

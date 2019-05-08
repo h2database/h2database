@@ -3943,6 +3943,34 @@ Aggregates are only allowed in select statements.
 ","
 ENVELOPE(X)
 "
+"Functions (Aggregate)","JSON_OBJECTAGG","
+JSON_OBJECTAGG(
+{[KEY] string VALUE value} | {string : value}
+[ { NULL | ABSENT } ON NULL ]
+[ { WITH | WITHOUT } UNIQUE KEYS ]
+)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Aggregates the keys with values into a JSON object.
+If ABSENT ON NULL is specified properties with NULL value are not included in the object.
+If WITH UNIQUE KEYS is specified the constructed object is checked for uniqueness of keys,
+nested objects, if any, are checked too.
+If no values are selected, the result is SQL NULL value.
+","
+JSON_OBJECTAGG(NAME: VAL);
+JSON_OBJECTAGG(KEY NAME VALUE VAL);
+"
+
+"Functions (Aggregate)","JSON_ARRAYAGG","
+JSON_ARRAYAGG(expression [ { NULL | ABSENT } ON NULL ])
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Aggregates the values into a JSON array.
+If NULL ON NULL is specified NULL values are included in the array.
+If no values are selected, the result is SQL NULL value.
+","
+JSON_ARRAYAGG(NUMBER)
+"
 
 "Functions (Numeric)","ABS","
 ABS( { numeric | interval } )
@@ -5827,7 +5855,7 @@ If ABSENT ON NULL is specified properties with NULL value are not included in th
 If WITH UNIQUE KEYS is specified the constructed object is checked for uniqueness of keys,
 nested objects, if any, are checked too.
 ","
-JSON_OBJECT('id': 100, 'name' : 'Joe', 'groups': '[2,5]' FORMAT JSON);
+JSON_OBJECT('id': 100, 'name': 'Joe', 'groups': '[2,5]' FORMAT JSON);
 "
 
 "Functions (JSON)","JSON_ARRAY","

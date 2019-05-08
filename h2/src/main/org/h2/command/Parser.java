@@ -3283,10 +3283,7 @@ public class Parser {
         case ARRAY_AGG: {
             boolean distinct = readDistinctAgg();
             r = new Aggregate(AggregateType.ARRAY_AGG, new Expression[] { readExpression() }, currentSelect, distinct);
-            if (readIf(ORDER)) {
-                read("BY");
-                r.setOrderByList(parseSimpleOrderList());
-            }
+            readAggregateOrderBy(r);
             break;
         }
         case RANK:
@@ -3329,6 +3326,27 @@ public class Parser {
                     readAggregateOrder(r, expr, false);
                 }
             }
+            break;
+        }
+        case JSON_OBJECTAGG: {
+            boolean withKey = readIf("KEY");
+            Expression key = readExpression();
+            if (withKey) {
+                read("VALUE");
+            } else if (!readIf("VALUE")) {
+                read(COLON);
+            }
+            Expression value = readExpression();
+            r = new Aggregate(AggregateType.JSON_OBJECTAGG, new Expression[] { key, value }, currentSelect, false);
+            readJsonObjectFunctionFlags(r, false);
+            break;
+        }
+        case JSON_ARRAYAGG: {
+            r = new Aggregate(AggregateType.JSON_ARRAYAGG, new Expression[] { readExpression() }, currentSelect,
+                    false);
+            readAggregateOrderBy(r);
+            r.setFlags(Function.JSON_ABSENT_ON_NULL);
+            readJsonObjectFunctionFlags(r, true);
             break;
         }
         default:
@@ -3377,6 +3395,13 @@ public class Parser {
         }
         orderList.add(order);
         r.setOrderByList(orderList);
+    }
+
+    private void readAggregateOrderBy(Aggregate r) {
+        if (readIf(ORDER)) {
+            read("BY");
+            r.setOrderByList(parseSimpleOrderList());
+        }
     }
 
     private ArrayList<SelectOrderBy> parseSimpleOrderList() {

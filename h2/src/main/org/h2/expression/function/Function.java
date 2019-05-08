@@ -2227,11 +2227,37 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                     value = ValueJson.NULL;
                 }
             }
-            if (builder.length() > 1) {
-                builder.append(',');
-            }
-            JSONStringTarget.encodeString(builder, name).append(':').append(value.convertTo(Value.JSON).getString());
+            jsonObjectAppend(builder, name, value);
         }
+        return jsonObjectFinish(builder, flags);
+    }
+
+    /**
+     * Appends a value to a JSON object in the specified string builder.
+     *
+     * @param builder the string builder to append to
+     * @param key the name of the property
+     * @param value the value of the property
+     */
+    public static void jsonObjectAppend(StringBuilder builder, String key, Value value) {
+        if (builder.length() > 1) {
+            builder.append(',');
+        }
+        JSONStringTarget.encodeString(builder, key).append(':').append(value.convertTo(Value.JSON).getString());
+    }
+
+    /**
+     * Appends trailing closing brace to the specified string builder with a
+     * JSON object, validates it, and converts to a JSON value.
+     *
+     * @param builder the string builder with the object
+     * @param flags the flags ({@link #JSON_WITH_UNIQUE_KEYS})
+     * @return the JSON value
+     * @throws DbException
+     *             if {@link #JSON_WITH_UNIQUE_KEYS} is specified and keys are
+     *             not unique
+     */
+    public static Value jsonObjectFinish(StringBuilder builder, int flags) {
         String result = builder.append('}').toString();
         if ((flags & JSON_WITH_UNIQUE_KEYS) != 0) {
             try {
@@ -2253,7 +2279,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 if (arg0 instanceof Subquery) {
                     Subquery q = (Subquery) arg0;
                     for (Value value : q.getAllRows(session)) {
-                        jsonArrayAppend(builder, value);
+                        jsonArrayAppend(builder, value, flags);
                     }
                     break evaluate;
                 } else if (arg0 instanceof Format) {
@@ -2262,20 +2288,27 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                     if (arg0 instanceof Subquery) {
                         Subquery q = (Subquery) arg0;
                         for (Value value : q.getAllRows(session)) {
-                            jsonArrayAppend(builder, format.getValue(value));
+                            jsonArrayAppend(builder, format.getValue(value), flags);
                         }
                         break evaluate;
                     }
                 }
             }
             for (int i = 0; i < l;) {
-                jsonArrayAppend(builder, args[i++].getValue(session));
+                jsonArrayAppend(builder, args[i++].getValue(session), flags);
             }
         }
         return ValueJson.fromJson(builder.append(']').toString());
     }
 
-    private void jsonArrayAppend(StringBuilder builder, Value value) {
+    /**
+     * Appends a value to a JSON array in the specified string builder.
+     *
+     * @param builder the string builder to append to
+     * @param value the value
+     * @param flags the flags ({@link #JSON_ABSENT_ON_NULL})
+     */
+    public static void jsonArrayAppend(StringBuilder builder, Value value, int flags) {
         if (value == ValueNull.INSTANCE) {
             if ((flags & JSON_ABSENT_ON_NULL) != 0) {
                 return;

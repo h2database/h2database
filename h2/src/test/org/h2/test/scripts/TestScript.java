@@ -170,7 +170,9 @@ public class TestScript extends TestDb {
             testScript("other/" + s + ".sql");
         }
         for (String s : new String[] { "any", "array-agg", "avg", "bit-and", "bit-or", "count", "envelope",
-                "every", "histogram", "listagg", "max", "min", "mode", "percentile", "rank", "selectivity",
+                "every", "histogram",
+                "json_arrayagg", "json_objectagg",
+                "listagg", "max", "min", "mode", "percentile", "rank", "selectivity",
                 "stddev-pop", "stddev-samp", "sum", "var-pop", "var-samp" }) {
             testScript("functions/aggregate/" + s + ".sql");
         }

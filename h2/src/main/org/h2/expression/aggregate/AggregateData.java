@@ -41,6 +41,8 @@ abstract class AggregateData {
         case PERCENTILE_CONT:
         case PERCENTILE_DISC:
         case MEDIAN:
+        case JSON_ARRAYAGG:
+        case JSON_OBJECTAGG:
             break;
         case MIN:
         case MAX:

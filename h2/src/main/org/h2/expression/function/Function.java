@@ -2839,8 +2839,10 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
      */
     public static void getJsonFunctionFlagsSQL(StringBuilder builder, int flags, boolean forArray) {
         if ((flags & JSON_ABSENT_ON_NULL) != 0) {
-            builder.append(" ABSENT ON NULL");
-        } else {
+            if (!forArray) {
+                builder.append(" ABSENT ON NULL");
+            }
+        } else if (forArray) {
             builder.append(" NULL ON NULL");
         }
         if (!forArray && (flags & JSON_WITH_UNIQUE_KEYS) != 0) {

@@ -1366,7 +1366,7 @@ public abstract class Value extends VersionedValue {
             return ValueJson.get(getBigDecimal());
         case BYTES:
         case BLOB:
-            return ValueJson.get(getBytesNoCopy());
+            return ValueJson.fromJson(getBytesNoCopy());
         case STRING:
         case STRING_IGNORECASE:
         case STRING_FIXED:

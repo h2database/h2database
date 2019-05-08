@@ -184,6 +184,7 @@ public class TestPreparedStatement extends TestDb {
         testInstant8(conn);
         testInterval(conn);
         testInterval8(conn);
+        testJson(conn);
         testArray(conn);
         testSetObject(conn);
         testPreparedSubquery(conn);
@@ -976,6 +977,27 @@ public class TestPreparedStatement extends TestDb {
         rs.next();
         assertEquals(expectedString, rs.getString(1));
         assertEquals(expectedPeriod, rs.getObject(1, LocalDateTimeUtils.PERIOD));
+    }
+
+    private void testJson(Connection conn) throws SQLException {
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(ID BIGINT, J JSON)");
+        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES (?, ?)");
+        prep.setInt(1, 1);
+        prep.setString(2, "[1]");
+        prep.executeUpdate();
+        prep = conn.prepareStatement("INSERT INTO TEST VALUES (?, ? FORMAT JSON)");
+        prep.setInt(1, 2);
+        prep.setString(2, "[1]");
+        prep.executeUpdate();
+        try (ResultSet rs = stat.executeQuery("SELECT J FROM TEST ORDER BY ID")) {
+            assertTrue(rs.next());
+            assertEquals("\"[1]\"", rs.getString(1));
+            assertTrue(rs.next());
+            assertEquals("[1]", rs.getString(1));
+            assertFalse(rs.next());
+        }
+        stat.execute("DROP TABLE TEST");
     }
 
     private void testPreparedSubquery(Connection conn) throws SQLException {

@@ -14,6 +14,7 @@ import org.h2.message.DbException;
 import org.h2.util.StringUtils;
 import org.h2.util.json.JSONItemType;
 import org.h2.util.json.JSONStringSource;
+import org.h2.util.json.JSONStringTarget;
 
 /**
  * Implementation of the JSON data type.
@@ -48,7 +49,7 @@ public class ValueJson extends Value {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
-        return StringUtils.quoteStringSQL(builder, value).append("::JSON");
+        return StringUtils.quoteStringSQL(builder, value).append(" FORMAT JSON");
     }
 
     @Override
@@ -127,7 +128,7 @@ public class ValueJson extends Value {
      * @throws DbException
      *             on invalid JSON
      */
-    public static ValueJson get(String s) {
+    public static ValueJson fromJson(String s) {
         try {
             s = JSONStringSource.normalize(s);
         } catch (RuntimeException ex) {
@@ -145,7 +146,7 @@ public class ValueJson extends Value {
      * @throws DbException
      *             on invalid JSON
      */
-    public static ValueJson get(byte[] bytes) {
+    public static ValueJson fromJson(byte[] bytes) {
         String s;
         try {
             s = JSONStringSource.normalize(bytes);
@@ -203,6 +204,17 @@ public class ValueJson extends Value {
             s = new StringBuilder(length - 1).append(s, 0, index).append(s, index + 1, length).toString();
         }
         return getInternal(s);
+    }
+
+    /**
+     * Returns JSON value with the specified string content.
+     *
+     * @param string
+     *            string value
+     * @return JSON value
+     */
+    public static ValueJson get(String string) {
+        return new ValueJson(JSONStringTarget.encodeString(new StringBuilder(string.length() + 2), string).toString());
     }
 
     /**

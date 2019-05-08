@@ -11,7 +11,6 @@ import org.h2.table.TableFilter;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueJson;
-import org.h2.value.ValueNull;
 
 /**
  * A format clause such as FORMAT JSON.
@@ -38,8 +37,28 @@ public class Format extends Expression {
 
     @Override
     public Value getValue(Session session) {
-        Value value = expr.getValue(session);
-        return value == ValueNull.INSTANCE ? ValueJson.NULL : value.convertTo(Value.JSON);
+        return getValue(expr.getValue(session));
+    }
+
+    /**
+     * Returns the value with applied format.
+     *
+     * @param value
+     *            the value
+     * @return the value with applied format
+     */
+    public Value getValue(Value value) {
+        switch (value.getValueType()) {
+        case Value.NULL:
+            return ValueJson.NULL;
+        case Value.STRING:
+        case Value.STRING_IGNORECASE:
+        case Value.STRING_FIXED:
+        case Value.CLOB:
+            return ValueJson.fromJson(value.getString());
+        default:
+            return value.convertTo(Value.JSON);
+        }
     }
 
     @Override
@@ -57,6 +76,9 @@ public class Format extends Expression {
         expr = expr.optimize(session);
         if (expr.isConstant()) {
             return ValueExpression.get(getValue(session));
+        }
+        if (expr instanceof Format && format == ((Format) expr).format) {
+            return expr;
         }
         return this;
     }
@@ -104,6 +126,19 @@ public class Format extends Expression {
     @Override
     public String getColumnName() {
         return expr.getColumnName();
+    }
+
+    @Override
+    public int getSubexpressionCount() {
+        return 1;
+    }
+
+    @Override
+    public Expression getSubexpression(int index) {
+        if (index != 0) {
+            throw new IndexOutOfBoundsException();
+        }
+        return expr;
     }
 
 }

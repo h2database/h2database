@@ -3,19 +3,22 @@
 -- Initial Developer: H2 Group
 --
 
-SELECT CAST('{"tag1":"simple string"}' AS JSON);
+SELECT '{"tag1":"simple string"}' FORMAT JSON;
 >> {"tag1":"simple string"}
 
-SELECT '{"tag1":"simple string"}'::JSON;
+SELECT CAST('{"tag1":"simple string"}' FORMAT JSON AS JSON);
 >> {"tag1":"simple string"}
 
-SELECT X'31'::JSON;
+SELECT CAST('text' AS JSON);
+>> "text"
+
+SELECT X'31' FORMAT JSON;
 >> 1
 
 SELECT 0::JSON;
 >> 0
 
-SELECT '0'::JSON;
+SELECT '0' FORMAT JSON;
 >> 0
 
 SELECT 1::JSON;
@@ -39,32 +42,32 @@ SELECT CAST(1e100::NUMERIC AS JSON);
 SELECT CAST(TRUE AS JSON);
 >> true
 
-SELECT CAST('true' AS JSON);
+SELECT CAST('true' FORMAT JSON AS JSON);
 >> true
 
 SELECT CAST(FALSE AS JSON);
 >> false
 
-SELECT CAST('false' AS JSON);
+SELECT CAST('false' FORMAT JSON AS JSON);
 >> false
 
-SELECT CAST('null' AS JSON);
+SELECT CAST('null' FORMAT JSON AS JSON);
 >> null
 
-SELECT CAST('10'::JSON AS VARBINARY);
+SELECT CAST('10' FORMAT JSON AS VARBINARY);
 >> 3130
 
-SELECT CAST('10'::JSON AS BLOB);
+SELECT CAST('10' FORMAT JSON AS BLOB);
 >> 3130
 
 CREATE TABLE TEST (ID INT, DATA JSON);
 > ok
 
 INSERT INTO TEST VALUES
-(1, '{"tag1":"simple string", "tag2": 333, "tag3":[1, 2, 3]}'::json),
-(2, '{"tag1":"another string", "tag4":{"lvl1":"lvl2"}}'::json),
-(3, '["string", 5555, {"arr":"yes"}]'::json),
-(4, '{"1":"val1"}'::json);
+(1, '{"tag1":"simple string", "tag2": 333, "tag3":[1, 2, 3]}' format json),
+(2, '{"tag1":"another string", "tag4":{"lvl1":"lvl2"}}' format json),
+(3, '["string", 5555, {"arr":"yes"}]' format json),
+(4, '{"1":"val1"}' format json);
 > update count: 4
 
 @reconnect
@@ -78,15 +81,15 @@ SELECT ID, DATA FROM TEST;
 > 4  {"1":"val1"}
 > rows: 4
 
-INSERT INTO TEST VALUES (5, '}');
+INSERT INTO TEST VALUES (5, '}' FORMAT JSON);
 > exception DATA_CONVERSION_ERROR_1
 
 DROP TABLE TEST;
 > ok
 
 CREATE TABLE TEST(ID INT, S VARCHAR, B VARBINARY, J JSON) AS VALUES
-    (1, '{"a":1,"a":2}', STRINGTOUTF8('{"a":1,"a":2}'), '{"a":1,"a":2}'),
-    (2, '{"a":1,"b":2}', STRINGTOUTF8('{"a":1,"b":2}'), '{"a":1,"b":2}'),
+    (1, '{"a":1,"a":2}', STRINGTOUTF8('{"a":1,"a":2}'), '{"a":1,"a":2}' FORMAT JSON),
+    (2, '{"a":1,"b":2}', STRINGTOUTF8('{"a":1,"b":2}'), '{"a":1,"b":2}' FORMAT JSON),
     (3, '{"a":1,"b":2', STRINGTOUTF8('{"a":1,"b":2'), null),
     (4, null, null, null);
 > ok
@@ -142,10 +145,13 @@ CREATE TABLE TEST(ID INT, S VARCHAR) AS VALUES
     (5, 'X'), (6, NULL);
 > ok
 
+EXPLAIN SELECT S FORMAT JSON FORMAT JSON, (S FORMAT JSON) FORMAT JSON FROM TEST;
+>> SELECT "S" FORMAT JSON, "S" FORMAT JSON FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
+
 ALTER TABLE TEST ADD J JSON;
 > ok
 
-UPDATE TEST SET J = S WHERE S IS JSON;
+UPDATE TEST SET J = S FORMAT JSON WHERE S IS JSON;
 > update count: 4
 
 SELECT S IS JSON, S IS JSON VALUE, S IS JSON ARRAY, S IS JSON OBJECT, S IS JSON SCALAR FROM TEST ORDER BY ID;
@@ -210,7 +216,7 @@ DROP TABLE TEST;
 > ok
 
 SELECT NULL FORMAT JSON, (NULL FORMAT JSON) IS NULL;
-> 'null'::JSON FALSE
-> ------------ -----
-> null         FALSE
+> 'null' FORMAT JSON FALSE
+> ------------------ -----
+> null               FALSE
 > rows: 1

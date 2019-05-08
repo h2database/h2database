@@ -171,6 +171,7 @@ import org.h2.expression.Format.FormatEnum;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionList;
+import org.h2.expression.ExpressionWithFlags;
 import org.h2.expression.Format;
 import org.h2.expression.Parameter;
 import org.h2.expression.Rownum;
@@ -3786,6 +3787,7 @@ public class Parser {
             break;
         }
         case Function.JSON_ARRAY: {
+            function.setFlags(Function.JSON_ABSENT_ON_NULL);
             int i = 0;
             if (!readJsonObjectFunctionFlags(function, true)) {
                 do {
@@ -3886,13 +3888,14 @@ public class Parser {
         }
     }
 
-    private boolean readJsonObjectFunctionFlags(Function function, boolean forArray) {
+    private boolean readJsonObjectFunctionFlags(ExpressionWithFlags function, boolean forArray) {
         int start = lastParseIndex;
         boolean result = false;
-        int flags = 0;
+        int flags = function.getFlags();
         if (readIf(NULL)) {
             if (readIf(ON)) {
                 read(NULL);
+                flags &= ~Function.JSON_ABSENT_ON_NULL;
                 result = true;
             } else {
                 parseIndex = start;
@@ -3919,6 +3922,7 @@ public class Parser {
             } else if (readIf("WITHOUT")) {
                 if (readIf(UNIQUE)) {
                     read("KEYS");
+                    flags &= ~Function.JSON_WITH_UNIQUE_KEYS;
                     result = true;
                 } else if (result) {
                     throw getSyntaxError();
@@ -4335,14 +4339,18 @@ public class Parser {
                 r = function;
             }
         }
-        int index = lastParseIndex;
-        if (readIf("FORMAT")) {
-            if (readIf("JSON")) {
-                return new Format(r, FormatEnum.JSON);
-            } else {
-                parseIndex = index;
-                read();
+        for (;;) {
+            int index = lastParseIndex;
+            if (readIf("FORMAT")) {
+                if (readIf("JSON")) {
+                    r = new Format(r, FormatEnum.JSON);
+                    continue;
+                } else {
+                    parseIndex = index;
+                    read();
+                }
             }
+            break;
         }
         return r;
     }

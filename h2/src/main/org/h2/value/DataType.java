@@ -780,9 +780,9 @@ public class DataType {
                 if(x == null) {
                     return ValueNull.INSTANCE;
                 } else if (x.getClass()== String.class) {
-                    return ValueJson.get((String) x);
+                    return ValueJson.fromJson((String) x);
                 } else {
-                    return ValueJson.get(x.toString());
+                    return ValueJson.fromJson(x.toString());
                 }
             }
             default:
@@ -1069,10 +1069,6 @@ public class DataType {
             x = Utils.getNonPrimitiveClass(x);
         }
         if (String.class == x) {
-            /*
-             *  Here it can be checked for
-             *  compliance with JSON format
-             */
             return Value.STRING;
         } else if (Integer.class == x) {
             return Value.INT;

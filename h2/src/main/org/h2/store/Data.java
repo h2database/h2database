@@ -971,7 +971,7 @@ public class Data {
         }
         case JSON: {
             String s = readString();
-            return ValueJson.get(s);
+            return ValueJson.fromJson(s);
         }
         default:
             if (type >= INT_0_15 && type < INT_0_15 + 16) {

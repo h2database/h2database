@@ -83,14 +83,11 @@ public class DropTable extends SchemaCommand {
                         dependencies.add(v.getName());
                     }
                 }
-                if (session.getDatabase()
-                        .getSettings().standardDropTableRestrict) {
-                    final List<Constraint> constraints = table.getConstraints();
-                    if (constraints != null && !constraints.isEmpty()) {
-                        for (Constraint c : constraints) {
-                            if (c.getTable() != table) {
-                                dependencies.add(c.getName());
-                            }
+                final List<Constraint> constraints = table.getConstraints();
+                if (constraints != null && !constraints.isEmpty()) {
+                    for (Constraint c : constraints) {
+                        if (c.getTable() != table) {
+                            dependencies.add(c.getName());
                         }
                     }
                 }

@@ -815,10 +815,7 @@ create table table1(f1 int not null primary key);
 create table table2(f2 int not null primary key references table1(f1));
 > ok
 
-drop table table1;
-> ok
-
-drop table table2;
+drop table table1, table2;
 > ok
 
 select case when 1=null then 1 else 2 end;

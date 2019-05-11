@@ -333,8 +333,7 @@ public class TestMetaData extends TestDb {
         checkCrossRef(rs);
         rs = meta.getExportedKeys(null, "PUBLIC", "PARENT");
         checkCrossRef(rs);
-        stat.execute("DROP TABLE PARENT");
-        stat.execute("DROP TABLE CHILD");
+        stat.execute("DROP TABLE PARENT, CHILD");
         conn.close();
     }
 

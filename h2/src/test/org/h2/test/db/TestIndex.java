@@ -541,8 +541,7 @@ public class TestIndex extends TestDb {
         stat.execute("CREATE TABLE CHILD(ID INT PRIMARY KEY, " +
                 "PID INT, FOREIGN KEY(PID) REFERENCES PARENT(ID))");
         reconnect();
-        stat.execute("DROP TABLE PARENT");
-        stat.execute("DROP TABLE CHILD");
+        stat.execute("DROP TABLE PARENT, CHILD");
     }
 
     private void testLargeIndex() throws SQLException {

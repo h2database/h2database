@@ -591,8 +591,7 @@ public class TestTriggersConstraints extends TestDb implements Trigger {
         assertSingleValue(stat, "select count(*) from test1", 3);
         assertSingleValue(stat, "select count(*) from test2", 1);
 
-        stat.execute("drop table test1");
-        stat.execute("drop table test2");
+        stat.execute("drop table test1, test2");
         conn.close();
     }
 

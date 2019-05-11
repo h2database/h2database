@@ -2148,15 +2148,11 @@ public class Parser {
     private Prepared parseDrop() {
         if (readIf(TABLE)) {
             boolean ifExists = readIfExists(false);
-            String tableName = readIdentifierWithSchema();
-            DropTable command = new DropTable(session, getSchema());
-            command.setTableName(tableName);
-            while (readIf(COMMA)) {
-                tableName = readIdentifierWithSchema();
-                DropTable next = new DropTable(session, getSchema());
-                next.setTableName(tableName);
-                command.addNextDropTable(next);
-            }
+            DropTable command = new DropTable(session);
+            do {
+                String tableName = readIdentifierWithSchema();
+                command.addTable(getSchema(), tableName);
+            } while (readIf(COMMA));
             ifExists = readIfExists(ifExists);
             command.setIfExists(ifExists);
             if (readIf("CASCADE")) {
@@ -2165,6 +2161,7 @@ public class Parser {
             } else if (readIf("RESTRICT")) {
                 command.setDropAction(ConstraintActionType.RESTRICT);
             } else if (readIf("IGNORE")) {
+                // TODO SET_DEFAULT works in the same way as CASCADE
                 command.setDropAction(ConstraintActionType.SET_DEFAULT);
             }
             return command;

@@ -3418,10 +3418,7 @@ create local temporary table test2 (id identity);
 alter table test2 add constraint test2_test1 foreign key (id) references test1;
 > ok
 
-drop table test1;
-> ok
-
-drop table test2;
+drop table test1, test2;
 > ok
 
 create local temporary table test1 (id identity);
@@ -3433,10 +3430,7 @@ create local temporary table test2 (id identity);
 alter table test2 add constraint test2_test1 foreign key (id) references test1;
 > ok
 
-drop table test1;
-> ok
-
-drop table test2;
+drop table test1, test2;
 > ok
 
 set autocommit on;
@@ -3818,10 +3812,7 @@ alter table SERVER add constraint server_const foreign key (ADDRESS_TYPE, SERVER
 insert into SERVER (SERVER_ID, SERVER_TYPE) values (1, 1);
 > update count: 1
 
-drop table address;
-> ok
-
-drop table server;
+drop table address, server;
 > ok
 
 CREATE TABLE PlanElements(id int primary key, name varchar, parent_id int, foreign key(parent_id) references(id) on delete cascade);
@@ -4112,13 +4103,7 @@ insert into a values(2, 2);
 insert into b values(2);
 > update count: 1
 
-DROP TABLE IF EXISTS A;
-> ok
-
-DROP TABLE IF EXISTS B;
-> ok
-
-DROP TABLE IF EXISTS C;
+DROP TABLE IF EXISTS A, B, C;
 > ok
 
 --- quoted keywords ---------------------------------------------------------------------------------------------
@@ -4209,10 +4194,7 @@ SELECT * FROM CHILD;
 > 21 2
 > rows: 4
 
-DROP TABLE PARENT;
-> ok
-
-DROP TABLE CHILD;
+DROP TABLE PARENT, CHILD;
 > ok
 
 ---
@@ -4706,10 +4688,7 @@ alter table Contact_Schema.Address add constraint abc foreign key(address_id)
 references ClientServer_Schema.PrimaryKey_Seq(seq_number);
 > ok
 
-drop table ClientServer_Schema.PrimaryKey_Seq;
-> ok
-
-drop table Contact_Schema.Address;
+drop table ClientServer_Schema.PrimaryKey_Seq, Contact_Schema.Address;
 > ok
 
 drop schema Contact_Schema restrict;
@@ -6983,10 +6962,7 @@ SELECT * FROM INFORMATION_SCHEMA.CROSS_REFERENCES;
 > SCRIPT          PUBLIC         PARENT       B             SCRIPT          PUBLIC         CHILD        PB            2                1           1           AB      PRIMARY_KEY_8 7
 > rows: 2
 
-DROP TABLE PARENT;
-> ok
-
-DROP TABLE CHILD;
+DROP TABLE PARENT, CHILD;
 > ok
 
 drop table if exists test;
@@ -7049,10 +7025,7 @@ SCRIPT NOPASSWORDS NOSETTINGS;
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > rows: 7
 
-DROP TABLE PARENT;
-> ok
-
-DROP TABLE CHILD;
+DROP TABLE PARENT, CHILD;
 > ok
 
 CREATE TABLE TEST(ID INT, CONSTRAINT PK PRIMARY KEY(ID), NAME VARCHAR, PARENT INT, CONSTRAINT P FOREIGN KEY(PARENT) REFERENCES(ID));
@@ -7263,10 +7236,7 @@ SCRIPT NOPASSWORDS NOSETTINGS;
 > INSERT INTO "PUBLIC"."B_TEST" VALUES (-1, 'XX');
 > rows: 14
 
-DROP TABLE A_TEST;
-> ok
-
-DROP TABLE B_TEST;
+DROP TABLE A_TEST, B_TEST;
 > ok
 
 CREATE MEMORY TABLE FAMILY(ID INT, NAME VARCHAR(20));
@@ -7443,10 +7413,7 @@ SELECT * FROM INVOICE_LINE;
 > 1           101        20      Chair  540.40
 > rows: 2
 
-DROP TABLE INVOICE;
-> ok
-
-DROP TABLE INVOICE_LINE;
+DROP TABLE INVOICE, INVOICE_LINE;
 > ok
 
 CREATE MEMORY TABLE TEST(A INT, B INT, FOREIGN KEY (B) REFERENCES(A) ON UPDATE RESTRICT ON DELETE NO ACTION);

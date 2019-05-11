@@ -1418,8 +1418,18 @@ public abstract class Value extends VersionedValue {
 
     private ValueResultSet convertToResultSet() {
         SimpleResult result = new SimpleResult();
-        result.addColumn("X", "X", getType());
-        result.addRow(this);
+        if (getValueType() == ROW) {
+            Value[] values = ((ValueRow) this).getList();
+            for (int i = 0; i < values.length;) {
+                Value v = values[i++];
+                String columnName = "C" + i;
+                result.addColumn(columnName, columnName, v.getType());
+            }
+            result.addRow(values);
+        } else {
+            result.addColumn("X", "X", getType());
+            result.addRow(this);
+        }
         return ValueResultSet.get(result);
     }
 

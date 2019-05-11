@@ -57,6 +57,7 @@ import org.h2.value.ValueInt;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueResultSet;
 import org.h2.value.ValueShort;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
@@ -3928,6 +3929,10 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         } else if (type == SQLXML.class) {
             int id = getNextId(TraceObject.SQLXML);
             return type.cast(new JdbcSQLXML(conn, value, JdbcLob.State.WITH_VALUE, id));
+        } else if (type == ResultSet.class) {
+            int id = getNextId(TraceObject.RESULT_SET);
+            return type.cast(new JdbcResultSet(conn, null, null,
+                    ((ValueResultSet) value.convertTo(Value.RESULT_SET)).getResult(), id, false, true, false));
         } else if (type == TimestampWithTimeZone.class) {
             ValueTimestampTimeZone v = (ValueTimestampTimeZone) value.convertTo(Value.TIMESTAMP_TZ);
             return type.cast(new TimestampWithTimeZone(v.getDateValue(), v.getTimeNanos(), v.getTimeZoneOffsetMins()));

@@ -162,24 +162,15 @@ public final class JSONStringSource {
             comma = false;
             switch (ch) {
             case 'f':
-                if (index + 4 > length || !string.regionMatches(index, "false", 1, 4)) {
-                    throw new IllegalArgumentException();
-                }
+                readKeyword1("false", length);
                 target.valueFalse();
-                index += 4;
                 break;
             case 'n':
-                if (index + 3 > length || !string.regionMatches(index, "null", 1, 3)) {
-                    throw new IllegalArgumentException();
-                }
-                index += 3;
+                readKeyword1("null", length);
                 target.valueNull();
                 break;
             case 't':
-                if (index + 3 > length || !string.regionMatches(index, "true", 1, 3)) {
-                    throw new IllegalArgumentException();
-                }
-                index += 3;
+                readKeyword1("true", length);
                 target.valueTrue();
                 break;
             case '{':
@@ -238,6 +229,14 @@ public final class JSONStringSource {
             }
         }
         return -1;
+    }
+
+    private void readKeyword1(String keyword, int length) {
+        int l = keyword.length() - 1;
+        if (!string.regionMatches(index, keyword, 1, l)) {
+            throw new IllegalArgumentException();
+        }
+        index += l;
     }
 
     private void parseNumber(int length, boolean positive) {

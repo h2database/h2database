@@ -257,6 +257,7 @@ public class TestJsonUtils extends TestBase {
         testSourcesAndTargetsError("[]]");
         testSourcesAndTargetsError("\"\\uZZZZ\"");
         testSourcesAndTargetsError("\"\\x\"");
+        testSourcesAndTargetsError("\"\\");
         testSourcesAndTargetsError("[1,");
         testSourcesAndTargetsError("[1,,2]");
         testSourcesAndTargetsError("[1,]");

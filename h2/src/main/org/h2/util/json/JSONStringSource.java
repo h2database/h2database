@@ -298,6 +298,9 @@ public final class JSONStringSource {
                 }
                 return builder.toString();
             case '\\':
+                if (index >= length) {
+                    throw new IllegalArgumentException();
+                }
                 ch = string.charAt(index++);
                 switch (ch) {
                 case '"':

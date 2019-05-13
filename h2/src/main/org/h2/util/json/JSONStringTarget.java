@@ -199,7 +199,7 @@ public final class JSONStringTarget extends JSONTarget {
 
     @Override
     public String getResult() {
-        if (!stack.isEmpty() || afterName || builder.length() == 0) {
+        if (!stack.isEmpty() || builder.length() == 0) {
             throw new IllegalStateException();
         }
         return builder.toString();

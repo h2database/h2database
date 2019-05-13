@@ -134,7 +134,7 @@ public final class JSONValidationTargetWithoutUniqueKeys extends JSONValidationT
 
     @Override
     public JSONItemType getResult() {
-        if (!stack.isEmpty() || afterName || type == null) {
+        if (!stack.isEmpty() || type == null) {
             throw new IllegalStateException();
         }
         return type;

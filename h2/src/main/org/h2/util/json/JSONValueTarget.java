@@ -146,7 +146,7 @@ public final class JSONValueTarget extends JSONTarget {
 
     @Override
     public JSONValue getResult() {
-        if (!stack.isEmpty() || memberName != null || result == null) {
+        if (!stack.isEmpty() || result == null) {
             throw new IllegalStateException();
         }
         return result;

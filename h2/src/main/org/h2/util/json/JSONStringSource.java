@@ -33,8 +33,8 @@ public final class JSONStringSource extends JSONTextSource {
      *            source representation
      * @return normalized representation
      */
-    public static String normalize(String string) {
-        JSONStringTarget target = new JSONStringTarget();
+    public static byte[] normalize(String string) {
+        JSONByteArrayTarget target = new JSONByteArrayTarget();
         parse(string, target);
         return target.getResult();
     }

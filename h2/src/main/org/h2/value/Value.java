@@ -1132,9 +1132,9 @@ public abstract class Value extends VersionedValue {
         case JAVA_OBJECT:
         case BLOB:
         case GEOMETRY:
+        case JSON:
             return ValueBytes.getNoCopy(getBytesNoCopy());
         case UUID:
-        case JSON:
             return ValueBytes.getNoCopy(getBytes());
         case BYTE:
             return ValueBytes.getNoCopy(new byte[] { getByte() });
@@ -1235,9 +1235,9 @@ public abstract class Value extends VersionedValue {
         switch (getValueType()) {
         case BYTES:
         case GEOMETRY:
+        case JSON:
             return ValueLobDb.createSmallLob(Value.BLOB, getBytesNoCopy());
         case UUID:
-        case JSON:
             return ValueLobDb.createSmallLob(Value.BLOB, getBytes());
         case TIMESTAMP_TZ:
             throw getDataConversionError(BLOB);
@@ -1288,7 +1288,7 @@ public abstract class Value extends VersionedValue {
                     srid = s;
                 }
             }
-            result = ValueGeometry.get(GeoJsonUtils.geoJsonToEwkb(getString(), srid));
+            result = ValueGeometry.get(GeoJsonUtils.geoJsonToEwkb(getBytesNoCopy(), srid));
             break;
         }
         default:

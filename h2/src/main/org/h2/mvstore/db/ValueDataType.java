@@ -506,9 +506,8 @@ public class ValueDataType implements DataType {
             break;
         }
         case Value.JSON:{
-            String s = v.getString();
-            buff.put((byte) JSON);
-            writeString(buff, s);
+            byte[] b = v.getBytesNoCopy();
+            buff.put((byte) JSON).putVarInt(b.length).put(b);
             break;
         }
         default:
@@ -699,8 +698,10 @@ public class ValueDataType implements DataType {
                     "No CustomDataTypesHandler has been set up");
         }
         case JSON: {
-            String str = readString(buff);
-            return ValueJson.fromJson(str);
+            int len = readVarInt(buff);
+            byte[] b = Utils.newBytes(len);
+            buff.get(b, 0, len);
+            return ValueJson.getInternal(b);
         }
         default:
             if (type >= INT_0_15 && type < INT_0_15 + 16) {

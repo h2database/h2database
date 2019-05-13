@@ -5,13 +5,19 @@
  */
 package org.h2.value;
 
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Arrays;
+
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
+import org.h2.util.Bits;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
+import org.h2.util.json.JSONByteArrayTarget;
 import org.h2.util.json.JSONBytesSource;
 import org.h2.util.json.JSONItemType;
 import org.h2.util.json.JSONStringSource;
@@ -22,36 +28,45 @@ import org.h2.util.json.JSONStringTarget;
  */
 public class ValueJson extends Value {
 
+    private static final byte[] NULL_BYTES = "null".getBytes(StandardCharsets.ISO_8859_1),
+            TRUE_BYTES = "true".getBytes(StandardCharsets.ISO_8859_1),
+            FALSE_BYTES = "false".getBytes(StandardCharsets.ISO_8859_1);
+
     /**
      * {@code null} JSON value.
      */
-    public static final ValueJson NULL = new ValueJson("null");
+    public static final ValueJson NULL = new ValueJson(NULL_BYTES);
 
     /**
      * {@code true} JSON value.
      */
-    public static final ValueJson TRUE = new ValueJson("true");
+    public static final ValueJson TRUE = new ValueJson(TRUE_BYTES);
 
     /**
      * {@code false} JSON value.
      */
-    public static final ValueJson FALSE = new ValueJson("false");
+    public static final ValueJson FALSE = new ValueJson(FALSE_BYTES);
 
     /**
      * {@code 0} JSON value.
      */
-    public static final ValueJson ZERO = new ValueJson("0");
+    public static final ValueJson ZERO = new ValueJson(new byte[] { '0' });
 
-    private final String value;
+    private final byte[] value;
 
-    private ValueJson(String value) {
+    /**
+     * The hash code.
+     */
+    private int hash;
+
+    private ValueJson(byte[] value) {
         this.value = value;
     }
 
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
         JSONStringTarget target = new JSONStringTarget(true);
-        JSONStringSource.parse(value, target);
+        JSONBytesSource.parse(value, target);
         return builder.append('\'').append(target.getResult()).append('\'').append(" FORMAT JSON");
     }
 
@@ -67,12 +82,17 @@ public class ValueJson extends Value {
 
     @Override
     public String getString() {
-        return value;
+        return new String(value, StandardCharsets.UTF_8);
     }
 
     @Override
     public byte[] getBytes() {
-        return value.getBytes(StandardCharsets.UTF_8);
+        return value.clone();
+    }
+
+    @Override
+    public byte[] getBytesNoCopy() {
+        return value;
     }
 
     @Override
@@ -86,7 +106,7 @@ public class ValueJson extends Value {
      * @return JSON item type
      */
     public JSONItemType getItemType() {
-        switch (value.charAt(0)) {
+        switch (value[0]) {
         case '[':
             return JSONItemType.ARRAY;
         case '{':
@@ -98,28 +118,30 @@ public class ValueJson extends Value {
 
     @Override
     public int getMemory() {
-        return value.length() * 2 + 94;
+        return value.length + 24;
     }
 
     @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        prep.setString(parameterIndex, value);
+        prep.setBytes(parameterIndex, value);
     }
 
     @Override
     public int hashCode() {
-        return value.hashCode();
+        if (hash == 0) {
+            hash = Utils.getByteArrayHash(value);
+        }
+        return hash;
     }
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof ValueJson && value.equals(((ValueJson) other).value);
+        return other instanceof ValueJson && Arrays.equals(value, ((ValueJson) other).value);
     }
 
     @Override
     public int compareTypeSafe(Value v, CompareMode mode) {
-        String other = ((ValueJson) v).value;
-        return mode.compareString(value, other, false);
+        return Bits.compareNotNullUnsigned(value, ((ValueJson) v).value);
     }
 
     /**
@@ -132,12 +154,13 @@ public class ValueJson extends Value {
      *             on invalid JSON
      */
     public static ValueJson fromJson(String s) {
+        byte[] bytes;
         try {
-            s = JSONStringSource.normalize(s);
+            bytes = JSONStringSource.normalize(s);
         } catch (RuntimeException ex) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, s);
         }
-        return getInternal(s);
+        return getInternal(bytes);
     }
 
     /**
@@ -150,13 +173,12 @@ public class ValueJson extends Value {
      *             on invalid JSON
      */
     public static ValueJson fromJson(byte[] bytes) {
-        String s;
         try {
-            s = JSONBytesSource.normalize(bytes);
+            bytes = JSONBytesSource.normalize(bytes);
         } catch (RuntimeException ex) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, StringUtils.convertBytesToHex(bytes));
         }
-        return getInternal(s);
+        return getInternal(bytes);
     }
 
     /**
@@ -217,18 +239,48 @@ public class ValueJson extends Value {
      * @return JSON value
      */
     public static ValueJson get(String string) {
-        return new ValueJson(
-                JSONStringTarget.encodeString(new StringBuilder(string.length() + 2), string, false).toString());
+        return new ValueJson(JSONByteArrayTarget.encodeString( //
+                new ByteArrayOutputStream(string.length() + 2), string).toByteArray());
+    }
+
+    /**
+     * Returns JSON value with the specified content.
+     *
+     * @param bytes
+     *            normalized JSON representation
+     * @return JSON value
+     */
+    public static ValueJson getInternal(byte[] bytes) {
+        int l = bytes.length;
+        switch (l) {
+        case 1:
+            if (bytes[0] == '0') {
+                return ZERO;
+            }
+            break;
+        case 4:
+            if (Arrays.equals(TRUE_BYTES, bytes)) {
+                return TRUE;
+            } else if (Arrays.equals(TRUE_BYTES, bytes)) {
+                return NULL;
+            }
+            break;
+        case 5:
+            if (Arrays.equals(FALSE_BYTES, bytes)) {
+                return FALSE;
+            }
+        }
+        return new ValueJson(bytes);
     }
 
     /**
      * Returns JSON value with the specified content.
      *
      * @param s
-     *            normalized JSON representation
+     *            normalized JSON representation (ASCII only)
      * @return JSON value
      */
-    static ValueJson getInternal(String s) {
+    private static ValueJson getInternal(String s) {
         int l = s.length();
         switch (l) {
         case 1:
@@ -248,7 +300,7 @@ public class ValueJson extends Value {
                 return FALSE;
             }
         }
-        return new ValueJson(s);
+        return new ValueJson(s.getBytes(StandardCharsets.ISO_8859_1));
     }
 
 }

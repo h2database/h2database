@@ -35,8 +35,9 @@ public final class JSONByteArrayTarget extends JSONTarget {
      *            the output stream to append to
      * @param s
      *            the string to encode
+     * @return the specified output stream
      */
-    public static void encodeString(ByteArrayOutputStream baos, String s) {
+    public static ByteArrayOutputStream encodeString(ByteArrayOutputStream baos, String s) {
         baos.write('"');
         for (int i = 0, length = s.length(); i < length; i++) {
             char c = s.charAt(i);
@@ -100,6 +101,7 @@ public final class JSONByteArrayTarget extends JSONTarget {
             }
         }
         baos.write('"');
+        return baos;
     }
 
     private final ByteArrayOutputStream baos;
@@ -159,8 +161,7 @@ public final class JSONByteArrayTarget extends JSONTarget {
         }
         afterName = true;
         beforeValue();
-        encodeString(baos, name);
-        baos.write(':');
+        encodeString(baos, name).write(':');
     }
 
     @Override

@@ -5,6 +5,7 @@
  */
 package org.h2.expression.function;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -63,7 +64,8 @@ import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
-import org.h2.util.json.JSONStringSource;
+import org.h2.util.json.JSONByteArrayTarget;
+import org.h2.util.json.JSONBytesSource;
 import org.h2.util.json.JSONStringTarget;
 import org.h2.util.json.JSONValidationTargetWithUniqueKeys;
 import org.h2.value.DataType;
@@ -2213,7 +2215,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
     }
 
     private Value jsonObject(Session session, Expression[] args) {
-        StringBuilder builder = new StringBuilder().append('{');
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        baos.write('{');
         for (int i = 0, l = args.length; i < l;) {
             String name = args[i++].getValue(session).getString();
             if (name == null) {
@@ -2227,51 +2230,58 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                     value = ValueJson.NULL;
                 }
             }
-            jsonObjectAppend(builder, name, value);
+            jsonObjectAppend(baos, name, value);
         }
-        return jsonObjectFinish(builder, flags);
+        return jsonObjectFinish(baos, flags);
     }
 
     /**
      * Appends a value to a JSON object in the specified string builder.
      *
-     * @param builder the string builder to append to
+     * @param baos the output stream to append to
      * @param key the name of the property
      * @param value the value of the property
      */
-    public static void jsonObjectAppend(StringBuilder builder, String key, Value value) {
-        if (builder.length() > 1) {
-            builder.append(',');
+    public static void jsonObjectAppend(ByteArrayOutputStream baos, String key, Value value) {
+        if (baos.size() > 1) {
+            baos.write(',');
         }
-        JSONStringTarget.encodeString(builder, key, false).append(':').append(value.convertTo(Value.JSON).getString());
+        JSONByteArrayTarget.encodeString(baos, key).write(':');
+        byte[] b = value.convertTo(Value.JSON).getBytesNoCopy();
+        baos.write(b, 0, b.length);
     }
 
     /**
      * Appends trailing closing brace to the specified string builder with a
      * JSON object, validates it, and converts to a JSON value.
      *
-     * @param builder the string builder with the object
+     * @param baos the output stream with the object
      * @param flags the flags ({@link #JSON_WITH_UNIQUE_KEYS})
      * @return the JSON value
      * @throws DbException
      *             if {@link #JSON_WITH_UNIQUE_KEYS} is specified and keys are
      *             not unique
      */
-    public static Value jsonObjectFinish(StringBuilder builder, int flags) {
-        String result = builder.append('}').toString();
+    public static Value jsonObjectFinish(ByteArrayOutputStream baos, int flags) {
+        baos.write('}');
+        byte[] result = baos.toByteArray();
         if ((flags & JSON_WITH_UNIQUE_KEYS) != 0) {
             try {
-                JSONStringSource.parse(result, new JSONValidationTargetWithUniqueKeys());
+                JSONBytesSource.parse(result, new JSONValidationTargetWithUniqueKeys());
             } catch (RuntimeException ex) {
+                JSONStringTarget target = new JSONStringTarget();
+                JSONBytesSource.parse(result, target);
+                String s = target.getResult();
                 throw DbException.getInvalidValueException("JSON WITH UNIQUE KEYS",
-                        result.length() < 128 ? result : result.substring(0, 128) + "...");
+                        s.length() < 128 ? result : s.substring(0, 128) + "...");
             }
         }
-        return ValueJson.fromJson(result);
+        return ValueJson.getInternal(result);
     }
 
     private Value jsonArray(Session session, Expression[] args) {
-        StringBuilder builder = new StringBuilder().append('[');
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        baos.write('[');
         int l = args.length;
         evaluate: {
             if (l == 1) {
@@ -2279,7 +2289,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 if (arg0 instanceof Subquery) {
                     Subquery q = (Subquery) arg0;
                     for (Value value : q.getAllRows(session)) {
-                        jsonArrayAppend(builder, value, flags);
+                        jsonArrayAppend(baos, value, flags);
                     }
                     break evaluate;
                 } else if (arg0 instanceof Format) {
@@ -2288,27 +2298,28 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                     if (arg0 instanceof Subquery) {
                         Subquery q = (Subquery) arg0;
                         for (Value value : q.getAllRows(session)) {
-                            jsonArrayAppend(builder, format.getValue(value), flags);
+                            jsonArrayAppend(baos, format.getValue(value), flags);
                         }
                         break evaluate;
                     }
                 }
             }
             for (int i = 0; i < l;) {
-                jsonArrayAppend(builder, args[i++].getValue(session), flags);
+                jsonArrayAppend(baos, args[i++].getValue(session), flags);
             }
         }
-        return ValueJson.fromJson(builder.append(']').toString());
+        baos.write(']');
+        return ValueJson.getInternal(baos.toByteArray());
     }
 
     /**
      * Appends a value to a JSON array in the specified string builder.
      *
-     * @param builder the string builder to append to
+     * @param baos the output stream to append to
      * @param value the value
      * @param flags the flags ({@link #JSON_ABSENT_ON_NULL})
      */
-    public static void jsonArrayAppend(StringBuilder builder, Value value, int flags) {
+    public static void jsonArrayAppend(ByteArrayOutputStream baos, Value value, int flags) {
         if (value == ValueNull.INSTANCE) {
             if ((flags & JSON_ABSENT_ON_NULL) != 0) {
                 return;
@@ -2316,10 +2327,11 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 value = ValueJson.NULL;
             }
         }
-        if (builder.length() > 1) {
-            builder.append(',');
+        if (baos.size() > 1) {
+            baos.write(',');
         }
-        builder.append(value.convertTo(Value.JSON).getString());
+        byte[] b = value.convertTo(Value.JSON).getBytesNoCopy();
+        baos.write(b, 0, b.length);
     }
 
     @Override

@@ -78,14 +78,14 @@ public final class JSONBytesSource extends JSONTextSource {
     }
 
     /**
-     * Converts bytes into normalized String JSON representation.
+     * Converts bytes into normalized JSON representation.
      *
      * @param bytes
      *            source representation
      * @return normalized representation
      */
-    public static String normalize(byte[] bytes) {
-        JSONStringTarget target = new JSONStringTarget();
+    public static byte[] normalize(byte[] bytes) {
+        JSONByteArrayTarget target = new JSONByteArrayTarget();
         parse(bytes, target);
         return target.getResult();
     }

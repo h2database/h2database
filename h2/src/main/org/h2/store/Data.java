@@ -758,7 +758,10 @@ public class Data {
         }
         case Value.JSON: {
             writeByte((byte) JSON);
-            writeString(v.getString());
+            byte[] b = v.getBytesNoCopy();
+            int len = b.length;
+            writeVarInt(len);
+            write(b, 0, len);
             break;
         }
         default:
@@ -970,8 +973,10 @@ public class Data {
                     "No CustomDataTypesHandler has been set up");
         }
         case JSON: {
-            String s = readString();
-            return ValueJson.fromJson(s);
+            int len = readVarInt();
+            byte[] b = Utils.newBytes(len);
+            read(b, 0, len);
+            return ValueJson.getInternal(b);
         }
         default:
             if (type >= INT_0_15 && type < INT_0_15 + 16) {
@@ -1236,9 +1241,10 @@ public class Data {
             ValueInterval interval = (ValueInterval) v;
             return 2 + getVarLongLen(interval.getLeading()) + getVarLongLen(interval.getRemaining());
         }
-        case Value.JSON:
-            String s = v.getString();
-            return 1 + getStringLen(s);
+        case Value.JSON: {
+            byte[] b = v.getBytesNoCopy();
+            return 1 + getVarIntLen(b.length) + b.length;
+        }
         default:
             if (JdbcUtils.customDataTypesHandler != null) {
                 byte[] b = v.getBytesNoCopy();

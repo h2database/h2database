@@ -777,9 +777,13 @@ public class DataType {
             }
             case Value.JSON: {
                 Object x = rs.getObject(columnIndex);
-                if(x == null) {
+                if (x == null) {
                     return ValueNull.INSTANCE;
-                } else if (x.getClass()== String.class) {
+                }
+                Class<?> clazz = x.getClass();
+                if (clazz == byte[].class) {
+                    return ValueJson.fromJson((byte[]) x);
+                } else if (clazz == String.class) {
                     return ValueJson.fromJson((String) x);
                 } else {
                     return ValueJson.fromJson(x.toString());
@@ -852,6 +856,7 @@ public class DataType {
             return TimestampWithTimeZone.class.getName();
         case Value.BYTES:
         case Value.UUID:
+        case Value.JSON:
             // "[B", not "byte[]";
             return byte[].class.getName();
         case Value.STRING:
@@ -901,8 +906,6 @@ public class DataType {
         case Value.INTERVAL_MINUTE_TO_SECOND:
             // "org.h2.api.Interval"
             return Interval.class.getName();
-        case Value.JSON:
-            return String.class.getName();
         default:
             if (JdbcUtils.customDataTypesHandler != null) {
                 return JdbcUtils.customDataTypesHandler.getDataTypeClassName(type);

@@ -28,12 +28,12 @@ import org.h2.util.geometry.EWKBUtils.EWKBTarget;
 import org.h2.util.geometry.GeometryUtils.DimensionSystemTarget;
 import org.h2.util.geometry.GeometryUtils.Target;
 import org.h2.util.json.JSONArray;
+import org.h2.util.json.JSONByteArrayTarget;
+import org.h2.util.json.JSONBytesSource;
 import org.h2.util.json.JSONNull;
 import org.h2.util.json.JSONNumber;
 import org.h2.util.json.JSONObject;
 import org.h2.util.json.JSONString;
-import org.h2.util.json.JSONStringSource;
-import org.h2.util.json.JSONStringTarget;
 import org.h2.util.json.JSONValue;
 import org.h2.util.json.JSONValueTarget;
 
@@ -61,7 +61,7 @@ public final class GeoJsonUtils {
      */
     public static final class GeoJsonTarget extends Target {
 
-        private final JSONStringTarget output;
+        private final JSONByteArrayTarget output;
 
         private final int dimensionSystem;
 
@@ -77,7 +77,7 @@ public final class GeoJsonUtils {
          * @param dimensionSystem
          *            dimension system to use
          */
-        public GeoJsonTarget(JSONStringTarget output, int dimensionSystem) {
+        public GeoJsonTarget(JSONByteArrayTarget output, int dimensionSystem) {
             if (dimensionSystem == DIMENSION_SYSTEM_XYM) {
                 throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1,
                         "M (XYM) dimension system is not supported in GeoJson");
@@ -224,8 +224,8 @@ public final class GeoJsonUtils {
      * @throws DbException
      *             on unsupported dimension system
      */
-    public static String ewkbToGeoJson(byte[] ewkb, int dimensionSystem) {
-        JSONStringTarget output = new JSONStringTarget();
+    public static byte[] ewkbToGeoJson(byte[] ewkb, int dimensionSystem) {
+        JSONByteArrayTarget output = new JSONByteArrayTarget();
         GeoJsonTarget target = new GeoJsonTarget(output, dimensionSystem);
         EWKBUtils.parseEWKB(ewkb, target);
         return output.getResult();
@@ -242,9 +242,9 @@ public final class GeoJsonUtils {
      * @throws DbException
      *             on unsupported dimension system
      */
-    public static byte[] geoJsonToEwkb(String json, int srid) {
+    public static byte[] geoJsonToEwkb(byte[] json, int srid) {
         JSONValueTarget t = new JSONValueTarget();
-        JSONStringSource.parse(json, t);
+        JSONBytesSource.parse(json, t);
         JSONValue v = t.getResult();
         DimensionSystemTarget dst = new DimensionSystemTarget();
         parse(v, dst);

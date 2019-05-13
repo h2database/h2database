@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.util.StringUtils;
+import org.h2.util.json.JSONBytesSource;
 import org.h2.util.json.JSONItemType;
 import org.h2.util.json.JSONStringSource;
 import org.h2.util.json.JSONStringTarget;
@@ -149,7 +150,7 @@ public class ValueJson extends Value {
     public static ValueJson fromJson(byte[] bytes) {
         String s;
         try {
-            s = JSONStringSource.normalize(bytes);
+            s = JSONBytesSource.normalize(bytes);
         } catch (RuntimeException ex) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, StringUtils.convertBytesToHex(bytes));
         }

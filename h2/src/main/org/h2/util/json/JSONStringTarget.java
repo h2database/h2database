@@ -14,11 +14,11 @@ import org.h2.util.ByteStack;
  */
 public final class JSONStringTarget extends JSONTarget {
 
-    private static final char[] HEX = "0123456789abcdef".toCharArray();
+    static final char[] HEX = "0123456789abcdef".toCharArray();
 
-    private static final byte OBJECT = 1;
+    static final byte OBJECT = 1;
 
-    private static final byte ARRAY = 2;
+    static final byte ARRAY = 2;
 
     /**
      * Encodes a JSON string and appends it to the specified string builder.

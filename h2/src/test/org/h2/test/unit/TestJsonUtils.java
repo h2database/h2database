@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Callable;
 
 import org.h2.test.TestBase;
+import org.h2.util.json.JSONByteArrayTarget;
 import org.h2.util.json.JSONBytesSource;
 import org.h2.util.json.JSONItemType;
 import org.h2.util.json.JSONStringSource;
@@ -32,6 +33,13 @@ public class TestJsonUtils extends TestBase {
         @Override
         public JSONTarget call() throws Exception {
             return new JSONStringTarget();
+        }
+    };
+
+    private static final Callable<JSONTarget> BYTES_TARGET = new Callable<JSONTarget>() {
+        @Override
+        public JSONTarget call() throws Exception {
+            return new JSONByteArrayTarget();
         }
     };
 
@@ -76,6 +84,7 @@ public class TestJsonUtils extends TestBase {
 
     private void testTargetErrorDetection() throws Exception {
         testTargetErrorDetection(STRING_TARGET);
+        testTargetErrorDetection(BYTES_TARGET);
         testTargetErrorDetection(VALUE_TARGET);
         testTargetErrorDetection(JSON_VALIDATION_TARGET_WITHOUT_UNIQUE_KEYS);
         testTargetErrorDetection(JSON_VALIDATION_TARGET_WITH_UNIQUE_KEYS);
@@ -330,6 +339,9 @@ public class TestJsonUtils extends TestBase {
         JSONTarget target = new JSONStringTarget();
         JSONStringSource.parse(src, target);
         assertEquals(expected, target.getResult());
+        target = new JSONByteArrayTarget();
+        JSONStringSource.parse(src, target);
+        assertEquals(expected.getBytes(StandardCharsets.UTF_8), (byte[]) target.getResult());
         target = new JSONValueTarget();
         JSONStringSource.parse(src, target);
         assertEquals(expected, target.getResult().toString());
@@ -352,6 +364,7 @@ public class TestJsonUtils extends TestBase {
 
     private void testSourcesAndTargetsError(String src, boolean testBytes) throws Exception {
         testSourcesAndTargetsError(src, STRING_TARGET, testBytes);
+        testSourcesAndTargetsError(src, BYTES_TARGET, testBytes);
         testSourcesAndTargetsError(src, VALUE_TARGET, testBytes);
         testSourcesAndTargetsError(src, JSON_VALIDATION_TARGET_WITHOUT_UNIQUE_KEYS, testBytes);
         testSourcesAndTargetsError(src, JSON_VALIDATION_TARGET_WITH_UNIQUE_KEYS, testBytes);

@@ -72,6 +72,14 @@ public abstract class JSONTarget {
     public abstract void valueString(String string);
 
     /**
+     * Returns whether member's name or the end of the current object is
+     * expected.
+     *
+     * @return {@code true} if it is, {@code false} otherwise
+     */
+    public abstract boolean isProperyExpected();
+
+    /**
      * Returns whether value separator expected before the next member or value.
      *
      * @return {@code true} if it is, {@code false} otherwise

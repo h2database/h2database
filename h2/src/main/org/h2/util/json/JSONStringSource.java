@@ -137,7 +137,7 @@ public final class JSONStringSource {
             index++;
         }
         boolean comma = false;
-        for (int ch; (ch = nextChar(length)) >= 0;) {
+        for (int ch; (ch = nextCharAfterWhitespace(length)) >= 0;) {
             if (ch == '}' || ch == ']') {
                 if (comma) {
                     throw new IllegalArgumentException();
@@ -181,13 +181,12 @@ public final class JSONStringSource {
                 break;
             case '"': {
                 String s = readString(length);
-                ch = nextChar(length);
-                if (ch == ':') {
+                if (target.isProperyExpected()) {
+                    if (nextCharAfterWhitespace(length) != ':') {
+                        throw new IllegalArgumentException();
+                    }
                     target.member(s);
                 } else {
-                    if (ch >= 0) {
-                        index--;
-                    }
                     target.valueString(s);
                 }
                 break;
@@ -213,7 +212,7 @@ public final class JSONStringSource {
         }
     }
 
-    private int nextChar(int length) {
+    private int nextCharAfterWhitespace(int length) {
         int index = this.index;
         while (index < length) {
             char ch = string.charAt(index++);
@@ -287,10 +286,7 @@ public final class JSONStringSource {
         builder.setLength(0);
         boolean inSurrogate = false;
         for (;;) {
-            if (index >= length) {
-                throw new IllegalArgumentException();
-            }
-            char ch = string.charAt(index++);
+            char ch = nextChar(length);
             switch (ch) {
             case '"':
                 if (inSurrogate) {
@@ -298,10 +294,7 @@ public final class JSONStringSource {
                 }
                 return builder.toString();
             case '\\':
-                if (index >= length) {
-                    throw new IllegalArgumentException();
-                }
-                ch = string.charAt(index++);
+                ch = nextChar(length);
                 switch (ch) {
                 case '"':
                 case '/':
@@ -342,6 +335,13 @@ public final class JSONStringSource {
                 inSurrogate = appendChar(ch, inSurrogate);
             }
         }
+    }
+
+    private char nextChar(int length) {
+        if (index >= length) {
+            throw new IllegalArgumentException();
+        }
+        return string.charAt(index++);
     }
 
     private void appendNonSurrogate(char ch, boolean inSurrogate) {

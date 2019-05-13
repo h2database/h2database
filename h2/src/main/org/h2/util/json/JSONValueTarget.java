@@ -135,6 +135,11 @@ public final class JSONValueTarget extends JSONTarget {
     }
 
     @Override
+    public boolean isProperyExpected() {
+        return memberName == null && stack.peek() instanceof JSONObject;
+    }
+
+    @Override
     public boolean isValueSeparatorExpected() {
         return needSeparator;
     }

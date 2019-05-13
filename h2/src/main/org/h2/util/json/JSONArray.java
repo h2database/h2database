@@ -22,7 +22,7 @@ public class JSONArray extends JSONValue {
     }
 
     @Override
-    public void addTo(JSONTarget target) {
+    public void addTo(JSONTarget<?> target) {
         target.startArray();
         for (JSONValue element : elements) {
             element.addTo(target);

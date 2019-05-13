@@ -29,37 +29,37 @@ public class TestJsonUtils extends TestBase {
     private static final Charset[] CHARSETS = { StandardCharsets.UTF_8, StandardCharsets.UTF_16BE,
             StandardCharsets.UTF_16LE, Charset.forName("UTF-32BE"), Charset.forName("UTF-32LE") };
 
-    private static final Callable<JSONTarget> STRING_TARGET = new Callable<JSONTarget>() {
+    private static final Callable<JSONTarget<?>> STRING_TARGET = new Callable<JSONTarget<?>>() {
         @Override
-        public JSONTarget call() throws Exception {
+        public JSONTarget<?> call() throws Exception {
             return new JSONStringTarget();
         }
     };
 
-    private static final Callable<JSONTarget> BYTES_TARGET = new Callable<JSONTarget>() {
+    private static final Callable<JSONTarget<?>> BYTES_TARGET = new Callable<JSONTarget<?>>() {
         @Override
-        public JSONTarget call() throws Exception {
+        public JSONTarget<?> call() throws Exception {
             return new JSONByteArrayTarget();
         }
     };
 
-    private static final Callable<JSONTarget> VALUE_TARGET = new Callable<JSONTarget>() {
+    private static final Callable<JSONTarget<?>> VALUE_TARGET = new Callable<JSONTarget<?>>() {
         @Override
-        public JSONTarget call() throws Exception {
+        public JSONTarget<?> call() throws Exception {
             return new JSONValueTarget();
         }
     };
 
-    private static final Callable<JSONTarget> JSON_VALIDATION_TARGET_WITHOUT_UNIQUE_KEYS = new Callable<JSONTarget>() {
+    private static final Callable<JSONTarget<?>> JSON_VALIDATION_TARGET_WITHOUT_UNIQUE_KEYS = new Callable<JSONTarget<?>>() {
         @Override
-        public JSONTarget call() throws Exception {
+        public JSONTarget<?> call() throws Exception {
             return new JSONValidationTargetWithoutUniqueKeys();
         }
     };
 
-    private static final Callable<JSONTarget> JSON_VALIDATION_TARGET_WITH_UNIQUE_KEYS = new Callable<JSONTarget>() {
+    private static final Callable<JSONTarget<?>> JSON_VALIDATION_TARGET_WITH_UNIQUE_KEYS = new Callable<JSONTarget<?>>() {
         @Override
-        public JSONTarget call() throws Exception {
+        public JSONTarget<?> call() throws Exception {
             return new JSONValidationTargetWithUniqueKeys();
         }
     };
@@ -91,8 +91,8 @@ public class TestJsonUtils extends TestBase {
         testTargetErrorDetection(JSON_VALIDATION_TARGET_WITH_UNIQUE_KEYS);
     }
 
-    private void testTargetErrorDetection(final Callable<JSONTarget> constructor) throws Exception {
-        JSONTarget target;
+    private void testTargetErrorDetection(final Callable<JSONTarget<?>> constructor) throws Exception {
+        JSONTarget<?> target;
         // Unexpected end of object or array
         target = constructor.call();
         try {
@@ -139,19 +139,19 @@ public class TestJsonUtils extends TestBase {
         } catch (RuntimeException expected) {
         }
         // Unexpected value without member name
-        testJsonStringTargetErrorDetectionAllValues(new Callable<JSONTarget>() {
+        testJsonStringTargetErrorDetectionAllValues(new Callable<JSONTarget<?>>() {
             @Override
-            public JSONTarget call() throws Exception {
-                JSONTarget target = constructor.call();
+            public JSONTarget<?> call() throws Exception {
+                JSONTarget<?> target = constructor.call();
                 target.startObject();
                 return target;
             }
         });
         // Unexpected second value
-        testJsonStringTargetErrorDetectionAllValues(new Callable<JSONTarget>() {
+        testJsonStringTargetErrorDetectionAllValues(new Callable<JSONTarget<?>>() {
             @Override
-            public JSONTarget call() throws Exception {
-                JSONTarget target = constructor.call();
+            public JSONTarget<?> call() throws Exception {
+                JSONTarget<?> target = constructor.call();
                 target.valueNull();
                 return target;
             }
@@ -196,8 +196,8 @@ public class TestJsonUtils extends TestBase {
         }
     }
 
-    private void testJsonStringTargetErrorDetectionAllValues(Callable<JSONTarget> initializer) throws Exception {
-        JSONTarget target;
+    private void testJsonStringTargetErrorDetectionAllValues(Callable<JSONTarget<?>> initializer) throws Exception {
+        JSONTarget<?> target;
         target = initializer.call();
         try {
             target.valueNull();
@@ -337,29 +337,17 @@ public class TestJsonUtils extends TestBase {
         default:
             itemType = JSONItemType.SCALAR;
         }
-        JSONTarget target = new JSONStringTarget();
-        JSONStringSource.parse(src, target);
-        assertEquals(expected, target.getResult());
-        target = new JSONByteArrayTarget();
-        JSONStringSource.parse(src, target);
-        assertEquals(expected.getBytes(StandardCharsets.UTF_8), (byte[]) target.getResult());
-        target = new JSONValueTarget();
-        JSONStringSource.parse(src, target);
-        assertEquals(expected, target.getResult().toString());
-        target = new JSONValidationTargetWithoutUniqueKeys();
-        JSONStringSource.parse(src, target);
-        assertEquals(itemType, target.getResult());
+        assertEquals(expected, JSONStringSource.parse(src, new JSONStringTarget()));
+        assertEquals(expected.getBytes(StandardCharsets.UTF_8), JSONStringSource.parse(src, new JSONByteArrayTarget()));
+        assertEquals(expected, JSONStringSource.parse(src, new JSONValueTarget()).toString());
+        assertEquals(itemType, JSONStringSource.parse(src, new JSONValidationTargetWithoutUniqueKeys()));
         if (hasNonUniqueKeys) {
             testSourcesAndTargetsError(src, JSON_VALIDATION_TARGET_WITH_UNIQUE_KEYS, true);
         } else {
-            target = new JSONValidationTargetWithUniqueKeys();
-            JSONStringSource.parse(src, target);
-            assertEquals(itemType, target.getResult());
+            assertEquals(itemType, JSONStringSource.parse(src, new JSONValidationTargetWithUniqueKeys()));
         }
         for (Charset charset : CHARSETS) {
-            target = new JSONStringTarget();
-            JSONBytesSource.parse(src.getBytes(charset), target);
-            assertEquals(expected, target.getResult());
+            assertEquals(expected, JSONBytesSource.parse(src.getBytes(charset), new JSONStringTarget()));
         }
     }
 
@@ -371,13 +359,12 @@ public class TestJsonUtils extends TestBase {
         testSourcesAndTargetsError(src, JSON_VALIDATION_TARGET_WITH_UNIQUE_KEYS, testBytes);
     }
 
-    private void testSourcesAndTargetsError(String src, Callable<JSONTarget> constructor, boolean testBytes)
+    private void testSourcesAndTargetsError(String src, Callable<JSONTarget<?>> constructor, boolean testBytes)
             throws Exception {
         check: {
-            JSONTarget target = constructor.call();
+            JSONTarget<?> target = constructor.call();
             try {
                 JSONStringSource.parse(src, target);
-                target.getResult();
             } catch (IllegalArgumentException | IllegalStateException expected) {
                 // Expected
                 break check;
@@ -389,10 +376,9 @@ public class TestJsonUtils extends TestBase {
          * disabled.
          */
         if (testBytes) {
-            JSONTarget target = constructor.call();
+            JSONTarget<?> target = constructor.call();
             try {
                 JSONBytesSource.parse(src.getBytes(StandardCharsets.UTF_8), target);
-                target.getResult();
             } catch (IllegalArgumentException | IllegalStateException expected) {
                 // Expected
                 return;
@@ -440,7 +426,9 @@ public class TestJsonUtils extends TestBase {
             builder.append("]}");
         }
         String string = builder.toString();
-        assertEquals(string, JSONStringSource.normalize(string));
+        assertEquals(string, JSONStringSource.parse(string, new JSONStringTarget()));
+        byte[] bytes = string.getBytes(StandardCharsets.ISO_8859_1);
+        assertEquals(bytes, JSONBytesSource.normalize(bytes));
     }
 
     private void testEncodeString() {

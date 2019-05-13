@@ -8,7 +8,7 @@ package org.h2.util.json;
 /**
  * JSON validation target.
  */
-public abstract class JSONValidationTarget extends JSONTarget {
+public abstract class JSONValidationTarget extends JSONTarget<JSONItemType> {
 
     /**
      * @return JSON item type of the top-level item, may not return

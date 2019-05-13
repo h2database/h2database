@@ -18,7 +18,7 @@ import org.h2.util.ByteStack;
 /**
  * JSON byte array target.
  */
-public final class JSONByteArrayTarget extends JSONTarget {
+public final class JSONByteArrayTarget extends JSONTarget<byte[]> {
 
     private static final byte[] NULL_BYTES = "null".getBytes(StandardCharsets.ISO_8859_1);
 

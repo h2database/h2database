@@ -2269,9 +2269,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             try {
                 JSONBytesSource.parse(result, new JSONValidationTargetWithUniqueKeys());
             } catch (RuntimeException ex) {
-                JSONStringTarget target = new JSONStringTarget();
-                JSONBytesSource.parse(result, target);
-                String s = target.getResult();
+                String s = JSONBytesSource.parse(result, new JSONStringTarget());
                 throw DbException.getInvalidValueException("JSON WITH UNIQUE KEYS",
                         s.length() < 128 ? result : s.substring(0, 128) + "...");
             }

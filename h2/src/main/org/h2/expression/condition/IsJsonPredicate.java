@@ -92,8 +92,7 @@ public class IsJsonPredicate extends Condition {
             JSONValidationTarget target = withUniqueKeys ? new JSONValidationTargetWithUniqueKeys()
                     : new JSONValidationTargetWithoutUniqueKeys();
             try {
-                JSONBytesSource.parse(bytes, target);
-                result = itemType.includes(target.getResult()) ^ not;
+                result = itemType.includes(JSONBytesSource.parse(bytes, target)) ^ not;
             } catch (RuntimeException ex) {
                 result = not;
             }
@@ -118,8 +117,7 @@ public class IsJsonPredicate extends Condition {
             JSONValidationTarget target = withUniqueKeys ? new JSONValidationTargetWithUniqueKeys()
                     : new JSONValidationTargetWithoutUniqueKeys();
             try {
-                JSONStringSource.parse(string, target);
-                result = itemType.includes(target.getResult()) ^ not;
+                result = itemType.includes(JSONStringSource.parse(string, target)) ^ not;
             } catch (RuntimeException ex) {
                 result = not;
             }

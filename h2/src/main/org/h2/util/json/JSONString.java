@@ -17,7 +17,7 @@ public class JSONString extends JSONValue {
     }
 
     @Override
-    public void addTo(JSONTarget target) {
+    public void addTo(JSONTarget<?> target) {
         target.valueString(value);
     }
 

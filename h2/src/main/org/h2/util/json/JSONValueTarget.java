@@ -11,7 +11,7 @@ import java.util.ArrayDeque;
 /**
  * JSON value target.
  */
-public final class JSONValueTarget extends JSONTarget {
+public final class JSONValueTarget extends JSONTarget<JSONValue> {
 
     private final ArrayDeque<JSONValue> stack;
 

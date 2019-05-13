@@ -9,8 +9,11 @@ import java.math.BigDecimal;
 
 /**
  * Abstract JSON output target.
+ *
+ * @param <R>
+ *            the type of the result
  */
-public abstract class JSONTarget {
+public abstract class JSONTarget<R> {
 
     /**
      * Start of an object.
@@ -91,6 +94,6 @@ public abstract class JSONTarget {
      *
      * @return the result
      */
-    public abstract Object getResult();
+    public abstract R getResult();
 
 }

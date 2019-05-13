@@ -12,7 +12,7 @@ import org.h2.util.ByteStack;
 /**
  * JSON String target.
  */
-public final class JSONStringTarget extends JSONTarget {
+public final class JSONStringTarget extends JSONTarget<String> {
 
     static final char[] HEX = "0123456789abcdef".toCharArray();
 

@@ -10,11 +10,11 @@ package org.h2.util.json;
  */
 public abstract class JSONTextSource {
 
-    final JSONTarget target;
+    final JSONTarget<?> target;
 
     private final StringBuilder builder;
 
-    JSONTextSource(JSONTarget target) {
+    JSONTextSource(JSONTarget<?> target) {
         this.target = target;
         builder = new StringBuilder();
     }

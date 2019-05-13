@@ -21,9 +21,13 @@ public final class JSONStringSource extends JSONTextSource {
      *            source
      * @param target
      *            target
+     * @param <R>
+     *            the type of the result
+     * @return the result of the target
      */
-    public static void parse(String string, JSONTarget target) {
+    public static <R> R parse(String string, JSONTarget<R> target) {
         new JSONStringSource(string, target).parse();
+        return target.getResult();
     }
 
     /**
@@ -34,9 +38,7 @@ public final class JSONStringSource extends JSONTextSource {
      * @return normalized representation
      */
     public static byte[] normalize(String string) {
-        JSONByteArrayTarget target = new JSONByteArrayTarget();
-        parse(string, target);
-        return target.getResult();
+        return parse(string, new JSONByteArrayTarget());
     }
 
     private final String string;
@@ -45,7 +47,7 @@ public final class JSONStringSource extends JSONTextSource {
 
     private int index;
 
-    JSONStringSource(String string, JSONTarget target) {
+    JSONStringSource(String string, JSONTarget<?> target) {
         super(target);
         this.string = string;
         this.length = string.length();

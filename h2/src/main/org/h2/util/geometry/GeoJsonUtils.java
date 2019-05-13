@@ -243,9 +243,7 @@ public final class GeoJsonUtils {
      *             on unsupported dimension system
      */
     public static byte[] geoJsonToEwkb(byte[] json, int srid) {
-        JSONValueTarget t = new JSONValueTarget();
-        JSONBytesSource.parse(json, t);
-        JSONValue v = t.getResult();
+        JSONValue v = JSONBytesSource.parse(json, new JSONValueTarget());
         DimensionSystemTarget dst = new DimensionSystemTarget();
         parse(v, dst);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

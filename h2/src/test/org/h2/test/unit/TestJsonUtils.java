@@ -80,6 +80,7 @@ public class TestJsonUtils extends TestBase {
         testSourcesAndTargets();
         testUtfError();
         testLongNesting();
+        testEncodeString();
     }
 
     private void testTargetErrorDetection() throws Exception {
@@ -440,6 +441,17 @@ public class TestJsonUtils extends TestBase {
         }
         String string = builder.toString();
         assertEquals(string, JSONStringSource.normalize(string));
+    }
+
+    private void testEncodeString() {
+        testEncodeString("abc \"\u0001\u007f\u0080\u1000\uabcd\n'\t",
+                "\"abc \\\"\\u0001\u007f\u0080\u1000\uabcd\\n'\\t\"",
+                "\"abc \\\"\\u0001\u007f\\u0080\\u1000\\uabcd\\n\\u0027\\t\"");
+    }
+
+    private void testEncodeString(String source, String expected, String expectedPrintable) {
+        assertEquals(expected, JSONStringTarget.encodeString(new StringBuilder(), source, false).toString());
+        assertEquals(expectedPrintable, JSONStringTarget.encodeString(new StringBuilder(), source, true).toString());
     }
 
 }

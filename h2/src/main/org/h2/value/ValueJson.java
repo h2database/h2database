@@ -50,7 +50,9 @@ public class ValueJson extends Value {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
-        return StringUtils.quoteStringSQL(builder, value).append(" FORMAT JSON");
+        JSONStringTarget target = new JSONStringTarget(true);
+        JSONStringSource.parse(value, target);
+        return builder.append('\'').append(target.getResult()).append('\'').append(" FORMAT JSON");
     }
 
     @Override
@@ -215,7 +217,8 @@ public class ValueJson extends Value {
      * @return JSON value
      */
     public static ValueJson get(String string) {
-        return new ValueJson(JSONStringTarget.encodeString(new StringBuilder(string.length() + 2), string).toString());
+        return new ValueJson(
+                JSONStringTarget.encodeString(new StringBuilder(string.length() + 2), string, false).toString());
     }
 
     /**

@@ -2243,7 +2243,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         if (builder.length() > 1) {
             builder.append(',');
         }
-        JSONStringTarget.encodeString(builder, key).append(':').append(value.convertTo(Value.JSON).getString());
+        JSONStringTarget.encodeString(builder, key, false).append(':').append(value.convertTo(Value.JSON).getString());
     }
 
     /**

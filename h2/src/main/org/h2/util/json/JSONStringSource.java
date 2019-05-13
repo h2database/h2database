@@ -244,16 +244,16 @@ public final class JSONStringSource {
         int start = index - 1;
         index = skipInt(index, length, positive);
         l: if (index < length) {
-            char ch = string.charAt(index++);
+            char ch = string.charAt(index);
             if (ch == '.') {
-                index = skipInt(index, length, false);
+                index = skipInt(index + 1, length, false);
                 if (index >= length) {
                     break l;
                 }
-                ch = string.charAt(index++);
+                ch = string.charAt(index);
             }
             if (ch == 'E' || ch == 'e') {
-                if (index >= length) {
+                if (++index >= length) {
                     throw new IllegalArgumentException();
                 }
                 ch = string.charAt(index);
@@ -261,8 +261,6 @@ public final class JSONStringSource {
                     index++;
                 }
                 index = skipInt(index, length, false);
-            } else {
-                index--;
             }
         }
         target.valueNumber(new BigDecimal(string.substring(start, index)));

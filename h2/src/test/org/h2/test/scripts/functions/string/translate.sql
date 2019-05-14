@@ -18,6 +18,18 @@ SELECT TRANSLATE(txt1, 'p', 'r') FROM testTranslate ORDER BY id;
 > cars
 > rows (ordered): 4
 
+SET MODE DB2;
+> ok
+
+SELECT TRANSLATE(txt1, 'p', 'r') FROM testTranslate WHERE txt1 = 'caps';
+>> caps
+
+SELECT TRANSLATE(txt1, 'r', 'p') FROM testTranslate WHERE txt1 = 'caps';
+>> cars
+
+SET MODE Regular;
+> ok
+
 SELECT TRANSLATE(NULL, NULL, NULL);
 >> null
 

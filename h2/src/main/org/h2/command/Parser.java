@@ -7695,12 +7695,7 @@ public class Parser {
                 return command;
             } else if (readIf("RESTART")) {
                 readIf(WITH);
-                Expression start = readExpression();
-                AlterSequence command = new AlterSequence(session, schema);
-                command.setColumn(column);
-                SequenceOptions options = new SequenceOptions();
-                options.setStartValue(start);
-                command.setOptions(options);
+                AlterSequence command = readAlterColumnRestartWith(schema, column);
                 return commandIfTableExists(schema, tableName, ifTableExists, command);
             } else if (readIf("SELECTIVITY")) {
                 AlterTableAlterColumn command = new AlterTableAlterColumn(
@@ -7714,8 +7709,34 @@ public class Parser {
             } else {
                 return parseAlterTableAlterColumnType(schema, tableName, columnName, ifTableExists);
             }
+        } else if (database.getMode().getEnum() == ModeEnum.MySQL && readIf("AUTO_INCREMENT")) {
+            readIf(EQUAL);
+            Table table = tableIfTableExists(schema, tableName, ifTableExists);
+            if (table == null) {
+                return new NoOperation(session);
+            }
+            Index idx = table.findPrimaryKey();
+            if (idx != null) {
+                for (IndexColumn ic : idx.getIndexColumns()) {
+                    Column column = ic.column;
+                    if (column.getSequence() != null) {
+                        return readAlterColumnRestartWith(schema, column);
+                    }
+                }
+            }
+            throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, "AUTO_INCREMENT PRIMARY KEY");
         }
         throw getSyntaxError();
+    }
+
+    private AlterSequence readAlterColumnRestartWith(Schema schema, Column column) {
+        Expression start = readExpression();
+        AlterSequence command = new AlterSequence(session, schema);
+        command.setColumn(column);
+        SequenceOptions options = new SequenceOptions();
+        options.setStartValue(start);
+        command.setOptions(options);
+        return command;
     }
 
     private Table tableIfTableExists(Schema schema, String tableName, boolean ifTableExists) {

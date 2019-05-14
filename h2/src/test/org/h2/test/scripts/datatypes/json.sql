@@ -3,6 +3,13 @@
 -- Initial Developer: H2 Group
 --
 
+SELECT TYPE_NAME, PRECISION, PREFIX, SUFFIX, PARAMS, MINIMUM_SCALE, MAXIMUM_SCALE FROM INFORMATION_SCHEMA.TYPE_INFO
+    WHERE TYPE_NAME = 'JSON';
+> TYPE_NAME PRECISION  PREFIX SUFFIX        PARAMS MINIMUM_SCALE MAXIMUM_SCALE
+> --------- ---------- ------ ------------- ------ ------------- -------------
+> JSON      2147483647 '      ' FORMAT JSON LENGTH 0             0
+> rows: 1
+
 SELECT '{"tag1":"simple string"}' FORMAT JSON;
 >> {"tag1":"simple string"}
 

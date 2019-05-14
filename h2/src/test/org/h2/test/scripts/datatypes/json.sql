@@ -3,6 +3,13 @@
 -- Initial Developer: H2 Group
 --
 
+SELECT TYPE_NAME, PRECISION, PREFIX, SUFFIX, PARAMS, MINIMUM_SCALE, MAXIMUM_SCALE FROM INFORMATION_SCHEMA.TYPE_INFO
+    WHERE TYPE_NAME = 'JSON';
+> TYPE_NAME PRECISION  PREFIX SUFFIX        PARAMS MINIMUM_SCALE MAXIMUM_SCALE
+> --------- ---------- ------ ------------- ------ ------------- -------------
+> JSON      2147483647 '      ' FORMAT JSON LENGTH 0             0
+> rows: 1
+
 SELECT '{"tag1":"simple string"}' FORMAT JSON;
 >> {"tag1":"simple string"}
 
@@ -220,3 +227,18 @@ SELECT NULL FORMAT JSON, (NULL FORMAT JSON) IS NULL;
 > ------------------ -----
 > null               FALSE
 > rows: 1
+
+CREATE MEMORY TABLE TEST(J JSON) AS VALUES ('["\u00A7''",{}]' FORMAT JSON);
+> ok
+
+SCRIPT NOPASSWORDS NOSETTINGS TABLE TEST;
+> SCRIPT
+> -----------------------------------------------------------------------
+> -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "J" JSON );
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
+> INSERT INTO "PUBLIC"."TEST" VALUES ('["\u00a7\u0027",{}]' FORMAT JSON);
+> rows: 4
+
+DROP TABLE TEST;
+> ok

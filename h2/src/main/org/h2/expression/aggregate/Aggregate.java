@@ -5,6 +5,7 @@
  */
 package org.h2.expression.aggregate;
 
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -496,30 +497,33 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             if (orderByList != null) {
                 sortWithOrderBy(array);
             }
-            StringBuilder builder = new StringBuilder().append('[');
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            baos.write('[');
             for (Value v : array) {
                 if (orderByList != null) {
                     v = ((ValueArray) v).getList()[0];
                 }
-                Function.jsonArrayAppend(builder, v, flags);
+                Function.jsonArrayAppend(baos, v, flags);
             }
-            return ValueJson.fromJson(builder.append(']').toString());
+            baos.write(']');
+            return ValueJson.getInternal(baos.toByteArray());
         }
         case JSON_OBJECTAGG: {
             Value[] array = ((AggregateDataCollecting) data).getArray();
             if (array == null) {
                 return ValueNull.INSTANCE;
             }
-            StringBuilder builder = new StringBuilder().append('{');
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            baos.write('{');
             for (Value v : array) {
                 Value[] row = ((ValueArray) v).getList();
                 String key = row[0].getString();
                 if (key == null) {
                     throw DbException.getInvalidValueException("JSON_OBJECTAGG key", "NULL");
                 }
-                Function.jsonObjectAppend(builder, key, row[1]);
+                Function.jsonObjectAppend(baos, key, row[1]);
             }
-            return Function.jsonObjectFinish(builder, flags);
+            return Function.jsonObjectFinish(baos, flags);
         }
         default:
             // Avoid compiler warning

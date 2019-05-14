@@ -19,7 +19,7 @@ public class JSONNull extends JSONValue {
     }
 
     @Override
-    public void addTo(JSONTarget target) {
+    public void addTo(JSONTarget<?> target) {
         target.valueNull();
     }
 

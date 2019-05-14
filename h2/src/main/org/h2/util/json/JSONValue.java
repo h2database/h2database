@@ -19,7 +19,7 @@ public abstract class JSONValue {
      * @param target
      *            the target
      */
-    public abstract void addTo(JSONTarget target);
+    public abstract void addTo(JSONTarget<?> target);
 
     @Override
     public final String toString() {

@@ -12,6 +12,7 @@ import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.util.json.JSONBytesSource;
 import org.h2.util.json.JSONItemType;
 import org.h2.util.json.JSONStringSource;
 import org.h2.util.json.JSONValidationTarget;
@@ -91,8 +92,7 @@ public class IsJsonPredicate extends Condition {
             JSONValidationTarget target = withUniqueKeys ? new JSONValidationTargetWithUniqueKeys()
                     : new JSONValidationTargetWithoutUniqueKeys();
             try {
-                JSONStringSource.parse(bytes, target);
-                result = itemType.includes(target.getResult()) ^ not;
+                result = itemType.includes(JSONBytesSource.parse(bytes, target)) ^ not;
             } catch (RuntimeException ex) {
                 result = not;
             }
@@ -117,8 +117,7 @@ public class IsJsonPredicate extends Condition {
             JSONValidationTarget target = withUniqueKeys ? new JSONValidationTargetWithUniqueKeys()
                     : new JSONValidationTargetWithoutUniqueKeys();
             try {
-                JSONStringSource.parse(string, target);
-                result = itemType.includes(target.getResult()) ^ not;
+                result = itemType.includes(JSONStringSource.parse(string, target)) ^ not;
             } catch (RuntimeException ex) {
                 result = not;
             }

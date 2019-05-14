@@ -609,7 +609,7 @@ public class Transfer {
             break;
         case Value.JSON: {
             writeInt(JSON);
-            writeString(v.getString());
+            writeBytes(v.getBytesNoCopy());
             break;
         }
         default:
@@ -784,10 +784,9 @@ public class Transfer {
             return ValueInterval.from(IntervalQualifier.valueOf(ordinal), negative, readLong(),
                     ordinal < 5 ? 0 : readLong());
         }
-        case JSON: {
-            String s = readString();
-            return ValueJson.fromJson(s);
-        }
+        case JSON:
+            // Do not trust the value
+            return ValueJson.fromJson(readBytes());
         default:
             if (JdbcUtils.customDataTypesHandler != null) {
                 return JdbcUtils.customDataTypesHandler.convert(

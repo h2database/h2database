@@ -27,7 +27,7 @@ public class JSONBoolean extends JSONValue {
     }
 
     @Override
-    public void addTo(JSONTarget target) {
+    public void addTo(JSONTarget<?> target) {
         if (value) {
             target.valueTrue();
         } else {

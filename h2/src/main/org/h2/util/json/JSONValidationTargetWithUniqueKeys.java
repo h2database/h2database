@@ -137,13 +137,18 @@ public final class JSONValidationTargetWithUniqueKeys extends JSONValidationTarg
     }
 
     @Override
+    public boolean isPropertyExpected() {
+        return memberName == null && stack.peek() instanceof HashSet;
+    }
+
+    @Override
     public boolean isValueSeparatorExpected() {
         return needSeparator;
     }
 
     @Override
     public JSONItemType getResult() {
-        if (!stack.isEmpty() || memberName != null || type == null) {
+        if (!stack.isEmpty() || type == null) {
             throw new IllegalStateException();
         }
         return type;

@@ -123,13 +123,18 @@ public final class JSONValidationTargetWithoutUniqueKeys extends JSONValidationT
     }
 
     @Override
+    public boolean isPropertyExpected() {
+        return !afterName && stack.peek(-1) == OBJECT;
+    }
+
+    @Override
     public boolean isValueSeparatorExpected() {
         return needSeparator;
     }
 
     @Override
     public JSONItemType getResult() {
-        if (!stack.isEmpty() || afterName || type == null) {
+        if (!stack.isEmpty() || type == null) {
             throw new IllegalStateException();
         }
         return type;

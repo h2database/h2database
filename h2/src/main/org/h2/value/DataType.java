@@ -268,20 +268,20 @@ public class DataType {
         // Types.TIMESTAMP_WITH_TIMEZONE once Java 1.8 is required.
         add(Value.TIMESTAMP_TZ, 2014,
                 createDate(ValueTimestampTimeZone.MAXIMUM_PRECISION, ValueTimestampTimeZone.DEFAULT_PRECISION,
-                        "TIMESTAMP_TZ", true, ValueTimestampTimeZone.DEFAULT_SCALE,
+                        "TIMESTAMP WITH TIME ZONE", true, ValueTimestampTimeZone.DEFAULT_SCALE,
                         ValueTimestampTimeZone.MAXIMUM_SCALE),
                 new String[]{"TIMESTAMP WITH TIME ZONE"}
         );
         add(Value.BYTES, Types.VARBINARY,
-                createString(false),
+                createBinary(),
                 new String[]{"VARBINARY", "BINARY VARYING"}
         );
         add(Value.BYTES, Types.BINARY,
-                createString(false),
+                createBinary(),
                 new String[]{"BINARY", "RAW", "BYTEA", "LONG RAW"}
         );
         add(Value.BYTES, Types.LONGVARBINARY,
-                createString(false),
+                createBinary(),
                 new String[]{"LONGVARBINARY"}
         );
         dataType = new DataType();
@@ -297,12 +297,12 @@ public class DataType {
                 new String[]{"OTHER", "OBJECT", "JAVA_OBJECT"}
         );
         add(Value.BLOB, Types.BLOB,
-                createLob(),
+                createLob(false),
                 new String[]{"BLOB", "BINARY LARGE OBJECT", "TINYBLOB", "MEDIUMBLOB",
                     "LONGBLOB", "IMAGE", "OID"}
         );
         add(Value.CLOB, Types.CLOB,
-                createLob(),
+                createLob(true),
                 new String[]{"CLOB", "CHARACTER LARGE OBJECT", "TINYTEXT", "TEXT", "MEDIUMTEXT",
                     "LONGTEXT", "NTEXT", "NCLOB"}
         );
@@ -335,7 +335,7 @@ public class DataType {
         }
         // Maybe another suffix is needed
         add(Value.JSON, Types.OTHER,
-                createString(false),
+                createString(true, "'", "' FORMAT JSON"),
                 new String[]{"JSON"}
         );
         // Row value doesn't have a type name
@@ -366,8 +366,8 @@ public class DataType {
         IntervalQualifier qualifier = IntervalQualifier.valueOf(type - Value.INTERVAL_YEAR);
         String name = qualifier.toString();
         DataType dataType = new DataType();
-        dataType.prefix = "INTERVAL ";
-        dataType.suffix = ' ' + name;
+        dataType.prefix = "INTERVAL '";
+        dataType.suffix = "' " + name;
         dataType.supportsPrecision = true;
         dataType.defaultPrecision = ValueInterval.DEFAULT_PRECISION;
         dataType.maxPrecision = ValueInterval.MAXIMUM_PRECISION;
@@ -484,9 +484,17 @@ public class DataType {
     }
 
     private static DataType createString(boolean caseSensitive) {
+        return createString(caseSensitive, "'", "'");
+    }
+
+    private static DataType createBinary() {
+        return createString(false, "X'", "'");
+    }
+
+    private static DataType createString(boolean caseSensitive, String prefix, String suffix) {
         DataType dataType = new DataType();
-        dataType.prefix = "'";
-        dataType.suffix = "'";
+        dataType.prefix = prefix;
+        dataType.suffix = suffix;
         dataType.params = "LENGTH";
         dataType.caseSensitive = caseSensitive;
         dataType.supportsPrecision = true;
@@ -495,8 +503,8 @@ public class DataType {
         return dataType;
     }
 
-    private static DataType createLob() {
-        DataType t = createString(true);
+    private static DataType createLob(boolean clob) {
+        DataType t = clob ? createString(true) : createBinary();
         t.maxPrecision = Long.MAX_VALUE;
         t.defaultPrecision = Long.MAX_VALUE;
         return t;
@@ -777,9 +785,13 @@ public class DataType {
             }
             case Value.JSON: {
                 Object x = rs.getObject(columnIndex);
-                if(x == null) {
+                if (x == null) {
                     return ValueNull.INSTANCE;
-                } else if (x.getClass()== String.class) {
+                }
+                Class<?> clazz = x.getClass();
+                if (clazz == byte[].class) {
+                    return ValueJson.fromJson((byte[]) x);
+                } else if (clazz == String.class) {
                     return ValueJson.fromJson((String) x);
                 } else {
                     return ValueJson.fromJson(x.toString());
@@ -852,6 +864,7 @@ public class DataType {
             return TimestampWithTimeZone.class.getName();
         case Value.BYTES:
         case Value.UUID:
+        case Value.JSON:
             // "[B", not "byte[]";
             return byte[].class.getName();
         case Value.STRING:
@@ -901,8 +914,6 @@ public class DataType {
         case Value.INTERVAL_MINUTE_TO_SECOND:
             // "org.h2.api.Interval"
             return Interval.class.getName();
-        case Value.JSON:
-            return String.class.getName();
         default:
             if (JdbcUtils.customDataTypesHandler != null) {
                 return JdbcUtils.customDataTypesHandler.getDataTypeClassName(type);

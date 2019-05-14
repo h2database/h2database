@@ -24,7 +24,7 @@ public class JSONObject extends JSONValue {
     }
 
     @Override
-    public void addTo(JSONTarget target) {
+    public void addTo(JSONTarget<?> target) {
         target.startObject();
         for (SimpleImmutableEntry<String, JSONValue> member : members) {
             target.member(member.getKey());

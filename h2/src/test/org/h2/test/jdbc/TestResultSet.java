@@ -89,6 +89,7 @@ public class TestResultSet extends TestDb {
         testFindColumn();
         testColumnLength();
         testArray();
+        testRowValue();
         testEnum();
         testLimitMaxRows();
 
@@ -1900,6 +1901,30 @@ public class TestResultSet extends TestDb {
         assertFalse(rs.next());
 
         stat.execute("DROP TABLE TEST");
+    }
+
+    private void testRowValue() throws SQLException {
+        trace("Test ROW value");
+        ResultSet rs;
+        rs = stat.executeQuery("SELECT (1, 'test')");
+        rs.next();
+        Object[] expectedArray = new Object[] {1, "test"};
+        assertEquals(expectedArray, (Object[]) rs.getObject(1));
+        Array array = rs.getArray(1);
+        assertEquals(expectedArray, (Object[]) array.getArray());
+        ResultSet rowAsResultSet = rs.getObject(1, ResultSet.class);
+        ResultSetMetaData md = rowAsResultSet.getMetaData();
+        assertEquals(2, md.getColumnCount());
+        assertEquals("C1", md.getColumnLabel(1));
+        assertEquals("C1", md.getColumnName(1));
+        assertEquals("C2", md.getColumnLabel(2));
+        assertEquals("C2", md.getColumnName(2));
+        assertEquals(Types.INTEGER, md.getColumnType(1));
+        assertEquals(Types.VARCHAR, md.getColumnType(2));
+        assertTrue(rowAsResultSet.next());
+        assertEquals(1, rowAsResultSet.getInt(1));
+        assertEquals("test", rowAsResultSet.getString(2));
+        assertFalse(rowAsResultSet.next());
     }
 
     private void testEnum() throws SQLException {

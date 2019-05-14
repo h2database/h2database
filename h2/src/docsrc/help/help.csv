@@ -3415,7 +3415,7 @@ GEOMETRY(GEOMETRY, 4326)
 JSON
 ","
 A RFC 8259-compliant JSON text.
-Mapped to ""java.lang.String"" (byte[] is also supported).
+Mapped to ""byte[]"".
 To set a JSON value with ""java.lang.String"" in a PreparedStatement use a ""FORMAT JSON"" data format
 (""INSERT INTO TEST(ID, DATA) VALUES (?, ? FORMAT JSON)"").
 Without the data format VARCHAR values are converted to a JSON string values.

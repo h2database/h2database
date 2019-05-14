@@ -135,7 +135,7 @@ public final class JSONValueTarget extends JSONTarget<JSONValue> {
     }
 
     @Override
-    public boolean isProperyExpected() {
+    public boolean isPropertyExpected() {
         return memberName == null && stack.peek() instanceof JSONObject;
     }
 

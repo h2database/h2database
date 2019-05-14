@@ -65,7 +65,7 @@ public abstract class JSONTextSource {
                 break;
             case '"': {
                 String s = readString();
-                if (target.isProperyExpected()) {
+                if (target.isPropertyExpected()) {
                     if (nextCharAfterWhitespace() != ':') {
                         throw new IllegalArgumentException();
                     }

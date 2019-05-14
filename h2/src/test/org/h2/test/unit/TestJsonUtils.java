@@ -50,19 +50,21 @@ public class TestJsonUtils extends TestBase {
         }
     };
 
-    private static final Callable<JSONTarget<?>> JSON_VALIDATION_TARGET_WITHOUT_UNIQUE_KEYS = new Callable<JSONTarget<?>>() {
-        @Override
-        public JSONTarget<?> call() throws Exception {
-            return new JSONValidationTargetWithoutUniqueKeys();
-        }
-    };
+    private static final Callable<JSONTarget<?>> JSON_VALIDATION_TARGET_WITHOUT_UNIQUE_KEYS = //
+            new Callable<JSONTarget<?>>() {
+                @Override
+                public JSONTarget<?> call() throws Exception {
+                    return new JSONValidationTargetWithoutUniqueKeys();
+                }
+            };
 
-    private static final Callable<JSONTarget<?>> JSON_VALIDATION_TARGET_WITH_UNIQUE_KEYS = new Callable<JSONTarget<?>>() {
-        @Override
-        public JSONTarget<?> call() throws Exception {
-            return new JSONValidationTargetWithUniqueKeys();
-        }
-    };
+    private static final Callable<JSONTarget<?>> JSON_VALIDATION_TARGET_WITH_UNIQUE_KEYS = //
+            new Callable<JSONTarget<?>>() {
+                @Override
+                public JSONTarget<?> call() throws Exception {
+                    return new JSONValidationTargetWithUniqueKeys();
+                }
+            };
 
     /**
      * Run just this test.
@@ -338,7 +340,8 @@ public class TestJsonUtils extends TestBase {
             itemType = JSONItemType.SCALAR;
         }
         assertEquals(expected, JSONStringSource.parse(src, new JSONStringTarget()));
-        assertEquals(expected.getBytes(StandardCharsets.UTF_8), JSONStringSource.parse(src, new JSONByteArrayTarget()));
+        assertEquals(expected.getBytes(StandardCharsets.UTF_8), //
+                JSONStringSource.parse(src, new JSONByteArrayTarget()));
         assertEquals(expected, JSONStringSource.parse(src, new JSONValueTarget()).toString());
         assertEquals(itemType, JSONStringSource.parse(src, new JSONValidationTargetWithoutUniqueKeys()));
         if (hasNonUniqueKeys) {

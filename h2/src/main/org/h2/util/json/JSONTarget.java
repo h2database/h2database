@@ -80,7 +80,7 @@ public abstract class JSONTarget<R> {
      *
      * @return {@code true} if it is, {@code false} otherwise
      */
-    public abstract boolean isProperyExpected();
+    public abstract boolean isPropertyExpected();
 
     /**
      * Returns whether value separator expected before the next member or value.

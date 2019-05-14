@@ -218,7 +218,7 @@ public final class JSONStringTarget extends JSONTarget<String> {
     }
 
     @Override
-    public boolean isProperyExpected() {
+    public boolean isPropertyExpected() {
         return !afterName && stack.peek(-1) == OBJECT;
     }
 

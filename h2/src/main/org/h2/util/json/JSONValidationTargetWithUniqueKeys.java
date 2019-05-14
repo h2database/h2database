@@ -137,7 +137,7 @@ public final class JSONValidationTargetWithUniqueKeys extends JSONValidationTarg
     }
 
     @Override
-    public boolean isProperyExpected() {
+    public boolean isPropertyExpected() {
         return memberName == null && stack.peek() instanceof HashSet;
     }
 

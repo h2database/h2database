@@ -123,7 +123,7 @@ public final class JSONValidationTargetWithoutUniqueKeys extends JSONValidationT
     }
 
     @Override
-    public boolean isProperyExpected() {
+    public boolean isPropertyExpected() {
         return !afterName && stack.peek(-1) == OBJECT;
     }
 

@@ -226,7 +226,7 @@ public final class JSONByteArrayTarget extends JSONTarget<byte[]> {
     }
 
     @Override
-    public boolean isProperyExpected() {
+    public boolean isPropertyExpected() {
         return !afterName && stack.peek(-1) == OBJECT;
     }
 

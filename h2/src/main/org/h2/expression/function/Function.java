@@ -1504,9 +1504,13 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case TRANSLATE: {
             String matching = v1.getString();
             String replacement = v2.getString();
-            result = ValueString.get(
-                    translate(v0.getString(), matching, replacement),
-                    database.getMode().treatEmptyStringsAsNull);
+            Mode mode = database.getMode();
+            if (mode.getEnum() == ModeEnum.DB2) {
+                String t = matching;
+                matching = replacement;
+                replacement = t;
+            }
+            result = ValueString.get(translate(v0.getString(), matching, replacement), mode.treatEmptyStringsAsNull);
             break;
         }
         case H2VERSION:

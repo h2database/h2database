@@ -124,7 +124,6 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         testToCharFromDateTime();
         testToCharFromNumber();
         testToCharFromText();
-        testTranslate();
         testGenerateSeries();
         testFileWrite();
         testThatCurrentTimestampIsSane();
@@ -1291,47 +1290,6 @@ public class TestFunctions extends TestDb implements AggregateFunction {
                 .getMetaData().getColumnType(1));
         assertEquals(Types.DECIMAL, stat.executeQuery("SELECT EXTRACT(EPOCH FROM TS) FROM TEST")
                 .getMetaData().getColumnType(1));
-        conn.close();
-    }
-
-    private void testTranslate() throws SQLException {
-        Connection conn = getConnection("functions");
-        Statement stat = conn.createStatement();
-
-        String createSQL = "CREATE TABLE testTranslate(id BIGINT, " +
-                "txt1 varchar);";
-        stat.execute(createSQL);
-        stat.execute("insert into testTranslate(id, txt1) " +
-                "values(1, 'test1')");
-        stat.execute("insert into testTranslate(id, txt1) " +
-                "values(2, null)");
-        stat.execute("insert into testTranslate(id, txt1) " +
-                "values(3, '')");
-        stat.execute("insert into testTranslate(id, txt1) " +
-                "values(4, 'caps')");
-
-        String query = "SELECT translate(txt1, 'p', 'r') " +
-                "FROM testTranslate order by id asc";
-        ResultSet rs = stat.executeQuery(query);
-        rs.next();
-        String actual = rs.getString(1);
-        assertEquals("test1", actual);
-        rs.next();
-        actual = rs.getString(1);
-        assertNull(actual);
-        rs.next();
-        actual = rs.getString(1);
-        assertEquals("", actual);
-        rs.next();
-        actual = rs.getString(1);
-        assertEquals("cars", actual);
-        rs.close();
-
-        rs = stat.executeQuery("select translate(null,null,null)");
-        rs.next();
-        assertNull(rs.getObject(1));
-
-        stat.execute("drop table testTranslate");
         conn.close();
     }
 

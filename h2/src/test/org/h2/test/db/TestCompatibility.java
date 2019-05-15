@@ -411,13 +411,23 @@ public class TestCompatibility extends TestDb {
         stat.execute("CREATE TABLE TEST_4" +
                 "(ID INT PRIMARY KEY) charset=UTF8");
         stat.execute("CREATE TABLE TEST_5" +
-                "(ID INT PRIMARY KEY) ENGINE=InnoDb auto_increment=3 default charset=UTF8");
+                "(ID INT AUTO_INCREMENT PRIMARY KEY) ENGINE=InnoDb auto_increment=3 default charset=UTF8");
         stat.execute("CREATE TABLE TEST_6" +
-                "(ID INT PRIMARY KEY) ENGINE=InnoDb auto_increment=3 charset=UTF8");
+                "(ID INT AUTO_INCREMENT PRIMARY KEY) ENGINE=MyISAM default character set UTF8MB4, auto_increment 3");
         stat.execute("CREATE TABLE TEST_7" +
-                "(ID INT, KEY TEST_7_IDX(ID) USING BTREE)");
+                "(ID INT AUTO_INCREMENT PRIMARY KEY) ENGINE=InnoDb auto_increment=3 charset=UTF8 comment 'text'");
         stat.execute("CREATE TABLE TEST_8" +
-                "(ID INT, UNIQUE KEY TEST_8_IDX(ID) USING BTREE)");
+                "(ID INT AUTO_INCREMENT PRIMARY KEY) ENGINE=InnoDb auto_increment=3 character set=UTF8");
+        stat.execute("CREATE TABLE TEST_9" +
+                "(ID INT, KEY TEST_7_IDX(ID) USING BTREE)");
+        stat.execute("CREATE TABLE TEST_10" +
+                "(ID INT, UNIQUE KEY TEST_10_IDX(ID) USING BTREE)");
+        assertThrows(ErrorCode.SYNTAX_ERROR_2, stat).execute("CREATE TABLE TEST_99" +
+                "(ID INT PRIMARY KEY) CHARSET UTF8,");
+        assertThrows(ErrorCode.COLUMN_NOT_FOUND_1, stat).execute("CREATE TABLE TEST_99" +
+                "(ID INT PRIMARY KEY) AUTO_INCREMENT 100");
+        assertThrows(ErrorCode.COLUMN_NOT_FOUND_1, stat).execute("CREATE TABLE TEST_99" +
+                "(ID INT) AUTO_INCREMENT 100");
 
         // this maps to SET REFERENTIAL_INTEGRITY TRUE/FALSE
         stat.execute("SET foreign_key_checks = 0");

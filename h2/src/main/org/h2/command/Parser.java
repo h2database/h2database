@@ -8081,45 +8081,14 @@ public class Parser {
                 } while (readIfMore(false));
             }
         }
-        // Allows "COMMENT='comment'" in DDL statements (MySQL syntax)
-        if (readIf("COMMENT")) {
-            if (readIf(EQUAL)) {
-                // read the complete string comment, but nothing with it for now
-                readString();
-            }
+        if (database.getMode().getEnum() == ModeEnum.MySQL) {
+            parseCreateTableMySQLTableOptions(command);
         }
         if (readIf("ENGINE")) {
-            if (readIf(EQUAL)) {
-                // map MySQL engine types onto H2 behavior
-                String tableEngine = readUniqueIdentifier();
-                if ("InnoDb".equalsIgnoreCase(tableEngine)) {
-                    // ok
-                } else if (!"MyISAM".equalsIgnoreCase(tableEngine)) {
-                    throw DbException.getUnsupportedException(tableEngine);
-                }
-            } else {
-                command.setTableEngine(readUniqueIdentifier());
-            }
+            command.setTableEngine(readUniqueIdentifier());
         }
         if (readIf(WITH)) {
             command.setTableEngineParams(readTableEngineParams());
-        }
-        // MySQL compatibility
-        if (readIf("AUTO_INCREMENT")) {
-            read(EQUAL);
-            if (currentTokenType != VALUE ||
-                    currentValue.getValueType() != Value.INT) {
-                throw DbException.getSyntaxError(sqlCommand, parseIndex,
-                        "integer");
-            }
-            read();
-        }
-        readIf("DEFAULT");
-        if (readIf("CHARSET")) {
-            read(EQUAL);
-            if (!readIf("UTF8")) {
-                read("UTF8MB4");
-            }
         }
         if (temp) {
             if (readIf(ON)) {
@@ -8155,12 +8124,6 @@ public class Parser {
             if (readIf(WITH)) {
                 command.setWithNoData(readIf("NO"));
                 read("DATA");
-            }
-        }
-        // for MySQL compatibility
-        if (readIf("ROW_FORMAT")) {
-            if (readIf(EQUAL)) {
-                readColumnIdentifier();
             }
         }
         return command;
@@ -8268,6 +8231,67 @@ public class Parser {
                 parseReferences(ref, schema, tableName);
                 command.addConstraintCommand(ref);
             }
+        }
+    }
+
+    private void parseCreateTableMySQLTableOptions(CreateTable command) {
+        boolean requireNext = false;
+        for (;;) {
+            if (readIf("AUTO_INCREMENT")) {
+                readIf(EQUAL);
+                Expression value = readExpression();
+                set: {
+                    AlterTableAddConstraint primaryKey = command.getPrimaryKey();
+                    if (primaryKey != null) {
+                        for (IndexColumn ic : primaryKey.getIndexColumns()) {
+                            String columnName = ic.columnName;
+                            for (Column column : command.getColumns()) {
+                                if (database.equalsIdentifiers(column.getName(), columnName)) {
+                                    SequenceOptions options = column.getAutoIncrementOptions();
+                                    if (options != null) {
+                                        options.setStartValue(value);
+                                        break set;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, "AUTO_INCREMENT PRIMARY KEY");
+                }
+            } else if (readIf("DEFAULT")) {
+                if (readIf("CHARACTER")) {
+                    read("SET");
+                } else {
+                    read("CHARSET");
+                }
+                readMySQLCharset();
+            } else if (readIf("CHARACTER")) {
+                read("SET");
+                readMySQLCharset();
+            } else if (readIf("CHARSET")) {
+                readMySQLCharset();
+            } else if (readIf("COMMENT")) {
+                readIf(EQUAL);
+                command.setComment(readString());
+            } else if (readIf("ENGINE")) {
+                readIf(EQUAL);
+                readUniqueIdentifier();
+            } else if (readIf("ROW_FORMAT")) {
+                readIf(EQUAL);
+                readColumnIdentifier();
+            } else if (requireNext) {
+                throw getSyntaxError();
+            } else {
+                break;
+            }
+            requireNext = readIf(COMMA);
+        }
+    }
+
+    private void readMySQLCharset() {
+        readIf(EQUAL);
+        if (!readIf("UTF8")) {
+            read("UTF8MB4");
         }
     }
 

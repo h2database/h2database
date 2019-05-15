@@ -158,4 +158,8 @@ public abstract class CommandWithColumns extends SchemaCommand {
         return false;
     }
 
+    public AlterTableAddConstraint getPrimaryKey() {
+        return primaryKey;
+    }
+
 }

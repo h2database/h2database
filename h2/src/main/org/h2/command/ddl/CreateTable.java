@@ -61,6 +61,10 @@ public class CreateTable extends CommandWithColumns {
         data.columns.add(column);
     }
 
+    public ArrayList<Column> getColumns() {
+        return data.columns;
+    }
+
     public void setIfNotExists(boolean ifNotExists) {
         this.ifNotExists = ifNotExists;
     }

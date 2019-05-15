@@ -626,6 +626,15 @@ public class Column {
         }
     }
 
+    /**
+     * Returns autoincrement options, or {@code null}.
+     *
+     * @return autoincrement options, or {@code null}
+     */
+    public SequenceOptions getAutoIncrementOptions() {
+        return autoIncrementOptions;
+    }
+
     public void setConvertNullToDefault(boolean convert) {
         this.convertNullToDefault = convert;
     }

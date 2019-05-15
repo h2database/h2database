@@ -54,6 +54,7 @@ public class TestAlter extends TestDb {
         testAlterTableModifyColumn();
         testAlterTableModifyColumnSetNull();
         testAlterTableModifyColumnNotNullOracle();
+        testAlterTableAlterColumnDefault();
         conn.close();
         deleteDb(getTestName());
     }
@@ -330,5 +331,12 @@ public class TestAlter extends TestDb {
         catch(SQLException e) {
             // This is what we expect, fails to insert null.
         }
+    }
+
+    private void testAlterTableAlterColumnDefault() throws SQLException {
+        stat.execute("create table t (x int default 1)");
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, conn)
+                .prepareStatement("alter table t alter column x int default ?");
+        stat.execute("drop table t");
     }
 }

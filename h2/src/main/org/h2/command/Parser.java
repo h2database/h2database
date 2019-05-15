@@ -657,6 +657,7 @@ public class Parser {
     private boolean recompileAlways;
     private boolean literalsChecked;
     private int orderInFrom;
+    private boolean ddlStatement;
 
     public Parser(Session session) {
         this.database = session.getDatabase();
@@ -2146,6 +2147,7 @@ public class Parser {
     }
 
     private Prepared parseDrop() {
+        ddlStatement = true;
         if (readIf(TABLE)) {
             boolean ifExists = readIfExists(false);
             DropTable command = new DropTable(session);
@@ -4085,6 +4087,11 @@ public class Parser {
     }
 
     private Parameter readParameter() {
+        if (ddlStatement) {
+            throw DbException.get(
+                    ErrorCode.FEATURE_NOT_SUPPORTED_1,
+                    "Parameters are not supported in DDL statements.");
+        }
         // there must be no space between ? and the number
         boolean indexed = Character.isDigit(sqlCommandChars[parseIndex]);
 
@@ -5982,6 +5989,7 @@ public class Parser {
     }
 
     private Prepared parseCreate() {
+        ddlStatement = true;
         boolean orReplace = false;
         if (readIf("OR")) {
             read("REPLACE");
@@ -6769,6 +6777,7 @@ public class Parser {
     }
 
     private Prepared parseAlter() {
+        ddlStatement = true;
         if (readIf(TABLE)) {
             return parseAlterTable();
         } else if (readIf("USER")) {

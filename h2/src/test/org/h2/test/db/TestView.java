@@ -189,11 +189,9 @@ public class TestView extends TestDb {
                 "f1 VARCHAR NOT NULL, f2 VARCHAR NOT NULL)");
         stat.execute("INSERT INTO Test(f1, f2) VALUES ('value1','value2')");
         stat.execute("INSERT INTO Test(f1, f2) VALUES ('value1','value3')");
-        PreparedStatement ps = conn.prepareStatement(
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, conn).prepareStatement(
                 "CREATE VIEW Test_View AS SELECT f2 FROM Test WHERE f1=?");
-        ps.setString(1, "value1");
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, ps).
-                executeUpdate();
+
         // ResultSet rs;
         // rs = stat.executeQuery("SELECT * FROM Test_View");
         // assertTrue(rs.next());

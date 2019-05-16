@@ -700,7 +700,7 @@ CREATE TABLE USER (ID INT, NAME VARCHAR(50));
 then run the jOOQ code generator on the command line using this command:
 </p>
 <pre>
-java -cp jooq.jar;jooq-meta.jar;jooq-codegen.jar;h2-1.3.158.jar;.
+java -cp jooq.jar;jooq-meta.jar;jooq-codegen.jar;h2-1.4.199.jar;.
 org.jooq.util.GenerationTool /codegen.xml
 </pre>
 <p>
@@ -708,7 +708,7 @@ org.jooq.util.GenerationTool /codegen.xml
 </p>
 <pre>
 &lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-&lt;configuration xmlns="http://www.jooq.org/xsd/jooq-codegen-2.3.0.xsd">
+&lt;configuration xmlns="http://www.jooq.org/xsd/jooq-codegen-3.11.0.xsd">
     &lt;jdbc>
         &lt;driver>org.h2.Driver&lt;/driver>
         &lt;url>jdbc:h2:~/test&lt;/url>
@@ -716,14 +716,11 @@ org.jooq.util.GenerationTool /codegen.xml
         &lt;password>&lt;/password>
     &lt;/jdbc>
     &lt;generator>
-        &lt;name>org.jooq.util.DefaultGenerator&lt;/name>
         &lt;database>
-            &lt;name>org.jooq.util.h2.H2Database&lt;/name>
             &lt;includes>.*&lt;/includes>
             &lt;excludes>&lt;/excludes>
             &lt;inputSchema>PUBLIC&lt;/inputSchema>
         &lt;/database>
-        &lt;generate>&lt;/generate>
         &lt;target>
             &lt;packageName>org.jooq.h2.generated&lt;/packageName>
             &lt;directory>./src&lt;/directory>
@@ -735,16 +732,16 @@ org.jooq.util.GenerationTool /codegen.xml
 Using the generated source, you can query the database as follows:
 </p>
 <pre>
-Factory create = new H2Factory(connection);
+DSLContext dsl = DSL.using(connection);
 Result&lt;UserRecord&gt; result =
-create.selectFrom(USER)
-    .where(NAME.like("Johnny%"))
-    .orderBy(ID)
-    .fetch();
+dsl.selectFrom(USER)
+   .where(NAME.like("Johnny%"))
+   .orderBy(ID)
+   .fetch();
 </pre>
 <p>
-See more details on <a href="http://www.jooq.org">jOOQ Homepage</a>
-and in the <a href="http://www.jooq.org/tutorial.php">jOOQ Tutorial</a>
+See more details on <a href="https://www.jooq.org">jOOQ Homepage</a>
+and in the <a href="https://www.jooq.org/tutorial">jOOQ Tutorial</a>
 </p>
 
 <h2 id="web_applications">Using Databases in Web Applications</h2>

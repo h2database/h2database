@@ -3,6 +3,15 @@
 -- Initial Developer: H2 Group
 --
 
+SELECT 0x;
+> exception SYNTAX_ERROR_2
+
+SELECT 0xZ;
+> exception SYNTAX_ERROR_2
+
+SELECT 0xAAZ;
+> exception SYNTAX_ERROR_2
+
 CREATE TABLE test (id INT NOT NULL, name VARCHAR);
 > ok
 

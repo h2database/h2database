@@ -4933,6 +4933,10 @@ public class Parser {
                         number = (number << 4) + c - ('A' - 10);
                     } else if (c >= 'a' && c <= 'f') {
                         number = (number << 4) + c - ('a' - 10);
+                    } else if (i == start || types[i] == CHAR_NAME) {
+                        parseIndex = i;
+                        addExpected("Hex number");
+                        throw getSyntaxError();
                     } else {
                         checkLiterals(false);
                         currentValue = ValueInt.get((int) number);

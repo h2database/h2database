@@ -4490,7 +4490,7 @@ public class Parser {
             break;
         case 'X':
             if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING && equalsToken("X", name)) {
-                byte[] buffer = StringUtils.convertHexToBytes(currentValue.getString());
+                byte[] buffer = StringUtils.convertHexWithSpacesToBytes(null, currentValue.getString()).toByteArray();
                 read();
                 return ValueExpression.get(ValueBytes.getNoCopy(buffer));
             }

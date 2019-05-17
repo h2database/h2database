@@ -1957,11 +1957,13 @@ TRUE
 "
 
 "Literals","Bytes","
-X'hex'
+X'hexWithSpaces'
 ","
-A binary value. The hex value is not case sensitive.
+A binary value. The hex value is not case sensitive and may contain space characters.
 ","
+X''
 X'01FF'
+X'01 bc 2a'
 "
 
 "Literals","Date","
@@ -2671,6 +2673,17 @@ The hexadecimal representation of a number or of bytes. Two characters are one
 byte.
 ","
 cafe
+"
+
+"Other Grammar","Hex with spaces","
+[' ' [...]] { { digit | a-f | A-F } [' ' [...]] { digit | a-f | A-F } [' ' [...]] } [...]
+","
+The hexadecimal representation of a number or of bytes with optional space characters.
+Two hexadecimal digit characters are one byte.
+","
+cafe
+11 22 33
+a b  c d
 "
 
 "Other Grammar","Index Column","

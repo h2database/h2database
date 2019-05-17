@@ -54,3 +54,24 @@ SELECT X'11' || CAST(NULL AS VARBINARY);
 
 SELECT CAST(NULL AS VARBINARY) || X'11';
 >> null
+
+SELECT X'1';
+> exception HEX_STRING_ODD_1
+
+SELECT X' 1 2  3 4 ';
+>> 1234
+
+SELECT X'1 2 3';
+> exception HEX_STRING_ODD_1
+
+SELECT X'~';
+> exception HEX_STRING_WRONG_1
+
+SELECT X'G';
+> exception HEX_STRING_WRONG_1
+
+SELECT X'TT';
+> exception HEX_STRING_WRONG_1
+
+SELECT X' TT';
+> exception HEX_STRING_WRONG_1

@@ -2785,6 +2785,15 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             builder.append('(');
         }
         switch (info.type) {
+        case SUBSTRING: {
+            args[0].getSQL(builder, alwaysQuote).append(" FROM ");
+            args[1].getSQL(builder, alwaysQuote);
+            if (args.length > 2) {
+                builder.append(" FOR ");
+                args[2].getSQL(builder, alwaysQuote);
+            }
+            break;
+        }
         case TRIM: {
             switch (flags) {
             case TRIM_LEADING:

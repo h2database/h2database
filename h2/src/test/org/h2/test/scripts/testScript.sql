@@ -2460,14 +2460,14 @@ CREATE ALIAS PARSE_INT2 FOR "java.lang.Integer.parseInt(java.lang.String, int)";
 > ok
 
 select min(SUBSTRING(random_uuid(), 15,1)='4') from system_range(1, 10);
-> MIN(SUBSTRING(RANDOM_UUID(), 15, 1) = '4')
-> ------------------------------------------
+> MIN(SUBSTRING(RANDOM_UUID() FROM 15 FOR 1) = '4')
+> -------------------------------------------------
 > TRUE
 > rows: 1
 
 select min(8=bitand(12, PARSE_INT2(SUBSTRING(random_uuid(), 20,1), 16))) from system_range(1, 10);
-> MIN(8 = BITAND(12, PUBLIC.PARSE_INT2(SUBSTRING(RANDOM_UUID(), 20, 1), 16)))
-> ---------------------------------------------------------------------------
+> MIN(8 = BITAND(12, PUBLIC.PARSE_INT2(SUBSTRING(RANDOM_UUID() FROM 20 FOR 1), 16)))
+> ----------------------------------------------------------------------------------
 > TRUE
 > rows: 1
 

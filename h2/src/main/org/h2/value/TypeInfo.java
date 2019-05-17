@@ -289,6 +289,8 @@ public class TypeInfo {
         case Value.DECIMAL:
             if (precision < 0) {
                 precision = ValueDecimal.DEFAULT_PRECISION;
+            } else if (precision > Integer.MAX_VALUE) {
+                precision = Integer.MAX_VALUE;
             }
             if (scale < 0) {
                 scale = ValueDecimal.DEFAULT_SCALE;
@@ -319,21 +321,21 @@ public class TypeInfo {
             return new TypeInfo(Value.TIMESTAMP_TZ, d, scale, d, null);
         }
         case Value.BYTES:
-            if (precision < 0) {
+            if (precision < 0 || precision > Integer.MAX_VALUE) {
                 precision = Integer.MAX_VALUE;
             }
-            return new TypeInfo(Value.BYTES, precision, 0, MathUtils.convertLongToInt(precision) * 2, null);
+            return new TypeInfo(Value.BYTES, precision, 0, MathUtils.convertLongToInt(precision * 2), null);
         case Value.STRING:
-            if (precision < 0) {
+            if (precision < 0 || precision > Integer.MAX_VALUE) {
                 return TYPE_STRING;
             }
             //$FALL-THROUGH$
         case Value.STRING_FIXED:
         case Value.STRING_IGNORECASE:
-            if (precision < 0) {
+            if (precision < 0 || precision > Integer.MAX_VALUE) {
                 precision = Integer.MAX_VALUE;
             }
-            return new TypeInfo(type, precision, 0, MathUtils.convertLongToInt(precision), null);
+            return new TypeInfo(type, precision, 0, (int) precision, null);
         case Value.BLOB:
         case Value.CLOB:
             if (precision < 0) {

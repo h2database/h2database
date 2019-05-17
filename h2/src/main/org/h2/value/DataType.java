@@ -1400,6 +1400,34 @@ public class DataType {
     }
 
     /**
+     * Check if the given value type is a binary string type.
+     *
+     * @param type the value type
+     * @return true if the value type is a binary string type
+     */
+    public static boolean isBinaryStringType(int type) {
+        return type == Value.BYTES || type == Value.BLOB;
+    }
+
+    /**
+     * Check if the given value type is a character string type.
+     *
+     * @param type the value type
+     * @return true if the value type is a character string type
+     */
+    public static boolean isCharacterStringType(int type) {
+        switch (type) {
+        case Value.STRING:
+        case Value.STRING_IGNORECASE:
+        case Value.CLOB:
+        case Value.STRING_FIXED:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    /**
      * Check if the given value type is a String (VARCHAR,...).
      *
      * @param type the value type
@@ -1518,6 +1546,24 @@ public class DataType {
             }
             return false;
         }
+    }
+
+    /**
+     * Performs saturated addition of precision values.
+     *
+     * @param p1
+     *            the first summand
+     * @param p2
+     *            the second summand
+     * @return the sum of summands, or {@link Long#MAX_VALUE} if either argument
+     *         is negative or sum is out of range
+     */
+    public static long addPrecision(long p1, long p2) {
+        long sum = p1 + p2;
+        if ((p1 | p2 | sum) < 0) {
+            return Long.MAX_VALUE;
+        }
+        return sum;
     }
 
     /**

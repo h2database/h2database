@@ -167,6 +167,7 @@ import org.h2.engine.UserAggregate;
 import org.h2.expression.Alias;
 import org.h2.expression.BinaryOperation;
 import org.h2.expression.BinaryOperation.OpType;
+import org.h2.expression.ConcatenationOperation;
 import org.h2.expression.Format.FormatEnum;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -3159,7 +3160,7 @@ public class Parser {
         Expression r = readSum();
         while (true) {
             if (readIf(CONCATENATION)) {
-                r = new BinaryOperation(OpType.CONCAT, r, readSum());
+                r = new ConcatenationOperation(r, readSum());
             } else if (readIf(TILDE)) {
                 if (readIf(ASTERISK)) {
                     Function function = Function.getFunction(database, "CAST");

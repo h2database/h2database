@@ -4950,6 +4950,17 @@ public class Parser {
                     } else if (c >= 'a' && c <= 'f') {
                         number = (number << 4) + c - ('a' - 10);
                     } else if (i == start || types[i] == CHAR_NAME) {
+                        if ((i > start) && c == 'L' || c == 'l') {
+                            i++;
+                            if (types[i] != CHAR_NAME) {
+                                checkLiterals(false);
+                                currentValue = ValueLong.get(number);
+                                currentTokenType = VALUE;
+                                currentToken = "0";
+                                parseIndex = i;
+                                return;
+                            }
+                        }
                         parseIndex = i;
                         addExpected("Hex number");
                         throw getSyntaxError();
@@ -5094,8 +5105,15 @@ public class Parser {
         do {
             c = chars[++i];
         } while ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F'));
-        parseIndex = i;
         String sub = sqlCommand.substring(start, i);
+        if (c == 'L' || c == 'l') {
+            i++;
+        }
+        parseIndex = i;
+        if (characterTypes[i] == CHAR_NAME) {
+            addExpected("Hex number");
+            throw getSyntaxError();
+        }
         BigDecimal bd = new BigDecimal(new BigInteger(sub, 16));
         checkLiterals(false);
         currentValue = ValueDecimal.get(bd);

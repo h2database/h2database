@@ -4921,6 +4921,22 @@ public class Parser {
             return;
         case CHAR_VALUE:
             if (c == '0' && (chars[i] == 'X' || chars[i] == 'x')) {
+                if (database.getMode().zeroExLiteralsAreBinaryStrings) {
+                    start += 2;
+                    i++;
+                    while ((c = chars[i]) >= '0' && c <= '9' || c >= 'A' && c <= 'F' || c >= 'a' && c <= 'z') {
+                        i++;
+                    }
+                    if (types[i] == CHAR_NAME) {
+                        throw DbException.get(ErrorCode.HEX_STRING_WRONG_1, sqlCommand.substring(i, i + 1));
+                    }
+                    checkLiterals(true);
+                    currentValue = ValueBytes.getNoCopy(StringUtils.convertHexToBytes(sqlCommand.substring(start, i)));
+                    currentTokenType = VALUE;
+                    currentToken = "0";
+                    parseIndex = i;
+                    return;
+                }
                 // hex number
                 long number = 0;
                 start += 2;

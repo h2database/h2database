@@ -84,3 +84,33 @@ SELECT X'AB' /* comment*/ 'CD' 'EF';
 
 SELECT X'AB' 'CX';
 > exception HEX_STRING_WRONG_1
+
+SELECT 0xabcd;
+>> 43981
+
+SET MODE MSSQLServer;
+> ok
+
+SELECT 0x, 0x12ab;
+> X X12ab
+> - -----
+>   12ab
+> rows: 1
+
+SELECT 0xZ;
+> exception HEX_STRING_WRONG_1
+
+SET MODE MySQL;
+> ok
+
+SELECT 0x, 0x12ab;
+> X X12ab
+> - -----
+>   12ab
+> rows: 1
+
+SELECT 0xZ;
+> exception HEX_STRING_WRONG_1
+
+SET MODE Regular;
+> ok

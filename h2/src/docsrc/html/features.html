@@ -893,6 +893,7 @@ or the SQL statement <code>SET MODE MSSQLServer</code>.
 </li><li><code>IDENTITY</code> can be used for automatic id generation on column level.
 </li><li>Table hints are discarded. Example: <code>SELECT * FROM table WITH (NOLOCK)</code>.
 </li><li>Datetime value functions return the same value within a command.
+</li><li>0x literals are parsed as binary string literals.
 </li></ul>
 
 <h3>MySQL Compatibility Mode</h3>
@@ -919,6 +920,7 @@ Do not change value of DATABASE_TO_LOWER after creation of database.
     UPDATE is not specified.
 </li><li>REGEXP_REPLACE() uses \ for back-references for compatibility with MariaDB.
 </li><li>Datetime value functions return the same value within a command.
+</li><li>0x literals are parsed as binary string literals.
 </li></ul>
 <p>
 Text comparison in MySQL is case insensitive by default, while in H2 it is case sensitive (as in most other databases).

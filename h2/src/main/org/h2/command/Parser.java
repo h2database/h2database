@@ -64,6 +64,7 @@ import static org.h2.util.ParserUtil.WINDOW;
 import static org.h2.util.ParserUtil.WITH;
 import static org.h2.util.ParserUtil._ROWID_;
 
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
@@ -167,6 +168,7 @@ import org.h2.engine.UserAggregate;
 import org.h2.expression.Alias;
 import org.h2.expression.BinaryOperation;
 import org.h2.expression.BinaryOperation.OpType;
+import org.h2.expression.ConcatenationOperation;
 import org.h2.expression.Format.FormatEnum;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -3159,7 +3161,7 @@ public class Parser {
         Expression r = readSum();
         while (true) {
             if (readIf(CONCATENATION)) {
-                r = new BinaryOperation(OpType.CONCAT, r, readSum());
+                r = new ConcatenationOperation(r, readSum());
             } else if (readIf(TILDE)) {
                 if (readIf(ASTERISK)) {
                     Function function = Function.getFunction(database, "CAST");
@@ -3680,11 +3682,12 @@ public class Parser {
             break;
         }
         case Function.SUBSTRING: {
-            // Different variants include:
+            // Standard variants are:
+            // SUBSTRING(X FROM 1)
+            // SUBSTRING(X FROM 1 FOR 1)
+            // Different non-standard variants include:
             // SUBSTRING(X,1)
             // SUBSTRING(X,1,1)
-            // SUBSTRING(X FROM 1 FOR 1) -- Postgres
-            // SUBSTRING(X FROM 1) -- Postgres
             // SUBSTRING(X FOR 1) -- Postgres
             function.setParameter(0, readExpression());
             if (readIf(FROM)) {
@@ -4488,9 +4491,12 @@ public class Parser {
             break;
         case 'X':
             if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING && equalsToken("X", name)) {
-                byte[] buffer = StringUtils.convertHexToBytes(currentValue.getString());
-                read();
-                return ValueExpression.get(ValueBytes.getNoCopy(buffer));
+                ByteArrayOutputStream baos = null;
+                do {
+                    baos = StringUtils.convertHexWithSpacesToBytes(baos, currentValue.getString());
+                    read();
+                } while (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING);
+                return ValueExpression.get(ValueBytes.getNoCopy(baos.toByteArray()));
             }
             break;
         }
@@ -4851,9 +4857,9 @@ public class Parser {
         int[] types = characterTypes;
         lastParseIndex = parseIndex;
         int i = parseIndex;
-        int type = types[i];
-        while (type == 0) {
-            type = types[++i];
+        int type;
+        while ((type = types[i]) == 0) {
+            i++;
         }
         int start = i;
         char[] chars = sqlCommandChars;
@@ -4861,11 +4867,7 @@ public class Parser {
         currentToken = "";
         switch (type) {
         case CHAR_NAME:
-            while (true) {
-                type = types[i];
-                if (type != CHAR_NAME && type != CHAR_VALUE) {
-                    break;
-                }
+            while ((type = types[i]) == CHAR_NAME || type == CHAR_VALUE) {
                 i++;
             }
             currentTokenType = ParserUtil.getSaveTokenType(sqlCommand, !identifiersToUpper, start, i, false);
@@ -4878,21 +4880,19 @@ public class Parser {
             return;
         case CHAR_QUOTED: {
             String result = null;
-            while (true) {
-                for (int begin = i;; i++) {
-                    if (chars[i] == c) {
-                        if (result == null) {
-                            result = sqlCommand.substring(begin, i);
-                        } else {
-                            result += sqlCommand.substring(begin - 1, i);
-                        }
-                        break;
-                    }
+            for (;; i++) {
+                int begin = i;
+                while (chars[i] != c) {
+                    i++;
+                }
+                if (result == null) {
+                    result = sqlCommand.substring(begin, i);
+                } else {
+                    result += sqlCommand.substring(begin - 1, i);
                 }
                 if (chars[++i] != c) {
                     break;
                 }
-                i++;
             }
             currentToken = StringUtils.cache(result);
             parseIndex = i;
@@ -4915,35 +4915,11 @@ public class Parser {
             return;
         case CHAR_VALUE:
             if (c == '0' && (chars[i] == 'X' || chars[i] == 'x')) {
-                // hex number
-                long number = 0;
-                start += 2;
-                i++;
-                while (true) {
-                    c = chars[i];
-                    if (c >= '0' && c <= '9') {
-                        number = (number << 4) + c - '0';
-                    } else if (c >= 'A' && c <= 'F') {
-                        number = (number << 4) + c - ('A' - 10);
-                    } else if (c >= 'a' && c <= 'f') {
-                        number = (number << 4) + c - ('a' - 10);
-                    } else {
-                        checkLiterals(false);
-                        currentValue = ValueInt.get((int) number);
-                        currentTokenType = VALUE;
-                        currentToken = "0";
-                        parseIndex = i;
-                        return;
-                    }
-                    if (number > Integer.MAX_VALUE) {
-                        readHexDecimal(start, i);
-                        return;
-                    }
-                    i++;
-                }
+                readHexNumber(i + 1, start + 2, chars, types);
+                return;
             }
             long number = c - '0';
-            loop: while (true) {
+            loop: for (;; i++) {
                 c = chars[i];
                 if (c < '0' || c > '9') {
                     switch (c) {
@@ -4969,7 +4945,6 @@ public class Parser {
                     readDecimal(start, i, true);
                     break;
                 }
-                i++;
             }
             return;
         case CHAR_DOT:
@@ -4983,21 +4958,19 @@ public class Parser {
             return;
         case CHAR_STRING: {
             String result = null;
-            while (true) {
-                for (int begin = i;; i++) {
-                    if (chars[i] == '\'') {
-                        if (result == null) {
-                            result = sqlCommand.substring(begin, i);
-                        } else {
-                            result += sqlCommand.substring(begin - 1, i);
-                        }
-                        break;
-                    }
+            for (;; i++) {
+                int begin = i;
+                while (chars[i] != '\'') {
+                    i++;
+                }
+                if (result == null) {
+                    result = sqlCommand.substring(begin, i);
+                } else {
+                    result += sqlCommand.substring(begin - 1, i);
                 }
                 if (chars[++i] != '\'') {
                     break;
                 }
-                i++;
             }
             currentToken = "'";
             checkLiterals(true);
@@ -5030,26 +5003,20 @@ public class Parser {
 
     private void readParameterIndex() {
         int i = parseIndex;
-
         char[] chars = sqlCommandChars;
         char c = chars[i++];
         long number = c - '0';
-        while (true) {
-            c = chars[i];
-            if (c < '0' || c > '9') {
-                currentValue = ValueInt.get((int) number);
-                currentTokenType = VALUE;
-                currentToken = "0";
-                parseIndex = i;
-                break;
-            }
+        for (; (c = chars[i]) >= '0' && c <= '9'; i++) {
             number = number * 10 + (c - '0');
             if (number > Integer.MAX_VALUE) {
                 throw DbException.getInvalidValueException(
                         "parameter index", number);
             }
-            i++;
         }
+        currentValue = ValueInt.get((int) number);
+        currentTokenType = VALUE;
+        currentToken = "0";
+        parseIndex = i;
     }
 
     private void checkLiterals(boolean text) {
@@ -5062,32 +5029,70 @@ public class Parser {
         }
     }
 
-    private void readHexDecimal(int start, int i) {
-        char[] chars = sqlCommandChars;
-        char c;
-        do {
-            c = chars[++i];
-        } while ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F'));
-        parseIndex = i;
-        String sub = sqlCommand.substring(start, i);
-        BigDecimal bd = new BigDecimal(new BigInteger(sub, 16));
-        checkLiterals(false);
-        currentValue = ValueDecimal.get(bd);
+    private void readHexNumber(int i, int start, char[] chars, int[] types) {
+        if (database.getMode().zeroExLiteralsAreBinaryStrings) {
+            for (char c; (c = chars[i]) >= '0' && c <= '9' || c >= 'A' && c <= 'F' || c >= 'a' && c <= 'z';) {
+                i++;
+            }
+            if (types[i] == CHAR_NAME) {
+                throw DbException.get(ErrorCode.HEX_STRING_WRONG_1, sqlCommand.substring(i, i + 1));
+            }
+            checkLiterals(true);
+            currentValue = ValueBytes.getNoCopy(StringUtils.convertHexToBytes(sqlCommand.substring(start, i)));
+            parseIndex = i;
+        } else {
+            long number = 0;
+            for (;; i++) {
+                char c = chars[i];
+                if (c >= '0' && c <= '9') {
+                    number = (number << 4) + c - '0';
+                } else if (c >= 'A' && c <= 'F') {
+                    number = (number << 4) + c - ('A' - 10);
+                } else if (c >= 'a' && c <= 'f') {
+                    number = (number << 4) + c - ('a' - 10);
+                } else if (i == start) {
+                    parseIndex = i;
+                    addExpected("Hex number");
+                    throw getSyntaxError();
+                } else {
+                    currentValue = ValueInt.get((int) number);
+                    break;
+                }
+                if (number > Integer.MAX_VALUE) {
+                    do {
+                        c = chars[++i];
+                    } while ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F'));
+                    String sub = sqlCommand.substring(start, i);
+                    currentValue = ValueDecimal.get(new BigDecimal(new BigInteger(sub, 16)));
+                    break;
+                }
+            }
+            char c = chars[i];
+            if (c == 'L' || c == 'l') {
+                i++;
+            }
+            parseIndex = i;
+            if (types[i] == CHAR_NAME) {
+                addExpected("Hex number");
+                throw getSyntaxError();
+            }
+            checkLiterals(false);
+        }
         currentTokenType = VALUE;
+        currentToken = "0";
     }
 
     private void readDecimal(int start, int i, boolean integer) {
         char[] chars = sqlCommandChars;
         int[] types = characterTypes;
         // go until the first non-number
-        while (true) {
+        for (;; i++) {
             int t = types[i];
             if (t == CHAR_DOT) {
                 integer = false;
             } else if (t != CHAR_VALUE) {
                 break;
             }
-            i++;
         }
         char c = chars[i];
         if (c == 'E' || c == 'e') {
@@ -5169,11 +5174,7 @@ public class Parser {
                     // single line comment
                     changed = true;
                     startLoop = i;
-                    while (true) {
-                        c = command[i];
-                        if (c == '\n' || c == '\r' || i >= len - 1) {
-                            break;
-                        }
+                    while ((c = command[i]) != '\n' && c != '\r' && i < len - 1) {
                         command[i++] = ' ';
                         checkRunOver(i, len, startLoop);
                     }
@@ -5186,11 +5187,7 @@ public class Parser {
                     // single line comment
                     changed = true;
                     startLoop = i;
-                    while (true) {
-                        c = command[i];
-                        if (c == '\n' || c == '\r' || i >= len - 1) {
-                            break;
-                        }
+                    while ((c = command[i]) != '\n' && c != '\r' && i < len - 1) {
                         command[i++] = ' ';
                         checkRunOver(i, len, startLoop);
                     }

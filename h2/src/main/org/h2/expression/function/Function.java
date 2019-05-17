@@ -107,7 +107,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             INSERT = 57, INSTR = 58, LCASE = 59, LEFT = 60, LENGTH = 61,
             LOCATE = 62, LTRIM = 63, OCTET_LENGTH = 64, RAWTOHEX = 65,
             REPEAT = 66, REPLACE = 67, RIGHT = 68, RTRIM = 69, SOUNDEX = 70,
-            SPACE = 71, SUBSTR = 72, SUBSTRING = 73, UCASE = 74, LOWER = 75,
+            SPACE = 71, /* 72 */ SUBSTRING = 73, UCASE = 74, LOWER = 75,
             UPPER = 76, POSITION = 77, TRIM = 78, STRINGENCODE = 79,
             STRINGDECODE = 80, STRINGTOUTF8 = 81, UTF8TOSTRING = 82,
             XMLATTR = 83, XMLNODE = 84, XMLCOMMENT = 85, XMLCDATA = 86,
@@ -296,8 +296,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunction("RTRIM", RTRIM, VAR_ARGS, Value.STRING);
         addFunction("SOUNDEX", SOUNDEX, 1, Value.STRING);
         addFunction("SPACE", SPACE, 1, Value.STRING);
-        addFunction("SUBSTR", SUBSTR, VAR_ARGS, Value.STRING);
-        addFunction("SUBSTRING", SUBSTRING, VAR_ARGS, Value.STRING);
+        addFunction("SUBSTR", SUBSTRING, VAR_ARGS, Value.NULL);
+        addFunction("SUBSTRING", SUBSTRING, VAR_ARGS, Value.NULL);
         addFunction("UCASE", UCASE, 1, Value.STRING);
         addFunction("LOWER", LOWER, 1, Value.STRING);
         addFunction("UPPER", UPPER, 1, Value.STRING);
@@ -1412,18 +1412,9 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                     false, true, v1 == null ? " " : v1.getString()),
                     database.getMode().treatEmptyStringsAsNull);
             break;
-        case SUBSTR:
-        case SUBSTRING: {
-            String s = v0.getString();
-            int offset = v1.getInt();
-            if (offset < 0) {
-                offset = s.length() + offset + 1;
-            }
-            int length = v2 == null ? s.length() : v2.getInt();
-            result = ValueString.get(substring(s, offset, length),
-                    database.getMode().treatEmptyStringsAsNull);
+        case SUBSTRING:
+            result = substring(v0, v1, v2);
             break;
-        }
         case POSITION:
             result = ValueInt.get(locate(v0.getString(), v1.getString(), 0));
             break;
@@ -1889,20 +1880,51 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         return ValueBytes.getNoCopy(b);
     }
 
-    private static String substring(String s, int start, int length) {
-        int len = s.length();
-        start--;
-        if (start < 0) {
-            start = 0;
+    private Value substring(Value stringValue, Value startValue, Value lengthValue) {
+        if (type.getValueType() == Value.BYTES) {
+            byte[] s = stringValue.getBytesNoCopy();
+            int sl = s.length;
+            int start = startValue.getInt();
+            // These compatibility conditions violate the Standard
+            if (start == 0) {
+                start = 1;
+            } else if (start < 0) {
+                start = sl + start + 1;
+            }
+            int end = lengthValue == null ? Math.max(sl + 1, start) : start + lengthValue.getInt();
+            // SQL Standard requires "data exception - substring error" when
+            // end < start but H2 does not throw it for compatibility
+            start = Math.max(start, 1);
+            end = Math.min(end, sl + 1);
+            if (start > sl || end <= start) {
+                return ValueBytes.EMPTY;
+            }
+            start--;
+            end--;
+            if (start == 0 && end == s.length) {
+                return stringValue.convertTo(Value.BYTES);
+            }
+            return ValueBytes.getNoCopy(Arrays.copyOfRange(s, start, end));
+        } else {
+            String s = stringValue.getString();
+            int sl = s.length();
+            int start = startValue.getInt();
+            // These compatibility conditions violate the Standard
+            if (start == 0) {
+                start = 1;
+            } else if (start < 0) {
+                start = sl + start + 1;
+            }
+            int end = lengthValue == null ? Math.max(sl + 1, start) : start + lengthValue.getInt();
+            // SQL Standard requires "data exception - substring error" when
+            // end < start but H2 does not throw it for compatibility
+            start = Math.max(start, 1);
+            end = Math.min(end, sl + 1);
+            if (start > sl || end <= start) {
+                return database.getMode().treatEmptyStringsAsNull ? ValueNull.INSTANCE : ValueString.EMPTY;
+            }
+            return ValueString.get(s.substring(start - 1, end - 1), false);
         }
-        if (length < 0) {
-            length = 0;
-        }
-        start = (start > len) ? len : start;
-        if (start + length > len) {
-            length = len - start;
-        }
-        return s.substring(start, start + length);
     }
 
     private static String repeat(String s, int count) {
@@ -2407,7 +2429,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case REPLACE:
         case LOCATE:
         case INSTR:
-        case SUBSTR:
         case SUBSTRING:
         case LPAD:
         case RPAD:
@@ -2665,9 +2686,9 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             }
             break;
         }
-        case SUBSTRING:
-        case SUBSTR: {
-            long p = args[0].getType().getPrecision();
+        case SUBSTRING: {
+            TypeInfo argType = args[0].getType();
+            long p = argType.getPrecision();
             if (args[1].isConstant()) {
                 // if only two arguments are used,
                 // subtract offset from first argument length
@@ -2678,7 +2699,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 p = Math.min(p, args[2].getValue(session).getLong());
             }
             p = Math.max(0, p);
-            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, p, 0, null);
+            typeInfo = TypeInfo.getTypeInfo(DataType.isBinaryStringType(argType.getValueType())
+                    ? Value.BYTES : Value.STRING, p, 0, null);
             break;
         }
         case ENCRYPT:
@@ -2785,6 +2807,15 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             builder.append('(');
         }
         switch (info.type) {
+        case SUBSTRING: {
+            args[0].getSQL(builder, alwaysQuote).append(" FROM ");
+            args[1].getSQL(builder, alwaysQuote);
+            if (args.length > 2) {
+                builder.append(" FOR ");
+                args[2].getSQL(builder, alwaysQuote);
+            }
+            break;
+        }
         case TRIM: {
             switch (flags) {
             case TRIM_LEADING:

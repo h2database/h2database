@@ -735,9 +735,9 @@ Using the generated source, you can query the database as follows:
 DSLContext dsl = DSL.using(connection);
 Result&lt;UserRecord&gt; result =
 dsl.selectFrom(USER)
-   .where(NAME.like("Johnny%"))
-   .orderBy(ID)
-   .fetch();
+    .where(NAME.like("Johnny%"))
+    .orderBy(ID)
+    .fetch();
 </pre>
 <p>
 See more details on <a href="https://www.jooq.org">jOOQ Homepage</a>

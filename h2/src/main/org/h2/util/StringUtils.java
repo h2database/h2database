@@ -5,6 +5,7 @@
  */
 package org.h2.util;
 
+import java.io.ByteArrayOutputStream;
 import java.lang.ref.SoftReference;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -1055,6 +1056,52 @@ public class StringUtils {
             throw DbException.get(ErrorCode.HEX_STRING_WRONG_1, s);
         }
         return buff;
+    }
+
+    /**
+     * Parses a hex encoded string with possible space separators and appends
+     * the decoded binary string to the specified output stream.
+     *
+     * @param baos the output stream, or {@code null}
+     * @param s the hex encoded string
+     * @return the specified output stream or a new output stream
+     */
+    public static ByteArrayOutputStream convertHexWithSpacesToBytes(ByteArrayOutputStream baos, String s) {
+        int len = s.length();
+        if (baos == null) {
+            baos = new ByteArrayOutputStream(len / 2);
+        }
+        int mask = 0;
+        int[] hex = HEX_DECODE;
+        try {
+            loop: for (int i = 0;;) {
+                char c1, c2;
+                do {
+                    if (i >= len) {
+                        break loop;
+                    }
+                    c1 = s.charAt(i++);
+                } while (c1 == ' ');
+                do {
+                    if (i >= len) {
+                        if (((mask | hex[c1]) & ~255) != 0) {
+                            throw DbException.get(ErrorCode.HEX_STRING_WRONG_1, s);
+                        }
+                        throw DbException.get(ErrorCode.HEX_STRING_ODD_1, s);
+                    }
+                    c2 = s.charAt(i++);
+                } while (c2 == ' ');
+                int d = hex[c1] << 4 | hex[c2];
+                mask |= d;
+                baos.write(d);
+            }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw DbException.get(ErrorCode.HEX_STRING_WRONG_1, s);
+        }
+        if ((mask & ~255) != 0) {
+            throw DbException.get(ErrorCode.HEX_STRING_WRONG_1, s);
+        }
+        return baos;
     }
 
     /**

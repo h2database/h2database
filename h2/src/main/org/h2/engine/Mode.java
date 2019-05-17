@@ -210,6 +210,12 @@ public class Mode {
     public boolean dateTimeValueWithinTransaction;
 
     /**
+     * If {@code true} {@code 0x}-prefixed numbers are parsed as binary string
+     * literals, if {@code false} they are parsed as hexadecimal numeric values.
+     */
+    public boolean zeroExLiteralsAreBinaryStrings;
+
+    /**
      * An optional Set of hidden/disallowed column types.
      * Certain DBMSs don't support all column types provided by H2, such as
      * "NUMBER" when using PostgreSQL mode.
@@ -279,6 +285,7 @@ public class Mode {
         // MS SQL Server does not support client info properties. See
         // https://msdn.microsoft.com/en-Us/library/dd571296%28v=sql.110%29.aspx
         mode.supportedClientInfoPropertiesRegEx = null;
+        mode.zeroExLiteralsAreBinaryStrings = true;
         DataType dt = DataType.createNumeric(19, 4, false);
         dt.type = Value.DECIMAL;
         dt.sqlType = Types.NUMERIC;
@@ -306,6 +313,7 @@ public class Mode {
                 Pattern.compile(".*");
         mode.prohibitEmptyInPredicate = true;
         mode.charToBinaryInUtf8 = true;
+        mode.zeroExLiteralsAreBinaryStrings = true;
         add(mode);
 
         mode = new Mode(ModeEnum.Oracle);

@@ -4857,9 +4857,9 @@ public class Parser {
         int[] types = characterTypes;
         lastParseIndex = parseIndex;
         int i = parseIndex;
-        int type = types[i];
-        while (type == 0) {
-            type = types[++i];
+        int type;
+        while ((type = types[i]) == 0) {
+            i++;
         }
         int start = i;
         char[] chars = sqlCommandChars;
@@ -4867,11 +4867,7 @@ public class Parser {
         currentToken = "";
         switch (type) {
         case CHAR_NAME:
-            while (true) {
-                type = types[i];
-                if (type != CHAR_NAME && type != CHAR_VALUE) {
-                    break;
-                }
+            while ((type = types[i]) == CHAR_NAME || type == CHAR_VALUE) {
                 i++;
             }
             currentTokenType = ParserUtil.getSaveTokenType(sqlCommand, !identifiersToUpper, start, i, false);
@@ -4884,21 +4880,19 @@ public class Parser {
             return;
         case CHAR_QUOTED: {
             String result = null;
-            while (true) {
-                for (int begin = i;; i++) {
-                    if (chars[i] == c) {
-                        if (result == null) {
-                            result = sqlCommand.substring(begin, i);
-                        } else {
-                            result += sqlCommand.substring(begin - 1, i);
-                        }
-                        break;
-                    }
+            for (;; i++) {
+                int begin = i;
+                while (chars[i] != c) {
+                    i++;
+                }
+                if (result == null) {
+                    result = sqlCommand.substring(begin, i);
+                } else {
+                    result += sqlCommand.substring(begin - 1, i);
                 }
                 if (chars[++i] != c) {
                     break;
                 }
-                i++;
             }
             currentToken = StringUtils.cache(result);
             parseIndex = i;
@@ -4925,7 +4919,7 @@ public class Parser {
                 return;
             }
             long number = c - '0';
-            loop: while (true) {
+            loop: for (;; i++) {
                 c = chars[i];
                 if (c < '0' || c > '9') {
                     switch (c) {
@@ -4951,7 +4945,6 @@ public class Parser {
                     readDecimal(start, i, true);
                     break;
                 }
-                i++;
             }
             return;
         case CHAR_DOT:
@@ -4965,21 +4958,19 @@ public class Parser {
             return;
         case CHAR_STRING: {
             String result = null;
-            while (true) {
-                for (int begin = i;; i++) {
-                    if (chars[i] == '\'') {
-                        if (result == null) {
-                            result = sqlCommand.substring(begin, i);
-                        } else {
-                            result += sqlCommand.substring(begin - 1, i);
-                        }
-                        break;
-                    }
+            for (;; i++) {
+                int begin = i;
+                while (chars[i] != '\'') {
+                    i++;
+                }
+                if (result == null) {
+                    result = sqlCommand.substring(begin, i);
+                } else {
+                    result += sqlCommand.substring(begin - 1, i);
                 }
                 if (chars[++i] != '\'') {
                     break;
                 }
-                i++;
             }
             currentToken = "'";
             checkLiterals(true);
@@ -5012,26 +5003,20 @@ public class Parser {
 
     private void readParameterIndex() {
         int i = parseIndex;
-
         char[] chars = sqlCommandChars;
         char c = chars[i++];
         long number = c - '0';
-        while (true) {
-            c = chars[i];
-            if (c < '0' || c > '9') {
-                currentValue = ValueInt.get((int) number);
-                currentTokenType = VALUE;
-                currentToken = "0";
-                parseIndex = i;
-                break;
-            }
+        for (; (c = chars[i]) >= '0' && c <= '9'; i++) {
             number = number * 10 + (c - '0');
             if (number > Integer.MAX_VALUE) {
                 throw DbException.getInvalidValueException(
                         "parameter index", number);
             }
-            i++;
         }
+        currentValue = ValueInt.get((int) number);
+        currentTokenType = VALUE;
+        currentToken = "0";
+        parseIndex = i;
     }
 
     private void checkLiterals(boolean text) {
@@ -5057,7 +5042,7 @@ public class Parser {
             parseIndex = i;
         } else {
             long number = 0;
-            for (;;) {
+            for (;; i++) {
                 char c = chars[i];
                 if (c >= '0' && c <= '9') {
                     number = (number << 4) + c - '0';
@@ -5081,7 +5066,6 @@ public class Parser {
                     currentValue = ValueDecimal.get(new BigDecimal(new BigInteger(sub, 16)));
                     break;
                 }
-                i++;
             }
             char c = chars[i];
             if (c == 'L' || c == 'l') {
@@ -5102,14 +5086,13 @@ public class Parser {
         char[] chars = sqlCommandChars;
         int[] types = characterTypes;
         // go until the first non-number
-        while (true) {
+        for (;; i++) {
             int t = types[i];
             if (t == CHAR_DOT) {
                 integer = false;
             } else if (t != CHAR_VALUE) {
                 break;
             }
-            i++;
         }
         char c = chars[i];
         if (c == 'E' || c == 'e') {
@@ -5191,11 +5174,7 @@ public class Parser {
                     // single line comment
                     changed = true;
                     startLoop = i;
-                    while (true) {
-                        c = command[i];
-                        if (c == '\n' || c == '\r' || i >= len - 1) {
-                            break;
-                        }
+                    while ((c = command[i]) != '\n' && c != '\r' && i < len - 1) {
                         command[i++] = ' ';
                         checkRunOver(i, len, startLoop);
                     }
@@ -5208,11 +5187,7 @@ public class Parser {
                     // single line comment
                     changed = true;
                     startLoop = i;
-                    while (true) {
-                        c = command[i];
-                        if (c == '\n' || c == '\r' || i >= len - 1) {
-                            break;
-                        }
+                    while ((c = command[i]) != '\n' && c != '\r' && i < len - 1) {
                         command[i++] = ' ';
                         checkRunOver(i, len, startLoop);
                     }

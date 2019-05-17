@@ -75,3 +75,12 @@ SELECT X'TT';
 
 SELECT X' TT';
 > exception HEX_STRING_WRONG_1
+
+SELECT X'AB' 'CD';
+>> abcd
+
+SELECT X'AB' /* comment*/ 'CD' 'EF';
+>> abcdef
+
+SELECT X'AB' 'CX';
+> exception HEX_STRING_WRONG_1

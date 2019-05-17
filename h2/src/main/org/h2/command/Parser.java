@@ -64,6 +64,7 @@ import static org.h2.util.ParserUtil.WINDOW;
 import static org.h2.util.ParserUtil.WITH;
 import static org.h2.util.ParserUtil._ROWID_;
 
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
@@ -4490,9 +4491,12 @@ public class Parser {
             break;
         case 'X':
             if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING && equalsToken("X", name)) {
-                byte[] buffer = StringUtils.convertHexWithSpacesToBytes(null, currentValue.getString()).toByteArray();
-                read();
-                return ValueExpression.get(ValueBytes.getNoCopy(buffer));
+                ByteArrayOutputStream baos = null;
+                do {
+                    baos = StringUtils.convertHexWithSpacesToBytes(baos, currentValue.getString());
+                    read();
+                } while (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING);
+                return ValueExpression.get(ValueBytes.getNoCopy(baos.toByteArray()));
             }
             break;
         }

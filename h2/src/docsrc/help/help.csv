@@ -1957,13 +1957,14 @@ TRUE
 "
 
 "Literals","Bytes","
-X'hexWithSpaces'
+X'hexWithSpaces' ['hexWithSpaces' [...]]
 ","
 A binary value. The hex value is not case sensitive and may contain space characters.
 ","
 X''
 X'01FF'
 X'01 bc 2a'
+X'01' '02'
 "
 
 "Literals","Date","

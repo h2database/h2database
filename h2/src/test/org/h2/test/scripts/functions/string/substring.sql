@@ -24,14 +24,62 @@ select substring(null from null) en, substring(null from null for null) e1, subs
 select substr('[Hello]', 2, 5);
 >> Hello
 
+-- Compatibility syntax
 select substr('Hello World', -5);
 >> World
+
+-- Compatibility
+SELECT SUBSTRING('X', 0, 1);
+>> X
 
 CREATE TABLE TEST(STR VARCHAR, START INT, LEN INT);
 > ok
 
 EXPLAIN SELECT SUBSTRING(STR FROM START), SUBSTRING(STR FROM START FOR LEN) FROM TEST;
 >> SELECT SUBSTRING("STR" FROM "START"), SUBSTRING("STR" FROM "START" FOR "LEN") FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
+
+DROP TABLE TEST;
+> ok
+
+SELECT SUBSTRING('AAA' FROM 4 FOR 1);
+> ''
+> --
+>
+> rows: 1
+
+SELECT SUBSTRING(X'001122' FROM 1 FOR 3);
+>> 001122
+
+SELECT SUBSTRING(X'001122' FROM 1 FOR 2);
+>> 0011
+
+SELECT SUBSTRING(X'001122' FROM 2 FOR 2);
+>> 1122
+
+SELECT SUBSTRING(X'001122' FROM 4 FOR 1);
+> X''
+> ---
+>
+> rows: 1
+
+SELECT SUBSTRING(X'001122' FROM 2 FOR 1);
+>> 11
+
+CREATE MEMORY TABLE TEST AS (VALUES SUBSTRING(X'0011' FROM 2));
+> ok
+
+-- Compatibility
+SELECT SUBSTRING(X'00', 0, 1);
+>> 00
+
+SCRIPT NOPASSWORDS NOSETTINGS TABLE TEST;
+> SCRIPT
+> ---------------------------------------------------------
+> -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "C1" VARBINARY(1) );
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
+> INSERT INTO "PUBLIC"."TEST" VALUES (X'11');
+> rows: 4
 
 DROP TABLE TEST;
 > ok

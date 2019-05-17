@@ -4756,8 +4756,8 @@ CALL UTF8TOSTRING(STRINGTOUTF8('This is a test'))
 "
 
 "Functions (String)","SUBSTRING","
-SUBSTRING ( string FROM startInt [ FOR lengthInt ] )
-    | { SUBSTRING | SUBSTR } ( string, startInt [, lengthInt ] )
+SUBSTRING ( {string|bytes} FROM startInt [ FOR lengthInt ] )
+    | { SUBSTRING | SUBSTR } ( {string|bytes}, startInt [, lengthInt ] )
 ","
 Returns a substring of a string starting at a position.
 If the start index is negative, then the start index is relative to the end of the string.

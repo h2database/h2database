@@ -4921,63 +4921,8 @@ public class Parser {
             return;
         case CHAR_VALUE:
             if (c == '0' && (chars[i] == 'X' || chars[i] == 'x')) {
-                if (database.getMode().zeroExLiteralsAreBinaryStrings) {
-                    start += 2;
-                    i++;
-                    while ((c = chars[i]) >= '0' && c <= '9' || c >= 'A' && c <= 'F' || c >= 'a' && c <= 'z') {
-                        i++;
-                    }
-                    if (types[i] == CHAR_NAME) {
-                        throw DbException.get(ErrorCode.HEX_STRING_WRONG_1, sqlCommand.substring(i, i + 1));
-                    }
-                    checkLiterals(true);
-                    currentValue = ValueBytes.getNoCopy(StringUtils.convertHexToBytes(sqlCommand.substring(start, i)));
-                    currentTokenType = VALUE;
-                    currentToken = "0";
-                    parseIndex = i;
-                    return;
-                }
-                // hex number
-                long number = 0;
-                start += 2;
-                i++;
-                while (true) {
-                    c = chars[i];
-                    if (c >= '0' && c <= '9') {
-                        number = (number << 4) + c - '0';
-                    } else if (c >= 'A' && c <= 'F') {
-                        number = (number << 4) + c - ('A' - 10);
-                    } else if (c >= 'a' && c <= 'f') {
-                        number = (number << 4) + c - ('a' - 10);
-                    } else if (i == start || types[i] == CHAR_NAME) {
-                        if ((i > start) && c == 'L' || c == 'l') {
-                            i++;
-                            if (types[i] != CHAR_NAME) {
-                                checkLiterals(false);
-                                currentValue = ValueLong.get(number);
-                                currentTokenType = VALUE;
-                                currentToken = "0";
-                                parseIndex = i;
-                                return;
-                            }
-                        }
-                        parseIndex = i;
-                        addExpected("Hex number");
-                        throw getSyntaxError();
-                    } else {
-                        checkLiterals(false);
-                        currentValue = ValueInt.get((int) number);
-                        currentTokenType = VALUE;
-                        currentToken = "0";
-                        parseIndex = i;
-                        return;
-                    }
-                    if (number > Integer.MAX_VALUE) {
-                        readHexDecimal(start, i);
-                        return;
-                    }
-                    i++;
-                }
+                readHexNumber(i + 1, start + 2, chars, types);
+                return;
             }
             long number = c - '0';
             loop: while (true) {
@@ -5099,25 +5044,58 @@ public class Parser {
         }
     }
 
-    private void readHexDecimal(int start, int i) {
-        char[] chars = sqlCommandChars;
-        char c;
-        do {
-            c = chars[++i];
-        } while ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F'));
-        String sub = sqlCommand.substring(start, i);
-        if (c == 'L' || c == 'l') {
-            i++;
+    private void readHexNumber(int i, int start, char[] chars, int[] types) {
+        if (database.getMode().zeroExLiteralsAreBinaryStrings) {
+            for (char c; (c = chars[i]) >= '0' && c <= '9' || c >= 'A' && c <= 'F' || c >= 'a' && c <= 'z';) {
+                i++;
+            }
+            if (types[i] == CHAR_NAME) {
+                throw DbException.get(ErrorCode.HEX_STRING_WRONG_1, sqlCommand.substring(i, i + 1));
+            }
+            checkLiterals(true);
+            currentValue = ValueBytes.getNoCopy(StringUtils.convertHexToBytes(sqlCommand.substring(start, i)));
+            parseIndex = i;
+        } else {
+            long number = 0;
+            for (;;) {
+                char c = chars[i];
+                if (c >= '0' && c <= '9') {
+                    number = (number << 4) + c - '0';
+                } else if (c >= 'A' && c <= 'F') {
+                    number = (number << 4) + c - ('A' - 10);
+                } else if (c >= 'a' && c <= 'f') {
+                    number = (number << 4) + c - ('a' - 10);
+                } else if (i == start) {
+                    parseIndex = i;
+                    addExpected("Hex number");
+                    throw getSyntaxError();
+                } else {
+                    currentValue = ValueInt.get((int) number);
+                    break;
+                }
+                if (number > Integer.MAX_VALUE) {
+                    do {
+                        c = chars[++i];
+                    } while ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F'));
+                    String sub = sqlCommand.substring(start, i);
+                    currentValue = ValueDecimal.get(new BigDecimal(new BigInteger(sub, 16)));
+                    break;
+                }
+                i++;
+            }
+            char c = chars[i];
+            if (c == 'L' || c == 'l') {
+                i++;
+            }
+            parseIndex = i;
+            if (types[i] == CHAR_NAME) {
+                addExpected("Hex number");
+                throw getSyntaxError();
+            }
+            checkLiterals(false);
         }
-        parseIndex = i;
-        if (characterTypes[i] == CHAR_NAME) {
-            addExpected("Hex number");
-            throw getSyntaxError();
-        }
-        BigDecimal bd = new BigDecimal(new BigInteger(sub, 16));
-        checkLiterals(false);
-        currentValue = ValueDecimal.get(bd);
         currentTokenType = VALUE;
+        currentToken = "0";
     }
 
     private void readDecimal(int start, int i, boolean integer) {

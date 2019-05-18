@@ -15,18 +15,17 @@ import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Session;
 import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
-import org.h2.index.IndexCondition;
 import org.h2.index.IndexType;
 import org.h2.index.SpatialIndex;
 import org.h2.message.DbException;
 import org.h2.mvstore.MVStore;
+import org.h2.mvstore.db.MVSpatialIndex;
 import org.h2.mvstore.db.MVTableEngine;
 import org.h2.mvstore.rtree.MVRTreeMap;
 import org.h2.mvstore.rtree.SpatialKey;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
-import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
@@ -183,34 +182,12 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
                 filter.getSession());
     }
 
-    /**
-     * Compute spatial index cost
-     * @param masks Search mask
-     * @param columns Table columns
-     * @return Index cost hint
-     */
-    public static long getCostRangeIndex(int[] masks, Column[] columns) {
-        // Never use spatial tree index without spatial filter
-        if (columns.length == 0) {
-            return Long.MAX_VALUE;
-        }
-        for (Column column : columns) {
-            int index = column.getColumnId();
-            int mask = masks[index];
-            if ((mask & IndexCondition.SPATIAL_INTERSECTS) != IndexCondition.SPATIAL_INTERSECTS) {
-                return Long.MAX_VALUE;
-            }
-        }
-        return 2;
-    }
-
     @Override
     public double getCost(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
             AllColumnsForPlan allColumnsSet) {
-        return getCostRangeIndex(masks, columns);
+        return MVSpatialIndex.getCostRangeIndex(masks, columns);
     }
-
 
     @Override
     public void remove(Session session) {

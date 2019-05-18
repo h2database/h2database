@@ -18,6 +18,7 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
+import org.h2.index.IndexCondition;
 import org.h2.index.IndexType;
 import org.h2.index.SpatialIndex;
 import org.h2.message.DbException;
@@ -28,17 +29,17 @@ import org.h2.mvstore.rtree.SpatialKey;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionMap;
 import org.h2.mvstore.tx.VersionedValueType;
-import org.h2.pagestore.db.SpatialTreeIndex;
-import org.h2.value.VersionedValue;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
+import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueGeometry;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
+import org.h2.value.VersionedValue;
 
 /**
  * This is an index based on a MVRTreeMap.
@@ -294,7 +295,28 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     public double getCost(Session session, int[] masks, TableFilter[] filters,
             int filter, SortOrder sortOrder,
             AllColumnsForPlan allColumnsSet) {
-        return SpatialTreeIndex.getCostRangeIndex(masks, columns);
+        return getCostRangeIndex(masks, columns);
+    }
+
+    /**
+     * Compute spatial index cost
+     * @param masks Search mask
+     * @param columns Table columns
+     * @return Index cost hint
+     */
+    public static long getCostRangeIndex(int[] masks, Column[] columns) {
+        // Never use spatial tree index without spatial filter
+        if (columns.length == 0) {
+            return Long.MAX_VALUE;
+        }
+        for (Column column : columns) {
+            int index = column.getColumnId();
+            int mask = masks[index];
+            if ((mask & IndexCondition.SPATIAL_INTERSECTS) != IndexCondition.SPATIAL_INTERSECTS) {
+                return Long.MAX_VALUE;
+            }
+        }
+        return 2;
     }
 
     @Override

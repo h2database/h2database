@@ -3879,15 +3879,14 @@ public class Parser {
         }
         read(CLOSE_PAREN);
         WindowFunction function = new WindowFunction(type, currentSelect, args);
-        if (type == WindowFunctionType.NTH_VALUE) {
-            readFromFirstOrLast(function);
-        }
         switch (type) {
+        case NTH_VALUE:
+            readFromFirstOrLast(function);
+            //$FALL-THROUGH$
         case LEAD:
         case LAG:
         case FIRST_VALUE:
         case LAST_VALUE:
-        case NTH_VALUE:
             readRespectOrIgnoreNulls(function);
             //$FALL-THROUGH$
         default:
@@ -4726,12 +4725,12 @@ public class Parser {
         if (readIf(DOT)) {
             schemaName = s;
             s = readColumnIdentifier();
-        }
-        if (currentTokenType == DOT) {
-            if (equalsToken(schemaName, database.getShortName())) {
-                read();
-                schemaName = s;
-                s = readColumnIdentifier();
+            if (currentTokenType == DOT) {
+                if (equalsToken(schemaName, database.getShortName())) {
+                    read();
+                    schemaName = s;
+                    s = readColumnIdentifier();
+                }
             }
         }
         return s;
@@ -5941,7 +5940,7 @@ public class Parser {
         if (currentTokenType == IDENTIFIER && !currentTokenQuoted && currentToken.length() == 1) {
             long mul;
             char ch = currentToken.charAt(0);
-            switch (identifiersToUpper ? ch : Character.toUpperCase(ch)) {
+            switch (ch & 0xffdf) {
             case 'K':
                 mul = 1L << 10;
                 break;

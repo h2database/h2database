@@ -1281,7 +1281,7 @@ public class Parser {
                 } else {
                     for (int i = 0; i < columnCount; i++) {
                         Column column = columns.get(i);
-                        Function f = Function.getFunction(database, "ARRAY_GET");
+                        Function f = Function.getFunction(database, Function.ARRAY_GET);
                         f.setParameter(0, expression);
                         f.setParameter(1, ValueExpression.get(ValueInt.get(i + 1)));
                         f.doneWithParameters();
@@ -1438,7 +1438,7 @@ public class Parser {
         String informationSchema = database.sysIdentifier("INFORMATION_SCHEMA");
         Table table = database.getSchema(informationSchema)
                 .resolveTableOrView(session, database.sysIdentifier("HELP"));
-        Function function = Function.getFunction(database, "UPPER");
+        Function function = Function.getFunction(database, Function.UPPER);
         function.setParameter(0, new ExpressionColumn(database, informationSchema,
                 database.sysIdentifier("HELP"), database.sysIdentifier("TOPIC"), false));
         function.doneWithParameters();
@@ -1888,7 +1888,8 @@ public class Parser {
             table = parseValuesTable(0).getTable();
         } else if (readIf(TABLE)) {
             read(OPEN_PAREN);
-            table = readTableFunction("TABLE", null, database.getMainSchema());
+            Function function = readFunctionParameters(Function.getFunction(database, Function.TABLE));
+            table = new FunctionTable(database.getMainSchema(), session, function, function);
         } else {
             String tableName = readIdentifierWithSchema(null);
             Schema schema;
@@ -3004,7 +3005,7 @@ public class Parser {
                 recompileAlways = true;
                 r = new CompareLike(database, r, b, esc, false);
             } else if (readIf("ILIKE")) {
-                Function function = Function.getFunction(database, "CAST");
+                Function function = Function.getFunction(database, Function.CAST);
                 function.setDataType(new Column("X", Value.STRING_IGNORECASE));
                 function.setParameter(0, r);
                 r = function;
@@ -3164,7 +3165,7 @@ public class Parser {
                 r = new ConcatenationOperation(r, readSum());
             } else if (readIf(TILDE)) {
                 if (readIf(ASTERISK)) {
-                    Function function = Function.getFunction(database, "CAST");
+                    Function function = Function.getFunction(database, Function.CAST);
                     function.setDataType(new Column("X",
                             Value.STRING_IGNORECASE));
                     function.setParameter(0, r);
@@ -3173,7 +3174,7 @@ public class Parser {
                 r = new CompareLike(database, r, readSum(), null, true);
             } else if (readIf(NOT_TILDE)) {
                 if (readIf(ASTERISK)) {
-                    Function function = Function.getFunction(database, "CAST");
+                    Function function = Function.getFunction(database, Function.CAST);
                     function.setDataType(new Column("X",
                             Value.STRING_IGNORECASE));
                     function.setParameter(0, r);
@@ -3419,8 +3420,7 @@ public class Parser {
         if (schema != null) {
             functionAlias = schema.findFunction(functionName);
         } else {
-            functionAlias = findFunctionAlias(session.getCurrentSchemaName(),
-                    functionName);
+            functionAlias = findFunctionAlias(session.getCurrentSchemaName(), functionName);
         }
         if (functionAlias == null) {
             if (throwIfNotFound) {
@@ -3429,15 +3429,13 @@ public class Parser {
                 return null;
             }
         }
-        Expression[] args;
         ArrayList<Expression> argList = Utils.newSmallArrayList();
         if (!readIf(CLOSE_PAREN)) {
             do {
                 argList.add(readExpression());
             } while (readIfMore(true));
         }
-        args = argList.toArray(new Expression[0]);
-        return new JavaFunction(functionAlias, args);
+        return new JavaFunction(functionAlias, argList.toArray(new Expression[0]));
     }
 
     private JavaAggregate readJavaAggregate(UserAggregate aggregate) {
@@ -3633,6 +3631,10 @@ public class Parser {
             }
             return readJavaFunction(null, name, true);
         }
+        return readFunctionParameters(function);
+    }
+
+    private Function readFunctionParameters(Function function) {
         switch (function.getFunctionType()) {
         case Function.CAST: {
             function.setParameter(0, readExpression());
@@ -3666,8 +3668,8 @@ public class Parser {
             read(CLOSE_PAREN);
             break;
         }
-        case Function.DATE_ADD:
-        case Function.DATE_DIFF: {
+        case Function.DATEADD:
+        case Function.DATEDIFF: {
             if (currentTokenType == VALUE) {
                 function.setParameter(0, ValueExpression.get(currentValue.convertTo(Value.STRING)));
             } else {
@@ -3963,22 +3965,32 @@ public class Parser {
         return result;
     }
 
-    private Expression readKeywordFunction(String name) {
+    private Expression readKeywordFunction(int id) {
+        Function function = Function.getFunction(database, id);
         if (readIf(OPEN_PAREN)) {
-            return readFunction(null, name);
+            readFunctionParameters(function);
         } else {
-            return readFunctionWithoutParameters(name);
+            function.doneWithParameters();
         }
+        if (database.isAllowBuiltinAliasOverride()) {
+            FunctionAlias functionAlias = database.getSchema(session.getCurrentSchemaName()).findFunction(
+                    function.getName());
+            if (functionAlias != null) {
+                return new JavaFunction(functionAlias, function.getArgs());
+            }
+        }
+        return function;
     }
 
-    private Expression readFunctionWithoutParameters(String name) {
+    private Expression readFunctionWithoutParameters(int id) {
+        Function function = Function.getFunction(database, id);
         if (database.isAllowBuiltinAliasOverride()) {
-            FunctionAlias functionAlias = database.getSchema(session.getCurrentSchemaName()).findFunction(name);
+            FunctionAlias functionAlias = database.getSchema(session.getCurrentSchemaName()).findFunction(
+                    function.getName());
             if (functionAlias != null) {
                 return new JavaFunction(functionAlias, new Expression[0]);
             }
         }
-        Function function = Function.getFunction(database, name);
         function.doneWithParameters();
         return function;
     }
@@ -4001,7 +4013,7 @@ public class Parser {
         } else if (readIf("CURRVAL")) {
             Sequence sequence = findSequence(schema, objectName);
             if (sequence != null) {
-                Function function = Function.getFunction(database, "CURRVAL");
+                Function function = Function.getFunction(database, Function.CURRVAL);
                 function.setParameter(0, ValueExpression.get(ValueString
                         .get(sequence.getSchema().getName())));
                 function.setParameter(1, ValueExpression.get(ValueString
@@ -4142,7 +4154,7 @@ public class Parser {
             r = new Variable(session, readAliasIdentifier());
             if (readIf(COLON_EQ)) {
                 Expression value = readExpression();
-                Function function = Function.getFunction(database, "SET");
+                Function function = Function.getFunction(database, Function.SET);
                 function.setParameter(0, r);
                 function.setParameter(1, value);
                 r = function;
@@ -4160,7 +4172,7 @@ public class Parser {
             int index = lastParseIndex;
             read();
             if (readIf(OPEN_PAREN)) {
-                r = readFunction(null, "TABLE");
+                r = readFunctionParameters(Function.getFunction(database, Function.TABLE));
             } else {
                 parseIndex = index;
                 read();
@@ -4299,7 +4311,7 @@ public class Parser {
         case VALUES:
             if (database.getMode().onDuplicateKeyUpdate) {
                 read();
-                r = readKeywordFunction("VALUES");
+                r = readKeywordFunction(Function.VALUES);
             } else {
                 r = new Subquery(parseSelect());
             }
@@ -4310,33 +4322,33 @@ public class Parser {
             break;
         case CURRENT_DATE:
             read();
-            r = readKeywordFunction("CURRENT_DATE");
+            r = readKeywordFunction(Function.CURRENT_DATE);
             break;
         case CURRENT_TIME:
             read();
-            r = readKeywordFunction("CURRENT_TIME");
+            r = readKeywordFunction(Function.CURRENT_TIME);
             break;
         case CURRENT_TIMESTAMP:
             read();
-            r = readKeywordFunction("CURRENT_TIMESTAMP");
+            r = readKeywordFunction(Function.CURRENT_TIMESTAMP);
             break;
         case CURRENT_USER:
             read();
-            r = readKeywordFunction("USER");
+            r = readKeywordFunction(Function.USER);
             break;
         case LOCALTIME:
             read();
-            r = readKeywordFunction("LOCALTIME");
+            r = readKeywordFunction(Function.LOCALTIME);
             break;
         case LOCALTIMESTAMP:
             read();
-            r = readKeywordFunction("LOCALTIMESTAMP");
+            r = readKeywordFunction(Function.LOCALTIMESTAMP);
             break;
         default:
             throw getSyntaxError();
         }
         if (readIf(OPEN_BRACKET)) {
-            Function function = Function.getFunction(database, "ARRAY_GET");
+            Function function = Function.getFunction(database, Function.ARRAY_GET);
             function.setParameter(0, r);
             function.setParameter(1, readExpression());
             r = function;
@@ -4357,7 +4369,7 @@ public class Parser {
                 r = new JavaFunction(f, args);
             } else {
                 Column col = parseColumnWithType(null, false);
-                Function function = Function.getFunction(database, "CAST");
+                Function function = Function.getFunction(database, Function.CAST);
                 function.setDataType(col);
                 function.setParameter(0, r);
                 r = function;
@@ -4429,11 +4441,11 @@ public class Parser {
             break;
         case 'S':
             if (equalsToken("SYSDATE", name)) {
-                return readFunctionWithoutParameters("CURRENT_TIMESTAMP");
+                return readFunctionWithoutParameters(Function.CURRENT_TIMESTAMP);
             } else if (equalsToken("SYSTIME", name)) {
-                return readFunctionWithoutParameters("CURRENT_TIME");
+                return readFunctionWithoutParameters(Function.CURRENT_TIME);
             } else if (equalsToken("SYSTIMESTAMP", name)) {
-                return readFunctionWithoutParameters("CURRENT_TIMESTAMP");
+                return readFunctionWithoutParameters(Function.CURRENT_TIMESTAMP);
             }
             break;
         case 'T':
@@ -4475,7 +4487,7 @@ public class Parser {
                     }
                 }
             } else if (equalsToken("TODAY", name)) {
-                return readFunctionWithoutParameters("CURRENT_DATE");
+                return readFunctionWithoutParameters(Function.CURRENT_DATE);
             } else if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING) {
                 if (equalsToken("T", name)) {
                     String time = currentValue.getString();
@@ -4566,14 +4578,14 @@ public class Parser {
             if (readIf(WITH)) {
                 read("TIME");
                 read("ZONE");
-                return readKeywordFunction("CURRENT_TIMESTAMP");
+                return readKeywordFunction(Function.CURRENT_TIMESTAMP);
             }
-            return readKeywordFunction("LOCALTIMESTAMP");
+            return readKeywordFunction(Function.LOCALTIMESTAMP);
         } else if (readIf("TIME")) {
             // Time with fractional seconds is not supported by DB2
-            return readFunctionWithoutParameters("CURRENT_TIME");
+            return readFunctionWithoutParameters(Function.CURRENT_TIME);
         } else if (readIf("DATE")) {
-            return readFunctionWithoutParameters("CURRENT_DATE");
+            return readFunctionWithoutParameters(Function.CURRENT_DATE);
         }
         // No match, parse CURRENT as a column
         return new ExpressionColumn(database, null, null, name, false);
@@ -4593,7 +4605,7 @@ public class Parser {
         int i;
         Function function;
         if (readIf("WHEN")) {
-            function = Function.getFunction(database, "CASE");
+            function = Function.getFunction(database, Function.CASE);
             function.setParameter(0, null);
             i = 1;
             do {
@@ -4613,7 +4625,7 @@ public class Parser {
                 readIf(CASE);
                 return elsePart;
             }
-            function = Function.getFunction(database, "CASE");
+            function = Function.getFunction(database, Function.CASE);
             function.setParameter(0, expr);
             i = 1;
             read("WHEN");
@@ -6196,7 +6208,7 @@ public class Parser {
 
     private TableFilter parseValuesTable(int orderInFrom) {
         Schema mainSchema = database.getMainSchema();
-        TableFunction tf = (TableFunction) Function.getFunction(database, "TABLE");
+        TableFunction tf = (TableFunction) Function.getFunction(database, Function.TABLE);
         ArrayList<Column> columns = Utils.newSmallArrayList();
         ArrayList<ArrayList<Expression>> rows = Utils.newSmallArrayList();
         do {

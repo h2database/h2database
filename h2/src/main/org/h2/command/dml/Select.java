@@ -1065,7 +1065,7 @@ public class Select extends Query {
                             e = new ExpressionColumn(database, null, replacementAlias,
                                     replacementFilter.getColumnName(right), false);
                         } else {
-                            Function f = Function.getFunction(database, "COALESCE");
+                            Function f = Function.getFunction(database, Function.COALESCE);
                             f.setParameter(0, new ExpressionColumn(database, null, alias,
                                     filter.getColumnName(left), false));
                             f.setParameter(1, new ExpressionColumn(database, null, replacementAlias,

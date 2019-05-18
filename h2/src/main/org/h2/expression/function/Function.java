@@ -117,7 +117,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
 
     public static final int CURRENT_DATE = 100, CURRENT_TIME = 101, LOCALTIME = 102,
             CURRENT_TIMESTAMP = 103, LOCALTIMESTAMP = 104,
-            DATE_ADD = 105, DATE_DIFF = 106, DAY_NAME = 107, DAY_OF_MONTH = 108,
+            DATEADD = 105, DATEDIFF = 106, DAY_NAME = 107, DAY_OF_MONTH = 108,
             DAY_OF_WEEK = 109, DAY_OF_YEAR = 110, HOUR = 111, MINUTE = 112,
             MONTH = 113, MONTH_NAME = 114, QUARTER = 115,
             SECOND = 116, WEEK = 117, YEAR = 118, EXTRACT = 119,
@@ -164,6 +164,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
      */
     public static final int H2VERSION = 231;
 
+    private static final int COUNT = JSON_ARRAY + 1;
+
     /**
      * The flag for TRIM(LEADING ...) function.
      */
@@ -186,7 +188,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
 
     protected static final int VAR_ARGS = -1;
 
-    private static final HashMap<String, FunctionInfo> FUNCTIONS = new HashMap<>(256);
+    private static final FunctionInfo[] FUNCTIONS_BY_ID = new FunctionInfo[COUNT];
+    private static final HashMap<String, FunctionInfo> FUNCTIONS_BY_NAME = new HashMap<>(256);
     private static final char[] SOUNDEX_INDEX = new char[128];
 
     protected Expression[] args;
@@ -342,14 +345,10 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunction("TO_TIMESTAMP", TO_TIMESTAMP, VAR_ARGS, Value.TIMESTAMP);
         addFunction("ADD_MONTHS", ADD_MONTHS, 2, Value.TIMESTAMP);
         addFunction("TO_TIMESTAMP_TZ", TO_TIMESTAMP_TZ, VAR_ARGS, Value.TIMESTAMP_TZ);
-        addFunction("DATEADD", DATE_ADD,
-                3, Value.TIMESTAMP);
-        addFunction("TIMESTAMPADD", DATE_ADD,
-                3, Value.TIMESTAMP);
-        addFunction("DATEDIFF", DATE_DIFF,
-                3, Value.LONG);
-        addFunction("TIMESTAMPDIFF", DATE_DIFF,
-                3, Value.LONG);
+        addFunction("DATEADD", DATEADD, 3, Value.TIMESTAMP);
+        addFunction("TIMESTAMPADD", DATEADD, 3, Value.TIMESTAMP);
+        addFunction("DATEDIFF", DATEDIFF, 3, Value.LONG);
+        addFunction("TIMESTAMPDIFF", DATEDIFF, 3, Value.LONG);
         addFunction("DAYNAME", DAY_NAME,
                 1, Value.STRING);
         addFunction("DAYNAME", DAY_NAME,
@@ -523,8 +522,12 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
     private static void addFunction(String name, int type, int parameterCount,
             int returnDataType, boolean nullIfParameterIsNull, boolean deterministic,
             boolean bufferResultSetToLocalTemp, boolean requireParentheses, boolean specialArguments) {
-        FUNCTIONS.put(name, new FunctionInfo(name, type, parameterCount, returnDataType, nullIfParameterIsNull,
-                deterministic, bufferResultSetToLocalTemp, requireParentheses, specialArguments));
+        FunctionInfo info = new FunctionInfo(name, type, parameterCount, returnDataType, nullIfParameterIsNull,
+                deterministic, bufferResultSetToLocalTemp, requireParentheses, specialArguments);
+        if (FUNCTIONS_BY_ID[type] == null) {
+            FUNCTIONS_BY_ID[type] = info;
+        }
+        FUNCTIONS_BY_NAME.put(name, info);
     }
 
     private static void addFunctionNotDeterministic(String name, int type,
@@ -549,6 +552,17 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
 
     /**
      * Get an instance of the given function for this database.
+     *
+     * @param database the database
+     * @param id the function number
+     * @return the function object
+     */
+    public static Function getFunction(Database database, int id) {
+        return createFunction(database, FUNCTIONS_BY_ID[id]);
+    }
+
+    /**
+     * Get an instance of the given function for this database.
      * If no function with this name is found, null is returned.
      *
      * @param database the database
@@ -560,7 +574,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             // if not yet converted to uppercase, do it now
             name = StringUtils.toUpperEnglish(name);
         }
-        FunctionInfo info = FUNCTIONS.get(name);
+        FunctionInfo info = FUNCTIONS_BY_NAME.get(name);
         if (info == null) {
             switch (database.getMode().getEnum()) {
             case MSSQLServer:
@@ -571,6 +585,10 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 return null;
             }
         }
+        return createFunction(database, info);
+    }
+
+    private static Function createFunction(Database database, FunctionInfo info) {
         switch (info.type) {
         case TABLE:
         case TABLE_DISTINCT:
@@ -588,7 +606,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
      * @return the function information or {@code null}
      */
     public static FunctionInfo getFunctionInfo(String upperName) {
-        return FUNCTIONS.get(upperName);
+        return FUNCTIONS_BY_NAME.get(upperName);
     }
 
     /**
@@ -1508,10 +1526,10 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             result = ValueString.get(Constants.getVersion(),
                     database.getMode().treatEmptyStringsAsNull);
             break;
-        case DATE_ADD:
+        case DATEADD:
             result = DateTimeFunctions.dateadd(v0.getString(), v1.getLong(), v2);
             break;
-        case DATE_DIFF:
+        case DATEDIFF:
             result = ValueLong.get(DateTimeFunctions.datediff(v0.getString(), v1, v2));
             break;
         case DATE_TRUNC:
@@ -2520,7 +2538,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         TypeInfo typeInfo;
         Expression p0 = args.length < 1 ? null : args[0];
         switch (info.type) {
-        case DATE_ADD: {
+        case DATEADD: {
             typeInfo = TypeInfo.TYPE_TIMESTAMP;
             if (p0.isConstant()) {
                 Expression p2 = args[2];

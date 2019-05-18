@@ -11,11 +11,11 @@ import java.sql.Time;
 import java.util.concurrent.TimeUnit;
 
 import org.h2.api.JavaObjectSerializer;
+import org.h2.pagestore.db.LobStorageBackend;
 import org.h2.result.SimpleResult;
 import org.h2.store.Data;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
-import org.h2.store.LobStorageBackend;
 import org.h2.test.TestBase;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;

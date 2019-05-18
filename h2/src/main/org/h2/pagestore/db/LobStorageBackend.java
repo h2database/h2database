@@ -3,7 +3,7 @@
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.store;
+package org.h2.pagestore.db;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,6 +19,9 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
+import org.h2.store.CountingReaderInputStream;
+import org.h2.store.LobStorageFrontend;
+import org.h2.store.LobStorageInterface;
 import org.h2.tools.CompressTool;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;

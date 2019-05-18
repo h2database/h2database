@@ -3,7 +3,7 @@
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.store;
+package org.h2.mvstore.db;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,6 +20,10 @@ import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.StreamStore;
 import org.h2.mvstore.db.MVTableEngine.Store;
+import org.h2.store.CountingReaderInputStream;
+import org.h2.store.LobStorageFrontend;
+import org.h2.store.LobStorageInterface;
+import org.h2.store.RangeInputStream;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;

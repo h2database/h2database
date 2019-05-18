@@ -832,8 +832,13 @@ public class Parser {
             if (currentTokenQuoted) {
                 break;
             }
-            switch (currentToken.charAt(0)) {
-            case 'a':
+            /*
+             * Convert a-z to A-Z. This method is safe, because only A-Z
+             * characters are considered below.
+             *
+             * Unquoted identifier is never empty.
+             */
+            switch (currentToken.charAt(0) & 0xffdf) {
             case 'A':
                 if (readIf("ALTER")) {
                     c = parseAlter();
@@ -841,7 +846,6 @@ public class Parser {
                     c = parseAnalyze();
                 }
                 break;
-            case 'b':
             case 'B':
                 if (readIf("BACKUP")) {
                     c = parseBackup();
@@ -849,7 +853,6 @@ public class Parser {
                     c = parseBegin();
                 }
                 break;
-            case 'c':
             case 'C':
                 if (readIf("COMMIT")) {
                     c = parseCommit();
@@ -863,7 +866,6 @@ public class Parser {
                     c = parseComment();
                 }
                 break;
-            case 'd':
             case 'D':
                 if (readIf("DELETE")) {
                     c = parseDelete();
@@ -881,7 +883,6 @@ public class Parser {
                     c = parseDeallocate();
                 }
                 break;
-            case 'e':
             case 'E':
                 if (readIf("EXPLAIN")) {
                     c = parseExplain();
@@ -895,31 +896,26 @@ public class Parser {
                     }
                 }
                 break;
-            case 'g':
             case 'G':
                 if (readIf("GRANT")) {
                     c = parseGrantRevoke(CommandInterface.GRANT);
                 }
                 break;
-            case 'h':
             case 'H':
                 if (readIf("HELP")) {
                     c = parseHelp();
                 }
                 break;
-            case 'i':
             case 'I':
                 if (readIf("INSERT")) {
                     c = parseInsert();
                 }
                 break;
-            case 'm':
             case 'M':
                 if (readIf("MERGE")) {
                     c = parseMerge();
                 }
                 break;
-            case 'p':
             case 'P':
                 if (database.getMode().getEnum() != ModeEnum.MSSQLServer && readIf("PREPARE")) {
                     /*
@@ -930,7 +926,6 @@ public class Parser {
                     c = parsePrepare();
                 }
                 break;
-            case 'r':
             case 'R':
                 if (readIf("ROLLBACK")) {
                     c = parseRollback();
@@ -944,7 +939,6 @@ public class Parser {
                     c = parseReplace();
                 }
                 break;
-            case 's':
             case 'S':
                 if (readIf("SET")) {
                     c = parseSet();
@@ -958,13 +952,11 @@ public class Parser {
                     c = parseShow();
                 }
                 break;
-            case 't':
             case 'T':
                 if (readIf("TRUNCATE")) {
                     c = parseTruncate();
                 }
                 break;
-            case 'u':
             case 'U':
                 if (readIf("UPDATE")) {
                     c = parseUpdate();
@@ -4400,16 +4392,13 @@ public class Parser {
     }
 
     private Expression readTermWithIdentifier(String name) {
-        // Unquoted identifier is never empty
-        char ch = name.charAt(0);
-        if (!identifiersToUpper) {
-            /*
-             * Convert a-z to A-Z. This method is safe, because only A-Z
-             * characters are considered below.
-             */
-            ch &= 0xffdf;
-        }
-        switch (ch) {
+        /*
+         * Convert a-z to A-Z. This method is safe, because only A-Z
+         * characters are considered below.
+         *
+         * Unquoted identifier is never empty.
+         */
+        switch (name.charAt(0) & 0xffdf) {
         case 'C':
             if (database.getMode().getEnum() == ModeEnum.DB2 && equalsToken("CURRENT", name)) {
                 return parseDB2SpecialRegisters(name);
@@ -5959,8 +5948,11 @@ public class Parser {
         long p = readNonNegativeLong();
         if (currentTokenType == IDENTIFIER && !currentTokenQuoted && currentToken.length() == 1) {
             long mul;
-            char ch = currentToken.charAt(0);
-            switch (ch & 0xffdf) {
+            /*
+             * Convert a-z to A-Z. This method is safe, because only A-Z
+             * characters are considered below.
+             */
+            switch (currentToken.charAt(0) & 0xffdf) {
             case 'K':
                 mul = 1L << 10;
                 break;

@@ -93,6 +93,11 @@ public class TypeInfo {
     public static final TypeInfo TYPE_STRING;
 
     /**
+     * STRING_IGNORECASE type with maximum parameters.
+     */
+    public static final TypeInfo TYPE_STRING_IGNORECASE;
+
+    /**
      * ARRAY type with parameters.
      */
     public static final TypeInfo TYPE_ARRAY;
@@ -190,8 +195,8 @@ public class TypeInfo {
                 ValueTimestamp.MAXIMUM_SCALE, ValueTimestamp.MAXIMUM_PRECISION, null);
         infos[Value.BYTES] = new TypeInfo(Value.BYTES, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
         infos[Value.STRING] = TYPE_STRING = new TypeInfo(Value.STRING, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
-        infos[Value.STRING_IGNORECASE] = new TypeInfo(Value.STRING_IGNORECASE, Integer.MAX_VALUE, 0, Integer.MAX_VALUE,
-                null);
+        infos[Value.STRING_IGNORECASE] = TYPE_STRING_IGNORECASE = new TypeInfo(Value.STRING_IGNORECASE,
+                Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
         infos[Value.BLOB] = new TypeInfo(Value.BLOB, Long.MAX_VALUE, 0, Integer.MAX_VALUE, null);
         infos[Value.CLOB] = new TypeInfo(Value.CLOB, Long.MAX_VALUE, 0, Integer.MAX_VALUE, null);
         infos[Value.ARRAY] = TYPE_ARRAY = new TypeInfo(Value.ARRAY, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
@@ -326,22 +331,26 @@ public class TypeInfo {
             }
             return new TypeInfo(Value.BYTES, precision, 0, MathUtils.convertLongToInt(precision * 2), null);
         case Value.STRING:
-            if (precision < 0 || precision > Integer.MAX_VALUE) {
+            if (precision < 0 || precision >= Integer.MAX_VALUE) {
                 return TYPE_STRING;
             }
-            //$FALL-THROUGH$
-        case Value.STRING_FIXED:
+            return new TypeInfo(Value.STRING, precision, 0, (int) precision, null);
         case Value.STRING_IGNORECASE:
-            if (precision < 0 || precision > Integer.MAX_VALUE) {
-                precision = Integer.MAX_VALUE;
+            if (precision < 0 || precision >= Integer.MAX_VALUE) {
+                return TYPE_STRING_IGNORECASE;
             }
-            return new TypeInfo(type, precision, 0, (int) precision, null);
+            return new TypeInfo(Value.STRING_IGNORECASE, precision, 0, (int) precision, null);
         case Value.BLOB:
         case Value.CLOB:
             if (precision < 0) {
                 precision = Long.MAX_VALUE;
             }
             return new TypeInfo(type, precision, 0, MathUtils.convertLongToInt(precision), null);
+        case Value.STRING_FIXED:
+            if (precision < 0 || precision > Integer.MAX_VALUE) {
+                precision = Integer.MAX_VALUE;
+            }
+            return new TypeInfo(Value.STRING_FIXED, precision, 0, (int) precision, null);
         case Value.GEOMETRY:
             if (extTypeInfo instanceof ExtTypeInfoGeometry) {
                 return new TypeInfo(Value.GEOMETRY, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, extTypeInfo);

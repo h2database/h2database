@@ -3006,7 +3006,7 @@ public class Parser {
                 r = new CompareLike(database, r, b, esc, false);
             } else if (readIf("ILIKE")) {
                 Function function = Function.getFunction(database, Function.CAST);
-                function.setDataType(new Column("X", Value.STRING_IGNORECASE));
+                function.setDataType(TypeInfo.TYPE_STRING_IGNORECASE);
                 function.setParameter(0, r);
                 r = function;
                 Expression b = readConcat();
@@ -3166,8 +3166,7 @@ public class Parser {
             } else if (readIf(TILDE)) {
                 if (readIf(ASTERISK)) {
                     Function function = Function.getFunction(database, Function.CAST);
-                    function.setDataType(new Column("X",
-                            Value.STRING_IGNORECASE));
+                    function.setDataType(TypeInfo.TYPE_STRING_IGNORECASE);
                     function.setParameter(0, r);
                     r = function;
                 }
@@ -3175,8 +3174,7 @@ public class Parser {
             } else if (readIf(NOT_TILDE)) {
                 if (readIf(ASTERISK)) {
                     Function function = Function.getFunction(database, Function.CAST);
-                    function.setDataType(new Column("X",
-                            Value.STRING_IGNORECASE));
+                    function.setDataType(TypeInfo.TYPE_STRING_IGNORECASE);
                     function.setParameter(0, r);
                     r = function;
                 }
@@ -3639,23 +3637,20 @@ public class Parser {
         case Function.CAST: {
             function.setParameter(0, readExpression());
             read("AS");
-            Column type = parseColumnWithType(null, false);
-            function.setDataType(type);
+            function.setDataType(parseColumnWithType(null, false).getType());
             read(CLOSE_PAREN);
             break;
         }
         case Function.CONVERT: {
             if (database.getMode().swapConvertFunctionParameters) {
-                Column type = parseColumnWithType(null, false);
-                function.setDataType(type);
+                function.setDataType(parseColumnWithType(null, false).getType());
                 read(COMMA);
                 function.setParameter(0, readExpression());
                 read(CLOSE_PAREN);
             } else {
                 function.setParameter(0, readExpression());
                 read(COMMA);
-                Column type = parseColumnWithType(null, false);
-                function.setDataType(type);
+                function.setDataType(parseColumnWithType(null, false).getType());
                 read(CLOSE_PAREN);
             }
             break;
@@ -4368,9 +4363,8 @@ public class Parser {
                 Expression[] args = { r };
                 r = new JavaFunction(f, args);
             } else {
-                Column col = parseColumnWithType(null, false);
                 Function function = Function.getFunction(database, Function.CAST);
-                function.setDataType(col);
+                function.setDataType(parseColumnWithType(null, false).getType());
                 function.setParameter(0, r);
                 r = function;
             }

@@ -2516,8 +2516,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         }
     }
 
-    public void setDataType(Column col) {
-        TypeInfo type = col.getType();
+    public void setDataType(TypeInfo type) {
         this.type = type;
     }
 

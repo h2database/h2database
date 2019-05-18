@@ -329,7 +329,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunctionNotDeterministic("SYSDATE", CURRENT_DATE, 0, Value.DATE, false);
         addFunctionNotDeterministic("TODAY", CURRENT_DATE, 0, Value.DATE, false);
 
-        addFunctionNotDeterministic("CURRENT_TIME", CURRENT_TIME, VAR_ARGS, Value.TIME);
+        addFunctionNotDeterministic("CURRENT_TIME", CURRENT_TIME, VAR_ARGS, Value.TIME, false);
 
         addFunctionNotDeterministic("LOCALTIME", LOCALTIME, VAR_ARGS, Value.TIME, false);
         addFunctionNotDeterministic("SYSTIME", LOCALTIME, 0, Value.TIME, false);

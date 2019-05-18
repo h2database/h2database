@@ -21,9 +21,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
+import org.h2.pagestore.Page;
 import org.h2.result.Row;
 import org.h2.result.RowImpl;
-import org.h2.store.Page;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;

@@ -28,7 +28,7 @@ import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.mvstore.db.MVTableEngine;
-import org.h2.table.PageStoreTable;
+import org.h2.pagestore.db.PageStoreTable;
 import org.h2.table.Table;
 import org.h2.table.TableLink;
 import org.h2.table.TableSynonym;

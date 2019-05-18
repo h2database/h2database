@@ -91,7 +91,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * @param key the key values
      * @return the exception
      */
-    protected DbException getDuplicateKeyException(String key) {
+    public DbException getDuplicateKeyException(String key) {
         StringBuilder builder = new StringBuilder();
         getSQL(builder, false).append(" ON ");
         table.getSQL(builder, false).append('(');
@@ -336,7 +336,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * @return {@code true} if specified row may have duplicates,
      *         {@code false otherwise}
      */
-    protected boolean mayHaveNullDuplicates(SearchRow searchRow) {
+    public boolean mayHaveNullDuplicates(SearchRow searchRow) {
         switch (database.getMode().uniqueIndexNullsHandling) {
         case ALLOW_DUPLICATES_WITH_ANY_NULL:
             for (int index : columnIds) {
@@ -365,7 +365,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * @return 0 if both rows are equal, -1 if the first row is smaller,
      *         otherwise 1
      */
-    int compareKeys(SearchRow rowData, SearchRow compare) {
+    public int compareKeys(SearchRow rowData, SearchRow compare) {
         long k1 = rowData.getKey();
         long k2 = compare.getKey();
         if (k1 == k2) {

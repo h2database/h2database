@@ -261,7 +261,7 @@ public class FileStore {
      * @param off the offset
      * @param len the number of bytes to read
      */
-    protected void readFullyDirect(byte[] b, int off, int len) {
+    public void readFullyDirect(byte[] b, int off, int len) {
         readFully(b, off, len);
     }
 

@@ -71,7 +71,7 @@ public class SecureFileStore extends FileStore {
     }
 
     @Override
-    protected void readFullyDirect(byte[] b, int off, int len) {
+    public void readFullyDirect(byte[] b, int off, int len) {
         super.readFully(b, off, len);
         pos += len;
     }

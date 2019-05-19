@@ -22,9 +22,9 @@ import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.db.MVTableEngine.Store;
+import org.h2.pagestore.PageStore;
 import org.h2.result.ResultInterface;
 import org.h2.store.FileLister;
-import org.h2.store.PageStore;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
 

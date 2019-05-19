@@ -35,7 +35,7 @@ public class CountingReaderInputStream extends InputStream {
     private long length;
     private long remaining;
 
-    CountingReaderInputStream(Reader reader, long maxLength) {
+    public CountingReaderInputStream(Reader reader, long maxLength) {
         this.reader = reader;
         this.remaining = maxLength;
     }

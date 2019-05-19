@@ -20,7 +20,7 @@ import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
-import org.h2.store.PageStore;
+import org.h2.pagestore.PageStore;
 import org.h2.table.Table;
 
 /**

@@ -1054,7 +1054,10 @@ public class TableFilter implements ColumnResolver {
 
     @Override
     public String getSchemaName() {
-        return table.getSchema().getName();
+        if (alias == null && !(table instanceof FunctionTable)) {
+            return table.getSchema().getName();
+        }
+        return null;
     }
 
     @Override

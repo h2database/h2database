@@ -931,30 +931,30 @@ public class TestCases extends TestDb {
 
         checkExplain(stat, "EXPLAIN SELECT * FROM PERSON WHERE id = ?",
             "SELECT\n" +
-                "    \"PERSON\".\"ID\",\n" +
-                "    \"PERSON\".\"ORGID\",\n" +
-                "    \"PERSON\".\"NAME\",\n" +
-                "    \"PERSON\".\"SALARY\"\n" +
+                "    \"PUBLIC\".\"PERSON\".\"ID\",\n" +
+                "    \"PUBLIC\".\"PERSON\".\"ORGID\",\n" +
+                "    \"PUBLIC\".\"PERSON\".\"NAME\",\n" +
+                "    \"PUBLIC\".\"PERSON\".\"SALARY\"\n" +
                 "FROM \"PUBLIC\".\"PERSON\"\n" +
                 "    /* PUBLIC.PRIMARY_KEY_8: ID = ?1 */\n" +
                 "WHERE \"ID\" = ?1");
 
         checkExplain(stat, "EXPLAIN SELECT * FROM PERSON WHERE id = 50",
             "SELECT\n" +
-                "    \"PERSON\".\"ID\",\n" +
-                "    \"PERSON\".\"ORGID\",\n" +
-                "    \"PERSON\".\"NAME\",\n" +
-                "    \"PERSON\".\"SALARY\"\n" +
+                "    \"PUBLIC\".\"PERSON\".\"ID\",\n" +
+                "    \"PUBLIC\".\"PERSON\".\"ORGID\",\n" +
+                "    \"PUBLIC\".\"PERSON\".\"NAME\",\n" +
+                "    \"PUBLIC\".\"PERSON\".\"SALARY\"\n" +
                 "FROM \"PUBLIC\".\"PERSON\"\n" +
                 "    /* PUBLIC.PRIMARY_KEY_8: ID = 50 */\n" +
                 "WHERE \"ID\" = 50");
 
         checkExplain(stat, "EXPLAIN SELECT * FROM PERSON WHERE salary > ? and salary < ?",
             "SELECT\n" +
-                "    \"PERSON\".\"ID\",\n" +
-                "    \"PERSON\".\"ORGID\",\n" +
-                "    \"PERSON\".\"NAME\",\n" +
-                "    \"PERSON\".\"SALARY\"\n" +
+                "    \"PUBLIC\".\"PERSON\".\"ID\",\n" +
+                "    \"PUBLIC\".\"PERSON\".\"ORGID\",\n" +
+                "    \"PUBLIC\".\"PERSON\".\"NAME\",\n" +
+                "    \"PUBLIC\".\"PERSON\".\"SALARY\"\n" +
                 "FROM \"PUBLIC\".\"PERSON\"\n" +
                 "    /* PUBLIC.PERSON.tableScan */\n" +
                 "WHERE (\"SALARY\" > ?1)\n" +
@@ -962,10 +962,10 @@ public class TestCases extends TestDb {
 
         checkExplain(stat, "EXPLAIN SELECT * FROM PERSON WHERE salary > 1000 and salary < 2000",
             "SELECT\n" +
-                "    \"PERSON\".\"ID\",\n" +
-                "    \"PERSON\".\"ORGID\",\n" +
-                "    \"PERSON\".\"NAME\",\n" +
-                "    \"PERSON\".\"SALARY\"\n" +
+                "    \"PUBLIC\".\"PERSON\".\"ID\",\n" +
+                "    \"PUBLIC\".\"PERSON\".\"ORGID\",\n" +
+                "    \"PUBLIC\".\"PERSON\".\"NAME\",\n" +
+                "    \"PUBLIC\".\"PERSON\".\"SALARY\"\n" +
                 "FROM \"PUBLIC\".\"PERSON\"\n" +
                 "    /* PUBLIC.PERSON.tableScan */\n" +
                 "WHERE (\"SALARY\" > 1000)\n" +
@@ -973,20 +973,20 @@ public class TestCases extends TestDb {
 
         checkExplain(stat, "EXPLAIN SELECT * FROM PERSON WHERE name = lower(?)",
             "SELECT\n" +
-                "    \"PERSON\".\"ID\",\n" +
-                "    \"PERSON\".\"ORGID\",\n" +
-                "    \"PERSON\".\"NAME\",\n" +
-                "    \"PERSON\".\"SALARY\"\n" +
+                "    \"PUBLIC\".\"PERSON\".\"ID\",\n" +
+                "    \"PUBLIC\".\"PERSON\".\"ORGID\",\n" +
+                "    \"PUBLIC\".\"PERSON\".\"NAME\",\n" +
+                "    \"PUBLIC\".\"PERSON\".\"SALARY\"\n" +
                 "FROM \"PUBLIC\".\"PERSON\"\n" +
                 "    /* PUBLIC.PERSON.tableScan */\n" +
                 "WHERE \"NAME\" = LOWER(?1)");
 
         checkExplain(stat, "EXPLAIN SELECT * FROM PERSON WHERE name = lower('Smith')",
             "SELECT\n" +
-                "    \"PERSON\".\"ID\",\n" +
-                "    \"PERSON\".\"ORGID\",\n" +
-                "    \"PERSON\".\"NAME\",\n" +
-                "    \"PERSON\".\"SALARY\"\n" +
+                "    \"PUBLIC\".\"PERSON\".\"ID\",\n" +
+                "    \"PUBLIC\".\"PERSON\".\"ORGID\",\n" +
+                "    \"PUBLIC\".\"PERSON\".\"NAME\",\n" +
+                "    \"PUBLIC\".\"PERSON\".\"SALARY\"\n" +
                 "FROM \"PUBLIC\".\"PERSON\"\n" +
                 "    /* PUBLIC.PERSON.tableScan */\n" +
                 "WHERE \"NAME\" = 'smith'");

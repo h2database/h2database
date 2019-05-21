@@ -2331,15 +2331,11 @@ public class Parser {
             } else if (readIf(NATURAL)) {
                 read(JOIN);
                 join = readTableFilter();
-                Table table1 = last.getTable();
-                Table table2 = join.getTable();
-                String schema1 = table1.getSchema().getName();
-                String schema2 = table2.getSchema().getName();
                 Expression on = null;
-                for (Column column1 : table1.getColumns()) {
+                for (Column column1 : last.getTable().getColumns()) {
                     Column column2 = join.getColumn(last.getColumnName(column1), true);
                     if (column2 != null) {
-                        on = addJoinColumn(on, last, join, schema1, schema2, column1, column2, false);
+                        on = addJoinColumn(on, last, join, column1, column2, false);
                     }
                 }
                 addJoin(top, join, false, on);
@@ -2357,21 +2353,17 @@ public class Parser {
             on = readExpression();
         } else if (readIf(USING)) {
             read(OPEN_PAREN);
-            Table table1 = filter1.getTable();
-            Table table2 = filter2.getTable();
-            String schema1 = table1.getSchema().getName();
-            String schema2 = table2.getSchema().getName();
             do {
                 String columnName = readColumnIdentifier();
-                on = addJoinColumn(on, filter1, filter2, schema1, schema2, filter1.getColumn(columnName, false),
+                on = addJoinColumn(on, filter1, filter2, filter1.getColumn(columnName, false),
                         filter2.getColumn(columnName, false), rightJoin);
             } while (readIfMore(true));
         }
         return on;
     }
 
-    private Expression addJoinColumn(Expression on, TableFilter filter1, TableFilter filter2, String schema1,
-            String schema2, Column column1, Column column2, boolean rightJoin) {
+    private Expression addJoinColumn(Expression on, TableFilter filter1, TableFilter filter2, Column column1,
+            Column column2, boolean rightJoin) {
         if (rightJoin) {
             filter1.addCommonJoinColumns(column1, column2, filter2);
             filter2.addCommonJoinColumnToExclude(column2);
@@ -2379,9 +2371,9 @@ public class Parser {
             filter1.addCommonJoinColumns(column1, column1, filter1);
             filter2.addCommonJoinColumnToExclude(column2);
         }
-        Expression tableExpr = new ExpressionColumn(database, schema1, filter1.getTableAlias(),
+        Expression tableExpr = new ExpressionColumn(database, filter1.getSchemaName(), filter1.getTableAlias(),
                 filter1.getColumnName(column1), false);
-        Expression joinExpr = new ExpressionColumn(database, schema2, filter2.getTableAlias(),
+        Expression joinExpr = new ExpressionColumn(database, filter2.getSchemaName(), filter2.getTableAlias(),
                 filter2.getColumnName(column2), false);
         Expression equal = new Comparison(session, Comparison.EQUAL, tableExpr, joinExpr);
         if (on == null) {
@@ -4062,9 +4054,8 @@ public class Parser {
             return expr;
         }
         String name = readColumnIdentifier();
-        Schema s = database.findSchema(objectName);
         if (readIf(OPEN_PAREN)) {
-            return readFunction(s, name);
+            return readFunction(database.getSchema(objectName), name);
         } else if (readIf(DOT)) {
             String schema = objectName;
             objectName = name;
@@ -4075,8 +4066,7 @@ public class Parser {
             name = readColumnIdentifier();
             if (readIf(OPEN_PAREN)) {
                 checkDatabaseName(schema);
-                schema = objectName;
-                return readFunction(database.getSchema(schema), name);
+                return readFunction(database.getSchema(objectName), name);
             } else if (readIf(DOT)) {
                 checkDatabaseName(schema);
                 schema = objectName;
@@ -4086,7 +4076,6 @@ public class Parser {
                     return expr;
                 }
                 name = readColumnIdentifier();
-                return new ExpressionColumn(database, schema, objectName, name, false);
             }
             return new ExpressionColumn(database, schema, objectName, name, false);
         }

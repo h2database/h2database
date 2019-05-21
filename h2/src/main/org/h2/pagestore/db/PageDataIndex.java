@@ -122,7 +122,10 @@ public class PageDataIndex extends PageIndex {
                     throw e;
                 }
                 if (!retry) {
-                    throw getNewDuplicateKeyException();
+                    e = DbException.get(ErrorCode.DUPLICATE_KEY_1,
+                            getDuplicatePrimaryKeyMessage(mainIndexColumn).toString());
+                    e.setSource(this);
+                    throw e;
                 }
                 if (add == 0) {
                     // in the first re-try add a small random number,
@@ -137,18 +140,6 @@ public class PageDataIndex extends PageIndex {
             }
         }
         lastKey = Math.max(lastKey, row.getKey());
-    }
-
-    public DbException getNewDuplicateKeyException() {
-        StringBuilder builder = new StringBuilder("PRIMARY KEY ON ");
-        table.getSQL(builder, false);
-        if (mainIndexColumn >= 0 && mainIndexColumn < indexColumns.length) {
-            builder.append('(');
-            indexColumns[mainIndexColumn].getSQL(builder, false).append(')');
-        }
-        DbException e = DbException.get(ErrorCode.DUPLICATE_KEY_1, builder.toString());
-        e.setSource(this);
-        return e;
     }
 
     private void addTry(Session session, Row row) {

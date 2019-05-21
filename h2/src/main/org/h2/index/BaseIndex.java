@@ -105,6 +105,16 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         return e;
     }
 
+    protected StringBuilder getDuplicatePrimaryKeyMessage(int mainIndexColumn) {
+        StringBuilder builder = new StringBuilder("PRIMARY KEY ON ");
+        table.getSQL(builder, false);
+        if (mainIndexColumn >= 0 && mainIndexColumn < indexColumns.length) {
+            builder.append('(');
+            indexColumns[mainIndexColumn].getSQL(builder, false).append(')');
+        }
+        return builder;
+    }
+
     @Override
     public String getPlanSQL() {
         return getSQL(false);

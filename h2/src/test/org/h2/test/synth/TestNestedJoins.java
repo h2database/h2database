@@ -467,7 +467,8 @@ public class TestNestedJoins extends TestDb {
                 "on a.x = c.x");
         assertTrue(rs.next());
         sql = cleanRemarks(rs.getString(1));
-        assertEquals("SELECT \"A\".\"X\", \"B\".\"X\", \"C\".\"X\", \"C\".\"Y\" FROM \"PUBLIC\".\"A\" " +
+        assertEquals("SELECT \"PUBLIC\".\"A\".\"X\", \"PUBLIC\".\"B\".\"X\", " +
+                "\"PUBLIC\".\"C\".\"X\", \"PUBLIC\".\"C\".\"Y\" FROM \"PUBLIC\".\"A\" " +
                 "LEFT OUTER JOIN ( \"PUBLIC\".\"B\" " +
                 "LEFT OUTER JOIN \"PUBLIC\".\"C\" " +
                 "ON \"B\".\"X\" = \"C\".\"Y\" ) " +
@@ -548,7 +549,8 @@ public class TestNestedJoins extends TestDb {
                 "inner join c on c.x = 1) on a.x = b.x");
         assertTrue(rs.next());
         sql = cleanRemarks(rs.getString(1));
-        assertEquals("SELECT \"A\".\"X\", \"B\".\"X\", \"C\".\"X\" FROM \"PUBLIC\".\"A\" " +
+        assertEquals("SELECT \"PUBLIC\".\"A\".\"X\", \"PUBLIC\".\"B\".\"X\", \"PUBLIC\".\"C\".\"X\" " +
+                "FROM \"PUBLIC\".\"A\" " +
                 "LEFT OUTER JOIN ( \"PUBLIC\".\"B\" " +
                 "INNER JOIN \"PUBLIC\".\"C\" ON \"C\".\"X\" = 1 ) ON \"A\".\"X\" = \"B\".\"X\"", sql);
         stat.execute("drop table a, b, c");

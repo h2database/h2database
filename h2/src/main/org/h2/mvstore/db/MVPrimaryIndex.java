@@ -116,19 +116,13 @@ public class MVPrimaryIndex extends BaseIndex {
         try {
             Value oldValue = map.putIfAbsent(key, ValueArray.get(row.getValueList()));
             if (oldValue != null) {
-                StringBuilder builder = new StringBuilder("PRIMARY KEY ON ");
-                table.getSQL(builder, false);
-                if (mainIndexColumn >= 0 && mainIndexColumn < indexColumns.length) {
-                    builder.append('(');
-                    indexColumns[mainIndexColumn].getSQL(builder, false).append(')');
-                }
                 int errorCode = ErrorCode.CONCURRENT_UPDATE_1;
                 if (map.get(key) != null) {
                     // committed
                     errorCode = ErrorCode.DUPLICATE_KEY_1;
                 }
-                builder.append(' ').append(oldValue);
-                DbException e = DbException.get(errorCode, builder.toString());
+                DbException e = DbException.get(errorCode,
+                        getDuplicatePrimaryKeyMessage(mainIndexColumn).append(' ').append(oldValue).toString());
                 e.setSource(this);
                 throw e;
             }

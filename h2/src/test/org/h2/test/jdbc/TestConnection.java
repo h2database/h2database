@@ -10,13 +10,13 @@ import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
-
-
+import org.h2.engine.SysProperties;
 
 /**
  * Tests the client info
@@ -42,6 +42,7 @@ public class TestConnection extends TestDb {
         testSetInternalProperty();
         testSetInternalPropertyToInitialValue();
         testSetGetSchema();
+        testCommitOnAutoCommitSet();
     }
 
     private void testSetInternalProperty() throws SQLException {
@@ -112,6 +113,49 @@ public class TestConnection extends TestDb {
         Connection conn = getConnection("clientInfo");
         assertNull(conn.getClientInfo("UnknownProperty"));
         conn.close();
+    }
+
+    private void testCommitOnAutoCommitSet() throws Exception {
+        Connection conn = getConnection("clientInfo");
+        conn.setAutoCommit(false);
+        Statement stat = conn.createStatement();
+        stat.execute("DROP TABLE IF EXISTS TEST");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
+        PreparedStatement prep = conn.prepareStatement(
+                "INSERT INTO TEST VALUES(?, ?)");
+        int index = 1;
+        prep.setInt(index++, 1);
+        prep.setString(index++, "test1");
+        prep.execute();
+        conn.commit();
+        // no error expected 
+
+        conn.setAutoCommit(true);
+        index = 1;
+        prep.setInt(index++, 2);
+        prep.setString(index++, "test2");
+        if (SysProperties.FORCE_AUTOCOMMIT_OFF_ON_COMMIT) {
+            prep.execute();
+            try {
+                conn.commit();
+                throw new AssertionError("SQLException expected");
+            } catch (SQLException e) {
+            }
+            ResultSet rs = conn.createStatement().executeQuery("SELECT COUNT(*) FROM TEST");
+            rs.next();
+            assertTrue(rs.getInt(1) == 2);
+            rs.close();
+        } else {
+            prep.execute();
+            conn.commit();
+            ResultSet rs = conn.createStatement().executeQuery("SELECT COUNT(*) FROM TEST");
+            rs.next();
+            assertTrue(rs.getInt(1) == 2);
+            rs.close();
+        }
+
+        conn.close();
+        prep.close();
     }
 
     private void testSetGetSchema() throws SQLException {

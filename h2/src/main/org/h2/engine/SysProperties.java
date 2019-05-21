@@ -381,6 +381,14 @@ public class SysProperties {
      */
     public static final String PREFIX_TEMP_FILE =
             Utils.getProperty("h2.prefixTempFile", "h2.temp");
+    
+    
+    /**
+     * System property <code>h2.forceAutoCommitOffOnCommit</code> (default: false).<br />
+     * Throw error if transaction's auto-commit property is true when a commit is executed.
+     */
+    public static final boolean FORCE_AUTOCOMMIT_OFF_ON_COMMIT =
+            Utils.getProperty("h2.forceAutoCommitOffOnCommit", false);
 
     /**
      * System property <code>h2.serverCachedObjects</code> (default: 64).<br />

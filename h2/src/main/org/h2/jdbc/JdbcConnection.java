@@ -537,6 +537,10 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
         try {
             debugCodeCall("commit");
             checkClosedForWrite();
+            if (SysProperties.FORCE_AUTOCOMMIT_OFF_ON_COMMIT
+                    && getAutoCommit()) {
+                throw logAndConvert(new SQLException("Cannot commit() when auto-commit is true (see h2.forceAutoCommitOffOnCommit option)"));
+            }
             try {
                 commit = prepareCommand("COMMIT", commit);
                 commit.executeUpdate(false);

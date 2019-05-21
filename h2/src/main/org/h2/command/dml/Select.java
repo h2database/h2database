@@ -1043,15 +1043,17 @@ public class Select extends Query {
 
     private int expandColumnList(TableFilter filter, int index, boolean forAlias,
             HashMap<Column, ExpressionColumn> except) {
+        String schema = filter.getSchemaName();
         String alias = filter.getTableAlias();
         if (forAlias) {
             for (Column c : filter.getTable().getColumns()) {
-                index = addExpandedColumn(filter, index, except, alias, c);
+                index = addExpandedColumn(filter, index, except, schema, alias, c);
             }
         } else {
             LinkedHashMap<Column, Column> commonJoinColumns = filter.getCommonJoinColumns();
             if (commonJoinColumns != null) {
                 TableFilter replacementFilter = filter.getCommonJoinColumnsFilter();
+                String replacementSchema = replacementFilter.getSchemaName();
                 String replacementAlias = replacementFilter.getTableAlias();
                 for (Entry<Column, Column> entry : commonJoinColumns.entrySet()) {
                     Column left = entry.getKey(), right = entry.getValue();
@@ -1062,13 +1064,13 @@ public class Select extends Query {
                         if (left == right
                                 || DataType.hasTotalOrdering(left.getType().getValueType())
                                 && DataType.hasTotalOrdering(right.getType().getValueType())) {
-                            e = new ExpressionColumn(database, null, replacementAlias,
+                            e = new ExpressionColumn(database, replacementSchema, replacementAlias,
                                     replacementFilter.getColumnName(right), false);
                         } else {
                             Function f = Function.getFunction(database, Function.COALESCE);
-                            f.setParameter(0, new ExpressionColumn(database, null, alias,
+                            f.setParameter(0, new ExpressionColumn(database, schema, alias,
                                     filter.getColumnName(left), false));
-                            f.setParameter(1, new ExpressionColumn(database, null, replacementAlias,
+                            f.setParameter(1, new ExpressionColumn(database, replacementSchema, replacementAlias,
                                     replacementFilter.getColumnName(right), false));
                             f.doneWithParameters();
                             e = new Alias(f, left.getName(), true);
@@ -1080,7 +1082,7 @@ public class Select extends Query {
             for (Column c : filter.getTable().getColumns()) {
                 if (commonJoinColumns == null || !commonJoinColumns.containsKey(c)) {
                     if (!filter.isCommonJoinColumnToExclude(c)) {
-                        index = addExpandedColumn(filter, index, except, alias, c);
+                        index = addExpandedColumn(filter, index, except, schema, alias, c);
                     }
                 }
             }
@@ -1089,10 +1091,10 @@ public class Select extends Query {
     }
 
     private int addExpandedColumn(TableFilter filter, int index, HashMap<Column, ExpressionColumn> except,
-            String alias, Column c) {
+            String schema, String alias, Column c) {
         if ((except == null || except.remove(c) == null) && c.getVisible()) {
             ExpressionColumn ec = new ExpressionColumn(
-                    session.getDatabase(), null, alias, filter.getColumnName(c), false);
+                    session.getDatabase(), schema, alias, filter.getColumnName(c), false);
             expressions.add(index++, ec);
         }
         return index;

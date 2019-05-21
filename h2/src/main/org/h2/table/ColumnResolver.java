@@ -61,9 +61,9 @@ public interface ColumnResolver {
     Column getRowIdColumn();
 
     /**
-     * Get the schema name.
+     * Get the schema name or null.
      *
-     * @return the schema name
+     * @return the schema name or null
      */
     String getSchemaName();
 

@@ -689,7 +689,7 @@ public class Database implements DataHandler {
                 readOnly = true;
             }
             if (existsPage && !existsMv) {
-                dbSettings.mvStore = false;
+                dbSettings.setMvStore(false);
                 // Need to re-init this because the first time we do it we don't
                 // know if we have an mvstore or a pagestore.
                 multiThreaded = ci.getProperty("MULTI_THREADED", false);

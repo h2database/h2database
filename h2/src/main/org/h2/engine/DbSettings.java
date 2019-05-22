@@ -352,6 +352,17 @@ public class DbSettings extends SettingsBase {
     }
 
     /**
+     * Sets the database engine setting.
+     *
+     * @param mvStore
+     *            true for MVStore engine, false for PageStore engine
+     */
+    void setMvStore(boolean mvStore) {
+        this.mvStore = mvStore;
+        set("MV_STORE", mvStore);
+    }
+
+    /**
      * INTERNAL.
      * Get the settings for the given properties (may not be null).
      *

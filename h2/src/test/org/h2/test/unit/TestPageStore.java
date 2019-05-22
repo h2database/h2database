@@ -89,6 +89,7 @@ public class TestPageStore extends TestDb {
         testUniqueIndex();
         testCreateIndexLater();
         testFuzzOperations();
+        testConnectionSettings();
         deleteDb(null);
     }
 
@@ -860,6 +861,25 @@ public class TestPageStore extends TestDb {
 
     private void log(String m) {
         trace("   " + m);
+    }
+
+    private void testConnectionSettings() throws Exception {
+        if (config.mvStore || config.networked || config.googleAppEngine) {
+            return;
+        }
+        deleteDb("pageStoreConnectionSettings");
+        String url = "jdbc:h2:" + getBaseDir() + '/' + "pageStoreConnectionSettings";
+        try (Connection c = DriverManager.getConnection(url + ";MV_STORE=FALSE")) {
+        }
+        try (Connection c = DriverManager.getConnection(url)) {
+            try (ResultSet rs = c.createStatement().executeQuery(
+                    "SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME = 'MV_STORE'")) {
+                assertTrue(rs.next());
+                assertEquals("false", rs.getString(1));
+                assertFalse(rs.next());
+            }
+        }
+        deleteDb("pageStoreConnectionSettings");
     }
 
     /**

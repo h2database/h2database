@@ -39,6 +39,10 @@ public class SettingsBase {
         }
     }
 
+    void set(String key, boolean value) {
+        settings.put(key, Boolean.toString(value));
+    }
+
     /**
      * Get the setting for the given key.
      *

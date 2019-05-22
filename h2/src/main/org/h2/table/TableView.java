@@ -87,10 +87,7 @@ public class TableView extends Table {
         String oldQuerySQL = this.querySQL;
         Column[] oldColumnTemplates = this.columnTemplates;
         boolean oldRecursive = this.allowRecursive;
-        init(querySQL, null,
-                newColumnTemplates == null ? this.columnTemplates
-                        : newColumnTemplates,
-                session, recursive, literalsChecked, isTableExpression);
+        init(querySQL, null, newColumnTemplates, session, recursive, literalsChecked, isTableExpression);
         DbException e = recompile(session, force, true);
         if (e != null) {
             init(oldQuerySQL, null, oldColumnTemplates, session, oldRecursive,

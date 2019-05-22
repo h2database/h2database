@@ -31,8 +31,6 @@ public class FunctionTable extends Table {
     private final FunctionCall function;
     private final long rowCount;
     private Expression functionExpr;
-    private ResultInterface cachedResult;
-    private Value cachedValue;
 
     public FunctionTable(Schema schema, Session session,
             Expression functionExpr, FunctionCall function) {
@@ -166,51 +164,18 @@ public class FunctionTable extends Table {
     }
 
     /**
-     * Read the result from the function. This method buffers the result in a
-     * temporary file.
+     * Read the result from the function.
      *
      * @param session the session
      * @return the result
      */
     public ResultInterface getResult(Session session) {
-        ValueResultSet v = getValueResultSet(session);
-        if (v == null) {
-            return null;
-        }
-        if (cachedResult != null && cachedValue == v) {
-            cachedResult.reset();
-            return cachedResult;
-        }
-        ResultInterface result = v.getResult();
-        if (function.isDeterministic()) {
-            cachedResult = result;
-            cachedValue = v;
-        }
-        return result;
-    }
-
-    /**
-     * Read the result set from the function. This method doesn't cache.
-     *
-     * @param session the session
-     * @return the result
-     */
-    public ResultInterface getResultSet(Session session) {
-        ValueResultSet v = getValueResultSet(session);
-        return v == null ? null : v.getResult();
-    }
-
-    private ValueResultSet getValueResultSet(Session session) {
         functionExpr = functionExpr.optimize(session);
         Value v = functionExpr.getValue(session);
         if (v == ValueNull.INSTANCE) {
             return null;
         }
-        return (ValueResultSet) v;
-    }
-
-    public boolean isBufferResultSetToLocalTemp() {
-        return function.isBufferResultSetToLocalTemp();
+        return ((ValueResultSet) v).getResult();
     }
 
     @Override

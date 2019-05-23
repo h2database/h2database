@@ -348,13 +348,6 @@ public abstract class Query extends Prepared {
     public abstract void fireBeforeSelectTriggers();
 
     /**
-     * Set the distinct flag.
-     */
-    public void setDistinct() {
-        distinct = true;
-    }
-
-    /**
      * Set the distinct flag only if it is possible, may be used as a possible
      * optimization only.
      */

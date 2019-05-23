@@ -227,7 +227,9 @@ public class Select extends Query {
         return groupData != null && (window || groupData.isCurrentGroup()) ? groupData : null;
     }
 
-    @Override
+    /**
+     * Set the distinct flag.
+     */
     public void setDistinct() {
         if (distinctExpressions != null) {
             throw DbException.getUnsupportedException("DISTINCT ON together with DISTINCT");

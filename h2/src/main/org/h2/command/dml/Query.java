@@ -126,6 +126,18 @@ public abstract class Query extends Prepared {
      */
     boolean randomAccessResult;
 
+    /**
+     * The visible columns (the ones required in the result).
+     */
+    int visibleColumnCount;
+
+    /**
+     * Number of columns including visible columns and additional virtual
+     * columns for ORDER BY and DISTINCT ON clauses. This number does not
+     * include virtual columns for HAVING and QUALIFY.
+     */
+    int resultColumnCount;
+
     private boolean noCache;
     private int lastLimit;
     private long lastEvaluated;
@@ -157,6 +169,14 @@ public abstract class Query extends Prepared {
      * Prepare join batching.
      */
     public abstract void prepareJoinBatch();
+
+    @Override
+    public ResultInterface queryMeta() {
+        LocalResult result = session.getDatabase().getResultFactory().create(session, expressionArray,
+                visibleColumnCount, resultColumnCount);
+        result.done();
+        return result;
+    }
 
     /**
      * Execute the query without checking the cache. If a target is specified,
@@ -257,7 +277,9 @@ public abstract class Query extends Prepared {
      *
      * @return the column count
      */
-    public abstract int getColumnCount();
+    public int getColumnCount() {
+        return visibleColumnCount;
+    }
 
     /**
      * Map the columns to the given column resolver.
@@ -326,17 +348,14 @@ public abstract class Query extends Prepared {
     public abstract void fireBeforeSelectTriggers();
 
     /**
-     * Set the distinct flag.
-     */
-    public void setDistinct() {
-        distinct = true;
-    }
-
-    /**
      * Set the distinct flag only if it is possible, may be used as a possible
      * optimization only.
      */
-    public abstract void setDistinctIfPossible();
+    public void setDistinctIfPossible() {
+        if (!isAnyDistinct() && offsetExpr == null && limitExpr == null) {
+            distinct = true;
+        }
+    }
 
     /**
      * @return whether this query is a plain {@code DISTINCT} query
@@ -830,8 +849,11 @@ public abstract class Query extends Prepared {
      *            FETCH value
      * @param fetchPercent
      *            whether FETCH value is a PERCENT value
+     * @param target
+     *            target result or null
+     * @return the result or null
      */
-    void finishResult(LocalResult result, long offset, int fetch, boolean fetchPercent) {
+    LocalResult finishResult(LocalResult result, long offset, int fetch, boolean fetchPercent, ResultTarget target) {
         if (offset != 0) {
             if (offset > Integer.MAX_VALUE) {
                 throw DbException.getInvalidValueException("OFFSET", offset);
@@ -846,6 +868,30 @@ public abstract class Query extends Prepared {
             }
         }
         result.done();
+        if (randomAccessResult && !distinct) {
+            result = convertToDistinct(result);
+        }
+        if (target != null) {
+            while (result.next()) {
+                target.addRow(result.currentRow());
+            }
+            result.close();
+            return null;
+        }
+        return result;
+    }
+
+    LocalResult convertToDistinct(ResultInterface result) {
+        LocalResult distinctResult = session.getDatabase().getResultFactory().create(session,
+            expressionArray, visibleColumnCount, resultColumnCount);
+        distinctResult.setDistinct();
+        result.reset();
+        while (result.next()) {
+            distinctResult.addRow(result.currentRow());
+        }
+        result.close();
+        distinctResult.done();
+        return distinctResult;
     }
 
 }

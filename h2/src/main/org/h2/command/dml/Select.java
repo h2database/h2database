@@ -102,23 +102,11 @@ public class Select extends Query {
     private Expression qualify;
 
     /**
-     * The visible columns (the ones required in the result).
-     */
-    int visibleColumnCount;
-
-    /**
      * {@code DISTINCT ON(...)} expressions.
      */
     private Expression[] distinctExpressions;
 
     private int[] distinctIndexes;
-
-    /**
-     * Number of columns including visible columns and additional virtual
-     * columns for ORDER BY and DISTINCT ON clauses. This number does not
-     * include virtual columns for HAVING and QUALIFY.
-     */
-    private int resultColumnCount;
 
     private ArrayList<Expression> group;
 
@@ -239,7 +227,9 @@ public class Select extends Query {
         return groupData != null && (window || groupData.isCurrentGroup()) ? groupData : null;
     }
 
-    @Override
+    /**
+     * Set the distinct flag.
+     */
     public void setDistinct() {
         if (distinctExpressions != null) {
             throw DbException.getUnsupportedException("DISTINCT ON together with DISTINCT");
@@ -257,13 +247,6 @@ public class Select extends Query {
             throw DbException.getUnsupportedException("DISTINCT ON together with DISTINCT");
         }
         this.distinctExpressions = distinctExpressions;
-    }
-
-    @Override
-    public void setDistinctIfPossible() {
-        if (!isAnyDistinct() && offsetExpr == null && limitExpr == null) {
-            distinct = true;
-        }
     }
 
     @Override
@@ -793,14 +776,6 @@ public class Select extends Query {
     }
 
     @Override
-    public ResultInterface queryMeta() {
-        LocalResult result = session.getDatabase().getResultFactory().create(session, expressionArray,
-                visibleColumnCount, resultColumnCount);
-        result.done();
-        return result;
-    }
-
-    @Override
     protected ResultInterface queryWithoutCache(int maxRows, ResultTarget target) {
         disableLazyForJoinSubqueries(topTableFilter);
         OffsetFetch offsetFetch = getOffsetFetch(maxRows);
@@ -893,18 +868,7 @@ public class Select extends Query {
             }
         }
         if (result != null) {
-            finishResult(result, offset, fetch, fetchPercent);
-            if (randomAccessResult && !distinct) {
-                result = convertToDistinct(result);
-            }
-            if (target != null) {
-                while (result.next()) {
-                    target.addRow(result.currentRow());
-                }
-                result.close();
-                return null;
-            }
-            return result;
+            return finishResult(result, offset, fetch, fetchPercent, target);
         }
         return null;
     }
@@ -938,19 +902,6 @@ public class Select extends Query {
     private LocalResult createLocalResult(LocalResult old) {
         return old != null ? old : session.getDatabase().getResultFactory().create(session, expressionArray,
                 visibleColumnCount, resultColumnCount);
-    }
-
-    private LocalResult convertToDistinct(ResultInterface result) {
-        LocalResult distinctResult = session.getDatabase().getResultFactory().create(session,
-            expressionArray, visibleColumnCount, resultColumnCount);
-        distinctResult.setDistinct();
-        result.reset();
-        while (result.next()) {
-            distinctResult.addRow(result.currentRow());
-        }
-        result.close();
-        distinctResult.done();
-        return distinctResult;
     }
 
     private void expandColumnList() {
@@ -1588,7 +1539,7 @@ public class Select extends Query {
                 builder.append("\n/* group sorted */");
             }
         }
-        // buff.append("\n/* cost: " + cost + " */");
+        // builder.append("\n/* cost: " + cost + " */");
         return builder.toString();
     }
 
@@ -1617,11 +1568,6 @@ public class Select extends Query {
 
     public Expression getQualify() {
         return qualify;
-    }
-
-    @Override
-    public int getColumnCount() {
-        return visibleColumnCount;
     }
 
     public TableFilter getTopTableFilter() {

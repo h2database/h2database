@@ -23,6 +23,7 @@ import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.function.FunctionCall;
 import org.h2.message.DbException;
+import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
 import org.h2.result.SortOrder;
@@ -39,6 +40,34 @@ import org.h2.value.ValueNull;
  * Represents a SELECT statement (simple, or union).
  */
 public abstract class Query extends Prepared {
+
+    /**
+     * Evaluated values of OFFSET and FETCH clauses.
+     */
+    static final class OffsetFetch {
+
+        /**
+         * OFFSET value.
+         */
+        final long offset;
+
+        /**
+         * FETCH value.
+         */
+        final int fetch;
+
+        /**
+         * Whether FETCH value is a PERCENT value.
+         */
+        final boolean fetchPercent;
+
+        OffsetFetch(long offset, int fetch, boolean fetchPercent) {
+            this.offset = offset;
+            this.fetch = fetch;
+            this.fetchPercent = fetchPercent;
+        }
+
+    }
 
     /**
      * The column list, including invisible expressions such as order by expressions.
@@ -741,6 +770,77 @@ public abstract class Query extends Prepared {
             builder.append(!withCount ? " ROW" : " ROWS")
                     .append(withTies ? " WITH TIES" : " ONLY");
         }
+    }
+
+    /**
+     * Evaluates OFFSET and FETCH expressions.
+     *
+     * @param maxRows
+     *            additional limit
+     * @return the evaluated values
+     */
+    OffsetFetch getOffsetFetch(int maxRows) {
+        int fetch = maxRows == 0 ? -1 : maxRows;
+        if (limitExpr != null) {
+            Value v = limitExpr.getValue(session);
+            int l = v == ValueNull.INSTANCE ? -1 : v.getInt();
+            if (fetch < 0) {
+                fetch = l;
+            } else if (l >= 0) {
+                fetch = Math.min(l, fetch);
+            }
+        }
+        boolean fetchPercent = this.fetchPercent;
+        if (fetchPercent) {
+            // Need to check it now, because negative limit has special treatment later
+            if (fetch < 0 || fetch > 100) {
+                throw DbException.getInvalidValueException("FETCH PERCENT", fetch);
+            }
+            // 0 PERCENT means 0
+            if (fetch == 0) {
+                fetchPercent = false;
+            }
+        }
+        long offset;
+        if (offsetExpr != null) {
+            offset = offsetExpr.getValue(session).getLong();
+            if (offset < 0) {
+                offset = 0;
+            }
+        } else {
+            offset = 0;
+        }
+        return new OffsetFetch(offset, fetch, fetchPercent);
+    }
+
+    /**
+     * Applies limits, if any, to a result and makes it ready for value
+     * retrieval.
+     *
+     * @param result
+     *            the result
+     * @param offset
+     *            OFFSET value
+     * @param fetch
+     *            FETCH value
+     * @param fetchPercent
+     *            whether FETCH value is a PERCENT value
+     */
+    void finishResult(LocalResult result, long offset, int fetch, boolean fetchPercent) {
+        if (offset != 0) {
+            if (offset > Integer.MAX_VALUE) {
+                throw DbException.getInvalidValueException("OFFSET", offset);
+            }
+            result.setOffset((int) offset);
+        }
+        if (fetch >= 0) {
+            result.setLimit(fetch);
+            result.setFetchPercent(fetchPercent);
+            if (withTies) {
+                result.setWithTies(sort);
+            }
+        }
+        result.done();
     }
 
 }

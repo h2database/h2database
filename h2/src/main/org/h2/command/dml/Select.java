@@ -56,7 +56,6 @@ import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
-import org.h2.value.ValueNull;
 import org.h2.value.ValueRow;
 
 /**
@@ -804,40 +803,13 @@ public class Select extends Query {
     @Override
     protected ResultInterface queryWithoutCache(int maxRows, ResultTarget target) {
         disableLazyForJoinSubqueries(topTableFilter);
-
-        int limitRows = maxRows == 0 ? -1 : maxRows;
-        if (limitExpr != null) {
-            Value v = limitExpr.getValue(session);
-            int l = v == ValueNull.INSTANCE ? -1 : v.getInt();
-            if (limitRows < 0) {
-                limitRows = l;
-            } else if (l >= 0) {
-                limitRows = Math.min(l, limitRows);
-            }
-        }
-        boolean fetchPercent = this.fetchPercent;
-        if (fetchPercent) {
-            // Need to check it now, because negative limit has special treatment later
-            if (limitRows < 0 || limitRows > 100) {
-                throw DbException.getInvalidValueException("FETCH PERCENT", limitRows);
-            }
-            // 0 PERCENT means 0
-            if (limitRows == 0) {
-                fetchPercent = false;
-            }
-        }
-        long offset;
-        if (offsetExpr != null) {
-            offset = offsetExpr.getValue(session).getLong();
-            if (offset < 0) {
-                offset = 0;
-            }
-        } else {
-            offset = 0;
-        }
+        OffsetFetch offsetFetch = getOffsetFetch(maxRows);
+        long offset = offsetFetch.offset;
+        int fetch = offsetFetch.fetch;
+        boolean fetchPercent = offsetFetch.fetchPercent;
         boolean lazy = session.isLazyQueryExecution() &&
                 target == null && !isForUpdate && !isQuickAggregateQuery &&
-                limitRows != 0 && !fetchPercent && !withTies && offset == 0 && isReadOnly();
+                fetch != 0 && !fetchPercent && !withTies && offset == 0 && isReadOnly();
         int columnCount = expressions.size();
         LocalResult result = null;
         if (!lazy && (target == null ||
@@ -867,7 +839,7 @@ public class Select extends Query {
         if (isWindowQuery || isGroupQuery && !isGroupSortedQuery) {
             result = createLocalResult(result);
         }
-        if (!lazy && (limitRows >= 0 || offset > 0)) {
+        if (!lazy && (fetch >= 0 || offset > 0)) {
             result = createLocalResult(result);
         }
         topTableFilter.startQuery(session);
@@ -877,9 +849,9 @@ public class Select extends Query {
         ResultTarget to = result != null ? result : target;
         lazy &= to == null;
         LazyResult lazyResult = null;
-        if (limitRows != 0) {
+        if (fetch != 0) {
             // Cannot apply limit now if percent is specified
-            int limit = fetchPercent ? -1 : limitRows;
+            int limit = fetchPercent ? -1 : fetch;
             try {
                 if (isQuickAggregateQuery) {
                     queryQuick(columnCount, to, quickOffset && offset > 0);
@@ -909,10 +881,10 @@ public class Select extends Query {
                 }
             }
         }
-        assert lazy == (lazyResult != null): lazy;
+        assert lazy == (lazyResult != null) : lazy;
         if (lazyResult != null) {
-            if (limitRows > 0) {
-                lazyResult.setLimit(limitRows);
+            if (fetch > 0) {
+                lazyResult.setLimit(fetch);
             }
             if (randomAccessResult) {
                 return convertToDistinct(lazyResult);
@@ -920,21 +892,8 @@ public class Select extends Query {
                 return lazyResult;
             }
         }
-        if (offset != 0) {
-            if (offset > Integer.MAX_VALUE) {
-                throw DbException.getInvalidValueException("OFFSET", offset);
-            }
-            result.setOffset((int) offset);
-        }
-        if (limitRows >= 0) {
-            result.setLimit(limitRows);
-            result.setFetchPercent(fetchPercent);
-            if (withTies) {
-                result.setWithTies(sort);
-            }
-        }
         if (result != null) {
-            result.done();
+            finishResult(result, offset, fetch, fetchPercent);
             if (randomAccessResult && !distinct) {
                 result = convertToDistinct(result);
             }
@@ -1860,11 +1819,6 @@ public class Select extends Query {
             return false;
         }
         return true;
-    }
-
-    @Override
-    public boolean isReadOnly() {
-        return isEverything(ExpressionVisitor.READONLY_VISITOR);
     }
 
 

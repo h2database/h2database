@@ -16,7 +16,6 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
-import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
 import org.h2.result.LazyResult;
 import org.h2.result.LocalResult;
@@ -28,8 +27,6 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.ColumnNamer;
 import org.h2.value.Value;
-import org.h2.value.ValueInt;
-import org.h2.value.ValueNull;
 
 /**
  * Represents a union SELECT statement.
@@ -141,28 +138,14 @@ public class SelectUnion extends Query {
 
     @Override
     protected ResultInterface queryWithoutCache(int maxRows, ResultTarget target) {
-        if (maxRows != 0) {
-            // maxRows is set (maxRows 0 means no limit)
-            int l;
-            if (limitExpr == null) {
-                l = -1;
-            } else {
-                Value v = limitExpr.getValue(session);
-                l = v == ValueNull.INSTANCE ? -1 : v.getInt();
-            }
-            if (l < 0) {
-                // for limitExpr, 0 means no rows, and -1 means no limit
-                l = maxRows;
-            } else {
-                l = Math.min(l, maxRows);
-            }
-            limitExpr = ValueExpression.get(ValueInt.get(l));
-        }
+        OffsetFetch offsetFetch = getOffsetFetch(maxRows);
+        long offset = offsetFetch.offset;
+        int fetch = offsetFetch.fetch;
+        boolean fetchPercent = offsetFetch.fetchPercent;
         Database db = session.getDatabase();
         if (db.getSettings().optimizeInsertFromSelect) {
             if (unionType == UnionType.UNION_ALL && target != null) {
-                if (sort == null && !distinct && maxRows == 0 &&
-                        offsetExpr == null && limitExpr == null) {
+                if (sort == null && !distinct && fetch < 0 && offset == 0) {
                     left.query(0, target);
                     right.query(0, target);
                     return null;
@@ -172,19 +155,12 @@ public class SelectUnion extends Query {
         int columnCount = left.getColumnCount();
         if (session.isLazyQueryExecution() && unionType == UnionType.UNION_ALL && !distinct &&
                 sort == null && !randomAccessResult && !isForUpdate &&
-                offsetExpr == null && !fetchPercent && !withTies && isReadOnly()) {
-            int limit = -1;
-            if (limitExpr != null) {
-                Value v = limitExpr.getValue(session);
-                if (v != ValueNull.INSTANCE) {
-                    limit = v.getInt();
-                }
-            }
+                offset == 0 && !fetchPercent && !withTies && isReadOnly()) {
             // limit 0 means no rows
-            if (limit != 0) {
+            if (fetch != 0) {
                 LazyResultUnion lazyResult = new LazyResultUnion(expressionArray, columnCount);
-                if (limit > 0) {
-                    lazyResult.setLimit(limit);
+                if (fetch > 0) {
+                    lazyResult.setLimit(fetch);
                 }
                 return lazyResult;
             }
@@ -256,22 +232,9 @@ public class SelectUnion extends Query {
         default:
             DbException.throwInternalError("type=" + unionType);
         }
-        if (offsetExpr != null) {
-            result.setOffset(offsetExpr.getValue(session).getInt());
-        }
-        if (limitExpr != null) {
-            Value v = limitExpr.getValue(session);
-            if (v != ValueNull.INSTANCE) {
-                result.setLimit(v.getInt());
-                result.setFetchPercent(fetchPercent);
-                if (withTies) {
-                    result.setWithTies(sort);
-                }
-            }
-        }
         l.close();
         r.close();
-        result.done();
+        finishResult(result, offset, fetch, fetchPercent);
         if (target != null) {
             while (result.next()) {
                 target.addRow(result.currentRow());
@@ -441,11 +404,6 @@ public class SelectUnion extends Query {
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         return left.isEverything(visitor) && right.isEverything(visitor);
-    }
-
-    @Override
-    public boolean isReadOnly() {
-        return left.isReadOnly() && right.isReadOnly();
     }
 
     @Override

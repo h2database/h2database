@@ -407,11 +407,6 @@ public class SelectUnion extends Query {
     }
 
     @Override
-    public boolean isReadOnly() {
-        return left.isReadOnly() && right.isReadOnly();
-    }
-
-    @Override
     public void updateAggregate(Session s, int stage) {
         left.updateAggregate(s, stage);
         right.updateAggregate(s, stage);

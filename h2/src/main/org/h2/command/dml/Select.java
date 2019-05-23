@@ -1821,11 +1821,6 @@ public class Select extends Query {
         return true;
     }
 
-    @Override
-    public boolean isReadOnly() {
-        return isEverything(ExpressionVisitor.READONLY_VISITOR);
-    }
-
 
     @Override
     public boolean isCacheable() {

@@ -307,6 +307,11 @@ public abstract class Query extends Prepared {
      */
     public abstract boolean isEverything(ExpressionVisitor visitor);
 
+    @Override
+    public boolean isReadOnly() {
+        return isEverything(ExpressionVisitor.READONLY_VISITOR);
+    }
+
     /**
      * Update all aggregate function values.
      *

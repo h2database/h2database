@@ -100,11 +100,6 @@ public class SelectUnion extends Query {
         return right;
     }
 
-    @Override
-    public void setDistinctIfPossible() {
-        setDistinct();
-    }
-
     private Value[] convert(Value[] values, int columnCount) {
         Value[] newValues;
         if (columnCount == values.length) {
@@ -121,14 +116,6 @@ public class SelectUnion extends Query {
             newValues[i] = values[i].convertTo(e.getType(), mode, null);
         }
         return newValues;
-    }
-
-    @Override
-    public ResultInterface queryMeta() {
-        int columnCount = left.getColumnCount();
-        LocalResult result = createLocalResult(columnCount);
-        result.done();
-        return result;
     }
 
     public LocalResult getEmptyResult() {
@@ -234,15 +221,7 @@ public class SelectUnion extends Query {
         }
         l.close();
         r.close();
-        finishResult(result, offset, fetch, fetchPercent);
-        if (target != null) {
-            while (result.next()) {
-                target.addRow(result.currentRow());
-            }
-            result.close();
-            return null;
-        }
-        return result;
+        return finishResult(result, offset, fetch, fetchPercent, target);
     }
 
     private LocalResult createLocalResult(int columnCount) {
@@ -269,6 +248,7 @@ public class SelectUnion extends Query {
             Expression l = le.get(i);
             expressions.add(l);
         }
+        visibleColumnCount = len;
         if (withTies && !hasOrder()) {
             throw DbException.get(ErrorCode.WITH_TIES_WITHOUT_ORDER_BY);
         }
@@ -305,6 +285,7 @@ public class SelectUnion extends Query {
             sort = prepareOrder(orderList, expressions.size());
             orderList = null;
         }
+        resultColumnCount = expressions.size();
         expressionArray = expressions.toArray(new Expression[0]);
     }
 
@@ -325,11 +306,6 @@ public class SelectUnion extends Query {
         left.setForUpdate(forUpdate);
         right.setForUpdate(forUpdate);
         isForUpdate = forUpdate;
-    }
-
-    @Override
-    public int getColumnCount() {
-        return left.getColumnCount();
     }
 
     @Override

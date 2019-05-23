@@ -903,11 +903,7 @@ Use this mode for compatibility with MariaDB too.
 When case-insensitive identifiers are needed append <code>;CASE_INSENSITIVE_IDENTIFIERS=TRUE</code> to URL.
 Do not change value of DATABASE_TO_LOWER after creation of database.
 </p>
-<ul><li>When inserting data, if a column is defined to be <code>NOT NULL</code>
-    and <code>NULL</code> is inserted,
-    then a 0 (or empty string, or the current timestamp for timestamp columns) value is used.
-    Usually, this operation is not allowed and an exception is thrown.
-</li><li>Creating indexes in the <code>CREATE TABLE</code> statement is allowed using
+<ul><li>Creating indexes in the <code>CREATE TABLE</code> statement is allowed using
     <code>INDEX(..)</code> or <code>KEY(..)</code>.
     Example: <code>create table test(id int primary key, name varchar(255), key idx_name(name));</code>
 </li><li>When converting a floating point number to an integer, the fractional

@@ -29,11 +29,8 @@ import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueInt;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
-import org.h2.value.ValueString;
-import org.h2.value.ValueTime;
 import org.h2.value.ValueUuid;
 
 /**
@@ -398,25 +395,7 @@ public class Column {
                 }
             }
             if (value == ValueNull.INSTANCE && !nullable) {
-                if (mode.convertInsertNullToZero) {
-                    int t = type.getValueType();
-                    DataType dt = DataType.getDataType(t);
-                    if (dt.decimal) {
-                        value = ValueInt.get(0).convertTo(t);
-                    } else if (dt.type == Value.TIMESTAMP) {
-                        value = session.getCurrentCommandStart().convertTo(Value.TIMESTAMP);
-                    } else if (dt.type == Value.TIMESTAMP_TZ) {
-                        value = session.getCurrentCommandStart();
-                    } else if (dt.type == Value.TIME) {
-                        value = ValueTime.fromNanos(0);
-                    } else if (dt.type == Value.DATE) {
-                        value = session.getCurrentCommandStart().convertTo(Value.DATE);
-                    } else {
-                        value = ValueString.get("").convertTo(t);
-                    }
-                } else {
-                    throw DbException.get(ErrorCode.NULL_NOT_ALLOWED, name);
-                }
+                throw DbException.get(ErrorCode.NULL_NOT_ALLOWED, name);
             }
         }
         if (checkConstraint != null) {

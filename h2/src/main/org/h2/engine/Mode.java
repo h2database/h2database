@@ -61,14 +61,6 @@ public class Mode {
     public boolean aliasColumnName;
 
     /**
-     * When inserting data, if a column is defined to be NOT NULL and NULL is
-     * inserted, then a 0 (or empty string, or the current timestamp for
-     * timestamp columns) value is used. Usually, this operation is not allowed
-     * and an exception is thrown.
-     */
-    public boolean convertInsertNullToZero;
-
-    /**
      * When converting the scale of decimal data, the number is only converted
      * if the new scale is smaller than the current scale. Usually, the scale is
      * converted and 0s are added if required.
@@ -299,7 +291,6 @@ public class Mode {
         add(mode);
 
         mode = new Mode(ModeEnum.MySQL);
-        mode.convertInsertNullToZero = true;
         mode.indexDefinitionInCreateTable = true;
         mode.lowerCaseIdentifiers = true;
         // Next one is for MariaDB

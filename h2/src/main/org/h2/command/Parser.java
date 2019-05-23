@@ -7593,7 +7593,8 @@ public class Parser {
                 }
                 break;
             case NO_NULL_CONSTRAINT_FOUND:
-                command = parseAlterTableAlterColumnType(schema, tableName, columnName, ifTableExists);
+                command = parseAlterTableAlterColumnType(schema, tableName, columnName, ifTableExists,
+                        database.getMode().getEnum() != ModeEnum.MySQL);
                 break;
             default:
                 throw DbException.get(ErrorCode.UNKNOWN_MODE_1,
@@ -7704,7 +7705,7 @@ public class Parser {
                 command.setSelectivity(readExpression());
                 return command;
             } else {
-                return parseAlterTableAlterColumnType(schema, tableName, columnName, ifTableExists);
+                return parseAlterTableAlterColumnType(schema, tableName, columnName, ifTableExists, true);
             }
         } else if (database.getMode().getEnum() == ModeEnum.MySQL && readIf("AUTO_INCREMENT")) {
             readIf(EQUAL);
@@ -7758,10 +7759,10 @@ public class Parser {
     }
 
     private AlterTableAlterColumn parseAlterTableAlterColumnType(Schema schema,
-            String tableName, String columnName, boolean ifTableExists) {
+            String tableName, String columnName, boolean ifTableExists, boolean preserveNotNull) {
         Column oldColumn = columnIfTableExists(schema, tableName, columnName, ifTableExists);
         Column newColumn = parseColumnForTable(columnName,
-                oldColumn == null ? true : oldColumn.isNullable(), true);
+                !preserveNotNull || oldColumn == null || oldColumn.isNullable(), true);
         if (readIf(CHECK)) {
             Expression expr = readExpression();
             newColumn.addCheckConstraint(session, expr);

@@ -362,11 +362,7 @@ public class SelectUnion extends Query {
             DbException.throwInternalError("type=" + unionType);
         }
         buff.append('(').append(right.getPlanSQL(alwaysQuote)).append(')');
-        Expression[] exprList = expressions.toArray(new Expression[0]);
-        if (sort != null) {
-            buff.append("\nORDER BY ").append(sort.getSQL(exprList, exprList.length, alwaysQuote));
-        }
-        appendLimitToSQL(buff, alwaysQuote);
+        appendEndOfQueryToSQL(buff, alwaysQuote, expressions.toArray(new Expression[0]));
         if (sampleSizeExpr != null) {
             buff.append("\nSAMPLE_SIZE ");
             sampleSizeExpr.getUnenclosedSQL(buff, alwaysQuote);

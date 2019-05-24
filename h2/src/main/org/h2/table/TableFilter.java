@@ -1054,7 +1054,7 @@ public class TableFilter implements ColumnResolver {
 
     @Override
     public String getSchemaName() {
-        if (alias == null && !(table instanceof FunctionTable)) {
+        if (alias == null && !(table instanceof VirtualTable)) {
             return table.getSchema().getName();
         }
         return null;

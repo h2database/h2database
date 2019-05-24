@@ -699,12 +699,10 @@ public class ScriptCommand extends ScriptBase {
             }
             out.write(buffer, 0, len);
             if (!insert) {
-                Value[] row = { ValueString.get(s) };
-                result.addRow(row);
+                result.addRow(ValueString.get(s));
             }
         } else {
-            Value[] row = { ValueString.get(s) };
-            result.addRow(row);
+            result.addRow(ValueString.get(s));
         }
     }
 

@@ -91,8 +91,7 @@ public abstract class Table extends SchemaObjectBase {
     private volatile Row nullRow;
     private boolean tableExpression;
 
-    public Table(Schema schema, int id, String name, boolean persistIndexes,
-            boolean persistData) {
+    protected Table(Schema schema, int id, String name, boolean persistIndexes, boolean persistData) {
         super(schema, id, name, Trace.TABLE);
         columnMap = schema.getDatabase().newStringMap();
         this.persistIndexes = persistIndexes;

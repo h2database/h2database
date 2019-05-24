@@ -150,6 +150,7 @@ import org.h2.command.dml.SelectOrderBy;
 import org.h2.command.dml.SelectUnion;
 import org.h2.command.dml.Set;
 import org.h2.command.dml.SetTypes;
+import org.h2.command.dml.TableValueConstructor;
 import org.h2.command.dml.TransactionCommand;
 import org.h2.command.dml.Update;
 import org.h2.constraint.ConstraintActionType;
@@ -1851,17 +1852,8 @@ public class Parser {
             if (isSelect()) {
                 Query query = parseSelectUnion();
                 read(CLOSE_PAREN);
-                query.setParameterList(new ArrayList<>(parameters));
-                query.init();
-                Session s;
-                if (createView != null) {
-                    s = database.getSystemSession();
-                } else {
-                    s = session;
-                }
                 alias = session.getNextSystemIdentifier(sqlCommand);
-                table = TableView.createTempView(s, session.getUser(), alias,
-                        query, currentSelect);
+                table = query.toTable(alias, parameters, createView != null, currentSelect);
             } else {
                 TableFilter top;
                 top = readTableFilter();
@@ -1878,7 +1870,9 @@ public class Parser {
                 return top;
             }
         } else if (readIf(VALUES)) {
-            table = parseValuesTable(0).getTable();
+            TableValueConstructor query = parseValues();
+            alias = session.getNextSystemIdentifier(sqlCommand);
+            table = query.toTable(alias, parameters, createView != null, currentSelect);
         } else if (readIf(TABLE)) {
             read(OPEN_PAREN);
             Function function = readFunctionParameters(Function.getFunction(database, Function.TABLE));
@@ -2812,7 +2806,7 @@ public class Parser {
         command.setExpressions(expressions);
     }
 
-    private Select parseSelectSimple() {
+    private Query parseSelectSimple() {
         boolean fromFirst;
         if (readIf(SELECT)) {
             fromFirst = false;
@@ -2825,9 +2819,7 @@ public class Parser {
             TableFilter filter = new TableFilter(session, table, null, rightsChecked,
                     command, orderInFrom++, null);
             command.addTableFilter(filter, true);
-            ArrayList<Expression> expressions = new ArrayList<>();
-            expressions.add(new Wildcard(null, null));
-            command.setExpressions(expressions);
+            command.setExplicitTable();
             setSQL(command, "TABLE", start);
             return command;
         } else if (readIf(VALUES)) {
@@ -6186,18 +6178,7 @@ public class Parser {
         return command;
     }
 
-    private Select parseValues() {
-        Select command = new Select(session, currentSelect);
-        currentSelect = command;
-        TableFilter filter = parseValuesTable(0);
-        command.setWildcard();
-        command.addTableFilter(filter, true);
-        return command;
-    }
-
-    private TableFilter parseValuesTable(int orderInFrom) {
-        Schema mainSchema = database.getMainSchema();
-        TableFunction tf = (TableFunction) Function.getFunction(database, Function.TABLE);
+    private TableValueConstructor parseValues() {
         ArrayList<Column> columns = Utils.newSmallArrayList();
         ArrayList<ArrayList<Expression>> rows = Utils.newSmallArrayList();
         do {
@@ -6236,7 +6217,6 @@ public class Parser {
             rows.add(row);
         } while (readIf(COMMA));
         int columnCount = columns.size();
-        int rowCount = rows.size();
         for (ArrayList<Expression> row : rows) {
             if (row.size() != columnCount) {
                 throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
@@ -6248,17 +6228,8 @@ public class Parser {
                 c = new Column(c.getName(), Value.STRING);
                 columns.set(i, c);
             }
-            Expression[] array = new Expression[rowCount];
-            for (int j = 0; j < rowCount; j++) {
-                array[j] = rows.get(j).get(i);
-            }
-            ExpressionList list = new ExpressionList(array, false);
-            tf.setParameter(i, list);
         }
-        tf.setColumns(columns);
-        tf.doneWithParameters();
-        Table table = new FunctionTable(mainSchema, session, tf, tf);
-        return new TableFilter(session, table, null, rightsChecked, currentSelect, orderInFrom, null);
+        return new TableValueConstructor(session, columns.toArray(new Column[0]), rows);
     }
 
     private Call parseCall() {

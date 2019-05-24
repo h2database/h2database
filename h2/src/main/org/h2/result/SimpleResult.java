@@ -16,7 +16,7 @@ import org.h2.value.Value;
 /**
  * Simple in-memory result.
  */
-public class SimpleResult implements ResultInterface {
+public class SimpleResult implements ResultInterface, ResultTarget {
 
     /**
      *  Column info for the simple result.
@@ -133,11 +133,7 @@ public class SimpleResult implements ResultInterface {
         columns.add(column);
     }
 
-    /**
-     * Add row to result.
-     *
-     * @param values Row's values.
-     */
+    @Override
     public void addRow(Value... values) {
         assert values.length == columns.size();
         rows.add(values);
@@ -255,6 +251,11 @@ public class SimpleResult implements ResultInterface {
     @Override
     public ResultInterface createShallowCopy(SessionInterface targetSession) {
         return new SimpleResult(columns, rows);
+    }
+
+    @Override
+    public void limitsWereApplied() {
+        // Nothing to do
     }
 
 }

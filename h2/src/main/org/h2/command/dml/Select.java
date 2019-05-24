@@ -131,6 +131,8 @@ public class Select extends Query {
 
     private int[] groupByCopies;
 
+    private boolean isExplicitTable;
+
     /**
      * This flag is set when SELECT statement contains (non-window) aggregate
      * functions, GROUP BY clause or HAVING clause.
@@ -184,6 +186,14 @@ public class Select extends Query {
 
     public void setExpressions(ArrayList<Expression> expressions) {
         this.expressions = expressions;
+    }
+
+    /**
+     * Convert this SELECT to an explicit table.
+     */
+    public void setExplicitTable() {
+        setWildcard();
+        isExplicitTable = true;
     }
 
     /**
@@ -1441,68 +1451,73 @@ public class Select extends Query {
                 }
             }
         }
-        builder.append("SELECT");
-        if (isAnyDistinct()) {
-            builder.append(" DISTINCT");
-            if (distinctExpressions != null) {
-                builder.append(" ON(");
-                Expression.writeExpressions(builder, distinctExpressions, alwaysQuote);
-                builder.append(')');
-            }
-        }
-        for (int i = 0; i < visibleColumnCount; i++) {
-            if (i > 0) {
-                builder.append(',');
-            }
-            builder.append('\n');
-            StringUtils.indent(builder, exprList[i].getSQL( alwaysQuote), 4, false);
-        }
-        builder.append("\nFROM ");
-        TableFilter filter = topTableFilter;
-        if (filter != null) {
-            int i = 0;
-            do {
-                if (i > 0) {
-                    builder.append('\n');
-                }
-                filter.getPlanSQL(builder, i++ > 0, alwaysQuote);
-                filter = filter.getJoin();
-            } while (filter != null);
+        if (isExplicitTable) {
+            builder.append("TABLE ");
+            filters.get(0).getPlanSQL(builder, false, alwaysQuote);
         } else {
-            int i = 0;
-            for (TableFilter f : topFilters) {
+            builder.append("SELECT");
+            if (isAnyDistinct()) {
+                builder.append(" DISTINCT");
+                if (distinctExpressions != null) {
+                    builder.append(" ON(");
+                    Expression.writeExpressions(builder, distinctExpressions, alwaysQuote);
+                    builder.append(')');
+                }
+            }
+            for (int i = 0; i < visibleColumnCount; i++) {
+                if (i > 0) {
+                    builder.append(',');
+                }
+                builder.append('\n');
+                StringUtils.indent(builder, exprList[i].getSQL( alwaysQuote), 4, false);
+            }
+            builder.append("\nFROM ");
+            TableFilter filter = topTableFilter;
+            if (filter != null) {
+                int i = 0;
                 do {
                     if (i > 0) {
                         builder.append('\n');
                     }
-                    f.getPlanSQL(builder, i++ > 0, alwaysQuote);
-                    f = f.getJoin();
-                } while (f != null);
-            }
-        }
-        if (condition != null) {
-            builder.append("\nWHERE ");
-            condition.getUnenclosedSQL(builder, alwaysQuote);
-        }
-        if (groupIndex != null) {
-            builder.append("\nGROUP BY ");
-            for (int i = 0, l = groupIndex.length; i < l; i++) {
-                if (i > 0) {
-                    builder.append(", ");
+                    filter.getPlanSQL(builder, i++ > 0, alwaysQuote);
+                    filter = filter.getJoin();
+                } while (filter != null);
+            } else {
+                int i = 0;
+                for (TableFilter f : topFilters) {
+                    do {
+                        if (i > 0) {
+                            builder.append('\n');
+                        }
+                        f.getPlanSQL(builder, i++ > 0, alwaysQuote);
+                        f = f.getJoin();
+                    } while (f != null);
                 }
-                exprList[groupIndex[i]].getNonAliasExpression().getUnenclosedSQL(builder, alwaysQuote);
             }
-        } else if (group != null) {
-            builder.append("\nGROUP BY ");
-            for (int i = 0, l = group.size(); i < l; i++) {
-                if (i > 0) {
-                    builder.append(", ");
+            if (condition != null) {
+                builder.append("\nWHERE ");
+                condition.getUnenclosedSQL(builder, alwaysQuote);
+            }
+            if (groupIndex != null) {
+                builder.append("\nGROUP BY ");
+                for (int i = 0, l = groupIndex.length; i < l; i++) {
+                    if (i > 0) {
+                        builder.append(", ");
+                    }
+                    exprList[groupIndex[i]].getNonAliasExpression().getUnenclosedSQL(builder, alwaysQuote);
                 }
-                group.get(i).getUnenclosedSQL(builder, alwaysQuote);
+            } else if (group != null) {
+                builder.append("\nGROUP BY ");
+                for (int i = 0, l = group.size(); i < l; i++) {
+                    if (i > 0) {
+                        builder.append(", ");
+                    }
+                    group.get(i).getUnenclosedSQL(builder, alwaysQuote);
+                }
             }
+            getFilterSQL(builder, "\nHAVING ", exprList, having, havingIndex);
+            getFilterSQL(builder, "\nQUALIFY ", exprList, qualify, qualifyIndex);
         }
-        getFilterSQL(builder, "\nHAVING ", exprList, having, havingIndex);
-        getFilterSQL(builder, "\nQUALIFY ", exprList, qualify, qualifyIndex);
         appendEndOfQueryToSQL(builder, alwaysQuote, exprList);
         if (sampleSizeExpr != null) {
             builder.append("\nSAMPLE_SIZE ");

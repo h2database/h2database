@@ -2819,9 +2819,7 @@ public class Parser {
             TableFilter filter = new TableFilter(session, table, null, rightsChecked,
                     command, orderInFrom++, null);
             command.addTableFilter(filter, true);
-            ArrayList<Expression> expressions = new ArrayList<>();
-            expressions.add(new Wildcard(null, null));
-            command.setExpressions(expressions);
+            command.setExplicitTable();
             setSQL(command, "TABLE", start);
             return command;
         } else if (readIf(VALUES)) {

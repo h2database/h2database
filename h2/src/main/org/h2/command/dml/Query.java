@@ -771,12 +771,24 @@ public abstract class Query extends Prepared {
     }
 
     /**
-     * Appends query limits info to the plan.
+     * Appends ORDER BY, OFFSET, and FETCH clauses to the plan.
      *
      * @param builder query plan string builder.
      * @param alwaysQuote quote all identifiers
+     * @param expressions the array of expressions
      */
-    void appendLimitToSQL(StringBuilder builder, boolean alwaysQuote) {
+    void appendEndOfQueryToSQL(StringBuilder builder, boolean alwaysQuote, Expression[] expressions) {
+        if (sort != null) {
+            builder.append("\nORDER BY ").append(sort.getSQL(expressions, visibleColumnCount, alwaysQuote));
+        } else if (orderList != null) {
+            builder.append("\nORDER BY ");
+            for (int i = 0, l = orderList.size(); i < l; i++) {
+                if (i > 0) {
+                    builder.append(", ");
+                }
+                orderList.get(i).getSQL(builder, alwaysQuote);
+            }
+        }
         if (offsetExpr != null) {
             String count = StringUtils.unEnclose(offsetExpr.getSQL(alwaysQuote));
             builder.append("\nOFFSET ").append(count).append("1".equals(count) ? " ROW" : " ROWS");

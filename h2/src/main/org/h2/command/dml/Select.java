@@ -1503,20 +1503,7 @@ public class Select extends Query {
         }
         getFilterSQL(builder, "\nHAVING ", exprList, having, havingIndex);
         getFilterSQL(builder, "\nQUALIFY ", exprList, qualify, qualifyIndex);
-        if (sort != null) {
-            builder.append("\nORDER BY ").append(
-                    sort.getSQL(exprList, visibleColumnCount, alwaysQuote));
-        }
-        if (orderList != null) {
-            builder.append("\nORDER BY ");
-            for (int i = 0, l = orderList.size(); i < l; i++) {
-                if (i > 0) {
-                    builder.append(", ");
-                }
-                orderList.get(i).getSQL(builder, alwaysQuote);
-            }
-        }
-        appendLimitToSQL(builder, alwaysQuote);
+        appendEndOfQueryToSQL(builder, alwaysQuote, exprList);
         if (sampleSizeExpr != null) {
             builder.append("\nSAMPLE_SIZE ");
             sampleSizeExpr.getUnenclosedSQL(builder, alwaysQuote);

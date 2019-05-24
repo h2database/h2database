@@ -706,8 +706,7 @@ public class Select extends Query {
                 offset--;
                 continue;
             }
-            Value[] row = { value };
-            result.addRow(row);
+            result.addRow(value);
             if ((sort == null || sortUsingIndex) && limitRows > 0 &&
                     rowNumber >= limitRows && !withTies) {
                 break;

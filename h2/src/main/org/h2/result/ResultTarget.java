@@ -17,7 +17,7 @@ public interface ResultTarget {
      *
      * @param values the values
      */
-    void addRow(Value[] values);
+    void addRow(Value... values);
 
     /**
      * Get the number of rows.

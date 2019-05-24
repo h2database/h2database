@@ -134,8 +134,7 @@ public class Explain extends Prepared {
     }
 
     private void add(String text) {
-        Value[] row = { ValueString.get(text) };
-        result.addRow(row);
+        result.addRow(ValueString.get(text));
     }
 
     @Override

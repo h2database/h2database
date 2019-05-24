@@ -226,7 +226,7 @@ public class Insert extends CommandWithValues implements ResultTarget {
     }
 
     @Override
-    public void addRow(Value[] values) {
+    public void addRow(Value... values) {
         addRowImpl(values);
     }
 

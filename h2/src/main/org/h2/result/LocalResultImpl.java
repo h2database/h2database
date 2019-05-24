@@ -320,7 +320,7 @@ public class LocalResultImpl implements LocalResult {
      * @param values the row to add
      */
     @Override
-    public void addRow(Value[] values) {
+    public void addRow(Value... values) {
         assert values.length == resultColumnCount;
         cloneLobs(values);
         if (isAnyDistinct()) {

@@ -67,8 +67,7 @@ public class Call extends Prepared {
             return v.getResult();
         }
         LocalResult result = session.getDatabase().getResultFactory().create(session, expressions, 1, 1);
-        Value[] row = { v };
-        result.addRow(row);
+        result.addRow(v);
         result.done();
         return result;
     }

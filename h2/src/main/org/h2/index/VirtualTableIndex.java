@@ -14,18 +14,19 @@ import org.h2.result.SortOrder;
 import org.h2.table.FunctionTable;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableFilter;
+import org.h2.table.VirtualTable;
 
 /**
- * An index for a function that returns a result set. Search in this index
+ * An index for a virtual table that returns a result set. Search in this index
  * performs scan over all rows and should be avoided.
  */
-public class FunctionIndex extends BaseIndex {
+public class VirtualTableIndex extends BaseIndex {
 
-    private final FunctionTable functionTable;
+    private final VirtualTable table;
 
-    public FunctionIndex(FunctionTable functionTable, IndexColumn[] columns) {
-        super(functionTable, 0, null, columns, IndexType.createNonUnique(true));
-        this.functionTable = functionTable;
+    public VirtualTableIndex(VirtualTable table, IndexColumn[] columns) {
+        super(table, 0, null, columns, IndexType.createNonUnique(true));
+        this.table = table;
     }
 
     @Override
@@ -35,12 +36,12 @@ public class FunctionIndex extends BaseIndex {
 
     @Override
     public void add(Session session, Row row) {
-        throw DbException.getUnsupportedException("ALIAS");
+        throw DbException.getUnsupportedException("Virtual table");
     }
 
     @Override
     public void remove(Session session, Row row) {
-        throw DbException.getUnsupportedException("ALIAS");
+        throw DbException.getUnsupportedException("Virtual table");
     }
 
     @Override
@@ -50,19 +51,18 @@ public class FunctionIndex extends BaseIndex {
 
     @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
-        return new FunctionCursor(this, first, last, session, functionTable.getResult(session));
+        return new VirtualTableCursor(this, first, last, session, table.getResult(session));
     }
 
     @Override
-    public double getCost(Session session, int[] masks,
-            TableFilter[] filters, int filter, SortOrder sortOrder,
+    public double getCost(Session session, int[] masks, TableFilter[] filters, int filter, SortOrder sortOrder,
             AllColumnsForPlan allColumnsSet) {
         if (masks != null) {
-            throw DbException.getUnsupportedException("ALIAS");
+            throw DbException.getUnsupportedException("Virtual table");
         }
         long expectedRows;
-        if (functionTable.canGetRowCount()) {
-            expectedRows = functionTable.getRowCountApproximation();
+        if (table.canGetRowCount()) {
+            expectedRows = table.getRowCountApproximation();
         } else {
             expectedRows = database.getSettings().estimatedFunctionTableRows;
         }
@@ -71,12 +71,12 @@ public class FunctionIndex extends BaseIndex {
 
     @Override
     public void remove(Session session) {
-        throw DbException.getUnsupportedException("ALIAS");
+        throw DbException.getUnsupportedException("Virtual table");
     }
 
     @Override
     public void truncate(Session session) {
-        throw DbException.getUnsupportedException("ALIAS");
+        throw DbException.getUnsupportedException("Virtual table");
     }
 
     @Override
@@ -86,7 +86,7 @@ public class FunctionIndex extends BaseIndex {
 
     @Override
     public void checkRename() {
-        throw DbException.getUnsupportedException("ALIAS");
+        throw DbException.getUnsupportedException("Virtual table");
     }
 
     @Override
@@ -96,17 +96,17 @@ public class FunctionIndex extends BaseIndex {
 
     @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
-        throw DbException.getUnsupportedException("ALIAS");
+        throw DbException.getUnsupportedException("Virtual table");
     }
 
     @Override
     public long getRowCount(Session session) {
-        return functionTable.getRowCount(session);
+        return table.getRowCount(session);
     }
 
     @Override
     public long getRowCountApproximation() {
-        return functionTable.getRowCountApproximation();
+        return table.getRowCountApproximation();
     }
 
     @Override
@@ -116,7 +116,7 @@ public class FunctionIndex extends BaseIndex {
 
     @Override
     public String getPlanSQL() {
-        return "function";
+        return table instanceof FunctionTable ? "function" : "table scan";
     }
 
     @Override

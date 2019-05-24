@@ -5,18 +5,13 @@
  */
 package org.h2.table;
 
-import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.function.FunctionCall;
 import org.h2.expression.function.TableFunction;
-import org.h2.index.FunctionIndex;
-import org.h2.index.Index;
-import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
-import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -26,15 +21,14 @@ import org.h2.value.ValueResultSet;
  * A table backed by a system or user-defined function that returns a result
  * set.
  */
-public class FunctionTable extends Table {
+public class FunctionTable extends VirtualTable {
 
     private final FunctionCall function;
     private final long rowCount;
     private Expression functionExpr;
 
-    public FunctionTable(Schema schema, Session session,
-            Expression functionExpr, FunctionCall function) {
-        super(schema, 0, function.getName(), false, true);
+    public FunctionTable(Schema schema, Session session, Expression functionExpr, FunctionCall function) {
+        super(schema, 0, function.getName());
         this.functionExpr = functionExpr;
         this.function = function;
         if (function instanceof TableFunction) {
@@ -45,8 +39,7 @@ public class FunctionTable extends Table {
         function.optimize(session);
         int type = function.getValueType();
         if (type != Value.RESULT_SET) {
-            throw DbException.get(
-                    ErrorCode.FUNCTION_MUST_RETURN_RESULT_SET_1, function.getName());
+            throw DbException.get(ErrorCode.FUNCTION_MUST_RETURN_RESULT_SET_1, function.getName());
         }
         Expression[] args = function.getArgs();
         int numParams = args.length;
@@ -55,11 +48,9 @@ public class FunctionTable extends Table {
             args[i] = args[i].optimize(session);
             columnListArgs[i] = args[i];
         }
-        ValueResultSet template = function.getValueForColumnList(
-                session, columnListArgs);
+        ValueResultSet template = function.getValueForColumnList(session, columnListArgs);
         if (template == null) {
-            throw DbException.get(
-                    ErrorCode.FUNCTION_MUST_RETURN_RESULT_SET_1, function.getName());
+            throw DbException.get(ErrorCode.FUNCTION_MUST_RETURN_RESULT_SET_1, function.getName());
         }
         ResultInterface result = template.getResult();
         int columnCount = result.getVisibleColumnCount();
@@ -68,74 +59,6 @@ public class FunctionTable extends Table {
             cols[i] = new Column(result.getColumnName(i), result.getColumnType(i));
         }
         setColumns(cols);
-    }
-
-    @Override
-    public boolean lock(Session session, boolean exclusive, boolean forceLockEvenInMvcc) {
-        // nothing to do
-        return false;
-    }
-
-    @Override
-    public void close(Session session) {
-        // nothing to do
-    }
-
-    @Override
-    public void unlock(Session s) {
-        // nothing to do
-    }
-
-    @Override
-    public boolean isLockedExclusively() {
-        return false;
-    }
-
-    @Override
-    public Index addIndex(Session session, String indexName, int indexId,
-            IndexColumn[] cols, IndexType indexType, boolean create,
-            String indexComment) {
-        throw DbException.getUnsupportedException("ALIAS");
-    }
-
-    @Override
-    public void removeRow(Session session, Row row) {
-        throw DbException.getUnsupportedException("ALIAS");
-    }
-
-    @Override
-    public void truncate(Session session) {
-        throw DbException.getUnsupportedException("ALIAS");
-    }
-
-    @Override
-    public boolean canDrop() {
-        throw DbException.throwInternalError(toString());
-    }
-
-    @Override
-    public void addRow(Session session, Row row) {
-        throw DbException.getUnsupportedException("ALIAS");
-    }
-
-    @Override
-    public void checkSupportAlter() {
-        throw DbException.getUnsupportedException("ALIAS");
-    }
-
-    @Override
-    public TableType getTableType() {
-        return null;
-    }
-
-    @Override
-    public Index getScanIndex(Session session) {
-        return new FunctionIndex(this, IndexColumn.wrap(columns));
-    }
-
-    @Override
-    public ArrayList<Index> getIndexes() {
-        return null;
     }
 
     @Override
@@ -149,26 +72,11 @@ public class FunctionTable extends Table {
     }
 
     @Override
-    public String getCreateSQL() {
-        return null;
+    public long getRowCountApproximation() {
+        return rowCount;
     }
 
     @Override
-    public String getDropSQL() {
-        return null;
-    }
-
-    @Override
-    public void checkRename() {
-        throw DbException.getUnsupportedException("ALIAS");
-    }
-
-    /**
-     * Read the result from the function.
-     *
-     * @param session the session
-     * @return the result
-     */
     public ResultInterface getResult(Session session) {
         functionExpr = functionExpr.optimize(session);
         Value v = functionExpr.getValue(session);
@@ -176,18 +84,6 @@ public class FunctionTable extends Table {
             return null;
         }
         return ((ValueResultSet) v).getResult();
-    }
-
-    @Override
-    public long getMaxDataModificationId() {
-        // TODO optimization: table-as-a-function currently doesn't know the
-        // last modified date
-        return Long.MAX_VALUE;
-    }
-
-    @Override
-    public Index getUniqueIndex() {
-        return null;
     }
 
     @Override
@@ -201,23 +97,8 @@ public class FunctionTable extends Table {
     }
 
     @Override
-    public long getRowCountApproximation() {
-        return rowCount;
-    }
-
-    @Override
-    public long getDiskSpaceUsed() {
-        return 0;
-    }
-
-    @Override
     public boolean isDeterministic() {
         return function.isDeterministic();
-    }
-
-    @Override
-    public boolean canReference() {
-        return false;
     }
 
 }

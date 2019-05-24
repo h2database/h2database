@@ -7,23 +7,27 @@ package org.h2.index;
 
 import org.h2.engine.Session;
 import org.h2.message.DbException;
+import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.value.Value;
 
 /**
- * Abstract function cursor. This implementation filters the rows (only returns
- * entries that are larger or equal to "first", and smaller than last or equal
- * to "last").
+ * A cursor for a virtual table. This implementation filters the rows (only
+ * returns entries that are larger or equal to "first", and smaller than last or
+ * equal to "last").
  */
-abstract class AbstractFunctionCursor implements Cursor {
-    private final FunctionIndex index;
+class VirtualTableCursor implements Cursor {
+
+    private final VirtualTableIndex index;
 
     private final SearchRow first;
 
     private final SearchRow last;
 
     final Session session;
+
+    private final ResultInterface result;
 
     Value[] values;
 
@@ -38,12 +42,16 @@ abstract class AbstractFunctionCursor implements Cursor {
      *            last row
      * @param session
      *            session
+     * @param result
+     *            the result
      */
-    AbstractFunctionCursor(FunctionIndex index, SearchRow first, SearchRow last, Session session) {
+    VirtualTableCursor(VirtualTableIndex index, SearchRow first, SearchRow last, Session session,
+            ResultInterface result) {
         this.index = index;
         this.first = first;
         this.last = last;
         this.session = session;
+        this.result = result;
     }
 
     @Override
@@ -92,7 +100,15 @@ abstract class AbstractFunctionCursor implements Cursor {
      *
      * @return true if another row is available
      */
-    abstract boolean nextImpl();
+    private boolean nextImpl() {
+        row = null;
+        if (result != null && result.next()) {
+            values = result.currentRow();
+        } else {
+            values = null;
+        }
+        return values != null;
+    }
 
     @Override
     public boolean previous() {

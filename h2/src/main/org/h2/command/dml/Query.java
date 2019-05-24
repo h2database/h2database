@@ -30,6 +30,7 @@ import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.table.TableView;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
@@ -904,6 +905,22 @@ public abstract class Query extends Prepared {
         result.close();
         distinctResult.done();
         return distinctResult;
+    }
+
+    /**
+     * Converts this query to a table or a view.
+     *
+     * @param alias alias name for the view
+     * @param parameters the parameters
+     * @param forCreateView if true, a system session will be used for the view
+     * @param topQuery the top level query
+     * @return the table or the view
+     */
+    public Table toTable(String alias, ArrayList<Parameter> parameters, boolean forCreateView, Query topQuery) {
+        setParameterList(new ArrayList<>(parameters));
+        init();
+        return TableView.createTempView(forCreateView ? session.getDatabase().getSystemSession() : session,
+                session.getUser(), alias, this, topQuery);
     }
 
 }

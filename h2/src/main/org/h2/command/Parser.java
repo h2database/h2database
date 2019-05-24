@@ -1851,17 +1851,8 @@ public class Parser {
             if (isSelect()) {
                 Query query = parseSelectUnion();
                 read(CLOSE_PAREN);
-                query.setParameterList(new ArrayList<>(parameters));
-                query.init();
-                Session s;
-                if (createView != null) {
-                    s = database.getSystemSession();
-                } else {
-                    s = session;
-                }
                 alias = session.getNextSystemIdentifier(sqlCommand);
-                table = TableView.createTempView(s, session.getUser(), alias,
-                        query, currentSelect);
+                table = query.toTable(alias, parameters, createView != null, currentSelect);
             } else {
                 TableFilter top;
                 top = readTableFilter();

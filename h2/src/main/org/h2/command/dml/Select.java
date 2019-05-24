@@ -131,6 +131,10 @@ public class Select extends Query {
 
     private int[] groupByCopies;
 
+    /**
+     * Whether this SELECT is an explicit table (TABLE tableName). It is used in
+     * {@link #getPlanSQL(boolean)} to generate SQL similar to original query.
+     */
     private boolean isExplicitTable;
 
     /**
@@ -189,7 +193,7 @@ public class Select extends Query {
     }
 
     /**
-     * Convert this SELECT to an explicit table.
+     * Convert this SELECT to an explicit table (TABLE tableName).
      */
     public void setExplicitTable() {
         setWildcard();

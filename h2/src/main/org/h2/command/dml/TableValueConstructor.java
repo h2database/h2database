@@ -131,7 +131,8 @@ public class TableValueConstructor extends Query {
      * @param rows
      *            the values
      */
-    public static void getValuesSQL(StringBuilder builder, boolean alwaysQuote, ArrayList<ArrayList<Expression>> rows) {
+    public static void getValuesSQL(StringBuilder builder, boolean alwaysQuote, //
+            ArrayList<ArrayList<Expression>> rows) {
         builder.append("VALUES ");
         int rowCount = rows.size();
         for (int i = 0; i < rowCount; i++) {

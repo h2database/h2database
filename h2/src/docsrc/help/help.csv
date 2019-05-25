@@ -4235,20 +4235,31 @@ FLOOR(A)
 "
 
 "Functions (Numeric)","LN","
-{LN|LOG}(numeric)
+LN(numeric)
 ","
 Calculates the natural (base e) logarithm as a double value.
-In the PostgreSQL mode, LOG(x) is base 10.
-See also Java ""Math.log"".
+Argument must be a positive numeric value.
 ","
 LN(A)
+"
+
+"Functions (Numeric)","LOG","
+LOG([baseNumeric,] numeric)
+","
+Calculates the logarithm with specified base as a double value.
+Argument and base must be positive numeric values.
+Base cannot be equal to 1.
+The default base is e (natural logarithm), in the PostgreSQL mode the default base is base 10.
+In MSSQLServer mode the optional base is specified after the argument.
+","
+LOG(2, A)
 "
 
 "Functions (Numeric)","LOG10","
 LOG10(numeric)
 ","
 Calculates the base 10 logarithm as a double value.
-See also Java ""Math.log10"".
+Argument must be a positive numeric value.
 ","
 LOG10(A)
 "

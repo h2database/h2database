@@ -234,7 +234,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunction("DEGREES", DEGREES, 1, Value.DOUBLE);
         addFunction("EXP", EXP, 1, Value.DOUBLE);
         addFunction("FLOOR", FLOOR, 1, Value.DOUBLE);
-        addFunction("LOG", LOG, 1, Value.DOUBLE);
+        addFunction("LOG", LOG, VAR_ARGS, Value.DOUBLE);
         addFunction("LN", LN, 1, Value.DOUBLE);
         addFunction("LOG10", LOG10, 1, Value.DOUBLE);
         addFunction("LSHIFT", LSHIFT, 2, Value.LONG);
@@ -684,19 +684,25 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case FLOOR:
             result = ValueDouble.get(Math.floor(v0.getDouble()));
             break;
-        case LN:
-            result = ValueDouble.get(Math.log(v0.getDouble()));
-            break;
-        case LOG:
-            if (database.getMode().logIsLogBase10) {
-                result = ValueDouble.get(Math.log10(v0.getDouble()));
-            } else {
-                result = ValueDouble.get(Math.log(v0.getDouble()));
+        case LN: {
+            double arg = v0.getDouble();
+            if (arg <= 0) {
+                throw DbException.getInvalidValueException("LN() argument", arg);
             }
+            result = ValueDouble.get(Math.log(arg));
             break;
-        case LOG10:
-            result = ValueDouble.get(Math.log10(v0.getDouble()));
+        }
+        case LOG:
+            result = log(v0, getNullOrValue(session, args, values, 1));
             break;
+        case LOG10: {
+            double arg = v0.getDouble();
+            if (arg <= 0) {
+                throw DbException.getInvalidValueException("LOG10() argument", arg);
+            }
+            result = ValueDouble.get(Math.log10(arg));
+            break;
+        }
         case PI:
             result = ValueDouble.get(Math.PI);
             break;
@@ -1857,6 +1863,39 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         }
     }
 
+    private Value log(Value v0, Value v1) {
+        double arg = v0.getDouble();
+        double r;
+        Mode mode = database.getMode();
+        if (v1 == null) {
+            if (arg <= 0) {
+                throw DbException.getInvalidValueException("LOG() argument", arg);
+            }
+            r = mode.logIsLogBase10 ? Math.log10(arg) : Math.log(arg);
+        } else {
+            double base = v1.getDouble();
+            if (!mode.swapLogFunctionParameters) {
+                double t = arg;
+                arg = base;
+                base = t;
+            }
+            if (arg <= 0) {
+                throw DbException.getInvalidValueException("LOG() argument", arg);
+            }
+            if (base <= 0 || base == 1) {
+                throw DbException.getInvalidValueException("LOG() base", base);
+            }
+            if (base == Math.E) {
+                r = Math.log(arg);
+            } else if (base == 10d) {
+                r = Math.log10(arg);
+            } else {
+                r = Math.log(arg) / Math.log(base);
+            }
+        }
+        return ValueDouble.get(r);
+    }
+
     private static byte[] getPaddedArrayCopy(byte[] data, int blockSize) {
         int size = MathUtils.roundUpInt(data.length, blockSize);
         return Utils.copyBytes(data, size);
@@ -2417,6 +2456,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case RAND:
             max = 1;
             break;
+        case LOG:
         case COMPRESS:
         case LTRIM:
         case RTRIM:
@@ -2427,6 +2467,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case TRUNCATE:
         case TO_TIMESTAMP:
         case TO_TIMESTAMP_TZ:
+        case CURRVAL:
+        case NEXTVAL:
             min = 1;
             max = 2;
             break;
@@ -2436,9 +2478,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         case TO_CHAR:
         case TO_DATE:
-            min = 1;
-            max = 3;
-            break;
         case ORA_HASH:
             min = 1;
             max = 3;
@@ -2450,6 +2489,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case SUBSTRING:
         case LPAD:
         case RPAD:
+        case REGEXP_LIKE:
             min = 2;
             max = 3;
             break;
@@ -2467,11 +2507,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             min = 2;
             max = 4;
             break;
-        case CURRVAL:
-        case NEXTVAL:
-            min = 1;
-            max = 2;
-            break;
         case DECODE:
         case CASE:
             min = 3;
@@ -2479,10 +2514,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case REGEXP_REPLACE:
             min = 3;
             max = 4;
-            break;
-        case REGEXP_LIKE:
-            min = 2;
-            max = 3;
             break;
         case JSON_OBJECT: // Ensured by Parser
         case JSON_ARRAY:

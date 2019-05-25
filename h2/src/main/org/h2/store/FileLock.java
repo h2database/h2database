@@ -5,7 +5,6 @@
  */
 package org.h2.store;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
@@ -198,10 +197,10 @@ public class FileLock implements Runnable {
             throw getExceptionFatal("Could not save properties " + fileName, e);
         }
     }
-    
+
     /**
      * Aggressively read last modified time, to work-around remote filesystems.
-     * 
+     *
      * @param filename file name to check
      * @return last modified date/time in milliseconds UTC
      */
@@ -221,7 +220,7 @@ public class FileLock implements Runnable {
         } catch (IOException ignoreEx) {}
         return FileUtils.lastModified(fileName);
     }
-      
+
     private void checkServer() {
         Properties prop = load();
         String server = prop.getProperty("server");

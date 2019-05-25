@@ -119,9 +119,14 @@ public class Mode {
     public boolean allowPlusForStringConcat;
 
     /**
-     * The function LOG() uses base 10 instead of E.
+     * The single-argument function LOG() uses base 10 instead of E.
      */
     public boolean logIsLogBase10;
+
+    /**
+     * Swap the parameters of LOG() function.
+     */
+    public boolean swapLogFunctionParameters;
 
     /**
      * The function REGEXP_REPLACE() uses \ for back-references.
@@ -270,6 +275,7 @@ public class Mode {
         mode.squareBracketQuotedNames = true;
         mode.uniqueIndexNullsHandling = UniqueIndexNullsHandling.FORBID_ANY_DUPLICATES;
         mode.allowPlusForStringConcat = true;
+        mode.swapLogFunctionParameters = true;
         mode.swapConvertFunctionParameters = true;
         mode.supportPoundSymbolForColumnNames = true;
         mode.discardWithTableHints = true;

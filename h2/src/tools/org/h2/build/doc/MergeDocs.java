@@ -31,7 +31,8 @@ public class MergeDocs {
         // the order of pages is important here
         String[] pages = { "quickstart.html", "installation.html",
                 "tutorial.html", "features.html", "performance.html",
-                "advanced.html", "commands.html", "functions.html",
+                "advanced.html", "commands.html",
+                "functions.html", "functions-aggregate.html", "functions-window.html",
                 "datatypes.html", "grammar.html", "systemtables.html",
                 "build.html", "history.html", "faq.html" };
         StringBuilder buff = new StringBuilder();
@@ -103,6 +104,8 @@ public class MergeDocs {
                 .replaceAll("href=\"commands.html\"", "href=\"#commands_index\"")
                 .replaceAll("href=\"grammar.html\"", "href=\"#grammar_index\"")
                 .replaceAll("href=\"functions.html\"", "href=\"#functions_index\"")
+                .replaceAll("href=\"functions-aggregate.html\"", "href=\"#functions_aggregate_index\"")
+                .replaceAll("href=\"functions-window.html\"", "href=\"#functions_window_index\"")
                 .replaceAll("href=\"tutorial.html\"", "href=\"#tutorial_index\"");
     }
 

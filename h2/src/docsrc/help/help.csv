@@ -289,7 +289,7 @@ TABLE [schemaName.]tableName
 Selects data from a table.
 
 This command is an equivalent to SELECT * FROM tableName.
-See SELECT command for description of ORDER BY, OFFSET, and FETCH.
+See [SELECT](https://h2database.com/html/commands.html#select) command for description of ORDER BY, OFFSET, and FETCH.
 ","
 TABLE TEST;
 TABLE TEST ORDER BY ID FETCH FIRST ROW ONLY;
@@ -303,7 +303,7 @@ VALUES rowValueExpression [,...]
     { ONLY | WITH TIES } ]
 ","
 A list of rows that can be used like a table.
-See SELECT command for description of ORDER BY, OFFSET, and FETCH.
+See See [SELECT](https://h2database.com/html/commands.html#select) command for description of ORDER BY, OFFSET, and FETCH.
 The column list of the resulting table is C1, C2, and so on.
 ","
 VALUES (1, 'Hello'), (2, 'World');
@@ -675,7 +675,7 @@ CREATE CONSTANT ONE VALUE 1
 
 "Commands (DDL)","CREATE DOMAIN","
 CREATE DOMAIN [ IF NOT EXISTS ] newDomainName AS dataType
-[ DEFAULT expression ] [ [ NOT ] NULL ] [ SELECTIVITY selectivity ]
+[ DEFAULT expression ] [ [ NOT ] NULL ] [ SELECTIVITY selectivityInt ]
 [ CHECK condition ]
 ","
 Creates a new data type (domain). The check condition must evaluate to true or
@@ -2455,7 +2455,7 @@ dataType [ VISIBLE | INVISIBLE ]
     | GENERATED {ALWAYS | BY DEFAULT} AS IDENTITY [(sequenceOptions)]} ]
 [ ON UPDATE expression ] [ [ NOT ] NULL ]
 [ { AUTO_INCREMENT | IDENTITY } [ ( startInt [, incrementInt ] ) ] ]
-[ SELECTIVITY selectivity ] [ COMMENT expression ]
+[ SELECTIVITY selectivityInt ] [ COMMENT expression ]
 [ PRIMARY KEY [ HASH ] | UNIQUE ] [ CHECK condition ]
 ","
 Default expressions are used if no explicit value was used when adding a row.
@@ -3619,373 +3619,6 @@ Mapped to ""org.h2.api.Interval"".
 ""java.time.Duration"" is also supported on Java 8 and later versions.
 ","
 INTERVAL MINUTE TO SECOND
-"
-
-"Functions (Aggregate)","AVG","
-AVG ( [ DISTINCT|ALL ] { numeric } )
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
-","
-The average (mean) value.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
-The returned value is of the same data type as the parameter.
-","
-AVG(X)
-"
-
-"Functions (Aggregate)","BIT_AND","
-BIT_AND(expression)
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
-","
-The bitwise AND of all non-null values.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
-","
-BIT_AND(ID)
-"
-
-"Functions (Aggregate)","BIT_OR","
-BIT_OR(expression)
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
-","
-The bitwise OR of all non-null values.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
-","
-BIT_OR(ID)
-"
-
-"Functions (Aggregate)","EVERY","
-{EVERY|BOOL_AND}(boolean)
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
-","
-Returns true if all expressions are true.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
-","
-EVERY(ID>10)
-"
-
-"Functions (Aggregate)","ANY","
-{ANY|SOME|BOOL_OR}(boolean)
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
-","
-Returns true if any expression is true.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
-
-Note that if ANY or SOME aggregate function is placed on the right side of comparison operation
-and argument of this function is a subquery additional parentheses around aggregate function are required,
-otherwise it will be parsed as quantified comparison predicate.
-","
-ANY(NAME LIKE 'W%')
-A = (ANY((SELECT B FROM T)))
-"
-
-"Functions (Aggregate)","COUNT","
-COUNT( { * | { [ DISTINCT|ALL ] expression } } )
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
-","
-The count of all row, or of the non-null values.
-This method returns a long.
-If no rows are selected, the result is 0.
-Aggregates are only allowed in select statements.
-","
-COUNT(*)
-"
-
-"Functions (Aggregate)","LISTAGG","
-{ LISTAGG ( [ DISTINCT|ALL ] string [, separatorString] [ ON OVERFLOW ERROR ] )
-    withinGroupSpecification }
-| { GROUP_CONCAT ( [ DISTINCT|ALL ] string
-    [ ORDER BY { expression [ ASC | DESC ] } [,...] ]
-    [ SEPARATOR separatorString ] ) }
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
-","
-Concatenates strings with a separator.
-Separator must be the same for all rows in the same group.
-The default separator is a ',' (without space).
-This method returns a string.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
-","
-LISTAGG(NAME, ', ') WITHIN GROUP (ORDER BY ID)
-LISTAGG(ID, ', ') WITHIN GROUP (ORDER BY ID) OVER (ORDER BY ID)
-"
-
-"Functions (Aggregate)","ARRAY_AGG","
-ARRAY_AGG ( [ DISTINCT|ALL ] value
-[ ORDER BY { expression [ ASC | DESC ] } [,...] ] )
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
-","
-Aggregate the value into an array.
-This method returns an array.
-If no rows are selected, the result is NULL.
-If ORDER BY is not specified order of values is not determined.
-When this aggregate is used with OVER clause that contains ORDER BY subclause
-it does not enforce exact order of values.
-This aggregate needs additional own ORDER BY clause to make it deterministic.
-Aggregates are only allowed in select statements.
-","
-ARRAY_AGG(NAME ORDER BY ID)
-ARRAY_AGG(ID ORDER BY ID) OVER (ORDER BY ID)
-"
-
-"Functions (Aggregate)","MAX","
-MAX(value)
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
-","
-The highest value.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
-The returned value is of the same data type as the parameter.
-","
-MAX(NAME)
-"
-
-"Functions (Aggregate)","MIN","
-MIN(value)
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
-","
-The lowest value.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
-The returned value is of the same data type as the parameter.
-","
-MIN(NAME)
-"
-
-"Functions (Aggregate)","SUM","
-SUM( [ DISTINCT|ALL ] { numeric } )
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
-","
-The sum of all values.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
-The data type of the returned value depends on the parameter data type like this:
-""BOOLEAN, TINYINT, SMALLINT, INT -> BIGINT, BIGINT -> DECIMAL, REAL -> DOUBLE""
-","
-SUM(X)
-"
-
-"Functions (Aggregate)","SELECTIVITY","
-SELECTIVITY(value)
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
-","
-Estimates the selectivity (0-100) of a value.
-The value is defined as (100 * distinctCount / rowCount).
-The selectivity of 0 rows is 0 (unknown).
-Up to 10000 values are kept in memory.
-Aggregates are only allowed in select statements.
-","
-SELECT SELECTIVITY(FIRSTNAME), SELECTIVITY(NAME) FROM TEST WHERE ROWNUM()<20000
-"
-
-"Functions (Aggregate)","STDDEV_POP","
-STDDEV_POP( [ DISTINCT|ALL ] numeric )
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
-","
-The population standard deviation.
-This method returns a double.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
-","
-STDDEV_POP(X)
-"
-
-"Functions (Aggregate)","STDDEV_SAMP","
-STDDEV_SAMP( [ DISTINCT|ALL ] numeric )
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
-","
-The sample standard deviation.
-This method returns a double.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
-","
-STDDEV(X)
-"
-
-"Functions (Aggregate)","VAR_POP","
-VAR_POP( [ DISTINCT|ALL ] numeric )
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
-","
-The population variance (square of the population standard deviation).
-This method returns a double.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
-","
-VAR_POP(X)
-"
-
-"Functions (Aggregate)","VAR_SAMP","
-VAR_SAMP( [ DISTINCT|ALL ] numeric )
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
-","
-The sample variance (square of the sample standard deviation).
-This method returns a double.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
-","
-VAR_SAMP(X)
-"
-
-"Functions (Aggregate)","RANK aggregate","
-RANK(value [,...])
-withinGroupSpecification
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
-","
-Returns the rank of the hypothetical row in specified collection of rows.
-The rank of a row is the number of rows that precede this row plus 1.
-If two or more rows have the same values in ORDER BY columns, these rows get the same rank from the first row with the same values.
-It means that gaps in ranks are possible.
-","
-SELECT RANK(5) WITHIN GROUP (ORDER BY V) FROM TEST;
-"
-
-"Functions (Aggregate)","DENSE_RANK aggregate","
-DENSE_RANK(value [,...])
-withinGroupSpecification
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
-","
-Returns the dense rank of the hypothetical row in specified collection of rows.
-The rank of a row is the number of groups of rows with the same values in ORDER BY columns that precede group with this row plus 1.
-If two or more rows have the same values in ORDER BY columns, these rows get the same rank.
-Gaps in ranks are not possible.
-","
-SELECT DENSE_RANK(5) WITHIN GROUP (ORDER BY V) FROM TEST;
-"
-
-"Functions (Aggregate)","PERCENT_RANK aggregate","
-PERCENT_RANK(value [,...])
-withinGroupSpecification
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
-","
-Returns the relative rank of the hypothetical row in specified collection of rows.
-The relative rank is calculated as (RANK - 1) / (NR - 1),
-where RANK is a rank of the row and NR is a total number of rows in the collection including hypothetical row.
-","
-SELECT PERCENT_RANK(5) WITHIN GROUP (ORDER BY V) FROM TEST;
-"
-
-"Functions (Aggregate)","CUME_DIST aggregate","
-CUME_DIST(value [,...])
-withinGroupSpecification
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
-","
-Returns the relative rank of the hypothetical row in specified collection of rows.
-The relative rank is calculated as NP / NR
-where NP is a number of rows that precede the current row or have the same values in ORDER BY columns
-and NR is a total number of rows in the collection including hypothetical row.
-","
-SELECT CUME_DIST(5) WITHIN GROUP (ORDER BY V) FROM TEST;
-"
-
-"Functions (Aggregate)","PERCENTILE_CONT","
-PERCENTILE_CONT(numeric) WITHIN GROUP (ORDER BY value [ASC|DESC])
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
-","
-Return percentile of values from the group with interpolation.
-Interpolation is only supported for numeric, date-time, and interval data types.
-Argument must be between 0 and 1 inclusive.
-Argument must be the same for all rows in the same group.
-If argument is NULL, the result is NULL.
-NULL values are ignored in the calculation.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
-","
-PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY V)
-"
-
-"Functions (Aggregate)","PERCENTILE_DISC","
-PERCENTILE_DISC(numeric) WITHIN GROUP (ORDER BY value [ASC|DESC])
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
-","
-Return percentile of values from the group.
-Interpolation is not performed.
-Argument must be between 0 and 1 inclusive.
-Argument must be the same for all rows in the same group.
-If argument is NULL, the result is NULL.
-NULL values are ignored in the calculation.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
-","
-PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY V)
-"
-
-"Functions (Aggregate)","MEDIAN","
-MEDIAN( [ DISTINCT|ALL ] value )
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
-","
-The value separating the higher half of a values from the lower half.
-Returns the middle value or an interpolated value between two middle values if number of values is even.
-Interpolation is only supported for numeric, date-time, and interval data types.
-NULL values are ignored in the calculation.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
-","
-MEDIAN(X)
-"
-
-"Functions (Aggregate)","MODE","
-{ MODE( value ) [ ORDER BY value [ ASC | DESC ] ] }
-    | { MODE() WITHIN GROUP (ORDER BY expression [ ASC | DESC ]) }
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
-","
-Returns the value that occurs with the greatest frequency.
-If there are multiple values with the same frequency only one value will be returned.
-In this situation value will be chosen based on optional ORDER BY clause
-that should specify exactly the same expression as argument of this function.
-Use ascending order to get smallest value or descending order to get largest value
-from multiple values with the same frequency.
-If this clause is not specified the exact chosen value is not determined in this situation.
-NULL values are ignored in the calculation.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
-","
-MODE(X)
-MODE(X ORDER BY X)
-MODE() WITHIN GROUP (ORDER BY X)
-"
-
-"Functions (Aggregate)","ENVELOPE","
-ENVELOPE( value )
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
-","
-Returns the minimum bounding box that encloses all specified GEOMETRY values.
-Only 2D coordinate plane is supported.
-NULL values are ignored in the calculation.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
-","
-ENVELOPE(X)
-"
-"Functions (Aggregate)","JSON_OBJECTAGG","
-JSON_OBJECTAGG(
-{[KEY] string VALUE value} | {string : value}
-[ { NULL | ABSENT } ON NULL ]
-[ { WITH | WITHOUT } UNIQUE KEYS ]
-)
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
-","
-Aggregates the keys with values into a JSON object.
-If ABSENT ON NULL is specified properties with NULL value are not included in the object.
-If WITH UNIQUE KEYS is specified the constructed object is checked for uniqueness of keys,
-nested objects, if any, are checked too.
-If no values are selected, the result is SQL NULL value.
-","
-JSON_OBJECTAGG(NAME: VAL);
-JSON_OBJECTAGG(KEY NAME VALUE VAL);
-"
-
-"Functions (Aggregate)","JSON_ARRAYAGG","
-JSON_ARRAYAGG(expression [ { NULL | ABSENT } ON NULL ])
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
-","
-Aggregates the values into a JSON array.
-If NULL ON NULL is specified NULL values are included in the array.
-If no values are selected, the result is SQL NULL value.
-","
-JSON_ARRAYAGG(NUMBER)
 "
 
 "Functions (Numeric)","ABS","
@@ -5670,207 +5303,6 @@ Returns the H2 version as a String.
 H2VERSION()
 "
 
-"Functions (Window)","ROW_NUMBER","
-ROW_NUMBER() OVER windowNameOrSpecification
-","
-Returns the number of the current row starting with 1.
-Window frame clause is not allowed for this function.
-
-Window functions in H2 may require a lot of memory for large queries.
-","
-SELECT ROW_NUMBER() OVER (), * FROM TEST;
-SELECT ROW_NUMBER() OVER (ORDER BY ID), * FROM TEST;
-SELECT ROW_NUMBER() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
-"
-
-"Functions (Window)","RANK","
-RANK() OVER windowNameOrSpecification
-","
-Returns the rank of the current row.
-The rank of a row is the number of rows that precede this row plus 1.
-If two or more rows have the same values in ORDER BY columns, these rows get the same rank from the first row with the same values.
-It means that gaps in ranks are possible.
-This function requires window order clause.
-Window frame clause is not allowed for this function.
-
-Window functions in H2 may require a lot of memory for large queries.
-","
-SELECT RANK() OVER (ORDER BY ID), * FROM TEST;
-SELECT RANK() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
-"
-
-"Functions (Window)","DENSE_RANK","
-DENSE_RANK() OVER windowNameOrSpecification
-","
-Returns the dense rank of the current row.
-The rank of a row is the number of groups of rows with the same values in ORDER BY columns that precede group with this row plus 1.
-If two or more rows have the same values in ORDER BY columns, these rows get the same rank.
-Gaps in ranks are not possible.
-This function requires window order clause.
-Window frame clause is not allowed for this function.
-
-Window functions in H2 may require a lot of memory for large queries.
-","
-SELECT DENSE_RANK() OVER (ORDER BY ID), * FROM TEST;
-SELECT DENSE_RANK() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
-"
-
-"Functions (Window)","PERCENT_RANK","
-PERCENT_RANK() OVER windowNameOrSpecification
-","
-Returns the relative rank of the current row.
-The relative rank is calculated as (RANK - 1) / (NR - 1),
-where RANK is a rank of the row and NR is a number of rows in window partition with this row.
-Note that result is always 0 if window order clause is not specified.
-Window frame clause is not allowed for this function.
-
-Window functions in H2 may require a lot of memory for large queries.
-","
-SELECT PERCENT_RANK() OVER (ORDER BY ID), * FROM TEST;
-SELECT PERCENT_RANK() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
-"
-
-"Functions (Window)","CUME_DIST","
-CUME_DIST() OVER windowNameOrSpecification
-","
-Returns the relative rank of the current row.
-The relative rank is calculated as NP / NR
-where NP is a number of rows that precede the current row or have the same values in ORDER BY columns
-and NR is a number of rows in window partition with this row.
-Note that result is always 1 if window order clause is not specified.
-Window frame clause is not allowed for this function.
-
-Window functions in H2 may require a lot of memory for large queries.
-","
-SELECT CUME_DIST() OVER (ORDER BY ID), * FROM TEST;
-SELECT CUME_DIST() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
-"
-
-"Functions (Window)","NTILE","
-NTILE(long) OVER windowNameOrSpecification
-","
-Distributes the rows into a specified number of groups.
-Number of groups should be a positive long value.
-NTILE returns the 1-based number of the group to which the current row belongs.
-First groups will have more rows if number of rows is not divisible by number of groups.
-For example, if 5 rows are distributed into 2 groups this function returns 1 for the first 3 row and 2 for the last 2 rows.
-This function requires window order clause.
-Window frame clause is not allowed for this function.
-
-Window functions in H2 may require a lot of memory for large queries.
-","
-SELECT NTILE(10) OVER (ORDER BY ID), * FROM TEST;
-SELECT NTILE(5) OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
-"
-
-"Functions (Window)","LEAD","
-LEAD(value [, offsetInt [, defaultValue]]) [{RESPECT|IGNORE} NULLS]
-OVER windowNameOrSpecification
-","
-Returns the value in a next row with specified offset relative to the current row.
-Offset must be non-negative.
-If IGNORE NULLS is specified rows with null values in selected expression are skipped.
-If number of considered rows is less than specified relative number this function returns NULL
-or the specified default value, if any.
-If offset is 0 the value from the current row is returned unconditionally.
-This function requires window order clause.
-Window frame clause is not allowed for this function.
-
-Window functions in H2 may require a lot of memory for large queries.
-","
-SELECT LEAD(X) OVER (ORDER BY ID), * FROM TEST;
-SELECT LEAD(X, 2, 0) IGNORE NULLS OVER (
-    PARTITION BY CATEGORY ORDER BY ID
-), * FROM TEST;
-"
-
-"Functions (Window)","LAG","
-LAG(value [, offsetInt [, defaultValue]]) [{RESPECT|IGNORE} NULLS]
-OVER windowNameOrSpecification
-","
-Returns the value in a previous row with specified offset relative to the current row.
-Offset must be non-negative.
-If IGNORE NULLS is specified rows with null values in selected expression are skipped.
-If number of considered rows is less than specified relative number this function returns NULL
-or the specified default value, if any.
-If offset is 0 the value from the current row is returned unconditionally.
-This function requires window order clause.
-Window frame clause is not allowed for this function.
-
-Window functions in H2 may require a lot of memory for large queries.
-","
-SELECT LAG(X) OVER (ORDER BY ID), * FROM TEST;
-SELECT LAG(X, 2, 0) IGNORE NULLS OVER (
-    PARTITION BY CATEGORY ORDER BY ID
-), * FROM TEST;
-"
-
-"Functions (Window)","FIRST_VALUE","
-FIRST_VALUE(value) [{RESPECT|IGNORE} NULLS]
-OVER windowNameOrSpecification
-","
-Returns the first value in a window.
-If IGNORE NULLS is specified null values are skipped and the function returns first non-null value, if any.
-
-Window functions in H2 may require a lot of memory for large queries.
-","
-SELECT FIRST_VALUE(X) OVER (ORDER BY ID), * FROM TEST;
-SELECT FIRST_VALUE(X) IGNORE NULLS OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
-"
-
-"Functions (Window)","LAST_VALUE","
-LAST_VALUE(value) [{RESPECT|IGNORE} NULLS]
-OVER windowNameOrSpecification
-","
-Returns the last value in a window.
-If IGNORE NULLS is specified null values are skipped and the function returns last non-null value before them, if any;
-if there is no non-null value it returns NULL.
-Note that the last value is actually a value in the current group of rows
-if window order clause is specified and window frame clause is not specified.
-
-Window functions in H2 may require a lot of memory for large queries.
-","
-SELECT LAST_VALUE(X) OVER (ORDER BY ID), * FROM TEST;
-SELECT LAST_VALUE(X) IGNORE NULLS OVER (
-    PARTITION BY CATEGORY ORDER BY ID
-    RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING
-), * FROM TEST;
-"
-
-"Functions (Window)","NTH_VALUE","
-NTH_VALUE(value, nInt) [FROM {FIRST|LAST}] [{RESPECT|IGNORE} NULLS]
-OVER windowNameOrSpecification
-","
-Returns the value in a row with a specified relative number in a window.
-Relative row number must be positive.
-If FROM LAST is specified rows a counted backwards from the last row.
-If IGNORE NULLS is specified rows with null values in selected expression are skipped.
-If number of considered rows is less than specified relative number this function returns NULL.
-Note that the last row is actually a last row in the current group of rows
-if window order clause is specified and window frame clause is not specified.
-
-Window functions in H2 may require a lot of memory for large queries.
-","
-SELECT NTH_VALUE(X) OVER (ORDER BY ID), * FROM TEST;
-SELECT NTH_VALUE(X) IGNORE NULLS OVER (
-    PARTITION BY CATEGORY ORDER BY ID
-    RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
-), * FROM TEST;
-"
-
-"Functions (Window)","RATIO_TO_REPORT","
-RATIO_TO_REPORT(value)
-OVER windowNameOrSpecification
-","
-Returns the ratio of a value to the sum of all values.
-If argument is NULL or sum of all values is 0, then the value of function is NULL.
-Window ordering and window frame clauses are not allowed for this function.
-
-Window functions in H2 may require a lot of memory for large queries.
-","
-SELECT X, RATIO_TO_REPORT(X) OVER (PARTITION BY CATEGORY), CATEGORY FROM TEST;
-"
-
 "Functions (JSON)","JSON_OBJECT","
 JSON_OBJECT(
 [{[KEY] string VALUE expression} | {string : expression} [,...]]
@@ -5900,14 +5332,599 @@ JSON_ARRAY(JSON_DATA_A FORMAT JSON, JSON_DATA_B FORMAT JSON);
 JSON_ARRAY((SELECT J FROM PROPS) FORMAT JSON);
 "
 
+"Aggregate Functions (General)","AVG","
+AVG ( [ DISTINCT|ALL ] { numeric } )
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The average (mean) value.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+The returned value is of the same data type as the parameter.
+","
+AVG(X)
+"
+
+"Aggregate Functions (General)","MAX","
+MAX(value)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The highest value.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+The returned value is of the same data type as the parameter.
+","
+MAX(NAME)
+"
+
+"Aggregate Functions (General)","MIN","
+MIN(value)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The lowest value.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+The returned value is of the same data type as the parameter.
+","
+MIN(NAME)
+"
+
+"Aggregate Functions (General)","SUM","
+SUM( [ DISTINCT|ALL ] { numeric } )
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The sum of all values.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+The data type of the returned value depends on the parameter data type like this:
+""BOOLEAN, TINYINT, SMALLINT, INT -> BIGINT, BIGINT -> DECIMAL, REAL -> DOUBLE""
+","
+SUM(X)
+"
+
+"Aggregate Functions (General)","EVERY","
+{EVERY|BOOL_AND}(boolean)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Returns true if all expressions are true.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+EVERY(ID>10)
+"
+
+"Aggregate Functions (General)","ANY","
+{ANY|SOME|BOOL_OR}(boolean)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Returns true if any expression is true.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+
+Note that if ANY or SOME aggregate function is placed on the right side of comparison operation
+and argument of this function is a subquery additional parentheses around aggregate function are required,
+otherwise it will be parsed as quantified comparison predicate.
+","
+ANY(NAME LIKE 'W%')
+A = (ANY((SELECT B FROM T)))
+"
+
+"Aggregate Functions (General)","COUNT","
+COUNT( { * | { [ DISTINCT|ALL ] expression } } )
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The count of all row, or of the non-null values.
+This method returns a long.
+If no rows are selected, the result is 0.
+Aggregates are only allowed in select statements.
+","
+COUNT(*)
+"
+
+"Aggregate Functions (General)","STDDEV_POP","
+STDDEV_POP( [ DISTINCT|ALL ] numeric )
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The population standard deviation.
+This method returns a double.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+STDDEV_POP(X)
+"
+
+"Aggregate Functions (General)","STDDEV_SAMP","
+STDDEV_SAMP( [ DISTINCT|ALL ] numeric )
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The sample standard deviation.
+This method returns a double.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+STDDEV(X)
+"
+
+"Aggregate Functions (General)","VAR_POP","
+VAR_POP( [ DISTINCT|ALL ] numeric )
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The population variance (square of the population standard deviation).
+This method returns a double.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+VAR_POP(X)
+"
+
+"Aggregate Functions (General)","VAR_SAMP","
+VAR_SAMP( [ DISTINCT|ALL ] numeric )
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The sample variance (square of the sample standard deviation).
+This method returns a double.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+VAR_SAMP(X)
+"
+
+"Aggregate Functions (General)","BIT_AND","
+BIT_AND(expression)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The bitwise AND of all non-null values.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+BIT_AND(ID)
+"
+
+"Aggregate Functions (General)","BIT_OR","
+BIT_OR(expression)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The bitwise OR of all non-null values.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+BIT_OR(ID)
+"
+
+"Aggregate Functions (General)","SELECTIVITY","
+SELECTIVITY(value)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Estimates the selectivity (0-100) of a value.
+The value is defined as (100 * distinctCount / rowCount).
+The selectivity of 0 rows is 0 (unknown).
+Up to 10000 values are kept in memory.
+Aggregates are only allowed in select statements.
+","
+SELECT SELECTIVITY(FIRSTNAME), SELECTIVITY(NAME) FROM TEST WHERE ROWNUM()<20000
+"
+
+"Aggregate Functions (General)","ENVELOPE","
+ENVELOPE( value )
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Returns the minimum bounding box that encloses all specified GEOMETRY values.
+Only 2D coordinate plane is supported.
+NULL values are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+ENVELOPE(X)
+"
+
+"Aggregate Functions (Ordered)","LISTAGG","
+{ LISTAGG ( [ DISTINCT|ALL ] string [, separatorString] [ ON OVERFLOW ERROR ] )
+    withinGroupSpecification }
+| { GROUP_CONCAT ( [ DISTINCT|ALL ] string
+    [ ORDER BY { expression [ ASC | DESC ] } [,...] ]
+    [ SEPARATOR separatorString ] ) }
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Concatenates strings with a separator.
+Separator must be the same for all rows in the same group.
+The default separator is a ',' (without space).
+This method returns a string.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+LISTAGG(NAME, ', ') WITHIN GROUP (ORDER BY ID)
+LISTAGG(ID, ', ') WITHIN GROUP (ORDER BY ID) OVER (ORDER BY ID)
+"
+
+"Aggregate Functions (Ordered)","ARRAY_AGG","
+ARRAY_AGG ( [ DISTINCT|ALL ] value
+[ ORDER BY { expression [ ASC | DESC ] } [,...] ] )
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Aggregate the value into an array.
+This method returns an array.
+If no rows are selected, the result is NULL.
+If ORDER BY is not specified order of values is not determined.
+When this aggregate is used with OVER clause that contains ORDER BY subclause
+it does not enforce exact order of values.
+This aggregate needs additional own ORDER BY clause to make it deterministic.
+Aggregates are only allowed in select statements.
+","
+ARRAY_AGG(NAME ORDER BY ID)
+ARRAY_AGG(ID ORDER BY ID) OVER (ORDER BY ID)
+"
+
+"Aggregate Functions (Hypothetical Set)","RANK aggregate","
+RANK(value [,...])
+withinGroupSpecification
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Returns the rank of the hypothetical row in specified collection of rows.
+The rank of a row is the number of rows that precede this row plus 1.
+If two or more rows have the same values in ORDER BY columns, these rows get the same rank from the first row with the same values.
+It means that gaps in ranks are possible.
+
+See [RANK](https://h2database.com/html/functions-window.html#rank) for a window function with the same name.
+","
+SELECT RANK(5) WITHIN GROUP (ORDER BY V) FROM TEST;
+"
+
+"Aggregate Functions (Hypothetical Set)","DENSE_RANK aggregate","
+DENSE_RANK(value [,...])
+withinGroupSpecification
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Returns the dense rank of the hypothetical row in specified collection of rows.
+The rank of a row is the number of groups of rows with the same values in ORDER BY columns that precede group with this row plus 1.
+If two or more rows have the same values in ORDER BY columns, these rows get the same rank.
+Gaps in ranks are not possible.
+
+See [DENSE_RANK](https://h2database.com/html/functions-window.html#dense_rank) for a window function with the same name.
+","
+SELECT DENSE_RANK(5) WITHIN GROUP (ORDER BY V) FROM TEST;
+"
+
+"Aggregate Functions (Hypothetical Set)","PERCENT_RANK aggregate","
+PERCENT_RANK(value [,...])
+withinGroupSpecification
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Returns the relative rank of the hypothetical row in specified collection of rows.
+The relative rank is calculated as (RANK - 1) / (NR - 1),
+where RANK is a rank of the row and NR is a total number of rows in the collection including hypothetical row.
+
+See [PERCENT_RANK](https://h2database.com/html/functions-window.html#percent_rank) for a window function with the same name.
+","
+SELECT PERCENT_RANK(5) WITHIN GROUP (ORDER BY V) FROM TEST;
+"
+
+"Aggregate Functions (Hypothetical Set)","CUME_DIST aggregate","
+CUME_DIST(value [,...])
+withinGroupSpecification
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Returns the relative rank of the hypothetical row in specified collection of rows.
+The relative rank is calculated as NP / NR
+where NP is a number of rows that precede the current row or have the same values in ORDER BY columns
+and NR is a total number of rows in the collection including hypothetical row.
+
+See [CUME_DIST](https://h2database.com/html/functions-window.html#cume_dist) for a window function with the same name.
+","
+SELECT CUME_DIST(5) WITHIN GROUP (ORDER BY V) FROM TEST;
+"
+
+"Aggregate Functions (Inverse Distribution)","PERCENTILE_CONT","
+PERCENTILE_CONT(numeric) WITHIN GROUP (ORDER BY value [ASC|DESC])
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Return percentile of values from the group with interpolation.
+Interpolation is only supported for numeric, date-time, and interval data types.
+Argument must be between 0 and 1 inclusive.
+Argument must be the same for all rows in the same group.
+If argument is NULL, the result is NULL.
+NULL values are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY V)
+"
+
+"Aggregate Functions (Inverse Distribution)","PERCENTILE_DISC","
+PERCENTILE_DISC(numeric) WITHIN GROUP (ORDER BY value [ASC|DESC])
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Return percentile of values from the group.
+Interpolation is not performed.
+Argument must be between 0 and 1 inclusive.
+Argument must be the same for all rows in the same group.
+If argument is NULL, the result is NULL.
+NULL values are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY V)
+"
+
+"Aggregate Functions (Inverse Distribution)","MEDIAN","
+MEDIAN( [ DISTINCT|ALL ] value )
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The value separating the higher half of a values from the lower half.
+Returns the middle value or an interpolated value between two middle values if number of values is even.
+Interpolation is only supported for numeric, date-time, and interval data types.
+NULL values are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+MEDIAN(X)
+"
+
+"Aggregate Functions (Inverse Distribution)","MODE","
+{ MODE( value ) [ ORDER BY value [ ASC | DESC ] ] }
+    | { MODE() WITHIN GROUP (ORDER BY expression [ ASC | DESC ]) }
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Returns the value that occurs with the greatest frequency.
+If there are multiple values with the same frequency only one value will be returned.
+In this situation value will be chosen based on optional ORDER BY clause
+that should specify exactly the same expression as argument of this function.
+Use ascending order to get smallest value or descending order to get largest value
+from multiple values with the same frequency.
+If this clause is not specified the exact chosen value is not determined in this situation.
+NULL values are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+MODE(X)
+MODE(X ORDER BY X)
+MODE() WITHIN GROUP (ORDER BY X)
+"
+
+"Aggregate Functions (JSON)","JSON_OBJECTAGG","
+JSON_OBJECTAGG(
+{[KEY] string VALUE value} | {string : value}
+[ { NULL | ABSENT } ON NULL ]
+[ { WITH | WITHOUT } UNIQUE KEYS ]
+)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Aggregates the keys with values into a JSON object.
+If ABSENT ON NULL is specified properties with NULL value are not included in the object.
+If WITH UNIQUE KEYS is specified the constructed object is checked for uniqueness of keys,
+nested objects, if any, are checked too.
+If no values are selected, the result is SQL NULL value.
+","
+JSON_OBJECTAGG(NAME: VAL);
+JSON_OBJECTAGG(KEY NAME VALUE VAL);
+"
+
+"Aggregate Functions (JSON)","JSON_ARRAYAGG","
+JSON_ARRAYAGG(expression [ { NULL | ABSENT } ON NULL ])
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Aggregates the values into a JSON array.
+If NULL ON NULL is specified NULL values are included in the array.
+If no values are selected, the result is SQL NULL value.
+","
+JSON_ARRAYAGG(NUMBER)
+"
+
+"Window Functions (Row Number)","ROW_NUMBER","
+ROW_NUMBER() OVER windowNameOrSpecification
+","
+Returns the number of the current row starting with 1.
+Window frame clause is not allowed for this function.
+
+Window functions in H2 may require a lot of memory for large queries.
+","
+SELECT ROW_NUMBER() OVER (), * FROM TEST;
+SELECT ROW_NUMBER() OVER (ORDER BY ID), * FROM TEST;
+SELECT ROW_NUMBER() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
+"
+
+"Window Functions (Rank)","RANK","
+RANK() OVER windowNameOrSpecification
+","
+Returns the rank of the current row.
+The rank of a row is the number of rows that precede this row plus 1.
+If two or more rows have the same values in ORDER BY columns, these rows get the same rank from the first row with the same values.
+It means that gaps in ranks are possible.
+This function requires window order clause.
+Window frame clause is not allowed for this function.
+
+Window functions in H2 may require a lot of memory for large queries.
+
+See [RANK aggregate](https://h2database.com/html/functions-aggregate.html#rank_aggregate) for a hypothetical set function with the same name.
+","
+SELECT RANK() OVER (ORDER BY ID), * FROM TEST;
+SELECT RANK() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
+"
+
+"Window Functions (Rank)","DENSE_RANK","
+DENSE_RANK() OVER windowNameOrSpecification
+","
+Returns the dense rank of the current row.
+The rank of a row is the number of groups of rows with the same values in ORDER BY columns that precede group with this row plus 1.
+If two or more rows have the same values in ORDER BY columns, these rows get the same rank.
+Gaps in ranks are not possible.
+This function requires window order clause.
+Window frame clause is not allowed for this function.
+
+Window functions in H2 may require a lot of memory for large queries.
+
+See [DENSE_RANK aggregate](https://h2database.com/html/functions-aggregate.html#dense_rank_aggregate) for a hypothetical set function with the same name.
+","
+SELECT DENSE_RANK() OVER (ORDER BY ID), * FROM TEST;
+SELECT DENSE_RANK() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
+"
+
+"Window Functions (Rank)","PERCENT_RANK","
+PERCENT_RANK() OVER windowNameOrSpecification
+","
+Returns the relative rank of the current row.
+The relative rank is calculated as (RANK - 1) / (NR - 1),
+where RANK is a rank of the row and NR is a number of rows in window partition with this row.
+Note that result is always 0 if window order clause is not specified.
+Window frame clause is not allowed for this function.
+
+Window functions in H2 may require a lot of memory for large queries.
+
+See [PERCENT_RANK aggregate](https://h2database.com/html/functions-aggregate.html#percent_rank_aggregate) for a hypothetical set function with the same name.
+","
+SELECT PERCENT_RANK() OVER (ORDER BY ID), * FROM TEST;
+SELECT PERCENT_RANK() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
+"
+
+"Window Functions (Rank)","CUME_DIST","
+CUME_DIST() OVER windowNameOrSpecification
+","
+Returns the relative rank of the current row.
+The relative rank is calculated as NP / NR
+where NP is a number of rows that precede the current row or have the same values in ORDER BY columns
+and NR is a number of rows in window partition with this row.
+Note that result is always 1 if window order clause is not specified.
+Window frame clause is not allowed for this function.
+
+Window functions in H2 may require a lot of memory for large queries.
+
+See [CUME_DIST aggregate](https://h2database.com/html/functions-aggregate.html#cume_dist_aggregate) for a hypothetical set function with the same name.
+","
+SELECT CUME_DIST() OVER (ORDER BY ID), * FROM TEST;
+SELECT CUME_DIST() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
+"
+
+"Window Functions (Lead or Lag)","LEAD","
+LEAD(value [, offsetInt [, defaultValue]]) [{RESPECT|IGNORE} NULLS]
+OVER windowNameOrSpecification
+","
+Returns the value in a next row with specified offset relative to the current row.
+Offset must be non-negative.
+If IGNORE NULLS is specified rows with null values in selected expression are skipped.
+If number of considered rows is less than specified relative number this function returns NULL
+or the specified default value, if any.
+If offset is 0 the value from the current row is returned unconditionally.
+This function requires window order clause.
+Window frame clause is not allowed for this function.
+
+Window functions in H2 may require a lot of memory for large queries.
+","
+SELECT LEAD(X) OVER (ORDER BY ID), * FROM TEST;
+SELECT LEAD(X, 2, 0) IGNORE NULLS OVER (
+    PARTITION BY CATEGORY ORDER BY ID
+), * FROM TEST;
+"
+
+"Window Functions (Lead or Lag)","LAG","
+LAG(value [, offsetInt [, defaultValue]]) [{RESPECT|IGNORE} NULLS]
+OVER windowNameOrSpecification
+","
+Returns the value in a previous row with specified offset relative to the current row.
+Offset must be non-negative.
+If IGNORE NULLS is specified rows with null values in selected expression are skipped.
+If number of considered rows is less than specified relative number this function returns NULL
+or the specified default value, if any.
+If offset is 0 the value from the current row is returned unconditionally.
+This function requires window order clause.
+Window frame clause is not allowed for this function.
+
+Window functions in H2 may require a lot of memory for large queries.
+","
+SELECT LAG(X) OVER (ORDER BY ID), * FROM TEST;
+SELECT LAG(X, 2, 0) IGNORE NULLS OVER (
+    PARTITION BY CATEGORY ORDER BY ID
+), * FROM TEST;
+"
+
+"Window Functions (Nth Value)","FIRST_VALUE","
+FIRST_VALUE(value) [{RESPECT|IGNORE} NULLS]
+OVER windowNameOrSpecification
+","
+Returns the first value in a window.
+If IGNORE NULLS is specified null values are skipped and the function returns first non-null value, if any.
+
+Window functions in H2 may require a lot of memory for large queries.
+","
+SELECT FIRST_VALUE(X) OVER (ORDER BY ID), * FROM TEST;
+SELECT FIRST_VALUE(X) IGNORE NULLS OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
+"
+
+"Window Functions (Nth Value)","LAST_VALUE","
+LAST_VALUE(value) [{RESPECT|IGNORE} NULLS]
+OVER windowNameOrSpecification
+","
+Returns the last value in a window.
+If IGNORE NULLS is specified null values are skipped and the function returns last non-null value before them, if any;
+if there is no non-null value it returns NULL.
+Note that the last value is actually a value in the current group of rows
+if window order clause is specified and window frame clause is not specified.
+
+Window functions in H2 may require a lot of memory for large queries.
+","
+SELECT LAST_VALUE(X) OVER (ORDER BY ID), * FROM TEST;
+SELECT LAST_VALUE(X) IGNORE NULLS OVER (
+    PARTITION BY CATEGORY ORDER BY ID
+    RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING
+), * FROM TEST;
+"
+
+"Window Functions (Nth Value)","NTH_VALUE","
+NTH_VALUE(value, nInt) [FROM {FIRST|LAST}] [{RESPECT|IGNORE} NULLS]
+OVER windowNameOrSpecification
+","
+Returns the value in a row with a specified relative number in a window.
+Relative row number must be positive.
+If FROM LAST is specified rows a counted backwards from the last row.
+If IGNORE NULLS is specified rows with null values in selected expression are skipped.
+If number of considered rows is less than specified relative number this function returns NULL.
+Note that the last row is actually a last row in the current group of rows
+if window order clause is specified and window frame clause is not specified.
+
+Window functions in H2 may require a lot of memory for large queries.
+","
+SELECT NTH_VALUE(X) OVER (ORDER BY ID), * FROM TEST;
+SELECT NTH_VALUE(X) IGNORE NULLS OVER (
+    PARTITION BY CATEGORY ORDER BY ID
+    RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+), * FROM TEST;
+"
+
+"Window Functions (Other)","NTILE","
+NTILE(long) OVER windowNameOrSpecification
+","
+Distributes the rows into a specified number of groups.
+Number of groups should be a positive long value.
+NTILE returns the 1-based number of the group to which the current row belongs.
+First groups will have more rows if number of rows is not divisible by number of groups.
+For example, if 5 rows are distributed into 2 groups this function returns 1 for the first 3 row and 2 for the last 2 rows.
+This function requires window order clause.
+Window frame clause is not allowed for this function.
+
+Window functions in H2 may require a lot of memory for large queries.
+","
+SELECT NTILE(10) OVER (ORDER BY ID), * FROM TEST;
+SELECT NTILE(5) OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
+"
+
+"Window Functions (Other)","RATIO_TO_REPORT","
+RATIO_TO_REPORT(value)
+OVER windowNameOrSpecification
+","
+Returns the ratio of a value to the sum of all values.
+If argument is NULL or sum of all values is 0, then the value of function is NULL.
+Window ordering and window frame clauses are not allowed for this function.
+
+Window functions in H2 may require a lot of memory for large queries.
+","
+SELECT X, RATIO_TO_REPORT(X) OVER (PARTITION BY CATEGORY), CATEGORY FROM TEST;
+"
+
 "System Tables","Information Schema","
 INFORMATION_SCHEMA
 ","
 To get the list of system tables, execute the statement SELECT * FROM
 INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'INFORMATION_SCHEMA'
 ","
-
 "
+
 "System Tables","Range Table","
 SYSTEM_RANGE(start, end)
 ","

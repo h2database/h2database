@@ -35,6 +35,8 @@ public class LinkChecker {
         "#commands_index",
         "#grammar_index",
         "#functions_index",
+        "#functions_aggregate_index",
+        "#functions_window_index",
         "#tutorial_index"
     };
 

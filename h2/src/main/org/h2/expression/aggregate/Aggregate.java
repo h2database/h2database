@@ -218,9 +218,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             }
             break;
         case ARRAY_AGG:
-            if (v != ValueNull.INSTANCE) {
-                v = updateCollecting(session, v, remembered);
-            }
+            v = updateCollecting(session, v, remembered);
             break;
         case RANK:
         case DENSE_RANK:

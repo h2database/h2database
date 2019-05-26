@@ -5528,6 +5528,7 @@ Concatenates strings with a separator.
 Separator must be the same for all rows in the same group.
 The default separator is a ',' (without space).
 This method returns a string.
+NULL values are ignored in the calculation.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
@@ -5542,6 +5543,7 @@ ARRAY_AGG ( [ DISTINCT|ALL ] value
 ","
 Aggregate the value into an array.
 This method returns an array.
+NULL values are included in the array, FILTER clause can be used to exclude them.
 If no rows are selected, the result is NULL.
 If ORDER BY is not specified order of values is not determined.
 When this aggregate is used with OVER clause that contains ORDER BY subclause
@@ -5550,6 +5552,7 @@ This aggregate needs additional own ORDER BY clause to make it deterministic.
 Aggregates are only allowed in select statements.
 ","
 ARRAY_AGG(NAME ORDER BY ID)
+ARRAY_AGG(NAME ORDER BY ID) FILTER (WHERE NAME IS NOT NULL)
 ARRAY_AGG(ID ORDER BY ID) OVER (ORDER BY ID)
 "
 

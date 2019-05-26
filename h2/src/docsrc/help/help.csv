@@ -675,7 +675,7 @@ CREATE CONSTANT ONE VALUE 1
 
 "Commands (DDL)","CREATE DOMAIN","
 CREATE DOMAIN [ IF NOT EXISTS ] newDomainName AS dataType
-[ DEFAULT expression ] [ [ NOT ] NULL ] [ SELECTIVITY selectivity ]
+[ DEFAULT expression ] [ [ NOT ] NULL ] [ SELECTIVITY selectivityInt ]
 [ CHECK condition ]
 ","
 Creates a new data type (domain). The check condition must evaluate to true or
@@ -2455,7 +2455,7 @@ dataType [ VISIBLE | INVISIBLE ]
     | GENERATED {ALWAYS | BY DEFAULT} AS IDENTITY [(sequenceOptions)]} ]
 [ ON UPDATE expression ] [ [ NOT ] NULL ]
 [ { AUTO_INCREMENT | IDENTITY } [ ( startInt [, incrementInt ] ) ] ]
-[ SELECTIVITY selectivity ] [ COMMENT expression ]
+[ SELECTIVITY selectivityInt ] [ COMMENT expression ]
 [ PRIMARY KEY [ HASH ] | UNIQUE ] [ CHECK condition ]
 ","
 Default expressions are used if no explicit value was used when adding a row.
@@ -5906,8 +5906,8 @@ INFORMATION_SCHEMA
 To get the list of system tables, execute the statement SELECT * FROM
 INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'INFORMATION_SCHEMA'
 ","
-
 "
+
 "System Tables","Range Table","
 SYSTEM_RANGE(start, end)
 ","

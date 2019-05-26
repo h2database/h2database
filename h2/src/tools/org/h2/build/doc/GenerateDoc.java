@@ -83,8 +83,7 @@ public class GenerateDoc {
                 help + "= 'Datetime fields' ORDER BY ID", true, false);
         map("otherGrammar",
                 help + "= 'Other Grammar' ORDER BY ID", true, false);
-        map("functionsAggregate",
-                help + "= 'Functions (Aggregate)' ORDER BY ID", true, false);
+
         map("functionsNumeric",
                 help + "= 'Functions (Numeric)' ORDER BY ID", true, false);
         map("functionsString",
@@ -93,10 +92,31 @@ public class GenerateDoc {
                 help + "= 'Functions (Time and Date)' ORDER BY ID", true, false);
         map("functionsSystem",
                 help + "= 'Functions (System)' ORDER BY ID", true, false);
-        map("functionsWindow",
-                help + "= 'Functions (Window)' ORDER BY ID", true, false);
         map("functionsJson",
                 help + "= 'Functions (JSON)' ORDER BY ID", true, false);
+
+        map("aggregateFunctionsGeneral",
+                help + "= 'Aggregate Functions (General)' ORDER BY ID", true, false);
+        map("aggregateFunctionsOrdered",
+                help + "= 'Aggregate Functions (Ordered)' ORDER BY ID", true, false);
+        map("aggregateFunctionsHypothetical",
+                help + "= 'Aggregate Functions (Hypothetical Set)' ORDER BY ID", true, false);
+        map("aggregateFunctionsInverse",
+                help + "= 'Aggregate Functions (Inverse Distribution)' ORDER BY ID", true, false);
+        map("aggregateFunctionsJSON",
+                help + "= 'Aggregate Functions (JSON)' ORDER BY ID", true, false);
+
+        map("windowFunctionsRowNumber",
+                help + "= 'Window Functions (Row Number)' ORDER BY ID", true, false);
+        map("windowFunctionsRank",
+                help + "= 'Window Functions (Rank)' ORDER BY ID", true, false);
+        map("windowFunctionsLeadLag",
+                help + "= 'Window Functions (Lead or Lag)' ORDER BY ID", true, false);
+        map("windowFunctionsNth",
+                help + "= 'Window Functions (Nth Value)' ORDER BY ID", true, false);
+        map("windowFunctionsOther",
+                help + "= 'Window Functions (Other)' ORDER BY ID", true, false);
+
         map("dataTypes",
                 help + "LIKE 'Data Types%' ORDER BY SECTION, ID", true, true);
         map("intervalDataTypes",

@@ -5528,11 +5528,12 @@ Concatenates strings with a separator.
 Separator must be the same for all rows in the same group.
 The default separator is a ',' (without space).
 This method returns a string.
-NULL values are ignored in the calculation.
+NULL values are ignored in the calculation, COALESCE can be used to replace them.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
 LISTAGG(NAME, ', ') WITHIN GROUP (ORDER BY ID)
+LISTAGG(COALESCE(NAME, 'null'), ', ') WITHIN GROUP (ORDER BY ID)
 LISTAGG(ID, ', ') WITHIN GROUP (ORDER BY ID) OVER (ORDER BY ID)
 "
 

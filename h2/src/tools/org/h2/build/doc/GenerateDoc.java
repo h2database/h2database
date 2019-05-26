@@ -291,15 +291,27 @@ public class GenerateDoc {
         int len = text.length();
         int offset = 0;
         do {
-            int end = start + 7;
-            for (; end < len && !Character.isWhitespace(text.charAt(end)); end++) {
-                // Nothing to do
+            if (start > 2 && text.regionMatches(start - 2, "](https://h2database.com/html/", 0, 30)) {
+                int descEnd = start - 2;
+                int descStart = text.lastIndexOf('[', descEnd - 1) + 1;
+                int linkStart = start + 28;
+                int linkEnd = text.indexOf(')', start + 29);
+                buff.append(text, offset, descStart - 1) //
+                        .append("<a href=\"").append(text, linkStart, linkEnd).append("\">") //
+                        .append(text, descStart, descEnd) //
+                        .append("</a>");
+                offset = linkEnd + 1;
+            } else {
+                int end = start + 7;
+                for (; end < len && !Character.isWhitespace(text.charAt(end)); end++) {
+                    // Nothing to do
+                }
+                buff.append(text, offset, start) //
+                        .append("<a href=\"").append(text, start, end).append("\">") //
+                        .append(text, start, end) //
+                        .append("</a>");
+                offset = end;
             }
-            buff.append(text, offset, start) //
-                    .append("<a href=\"").append(text, start, end).append("\">") //
-                    .append(text, start, end) //
-                    .append("</a>");
-            offset = end;
         } while ((start = nextLink(text, offset)) >= 0);
         return buff.append(text, offset, len).toString();
     }

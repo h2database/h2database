@@ -5562,6 +5562,8 @@ Returns the rank of the hypothetical row in specified collection of rows.
 The rank of a row is the number of rows that precede this row plus 1.
 If two or more rows have the same values in ORDER BY columns, these rows get the same rank from the first row with the same values.
 It means that gaps in ranks are possible.
+
+See [RANK](https://h2database.com/html/functions-window.html#rank) for a window function with the same name.
 ","
 SELECT RANK(5) WITHIN GROUP (ORDER BY V) FROM TEST;
 "
@@ -5575,6 +5577,8 @@ Returns the dense rank of the hypothetical row in specified collection of rows.
 The rank of a row is the number of groups of rows with the same values in ORDER BY columns that precede group with this row plus 1.
 If two or more rows have the same values in ORDER BY columns, these rows get the same rank.
 Gaps in ranks are not possible.
+
+See [DENSE_RANK](https://h2database.com/html/functions-window.html#dense_rank) for a window function with the same name.
 ","
 SELECT DENSE_RANK(5) WITHIN GROUP (ORDER BY V) FROM TEST;
 "
@@ -5587,6 +5591,8 @@ withinGroupSpecification
 Returns the relative rank of the hypothetical row in specified collection of rows.
 The relative rank is calculated as (RANK - 1) / (NR - 1),
 where RANK is a rank of the row and NR is a total number of rows in the collection including hypothetical row.
+
+See [PERCENT_RANK](https://h2database.com/html/functions-window.html#percent_rank) for a window function with the same name.
 ","
 SELECT PERCENT_RANK(5) WITHIN GROUP (ORDER BY V) FROM TEST;
 "
@@ -5600,6 +5606,8 @@ Returns the relative rank of the hypothetical row in specified collection of row
 The relative rank is calculated as NP / NR
 where NP is a number of rows that precede the current row or have the same values in ORDER BY columns
 and NR is a total number of rows in the collection including hypothetical row.
+
+See [CUME_DIST](https://h2database.com/html/functions-window.html#cume_dist) for a window function with the same name.
 ","
 SELECT CUME_DIST(5) WITHIN GROUP (ORDER BY V) FROM TEST;
 "
@@ -5724,6 +5732,8 @@ This function requires window order clause.
 Window frame clause is not allowed for this function.
 
 Window functions in H2 may require a lot of memory for large queries.
+
+See [RANK aggregate](https://h2database.com/html/functions-aggregate.html#rank_aggregate) for a hypothetical set function with the same name.
 ","
 SELECT RANK() OVER (ORDER BY ID), * FROM TEST;
 SELECT RANK() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
@@ -5740,6 +5750,8 @@ This function requires window order clause.
 Window frame clause is not allowed for this function.
 
 Window functions in H2 may require a lot of memory for large queries.
+
+See [DENSE_RANK aggregate](https://h2database.com/html/functions-aggregate.html#dense_rank_aggregate) for a hypothetical set function with the same name.
 ","
 SELECT DENSE_RANK() OVER (ORDER BY ID), * FROM TEST;
 SELECT DENSE_RANK() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
@@ -5755,6 +5767,8 @@ Note that result is always 0 if window order clause is not specified.
 Window frame clause is not allowed for this function.
 
 Window functions in H2 may require a lot of memory for large queries.
+
+See [PERCENT_RANK aggregate](https://h2database.com/html/functions-aggregate.html#percent_rank_aggregate) for a hypothetical set function with the same name.
 ","
 SELECT PERCENT_RANK() OVER (ORDER BY ID), * FROM TEST;
 SELECT PERCENT_RANK() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
@@ -5771,6 +5785,8 @@ Note that result is always 1 if window order clause is not specified.
 Window frame clause is not allowed for this function.
 
 Window functions in H2 may require a lot of memory for large queries.
+
+See [CUME_DIST aggregate](https://h2database.com/html/functions-aggregate.html#cume_dist_aggregate) for a hypothetical set function with the same name.
 ","
 SELECT CUME_DIST() OVER (ORDER BY ID), * FROM TEST;
 SELECT CUME_DIST() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;

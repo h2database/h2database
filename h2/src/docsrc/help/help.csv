@@ -289,7 +289,7 @@ TABLE [schemaName.]tableName
 Selects data from a table.
 
 This command is an equivalent to SELECT * FROM tableName.
-See SELECT command for description of ORDER BY, OFFSET, and FETCH.
+See [SELECT](https://h2database.com/html/commands.html#select) command for description of ORDER BY, OFFSET, and FETCH.
 ","
 TABLE TEST;
 TABLE TEST ORDER BY ID FETCH FIRST ROW ONLY;
@@ -303,7 +303,7 @@ VALUES rowValueExpression [,...]
     { ONLY | WITH TIES } ]
 ","
 A list of rows that can be used like a table.
-See SELECT command for description of ORDER BY, OFFSET, and FETCH.
+See See [SELECT](https://h2database.com/html/commands.html#select) command for description of ORDER BY, OFFSET, and FETCH.
 The column list of the resulting table is C1, C2, and so on.
 ","
 VALUES (1, 'Hello'), (2, 'World');

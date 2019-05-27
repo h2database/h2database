@@ -193,9 +193,9 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
     private static final char[] SOUNDEX_INDEX = new char[128];
 
     protected Expression[] args;
+    private int argsCount;
 
     protected final FunctionInfo info;
-    private ArrayList<Expression> varArgs;
     private int flags;
     protected TypeInfo type;
 
@@ -615,11 +615,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
     public Function(Database database, FunctionInfo info) {
         this.database = database;
         this.info = info;
-        if (info.parameterCount == VAR_ARGS) {
-            varArgs = Utils.newSmallArrayList();
-        } else {
-            args = new Expression[info.parameterCount];
-        }
+        int count = info.parameterCount;
+        args = new Expression[count != VAR_ARGS ? count : 4];
     }
 
     /**
@@ -642,21 +639,18 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
     }
 
     /**
-     * Set the parameter expression at the given index.
-     *
-     * @param index the index (0, 1,...)
+     * Adds the parameter expression.
      * @param param the expression
      */
-    public void setParameter(int index, Expression param) {
-        if (varArgs != null) {
-            varArgs.add(param);
-        } else {
-            if (index >= args.length) {
-                throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2,
-                        info.name, Integer.toString(args.length));
+    public void addParameter(Expression param) {
+        int capacity = args.length;
+        if (argsCount >= capacity) {
+            if (info.parameterCount != VAR_ARGS) {
+                throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, Integer.toString(capacity));
             }
-            args[index] = param;
+            args = Arrays.copyOf(args, capacity * 2);
         }
+        args[argsCount++] = param;
     }
 
     @Override
@@ -2565,17 +2559,14 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
      * @throws DbException if the parameter count is incorrect.
      */
     public void doneWithParameters() {
-        if (info.parameterCount == VAR_ARGS) {
-            checkParameterCount(varArgs.size());
-            args = varArgs.toArray(new Expression[0]);
-            varArgs = null;
-        } else {
-            int len = args.length;
-            if (len > 0 && args[len - 1] == null) {
-                throw DbException.get(
-                        ErrorCode.INVALID_PARAMETER_COUNT_2,
-                        info.name, Integer.toString(len));
+        int count = info.parameterCount;
+        if (count == VAR_ARGS) {
+            checkParameterCount(argsCount);
+            if (args.length != argsCount) {
+                args = Arrays.copyOf(args, argsCount);
             }
+        } else if (count != argsCount) {
+            throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, Integer.toString(argsCount));
         }
     }
 

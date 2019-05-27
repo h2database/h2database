@@ -3617,7 +3617,7 @@ public class Parser {
     private Function readFunctionParameters(Function function) {
         switch (function.getFunctionType()) {
         case Function.CAST: {
-            function.setParameter(0, readExpression());
+            function.addParameter(readExpression());
             read("AS");
             function.setDataType(parseColumnWithType(null, false).getType());
             read(CLOSE_PAREN);
@@ -3627,10 +3627,10 @@ public class Parser {
             if (database.getMode().swapConvertFunctionParameters) {
                 function.setDataType(parseColumnWithType(null, false).getType());
                 read(COMMA);
-                function.setParameter(0, readExpression());
+                function.addParameter(readExpression());
                 read(CLOSE_PAREN);
             } else {
-                function.setParameter(0, readExpression());
+                function.addParameter(readExpression());
                 read(COMMA);
                 function.setDataType(parseColumnWithType(null, false).getType());
                 read(CLOSE_PAREN);
@@ -3638,25 +3638,25 @@ public class Parser {
             break;
         }
         case Function.EXTRACT: {
-            function.setParameter(0, ValueExpression.get(ValueString.get(currentToken)));
+            function.addParameter(ValueExpression.get(ValueString.get(currentToken)));
             read();
             read(FROM);
-            function.setParameter(1, readExpression());
+            function.addParameter(readExpression());
             read(CLOSE_PAREN);
             break;
         }
         case Function.DATEADD:
         case Function.DATEDIFF: {
             if (currentTokenType == VALUE) {
-                function.setParameter(0, ValueExpression.get(currentValue.convertTo(Value.STRING)));
+                function.addParameter(ValueExpression.get(currentValue.convertTo(Value.STRING)));
             } else {
-                function.setParameter(0, ValueExpression.get(ValueString.get(currentToken)));
+                function.addParameter(ValueExpression.get(ValueString.get(currentToken)));
             }
             read();
             read(COMMA);
-            function.setParameter(1, readExpression());
+            function.addParameter(readExpression());
             read(COMMA);
-            function.setParameter(2, readExpression());
+            function.addParameter(readExpression());
             read(CLOSE_PAREN);
             break;
         }
@@ -3668,20 +3668,20 @@ public class Parser {
             // SUBSTRING(X,1)
             // SUBSTRING(X,1,1)
             // SUBSTRING(X FOR 1) -- Postgres
-            function.setParameter(0, readExpression());
+            function.addParameter(readExpression());
             if (readIf(FROM)) {
-                function.setParameter(1, readExpression());
+                function.addParameter(readExpression());
                 if (readIf(FOR)) {
-                    function.setParameter(2, readExpression());
+                    function.addParameter(readExpression());
                 }
             } else if (readIf(FOR)) {
-                function.setParameter(1, ValueExpression.get(ValueInt.get(0)));
-                function.setParameter(2, readExpression());
+                function.addParameter(ValueExpression.get(ValueInt.get(0)));
+                function.addParameter(readExpression());
             } else {
                 read(COMMA);
-                function.setParameter(1, readExpression());
+                function.addParameter(readExpression());
                 if (readIf(COMMA)) {
-                    function.setParameter(2, readExpression());
+                    function.addParameter(readExpression());
                 }
             }
             read(CLOSE_PAREN);
@@ -3689,11 +3689,11 @@ public class Parser {
         }
         case Function.POSITION: {
             // can't read expression because IN would be read too early
-            function.setParameter(0, readConcat());
+            function.addParameter(readConcat());
             if (!readIf(COMMA)) {
                 read("IN");
             }
-            function.setParameter(1, readExpression());
+            function.addParameter(readExpression());
             read(CLOSE_PAREN);
             break;
         }
@@ -3732,24 +3732,22 @@ public class Parser {
             if (!needFrom && space == null && readIf(COMMA)) {
                 space = readExpression();
             }
-            function.setParameter(0, p0);
+            function.addParameter(p0);
             if (space != null) {
-                function.setParameter(1, space);
+                function.addParameter(space);
             }
             read(CLOSE_PAREN);
             break;
         }
         case Function.TABLE:
         case Function.TABLE_DISTINCT: {
-            int i = 0;
             ArrayList<Column> columns = Utils.newSmallArrayList();
             do {
                 String columnName = readAliasIdentifier();
                 Column column = parseColumnWithType(columnName, false);
                 columns.add(column);
                 read(EQUAL);
-                function.setParameter(i, readExpression());
-                i++;
+                function.addParameter(readExpression());
             } while (readIfMore(true));
             TableFunction tf = (TableFunction) function;
             tf.setColumns(columns);
@@ -3760,8 +3758,8 @@ public class Parser {
             if (!readIf(CLOSE_PAREN)) {
                 int i = 0;
                 do {
-                    function.setParameter(i++, readExpression());
-                    columns.add(new Column("C" + i, Value.NULL));
+                    function.addParameter(readExpression());
+                    columns.add(new Column("C" + ++i, Value.NULL));
                 } while (readIfMore(true));
             }
             if (readIf(WITH)) {
@@ -3773,17 +3771,16 @@ public class Parser {
             break;
         }
         case Function.JSON_OBJECT: {
-            int i = 0;
             if (!readJsonObjectFunctionFlags(function, false)) {
                 do {
                     boolean withKey = readIf("KEY");
-                    function.setParameter(i++, readExpression());
+                    function.addParameter(readExpression());
                     if (withKey) {
                         read("VALUE");
                     } else if (!readIf("VALUE")) {
                         read(COLON);
                     }
-                    function.setParameter(i++, readExpression());
+                    function.addParameter(readExpression());
                 } while (readIf(COMMA));
                 readJsonObjectFunctionFlags(function, false);
             }
@@ -3792,10 +3789,9 @@ public class Parser {
         }
         case Function.JSON_ARRAY: {
             function.setFlags(Function.JSON_ABSENT_ON_NULL);
-            int i = 0;
             if (!readJsonObjectFunctionFlags(function, true)) {
                 do {
-                    function.setParameter(i++, readExpression());
+                    function.addParameter(readExpression());
                 } while (readIf(COMMA));
                 readJsonObjectFunctionFlags(function, true);
             }
@@ -3804,9 +3800,8 @@ public class Parser {
         }
         default:
             if (!readIf(CLOSE_PAREN)) {
-                int i = 0;
                 do {
-                    function.setParameter(i++, readExpression());
+                    function.addParameter(readExpression());
                 } while (readIfMore(true));
             }
         }
@@ -4554,16 +4549,14 @@ public class Parser {
             readIf(CASE);
             return elsePart;
         }
-        int i;
         Function function;
         if (readIf("WHEN")) {
             function = Function.getFunction(database, Function.CASE);
-            function.setParameter(0, null);
-            i = 1;
+            function.addParameter(null);
             do {
-                function.setParameter(i++, readExpression());
+                function.addParameter(readExpression());
                 read("THEN");
-                function.setParameter(i++, readExpression());
+                function.addParameter(readExpression());
             } while (readIf("WHEN"));
         } else {
             Expression expr = readExpression();
@@ -4578,17 +4571,16 @@ public class Parser {
                 return elsePart;
             }
             function = Function.getFunction(database, Function.CASE);
-            function.setParameter(0, expr);
-            i = 1;
+            function.addParameter(expr);
             read("WHEN");
             do {
-                function.setParameter(i++, readExpression());
+                function.addParameter(readExpression());
                 read("THEN");
-                function.setParameter(i++, readExpression());
+                function.addParameter(readExpression());
             } while (readIf("WHEN"));
         }
         if (readIf("ELSE")) {
-            function.setParameter(i, readExpression());
+            function.addParameter(readExpression());
         }
         read("END");
         readIf("CASE");

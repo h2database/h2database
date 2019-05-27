@@ -193,9 +193,9 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
     private static final char[] SOUNDEX_INDEX = new char[128];
 
     protected Expression[] args;
+    private int argsCount;
 
     protected final FunctionInfo info;
-    private ArrayList<Expression> varArgs;
     private int flags;
     protected TypeInfo type;
 
@@ -452,9 +452,9 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunction("ARRAY_APPEND", ARRAY_APPEND, 2, Value.ARRAY);
         addFunction("ARRAY_SLICE", ARRAY_SLICE, 3, Value.ARRAY);
         addFunction("CSVREAD", CSVREAD,
-                VAR_ARGS, Value.RESULT_SET, false, false, false, true, false);
+                VAR_ARGS, Value.RESULT_SET, false, false, true, false);
         addFunction("CSVWRITE", CSVWRITE,
-                VAR_ARGS, Value.INT, false, false, true, true, false);
+                VAR_ARGS, Value.INT, false, false, true, false);
         addFunctionNotDeterministic("MEMORY_FREE", MEMORY_FREE,
                 0, Value.INT);
         addFunctionNotDeterministic("MEMORY_USED", MEMORY_USED,
@@ -476,11 +476,11 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunctionNotDeterministic("CANCEL_SESSION", CANCEL_SESSION,
                 1, Value.BOOLEAN);
         addFunction("SET", SET,
-                2, Value.NULL, false, false, true, true, false);
+                2, Value.NULL, false, false, true, false);
         addFunction("FILE_READ", FILE_READ,
-                VAR_ARGS, Value.NULL, false, false, true, true, false);
+                VAR_ARGS, Value.NULL, false, false, true, false);
         addFunction("FILE_WRITE", FILE_WRITE,
-                2, Value.LONG, false, false, true, true, false);
+                2, Value.LONG, false, false, true, false);
         addFunctionNotDeterministic("TRANSACTION_ID", TRANSACTION_ID,
                 0, Value.STRING);
         addFunctionWithNull("DECODE", DECODE,
@@ -497,33 +497,17 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunctionWithNull("UNNEST", UNNEST, VAR_ARGS, Value.RESULT_SET);
 
         // ON DUPLICATE KEY VALUES function
-        addFunction("VALUES", VALUES, 1, Value.NULL, false, true, false, true, false);
+        addFunction("VALUES", VALUES, 1, Value.NULL, false, true, true, false);
 
-        addFunction("JSON_ARRAY", JSON_ARRAY, VAR_ARGS, Value.JSON, false, true, true, true, true);
-        addFunction("JSON_OBJECT", JSON_OBJECT, VAR_ARGS, Value.JSON, false, true, true, true, true);
-    }
-
-    /**
-     * Creates a new instance of function.
-     *
-     * @param database database
-     * @param info function information
-     */
-    public Function(Database database, FunctionInfo info) {
-        this.database = database;
-        this.info = info;
-        if (info.parameterCount == VAR_ARGS) {
-            varArgs = Utils.newSmallArrayList();
-        } else {
-            args = new Expression[info.parameterCount];
-        }
+        addFunction("JSON_ARRAY", JSON_ARRAY, VAR_ARGS, Value.JSON, false, true, true, true);
+        addFunction("JSON_OBJECT", JSON_OBJECT, VAR_ARGS, Value.JSON, false, true, true, true);
     }
 
     private static void addFunction(String name, int type, int parameterCount,
             int returnDataType, boolean nullIfParameterIsNull, boolean deterministic,
-            boolean bufferResultSetToLocalTemp, boolean requireParentheses, boolean specialArguments) {
+            boolean requireParentheses, boolean specialArguments) {
         FunctionInfo info = new FunctionInfo(name, type, parameterCount, returnDataType, nullIfParameterIsNull,
-                deterministic, bufferResultSetToLocalTemp, requireParentheses, specialArguments);
+                deterministic, requireParentheses, specialArguments);
         if (FUNCTIONS_BY_ID[type] == null) {
             FUNCTIONS_BY_ID[type] = info;
         }
@@ -537,17 +521,17 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
 
     private static void addFunctionNotDeterministic(String name, int type,
             int parameterCount, int returnDataType, boolean requireParentheses) {
-        addFunction(name, type, parameterCount, returnDataType, true, false, true, requireParentheses, false);
+        addFunction(name, type, parameterCount, returnDataType, true, false, requireParentheses, false);
     }
 
     private static void addFunction(String name, int type, int parameterCount,
             int returnDataType) {
-        addFunction(name, type, parameterCount, returnDataType, true, true, true, true, false);
+        addFunction(name, type, parameterCount, returnDataType, true, true, true, false);
     }
 
     private static void addFunctionWithNull(String name, int type,
             int parameterCount, int returnDataType) {
-        addFunction(name, type, parameterCount, returnDataType, false, true, true, true, false);
+        addFunction(name, type, parameterCount, returnDataType, false, true, true, false);
     }
 
     /**
@@ -558,7 +542,19 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
      * @return the function object
      */
     public static Function getFunction(Database database, int id) {
-        return createFunction(database, FUNCTIONS_BY_ID[id]);
+        return createFunction(database, FUNCTIONS_BY_ID[id], null);
+    }
+
+    /**
+     * Get an instance of the given function for this database.
+     *
+     * @param database the database
+     * @param id the function number
+     * @param arguments the arguments
+     * @return the function object
+     */
+    public static Function getFunctionWithArgs(Database database, int id, Expression... arguments) {
+        return createFunction(database, FUNCTIONS_BY_ID[id], arguments);
     }
 
     /**
@@ -585,17 +581,18 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 return null;
             }
         }
-        return createFunction(database, info);
+        return createFunction(database, info, null);
     }
 
-    private static Function createFunction(Database database, FunctionInfo info) {
+    private static Function createFunction(Database database, FunctionInfo info, Expression[] arguments) {
         switch (info.type) {
         case TABLE:
         case TABLE_DISTINCT:
         case UNNEST:
+            assert arguments == null;
             return new TableFunction(database, info, Long.MAX_VALUE);
         default:
-            return new Function(database, info);
+            return arguments != null ? new Function(database, info, arguments) : new Function(database, info);
         }
     }
 
@@ -610,21 +607,50 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
     }
 
     /**
-     * Set the parameter expression at the given index.
+     * Creates a new instance of function.
      *
-     * @param index the index (0, 1,...)
+     * @param database database
+     * @param info function information
+     */
+    public Function(Database database, FunctionInfo info) {
+        this.database = database;
+        this.info = info;
+        int count = info.parameterCount;
+        args = new Expression[count != VAR_ARGS ? count : 4];
+    }
+
+    /**
+     * Creates a new instance of function.
+     *
+     * @param database database
+     * @param info function information
+     * @param arguments the arguments
+     */
+    public Function(Database database, FunctionInfo info, Expression[] arguments) {
+        this.database = database;
+        this.info = info;
+        int expected = info.parameterCount, len = arguments.length;
+        if (expected == VAR_ARGS) {
+            checkParameterCount(len);
+        } else if (expected != len) {
+            throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, Integer.toString(expected));
+        }
+        args = arguments;
+    }
+
+    /**
+     * Adds the parameter expression.
      * @param param the expression
      */
-    public void setParameter(int index, Expression param) {
-        if (varArgs != null) {
-            varArgs.add(param);
-        } else {
-            if (index >= args.length) {
-                throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2,
-                        info.name, Integer.toString(args.length));
+    public void addParameter(Expression param) {
+        int capacity = args.length;
+        if (argsCount >= capacity) {
+            if (info.parameterCount != VAR_ARGS) {
+                throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, Integer.toString(capacity));
             }
-            args[index] = param;
+            args = Arrays.copyOf(args, capacity * 2);
         }
+        args[argsCount++] = param;
     }
 
     @Override
@@ -2533,17 +2559,14 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
      * @throws DbException if the parameter count is incorrect.
      */
     public void doneWithParameters() {
-        if (info.parameterCount == VAR_ARGS) {
-            checkParameterCount(varArgs.size());
-            args = varArgs.toArray(new Expression[0]);
-            varArgs = null;
-        } else {
-            int len = args.length;
-            if (len > 0 && args[len - 1] == null) {
-                throw DbException.get(
-                        ErrorCode.INVALID_PARAMETER_COUNT_2,
-                        info.name, Integer.toString(len));
+        int count = info.parameterCount;
+        if (count == VAR_ARGS) {
+            checkParameterCount(argsCount);
+            if (args.length != argsCount) {
+                args = Arrays.copyOf(args, argsCount);
             }
+        } else if (count != argsCount) {
+            throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, Integer.toString(argsCount));
         }
     }
 
@@ -3074,11 +3097,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
     @Override
     public boolean isDeterministic() {
         return info.deterministic;
-    }
-
-    @Override
-    public boolean isBufferResultSetToLocalTemp() {
-        return info.bufferResultSetToLocalTemp;
     }
 
     @Override

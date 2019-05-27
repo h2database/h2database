@@ -426,19 +426,6 @@ public class Select extends Query {
         return true;
     }
 
-    private int getGroupByExpressionCount() {
-        if (groupByExpression == null) {
-            return 0;
-        }
-        int count = 0;
-        for (boolean b : groupByExpression) {
-            if (b) {
-                ++count;
-            }
-        }
-        return count;
-    }
-
     boolean isConditionMetForUpdate() {
         if (isConditionMet()) {
             int count = filters.size();
@@ -990,13 +977,11 @@ public class Select extends Query {
                             e = new ExpressionColumn(database, replacementSchema, replacementAlias,
                                     replacementFilter.getColumnName(right), false);
                         } else {
-                            Function f = Function.getFunction(database, Function.COALESCE);
-                            f.setParameter(0, new ExpressionColumn(database, schema, alias,
-                                    filter.getColumnName(left), false));
-                            f.setParameter(1, new ExpressionColumn(database, replacementSchema, replacementAlias,
-                                    replacementFilter.getColumnName(right), false));
-                            f.doneWithParameters();
-                            e = new Alias(f, left.getName(), true);
+                            e = new Alias(Function.getFunctionWithArgs(database, Function.COALESCE,
+                                    new ExpressionColumn(database, schema, alias, filter.getColumnName(left), false),
+                                    new ExpressionColumn(database, replacementSchema, replacementAlias,
+                                            replacementFilter.getColumnName(right), false)), //
+                                    left.getName(), true);
                         }
                         expressions.add(index++, e);
                     }
@@ -1314,14 +1299,14 @@ public class Select extends Query {
                 sortUsingIndex = false;
             }
         }
-        if (!isQuickAggregateQuery && isGroupQuery &&
-                getGroupByExpressionCount() > 0) {
+        if (!isQuickAggregateQuery && isGroupQuery) {
             Index index = getGroupSortedIndex();
-            Index current = topTableFilter.getIndex();
-            if (index != null && current != null && (current.getIndexType().isScan() ||
-                    current == index)) {
-                topTableFilter.setIndex(index);
-                isGroupSortedQuery = true;
+            if (index != null) {
+                Index current = topTableFilter.getIndex();
+                if (current != null && (current.getIndexType().isScan() || current == index)) {
+                    topTableFilter.setIndex(index);
+                    isGroupSortedQuery = true;
+                }
             }
         }
         expressionArray = expressions.toArray(new Expression[0]);

@@ -203,7 +203,7 @@ import org.h2.expression.condition.ConditionAndOr;
 import org.h2.expression.condition.ConditionExists;
 import org.h2.expression.condition.ConditionIn;
 import org.h2.expression.condition.ConditionInParameter;
-import org.h2.expression.condition.ConditionInSelect;
+import org.h2.expression.condition.ConditionInQuery;
 import org.h2.expression.condition.ConditionNot;
 import org.h2.expression.condition.IsJsonPredicate;
 import org.h2.expression.condition.TypePredicate;
@@ -3033,8 +3033,7 @@ public class Parser {
                 } else {
                     if (isSelect()) {
                         Query query = parseSelect();
-                        r = new ConditionInSelect(database, r, query, false,
-                                Comparison.EQUAL);
+                        r = new ConditionInQuery(database, r, query, false, Comparison.EQUAL);
                     } else {
                         ArrayList<Expression> v = Utils.newSmallArrayList();
                         Expression last;
@@ -3045,8 +3044,7 @@ public class Parser {
                         if (v.size() == 1 && (last instanceof Subquery)) {
                             Subquery s = (Subquery) last;
                             Query q = s.getQuery();
-                            r = new ConditionInSelect(database, r, q, false,
-                                    Comparison.EQUAL);
+                            r = new ConditionInQuery(database, r, q, false, Comparison.EQUAL);
                         } else {
                             r = new ConditionIn(database, r, v);
                         }
@@ -3076,7 +3074,7 @@ public class Parser {
                     read(OPEN_PAREN);
                     if (isSelect()) {
                         Query query = parseSelect();
-                        r = new ConditionInSelect(database, r, query, true, compareType);
+                        r = new ConditionInQuery(database, r, query, true, compareType);
                         read(CLOSE_PAREN);
                     } else {
                         parseIndex = start;
@@ -3091,7 +3089,7 @@ public class Parser {
                         read(CLOSE_PAREN);
                     } else if (isSelect()) {
                         Query query = parseSelect();
-                        r = new ConditionInSelect(database, r, query, false, compareType);
+                        r = new ConditionInQuery(database, r, query, false, compareType);
                         read(CLOSE_PAREN);
                     } else {
                         parseIndex = start;

@@ -26,9 +26,9 @@ import org.h2.value.ValueNull;
 import org.h2.value.ValueRow;
 
 /**
- * An 'in' condition with a subquery, as in WHERE ID IN(SELECT ...)
+ * An IN() condition with a subquery, as in WHERE ID IN(SELECT ...)
  */
-public class ConditionInSelect extends Condition {
+public class ConditionInQuery extends Condition {
 
     private final Database database;
     private Expression left;
@@ -36,8 +36,7 @@ public class ConditionInSelect extends Condition {
     private final boolean all;
     private final int compareType;
 
-    public ConditionInSelect(Database database, Expression left, Query query,
-            boolean all, int compareType) {
+    public ConditionInQuery(Database database, Expression left, Query query, boolean all, int compareType) {
         this.database = database;
         this.left = left;
         this.query = query;

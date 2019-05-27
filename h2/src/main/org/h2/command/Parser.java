@@ -4163,24 +4163,16 @@ public class Parser {
             break;
         case IDENTIFIER:
             String name = currentToken;
-            if (currentTokenQuoted) {
-                read();
-                if (readIf(OPEN_PAREN)) {
-                    r = readFunction(null, name);
-                } else if (readIf(DOT)) {
-                    r = readTermObjectDot(name);
-                } else {
-                    r = new ExpressionColumn(database, null, null, name, false);
-                }
+            boolean quoted = currentTokenQuoted;
+            read();
+            if (readIf(OPEN_PAREN)) {
+                r = readFunction(null, name);
+            } else if (readIf(DOT)) {
+                r = readTermObjectDot(name);
+            } else if (quoted) {
+                r = new ExpressionColumn(database, null, null, name, false);
             } else {
-                read();
-                if (readIf(DOT)) {
-                    r = readTermObjectDot(name);
-                } else if (readIf(OPEN_PAREN)) {
-                    r = readFunction(null, name);
-                } else {
-                    r = readTermWithIdentifier(name);
-                }
+                r = readTermWithIdentifier(name);
             }
             break;
         case MINUS_SIGN:

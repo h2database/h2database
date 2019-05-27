@@ -426,19 +426,6 @@ public class Select extends Query {
         return true;
     }
 
-    private int getGroupByExpressionCount() {
-        if (groupByExpression == null) {
-            return 0;
-        }
-        int count = 0;
-        for (boolean b : groupByExpression) {
-            if (b) {
-                ++count;
-            }
-        }
-        return count;
-    }
-
     boolean isConditionMetForUpdate() {
         if (isConditionMet()) {
             int count = filters.size();
@@ -1312,14 +1299,14 @@ public class Select extends Query {
                 sortUsingIndex = false;
             }
         }
-        if (!isQuickAggregateQuery && isGroupQuery &&
-                getGroupByExpressionCount() > 0) {
+        if (!isQuickAggregateQuery && isGroupQuery) {
             Index index = getGroupSortedIndex();
-            Index current = topTableFilter.getIndex();
-            if (index != null && current != null && (current.getIndexType().isScan() ||
-                    current == index)) {
-                topTableFilter.setIndex(index);
-                isGroupSortedQuery = true;
+            if (index != null) {
+                Index current = topTableFilter.getIndex();
+                if (current != null && (current.getIndexType().isScan() || current == index)) {
+                    topTableFilter.setIndex(index);
+                    isGroupSortedQuery = true;
+                }
             }
         }
         expressionArray = expressions.toArray(new Expression[0]);

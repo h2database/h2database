@@ -503,22 +503,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunction("JSON_OBJECT", JSON_OBJECT, VAR_ARGS, Value.JSON, false, true, true, true);
     }
 
-    /**
-     * Creates a new instance of function.
-     *
-     * @param database database
-     * @param info function information
-     */
-    public Function(Database database, FunctionInfo info) {
-        this.database = database;
-        this.info = info;
-        if (info.parameterCount == VAR_ARGS) {
-            varArgs = Utils.newSmallArrayList();
-        } else {
-            args = new Expression[info.parameterCount];
-        }
-    }
-
     private static void addFunction(String name, int type, int parameterCount,
             int returnDataType, boolean nullIfParameterIsNull, boolean deterministic,
             boolean requireParentheses, boolean specialArguments) {
@@ -558,7 +542,19 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
      * @return the function object
      */
     public static Function getFunction(Database database, int id) {
-        return createFunction(database, FUNCTIONS_BY_ID[id]);
+        return createFunction(database, FUNCTIONS_BY_ID[id], null);
+    }
+
+    /**
+     * Get an instance of the given function for this database.
+     *
+     * @param database the database
+     * @param id the function number
+     * @param arguments the arguments
+     * @return the function object
+     */
+    public static Function getFunctionWithArgs(Database database, int id, Expression... arguments) {
+        return createFunction(database, FUNCTIONS_BY_ID[id], arguments);
     }
 
     /**
@@ -585,17 +581,18 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 return null;
             }
         }
-        return createFunction(database, info);
+        return createFunction(database, info, null);
     }
 
-    private static Function createFunction(Database database, FunctionInfo info) {
+    private static Function createFunction(Database database, FunctionInfo info, Expression[] arguments) {
         switch (info.type) {
         case TABLE:
         case TABLE_DISTINCT:
         case UNNEST:
+            assert arguments == null;
             return new TableFunction(database, info, Long.MAX_VALUE);
         default:
-            return new Function(database, info);
+            return arguments != null ? new Function(database, info, arguments) : new Function(database, info);
         }
     }
 
@@ -607,6 +604,41 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
      */
     public static FunctionInfo getFunctionInfo(String upperName) {
         return FUNCTIONS_BY_NAME.get(upperName);
+    }
+
+    /**
+     * Creates a new instance of function.
+     *
+     * @param database database
+     * @param info function information
+     */
+    public Function(Database database, FunctionInfo info) {
+        this.database = database;
+        this.info = info;
+        if (info.parameterCount == VAR_ARGS) {
+            varArgs = Utils.newSmallArrayList();
+        } else {
+            args = new Expression[info.parameterCount];
+        }
+    }
+
+    /**
+     * Creates a new instance of function.
+     *
+     * @param database database
+     * @param info function information
+     * @param arguments the arguments
+     */
+    public Function(Database database, FunctionInfo info, Expression[] arguments) {
+        this.database = database;
+        this.info = info;
+        int expected = info.parameterCount, len = arguments.length;
+        if (expected == VAR_ARGS) {
+            checkParameterCount(len);
+        } else if (expected != len) {
+            throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, Integer.toString(expected));
+        }
+        args = arguments;
     }
 
     /**

@@ -1274,12 +1274,9 @@ public class Parser {
                     }
                 } else {
                     for (int i = 0; i < columnCount; i++) {
-                        Column column = columns.get(i);
-                        Function f = Function.getFunction(database, Function.ARRAY_GET);
-                        f.setParameter(0, expression);
-                        f.setParameter(1, ValueExpression.get(ValueInt.get(i + 1)));
-                        f.doneWithParameters();
-                        command.setAssignment(column, f);
+                        command.setAssignment(columns.get(i),
+                                Function.getFunctionWithArgs(database, Function.ARRAY_GET, expression,
+                                        ValueExpression.get(ValueInt.get(i + 1))));
                     }
                 }
             } else {
@@ -1432,10 +1429,9 @@ public class Parser {
         String informationSchema = database.sysIdentifier("INFORMATION_SCHEMA");
         Table table = database.getSchema(informationSchema)
                 .resolveTableOrView(session, database.sysIdentifier("HELP"));
-        Function function = Function.getFunction(database, Function.UPPER);
-        function.setParameter(0, new ExpressionColumn(database, informationSchema,
-                database.sysIdentifier("HELP"), database.sysIdentifier("TOPIC"), false));
-        function.doneWithParameters();
+        Function function = Function.getFunctionWithArgs(database, Function.UPPER,
+                new ExpressionColumn(database, informationSchema,
+                        database.sysIdentifier("HELP"), database.sysIdentifier("TOPIC"), false));
         TableFilter filter = new TableFilter(session, table, null, rightsChecked, select, 0, null);
         select.addTableFilter(filter, true);
         while (currentTokenType != END) {
@@ -2982,9 +2978,8 @@ public class Parser {
                 recompileAlways = true;
                 r = new CompareLike(database, r, b, esc, false);
             } else if (readIf("ILIKE")) {
-                Function function = Function.getFunction(database, Function.CAST);
+                Function function = Function.getFunctionWithArgs(database, Function.CAST, r);
                 function.setDataType(TypeInfo.TYPE_STRING_IGNORECASE);
-                function.setParameter(0, r);
                 r = function;
                 Expression b = readConcat();
                 Expression esc = null;
@@ -3155,21 +3150,18 @@ public class Parser {
                 r = new ConcatenationOperation(r, readSum());
             } else if (readIf(TILDE)) {
                 if (readIf(ASTERISK)) {
-                    Function function = Function.getFunction(database, Function.CAST);
+                    Function function = Function.getFunctionWithArgs(database, Function.CAST, r);
                     function.setDataType(TypeInfo.TYPE_STRING_IGNORECASE);
-                    function.setParameter(0, r);
                     r = function;
                 }
                 r = new CompareLike(database, r, readSum(), null, true);
             } else if (readIf(NOT_TILDE)) {
                 if (readIf(ASTERISK)) {
-                    Function function = Function.getFunction(database, Function.CAST);
+                    Function function = Function.getFunctionWithArgs(database, Function.CAST, r);
                     function.setDataType(TypeInfo.TYPE_STRING_IGNORECASE);
-                    function.setParameter(0, r);
                     r = function;
                 }
-                r = new ConditionNot(new CompareLike(database, r, readSum(),
-                        null, true));
+                r = new ConditionNot(new CompareLike(database, r, readSum(), null, true));
             } else {
                 return r;
             }
@@ -3968,15 +3960,15 @@ public class Parser {
     }
 
     private Expression readFunctionWithoutParameters(int id) {
-        Function function = Function.getFunction(database, id);
+        Expression[] args = new Expression[0];
+        Function function = Function.getFunctionWithArgs(database, id, args);
         if (database.isAllowBuiltinAliasOverride()) {
             FunctionAlias functionAlias = database.getSchema(session.getCurrentSchemaName()).findFunction(
                     function.getName());
             if (functionAlias != null) {
-                return new JavaFunction(functionAlias, new Expression[0]);
+                return new JavaFunction(functionAlias, args);
             }
         }
-        function.doneWithParameters();
         return function;
     }
 
@@ -3998,13 +3990,9 @@ public class Parser {
         } else if (readIf("CURRVAL")) {
             Sequence sequence = findSequence(schema, objectName);
             if (sequence != null) {
-                Function function = Function.getFunction(database, Function.CURRVAL);
-                function.setParameter(0, ValueExpression.get(ValueString
-                        .get(sequence.getSchema().getName())));
-                function.setParameter(1, ValueExpression.get(ValueString
-                        .get(sequence.getName())));
-                function.doneWithParameters();
-                return function;
+                return Function.getFunctionWithArgs(database, Function.CURRVAL,
+                        ValueExpression.get(ValueString.get(sequence.getSchema().getName())),
+                        ValueExpression.get(ValueString.get(sequence.getName())));
             }
         }
         return null;
@@ -4136,9 +4124,7 @@ public class Parser {
             r = new Variable(session, readAliasIdentifier());
             if (readIf(COLON_EQ)) {
                 Expression value = readExpression();
-                Function function = Function.getFunction(database, Function.SET);
-                function.setParameter(0, r);
-                function.setParameter(1, value);
+                Function function = Function.getFunctionWithArgs(database, Function.SET, r, value);
                 r = function;
             }
             break;
@@ -4322,10 +4308,7 @@ public class Parser {
             throw getSyntaxError();
         }
         if (readIf(OPEN_BRACKET)) {
-            Function function = Function.getFunction(database, Function.ARRAY_GET);
-            function.setParameter(0, r);
-            function.setParameter(1, readExpression());
-            r = function;
+            r = Function.getFunctionWithArgs(database, Function.ARRAY_GET, r, readExpression());
             read(CLOSE_BRACKET);
         }
         if (readIf(COLON_COLON)) {
@@ -4342,9 +4325,8 @@ public class Parser {
                 Expression[] args = { r };
                 r = new JavaFunction(f, args);
             } else {
-                Function function = Function.getFunction(database, Function.CAST);
+                Function function = Function.getFunctionWithArgs(database, Function.CAST, r);
                 function.setDataType(parseColumnWithType(null, false).getType());
-                function.setParameter(0, r);
                 r = function;
             }
         }

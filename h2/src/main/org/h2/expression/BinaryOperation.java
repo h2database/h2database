@@ -260,25 +260,17 @@ public class BinaryOperation extends Expression {
             switch (l) {
             case Value.INT: {
                 // Oracle date add
-                Function f = Function.getFunction(session.getDatabase(), Function.DATEADD);
-                f.setParameter(0, ValueExpression.get(ValueString.get("DAY")));
-                f.setParameter(1, left);
-                f.setParameter(2, right);
-                f.doneWithParameters();
-                return f.optimize(session);
+                return Function.getFunctionWithArgs(session.getDatabase(), Function.DATEADD,
+                        ValueExpression.get(ValueString.get("DAY")), left, right).optimize(session);
             }
             case Value.DECIMAL:
             case Value.FLOAT:
             case Value.DOUBLE: {
                 // Oracle date add
-                Function f = Function.getFunction(session.getDatabase(), Function.DATEADD);
-                f.setParameter(0, ValueExpression.get(ValueString.get("SECOND")));
-                left = new BinaryOperation(OpType.MULTIPLY, ValueExpression.get(ValueInt
-                        .get(60 * 60 * 24)), left);
-                f.setParameter(1, left);
-                f.setParameter(2, right);
-                f.doneWithParameters();
-                return f.optimize(session);
+                return Function.getFunctionWithArgs(session.getDatabase(), Function.DATEADD,
+                        ValueExpression.get(ValueString.get("SECOND")),
+                        new BinaryOperation(OpType.MULTIPLY, ValueExpression.get(ValueInt.get(60 * 60 * 24)), left),
+                        right).optimize(session);
             }
             case Value.TIME:
                 if (r == Value.TIME || r == Value.TIMESTAMP_TZ) {
@@ -298,29 +290,20 @@ public class BinaryOperation extends Expression {
                 switch (r) {
                 case Value.INT: {
                     // Oracle date subtract
-                    Function f = Function.getFunction(session.getDatabase(), Function.DATEADD);
-                    f.setParameter(0, ValueExpression.get(ValueString.get("DAY")));
-                    right = new UnaryOperation(right);
-                    right = right.optimize(session);
-                    f.setParameter(1, right);
-                    f.setParameter(2, left);
-                    f.doneWithParameters();
-                    return f.optimize(session);
+                    return Function.getFunctionWithArgs(session.getDatabase(), Function.DATEADD,
+                            ValueExpression.get(ValueString.get("DAY")), //
+                            new UnaryOperation(right), //
+                            left).optimize(session);
                 }
                 case Value.DECIMAL:
                 case Value.FLOAT:
                 case Value.DOUBLE: {
                     // Oracle date subtract
-                    Function f = Function.getFunction(session.getDatabase(), Function.DATEADD);
-                    f.setParameter(0, ValueExpression.get(ValueString.get("SECOND")));
-                    right = new BinaryOperation(OpType.MULTIPLY, ValueExpression.get(ValueInt
-                            .get(60 * 60 * 24)), right);
-                    right = new UnaryOperation(right);
-                    right = right.optimize(session);
-                    f.setParameter(1, right);
-                    f.setParameter(2, left);
-                    f.doneWithParameters();
-                    return f.optimize(session);
+                    return Function.getFunctionWithArgs(session.getDatabase(), Function.DATEADD,
+                                ValueExpression.get(ValueString.get("SECOND")),
+                                new UnaryOperation(new BinaryOperation(OpType.MULTIPLY, //
+                                        ValueExpression.get(ValueInt.get(60 * 60 * 24)), right)), //
+                                left).optimize(session);
                 }
                 case Value.TIME:
                     type = TypeInfo.TYPE_TIMESTAMP;

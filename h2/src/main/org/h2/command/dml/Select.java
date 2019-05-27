@@ -990,13 +990,11 @@ public class Select extends Query {
                             e = new ExpressionColumn(database, replacementSchema, replacementAlias,
                                     replacementFilter.getColumnName(right), false);
                         } else {
-                            Function f = Function.getFunction(database, Function.COALESCE);
-                            f.setParameter(0, new ExpressionColumn(database, schema, alias,
-                                    filter.getColumnName(left), false));
-                            f.setParameter(1, new ExpressionColumn(database, replacementSchema, replacementAlias,
-                                    replacementFilter.getColumnName(right), false));
-                            f.doneWithParameters();
-                            e = new Alias(f, left.getName(), true);
+                            e = new Alias(Function.getFunctionWithArgs(database, Function.COALESCE,
+                                    new ExpressionColumn(database, schema, alias, filter.getColumnName(left), false),
+                                    new ExpressionColumn(database, replacementSchema, replacementAlias,
+                                            replacementFilter.getColumnName(right), false)), //
+                                    left.getName(), true);
                         }
                         expressions.add(index++, e);
                     }

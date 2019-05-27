@@ -168,11 +168,6 @@ public class JavaFunction extends Expression implements FunctionCall {
     }
 
     @Override
-    public boolean isBufferResultSetToLocalTemp() {
-        return functionAlias.isBufferResultSetToLocalTemp();
-    }
-
-    @Override
     public int getSubexpressionCount() {
         return args.length;
     }

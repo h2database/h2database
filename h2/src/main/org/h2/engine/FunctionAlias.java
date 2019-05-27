@@ -43,7 +43,6 @@ public class FunctionAlias extends SchemaObjectBase {
     private String source;
     private JavaMethod[] javaMethods;
     private boolean deterministic;
-    private boolean bufferResultSetToLocalTemp = true;
 
     private FunctionAlias(Schema schema, int id, String name) {
         super(schema, id, name, Trace.FUNCTION);
@@ -57,12 +56,11 @@ public class FunctionAlias extends SchemaObjectBase {
      * @param name the name
      * @param javaClassMethod the class and method name
      * @param force create the object even if the class or method does not exist
-     * @param bufferResultSetToLocalTemp whether the result should be buffered
      * @return the database object
      */
     public static FunctionAlias newInstance(
             Schema schema, int id, String name, String javaClassMethod,
-            boolean force, boolean bufferResultSetToLocalTemp) {
+            boolean force) {
         FunctionAlias alias = new FunctionAlias(schema, id, name);
         int paren = javaClassMethod.indexOf('(');
         int lastDot = javaClassMethod.lastIndexOf('.', paren < 0 ?
@@ -72,7 +70,6 @@ public class FunctionAlias extends SchemaObjectBase {
         }
         alias.className = javaClassMethod.substring(0, lastDot);
         alias.methodName = javaClassMethod.substring(lastDot + 1);
-        alias.bufferResultSetToLocalTemp = bufferResultSetToLocalTemp;
         alias.init(force);
         return alias;
     }
@@ -85,15 +82,12 @@ public class FunctionAlias extends SchemaObjectBase {
      * @param name the name
      * @param source the source code
      * @param force create the object even if the class or method does not exist
-     * @param bufferResultSetToLocalTemp whether the result should be buffered
      * @return the database object
      */
     public static FunctionAlias newInstanceFromSource(
-            Schema schema, int id, String name, String source, boolean force,
-            boolean bufferResultSetToLocalTemp) {
+            Schema schema, int id, String name, String source, boolean force) {
         FunctionAlias alias = new FunctionAlias(schema, id, name);
         alias.source = source;
-        alias.bufferResultSetToLocalTemp = bufferResultSetToLocalTemp;
         alias.init(force);
         return alias;
     }
@@ -221,9 +215,6 @@ public class FunctionAlias extends SchemaObjectBase {
         if (deterministic) {
             buff.append(" DETERMINISTIC");
         }
-        if (!bufferResultSetToLocalTemp) {
-            buff.append(" NOBUFFER");
-        }
         if (source != null) {
             buff.append(" AS ");
             StringUtils.quoteStringSQL(buff, source);
@@ -302,15 +293,6 @@ public class FunctionAlias extends SchemaObjectBase {
 
     public String getSource() {
         return source;
-    }
-
-    /**
-     * Should the return value ResultSet be buffered in a local temporary file?
-     *
-     * @return true if yes
-     */
-    public boolean isBufferResultSetToLocalTemp() {
-        return bufferResultSetToLocalTemp;
     }
 
     /**

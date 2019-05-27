@@ -452,9 +452,9 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunction("ARRAY_APPEND", ARRAY_APPEND, 2, Value.ARRAY);
         addFunction("ARRAY_SLICE", ARRAY_SLICE, 3, Value.ARRAY);
         addFunction("CSVREAD", CSVREAD,
-                VAR_ARGS, Value.RESULT_SET, false, false, false, true, false);
+                VAR_ARGS, Value.RESULT_SET, false, false, true, false);
         addFunction("CSVWRITE", CSVWRITE,
-                VAR_ARGS, Value.INT, false, false, true, true, false);
+                VAR_ARGS, Value.INT, false, false, true, false);
         addFunctionNotDeterministic("MEMORY_FREE", MEMORY_FREE,
                 0, Value.INT);
         addFunctionNotDeterministic("MEMORY_USED", MEMORY_USED,
@@ -476,11 +476,11 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunctionNotDeterministic("CANCEL_SESSION", CANCEL_SESSION,
                 1, Value.BOOLEAN);
         addFunction("SET", SET,
-                2, Value.NULL, false, false, true, true, false);
+                2, Value.NULL, false, false, true, false);
         addFunction("FILE_READ", FILE_READ,
-                VAR_ARGS, Value.NULL, false, false, true, true, false);
+                VAR_ARGS, Value.NULL, false, false, true, false);
         addFunction("FILE_WRITE", FILE_WRITE,
-                2, Value.LONG, false, false, true, true, false);
+                2, Value.LONG, false, false, true, false);
         addFunctionNotDeterministic("TRANSACTION_ID", TRANSACTION_ID,
                 0, Value.STRING);
         addFunctionWithNull("DECODE", DECODE,
@@ -497,10 +497,10 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunctionWithNull("UNNEST", UNNEST, VAR_ARGS, Value.RESULT_SET);
 
         // ON DUPLICATE KEY VALUES function
-        addFunction("VALUES", VALUES, 1, Value.NULL, false, true, false, true, false);
+        addFunction("VALUES", VALUES, 1, Value.NULL, false, true, true, false);
 
-        addFunction("JSON_ARRAY", JSON_ARRAY, VAR_ARGS, Value.JSON, false, true, true, true, true);
-        addFunction("JSON_OBJECT", JSON_OBJECT, VAR_ARGS, Value.JSON, false, true, true, true, true);
+        addFunction("JSON_ARRAY", JSON_ARRAY, VAR_ARGS, Value.JSON, false, true, true, true);
+        addFunction("JSON_OBJECT", JSON_OBJECT, VAR_ARGS, Value.JSON, false, true, true, true);
     }
 
     /**
@@ -521,9 +521,9 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
 
     private static void addFunction(String name, int type, int parameterCount,
             int returnDataType, boolean nullIfParameterIsNull, boolean deterministic,
-            boolean bufferResultSetToLocalTemp, boolean requireParentheses, boolean specialArguments) {
+            boolean requireParentheses, boolean specialArguments) {
         FunctionInfo info = new FunctionInfo(name, type, parameterCount, returnDataType, nullIfParameterIsNull,
-                deterministic, bufferResultSetToLocalTemp, requireParentheses, specialArguments);
+                deterministic, requireParentheses, specialArguments);
         if (FUNCTIONS_BY_ID[type] == null) {
             FUNCTIONS_BY_ID[type] = info;
         }
@@ -537,17 +537,17 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
 
     private static void addFunctionNotDeterministic(String name, int type,
             int parameterCount, int returnDataType, boolean requireParentheses) {
-        addFunction(name, type, parameterCount, returnDataType, true, false, true, requireParentheses, false);
+        addFunction(name, type, parameterCount, returnDataType, true, false, requireParentheses, false);
     }
 
     private static void addFunction(String name, int type, int parameterCount,
             int returnDataType) {
-        addFunction(name, type, parameterCount, returnDataType, true, true, true, true, false);
+        addFunction(name, type, parameterCount, returnDataType, true, true, true, false);
     }
 
     private static void addFunctionWithNull(String name, int type,
             int parameterCount, int returnDataType) {
-        addFunction(name, type, parameterCount, returnDataType, false, true, true, true, false);
+        addFunction(name, type, parameterCount, returnDataType, false, true, true, false);
     }
 
     /**
@@ -3074,11 +3074,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
     @Override
     public boolean isDeterministic() {
         return info.deterministic;
-    }
-
-    @Override
-    public boolean isBufferResultSetToLocalTemp() {
-        return info.bufferResultSetToLocalTemp;
     }
 
     @Override

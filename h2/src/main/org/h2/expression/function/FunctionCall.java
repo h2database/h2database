@@ -69,11 +69,4 @@ public interface FunctionCall {
      */
     boolean isDeterministic();
 
-    /**
-     * Should the return value ResultSet be buffered in a local temporary file?
-     *
-     * @return true if it should be.
-     */
-    boolean isBufferResultSetToLocalTemp();
-
 }

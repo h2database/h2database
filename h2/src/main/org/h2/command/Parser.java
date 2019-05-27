@@ -4190,11 +4190,9 @@ public class Parser {
                 if (readIfMore(true)) {
                     ArrayList<Expression> list = Utils.newSmallArrayList();
                     list.add(r);
-                    if (!readIf(CLOSE_PAREN)) {
-                        do {
-                            list.add(readExpression());
-                        } while (readIfMore(false));
-                    }
+                    do {
+                        list.add(readExpression());
+                    } while (readIfMore(true));
                     r = new ExpressionList(list.toArray(new Expression[0]), false);
                 }
             }
@@ -4206,10 +4204,9 @@ public class Parser {
                 r = ValueExpression.get(ValueArray.getEmpty());
             } else {
                 ArrayList<Expression> list = Utils.newSmallArrayList();
-                list.add(readExpression());
-                while (readIf(COMMA)) {
+                do {
                     list.add(readExpression());
-                }
+                } while (readIf(COMMA));
                 read(CLOSE_BRACKET);
                 r = new ExpressionList(list.toArray(new Expression[0]), true);
             }

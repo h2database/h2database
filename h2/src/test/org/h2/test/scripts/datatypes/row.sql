@@ -3,6 +3,18 @@
 -- Initial Developer: H2 Group
 --
 
+SELECT ();
+>> ROW ()
+
+SELECT (1,);
+> exception SYNTAX_ERROR_2
+
+SELECT ROW ();
+>> ROW ()
+
+SELECT ROW (1,);
+> exception SYNTAX_ERROR_2
+
 SELECT ROW (10);
 >> ROW (10)
 

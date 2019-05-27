@@ -364,18 +364,6 @@ select * from dual where cast('xx' as varchar_ignorecase(1)) = 'X' and cast('x x
 explain select -cast(0 as real), -cast(0 as double);
 >> SELECT 0.0, 0.0 FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */
 
-select () empty;
-> EMPTY
-> ------
-> ROW ()
-> rows: 1
-
-select (1,) one_element;
-> ONE_ELEMENT
-> -----------
-> ROW (1)
-> rows: 1
-
 select (1) one;
 > ONE
 > ---

@@ -115,9 +115,6 @@ public class TestConnection extends TestDb {
     }
 
     private void testSetGetSchema() throws SQLException {
-        if (config.networked) {
-            return;
-        }
         deleteDb("schemaSetGet");
         Connection conn = getConnection("schemaSetGet");
         Statement s = conn.createStatement();
@@ -146,7 +143,10 @@ public class TestConnection extends TestDb {
             assertEquals("b", rs.getString(2));
             assertFalse(rs.next());
         }
+        s.execute("SET SCHEMA \"MY_TEST_SCHEMA\"");
+        assertEquals("MY_TEST_SCHEMA", conn.getSchema());
         s.close();
         conn.close();
+        deleteDb("schemaSetGet");
     }
 }

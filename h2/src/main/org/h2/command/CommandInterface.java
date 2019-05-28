@@ -13,7 +13,7 @@ import org.h2.result.ResultWithGeneratedKeys;
 /**
  * Represents a SQL statement.
  */
-public interface CommandInterface {
+public interface CommandInterface extends AutoCloseable {
 
     /**
      * The type for unknown statement.
@@ -536,6 +536,7 @@ public interface CommandInterface {
     /**
      * Close the statement.
      */
+    @Override
     void close();
 
     /**

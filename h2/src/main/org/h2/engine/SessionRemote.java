@@ -95,6 +95,8 @@ public class SessionRemote extends SessionWithState implements DataHandler {
 
     private final CompareMode compareMode = CompareMode.getInstance(null, 0);
 
+    private String currentSchemaName;
+
     public SessionRemote(ConnectionInfo ci) {
         this.connectionInfo = ci;
     }
@@ -614,6 +616,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             transferList = null;
         } else if (status == STATUS_OK_STATE_CHANGED) {
             sessionStateChanged = true;
+            currentSchemaName = null;
         } else if (status == STATUS_OK) {
             // ok
         } else {
@@ -842,12 +845,27 @@ public class SessionRemote extends SessionWithState implements DataHandler {
 
     @Override
     public String getCurrentSchemaName() {
-        throw DbException.getUnsupportedException("getSchema && remote session");
+        String schema = currentSchemaName;
+        if (schema == null) {
+            synchronized (this) {
+                try (CommandInterface command = prepareCommand("CALL SCHEMA()", 1);
+                        ResultInterface result = command.executeQuery(1, false)) {
+                    result.next();
+                    currentSchemaName = schema = result.currentRow()[0].getString();
+                }
+            }
+        }
+        return schema;
     }
 
     @Override
-    public void setCurrentSchemaName(String schema) {
-        throw DbException.getUnsupportedException("setSchema && remote session");
+    public synchronized void setCurrentSchemaName(String schema) {
+        currentSchemaName = null;
+        try (CommandInterface command = prepareCommand(
+                StringUtils.quoteIdentifier(new StringBuilder("SET SCHEMA "), schema).toString(), 0)) {
+            command.executeUpdate(false);
+            currentSchemaName = schema;
+        }
     }
 
     @Override

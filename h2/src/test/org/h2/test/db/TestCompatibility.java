@@ -697,7 +697,7 @@ public class TestCompatibility extends TestDb {
 
     private void testUnknownSet() throws SQLException {
         Statement stat = conn.createStatement();
-        assertThrows(ErrorCode.UNKNOWN_MODE_1, stat).execute("SET MODE Unknown");
+        assertThrows(ErrorCode.UNKNOWN_MODE_1, stat).execute("SET MODE UnknownMode");
     }
 
     private void testIdentifiers() throws SQLException {

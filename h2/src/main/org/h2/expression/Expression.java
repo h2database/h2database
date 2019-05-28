@@ -220,6 +220,15 @@ public abstract class Expression {
     }
 
     /**
+     * Check if this expression will always return the NULL value.
+     *
+     * @return if the expression is constant NULL value
+     */
+    public boolean isNullConstant() {
+        return false;
+    }
+
+    /**
      * Is the value of a parameter set.
      *
      * @return true if set

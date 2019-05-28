@@ -38,6 +38,7 @@ import org.h2.expression.ExpressionWithFlags;
 import org.h2.expression.Format;
 import org.h2.expression.SequenceValue;
 import org.h2.expression.Subquery;
+import org.h2.expression.TypedValueExpression;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.Variable;
 import org.h2.index.Index;
@@ -2645,7 +2646,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case GREATEST: {
             typeInfo = TypeInfo.TYPE_UNKNOWN;
             for (Expression e : args) {
-                if (e != ValueExpression.getNull()) {
+                if (!e.isNullConstant()) {
                     TypeInfo type = e.getType();
                     int valueType = type.getValueType();
                     if (valueType != Value.UNKNOWN && valueType != Value.NULL) {
@@ -2667,7 +2668,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             // (expr, when, then, when, then, else)
             for (int i = 2, len = args.length; i < len; i += 2) {
                 Expression then = args[i];
-                if (then != ValueExpression.getNull()) {
+                if (!then.isNullConstant()) {
                     TypeInfo type = then.getType();
                     int valueType = type.getValueType();
                     if (valueType != Value.UNKNOWN && valueType != Value.NULL) {
@@ -2677,7 +2678,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             }
             if (args.length % 2 == 0) {
                 Expression elsePart = args[args.length - 1];
-                if (elsePart != ValueExpression.getNull()) {
+                if (!elsePart.isNullConstant()) {
                     TypeInfo type = elsePart.getType();
                     int valueType = type.getValueType();
                     if (valueType != Value.UNKNOWN && valueType != Value.NULL) {
@@ -2830,13 +2831,13 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             Value v = getValue(session);
             if (info.type == CAST || info.type == CONVERT) {
                 if (v == ValueNull.INSTANCE) {
-                    return this;
+                    return TypedValueExpression.get(ValueNull.INSTANCE, type);
                 }
                 DataType dt = DataType.getDataType(type.getValueType());
                 TypeInfo vt = v.getType();
                 if (dt.supportsPrecision && type.getPrecision() != vt.getPrecision()
                         || dt.supportsScale && type.getScale() != vt.getScale()) {
-                    return this;
+                    return TypedValueExpression.get(v, type);
                 }
             }
             return ValueExpression.get(v);

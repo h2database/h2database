@@ -12,6 +12,7 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
+import org.h2.expression.TypedValueExpression;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.TableFunction;
@@ -88,8 +89,8 @@ public class ConditionIn extends Condition {
     public Expression optimize(Session session) {
         left = left.optimize(session);
         boolean constant = left.isConstant();
-        if (constant && left == ValueExpression.getNull()) {
-            return left;
+        if (constant && left.isNullConstant()) {
+            return TypedValueExpression.getUnknown();
         }
         int size = valueList.size();
         if (size == 1) {

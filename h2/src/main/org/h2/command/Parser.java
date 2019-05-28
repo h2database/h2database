@@ -57,6 +57,7 @@ import static org.h2.util.ParserUtil.TABLE;
 import static org.h2.util.ParserUtil.TRUE;
 import static org.h2.util.ParserUtil.UNION;
 import static org.h2.util.ParserUtil.UNIQUE;
+import static org.h2.util.ParserUtil.UNKNOWN;
 import static org.h2.util.ParserUtil.USING;
 import static org.h2.util.ParserUtil.VALUES;
 import static org.h2.util.ParserUtil.WHERE;
@@ -180,6 +181,7 @@ import org.h2.expression.Parameter;
 import org.h2.expression.Rownum;
 import org.h2.expression.SequenceValue;
 import org.h2.expression.Subquery;
+import org.h2.expression.TypedValueExpression;
 import org.h2.expression.UnaryOperation;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.Variable;
@@ -535,6 +537,8 @@ public class Parser {
             "UNION",
             // UNIQUE
             "UNIQUE",
+            // UNKNOWN
+            "UNKNOWN",
             // USING
             "USING",
             // VALUES
@@ -4234,6 +4238,10 @@ public class Parser {
         case FALSE:
             read();
             r = ValueExpression.get(ValueBoolean.FALSE);
+            break;
+        case UNKNOWN:
+            read();
+            r = TypedValueExpression.getUnknown();
             break;
         case ROWNUM:
             read();

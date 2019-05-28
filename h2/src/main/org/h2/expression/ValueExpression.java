@@ -33,9 +33,9 @@ public class ValueExpression extends Expression {
      */
     private static final Object DEFAULT = new ValueExpression(ValueNull.INSTANCE);
 
-    private final Value value;
+    final Value value;
 
-    private ValueExpression(Value value) {
+    ValueExpression(Value value) {
         this.value = value;
     }
 
@@ -82,11 +82,8 @@ public class ValueExpression extends Expression {
 
     @Override
     public void createIndexConditions(Session session, TableFilter filter) {
-        if (value.getValueType() == Value.BOOLEAN) {
-            boolean v = ((ValueBoolean) value).getBoolean();
-            if (!v) {
-                filter.addIndexCondition(IndexCondition.get(Comparison.FALSE, null, this));
-            }
+        if (value.getValueType() == Value.BOOLEAN && !value.getBoolean()) {
+            filter.addIndexCondition(IndexCondition.get(Comparison.FALSE, null, this));
         }
     }
 
@@ -109,6 +106,11 @@ public class ValueExpression extends Expression {
     @Override
     public boolean isConstant() {
         return true;
+    }
+
+    @Override
+    public boolean isNullConstant() {
+        return this == NULL;
     }
 
     @Override

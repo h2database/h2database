@@ -13,6 +13,7 @@ import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
+import org.h2.expression.TypedValueExpression;
 import org.h2.expression.ValueExpression;
 import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
@@ -107,7 +108,7 @@ public class CompareLike extends Condition {
             Value l = left.getValue(session);
             if (l == ValueNull.INSTANCE) {
                 // NULL LIKE something > NULL
-                return ValueExpression.getNull();
+                return TypedValueExpression.getUnknown();
             }
         }
         if (escape != null) {
@@ -120,16 +121,16 @@ public class CompareLike extends Condition {
             Value r = right.getValue(session);
             if (r == ValueNull.INSTANCE) {
                 // something LIKE NULL > NULL
-                return ValueExpression.getNull();
+                return TypedValueExpression.getUnknown();
             }
             Value e = escape == null ? null : escape.getValue(session);
             if (e == ValueNull.INSTANCE) {
-                return ValueExpression.getNull();
+                return TypedValueExpression.getUnknown();
             }
             String p = r.getString();
             initPattern(p, getEscapeChar(e));
             if (invalidPattern) {
-                return ValueExpression.getNull();
+                return TypedValueExpression.getUnknown();
             }
             if ("%".equals(p)) {
                 // optimization for X LIKE '%': convert to X IS NOT NULL

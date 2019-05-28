@@ -1572,7 +1572,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * RANGE, REGEXP, RIGHT, ROW, _ROWID_, ROWNUM, ROWS,
      * SELECT, SYSDATE, SYSTIME, SYSTIMESTAMP,
      * TABLE, TODAY, TOP, TRAILING, TRUE,
-     * UNION, UNIQUE, USING
+     * UNION, UNIQUE, UNKNOWN, USING
      * VALUES,
      * WHERE, WINDOW, WITH
      * </pre>

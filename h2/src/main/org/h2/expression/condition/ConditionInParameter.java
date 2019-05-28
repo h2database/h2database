@@ -13,6 +13,7 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
+import org.h2.expression.TypedValueExpression;
 import org.h2.expression.ValueExpression;
 import org.h2.index.IndexCondition;
 import org.h2.result.ResultInterface;
@@ -136,8 +137,8 @@ public class ConditionInParameter extends Condition {
     @Override
     public Expression optimize(Session session) {
         left = left.optimize(session);
-        if (left == ValueExpression.getNull()) {
-            return left;
+        if (left.isNullConstant()) {
+            return TypedValueExpression.getUnknown();
         }
         return this;
     }

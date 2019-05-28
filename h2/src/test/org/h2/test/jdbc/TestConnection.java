@@ -43,6 +43,7 @@ public class TestConnection extends TestDb {
         testSetInternalPropertyToInitialValue();
         testSetGetSchema();
         testCommitOnAutoCommitSet();
+        testRollbackOnAutoCommitSet();
     }
 
     private void testSetInternalProperty() throws SQLException {
@@ -151,6 +152,53 @@ public class TestConnection extends TestDb {
             ResultSet rs = conn.createStatement().executeQuery("SELECT COUNT(*) FROM TEST");
             rs.next();
             assertTrue(rs.getInt(1) == 2);
+            rs.close();
+        }
+
+        conn.close();
+        prep.close();
+    }
+
+    private void testRollbackOnAutoCommitSet() throws Exception {
+        Connection conn = getConnection("clientInfo");
+        conn.setAutoCommit(false);
+        Statement stat = conn.createStatement();
+        stat.execute("DROP TABLE IF EXISTS TEST");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
+        PreparedStatement prep = conn.prepareStatement(
+                "INSERT INTO TEST VALUES(?, ?)");
+        int index = 1;
+        prep.setInt(index++, 1);
+        prep.setString(index++, "test1");
+        prep.execute();
+        conn.rollback();
+        // no error expected 
+        
+
+        conn.setAutoCommit(true);
+        index = 1;
+        prep.setInt(index++, 2);
+        prep.setString(index++, "test2");
+        if (SysProperties.FORCE_AUTOCOMMIT_OFF_ON_COMMIT) {
+            prep.execute();
+            try {
+                conn.rollback();
+                throw new AssertionError("SQLException expected");
+            } catch (SQLException e) {
+            }
+            ResultSet rs = conn.createStatement().executeQuery("SELECT COUNT(*) FROM TEST");
+            rs.next();
+            int count = rs.getInt(1);
+            assertTrue("Found " +count + " rows",  count == 1);
+            rs.close();
+        } else {
+            prep.execute();
+            // rollback is permitted, however has no effects in autocommit=true
+            conn.rollback();
+            ResultSet rs = conn.createStatement().executeQuery("SELECT COUNT(*) FROM TEST");
+            rs.next();
+            int count = rs.getInt(1);
+            assertTrue("Found " + count + " rows",  count == 1);
             rs.close();
         }
 

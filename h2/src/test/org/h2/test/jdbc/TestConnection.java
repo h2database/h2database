@@ -10,6 +10,7 @@ import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -114,26 +115,38 @@ public class TestConnection extends TestDb {
     }
 
     private void testSetGetSchema() throws SQLException {
-        if (config.networked) {
-            return;
-        }
         deleteDb("schemaSetGet");
         Connection conn = getConnection("schemaSetGet");
         Statement s = conn.createStatement();
         s.executeUpdate("create schema my_test_schema");
-        s.executeUpdate("create table my_test_schema.my_test_table(id uuid, nave varchar)");
+        s.executeUpdate("create table my_test_schema.my_test_table(id int, nave varchar) as values (1, 'a')");
         assertEquals("PUBLIC", conn.getSchema());
         assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, s, "select * from my_test_table");
         assertThrows(ErrorCode.SCHEMA_NOT_FOUND_1, conn).setSchema("my_test_table");
         conn.setSchema("MY_TEST_SCHEMA");
         assertEquals("MY_TEST_SCHEMA", conn.getSchema());
-        s.executeQuery("select * from my_test_table");
+        try (ResultSet rs = s.executeQuery("select * from my_test_table")) {
+            assertTrue(rs.next());
+            assertEquals(1, rs.getInt(1));
+            assertEquals("a", rs.getString(2));
+            assertFalse(rs.next());
+        }
         assertThrows(ErrorCode.SCHEMA_NOT_FOUND_1, conn).setSchema("NON_EXISTING_SCHEMA");
         assertEquals("MY_TEST_SCHEMA", conn.getSchema());
         s.executeUpdate("create schema \"otheR_schEma\"");
+        s.executeUpdate("create table \"otheR_schEma\".my_test_table(id int, nave varchar) as values (2, 'b')");
         conn.setSchema("otheR_schEma");
         assertEquals("otheR_schEma", conn.getSchema());
+        try (ResultSet rs = s.executeQuery("select * from my_test_table")) {
+            assertTrue(rs.next());
+            assertEquals(2, rs.getInt(1));
+            assertEquals("b", rs.getString(2));
+            assertFalse(rs.next());
+        }
+        s.execute("SET SCHEMA \"MY_TEST_SCHEMA\"");
+        assertEquals("MY_TEST_SCHEMA", conn.getSchema());
         s.close();
         conn.close();
+        deleteDb("schemaSetGet");
     }
 }

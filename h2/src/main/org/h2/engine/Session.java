@@ -847,7 +847,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         // Because cache may have captured query result (in Query.lastResult),
         // which is based on data from uncommitted transaction.,
         // It is not valid after rollback, therefore cache has to be cleared.
-        if(queryCache != null) {
+        if (queryCache != null) {
             queryCache.clear();
         }
     }
@@ -1326,6 +1326,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     public void setCurrentSchema(Schema schema) {
         modificationId++;
+        if (queryCache != null) {
+            queryCache.clear();
+        }
         this.currentSchemaName = schema.getName();
     }
 

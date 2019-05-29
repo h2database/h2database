@@ -831,33 +831,37 @@ public class MVStore implements AutoCloseable {
         boolean verified = false;
         while(!verified && setLastChunk(lastChunkCandidates.poll()) != null) {
             verified = true;
-            // load the chunk metadata: although meta's root page resides in the lastChunk,
-            // traversing meta map might recursively load another chunk(s)
-            Cursor<String, String> cursor = meta.cursor("chunk.");
-            while (cursor.hasNext() && cursor.next().startsWith("chunk.")) {
-                Chunk c = Chunk.fromString(cursor.getValue());
-                assert c.version <= currentVersion;
-                // might be there already, due to meta traversal
-                // see readPage() ... getChunkIfFound()
-                chunks.putIfAbsent(c.id, c);
-                long block = c.block;
-                test = validChunkCacheByLocation.get(block);
-                if (test == null) {
-                    test = readChunkHeaderAndFooter(block);
-                    if (test != null && test.id == c.id) { // chunk is valid
-                        validChunkCacheByLocation.put(block, test);
-                        lastChunkCandidates.offer(test);
+            try {
+                // load the chunk metadata: although meta's root page resides in the lastChunk,
+                // traversing meta map might recursively load another chunk(s)
+                Cursor<String, String> cursor = meta.cursor("chunk.");
+                while (cursor.hasNext() && cursor.next().startsWith("chunk.")) {
+                    Chunk c = Chunk.fromString(cursor.getValue());
+                    assert c.version <= currentVersion;
+                    // might be there already, due to meta traversal
+                    // see readPage() ... getChunkIfFound()
+                    chunks.putIfAbsent(c.id, c);
+                    long block = c.block;
+                    test = validChunkCacheByLocation.get(block);
+                    if (test == null) {
+                        test = readChunkHeaderAndFooter(block);
+                        if (test != null && test.id == c.id) { // chunk is valid
+                            validChunkCacheByLocation.put(block, test);
+                            lastChunkCandidates.offer(test);
+                            continue;
+                        }
+                    } else if (test.id == c.id) { // chunk is valid
+                        // nothing to do, since chunk was already verified
+                        // and registered as potential "last chunk" candidate
                         continue;
                     }
-                } else if (test.id == c.id) { // chunk is valid
-                    // nothing to do, since chunk was already verified
-                    // and registered as potential "last chunk" candidate
-                    continue;
+                    // chunk reference is invalid
+                    // this "last chunk" candidate is not suitable
+                    // but we continue to process all references
+                    // to find other potential candidates
+                    verified = false;
                 }
-                // chunk reference is invalid
-                // this "last chunk" candidate is not suitable
-                // but we continue to process all references
-                // to find other potential candidates
+            } catch(IllegalStateException ignored) {
                 verified = false;
             }
         }

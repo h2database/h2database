@@ -85,38 +85,28 @@ public class Comparison extends Condition {
     public static final int NOT_EQUAL_NULL_SAFE = NOT_EQUAL | NULL_SAFE;
 
     /**
-     * The comparison type meaning IS NULL as in NAME IS NULL.
-     */
-    public static final int IS_NULL = 6;
-
-    /**
-     * The comparison type meaning IS NOT NULL as in NAME IS NOT NULL.
-     */
-    public static final int IS_NOT_NULL = 7;
-
-    /**
      * This is a pseudo comparison type that is only used for index conditions.
      * It means the comparison will always yield FALSE. Example: 1=0.
      */
-    public static final int FALSE = 8;
+    public static final int FALSE = 6;
 
     /**
      * This is a pseudo comparison type that is only used for index conditions.
      * It means equals any value of a list. Example: IN(1, 2, 3).
      */
-    public static final int IN_LIST = 9;
+    public static final int IN_LIST = 7;
 
     /**
      * This is a pseudo comparison type that is only used for index conditions.
      * It means equals any value of a list. Example: IN(SELECT ...).
      */
-    public static final int IN_QUERY = 10;
+    public static final int IN_QUERY = 8;
 
     /**
      * This is a comparison type that is only used for spatial index
-     * conditions (operator "&&").
+     * conditions (operator "&amp;&amp;").
      */
-    public static final int SPATIAL_INTERSECTS = 11;
+    public static final int SPATIAL_INTERSECTS = 9;
 
     private final Database database;
     private int compareType;
@@ -136,12 +126,6 @@ public class Comparison extends Condition {
         boolean encloseRight = false;
         builder.append('(');
         switch (compareType) {
-        case IS_NULL:
-            left.getSQL(builder, alwaysQuote).append(" IS NULL");
-            break;
-        case IS_NOT_NULL:
-            left.getSQL(builder, alwaysQuote).append(" IS NOT NULL");
-            break;
         case SPATIAL_INTERSECTS:
             builder.append("INTERSECTS(");
             left.getSQL(builder, alwaysQuote).append(", ");
@@ -204,64 +188,53 @@ public class Comparison extends Condition {
     @Override
     public Expression optimize(Session session) {
         left = left.optimize(session);
-        if (right != null) {
-            right = right.optimize(session);
-            // TODO check row values too
-            if (right.getType().getValueType() == Value.ARRAY && left.getType().getValueType() != Value.ARRAY) {
-                throw DbException.get(ErrorCode.COMPARING_ARRAY_TO_SCALAR);
-            }
-            if (right instanceof ExpressionColumn) {
-                if (left.isConstant() || left instanceof Parameter) {
-                    Expression temp = left;
-                    left = right;
-                    right = temp;
-                    compareType = getReversedCompareType(compareType);
-                }
-            }
-            if (left instanceof ExpressionColumn) {
-                if (right.isConstant()) {
-                    Value r = right.getValue(session);
-                    if (r == ValueNull.INSTANCE) {
-                        if ((compareType & NULL_SAFE) == 0) {
-                            return TypedValueExpression.getUnknown();
-                        }
-                    }
-                    TypeInfo colType = left.getType(), constType = r.getType();
-                    int constValueType = constType.getValueType();
-                    if (constValueType != colType.getValueType()) {
-                        TypeInfo resType = Value.getHigherType(colType, constType);
-                        // If not, the column values will need to be promoted
-                        // to constant type, but vise versa, then let's do this here
-                        // once.
-                        if (constValueType != resType.getValueType()) {
-                            Column column = ((ExpressionColumn) left).getColumn();
-                            right = ValueExpression.get(r.convertTo(resType, session.getDatabase().getMode(), column));
-                        }
-                    }
-                } else if (right instanceof Parameter) {
-                    ((Parameter) right).setColumn(
-                            ((ExpressionColumn) left).getColumn());
-                }
+        right = right.optimize(session);
+        // TODO check row values too
+        if (right.getType().getValueType() == Value.ARRAY && left.getType().getValueType() != Value.ARRAY) {
+            throw DbException.get(ErrorCode.COMPARING_ARRAY_TO_SCALAR);
+        }
+        if (right instanceof ExpressionColumn) {
+            if (left.isConstant() || left instanceof Parameter) {
+                Expression temp = left;
+                left = right;
+                right = temp;
+                compareType = getReversedCompareType(compareType);
             }
         }
-        if (compareType == IS_NULL || compareType == IS_NOT_NULL) {
-            if (left.isConstant()) {
-                return ValueExpression.get(getValue(session));
-            }
-        } else {
-            if (left == null || right == null) {
-                DbException.throwInternalError(left + " " + right);
-            }
-            if (left.isNullConstant() || right.isNullConstant()) {
-                // TODO NULL handling: maybe issue a warning when comparing with
-                // a NULL constants
-                if ((compareType & NULL_SAFE) == 0) {
-                    return TypedValueExpression.getUnknown();
+        if (left instanceof ExpressionColumn) {
+            if (right.isConstant()) {
+                Value r = right.getValue(session);
+                if (r == ValueNull.INSTANCE) {
+                    if ((compareType & NULL_SAFE) == 0) {
+                        return TypedValueExpression.getUnknown();
+                    }
                 }
+                TypeInfo colType = left.getType(), constType = r.getType();
+                int constValueType = constType.getValueType();
+                if (constValueType != colType.getValueType()) {
+                    TypeInfo resType = Value.getHigherType(colType, constType);
+                    // If not, the column values will need to be promoted
+                    // to constant type, but vise versa, then let's do this here
+                    // once.
+                    if (constValueType != resType.getValueType()) {
+                        Column column = ((ExpressionColumn) left).getColumn();
+                        right = ValueExpression.get(r.convertTo(resType, session.getDatabase().getMode(), column));
+                    }
+                }
+            } else if (right instanceof Parameter) {
+                ((Parameter) right).setColumn(
+                        ((ExpressionColumn) left).getColumn());
             }
-            if (left.isConstant() && right.isConstant()) {
-                return ValueExpression.get(getValue(session));
+        }
+        if (left.isNullConstant() || right.isNullConstant()) {
+            // TODO NULL handling: maybe issue a warning when comparing with
+            // a NULL constants
+            if ((compareType & NULL_SAFE) == 0) {
+                return TypedValueExpression.getUnknown();
             }
+        }
+        if (left.isConstant() && right.isConstant()) {
+            return ValueExpression.get(getValue(session));
         }
         return this;
     }
@@ -269,20 +242,6 @@ public class Comparison extends Condition {
     @Override
     public Value getValue(Session session) {
         Value l = left.getValue(session);
-        if (right == null) {
-            boolean result;
-            switch (compareType) {
-            case IS_NULL:
-                result = l == ValueNull.INSTANCE;
-                break;
-            case IS_NOT_NULL:
-                result = l != ValueNull.INSTANCE;
-                break;
-            default:
-                throw DbException.throwInternalError("type=" + compareType);
-            }
-            return ValueBoolean.get(result);
-        }
         // Optimization: do not evaluate right if not necessary
         if (l == ValueNull.INSTANCE && (compareType & NULL_SAFE) == 0) {
             return ValueNull.INSTANCE;
@@ -434,10 +393,6 @@ public class Comparison extends Condition {
             return BIGGER;
         case SMALLER:
             return BIGGER_EQUAL;
-        case IS_NULL:
-            return IS_NOT_NULL;
-        case IS_NOT_NULL:
-            return IS_NULL;
         default:
             throw DbException.throwInternalError("type=" + compareType);
         }
@@ -454,16 +409,6 @@ public class Comparison extends Condition {
             if (filter != l.getTableFilter()) {
                 l = null;
             }
-        }
-        if (right == null) {
-            if (l != null) {
-                switch (compareType) {
-                case IS_NULL:
-                    filter.addIndexCondition(
-                            IndexCondition.get(Comparison.EQUAL_NULL_SAFE, l, ValueExpression.getNull()));
-                }
-            }
-            return;
         }
         ExpressionColumn r = null;
         if (right instanceof ExpressionColumn) {
@@ -549,36 +494,19 @@ public class Comparison extends Condition {
     }
 
     @Override
-    public void addFilterConditions(TableFilter filter, boolean outerJoin) {
-        if (compareType == IS_NULL && outerJoin) {
-            // can not optimize:
-            // select * from test t1 left join test t2 on t1.id = t2.id
-            // where t2.id is null
-            // to
-            // select * from test t1 left join test t2
-            // on t1.id = t2.id and t2.id is null
-            return;
-        }
-        super.addFilterConditions(filter, outerJoin);
-    }
-
-    @Override
     public void mapColumns(ColumnResolver resolver, int level, int state) {
         left.mapColumns(resolver, level, state);
-        if (right != null) {
-            right.mapColumns(resolver, level, state);
-        }
+        right.mapColumns(resolver, level, state);
     }
 
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
-        return left.isEverything(visitor) &&
-                (right == null || right.isEverything(visitor));
+        return left.isEverything(visitor) && right.isEverything(visitor);
     }
 
     @Override
     public int getCost() {
-        return left.getCost() + (right == null ? 0 : right.getCost()) + 1;
+        return left.getCost() + right.getCost() + 1;
     }
 
     /**
@@ -674,7 +602,7 @@ public class Comparison extends Condition {
 
     @Override
     public int getSubexpressionCount() {
-        return compareType == IS_NULL || compareType == IS_NOT_NULL ? 1 : 2;
+        return 2;
     }
 
     @Override
@@ -683,10 +611,7 @@ public class Comparison extends Condition {
         case 0:
             return left;
         case 1:
-            if (compareType != IS_NULL && compareType != IS_NOT_NULL) {
-                return right;
-            }
-            //$FALL-THROUGH$
+            return right;
         default:
             throw new IndexOutOfBoundsException();
         }

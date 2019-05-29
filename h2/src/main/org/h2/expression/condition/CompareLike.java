@@ -134,8 +134,7 @@ public class CompareLike extends Condition {
             }
             if ("%".equals(p)) {
                 // optimization for X LIKE '%': convert to X IS NOT NULL
-                return new Comparison(session,
-                        Comparison.IS_NOT_NULL, left, null).optimize(session);
+                return new NullPredicate(left, true).optimize(session);
             }
             if (isFullMatch()) {
                 // optimization for X LIKE 'Hello': convert to X = 'Hello'

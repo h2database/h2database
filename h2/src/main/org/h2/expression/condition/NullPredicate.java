@@ -5,6 +5,8 @@
  */
 package org.h2.expression.condition;
 
+import java.util.ArrayList;
+
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -22,6 +24,8 @@ import org.h2.value.ValueRow;
  */
 public class NullPredicate extends Predicate {
 
+    private boolean optimized;
+
     public NullPredicate(Expression left, boolean not) {
         super(left, not);
     }
@@ -29,6 +33,44 @@ public class NullPredicate extends Predicate {
     @Override
     public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
         return left.getSQL(builder.append('('), alwaysQuote).append(not ? " IS NOT NULL)" : " IS NULL)");
+    }
+
+    @Override
+    public Expression optimize(Session session) {
+        if (optimized) {
+            return this;
+        }
+        Expression o = super.optimize(session);
+        if (o != this) {
+            return o;
+        }
+        optimized = true;
+        if (left instanceof ExpressionList) {
+            ExpressionList list = (ExpressionList) left;
+            if (list.getType().getValueType() == Value.ROW) {
+                for (int i = 0, count = list.getSubexpressionCount(); i < count; i++) {
+                    if (list.getSubexpression(i).isNullConstant()) {
+                        if (not) {
+                            return ValueExpression.get(ValueBoolean.FALSE);
+                        }
+                        ArrayList<Expression> newList = new ArrayList<>(count - 1);
+                        for (int j = 0; j < i; j++) {
+                            newList.add(list.getSubexpression(j));
+                        }
+                        for (int j = i + 1; j < count; j++) {
+                            Expression e = list.getSubexpression(j);
+                            if (!e.isNullConstant()) {
+                                newList.add(e);
+                            }
+                        }
+                        left = newList.size() == 1 ? newList.get(0) //
+                                : new ExpressionList(newList.toArray(new Expression[0]), false);
+                        break;
+                    }
+                }
+            }
+        }
+        return this;
     }
 
     @Override
@@ -47,6 +89,10 @@ public class NullPredicate extends Predicate {
 
     @Override
     public Expression getNotIfPossible(Session session) {
+        Expression o = optimize(session);
+        if (o != this) {
+            return o.getNotIfPossible(session);
+        }
         switch (left.getType().getValueType()) {
         case Value.UNKNOWN:
         case Value.ROW:
@@ -77,8 +123,8 @@ public class NullPredicate extends Predicate {
 
     private static void createNullIndexCondition(TableFilter filter, ExpressionColumn c) {
         /*
-         * Columns with row value data type aren't valid, but perform such
-         * check to be sure.
+         * Columns with row value data type aren't valid, but perform such check
+         * to be sure.
          */
         if (filter == c.getTableFilter() && c.getType().getValueType() != Value.ROW) {
             filter.addIndexCondition(IndexCondition.get(Comparison.EQUAL_NULL_SAFE, c, ValueExpression.getNull()));

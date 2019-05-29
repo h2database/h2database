@@ -9,10 +9,6 @@ import java.util.Arrays;
 
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
-import org.h2.expression.ExpressionVisitor;
-import org.h2.expression.ValueExpression;
-import org.h2.table.ColumnResolver;
-import org.h2.table.TableFilter;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
@@ -21,16 +17,13 @@ import org.h2.value.ValueNull;
 /**
  * Type predicate (IS [NOT] OF).
  */
-public class TypePredicate extends Condition {
+public class TypePredicate extends Predicate {
 
-    private Expression left;
-    private final boolean not;
     private final TypeInfo[] typeList;
     private int[] valueTypes;
 
     public TypePredicate(Expression left, boolean not, TypeInfo[] typeList) {
-        this.left = left;
-        this.not = not;
+        super(left, not);
         this.typeList = typeList;
     }
 
@@ -53,17 +46,13 @@ public class TypePredicate extends Condition {
 
     @Override
     public Expression optimize(Session session) {
-        left = left.optimize(session);
         int count = typeList.length;
         valueTypes = new int[count];
         for (int i = 0; i < count; i++) {
             valueTypes[i] = typeList[i].getValueType();
         }
         Arrays.sort(valueTypes);
-        if (left.isConstant()) {
-            return ValueExpression.get(getValue(session));
-        }
-        return this;
+        return super.optimize(session);
     }
 
     @Override
@@ -78,44 +67,6 @@ public class TypePredicate extends Condition {
     @Override
     public Expression getNotIfPossible(Session session) {
         return new TypePredicate(left, !not, typeList);
-    }
-
-    @Override
-    public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        left.setEvaluatable(tableFilter, b);
-    }
-
-    @Override
-    public void updateAggregate(Session session, int stage) {
-        left.updateAggregate(session, stage);
-    }
-
-    @Override
-    public void mapColumns(ColumnResolver resolver, int level, int state) {
-        left.mapColumns(resolver, level, state);
-    }
-
-    @Override
-    public boolean isEverything(ExpressionVisitor visitor) {
-        return left.isEverything(visitor);
-    }
-
-    @Override
-    public int getCost() {
-        return left.getCost() + 1;
-    }
-
-    @Override
-    public int getSubexpressionCount() {
-        return 1;
-    }
-
-    @Override
-    public Expression getSubexpression(int index) {
-        if (index == 0) {
-            return left;
-        }
-        throw new IndexOutOfBoundsException();
     }
 
 }

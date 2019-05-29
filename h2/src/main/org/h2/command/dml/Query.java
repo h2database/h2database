@@ -602,7 +602,7 @@ public abstract class Query extends Prepared {
             }
         }
         if (expressionSQL == null
-                || mustBeInResult && session.getDatabase().getMode().getEnum() != ModeEnum.MySQL
+                || mustBeInResult && !db.getMode().allowUnrelatedOrderByExpressionsInDistinctQueries
                         && !checkOrderOther(session, e, expressionSQL)) {
             throw DbException.get(ErrorCode.ORDER_BY_NOT_IN_RESULT, e.getSQL(false));
         }
@@ -625,8 +625,8 @@ public abstract class Query extends Prepared {
      *         list of DISTINCT select
      */
     private static boolean checkOrderOther(Session session, Expression expr, ArrayList<String> expressionSQL) {
-        if (expr.isConstant()) {
-            // ValueExpression or other
+        if (expr == null || expr.isConstant()) {
+            // ValueExpression, null expression in CASE, or other
             return true;
         }
         String exprSQL = expr.getSQL(true);

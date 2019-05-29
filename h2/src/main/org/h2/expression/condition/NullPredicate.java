@@ -14,6 +14,7 @@ import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueRow;
 
 /**
  * Null predicate (IS [NOT] NULL).
@@ -32,11 +33,24 @@ public class NullPredicate extends Predicate {
     @Override
     public Value getValue(Session session) {
         Value l = left.getValue(session);
+        if (l.getType().getValueType() == Value.ROW) {
+            for (Value v : ((ValueRow) l).getList()) {
+                if (v != ValueNull.INSTANCE ^ not) {
+                    return ValueBoolean.FALSE;
+                }
+            }
+            return ValueBoolean.TRUE;
+        }
         return ValueBoolean.get(l == ValueNull.INSTANCE ^ not);
     }
 
     @Override
     public Expression getNotIfPossible(Session session) {
+        switch (left.getType().getValueType()) {
+        case Value.UNKNOWN:
+        case Value.ROW:
+            return null;
+        }
         return new NullPredicate(left, !not);
     }
 
@@ -45,15 +59,15 @@ public class NullPredicate extends Predicate {
         if (!filter.getTable().isQueryComparable()) {
             return;
         }
-        ExpressionColumn l = null;
         if (left instanceof ExpressionColumn) {
-            l = (ExpressionColumn) left;
-            if (filter != l.getTableFilter()) {
-                l = null;
+            ExpressionColumn l = (ExpressionColumn) left;
+            /*
+             * Columns with row value data type aren't valid, but perform such
+             * check to be sure.
+             */
+            if (filter == l.getTableFilter() && l.getType().getValueType() != Value.ROW && !not) {
+                filter.addIndexCondition(IndexCondition.get(Comparison.EQUAL_NULL_SAFE, l, ValueExpression.getNull()));
             }
-        }
-        if (l != null && !not) {
-            filter.addIndexCondition(IndexCondition.get(Comparison.EQUAL_NULL_SAFE, l, ValueExpression.getNull()));
         }
     }
 

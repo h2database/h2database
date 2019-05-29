@@ -918,6 +918,7 @@ Do not change value of DATABASE_TO_LOWER after creation of database.
 </li><li>REGEXP_REPLACE() uses \ for back-references for compatibility with MariaDB.
 </li><li>Datetime value functions return the same value within a command.
 </li><li>0x literals are parsed as binary string literals.
+</li><li>Unrelated expressions in ORDER BY clause of DISTINCT queries are allowed.
 </li></ul>
 <p>
 Text comparison in MySQL is case insensitive by default, while in H2 it is case sensitive (as in most other databases).

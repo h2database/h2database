@@ -602,7 +602,7 @@ public abstract class Query extends Prepared {
             }
         }
         if (expressionSQL == null
-                || mustBeInResult && session.getDatabase().getMode().getEnum() != ModeEnum.MySQL
+                || mustBeInResult && !db.getMode().allowUnrelatedOrderByExpressionsInDistinctQueries
                         && !checkOrderOther(session, e, expressionSQL)) {
             throw DbException.get(ErrorCode.ORDER_BY_NOT_IN_RESULT, e.getSQL(false));
         }

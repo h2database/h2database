@@ -213,6 +213,12 @@ public class Mode {
     public boolean zeroExLiteralsAreBinaryStrings;
 
     /**
+     * If {@code true} unrelated ORDER BY expression are allowed in DISTINCT
+     * queries, if {@code false} they are disallowed.
+     */
+    public boolean allowUnrelatedOrderByExpressionsInDistinctQueries;
+
+    /**
      * An optional Set of hidden/disallowed column types.
      * Certain DBMSs don't support all column types provided by H2, such as
      * "NUMBER" when using PostgreSQL mode.
@@ -311,6 +317,7 @@ public class Mode {
         mode.prohibitEmptyInPredicate = true;
         mode.charToBinaryInUtf8 = true;
         mode.zeroExLiteralsAreBinaryStrings = true;
+        mode.allowUnrelatedOrderByExpressionsInDistinctQueries = true;
         add(mode);
 
         mode = new Mode(ModeEnum.Oracle);

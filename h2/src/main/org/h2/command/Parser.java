@@ -208,6 +208,7 @@ import org.h2.expression.condition.ConditionInParameter;
 import org.h2.expression.condition.ConditionInQuery;
 import org.h2.expression.condition.ConditionNot;
 import org.h2.expression.condition.IsJsonPredicate;
+import org.h2.expression.condition.NullPredicate;
 import org.h2.expression.condition.TypePredicate;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionCall;
@@ -2999,8 +3000,7 @@ public class Parser {
             } else if (readIf(IS)) {
                 if (readIf(NOT)) {
                     if (readIf(NULL)) {
-                        r = new Comparison(session, Comparison.IS_NOT_NULL, r,
-                                null);
+                        r = new NullPredicate(r, true);
                     } else if (readIf(DISTINCT)) {
                         read(FROM);
                         r = new Comparison(session, Comparison.EQUAL_NULL_SAFE,
@@ -3014,7 +3014,7 @@ public class Parser {
                                 Comparison.NOT_EQUAL_NULL_SAFE, r, readConcat());
                     }
                 } else if (readIf(NULL)) {
-                    r = new Comparison(session, Comparison.IS_NULL, r, null);
+                    r = new NullPredicate(r, false);
                 } else if (readIf(DISTINCT)) {
                     read(FROM);
                     r = new Comparison(session, Comparison.NOT_EQUAL_NULL_SAFE,

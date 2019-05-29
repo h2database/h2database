@@ -8,6 +8,7 @@ package org.h2.expression.condition;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
+import org.h2.expression.ExpressionList;
 import org.h2.expression.ValueExpression;
 import org.h2.index.IndexCondition;
 import org.h2.table.TableFilter;
@@ -56,18 +57,31 @@ public class NullPredicate extends Predicate {
 
     @Override
     public void createIndexConditions(Session session, TableFilter filter) {
-        if (!filter.getTable().isQueryComparable()) {
+        if (not || !filter.getTable().isQueryComparable()) {
             return;
         }
         if (left instanceof ExpressionColumn) {
-            ExpressionColumn l = (ExpressionColumn) left;
-            /*
-             * Columns with row value data type aren't valid, but perform such
-             * check to be sure.
-             */
-            if (filter == l.getTableFilter() && l.getType().getValueType() != Value.ROW && !not) {
-                filter.addIndexCondition(IndexCondition.get(Comparison.EQUAL_NULL_SAFE, l, ValueExpression.getNull()));
+            createNullIndexCondition(filter, (ExpressionColumn) left);
+        } else if (left instanceof ExpressionList) {
+            ExpressionList list = (ExpressionList) left;
+            if (list.getType().getValueType() == Value.ROW) {
+                for (int i = 0, count = list.getSubexpressionCount(); i < count; i++) {
+                    Expression e = list.getSubexpression(i);
+                    if (e instanceof ExpressionColumn) {
+                        createNullIndexCondition(filter, (ExpressionColumn) e);
+                    }
+                }
             }
+        }
+    }
+
+    private static void createNullIndexCondition(TableFilter filter, ExpressionColumn c) {
+        /*
+         * Columns with row value data type aren't valid, but perform such
+         * check to be sure.
+         */
+        if (filter == c.getTableFilter() && c.getType().getValueType() != Value.ROW) {
+            filter.addIndexCondition(IndexCondition.get(Comparison.EQUAL_NULL_SAFE, c, ValueExpression.getNull()));
         }
     }
 

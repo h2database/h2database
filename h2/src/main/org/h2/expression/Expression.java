@@ -431,7 +431,7 @@ public abstract class Expression {
      * Returns subexpression with specified index.
      *
      * @param index 0-based index
-     * @return subexpression with specified index
+     * @return subexpression with specified index, may be null
      * @throws IndexOutOfBoundsException if specified index is not valid
      */
     public Expression getSubexpression(int index) {

@@ -13,6 +13,7 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
+import org.h2.expression.TypedValueExpression;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.aggregate.Aggregate;
 import org.h2.expression.aggregate.AggregateType;
@@ -222,7 +223,7 @@ public class Comparison extends Condition {
                     Value r = right.getValue(session);
                     if (r == ValueNull.INSTANCE) {
                         if ((compareType & NULL_SAFE) == 0) {
-                            return ValueExpression.getNull();
+                            return TypedValueExpression.getUnknown();
                         }
                     }
                     TypeInfo colType = left.getType(), constType = r.getType();
@@ -251,12 +252,11 @@ public class Comparison extends Condition {
             if (left == null || right == null) {
                 DbException.throwInternalError(left + " " + right);
             }
-            if (left == ValueExpression.getNull() ||
-                    right == ValueExpression.getNull()) {
+            if (left.isNullConstant() || right.isNullConstant()) {
                 // TODO NULL handling: maybe issue a warning when comparing with
                 // a NULL constants
                 if ((compareType & NULL_SAFE) == 0) {
-                    return ValueExpression.getNull();
+                    return TypedValueExpression.getUnknown();
                 }
             }
             if (left.isConstant() && right.isConstant()) {

@@ -1947,9 +1947,10 @@ ARRAY[]
 "
 
 "Literals","Boolean","
-TRUE | FALSE
+TRUE | FALSE | UNKNOWN
 ","
 A boolean value.
+UNKNOWN is a NULL value with the boolean data type.
 ","
 TRUE
 "

@@ -244,7 +244,7 @@ public class TestNestedJoins extends TestDb {
         // issue 288
         assertThrows(ErrorCode.COLUMN_NOT_FOUND_1, stat).
                 execute("select 1 from dual a right outer join " +
-                        "(select b.x from dual b) c on unknown.x = c.x, dual d");
+                        "(select b.x from dual b) c on unknown_table.x = c.x, dual d");
 
         // issue 288
         stat.execute("create table test(id int primary key)");

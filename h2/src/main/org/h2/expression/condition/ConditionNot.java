@@ -8,6 +8,7 @@ package org.h2.expression.condition;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
+import org.h2.expression.TypedValueExpression;
 import org.h2.expression.ValueExpression;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
@@ -54,7 +55,7 @@ public class ConditionNot extends Condition {
         if (expr.isConstant()) {
             Value v = expr.getValue(session);
             if (v == ValueNull.INSTANCE) {
-                return ValueExpression.getNull();
+                return TypedValueExpression.getUnknown();
             }
             return ValueExpression.get(v.convertTo(Value.BOOLEAN).negate());
         }

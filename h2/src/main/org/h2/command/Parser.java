@@ -3033,6 +3033,14 @@ public class Parser {
                         addExpected(TRUE);
                         addExpected(FALSE);
                         addExpected(UNKNOWN);
+                        /*
+                         * Databases that were created in 1.4.199 and older
+                         * versions can contain invalid generated IS [ NOT ]
+                         * expressions.
+                         */
+                        if (!database.isStarting()) {
+                            throw getSyntaxError();
+                        }
                         r = new Comparison(session, //
                                 isNot ? Comparison.NOT_EQUAL_NULL_SAFE : Comparison.EQUAL_NULL_SAFE, r, readConcat());
                     }

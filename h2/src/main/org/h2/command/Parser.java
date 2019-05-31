@@ -2997,33 +2997,19 @@ public class Parser {
                 recompileAlways = true;
                 r = new CompareLike(database, r, b, null, true);
             } else if (readIf(IS)) {
-                if (readIf(NOT)) {
-                    if (readIf(NULL)) {
-                        r = new NullPredicate(r, true);
-                    } else if (readIf(DISTINCT)) {
-                        read(FROM);
-                        r = new Comparison(session, Comparison.EQUAL_NULL_SAFE,
-                                r, readConcat());
-                    } else if (readIf("OF")) {
-                        r = readTypePredicate(r, true);
-                    } else if (readIf("JSON")) {
-                        r = readJsonPredicate(r, true);
-                    } else {
-                        r = new Comparison(session,
-                                Comparison.NOT_EQUAL_NULL_SAFE, r, readConcat());
-                    }
-                } else if (readIf(NULL)) {
-                    r = new NullPredicate(r, false);
+                boolean isNot = readIf(NOT);
+                if (readIf(NULL)) {
+                    r = new NullPredicate(r, isNot);
                 } else if (readIf(DISTINCT)) {
                     read(FROM);
-                    r = new Comparison(session, Comparison.NOT_EQUAL_NULL_SAFE,
-                            r, readConcat());
+                    r = new Comparison(session, isNot ? Comparison.EQUAL_NULL_SAFE : Comparison.NOT_EQUAL_NULL_SAFE, r,
+                            readConcat());
                 } else if (readIf("OF")) {
-                    r = readTypePredicate(r, false);
+                    r = readTypePredicate(r, isNot);
                 } else if (readIf("JSON")) {
-                    r = readJsonPredicate(r, false);
+                    r = readJsonPredicate(r, isNot);
                 } else {
-                    r = new Comparison(session, Comparison.EQUAL_NULL_SAFE, r,
+                    r = new Comparison(session, isNot ? Comparison.NOT_EQUAL_NULL_SAFE : Comparison.EQUAL_NULL_SAFE, r,
                             readConcat());
                 }
             } else if (readIf("IN")) {

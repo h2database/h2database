@@ -165,7 +165,7 @@ public class Comparison extends Condition {
         case EQUAL:
             return "=";
         case EQUAL_NULL_SAFE:
-            return "IS";
+            return "IS NOT DISTINCT FROM";
         case BIGGER_EQUAL:
             return ">=";
         case BIGGER:
@@ -177,7 +177,7 @@ public class Comparison extends Condition {
         case NOT_EQUAL:
             return "<>";
         case NOT_EQUAL_NULL_SAFE:
-            return "IS NOT";
+            return "IS DISTINCT FROM";
         case SPATIAL_INTERSECTS:
             return "&&";
         default:
@@ -226,15 +226,22 @@ public class Comparison extends Condition {
                         ((ExpressionColumn) left).getColumn());
             }
         }
+        if (left.isConstant() && right.isConstant()) {
+            return ValueExpression.getBoolean(getValue(session));
+        }
         if (left.isNullConstant() || right.isNullConstant()) {
             // TODO NULL handling: maybe issue a warning when comparing with
             // a NULL constants
             if ((compareType & NULL_SAFE) == 0) {
                 return TypedValueExpression.getUnknown();
             }
-        }
-        if (left.isConstant() && right.isConstant()) {
-            return ValueExpression.getBoolean(getValue(session));
+            if (compareType == EQUAL_NULL_SAFE || compareType == NOT_EQUAL_NULL_SAFE) {
+                Expression e = left.isNullConstant() ? right : left;
+                int type = e.getType().getValueType();
+                if (type != Value.UNKNOWN && type != Value.ROW) {
+                    return new NullPredicate(e, compareType == NOT_EQUAL_NULL_SAFE);
+                }
+            }
         }
         return this;
     }

@@ -50,18 +50,18 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
                 "        A\n" +
                 "    FROM PUBLIC.B\n" +
                 "        /++ PUBLIC.B.tableScan ++/\n" +
-                "        /++ WHERE A IS ?1\n" +
+                "        /++ WHERE A IS NOT DISTINCT FROM ?1\n" +
                 "        ++/\n" +
                 "        /++ scanCount: 4 ++/\n" +
                 "    INNER JOIN PUBLIC.C\n" +
                 "        /++ PUBLIC.C.tableScan ++/\n" +
                 "        ON 1=1\n" +
-                "    WHERE (A IS ?1)\n" +
+                "    WHERE (A IS NOT DISTINCT FROM ?1)\n" +
                 "        AND (B.VAL = C.B)\n" +
-                "    GROUP BY A: A IS A.VAL\n" +
+                "    GROUP BY A: A IS NOT DISTINCT FROM A.VAL\n" +
                 "     */\n" +
                 "    /* scanCount: 1 */\n" +
-                "WHERE BB.A IS A.VAL))"};
+                "WHERE BB.A IS NOT DISTINCT FROM A.VAL))"};
 
         String setupSQL =
                 "DROP TABLE IF EXISTS A;                           "
@@ -92,7 +92,7 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
                 "GROUP BY a)                              \n" +
                 "SELECT                                   \n" +
                 "A.val,                                   \n" +
-                "sum((SELECT X FROM BB WHERE BB.a IS A.val))\n" +
+                "sum((SELECT X FROM BB WHERE BB.a IS NOT DISTINCT FROM A.val))\n" +
                 "FROM A                                   \n" + "GROUP BY A.val";
         int maxRetries = 3;
         int expectedNumberOfRows = expectedRowData.length;

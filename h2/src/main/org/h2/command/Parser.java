@@ -4682,6 +4682,9 @@ public class Parser {
         if (readIf("OFF")) {
             return false;
         } else {
+            addExpected(ON);
+            addExpected(TRUE);
+            addExpected(FALSE);
             throw getSyntaxError();
         }
     }

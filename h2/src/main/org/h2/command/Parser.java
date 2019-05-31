@@ -242,7 +242,6 @@ import org.h2.value.ExtTypeInfoGeometry;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
-import org.h2.value.ValueBoolean;
 import org.h2.value.ValueBytes;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDecimal;
@@ -3033,7 +3032,7 @@ public class Parser {
                     if (database.getMode().prohibitEmptyInPredicate) {
                         throw getSyntaxError();
                     }
-                    r = ValueExpression.get(ValueBoolean.FALSE);
+                    r = ValueExpression.getBoolean(false);
                 } else {
                     if (isSelect()) {
                         Query query = parseSelect();
@@ -4233,11 +4232,11 @@ public class Parser {
         }
         case TRUE:
             read();
-            r = ValueExpression.get(ValueBoolean.TRUE);
+            r = ValueExpression.getBoolean(true);
             break;
         case FALSE:
             read();
-            r = ValueExpression.get(ValueBoolean.FALSE);
+            r = ValueExpression.getBoolean(false);
             break;
         case UNKNOWN:
             read();

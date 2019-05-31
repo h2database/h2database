@@ -73,7 +73,7 @@ public class IsJsonPredicate extends Condition {
     public Expression optimize(Session session) {
         left = left.optimize(session);
         if (left.isConstant()) {
-            return ValueExpression.get(getValue(session));
+            return ValueExpression.getBoolean(getValue(session));
         }
         return this;
     }

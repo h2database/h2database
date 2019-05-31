@@ -21,6 +21,7 @@ import org.h2.value.ValueNull;
  * An expression representing a constant value.
  */
 public class ValueExpression extends Expression {
+
     /**
      * The expression represents ValueNull.INSTANCE.
      */
@@ -32,6 +33,16 @@ public class ValueExpression extends Expression {
      * ValueNull.INSTANCE, but should never be accessed.
      */
     private static final Object DEFAULT = new ValueExpression(ValueNull.INSTANCE);
+
+    /**
+     * The expression represents ValueBoolean.TRUE.
+     */
+    private static final Object TRUE = new ValueExpression(ValueBoolean.TRUE);
+
+    /**
+     * The expression represents ValueBoolean.FALSE.
+     */
+    private static final Object FALSE = new ValueExpression(ValueBoolean.FALSE);
 
     final Value value;
 
@@ -67,7 +78,33 @@ public class ValueExpression extends Expression {
         if (value == ValueNull.INSTANCE) {
             return getNull();
         }
+        if (value.getValueType() == Value.BOOLEAN) {
+            return getBoolean(value.getBoolean());
+        }
         return new ValueExpression(value);
+    }
+
+    /**
+     * Create a new expression with the given boolean value.
+     *
+     * @param value the boolean value
+     * @return the expression
+     */
+    public static ValueExpression getBoolean(Value value) {
+        if (value == ValueNull.INSTANCE) {
+            return TypedValueExpression.getUnknown();
+        }
+        return getBoolean(value.getBoolean());
+    }
+
+    /**
+     * Create a new expression with the given boolean value.
+     *
+     * @param value the boolean value
+     * @return the expression
+     */
+    public static ValueExpression getBoolean(boolean value) {
+        return (ValueExpression) (value ? TRUE : FALSE);
     }
 
     @Override
@@ -89,8 +126,7 @@ public class ValueExpression extends Expression {
 
     @Override
     public Expression getNotIfPossible(Session session) {
-        return new Comparison(session, Comparison.EQUAL, this,
-                ValueExpression.get(ValueBoolean.FALSE));
+        return new Comparison(session, Comparison.EQUAL, this, ValueExpression.getBoolean(false));
     }
 
     @Override

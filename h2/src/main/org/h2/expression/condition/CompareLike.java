@@ -116,7 +116,7 @@ public class CompareLike extends Condition {
         }
         if (right.isValueSet() && (escape == null || escape.isValueSet())) {
             if (left.isValueSet()) {
-                return ValueExpression.get(getValue(session));
+                return ValueExpression.getBoolean(getValue(session));
             }
             Value r = right.getValue(session);
             if (r == ValueNull.INSTANCE) {

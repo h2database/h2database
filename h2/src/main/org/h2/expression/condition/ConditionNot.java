@@ -57,7 +57,7 @@ public class ConditionNot extends Condition {
             if (v == ValueNull.INSTANCE) {
                 return TypedValueExpression.getUnknown();
             }
-            return ValueExpression.get(v.convertTo(Value.BOOLEAN).negate());
+            return ValueExpression.getBoolean(!v.getBoolean());
         }
         condition = expr;
         return this;

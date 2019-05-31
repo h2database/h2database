@@ -145,7 +145,7 @@ public class ConditionIn extends Condition {
     private Expression optimize2(Session session, boolean constant, boolean allValuesConstant, boolean allValuesNull,
             ArrayList<Expression> values) {
         if (constant && allValuesConstant) {
-            return ValueExpression.get(getValue(session));
+            return ValueExpression.getBoolean(getValue(session));
         }
         if (values.size() == 1) {
             return new Comparison(session, Comparison.EQUAL, left, values.get(0)).optimize(session);

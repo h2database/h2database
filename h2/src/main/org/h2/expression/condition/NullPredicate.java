@@ -51,7 +51,7 @@ public class NullPredicate extends Predicate {
                 for (int i = 0, count = list.getSubexpressionCount(); i < count; i++) {
                     if (list.getSubexpression(i).isNullConstant()) {
                         if (not) {
-                            return ValueExpression.get(ValueBoolean.FALSE);
+                            return ValueExpression.getBoolean(false);
                         }
                         ArrayList<Expression> newList = new ArrayList<>(count - 1);
                         for (int j = 0; j < i; j++) {

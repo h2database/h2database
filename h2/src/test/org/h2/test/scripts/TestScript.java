@@ -202,12 +202,12 @@ public class TestScript extends TestDb {
         }
         for (String s : new String[] { "array-cat", "array-contains", "array-get",
                 "array-length","array-slice", "autocommit", "cancel-session", "casewhen",
-                "cast", "coalesce", "convert", "csvread", "csvwrite", "currval",
+                "cast", "coalesce", "convert", "csvread", "csvwrite", "current_schema", "currval",
                 "database-path", "database", "decode", "disk-space-used",
                 "file-read", "file-write", "greatest", "h2version", "identity",
                 "ifnull", "last-insert-id", "least", "link-schema", "lock-mode", "lock-timeout",
                 "memory-free", "memory-used", "nextval", "nullif", "nvl2",
-                "readonly", "rownum", "schema", "scope-identity", "session-id",
+                "readonly", "rownum", "scope-identity", "session-id",
                 "set", "table", "transaction-id", "truncate-value", "unnest", "user" }) {
             testScript("functions/system/" + s + ".sql");
         }

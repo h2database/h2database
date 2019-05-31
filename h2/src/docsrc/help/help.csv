@@ -347,7 +347,7 @@ ALTER INDEX IDXNAME RENAME TO IDX_TEST_NAME
 "
 
 "Commands (DDL)","ALTER SCHEMA RENAME","
-ALTER SCHEMA [ IF EXISTS ] schema RENAME TO newSchemaName
+ALTER SCHEMA [ IF EXISTS ] schemaName RENAME TO newSchemaName
 ","
 Renames a schema.
 This command commits an open transaction in this connection.
@@ -4980,6 +4980,14 @@ CALL CSVWRITE('data/test2.csv', 'SELECT * FROM TEST', 'charset=UTF-8 fieldSepara
 CALL CSVWRITE('data/test.tsv', 'SELECT * FROM TEST', 'charset=UTF-8 fieldSeparator=' || CHAR(9));
 "
 
+"Functions (System)","CURRENT_SCHEMA","
+CURRENT_SCHEMA | SCHEMA()
+","
+Returns the name of the default schema for this session.
+","
+CALL CURRENT_SCHEMA
+"
+
 "Functions (System)","DATABASE","
 DATABASE()
 ","
@@ -5206,14 +5214,6 @@ Use the ROW_NUMBER() OVER () function to get row numbers after grouping or in sp
 SELECT ROWNUM(), * FROM TEST;
 SELECT ROWNUM(), * FROM (SELECT * FROM TEST ORDER BY NAME);
 SELECT ID FROM (SELECT T.*, ROWNUM AS R FROM TEST T) WHERE R BETWEEN 2 AND 3;
-"
-
-"Functions (System)","SCHEMA","
-SCHEMA()
-","
-Returns the name of the default schema for this session.
-","
-CALL SCHEMA()
 "
 
 "Functions (System)","SCOPE_IDENTITY","

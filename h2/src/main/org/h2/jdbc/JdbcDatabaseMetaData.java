@@ -1541,7 +1541,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * table/column/index name, in addition to the SQL:2003 keywords. The list
      * returned is:
      * <pre>
-     * GROUPS
+     * CURRENT_SCHEMA,
+     * GROUPS,
      * IF,ILIKE,INTERSECTS,
      * LIMIT,
      * MINUS,
@@ -1555,7 +1556,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * <pre>
      * ALL, AND, ARRAY, AS,
      * BETWEEN, BOTH
-     * CASE, CHECK, CONSTRAINT, CROSS, CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP, CURRENT_USER,
+     * CASE, CHECK, CONSTRAINT, CROSS, CURRENT_DATE, CURRENT_SCHEMA,
+     * CURRENT_TIME, CURRENT_TIMESTAMP, CURRENT_USER,
      * DISTINCT,
      * EXCEPT, EXISTS,
      * FALSE, FETCH, FILTER, FOR, FOREIGN, FROM, FULL,
@@ -1582,7 +1584,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public String getSQLKeywords() {
         debugCodeCall("getSQLKeywords");
-        return "GROUPS," //
+        return "CURRENT_SCHEMA," //
+                + "GROUPS," //
                 + "IF,ILIKE,INTERSECTS," //
                 + "LIMIT," //
                 + "MINUS," //

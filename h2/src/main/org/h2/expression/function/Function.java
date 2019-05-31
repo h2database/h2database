@@ -143,7 +143,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             CAST = 203, COALESCE = 204, NULLIF = 205, CASE = 206,
             NEXTVAL = 207, CURRVAL = 208, ARRAY_GET = 209, CSVREAD = 210,
             CSVWRITE = 211, MEMORY_FREE = 212, MEMORY_USED = 213,
-            LOCK_MODE = 214, SCHEMA = 215, SESSION_ID = 216,
+            LOCK_MODE = 214, CURRENT_SCHEMA = 215, SESSION_ID = 216,
             ARRAY_LENGTH = 217, LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220,
             CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
             FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227,
@@ -462,8 +462,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 0, Value.INT);
         addFunctionNotDeterministic("LOCK_MODE", LOCK_MODE,
                 0, Value.INT);
-        addFunctionNotDeterministic("SCHEMA", SCHEMA,
-                0, Value.STRING);
+        addFunctionNotDeterministic("CURRENT_SCHEMA", CURRENT_SCHEMA, 0, Value.STRING, false);
+        addFunctionNotDeterministic("SCHEMA", CURRENT_SCHEMA, 0, Value.STRING);
         addFunctionNotDeterministic("SESSION_ID", SESSION_ID,
                 0, Value.INT);
         addFunction("ARRAY_LENGTH", ARRAY_LENGTH,
@@ -1012,7 +1012,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case LOCK_MODE:
             result = ValueInt.get(database.getLockMode());
             break;
-        case SCHEMA:
+        case CURRENT_SCHEMA:
             result = ValueString.get(session.getCurrentSchemaName(),
                     database.getMode().treatEmptyStringsAsNull);
             break;

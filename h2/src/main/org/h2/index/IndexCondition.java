@@ -184,7 +184,10 @@ public class IndexCondition {
             builder.append(" = ");
             break;
         case Comparison.EQUAL_NULL_SAFE:
-            builder.append(" IS ");
+            builder.append(expression.isNullConstant()
+                    || column.getType().getValueType() == Value.BOOLEAN && expression.isConstant() //
+                            ? " IS "
+                            : " IS NOT DISTINCT FROM ");
             break;
         case Comparison.BIGGER_EQUAL:
             builder.append(" >= ");

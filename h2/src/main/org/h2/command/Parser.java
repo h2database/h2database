@@ -199,6 +199,7 @@ import org.h2.expression.analysis.WindowFrameExclusion;
 import org.h2.expression.analysis.WindowFrameUnits;
 import org.h2.expression.analysis.WindowFunction;
 import org.h2.expression.analysis.WindowFunctionType;
+import org.h2.expression.condition.BooleanTest;
 import org.h2.expression.condition.CompareLike;
 import org.h2.expression.condition.Comparison;
 import org.h2.expression.condition.ConditionAndOr;
@@ -2997,34 +2998,52 @@ public class Parser {
                 recompileAlways = true;
                 r = new CompareLike(database, r, b, null, true);
             } else if (readIf(IS)) {
-                if (readIf(NOT)) {
-                    if (readIf(NULL)) {
-                        r = new NullPredicate(r, true);
-                    } else if (readIf(DISTINCT)) {
-                        read(FROM);
-                        r = new Comparison(session, Comparison.EQUAL_NULL_SAFE,
-                                r, readConcat());
-                    } else if (readIf("OF")) {
-                        r = readTypePredicate(r, true);
-                    } else if (readIf("JSON")) {
-                        r = readJsonPredicate(r, true);
-                    } else {
-                        r = new Comparison(session,
-                                Comparison.NOT_EQUAL_NULL_SAFE, r, readConcat());
-                    }
-                } else if (readIf(NULL)) {
-                    r = new NullPredicate(r, false);
-                } else if (readIf(DISTINCT)) {
+                boolean isNot = readIf(NOT);
+                switch (currentTokenType) {
+                case NULL:
+                    read();
+                    r = new NullPredicate(r, isNot);
+                    break;
+                case DISTINCT:
+                    read();
                     read(FROM);
-                    r = new Comparison(session, Comparison.NOT_EQUAL_NULL_SAFE,
-                            r, readConcat());
-                } else if (readIf("OF")) {
-                    r = readTypePredicate(r, false);
-                } else if (readIf("JSON")) {
-                    r = readJsonPredicate(r, false);
-                } else {
-                    r = new Comparison(session, Comparison.EQUAL_NULL_SAFE, r,
+                    r = new Comparison(session, isNot ? Comparison.EQUAL_NULL_SAFE : Comparison.NOT_EQUAL_NULL_SAFE, r,
                             readConcat());
+                    break;
+                case TRUE:
+                    read();
+                    r = new BooleanTest(r, isNot, true);
+                    break;
+                case FALSE:
+                    read();
+                    r = new BooleanTest(r, isNot, false);
+                    break;
+                case UNKNOWN:
+                    read();
+                    r = new BooleanTest(r, isNot, null);
+                    break;
+                default:
+                    if (readIf("OF")) {
+                        r = readTypePredicate(r, isNot);
+                    } else if (readIf("JSON")) {
+                        r = readJsonPredicate(r, isNot);
+                    } else {
+                        addExpected(NULL);
+                        addExpected(DISTINCT);
+                        addExpected(TRUE);
+                        addExpected(FALSE);
+                        addExpected(UNKNOWN);
+                        /*
+                         * Databases that were created in 1.4.199 and older
+                         * versions can contain invalid generated IS [ NOT ]
+                         * expressions.
+                         */
+                        if (!database.isStarting()) {
+                            throw getSyntaxError();
+                        }
+                        r = new Comparison(session, //
+                                isNot ? Comparison.NOT_EQUAL_NULL_SAFE : Comparison.EQUAL_NULL_SAFE, r, readConcat());
+                    }
                 }
             } else if (readIf("IN")) {
                 read(OPEN_PAREN);
@@ -4663,6 +4682,9 @@ public class Parser {
         if (readIf("OFF")) {
             return false;
         } else {
+            addExpected(ON);
+            addExpected(TRUE);
+            addExpected(FALSE);
             throw getSyntaxError();
         }
     }
@@ -4716,7 +4738,7 @@ public class Parser {
              * PageStore's LobStorageBackend also needs this in databases that
              * were created in 1.4.197 and older versions.
              */
-            if (!session.getDatabase().isStarting() || !isKeyword(currentToken)) {
+            if (!database.isStarting() || !isKeyword(currentToken)) {
                 throw DbException.getSyntaxError(sqlCommand, parseIndex, "identifier");
             }
         }
@@ -6605,9 +6627,8 @@ public class Parser {
     private TableView createCTEView(String cteViewName, String querySQL,
                                     List<Column> columnTemplateList, boolean allowRecursiveQueryDetection,
                                     boolean addViewToSession, boolean isTemporary) {
-        Database db = session.getDatabase();
         Schema schema = getSchemaWithDefault();
-        int id = db.allocateObjectId();
+        int id = database.allocateObjectId();
         Column[] columnTemplateArray = columnTemplateList.toArray(new Column[0]);
 
         // No easy way to determine if this is a recursive query up front, so we just compile
@@ -6621,9 +6642,9 @@ public class Parser {
                     isTemporary);
             if (!view.isRecursiveQueryDetected() && allowRecursiveQueryDetection) {
                 if (!isTemporary) {
-                    db.addSchemaObject(session, view);
+                    database.addSchemaObject(session, view);
                     view.lock(session, true, true);
-                    db.removeSchemaObject(session, view);
+                    database.removeSchemaObject(session, view);
                 } else {
                     session.removeLocalTempTable(view);
                 }
@@ -6633,7 +6654,7 @@ public class Parser {
                         isTemporary);
             }
             // both removeSchemaObject and removeLocalTempTable hold meta locks
-            db.unlockMeta(session);
+            database.unlockMeta(session);
         }
         view.setTableExpression(true);
         view.setTemporary(isTemporary);
@@ -6641,9 +6662,9 @@ public class Parser {
         view.setOnCommitDrop(false);
         if (addViewToSession) {
             if (!isTemporary) {
-                db.addSchemaObject(session, view);
+                database.addSchemaObject(session, view);
                 view.unlock(session);
-                db.unlockMeta(session);
+                database.unlockMeta(session);
             } else {
                 session.addLocalTempTable(view);
             }

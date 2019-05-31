@@ -99,33 +99,27 @@ public class ConditionAndOr extends Condition {
         switch (andOrType) {
         case AND: {
             if (l != ValueNull.INSTANCE && !l.getBoolean()) {
-                return l;
+                return ValueBoolean.FALSE;
             }
             r = right.getValue(session);
             if (r != ValueNull.INSTANCE && !r.getBoolean()) {
-                return r;
+                return ValueBoolean.FALSE;
             }
-            if (l == ValueNull.INSTANCE) {
-                return l;
-            }
-            if (r == ValueNull.INSTANCE) {
-                return r;
+            if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
+                return ValueNull.INSTANCE;
             }
             return ValueBoolean.TRUE;
         }
         case OR: {
             if (l.getBoolean()) {
-                return l;
+                return ValueBoolean.TRUE;
             }
             r = right.getValue(session);
             if (r.getBoolean()) {
-                return r;
+                return ValueBoolean.TRUE;
             }
-            if (l == ValueNull.INSTANCE) {
-                return l;
-            }
-            if (r == ValueNull.INSTANCE) {
-                return r;
+            if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
+                return ValueNull.INSTANCE;
             }
             return ValueBoolean.FALSE;
         }
@@ -220,36 +214,36 @@ public class ConditionAndOr extends Condition {
             return this;
         }
         if (l != null && r != null) {
-            return ValueExpression.get(getValue(session));
+            return ValueExpression.getBoolean(getValue(session));
         }
         switch (andOrType) {
         case AND:
             if (l != null) {
                 if (l != ValueNull.INSTANCE && !l.getBoolean()) {
-                    return ValueExpression.get(l);
+                    return ValueExpression.getBoolean(false);
                 } else if (l.getBoolean()) {
-                    return right;
+                    return castToBoolean(session, right);
                 }
             } else if (r != null) {
                 if (r != ValueNull.INSTANCE && !r.getBoolean()) {
-                    return ValueExpression.get(r);
+                    return ValueExpression.getBoolean(false);
                 } else if (r.getBoolean()) {
-                    return left;
+                    return castToBoolean(session, left);
                 }
             }
             break;
         case OR:
             if (l != null) {
                 if (l.getBoolean()) {
-                    return ValueExpression.get(l);
+                    return ValueExpression.getBoolean(true);
                 } else if (l != ValueNull.INSTANCE) {
-                    return right;
+                    return castToBoolean(session, right);
                 }
             } else if (r != null) {
                 if (r.getBoolean()) {
-                    return ValueExpression.get(r);
+                    return ValueExpression.getBoolean(true);
                 } else if (r != ValueNull.INSTANCE) {
-                    return left;
+                    return castToBoolean(session, left);
                 }
             }
             break;

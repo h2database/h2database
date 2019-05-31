@@ -234,7 +234,7 @@ public class Comparison extends Condition {
             }
         }
         if (left.isConstant() && right.isConstant()) {
-            return ValueExpression.get(getValue(session));
+            return ValueExpression.getBoolean(getValue(session));
         }
         return this;
     }

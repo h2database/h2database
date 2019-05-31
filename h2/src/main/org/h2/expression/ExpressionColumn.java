@@ -352,8 +352,7 @@ public class ExpressionColumn extends Expression {
 
     @Override
     public Expression getNotIfPossible(Session session) {
-        return new Comparison(session, Comparison.EQUAL, this,
-                ValueExpression.get(ValueBoolean.FALSE));
+        return new Comparison(session, Comparison.EQUAL, this, ValueExpression.getBoolean(false));
     }
 
 }

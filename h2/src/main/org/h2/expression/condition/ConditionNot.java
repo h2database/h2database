@@ -28,7 +28,7 @@ public class ConditionNot extends Condition {
 
     @Override
     public Expression getNotIfPossible(Session session) {
-        return condition;
+        return castToBoolean(session, condition);
     }
 
     @Override
@@ -57,7 +57,7 @@ public class ConditionNot extends Condition {
             if (v == ValueNull.INSTANCE) {
                 return TypedValueExpression.getUnknown();
             }
-            return ValueExpression.get(v.convertTo(Value.BOOLEAN).negate());
+            return ValueExpression.getBoolean(!v.getBoolean());
         }
         condition = expr;
         return this;

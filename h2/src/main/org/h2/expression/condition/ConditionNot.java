@@ -28,7 +28,7 @@ public class ConditionNot extends Condition {
 
     @Override
     public Expression getNotIfPossible(Session session) {
-        return condition;
+        return castToBoolean(session, condition);
     }
 
     @Override

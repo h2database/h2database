@@ -2516,6 +2516,7 @@ ID<>2
 compare { { { ALL | ANY | SOME } ( query ) } | operand }
     | IS [ NOT ] NULL
     | IS [ NOT ] [ DISTINCT FROM ] operand
+    | IS [ NOT ] { TRUE | FALSE | UNKNOWN }
     | IS [ NOT ] OF (dataType [, dataType])
     | IS [ NOT ] JSON [ VALUE | ARRAY | OBJECT | SCALAR ]
         [ [ WITH | WITHOUT ] UNIQUE [ KEYS ] ]
@@ -2545,6 +2546,9 @@ To test multiple values a row value must be specified.
 
 The conditions ""IS [ NOT ] DISTINCT FROM"" are null-safe, meaning
 NULL is considered the same as NULL, and the condition never evaluates to NULL.
+
+Boolean tests ""IS [ NOT ] { TRUE | FALSE | UNKNOWN }"" check whether the specified value
+is (not) ""TRUE"", ""FALSE"", or ""UNKNOWN"" (""NULL"") and return ""TRUE"" or ""FALSE"".
 
 The conditions ""IS [ NOT ] OF"" check whether the data type of the specified operand
 is one of the specified data types.

@@ -199,6 +199,7 @@ import org.h2.expression.analysis.WindowFrameExclusion;
 import org.h2.expression.analysis.WindowFrameUnits;
 import org.h2.expression.analysis.WindowFunction;
 import org.h2.expression.analysis.WindowFunctionType;
+import org.h2.expression.condition.BooleanTest;
 import org.h2.expression.condition.CompareLike;
 import org.h2.expression.condition.Comparison;
 import org.h2.expression.condition.ConditionAndOr;
@@ -2998,19 +2999,43 @@ public class Parser {
                 r = new CompareLike(database, r, b, null, true);
             } else if (readIf(IS)) {
                 boolean isNot = readIf(NOT);
-                if (readIf(NULL)) {
+                switch (currentTokenType) {
+                case NULL:
+                    read();
                     r = new NullPredicate(r, isNot);
-                } else if (readIf(DISTINCT)) {
+                    break;
+                case DISTINCT:
+                    read();
                     read(FROM);
                     r = new Comparison(session, isNot ? Comparison.EQUAL_NULL_SAFE : Comparison.NOT_EQUAL_NULL_SAFE, r,
                             readConcat());
-                } else if (readIf("OF")) {
-                    r = readTypePredicate(r, isNot);
-                } else if (readIf("JSON")) {
-                    r = readJsonPredicate(r, isNot);
-                } else {
-                    r = new Comparison(session, isNot ? Comparison.NOT_EQUAL_NULL_SAFE : Comparison.EQUAL_NULL_SAFE, r,
-                            readConcat());
+                    break;
+                case TRUE:
+                    read();
+                    r = new BooleanTest(r, isNot, true);
+                    break;
+                case FALSE:
+                    read();
+                    r = new BooleanTest(r, isNot, false);
+                    break;
+                case UNKNOWN:
+                    read();
+                    r = new BooleanTest(r, isNot, null);
+                    break;
+                default:
+                    if (readIf("OF")) {
+                        r = readTypePredicate(r, isNot);
+                    } else if (readIf("JSON")) {
+                        r = readJsonPredicate(r, isNot);
+                    } else {
+                        addExpected(NULL);
+                        addExpected(DISTINCT);
+                        addExpected(TRUE);
+                        addExpected(FALSE);
+                        addExpected(UNKNOWN);
+                        r = new Comparison(session, //
+                                isNot ? Comparison.NOT_EQUAL_NULL_SAFE : Comparison.EQUAL_NULL_SAFE, r, readConcat());
+                    }
                 }
             } else if (readIf("IN")) {
                 read(OPEN_PAREN);

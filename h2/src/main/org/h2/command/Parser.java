@@ -4727,7 +4727,7 @@ public class Parser {
              * PageStore's LobStorageBackend also needs this in databases that
              * were created in 1.4.197 and older versions.
              */
-            if (!session.getDatabase().isStarting() || !isKeyword(currentToken)) {
+            if (!database.isStarting() || !isKeyword(currentToken)) {
                 throw DbException.getSyntaxError(sqlCommand, parseIndex, "identifier");
             }
         }
@@ -6616,9 +6616,8 @@ public class Parser {
     private TableView createCTEView(String cteViewName, String querySQL,
                                     List<Column> columnTemplateList, boolean allowRecursiveQueryDetection,
                                     boolean addViewToSession, boolean isTemporary) {
-        Database db = session.getDatabase();
         Schema schema = getSchemaWithDefault();
-        int id = db.allocateObjectId();
+        int id = database.allocateObjectId();
         Column[] columnTemplateArray = columnTemplateList.toArray(new Column[0]);
 
         // No easy way to determine if this is a recursive query up front, so we just compile
@@ -6632,9 +6631,9 @@ public class Parser {
                     isTemporary);
             if (!view.isRecursiveQueryDetected() && allowRecursiveQueryDetection) {
                 if (!isTemporary) {
-                    db.addSchemaObject(session, view);
+                    database.addSchemaObject(session, view);
                     view.lock(session, true, true);
-                    db.removeSchemaObject(session, view);
+                    database.removeSchemaObject(session, view);
                 } else {
                     session.removeLocalTempTable(view);
                 }
@@ -6644,7 +6643,7 @@ public class Parser {
                         isTemporary);
             }
             // both removeSchemaObject and removeLocalTempTable hold meta locks
-            db.unlockMeta(session);
+            database.unlockMeta(session);
         }
         view.setTableExpression(true);
         view.setTemporary(isTemporary);
@@ -6652,9 +6651,9 @@ public class Parser {
         view.setOnCommitDrop(false);
         if (addViewToSession) {
             if (!isTemporary) {
-                db.addSchemaObject(session, view);
+                database.addSchemaObject(session, view);
                 view.unlock(session);
-                db.unlockMeta(session);
+                database.unlockMeta(session);
             } else {
                 session.addLocalTempTable(view);
             }

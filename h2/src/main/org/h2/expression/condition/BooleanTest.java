@@ -21,7 +21,7 @@ import org.h2.value.ValueNull;
 /**
  * Boolean test (IS [NOT] { TRUE | FALSE | UNKNOWN }).
  */
-public class BooleanTest extends Predicate {
+public class BooleanTest extends SimplePredicate {
 
     private final Boolean right;
 

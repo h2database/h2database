@@ -248,3 +248,6 @@ SELECT CAST('GEOMETRYCOLLECTION (GEOMETRYCOLLECTION (POINT (1 3)), MULTIPOINT ((
 
 SELECT CAST('{"type":"GeometryCollection","geometries":[{"type":"GeometryCollection","geometries":[{"type":"Point","coordinates":[1,3]}]},{"type":"MultiPoint","coordinates":[[4,8]]}]}' FORMAT JSON AS GEOMETRY);
 >> GEOMETRYCOLLECTION (GEOMETRYCOLLECTION (POINT (1 3)), MULTIPOINT ((4 8)))
+
+SELECT CAST('{"type":"Unknown","coordinates":[1,2]}' FORMAT JSON AS GEOMETRY);
+> exception DATA_CONVERSION_ERROR_1

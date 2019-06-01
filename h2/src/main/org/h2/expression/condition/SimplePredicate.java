@@ -13,14 +13,14 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 
 /**
- * Base class for predicates.
+ * Base class for simple predicates.
  */
-public abstract class Predicate extends Condition {
+public abstract class SimplePredicate extends Condition {
 
     Expression left;
     final boolean not;
 
-    public Predicate(Expression left, boolean not) {
+    SimplePredicate(Expression left, boolean not) {
         this.left = left;
         this.not = not;
     }

@@ -1288,7 +1288,11 @@ public abstract class Value extends VersionedValue {
                     srid = s;
                 }
             }
-            result = ValueGeometry.get(GeoJsonUtils.geoJsonToEwkb(getBytesNoCopy(), srid));
+            try {
+                result = ValueGeometry.get(GeoJsonUtils.geoJsonToEwkb(getBytesNoCopy(), srid));
+            } catch (RuntimeException ex) {
+                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, getTraceSQL());
+            }
             break;
         }
         default:

@@ -348,11 +348,9 @@ public abstract class Expression {
      * Add conditions to a table filter if they can be evaluated.
      *
      * @param filter the table filter
-     * @param outerJoin if the expression is part of an outer join
      */
-    public void addFilterConditions(TableFilter filter, boolean outerJoin) {
-        if (!addedToFilter && !outerJoin &&
-                isEverything(ExpressionVisitor.EVALUATABLE_VISITOR)) {
+    public void addFilterConditions(TableFilter filter) {
+        if (!addedToFilter && isEverything(ExpressionVisitor.EVALUATABLE_VISITOR)) {
             filter.addFilterCondition(this, false);
             addedToFilter = true;
         }

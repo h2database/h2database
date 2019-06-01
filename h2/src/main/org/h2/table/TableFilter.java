@@ -1005,17 +1005,15 @@ public class TableFilter implements ColumnResolver {
     /**
      * Optimize the full condition. This will add the full condition to the
      * filter condition.
-     *
-     * @param fromOuterJoin if this method was called from an outer joined table
      */
-    void optimizeFullCondition(boolean fromOuterJoin) {
-        if (fullCondition != null) {
-            fullCondition.addFilterConditions(this, fromOuterJoin || joinOuter);
+    void optimizeFullCondition() {
+        if (!joinOuter && fullCondition != null) {
+            fullCondition.addFilterConditions(this);
             if (nestedJoin != null) {
-                nestedJoin.optimizeFullCondition(fromOuterJoin || joinOuter);
+                nestedJoin.optimizeFullCondition();
             }
             if (join != null) {
-                join.optimizeFullCondition(fromOuterJoin || joinOuter);
+                join.optimizeFullCondition();
             }
         }
     }

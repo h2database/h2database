@@ -254,12 +254,12 @@ public class ConditionAndOr extends Condition {
     }
 
     @Override
-    public void addFilterConditions(TableFilter filter, boolean outerJoin) {
+    public void addFilterConditions(TableFilter filter) {
         if (andOrType == AND) {
-            left.addFilterConditions(filter, outerJoin);
-            right.addFilterConditions(filter, outerJoin);
+            left.addFilterConditions(filter);
+            right.addFilterConditions(filter);
         } else {
-            super.addFilterConditions(filter, outerJoin);
+            super.addFilterConditions(filter);
         }
     }
 

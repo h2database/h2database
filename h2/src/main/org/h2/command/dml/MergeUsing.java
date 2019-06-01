@@ -398,8 +398,8 @@ public class MergeUsing extends Prepared {
 
     @Override
     public void prepare() {
-        onCondition.addFilterConditions(sourceTableFilter, true);
-        onCondition.addFilterConditions(targetTableFilter, true);
+        onCondition.addFilterConditions(sourceTableFilter);
+        onCondition.addFilterConditions(targetTableFilter);
 
         onCondition.mapColumns(sourceTableFilter, 2, Expression.MAP_INITIAL);
         onCondition.mapColumns(targetTableFilter, 1, Expression.MAP_INITIAL);

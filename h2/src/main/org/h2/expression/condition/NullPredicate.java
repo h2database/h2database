@@ -131,18 +131,4 @@ public class NullPredicate extends Predicate {
         }
     }
 
-    @Override
-    public void addFilterConditions(TableFilter filter, boolean outerJoin) {
-        if (!not && outerJoin) {
-            // can not optimize:
-            // select * from test t1 left join test t2 on t1.id = t2.id
-            // where t2.id is null
-            // to
-            // select * from test t1 left join test t2
-            // on t1.id = t2.id and t2.id is null
-            return;
-        }
-        super.addFilterConditions(filter, outerJoin);
-    }
-
 }

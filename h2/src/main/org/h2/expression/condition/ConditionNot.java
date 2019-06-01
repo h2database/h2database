@@ -80,20 +80,6 @@ public class ConditionNot extends Condition {
     }
 
     @Override
-    public void addFilterConditions(TableFilter filter, boolean outerJoin) {
-        if (outerJoin) {
-            // can not optimize:
-            // select * from test t1 left join test t2 on t1.id = t2.id where
-            // not t2.id is not null
-            // to
-            // select * from test t1 left join test t2 on t1.id = t2.id and
-            // t2.id is not null
-            return;
-        }
-        super.addFilterConditions(filter, outerJoin);
-    }
-
-    @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         return condition.isEverything(visitor);
     }

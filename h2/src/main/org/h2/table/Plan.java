@@ -89,7 +89,7 @@ public class Plan {
                 // the last table doesn't need the optimization,
                 // otherwise the expression is calculated twice unnecessarily
                 // (not that bad but not optimal)
-                f.optimizeFullCondition(false);
+                f.optimizeFullCondition();
             }
             f.removeUnusableIndexConditions();
         }

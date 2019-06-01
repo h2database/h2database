@@ -18,7 +18,6 @@ import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
-import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
@@ -28,18 +27,17 @@ import org.h2.value.ValueRow;
 /**
  * An IN() condition with a subquery, as in WHERE ID IN(SELECT ...)
  */
-public class ConditionInQuery extends Condition {
+public class ConditionInQuery extends PredicateWithSubquery {
 
     private final Database database;
     private Expression left;
-    private final Query query;
     private final boolean all;
     private final int compareType;
 
     public ConditionInQuery(Database database, Expression left, Query query, boolean all, int compareType) {
+        super(query);
         this.database = database;
         this.left = left;
-        this.query = query;
         /*
          * Need to do it now because other methods may be invoked in different
          * order.
@@ -138,21 +136,19 @@ public class ConditionInQuery extends Condition {
     @Override
     public void mapColumns(ColumnResolver resolver, int level, int state) {
         left.mapColumns(resolver, level, state);
-        query.mapColumns(resolver, level + 1);
+        super.mapColumns(resolver, level, state);
     }
 
     @Override
     public Expression optimize(Session session) {
         left = left.optimize(session);
-        session.optimizeQueryExpression(query);
-        // Can not optimize: the data may change
-        return this;
+        return super.optimize(session);
     }
 
     @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         left.setEvaluatable(tableFilter, b);
-        query.setEvaluatable(tableFilter, b);
+        super.setEvaluatable(tableFilter, b);
     }
 
     @Override
@@ -170,24 +166,23 @@ public class ConditionInQuery extends Condition {
                     append(" ANY");
             }
         }
-        builder.append("(\n");
-        return StringUtils.indent(builder, query.getPlanSQL(alwaysQuote), 4, false).append("))");
+        return super.getSQL(builder, alwaysQuote).append(')');
     }
 
     @Override
     public void updateAggregate(Session session, int stage) {
         left.updateAggregate(session, stage);
-        query.updateAggregate(session, stage);
+        super.updateAggregate(session, stage);
     }
 
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
-        return left.isEverything(visitor) && query.isEverything(visitor);
+        return left.isEverything(visitor) && super.isEverything(visitor);
     }
 
     @Override
     public int getCost() {
-        return left.getCost() + query.getCostAsExpression();
+        return left.getCost() + super.getCost();
     }
 
     @Override

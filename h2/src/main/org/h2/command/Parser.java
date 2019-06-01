@@ -204,11 +204,11 @@ import org.h2.expression.condition.BooleanTest;
 import org.h2.expression.condition.CompareLike;
 import org.h2.expression.condition.Comparison;
 import org.h2.expression.condition.ConditionAndOr;
-import org.h2.expression.condition.ConditionExists;
 import org.h2.expression.condition.ConditionIn;
 import org.h2.expression.condition.ConditionInParameter;
 import org.h2.expression.condition.ConditionInQuery;
 import org.h2.expression.condition.ConditionNot;
+import org.h2.expression.condition.ExistsPredicate;
 import org.h2.expression.condition.IsJsonPredicate;
 import org.h2.expression.condition.NullPredicate;
 import org.h2.expression.condition.TypePredicate;
@@ -2953,7 +2953,7 @@ public class Parser {
             // can not reduce expression because it might be a union except
             // query with distinct
             read(CLOSE_PAREN);
-            return new ConditionExists(query);
+            return new ExistsPredicate(query);
         }
         if (readIf(INTERSECTS)) {
             read(OPEN_PAREN);

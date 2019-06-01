@@ -53,9 +53,14 @@ public class ParserUtil {
     public static final int CURRENT_DATE = CROSS + 1;
 
     /**
+     * The token "CURRENT_SCHEMA".
+     */
+    public static final int CURRENT_SCHEMA = CURRENT_DATE + 1;
+
+    /**
      * The token "CURRENT_TIME".
      */
-    public static final int CURRENT_TIME = CURRENT_DATE + 1;
+    public static final int CURRENT_TIME = CURRENT_SCHEMA + 1;
 
     /**
      * The token "CURRENT_TIMESTAMP".
@@ -438,6 +443,8 @@ public class ParserUtil {
                 return CROSS;
             } else if (eq("CURRENT_DATE", s, ignoreCase, start, end)) {
                 return CURRENT_DATE;
+            } else if (eq("CURRENT_SCHEMA", s, ignoreCase, start, end)) {
+                return CURRENT_SCHEMA;
             } else if (eq("CURRENT_TIME", s, ignoreCase, start, end)) {
                 return CURRENT_TIME;
             } else if (eq("CURRENT_TIMESTAMP", s, ignoreCase, start, end)) {

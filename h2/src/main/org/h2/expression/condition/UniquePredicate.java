@@ -5,7 +5,6 @@
  */
 package org.h2.expression.condition;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.h2.command.dml.Query;
@@ -85,10 +84,9 @@ public class UniquePredicate extends PredicateWithSubquery {
     @Override
     public Value getValue(Session session) {
         query.setSession(session);
-        ArrayList<Expression> expression = query.getExpressions();
         int columnCount = query.getColumnCount();
         LocalResult result = session.getDatabase().getResultFactory().create(session,
-                expression.toArray(new Expression[0]), columnCount, columnCount);
+                query.getExpressions().toArray(new Expression[0]), columnCount, columnCount);
         result.setDistinct();
         Target target = new Target(columnCount, result);
         query.query(Integer.MAX_VALUE, target);

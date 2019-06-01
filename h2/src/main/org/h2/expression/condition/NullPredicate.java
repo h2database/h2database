@@ -22,7 +22,7 @@ import org.h2.value.ValueRow;
 /**
  * Null predicate (IS [NOT] NULL).
  */
-public class NullPredicate extends Predicate {
+public class NullPredicate extends SimplePredicate {
 
     private boolean optimized;
 

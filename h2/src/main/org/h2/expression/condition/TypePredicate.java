@@ -17,7 +17,7 @@ import org.h2.value.ValueNull;
 /**
  * Type predicate (IS [NOT] OF).
  */
-public class TypePredicate extends Predicate {
+public class TypePredicate extends SimplePredicate {
 
     private final TypeInfo[] typeList;
     private int[] valueTypes;

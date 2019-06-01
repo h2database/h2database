@@ -212,6 +212,7 @@ import org.h2.expression.condition.ExistsPredicate;
 import org.h2.expression.condition.IsJsonPredicate;
 import org.h2.expression.condition.NullPredicate;
 import org.h2.expression.condition.TypePredicate;
+import org.h2.expression.condition.UniquePredicate;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionCall;
 import org.h2.expression.function.JavaFunction;
@@ -2944,10 +2945,12 @@ public class Parser {
     }
 
     private Expression readCondition() {
-        if (readIf(NOT)) {
+        switch (currentTokenType) {
+        case NOT:
+            read();
             return new ConditionNot(readCondition());
-        }
-        if (readIf(EXISTS)) {
+        case EXISTS: {
+            read();
             read(OPEN_PAREN);
             Query query = parseSelect();
             // can not reduce expression because it might be a union except
@@ -2955,14 +2958,26 @@ public class Parser {
             read(CLOSE_PAREN);
             return new ExistsPredicate(query);
         }
-        if (readIf(INTERSECTS)) {
+        case INTERSECTS: {
+            read();
             read(OPEN_PAREN);
             Expression r1 = readConcat();
             read(COMMA);
             Expression r2 = readConcat();
             read(CLOSE_PAREN);
-            return new Comparison(session, Comparison.SPATIAL_INTERSECTS, r1,
-                    r2);
+            return new Comparison(session, Comparison.SPATIAL_INTERSECTS, r1, r2);
+        }
+        case UNIQUE: {
+            read();
+            read(OPEN_PAREN);
+            Query query = parseSelect();
+            read(CLOSE_PAREN);
+            return new UniquePredicate(query);
+        }
+        default:
+            if (expectedList != null) {
+                addMultipleExpected(NOT, EXISTS, INTERSECTS, UNIQUE);
+            }
         }
         Expression r = readConcat();
         while (true) {
@@ -3031,11 +3046,9 @@ public class Parser {
                     } else if (readIf("JSON")) {
                         r = readJsonPredicate(r, isNot);
                     } else {
-                        addExpected(NULL);
-                        addExpected(DISTINCT);
-                        addExpected(TRUE);
-                        addExpected(FALSE);
-                        addExpected(UNKNOWN);
+                        if (expectedList != null) {
+                            addMultipleExpected(NULL, DISTINCT, TRUE, FALSE, UNKNOWN);
+                        }
                         /*
                          * Databases that were created in 1.4.199 and older
                          * versions can contain invalid generated IS [ NOT ]
@@ -4689,9 +4702,9 @@ public class Parser {
         if (readIf("OFF")) {
             return false;
         } else {
-            addExpected(ON);
-            addExpected(TRUE);
-            addExpected(FALSE);
+            if (expectedList != null) {
+                addMultipleExpected(ON, TRUE, FALSE);
+            }
             throw getSyntaxError();
         }
     }
@@ -4831,6 +4844,12 @@ public class Parser {
 
     private void addExpected(int tokenType) {
         if (expectedList != null) {
+            expectedList.add(TOKENS[tokenType]);
+        }
+    }
+
+    private void addMultipleExpected(int ... tokenTypes) {
+        for (int tokenType : tokenTypes) {
             expectedList.add(TOKENS[tokenType]);
         }
     }

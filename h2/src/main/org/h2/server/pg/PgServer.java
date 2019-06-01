@@ -333,19 +333,6 @@ public class PgServer implements Service {
     }
 
     /**
-     * Get the name of the current schema.
-     * This method is called by the database.
-     *
-     * @param conn the connection
-     * @return the schema name
-     */
-    public static String getCurrentSchema(Connection conn) throws SQLException {
-        ResultSet rs = conn.createStatement().executeQuery("call schema()");
-        rs.next();
-        return rs.getString(1);
-    }
-
-    /**
      * Get the OID of an object. This method is called by the database.
      *
      * @param conn the connection

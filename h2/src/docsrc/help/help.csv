@@ -5297,9 +5297,7 @@ CALL TRANSACTION_ID()
 TRUNCATE_VALUE(value, precisionInt, forceBoolean)
 ","
 Truncate a value to the required precision.
-The precision of the returned value may be a bit larger than requested,
-because fixed precision values are not truncated (unlike the numeric TRUNCATE method).
-Unlike CAST, the truncating a decimal value may lose precision if the force flag is set to true.
+If force flag is set to ""FALSE"" fixed precision values are not truncated.
 The method returns a value with the same data type as the first parameter.
 ","
 CALL TRUNCATE_VALUE(X, 10, TRUE);

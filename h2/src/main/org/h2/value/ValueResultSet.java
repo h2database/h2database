@@ -168,12 +168,4 @@ public class ValueResultSet extends Value {
         return builder;
     }
 
-    @Override
-    public Value convertPrecision(long precision, boolean force) {
-        if (!force) {
-            return this;
-        }
-        return ValueResultSet.get(new SimpleResult());
-    }
-
 }

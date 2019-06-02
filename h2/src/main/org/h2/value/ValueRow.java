@@ -154,10 +154,4 @@ public class ValueRow extends ValueCollectionBase {
         return true;
     }
 
-    @Override
-    public Value convertPrecision(long precision, boolean force) {
-        // Can't convert
-        return this;
-    }
-
 }

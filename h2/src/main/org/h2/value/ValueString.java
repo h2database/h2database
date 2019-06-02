@@ -78,11 +78,11 @@ public class ValueString extends Value {
     }
 
     @Override
-    public Value convertPrecision(long precision, boolean force) {
-        if (precision == 0 || value.length() <= precision) {
+    public Value convertPrecision(long precision) {
+        int p = MathUtils.convertLongToInt(precision);
+        if (value.length() <= p) {
             return this;
         }
-        int p = MathUtils.convertLongToInt(precision);
         return getNew(value.substring(0, p));
     }
 

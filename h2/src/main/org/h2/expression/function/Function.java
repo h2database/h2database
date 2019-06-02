@@ -997,7 +997,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             TypeInfo type = this.type;
             v0 = v0.convertTo(type, mode, null);
             v0 = v0.convertScale(mode.convertOnlyToSmallerScale, type.getScale());
-            v0 = v0.convertPrecision(type.getPrecision(), false);
+            v0 = v0.convertPrecision(type.getPrecision());
             result = v0;
             break;
         }
@@ -1794,7 +1794,15 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         }
         case TRUNCATE_VALUE: {
-            result = v0.convertPrecision(v1.getLong(), v2.getBoolean());
+            long precision = v1.getLong();
+            int valueType;
+            if (v2.getBoolean() //
+                    && DataType.isNumericType(valueType = v0.getValueType()) && valueType != Value.DECIMAL) {
+                result = v0.checkPrecision(precision) ? v0 //
+                        : v0.convertTo(Value.DECIMAL).convertPrecision(precision).convertTo(valueType);
+            } else {
+                result = v0.convertPrecision(precision);
+            }
             break;
         }
         case XMLTEXT:

@@ -1560,11 +1560,10 @@ public abstract class Value extends VersionedValue {
      * a fixed precision are not truncated.
      *
      * @param precision the new precision
-     * @param force true if losing numeric precision is allowed
      * @return the new value
      */
     @SuppressWarnings("unused")
-    public Value convertPrecision(long precision, boolean force) {
+    public Value convertPrecision(long precision) {
         return this;
     }
 

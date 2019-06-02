@@ -200,10 +200,6 @@ public class ValueJavaObject extends ValueBytes {
             return getObject().equals(((NotSerialized) other).getObject());
         }
 
-        @Override
-        public Value convertPrecision(long precision, boolean force) {
-            return this;
-        }
     }
 
     @Override

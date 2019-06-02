@@ -992,15 +992,9 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             result = getEstimatedEnvelope(session, v0, values[1]);
             break;
         case CAST:
-        case CONVERT: {
-            Mode mode = database.getMode();
-            TypeInfo type = this.type;
-            v0 = v0.convertTo(type, mode, null);
-            v0 = v0.convertScale(mode.convertOnlyToSmallerScale, type.getScale());
-            v0 = v0.convertPrecision(type.getPrecision());
-            result = v0;
+        case CONVERT:
+            result = type.cast(v0, database.getMode(), true, null);
             break;
-        }
         case MEMORY_FREE:
             session.getUser().checkAdmin();
             result = ValueInt.get(Utils.getMemoryFree());

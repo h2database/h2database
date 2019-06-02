@@ -9,6 +9,7 @@ import java.util.ArrayList;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
+import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -125,8 +126,7 @@ public class TableFunction extends Function {
                         Column c = columns[j];
                         v = l[row];
                         if (!unnest) {
-                            v = c.convert(v).convertPrecision(c.getType().getPrecision())
-                                    .convertScale(true, c.getType().getScale());
+                            v = c.getType().cast(v, db.getMode(), true, c);
                         }
                     }
                     r[j] = v;

@@ -376,7 +376,7 @@ public class Column {
             }
         }
         try {
-            value = type.cast(value, mode, name);
+            value = type.cast(value, mode, false, name);
         } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.DATA_CONVERSION_ERROR_1) {
                 e = getDataConversionError(value, e);

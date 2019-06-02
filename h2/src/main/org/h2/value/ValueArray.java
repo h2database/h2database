@@ -174,31 +174,10 @@ public class ValueArray extends ValueCollectionBase {
 
     @Override
     public Value convertPrecision(long precision, boolean force) {
-        if (!force) {
+        if (values.length <= precision) {
             return this;
         }
-        int length = values.length;
-        Value[] newValues = new Value[length];
-        int i = 0;
-        boolean modified = false;
-        for (; i < length; i++) {
-            Value old = values[i];
-            Value v = old.convertPrecision(precision, true);
-            if (v != old) {
-                modified = true;
-            }
-            // empty byte arrays or strings have precision 0
-            // they count as precision 1 here
-            precision -= Math.max(1, v.getType().getPrecision());
-            if (precision < 0) {
-                break;
-            }
-            newValues[i] = v;
-        }
-        if (i < length) {
-            return get(componentType, Arrays.copyOf(newValues, i));
-        }
-        return modified ? get(componentType, newValues) : this;
+        return get(componentType, Arrays.copyOf(values, (int) precision));
     }
 
 }

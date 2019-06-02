@@ -9,7 +9,6 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Mode;
 import org.h2.message.DbException;
-import org.h2.util.MathUtils;
 
 /**
  * Base class for ARRAY and ROW values.
@@ -50,14 +49,7 @@ public abstract class ValueCollectionBase extends Value {
     public TypeInfo getType() {
         TypeInfo type = this.type;
         if (type == null) {
-            long precision = 0, displaySize = 0;
-            for (Value v : values) {
-                TypeInfo t = v.getType();
-                precision += t.getPrecision();
-                displaySize += t.getDisplaySize();
-            }
-            this.type = type = new TypeInfo(getValueType(), precision, 0, MathUtils.convertLongToInt(displaySize),
-                    null);
+            this.type = type = TypeInfo.getTypeInfo(getValueType(), values.length, 0, null);
         }
         return type;
     }

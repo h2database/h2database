@@ -3391,15 +3391,17 @@ UUID
 "
 
 "Data Types","ARRAY Type","
-ARRAY
+ARRAY [ '[' maximumCardinalityInt ']' ]
 ","
 An array of values.
+Maximum cardinality, if any, specifies maximum allowed number of elements in the array.
 Mapped to ""java.lang.Object[]"" (arrays of any non-primitive type are also supported).
 
-Use a value list (1, 2) or ""PreparedStatement.setObject(.., new Object[] {..})"" to store values,
+Use ""PreparedStatement.setArray(..)"" or ""PreparedStatement.setObject(.., new Object[] {..})"" to store values,
 and ""ResultSet.getObject(..)"" or ""ResultSet.getArray(..)"" to retrieve the values.
 ","
 ARRAY
+ARRAY[10]
 "
 
 "Data Types","ENUM Type","

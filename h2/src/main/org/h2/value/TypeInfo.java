@@ -98,7 +98,7 @@ public class TypeInfo {
     public static final TypeInfo TYPE_STRING_IGNORECASE;
 
     /**
-     * ARRAY type with parameters.
+     * ARRAY type with maximum parameters.
      */
     public static final TypeInfo TYPE_ARRAY;
 
@@ -282,7 +282,6 @@ public class TypeInfo {
         case Value.DOUBLE:
         case Value.FLOAT:
         case Value.DATE:
-        case Value.ARRAY:
         case Value.RESULT_SET:
         case Value.JAVA_OBJECT:
         case Value.UUID:
@@ -346,6 +345,11 @@ public class TypeInfo {
                 precision = Long.MAX_VALUE;
             }
             return new TypeInfo(type, precision, 0, MathUtils.convertLongToInt(precision), null);
+        case Value.ARRAY:
+            if (precision < 0 || precision >= Integer.MAX_VALUE) {
+                return TYPE_ARRAY;
+            }
+            return new TypeInfo(Value.ARRAY, precision, 0, Integer.MAX_VALUE, null);
         case Value.STRING_FIXED:
             if (precision < 0 || precision > Integer.MAX_VALUE) {
                 precision = Integer.MAX_VALUE;
@@ -508,6 +512,11 @@ public class TypeInfo {
             }
             if (valueType == Value.TIMESTAMP_TZ) {
                 builder.append(" WITH TIME ZONE");
+            }
+            break;
+        case Value.ARRAY:
+            if (precision < Integer.MAX_VALUE) {
+                builder.append('[').append(precision).append(']');
             }
         }
         return builder;

@@ -487,7 +487,7 @@ public class TypeInfo {
      */
     public Value cast(Value value, Mode mode, Object column) {
         value = value.convertTo(this, mode, column).convertScale(mode.convertOnlyToSmallerScale, scale);
-        if (precision > 0 && !value.checkPrecision(precision)) {
+        if (!value.checkPrecision(precision)) {
             throw getValueTooLongException(value, column);
         }
         return value;

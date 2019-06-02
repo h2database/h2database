@@ -167,12 +167,11 @@ public class TestValue extends TestDb {
         Value v;
         String spaces = new String(new char[100]).replace((char) 0, ' ');
 
-        v = ValueArray.get(new Value[] { ValueString.get("hello"),
-                ValueString.get("world") });
-        assertEquals(10, v.getType().getPrecision());
-        assertEquals(5, v.convertPrecision(5, true).getType().getPrecision());
+        v = ValueArray.get(new Value[] { ValueString.get("hello"), ValueString.get("world") });
+        assertEquals(2, v.getType().getPrecision());
+        assertEquals(1, v.convertPrecision(1, true).getType().getPrecision());
         v = ValueArray.get(new Value[]{ValueString.get(""), ValueString.get("")});
-        assertEquals(0, v.getType().getPrecision());
+        assertEquals(2, v.getType().getPrecision());
         assertEquals("['']", v.convertPrecision(1, true).toString());
 
         v = ValueBytes.get(spaces.getBytes());
@@ -372,16 +371,11 @@ public class TestValue extends TestDb {
     private void testArray() {
         ValueArray src = ValueArray.get(String.class,
                 new Value[] {ValueString.get("1"), ValueString.get("22"), ValueString.get("333")});
-        assertEquals(6, src.getType().getPrecision());
-        assertSame(src, src.convertPrecision(5, false));
-        assertSame(src, src.convertPrecision(6, true));
+        assertEquals(3, src.getType().getPrecision());
+        assertSame(src, src.convertPrecision(3, true));
         ValueArray exp = ValueArray.get(String.class,
-                new Value[] {ValueString.get("1"), ValueString.get("22"), ValueString.get("33")});
-        Value got = src.convertPrecision(5, true);
-        assertEquals(exp, got);
-        assertEquals(String.class, ((ValueArray) got).getComponentType());
-        exp = ValueArray.get(String.class, new Value[] {ValueString.get("1"), ValueString.get("22")});
-        got = src.convertPrecision(3, true);
+                new Value[] {ValueString.get("1"), ValueString.get("22")});
+        Value got = src.convertPrecision(2, true);
         assertEquals(exp, got);
         assertEquals(String.class, ((ValueArray) got).getComponentType());
         exp = ValueArray.get(String.class, new Value[0]);

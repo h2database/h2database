@@ -1203,6 +1203,8 @@ public abstract class Value extends VersionedValue {
         case BYTES:
         case BLOB:
             return ValueJavaObject.getNoCopy(null, getBytesNoCopy(), getDataHandler());
+        case GEOMETRY:
+            return ValueJavaObject.getNoCopy(getObject(), null, getDataHandler());
         case ENUM:
         case TIMESTAMP_TZ:
             throw getDataConversionError(JAVA_OBJECT);

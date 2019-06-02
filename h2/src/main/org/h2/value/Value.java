@@ -756,6 +756,9 @@ public abstract class Value extends VersionedValue {
         // converting NULL is done in ValueNull
         // converting BLOB to CLOB and vice versa is done in ValueLob
         if (getValueType() == targetType) {
+            if (extTypeInfo != null) {
+                return extTypeInfo.cast(this);
+            }
             return this;
         }
         try {

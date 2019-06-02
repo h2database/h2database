@@ -54,7 +54,7 @@ public class TransactionStore {
      * Key: opId, value: [ mapId, key, oldValue ].
      */
     @SuppressWarnings("unchecked")
-    final MVMap<Long,Object[]> undoLogs[] = new MVMap[MAX_OPEN_TRANSACTIONS];
+    final MVMap<Long,Object[]>[] undoLogs = new MVMap[MAX_OPEN_TRANSACTIONS];
     private final MVMap.Builder<Long,Object[]> undoLogBuilder;
 
     private final MVMap.Builder<Object, VersionedValue> mapBuilder;
@@ -100,22 +100,18 @@ public class TransactionStore {
      */
     // TODO: introduce constructor parameter instead of a static field, driven by URL parameter
     private static final int MAX_OPEN_TRANSACTIONS = 65535;
+    private static final Object[] COMMIT_MARKER = new Object[] {-1, null, null}; // -1 - bogus map id
 
 
     /**
      * Generate a string used to name undo log map for a specific transaction.
-     * This name will contain transaction id and reflect the fact
-     * whether transaction is logically committed or not.
-     * This information might be used by recovery procedure after unclean shutdown
-     * (termination before transaction is fully committed).
+     * This name will contain transaction id.
      *
-     * @param committed true if transaction is logically committed, false otherwise
      * @param transactionId of the corresponding transaction
      * @return undo log name
      */
-    public static String getUndoLogName(boolean committed, int transactionId) {
-        return UNDO_LOG_NAME_PREFIX +
-                (committed ? UNDO_LOG_COMMITTED : UNDO_LOG_OPEN) +
+    public static String getUndoLogName(int transactionId) {
+        return UNDO_LOG_NAME_PREFIX + UNDO_LOG_OPEN +
                 (transactionId > 0 ? String.valueOf(transactionId) : "");
     }
 
@@ -164,8 +160,10 @@ public class TransactionStore {
                     // Unexpectedly short name may be encountered upon upgrade from older version
                     // where undo log was persisted as a single map, remove it.
                     if (mapName.length() > UNDO_LOG_NAME_PREFIX.length()) {
+                        // make a decision about tx status based on a log name
+                        // to handle upgrade from a previous versions
                         boolean committed = mapName.charAt(UNDO_LOG_NAME_PREFIX.length()) == UNDO_LOG_COMMITTED;
-                        if (store.hasData(mapName) || committed) {
+                        if (store.hasData(mapName)) {
                             int transactionId = StringUtils.parseUInt31(mapName, UNDO_LOG_NAME_PREFIX.length() + 1,
                                     mapName.length());
                             VersionedBitSet openTxBitSet = openTransactions.get();
@@ -180,15 +178,25 @@ public class TransactionStore {
                                     status = (Integer) data[0];
                                     name = (String) data[1];
                                 }
-                                if (committed) {
-                                    status = Transaction.STATUS_COMMITTED;
-                                }
                                 MVMap<Long, Object[]> undoLog = store.openMap(mapName, undoLogBuilder);
                                 undoLogs[transactionId] = undoLog;
                                 Long lastUndoKey = undoLog.lastKey();
-                                assert committed || lastUndoKey != null;
-                                assert committed || getTransactionId(lastUndoKey) == transactionId;
-                                long logId = lastUndoKey == null ? 0 : getLogId(lastUndoKey) + 1;
+                                assert lastUndoKey != null;
+                                assert getTransactionId(lastUndoKey) == transactionId;
+                                long logId = getLogId(lastUndoKey) + 1;
+                                if (committed) {
+                                    // give it a proper name and used marker record instead
+                                    store.renameMap(undoLog, getUndoLogName(transactionId));
+                                    markUndoLogAsCommitted(transactionId);
+                                } else {
+                                    committed = logId > LOG_ID_MASK;
+                                }
+                                if (committed) {
+                                    status = Transaction.STATUS_COMMITTED;
+                                    lastUndoKey = undoLog.lowerKey(lastUndoKey);
+                                    assert lastUndoKey == null || getTransactionId(lastUndoKey) == transactionId;
+                                    logId = lastUndoKey == null ? 0 : getLogId(lastUndoKey) + 1;
+                                }
                                 registerTransaction(transactionId, status, name, logId, timeoutMillis, 0,
                                         ROLLBACK_LISTENER_NONE);
                                 continue;
@@ -203,6 +211,10 @@ public class TransactionStore {
             }
             init = true;
         }
+    }
+
+    private void markUndoLogAsCommitted(int transactionId) {
+        addUndoLogRecord(transactionId, LOG_ID_MASK, COMMIT_MARKER);
     }
 
     /**
@@ -371,7 +383,7 @@ public class TransactionStore {
         transactions.set(transactionId, transaction);
 
         if (undoLogs[transactionId] == null) {
-            String undoName = getUndoLogName(status == Transaction.STATUS_COMMITTED, transactionId);
+            String undoName = getUndoLogName(transactionId);
             MVMap<Long, Object[]> undoLog = store.openMap(undoName, undoLogBuilder);
             undoLogs[transactionId] = undoLog;
         }
@@ -442,37 +454,41 @@ public class TransactionStore {
     void commit(Transaction t, boolean recovery) {
         if (!store.isClosed()) {
             int transactionId = t.transactionId;
+            // First, mark log as "committed".
+            // It does not change the way this transaction is treated by others,
+            // but preserves fact of commit in case of abrupt termination.
+            MVMap<Long, Object[]> undoLog = undoLogs[transactionId];
+            Cursor<Long, Object[]> cursor;
+            if(recovery) {
+                removeUndoLogRecord(transactionId);
+                cursor = undoLog.cursor(null);
+            } else {
+                cursor = undoLog.cursor(null);
+                markUndoLogAsCommitted(transactionId);
+            }
+
             // this is an atomic action that causes all changes
             // made by this transaction, to be considered as "committed"
             flipCommittingTransactionsBit(transactionId, true);
 
             CommitDecisionMaker commitDecisionMaker = new CommitDecisionMaker();
             try {
-                MVMap<Long, Object[]> undoLog = undoLogs[transactionId];
-                if(!recovery) {
-                    store.renameMap(undoLog, getUndoLogName(true, transactionId));
-                }
-                try {
-                    Cursor<Long, Object[]> cursor = undoLog.cursor(null);
-                    while (cursor.hasNext()) {
-                        Long undoKey = cursor.next();
-                        Object[] op = cursor.getValue();
-                        int mapId = (Integer) op[0];
-                        MVMap<Object, VersionedValue> map = openMap(mapId);
-                        if (map != null) { // might be null if map was removed later
-                            Object key = op[1];
-                            commitDecisionMaker.setUndoKey(undoKey);
-                            // although second parameter (value) is not really
-                            // used by CommitDecisionMaker, MVRTreeMap has weird
-                            // traversal logic based on it, and any non-null
-                            // value will do, to signify update, not removal
-                            map.operate(key, VersionedValue.DUMMY, commitDecisionMaker);
-                        }
+                while (cursor.hasNext()) {
+                    Long undoKey = cursor.next();
+                    Object[] op = cursor.getValue();
+                    int mapId = (Integer) op[0];
+                    MVMap<Object, VersionedValue> map = openMap(mapId);
+                    if (map != null) { // might be null if map was removed later
+                        Object key = op[1];
+                        commitDecisionMaker.setUndoKey(undoKey);
+                        // although second parameter (value) is not really
+                        // used by CommitDecisionMaker, MVRTreeMap has weird
+                        // traversal logic based on it, and any non-null
+                        // value will do, to signify update, not removal
+                        map.operate(key, VersionedValue.DUMMY, commitDecisionMaker);
                     }
-                    undoLog.clear();
-                } finally {
-                    store.renameMap(undoLog, getUndoLogName(false, transactionId));
                 }
+                undoLog.clear();
             } finally {
                 flipCommittingTransactionsBit(transactionId, false);
             }

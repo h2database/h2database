@@ -8,6 +8,7 @@ package org.h2.value;
 import org.h2.api.CustomDataTypesHandler;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
+import org.h2.engine.Mode;
 import org.h2.message.DbException;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
@@ -180,7 +181,7 @@ public class TypeInfo {
                 null);
         infos[Value.INT] = TYPE_INT = new TypeInfo(Value.INT, ValueInt.PRECISION, 0, ValueInt.DISPLAY_SIZE, null);
         infos[Value.LONG] = TYPE_LONG = new TypeInfo(Value.LONG, ValueLong.PRECISION, 0, ValueLong.DISPLAY_SIZE, null);
-        infos[Value.DECIMAL] = TYPE_DECIMAL= new TypeInfo(Value.DECIMAL, Integer.MAX_VALUE, Integer.MAX_VALUE,
+        infos[Value.DECIMAL] = TYPE_DECIMAL = new TypeInfo(Value.DECIMAL, Integer.MAX_VALUE, Integer.MAX_VALUE,
                 Integer.MAX_VALUE, null);
         TYPE_DECIMAL_DEFAULT = new TypeInfo(Value.DECIMAL, ValueDecimal.DEFAULT_PRECISION, ValueDecimal.DEFAULT_SCALE,
                 ValueDecimal.DEFAULT_PRECISION + 2, null);
@@ -219,7 +220,8 @@ public class TypeInfo {
                     IntervalQualifier.valueOf(i - Value.INTERVAL_YEAR).hasSeconds() ? ValueInterval.MAXIMUM_SCALE : 0,
                     ValueInterval.getDisplaySize(i, ValueInterval.MAXIMUM_PRECISION,
                             // Scale will be ignored if it is not supported
-                            ValueInterval.MAXIMUM_SCALE), null);
+                            ValueInterval.MAXIMUM_SCALE),
+                    null);
         }
         TYPE_INTERVAL_DAY = infos[Value.INTERVAL_DAY];
         TYPE_INTERVAL_DAY_TO_SECOND = infos[Value.INTERVAL_DAY_TO_SECOND];
@@ -470,6 +472,42 @@ public class TypeInfo {
     }
 
     /**
+     * Casts a specified value to this data type taking precision and scale into
+     * account.
+     *
+     * @param value
+     *            value to cast
+     * @param mode
+     *            database mode
+     * @param column
+     *            column, or null
+     * @return casted value
+     * @throws DbException
+     *             if value cannot be casted to this data type
+     */
+    public Value cast(Value value, Mode mode, Object column) {
+        value = value.convertTo(this, mode, column).convertScale(mode.convertOnlyToSmallerScale, scale);
+        if (precision > 0 && !value.checkPrecision(precision)) {
+            throw getValueTooLongException(value, column);
+        }
+        return value;
+    }
+
+    private DbException getValueTooLongException(Value value, Object column) {
+        String s = value.getTraceSQL();
+        if (s.length() > 127) {
+            s = s.substring(0, 128) + "...";
+        }
+        StringBuilder builder = new StringBuilder();
+        if (column != null) {
+            builder.append(column).append(' ');
+        }
+        getSQL(builder);
+        return DbException.get(ErrorCode.VALUE_TOO_LONG_2, builder.toString(),
+                s + " (" + value.getType().getPrecision() + ')');
+    }
+
+    /**
      * Appends SQL representation of this object to the specified string
      * builder.
      *
@@ -520,6 +558,11 @@ public class TypeInfo {
             }
         }
         return builder;
+    }
+
+    @Override
+    public String toString() {
+        return getSQL(new StringBuilder()).toString();
     }
 
 }

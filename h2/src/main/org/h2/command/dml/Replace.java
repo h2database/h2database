@@ -12,7 +12,6 @@ import org.h2.api.Trigger;
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
-import org.h2.engine.Mode;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
@@ -71,7 +70,6 @@ public class Replace extends CommandWithValues {
         session.getUser().checkRight(table, Right.INSERT);
         session.getUser().checkRight(table, Right.UPDATE);
         setCurrentRowNumber(0);
-        Mode mode = session.getDatabase().getMode();
         if (!valuesExpressionList.isEmpty()) {
             for (int x = 0, size = valuesExpressionList.size(); x < size; x++) {
                 setCurrentRowNumber(x + 1);
@@ -84,8 +82,7 @@ public class Replace extends CommandWithValues {
                     if (e != null) {
                         // e can be null (DEFAULT)
                         try {
-                            Value v = c.convert(e.getValue(session), mode);
-                            newRow.setValue(index, v);
+                            newRow.setValue(index, e.getValue(session));
                         } catch (DbException ex) {
                             throw setRow(ex, count, getSimpleSQL(expr));
                         }
@@ -102,14 +99,7 @@ public class Replace extends CommandWithValues {
                 Row newRow = table.getTemplateRow();
                 setCurrentRowNumber(count);
                 for (int j = 0; j < columns.length; j++) {
-                    Column c = columns[j];
-                    int index = c.getColumnId();
-                    try {
-                        Value v = c.convert(r[j], mode);
-                        newRow.setValue(index, v);
-                    } catch (DbException ex) {
-                        throw setRow(ex, count, getSQL(r));
-                    }
+                    newRow.setValue(columns[j].getColumnId(), r[j]);
                 }
                 count += replace(newRow);
             }

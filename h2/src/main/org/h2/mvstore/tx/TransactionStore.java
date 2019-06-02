@@ -54,7 +54,7 @@ public class TransactionStore {
      * Key: opId, value: [ mapId, key, oldValue ].
      */
     @SuppressWarnings("unchecked")
-    final MVMap<Long,Object[]> undoLogs[] = new MVMap[MAX_OPEN_TRANSACTIONS];
+    final MVMap<Long,Object[]>[] undoLogs = new MVMap[MAX_OPEN_TRANSACTIONS];
     private final MVMap.Builder<Long,Object[]> undoLogBuilder;
 
     private final MVMap.Builder<Object, VersionedValue> mapBuilder;
@@ -92,6 +92,7 @@ public class TransactionStore {
                                                         new AtomicReferenceArray<>(MAX_OPEN_TRANSACTIONS + 1);
 
     private static final String UNDO_LOG_NAME_PREFIX = "undoLog";
+    private static final char UNDO_LOG_COMMITTED = '-'; // must come before open in lexicographical order
     private static final char UNDO_LOG_OPEN = '.';
 
     /**
@@ -159,6 +160,9 @@ public class TransactionStore {
                     // Unexpectedly short name may be encountered upon upgrade from older version
                     // where undo log was persisted as a single map, remove it.
                     if (mapName.length() > UNDO_LOG_NAME_PREFIX.length()) {
+                        // make a decision about tx status based on a log name
+                        // to handle upgrade from a previous versions
+                        boolean committed = mapName.charAt(UNDO_LOG_NAME_PREFIX.length()) == UNDO_LOG_COMMITTED;
                         if (store.hasData(mapName)) {
                             int transactionId = StringUtils.parseUInt31(mapName, UNDO_LOG_NAME_PREFIX.length() + 1,
                                     mapName.length());
@@ -180,7 +184,13 @@ public class TransactionStore {
                                 assert lastUndoKey != null;
                                 assert getTransactionId(lastUndoKey) == transactionId;
                                 long logId = getLogId(lastUndoKey) + 1;
-                                boolean committed = logId > LOG_ID_MASK;
+                                if (committed) {
+                                    // give it a proper name and used marker record instead
+                                    store.renameMap(undoLog, getUndoLogName(transactionId));
+                                    markUndoLogAsCommitted(transactionId);
+                                } else {
+                                    committed = logId > LOG_ID_MASK;
+                                }
                                 if (committed) {
                                     status = Transaction.STATUS_COMMITTED;
                                     lastUndoKey = undoLog.lowerKey(lastUndoKey);
@@ -201,6 +211,10 @@ public class TransactionStore {
             }
             init = true;
         }
+    }
+
+    private void markUndoLogAsCommitted(int transactionId) {
+        addUndoLogRecord(transactionId, LOG_ID_MASK, COMMIT_MARKER);
     }
 
     /**
@@ -440,21 +454,25 @@ public class TransactionStore {
     void commit(Transaction t, boolean recovery) {
         if (!store.isClosed()) {
             int transactionId = t.transactionId;
+            // First, mark log as "committed".
+            // It does not change the way this transaction is treated by others,
+            // but preserves fact of commit in case of abrupt termination.
+            MVMap<Long, Object[]> undoLog = undoLogs[transactionId];
+            Cursor<Long, Object[]> cursor;
+            if(recovery) {
+                removeUndoLogRecord(transactionId);
+                cursor = undoLog.cursor(null);
+            } else {
+                cursor = undoLog.cursor(null);
+                markUndoLogAsCommitted(transactionId);
+            }
+
             // this is an atomic action that causes all changes
             // made by this transaction, to be considered as "committed"
             flipCommittingTransactionsBit(transactionId, true);
 
             CommitDecisionMaker commitDecisionMaker = new CommitDecisionMaker();
             try {
-                MVMap<Long, Object[]> undoLog = undoLogs[transactionId];
-                Cursor<Long, Object[]> cursor;
-                if(recovery) {
-                    removeUndoLogRecord(transactionId);
-                    cursor = undoLog.cursor(null);
-                } else {
-                    cursor = undoLog.cursor(null);
-                    addUndoLogRecord(transactionId, LOG_ID_MASK, COMMIT_MARKER);
-                }
                 while (cursor.hasNext()) {
                     Long undoKey = cursor.next();
                     Object[] op = cursor.getValue();

@@ -148,12 +148,13 @@ public class Update extends Prepared {
                         } else if (newExpr == ValueExpression.getDefault()) {
                             newValue = table.getDefaultValue(session, column);
                         } else {
-                            newValue = column.convert(newExpr.getValue(session), session.getDatabase().getMode());
+                            newValue = newExpr.getValue(session);
                         }
                         newRow.setValue(i, newValue);
                     }
                     long key = oldRow.getKey();
                     newRow.setKey(key);
+                    table.validateConvertUpdateSequence(session, newRow);
                     if (setOnUpdate || updateToCurrentValuesReturnsZero) {
                         setOnUpdate = false;
                         for (int i = 0; i < columnCount; i++) {
@@ -176,7 +177,6 @@ public class Update extends Prepared {
                             count--;
                         }
                     }
-                    table.validateConvertUpdateSequence(session, newRow);
                     if (!table.fireRow() || !table.fireBeforeRow(session, oldRow, newRow)) {
                         rows.add(oldRow);
                         rows.add(newRow);

@@ -310,11 +310,8 @@ public class DataType {
                 createGeometry(),
                 new String[]{"GEOMETRY"}
         );
-        dataType = new DataType();
-        dataType.prefix = "ARRAY[";
-        dataType.suffix = "]";
         add(Value.ARRAY, Types.ARRAY,
-                dataType,
+                createString(false, "ARRAY[", "]"),
                 new String[]{"ARRAY"}
         );
         dataType = new DataType();

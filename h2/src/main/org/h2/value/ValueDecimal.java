@@ -6,6 +6,7 @@
 package org.h2.value;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.math.RoundingMode;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -197,16 +198,15 @@ public class ValueDecimal extends Value {
     }
 
     @Override
-    public Value convertPrecision(long precision, boolean force) {
-        if (value.precision() <= precision) {
+    public Value convertPrecision(long precision) {
+        int p = MathUtils.convertLongToInt(precision);
+        if (value.precision() <= p) {
             return this;
         }
-        if (force) {
-            return get(BigDecimal.valueOf(value.doubleValue()));
+        if (p > 0) {
+            return get(value.round(new MathContext(p)));
         }
-        throw DbException.get(
-                ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1,
-                Long.toString(precision));
+        throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, getString());
     }
 
     /**

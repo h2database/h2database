@@ -3391,15 +3391,17 @@ UUID
 "
 
 "Data Types","ARRAY Type","
-ARRAY
+ARRAY [ '[' maximumCardinalityInt ']' ]
 ","
 An array of values.
+Maximum cardinality, if any, specifies maximum allowed number of elements in the array.
 Mapped to ""java.lang.Object[]"" (arrays of any non-primitive type are also supported).
 
-Use a value list (1, 2) or ""PreparedStatement.setObject(.., new Object[] {..})"" to store values,
+Use ""PreparedStatement.setArray(..)"" or ""PreparedStatement.setObject(.., new Object[] {..})"" to store values,
 and ""ResultSet.getObject(..)"" or ""ResultSet.getArray(..)"" to retrieve the values.
 ","
 ARRAY
+ARRAY[10]
 "
 
 "Data Types","ENUM Type","
@@ -5295,9 +5297,7 @@ CALL TRANSACTION_ID()
 TRUNCATE_VALUE(value, precisionInt, forceBoolean)
 ","
 Truncate a value to the required precision.
-The precision of the returned value may be a bit larger than requested,
-because fixed precision values are not truncated (unlike the numeric TRUNCATE method).
-Unlike CAST, the truncating a decimal value may lose precision if the force flag is set to true.
+If force flag is set to ""FALSE"" fixed precision values are not truncated.
 The method returns a value with the same data type as the first parameter.
 ","
 CALL TRUNCATE_VALUE(X, 10, TRUE);

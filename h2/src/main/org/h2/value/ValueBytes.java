@@ -154,12 +154,12 @@ public class ValueBytes extends Value {
     }
 
     @Override
-    public Value convertPrecision(long precision, boolean force) {
-        if (value.length <= precision) {
+    public Value convertPrecision(long precision) {
+        int p = MathUtils.convertLongToInt(precision);
+        if (value.length <= p) {
             return this;
         }
-        int len = MathUtils.convertLongToInt(precision);
-        return getNoCopy(Arrays.copyOf(value, len));
+        return getNoCopy(Arrays.copyOf(value, p));
     }
 
 }

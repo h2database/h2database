@@ -5754,8 +5754,8 @@ public class Parser {
                         currentToken);
             }
         }
-        if (database.getIgnoreCase() && dataType.type == Value.STRING &&
-                !equalsToken("VARCHAR_CASESENSITIVE", original)) {
+        int t = dataType.type;
+        if (database.getIgnoreCase() && t == Value.STRING && !equalsToken("VARCHAR_CASESENSITIVE", original)) {
             original = "VARCHAR_IGNORECASE";
             dataType = DataType.getTypeByName(original, database.getMode());
         }
@@ -5765,7 +5765,6 @@ public class Parser {
         precision = precision == -1 ? dataType.defaultPrecision : precision;
         scale = scale == -1 ? dataType.defaultScale : scale;
         if (dataType.supportsPrecision || dataType.supportsScale) {
-            int t = dataType.type;
             if (t == Value.TIME || t == Value.TIMESTAMP || t == Value.TIMESTAMP_TZ) {
                 if (originalScale >= 0) {
                     scale = originalScale;
@@ -5801,6 +5800,12 @@ public class Parser {
                     }
                 } else if (original.equals("SMALLDATETIME")) {
                     scale = 0;
+                }
+            } else if (t == Value.ARRAY) {
+                if (readIf(OPEN_BRACKET)) {
+                    precision = readNonNegativeInt();
+                    read(CLOSE_BRACKET);
+                    original = original + '[' + precision + ']';
                 }
             } else if (DataType.isIntervalType(t)) {
                 if (originalPrecision >= 0 || originalScale >= 0) {
@@ -5838,7 +5843,7 @@ public class Parser {
                 }
                 read(CLOSE_PAREN);
             }
-        } else if (dataType.type == Value.DOUBLE && original.equals("FLOAT")) {
+        } else if (t == Value.DOUBLE && original.equals("FLOAT")) {
             if (readIf(OPEN_PAREN)) {
                 int p = readNonNegativeInt();
                 read(CLOSE_PAREN);
@@ -5850,7 +5855,7 @@ public class Parser {
                 }
                 original = original + '(' + p + ')';
             }
-        } else if (dataType.type == Value.ENUM) {
+        } else if (t == Value.ENUM) {
             if (extTypeInfo == null) {
                 String[] enumerators = null;
                 if (readIf(OPEN_PAREN)) {
@@ -5870,7 +5875,7 @@ public class Parser {
                 }
                 original += extTypeInfo.getCreateSQL();
             }
-        } else if (dataType.type == Value.GEOMETRY) {
+        } else if (t == Value.GEOMETRY) {
             if (extTypeInfo == null) {
                 if (readIf(OPEN_PAREN)) {
                     int type = 0;

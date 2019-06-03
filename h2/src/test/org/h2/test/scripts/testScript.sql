@@ -340,21 +340,6 @@ select * from dual where x in (select x from dual group by x order by max(x));
 create table test(d decimal(1, 2));
 > exception INVALID_VALUE_SCALE_PRECISION
 
-call truncate_value('Test 123', 4, false);
-> 'Test'
-> ------
-> Test
-> rows: 1
-
-call truncate_value(1234567890.123456789, 4, false);
-> exception NUMERIC_VALUE_OUT_OF_RANGE_1
-
-call truncate_value(1234567890.123456789, 4, true);
-> 1234567890.1234567
-> ------------------
-> 1234567890.1234567
-> rows: 1
-
 select * from dual where cast('xx' as varchar_ignorecase(1)) = 'X' and cast('x x ' as char(2)) = 'x';
 > X
 > -

@@ -112,3 +112,49 @@ SELECT ARRAY[1, 2] || NULL;
 
 SELECT NULL::ARRAY || ARRAY[2];
 >> null
+
+CREATE TABLE TEST(ID INT, A1 ARRAY, A2 ARRAY[2]);
+> ok
+
+SELECT COLUMN_NAME, DATA_TYPE, TYPE_NAME, COLUMN_TYPE, NUMERIC_PRECISION
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
+> COLUMN_NAME DATA_TYPE TYPE_NAME COLUMN_TYPE NUMERIC_PRECISION
+> ----------- --------- --------- ----------- -----------------
+> ID          4         INTEGER   INT         10
+> A1          2003      ARRAY     ARRAY       2147483647
+> A2          2003      ARRAY     ARRAY[2]    2
+> rows (ordered): 3
+
+INSERT INTO TEST VALUES (1, ARRAY[], ARRAY[]), (2, ARRAY[1, 2], ARRAY[1, 2]);
+> update count: 2
+
+INSERT INTO TEST VALUES (3, ARRAY[], ARRAY[1, 2, 3]);
+> exception VALUE_TOO_LONG_2
+
+TABLE TEST;
+> ID A1     A2
+> -- ------ ------
+> 1  []     []
+> 2  [1, 2] [1, 2]
+> rows: 2
+
+DROP TABLE TEST;
+> ok
+
+CREATE MEMORY TABLE TEST(A1 ARRAY, A2 ARRAY[2], A3 ARRAY[0]);
+> ok
+
+SCRIPT NODATA NOPASSWORDS NOSETTINGS TABLE TEST;
+> SCRIPT
+> --------------------------------------------------------------------------------
+> -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "A1" ARRAY, "A2" ARRAY[2], "A3" ARRAY[0] );
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
+> rows: 3
+
+INSERT INTO TEST(A3) VALUES ARRAY[NULL];
+> exception VALUE_TOO_LONG_2
+
+DROP TABLE TEST;
+> ok

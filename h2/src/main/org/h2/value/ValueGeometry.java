@@ -10,7 +10,6 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
 import org.h2.api.ErrorCode;
-import org.h2.engine.Mode;
 import org.h2.message.DbException;
 import org.h2.util.Bits;
 import org.h2.util.StringUtils;
@@ -343,16 +342,6 @@ public class ValueGeometry extends Value {
      */
     public byte[] getEWKB() {
         return bytes;
-    }
-
-    @Override
-    protected Value convertTo(int targetType, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
-        if (targetType == Value.GEOMETRY) {
-            return extTypeInfo != null ? extTypeInfo.cast(this) : this;
-        } else if (targetType == Value.JAVA_OBJECT) {
-            return this;
-        }
-        return super.convertTo(targetType, mode, column, null);
     }
 
 }

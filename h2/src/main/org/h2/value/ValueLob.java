@@ -672,7 +672,7 @@ public class ValueLob extends Value {
     }
 
     @Override
-    public Value convertPrecision(long precision, boolean force) {
+    public Value convertPrecision(long precision) {
         if (this.precision <= precision) {
             return this;
         }

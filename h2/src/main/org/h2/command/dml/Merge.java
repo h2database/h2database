@@ -12,7 +12,6 @@ import org.h2.command.Command;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.engine.GeneratedKeys;
-import org.h2.engine.Mode;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
@@ -76,7 +75,6 @@ public class Merge extends CommandWithValues {
         session.getUser().checkRight(targetTable, Right.UPDATE);
         setCurrentRowNumber(0);
         GeneratedKeys generatedKeys = session.getGeneratedKeys();
-        Mode mode = session.getDatabase().getMode();
         if (!valuesExpressionList.isEmpty()) {
             // process values in list
             count = 0;
@@ -93,8 +91,7 @@ public class Merge extends CommandWithValues {
                     if (e != null) {
                         // e can be null (DEFAULT)
                         try {
-                            Value v = c.convert(e.getValue(session), mode);
-                            newRow.setValue(index, v);
+                            newRow.setValue(index, e.getValue(session));
                             if (e.isGeneratedKey()) {
                                 generatedKeys.add(c);
                             }
@@ -120,14 +117,7 @@ public class Merge extends CommandWithValues {
                 Row newRow = targetTable.getTemplateRow();
                 setCurrentRowNumber(count);
                 for (int j = 0; j < columns.length; j++) {
-                    Column c = columns[j];
-                    int index = c.getColumnId();
-                    try {
-                        Value v = c.convert(r[j], mode);
-                        newRow.setValue(index, v);
-                    } catch (DbException ex) {
-                        throw setRow(ex, count, getSQL(r));
-                    }
+                    newRow.setValue(columns[j].getColumnId(), r[j]);
                 }
                 merge(newRow);
             }

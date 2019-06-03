@@ -8,6 +8,7 @@ package org.h2.value;
 import org.h2.api.CustomDataTypesHandler;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
+import org.h2.engine.Mode;
 import org.h2.message.DbException;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
@@ -98,7 +99,7 @@ public class TypeInfo {
     public static final TypeInfo TYPE_STRING_IGNORECASE;
 
     /**
-     * ARRAY type with parameters.
+     * ARRAY type with maximum parameters.
      */
     public static final TypeInfo TYPE_ARRAY;
 
@@ -180,7 +181,7 @@ public class TypeInfo {
                 null);
         infos[Value.INT] = TYPE_INT = new TypeInfo(Value.INT, ValueInt.PRECISION, 0, ValueInt.DISPLAY_SIZE, null);
         infos[Value.LONG] = TYPE_LONG = new TypeInfo(Value.LONG, ValueLong.PRECISION, 0, ValueLong.DISPLAY_SIZE, null);
-        infos[Value.DECIMAL] = TYPE_DECIMAL= new TypeInfo(Value.DECIMAL, Integer.MAX_VALUE, Integer.MAX_VALUE,
+        infos[Value.DECIMAL] = TYPE_DECIMAL = new TypeInfo(Value.DECIMAL, Integer.MAX_VALUE, Integer.MAX_VALUE,
                 Integer.MAX_VALUE, null);
         TYPE_DECIMAL_DEFAULT = new TypeInfo(Value.DECIMAL, ValueDecimal.DEFAULT_PRECISION, ValueDecimal.DEFAULT_SCALE,
                 ValueDecimal.DEFAULT_PRECISION + 2, null);
@@ -219,7 +220,8 @@ public class TypeInfo {
                     IntervalQualifier.valueOf(i - Value.INTERVAL_YEAR).hasSeconds() ? ValueInterval.MAXIMUM_SCALE : 0,
                     ValueInterval.getDisplaySize(i, ValueInterval.MAXIMUM_PRECISION,
                             // Scale will be ignored if it is not supported
-                            ValueInterval.MAXIMUM_SCALE), null);
+                            ValueInterval.MAXIMUM_SCALE),
+                    null);
         }
         TYPE_INTERVAL_DAY = infos[Value.INTERVAL_DAY];
         TYPE_INTERVAL_DAY_TO_SECOND = infos[Value.INTERVAL_DAY_TO_SECOND];
@@ -282,7 +284,6 @@ public class TypeInfo {
         case Value.DOUBLE:
         case Value.FLOAT:
         case Value.DATE:
-        case Value.ARRAY:
         case Value.RESULT_SET:
         case Value.JAVA_OBJECT:
         case Value.UUID:
@@ -346,6 +347,11 @@ public class TypeInfo {
                 precision = Long.MAX_VALUE;
             }
             return new TypeInfo(type, precision, 0, MathUtils.convertLongToInt(precision), null);
+        case Value.ARRAY:
+            if (precision < 0 || precision >= Integer.MAX_VALUE) {
+                return TYPE_ARRAY;
+            }
+            return new TypeInfo(Value.ARRAY, precision, 0, Integer.MAX_VALUE, null);
         case Value.STRING_FIXED:
             if (precision < 0 || precision > Integer.MAX_VALUE) {
                 precision = Integer.MAX_VALUE;
@@ -466,6 +472,48 @@ public class TypeInfo {
     }
 
     /**
+     * Casts a specified value to this data type taking precision and scale into
+     * account.
+     *
+     * @param value
+     *            value to cast
+     * @param mode
+     *            database mode
+     * @param convertPrecision
+     *            if {@code true}, value is truncated to the precision of data
+     *            type when possible, if {@code false} an exception in thrown
+     *            for too large values
+     * @param column
+     *            column, or null
+     * @return casted value
+     * @throws DbException
+     *             if value cannot be casted to this data type
+     */
+    public Value cast(Value value, Mode mode, boolean convertPrecision, Object column) {
+        value = value.convertTo(this, mode, column).convertScale(mode.convertOnlyToSmallerScale, scale);
+        if (convertPrecision) {
+            value = value.convertPrecision(precision);
+        } else if (!value.checkPrecision(precision)) {
+            throw getValueTooLongException(value, column);
+        }
+        return value;
+    }
+
+    private DbException getValueTooLongException(Value value, Object column) {
+        String s = value.getTraceSQL();
+        if (s.length() > 127) {
+            s = s.substring(0, 128) + "...";
+        }
+        StringBuilder builder = new StringBuilder();
+        if (column != null) {
+            builder.append(column).append(' ');
+        }
+        getSQL(builder);
+        return DbException.get(ErrorCode.VALUE_TOO_LONG_2, builder.toString(),
+                s + " (" + value.getType().getPrecision() + ')');
+    }
+
+    /**
      * Appends SQL representation of this object to the specified string
      * builder.
      *
@@ -509,8 +557,18 @@ public class TypeInfo {
             if (valueType == Value.TIMESTAMP_TZ) {
                 builder.append(" WITH TIME ZONE");
             }
+            break;
+        case Value.ARRAY:
+            if (precision < Integer.MAX_VALUE) {
+                builder.append('[').append(precision).append(']');
+            }
         }
         return builder;
+    }
+
+    @Override
+    public String toString() {
+        return getSQL(new StringBuilder()).toString();
     }
 
 }

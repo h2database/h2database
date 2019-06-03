@@ -672,7 +672,7 @@ public class TestSpatial extends TestDb {
      * @param object the object
      * @return the string representation
      */
-    public static String getObjectString(Object object) {
+    public static String getObjectString(Geometry object) {
         return object.toString();
     }
 

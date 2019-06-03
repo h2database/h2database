@@ -14,7 +14,6 @@ import org.h2.api.Trigger;
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
 import org.h2.engine.GeneratedKeys;
-import org.h2.engine.Mode;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
@@ -145,7 +144,6 @@ public class Insert extends CommandWithValues implements ResultTarget {
         generatedKeys.initialize(table);
         int listSize = valuesExpressionList.size();
         if (listSize > 0) {
-            Mode mode = session.getDatabase().getMode();
             int columnLen = columns.length;
             for (int x = 0; x < listSize; x++) {
                 generatedKeys.nextRow();
@@ -160,7 +158,7 @@ public class Insert extends CommandWithValues implements ResultTarget {
                         // e can be null (DEFAULT)
                         e = e.optimize(session);
                         try {
-                            Value v = c.convert(e.getValue(session), mode);
+                            Value v = e.getValue(session);
                             newRow.setValue(index, v);
                             if (e.isGeneratedKey()) {
                                 generatedKeys.add(c);
@@ -233,16 +231,8 @@ public class Insert extends CommandWithValues implements ResultTarget {
     private Row addRowImpl(Value[] values) {
         Row newRow = table.getTemplateRow();
         setCurrentRowNumber(++rowNumber);
-        Mode mode = session.getDatabase().getMode();
         for (int j = 0, len = columns.length; j < len; j++) {
-            Column c = columns[j];
-            int index = c.getColumnId();
-            try {
-                Value v = c.convert(values[j], mode);
-                newRow.setValue(index, v);
-            } catch (DbException ex) {
-                throw setRow(ex, rowNumber, getSQL(values));
-            }
+            newRow.setValue(columns[j].getColumnId(), values[j]);
         }
         table.validateConvertUpdateSequence(session, newRow);
         boolean done = table.fireBeforeRow(session, null, newRow);

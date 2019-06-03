@@ -8,7 +8,6 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import org.h2.engine.Mode;
 import org.h2.util.StringUtils;
 
 /**
@@ -137,14 +136,6 @@ public class ValueEnumBase extends Value {
     public Value subtract(final Value v) {
         final Value iv = v.convertTo(Value.INT);
         return convertTo(Value.INT).subtract(iv);
-    }
-
-    @Override
-    protected Value convertTo(int targetType, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
-        if (targetType == Value.ENUM) {
-            return extTypeInfo.cast(this);
-        }
-        return super.convertTo(targetType, mode, column, extTypeInfo);
     }
 
 }

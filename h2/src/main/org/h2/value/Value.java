@@ -756,6 +756,9 @@ public abstract class Value extends VersionedValue {
         // converting NULL is done in ValueNull
         // converting BLOB to CLOB and vice versa is done in ValueLob
         if (getValueType() == targetType) {
+            if (extTypeInfo != null) {
+                return extTypeInfo.cast(this);
+            }
             return this;
         }
         try {
@@ -1200,6 +1203,8 @@ public abstract class Value extends VersionedValue {
         case BYTES:
         case BLOB:
             return ValueJavaObject.getNoCopy(null, getBytesNoCopy(), getDataHandler());
+        case GEOMETRY:
+            return ValueJavaObject.getNoCopy(getObject(), null, getDataHandler());
         case ENUM:
         case TIMESTAMP_TZ:
             throw getDataConversionError(JAVA_OBJECT);
@@ -1557,11 +1562,10 @@ public abstract class Value extends VersionedValue {
      * a fixed precision are not truncated.
      *
      * @param precision the new precision
-     * @param force true if losing numeric precision is allowed
      * @return the new value
      */
     @SuppressWarnings("unused")
-    public Value convertPrecision(long precision, boolean force) {
+    public Value convertPrecision(long precision) {
         return this;
     }
 

@@ -167,60 +167,49 @@ public class TestValue extends TestDb {
         Value v;
         String spaces = new String(new char[100]).replace((char) 0, ' ');
 
-        v = ValueArray.get(new Value[] { ValueString.get("hello"),
-                ValueString.get("world") });
-        assertEquals(10, v.getType().getPrecision());
-        assertEquals(5, v.convertPrecision(5, true).getType().getPrecision());
+        v = ValueArray.get(new Value[] { ValueString.get("hello"), ValueString.get("world") });
+        assertEquals(2, v.getType().getPrecision());
+        assertEquals(1, v.convertPrecision(1).getType().getPrecision());
         v = ValueArray.get(new Value[]{ValueString.get(""), ValueString.get("")});
-        assertEquals(0, v.getType().getPrecision());
-        assertEquals("['']", v.convertPrecision(1, true).toString());
+        assertEquals(2, v.getType().getPrecision());
+        assertEquals("['']", v.convertPrecision(1).toString());
 
         v = ValueBytes.get(spaces.getBytes());
         assertEquals(100, v.getType().getPrecision());
-        assertEquals(10, v.convertPrecision(10, false).getType().getPrecision());
-        assertEquals(10, v.convertPrecision(10, false).getBytes().length);
-        assertEquals(32, v.convertPrecision(10, false).getBytes()[9]);
-        assertEquals(10, v.convertPrecision(10, true).getType().getPrecision());
+        assertEquals(10, v.convertPrecision(10).getType().getPrecision());
+        assertEquals(10, v.convertPrecision(10).getBytes().length);
+        assertEquals(32, v.convertPrecision(10).getBytes()[9]);
+        assertEquals(10, v.convertPrecision(10).getType().getPrecision());
 
         final Value vd = ValueDecimal.get(new BigDecimal("1234567890.123456789"));
         assertEquals(19, vd.getType().getPrecision());
-        assertEquals("1234567890.1234567", vd.convertPrecision(10, true).getString());
+        assertEquals("1234567890", vd.convertPrecision(10).getString());
         new AssertThrows(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1) {
             @Override
             public void test() {
-                vd.convertPrecision(10, false);
+                vd.convertPrecision(0);
             }
         };
 
         v = ValueLobDb.createSmallLob(Value.CLOB, spaces.getBytes(), 100);
         assertEquals(100, v.getType().getPrecision());
-        assertEquals(10, v.convertPrecision(10, false).getType().getPrecision());
-        assertEquals(10, v.convertPrecision(10, false).getString().length());
-        assertEquals("          ", v.convertPrecision(10, false).getString());
-        assertEquals(10, v.convertPrecision(10, true).getType().getPrecision());
+        assertEquals(10, v.convertPrecision(10).getType().getPrecision());
+        assertEquals(10, v.convertPrecision(10).getString().length());
+        assertEquals("          ", v.convertPrecision(10).getString());
+        assertEquals(10, v.convertPrecision(10).getType().getPrecision());
 
         v = ValueLobDb.createSmallLob(Value.BLOB, spaces.getBytes(), 100);
         assertEquals(100, v.getType().getPrecision());
-        assertEquals(10, v.convertPrecision(10, false).getType().getPrecision());
-        assertEquals(10, v.convertPrecision(10, false).getBytes().length);
-        assertEquals(32, v.convertPrecision(10, false).getBytes()[9]);
-        assertEquals(10, v.convertPrecision(10, true).getType().getPrecision());
-
-        SimpleResult rs = new SimpleResult();
-        rs.addColumn("X", "X", Value.INT, 0, 0);
-        rs.addRow(ValueInt.get(1));
-        v = ValueResultSet.get(rs);
-        assertEquals(Integer.MAX_VALUE, v.getType().getPrecision());
-        assertEquals(Integer.MAX_VALUE, v.convertPrecision(10, false).getType().getPrecision());
-        assertEquals(1, v.convertPrecision(10, false).getResult().getRowCount());
-        assertEquals(0, v.convertPrecision(10, true).getResult().getRowCount());
-        assertEquals(Integer.MAX_VALUE, v.convertPrecision(10, true).getType().getPrecision());
+        assertEquals(10, v.convertPrecision(10).getType().getPrecision());
+        assertEquals(10, v.convertPrecision(10).getBytes().length);
+        assertEquals(32, v.convertPrecision(10).getBytes()[9]);
+        assertEquals(10, v.convertPrecision(10).getType().getPrecision());
 
         v = ValueString.get(spaces);
         assertEquals(100, v.getType().getPrecision());
-        assertEquals(10, v.convertPrecision(10, false).getType().getPrecision());
-        assertEquals("          ", v.convertPrecision(10, false).getString());
-        assertEquals("          ", v.convertPrecision(10, true).getString());
+        assertEquals(10, v.convertPrecision(10).getType().getPrecision());
+        assertEquals("          ", v.convertPrecision(10).getString());
+        assertEquals("          ", v.convertPrecision(10).getString());
 
     }
 
@@ -372,20 +361,15 @@ public class TestValue extends TestDb {
     private void testArray() {
         ValueArray src = ValueArray.get(String.class,
                 new Value[] {ValueString.get("1"), ValueString.get("22"), ValueString.get("333")});
-        assertEquals(6, src.getType().getPrecision());
-        assertSame(src, src.convertPrecision(5, false));
-        assertSame(src, src.convertPrecision(6, true));
+        assertEquals(3, src.getType().getPrecision());
+        assertSame(src, src.convertPrecision(3));
         ValueArray exp = ValueArray.get(String.class,
-                new Value[] {ValueString.get("1"), ValueString.get("22"), ValueString.get("33")});
-        Value got = src.convertPrecision(5, true);
-        assertEquals(exp, got);
-        assertEquals(String.class, ((ValueArray) got).getComponentType());
-        exp = ValueArray.get(String.class, new Value[] {ValueString.get("1"), ValueString.get("22")});
-        got = src.convertPrecision(3, true);
+                new Value[] {ValueString.get("1"), ValueString.get("22")});
+        Value got = src.convertPrecision(2);
         assertEquals(exp, got);
         assertEquals(String.class, ((ValueArray) got).getComponentType());
         exp = ValueArray.get(String.class, new Value[0]);
-        got = src.convertPrecision(0, true);
+        got = src.convertPrecision(0);
         assertEquals(exp, got);
         assertEquals(String.class, ((ValueArray) got).getComponentType());
     }

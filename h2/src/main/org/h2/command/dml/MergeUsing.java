@@ -20,10 +20,12 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.condition.ConditionAndOr;
 import org.h2.message.DbException;
+import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.RowImpl;
 import org.h2.table.Column;
+import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.Utils;
@@ -35,7 +37,7 @@ import org.h2.value.Value;
  *
  * It does not replace the MERGE INTO... KEYS... form.
  */
-public class MergeUsing extends Prepared {
+public class MergeUsing extends Prepared implements DataChangeStatement {
 
     /**
      * Abstract WHEN command of the MERGE statement.
@@ -72,6 +74,9 @@ public class MergeUsing extends Prepared {
             // Nothing to do
         }
 
+        abstract void setDeltaChangeCollector(LocalResult deltaChangeCollector, //
+                ResultOption deltaChangeCollectionMode);
+
         /**
          * Merges rows.
          *
@@ -105,9 +110,9 @@ public class MergeUsing extends Prepared {
 
     public static final class WhenMatched extends When {
 
-        private Update updateCommand;
+        Update updateCommand;
 
-        private Delete deleteCommand;
+        Delete deleteCommand;
 
         private final HashSet<Long> updatedKeys = new HashSet<>();
 
@@ -134,6 +139,16 @@ public class MergeUsing extends Prepared {
         @Override
         void reset() {
             updatedKeys.clear();
+        }
+
+        @Override
+        void setDeltaChangeCollector(LocalResult deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+            if (updateCommand != null) {
+                updateCommand.setDeltaChangeCollector(deltaChangeCollector, deltaChangeCollectionMode);
+            }
+            if (deleteCommand != null) {
+                deleteCommand.setDeltaChangeCollector(deltaChangeCollector, deltaChangeCollectionMode);
+            }
         }
 
         @Override
@@ -228,6 +243,11 @@ public class MergeUsing extends Prepared {
         }
 
         @Override
+        void setDeltaChangeCollector(LocalResult deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+            insertCommand.setDeltaChangeCollector(deltaChangeCollector, deltaChangeCollectionMode);
+        }
+
+        @Override
         int merge() {
             return andCondition == null || andCondition.getBooleanValue(mergeUsing.getSession()) ?
                     insertCommand.update() : 0;
@@ -291,6 +311,13 @@ public class MergeUsing extends Prepared {
         super(session);
         this.targetTable = targetTableFilter.getTable();
         this.targetTableFilter = targetTableFilter;
+    }
+
+    @Override
+    public void setDeltaChangeCollector(LocalResult deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+        for (When w : when) {
+            w.setDeltaChangeCollector(deltaChangeCollector, deltaChangeCollectionMode);
+        }
     }
 
     @Override
@@ -483,6 +510,11 @@ public class MergeUsing extends Prepared {
         this.query = query;
     }
 
+    @Override
+    public Table getTable() {
+        return targetTableFilter.getTable();
+    }
+
     public void setTargetTableFilter(TableFilter targetTableFilter) {
         this.targetTableFilter = targetTableFilter;
     }
@@ -514,6 +546,23 @@ public class MergeUsing extends Prepared {
     @Override
     public int getType() {
         return CommandInterface.MERGE;
+    }
+
+    @Override
+    public String getStatementName() {
+        return "MERGE";
+    }
+
+    public boolean hasCombinedMatchedClause() {
+        for (When w : when) {
+            if (w instanceof WhenMatched) {
+                WhenMatched whenMatched = (WhenMatched) w;
+                if (whenMatched.updateCommand != null && whenMatched.deleteCommand != null) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 }

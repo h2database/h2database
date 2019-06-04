@@ -14,9 +14,11 @@ import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
 import org.h2.expression.Expression;
+import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.RowList;
+import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
@@ -27,7 +29,7 @@ import org.h2.value.ValueNull;
  * This class represents the statement
  * DELETE
  */
-public class Delete extends Prepared {
+public class Delete extends Prepared implements DataChangeStatement {
 
     private Expression condition;
     private TableFilter targetTableFilter;
@@ -43,8 +45,17 @@ public class Delete extends Prepared {
 
     private HashSet<Long> keysFilter;
 
+    private LocalResult deltaChangeCollector;
+
+    private ResultOption deltaChangeCollectionMode;
+
     public Delete(Session session) {
         super(session);
+    }
+
+    @Override
+    public Table getTable() {
+        return targetTableFilter.getTable();
     }
 
     public void setTableFilter(TableFilter tableFilter) {
@@ -66,6 +77,12 @@ public class Delete extends Prepared {
      */
     public void setKeysFilter(HashSet<Long> keysFilter) {
         this.keysFilter = keysFilter;
+    }
+
+    @Override
+    public void setDeltaChangeCollector(LocalResult deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+        this.deltaChangeCollector = deltaChangeCollector;
+        this.deltaChangeCollectionMode = deltaChangeCollectionMode;
     }
 
     @Override
@@ -103,6 +120,9 @@ public class Delete extends Prepared {
                                     continue;
                                 }
                             }
+                        }
+                        if (deltaChangeCollectionMode == ResultOption.OLD) {
+                            deltaChangeCollector.addRow(row.getValueList());
                         }
                         if (!table.fireRow() || !table.fireBeforeRow(session, row, null)) {
                             rows.add(row);
@@ -185,6 +205,11 @@ public class Delete extends Prepared {
     @Override
     public int getType() {
         return CommandInterface.DELETE;
+    }
+
+    @Override
+    public String getStatementName() {
+        return "DELETE";
     }
 
     public void setLimit(Expression limit) {

@@ -20,10 +20,12 @@ import org.h2.expression.Expression;
 import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
+import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.RowList;
 import org.h2.table.Column;
+import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
@@ -34,7 +36,7 @@ import org.h2.value.ValueNull;
  * This class represents the statement
  * UPDATE
  */
-public class Update extends Prepared {
+public class Update extends Prepared implements DataChangeStatement {
 
     private Expression condition;
     private TableFilter targetTableFilter;// target of update
@@ -52,8 +54,17 @@ public class Update extends Prepared {
 
     private HashSet<Long> updatedKeysCollector;
 
+    private LocalResult deltaChangeCollector;
+
+    private ResultOption deltaChangeCollectionMode;
+
     public Update(Session session) {
         super(session);
+    }
+
+    @Override
+    public Table getTable() {
+        return targetTableFilter.getTable();
     }
 
     public void setTableFilter(TableFilter tableFilter) {
@@ -91,6 +102,12 @@ public class Update extends Prepared {
      */
     public void setUpdatedKeysCollector(HashSet<Long> updatedKeysCollector) {
         this.updatedKeysCollector = updatedKeysCollector;
+    }
+
+    @Override
+    public void setDeltaChangeCollector(LocalResult deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+        this.deltaChangeCollector = deltaChangeCollector;
+        this.deltaChangeCollectionMode = deltaChangeCollectionMode;
     }
 
     @Override
@@ -177,11 +194,19 @@ public class Update extends Prepared {
                             count--;
                         }
                     }
+                    if (deltaChangeCollectionMode == ResultOption.OLD) {
+                        deltaChangeCollector.addRow(oldRow.getValueList());
+                    } else if (deltaChangeCollectionMode == ResultOption.NEW) {
+                        deltaChangeCollector.addRow(newRow.getValueList().clone());
+                    }
                     if (!table.fireRow() || !table.fireBeforeRow(session, oldRow, newRow)) {
                         rows.add(oldRow);
                         rows.add(newRow);
                         if (updatedKeysCollector != null) {
                             updatedKeysCollector.add(key);
+                        }
+                        if (deltaChangeCollectionMode == ResultOption.FINAL) {
+                            deltaChangeCollector.addRow(newRow.getValueList());
                         }
                     }
                     count++;
@@ -273,6 +298,11 @@ public class Update extends Prepared {
     @Override
     public int getType() {
         return CommandInterface.UPDATE;
+    }
+
+    @Override
+    public String getStatementName() {
+        return "UPDATE";
     }
 
     public void setLimit(Expression limit) {

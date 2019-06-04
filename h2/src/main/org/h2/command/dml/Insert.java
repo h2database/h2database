@@ -27,10 +27,12 @@ import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mvstore.db.MVPrimaryIndex;
 import org.h2.pagestore.db.PageDataIndex;
+import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
 import org.h2.result.Row;
 import org.h2.table.Column;
+import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
@@ -40,7 +42,7 @@ import org.h2.value.ValueNull;
  * This class represents the statement
  * INSERT
  */
-public class Insert extends CommandWithValues implements ResultTarget {
+public class Insert extends CommandWithValues implements ResultTarget, DataChangeStatement {
 
     private Table table;
     private Column[] columns;
@@ -63,6 +65,10 @@ public class Insert extends CommandWithValues implements ResultTarget {
      */
     private boolean ignore;
 
+    private LocalResult deltaChangeCollector;
+
+    private ResultOption deltaChangeCollectionMode;
+
     public Insert(Session session) {
         super(session);
     }
@@ -73,6 +79,11 @@ public class Insert extends CommandWithValues implements ResultTarget {
         if (query != null) {
             query.setCommand(command);
         }
+    }
+
+    @Override
+    public Table getTable() {
+        return table;
     }
 
     public void setTable(Table table) {
@@ -109,6 +120,12 @@ public class Insert extends CommandWithValues implements ResultTarget {
         if (duplicateKeyAssignmentMap.put(column, expression) != null) {
             throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, column.getName());
         }
+    }
+
+    @Override
+    public void setDeltaChangeCollector(LocalResult deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+        this.deltaChangeCollector = deltaChangeCollector;
+        this.deltaChangeCollectionMode = deltaChangeCollectionMode;
     }
 
     @Override
@@ -170,6 +187,9 @@ public class Insert extends CommandWithValues implements ResultTarget {
                 }
                 rowNumber++;
                 table.validateConvertUpdateSequence(session, newRow);
+                if (deltaChangeCollectionMode == ResultOption.NEW) {
+                    deltaChangeCollector.addRow(newRow.getValueList().clone());
+                }
                 boolean done = table.fireBeforeRow(session, null, newRow);
                 if (!done) {
                     table.lock(session, true, false);
@@ -185,6 +205,9 @@ public class Insert extends CommandWithValues implements ResultTarget {
                             rowNumber--;
                         }
                         continue;
+                    }
+                    if (deltaChangeCollectionMode == ResultOption.FINAL) {
+                        deltaChangeCollector.addRow(newRow.getValueList());
                     }
                     generatedKeys.confirmRow(newRow);
                     session.log(table, UndoLogRecord.INSERT, newRow);
@@ -235,9 +258,15 @@ public class Insert extends CommandWithValues implements ResultTarget {
             newRow.setValue(columns[j].getColumnId(), values[j]);
         }
         table.validateConvertUpdateSequence(session, newRow);
+        if (deltaChangeCollectionMode == ResultOption.NEW) {
+            deltaChangeCollector.addRow(newRow.getValueList().clone());
+        }
         boolean done = table.fireBeforeRow(session, null, newRow);
         if (!done) {
             table.addRow(session, newRow);
+            if (deltaChangeCollectionMode == ResultOption.FINAL) {
+                deltaChangeCollector.addRow(newRow.getValueList());
+            }
             session.log(table, UndoLogRecord.INSERT, newRow);
             table.fireAfterRow(session, null, newRow, false);
             return newRow;
@@ -342,6 +371,11 @@ public class Insert extends CommandWithValues implements ResultTarget {
     @Override
     public int getType() {
         return CommandInterface.INSERT;
+    }
+
+    @Override
+    public String getStatementName() {
+        return "INSERT";
     }
 
     public void setInsertFromSelect(boolean value) {

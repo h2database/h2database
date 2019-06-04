@@ -136,6 +136,7 @@ import org.h2.command.dml.AlterTableSet;
 import org.h2.command.dml.BackupCommand;
 import org.h2.command.dml.Call;
 import org.h2.command.dml.CommandWithValues;
+import org.h2.command.dml.DataChangeStatement;
 import org.h2.command.dml.Delete;
 import org.h2.command.dml.ExecuteProcedure;
 import org.h2.command.dml.Explain;
@@ -223,6 +224,7 @@ import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.table.Column;
+import org.h2.table.DataChangeDeltaTable;
 import org.h2.table.FunctionTable;
 import org.h2.table.IndexColumn;
 import org.h2.table.IndexHints;
@@ -231,6 +233,7 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableFilter.TableFilterVisitor;
 import org.h2.table.TableView;
+import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.util.IntervalUtils;
 import org.h2.util.ParserUtil;
 import org.h2.util.StringUtils;
@@ -1883,7 +1886,16 @@ public class Parser {
             Function function = readFunctionParameters(Function.getFunction(database, Function.TABLE));
             table = new FunctionTable(database.getMainSchema(), session, function, function);
         } else {
-            String tableName = readIdentifierWithSchema(null);
+            boolean quoted = currentTokenQuoted;
+            String tableName = readColumnIdentifier();
+            int backupIndex = parseIndex;
+            schemaName = null;
+            if (readIf(DOT)) {
+                tableName = readIdentifierWithSchema2(tableName);
+            } else if (!quoted && readIf(TABLE)) {
+                table = readDataChangeDeltaTable(tableName, backupIndex);
+                break label;
+            }
             Schema schema;
             if (schemaName == null) {
                 schema = null;
@@ -1964,6 +1976,60 @@ public class Parser {
             filter.setDerivedColumns(derivedColumnNames);
         }
         return filter;
+    }
+
+    private Table readDataChangeDeltaTable(String resultOptionName, int backupIndex) {
+        read(OPEN_PAREN);
+        if (!identifiersToUpper) {
+            resultOptionName = StringUtils.toUpperEnglish(resultOptionName);
+        }
+        DataChangeStatement statement;
+        ResultOption resultOption = ResultOption.FINAL;
+        switch (resultOptionName) {
+        case "OLD":
+            resultOption = ResultOption.OLD;
+            if (readIf("UPDATE")) {
+                statement = parseUpdate();
+            } else if (readIf("DELETE")) {
+                statement = parseDelete();
+            } else if (readIf("MERGE")) {
+                statement = (DataChangeStatement) parseMerge();
+            } else {
+                throw getSyntaxError();
+            }
+            break;
+        case "NEW":
+            resultOption = ResultOption.NEW;
+            //$FALL-THROUGH$
+        case "FINAL":
+            if (readIf("INSERT")) {
+                statement = parseInsert();
+            } else if (readIf("UPDATE")) {
+                statement = parseUpdate();
+            } else if (readIf("MERGE")) {
+                statement = (DataChangeStatement) parseMerge();
+            } else {
+                throw getSyntaxError();
+            }
+            break;
+        default:
+            parseIndex = backupIndex;
+            addExpected("OLD TABLE");
+            addExpected("NEW TABLE");
+            addExpected("FINAL TABLE");
+            throw getSyntaxError();
+        }
+        read(CLOSE_PAREN);
+        if (resultOption == ResultOption.FINAL && statement.getTable().hasInsteadOfTrigger()) {
+            throw DbException.getUnsupportedException("FINAL TABLE with INSTEAD OF trigger");
+        }
+        if (statement instanceof MergeUsing) {
+            if (((MergeUsing) statement).hasCombinedMatchedClause()) {
+                throw DbException.getUnsupportedException(resultOption
+                        + " TABLE with Oracle-style MERGE WHEN MATCHED THEN (UPDATE + DELETE)");
+            }
+        }
+        return new DataChangeDeltaTable(getSchemaWithDefault(), session, statement, resultOption);
     }
 
     private Table readTableFunction(String tableName, Schema schema, Schema mainSchema) {
@@ -4723,14 +4789,19 @@ public class Parser {
         String s = readColumnIdentifier();
         schemaName = defaultSchemaName;
         if (readIf(DOT)) {
-            schemaName = s;
-            s = readColumnIdentifier();
-            if (currentTokenType == DOT) {
-                if (equalsToken(schemaName, database.getShortName())) {
-                    read();
-                    schemaName = s;
-                    s = readColumnIdentifier();
-                }
+            s = readIdentifierWithSchema2(s);
+        }
+        return s;
+    }
+
+    private String readIdentifierWithSchema2(String s) {
+        schemaName = s;
+        s = readColumnIdentifier();
+        if (currentTokenType == DOT) {
+            if (equalsToken(schemaName, database.getShortName())) {
+                read();
+                schemaName = s;
+                s = readColumnIdentifier();
             }
         }
         return s;

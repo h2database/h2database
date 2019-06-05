@@ -1967,11 +1967,9 @@ X'01' '02'
 "
 
 "Literals","Date","
-DATE 'yyyy-MM-dd'
+DATE '[-]yyyy-MM-dd'
 ","
-A date literal. The limitations are the same as for the Java data type
-""java.sql.Date"", but for compatibility with other databases the suggested minimum
-and maximum years are 0001 and 9999.
+A date literal.
 ","
 DATE '2004-12-31'
 "
@@ -2093,17 +2091,15 @@ TIME '23:59:59'
 "
 
 "Literals","Timestamp","
-TIMESTAMP [ WITHOUT TIME ZONE ] 'yyyy-MM-dd hh:mm:ss[.nnnnnnnnn]'
+TIMESTAMP [ WITHOUT TIME ZONE ] '[-]yyyy-MM-dd hh:mm:ss[.nnnnnnnnn]'
 ","
-A timestamp literal. The limitations are the same as for the Java data type
-""java.sql.Timestamp"", but for compatibility with other databases the suggested
-minimum and maximum years are 0001 and 9999.
+A timestamp literal.
 ","
 TIMESTAMP '2005-12-31 23:59:59'
 "
 
 "Literals","Timestamp with time zone","
-TIMESTAMP WITH TIME ZONE 'yyyy-MM-dd hh:mm:ss[.nnnnnnnnn]
+TIMESTAMP WITH TIME ZONE '[-]yyyy-MM-dd hh:mm:ss[.nnnnnnnnn]
 [Z | { - | + } timeZoneOffsetString | timeZoneNameString ]'
 ","
 A timestamp with time zone literal.
@@ -3213,7 +3209,7 @@ The time data type. The format is hh:mm:ss[.nnnnnnnnn].
 If fractional seconds precision is specified it should be from 0 to 9, 0 is default.
 
 Mapped to ""java.sql.Time"". When converted to a ""java.sql.Date"", the date is set to ""1970-01-01"".
-""java.time.LocalTime"" is also supported on Java 8 and later versions.
+""java.time.LocalTime"" is also supported and recommended on Java 8 and later versions.
 Use ""java.time.LocalTime"" or ""String"" instead of ""java.sql.Time"" when non-zero precision is needed.
 Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up;
 if result of rounding is higher than maximum supported value 23:59:59.999999999 it is saturated to 23:59:59.999999999.
@@ -3225,11 +3221,15 @@ TIME(9)
 "Data Types","DATE Type","
 DATE
 ","
-The date data type. The format is yyyy-MM-dd.
+The date data type. The proleptic Gregorian calendar is used.
 
 Mapped to ""java.sql.Date"", with the time set to ""00:00:00""
 (or to the next possible time if midnight doesn't exist for the given date and timezone due to a daylight saving change).
-""java.time.LocalDate"" is also supported on Java 8 and later versions.
+If you deal with old dates note that ""java.sql.Date"" uses a mixed Julian/Gregorian calendar,
+""java.util.GregorianCalendar"" can be configured to proleptic Gregorian with
+""setGregorianChange(new java.util.Date(Long.MIN_VALUE))"" and used to read or write fields of dates.
+
+""java.time.LocalDate"" is also supported and recommended on Java 8 and later versions.
 ","
 DATE
 "
@@ -3238,13 +3238,18 @@ DATE
 { TIMESTAMP [ ( precisionInt ) ] [ WITHOUT TIME ZONE ]
     | DATETIME [ ( precisionInt ) ] | SMALLDATETIME }
 ","
-The timestamp data type. The format is yyyy-MM-dd hh:mm:ss[.nnnnnnnnn].
+The timestamp data type. The proleptic Gregorian calendar is used.
 Stored internally as a BCD-encoded date, and nanoseconds since midnight.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
 Fractional seconds precision of SMALLDATETIME is always 0 and cannot be specified.
 
 Mapped to ""java.sql.Timestamp"" (""java.util.Date"" may be used too).
-""java.time.LocalDateTime"" is also supported on Java 8 and later versions.
+If you deal with old dates note that ""java.sql.Timestamp"" uses a mixed Julian/Gregorian calendar,
+""java.util.GregorianCalendar"" can be configured to proleptic Gregorian with
+""setGregorianChange(new java.util.Date(Long.MIN_VALUE))"" and used to read or write fields of timestamps.
+
+""java.time.LocalDateTime"" is also supported and recommended on Java 8 and later versions.
+
 Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up.
 ","
 TIMESTAMP
@@ -3254,7 +3259,7 @@ TIMESTAMP(9)
 "Data Types","TIMESTAMP WITH TIME ZONE Type","
 TIMESTAMP [ ( precisionInt ) ] WITH TIME ZONE
 ","
-The timestamp with time zone data type.
+The timestamp with time zone data type. The proleptic Gregorian calendar is used.
 Stored internally as a BCD-encoded date, nanoseconds since midnight, and time zone offset in minutes.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
 

@@ -530,7 +530,7 @@ public class PgServerThread implements Runnable {
     }
 
     private static long toPostgreDays(long dateValue) {
-        return DateTimeUtils.prolepticGregorianAbsoluteDayFromDateValue(dateValue) - 10_957;
+        return DateTimeUtils.absoluteDayFromDateValue(dateValue) - 10_957;
     }
 
     private void writeDataColumn(ResultSet rs, int column, int pgType, boolean text)

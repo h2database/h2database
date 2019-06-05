@@ -121,7 +121,7 @@ public class TestDateTimeUtils extends TestBase {
         assertEquals(dateValue(2001, 2, 28), DateTimeUtils.dateValueFromDenormalizedDate(2000, 14, 29));
         assertEquals(dateValue(1999, 8, 1), DateTimeUtils.dateValueFromDenormalizedDate(2000, -4, -100));
         assertEquals(dateValue(2100, 12, 31), DateTimeUtils.dateValueFromDenormalizedDate(2100, 12, 2000));
-        assertEquals(dateValue(-100, 2, 29), DateTimeUtils.dateValueFromDenormalizedDate(-100, 2, 30));
+        assertEquals(dateValue(-100, 2, 28), DateTimeUtils.dateValueFromDenormalizedDate(-100, 2, 30));
     }
 
     private void testUTC2Value(boolean allTimeZones) {

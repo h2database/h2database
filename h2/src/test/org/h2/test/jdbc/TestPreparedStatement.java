@@ -760,37 +760,20 @@ public class TestPreparedStatement extends TestDb {
         localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
         assertEquals(localDate, localDate2);
         rs.close();
-        /*
-         * Check that date that doesn't exist in proleptic Gregorian calendar can be
-         * read as a next date.
-         */
-        prep.setString(1, "1500-02-29");
+        prep.setString(1, "1500-02-28");
         rs = prep.executeQuery();
         rs.next();
         localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
-        assertEquals(parseLocalDate("1500-03-01"), localDate2);
+        assertEquals(parseLocalDate("1500-02-28"), localDate2);
         rs.close();
-        prep.setString(1, "1400-02-29");
+        prep.setString(1, "-0100-02-28");
         rs = prep.executeQuery();
         rs.next();
         localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
-        assertEquals(parseLocalDate("1400-03-01"), localDate2);
-        rs.close();
-        prep.setString(1, "1300-02-29");
-        rs = prep.executeQuery();
-        rs.next();
-        localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
-        assertEquals(parseLocalDate("1300-03-01"), localDate2);
-        rs.close();
-        prep.setString(1, "-0100-02-29");
-        rs = prep.executeQuery();
-        rs.next();
-        localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
-        assertEquals(parseLocalDate("-0100-03-01"), localDate2);
+        assertEquals(parseLocalDate("-0100-02-28"), localDate2);
         rs.close();
         /*
-         * Check that date that doesn't exist in traditional calendar can be set and
-         * read with LocalDate and can be read with getDate() as a next date.
+         * Test dates during Julian to Gregorian transition.
          */
         localDate = parseLocalDate("1582-10-05");
         prep.setObject(1, localDate);
@@ -799,11 +782,7 @@ public class TestPreparedStatement extends TestDb {
         localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
         assertEquals(localDate, localDate2);
         assertEquals("1582-10-05", rs.getString(1));
-        assertEquals(Date.valueOf("1582-10-15"), rs.getDate(1));
-        /*
-         * Also check that date that doesn't exist in traditional calendar can be read
-         * with getDate() with custom Calendar properly.
-         */
+        assertEquals(Date.valueOf("1582-09-25"), rs.getDate(1));
         GregorianCalendar gc = new GregorianCalendar();
         gc.setGregorianChange(new java.util.Date(Long.MIN_VALUE));
         gc.clear();

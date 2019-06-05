@@ -81,21 +81,7 @@ public class Csv implements SimpleRowSource {
             }
             while (rs.next()) {
                 for (int i = 0; i < columnCount; i++) {
-                    Object o;
-                    switch (sqlTypes[i]) {
-                    case Types.DATE:
-                        o = rs.getDate(i + 1);
-                        break;
-                    case Types.TIME:
-                        o = rs.getTime(i + 1);
-                        break;
-                    case Types.TIMESTAMP:
-                        o = rs.getTimestamp(i + 1);
-                        break;
-                    default:
-                        o = rs.getString(i + 1);
-                    }
-                    row[i] = o == null ? null : o.toString();
+                    row[i] = rs.getString(i + 1);
                 }
                 writeRow(row);
                 rows++;

@@ -107,9 +107,7 @@ public class TestCsv extends TestDb {
         csv.setLineSeparator(";");
         csv.write(writer, rs);
         conn.close();
-        // getTimestamp().getString() needs to be used (not for H2, but for
-        // Oracle)
-        assertEquals("TS,N;0101-01-01 12:00:00.0,;", writer.toString());
+        assertEquals("TS,N;-100-01-01 12:00:00,;", writer.toString());
     }
 
     private void testCaseSensitiveColumnNames() throws Exception {

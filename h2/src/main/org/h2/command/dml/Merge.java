@@ -10,7 +10,6 @@ import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
-import org.h2.command.Prepared;
 import org.h2.engine.GeneratedKeys;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
@@ -20,9 +19,11 @@ import org.h2.expression.Parameter;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mvstore.db.MVPrimaryIndex;
+import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.table.Column;
+import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
@@ -31,14 +32,18 @@ import org.h2.value.Value;
  * This class represents the statement
  * MERGE
  */
-public class Merge extends CommandWithValues {
+public class Merge extends CommandWithValues implements DataChangeStatement {
 
     private Table targetTable;
     private TableFilter targetTableFilter;
     private Column[] columns;
     private Column[] keys;
     private Query query;
-    private Prepared update;
+    private Update update;
+
+    private LocalResult deltaChangeCollector;
+
+    private ResultOption deltaChangeCollectionMode;
 
     public Merge(Session session) {
         super(session);
@@ -50,6 +55,11 @@ public class Merge extends CommandWithValues {
         if (query != null) {
             query.setCommand(command);
         }
+    }
+
+    @Override
+    public Table getTable() {
+        return targetTable;
     }
 
     public void setTargetTable(Table targetTable) {
@@ -66,6 +76,13 @@ public class Merge extends CommandWithValues {
 
     public void setQuery(Query query) {
         this.query = query;
+    }
+
+    @Override
+    public void setDeltaChangeCollector(LocalResult deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+        this.deltaChangeCollector = deltaChangeCollector;
+        this.deltaChangeCollectionMode = deltaChangeCollectionMode;
+        update.setDeltaChangeCollector(deltaChangeCollector, deltaChangeCollectionMode);
     }
 
     @Override
@@ -157,10 +174,16 @@ public class Merge extends CommandWithValues {
         if (count == 0) {
             try {
                 targetTable.validateConvertUpdateSequence(session, row);
+                if (deltaChangeCollectionMode == ResultOption.NEW) {
+                    deltaChangeCollector.addRow(row.getValueList().clone());
+                }
                 boolean done = targetTable.fireBeforeRow(session, null, row);
                 if (!done) {
                     targetTable.lock(session, true, false);
                     targetTable.addRow(session, row);
+                    if (deltaChangeCollectionMode == ResultOption.FINAL) {
+                        deltaChangeCollector.addRow(row.getValueList());
+                    }
                     session.getGeneratedKeys().confirmRow(row);
                     session.log(targetTable, UndoLogRecord.INSERT, row);
                     targetTable.fireAfterRow(session, null, row, false);
@@ -271,7 +294,7 @@ public class Merge extends CommandWithValues {
         targetTable.getSQL(builder, true).append(" SET ");
         Column.writeColumns(builder, columns, ", ", "=?", true).append(" WHERE ");
         Column.writeColumns(builder, keys, " AND ", "=?", true);
-        update = session.prepare(builder.toString());
+        update = (Update) session.prepare(builder.toString());
     }
 
     @Override
@@ -287,6 +310,11 @@ public class Merge extends CommandWithValues {
     @Override
     public int getType() {
         return CommandInterface.MERGE;
+    }
+
+    @Override
+    public String getStatementName() {
+        return "MERGE";
     }
 
     @Override

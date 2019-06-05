@@ -167,7 +167,8 @@ public class TestScript extends TestDb {
                 "replace", "script", "select", "show", "table", "update", "values", "with" }) {
             testScript("dml/" + s + ".sql");
         }
-        for (String s : new String[] { "boolean-test", "conditions", "help", "null-predicate", "type-predicate",
+        for (String s : new String[] { "boolean-test", "conditions", "data-change-delta-table",
+                "help", "null-predicate", "type-predicate",
                 "unique-predicate" }) {
             testScript("other/" + s + ".sql");
         }

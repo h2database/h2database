@@ -60,6 +60,10 @@ public class TriggerObject extends SchemaObjectBase {
         this.before = before;
     }
 
+    public boolean isInsteadOf() {
+        return insteadOf;
+    }
+
     public void setInsteadOf(boolean insteadOf) {
         this.insteadOf = insteadOf;
     }

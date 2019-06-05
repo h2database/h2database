@@ -151,7 +151,7 @@ CALL 15*25
 
 "Commands (DML)","EXPLAIN","
 EXPLAIN { [ PLAN FOR ] | ANALYZE }
-{ query | insert | update | delete | merge }
+{ query | insert | update | delete | mergeInto | mergeUsing }
 ","
 Shows the execution plan for a statement.
 When using EXPLAIN ANALYZE, the statement is actually executed, and the query plan
@@ -160,7 +160,7 @@ will include the actual row scan count for each table.
 EXPLAIN SELECT * FROM TEST WHERE ID=1
 "
 
-"Commands (DML)","MERGE","
+"Commands (DML)","MERGE INTO","
 MERGE INTO tableName [ ( columnName [,...] ) ]
 [ KEY ( columnName [,...] ) ]
 { insertValues | query }
@@ -311,7 +311,7 @@ VALUES (1, 'Hello'), (2, 'World');
 
 "Commands (DML)","WITH","
 WITH [ RECURSIVE ] { name [( columnName [,...] )] AS ( query ) [,...] }
-{ query | insert | update | merge | delete | createTable }
+{ query | insert | update | delete | mergeInto | mergeUsing | createTable }
 ","
 Can be used to create a recursive or non-recursive query (common table expression).
 For recursive queries the first select has to be a UNION.
@@ -2669,6 +2669,24 @@ newline and tab characters are written as such.
 CALL CSVWRITE('test2.csv', 'SELECT * FROM TEST', 'charset=UTF-8 fieldSeparator=|');
 "
 
+"Other Grammar","Data Change Delta Table","
+{ OLD | NEW | FINAL } TABLE
+( { insert | update | delete | mergeInto | mergeUsing } )
+","
+Executes the inner data change command and returns old, new, or final rows.
+
+""OLD"" is not allowed for ""INSERT"" command. It returns old rows.
+
+""NEW"" and ""FINAL"" are not allowed for ""DELETE"" command.
+
+""NEW"" returns new rows after evaluation of default expressions, but before execution of triggers.
+
+""FINAL"" returns new rows after execution of triggers.
+If table or view has ""INSTEAD OF"" triggers ""FINAL"" is not allowed.
+","
+SELECT ID FROM FINAL TABLE (INSERT INTO TEST (A, B) VALUES (1, 2))
+"
+
 "Other Grammar","Data Type","
 intType | booleanType | tinyintType | smallintType | bigintType | identityType
     | decimalType | doubleType | realType | dateType | timeType | timestampType
@@ -2772,6 +2790,8 @@ WHEN MATCHED clause for MERGE USING command.
 If both UPDATE and DELETE are specified, DELETE can delete only rows that were updated,
 WHERE condition in DELETE clause can be used to specify which updated rows should be deleted.
 This condition checks values in updated row.
+Such combination of UPDATE and DELETE clauses in single ""WHEN MATCHED"" clause is not allowed
+when MERGE statement is included into data change delta table.
 ","
 WHEN MATCHED THEN UPDATE SET VALUE = S.VALUE
 WHEN MATCHED THEN DELETE
@@ -2933,7 +2953,8 @@ ID + 20
 { [ schemaName. ] tableName
     | ( query )
     | unnest
-    | table }
+    | table
+    | dataChangeDeltaTable }
 [ [ AS ] newTableAlias [ ( columnName [,...] ) ] ]
 [ USE INDEX ([ indexName [,...] ]) ]
 [ { { LEFT | RIGHT } [ OUTER ] | [ INNER ] | CROSS | NATURAL }

@@ -260,7 +260,7 @@ public class ValueJson extends Value {
         case 4:
             if (Arrays.equals(TRUE_BYTES, bytes)) {
                 return TRUE;
-            } else if (Arrays.equals(TRUE_BYTES, bytes)) {
+            } else if (Arrays.equals(NULL_BYTES, bytes)) {
                 return NULL;
             }
             break;

@@ -253,6 +253,7 @@ import org.h2.value.ValueDate;
 import org.h2.value.ValueDecimal;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueInterval;
+import org.h2.value.ValueJson;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueRow;
@@ -4485,6 +4486,22 @@ public class Parser {
                 return ValueExpression.get(ValueString.get(text));
             }
             break;
+        case 'J':
+            if (currentTokenType == VALUE ) {
+                if (currentValue.getValueType() == Value.STRING && equalsToken("JSON", name)) {
+                    return ValueExpression.get(ValueJson.fromJson(readCharacterStringLiteral().getString()));
+                }
+            } else if (currentTokenType == IDENTIFIER && equalsToken("JSON", name) && equalsToken("X", currentToken)) {
+                int index = lastParseIndex;
+                read();
+                if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING) {
+                    return ValueExpression.get(ValueJson.fromJson(readBinaryLiteral()));
+                } else {
+                    parseIndex = index;
+                    read();
+                }
+            }
+            break;
         case 'N':
             if (equalsToken("NEXT", name) && readIf("VALUE")) {
                 read(FOR);
@@ -4560,16 +4577,20 @@ public class Parser {
             break;
         case 'X':
             if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING && equalsToken("X", name)) {
-                ByteArrayOutputStream baos = null;
-                do {
-                    baos = StringUtils.convertHexWithSpacesToBytes(baos, currentValue.getString());
-                    read();
-                } while (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING);
-                return ValueExpression.get(ValueBytes.getNoCopy(baos.toByteArray()));
+                return ValueExpression.get(ValueBytes.getNoCopy(readBinaryLiteral()));
             }
             break;
         }
         return new ExpressionColumn(database, null, null, name, false);
+    }
+
+    private byte[] readBinaryLiteral() {
+        ByteArrayOutputStream baos = null;
+        do {
+            baos = StringUtils.convertHexWithSpacesToBytes(baos, currentValue.getString());
+            read();
+        } while (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING);
+        return baos.toByteArray();
     }
 
     private Value readCharacterStringLiteral() {

@@ -2025,16 +2025,16 @@ The maximum integer number is 2147483647, the minimum is -2147483648.
 "
 
 "Literals","JSON","
-'jsonText' FORMAT JSON
+JSON { bytes | string }
 ","
-A string with a RFC 8259-compliant JSON text and data format.
-JSON text is enclosed by single quotes.
-Two single quotes can be used to create a single quote inside a JSON text.
+A binary or character string with a RFC 8259-compliant JSON text and data format.
 JSON text is parsed into internal representation.
 Order of object members is preserved as is.
 Duplicate object member names are allowed.
 ","
-'{""id"":10,""name"":""What''s this?""}' FORMAT JSON
+JSON '{""id"":10,""name"":""What''s this?""}'
+JSON '[1, ' '2]';
+JSON X'7472' '7565'
 "
 
 "Literals","Long","

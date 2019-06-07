@@ -199,7 +199,7 @@ public class ValueJson extends Value {
      * @return JSON value
      */
     public static ValueJson get(int number) {
-        return getInternal(Integer.toString(number));
+        return number != 0 ? getNumber(Integer.toString(number)) : ZERO;
     }
 
     /**
@@ -210,7 +210,7 @@ public class ValueJson extends Value {
      * @return JSON value
      */
     public static ValueJson get(long number) {
-        return getInternal(Long.toString(number));
+        return number != 0L ? getNumber(Long.toString(number)) : ZERO;
     }
 
     /**
@@ -221,13 +221,16 @@ public class ValueJson extends Value {
      * @return JSON value
      */
     public static ValueJson get(BigDecimal number) {
+        if (number.signum() == 0 && number.scale() == 0) {
+            return ZERO;
+        }
         String s = number.toString();
         int index = s.indexOf('E');
         if (index >= 0 && s.charAt(++index) == '+') {
             int length = s.length();
             s = new StringBuilder(length - 1).append(s, 0, index).append(s, index + 1, length).toString();
         }
-        return getInternal(s);
+        return getNumber(s);
     }
 
     /**
@@ -272,33 +275,7 @@ public class ValueJson extends Value {
         return new ValueJson(bytes);
     }
 
-    /**
-     * Returns JSON value with the specified content.
-     *
-     * @param s
-     *            normalized JSON representation (ASCII only)
-     * @return JSON value
-     */
-    private static ValueJson getInternal(String s) {
-        int l = s.length();
-        switch (l) {
-        case 1:
-            if ("0".equals(s)) {
-                return ZERO;
-            }
-            break;
-        case 4:
-            if ("true".equals(s)) {
-                return TRUE;
-            } else if ("null".equals(s)) {
-                return NULL;
-            }
-            break;
-        case 5:
-            if ("false".equals(s)) {
-                return FALSE;
-            }
-        }
+    private static ValueJson getNumber(String s) {
         return new ValueJson(s.getBytes(StandardCharsets.ISO_8859_1));
     }
 

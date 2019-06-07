@@ -172,8 +172,7 @@ public class TriggerObject extends SchemaObjectBase {
         try {
             triggerCallback.fire(c2, null, null);
         } catch (Throwable e) {
-            throw DbException.get(ErrorCode.ERROR_EXECUTING_TRIGGER_3, e, getName(),
-                    triggerClassName != null ? triggerClassName : "..source..", e.toString());
+            throw getErrorExecutingTrigger(e);
         } finally {
             if (session.getLastTriggerIdentity() != null) {
                 session.setLastScopeIdentity(session.getLastTriggerIdentity());
@@ -258,7 +257,11 @@ public class TriggerObject extends SchemaObjectBase {
         Value identity = session.getLastScopeIdentity();
         try {
             session.setAutoCommit(false);
-            triggerCallback.fire(c2, oldList, newList);
+            try {
+                triggerCallback.fire(c2, oldList, newList);
+            } catch (Throwable e) {
+                throw getErrorExecutingTrigger(e);
+            }
             if (newListBackup != null) {
                 for (int i = 0; i < newList.length; i++) {
                     Object o = newList[i];
@@ -286,6 +289,17 @@ public class TriggerObject extends SchemaObjectBase {
             session.setAutoCommit(old);
         }
         return insteadOf;
+    }
+
+    private DbException getErrorExecutingTrigger(Throwable e) {
+        if (e instanceof DbException) {
+            return (DbException) e;
+        }
+        if (e instanceof SQLException) {
+            return DbException.convert(e);
+        }
+        return DbException.get(ErrorCode.ERROR_EXECUTING_TRIGGER_3, e, getName(),
+                triggerClassName != null ? triggerClassName : "..source..", e.toString());
     }
 
     /**

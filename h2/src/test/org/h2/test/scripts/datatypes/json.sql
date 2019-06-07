@@ -28,6 +28,18 @@ SELECT 0::JSON;
 SELECT '0' FORMAT JSON;
 >> 0
 
+SELECT JSON '1', JSON X'31', JSON '1' IS OF (JSON), JSON X'31' IS OF (JSON);
+> JSON '1' JSON '1' TRUE TRUE
+> -------- -------- ---- ----
+> 1        1        TRUE TRUE
+> rows: 1
+
+SELECT JSON 'tr' 'ue', JSON X'7472' '7565', JSON 'tr' 'ue' IS OF (JSON), JSON X'7472' '7565' IS OF (JSON);
+> JSON 'true' JSON 'true' TRUE TRUE
+> ----------- ----------- ---- ----
+> true        true        TRUE TRUE
+> rows: 1
+
 SELECT 1::JSON;
 >> 1
 
@@ -223,9 +235,9 @@ DROP TABLE TEST;
 > ok
 
 SELECT NULL FORMAT JSON, (NULL FORMAT JSON) IS NULL;
-> 'null' FORMAT JSON FALSE
-> ------------------ -----
-> null               FALSE
+> JSON 'null' FALSE
+> ----------- -----
+> null        FALSE
 > rows: 1
 
 CREATE MEMORY TABLE TEST(J JSON) AS VALUES ('["\u00A7''",{}]' FORMAT JSON);
@@ -233,11 +245,11 @@ CREATE MEMORY TABLE TEST(J JSON) AS VALUES ('["\u00A7''",{}]' FORMAT JSON);
 
 SCRIPT NOPASSWORDS NOSETTINGS TABLE TEST;
 > SCRIPT
-> -----------------------------------------------------------------------
+> ----------------------------------------------------------------
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > CREATE MEMORY TABLE "PUBLIC"."TEST"( "J" JSON );
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
-> INSERT INTO "PUBLIC"."TEST" VALUES ('["\u00a7\u0027",{}]' FORMAT JSON);
+> INSERT INTO "PUBLIC"."TEST" VALUES (JSON '["\u00a7\u0027",{}]');
 > rows: 4
 
 DROP TABLE TEST;

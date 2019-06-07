@@ -30,6 +30,18 @@ insert into items values(DEFAULT);
 drop table items, count;
 > ok
 
+CREATE TABLE TEST(A VARCHAR, B VARCHAR, C VARCHAR);
+> ok
+
+CREATE TRIGGER T1 BEFORE INSERT, UPDATE ON TEST FOR EACH ROW CALL "org.h2.test.scripts.Trigger1";
+> ok
+
+INSERT INTO TEST VALUES ('a', 'b', 'c');
+> exception ERROR_EXECUTING_TRIGGER_3
+
+DROP TABLE TEST;
+> ok
+
 -- ---------------------------------------------------------------------------
 -- PostgreSQL syntax tests
 -- ---------------------------------------------------------------------------
@@ -51,3 +63,6 @@ INSERT INTO COUNT VALUES(NULL);
 
 UPDATE COUNT SET X=2 WHERE X=1;
 > exception ERROR_CREATING_TRIGGER_OBJECT_3
+
+SET MODE Regular;
+> ok

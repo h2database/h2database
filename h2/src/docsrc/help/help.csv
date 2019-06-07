@@ -1956,7 +1956,7 @@ TRUE
 "
 
 "Literals","Bytes","
-X'hex' ['hex' [...]]
+X'hex' [ 'hex' [...] ]
 ","
 A binary value. The hex value is not case sensitive and may contain space characters.
 ","
@@ -2073,12 +2073,13 @@ SELECT -1.4e-10
 "
 
 "Literals","String","
-'anythingExceptSingleQuote'
+'anythingExceptSingleQuote' [ 'anythingExceptSingleQuote' [...] ]
 ","
 A string starts and ends with a single quote. Two single quotes can be used to
 create a single quote inside a string.
 ","
 'John''s car'
+'A' 'B' 'C'
 "
 
 "Literals","Time","

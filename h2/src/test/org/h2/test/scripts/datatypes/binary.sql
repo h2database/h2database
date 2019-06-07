@@ -58,6 +58,9 @@ SELECT CAST(NULL AS VARBINARY) || X'11';
 SELECT X'1';
 > exception HEX_STRING_ODD_1
 
+SELECT X'1' '1';
+> exception HEX_STRING_ODD_1
+
 SELECT X' 1 2  3 4 ';
 >> 1234
 

@@ -4508,10 +4508,8 @@ public class Parser {
                 return new SequenceValue(readSequence());
             } else if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING
                     && equalsToken("N", name)) {
-                // SQL-92 "National Language" strings
-                String text = currentValue.getString();
-                read();
-                return ValueExpression.get(ValueString.get(text));
+                // National character string literal
+                return ValueExpression.get(readCharacterStringLiteral());
             }
             break;
         case 'S':
@@ -5969,7 +5967,7 @@ public class Parser {
             if (extTypeInfo == null) {
                 String[] enumerators = null;
                 if (readIf(OPEN_PAREN)) {
-                    java.util.List<String> enumeratorList = new ArrayList<>();
+                    ArrayList<String> enumeratorList = new ArrayList<>();
                     String enumerator0 = readString();
                     enumeratorList.add(enumerator0);
                     while (readIfMore(true)) {

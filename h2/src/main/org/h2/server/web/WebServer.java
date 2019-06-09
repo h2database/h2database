@@ -54,6 +54,7 @@ public class WebServer implements Service {
         { "en", "English" },
         { "es", "Espa\u00f1ol" },
         { "fr", "Fran\u00e7ais" },
+        { "hi", "Hindi हिंदी" },
         { "hu", "Magyar"},
         { "ko", "\ud55c\uad6d\uc5b4"},
         { "in", "Indonesia"},

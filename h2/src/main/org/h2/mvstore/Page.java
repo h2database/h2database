@@ -192,7 +192,7 @@ public abstract class Page implements Cloneable
     }
 
     private void initMemoryAccount(int memoryCount) {
-        if(map.store.getFileStore() == null) {
+        if(!map.isPersistent()) {
             memory = IN_MEMORY;
         } else if (memoryCount == 0) {
             recalculateMemory();

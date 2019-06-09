@@ -31,7 +31,6 @@ import org.h2.mvstore.type.StringDataType;
 public class MVMap<K, V> extends AbstractMap<K, V>
                             implements ConcurrentMap<K, V>
 {
-
     /**
      * The store.
      */
@@ -67,6 +66,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * just open for the first time.
      */
     static final long INITIAL_VERSION = -1;
+
 
     protected MVMap(Map<String, Object> config) {
         this((MVStore) config.get("store"),
@@ -744,6 +744,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return store;
     }
 
+    protected final boolean isPersistent() {
+        return store.getFileStore() != null && !isVolatile;
+    }
+
     /**
      * Get the map id. Please note the map id may be different after compacting
      * a store.
@@ -887,6 +891,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      *      or if another thread is concurrently writing
      */
     protected final void beforeWrite() {
+        assert !getRoot().isLockedByCurrentThread() : getRoot();
         if (closed) {
             int id = getId();
             String mapName = store.getMapName(id);
@@ -1108,7 +1113,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      *
      * @return new page
      */
-    public Page createEmptyLeaf() {
+    protected Page createEmptyLeaf() {
         return Page.createEmptyLeaf(this);
     }
 
@@ -1269,7 +1274,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                         tip.page.removePage();
                         tip = tip.parent;
                     }
-                    if (store.getFileStore() != null) {
+                    if (isPersistent()) {
                         store.registerUnsavedPage(unsavedMemoryHolder.value);
                     }
                     assert lockedForUpdate || updatedRootReference.getAppendCounter() == 0;
@@ -1779,7 +1784,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 tip.page.removePage();
                 tip = tip.parent;
             }
-            if (store.getFileStore() != null) {
+            if (isPersistent()) {
                 store.registerUnsavedPage(unsavedMemoryHolder.value);
             }
             return result;

@@ -411,7 +411,7 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
 
     private Page newPage(boolean leaf) {
         Page page = leaf ? createEmptyLeaf() : createEmptyNode();
-        if(store.getFileStore() != null)
+        if(isPersistent())
         {
             store.registerUnsavedPage(page.getMemory());
         }

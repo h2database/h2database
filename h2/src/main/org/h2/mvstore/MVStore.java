@@ -1018,7 +1018,6 @@ public class MVStore implements AutoCloseable {
                             if (normalShutdown && fileStore != null && !fileStore.isReadOnly()) {
                                 for (MVMap<?, ?> map : maps.values()) {
                                     if (map.isClosed()) {
-                                        map.clear();
                                         deregisterMapRoot(map.getId());
                                     }
                                 }
@@ -2669,56 +2668,41 @@ public class MVStore implements AutoCloseable {
     }
 
     /**
-     * Remove a map. Please note rolling back this operation does not restore
-     * the data; if you need this ability, use Map.clear().
+     * Remove a map from the current version of the store.
      *
      * @param map the map to remove
      */
     public void removeMap(MVMap<?, ?> map) {
-        removeMap(map, true);
-    }
-
-    /**
-     * Remove a map.
-     *
-     * @param map the map to remove
-     * @param delayed whether to delay deleting the metadata
-     */
-    public void removeMap(MVMap<?, ?> map, boolean delayed) {
         storeLock.lock();
         try {
             checkOpen();
             DataUtils.checkArgument(map != meta,
                     "Removing the meta map is not allowed");
             map.close();
-            RootReference rootReference = map.getRoot();
+            RootReference rootReference = map.clearIt();
+
             updateCounter += rootReference.updateCounter;
             updateAttemptCounter += rootReference.updateAttemptCounter;
 
             int id = map.getId();
             String name = getMapName(id);
-            if (!delayed) {
-                map.clear();
+            if (meta.remove(MVMap.getMapKey(id)) != null) {
+                markMetaChanged();
             }
-            removeMap(name, id, delayed);
+            if (meta.remove("name." + name) != null) {
+                markMetaChanged();
+            }
         } finally {
             storeLock.unlock();
         }
     }
 
-    private void removeMap(String name, int id, boolean delayed) {
-        if (meta.remove(MVMap.getMapKey(id)) != null) {
-            markMetaChanged();
-        }
-        if (meta.remove("name." + name) != null) {
-            markMetaChanged();
-        }
-        if (!delayed) {
-            deregisterMapRoot(id);
-            maps.remove(id);
-        }
-    }
-
+    /**
+     * Performs final stage of map removal - delete root location info from the meta table.
+     * Map is supposedly closed and anonymous and has no outstanding usage by now.
+     *
+     * @param mapId to deregister
+     */
     void deregisterMapRoot(int mapId) {
         if (meta.remove(MVMap.getMapRootKey(mapId)) != null) {
             markMetaChanged();
@@ -2737,8 +2721,7 @@ public class MVStore implements AutoCloseable {
             if (map == null) {
                 map = openMap(name);
             }
-            map.clear();
-            removeMap(name, id, false);
+            removeMap(map);
         }
     }
 

@@ -412,13 +412,22 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     @Override
     public void clear() {
-        RootReference rootReference;
+        clearIt();
+    }
+
+    RootReference clearIt() {
         Page emptyRootPage = createEmptyLeaf();
         int attempt = 0;
-        do {
-            rootReference = getRoot();
-        } while (!updateRoot(rootReference, emptyRootPage, ++attempt));
-        rootReference.root.removeAllRecursive();
+        while (true) {
+            RootReference rootReference = flushAndGetRoot();
+            if (rootReference.getTotalCount() == 0) {
+                return rootReference;
+            }
+            rootReference = tryUpdateRoot(rootReference, emptyRootPage, ++attempt);
+            if (rootReference != null) {
+                return rootReference;
+            }
+        }
     }
 
     /**
@@ -1080,7 +1089,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 return rootReference;
             } else if (isClosed()) {
                 if (rootReference.version < store.getOldestVersionToKeep()) {
-                    clear();
                     store.deregisterMapRoot(id);
                     return null;
                 }

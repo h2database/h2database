@@ -515,18 +515,6 @@ public class MVStore implements AutoCloseable {
     }
 
     /**
-     * Find position of the root page for historical version of the map.
-     *
-     * @param mapId to find the old version for
-     * @param version the version
-     * @return position of the root Page
-     */
-    long getRootPos(int mapId, long version) {
-        MVMap<String, String> oldMeta = getMetaMap(version);
-        return getRootPos(oldMeta, mapId);
-    }
-
-    /**
      * Open a map with the default settings. The map is automatically create if
      * it does not yet exist. If a map with this name is already open, this map
      * is returned.
@@ -799,7 +787,7 @@ public class MVStore implements AutoCloseable {
 
         long blocksInStore = fileStore.size() / BLOCK_SIZE;
         // this queue will hold potential candidates for lastChunk to fall back to
-        Queue<Chunk> lastChunkCandidates = new PriorityQueue<>(Math.max(32, (int)(blocksInStore / 4)),
+        Queue<Chunk> lastChunkCandidates = new PriorityQueue<>(Math.max(32, (int)(blocksInStore / 4) + 1),
                 new Comparator<Chunk>() {
             @Override
             public int compare(Chunk one, Chunk two) {
@@ -2979,7 +2967,7 @@ public class MVStore implements AutoCloseable {
         }
     }
 
-    boolean isBackgroundThread() {
+    public boolean isBackgroundThread() {
         return Thread.currentThread() == backgroundWriterThread.get();
     }
 

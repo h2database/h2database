@@ -93,7 +93,7 @@
     <!-- START TEST DEPENDENCIES !-->
     <dependency>
       <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
+      <artifactId>slf4j-nop</artifactId>
       <version>${slf4j.version}</version>
       <scope>test</scope>
     </dependency>
@@ -194,6 +194,8 @@
   <testResource>
     <directory>src/test</directory>
       <includes>
+        <include>org/h2/test/bench/test.properties</include>
+        <include>org/h2/test/script/testScrip.sql</include>
         <include>org/h2/test/scripts/**/*.sql</include>
         <include>org/h2/samples/newsfeed.sql</include>
         <include>org/h2/samples/optimizations.sql</include>

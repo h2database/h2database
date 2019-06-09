@@ -251,7 +251,7 @@ public class CommandContainer extends Command {
         }
         int columnCount = expressionColumns.size();
         if (columnCount == 0) {
-            return ResultWithGeneratedKeys.of(statement.update());
+            return new ResultWithGeneratedKeys.WithKeys(statement.update(), db.getResultFactory().create());
         }
         int[] indexes = new int[columnCount];
         ExpressionColumn[] expressions = expressionColumns.toArray(new ExpressionColumn[0]);

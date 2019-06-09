@@ -459,10 +459,7 @@ public class Column {
             s = StringUtils.toUpperEnglish(s.replace('-', '_'));
             sequenceName = "SYSTEM_SEQUENCE_" + s;
         } while (schema.findSequence(sequenceName) != null);
-        Sequence seq = new Sequence(schema, id, sequenceName, autoIncrementOptions.getStartValue(session),
-                autoIncrementOptions.getIncrement(session), autoIncrementOptions.getCacheSize(session),
-                autoIncrementOptions.getMinValue(null, session), autoIncrementOptions.getMaxValue(null, session),
-                Boolean.TRUE.equals(autoIncrementOptions.getCycle()), true);
+        Sequence seq = new Sequence(session, schema, id, sequenceName, autoIncrementOptions, true);
         seq.setTemporary(temporary);
         session.getDatabase().addSchemaObject(session, seq);
         setAutoIncrementOptions(null);

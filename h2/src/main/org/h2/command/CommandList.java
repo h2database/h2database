@@ -53,14 +53,14 @@ class CommandList extends Command {
             if (remainingCommand.isQuery()) {
                 remainingCommand.query(0);
             } else {
-                remainingCommand.update(false);
+                remainingCommand.update(null);
             }
         }
     }
 
     @Override
     public ResultWithGeneratedKeys update(Object generatedKeysRequest) {
-        ResultWithGeneratedKeys result = command.executeUpdate(false);
+        ResultWithGeneratedKeys result = command.executeUpdate(null);
         executeRemaining();
         return result;
     }

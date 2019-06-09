@@ -181,7 +181,7 @@ public class CommandContainer extends Command {
         session.setLastScopeIdentity(ValueNull.INSTANCE);
         prepared.checkParameters();
         ResultWithGeneratedKeys result;
-        if (!Boolean.FALSE.equals(generatedKeysRequest)) {
+        if (generatedKeysRequest != null && !Boolean.FALSE.equals(generatedKeysRequest)) {
             if (prepared instanceof DataChangeStatement && prepared.getType() != CommandInterface.DELETE) {
                 result = executeUpdateWithGeneratedKeys((DataChangeStatement) prepared,
                         generatedKeysRequest);

@@ -123,7 +123,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
     public int executeUpdate(String sql) throws SQLException {
         try {
             debugCodeCall("executeUpdate", sql);
-            return executeUpdateInternal(sql, false);
+            return executeUpdateInternal(sql, null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -151,7 +151,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
     public long executeLargeUpdate(String sql) throws SQLException {
         try {
             debugCodeCall("executeLargeUpdate", sql);
-            return executeUpdateInternal(sql, false);
+            return executeUpdateInternal(sql, null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -167,7 +167,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
                 setExecutingStatement(command);
                 try {
                     ResultWithGeneratedKeys result = command.executeUpdate(
-                            conn.scopeGeneratedKeys() ? false : generatedKeysRequest);
+                            conn.scopeGeneratedKeys() ? null : generatedKeysRequest);
                     updateCount = result.getUpdateCount();
                     ResultInterface gk = result.getGeneratedKeys();
                     if (gk != null) {
@@ -231,7 +231,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
                     } else {
                         returnsResultSet = false;
                         ResultWithGeneratedKeys result = command.executeUpdate(
-                                conn.scopeGeneratedKeys() ? false : generatedKeysRequest);
+                                conn.scopeGeneratedKeys() ? null : generatedKeysRequest);
                         updateCount = result.getUpdateCount();
                         ResultInterface gk = result.getGeneratedKeys();
                         if (gk != null) {
@@ -774,7 +774,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
                 for (int i = 0; i < size; i++) {
                     String sql = batchCommands.get(i);
                     try {
-                        result[i] = executeUpdateInternal(sql, false);
+                        result[i] = executeUpdateInternal(sql, null);
                     } catch (Exception re) {
                         SQLException e = logAndConvert(re);
                         if (next == null) {

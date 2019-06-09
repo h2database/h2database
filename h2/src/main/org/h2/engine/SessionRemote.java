@@ -212,7 +212,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             CommandInterface c = prepareCommand(
                     "SET CLUSTER " + serverList, Integer.MAX_VALUE);
             // this will set autoCommit to false
-            c.executeUpdate(false);
+            c.executeUpdate(null);
             // so we need to switch it on
             autoCommit = true;
             cluster = true;
@@ -452,7 +452,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
 
     private void switchOffCluster() {
         CommandInterface ci = prepareCommand("SET CLUSTER ''", Integer.MAX_VALUE);
-        ci.executeUpdate(false);
+        ci.executeUpdate(null);
     }
 
     /**
@@ -863,7 +863,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         currentSchemaName = null;
         try (CommandInterface command = prepareCommand(
                 StringUtils.quoteIdentifier(new StringBuilder("SET SCHEMA "), schema).toString(), 0)) {
-            command.executeUpdate(false);
+            command.executeUpdate(null);
             currentSchemaName = schema;
         }
     }

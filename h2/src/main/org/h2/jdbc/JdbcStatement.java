@@ -818,46 +818,34 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
     }
 
     /**
-     * Return a result set with generated keys from the latest executed command or
-     * an empty result set if keys were not generated or were not requested with
-     * {@link Statement#RETURN_GENERATED_KEYS}, column indexes, or column names.
+     * Return a result set with generated keys from the latest executed command
+     * or an empty result set if keys were not generated or were not requested
+     * with {@link Statement#RETURN_GENERATED_KEYS}, column indexes, or column
+     * names.
      * <p>
-     * Generated keys are only returned from inserted rows from {@code INSERT},
-     * {@code MERGE INTO}, and {@code MERGE INTO ... USING} commands. Generated keys
-     * are not returned if exact values of generated columns were specified
-     * explicitly in SQL command. All columns with inserted generated values are
-     * included in the result if command was executed with
-     * {@link Statement#RETURN_GENERATED_KEYS} parameter.
+     * Generated keys are only returned from from {@code INSERT},
+     * {@code UPDATE}, {@code MERGE INTO}, and {@code MERGE INTO ... USING}
+     * commands.
      * </p>
      * <p>
-     * If SQL command inserts multiple rows with generated keys each such inserted
-     * row is returned. Batch methods are also supported. When multiple rows are
-     * returned each row contains only generated values for this row. It's possible
-     * to insert several rows with generated values in different columns with some
-     * specific commands, in this special case the returned result set contains all
-     * used columns, but each row will contain only generated values, columns that
-     * were not generated for this row will contain {@code null} values.
+     * If SQL command inserts or updates multiple rows with generated keys each
+     * such inserted or updated row is returned. Batch methods are also
+     * supported.
      * </p>
      * <p>
-     * H2 treats inserted value as generated in the following cases:
+     * When {@link Statement#RETURN_GENERATED_KEYS} is used H2 chooses columns
+     * to return automatically. The following columns are chosen:
      * </p>
      * <ul>
      * <li>Columns with sequences including {@code IDENTITY} columns and columns
-     * with {@code AUTO_INCREMENT} if value was generated automatically (not
-     * specified in command).</li>
-     * <li>Columns with other default values that are not evaluated into constant
-     * expressions (like {@code DEFAULT RANDOM_UUID()}) also only if default value
-     * was inserted.</li>
-     * <li>Columns that were set by triggers.</li>
-     * <li>Columns with values specified in command with invocation of some sequence
-     * (like {@code INSERT INTO ... VALUES (NEXT VALUE FOR ...)}).</li>
+     * with {@code AUTO_INCREMENT}.</li>
+     * <li>Columns with other default values that are not evaluated into
+     * constant expressions (like {@code DEFAULT RANDOM_UUID()}).</li>
+     * <li>Columns that are included into the PRIMARY KEY constraint.</li>
      * </ul>
      * <p>
      * Exact required columns for the returning result set may be specified on
-     * execution of command with names or indexes of columns to limit output or
-     * reorder columns in result set. Specifying of some column has no effect on
-     * treatment of inserted values as generated or not. If some value is not
-     * determined to be generated it will not be returned even on explicit request.
+     * execution of command with names or indexes of columns.
      * </p>
      *
      * @return the possibly empty result set with generated keys

@@ -5,9 +5,9 @@
  */
 package org.h2.command.dml;
 
-import org.h2.result.LocalResult;
-import org.h2.table.Table;
+import org.h2.result.ResultTarget;
 import org.h2.table.DataChangeDeltaTable.ResultOption;
+import org.h2.table.Table;
 
 /**
  * Data change statement.
@@ -43,7 +43,7 @@ public interface DataChangeStatement {
      * @param deltaChangeCollectionMode
      *            collection mode
      */
-    void setDeltaChangeCollector(LocalResult deltaChangeCollector, ResultOption deltaChangeCollectionMode);
+    void setDeltaChangeCollector(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode);
 
     /**
      * Prepare this statement.

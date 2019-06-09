@@ -102,12 +102,16 @@ public abstract class Command implements CommandInterface {
      * Execute an updating statement (for example insert, delete, or update), if
      * this is possible.
      *
-     * @return the update count
+     * @param generatedKeysRequest
+     *            {@code false} if generated keys are not needed, {@code true} if
+     *            generated keys should be configured automatically, {@code int[]}
+     *            to specify column indices to return generated keys from, or
+     *            {@code String[]} to specify column names to return generated keys
+     *            from
+     * @return the update count and generated keys, if any
      * @throws DbException if the command is not an updating statement
      */
-    public int update() {
-        throw DbException.get(ErrorCode.METHOD_NOT_ALLOWED_FOR_QUERY);
-    }
+    public abstract ResultWithGeneratedKeys update(Object generatedKeysRequest);
 
     /**
      * Execute a query statement, if this is possible.
@@ -116,9 +120,7 @@ public abstract class Command implements CommandInterface {
      * @return the local result set
      * @throws DbException if the command is not a query
      */
-    public ResultInterface query(@SuppressWarnings("unused") int maxrows) {
-        throw DbException.get(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY);
-    }
+    public abstract ResultInterface query(int maxrows);
 
     @Override
     public final ResultInterface getMetaData() {
@@ -152,7 +154,7 @@ public abstract class Command implements CommandInterface {
 
     @Override
     public void stop() {
-        session.setCurrentCommand(null, false);
+        session.setCurrentCommand(null);
         if (!isTransactional()) {
             session.commit(true);
         } else if (session.getAutoCommit()) {
@@ -194,7 +196,7 @@ public abstract class Command implements CommandInterface {
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (sync) {
             session.startStatementWithinTransaction();
-            session.setCurrentCommand(this, false);
+            session.setCurrentCommand(this);
             try {
                 while (true) {
                     database.checkPowerOff();
@@ -258,18 +260,13 @@ public abstract class Command implements CommandInterface {
         synchronized (sync) {
             Session.Savepoint rollback = session.setSavepoint();
             session.startStatementWithinTransaction();
-            session.setCurrentCommand(this, generatedKeysRequest);
+            session.setCurrentCommand(this);
             DbException ex = null;
             try {
                 while (true) {
                     database.checkPowerOff();
                     try {
-                        int updateCount = update();
-                        if (!Boolean.FALSE.equals(generatedKeysRequest)) {
-                            return new ResultWithGeneratedKeys.WithKeys(updateCount,
-                                    session.getGeneratedKeys().getKeys(session));
-                        }
-                        return ResultWithGeneratedKeys.of(updateCount);
+                        return update(generatedKeysRequest);
                     } catch (DbException e) {
                         start = filterConcurrentUpdate(e, start);
                     } catch (OutOfMemoryError e) {

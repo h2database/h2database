@@ -10,7 +10,6 @@ import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
-import org.h2.engine.GeneratedKeys;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
@@ -19,8 +18,8 @@ import org.h2.expression.Parameter;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mvstore.db.MVPrimaryIndex;
-import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
+import org.h2.result.ResultTarget;
 import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.DataChangeDeltaTable.ResultOption;
@@ -45,7 +44,7 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
     private Query query;
     private Update update;
 
-    private LocalResult deltaChangeCollector;
+    private ResultTarget deltaChangeCollector;
 
     private ResultOption deltaChangeCollectionMode;
 
@@ -84,7 +83,7 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
     }
 
     @Override
-    public void setDeltaChangeCollector(LocalResult deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+    public void setDeltaChangeCollector(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
         this.deltaChangeCollector = deltaChangeCollector;
         this.deltaChangeCollectionMode = deltaChangeCollectionMode;
         update.setDeltaChangeCollector(deltaChangeCollector, deltaChangeCollectionMode);
@@ -96,13 +95,10 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
         session.getUser().checkRight(table, Right.INSERT);
         session.getUser().checkRight(table, Right.UPDATE);
         setCurrentRowNumber(0);
-        GeneratedKeys generatedKeys = session.getGeneratedKeys();
         if (!valuesExpressionList.isEmpty()) {
             // process values in list
-            generatedKeys.initialize(table);
             for (int x = 0, size = valuesExpressionList.size(); x < size; x++) {
                 setCurrentRowNumber(x + 1);
-                generatedKeys.nextRow();
                 Expression[] expr = valuesExpressionList.get(x);
                 Row newRow = table.getTemplateRow();
                 for (int i = 0, len = columns.length; i < len; i++) {
@@ -113,9 +109,6 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
                         // e can be null (DEFAULT)
                         try {
                             newRow.setValue(index, e.getValue(session));
-                            if (e.isGeneratedKey()) {
-                                generatedKeys.add(c);
-                            }
                         } catch (DbException ex) {
                             throw setRow(ex, count, getSimpleSQL(expr));
                         }
@@ -130,7 +123,6 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
             table.fire(session, Trigger.UPDATE | Trigger.INSERT, true);
             table.lock(session, true, false);
             while (rows.next()) {
-                generatedKeys.nextRow();
                 Value[] r = rows.currentRow();
                 Row newRow = table.getTemplateRow();
                 setCurrentRowNumber(count);
@@ -191,7 +183,6 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
                     if (deltaChangeCollectionMode == ResultOption.FINAL) {
                         deltaChangeCollector.addRow(row.getValueList());
                     }
-                    session.getGeneratedKeys().confirmRow(row);
                     session.log(table, UndoLogRecord.INSERT, row);
                     table.fireAfterRow(session, null, row, false);
                 }

@@ -394,11 +394,8 @@ public class Column {
                 throw DbException.get(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, checkConstraint.getSQL(false));
             }
         }
-        if (addKey && !localDefaultExpression.isConstant()) {
-            session.getGeneratedKeys().add(this);
-            if (primaryKey) {
-                session.setLastIdentity(value);
-            }
+        if (addKey && !localDefaultExpression.isConstant() && primaryKey) {
+            session.setLastIdentity(value);
         }
         updateSequenceIfRequired(session, value);
         return value;

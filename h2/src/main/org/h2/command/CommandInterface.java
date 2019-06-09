@@ -524,7 +524,7 @@ public interface CommandInterface extends AutoCloseable {
      *            {@code String[]} to specify column names to return generated keys
      *            from
      *
-     * @return the update count
+     * @return the update count and generated keys, if any
      */
     ResultWithGeneratedKeys executeUpdate(Object generatedKeysRequest);
 

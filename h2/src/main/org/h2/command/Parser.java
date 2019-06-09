@@ -145,7 +145,6 @@ import org.h2.command.dml.Merge;
 import org.h2.command.dml.MergeUsing;
 import org.h2.command.dml.NoOperation;
 import org.h2.command.dml.Query;
-import org.h2.command.dml.Replace;
 import org.h2.command.dml.RunScriptCommand;
 import org.h2.command.dml.ScriptCommand;
 import org.h2.command.dml.Select;
@@ -1579,10 +1578,10 @@ public class Parser {
         if (readIf(USING)) {
             return parseMergeUsing(targetTableFilter, start);
         }
-        Merge command = new Merge(session);
+        Merge command = new Merge(session, false);
         currentPrepared = command;
-        command.setTargetTableFilter(targetTableFilter);
-        Table table = command.getTargetTable();
+        command.setTableFilter(targetTableFilter);
+        Table table = command.getTable();
         if (readIf(OPEN_PAREN)) {
             if (isSelect()) {
                 command.setQuery(parseSelect());
@@ -1807,8 +1806,8 @@ public class Parser {
     /**
      * MySQL compatibility. REPLACE is similar to MERGE.
      */
-    private Replace parseReplace() {
-        Replace command = new Replace(session);
+    private Merge parseReplace() {
+        Merge command = new Merge(session, true);
         currentPrepared = command;
         read("INTO");
         Table table = readTableOrView();

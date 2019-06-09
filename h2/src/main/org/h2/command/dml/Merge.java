@@ -31,11 +31,15 @@ import org.h2.value.Value;
 /**
  * This class represents the statement
  * MERGE
+ * or the MySQL compatibility statement
+ * REPLACE
  */
 public class Merge extends CommandWithValues implements DataChangeStatement {
 
-    private Table targetTable;
-    private TableFilter targetTableFilter;
+    private boolean isReplace;
+
+    private Table table;
+    private TableFilter tableFilter;
     private Column[] columns;
     private Column[] keys;
     private Query query;
@@ -45,8 +49,9 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
 
     private ResultOption deltaChangeCollectionMode;
 
-    public Merge(Session session) {
+    public Merge(Session session, boolean isReplace) {
         super(session);
+        this.isReplace = isReplace;
     }
 
     @Override
@@ -59,11 +64,11 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
 
     @Override
     public Table getTable() {
-        return targetTable;
+        return table;
     }
 
-    public void setTargetTable(Table targetTable) {
-        this.targetTable = targetTable;
+    public void setTable(Table table) {
+        this.table = table;
     }
 
     public void setColumns(Column[] columns) {
@@ -87,20 +92,19 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
 
     @Override
     public int update() {
-        int count;
-        session.getUser().checkRight(targetTable, Right.INSERT);
-        session.getUser().checkRight(targetTable, Right.UPDATE);
+        int count = 0;
+        session.getUser().checkRight(table, Right.INSERT);
+        session.getUser().checkRight(table, Right.UPDATE);
         setCurrentRowNumber(0);
         GeneratedKeys generatedKeys = session.getGeneratedKeys();
         if (!valuesExpressionList.isEmpty()) {
             // process values in list
-            count = 0;
-            generatedKeys.initialize(targetTable);
+            generatedKeys.initialize(table);
             for (int x = 0, size = valuesExpressionList.size(); x < size; x++) {
                 setCurrentRowNumber(x + 1);
                 generatedKeys.nextRow();
                 Expression[] expr = valuesExpressionList.get(x);
-                Row newRow = targetTable.getTemplateRow();
+                Row newRow = table.getTemplateRow();
                 for (int i = 0, len = columns.length; i < len; i++) {
                     Column c = columns[i];
                     int index = c.getColumnId();
@@ -117,77 +121,81 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
                         }
                     }
                 }
-                merge(newRow);
-                count++;
+                count += merge(newRow);
             }
         } else {
             // process select data for list
             query.setNeverLazy(true);
             ResultInterface rows = query.query(0);
-            count = 0;
-            targetTable.fire(session, Trigger.UPDATE | Trigger.INSERT, true);
-            targetTable.lock(session, true, false);
+            table.fire(session, Trigger.UPDATE | Trigger.INSERT, true);
+            table.lock(session, true, false);
             while (rows.next()) {
-                count++;
                 generatedKeys.nextRow();
                 Value[] r = rows.currentRow();
-                Row newRow = targetTable.getTemplateRow();
+                Row newRow = table.getTemplateRow();
                 setCurrentRowNumber(count);
                 for (int j = 0; j < columns.length; j++) {
                     newRow.setValue(columns[j].getColumnId(), r[j]);
                 }
-                merge(newRow);
+                count += merge(newRow);
             }
             rows.close();
-            targetTable.fire(session, Trigger.UPDATE | Trigger.INSERT, false);
+            table.fire(session, Trigger.UPDATE | Trigger.INSERT, false);
         }
         return count;
     }
 
     /**
-     * Merge the given row.
+     * Updates an existing row or inserts a new one.
      *
-     * @param row the row
+     * @param row row to replace
+     * @return 1 if row was inserted, 1 if row was updated by a MERGE statement,
+     *         and 2 if row was updated by a REPLACE statement
      */
-    protected void merge(Row row) {
-        ArrayList<Parameter> k = update.getParameters();
-        for (int i = 0; i < columns.length; i++) {
-            Column col = columns[i];
-            Value v = row.getValue(col.getColumnId());
-            Parameter p = k.get(i);
-            p.setValue(v);
-        }
-        for (int i = 0; i < keys.length; i++) {
-            Column col = keys[i];
-            Value v = row.getValue(col.getColumnId());
-            if (v == null) {
-                throw DbException.get(ErrorCode.COLUMN_CONTAINS_NULL_VALUES_1, col.getSQL(false));
+    private int merge(Row row) {
+        int count;
+        if (update == null) {
+            // if there is no valid primary key,
+            // the REPLACE statement degenerates to an INSERT
+            count = 0;
+        } else {
+            ArrayList<Parameter> k = update.getParameters();
+            for (int i = 0; i < columns.length; i++) {
+                Column col = columns[i];
+                Value v = row.getValue(col.getColumnId());
+                Parameter p = k.get(i);
+                p.setValue(v);
             }
-            Parameter p = k.get(columns.length + i);
-            p.setValue(v);
+            for (int i = 0; i < keys.length; i++) {
+                Column col = keys[i];
+                Value v = row.getValue(col.getColumnId());
+                if (v == null) {
+                    throw DbException.get(ErrorCode.COLUMN_CONTAINS_NULL_VALUES_1, col.getSQL(false));
+                }
+                Parameter p = k.get(columns.length + i);
+                p.setValue(v);
+            }
+            count = update.update();
         }
-
-        // try an update
-        int count = update.update();
-
         // if update fails try an insert
         if (count == 0) {
             try {
-                targetTable.validateConvertUpdateSequence(session, row);
+                table.validateConvertUpdateSequence(session, row);
                 if (deltaChangeCollectionMode == ResultOption.NEW) {
                     deltaChangeCollector.addRow(row.getValueList().clone());
                 }
-                boolean done = targetTable.fireBeforeRow(session, null, row);
+                boolean done = table.fireBeforeRow(session, null, row);
                 if (!done) {
-                    targetTable.lock(session, true, false);
-                    targetTable.addRow(session, row);
+                    table.lock(session, true, false);
+                    table.addRow(session, row);
                     if (deltaChangeCollectionMode == ResultOption.FINAL) {
                         deltaChangeCollector.addRow(row.getValueList());
                     }
                     session.getGeneratedKeys().confirmRow(row);
-                    session.log(targetTable, UndoLogRecord.INSERT, row);
-                    targetTable.fireAfterRow(session, null, row, false);
+                    session.log(table, UndoLogRecord.INSERT, row);
+                    table.fireAfterRow(session, null, row, false);
                 }
+                return 1;
             } catch (DbException e) {
                 if (e.getErrorCode() == ErrorCode.DUPLICATE_KEY_1) {
                     // possibly a concurrent merge or insert
@@ -215,24 +223,25 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
                             indexMatchesKeys = false;
                         }
                         if (indexMatchesKeys) {
-                            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, targetTable.getName());
+                            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, table.getName());
                         }
                     }
                 }
                 throw e;
             }
-        } else if (count != 1) {
-            throw DbException.get(ErrorCode.DUPLICATE_KEY_1, targetTable.getSQL(false));
+        } else if (count == 1) {
+            return isReplace ? 2 : 1;
         }
+        throw DbException.get(ErrorCode.DUPLICATE_KEY_1, table.getSQL(false));
     }
 
     @Override
     public String getPlanSQL(boolean alwaysQuote) {
-        StringBuilder builder = new StringBuilder("MERGE INTO ");
-        targetTable.getSQL(builder, alwaysQuote).append('(');
+        StringBuilder builder = new StringBuilder(isReplace ? "REPLACE INTO " : "MERGE INTO ");
+        table.getSQL(builder, alwaysQuote).append('(');
         Column.writeColumns(builder, columns, alwaysQuote);
         builder.append(')');
-        if (keys != null) {
+        if (!isReplace && keys != null) {
             builder.append(" KEY(");
             Column.writeColumns(builder, keys, alwaysQuote);
             builder.append(')');
@@ -262,7 +271,7 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
                 // special case where table is used as a sequence
                 columns = new Column[0];
             } else {
-                columns = targetTable.getColumns();
+                columns = table.getColumns();
             }
         }
         if (!valuesExpressionList.isEmpty()) {
@@ -284,14 +293,30 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
             }
         }
         if (keys == null) {
-            Index idx = targetTable.getPrimaryKey();
+            Index idx = table.getPrimaryKey();
             if (idx == null) {
                 throw DbException.get(ErrorCode.CONSTRAINT_NOT_FOUND_1, "PRIMARY KEY");
             }
             keys = idx.getColumns();
         }
+        if (isReplace) {
+            // if there is no valid primary key,
+            // the REPLACE statement degenerates to an INSERT
+            for (Column key : keys) {
+                boolean found = false;
+                for (Column column : columns) {
+                    if (column.getColumnId() == key.getColumnId()) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    return;
+                }
+            }
+        }
         StringBuilder builder = new StringBuilder("UPDATE ");
-        targetTable.getSQL(builder, true).append(" SET ");
+        table.getSQL(builder, true).append(" SET ");
         Column.writeColumns(builder, columns, ", ", "=?", true).append(" WHERE ");
         Column.writeColumns(builder, keys, " AND ", "=?", true);
         update = (Update) session.prepare(builder.toString());
@@ -309,12 +334,12 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
 
     @Override
     public int getType() {
-        return CommandInterface.MERGE;
+        return isReplace ? CommandInterface.REPLACE : CommandInterface.MERGE;
     }
 
     @Override
     public String getStatementName() {
-        return "MERGE";
+        return isReplace ? "REPLACE" : "MERGE";
     }
 
     @Override
@@ -322,19 +347,13 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
         return true;
     }
 
-    public Table getTargetTable() {
-        return targetTable;
+    public TableFilter getTableFilter() {
+        return tableFilter;
     }
 
-    public TableFilter getTargetTableFilter() {
-        return targetTableFilter;
+    public void setTableFilter(TableFilter tableFilter) {
+        this.tableFilter = tableFilter;
+        setTable(tableFilter.getTable());
     }
-
-    public void setTargetTableFilter(TableFilter targetTableFilter) {
-        this.targetTableFilter = targetTableFilter;
-        setTargetTable(targetTableFilter.getTable());
-    }
-
-
 
 }

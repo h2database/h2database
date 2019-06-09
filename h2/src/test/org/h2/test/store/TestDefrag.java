@@ -12,6 +12,7 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.text.NumberFormat;
 
 /**
  * Test off-line compaction procedure used by SHUTDOWN DEFRAG command
@@ -39,21 +40,25 @@ public class TestDefrag  extends TestDb
         String dbName = getTestName();
         deleteDb(dbName);
         File dbFile = new File(getBaseDir(), dbName + SUFFIX_MV_FILE);
+        NumberFormat nf = NumberFormat.getInstance();
         try (Connection c = getConnection(dbName)) {
             try (Statement st = c.createStatement()) {
                 st.execute("CREATE TABLE IF NOT EXISTS test (id INT PRIMARY KEY, txt varchar)" +
                             " AS SELECT x, x || SPACE(200) FROM SYSTEM_RANGE(1,10000000)");
+                st.execute("checkpoint");
             }
             long origSize = dbFile.length();
-            trace("before defrag: " + origSize);
-            assertTrue(origSize > 4_000_000_000L);
+            String message = "before defrag: " + nf.format(origSize);
+            trace(message);
+            assertTrue(message, origSize > 4_000_000_000L);
             try (Statement st = c.createStatement()) {
                 st.execute("shutdown defrag");
             }
         }
         long compactedSize = dbFile.length();
-        trace("after defrag: " + compactedSize);
-        assertTrue(compactedSize < 400_000_000);
+        String message = "after defrag: " + nf.format(compactedSize);
+        trace(message);
+        assertTrue(message, compactedSize < 2_400_000_000L);
 
         try (Connection c = getConnection(dbName + ";LAZY_QUERY_EXECUTION=1")) {
             try (Statement st = c.createStatement()) {

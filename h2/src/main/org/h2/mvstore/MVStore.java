@@ -2469,14 +2469,21 @@ public class MVStore implements AutoCloseable {
      * @param map the map
      */
     void beforeWrite(MVMap<?, ?> map) {
-        if (saveNeeded && fileStore != null && isOpenOrStopping()) {
+        if (saveNeeded && fileStore != null && isOpenOrStopping() &&
+                // condition below is to prevent potential deadlock,
+                // because we should never seek storeLock while holding
+                // map root lock
+                (storeLock.isHeldByCurrentThread() || !map.getRoot().isLockedByCurrentThread()) &&
+                // to avoid infinite recursion via store() -> dropUnusedChunks() -> meta.remove()
+                map != meta) {
+
             saveNeeded = false;
             // check again, because it could have been written by now
             if (unsavedMemory > autoCommitMemory && autoCommitMemory > 0) {
                 // if unsaved memory creation rate is to high,
                 // some back pressure need to be applied
                 // to slow things down and avoid OOME
-                if (3 * unsavedMemory > 4 * autoCommitMemory) {
+                if (3 * unsavedMemory > 4 * autoCommitMemory && !map.isSingleWriter()) {
                     commit();
                 } else {
                     tryCommit();

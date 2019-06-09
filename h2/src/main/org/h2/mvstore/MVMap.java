@@ -544,6 +544,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return valueType;
     }
 
+    protected boolean isSingleWriter() {
+        return singleWriter;
+    }
+
     /**
      * Read a page.
      *
@@ -786,6 +790,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         root.set(new RootReference(rootPage, version));
     }
 
+    final boolean compareAndSetRoot(RootReference expectedRootReference, RootReference updatedRootReference) {
+        return root.compareAndSet(expectedRootReference, updatedRootReference);
+    }
+
     /**
      * Rollback to the given version.
      *
@@ -824,13 +832,18 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      *                             were made to update root
      * @return new RootReference or null if update failed
      */
-    protected final boolean updateRoot(RootReference expectedRootReference, Page newRootPage, int attemptUpdateCounter)
+    protected final boolean updateRoot(RootReference expectedRootReference, Page newRootPage,
+                                       int attemptUpdateCounter)
+    {
+        return tryUpdateRoot(expectedRootReference, newRootPage, attemptUpdateCounter) != null;
+    }
+
+    private RootReference tryUpdateRoot(RootReference expectedRootReference, Page newRootPage,
+                                        int attemptUpdateCounter)
     {
         RootReference currentRoot = flushAndGetRoot();
-        return currentRoot == expectedRootReference &&
-                !currentRoot.lockedForUpdate &&
-                root.compareAndSet(currentRoot,
-                                    new RootReference(currentRoot, newRootPage, attemptUpdateCounter));
+        return currentRoot != expectedRootReference ? null :
+                currentRoot.updateRootPage(newRootPage, attemptUpdateCounter);
     }
 
     /**
@@ -838,17 +851,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param rootReference to inspect
      */
     private void removeUnusedOldVersions(RootReference rootReference) {
-        long oldest = store.getOldestVersionToKeep();
-        // We need to keep at least one previous version (if any) here,
-        // because in order to retain whole history of some version
-        // we really need last root of the previous version.
-        // Root labeled with version "X" is the LAST known root for that version
-        // and therefore the FIRST known root for the version "X+1"
-        for(RootReference rootRef = rootReference; rootRef != null; rootRef = rootRef.previous) {
-            if (rootRef.version < oldest) {
-                rootRef.previous = null;
-            }
-        }
+        rootReference.removeUnusedOldVersions(store.getOldestVersionToKeep());
     }
 
     public final boolean isReadOnly() {
@@ -1005,14 +1008,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return version
      */
     public final long getVersion() {
-        return getVersion(getRoot());
-    }
-
-    private static long getVersion(RootReference rootReference) {
-        RootReference previous = rootReference.previous;
-        return previous == null || previous.root != rootReference.root ||
-                previous.appendCounter != rootReference.appendCounter ?
-                    rootReference.version : previous.version;
+        return getRoot().getVersion();
     }
 
     /**
@@ -1025,7 +1021,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         RootReference rootReference = getRoot();
         Page root = rootReference.root;
         return !root.isSaved() && rootReference.getTotalCount() > 0 ||
-                getVersion(rootReference) > version;
+                rootReference.getVersion() > version;
     }
 
     /**
@@ -1084,10 +1080,24 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 }
                 return rootReference;
             }
-            RootReference updatedRootReference = new RootReference(rootReference, writeVersion, ++attempt);
-            if(root.compareAndSet(rootReference, updatedRootReference)) {
-                removeUnusedOldVersions(updatedRootReference);
-                return updatedRootReference;
+
+            RootReference lockedRootReference = null;
+            if (++attempt > 3 || rootReference.isLocked()) {
+                lockedRootReference = lockRoot(rootReference, attempt);
+                rootReference = flushAndGetRoot();
+            }
+
+            try {
+                rootReference = rootReference.tryUnlockAndUpdateVersion(writeVersion, attempt);
+                if (rootReference != null) {
+                    lockedRootReference = null;
+                    removeUnusedOldVersions(rootReference);
+                    return rootReference;
+                }
+            } finally {
+                if (lockedRootReference != null) {
+                    unlockRoot();
+                }
             }
         }
     }
@@ -1250,9 +1260,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 }
                 p = replacePage(pos, p, unsavedMemoryHolder);
 
-                RootReference updatedRootReference = new RootReference(rootReference, p, remainingBuffer,
+                RootReference updatedRootReference = rootReference.updatePageAndLockedStatus(p, remainingBuffer,
                         lockedForUpdate);
-                if (root.compareAndSet(rootReference, updatedRootReference)) {
+                if (updatedRootReference != null) {
                     lockedRootReference = null;
                     while (tip != null) {
                         tip.page.removePage();
@@ -1647,7 +1657,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         while(true) {
             RootReference rootReference = flushAndGetRoot();
             RootReference lockedRootReference = null;
-            if ((++attempt > 3 || rootReference.lockedForUpdate)) {
+            if ((++attempt > 3 || rootReference.isLocked())) {
                 lockedRootReference = lockRoot(rootReference, attempt);
                 rootReference = lockedRootReference;
             }
@@ -1786,11 +1796,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     private RootReference tryLock(RootReference rootReference, int attempt) {
-        if (!rootReference.lockedForUpdate) {
-            RootReference lockedRootReference = new RootReference(rootReference, attempt);
-            if (root.compareAndSet(rootReference, lockedRootReference)) {
-                return lockedRootReference;
-            }
+        RootReference lockedRootReference = rootReference.tryLock(attempt);
+        if (lockedRootReference != null) {
+            return lockedRootReference;
         }
 
         RootReference oldRootReference = rootReference.previous;
@@ -1837,16 +1845,14 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     private RootReference unlockRoot(Page newRootPage, int appendCounter) {
         RootReference updatedRootReference;
-        boolean success;
         do {
             RootReference rootReference = getRoot();
-            assert rootReference.lockedForUpdate;
-            updatedRootReference = new RootReference(rootReference,
+            assert rootReference.isLockedByCurrentThread();
+            updatedRootReference = rootReference.updatePageAndLockedStatus(
                                         newRootPage == null ? rootReference.root : newRootPage,
                                         appendCounter == -1 ? rootReference.getAppendCounter() : appendCounter,
                                         false);
-            success = root.compareAndSet(rootReference, updatedRootReference);
-        } while(!success);
+        } while(updatedRootReference == null);
 
         notifyWaiters();
         return updatedRootReference;

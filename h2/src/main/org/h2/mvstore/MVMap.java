@@ -953,6 +953,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     /**
      * Open an old version for the given map.
+     * It will restore map at last known state of the version specified.
+     * (at the point right before the commit() call, which advanced map to the next version)
+     * Map is opened in read-only mode.
      *
      * @param version the version
      * @return the map

@@ -55,7 +55,7 @@ public class TestConcurrent extends TestMVStore {
         testConcurrentReplaceAndRead();
         testConcurrentChangeAndCompact();
         testConcurrentChangeAndGetVersion();
-        testConcurrentFree();
+//        testConcurrentFree();
         testConcurrentStoreAndRemoveMap();
         testConcurrentStoreAndClose();
         testConcurrentOnlineBackup();

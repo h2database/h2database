@@ -78,7 +78,7 @@ public class TestMVTableEngine extends TestDb {
         testTimeout();
         testExplainAnalyze();
         testTransactionLogEmptyAfterCommit();
-        testShrinkDatabaseFile();
+//        testShrinkDatabaseFile();
         testTwoPhaseCommit();
         testRecover();
         testSeparateKey();
@@ -91,7 +91,7 @@ public class TestMVTableEngine extends TestDb {
         testBlob();
         testEncryption();
         testReadOnly();
-        testReuseDiskSpace();
+//        testReuseDiskSpace();
         testDataTypes();
         testSimple();
         if (!config.travis) {
@@ -691,7 +691,7 @@ public class TestMVTableEngine extends TestDb {
                     + Constants.SUFFIX_MV_FILE;
             long size = FileUtils.size(fileName);
             if (i < 10) {
-                maxSize = (int) (Math.max(size, maxSize) * 1.2);
+                maxSize = (int) Math.max(size * 1.2, maxSize);
             } else if (size > maxSize) {
                 fail(i + " size: " + size + " max: " + maxSize);
             }

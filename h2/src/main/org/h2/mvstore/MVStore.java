@@ -1163,7 +1163,7 @@ public class MVStore implements AutoCloseable {
 
     private void store() {
         try {
-            if (isOpenOrStopping() && hasUnsavedChangesInternal()) {
+            if (isOpenOrStopping() && hasUnsavedChanges()) {
                 currentStoreVersion = currentVersion;
                 if (fileStore == null) {
                     lastStoredVersion = currentVersion;
@@ -1800,13 +1800,6 @@ public class MVStore implements AutoCloseable {
             }
         }
         return false;
-    }
-
-    private boolean hasUnsavedChangesInternal() {
-        if (meta.hasChangesSince(lastStoredVersion)) {
-            return true;
-        }
-        return hasUnsavedChanges();
     }
 
     private Chunk readChunkHeader(long block) {

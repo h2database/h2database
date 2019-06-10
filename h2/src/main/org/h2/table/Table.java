@@ -710,6 +710,32 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     /**
+     * Get the column with the given name.
+     *
+     * @param columnName the column name
+     * @param ifExists if (@code true) return {@code null} if column does not exist
+     * @return the column
+     * @throws DbException if the column was not found
+     */
+    public Column getColumn(String columnName, boolean ifExists) {
+        Column column = columnMap.get(columnName);
+        if (column == null && !ifExists) {
+            throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, columnName);
+        }
+        return column;
+    }
+
+    /**
+     * Get the column with the given name if it exists.
+     *
+     * @param columnName the column name, or {@code null}
+     * @return the column
+     */
+    public Column findColumn(String columnName) {
+        return columnMap.get(columnName);
+    }
+
+    /**
      * Does the column with the given name exist?
      *
      * @param columnName the column name

@@ -5,7 +5,6 @@
  */
 package org.h2.engine;
 
-import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 
 /**
@@ -57,7 +56,7 @@ public final class GeneratedKeysMode {
         if (generatedKeysRequest instanceof String[]) {
             return ((String[]) generatedKeysRequest).length > 0 ? COLUMN_NAMES : NONE;
         }
-        throw DbException.get(ErrorCode.INVALID_VALUE_2, generatedKeysRequest.toString());
+        throw DbException.throwInternalError();
     }
 
     private GeneratedKeysMode() {

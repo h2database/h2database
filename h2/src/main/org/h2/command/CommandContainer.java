@@ -8,10 +8,12 @@ package org.h2.command;
 import java.util.ArrayList;
 import java.util.List;
 import org.h2.api.DatabaseEventListener;
+import org.h2.api.ErrorCode;
 import org.h2.command.dml.DataChangeStatement;
 import org.h2.command.dml.Explain;
 import org.h2.command.dml.Query;
 import org.h2.engine.Database;
+import org.h2.engine.DbSettings;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -218,30 +220,31 @@ public class CommandContainer extends Command {
             int cnt = columns.length;
             expressionColumns = new ArrayList<>(indexes.length);
             for (int idx : indexes) {
-                if (idx >= 1 && idx <= cnt) {
-                    Column column = columns[idx - 1];
-                    expressionColumns.add(new ExpressionColumn(db, column));
+                if (idx < 1 || idx > cnt) {
+                    throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, "Index: " + idx);
                 }
+                expressionColumns.add(new ExpressionColumn(db, columns[idx - 1]));
             }
         } else if (generatedKeysRequest instanceof String[]) {
             String[] names = (String[]) generatedKeysRequest;
             expressionColumns = new ArrayList<>(names.length);
             for (String name : names) {
-                Column column;
-                search: if (table.doesColumnExist(name)) {
-                    column = table.getColumn(name);
-                } else {
-                    name = StringUtils.toUpperEnglish(name);
-                    if (table.doesColumnExist(name)) {
-                        column = table.getColumn(name);
-                    } else {
+                Column column = table.findColumn(name);
+                if (column == null) {
+                    DbSettings settings = db.getSettings();
+                    if (settings.databaseToUpper) {
+                        column = table.findColumn(StringUtils.toUpperEnglish(name));
+                    } else if (settings.databaseToLower) {
+                        column = table.findColumn(StringUtils.toLowerEnglish(name));
+                    }
+                    search: if (column == null) {
                         for (Column c : table.getColumns()) {
                             if (c.getName().equalsIgnoreCase(name)) {
                                 column = c;
                                 break search;
                             }
                         }
-                        continue;
+                        throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, name);
                     }
                 }
                 expressionColumns.add(new ExpressionColumn(db, column));

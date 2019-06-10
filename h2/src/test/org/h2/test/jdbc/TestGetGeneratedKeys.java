@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.UUID;
 
+import org.h2.api.ErrorCode;
 import org.h2.jdbc.JdbcPreparedStatement;
 import org.h2.jdbc.JdbcStatement;
 import org.h2.test.TestBase;
@@ -42,8 +43,10 @@ public class TestGetGeneratedKeys extends TestDb {
         testInsertWithSelect(conn);
         testUpdate(conn);
         testMergeUsing(conn);
+        testWrongStatement(conn);
         testMultithreaded(conn);
         testNameCase(conn);
+        testColumnNotFound(conn);
 
         testPrepareStatement_Execute(conn);
         testPrepareStatement_ExecuteBatch(conn);
@@ -275,6 +278,29 @@ public class TestGetGeneratedKeys extends TestDb {
     }
 
     /**
+     * Test method for incompatible statements.
+     *
+     * @param conn
+     *            connection
+     * @throws Exception
+     *             on exception
+     */
+    private void testWrongStatement(Connection conn) throws Exception {
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST (ID BIGINT PRIMARY KEY AUTO_INCREMENT, VALUE INT)");
+        stat.execute("INSERT INTO TEST(VALUE) VALUES 10, 20, 30");
+        stat.execute("DELETE FROM TEST WHERE VALUE = 10", Statement.RETURN_GENERATED_KEYS);
+        ResultSet rs = stat.getGeneratedKeys();
+        assertFalse(rs.next());
+        rs.close();
+        stat.execute("TRUNCATE TABLE TEST", Statement.RETURN_GENERATED_KEYS);
+        rs = stat.getGeneratedKeys();
+        assertFalse(rs.next());
+        rs.close();
+        stat.execute("DROP TABLE TEST");
+    }
+
+    /**
      * Test method for shared connection between several statements in different
      * threads.
      *
@@ -357,25 +383,42 @@ public class TestGetGeneratedKeys extends TestDb {
         // Test lower case name of upper case column
         stat.execute("ALTER TABLE TEST DROP COLUMN \"id\"");
         prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (20)", new String[] { "id" });
-        prep.executeUpdate();
-        rs = prep.getGeneratedKeys();
-        assertEquals(1, rs.getMetaData().getColumnCount());
-        assertEquals("ID", rs.getMetaData().getColumnName(1));
-        assertTrue(rs.next());
-        assertEquals(2L, rs.getLong(1));
-        assertFalse(rs.next());
-        rs.close();
+        testNameCase1(prep, 2L, true);
         // Test upper case name of lower case column
         stat.execute("ALTER TABLE TEST ALTER COLUMN ID RENAME TO \"id\"");
         prep = conn.prepareStatement("INSERT INTO TEST(VALUE) VALUES (30)", new String[] { "ID" });
+        testNameCase1(prep, 3L, false);
+        stat.execute("DROP TABLE TEST");
+    }
+
+    private void testNameCase1(PreparedStatement prep, long id, boolean upper) throws SQLException {
         prep.executeUpdate();
-        rs = prep.getGeneratedKeys();
+        ResultSet rs = prep.getGeneratedKeys();
         assertEquals(1, rs.getMetaData().getColumnCount());
-        assertEquals("id", rs.getMetaData().getColumnName(1));
+        assertEquals(upper ? "ID" : "id", rs.getMetaData().getColumnName(1));
         assertTrue(rs.next());
-        assertEquals(3L, rs.getLong(1));
+        assertEquals(id, rs.getLong(1));
         assertFalse(rs.next());
         rs.close();
+    }
+
+    /**
+     * Test method for column not found exception.
+     *
+     * @param conn
+     *            connection
+     * @throws Exception
+     *             on exception
+     */
+    private void testColumnNotFound(Connection conn) throws Exception {
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST (ID BIGINT PRIMARY KEY AUTO_INCREMENT, VALUE INT NOT NULL)");
+        assertThrows(ErrorCode.COLUMN_NOT_FOUND_1, stat).execute("INSERT INTO TEST(VALUE) VALUES (1)", //
+                new int[] { 0 });
+        assertThrows(ErrorCode.COLUMN_NOT_FOUND_1, stat).execute("INSERT INTO TEST(VALUE) VALUES (1)", //
+                new int[] { 3 });
+        assertThrows(ErrorCode.COLUMN_NOT_FOUND_1, stat).execute("INSERT INTO TEST(VALUE) VALUES (1)", //
+                new String[] { "X" });
         stat.execute("DROP TABLE TEST");
     }
 

@@ -7637,8 +7637,8 @@ public class Parser {
                 do {
                     String columnName = readColumnIdentifier();
                     if (table != null) {
-                        if (!ifExists || table.doesColumnExist(columnName)) {
-                            Column column = table.getColumn(columnName);
+                        Column column = table.getColumn(columnName, ifExists);
+                        if (column != null) {
                             columnsToRemove.add(column);
                         }
                     }

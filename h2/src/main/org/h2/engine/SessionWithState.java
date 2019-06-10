@@ -30,7 +30,7 @@ abstract class SessionWithState implements SessionInterface {
             try {
                 for (String sql : sessionState) {
                     CommandInterface ci = prepareCommand(sql, Integer.MAX_VALUE);
-                    ci.executeUpdate(false);
+                    ci.executeUpdate(null);
                 }
             } finally {
                 sessionStateUpdating = false;

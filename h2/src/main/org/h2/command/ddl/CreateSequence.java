@@ -53,9 +53,7 @@ public class CreateSequence extends SchemaCommand {
             throw DbException.get(ErrorCode.SEQUENCE_ALREADY_EXISTS_1, sequenceName);
         }
         int id = getObjectId();
-        Sequence sequence = new Sequence(getSchema(), id, sequenceName, options.getStartValue(session),
-                options.getIncrement(session), options.getCacheSize(session), options.getMinValue(null, session),
-                options.getMaxValue(null, session), Boolean.TRUE.equals(options.getCycle()), belongsToTable);
+        Sequence sequence = new Sequence(session, getSchema(), id, sequenceName, options, belongsToTable);
         db.addSchemaObject(session, sequence);
         return 0;
     }

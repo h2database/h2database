@@ -348,7 +348,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             sql = translateSQL(sql);
             return new JdbcPreparedStatement(this, sql, id,
                     ResultSet.TYPE_FORWARD_ONLY,
-                    Constants.DEFAULT_RESULT_SET_CONCURRENCY, false, false);
+                    Constants.DEFAULT_RESULT_SET_CONCURRENCY, false, null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -374,7 +374,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             sql = translateSQL(sql);
             return new JdbcPreparedStatement(this, sql, id,
                     ResultSet.TYPE_FORWARD_ONLY,
-                    Constants.DEFAULT_RESULT_SET_CONCURRENCY, true, false);
+                    Constants.DEFAULT_RESULT_SET_CONCURRENCY, true, null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -539,7 +539,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             checkClosedForWrite();
             try {
                 commit = prepareCommand("COMMIT", commit);
-                commit.executeUpdate(false);
+                commit.executeUpdate(null);
             } finally {
                 afterWriting();
             }
@@ -737,7 +737,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             checkClosed();
             sql = translateSQL(sql);
             return new JdbcPreparedStatement(this, sql, id, resultSetType,
-                    resultSetConcurrency, false, false);
+                    resultSetConcurrency, false, null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -790,9 +790,8 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             }
             commit();
             setLockMode = prepareCommand("SET LOCK_MODE ?", setLockMode);
-            setLockMode.getParameters().get(0).setValue(ValueInt.get(lockMode),
-                    false);
-            setLockMode.executeUpdate(false);
+            setLockMode.getParameters().get(0).setValue(ValueInt.get(lockMode), false);
+            setLockMode.executeUpdate(null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -809,7 +808,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
                     setQueryTimeout);
             setQueryTimeout.getParameters().get(0)
                     .setValue(ValueInt.get(seconds * 1000), false);
-            setQueryTimeout.executeUpdate(false);
+            setQueryTimeout.executeUpdate(null);
             queryTimeoutCache = seconds;
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -1065,7 +1064,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             CommandInterface set = prepareCommand(
                     "SAVEPOINT " + JdbcSavepoint.getName(null, savepointId),
                     Integer.MAX_VALUE);
-            set.executeUpdate(false);
+            set.executeUpdate(null);
             JdbcSavepoint savepoint = new JdbcSavepoint(this, savepointId, null,
                     trace, id);
             savepointId++;
@@ -1093,9 +1092,8 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             CommandInterface set = prepareCommand(
                     "SAVEPOINT " + JdbcSavepoint.getName(name, 0),
                     Integer.MAX_VALUE);
-            set.executeUpdate(false);
-            return new JdbcSavepoint(this, 0, name, trace,
-                    id);
+            set.executeUpdate(null);
+            return new JdbcSavepoint(this, 0, name, trace, id);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1178,7 +1176,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             checkClosed();
             sql = translateSQL(sql);
             return new JdbcPreparedStatement(this, sql, id, resultSetType,
-                    resultSetConcurrency, false, false);
+                    resultSetConcurrency, false, null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1600,7 +1598,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
 
     private void rollbackInternal() {
         rollback = prepareCommand("ROLLBACK", rollback);
-        rollback.executeUpdate(false);
+        rollback.executeUpdate(null);
     }
 
     /**

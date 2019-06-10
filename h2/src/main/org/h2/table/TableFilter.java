@@ -1101,10 +1101,7 @@ public class TableFilter implements ColumnResolver {
                 throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, columnName);
             }
         }
-        if (ifExists && !table.doesColumnExist(columnName)) {
-            return null;
-        }
-        return table.getColumn(columnName);
+        return table.getColumn(columnName, ifExists);
     }
 
     /**

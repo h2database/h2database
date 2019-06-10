@@ -3103,11 +3103,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
     }
 
     @Override
-    public boolean isGeneratedKey() {
-        return info.type == NEXTVAL;
-    }
-
-    @Override
     public int getSubexpressionCount() {
         return args.length;
     }

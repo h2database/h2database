@@ -11,6 +11,7 @@ import org.h2.engine.Session;
 import org.h2.expression.Parameter;
 import org.h2.expression.ParameterInterface;
 import org.h2.result.ResultInterface;
+import org.h2.result.ResultWithGeneratedKeys;
 
 /**
  * Represents a list of SQL statements.
@@ -52,16 +53,16 @@ class CommandList extends Command {
             if (remainingCommand.isQuery()) {
                 remainingCommand.query(0);
             } else {
-                remainingCommand.update();
+                remainingCommand.update(null);
             }
         }
     }
 
     @Override
-    public int update() {
-        int updateCount = command.executeUpdate(false).getUpdateCount();
+    public ResultWithGeneratedKeys update(Object generatedKeysRequest) {
+        ResultWithGeneratedKeys result = command.executeUpdate(null);
         executeRemaining();
-        return updateCount;
+        return result;
     }
 
     @Override

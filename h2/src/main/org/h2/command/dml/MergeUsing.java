@@ -20,8 +20,8 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.condition.ConditionAndOr;
 import org.h2.message.DbException;
-import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
+import org.h2.result.ResultTarget;
 import org.h2.result.Row;
 import org.h2.result.RowImpl;
 import org.h2.table.Column;
@@ -74,7 +74,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
             // Nothing to do
         }
 
-        abstract void setDeltaChangeCollector(LocalResult deltaChangeCollector, //
+        abstract void setDeltaChangeCollector(ResultTarget deltaChangeCollector, //
                 ResultOption deltaChangeCollectionMode);
 
         /**
@@ -142,7 +142,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         }
 
         @Override
-        void setDeltaChangeCollector(LocalResult deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+        void setDeltaChangeCollector(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
             if (updateCommand != null) {
                 updateCommand.setDeltaChangeCollector(deltaChangeCollector, deltaChangeCollectionMode);
             }
@@ -243,7 +243,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         }
 
         @Override
-        void setDeltaChangeCollector(LocalResult deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+        void setDeltaChangeCollector(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
             insertCommand.setDeltaChangeCollector(deltaChangeCollector, deltaChangeCollectionMode);
         }
 
@@ -314,7 +314,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
     }
 
     @Override
-    public void setDeltaChangeCollector(LocalResult deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+    public void setDeltaChangeCollector(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
         for (When w : when) {
             w.setDeltaChangeCollector(deltaChangeCollector, deltaChangeCollectionMode);
         }

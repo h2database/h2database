@@ -6,6 +6,7 @@
 package org.h2.schema;
 
 import org.h2.api.ErrorCode;
+import org.h2.command.ddl.SequenceOptions;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
@@ -34,58 +35,39 @@ public class Sequence extends SchemaObjectBase {
     private boolean writeWithMargin;
 
     /**
-     * Creates a new sequence for an auto-increment column.
-     *
-     * @param schema the schema
-     * @param id the object id
-     * @param name the sequence name
-     * @param startValue the first value to return
-     * @param increment the increment count
-     */
-    public Sequence(Schema schema, int id, String name, long startValue,
-            long increment) {
-        this(schema, id, name, startValue, increment, null, null, null, false,
-                true);
-    }
-
-    /**
      * Creates a new sequence.
      *
+     * @param session the session
      * @param schema the schema
      * @param id the object id
      * @param name the sequence name
-     * @param startValue the first value to return
-     * @param increment the increment count
-     * @param cacheSize the number of entries to pre-fetch
-     * @param minValue the minimum value
-     * @param maxValue the maximum value
-     * @param cycle whether to jump back to the min value if needed
+     * @param options the sequence options
      * @param belongsToTable whether this sequence belongs to a table (for
      *            auto-increment columns)
      */
-    public Sequence(Schema schema, int id, String name, Long startValue,
-            Long increment, Long cacheSize, Long minValue, Long maxValue,
-            boolean cycle, boolean belongsToTable) {
+    public Sequence(Session session, Schema schema, int id, String name, SequenceOptions options,
+            boolean belongsToTable) {
         super(schema, id, name, Trace.SEQUENCE);
-        this.increment = increment != null ?
-                increment : 1;
-        this.minValue = minValue != null ?
-                minValue : getDefaultMinValue(startValue, this.increment);
-        this.maxValue = maxValue != null ?
-                maxValue : getDefaultMaxValue(startValue, this.increment);
-        this.value = startValue != null ?
-                startValue : getDefaultStartValue(this.increment);
-        this.valueWithMargin = value;
-        this.cacheSize = cacheSize != null ?
-                Math.max(1, cacheSize) : DEFAULT_CACHE_SIZE;
-        this.cycle = cycle;
-        this.belongsToTable = belongsToTable;
-        if (!isValid(this.value, this.minValue, this.maxValue, this.increment)) {
-            throw DbException.get(ErrorCode.SEQUENCE_ATTRIBUTES_INVALID, name,
-                    Long.toString(this.value), Long.toString(this.minValue),
-                    Long.toString(this.maxValue),
-                    Long.toString(this.increment));
+        Long t = options.getIncrement(session);
+        long increment = t != null ? t : 1;
+        Long start = options.getStartValue(session);
+        Long min = options.getMinValue(null, session);
+        Long max = options.getMaxValue(null, session);
+        long minValue = min != null ? min : getDefaultMinValue(start, increment);
+        long maxValue = max != null ? max : getDefaultMaxValue(start, increment);
+        long value = start != null ? start : increment >= 0 ? minValue : maxValue;
+        if (!isValid(value, minValue, maxValue, increment)) {
+            throw DbException.get(ErrorCode.SEQUENCE_ATTRIBUTES_INVALID, name, Long.toString(value),
+                    Long.toString(minValue), Long.toString(maxValue), Long.toString(increment));
         }
+        this.valueWithMargin = this.value = value;
+        this.increment = increment;
+        t = options.getCacheSize(session);
+        this.cacheSize = t != null ? Math.max(1, t) : DEFAULT_CACHE_SIZE;
+        this.minValue = minValue;
+        this.maxValue = maxValue;
+        this.cycle = Boolean.TRUE.equals(options.getCycle());
+        this.belongsToTable = belongsToTable;
     }
 
     /**
@@ -176,10 +158,6 @@ public class Sequence extends SchemaObjectBase {
             v = startValue;
         }
         return v;
-    }
-
-    private long getDefaultStartValue(long increment) {
-        return increment >= 0 ? minValue : maxValue;
     }
 
     public boolean getBelongsToTable() {

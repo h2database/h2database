@@ -8,13 +8,29 @@ package org.h2.command;
 import java.util.ArrayList;
 import java.util.List;
 import org.h2.api.DatabaseEventListener;
+import org.h2.api.ErrorCode;
+import org.h2.command.dml.DataChangeStatement;
 import org.h2.command.dml.Explain;
 import org.h2.command.dml.Query;
+import org.h2.engine.Database;
+import org.h2.engine.DbSettings;
 import org.h2.engine.Session;
+import org.h2.expression.Expression;
+import org.h2.expression.ExpressionColumn;
 import org.h2.expression.Parameter;
 import org.h2.expression.ParameterInterface;
+import org.h2.index.Index;
+import org.h2.message.DbException;
+import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
+import org.h2.result.ResultTarget;
+import org.h2.result.ResultWithGeneratedKeys;
+import org.h2.table.Column;
+import org.h2.table.DataChangeDeltaTable.ResultOption;
+import org.h2.table.Table;
 import org.h2.table.TableView;
+import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -23,6 +39,42 @@ import org.h2.value.ValueNull;
  * It wraps a prepared statement.
  */
 public class CommandContainer extends Command {
+
+    /**
+     * Collector of generated keys.
+     */
+    private static final class GeneratedKeysCollector implements ResultTarget {
+
+        private final int[] indexes;
+        private final LocalResult result;
+
+        GeneratedKeysCollector(int[] indexes, LocalResult result) {
+            this.indexes = indexes;
+            this.result = result;
+        }
+
+        @Override
+        public void limitsWereApplied() {
+            // Nothing to do
+        }
+
+        @Override
+        public int getRowCount() {
+            // Not required
+            return 0;
+        }
+
+        @Override
+        public void addRow(Value... values) {
+            int length = indexes.length;
+            Value[] row = new Value[length];
+            for (int i = 0; i < length; i++) {
+                row[i] = values[indexes[i]];
+            }
+            result.addRow(row);
+        }
+
+    }
 
     private Prepared prepared;
     private boolean readOnlyKnown;
@@ -124,16 +176,101 @@ public class CommandContainer extends Command {
     }
 
     @Override
-    public int update() {
+    public ResultWithGeneratedKeys update(Object generatedKeysRequest) {
         recompileIfRequired();
         setProgress(DatabaseEventListener.STATE_STATEMENT_START);
         start();
         session.setLastScopeIdentity(ValueNull.INSTANCE);
         prepared.checkParameters();
-        int updateCount = prepared.update();
-        prepared.trace(startTimeNanos, updateCount);
+        ResultWithGeneratedKeys result;
+        if (generatedKeysRequest != null && !Boolean.FALSE.equals(generatedKeysRequest)) {
+            if (prepared instanceof DataChangeStatement && prepared.getType() != CommandInterface.DELETE) {
+                result = executeUpdateWithGeneratedKeys((DataChangeStatement) prepared,
+                        generatedKeysRequest);
+            } else {
+                result = new ResultWithGeneratedKeys.WithKeys(prepared.update(),
+                        session.getDatabase().getResultFactory().create());
+            }
+        } else {
+            result = ResultWithGeneratedKeys.of(prepared.update());
+        }
+        prepared.trace(startTimeNanos, result.getUpdateCount());
         setProgress(DatabaseEventListener.STATE_STATEMENT_END);
-        return updateCount;
+        return result;
+    }
+
+    private ResultWithGeneratedKeys executeUpdateWithGeneratedKeys(DataChangeStatement statement,
+            Object generatedKeysRequest) {
+        Database db = session.getDatabase();
+        Table table = statement.getTable();
+        ArrayList<ExpressionColumn> expressionColumns;
+        if (Boolean.TRUE.equals(generatedKeysRequest)) {
+            expressionColumns = Utils.newSmallArrayList();
+            Column[] columns = table.getColumns();
+            Index primaryKey = table.findPrimaryKey();
+            for (Column column : columns) {
+                Expression e = column.getDefaultExpression();
+                if ((e != null && !e.isConstant()) || (primaryKey != null && primaryKey.getColumnIndex(column) >= 0)) {
+                    expressionColumns.add(new ExpressionColumn(db, column));
+                }
+            }
+        } else if (generatedKeysRequest instanceof int[]) {
+            int[] indexes = (int[]) generatedKeysRequest;
+            Column[] columns = table.getColumns();
+            int cnt = columns.length;
+            expressionColumns = new ArrayList<>(indexes.length);
+            for (int idx : indexes) {
+                if (idx < 1 || idx > cnt) {
+                    throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, "Index: " + idx);
+                }
+                expressionColumns.add(new ExpressionColumn(db, columns[idx - 1]));
+            }
+        } else if (generatedKeysRequest instanceof String[]) {
+            String[] names = (String[]) generatedKeysRequest;
+            expressionColumns = new ArrayList<>(names.length);
+            for (String name : names) {
+                Column column = table.findColumn(name);
+                if (column == null) {
+                    DbSettings settings = db.getSettings();
+                    if (settings.databaseToUpper) {
+                        column = table.findColumn(StringUtils.toUpperEnglish(name));
+                    } else if (settings.databaseToLower) {
+                        column = table.findColumn(StringUtils.toLowerEnglish(name));
+                    }
+                    search: if (column == null) {
+                        for (Column c : table.getColumns()) {
+                            if (c.getName().equalsIgnoreCase(name)) {
+                                column = c;
+                                break search;
+                            }
+                        }
+                        throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, name);
+                    }
+                }
+                expressionColumns.add(new ExpressionColumn(db, column));
+            }
+        } else {
+            throw DbException.throwInternalError();
+        }
+        int columnCount = expressionColumns.size();
+        if (columnCount == 0) {
+            return new ResultWithGeneratedKeys.WithKeys(statement.update(), db.getResultFactory().create());
+        }
+        int[] indexes = new int[columnCount];
+        ExpressionColumn[] expressions = expressionColumns.toArray(new ExpressionColumn[0]);
+        for (int i = 0; i < columnCount; i++) {
+            indexes[i] = expressions[i].getColumn().getColumnId();
+        }
+        LocalResult result = db.getResultFactory().create(session, expressions, columnCount, columnCount);
+        ResultTarget collector = new GeneratedKeysCollector(indexes, result);
+        int updateCount;
+        try {
+            statement.setDeltaChangeCollector(collector, ResultOption.FINAL);
+            updateCount = statement.update();
+        } finally {
+            statement.setDeltaChangeCollector(null, null);
+        }
+        return new ResultWithGeneratedKeys.WithKeys(updateCount, result);
     }
 
     @Override

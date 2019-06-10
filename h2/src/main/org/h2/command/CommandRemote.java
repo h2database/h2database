@@ -199,7 +199,8 @@ public class CommandRemote implements CommandInterface {
     public ResultWithGeneratedKeys executeUpdate(Object generatedKeysRequest) {
         checkParameters();
         boolean supportsGeneratedKeys = session.isSupportsGeneratedKeys();
-        boolean readGeneratedKeys = supportsGeneratedKeys && !Boolean.FALSE.equals(generatedKeysRequest);
+        int generatedKeysMode = GeneratedKeysMode.valueOf(generatedKeysRequest);
+        boolean readGeneratedKeys = supportsGeneratedKeys && generatedKeysMode != GeneratedKeysMode.NONE;
         int objectId = readGeneratedKeys ? session.getNextId() : 0;
         synchronized (session) {
             int updateCount = 0;
@@ -213,9 +214,8 @@ public class CommandRemote implements CommandInterface {
                     transfer.writeInt(SessionRemote.COMMAND_EXECUTE_UPDATE).writeInt(id);
                     sendParameters(transfer);
                     if (supportsGeneratedKeys) {
-                        int mode = GeneratedKeysMode.valueOf(generatedKeysRequest);
-                        transfer.writeInt(mode);
-                        switch (mode) {
+                        transfer.writeInt(generatedKeysMode);
+                        switch (generatedKeysMode) {
                         case GeneratedKeysMode.COLUMN_NUMBERS: {
                             int[] keys = (int[]) generatedKeysRequest;
                             transfer.writeInt(keys.length);

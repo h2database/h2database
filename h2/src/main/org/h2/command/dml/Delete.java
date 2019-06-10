@@ -14,8 +14,8 @@ import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
 import org.h2.expression.Expression;
-import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
+import org.h2.result.ResultTarget;
 import org.h2.result.Row;
 import org.h2.result.RowList;
 import org.h2.table.DataChangeDeltaTable.ResultOption;
@@ -45,7 +45,7 @@ public class Delete extends Prepared implements DataChangeStatement {
 
     private HashSet<Long> keysFilter;
 
-    private LocalResult deltaChangeCollector;
+    private ResultTarget deltaChangeCollector;
 
     private ResultOption deltaChangeCollectionMode;
 
@@ -80,7 +80,7 @@ public class Delete extends Prepared implements DataChangeStatement {
     }
 
     @Override
-    public void setDeltaChangeCollector(LocalResult deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+    public void setDeltaChangeCollector(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
         this.deltaChangeCollector = deltaChangeCollector;
         this.deltaChangeCollectionMode = deltaChangeCollectionMode;
     }

@@ -303,7 +303,7 @@ public class TcpServerThread implements Runnable {
                 commit = session.prepareLocal("COMMIT");
             }
             int old = session.getModificationId();
-            commit.executeUpdate(false);
+            commit.executeUpdate(null);
             transfer.writeInt(getState(old)).flush();
             break;
         }

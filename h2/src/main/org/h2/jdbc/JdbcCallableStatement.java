@@ -47,7 +47,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
 
     JdbcCallableStatement(JdbcConnection conn, String sql, int id,
             int resultSetType, int resultSetConcurrency) {
-        super(conn, sql, id, resultSetType, resultSetConcurrency, false, false);
+        super(conn, sql, id, resultSetType, resultSetConcurrency, false, null);
         setTrace(session.getTrace(), TraceObject.CALLABLE_STATEMENT, id);
     }
 

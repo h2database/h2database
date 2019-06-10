@@ -5,7 +5,6 @@
  */
 package org.h2.engine;
 
-import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 
 /**
@@ -37,28 +36,27 @@ public final class GeneratedKeysMode {
      * Determines mode of generated keys' gathering.
      *
      * @param generatedKeysRequest
-     *            {@code false} if generated keys are not needed, {@code true} if
-     *            generated keys should be configured automatically, {@code int[]}
-     *            to specify column indices to return generated keys from, or
-     *            {@code String[]} to specify column names to return generated keys
-     *            from
+     *            {@code null} or {@code false} if generated keys are not
+     *            needed, {@code true} if generated keys should be configured
+     *            automatically, {@code int[]} to specify column indices to
+     *            return generated keys from, or {@code String[]} to specify
+     *            column names to return generated keys from
      * @return mode for the specified generated keys request
      */
     public static int valueOf(Object generatedKeysRequest) {
-        if (Boolean.FALSE.equals(generatedKeysRequest)) {
+        if (generatedKeysRequest == null || Boolean.FALSE.equals(generatedKeysRequest)) {
             return NONE;
         }
         if (Boolean.TRUE.equals(generatedKeysRequest)) {
             return AUTO;
         }
         if (generatedKeysRequest instanceof int[]) {
-            return COLUMN_NUMBERS;
+            return ((int[]) generatedKeysRequest).length > 0 ? COLUMN_NUMBERS : NONE;
         }
         if (generatedKeysRequest instanceof String[]) {
-            return COLUMN_NAMES;
+            return ((String[]) generatedKeysRequest).length > 0 ? COLUMN_NAMES : NONE;
         }
-        throw DbException.get(ErrorCode.INVALID_VALUE_2,
-                generatedKeysRequest == null ? "null" : generatedKeysRequest.toString());
+        throw DbException.throwInternalError();
     }
 
     private GeneratedKeysMode() {

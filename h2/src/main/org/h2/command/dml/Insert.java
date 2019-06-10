@@ -13,7 +13,6 @@ import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
-import org.h2.engine.GeneratedKeys;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
@@ -27,7 +26,6 @@ import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mvstore.db.MVPrimaryIndex;
 import org.h2.pagestore.db.PageDataIndex;
-import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
 import org.h2.result.Row;
@@ -65,7 +63,7 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
      */
     private boolean ignore;
 
-    private LocalResult deltaChangeCollector;
+    private ResultTarget deltaChangeCollector;
 
     private ResultOption deltaChangeCollectionMode;
 
@@ -123,7 +121,7 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
     }
 
     @Override
-    public void setDeltaChangeCollector(LocalResult deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+    public void setDeltaChangeCollector(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
         this.deltaChangeCollector = deltaChangeCollector;
         this.deltaChangeCollectionMode = deltaChangeCollectionMode;
     }
@@ -157,13 +155,10 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
         setCurrentRowNumber(0);
         table.fire(session, Trigger.INSERT, true);
         rowNumber = 0;
-        GeneratedKeys generatedKeys = session.getGeneratedKeys();
-        generatedKeys.initialize(table);
         int listSize = valuesExpressionList.size();
         if (listSize > 0) {
             int columnLen = columns.length;
             for (int x = 0; x < listSize; x++) {
-                generatedKeys.nextRow();
                 Row newRow = table.getTemplateRow();
                 Expression[] expr = valuesExpressionList.get(x);
                 setCurrentRowNumber(x + 1);
@@ -177,9 +172,6 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
                         try {
                             Value v = e.getValue(session);
                             newRow.setValue(index, v);
-                            if (e.isGeneratedKey()) {
-                                generatedKeys.add(c);
-                            }
                         } catch (DbException ex) {
                             throw setRow(ex, x, getSimpleSQL(expr));
                         }
@@ -209,7 +201,6 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
                     if (deltaChangeCollectionMode == ResultOption.FINAL) {
                         deltaChangeCollector.addRow(newRow.getValueList());
                     }
-                    generatedKeys.confirmRow(newRow);
                     session.log(table, UndoLogRecord.INSERT, newRow);
                     table.fireAfterRow(session, null, newRow, false);
                 }
@@ -221,13 +212,9 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
             } else {
                 ResultInterface rows = query.query(0);
                 while (rows.next()) {
-                    generatedKeys.nextRow();
                     Value[] r = rows.currentRow();
                     try {
-                        Row newRow = addRowImpl(r);
-                        if (newRow != null) {
-                            generatedKeys.confirmRow(newRow);
-                        }
+                        addRow(r);
                     } catch (DbException de) {
                         if (handleOnDuplicate(de, r)) {
                             // MySQL returns 2 for updated row
@@ -248,10 +235,6 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
 
     @Override
     public void addRow(Value... values) {
-        addRowImpl(values);
-    }
-
-    private Row addRowImpl(Value[] values) {
         Row newRow = table.getTemplateRow();
         setCurrentRowNumber(++rowNumber);
         for (int j = 0, len = columns.length; j < len; j++) {
@@ -269,9 +252,7 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
             }
             session.log(table, UndoLogRecord.INSERT, newRow);
             table.fireAfterRow(session, null, newRow, false);
-            return newRow;
         }
-        return null;
     }
 
     @Override

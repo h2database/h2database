@@ -1328,20 +1328,24 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param value to be appended
      */
     public void append(K key, V value) {
-        beforeWrite();
-        RootReference rootReference = lockRoot(getRoot(), 1);
-        int appendCounter = rootReference.getAppendCounter();
-        try {
-            if (appendCounter >= keysPerPage) {
-                rootReference = flushAppendBuffer(rootReference, true);
-                appendCounter = rootReference.getAppendCounter();
-                assert appendCounter < keysPerPage;
+        if (singleWriter) {
+            beforeWrite();
+            RootReference rootReference = lockRoot(getRoot(), 1);
+            int appendCounter = rootReference.getAppendCounter();
+            try {
+                if (appendCounter >= keysPerPage) {
+                    rootReference = flushAppendBuffer(rootReference, false);
+                    appendCounter = rootReference.getAppendCounter();
+                    assert appendCounter < keysPerPage;
+                }
+                keysBuffer[appendCounter] = key;
+                valuesBuffer[appendCounter] = value;
+                ++appendCounter;
+            } finally {
+                unlockRoot(appendCounter);
             }
-            keysBuffer[appendCounter] = key;
-            valuesBuffer[appendCounter] = value;
-            ++appendCounter;
-        } finally {
-            unlockRoot(rootReference.root, appendCounter);
+        } else {
+            put(key, value);
         }
     }
 
@@ -1351,24 +1355,31 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * Non-updating method may be used concurrently, but latest removal may not be visible.
      */
     public void trimLast() {
-        RootReference rootReference = getRoot();
-        int appendCounter = rootReference.getAppendCounter();
-        boolean useRegularRemove = appendCounter == 0;
-        if (!useRegularRemove) {
-            rootReference = lockRoot(rootReference, 1);
-            appendCounter = rootReference.getAppendCounter();
-            useRegularRemove = appendCounter == 0;
+        if (singleWriter) {
+            RootReference rootReference = getRoot();
+            int appendCounter = rootReference.getAppendCounter();
+            boolean useRegularRemove = appendCounter == 0;
             if (!useRegularRemove) {
-                --appendCounter;
+                rootReference = lockRoot(rootReference, 1);
+                try {
+                    appendCounter = rootReference.getAppendCounter();
+                    useRegularRemove = appendCounter == 0;
+                    if (!useRegularRemove) {
+                        --appendCounter;
+                    }
+                } finally {
+                    unlockRoot(appendCounter);
+                }
             }
-            unlockRoot(rootReference.root, appendCounter);
-        }
-        if (useRegularRemove) {
-            Page lastLeaf = rootReference.root.getAppendCursorPos(null).page;
-            assert lastLeaf.isLeaf();
-            assert lastLeaf.getKeyCount() > 0;
-            Object key = lastLeaf.getKey(lastLeaf.getKeyCount() - 1);
-            remove(key);
+            if (useRegularRemove) {
+                Page lastLeaf = rootReference.root.getAppendCursorPos(null).page;
+                assert lastLeaf.isLeaf();
+                assert lastLeaf.getKeyCount() > 0;
+                Object key = lastLeaf.getKey(lastLeaf.getKeyCount() - 1);
+                remove(key);
+            }
+        } else {
+            remove(lastKey());
         }
     }
 
@@ -1857,6 +1868,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     private RootReference unlockRoot(Page newRootPage) {
         return unlockRoot(newRootPage, -1);
+    }
+
+    private void unlockRoot(int appendCounter) {
+        unlockRoot(null, appendCounter);
     }
 
     private RootReference unlockRoot(Page newRootPage, int appendCounter) {

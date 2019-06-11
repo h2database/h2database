@@ -1117,6 +1117,11 @@ public class TestTools extends TestDb {
                 public void test() throws SQLException {
                     getConnection("jdbc:h2:tcp://localhost:"+port+"/../test2/test", "sa", "");
             }};
+            new AssertThrows(ErrorCode.WRONG_USER_OR_PASSWORD) {
+                @Override
+                public void test() throws SQLException {
+                    Server.shutdownTcpServer("tcp://localhost:"+port, "", true, false);
+            }};
             tcpServer.stop();
             Server tcpServerWithPassword = Server.createTcpServer(
                             "-ifExists",

@@ -26,6 +26,7 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.util.JdbcUtils;
+import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
@@ -84,6 +85,9 @@ public class TcpServer implements Service {
     }
 
     private void initManagementDb() throws SQLException {
+        if (managementPassword.isEmpty()) {
+            managementPassword = StringUtils.convertBytesToHex(MathUtils.secureRandomBytes(32));
+        }
         Properties prop = new Properties();
         prop.setProperty("user", "");
         prop.setProperty("password", managementPassword);

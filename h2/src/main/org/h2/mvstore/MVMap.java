@@ -619,7 +619,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 return 0;
             }
             assert p.getKeyCount() > 0;
-            return rewritePage(p) ? 0 : 1;
+            return rewritePage(p) ? 1 : 0;
         }
         int writtenPageCount = 0;
         for (int i = 0; i < getChildPageCount(p); i++) {
@@ -645,14 +645,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 // (this is not needed if anyway one of the children
                 // was changed, as this would have updated this
                 // page as well)
-                Page p2 = p;
-                while (!p2.isLeaf()) {
-                    p2 = p2.getChildPage(0);
+                while (!p.isLeaf()) {
+                    p = p.getChildPage(0);
                 }
-                if (rewritePage(p2)) {
-                    return 0;
+                if (rewritePage(p)) {
+                    writtenPageCount = 1;
                 }
-                writtenPageCount++;
             }
         }
         return writtenPageCount;
@@ -662,7 +660,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         @SuppressWarnings("unchecked")
         K key = (K) p.getKey(0);
         if (!isClosed()) {
-            return !rewrite(key);
+            return rewrite(key);
         }
         return true;
     }

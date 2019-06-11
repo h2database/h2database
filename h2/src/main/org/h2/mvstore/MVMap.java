@@ -512,6 +512,14 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return res;
     }
 
+    private boolean rewrite(K key) {
+        ContainsDecisionMaker<V> decisionMaker = new ContainsDecisionMaker<>();
+        V result = operate(key, null, decisionMaker);
+        boolean res = decisionMaker.getDecision() != Decision.ABORT;
+        assert res == (result != null);
+        return res;
+    }
+
     /**
      * Replace a value for an existing key.
      *
@@ -653,14 +661,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     private boolean rewritePage(Page p) {
         @SuppressWarnings("unchecked")
         K key = (K) p.getKey(0);
-        V value = get(key);
-        if (value != null) {
-            if (isClosed()) {
-                return true;
-            }
-            replace(key, value, value);
+        if (!isClosed()) {
+            return !rewrite(key);
         }
-        return false;
+        return true;
     }
 
     /**
@@ -1924,6 +1928,38 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         @Override
         public String toString() {
             return "equals_to "+expectedValue;
+        }
+    }
+
+    private static final class ContainsDecisionMaker<V> extends DecisionMaker<V> {
+        private Decision decision;
+
+        ContainsDecisionMaker() {}
+
+        @Override
+        public Decision decide(V existingValue, V providedValue) {
+            assert decision == null;
+            decision = existingValue == null ? Decision.ABORT : Decision.PUT;
+            return decision;
+        }
+
+        @Override
+        public <T extends V> T selectValue(T existingValue, T providedValue) {
+            return existingValue;
+        }
+
+        @Override
+        public void reset() {
+            decision = null;
+        }
+
+        Decision getDecision() {
+            return decision;
+        }
+
+        @Override
+        public String toString() {
+            return "contains";
         }
     }
 

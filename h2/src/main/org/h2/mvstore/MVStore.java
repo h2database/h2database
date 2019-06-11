@@ -869,8 +869,7 @@ public class MVStore implements AutoCloseable {
             int length = c.len * BLOCK_SIZE;
             fileStore.markUsed(start, length);
         }
-        assert fileStore.getFileLengthInUse() == measureFileLengthInUse() :
-                fileStore.getFileLengthInUse() + " != " + measureFileLengthInUse();
+        assert validateFileLength("on open");
         setWriteVersion(currentVersion);
         if (lastStoredVersion == INITIAL_VERSION) {
             lastStoredVersion = currentVersion - 1;
@@ -1024,18 +1023,14 @@ public class MVStore implements AutoCloseable {
                                 commit();
 
                                 shrinkFileIfPossible(0);
+                                assert validateFileLength("on close");
                             }
 
                             state = STATE_CLOSING;
 
                             // release memory early - this is important when called
                             // because of out of memory
-                            if (cache != null) {
-                                cache.clear();
-                            }
-                            if (cacheChunkRef != null) {
-                                cacheChunkRef.clear();
-                            }
+                            clearCaches();
                             for (MVMap<?, ?> m : new ArrayList<>(maps.values())) {
                                 m.close();
                             }
@@ -1303,8 +1298,7 @@ public class MVStore implements AutoCloseable {
         long filePos = allocateFileSpace(length, !reuseSpace);
         c.block = filePos / BLOCK_SIZE;
         c.len = length / BLOCK_SIZE;
-        assert fileStore.getFileLengthInUse() == measureFileLengthInUse() :
-                fileStore.getFileLengthInUse() + " != " + measureFileLengthInUse() + " " + c;
+        assert validateFileLength(c.asString());
         c.metaRootPos = metaRoot.getPos();
         // calculate and set the likely next position
         if (reuseSpace) {
@@ -1425,8 +1419,7 @@ public class MVStore implements AutoCloseable {
                             long start = c.block * BLOCK_SIZE;
                             int length = c.len * BLOCK_SIZE;
                             fileStore.free(start, length);
-                            assert fileStore.getFileLengthInUse() == measureFileLengthInUse() :
-                                    fileStore.getFileLengthInUse() + " != " + measureFileLengthInUse();
+                            assert validateFileLength("freeUnusedChunks");
                         } else {
                             if (c.unused == 0) {
                                 c.unused = time;
@@ -1776,7 +1769,7 @@ public class MVStore implements AutoCloseable {
     private long measureFileLengthInUse() {
         long size = 2;
         for (Chunk c : chunks.values()) {
-            if (c.len != Integer.MAX_VALUE) {
+            if (c.isSaved()) {
                 size = Math.max(size, c.block + c.len);
             }
         }
@@ -2544,9 +2537,7 @@ public class MVStore implements AutoCloseable {
                     Chunk c = chunks.remove(id);
                     long start = c.block * BLOCK_SIZE;
                     int length = c.len * BLOCK_SIZE;
-                    fileStore.free(start, length);
-                    assert fileStore.getFileLengthInUse() == measureFileLengthInUse() :
-                            fileStore.getFileLengthInUse() + " != " + measureFileLengthInUse();
+                    freeFileSpace(start, length);
                     // overwrite the chunk,
                     // so it is not be used later on
                     WriteBuffer buff = getWriteBuffer();
@@ -2583,6 +2574,15 @@ public class MVStore implements AutoCloseable {
             }
         } finally {
             storeLock.unlock();
+        }
+    }
+
+    private void clearCaches() {
+        if (cacheChunkRef != null) {
+            cacheChunkRef.clear();
+        }
+        if (cache != null) {
+            cache.clear();
         }
     }
 
@@ -3057,6 +3057,17 @@ public class MVStore implements AutoCloseable {
         currentTxCounter = new TxCounter(version);
         txCounter.decrementAndGet();
         dropUnusedVersions();
+    }
+
+    private void freeFileSpace(long start, int length) {
+        fileStore.free(start, length);
+        assert validateFileLength(start + ":" + length);
+    }
+
+    private boolean validateFileLength(String msg) {
+        assert fileStore.getFileLengthInUse() == measureFileLengthInUse() :
+                fileStore.getFileLengthInUse() + " != " + measureFileLengthInUse() + " " + msg;
+        return true;
     }
 
     private void dropUnusedVersions() {

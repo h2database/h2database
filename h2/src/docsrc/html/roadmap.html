@@ -51,7 +51,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     Create, alter and drop privileges.
     COMMENT: allow owner of object to change it.
     Issue 208: Access rights for schemas.
-</li><li>Test multi-threaded in-memory db access.
 </li><li>Support GRANT SELECT, UPDATE ON [schemaName.] *.
 </li><li>Migrate database tool (also from other database engines). For Oracle, maybe use
     DBMS_METADATA.GET_DDL / GET_DEPENDENT_DDL.
@@ -133,7 +132,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Add a sample application that runs the H2 unit test and writes the result to a file (so it can be included in the user app).
 </li><li>Table order: ALTER TABLE TEST ORDER BY NAME DESC (MySQL compatibility).
 </li><li>Backup tool should work with other databases as well.
-</li><li>Console: -ifExists doesn't work for the console. Add a flag to disable other dbs.
 </li><li>Check if 'FSUTIL behavior set disablelastaccess 1' improves the performance (fsutil behavior query disablelastaccess).
 </li><li>Java static code analysis: https://pmd.github.io/
 </li><li>Compatibility for CREATE SCHEMA AUTHORIZATION.
@@ -175,7 +173,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>In the MySQL and PostgreSQL mode, use lower case identifiers by default (DatabaseMetaData.storesLowerCaseIdentifiers = true)
 </li><li>Support multiple directories (on different hard drives) for the same database
 </li><li>Server protocol: use challenge response authentication, but client sends hash(user+password) encrypted with response
-</li><li>Support EXEC[UTE] (doesn't return a result set, compatible to MS SQL Server)
 </li><li>Support native XML data type - see http://en.wikipedia.org/wiki/SQL/XML
 </li><li>Support triggers with a string property or option: SpringTrigger, OSGITrigger
 </li><li>MySQL compatibility: update test1 t1, test2 t2 set t1.id = t2.id where t1.id = t2.id;
@@ -184,8 +181,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Check state of H2 driver for DDLUtils: http://issues.apache.org/jira/browse/DDLUTILS-185
 </li><li>Index usage for REGEXP LIKE.
 </li><li>Compatibility: add a role DBA (like ADMIN).
-</li><li>Better support multiple processors for in-memory databases.
-</li><li>Support N'text'
 </li><li>Support compatibility for jdbc:hsqldb:res:
 </li><li>HSQLDB compatibility: automatically convert to the next 'higher' data type.
     Example: cast(2000000000 as int) + cast(2000000000 as int);
@@ -203,13 +198,11 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support select * from dual a left join dual b on b.x=(select max(x) from dual)
 </li><li>Optimization: don't lock when the database is read-only
 </li><li>Issue 146: Support merge join.
-</li><li>Integrate spatial functions from http://geosysin.iict.ch/irstv-trac/wiki/H2spatial/Download
 </li><li>Cluster: hot deploy (adding a node at runtime).
 </li><li>Support DatabaseMetaData.insertsAreDetected: updatable result sets should detect inserts.
 </li><li>Native search: support "phrase search", wildcard search (* and ?), case-insensitive search, boolean operators, and grouping
 </li><li>Improve documentation of access rights.
 </li><li>Support opening a database that is in the classpath, maybe using a new file system. Workaround: detect jar file using getClass().getProtectionDomain().getCodeSource().getLocation().
-</li><li>Remember the user defined data type (domain) of a column.
 </li><li>Auto-server: add option to define the port range or list.
 </li><li>Support Jackcess (MS Access databases)
 </li><li>Built-in methods to write large objects (BLOB and CLOB): FILE_WRITE('test.txt', 'Hello World')
@@ -249,7 +242,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>H2 Console: support CLOB/BLOB download using a link.
 </li><li>Support flashback queries as in Oracle.
 </li><li>Import / Export of fixed with text files.
-</li><li>HSQLDB compatibility: automatic data type for SUM if value is the value is too big (by default use the same type as the data).
 </li><li>Improve the optimizer to select the right index for special cases: where id between 2 and 4 and booleanColumn
 </li><li>Linked tables: make hidden columns available (Oracle: rowid and ora_rowscn columns).
 </li><li>H2 Console: in-place autocomplete.
@@ -263,7 +255,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support Oracle ROWID (unique identifier for each row).
 </li><li>MySQL compatibility: alter table add index i(c), add constraint c foreign key(c) references t(c);
 </li><li>Server mode: improve performance for batch updates.
-</li><li>Applets: support read-only databases in a zip file (accessed as a resource).
 </li><li>Long running queries / errors / trace system table.
 </li><li>Better document FTL_SEARCH, FTL_SEARCH_DATA.
 </li><li>Sequences: CURRVAL should be session specific. Compatibility with PostgreSQL.
@@ -344,7 +335,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Improve concurrency for in-memory database operations.
 </li><li>Issue 122: Support for connection aliases for remote tcp connections.
 </li><li>Fast scrambling (strong encryption doesn't help if the password is included in the application).
-</li><li>H2 Console: support -webPassword to require a password to access preferences or shutdown.
 </li><li>Issue 126: The index name should be "IDX_" plus the constraint name unless there is a conflict, in which case append a number.
 </li><li>Issue 127: Support activation/deactivation of triggers
 </li><li>Issue 130: Custom log event listeners
@@ -498,7 +488,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support SELECT ... FOR UPDATE OF [table-list] (supported by PostgreSQL, HSQLDB, Sybase).
 </li><li>TRANSACTION_ID() for in-memory databases.
 </li><li>TRANSACTION_ID() should be long (same as HSQLDB and PostgreSQL).
-</li><li>Support [INNER | OUTER] JOIN USING(column [,...]).
 </li><li>Support NATURAL [ { LEFT | RIGHT } [ OUTER ] | INNER ] JOIN (Derby, Oracle)
 </li><li>GROUP BY columnNumber (similar to ORDER BY columnNumber) (MySQL, PostgreSQL, SQLite; not by HSQLDB and Derby).
 </li><li>Index conditions: WHERE AGE>1 should not scan through all rows with AGE=1.

@@ -250,9 +250,10 @@ public class TcpServer implements Service {
         try {
             while (!stop) {
                 Socket s = serverSocket.accept();
-                TcpServerThread c = new TcpServerThread(s, this, nextThreadId++);
+                int id = nextThreadId++;
+                TcpServerThread c = new TcpServerThread(s, this, id);
                 running.add(c);
-                Thread thread = new Thread(c, threadName + " thread");
+                Thread thread = new Thread(c, threadName + " thread-" + id);
                 thread.setDaemon(isDaemon);
                 c.setThread(thread);
                 thread.start();

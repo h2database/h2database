@@ -9,6 +9,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.net.Socket;
+import java.net.SocketException;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.Types;
@@ -17,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import org.h2.command.Command;
 import org.h2.constraint.Constraint;
@@ -54,6 +57,8 @@ import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
+import org.h2.server.TcpServer;
+import org.h2.server.TcpServerThread;
 import org.h2.store.InDoubtTransaction;
 import org.h2.tools.Csv;
 import org.h2.util.DateTimeUtils;
@@ -117,7 +122,8 @@ public class MetaTable extends Table {
     private static final int TABLE_CONSTRAINTS = 30;
     private static final int KEY_COLUMN_USAGE = 31;
     private static final int REFERENTIAL_CONSTRAINTS = 32;
-    private static final int META_TABLE_TYPE_COUNT = REFERENTIAL_CONSTRAINTS + 1;
+    private static final int TCP_CONNECTIONS = 33;
+    private static final int META_TABLE_TYPE_COUNT = TCP_CONNECTIONS + 1;
 
     private final int type;
     private final int indexColumn;
@@ -618,6 +624,26 @@ public class MetaTable extends Table {
                     "MATCH_OPTION",
                     "UPDATE_RULE",
                     "DELETE_RULE"
+            );
+            break;
+        }
+        case TCP_CONNECTIONS: {
+            setMetaTableName("TCP_CONNECTIONS");
+            cols = createColumns(
+                    "TCP_SESSION_ID",
+                    "SESSION_ID",
+                    "THREAD_ID",
+                    "REMOTE_IP_ADDRESS",
+                    "REMOTE_PORT",
+                    "LOCAL_IP_ADDRESS",
+                    "LOCAL_PORT",
+                    "RECV_BUFFER_SIZE",
+                    "SEND_BUFFER_SIZE",
+                    "KEEP_ALIVE",
+                    "SO_TIMEOUT",
+                    "SO_LINGER",
+                    "TCP_NO_DELAY",
+                    "IS_CLOSED"
             );
             break;
         }
@@ -2149,6 +2175,52 @@ public class MetaTable extends Table {
                         // DELETE_RULE
                         constraint.getDeleteAction().getSqlName()
                 );
+            }
+            break;
+        }
+        case TCP_CONNECTIONS: {
+            Map<Integer, TcpServer> tcpServers = TcpServer.listTcpServers();
+            for(Map.Entry<Integer, TcpServer> tcpServerEntry : tcpServers.entrySet()) {
+                for(TcpServerThread tcpServerThread : tcpServerEntry.getValue().listThreads()) {
+                    if(tcpServerThread.getTransfer() == null || tcpServerThread.getTransfer().getSocket() == null) {
+                        continue;
+                    }
+                    Socket socket = tcpServerThread.getTransfer().getSocket();
+
+                    Integer soTimeoutValue = null;
+                    try { soTimeoutValue = socket.getSoTimeout(); } catch (SocketException e) {}
+
+                    Integer sendBufferSizeValue = null;
+                    try { sendBufferSizeValue = socket.getSendBufferSize(); } catch (SocketException e) {}
+
+                    Integer recvBufferSizeValue = null;
+                    try { recvBufferSizeValue = socket.getSendBufferSize(); } catch (SocketException e) {}
+
+                    Boolean keepAliveValue = null;
+                    try { keepAliveValue = socket.getKeepAlive(); } catch (SocketException e) {}
+
+                    Integer soLingerValue = null;
+                    try { soLingerValue = socket.getSoLinger(); } catch (SocketException e) {}
+
+                    Boolean tcpNoDelayValue = null;
+                    try { tcpNoDelayValue = socket.getTcpNoDelay(); } catch (SocketException e) {}
+
+                    add(rows,
+                        tcpServerThread.getTcpSessionId(),
+                        ValueInt.get(tcpServerThread.getSessionId()),
+                        ValueInt.get(tcpServerThread.getThreadId()),
+                        (socket.getInetAddress() != null ? socket.getInetAddress().toString().replace("/","") : null),
+                        ValueInt.get(socket.getPort()),
+                        (socket.getLocalAddress() != null ? socket.getLocalAddress().toString().replace("/","") : null),
+                        ValueInt.get(socket.getLocalPort()),
+                        ValueInt.get(recvBufferSizeValue),
+                        ValueInt.get(sendBufferSizeValue),
+                        ValueBoolean.get(keepAliveValue),
+                        ValueInt.get(soTimeoutValue),
+                        ValueInt.get(soLingerValue),
+                        ValueBoolean.get(tcpNoDelayValue),
+                        ValueBoolean.get(socket.isClosed()));
+                }
             }
             break;
         }

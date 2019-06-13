@@ -16,7 +16,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -520,4 +522,11 @@ public class TcpServer implements Service {
         return isDaemon;
     }
 
+    public static Map<Integer, TcpServer> listTcpServers() {
+        return new HashMap<>(SERVERS);
+    }
+
+    public Set<TcpServerThread> listThreads() {
+        return new HashSet<TcpServerThread>(running);
+    }
 }

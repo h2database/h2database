@@ -589,6 +589,22 @@ public class TcpServerThread implements Runnable {
         return thread;
     }
 
+    public Transfer getTransfer() {
+        return this.transfer;
+    }
+
+    public Integer getSessionId() {
+        return (this.session != null ? this.session.getId() : null);
+    }
+
+    public String getTcpSessionId() {
+        return this.sessionId;
+    }
+
+    public int getThreadId() {
+        return this.threadId;
+    }
+
     /**
      * Cancel a running statement.
      *

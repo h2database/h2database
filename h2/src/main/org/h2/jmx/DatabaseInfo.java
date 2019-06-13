@@ -22,6 +22,7 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.pagestore.PageStore;
 import org.h2.table.Table;
+import org.h2.util.NetworkConnectionInfo;
 
 /**
  * The MBean implementation.
@@ -245,6 +246,11 @@ public class DatabaseInfo implements DatabaseInfoMBean {
             buff.append(" user: ").
                     append(session.getUser().getName()).
                     append('\n');
+            NetworkConnectionInfo networkConnectionInfo = session.getNetworkConnectionInfo();
+            if (networkConnectionInfo != null) {
+                buff.append("server: ").append(networkConnectionInfo.getServer()).append('\n') //
+                        .append("clientAddr: ").append(networkConnectionInfo.getClient()).append('\n');
+            }
             buff.append("connected: ").
                     append(new Timestamp(session.getSessionStart())).
                     append('\n');

@@ -22,6 +22,7 @@ import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.util.IOUtils;
 import org.h2.util.NetUtils;
+import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
@@ -135,8 +136,8 @@ class WebThread extends WebApp implements Runnable {
                 session = server.getSession(sessionId);
             }
             keepAlive = parseHeader();
-            String hostAddr = socket.getInetAddress().getHostAddress();
-            file = processRequest(file, hostAddr);
+            file = processRequest(file, new NetworkConnectionInfo("http:" + server.getPort(),
+                    socket.getInetAddress().getAddress(), socket.getPort()));
             if (file.length() == 0) {
                 // asynchronous request
                 return true;

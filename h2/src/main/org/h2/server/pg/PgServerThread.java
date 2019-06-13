@@ -42,6 +42,7 @@ import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
+import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.ScriptReader;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -225,6 +226,8 @@ public class PgServerThread implements Runnable {
                 if (server.getIfExists()) {
                     ci.setProperty("IFEXISTS", "TRUE");
                 }
+                ci.setNetworkConnectionInfo(new NetworkConnectionInfo("pg:" + server.getPort(),
+                        socket.getInetAddress().getAddress(), socket.getPort()));
                 conn = new JdbcConnection(ci, false);
                 // can not do this because when called inside
                 // DriverManager.getConnection, a deadlock occurs

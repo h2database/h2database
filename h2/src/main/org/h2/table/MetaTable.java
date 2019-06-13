@@ -58,6 +58,7 @@ import org.h2.store.InDoubtTransaction;
 import org.h2.tools.Csv;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
+import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
@@ -513,6 +514,8 @@ public class MetaTable extends Table {
             cols = createColumns(
                     "ID INT",
                     "USER_NAME",
+                    "SERVER",
+                    "CLIENT_ADDR",
                     "SESSION_START TIMESTAMP WITH TIME ZONE",
                     "STATEMENT",
                     "STATEMENT_START TIMESTAMP WITH TIME ZONE",
@@ -1858,6 +1861,7 @@ public class MetaTable extends Table {
         case SESSIONS: {
             for (Session s : database.getSessions(false)) {
                 if (admin || s == session) {
+                    NetworkConnectionInfo networkConnectionInfo = s.getNetworkConnectionInfo();
                     Command command = s.getCurrentCommand();
                     int blockingSessionId = s.getBlockingSessionId();
                     add(rows,
@@ -1865,6 +1869,10 @@ public class MetaTable extends Table {
                             ValueInt.get(s.getId()),
                             // USER_NAME
                             s.getUser().getName(),
+                            // SERVER
+                            networkConnectionInfo == null ? null : networkConnectionInfo.getServer(),
+                            // CLIENT_ADDR
+                            networkConnectionInfo == null ? null : networkConnectionInfo.getClient(),
                             // SESSION_START
                             DateTimeUtils.timestampTimeZoneFromMillis(s.getSessionStart()),
                             // STATEMENT

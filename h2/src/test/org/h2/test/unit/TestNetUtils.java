@@ -6,6 +6,7 @@
 package org.h2.test.unit;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashSet;
@@ -50,6 +51,7 @@ public class TestNetUtils extends TestBase {
         testTlsSessionWithServerSideAnonymousDisabled();
         testFrequentConnections(true, 100);
         testFrequentConnections(false, 1000);
+        testIpToShortForm();
     }
 
     /**
@@ -265,6 +267,21 @@ public class TestNetUtils extends TestBase {
             return exception;
         }
 
+    }
+
+    private void testIpToShortForm() throws Exception {
+        testIpToShortForm("1.2.3.4", "1.2.3.4");
+        testIpToShortForm("1:2:3:4:a:b:c:d", "1:2:3:4:a:b:c:d");
+        testIpToShortForm("::1", "::1");
+        testIpToShortForm("1::", "1::");
+        testIpToShortForm("c1c1:0:0:2::fffe", "c1c1:0:0:2:0:0:0:fffe");
+    }
+
+    private void testIpToShortForm(String expected, String source) throws Exception {
+        byte[] addr = InetAddress.getByName(source).getAddress();
+        assertEquals(expected, NetUtils.ipToShortForm(null, addr).toString());
+        assertEquals(expected, NetUtils.ipToShortForm(new StringBuilder(), addr).toString());
+        assertEquals(expected, NetUtils.ipToShortForm(new StringBuilder("*"), addr).deleteCharAt(0).toString());
     }
 
 }

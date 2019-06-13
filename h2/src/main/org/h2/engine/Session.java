@@ -51,6 +51,7 @@ import org.h2.table.TableFilter;
 import org.h2.table.TableType;
 import org.h2.util.ColumnNamerConfiguration;
 import org.h2.util.CurrentTimestamp;
+import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
@@ -87,6 +88,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private ConnectionInfo connectionInfo;
     private final User user;
     private final int id;
+
+    private NetworkConnectionInfo networkConnectionInfo;
+
     private final ArrayList<Table> locks = Utils.newSmallArrayList();
     private UndoLog undoLog;
     private boolean autoCommit = true;
@@ -1912,6 +1916,20 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     @Override
     public boolean isSupportsGeneratedKeys() {
         return true;
+    }
+
+    /**
+     * Returns the network connection information, or {@code null}.
+     *
+     * @return the network connection information, or {@code null}
+     */
+    public NetworkConnectionInfo getNetworkConnectionInfo() {
+        return networkConnectionInfo;
+    }
+
+    @Override
+    public void setNetworkConnectionInfo(NetworkConnectionInfo networkConnectionInfo) {
+        this.networkConnectionInfo = networkConnectionInfo;
     }
 
 }

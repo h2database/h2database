@@ -19,6 +19,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.h2.util.NetworkConnectionInfo;
+
 /**
  * This servlet lets the H2 Console be used in a standard servlet container
  * such as Tomcat or Jetty.
@@ -117,8 +119,8 @@ public class WebServlet extends HttpServlet {
         app.setSession(session, attributes);
         String ifModifiedSince = req.getHeader("if-modified-since");
 
-        String hostAddr = req.getRemoteAddr();
-        file = app.processRequest(file, hostAddr);
+        file = app.processRequest(file, new NetworkConnectionInfo("web:" + req.getServerPort(),
+                req.getRemoteAddr(), req.getRemotePort()));
         session = app.getSession();
 
         String mimeType = app.getMimeType();

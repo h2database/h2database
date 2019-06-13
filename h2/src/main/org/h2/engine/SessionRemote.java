@@ -29,6 +29,7 @@ import org.h2.store.fs.FileUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
+import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
@@ -871,6 +872,11 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     @Override
     public boolean isSupportsGeneratedKeys() {
         return getClientVersion() >= Constants.TCP_PROTOCOL_VERSION_17;
+    }
+
+    @Override
+    public void setNetworkConnectionInfo(NetworkConnectionInfo networkConnectionInfo) {
+        // Not supported
     }
 
 }

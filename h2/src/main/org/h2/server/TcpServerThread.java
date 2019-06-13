@@ -35,6 +35,7 @@ import org.h2.result.ResultInterface;
 import org.h2.result.ResultWithGeneratedKeys;
 import org.h2.store.LobStorageInterface;
 import org.h2.util.IOUtils;
+import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.SmallMap;
 import org.h2.value.DataType;
@@ -157,6 +158,8 @@ public class TcpServerThread implements Runnable {
                         ci.setFileEncryptionKey(transfer.readBytes());
                     }
                 }
+                ci.setNetworkConnectionInfo(new NetworkConnectionInfo("tcp:" + server.getPort(),
+                        socket.getInetAddress().getAddress(), socket.getPort()));
                 session = Engine.getInstance().createSession(ci);
                 transfer.setSession(session);
                 server.addConnection(threadId, originalURL, ci.getUserName());

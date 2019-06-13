@@ -21,6 +21,7 @@ import org.h2.api.CustomDataTypesHandler;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
 import org.h2.engine.SysProperties;
+import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.store.DataHandler;
 import org.h2.util.Utils.ClassFactory;
@@ -271,7 +272,7 @@ public class JdbcUtils {
         if (password != null) {
             prop.setProperty("password", password);
         }
-        return getConnection(driver, url, prop);
+        return getConnection(driver, url, prop, null);
     }
 
     /**
@@ -280,10 +281,19 @@ public class JdbcUtils {
      * @param driver the driver class name
      * @param url the database URL
      * @param prop the properties containing at least the user name and password
+     * @param networkConnectionInfo the network connection information, or {@code null}
      * @return the database connection
      */
-    public static Connection getConnection(String driver, String url,
-            Properties prop) throws SQLException {
+    public static Connection getConnection(String driver, String url, Properties prop,
+            NetworkConnectionInfo networkConnectionInfo) throws SQLException {
+        Connection connection = getConnection(driver, url, prop);
+        if (networkConnectionInfo != null && connection instanceof JdbcConnection) {
+            ((JdbcConnection) connection).getSession().setNetworkConnectionInfo(networkConnectionInfo);
+        }
+        return connection;
+    }
+
+    private static Connection getConnection(String driver, String url, Properties prop) throws SQLException {
         if (StringUtils.isNullOrEmpty(driver)) {
             JdbcUtils.load(url);
         } else {

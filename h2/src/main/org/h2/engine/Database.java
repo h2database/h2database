@@ -77,6 +77,7 @@ import org.h2.tools.Server;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
+import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.SourceCompiler;
 import org.h2.util.StringUtils;
@@ -1348,10 +1349,11 @@ public class Database implements DataHandler {
      * Create a session for the given user.
      *
      * @param user the user
+     * @param networkConnectionInfo the network connection information, or {@code null}
      * @return the session, or null if the database is currently closing
      * @throws DbException if the database is in exclusive mode
      */
-    synchronized Session createSession(User user) {
+    synchronized Session createSession(User user, NetworkConnectionInfo networkConnectionInfo) {
         if (closing) {
             return null;
         }
@@ -1359,6 +1361,7 @@ public class Database implements DataHandler {
             throw DbException.get(ErrorCode.DATABASE_IS_IN_EXCLUSIVE_MODE);
         }
         Session session = new Session(this, user, ++nextSessionId);
+        session.setNetworkConnectionInfo(networkConnectionInfo);
         userSessions.add(session);
         trace.info("connecting session #{0} to {1}", session.getId(), databaseName);
         if (delayedCloser != null) {

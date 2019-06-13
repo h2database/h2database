@@ -56,6 +56,8 @@ import org.h2.tools.RunScript;
 import org.h2.tools.Script;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.JdbcUtils;
+import org.h2.util.NetUtils;
+import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.Profiler;
 import org.h2.util.ScriptReader;
 import org.h2.util.SortedProperties;
@@ -125,10 +127,10 @@ public class WebApp {
      * Process an HTTP request.
      *
      * @param file the file that was requested
-     * @param hostAddr the host address
+     * @param networkConnectionInfo the network connection information
      * @return the name of the file to return to the client
      */
-    String processRequest(String file, String hostAddr) {
+    String processRequest(String file, NetworkConnectionInfo networkConnectionInfo) {
         int index = file.lastIndexOf('.');
         String suffix;
         if (index >= 0) {
@@ -151,7 +153,8 @@ public class WebApp {
             cache = false;
             mimeType = "text/html";
             if (session == null) {
-                session = server.createNewSession(hostAddr);
+                session = server.createNewSession(
+                        NetUtils.ipToShortForm(null, networkConnectionInfo.getClientAddr()).toString());
                 if (!"notAllowed.jsp".equals(file)) {
                     file = "index.do";
                 }
@@ -166,13 +169,13 @@ public class WebApp {
         trace("mimeType=" + mimeType);
         trace(file);
         if (file.endsWith(".do")) {
-            file = process(file);
+            file = process(file, networkConnectionInfo);
         } else if (file.endsWith(".jsp")) {
             switch (file) {
             case "admin.jsp":
             case "tools.jsp":
                 if (!checkAdmin(file)) {
-                    file = process("adminLogin.do");
+                    file = process("adminLogin.do", networkConnectionInfo);
                 }
             }
         }
@@ -211,12 +214,12 @@ public class WebApp {
         return buff.toString();
     }
 
-    private String process(String file) {
+    private String process(String file, NetworkConnectionInfo networkConnectionInfo) {
         trace("process " + file);
         while (file.endsWith(".do")) {
             switch (file) {
             case "login.do":
-                file = login();
+                file = login(networkConnectionInfo);
                 break;
             case "index.do":
                 file = index();
@@ -231,7 +234,7 @@ public class WebApp {
                 file = settingSave();
                 break;
             case "test.do":
-                file = test();
+                file = test(networkConnectionInfo);
                 break;
             case "query.do":
                 file = query();
@@ -924,7 +927,7 @@ public class WebApp {
         return "<div class=\"error\">" + s + "</div>";
     }
 
-    private String test() {
+    private String test(NetworkConnectionInfo networkConnectionInfo) {
         String driver = attributes.getProperty("driver", "");
         String url = attributes.getProperty("url", "");
         String user = attributes.getProperty("user", "");
@@ -940,7 +943,7 @@ public class WebApp {
             prof.startCollecting();
             Connection conn;
             try {
-                conn = server.getConnection(driver, url, user, password, null);
+                conn = server.getConnection(driver, url, user, password, null, networkConnectionInfo);
             } finally {
                 prof.stopCollecting();
                 profOpen = prof.getTop(3);
@@ -991,7 +994,7 @@ public class WebApp {
         return getStackTrace(0, e, isH2);
     }
 
-    private String login() {
+    private String login(NetworkConnectionInfo networkConnectionInfo) {
         String driver = attributes.getProperty("driver", "");
         String url = attributes.getProperty("url", "");
         String user = attributes.getProperty("user", "");
@@ -1001,7 +1004,8 @@ public class WebApp {
         session.put("maxrows", "1000");
         boolean isH2 = url.startsWith("jdbc:h2:");
         try {
-            Connection conn = server.getConnection(driver, url, user, password, (String) session.get("key"));
+            Connection conn = server.getConnection(driver, url, user, password, (String) session.get("key"),
+                    networkConnectionInfo);
             session.setConnection(conn);
             session.put("url", url);
             session.put("user", user);

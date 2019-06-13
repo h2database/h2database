@@ -18,6 +18,7 @@ import org.h2.security.SHA256;
 import org.h2.store.fs.FilePathEncrypt;
 import org.h2.store.fs.FilePathRec;
 import org.h2.store.fs.FileUtils;
+import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -45,6 +46,8 @@ public class ConnectionInfo implements Cloneable {
     private boolean ssl;
     private boolean persistent;
     private boolean unnamed;
+
+    private NetworkConnectionInfo networkConnectionInfo;
 
     /**
      * Create a connection info object.
@@ -627,6 +630,24 @@ public class ConnectionInfo implements Cloneable {
         remote = true;
         persistent = false;
         this.name = serverKey;
+    }
+
+    /**
+     * Returns the network connection information, or {@code null}.
+     *
+     * @return the network connection information, or {@code null}
+     */
+    public NetworkConnectionInfo getNetworkConnectionInfo() {
+        return networkConnectionInfo;
+    }
+
+    /**
+     * Sets the network connection information.
+     *
+     * @param networkConnectionInfo the network connection information
+     */
+    public void setNetworkConnectionInfo(NetworkConnectionInfo networkConnectionInfo) {
+        this.networkConnectionInfo = networkConnectionInfo;
     }
 
     public DbSettings getDbSettings() {

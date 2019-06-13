@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import org.h2.command.CommandInterface;
 import org.h2.message.Trace;
 import org.h2.store.DataHandler;
+import org.h2.util.NetworkConnectionInfo;
 import org.h2.value.Value;
 
 /**
@@ -161,5 +162,12 @@ public interface SessionInterface extends Closeable {
      *         {@code SCOPE_IDENTITY()} is supported
      */
     boolean isSupportsGeneratedKeys();
+
+    /**
+     * Sets the network connection information if possible.
+     *
+     * @param networkConnectionInfo the network connection information
+     */
+    void setNetworkConnectionInfo(NetworkConnectionInfo networkConnectionInfo);
 
 }

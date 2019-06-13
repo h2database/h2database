@@ -37,6 +37,7 @@ import org.h2.util.DateTimeUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
+import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
@@ -762,10 +763,11 @@ public class WebServer implements Service {
      * @param user the user name
      * @param password the password
      * @param userKey the key of privileged user
+     * @param networkConnectionInfo the network connection information
      * @return the database connection
      */
     Connection getConnection(String driver, String databaseUrl, String user,
-            String password, String userKey) throws SQLException {
+            String password, String userKey, NetworkConnectionInfo networkConnectionInfo) throws SQLException {
         driver = driver.trim();
         databaseUrl = databaseUrl.trim();
         Properties p = new Properties();
@@ -780,7 +782,7 @@ public class WebServer implements Service {
                 }
             }
         }
-        return JdbcUtils.getConnection(driver, databaseUrl, p);
+        return JdbcUtils.getConnection(driver, databaseUrl, p, networkConnectionInfo);
     }
 
     /**

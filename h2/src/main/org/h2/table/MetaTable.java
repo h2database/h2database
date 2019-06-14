@@ -516,6 +516,7 @@ public class MetaTable extends Table {
                     "USER_NAME",
                     "SERVER",
                     "CLIENT_ADDR",
+                    "CLIENT_INFO",
                     "SESSION_START TIMESTAMP WITH TIME ZONE",
                     "STATEMENT",
                     "STATEMENT_START TIMESTAMP WITH TIME ZONE",
@@ -1873,6 +1874,8 @@ public class MetaTable extends Table {
                             networkConnectionInfo == null ? null : networkConnectionInfo.getServer(),
                             // CLIENT_ADDR
                             networkConnectionInfo == null ? null : networkConnectionInfo.getClient(),
+                            // CLIENT_INFO
+                            networkConnectionInfo == null ? null : networkConnectionInfo.getClientInfo(),
                             // SESSION_START
                             DateTimeUtils.timestampTimeZoneFromMillis(s.getSessionStart()),
                             // STATEMENT

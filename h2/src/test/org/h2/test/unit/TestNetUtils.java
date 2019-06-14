@@ -279,9 +279,18 @@ public class TestNetUtils extends TestBase {
 
     private void testIpToShortForm(String expected, String source) throws Exception {
         byte[] addr = InetAddress.getByName(source).getAddress();
-        assertEquals(expected, NetUtils.ipToShortForm(null, addr).toString());
-        assertEquals(expected, NetUtils.ipToShortForm(new StringBuilder(), addr).toString());
-        assertEquals(expected, NetUtils.ipToShortForm(new StringBuilder("*"), addr).deleteCharAt(0).toString());
+        testIpToShortForm(expected, addr, false);
+        if (expected.indexOf(':') >= 0) {
+            expected = '[' + expected + ']';
+        }
+        testIpToShortForm(expected, addr, true);
+    }
+
+    private void testIpToShortForm(String expected, byte[] addr, boolean addBrackets) {
+        assertEquals(expected, NetUtils.ipToShortForm(null, addr, addBrackets).toString());
+        assertEquals(expected, NetUtils.ipToShortForm(new StringBuilder(), addr, addBrackets).toString());
+        assertEquals(expected,
+                NetUtils.ipToShortForm(new StringBuilder("*"), addr, addBrackets).deleteCharAt(0).toString());
     }
 
 }

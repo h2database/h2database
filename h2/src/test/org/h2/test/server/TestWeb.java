@@ -725,7 +725,7 @@ public class TestWeb extends TestDb {
 
         @Override
         public String getScheme() {
-            return null;
+            return "http";
         }
 
         @Override
@@ -735,7 +735,7 @@ public class TestWeb extends TestDb {
 
         @Override
         public int getServerPort() {
-            return 0;
+            return 80;
         }
 
         @Override

@@ -300,10 +300,12 @@ public class NetUtils {
      *            string builder to append to, or {@code null}
      * @param address
      *            IP address
+     * @param addBrackets
+     *            if ({@code true}, add brackets around IPv6 addresses
      * @return the specified or the new string builder with short representation
      *         of specified address
      */
-    public static StringBuilder ipToShortForm(StringBuilder builder, byte[] address) {
+    public static StringBuilder ipToShortForm(StringBuilder builder, byte[] address, boolean addBrackets) {
         switch (address.length) {
         case 4:
             if (builder == null) {
@@ -330,7 +332,10 @@ public class NetUtils {
                 }
             }
             if (builder == null) {
-                builder = new StringBuilder(39);
+                builder = new StringBuilder(addBrackets ? 41 : 39);
+            }
+            if (addBrackets) {
+                builder.append('[');
             }
             int start;
             if (maxLen > 1) {
@@ -350,6 +355,9 @@ public class NetUtils {
                 if (i < 7) {
                     builder.append(':');
                 }
+            }
+            if (addBrackets) {
+                builder.append(']');
             }
             break;
         default:

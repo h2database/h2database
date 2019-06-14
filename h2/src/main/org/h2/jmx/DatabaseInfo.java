@@ -250,6 +250,10 @@ public class DatabaseInfo implements DatabaseInfoMBean {
             if (networkConnectionInfo != null) {
                 buff.append("server: ").append(networkConnectionInfo.getServer()).append('\n') //
                         .append("clientAddr: ").append(networkConnectionInfo.getClient()).append('\n');
+                String clientInfo = networkConnectionInfo.getClientInfo();
+                if (clientInfo != null) {
+                    buff.append("clientInfo: ").append(clientInfo).append('\n');
+                }
             }
             buff.append("connected: ").
                     append(new Timestamp(session.getSessionStart())).

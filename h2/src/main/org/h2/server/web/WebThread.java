@@ -136,8 +136,12 @@ class WebThread extends WebApp implements Runnable {
                 session = server.getSession(sessionId);
             }
             keepAlive = parseHeader();
-            file = processRequest(file, new NetworkConnectionInfo("http:" + server.getPort(),
-                    socket.getInetAddress().getAddress(), socket.getPort()));
+            file = processRequest(file,
+                    new NetworkConnectionInfo(
+                            NetUtils.ipToShortForm(new StringBuilder(server.getSSL() ? "https://" : "http://"),
+                                    socket.getLocalAddress().getAddress(), true) //
+                                    .append(':').append(socket.getLocalPort()).toString(), //
+                            socket.getInetAddress().getAddress(), socket.getPort(), null));
             if (file.length() == 0) {
                 // asynchronous request
                 return true;

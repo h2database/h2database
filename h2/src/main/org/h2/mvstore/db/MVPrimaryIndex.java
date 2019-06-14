@@ -232,27 +232,10 @@ public class MVPrimaryIndex extends BaseIndex {
 
     @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
-        ValueLong min = extractPKFromRow(first, ValueLong.MIN);
-        ValueLong max = extractPKFromRow(last, ValueLong.MAX);
+        ValueLong min = first == null ? ValueLong.MIN : ValueLong.get(first.getKey());
+        ValueLong max = last == null ? ValueLong.MAX : ValueLong.get(last.getKey());
         TransactionMap<Value, Value> map = getMap(session);
         return new MVStoreCursor(session, map.entryIterator(min, max));
-    }
-
-    private ValueLong extractPKFromRow(SearchRow row, ValueLong defaultValue) {
-        ValueLong result;
-        if (row == null) {
-            result = defaultValue;
-        } else if (mainIndexColumn == SearchRow.ROWID_INDEX) {
-            result = ValueLong.get(row.getKey());
-        } else {
-            ValueLong v = (ValueLong) row.getValue(mainIndexColumn);
-            if (v == null) {
-                result = ValueLong.get(row.getKey());
-            } else {
-                result = v;
-            }
-        }
-        return result;
     }
 
     @Override

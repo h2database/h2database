@@ -362,3 +362,51 @@ EXPLAIN SELECT * FROM T WHERE A = 1 AND B = A;
 
 DROP TABLE T;
 > ok
+
+-- _ROWID_ tests
+
+CREATE TABLE TEST(ID INT PRIMARY KEY);
+> ok
+
+INSERT INTO TEST VALUES 1, 2, 3, 4;
+> update count: 4
+
+SELECT * FROM TEST WHERE ID >= 2 AND ID <= 3;
+> ID
+> --
+> 2
+> 3
+> rows: 2
+
+SELECT * FROM TEST WHERE _ROWID_ >= 2 AND _ROWID_ <= 3;
+> ID
+> --
+> 2
+> 3
+> rows: 2
+
+DROP TABLE TEST;
+> ok
+
+CREATE TABLE TEST(ID FLOAT PRIMARY KEY);
+> ok
+
+INSERT INTO TEST VALUES 1.0, 2.0, 3.0, 4.0;
+> update count: 4
+
+SELECT * FROM TEST WHERE ID >= 2.0 AND ID <= 3.0;
+> ID
+> ---
+> 2.0
+> 3.0
+> rows: 2
+
+SELECT * FROM TEST WHERE _ROWID_ >= 2 AND _ROWID_ <= 3;
+> ID
+> ---
+> 2.0
+> 3.0
+> rows: 2
+
+DROP TABLE TEST;
+> ok

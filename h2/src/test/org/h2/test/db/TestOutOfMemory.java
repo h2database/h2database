@@ -131,7 +131,7 @@ public class TestOutOfMemory extends TestDb {
                         ErrorCode.DATABASE_IS_CLOSED == e.getErrorCode() ||
                         ErrorCode.GENERAL_ERROR_1 == e.getErrorCode());
             }
-            recoverAfterOOM(memoryFree/2);
+            recoverAfterOOM(memoryFree * 3 / 4);
             try {
                 conn.close();
                 fail();
@@ -142,7 +142,7 @@ public class TestOutOfMemory extends TestDb {
                         ErrorCode.DATABASE_IS_CLOSED == e.getErrorCode() ||
                         ErrorCode.GENERAL_ERROR_1 == e.getErrorCode());
             }
-            recoverAfterOOM(memoryFree/2);
+            recoverAfterOOM(memoryFree * 3 / 4);
             conn = DriverManager.getConnection(url);
             stat = conn.createStatement();
             stat.execute("SELECT 1");
@@ -154,7 +154,7 @@ public class TestOutOfMemory extends TestDb {
     }
 
     private static void recoverAfterOOM(int expectedFreeMemory) throws InterruptedException {
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 50; i++) {
             if (Utils.getMemoryFree() > expectedFreeMemory) {
                 break;
             }
@@ -247,7 +247,7 @@ public class TestOutOfMemory extends TestDb {
                 assertTrue(rs.next());
                 assertEquals(3010893, rs.getInt(1));
 
-                eatMemory(80);
+                eatMemory(6000);
                 prep.execute();
                 fail();
             } catch (SQLException ignore) {

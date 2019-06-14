@@ -32,6 +32,7 @@ import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.utils.AssertThrows;
+import org.h2.util.Utils;
 
 /**
  * Tests the MVStore.
@@ -842,6 +843,7 @@ public class TestMVStore extends TestBase {
         };
         for (int cacheSize = 0; cacheSize <= 6; cacheSize += 1) {
             int cacheMB = 1 + 3 * cacheSize;
+            Utils.collectGarbage();
             s = new MVStore.Builder().
                     fileName(fileName).
                     autoCommitDisabled().

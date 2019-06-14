@@ -42,6 +42,7 @@ import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.utils.ProxyCodeGenerator;
 import org.h2.test.utils.ResultVerifier;
+import org.h2.util.Utils;
 
 /**
  * The base class for all tests.
@@ -1342,20 +1343,16 @@ public abstract class TestBase {
      * @param remainingKB the number of kilobytes that are not referenced
      */
     protected void eatMemory(int remainingKB) {
-        byte[] reserve = new byte[remainingKB * 1024];
-        // first, eat memory in 16 KB blocks, then eat in 16 byte blocks
-        for (int size = 16 * 1024; size > 0; size /= 1024) {
-            while (true) {
+        int memoryFreeKB;
+        while ((memoryFreeKB = Utils.getMemoryFree()) > remainingKB) {
                 try {
-                    byte[] block = new byte[16 * 1024];
+                    byte[] block = new byte[Math.max((memoryFreeKB - remainingKB) / 16, 1) * 1024];
                     memory.add(block);
                 } catch (OutOfMemoryError e) {
-                    break;
+                    memory.clear();
+                    throw e;
                 }
-            }
         }
-        // silly code - makes sure there are no warnings
-        reserve[0] = reserve[1];
     }
 
     /**

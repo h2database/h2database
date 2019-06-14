@@ -66,7 +66,7 @@ public class TestMemoryUsage extends TestDb {
         // to eliminate background thread interference
         conn = getConnection("memoryUsage;WRITE_DELAY=0");
         try {
-            eatMemory(4000);
+            eatMemory(6000);
             for (int i = 0; i < 4000; i++) {
                 Connection c2 = getConnection("memoryUsage");
                 c2.createStatement();
@@ -133,13 +133,11 @@ public class TestMemoryUsage extends TestDb {
         stat.execute("SET MAX_LENGTH_INPLACE_LOB 8192");
         stat.execute("SET CACHE_SIZE 8000");
         stat.execute("CREATE TABLE TEST(ID IDENTITY, DATA CLOB)");
-        freeSoftReferences();
         try {
             int base = Utils.getMemoryUsed();
             for (int i = 0; i < 4; i++) {
                 stat.execute("INSERT INTO TEST(DATA) " +
                         "SELECT SPACE(8000) FROM SYSTEM_RANGE(1, 800)");
-                freeSoftReferences();
                 int used = Utils.getMemoryUsed();
                 if ((used - base) > 3 * 8192) {
                     fail("Used: " + (used - base) + " i: " + i);
@@ -166,20 +164,6 @@ public class TestMemoryUsage extends TestDb {
                 throw e;
             }
         }
-    }
-
-    /**
-     * Eat memory so that all soft references are garbage collected.
-     */
-    void freeSoftReferences() {
-        try {
-            eatMemory(1);
-        } catch (OutOfMemoryError e) {
-            // ignore
-        }
-        System.gc();
-        System.gc();
-        freeMemory();
     }
 
     private void testCreateIndex() throws SQLException {

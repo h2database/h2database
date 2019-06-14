@@ -277,20 +277,26 @@ public class Utils {
         return totalGCTime;
     }
 
-    private static synchronized void collectGarbage() {
-        Runtime runtime = Runtime.getRuntime();
-        long total = runtime.totalMemory();
-        long time = System.nanoTime();
-        if (lastGC + TimeUnit.MILLISECONDS.toNanos(GC_DELAY) < time) {
-            for (int i = 0; i < MAX_GC; i++) {
-                runtime.gc();
-                long now = runtime.totalMemory();
-                if (now == total) {
-                    lastGC = System.nanoTime();
-                    break;
-                }
-                total = now;
+    public static long getGarbageCollectionCount() {
+        long totalGCCount = 0;
+        int poolCount = 0;
+        for (GarbageCollectorMXBean gcMXBean : ManagementFactory.getGarbageCollectorMXBeans()) {
+            long collectionCount = gcMXBean.getCollectionTime();
+            if(collectionCount > 0) {
+                totalGCCount += collectionCount;
+                poolCount += gcMXBean.getMemoryPoolNames().length;
             }
+        }
+        poolCount = Math.max(poolCount, 1);
+        return (totalGCCount + (poolCount >> 1)) / poolCount;
+    }
+
+    public static synchronized void collectGarbage() {
+        Runtime runtime = Runtime.getRuntime();
+        long garbageCollectionCount = getGarbageCollectionCount();
+        while (garbageCollectionCount == getGarbageCollectionCount()) {
+            runtime.gc();
+            Thread.yield();
         }
     }
 

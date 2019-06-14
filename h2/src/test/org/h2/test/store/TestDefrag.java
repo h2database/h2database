@@ -58,7 +58,7 @@ public class TestDefrag  extends TestDb
         long compactedSize = dbFile.length();
         String message = "after defrag: " + nf.format(compactedSize);
         trace(message);
-        assertTrue(message, compactedSize < 2_400_000_000L);
+        assertTrue(message, compactedSize < 400_000_000L);
 
         try (Connection c = getConnection(dbName + ";LAZY_QUERY_EXECUTION=1")) {
             try (Statement st = c.createStatement()) {

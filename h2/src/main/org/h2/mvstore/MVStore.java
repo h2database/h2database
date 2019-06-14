@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
@@ -400,7 +401,14 @@ public class MVStore implements AutoCloseable {
                     storeHeader.put("created", creationTime);
                     writeStoreHeader();
                 } else {
-                    readStoreHeader();
+                    // there is no need to lock store here, since it is not opened yet,
+                    // just to make some assertions happy, when they ensure single-threaded access
+                    storeLock.lock();
+                    try {
+                        readStoreHeader();
+                    } finally {
+                        storeLock.unlock();
+                    }
                 }
             } catch (IllegalStateException e) {
                 panic(e);
@@ -3077,8 +3085,8 @@ public class MVStore implements AutoCloseable {
         TxCounter txCounter;
         while(true) {
             txCounter = currentTxCounter;
-            if(txCounter.counter.getAndIncrement() >= 0) {
-                break;
+            if(txCounter.incrementAndGet() > 0) {
+                return txCounter;
             }
             // The only way for counter to be negative
             // if it was retrieved right before onVersionChange()
@@ -3088,9 +3096,8 @@ public class MVStore implements AutoCloseable {
             // not to upset accounting and try again with a new
             // version (currentTxCounter should have changed).
             assert txCounter != currentTxCounter : txCounter;
-            txCounter.counter.decrementAndGet();
+            txCounter.decrementAndGet();
         }
-        return txCounter;
     }
 
     /**
@@ -3103,8 +3110,10 @@ public class MVStore implements AutoCloseable {
      */
     public void deregisterVersionUsage(TxCounter txCounter) {
         if(txCounter != null) {
-            if(txCounter.counter.decrementAndGet() <= 0) {
-                if (!storeLock.isHeldByCurrentThread() && storeLock.tryLock()) {
+            if(txCounter.decrementAndGet() <= 0) {
+                if (storeLock.isHeldByCurrentThread()) {
+                    dropUnusedVersions();
+                } else if (storeLock.tryLock()) {
                     try {
                         dropUnusedVersions();
                     } finally {
@@ -3116,18 +3125,19 @@ public class MVStore implements AutoCloseable {
     }
 
     private void onVersionChange(long version) {
-        TxCounter txCounter = this.currentTxCounter;
-        assert txCounter.counter.get() >= 0;
+        TxCounter txCounter = currentTxCounter;
+        assert txCounter.get() >= 0;
         versions.add(txCounter);
         currentTxCounter = new TxCounter(version);
-        txCounter.counter.decrementAndGet();
+        txCounter.decrementAndGet();
         dropUnusedVersions();
     }
 
     private void dropUnusedVersions() {
+        assert storeLock.isHeldByCurrentThread();
         TxCounter txCounter;
         while ((txCounter = versions.peek()) != null
-                && txCounter.counter.get() < 0) {
+                && txCounter.get() < 0) {
             versions.poll();
         }
         setOldestVersionToKeep(txCounter != null ? txCounter.version : currentTxCounter.version);
@@ -3147,10 +3157,26 @@ public class MVStore implements AutoCloseable {
         /**
          * Counter of outstanding operation on this version of a store
          */
-        public final AtomicInteger counter = new AtomicInteger();
+        private volatile int counter;
+
+        private static final AtomicIntegerFieldUpdater<TxCounter> counterUpdater =
+                                        AtomicIntegerFieldUpdater.newUpdater(TxCounter.class, "counter");
+
 
         TxCounter(long version) {
             this.version = version;
+        }
+
+        int get() {
+            return counter;
+        }
+
+        int incrementAndGet() {
+            return counterUpdater.incrementAndGet(this);
+        }
+
+        int decrementAndGet() {
+            return counterUpdater.decrementAndGet(this);
         }
 
         @Override

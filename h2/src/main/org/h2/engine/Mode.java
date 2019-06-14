@@ -264,10 +264,7 @@ public class Mode {
         add(mode);
 
         mode = new Mode(ModeEnum.HSQLDB);
-        mode.aliasColumnName = true;
-        mode.convertOnlyToSmallerScale = true;
         mode.nullConcatIsNull = true;
-        mode.uniqueIndexNullsHandling = UniqueIndexNullsHandling.FORBID_ANY_DUPLICATES;
         mode.allowPlusForStringConcat = true;
         // HSQLDB does not support client info properties. See
         // http://hsqldb.org/doc/apidocs/

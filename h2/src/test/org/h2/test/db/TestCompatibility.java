@@ -149,7 +149,7 @@ public class TestCompatibility extends TestDb {
         String[] modes = { "PostgreSQL", "MySQL", "HSQLDB", "MSSQLServer",
                 "Derby", "Oracle", "Regular" };
         String columnAlias;
-        columnAlias = "MySQL,Regular";
+        columnAlias = "HSQLDB,MySQL,Regular";
         stat.execute("CREATE TABLE TEST(ID INT)");
         for (String mode : modes) {
             stat.execute("SET MODE " + mode);
@@ -174,7 +174,7 @@ public class TestCompatibility extends TestDb {
         Statement stat = conn.createStatement();
         String[] modes = { "PostgreSQL", "MySQL", "HSQLDB", "MSSQLServer",
                 "Derby", "Oracle", "Regular" };
-        String multiNull = "PostgreSQL,MySQL,Oracle,Regular";
+        String multiNull = "PostgreSQL,MySQL,HSQLDB,Oracle,Regular";
         for (String mode : modes) {
             stat.execute("SET MODE " + mode);
             stat.execute("CREATE TABLE TEST(ID INT)");

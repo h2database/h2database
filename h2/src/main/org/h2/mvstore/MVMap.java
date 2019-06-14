@@ -1173,7 +1173,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             }
             target.setComplete();
         }
-        store.registerUnsavedPage(target.getMemory());
+        store.registerUnsavedMemory(target.getMemory());
         if (store.isSaveNeeded()) {
             store.commit();
         }
@@ -1295,7 +1295,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                         tip = tip.parent;
                     }
                     if (isPersistent()) {
-                        store.registerUnsavedPage(unsavedMemoryHolder.value);
+                        store.registerUnsavedMemory(unsavedMemoryHolder.value);
                     }
                     assert updatedRootReference.getAppendCounter() <= availabilityThreshold;
                     return updatedRootReference;
@@ -1815,7 +1815,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 tip = tip.parent;
             }
             if (isPersistent()) {
-                store.registerUnsavedPage(unsavedMemoryHolder.value);
+                store.registerUnsavedMemory(unsavedMemoryHolder.value);
             }
             return result;
         }

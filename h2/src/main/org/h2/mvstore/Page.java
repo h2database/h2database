@@ -439,7 +439,7 @@ public abstract class Page implements Cloneable
         if(countRemoval) {
             removePage();
             if(isPersistent()) {
-                map.store.registerUnsavedPage(newPage.getMemory());
+                map.store.registerUnsavedMemory(newPage.getMemory());
             }
         }
         return newPage;

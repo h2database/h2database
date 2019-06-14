@@ -2383,11 +2383,15 @@ public class MVStore implements AutoCloseable {
     }
 
     /**
-     * Increment the number of unsaved pages.
+     * Adjust amount of "unsaved memory" meaning amount of RAM occupied by pages not saved yet to the file.
+     * This is the amount which triggers auto-commit.
      *
-     * @param memory the memory usage of the page
+     * @param memory adjustment
      */
-    public void registerUnsavedPage(int memory) {
+    public void registerUnsavedMemory(int memory) {
+        // this counter was intentionaly left unprotected against race condition for performance reasons
+        // TODO: evaluate performance impact of atomic implementation,
+        //       since updates to unsavedMemory are largely aggregated now
         unsavedMemory += memory;
         int newValue = unsavedMemory;
         if (newValue > autoCommitMemory && autoCommitMemory > 0) {

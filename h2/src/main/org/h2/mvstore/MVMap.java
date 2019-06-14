@@ -1094,7 +1094,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             } else if (isClosed()) {
                 // map was closed a while back and can not possibly be in use by now
                 // it's time to remove it completely from the store (it was anonymous already)
-                if (rootReference.version < store.getOldestVersionToKeep()) {
+                if (rootReference.getVersion() + 1 < store.getOldestVersionToKeep()) {
                     store.deregisterMapRoot(id);
                     return null;
                 }

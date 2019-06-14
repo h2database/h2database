@@ -163,7 +163,8 @@ public class TcpServerThread implements Runnable {
                         NetUtils.ipToShortForm(new StringBuilder(server.getSSL() ? "ssl://" : "tcp://"),
                                 socket.getLocalAddress().getAddress(), true) //
                                 .append(':').append(socket.getLocalPort()).toString(), //
-                        socket.getInetAddress().getAddress(), socket.getPort()));
+                        socket.getInetAddress().getAddress(), socket.getPort(),
+                        new StringBuilder().append('P').append(clientVersion).toString()));
                 session = Engine.getInstance().createSession(ci);
                 transfer.setSession(session);
                 server.addConnection(threadId, originalURL, ci.getUserName());

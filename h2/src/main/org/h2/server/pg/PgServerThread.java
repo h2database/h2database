@@ -231,7 +231,7 @@ public class PgServerThread implements Runnable {
                         NetUtils.ipToShortForm(new StringBuilder("pg://"), //
                                 socket.getLocalAddress().getAddress(), true) //
                                 .append(':').append(socket.getLocalPort()).toString(), //
-                        socket.getInetAddress().getAddress(), socket.getPort()));
+                        socket.getInetAddress().getAddress(), socket.getPort(), null));
                 conn = new JdbcConnection(ci, false);
                 // can not do this because when called inside
                 // DriverManager.getConnection, a deadlock occurs

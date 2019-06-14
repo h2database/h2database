@@ -141,7 +141,7 @@ class WebThread extends WebApp implements Runnable {
                             NetUtils.ipToShortForm(new StringBuilder(server.getSSL() ? "https://" : "http://"),
                                     socket.getLocalAddress().getAddress(), true) //
                                     .append(':').append(socket.getLocalPort()).toString(), //
-                            socket.getInetAddress().getAddress(), socket.getPort()));
+                            socket.getInetAddress().getAddress(), socket.getPort(), null));
             if (file.length() == 0) {
                 // asynchronous request
                 return true;

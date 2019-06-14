@@ -825,8 +825,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * Roll the root back to the specified version.
      *
      * @param version to rollback to
+     * @return true if rollback was a cuccess, false if there was not enough in-memory history
      */
-    void rollbackRoot(long version)
+    boolean rollbackRoot(long version)
     {
         RootReference rootReference = flushAndGetRoot();
         RootReference previous;
@@ -837,6 +838,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             }
         }
         setWriteVersion(version);
+        return rootReference.version < version;
     }
 
     /**
@@ -1090,6 +1092,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             if(rootReference.version >= writeVersion) {
                 return rootReference;
             } else if (isClosed()) {
+                // map was closed a while back and can not possibly be in use by now
+                // it's time to remove it completely from the store (it was anonymous already)
                 if (rootReference.version < store.getOldestVersionToKeep()) {
                     store.deregisterMapRoot(id);
                     return null;

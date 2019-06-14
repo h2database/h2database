@@ -2304,9 +2304,9 @@ public class MVStore implements AutoCloseable {
      * We keep at least number of previous versions specified by "versionsToKeep"
      * configuration parameter (default 5).
      * Previously it was used only in case of non-persistent MVStore.
-     * Now it's honored in all cases (although always H2 sets it to zero).
+     * Now it's honored in all cases (although H2 always sets it to zero).
      * Oldest version determination also takes into account calls (de)registerVersionUsage(),
-     * an will not release the version, while it's still in use.
+     * an will not release the version, while version is still in use.
      *
      * @return the version
      */
@@ -2479,16 +2479,13 @@ public class MVStore implements AutoCloseable {
             checkOpen();
             if (version == 0) {
                 // special case: remove all data
-                for (MVMap<?, ?> m : maps.values()) {
-                    m.close();
-                }
                 meta.setInitialRoot(meta.createEmptyLeaf(), INITIAL_VERSION);
 
                 chunks.clear();
+                clearCaches();
                 if (fileStore != null) {
                     fileStore.clear();
                 }
-                maps.clear();
                 lastChunk = null;
                 synchronized (freedPageSpace) {
                     freedPageSpace.clear();
@@ -2498,14 +2495,14 @@ public class MVStore implements AutoCloseable {
                 setWriteVersion(version);
                 metaChanged = false;
                 lastStoredVersion = INITIAL_VERSION;
+                for (MVMap<?, ?> m : maps.values()) {
+                    m.close();
+                }
                 return;
             }
             DataUtils.checkArgument(
                     isKnownVersion(version),
                     "Unknown version {0}", version);
-            for (MVMap<?, ?> m : maps.values()) {
-                m.rollbackTo(version);
-            }
 
             TxCounter txCounter;
             while ((txCounter = versions.peekLast()) != null && txCounter.version >= version) {
@@ -2515,7 +2512,6 @@ public class MVStore implements AutoCloseable {
 
             meta.rollbackTo(version);
             metaChanged = false;
-            boolean loadFromFile = false;
             // find out which chunks to remove,
             // and which is the newest chunk to keep
             // (the chunk list can have gaps)
@@ -2524,7 +2520,7 @@ public class MVStore implements AutoCloseable {
             for (Chunk c : chunks.values()) {
                 if (c.version > version) {
                     remove.add(c.id);
-                } else if (keep == null || keep.id < c.id) {
+                } else if (keep == null || keep.version < c.version) {
                     keep = c;
                 }
             }
@@ -2532,28 +2528,34 @@ public class MVStore implements AutoCloseable {
                 // remove the youngest first, so we don't create gaps
                 // (in case we remove many chunks)
                 Collections.sort(remove, Collections.reverseOrder());
-                loadFromFile = true;
                 for (int id : remove) {
                     Chunk c = chunks.remove(id);
-                    long start = c.block * BLOCK_SIZE;
-                    int length = c.len * BLOCK_SIZE;
-                    freeFileSpace(start, length);
-                    // overwrite the chunk,
-                    // so it is not be used later on
-                    WriteBuffer buff = getWriteBuffer();
-                    buff.limit(length);
-                    // buff.clear() does not set the data
-                    Arrays.fill(buff.getBuffer().array(), (byte) 0);
-                    write(start, buff.getBuffer());
-                    releaseWriteBuffer(buff);
-                    // only really needed if we remove many chunks, when writes are
-                    // re-ordered - but we do it always, because rollback is not
-                    // performance critical
-                    sync();
+                    if (c != null) {
+                        long start = c.block * BLOCK_SIZE;
+                        int length = c.len * BLOCK_SIZE;
+                        freeFileSpace(start, length);
+                        // overwrite the chunk,
+                        // so it is not be used later on
+                        WriteBuffer buff = getWriteBuffer();
+                        buff.limit(length);
+                        // buff.clear() does not set the data
+                        Arrays.fill(buff.getBuffer().array(), (byte) 0);
+                        write(start, buff.getBuffer());
+                        releaseWriteBuffer(buff);
+                        // only really needed if we remove many chunks, when writes are
+                        // re-ordered - but we do it always, because rollback is not
+                        // performance critical
+                        sync();
+                    }
                 }
                 lastChunk = keep;
                 writeStoreHeader();
                 readStoreHeader();
+            }
+            clearCaches();
+            currentVersion = version;
+            if (lastStoredVersion == INITIAL_VERSION) {
+                lastStoredVersion = currentVersion - 1;
             }
             for (MVMap<?, ?> m : new ArrayList<>(maps.values())) {
                 int id = m.getId();
@@ -2561,16 +2563,10 @@ public class MVStore implements AutoCloseable {
                     m.close();
                     maps.remove(id);
                 } else {
-                    if (loadFromFile) {
+                    if (!m.rollbackRoot(version)) {
                         m.setRootPos(getRootPos(meta, id), version);
-                    } else {
-                        m.rollbackRoot(version);
                     }
                 }
-            }
-            currentVersion = version;
-            if (lastStoredVersion == INITIAL_VERSION) {
-                lastStoredVersion = currentVersion - 1;
             }
         } finally {
             storeLock.unlock();
@@ -2599,10 +2595,6 @@ public class MVStore implements AutoCloseable {
      */
     public long getCurrentVersion() {
         return currentVersion;
-    }
-
-    public long getLastStoredVersion() {
-        return lastStoredVersion;
     }
 
     /**

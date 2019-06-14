@@ -154,6 +154,11 @@ public class Mode {
     public boolean onDuplicateKeyUpdate;
 
     /**
+     * MySQL style REPLACE INTO
+     */
+    public boolean replaceInto;
+
+    /**
      * Pattern describing the keys the java.sql.Connection.setClientInfo()
      * method accepts.
      */
@@ -305,6 +310,7 @@ public class Mode {
         // Next one is for MariaDB
         mode.regexpReplaceBackslashReferences = true;
         mode.onDuplicateKeyUpdate = true;
+        mode.replaceInto = true;
         // MySQL allows to use any key for client info entries. See
         // http://grepcode.com/file/repo1.maven.org/maven2/mysql/
         //     mysql-connector-java/5.1.24/com/mysql/jdbc/

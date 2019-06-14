@@ -863,14 +863,7 @@ or the SQL statement <code>SET MODE Derby</code>.
 To use the HSQLDB mode, use the database URL <code>jdbc:h2:~/test;MODE=HSQLDB</code>
 or the SQL statement <code>SET MODE HSQLDB</code>.
 </p>
-<ul><li>For aliased columns, <code>ResultSetMetaData.getColumnName()</code>
-    returns the alias name and <code>getTableName()</code> returns
-    <code>null</code>.
-</li><li>When converting the scale of decimal data, the number is only converted if the new scale is
-    smaller than the current scale. Usually, the scale is converted and 0s are added if required.
-</li><li>For unique indexes, <code>NULL</code> is distinct.
-    That means only one row with <code>NULL</code> in one of the columns is allowed.
-</li><li>Text can be concatenated using '+'.
+<ul><li>Text can be concatenated using '+'.
 </li><li>Datetime value functions return the same value within a command.
 </li></ul>
 
@@ -915,6 +908,7 @@ Do not change value of DATABASE_TO_LOWER after creation of database.
     meaning is some contexts.
 </li><li>INSERT IGNORE is partially supported and may be used to skip rows with duplicate keys if ON DUPLICATE KEY
     UPDATE is not specified.
+</li><li>REPLACE INTO is partially supported.
 </li><li>REGEXP_REPLACE() uses \ for back-references for compatibility with MariaDB.
 </li><li>Datetime value functions return the same value within a command.
 </li><li>0x literals are parsed as binary string literals.

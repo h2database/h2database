@@ -948,7 +948,7 @@ public class Parser {
                     c = parseRunScript();
                 } else if (readIf("RELEASE")) {
                     c = parseReleaseSavepoint();
-                } else if (readIf("REPLACE")) {
+                } else if (database.getMode().replaceInto && readIf("REPLACE")) {
                     c = parseReplace();
                 }
                 break;
@@ -1994,7 +1994,7 @@ public class Parser {
                 statement = parseDelete();
             } else if (readIf("MERGE")) {
                 statement = (DataChangeStatement) parseMerge();
-            } else if (readIf("REPLACE")) {
+            } else if (database.getMode().replaceInto && readIf("REPLACE")) {
                 statement = parseReplace();
             } else {
                 throw getSyntaxError();
@@ -2010,7 +2010,7 @@ public class Parser {
                 statement = parseUpdate();
             } else if (readIf("MERGE")) {
                 statement = (DataChangeStatement) parseMerge();
-            } else if (readIf("REPLACE")) {
+            } else if (database.getMode().replaceInto && readIf("REPLACE")) {
                 statement = parseReplace();
             } else {
                 throw getSyntaxError();

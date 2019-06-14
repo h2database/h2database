@@ -11,6 +11,12 @@ CREATE TABLE TABLE_WORD (
 > ok
 
 REPLACE INTO TABLE_WORD(WORD) VALUES ('aaaaaaaaaa');
+> exception SYNTAX_ERROR_2
+
+SET MODE MySQL;
+> ok
+
+REPLACE INTO TABLE_WORD(WORD) VALUES ('aaaaaaaaaa');
 > update count: 1
 
 REPLACE INTO TABLE_WORD(WORD) VALUES ('bbbbbbbbbb');

@@ -84,16 +84,7 @@ public final class NetworkConnectionInfo {
      * @return the client address and port
      */
     public String getClient() {
-        StringBuilder builder = new StringBuilder();
-        boolean ipV4 = clientAddr.length == 4;
-        if (!ipV4) {
-            builder.append('[');
-        }
-        NetUtils.ipToShortForm(builder, clientAddr);
-        if (!ipV4) {
-            builder.append(']');
-        }
-        return builder.append(':').append(clientPort).toString();
+        return NetUtils.ipToShortForm(new StringBuilder(), clientAddr, true).append(':').append(clientPort).toString();
     }
 
 }

@@ -119,8 +119,14 @@ public class WebServlet extends HttpServlet {
         app.setSession(session, attributes);
         String ifModifiedSince = req.getHeader("if-modified-since");
 
-        file = app.processRequest(file, new NetworkConnectionInfo("web:" + req.getServerPort(),
-                req.getRemoteAddr(), req.getRemotePort()));
+        String scheme = req.getScheme();
+        StringBuilder builder = new StringBuilder(scheme).append("://").append(req.getServerName());
+        int serverPort = req.getServerPort();
+        if (!(serverPort == 80 && scheme.equals("http") || serverPort == 443 && scheme.equals("https"))) {
+            builder.append(':').append(serverPort);
+        }
+        String path = builder.append(req.getContextPath()).toString();
+        file = app.processRequest(file, new NetworkConnectionInfo(path, req.getRemoteAddr(), req.getRemotePort()));
         session = app.getSession();
 
         String mimeType = app.getMimeType();

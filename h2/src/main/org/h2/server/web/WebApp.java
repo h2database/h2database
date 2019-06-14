@@ -154,7 +154,7 @@ public class WebApp {
             mimeType = "text/html";
             if (session == null) {
                 session = server.createNewSession(
-                        NetUtils.ipToShortForm(null, networkConnectionInfo.getClientAddr()).toString());
+                        NetUtils.ipToShortForm(null, networkConnectionInfo.getClientAddr(), false).toString());
                 if (!"notAllowed.jsp".equals(file)) {
                     file = "index.do";
                 }

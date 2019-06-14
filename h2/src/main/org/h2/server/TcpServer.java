@@ -209,6 +209,16 @@ public class TcpServer implements Service {
     }
 
     /**
+     * Returns whether a secure protocol is used.
+     *
+     * @return {@code true} if SSL socket is used, {@code false} if plain socket
+     *         is used
+     */
+    public boolean getSSL() {
+        return ssl;
+    }
+
+    /**
      * Check if this socket may connect to this server. Remote connections are
      * not allowed if the flag allowOthers is set.
      *

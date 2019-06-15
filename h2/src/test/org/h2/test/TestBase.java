@@ -1344,14 +1344,17 @@ public abstract class TestBase {
      */
     protected void eatMemory(int remainingKB) {
         int memoryFreeKB;
-        while ((memoryFreeKB = Utils.getMemoryFree()) > remainingKB) {
-                try {
-                    byte[] block = new byte[Math.max((memoryFreeKB - remainingKB) / 16, 1) * 1024];
-                    memory.add(block);
-                } catch (OutOfMemoryError e) {
-                    memory.clear();
-                    throw e;
-                }
+        try {
+            while ((memoryFreeKB = Utils.getMemoryFree()) > remainingKB) {
+                byte[] block = new byte[Math.max((memoryFreeKB - remainingKB) / 16, 16) * 1024];
+                memory.add(block);
+            }
+        } catch (OutOfMemoryError e) {
+            if (remainingKB >= 3000) { // OOM is not expected
+                memory.clear();
+                throw e;
+            }
+            // OOM can be ignored because it's tolerable (separate process?)
         }
     }
 

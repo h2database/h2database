@@ -66,7 +66,7 @@ public class TestMemoryUsage extends TestDb {
         // to eliminate background thread interference
         conn = getConnection("memoryUsage;WRITE_DELAY=0");
         try {
-            eatMemory(6000);
+            eatMemory(4000);
             for (int i = 0; i < 4000; i++) {
                 Connection c2 = getConnection("memoryUsage");
                 c2.createStatement();

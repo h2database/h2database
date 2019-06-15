@@ -21,6 +21,7 @@ import org.h2.store.fs.FilePathMem;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
+import org.h2.util.Utils;
 
 /**
  * Tests out of memory situations. The database must not get corrupted, and
@@ -118,6 +119,7 @@ public class TestOutOfMemory extends TestDb {
         try {
             Connection conn = DriverManager.getConnection(url);
             Statement stat = conn.createStatement();
+            int memoryFree = Utils.getMemoryFree();
             try {
                 stat.execute("create table test(id int, name varchar) as " +
                         "select x, space(10000000+x) from system_range(1, 1000)");
@@ -129,7 +131,7 @@ public class TestOutOfMemory extends TestDb {
                         ErrorCode.DATABASE_IS_CLOSED == e.getErrorCode() ||
                         ErrorCode.GENERAL_ERROR_1 == e.getErrorCode());
             }
-            recoverAfterOOM();
+            recoverAfterOOM(memoryFree * 3 / 4);
             try {
                 conn.close();
                 fail();
@@ -140,7 +142,7 @@ public class TestOutOfMemory extends TestDb {
                         ErrorCode.DATABASE_IS_CLOSED == e.getErrorCode() ||
                         ErrorCode.GENERAL_ERROR_1 == e.getErrorCode());
             }
-            recoverAfterOOM();
+            recoverAfterOOM(memoryFree * 3 / 4);
             conn = DriverManager.getConnection(url);
             stat = conn.createStatement();
             stat.execute("SELECT 1");
@@ -151,9 +153,11 @@ public class TestOutOfMemory extends TestDb {
         }
     }
 
-    private static void recoverAfterOOM() throws InterruptedException {
-        for (int i = 0; i < 5; i++) {
-            System.gc();
+    private static void recoverAfterOOM(int expectedFreeMemory) throws InterruptedException {
+        for (int i = 0; i < 50; i++) {
+            if (Utils.getMemoryFree() > expectedFreeMemory) {
+                break;
+            }
             Thread.sleep(20);
         }
     }

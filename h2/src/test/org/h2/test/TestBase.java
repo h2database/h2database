@@ -42,6 +42,7 @@ import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.utils.ProxyCodeGenerator;
 import org.h2.test.utils.ResultVerifier;
+import org.h2.util.Utils;
 
 /**
  * The base class for all tests.
@@ -1342,20 +1343,19 @@ public abstract class TestBase {
      * @param remainingKB the number of kilobytes that are not referenced
      */
     protected void eatMemory(int remainingKB) {
-        byte[] reserve = new byte[remainingKB * 1024];
-        // first, eat memory in 16 KB blocks, then eat in 16 byte blocks
-        for (int size = 16 * 1024; size > 0; size /= 1024) {
-            while (true) {
-                try {
-                    byte[] block = new byte[16 * 1024];
-                    memory.add(block);
-                } catch (OutOfMemoryError e) {
-                    break;
-                }
+        int memoryFreeKB;
+        try {
+            while ((memoryFreeKB = Utils.getMemoryFree()) > remainingKB) {
+                byte[] block = new byte[Math.max((memoryFreeKB - remainingKB) / 16, 16) * 1024];
+                memory.add(block);
             }
+        } catch (OutOfMemoryError e) {
+            if (remainingKB >= 3000) { // OOM is not expected
+                memory.clear();
+                throw e;
+            }
+            // OOM can be ignored because it's tolerable (separate process?)
         }
-        // silly code - makes sure there are no warnings
-        reserve[0] = reserve[1];
     }
 
     /**

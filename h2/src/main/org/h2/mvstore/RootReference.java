@@ -24,13 +24,19 @@ public final class RootReference
      */
     public final long version;
     /**
-     * Indicator that map is locked for update.
+     * Counter of reenterant locks.
      */
-    final boolean lockedForUpdate;
+    private final byte holdCount;
+    /**
+     * Lock owner thread id.
+     */
+    private final long ownerId;
     /**
      * Reference to the previous root in the chain.
+     * That is the last root of the previous version, which had any data changes.
+     * Versions without any data changes are dropped from the chain, as it built.
      */
-    public volatile RootReference previous;
+    volatile RootReference previous;
     /**
      * Counter for successful root updates.
      */
@@ -42,7 +48,8 @@ public final class RootReference
     /**
      * Size of the occupied part of the append buffer.
      */
-    final byte appendCounter;
+    private final byte appendCounter;
+
 
     // This one is used to set root initially and for r/o snapshots
     RootReference(Page root, long version) {
@@ -51,44 +58,50 @@ public final class RootReference
         this.previous = null;
         this.updateCounter = 1;
         this.updateAttemptCounter = 1;
-        this.lockedForUpdate = false;
+        this.holdCount = 0;
+        this.ownerId = 0;
         this.appendCounter = 0;
     }
 
-    RootReference(RootReference r, Page root, long updateAttemptCounter) {
+    private RootReference(RootReference r, Page root, long updateAttemptCounter) {
         this.root = root;
         this.version = r.version;
         this.previous = r.previous;
         this.updateCounter = r.updateCounter + 1;
         this.updateAttemptCounter = r.updateAttemptCounter + updateAttemptCounter;
-        this.lockedForUpdate = false;
+        this.holdCount = 0;
+        this.ownerId = 0;
         this.appendCounter = r.appendCounter;
     }
 
     // This one is used for locking
-    RootReference(RootReference r, int attempt) {
+    private RootReference(RootReference r, int attempt) {
         this.root = r.root;
         this.version = r.version;
         this.previous = r.previous;
         this.updateCounter = r.updateCounter + 1;
         this.updateAttemptCounter = r.updateAttemptCounter + attempt;
-        this.lockedForUpdate = true;
+        assert r.holdCount == 0 || r.ownerId == Thread.currentThread().getId() : Thread.currentThread().getId() + " " + r;
+        this.holdCount = (byte)(r.holdCount + 1);
+        this.ownerId = Thread.currentThread().getId();
         this.appendCounter = r.appendCounter;
     }
 
     // This one is used for unlocking
-    RootReference(RootReference r, Page root, int appendCounter, boolean lockedForUpdate) {
+    private RootReference(RootReference r, Page root, int appendCounter, boolean lockedForUpdate) {
         this.root = root;
         this.version = r.version;
         this.previous = r.previous;
         this.updateCounter = r.updateCounter;
         this.updateAttemptCounter = r.updateAttemptCounter;
-        this.lockedForUpdate = lockedForUpdate;
+        assert r.holdCount > 0 && r.ownerId == Thread.currentThread().getId() : Thread.currentThread().getId() + " " + r;
+        this.holdCount = (byte)(r.holdCount - (lockedForUpdate ? 0 : 1));
+        this.ownerId = this.holdCount == 0 ? 0 : Thread.currentThread().getId();
         this.appendCounter = (byte) appendCounter;
     }
 
     // This one is used for version change
-    RootReference(RootReference r, long version, int attempt) {
+    private RootReference(RootReference r, long version, int attempt) {
         RootReference previous = r;
         RootReference tmp;
         while ((tmp = previous.previous) != null && tmp.root == r.root) {
@@ -99,8 +112,78 @@ public final class RootReference
         this.previous = previous;
         this.updateCounter = r.updateCounter + 1;
         this.updateAttemptCounter = r.updateAttemptCounter + attempt;
-        this.lockedForUpdate = r.lockedForUpdate;
-        this.appendCounter = r.appendCounter;
+        this.holdCount = r.holdCount == 0 ? 0 : (byte)(r.holdCount - 1);
+        this.ownerId = this.holdCount == 0 ? 0 : r.ownerId;
+        assert r.appendCounter == 0;
+        this.appendCounter = 0;
+    }
+
+    RootReference updateRootPage(Page page, long attemptCounter) {
+        if (holdCount == 0) {
+            RootReference updatedRootReference = new RootReference(this, page, attemptCounter);
+            if (root.map.compareAndSetRoot(this, updatedRootReference)) {
+                return updatedRootReference;
+            }
+        }
+        return null;
+    }
+
+    RootReference tryLock(int attemptCounter) {
+        if (holdCount == 0 || ownerId == Thread.currentThread().getId()) {
+            RootReference lockedRootReference = new RootReference(this, attemptCounter);
+            if (root.map.compareAndSetRoot(this, lockedRootReference)) {
+                return lockedRootReference;
+            }
+        }
+        return null;
+    }
+
+    RootReference tryUnlockAndUpdateVersion(long version, int attempt) {
+        if (holdCount == 0 || ownerId == Thread.currentThread().getId()) {
+            RootReference updatedRootReference = new RootReference(this, version, attempt);
+            if (root.map.compareAndSetRoot(this, updatedRootReference)) {
+                return updatedRootReference;
+            }
+        }
+        return null;
+    }
+
+    RootReference updatePageAndLockedStatus(Page page, int appendCounter, boolean lockedForUpdate) {
+        RootReference updatedRootReference = new RootReference(this, page, appendCounter, lockedForUpdate);
+        if (root.map.compareAndSetRoot(this, updatedRootReference)) {
+            return updatedRootReference;
+        }
+        return null;
+    }
+
+    void removeUnusedOldVersions(long oldestVersionToKeep) {
+        // We need to keep at least one previous version (if any) here,
+        // because in order to retain whole history of some version
+        // we really need last root of the previous version.
+        // Root labeled with version "X" is the LAST known root for that version
+        // and therefore the FIRST known root for the version "X+1"
+        for(RootReference rootRef = this; rootRef != null; rootRef = rootRef.previous) {
+            if (rootRef.version < oldestVersionToKeep) {
+                RootReference previous;
+                assert (previous = rootRef.previous) == null || previous.getAppendCounter() == 0 : oldestVersionToKeep + " " + rootRef.previous;
+                rootRef.previous = null;
+            }
+        }
+    }
+
+    boolean isLocked() {
+        return holdCount != 0;
+    }
+
+    boolean isLockedByCurrentThread() {
+        return holdCount != 0 && ownerId == Thread.currentThread().getId();
+    }
+
+    long getVersion() {
+        RootReference prev = previous;
+        return prev == null || prev.root != root ||
+                prev.appendCounter != appendCounter ?
+                    version : prev.version;
     }
 
     int getAppendCounter() {
@@ -113,6 +196,7 @@ public final class RootReference
 
     @Override
     public String toString() {
-        return "RootReference(" + System.identityHashCode(root) + "," + version + "," + lockedForUpdate + ")";
+        return "RootReference{" + System.identityHashCode(root) + "," + version + "," + ownerId + ":" + holdCount +
+                "," + getAppendCounter() + "}";
     }
 }

@@ -17,6 +17,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import org.h2.compress.Compressor;
 import org.h2.message.DbException;
 import org.h2.mvstore.type.DataType;
@@ -47,9 +48,18 @@ public abstract class Page implements Cloneable
     public final MVMap<?, ?> map;
 
     /**
-     * Position of this page's saved image within a Chunk or 0 if this page has not been saved yet.
+     * Position of this page's saved image within a Chunk
+     * or 0 if this page has not been saved yet
+     * or 1 if this page has not been saved yet, but already removed
+     * This "removed" flag is to keep track of pages that concurrently
+     * changed while they are being stored, in which case the live bookkeeping
+     * needs to be aware of such cases.
+     * Field need to be volatile to avoid races bettwen saving thread setting it
+     * and other thread reading it to access the page.
+     * On top of this update atomicity is required so removal mark and saved position
+     * cas be set concurrently
      */
-    private long pos;
+    private volatile long pos;
 
     /**
      * The last result of a find operation is cached.
@@ -72,13 +82,11 @@ public abstract class Page implements Cloneable
     private Object[] keys;
 
     /**
-     * Whether the page is an in-memory (not stored, or not yet stored) page,
-     * and it is removed. This is to keep track of pages that concurrently
-     * changed while they are being stored, in which case the live bookkeeping
-     * needs to be aware of such cases.
+     * Updater for pos field, which can be updated when page is saved,
+     * but can be concurrently marked as removed
      */
-    private volatile boolean removedInMemory;
-
+    private static final AtomicLongFieldUpdater<Page> posUpdater =
+                                                AtomicLongFieldUpdater.newUpdater(Page.class, "pos");
     /**
      * The estimated number of bytes used per child entry.
      */
@@ -184,7 +192,7 @@ public abstract class Page implements Cloneable
      * @param memory the memory used in bytes
      * @return the page
      */
-    public static Page createLeaf(MVMap<?, ?> map, Object[] keys, Object[] values, int memory) {
+    static Page createLeaf(MVMap<?, ?> map, Object[] keys, Object[] values, int memory) {
         assert keys != null;
         Page page = new Leaf(map, keys, values);
         page.initMemoryAccount(memory);
@@ -641,7 +649,7 @@ public abstract class Page implements Cloneable
      * @param chunkId the chunk id
      */
     private void read(ByteBuffer buff, int chunkId) {
-        int pageLength = buff.remaining() + 4;  // size of int, since we've read page length already
+        int pageLength = buff.remaining() + 10;  // size of int + short + varint, since we've read page length, check and mapId already
         int len = DataUtils.readVarInt(buff);
         keys = createKeyStorage(len);
         int type = buff.get();
@@ -689,6 +697,27 @@ public abstract class Page implements Cloneable
 
     public final boolean isSaved() {
         return DataUtils.isPageSaved(pos);
+    }
+
+    public final boolean isRemoved() {
+        return DataUtils.isPageRemoved(pos);
+    }
+
+    /**
+     * Mark this page as removed "in memory". That means that only adjustment of "unsaved memory" amount is required.
+     * On the other hand, if page was persisted, it's removal should be reflected in occupancy of the containing chunk.
+     * @return true if it was marked by this call or has been marked already,
+     *          false if page has been saved already.
+     */
+    public final boolean markAsRemoved() {
+        long pagePos;
+        do {
+            pagePos = this.pos;
+            if (DataUtils.isPageSaved(pagePos)) {
+                return false;
+            }
+        } while (!(DataUtils.isPageRemoved(pagePos) || posUpdater.compareAndSet(this, 0L, 1L)));
+        return true;
     }
 
     /**
@@ -751,7 +780,11 @@ public abstract class Page implements Cloneable
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_INTERNAL, "Page already stored");
         }
-        pos = DataUtils.getPagePos(chunkId, start, pageLength, type);
+        long pagePos = DataUtils.getPagePos(chunkId, start, pageLength, type);
+        boolean isDeleted = isRemoved();
+        while (!posUpdater.compareAndSet(this, isDeleted ? 1L : 0L, pagePos)) {
+            isDeleted = isRemoved();
+        }
         store.cachePage(this);
         if (type == DataUtils.PAGE_TYPE_NODE) {
             // cache again - this will make sure nodes stays in the cache
@@ -763,7 +796,7 @@ public abstract class Page implements Cloneable
         chunk.maxLenLive += max;
         chunk.pageCount++;
         chunk.pageCountLive++;
-        if (removedInMemory) {
+        if (isDeleted) {
             // if the page was removed _before_ the position was assigned, we
             // need to mark it removed here, so the fields are updated
             // when the next chunk is stored
@@ -896,7 +929,7 @@ public abstract class Page implements Cloneable
         if(isPersistent()) {
             long p = pos;
             if (p == 0) {
-                removedInMemory = true;
+                markAsRemoved();
             }
             map.removePage(p, memory);
         }

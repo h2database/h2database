@@ -429,9 +429,9 @@ public final class DataUtils {
             }
             throw newIllegalStateException(
                     ERROR_READING_FAILED,
-                    "Reading from {0} failed; file length {1} " +
-                    "read length {2} at {3}",
-                    file, size, dst.remaining(), pos, e);
+                    "Reading from file {0} failed at {1} (length {2}), " +
+                    "read {3}, remaining {4}",
+                    file, pos, size, dst.position(), dst.remaining(), e);
         }
     }
 
@@ -542,7 +542,17 @@ public final class DataUtils {
      * @return true if page has been saved
      */
     public static boolean isPageSaved(long pos) {
-        return pos != 0;
+        return (pos & ~1L) != 0;
+    }
+
+    /**
+     * Find out if page was removed.
+     *
+     * @param pos the position
+     * @return true if page has been removed (no longer accessible from the current root of the tree)
+     */
+    static boolean isPageRemoved(long pos) {
+        return pos == 1L;
     }
 
     /**

@@ -354,8 +354,12 @@ public class FileStore {
      * @param length the number of bytes to allocate
      * @return the start position in bytes
      */
-    public long predictAllocation(int length) {
+    long predictAllocation(int length) {
         return freeSpace.predictAllocation(length);
+    }
+
+    boolean isFragmented() {
+        return freeSpace.isFragmented();
     }
 
     /**
@@ -370,6 +374,10 @@ public class FileStore {
 
     public int getFillRate() {
         return freeSpace.getFillRate();
+    }
+
+    public int getProjectedFillRate(long live, int total) {
+        return freeSpace.getProjectedFillRate(live, total);
     }
 
     long getFirstFree() {

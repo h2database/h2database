@@ -32,6 +32,12 @@ public class FreeSpaceBitSet {
     private final BitSet set = new BitSet();
 
     /**
+     * Last allocations failures
+     */
+    private int failureFlags;
+
+
+    /**
      * Create a new free space map.
      *
      * @param firstFreeBlock the first free block
@@ -103,8 +109,12 @@ public class FreeSpaceBitSet {
      * @param length the number of bytes to allocate
      * @return the start position in bytes
      */
-    public long predictAllocation(int length) {
+    long predictAllocation(int length) {
         return allocate(length, false);
+    }
+
+    boolean isFragmented() {
+        return Integer.bitCount(failureFlags & 0x0F) > 1;
     }
 
     private long allocate(int length, boolean allocate) {
@@ -117,6 +127,11 @@ public class FreeSpaceBitSet {
                         "Double alloc: " + Integer.toHexString(start) + "/" + Integer.toHexString(blocks) + " " + this;
                 if (allocate) {
                     set.set(start, start + blocks);
+                } else {
+                    failureFlags <<= 1;
+                    if (end < 0) {
+                        failureFlags |= 1;
+                    }
                 }
                 return getPos(start);
             }
@@ -170,12 +185,27 @@ public class FreeSpaceBitSet {
      *
      * @return the fill rate (0 - 100)
      */
-    public int getFillRate() {
-        int cardinality = set.cardinality();
-        if (cardinality == 0) {
-            return 0;
-        }
-        return Math.max(1, (int)(100L * cardinality / set.length()));
+    int getFillRate() {
+        return getProjectedFillRate(0L, 0);
+    }
+
+    /**
+     * Calculates a prospective fill rate, which store would have after rewrite of sparsely populated chunk(s)
+     * and evacuation of still live data into a new chunk.
+     * @param live amount of memory (bytes) from vacated block, which would be written into a new chunk
+     * @param vacatedBlocks number of blocks vacated
+     * @return prospective fill rate (0 - 100)
+     */
+    int getProjectedFillRate(long live, int vacatedBlocks) {
+        int additionalBlocks = getBlock(live + blockSize - 1);
+        int usedBlocks = set.cardinality();
+        int totalBlocks = set.length();
+        assert usedBlocks <= totalBlocks : usedBlocks + " < " + totalBlocks;
+        usedBlocks += additionalBlocks - firstFreeBlock - vacatedBlocks;
+        assert usedBlocks >= 0 : usedBlocks + " " + additionalBlocks + " " + vacatedBlocks + " " + live;
+        totalBlocks += additionalBlocks - firstFreeBlock;
+        assert usedBlocks <= totalBlocks : usedBlocks + " < " + totalBlocks + vacatedBlocks + " " + live;
+        return usedBlocks == 0 ? 0 : (int)((100L * usedBlocks + totalBlocks - 1) / totalBlocks);
     }
 
     /**
@@ -183,7 +213,7 @@ public class FreeSpaceBitSet {
      *
      * @return the position.
      */
-    public long getFirstFree() {
+    long getFirstFree() {
         return getPos(set.nextClearBit(0));
     }
 
@@ -192,7 +222,7 @@ public class FreeSpaceBitSet {
      *
      * @return the position.
      */
-    public long getLastFree() {
+    long getLastFree() {
         return getPos(set.previousSetBit(set.size()-1) + 1);
     }
 
@@ -235,5 +265,4 @@ public class FreeSpaceBitSet {
         buff.append(']');
         return buff.toString();
     }
-
 }

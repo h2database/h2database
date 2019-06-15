@@ -1302,7 +1302,7 @@ public class MVStore implements AutoCloseable {
         c.metaRootPos = metaRoot.getPos();
         // calculate and set the likely next position
         if (reuseSpace) {
-            c.next = fileStore.predictAllocation(c.len * BLOCK_SIZE) / BLOCK_SIZE;
+            c.next = fileStore.predictAllocation(length) / BLOCK_SIZE;
         } else {
             // just after this chunk
             c.next = 0;

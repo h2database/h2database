@@ -27,7 +27,7 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     /**
      * The spatial key type.
      */
-    final SpatialDataType keyType;
+    private final SpatialDataType keyType;
 
     private boolean quadraticSplit;
 
@@ -131,11 +131,12 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
 
     @Override
     public V operate(SpatialKey key, V value, DecisionMaker<? super V> decisionMaker) {
-        beforeWrite();
         int attempt = 0;
         while(true) {
-            ++attempt;
             RootReference rootReference = flushAndGetRoot();
+            if (attempt++ == 0 && !rootReference.isLockedByCurrentThread()) {
+                beforeWrite();
+            }
             Page p = rootReference.root.copy(true);
             V result = operate(p, key, value, decisionMaker);
             if (!p.isLeaf() && p.getTotalCount() == 0) {
@@ -156,7 +157,7 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                         Page.PageReference.EMPTY
                 };
                 p = Page.createNode(this, keys, children, totalCount, 0);
-                if(store.getFileStore() != null) {
+                if(isPersistent()) {
                     store.registerUnsavedMemory(p.getMemory());
                 }
             }

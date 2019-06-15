@@ -1687,13 +1687,15 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     @SuppressWarnings("unchecked")
     public V operate(K key, V value, DecisionMaker<? super V> decisionMaker) {
-        beforeWrite();
         IntValueHolder unsavedMemoryHolder = new IntValueHolder();
         int attempt = 0;
         while(true) {
             RootReference rootReference = flushAndGetRoot();
+            if (attempt++ == 0 && !rootReference.isLockedByCurrentThread()) {
+                beforeWrite();
+            }
             RootReference lockedRootReference = null;
-            if ((++attempt > 3 || rootReference.isLocked())) {
+            if (attempt > 3 || rootReference.isLocked()) {
                 lockedRootReference = lockRoot(rootReference, attempt);
                 rootReference = lockedRootReference;
             }

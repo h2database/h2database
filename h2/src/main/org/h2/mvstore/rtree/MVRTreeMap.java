@@ -6,6 +6,7 @@
 package org.h2.mvstore.rtree;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -132,15 +133,22 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     @Override
     public V operate(SpatialKey key, V value, DecisionMaker<? super V> decisionMaker) {
         int attempt = 0;
+        final Collection<Page> removedPages = isPersistent() ? new ArrayList<Page>() : null;
         while(true) {
             RootReference rootReference = flushAndGetRoot();
             if (attempt++ == 0 && !rootReference.isLockedByCurrentThread()) {
                 beforeWrite();
             }
-            Page p = rootReference.root.copy(true);
-            V result = operate(p, key, value, decisionMaker);
+            Page p = rootReference.root;
+            if (removedPages != null && p.getTotalCount() > 0) {
+                removedPages.add(p);
+            }
+            p = p.copy();
+            V result = operate(p, key, value, decisionMaker, removedPages);
             if (!p.isLeaf() && p.getTotalCount() == 0) {
-                p.removePage();
+                if (removedPages != null) {
+                    removedPages.add(p);
+                }
                 p = createEmptyLeaf();
             } else if (p.getKeyCount() > store.getKeysPerPage() || p.getMemory() > store.getMaxPageSize()
                                                                 && p.getKeyCount() > 3) {
@@ -162,6 +170,13 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                 }
             }
             if(updateRoot(rootReference, p, attempt)) {
+                int unsavedMemory = 0;
+                if (removedPages != null) {
+                    for (Page page : removedPages) {
+                        page.removePage();
+                    }
+                }
+                store.registerUnsavedMemory(unsavedMemory);
                 return result;
             }
             decisionMaker.reset();
@@ -169,7 +184,8 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     }
 
     @SuppressWarnings("unchecked")
-    private V operate(Page p, Object key, V value, DecisionMaker<? super V> decisionMaker) {
+    private V operate(Page p, Object key, V value, DecisionMaker<? super V> decisionMaker,
+                        Collection<Page> removedPages) {
         V result = null;
         if (p.isLeaf()) {
             int index = -1;
@@ -211,9 +227,12 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                     // this will mark the old page as deleted
                     // so we need to update the parent in any case
                     // (otherwise the old page might be deleted again)
-                    Page c = cOld.copy(true);
+                    if (removedPages != null) {
+                        removedPages.add(cOld);
+                    }
+                    Page c = cOld.copy();
                     long oldSize = c.getTotalCount();
-                    result = operate(c, key, value, decisionMaker);
+                    result = operate(c, key, value, decisionMaker, removedPages);
                     p.setChild(i, c);
                     if (oldSize == c.getTotalCount()) {
                         decisionMaker.reset();
@@ -222,8 +241,8 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                     if (c.getTotalCount() == 0) {
                         // this child was deleted
                         p.remove(i);
-                        if (p.getKeyCount() == 0) {
-                            c.removePage();
+                        if (removedPages != null) {
+                            removedPages.add(p);
                         }
                         break;
                     }
@@ -260,7 +279,11 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                     }
                 }
             }
-            Page c = p.getChildPage(index).copy(true);
+            Page c = p.getChildPage(index);
+            if (removedPages != null) {
+                removedPages.add(c);
+            }
+            c = c.copy();
             if (c.getKeyCount() > store.getKeysPerPage() || c.getMemory() > store.getMaxPageSize()
                     && c.getKeyCount() > 4) {
                 // split on the way down
@@ -269,9 +292,9 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                 p.setChild(index, c);
                 p.insertNode(index, getBounds(split), split);
                 // now we are not sure where to add
-                result = operate(p, key, value, decisionMaker);
+                result = operate(p, key, value, decisionMaker, removedPages);
             } else {
-                result = operate(c, key, value, decisionMaker);
+                result = operate(c, key, value, decisionMaker, removedPages);
                 Object bounds = p.getKey(index);
                 if (!keyType.contains(bounds, key)) {
                     bounds = keyType.createBoundingBox(bounds);
@@ -412,8 +435,7 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
 
     private Page newPage(boolean leaf) {
         Page page = leaf ? createEmptyLeaf() : createEmptyNode();
-        if(isPersistent())
-        {
+        if(isPersistent()) {
             store.registerUnsavedMemory(page.getMemory());
         }
         return page;

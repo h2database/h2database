@@ -422,26 +422,8 @@ public abstract class Page implements Cloneable
      * @return a mutable copy of this page
      */
     public final Page copy() {
-        return copy(false);
-    }
-
-    /**
-     * Create a copy of this page.
-     *
-     * @param countRemoval When {@code true} the current page is removed,
-     *                     when {@code false} just copy the page.
-     * @return a mutable copy of this page
-     */
-    public final Page copy(boolean countRemoval) {
         Page newPage = clone();
         newPage.pos = 0;
-        // mark the old as deleted
-        if(countRemoval) {
-            removePage();
-            if(isPersistent()) {
-                map.store.registerUnsavedMemory(newPage.getMemory());
-            }
-        }
         return newPage;
     }
 

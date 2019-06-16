@@ -51,28 +51,28 @@ public class TestMVStoreStopCompact extends TestBase {
         FileUtils.delete(fileName);
         // store with a very small page size, to make sure
         // there are many leaf pages
-        MVStore s = new MVStore.Builder().
-                fileName(fileName).open();
-        s.setRetentionTime(retentionTime);
-        MVMap<Integer, String> map = s.openMap("data");
-        long start = System.currentTimeMillis();
-        Random r = new Random(1);
-        for (int i = 0; i < 4000000; i++) {
-            long time = System.currentTimeMillis() - start;
-            if (time > timeout) {
-                break;
+        MVStore.Builder builder = new MVStore.Builder().fileName(fileName);
+        try (MVStore s = builder.open()) {
+            s.setRetentionTime(retentionTime);
+            s.setVersionsToKeep(0);
+            MVMap<Integer, String> map = s.openMap("data");
+            long start = System.currentTimeMillis();
+            Random r = new Random(1);
+            for (int i = 0; i < 4_000_000; i++) {
+                long time = System.currentTimeMillis() - start;
+                if (time > timeout) {
+                    break;
+                }
+                int x = r.nextInt(10_000_000);
+                map.put(x, "Hello World " + i * 10);
             }
-            int x = r.nextInt(10000000);
-            map.put(x, "Hello World " + i * 10);
+            s.setAutoCommitDelay(100);
+            long oldWriteCount = s.getFileStore().getWriteCount();
+            // expect background write to stop after 5 seconds
+            Thread.sleep(5000);
+            long newWriteCount = s.getFileStore().getWriteCount();
+            // expect that compaction didn't cause many writes
+            assertTrue("writeCount diff: " + retentionTime + "/" + timeout + " " + (newWriteCount - oldWriteCount), newWriteCount - oldWriteCount < 130);
         }
-        s.setAutoCommitDelay(100);
-        long oldWriteCount = s.getFileStore().getWriteCount();
-        // expect background write to stop after 5 seconds
-        Thread.sleep(5000);
-        long newWriteCount = s.getFileStore().getWriteCount();
-        // expect that compaction didn't cause many writes
-        assertTrue(newWriteCount - oldWriteCount < 30);
-        s.close();
     }
-
 }

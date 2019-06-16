@@ -536,6 +536,15 @@ public final class DataUtils {
     }
 
     /**
+     * Determines whether specified file position corresponds to a leaf page
+     * @param pos the position
+     * @return true if it is a leaf, false otherwise
+     */
+    public static boolean isLeafPosition(long pos) {
+        return getPageType(pos) == PAGE_TYPE_LEAF;
+    }
+
+    /**
      * Find out if page was saved.
      *
      * @param pos the position
@@ -546,6 +555,21 @@ public final class DataUtils {
     }
 
     /**
+     * Transforms saved page position into removed page info, by re-purposing
+     * "removed" / "page type" / bit as "pinned page" flag
+     * @param pagePos of the saved page
+     * @param isPinned whether page belong to a "single writer" map
+     * @return removed page info that contains at least chunk id, page length and pinned flag
+     */
+    public static long createRemovedPagePos(long pagePos, boolean isPinned) {
+        pagePos &= ~1L;
+        if (isPinned) {
+            pagePos |= 1L;
+        }
+        return pagePos;
+    }
+
+    /**
      * Find out if page was removed.
      *
      * @param pos the position
@@ -553,6 +577,17 @@ public final class DataUtils {
      */
     static boolean isPageRemoved(long pos) {
         return pos == 1L;
+    }
+
+    /**
+     * Find out if page was pinned (can not be evacuated to a new chunk).
+     *
+     * @param pos the position
+     * @return true if page has been pinned
+     */
+    static boolean isPagePinned(long pos) {
+        assert isPageSaved(pos);
+        return (pos & 1L) == 1L;
     }
 
     /**

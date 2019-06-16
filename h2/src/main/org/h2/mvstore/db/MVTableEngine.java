@@ -73,6 +73,10 @@ public class MVTableEngine implements TableEngine {
                     String dir = FileUtils.getParent(fileName);
                     FileUtils.createDirectories(dir);
                 }
+                int autoCompactFillRate = db.getSettings().maxCompactCount;
+                if (autoCompactFillRate <= 100) {
+                    builder.autoCompactFillRate(autoCompactFillRate);
+                }
             }
             if (key != null) {
                 encrypted = true;
@@ -356,16 +360,7 @@ public class MVTableEngine implements TableEngine {
          * @param maxCompactTime the maximum time in milliseconds to compact
          */
         public void compactFile(long maxCompactTime) {
-            mvStore.setRetentionTime(0);
-            long start = System.nanoTime();
-            while (mvStore.compact(95, 16 * 1024 * 1024)) {
-                mvStore.sync();
-                mvStore.compactMoveChunks(95, 16 * 1024 * 1024);
-                long time = System.nanoTime() - start;
-                if (time > TimeUnit.MILLISECONDS.toNanos(maxCompactTime)) {
-                    break;
-                }
-            }
+            mvStore.compactFile(maxCompactTime);
         }
 
         /**
@@ -375,17 +370,23 @@ public class MVTableEngine implements TableEngine {
          *
          * @param compactFully true if storage need to be compacted after closer
          */
-        public void close(boolean compactFully) {
+        public void close(long allowedCompactionTime) {
             try {
                 FileStore fileStore = mvStore.getFileStore();
                 if (!mvStore.isClosed() && fileStore != null) {
+                    boolean compactFully = allowedCompactionTime == -1;
                     if (fileStore.isReadOnly()) {
                         compactFully = false;
                     } else {
                         transactionStore.close();
                     }
+                    if (compactFully) {
+                        allowedCompactionTime = 0;
+                    }
+
+                    mvStore.close(allowedCompactionTime);
+
                     String fileName = fileStore.getFileName();
-                    mvStore.close();
                     if (compactFully && FileUtils.exists(fileName)) {
                         // the file could have been deleted concurrently,
                         // so only compact if the file still exists

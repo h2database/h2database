@@ -114,6 +114,12 @@ public class Chunk {
      */
     public long next;
 
+    /**
+     * Number of live pinned pages.
+     */
+    private int pinCount;
+
+
     Chunk(int id) {
         this.id = id;
     }
@@ -202,6 +208,7 @@ public class Chunk {
         c.unusedAtVersion = DataUtils.readHexLong(map, "unusedAtVersion", 0);
         c.version = DataUtils.readHexLong(map, "version", id);
         c.next = DataUtils.readHexLong(map, "next", 0);
+        c.pinCount = DataUtils.readHexInt(map, "pinCount", 0);
         return c;
     }
 
@@ -261,6 +268,7 @@ public class Chunk {
             DataUtils.appendMap(buff, "unusedAtVersion", unusedAtVersion);
         }
         DataUtils.appendMap(buff, "version", version);
+        DataUtils.appendMap(buff, "pinCount", pinCount);
         return buff.toString();
     }
 
@@ -281,6 +289,10 @@ public class Chunk {
 
     boolean isSaved() {
         return block != Long.MAX_VALUE;
+    }
+
+    boolean isEvacuatable() {
+        return pinCount == 0;
     }
 
     /**
@@ -355,10 +367,47 @@ public class Chunk {
         }
     }
 
+
+    void accountForWrittenPage(int pageLengthEncoded, boolean singleWriter) {
+        maxLen += pageLengthEncoded;
+        pageCount++;
+        maxLenLive += pageLengthEncoded;
+        pageCountLive++;
+        if (singleWriter) {
+            pinCount++;
+        }
+    }
+
+    boolean accountForRemovedPage(long pagePos, long now, long version) {
+        assert isSaved() : this;
+        int pageLength = DataUtils.getPageMaxLength(pagePos);
+        maxLenLive -= pageLength;
+        pageCountLive--;
+        if (DataUtils.isPagePinned(pagePos)) {
+            pinCount--;
+        }
+
+        if (unusedAtVersion < version) {
+            unusedAtVersion = version;
+        }
+
+        assert pinCount >= 0 : this;
+        assert pageCountLive >= 0 : this;
+        assert pinCount <= pageCountLive : this;
+        assert maxLenLive >= 0 : this;
+        assert (pageCountLive == 0) == (maxLenLive == 0) : this;
+
+        if (pageCountLive == 0) {
+            assert isEvacuatable() : this;
+            unused = now;
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public String toString() {
         return asString();
     }
-
 }
 

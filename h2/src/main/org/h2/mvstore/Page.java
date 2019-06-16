@@ -791,18 +791,13 @@ public abstract class Page implements Cloneable
             // for a longer time
             store.cachePage(this);
         }
-        int max = DataUtils.getPageMaxLength(pos);
-        chunk.maxLen += max;
-        chunk.maxLenLive += max;
-        chunk.pageCount++;
-        chunk.pageCountLive++;
+        int pageLengthEncoded = DataUtils.getPageMaxLength(pos);
+        boolean singleWriter = map.isSingleWriter();
+        chunk.accountForWrittenPage(pageLengthEncoded, singleWriter);
         if (isDeleted) {
-            // if the page was removed _before_ the position was assigned, we
-            // need to mark it removed here, so the fields are updated
-            // when the next chunk is stored
-            map.removePage(pos, memory);
+            store.accountForRemovedPage(pagePos, chunk.version + 1, singleWriter);
         }
-        diskSpaceUsed = max != DataUtils.PAGE_LARGE ? max : pageLength;
+        diskSpaceUsed = pageLengthEncoded != DataUtils.PAGE_LARGE ? pageLengthEncoded : pageLength;
         return typePos + 1;
     }
 
@@ -923,16 +918,22 @@ public abstract class Page implements Cloneable
     public void setComplete() {}
 
     /**
-     * Remove the page.
+     * Make accounting changes (chunk occupancy or "unsaved" RAM), related to this page removal.
+     * @param version at which page was removed
+     * @return amount (negative), by which "unsaved memory" should be adjusted, if page is unsaved one,
+     *          and 0 for page that was already saved, or in case of non-persistent map
      */
-    public final void removePage() {
+    public final int removePage(long version) {
         if(isPersistent()) {
-            long p = pos;
-            if (p == 0) {
-                markAsRemoved();
+            MVStore store = map.store;
+            if (!markAsRemoved()) { // only if it has been saved already
+                long pagePos = pos;
+                store.accountForRemovedPage(pagePos, version, map.isSingleWriter());
+            } else if (getTotalCount() > 0) {
+                return -memory;
             }
-            map.removePage(p, memory);
         }
+        return 0;
     }
 
     /**
@@ -945,8 +946,10 @@ public abstract class Page implements Cloneable
 
     /**
      * Remove all page data recursively.
+     * @param version at wich page got removed
+     * @return adjustment for "unsaved memory" amount
      */
-    public abstract void removeAllRecursive();
+    public abstract int removeAllRecursive(long version);
 
     /**
      * Create array for keys storage.
@@ -1048,10 +1051,10 @@ public abstract class Page implements Cloneable
 
         @Override
         public String toString() {
-            return "Cnt:" + count + ", pos:" + DataUtils.getPageChunkId(pos) +
-                    "-" + DataUtils.getPageOffset(pos) + ":" + DataUtils.getPageMaxLength(pos) +
+            return "Cnt:" + count + ", pos:" + (pos == 0 ? "0" : DataUtils.getPageChunkId(pos) +
+                    "-" + DataUtils.getPageOffset(pos) + ":" + DataUtils.getPageMaxLength(pos)) +
                     ((page == null ? DataUtils.getPageType(pos) == 0 : page.isLeaf()) ? " leaf" : " node") +
-                    ", " + page;
+                    ", page:{" + page + "}";
         }
     }
 
@@ -1169,7 +1172,7 @@ public abstract class Page implements Cloneable
             return check;
         }
 
-        protected void recalculateTotalCount() {
+        void recalculateTotalCount() {
             totalCount = calculateTotalCount();
         }
 
@@ -1229,26 +1232,26 @@ public abstract class Page implements Cloneable
         }
 
         @Override
-        public void removeAllRecursive() {
+        public int removeAllRecursive(long version) {
+            int unsavedMemory = removePage(version);
             if (isPersistent()) {
                 for (int i = 0, size = map.getChildPageCount(this); i < size; i++) {
                     PageReference ref = children[i];
                     Page page = ref.getPage();
                     if (page != null) {
-                        page.removeAllRecursive();
+                        unsavedMemory += page.removeAllRecursive(version);
                     } else {
-                        long c = ref.getPos();
-                        int type = DataUtils.getPageType(c);
-                        if (type == PAGE_TYPE_LEAF) {
-                            int mem = DataUtils.getPageMaxLength(c);
-                            map.removePage(c, mem);
+                        long pagePos = ref.getPos();
+                        assert DataUtils.isPageSaved(pagePos);
+                        if (DataUtils.isLeafPosition(pagePos)) {
+                            map.store.accountForRemovedPage(pagePos, version, map.isSingleWriter());
                         } else {
-                            map.readPage(c).removeAllRecursive();
+                            unsavedMemory += map.readPage(pagePos).removeAllRecursive(version);
                         }
                     }
                 }
             }
-            removePage();
+            return unsavedMemory;
         }
 
         @Override
@@ -1550,8 +1553,8 @@ public abstract class Page implements Cloneable
         }
 
         @Override
-        public void removeAllRecursive() {
-            removePage();
+        public int removeAllRecursive(long version) {
+            return removePage(version);
         }
 
         @Override

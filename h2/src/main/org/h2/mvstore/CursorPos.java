@@ -6,24 +6,31 @@
 package org.h2.mvstore;
 
 /**
- * A position in a cursor
+ * A position in a cursor.
+ * Instance represents a node in the linked list, which traces path
+ * fom a specific (target) key within a leaf node all the way up to te root
+ * (bottom up path).
  */
-public class CursorPos {
-
+public class CursorPos
+{
     /**
-     * The current page.
+     * The page at the current level.
      */
     public Page page;
 
     /**
-     * The current index.
+     * Index of the key (within page above) used to go down to a lower level
+     * in case of intermediate nodes, or index of the target key for leaf a node.
+     * In a later case, it could be negative, if the key is not present.
      */
     public int index;
 
     /**
-     * The position in the parent page, if any.
+     * Next node in the linked list, representing the position within parent level,
+     * or null, if we are at the root level already.
      */
     public CursorPos parent;
+
 
     public CursorPos(Page page, int index, CursorPos parent) {
         this.page = page;
@@ -31,5 +38,12 @@ public class CursorPos {
         this.parent = parent;
     }
 
+    int processRemovalInfo(long version) {
+        int unsavedMemory = 0;
+        for (CursorPos head = this; head != null; head = head.parent) {
+            unsavedMemory += head.page.removePage(version);
+        }
+        return unsavedMemory;
+    }
 }
 

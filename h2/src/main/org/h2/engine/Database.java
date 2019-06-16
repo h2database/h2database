@@ -1607,18 +1607,7 @@ public class Database implements DataHandler {
                             compactMode == CommandInterface.SHUTDOWN_COMPACT ||
                             compactMode == CommandInterface.SHUTDOWN_DEFRAG ||
                             getSettings().defragAlways;
-                    if (!compactFully && !mvStore.isReadOnly()) {
-                        if (dbSettings.maxCompactTime > 0) {
-                            try {
-                                store.compactFile(dbSettings.maxCompactTime);
-                            } catch (Throwable t) {
-                                trace.error(t, "compactFile");
-                            }
-                        } else {
-                            mvStore.commit();
-                        }
-                    }
-                    store.close(compactFully);
+                    store.close(compactFully ? -1 : dbSettings.maxCompactTime);
                 }
             }
             if (systemSession != null) {

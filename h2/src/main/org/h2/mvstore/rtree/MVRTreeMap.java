@@ -169,15 +169,31 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                     store.registerUnsavedMemory(p.getMemory());
                 }
             }
-            if(updateRoot(rootReference, p, attempt)) {
-                int unsavedMemory = 0;
-                if (removedPages != null) {
-                    for (Page page : removedPages) {
-                        page.removePage();
+
+            if (removedPages == null) {
+                if (updateRoot(rootReference, p, attempt)) {
+                    return result;
+                }
+            } else {
+                RootReference lockedRootReference = tryLock(rootReference, attempt);
+                if (lockedRootReference != null) {
+                    try {
+                        long version = lockedRootReference.version;
+                        int unsavedMemory = 0;
+                        for (Page page : removedPages) {
+                            unsavedMemory += page.removePage(version);
+                        }
+                        store.registerUnsavedMemory(unsavedMemory);
+                        unlockRoot(p);
+                        lockedRootReference = null;
+                        return result;
+                    } finally {
+                        if(lockedRootReference != null) {
+                            unlockRoot(p);
+                        }
                     }
                 }
-                store.registerUnsavedMemory(unsavedMemory);
-                return result;
+                removedPages.clear();
             }
             decisionMaker.reset();
         }

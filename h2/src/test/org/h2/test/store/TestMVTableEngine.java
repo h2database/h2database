@@ -66,7 +66,7 @@ public class TestMVTableEngine extends TestDb {
         testLobCreationThenShutdown();
         testManyTransactions();
         testAppendOnly();
-        testLowRetentionTime();
+        testNoRetentionTime();
         testOldAndNew();
         testTemporaryTables();
         testUniqueIndex();
@@ -78,7 +78,7 @@ public class TestMVTableEngine extends TestDb {
         testTimeout();
         testExplainAnalyze();
         testTransactionLogEmptyAfterCommit();
-//        testShrinkDatabaseFile();
+        testShrinkDatabaseFile();
         testTwoPhaseCommit();
         testRecover();
         testSeparateKey();
@@ -91,7 +91,7 @@ public class TestMVTableEngine extends TestDb {
         testBlob();
         testEncryption();
         testReadOnly();
-//        testReuseDiskSpace();
+        testReuseDiskSpace();
         testDataTypes();
         testSimple();
         if (!config.travis) {
@@ -305,9 +305,9 @@ public class TestMVTableEngine extends TestDb {
         }
     }
 
-    private void testLowRetentionTime() throws SQLException {
+    private void testNoRetentionTime() throws SQLException {
         deleteDb(getTestName());
-        try (Connection conn = getConnection(getTestName() + ";RETENTION_TIME=10;WRITE_DELAY=10")) {
+        try (Connection conn = getConnection(getTestName() + ";RETENTION_TIME=0;WRITE_DELAY=10")) {
             Statement stat = conn.createStatement();
             try (Connection conn2 = getConnection(getTestName())) {
                 Statement stat2 = conn2.createStatement();

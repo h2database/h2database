@@ -55,7 +55,7 @@ public class TestConcurrent extends TestMVStore {
         testConcurrentReplaceAndRead();
         testConcurrentChangeAndCompact();
         testConcurrentChangeAndGetVersion();
-//        testConcurrentFree();
+        testConcurrentFree();
         testConcurrentStoreAndRemoveMap();
         testConcurrentStoreAndClose();
         testConcurrentOnlineBackup();
@@ -397,7 +397,6 @@ public class TestConcurrent extends TestMVStore {
             try {
                 s.setRetentionTime(0);
                 s.setVersionsToKeep(0);
-                s.setFreeUnusedOnBackgroundThread(false);
                 final ArrayList<MVMap<Integer, Integer>> list = new ArrayList<>(count);
                 for (int i = 0; i < count; i++) {
                     MVMap<Integer, Integer> m = s.openMap("d" + i);
@@ -440,11 +439,6 @@ public class TestConcurrent extends TestMVStore {
                 // this will remove them, so we end up with
                 // one unused one, and one active one
                 MVMap<Integer, Integer> m = s.openMap("dummy");
-                s.commit();
-                s.removeMap(m);
-                s.commit();
-                m = s.openMap("dummy");
-                s.commit();
                 m.put(1, 1);
                 s.commit();
                 m.put(2, 2);
@@ -457,7 +451,7 @@ public class TestConcurrent extends TestMVStore {
                         chunkCount++;
                     }
                 }
-                assertTrue("" + chunkCount, chunkCount <= 3);
+                assertTrue("" + chunkCount, chunkCount < 3);
             } finally {
                 s.close();
             }

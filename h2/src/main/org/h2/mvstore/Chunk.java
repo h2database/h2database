@@ -291,7 +291,18 @@ public class Chunk {
         return block != Long.MAX_VALUE;
     }
 
-    boolean isEvacuatable() {
+    boolean isLive() {
+        return pageCountLive > 0;
+    }
+
+    boolean isRewritable() {
+        return isSaved()
+                && isLive()
+                && pageCountLive < pageCount    // not fully occupied
+                && isEvacuatable();
+    }
+
+    private boolean isEvacuatable() {
         return pinCount == 0;
     }
 
@@ -397,7 +408,7 @@ public class Chunk {
         assert maxLenLive >= 0 : this;
         assert (pageCountLive == 0) == (maxLenLive == 0) : this;
 
-        if (pageCountLive == 0) {
+        if (!isLive()) {
             assert isEvacuatable() : this;
             unused = now;
             return true;

@@ -845,7 +845,7 @@ public class MVStore implements AutoCloseable {
                         continue;
                     }
 
-                    if (c.pageCountLive == 0) {
+                    if (!c.isLive()) {
                         // we can just remove entry from meta, referencing to this chunk,
                         // but store maybe R/O, and it's not properly started yet,
                         // so lets make this chunk "dead" and taking no space,
@@ -880,7 +880,7 @@ public class MVStore implements AutoCloseable {
                 int length = c.len * BLOCK_SIZE;
                 fileStore.markUsed(start, length);
             }
-            if (c.pageCountLive == 0) {
+            if (!c.isLive()) {
                 deadChunks.offer(c);
             }
         }
@@ -1665,7 +1665,7 @@ public class MVStore implements AutoCloseable {
     }
 
     private boolean canOverwriteChunk(Chunk c, long oldestVersionToKeep) {
-        return c.pageCountLive == 0 && c.unusedAtVersion < oldestVersionToKeep;
+        return !c.isLive() && c.unusedAtVersion < oldestVersionToKeep;
     }
 
     private boolean isSeasonedChunk(Chunk chunk, long time) {
@@ -2161,9 +2161,7 @@ public class MVStore implements AutoCloseable {
     }
 
     private boolean isRewritable(Chunk chunk, long time) {
-        int pageCountLive = chunk.pageCountLive;
-        return pageCountLive > 0 && pageCountLive < chunk.pageCount
-                && isSeasonedChunk(chunk, time) && chunk.isEvacuatable() && chunk.isSaved();
+        return chunk.isRewritable() && isSeasonedChunk(chunk, time);
     }
 
     private int compactRewrite(Set<Integer> set) {
@@ -2198,7 +2196,7 @@ public class MVStore implements AutoCloseable {
     private boolean validateRewrite(Set<Integer> set) {
         for (Integer chunkId : set) {
             Chunk chunk = chunks.get(chunkId);
-            if (chunk != null && chunk.pageCountLive != 0) {
+            if (chunk != null && chunk.isLive()) {
                 int pageCountLive = chunk.pageCountLive;
                 RemovedPageInfo[] removedPageInfos = removedPages.toArray(new RemovedPageInfo[0]);
                 for (RemovedPageInfo rpi : removedPageInfos) {
@@ -2206,7 +2204,7 @@ public class MVStore implements AutoCloseable {
                         --pageCountLive;
                     }
                 }
-                if (pageCountLive == 0) {
+                if (pageCountLive != 0) {
                     for (String mapName : getMapNames()) {
                         if (!mapName.startsWith("undoLog") && hasData(mapName)) {   // non-singleWriter map has data
                             int mapId = getMapId(mapName);
@@ -2216,7 +2214,7 @@ public class MVStore implements AutoCloseable {
                             }
                         }
                     }
-                    assert pageCountLive == 0 : chunk + " " + Arrays.toString(removedPageInfos);
+                    assert pageCountLive != 0 : chunk + " " + Arrays.toString(removedPageInfos);
                 }
             }
         }

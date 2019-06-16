@@ -1820,11 +1820,11 @@ public class TestMVStore extends TestBase {
             for (int i = 0; i < 100; i++) {
                 m.put(j + i, "Hello " + j);
             }
-            trace("Before - fill rate: " + s.getFileStore().getFillRate() + "%, chunks fill rate: "
+            trace("Before - fill rate: " + s.getFillRate() + "%, chunks fill rate: "
                     + s.getChunksFillRate() + ", len: " + FileUtils.size(fileName));
             s.compact(80, 2048);
             s.compactMoveChunks();
-            trace("After  - fill rate: " + s.getFileStore().getFillRate() + "%, chunks fill rate: "
+            trace("After  - fill rate: " + s.getFillRate() + "%, chunks fill rate: "
                     + s.getChunksFillRate() + ", len: " + FileUtils.size(fileName));
             s.close();
             long len = FileUtils.size(fileName);

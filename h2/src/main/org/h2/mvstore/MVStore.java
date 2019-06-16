@@ -1862,7 +1862,7 @@ public class MVStore implements AutoCloseable {
                 try {
                     retentionTime = -1;
                     dropUnusedChunks();
-                    if (fileStore.getFillRate() <= targetFillRate) {
+                    if (getFillRate() <= targetFillRate) {
                         long start = fileStore.getFirstFree() / BLOCK_SIZE;
                         Iterable<Chunk> move = findChunksToMove(start, moveSize);
                         if (move != null) {
@@ -2111,8 +2111,12 @@ public class MVStore implements AutoCloseable {
                 maxLengthLiveSum += c.maxLenLive;
             }
         }
-        int fillRate = getFileStore().getProjectedFillRate(maxLengthLiveSum, maxLengthSum);
+        int fillRate = fileStore.getProjectedFillRate(maxLengthLiveSum, maxLengthSum);
         return fillRate;
+    }
+
+    public int getFillRate() {
+        return fileStore.getFillRate();
     }
 
     private Iterable<Chunk> findOldChunks(int writeLimit) {
@@ -2848,7 +2852,7 @@ public class MVStore implements AutoCloseable {
             }
             int lastProjectedFillRate = -1;
             for (int cnt = 0; ; cnt++) {
-                int fillRate = fileStore.getFillRate();
+                int fillRate = getFillRate();
                 int projectedFillRate = fillRate;
                 if (fillRate > thresholdRate) {
                     projectedFillRate = getProjectedFillRate();

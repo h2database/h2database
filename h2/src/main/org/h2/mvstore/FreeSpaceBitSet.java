@@ -198,13 +198,17 @@ public class FreeSpaceBitSet {
      */
     int getProjectedFillRate(long live, int vacatedBlocks) {
         int additionalBlocks = getBlock(live + blockSize - 1);
-        int usedBlocks = set.cardinality();
-        int totalBlocks = set.length();
-        assert usedBlocks <= totalBlocks : usedBlocks + " < " + totalBlocks;
-        usedBlocks += additionalBlocks - firstFreeBlock - vacatedBlocks;
-        assert usedBlocks >= 0 : usedBlocks + " " + additionalBlocks + " " + vacatedBlocks + " " + live;
-        totalBlocks += additionalBlocks - firstFreeBlock;
-        assert usedBlocks <= totalBlocks : usedBlocks + " < " + totalBlocks + vacatedBlocks + " " + live;
+        // it's not bullet-proof against race condition but should be good enough
+        // to get approximation without holding a store lock
+        int usedBlocks;
+        int totalBlocks;
+        do {
+            totalBlocks = set.length();
+            usedBlocks = set.cardinality();
+        } while (totalBlocks != set.length() || usedBlocks > totalBlocks);
+        int totalBlocksAdjustment = additionalBlocks - firstFreeBlock;
+        usedBlocks += totalBlocksAdjustment - vacatedBlocks;
+        totalBlocks += totalBlocksAdjustment;
         return usedBlocks == 0 ? 0 : (int)((100L * usedBlocks + totalBlocks - 1) / totalBlocks);
     }
 

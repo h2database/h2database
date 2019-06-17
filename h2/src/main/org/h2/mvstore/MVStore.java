@@ -1864,9 +1864,9 @@ public class MVStore implements AutoCloseable {
                     dropUnusedChunks();
                     if (getFillRate() <= targetFillRate) {
                         long start = fileStore.getFirstFree() / BLOCK_SIZE;
-                        Iterable<Chunk> move = findChunksToMove(start, moveSize);
+                        ChunkSelectionResult move = findChunksToMove(start, moveSize);
                         if (move != null) {
-                            compactMoveChunks(move);
+                            compactMoveChunks(move.chunksToMove, start + move.blocksToMove);
                         }
                     }
                 } finally {
@@ -1879,9 +1879,20 @@ public class MVStore implements AutoCloseable {
         }
     }
 
-    private Iterable<Chunk> findChunksToMove(long startBlock, long moveSize) {
+    private static class ChunkSelectionResult
+    {
+        final Iterable<Chunk> chunksToMove;
+        final long blocksToMove;
+
+        ChunkSelectionResult(Iterable<Chunk> chunksToMove, long blocksToMove) {
+            this.chunksToMove = chunksToMove;
+            this.blocksToMove = blocksToMove;
+        }
+    }
+
+    private ChunkSelectionResult findChunksToMove(long startBlock, long moveSize) {
         long maxBlocksToMove = moveSize / BLOCK_SIZE;
-        Iterable<Chunk> result = null;
+        ChunkSelectionResult result = null;
         if (maxBlocksToMove > 0) {
             PriorityQueue<Chunk> queue = new PriorityQueue<>(this.chunks.size() / 2 + 1,
                     new Comparator<Chunk>() {
@@ -1905,13 +1916,14 @@ public class MVStore implements AutoCloseable {
                 }
             }
             if (!queue.isEmpty()) {
-                result = queue;
+                result = new ChunkSelectionResult(queue, size);
             }
         }
         return result;
     }
 
-    private void compactMoveChunks(Iterable<Chunk> move) {
+    private void compactMoveChunks(Iterable<Chunk> move, long targetRegionEnd) {
+        assert storeLock.isHeldByCurrentThread();
         if (move != null) {
             // this will ensure better recognition of the last chunk
             // in case of power failure, since we are going to move older chunks
@@ -1919,7 +1931,9 @@ public class MVStore implements AutoCloseable {
             writeStoreHeader();
             sync();
             for (Chunk c : move) {
-                moveChunk(c, true);
+                if (c.block < targetRegionEnd) {
+                    moveChunk(c, true);
+                }
             }
 
             // update the metadata (store at the end of the file)

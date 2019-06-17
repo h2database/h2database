@@ -374,7 +374,7 @@ public class MVStore implements AutoCloseable {
             int kb = Math.max(1, Math.min(19, Utils.scaleForAvailableMemory(64))) * 1024;
             kb = DataUtils.getConfigParam(config, "autoCommitBufferSize", kb);
             autoCommitMemory = kb * 1024;
-            autoCompactFillRate = DataUtils.getConfigParam(config, "autoCompactFillRate", 40);
+            autoCompactFillRate = DataUtils.getConfigParam(config, "autoCompactFillRate", 90);
             char[] encryptionKey = (char[]) config.get("encryptionKey");
             try {
                 if (!fileStoreIsProvided) {
@@ -1044,7 +1044,7 @@ public class MVStore implements AutoCloseable {
                                 if (allowedCompactionTime > 0) {
                                     compactFile(allowedCompactionTime);
                                 } else if (allowedCompactionTime < 0) {
-                                    doMaintance(true);
+                                    doMaintance(autoCompactFillRate);
                                 }
                                 shrinkFileIfPossible(0);
                                 assert validateFileLength("on close");
@@ -2049,8 +2049,7 @@ public class MVStore implements AutoCloseable {
                 // it might go into deadlock with concurrent database closure
                 // and attempt to stop this thread.
                 try {
-                    if (!storeLock.isHeldByCurrentThread() &&
-                            storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
+                    if (storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
                         try {
                             return rewriteChunks(write);
                         } finally {
@@ -2808,28 +2807,18 @@ public class MVStore implements AutoCloseable {
             // could also commit when there are many unsaved pages,
             // but according to a test it doesn't really help
 
+            int targetFillRate = getTargetFillRate();
             long time = getTimeSinceCreation();
             if (time > lastCommitTime + autoCommitDelay) {
                 tryCommit();
                 if (autoCompactFillRate < 0) {
-                    // whether there were file read or write operations since
-                    // the last time
-                    boolean fileOps;
-                    long fileOpCount = fileStore.getWriteCount() + fileStore.getReadCount();
-                    if (autoCompactLastFileOpCount != fileOpCount) {
-                        fileOps = true;
-                    } else {
-                        fileOps = false;
-                    }
-                    // use a lower fill rate if there were any file operations
-                    int targetFillRate = fileOps ? -autoCompactFillRate / 3 : -autoCompactFillRate;
-                    compact(targetFillRate, autoCommitMemory);
-                    autoCompactLastFileOpCount = fileStore.getWriteCount() + fileStore.getReadCount();
+                    compact(-targetFillRate, autoCommitMemory);
                 }
             }
             if (fileStore.isFragmented()) {
-                doMaintance(false);
+                doMaintance(targetFillRate);
             }
+            autoCompactLastFileOpCount = fileStore.getWriteCount() + fileStore.getReadCount();
         } catch (Throwable e) {
             handleException(e);
             if (backgroundExceptionHandler == null) {
@@ -2838,48 +2827,60 @@ public class MVStore implements AutoCloseable {
         }
     }
 
-    private void doMaintance(boolean onClose) {
+    private void doMaintance(int targetFillRate) {
         if (autoCompactFillRate > 0 && lastChunk != null && reuseSpace) {
-            int thresholdRate = autoCompactFillRate;
-            if (!onClose) {
-                // use a lower fill rate if there were any file operations since the last time
-                long fileOpCount = fileStore.getWriteCount() + fileStore.getReadCount();
-                if (autoCompactLastFileOpCount != fileOpCount) {
-                    thresholdRate /= 3;
-                }
-            }
-            int lastProjectedFillRate = -1;
-            for (int cnt = 0; ; cnt++) {
-                int fillRate = getFillRate();
-                int projectedFillRate = fillRate;
-                if (fillRate > thresholdRate) {
-                    projectedFillRate = getProjectedFillRate();
-                    if (projectedFillRate > thresholdRate || projectedFillRate <= lastProjectedFillRate) {
-                        break;
-                    }
-                }
-                lastProjectedFillRate = projectedFillRate;
-                storeLock.lock();
-                try {
-                    int writeLimit = autoCommitMemory * thresholdRate / Math.max(projectedFillRate, 1);
-                    if (projectedFillRate < fillRate) {
-                        if ((!rewriteChunks(writeLimit) || dropUnusedChunks() == 0) && cnt > 0) {
+            try {
+                int lastProjectedFillRate = -1;
+                for (int cnt = 0; ; cnt++) {
+                    int fillRate = getFillRate();
+                    int projectedFillRate = fillRate;
+                    if (fillRate > targetFillRate) {
+                        projectedFillRate = getProjectedFillRate();
+                        if (projectedFillRate > targetFillRate || projectedFillRate <= lastProjectedFillRate) {
                             break;
                         }
                     }
+                    lastProjectedFillRate = projectedFillRate;
+                    // We can't wait forever for the lock here,
+                    // because if called from the background thread,
+                    // it might go into deadlock with concurrent database closure
+                    // and attempt to stop this thread.
+                    if (storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
+                        try {
+                            int writeLimit = autoCommitMemory * targetFillRate / Math.max(projectedFillRate, 1);
+                            if (projectedFillRate < fillRate) {
+                                if ((!rewriteChunks(writeLimit) || dropUnusedChunks() == 0) && cnt > 0) {
+                                    break;
+                                }
+                            }
 
-                    long start = fileStore.getFirstFree() / BLOCK_SIZE;
-                    Iterable<Chunk> move = findChunksToMove(start, writeLimit);
-                    if (move == null) {
+                            long start = fileStore.getFirstFree() / BLOCK_SIZE;
+                            ChunkSelectionResult move = findChunksToMove(start, writeLimit);
+                            if (move == null) {
+                                break;
+                            }
+                            compactMoveChunks(move.chunksToMove, start + move.blocksToMove);
+                        } finally {
+                            storeLock.unlock();
+                        }
+                    } else {
                         break;
                     }
-                    compactMoveChunks(move);
-                } finally {
-                    storeLock.unlock();
                 }
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
         }
-        autoCompactLastFileOpCount = fileStore.getWriteCount() + fileStore.getReadCount();
+    }
+
+    private int getTargetFillRate() {
+        int targetRate = autoCompactFillRate;
+        // use a lower fill rate if there were any file operations since the last time
+        long fileOpCount = fileStore.getWriteCount() + fileStore.getReadCount();
+        if (autoCompactLastFileOpCount != fileOpCount) {
+            targetRate /= 3;
+        }
+        return targetRate;
     }
 
     private void handleException(Throwable ex) {

@@ -1863,11 +1863,7 @@ public class MVStore implements AutoCloseable {
                     retentionTime = -1;
                     dropUnusedChunks();
                     if (getFillRate() <= targetFillRate) {
-                        long start = fileStore.getFirstFree() / BLOCK_SIZE;
-                        ChunkSelectionResult move = findChunksToMove(start, moveSize);
-                        if (move != null) {
-                            compactMoveChunks(move.chunksToMove, start + move.blocksToMove);
-                        }
+                        compactMoveChunks(moveSize);
                     }
                 } finally {
                     reuseSpace = oldReuse;
@@ -1877,6 +1873,16 @@ public class MVStore implements AutoCloseable {
         } finally {
             storeLock.unlock();
         }
+    }
+
+    private boolean compactMoveChunks(long moveSize) {
+        long start = fileStore.getFirstFree() / BLOCK_SIZE;
+        ChunkSelectionResult move = findChunksToMove(start, moveSize);
+        if (move == null) {
+            return false;
+        }
+        compactMoveChunks(move.chunksToMove, start + move.blocksToMove);
+        return true;
     }
 
     private static class ChunkSelectionResult
@@ -2859,26 +2865,21 @@ public class MVStore implements AutoCloseable {
                     // because if called from the background thread,
                     // it might go into deadlock with concurrent database closure
                     // and attempt to stop this thread.
-                    if (storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
-                        try {
-                            int writeLimit = autoCommitMemory * targetFillRate / Math.max(projectedFillRate, 1);
-                            if (projectedFillRate < fillRate) {
-                                if ((!rewriteChunks(writeLimit) || dropUnusedChunks() == 0) && cnt > 0) {
-                                    break;
-                                }
-                            }
-
-                            long start = fileStore.getFirstFree() / BLOCK_SIZE;
-                            ChunkSelectionResult move = findChunksToMove(start, writeLimit);
-                            if (move == null) {
+                    if (!storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
+                        break;
+                    }
+                    try {
+                        int writeLimit = autoCommitMemory * targetFillRate / Math.max(projectedFillRate, 1);
+                        if (projectedFillRate < fillRate) {
+                            if ((!rewriteChunks(writeLimit) || dropUnusedChunks() == 0) && cnt > 0) {
                                 break;
                             }
-                            compactMoveChunks(move.chunksToMove, start + move.blocksToMove);
-                        } finally {
-                            storeLock.unlock();
                         }
-                    } else {
-                        break;
+                        if (!compactMoveChunks(writeLimit)) {
+                            break;
+                        }
+                    } finally {
+                        storeLock.unlock();
                     }
                 }
             } catch (InterruptedException e) {

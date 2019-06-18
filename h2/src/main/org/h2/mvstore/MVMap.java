@@ -1707,13 +1707,14 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         int attempt = 0;
         while(true) {
             RootReference rootReference = flushAndGetRoot();
-            if (attempt++ == 0 && !rootReference.isLockedByCurrentThread()) {
-                beforeWrite();
-            }
-            RootReference lockedRootReference = null;
-            if (attempt > 3 || rootReference.isLocked()) {
-                lockedRootReference = lockRoot(rootReference, attempt);
-                rootReference = lockedRootReference;
+            boolean locked = rootReference.isLockedByCurrentThread();
+            if (!locked) {
+                if (attempt++ == 0) {
+                    beforeWrite();
+                } else if (attempt > 3 || rootReference.isLocked()) {
+                    rootReference = lockRoot(rootReference, attempt);
+                    locked = true;
+                }
             }
             Page rootPage = rootReference.root;
             long version = rootReference.version;
@@ -1816,7 +1817,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                     }
                 }
                 rootPage = replacePage(pos, p, unsavedMemoryHolder);
-                if (lockedRootReference == null) {
+                if (!locked) {
                     if (!isPersistent()) {
                         if (updateRoot(rootReference, rootPage, attempt)) {
                             notifyWaiters();
@@ -1826,19 +1827,17 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                             continue;
                         }
                     } else {
-                        lockedRootReference = tryLock(rootReference, attempt++);
-                        if (lockedRootReference == null) {
+                        locked = tryLock(rootReference, attempt) != null;
+                        if (!locked) {
                             decisionMaker.reset();
                             continue;
                         }
                     }
                 }
                 store.registerUnsavedMemory(unsavedMemoryHolder.value + tip.processRemovalInfo(version));
-                unlockRoot(rootPage);
-                lockedRootReference = null;
                 return result;
             } finally {
-                if(lockedRootReference != null) {
+                if(locked) {
                     unlockRoot(rootPage);
                 }
             }

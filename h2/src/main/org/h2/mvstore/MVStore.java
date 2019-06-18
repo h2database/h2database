@@ -23,10 +23,8 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.PriorityBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
@@ -36,7 +34,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.h2.compress.CompressDeflate;
 import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
-import org.h2.engine.Constants;
 import org.h2.mvstore.cache.CacheLongKeyLIRS;
 import org.h2.util.MathUtils;
 import org.h2.util.Utils;
@@ -125,10 +122,6 @@ MVStore:
     a map lookup when reading old data; also, this
     old data map needs to be cleaned up somehow;
     maybe using an additional timeout
-- rollback of removeMap should restore the data -
-    which has big consequences, as the metadata map
-    would probably need references to the root nodes of all maps
-
 */
 
 /**
@@ -197,14 +190,7 @@ public class MVStore implements AutoCloseable {
      * It is split in 16 segments. The stack move distance is 2% of the expected
      * number of entries.
      */
-    final CacheLongKeyLIRS<Page> cache;
-
-    /**
-     * The page chunk references cache. The default size is 4 MB, and the
-     * average size is 2 KB. It is split in 16 segments. The stack move distance
-     * is 2% of the expected number of entries.
-     */
-    final CacheLongKeyLIRS<int[]> cacheChunkRef;
+    private final CacheLongKeyLIRS<Page> cache;
 
     /**
      * The newest chunk. If nothing was stored yet, this field is not set.
@@ -351,11 +337,8 @@ public class MVStore implements AutoCloseable {
         }
         if (cc != null) {
             cache = new CacheLongKeyLIRS<>(cc);
-            cc.maxMemory /= 4;
-            cacheChunkRef = new CacheLongKeyLIRS<>(cc);
         } else {
             cache = null;
-            cacheChunkRef = null;
         }
 
         pgSplitSize = DataUtils.getConfigParam(config, "pageSplitSize", pgSplitSize);
@@ -1402,240 +1385,6 @@ public class MVStore implements AutoCloseable {
     }
 
     /**
-     * Try to free unreachable chunks.
-     * This method doesn't directly write, only metadata is updated, but
-     * completely free chunks are not removed from the set of chunks,
-     * and the disk space is not yet marked as free.
-     *
-     * This method (and a sizable chunk of related code) is not used anymore.
-     * For now it can be used manually as a maintance procedure.
-     */
-    private void freeUnusedChunks() {
-        assert storeLock.isHeldByCurrentThread();
-        long version = currentVersion;
-        if (lastChunk != null && reuseSpace) {
-            long oldestVersionToKeep = getOldestVersionToKeep();
-            Set<Integer> referenced = collectReferencedChunks(oldestVersionToKeep);
-            long time = getTimeSinceCreation();
-
-            long currentStoreVersionBackup = currentStoreVersion;
-            try {
-                // to block re-entrance into commit() / tryCommit(), which is otherwise be possible
-                // due to meta.remove() and meta.put(), we set the following field
-                currentStoreVersion = version;
-                reuseSpace = false;     // to block possible re-entrance into this method
-                for (Chunk c : chunks.values()) {
-                    if (c.isSaved() && !referenced.contains(c.id)) {
-                        if (c.unused == 0) {
-                            c.unused = time;
-                            meta.put(Chunk.getMetaKey(c.id), c.asString());
-                            markMetaChanged();
-                        }
-                        if (c.unusedAtVersion == 0) {
-                            c.unusedAtVersion = oldestVersionToKeep;
-                        }
-                    }
-                }
-            } finally {
-                // set it here, to avoid calling it often if it was slow
-                reuseSpace = true;
-                currentStoreVersion = currentStoreVersionBackup;
-            }
-        }
-    }
-
-    /**
-     * Collect ids for chunks that are in use. We assume that recent chunks are
-     * still in-use and do not scan recent (used by open transactions) versions
-     * of the store. Only oldest available version of the store is scanned.
-     * @param oldestVersionToKeep version of the store to scan, chunks with newer versions are
-     *                            implicitly considered as being in use
-     * @return set of chunk ids in-use
-     */
-    private Set<Integer> collectReferencedChunks(long oldestVersionToKeep) {
-        assert lastChunk != null;
-        final ThreadPoolExecutor executorService = new ThreadPoolExecutor(10, 10, 10L, TimeUnit.SECONDS,
-                new ArrayBlockingQueue<Runnable>(keysPerPage + 1));
-        final AtomicInteger executingThreadCounter = new AtomicInteger();
-        try {
-            ChunkIdsCollector collector = new ChunkIdsCollector(meta.getId());
-            RootReference rootReference = meta.flushAndGetRoot();
-            RootReference previous;
-            while (rootReference.version >= oldestVersionToKeep && (previous = rootReference.previous) != null) {
-                rootReference = previous;
-            }
-            inspectVersion(rootReference, collector, executorService, executingThreadCounter, null);
-
-            Page rootPage = rootReference.root;
-            long pos = rootPage.getPos();
-            assert rootPage.isSaved();
-            int chunkId = DataUtils.getPageChunkId(pos);
-            while (++chunkId <= lastChunk.id) {
-                collector.registerChunk(chunkId);
-            }
-            return collector.getReferenced();
-        } finally {
-            executorService.shutdownNow();
-        }
-    }
-
-    /**
-     * Scans all map of a particular store version and marks visited chunks as in-use.
-     * @param rootReference of the meta map of the version
-     * @param collector to report visited chunks to
-     * @param executorService to use for parallel processing
-     * @param executingThreadCounter counter for threads already in use
-     * @param inspectedRoots set of page positions for map's roots already inspected
-     *                      or null if not to be used
-     */
-    private void inspectVersion(RootReference rootReference, ChunkIdsCollector collector,
-                                ThreadPoolExecutor executorService,
-                                AtomicInteger executingThreadCounter,
-                                Set<Long> inspectedRoots) {
-        Page rootPage = rootReference.root;
-        long pos = rootPage.getPos();
-        if (rootPage.isSaved()) {
-            if (inspectedRoots != null && !inspectedRoots.add(pos)) {
-                return;
-            }
-            collector.setMapId(meta.getId());
-            collector.visit(pos, executorService, executingThreadCounter);
-        }
-        for (Cursor<String, String> c = new Cursor<>(rootPage, "root."); c.hasNext(); ) {
-            String key = c.next();
-            if (!key.startsWith("root.")) {
-                break;
-            }
-            pos = DataUtils.parseHexLong(c.getValue());
-            if (DataUtils.isPageSaved(pos)) {
-                if (inspectedRoots == null || inspectedRoots.add(pos)) {
-                    // to allow for something like "root.tmp.123" to be processed
-                    int mapId = DataUtils.parseHexInt(key.substring(key.lastIndexOf('.') + 1));
-                    collector.setMapId(mapId);
-                    collector.visit(pos, executorService, executingThreadCounter);
-                }
-            }
-        }
-    }
-
-    final class ChunkIdsCollector {
-
-        /** really a set */
-        private final ConcurrentHashMap<Integer, Integer> referencedChunks = new ConcurrentHashMap<>();
-        private final ChunkIdsCollector parent;
-        private       int               mapId;
-
-        ChunkIdsCollector(int mapId) {
-            this.parent = null;
-            this.mapId = mapId;
-        }
-
-        private ChunkIdsCollector(ChunkIdsCollector parent) {
-            this.parent = parent;
-            this.mapId = parent.mapId;
-        }
-
-        public int getMapId() {
-            return mapId;
-        }
-
-        public void setMapId(int mapId) {
-            this.mapId = mapId;
-        }
-
-        public Set<Integer> getReferenced() {
-            return new HashSet<>(referencedChunks.keySet());
-        }
-
-        /**
-         * Visit a page on a chunk and collect ids for it and its children.
-         *
-         * @param page the page to visit
-         * @param executorService the service to use when doing visit in parallel
-         * @param executingThreadCounter number of threads currently active
-         */
-        public void visit(Page page, ThreadPoolExecutor executorService, AtomicInteger executingThreadCounter) {
-            long pos = page.getPos();
-            if (DataUtils.isPageSaved(pos)) {
-                registerChunk(DataUtils.getPageChunkId(pos));
-            }
-            int count = page.map.getChildPageCount(page);
-            if (count == 0) {
-                return;
-            }
-            ChunkIdsCollector childCollector = DataUtils.isPageSaved(pos) && cacheChunkRef != null ?
-                                                        new ChunkIdsCollector(this) : this;
-            for (int i = 0; i < count; i++) {
-                Page childPage = page.getChildPageIfLoaded(i);
-                if (childPage != null) {
-                    childCollector.visit(childPage, executorService, executingThreadCounter);
-                } else {
-                    childCollector.visit(page.getChildPagePos(i), executorService, executingThreadCounter);
-                }
-            }
-            cacheCollectedChunkIds(pos, childCollector);
-        }
-
-        /**
-         * Visit a page on a chunk and collect ids for it and its children.
-         *
-         * @param pos position of the page to visit
-         * @param executorService the service to use when doing visit in parallel
-         * @param executingThreadCounter number of threads currently active
-         */
-        public void visit(long pos, ThreadPoolExecutor executorService, AtomicInteger executingThreadCounter) {
-            if (!DataUtils.isPageSaved(pos)) {
-                return;
-            }
-            registerChunk(DataUtils.getPageChunkId(pos));
-            if (DataUtils.getPageType(pos) == DataUtils.PAGE_TYPE_LEAF) {
-                return;
-            }
-            int[] chunkIds;
-            if (cacheChunkRef != null && (chunkIds = cacheChunkRef.get(pos)) != null) {
-                // there is a cached set of chunk ids for this position
-                for (int chunkId : chunkIds) {
-                    registerChunk(chunkId);
-                }
-            } else {
-                ChunkIdsCollector childCollector = cacheChunkRef != null ? new ChunkIdsCollector(this) : this;
-                Page page;
-                if (cache != null && (page = cache.get(pos)) != null) {
-                    // there is a full page in cache, use it
-                    childCollector.visit(page, executorService, executingThreadCounter);
-                } else {
-                    // page was not cached: read the data
-                    ByteBuffer buff = readBufferForPage(pos, getMapId());
-                    Page.readChildrenPositions(buff, pos, childCollector, executorService, executingThreadCounter);
-                }
-                cacheCollectedChunkIds(pos, childCollector);
-            }
-        }
-
-        /**
-         * Add chunk to list of referenced chunks.
-         *
-         * @param chunkId chunk id
-         */
-        void registerChunk(int chunkId) {
-            if (referencedChunks.put(chunkId, 1) == null && parent != null) {
-                parent.registerChunk(chunkId);
-            }
-        }
-
-        private void cacheCollectedChunkIds(long pos, ChunkIdsCollector childCollector) {
-            if (childCollector != this) {
-                int[] chunkIds = new int[childCollector.referencedChunks.size()];
-                int index = 0;
-                for (Integer chunkId : childCollector.referencedChunks.keySet()) {
-                    chunkIds[index++] = chunkId;
-                }
-                cacheChunkRef.put(pos, chunkIds, Constants.MEMORY_ARRAY + 4 * chunkIds.length);
-            }
-        }
-    }
-
-    /**
      * Get a buffer for writing. This caller must synchronize on the store
      * before calling the method and until after using the buffer.
      *
@@ -1795,44 +1544,6 @@ public class MVStore implements AutoCloseable {
         long p = block * BLOCK_SIZE;
         ByteBuffer buff = fileStore.readFully(p, Chunk.MAX_HEADER_LENGTH);
         return Chunk.readChunkHeader(buff, p);
-    }
-
-    /**
-     * Compact the store by moving all live pages to new chunks.
-     *
-     * @return if anything was written
-     */
-    public boolean compactRewriteFully() {
-        storeLock.lock();
-        try {
-            checkOpen();
-            if (lastChunk == null) {
-                // nothing to do
-                return false;
-            }
-            for (MVMap<?, ?> m : maps.values()) {
-                @SuppressWarnings("unchecked")
-                MVMap<Object, Object> map = (MVMap<Object, Object>) m;
-                Cursor<Object, Object> cursor = map.cursor(null);
-                Page lastPage = null;
-                while (cursor.hasNext()) {
-                    cursor.next();
-                    Page p = cursor.getPage();
-                    if (p == lastPage) {
-                        continue;
-                    }
-                    Object k = p.getKey(0);
-                    Object v = p.getValue(0);
-                    map.put(k, v);
-                    lastPage = p;
-                }
-            }
-            commit();
-            return true;
-        } finally {
-            storeLock.unlock();
-        }
-
     }
 
     /**
@@ -2661,9 +2372,6 @@ public class MVStore implements AutoCloseable {
     }
 
     private void clearCaches() {
-        if (cacheChunkRef != null) {
-            cacheChunkRef.clear();
-        }
         if (cache != null) {
             cache.clear();
         }
@@ -2920,10 +2628,6 @@ public class MVStore implements AutoCloseable {
         if (cache != null) {
             cache.setMaxMemory(bytes);
             cache.clear();
-        }
-        if (cacheChunkRef != null) {
-            cacheChunkRef.setMaxMemory(bytes / 4);
-            cacheChunkRef.clear();
         }
     }
 
@@ -3302,9 +3006,10 @@ public class MVStore implements AutoCloseable {
         }
     }
 
-    private static class RemovedPageInfo implements Comparable<RemovedPageInfo> {
-        public final long removedPagePos;
+    private static class RemovedPageInfo implements Comparable<RemovedPageInfo>
+    {
         public final long version;
+        final long removedPagePos;
 
         RemovedPageInfo(long removedPagePos, long version) {
             this.removedPagePos = removedPagePos;

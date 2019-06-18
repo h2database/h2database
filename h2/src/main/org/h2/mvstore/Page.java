@@ -10,16 +10,9 @@ import static org.h2.engine.Constants.MEMORY_OBJECT;
 import static org.h2.engine.Constants.MEMORY_POINTER;
 import static org.h2.mvstore.DataUtils.PAGE_TYPE_LEAF;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import org.h2.compress.Compressor;
-import org.h2.message.DbException;
 import org.h2.mvstore.type.DataType;
 import org.h2.util.Utils;
 
@@ -248,69 +241,6 @@ public abstract class Page implements Cloneable
     }
 
     /**
-     * Read an inner node page from the buffer, but ignore the keys and
-     * values.
-     *
-     * @param buff ByteBuffer containing serialized page info
-     * @param pos the position
-     * @param collector to report child pages positions to
-     * @param executorService to use far parallel processing
-     * @param executingThreadCounter for parallel processing
-     */
-    static void readChildrenPositions(ByteBuffer buff, long pos,
-                                        final MVStore.ChunkIdsCollector collector,
-                                        final ThreadPoolExecutor executorService,
-                                        final AtomicInteger executingThreadCounter) {
-        int len = DataUtils.readVarInt(buff);
-        int type = buff.get();
-        if ((type & 1) != DataUtils.PAGE_TYPE_NODE) {
-            throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
-                    "Position {0} expected to be a non-leaf", pos);
-        }
-        /*
-         * The logic here is a little awkward. We want to (a) execute reads in parallel, but (b)
-         * limit the number of threads we create. This is complicated by (a) the algorithm is
-         * recursive and needs to wait for children before returning up the call-stack, (b) checking
-         * the size of the thread-pool is not reliable.
-         */
-        final List<Future<?>> futures = new ArrayList<>(len + 1);
-        for (int i = 0; i <= len; i++) {
-            final long childPagePos = buff.getLong();
-            for (;;) {
-                int counter = executingThreadCounter.get();
-                if (counter >= executorService.getMaximumPoolSize()) {
-                    collector.visit(childPagePos, executorService, executingThreadCounter);
-                    break;
-                } else {
-                    if (executingThreadCounter.compareAndSet(counter, counter + 1)) {
-                        Future<?> f = executorService.submit(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    collector.visit(childPagePos, executorService, executingThreadCounter);
-                                } finally {
-                                    executingThreadCounter.decrementAndGet();
-                                }
-                            }
-                        });
-                        futures.add(f);
-                        break;
-                    }
-                }
-            }
-        }
-        for (Future<?> f : futures) {
-            try {
-                f.get();
-            } catch (InterruptedException ex) {
-                throw new RuntimeException(ex);
-            } catch (ExecutionException ex) {
-                throw DbException.convert(ex);
-            }
-        }
-    }
-
-    /**
      * Get the id of the page's owner map
      * @return id
      */
@@ -347,16 +277,6 @@ public abstract class Page implements Cloneable
      * @return the child page
      */
     public abstract Page getChildPage(int index);
-
-    /**
-     * Get the child page at the given index only if is
-     * already loaded. Does not make any attempt to load
-     * the page or retrieve it from the cache.
-     *
-     * @param index the index
-     * @return the child page, null if it is not loaded
-     */
-    public abstract Page getChildPageIfLoaded(int index);
 
     /**
      * Get the position of the child.
@@ -1110,11 +1030,6 @@ public abstract class Page implements Cloneable
         }
 
         @Override
-        public Page getChildPageIfLoaded(int index) {
-            return children[index].getPage();
-        }
-
-        @Override
         public long getChildPagePos(int index) {
             return children[index].getPos();
         }
@@ -1435,9 +1350,6 @@ public abstract class Page implements Cloneable
         public Page getChildPage(int index) {
             throw new UnsupportedOperationException();
         }
-
-        @Override
-        public Page getChildPageIfLoaded(int index) { throw new UnsupportedOperationException(); }
 
         @Override
         public long getChildPagePos(int index) {

@@ -709,10 +709,10 @@ public abstract class Page implements Cloneable
      * @return true if it was marked by this call or has been marked already,
      *          false if page has been saved already.
      */
-    public final boolean markAsRemoved() {
+    private boolean markAsRemoved() {
         long pagePos;
         do {
-            pagePos = this.pos;
+            pagePos = pos;
             if (DataUtils.isPageSaved(pagePos)) {
                 return false;
             }

@@ -2276,7 +2276,7 @@ public class MVStore implements AutoCloseable {
      * @param version at which page was removed
      * @param pinned whether page is considered pinned
      */
-    public void accountForRemovedPage(long pos, long version, boolean pinned) {
+    void accountForRemovedPage(long pos, long version, boolean pinned) {
         assert DataUtils.isPageSaved(pos);
         pos = DataUtils.createRemovedPagePos(pos, pinned);
         RemovedPageInfo rpi = new RemovedPageInfo(pos, version);

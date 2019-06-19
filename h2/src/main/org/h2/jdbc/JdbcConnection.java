@@ -539,7 +539,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             checkClosedForWrite();
             if (SysProperties.FORCE_AUTOCOMMIT_OFF_ON_COMMIT
                     && getAutoCommit()) {
-                throw DbException.get(ErrorCode.METHOD_DISABLED_ON_AUTOCOMMIT_TRUE, "COMMIT");
+                throw DbException.get(ErrorCode.METHOD_DISABLED_ON_AUTOCOMMIT_TRUE, "commit()");
             }
             try {
                 commit = prepareCommand("COMMIT", commit);
@@ -565,7 +565,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             checkClosedForWrite();
              if (SysProperties.FORCE_AUTOCOMMIT_OFF_ON_COMMIT
                     && getAutoCommit()) {
-                  throw DbException.get(ErrorCode.METHOD_DISABLED_ON_AUTOCOMMIT_TRUE, "ROLLBACK");
+                  throw DbException.get(ErrorCode.METHOD_DISABLED_ON_AUTOCOMMIT_TRUE, "rollback()");
             }
             try {
                 rollbackInternal();

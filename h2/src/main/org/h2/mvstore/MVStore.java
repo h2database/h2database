@@ -286,7 +286,7 @@ public class MVStore implements AutoCloseable {
     /**
      * The version of the current store operation (if any).
      */
-    volatile long currentStoreVersion = -1;
+    private volatile long currentStoreVersion = -1;
 
     private volatile boolean metaChanged;
 
@@ -1989,7 +1989,7 @@ public class MVStore implements AutoCloseable {
      */
     void accountForRemovedPage(long pos, long version, boolean pinned) {
         assert DataUtils.isPageSaved(pos);
-        pos = DataUtils.createRemovedPagePos(pos, pinned);
+        pos = DataUtils.createRemovedPageInfo(pos, pinned);
         RemovedPageInfo rpi = new RemovedPageInfo(pos, version);
         removedPages.add(rpi);
     }

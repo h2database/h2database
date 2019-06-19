@@ -437,11 +437,9 @@ public class TransactionStore {
     /**
      * Remove the given map.
      *
-     * @param <K> the key type
-     * @param <V> the value type
      * @param map the map
      */
-    <K, V> void removeMap(TransactionMap<K, V> map) {
+    void removeMap(TransactionMap map) {
         store.removeMap(map.map);
     }
 

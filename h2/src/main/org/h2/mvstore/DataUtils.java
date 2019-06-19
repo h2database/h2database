@@ -561,7 +561,7 @@ public final class DataUtils {
      * @param isPinned whether page belong to a "single writer" map
      * @return removed page info that contains at least chunk id, page length and pinned flag
      */
-    public static long createRemovedPagePos(long pagePos, boolean isPinned) {
+    public static long createRemovedPageInfo(long pagePos, boolean isPinned) {
         pagePos &= ~1L;
         if (isPinned) {
             pagePos |= 1L;

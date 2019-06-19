@@ -433,14 +433,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 Page page = lockedRootReference.root;
                 try {
                     store.registerUnsavedMemory(page.removeAllRecursive(lockedRootReference.version));
-                    rootReference = unlockRoot(emptyRootPage);
-                    lockedRootReference = null;
-                    return rootReference;
+                    page = emptyRootPage;
                 } finally {
-                    if(lockedRootReference != null) {
-                        unlockRoot(page);
-                    }
+                    unlockRoot(page);
                 }
+                return rootReference;
             }
         }
     }

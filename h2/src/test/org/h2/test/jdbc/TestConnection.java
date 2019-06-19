@@ -10,13 +10,13 @@ import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
-
-
+import org.h2.engine.SysProperties;
 
 /**
  * Tests the client info
@@ -42,6 +42,8 @@ public class TestConnection extends TestDb {
         testSetInternalProperty();
         testSetInternalPropertyToInitialValue();
         testSetGetSchema();
+        testCommitOnAutoCommitSetRunner();
+        testRollbackOnAutoCommitSetRunner();
     }
 
     private void testSetInternalProperty() throws SQLException {
@@ -112,6 +114,125 @@ public class TestConnection extends TestDb {
         Connection conn = getConnection("clientInfo");
         assertNull(conn.getClientInfo("UnknownProperty"));
         conn.close();
+    }
+    
+    private void testCommitOnAutoCommitSetRunner() throws Exception {
+        assertFalse("Default value must be false", SysProperties.FORCE_AUTOCOMMIT_OFF_ON_COMMIT);
+        testCommitOnAutoCommitSet(false);
+        try {
+            SysProperties.FORCE_AUTOCOMMIT_OFF_ON_COMMIT = true;
+            testCommitOnAutoCommitSet(true);
+        } finally {
+            SysProperties.FORCE_AUTOCOMMIT_OFF_ON_COMMIT = false;
+        }
+        
+    }
+    
+    private void testCommitOnAutoCommitSet(boolean expectedPropertyEnabled) throws Exception {
+        assertEquals(SysProperties.FORCE_AUTOCOMMIT_OFF_ON_COMMIT, expectedPropertyEnabled);
+        Connection conn = getConnection("clientInfo");
+        conn.setAutoCommit(false);
+        Statement stat = conn.createStatement();
+        stat.execute("DROP TABLE IF EXISTS TEST");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
+        PreparedStatement prep = conn.prepareStatement(
+                "INSERT INTO TEST VALUES(?, ?)");
+        int index = 1;
+        prep.setInt(index++, 1);
+        prep.setString(index++, "test1");
+        prep.execute();
+        conn.commit();
+        // no error expected 
+
+        conn.setAutoCommit(true);
+        index = 1;
+        prep.setInt(index++, 2);
+        prep.setString(index++, "test2");
+        if (expectedPropertyEnabled) {
+            prep.execute();
+            try {
+                conn.commit();
+                throw new AssertionError("SQLException expected");
+            } catch (SQLException e) {
+                assertTrue(e.getMessage().contains("commit()"));
+                assertEquals(ErrorCode.METHOD_DISABLED_ON_AUTOCOMMIT_TRUE, e.getErrorCode());
+            }
+            ResultSet rs = conn.createStatement().executeQuery("SELECT COUNT(*) FROM TEST");
+            rs.next();
+            assertTrue(rs.getInt(1) == 2);
+            rs.close();
+        } else {
+            prep.execute();
+            conn.commit();
+            ResultSet rs = conn.createStatement().executeQuery("SELECT COUNT(*) FROM TEST");
+            rs.next();
+            assertTrue(rs.getInt(1) == 2);
+            rs.close();
+        }
+
+        conn.close();
+        prep.close();
+    }
+    
+    private void testRollbackOnAutoCommitSetRunner() throws Exception {
+        assertFalse("Default value must be false", SysProperties.FORCE_AUTOCOMMIT_OFF_ON_COMMIT);
+        testRollbackOnAutoCommitSet(false);
+        try {
+            SysProperties.FORCE_AUTOCOMMIT_OFF_ON_COMMIT = true;
+            testRollbackOnAutoCommitSet(true);
+        } finally {
+            SysProperties.FORCE_AUTOCOMMIT_OFF_ON_COMMIT = false;
+        }
+    }
+
+    private void testRollbackOnAutoCommitSet(boolean expectedPropertyEnabled) throws Exception {
+        assertEquals(SysProperties.FORCE_AUTOCOMMIT_OFF_ON_COMMIT, expectedPropertyEnabled);
+        Connection conn = getConnection("clientInfo");
+        conn.setAutoCommit(false);
+        Statement stat = conn.createStatement();
+        stat.execute("DROP TABLE IF EXISTS TEST");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
+        PreparedStatement prep = conn.prepareStatement(
+                "INSERT INTO TEST VALUES(?, ?)");
+        int index = 1;
+        prep.setInt(index++, 1);
+        prep.setString(index++, "test1");
+        prep.execute();
+        conn.rollback();
+        // no error expected 
+        
+
+        conn.setAutoCommit(true);
+        index = 1;
+        prep.setInt(index++, 2);
+        prep.setString(index++, "test2");
+        if (expectedPropertyEnabled) {
+            prep.execute();
+            try {
+                conn.rollback();
+                throw new AssertionError("SQLException expected");
+            } catch (SQLException e) {
+                assertEquals(ErrorCode.METHOD_DISABLED_ON_AUTOCOMMIT_TRUE, e.getErrorCode());
+                assertTrue(e.getMessage().contains("rollback()"));
+            }
+            ResultSet rs = conn.createStatement().executeQuery("SELECT COUNT(*) FROM TEST");
+            rs.next();
+            int count = rs.getInt(1);
+            assertTrue("Found " +count + " rows",  count == 1);
+            rs.close();
+        } else {
+            prep.execute();
+            // rollback is permitted, however has no effects in autocommit=true
+            conn.rollback();
+            ResultSet rs = conn.createStatement().executeQuery("SELECT COUNT(*) FROM TEST");
+            rs.next();
+            int count = rs.getInt(1);
+            assertTrue("Found " + count + " rows",  count == 1);
+            rs.close();
+        }
+
+        conn.close();
+        prep.close();
     }
 
     private void testSetGetSchema() throws SQLException {

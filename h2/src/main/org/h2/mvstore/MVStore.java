@@ -1456,7 +1456,7 @@ public class MVStore implements AutoCloseable {
                 Chunk chunk = chunks.get(chunkId);
                 assert chunk != null;
                 modifiedChunks.add(chunk);
-                if (chunk.accountForRemovedPage(rpi.removedPagePos, time, rpi.version)) {
+                if (chunk.accountForRemovedPage(rpi.getPageLength(), rpi.isPinned(), time, rpi.version)) {
                     deadChunks.offer(chunk);
                 }
             }
@@ -1989,8 +1989,7 @@ public class MVStore implements AutoCloseable {
      */
     void accountForRemovedPage(long pos, long version, boolean pinned) {
         assert DataUtils.isPageSaved(pos);
-        pos = DataUtils.createRemovedPageInfo(pos, pinned);
-        RemovedPageInfo rpi = new RemovedPageInfo(pos, version);
+        RemovedPageInfo rpi = new RemovedPageInfo(pos, pinned, version);
         removedPages.add(rpi);
     }
 
@@ -3008,11 +3007,11 @@ public class MVStore implements AutoCloseable {
 
     private static class RemovedPageInfo implements Comparable<RemovedPageInfo>
     {
-        public final long version;
-        final long removedPagePos;
+        final long version;
+        final int removedPagePos;
 
-        RemovedPageInfo(long removedPagePos, long version) {
-            this.removedPagePos = removedPagePos;
+        RemovedPageInfo(long pagePos, boolean pinned, long version) {
+            this.removedPagePos = DataUtils.createRemovedPageInfo(pagePos, pinned);
             this.version = version;
         }
 
@@ -3022,7 +3021,15 @@ public class MVStore implements AutoCloseable {
         }
 
         int getPageChunkId() {
-            return DataUtils.getPageChunkId(removedPagePos);
+            return removedPagePos >>> 6;
+        }
+
+        int getPageLength() {
+            return DataUtils.getPageMaxLength(removedPagePos);
+        }
+
+        boolean isPinned() {
+            return DataUtils.isPagePinned(removedPagePos);
         }
 
         @Override
@@ -3030,8 +3037,8 @@ public class MVStore implements AutoCloseable {
             return "RemovedPageInfo{" +
                     "version=" + version +
                     ", chunk=" + getPageChunkId() +
-                    ", len=" + DataUtils.getPageMaxLength(removedPagePos) +
-                    (DataUtils.isPagePinned(removedPagePos) ? ", pinned" : "") +
+                    ", len=" + getPageLength() +
+                    (isPinned() ? ", pinned" : "") +
                     '}';
         }
     }

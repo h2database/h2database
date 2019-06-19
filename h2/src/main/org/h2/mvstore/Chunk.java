@@ -397,18 +397,18 @@ public class Chunk {
 
     /**
      * Modifies internal state to reflect the fact that one the pages within this chunk was removed from the map.
-     * @param pagePos
+     * @param pageLength on disk of the removed page
+     * @param pinned whether removed page was pinned
      * @param now is a moment in time (since creation of the store), when removal is recorded,
      *            and retention period starts
-     * @param version
+     * @param version at which page was removed
      * @return true if all of the pages, this chunk contains, were already removed, and false otherwise
      */
-    boolean accountForRemovedPage(long pagePos, long now, long version) {
+    boolean accountForRemovedPage(int pageLength, boolean pinned, long now, long version) {
         assert isSaved() : this;
-        int pageLength = DataUtils.getPageMaxLength(pagePos);
         maxLenLive -= pageLength;
         pageCountLive--;
-        if (DataUtils.isPagePinned(pagePos)) {
+        if (pinned) {
             pinCount--;
         }
 

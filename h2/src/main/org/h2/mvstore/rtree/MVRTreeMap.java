@@ -28,7 +28,7 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     /**
      * The spatial key type.
      */
-    private final SpatialDataType keyType;
+    final SpatialDataType keyType;
 
     private boolean quadraticSplit;
 

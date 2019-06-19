@@ -439,7 +439,7 @@ public class TransactionStore {
      *
      * @param map the map
      */
-    void removeMap(TransactionMap map) {
+    void removeMap(TransactionMap<?,?> map) {
         store.removeMap(map.map);
     }
 

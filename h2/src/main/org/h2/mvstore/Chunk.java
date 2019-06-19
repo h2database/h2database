@@ -102,7 +102,7 @@ public class Chunk {
      * Version of the store at which chunk become unused and therefore can be
      * considered "dead" and collected after this version is no longer in use.
      */
-    public long unusedAtVersion;
+    long unusedAtVersion;
 
     /**
      * The last used map id.

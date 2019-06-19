@@ -501,14 +501,24 @@ public final class DataUtils {
     }
 
     /**
-     * Get the maximum length for the given code.
-     * For the code 31, PAGE_LARGE is returned.
+     * Get the maximum length for the given page position.
      *
      * @param pos the position
      * @return the maximum length
      */
     public static int getPageMaxLength(long pos) {
         int code = (int) ((pos >> 1) & 31);
+        return decodePageLength(code);
+    }
+
+    /**
+     * Get the maximum length for the given code.
+     * For the code 31, PAGE_LARGE is returned.
+     *
+     * @param code encoded page lenth
+     * @return the maximum length
+     */
+    public static int decodePageLength(int code) {
         if (code == 31) {
             return PAGE_LARGE;
         }
@@ -555,17 +565,6 @@ public final class DataUtils {
     }
 
     /**
-     * Transforms saved page position into removed page info, by re-purposing
-     * "removed" / "page type" / bit as "pinned page" flag
-     * @param pagePos of the saved page
-     * @param isPinned whether page belong to a "single writer" map
-     * @return removed page info that contains at least chunk id, page length and pinned flag
-     */
-    static int createRemovedPageInfo(long pagePos, boolean isPinned) {
-        return ((int)(pagePos >>> 32)) & ~0x3F | ((int)pagePos) & 0x3E | (isPinned ? 1 : 0);
-    }
-
-    /**
      * Find out if page was removed.
      *
      * @param pos the position
@@ -573,17 +572,6 @@ public final class DataUtils {
      */
     static boolean isPageRemoved(long pos) {
         return pos == 1L;
-    }
-
-    /**
-     * Find out if page was pinned (can not be evacuated to a new chunk).
-     *
-     * @param pos the position
-     * @return true if page has been pinned
-     */
-    static boolean isPagePinned(long pos) {
-        assert isPageSaved(pos);
-        return (pos & 1L) == 1L;
     }
 
     /**

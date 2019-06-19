@@ -3008,10 +3008,10 @@ public class MVStore implements AutoCloseable {
     private static class RemovedPageInfo implements Comparable<RemovedPageInfo>
     {
         final long version;
-        final int removedPagePos;
+        final int removedPageInfo;
 
         RemovedPageInfo(long pagePos, boolean pinned, long version) {
-            this.removedPagePos = DataUtils.createRemovedPageInfo(pagePos, pinned);
+            this.removedPageInfo = createRemovedPageInfo(pagePos, pinned);
             this.version = version;
         }
 
@@ -3021,15 +3021,37 @@ public class MVStore implements AutoCloseable {
         }
 
         int getPageChunkId() {
-            return removedPagePos >>> 6;
+            return removedPageInfo >>> 6;
         }
 
         int getPageLength() {
-            return DataUtils.getPageMaxLength(removedPagePos);
+            return DataUtils.decodePageLength((removedPageInfo >> 1) & 0x1F);
         }
 
+        /**
+         * Find out if removed page was pinned (can not be evacuated to a new chunk).
+         * @return true if page has been pinned
+         */
         boolean isPinned() {
-            return DataUtils.isPagePinned(removedPagePos);
+            return (removedPageInfo & 1) == 1;
+        }
+
+        /**
+         * Transforms saved page position into removed page info, by eliminating page offset
+         * and replacing "page type" bit with "pinned page" flag.
+         * 0    "pinned" flag
+         * 1-5  encoded page length
+         * 6-31 chunk id
+         * @param pagePos of the saved page
+         * @param isPinned whether page belong to a "single writer" map
+         * @return removed page info that contains chunk id, page length and pinned flag
+         */
+        private static int createRemovedPageInfo(long pagePos, boolean isPinned) {
+            int result = ((int) (pagePos >>> 32)) & ~0x3F | ((int) pagePos) & 0x3E;
+            if (isPinned) {
+                result |= 1;
+            }
+            return result;
         }
 
         @Override

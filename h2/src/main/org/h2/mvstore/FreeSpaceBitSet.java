@@ -32,7 +32,7 @@ public class FreeSpaceBitSet {
     private final BitSet set = new BitSet();
 
     /**
-     * Left-shifting, which holds outcomes of recent allocations.
+     * Left-shifting register, which holds outcomes of recent allocations.
      * Only allocations done in "reuseSpace" mode are recorded here.
      * For example, rightmost bit set to 1 means that last allocation failed to find a hole big enough,
      * and next bit set to 0 means that previous allocation request have found one.

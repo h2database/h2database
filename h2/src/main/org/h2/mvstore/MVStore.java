@@ -786,7 +786,7 @@ public class MVStore implements AutoCloseable {
                     break;
                 }
                 test = readChunkHeaderAndFooter(newest.next);
-                if (test == null || test.id <= newest.id) {
+                if (test == null || test.version <= newest.version) {
                     break;
                 }
                 newest = test;
@@ -1699,9 +1699,9 @@ public class MVStore implements AutoCloseable {
         long pos = allocateFileSpace(length, toTheEnd);
         long block = pos / BLOCK_SIZE;
         buff.position(0);
-        // can not set chunck's new block/len until it's fully written
-        // concurrent reader can pick it up prematurely, hence workaround
-        // also occupancy accounting fields should not leak into header,
+        // can not set chunk's new block/len until it's fully written at new location,
+        // because concurrent reader can pick it up prematurely,
+        // also occupancy accounting fields should not leak into header
         chunk.block = block;
         chunk.next = 0;
         chunk.writeChunkHeader(buff, chunkHeaderLen);

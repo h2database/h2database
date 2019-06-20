@@ -916,6 +916,7 @@ public class MVStore implements AutoCloseable {
         if (footer == null || footer.id != header.id) {
             return null;
         }
+        assert footer.block == header.block;
         return header;
     }
 
@@ -1543,7 +1544,9 @@ public class MVStore implements AutoCloseable {
     private Chunk readChunkHeader(long block) {
         long p = block * BLOCK_SIZE;
         ByteBuffer buff = fileStore.readFully(p, Chunk.MAX_HEADER_LENGTH);
-        return Chunk.readChunkHeader(buff, p);
+        Chunk chunk = Chunk.readChunkHeader(buff, p);
+        assert chunk.block == block : chunk.block + " == " + block;
+        return chunk;
     }
 
     /**
@@ -1694,17 +1697,21 @@ public class MVStore implements AutoCloseable {
         buff.position(chunkHeaderLen);
         buff.put(readBuff);
         long pos = allocateFileSpace(length, toTheEnd);
+        long block = pos / BLOCK_SIZE;
         buff.position(0);
-        c.writeChunkHeader(buff, chunkHeaderLen);
+        // can not set chunck's new block/len until it's fully written
+        // concurrent reader can pick it up prematurely, hence workaround
+        String header = c.asString(block, 0);
+        Chunk.writeChunkHeader(buff, chunkHeaderLen, header);
         buff.position(length - Chunk.FOOTER_LENGTH);
-        buff.put(c.getFooterBytes());
+        buff.put(c.getFooterBytes(block));
         buff.position(0);
         write(pos, buff.getBuffer());
         releaseWriteBuffer(buff);
         fileStore.free(start, length);
-        c.block = pos / BLOCK_SIZE;
+        c.block = block;
         c.next = 0;
-        meta.put(Chunk.getMetaKey(c.id), c.asString());
+        meta.put(Chunk.getMetaKey(c.id), header);
         markMetaChanged();
         return true;
     }

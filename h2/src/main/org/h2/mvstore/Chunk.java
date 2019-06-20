@@ -162,12 +162,16 @@ public class Chunk {
      * @param minLength the minimum length
      */
     void writeChunkHeader(WriteBuffer buff, int minLength) {
-        long pos = buff.position();
-        buff.put(asString().getBytes(StandardCharsets.ISO_8859_1));
-        while (buff.position() - pos < minLength - 1) {
+        writeChunkHeader(buff, minLength, asString());
+    }
+
+    static void writeChunkHeader(WriteBuffer buff, int minLength, String header) {
+        long delimiterPosition = buff.position() + minLength - 1;
+        buff.put(header.getBytes(StandardCharsets.ISO_8859_1));
+        while (buff.position() < delimiterPosition) {
             buff.put((byte) ' ');
         }
-        if (minLength != 0 && buff.position() > minLength) {
+        if (minLength != 0 && buff.position() > delimiterPosition) {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_INTERNAL,
                     "Chunk metadata too long");
@@ -243,6 +247,10 @@ public class Chunk {
      * @return the string
      */
     public String asString() {
+        return asString(block, next);
+    }
+
+    public String asString(long block, long next) {
         StringBuilder buff = new StringBuilder(240);
         DataUtils.appendMap(buff, "chunk", id);
         DataUtils.appendMap(buff, "block", block);
@@ -273,6 +281,10 @@ public class Chunk {
     }
 
     byte[] getFooterBytes() {
+        return getFooterBytes(block);
+    }
+
+    byte[] getFooterBytes(long block) {
         StringBuilder buff = new StringBuilder(FOOTER_LENGTH);
         DataUtils.appendMap(buff, "chunk", id);
         DataUtils.appendMap(buff, "block", block);

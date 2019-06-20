@@ -1692,7 +1692,7 @@ public class MVStore implements AutoCloseable {
         int length = c.len * BLOCK_SIZE;
         buff.limit(length);
         ByteBuffer readBuff = fileStore.readFully(start, length);
-        Chunk.readChunkHeader(readBuff, start);
+        Chunk chunk = Chunk.readChunkHeader(readBuff, start);
         int chunkHeaderLen = readBuff.position();
         buff.position(chunkHeaderLen);
         buff.put(readBuff);
@@ -1701,17 +1701,19 @@ public class MVStore implements AutoCloseable {
         buff.position(0);
         // can not set chunck's new block/len until it's fully written
         // concurrent reader can pick it up prematurely, hence workaround
-        String header = c.asString(block, 0);
-        Chunk.writeChunkHeader(buff, chunkHeaderLen, header);
+        // also occupancy accounting fields should not leak into header,
+        chunk.block = block;
+        chunk.next = 0;
+        chunk.writeChunkHeader(buff, chunkHeaderLen);
         buff.position(length - Chunk.FOOTER_LENGTH);
-        buff.put(c.getFooterBytes(block));
+        buff.put(chunk.getFooterBytes());
         buff.position(0);
         write(pos, buff.getBuffer());
         releaseWriteBuffer(buff);
         fileStore.free(start, length);
         c.block = block;
         c.next = 0;
-        meta.put(Chunk.getMetaKey(c.id), header);
+        meta.put(Chunk.getMetaKey(c.id), c.asString());
         markMetaChanged();
         return true;
     }

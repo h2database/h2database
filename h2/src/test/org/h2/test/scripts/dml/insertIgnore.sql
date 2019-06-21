@@ -96,3 +96,32 @@ SELECT * FROM TEST ORDER BY ID;
 > 8  81
 > 9  91
 > rows (ordered): 9
+
+SET MODE Regular;
+> ok
+
+INSERT INTO TEST (ID, VALUE) VALUES (9, 90), (10, 100);
+> exception DUPLICATE_KEY_1
+
+INSERT INTO TEST (ID, VALUE) VALUES (9, 90), (10, 100) ON CONFLICT DO NOTHING;
+> exception SYNTAX_ERROR_1
+
+SET MODE PostgreSQL;
+> ok
+
+INSERT INTO TEST (ID, VALUE) VALUES (9, 90), (10, 100);
+> exception DUPLICATE_KEY_1
+
+INSERT INTO TEST (ID, VALUE) VALUES (9, 90), (10, 100) ON CONFLICT DO NOTHING;
+> update count: 1
+
+SELECT * FROM TEST WHERE ID >= 8 ORDER BY ID;
+> ID VALUE
+> -- -----
+> 8  81
+> 9  91
+> 10 100
+> rows (ordered): 3
+
+SET MODE Regular;
+> ok

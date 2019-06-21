@@ -149,14 +149,19 @@ public class Mode {
     public boolean isolationLevelInSelectOrInsertStatement;
 
     /**
-     * MySQL style INSERT ... ON DUPLICATE KEY UPDATE ... and INSERT IGNORE
+     * MySQL style INSERT ... ON DUPLICATE KEY UPDATE ... and INSERT IGNORE.
      */
     public boolean onDuplicateKeyUpdate;
 
     /**
-     * MySQL style REPLACE INTO
+     * MySQL style REPLACE INTO.
      */
     public boolean replaceInto;
+
+    /**
+     * PostgreSQL style INSERT ... ON CONFLICT DO NOTHING.
+     */
+    public boolean insertOnConflict;
 
     /**
      * Pattern describing the keys the java.sql.Connection.setClientInfo()
@@ -349,6 +354,7 @@ public class Mode {
         mode.logIsLogBase10 = true;
         mode.regexpReplaceBackslashReferences = true;
         mode.serialColumnIsNotPK = true;
+        mode.insertOnConflict = true;
         // PostgreSQL only supports the ApplicationName property. See
         // https://github.com/hhru/postgres-jdbc/blob/master/postgresql-jdbc-9.2-1002.src/
         //     org/postgresql/jdbc4/AbstractJdbc4Connection.java

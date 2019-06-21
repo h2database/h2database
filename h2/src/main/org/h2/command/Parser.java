@@ -1717,7 +1717,8 @@ public class Parser {
     private Insert parseInsert() {
         Insert command = new Insert(session);
         currentPrepared = command;
-        if (database.getMode().onDuplicateKeyUpdate && readIf("IGNORE")) {
+        Mode mode = database.getMode();
+        if (mode.onDuplicateKeyUpdate && readIf("IGNORE")) {
             command.setIgnore(true);
         }
         read("INTO");
@@ -1727,7 +1728,7 @@ public class Parser {
         if (returnedCommand != null) {
             return returnedCommand;
         }
-        if (database.getMode().onDuplicateKeyUpdate) {
+        if (mode.onDuplicateKeyUpdate) {
             if (readIf(ON)) {
                 read("DUPLICATE");
                 read("KEY");
@@ -1756,7 +1757,15 @@ public class Parser {
                 } while (readIf(COMMA));
             }
         }
-        if (database.getMode().isolationLevelInSelectOrInsertStatement) {
+        if (mode.insertOnConflict) {
+            if (readIf(ON)) {
+                read("CONFLICT");
+                read("DO");
+                read("NOTHING");
+                command.setIgnore(true);
+            }
+        }
+        if (mode.isolationLevelInSelectOrInsertStatement) {
             parseIsolationClause();
         }
         return command;

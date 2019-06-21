@@ -627,7 +627,9 @@ public class MVStore implements AutoCloseable {
     private MVMap<String, String> getMetaMap(long version) {
         Chunk c = getChunkForVersion(version);
         DataUtils.checkArgument(c != null, "Unknown version {0}", version);
-        c = readChunkHeader(c.block);
+        long block = c.block;
+        c = readChunkHeader(block);
+        assert c.block == block : block + " " + c;
         MVMap<String, String> oldMeta = meta.openReadOnly(c.metaRootPos, version);
         return oldMeta;
     }
@@ -909,14 +911,13 @@ public class MVStore implements AutoCloseable {
             // invalid chunk header: ignore, but stop
             return null;
         }
-        if (header == null) {
+        if (header == null || header.block != block) {
             return null;
         }
         Chunk footer = readChunkFooter((block + header.len) * BLOCK_SIZE);
-        if (footer == null || footer.id != header.id) {
+        if (footer == null || footer.id != header.id || footer.block != header.block) {
             return null;
         }
-        assert footer.block == header.block;
         return header;
     }
 
@@ -1544,9 +1545,7 @@ public class MVStore implements AutoCloseable {
     private Chunk readChunkHeader(long block) {
         long p = block * BLOCK_SIZE;
         ByteBuffer buff = fileStore.readFully(p, Chunk.MAX_HEADER_LENGTH);
-        Chunk chunk = Chunk.readChunkHeader(buff, p);
-        assert chunk.block == block : chunk.block + " == " + block;
-        return chunk;
+        return Chunk.readChunkHeader(buff, p);
     }
 
     /**

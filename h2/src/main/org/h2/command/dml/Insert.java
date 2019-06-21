@@ -59,7 +59,8 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
     private HashMap<Column, Expression> duplicateKeyAssignmentMap;
 
     /**
-     * For MySQL-style INSERT IGNORE
+     * For MySQL-style INSERT IGNORE and PostgreSQL-style ON CONFLICT DO
+     * NOTHING.
      */
     private boolean ignore;
 
@@ -93,8 +94,10 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
     }
 
     /**
-     * Sets MySQL-style INSERT IGNORE mode
-     * @param ignore ignore errors
+     * Sets MySQL-style INSERT IGNORE mode or PostgreSQL-style ON CONFLICT
+     * DO NOTHING.
+     *
+     * @param ignore ignore duplicates
      */
     public void setIgnore(boolean ignore) {
         this.ignore = ignore;

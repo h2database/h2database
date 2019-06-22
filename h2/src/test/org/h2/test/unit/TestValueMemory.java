@@ -26,7 +26,6 @@ import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
-import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -223,11 +222,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         case Value.STRING_FIXED:
             return ValueStringFixed.get(randomString(random.nextInt(100)));
         case Value.GEOMETRY:
-            if (DataType.GEOMETRY_CLASS == null) {
-                return ValueNull.INSTANCE;
-            }
-            return ValueGeometry.get("POINT (" + random.nextInt(100) + " " +
-                    random.nextInt(100) + ")");
+            return ValueGeometry.get("POINT (" + random.nextInt(100) + ' ' + random.nextInt(100) + ')');
         case Value.INTERVAL_YEAR:
         case Value.INTERVAL_MONTH:
         case Value.INTERVAL_DAY:

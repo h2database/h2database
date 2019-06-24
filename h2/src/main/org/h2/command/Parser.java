@@ -1631,7 +1631,7 @@ public class Parser {
             );
             TableFilter sourceTableFilter = new TableFilter(session,
                     temporarySourceTableView, queryAlias,
-                    rightsChecked, (Select) command.getQuery(), 0, null);
+                    rightsChecked, null, 0, null);
             command.setSourceTableFilter(sourceTableFilter);
         } else {
             /* Its a table name, simulate a query by building a select query for the table */

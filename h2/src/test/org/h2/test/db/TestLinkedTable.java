@@ -18,7 +18,6 @@ import org.h2.api.ErrorCode;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
-import org.h2.value.DataType;
 
 /**
  * Tests the linked table feature (CREATE LINKED TABLE).
@@ -695,9 +694,6 @@ public class TestLinkedTable extends TestDb {
 
     private void testGeometry() throws SQLException {
         if (config.memory && config.mvStore) {
-            return;
-        }
-        if (DataType.GEOMETRY_CLASS == null) {
             return;
         }
         org.h2.Driver.load();

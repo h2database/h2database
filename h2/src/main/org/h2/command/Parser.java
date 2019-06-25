@@ -1608,12 +1608,8 @@ public class Parser {
         MergeUsing command = new MergeUsing(session, targetTableFilter);
         currentPrepared = command;
 
-        if (readIf(OPEN_PAREN)) {
-            /* a select query is supplied */
-            if (isSelect()) {
-                command.setQuery(parseSelect());
-                read(CLOSE_PAREN);
-            }
+        if (isSelect()) {
+            command.setQuery(parseSelect());
             String queryAlias = readFromAlias(null, null);
             if (queryAlias == null) {
                 queryAlias = Constants.PREFIX_QUERY_ALIAS + parseIndex;
@@ -1634,8 +1630,7 @@ public class Parser {
                     rightsChecked, null, 0, null);
             command.setSourceTableFilter(sourceTableFilter);
         } else {
-            /* Its a table name, simulate a query by building a select query for the table */
-            TableFilter sourceTableFilter = readSimpleTableFilter(0, null);
+            TableFilter sourceTableFilter = readTableFilter();
             command.setSourceTableFilter(sourceTableFilter);
 
             Select preparedQuery = new Select(session, null);

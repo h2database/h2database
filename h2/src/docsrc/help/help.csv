@@ -3264,8 +3264,8 @@ The timestamp with time zone data type. The proleptic Gregorian calendar is used
 Stored internally as a BCD-encoded date, nanoseconds since midnight, and time zone offset in minutes.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
 
-Mapped to ""org.h2.api.TimestampWithTimeZone"".
-""java.time.OffsetDateTime"" and ""java.time.Instant"" are also supported on Java 8 and later versions.
+Mapped to ""org.h2.api.TimestampWithTimeZone"" by default and can be optionally mapped to ""java.time.OffsetDateTime"".
+""java.time.ZonedDateTime"" and ""java.time.Instant"" are also supported on Java 8 and later versions.
 
 Values of this data type are compared by UTC values. It means that ""2010-01-01 10:00:00+01"" is greater than ""2010-01-01 11:00:00+03"".
 

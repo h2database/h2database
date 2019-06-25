@@ -67,6 +67,11 @@ public class TestPreparedStatement extends TestDb {
      */
     private static final Method OFFSET_DATE_TIME_PARSE;
 
+    /**
+     * {@code java.time.ZonedDateTime#parse(CharSequence)} or {@code null}.
+     */
+    private static final Method ZONED_DATE_TIME_PARSE;
+
     static {
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             try {
@@ -74,6 +79,7 @@ public class TestPreparedStatement extends TestDb {
                 LOCAL_TIME_PARSE = LocalDateTimeUtils.LOCAL_TIME.getMethod("parse", CharSequence.class);
                 LOCAL_DATE_TIME_PARSE = LocalDateTimeUtils.LOCAL_DATE_TIME.getMethod("parse", CharSequence.class);
                 OFFSET_DATE_TIME_PARSE = LocalDateTimeUtils.OFFSET_DATE_TIME.getMethod("parse", CharSequence.class);
+                ZONED_DATE_TIME_PARSE = LocalDateTimeUtils.ZONED_DATE_TIME.getMethod("parse", CharSequence.class);
             } catch (NoSuchMethodException e) {
                 throw DbException.convert(e);
             }
@@ -82,6 +88,7 @@ public class TestPreparedStatement extends TestDb {
             LOCAL_TIME_PARSE = null;
             LOCAL_DATE_TIME_PARSE = null;
             OFFSET_DATE_TIME_PARSE = null;
+            ZONED_DATE_TIME_PARSE = null;
         }
     }
 
@@ -150,6 +157,20 @@ public class TestPreparedStatement extends TestDb {
         }
     }
 
+    /**
+     * Parses an ISO date string into a java.time.ZonedDateTime.
+     *
+     * @param text the ISO date string
+     * @return the java.time.OffsetDateTime instance
+     */
+    public static Object parseZonedDateTime(CharSequence text) {
+        try {
+            return ZONED_DATE_TIME_PARSE.invoke(null, text);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new IllegalArgumentException("error when parsing text '" + text + "'", e);
+        }
+    }
+
     @Override
     public void test() throws Exception {
         deleteDb("preparedStatement");
@@ -181,6 +202,7 @@ public class TestPreparedStatement extends TestDb {
         testTime8(conn);
         testDateTime8(conn);
         testOffsetDateTime8(conn);
+        testZonedDateTime8(conn);
         testInstant8(conn);
         testInterval(conn);
         testInterval8(conn);
@@ -849,6 +871,29 @@ public class TestPreparedStatement extends TestDb {
         rs.next();
         offsetDateTime2 = rs.getObject(1, LocalDateTimeUtils.OFFSET_DATE_TIME);
         assertEquals(offsetDateTime, offsetDateTime2);
+        assertFalse(rs.next());
+        rs.close();
+    }
+
+    private void testZonedDateTime8(Connection conn) throws SQLException {
+        if (!LocalDateTimeUtils.isJava8DateApiPresent()) {
+            return;
+        }
+        PreparedStatement prep = conn.prepareStatement("SELECT ?");
+        Object zonedDateTime = parseZonedDateTime("2001-02-03T04:05:06+02:30");
+        prep.setObject(1, zonedDateTime);
+        ResultSet rs = prep.executeQuery();
+        rs.next();
+        Object zonedDateTime2 = rs.getObject(1, LocalDateTimeUtils.ZONED_DATE_TIME);
+        assertEquals(zonedDateTime, zonedDateTime2);
+        assertFalse(rs.next());
+        rs.close();
+
+        prep.setObject(1, zonedDateTime, 2014); // Types.TIMESTAMP_WITH_TIMEZONE
+        rs = prep.executeQuery();
+        rs.next();
+        zonedDateTime2 = rs.getObject(1, LocalDateTimeUtils.ZONED_DATE_TIME);
+        assertEquals(zonedDateTime, zonedDateTime2);
         assertFalse(rs.next());
         rs.close();
     }

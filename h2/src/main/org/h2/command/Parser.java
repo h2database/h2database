@@ -1608,12 +1608,8 @@ public class Parser {
         MergeUsing command = new MergeUsing(session, targetTableFilter);
         currentPrepared = command;
 
-        if (readIf(OPEN_PAREN)) {
-            /* a select query is supplied */
-            if (isSelect()) {
-                command.setQuery(parseSelect());
-                read(CLOSE_PAREN);
-            }
+        if (isSelect()) {
+            command.setQuery(parseSelect());
             String queryAlias = readFromAlias(null, null);
             if (queryAlias == null) {
                 queryAlias = Constants.PREFIX_QUERY_ALIAS + parseIndex;
@@ -1634,8 +1630,7 @@ public class Parser {
                     rightsChecked, null, 0, null);
             command.setSourceTableFilter(sourceTableFilter);
         } else {
-            /* Its a table name, simulate a query by building a select query for the table */
-            TableFilter sourceTableFilter = readSimpleTableFilter(0, null);
+            TableFilter sourceTableFilter = readTableFilter();
             command.setSourceTableFilter(sourceTableFilter);
 
             Select preparedQuery = new Select(session, null);
@@ -5188,7 +5183,7 @@ public class Parser {
                         c = chars[++i];
                     } while ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F'));
                     String sub = sqlCommand.substring(start, i);
-                    currentValue = ValueDecimal.get(new BigDecimal(new BigInteger(sub, 16)));
+                    currentValue = ValueDecimal.get(new BigInteger(sub, 16));
                     break;
                 }
             }
@@ -5235,7 +5230,6 @@ public class Parser {
         }
         parseIndex = i;
         checkLiterals(false);
-        BigDecimal bd;
         if (integer && i - start <= 19) {
             BigInteger bi = new BigInteger(sqlCommand.substring(start, i));
             if (bi.compareTo(ValueLong.MAX_BI) <= 0) {
@@ -5248,15 +5242,16 @@ public class Parser {
                 currentTokenType = VALUE;
                 return;
             }
-            bd = new BigDecimal(bi);
+            currentValue = ValueDecimal.get(bi);
         } else {
+            BigDecimal bd;
             try {
                 bd = new BigDecimal(sqlCommandChars, start, i - start);
             } catch (NumberFormatException e) {
                 throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, sqlCommand.substring(start, i));
             }
+            currentValue = ValueDecimal.get(bd);
         }
-        currentValue = ValueDecimal.get(bd);
         currentTokenType = VALUE;
     }
 

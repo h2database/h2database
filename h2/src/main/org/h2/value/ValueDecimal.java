@@ -6,6 +6,7 @@
 package org.h2.value;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.MathContext;
 import java.math.RoundingMode;
 import java.sql.PreparedStatement;
@@ -212,7 +213,7 @@ public class ValueDecimal extends Value {
     /**
      * Get or create big decimal value for the given big decimal.
      *
-     * @param dec the bit decimal
+     * @param dec the big decimal
      * @return the value
      */
     public static ValueDecimal get(BigDecimal dec) {
@@ -222,6 +223,21 @@ public class ValueDecimal extends Value {
             return (ValueDecimal) ONE;
         }
         return (ValueDecimal) Value.cache(new ValueDecimal(dec));
+    }
+
+    /**
+     * Get or create big decimal value for the given big integer.
+     *
+     * @param bigInteger the big integer
+     * @return the value
+     */
+    public static ValueDecimal get(BigInteger bigInteger) {
+        if (bigInteger.signum() == 0) {
+            return (ValueDecimal) ZERO;
+        } else if (BigInteger.ONE.equals(bigInteger)) {
+            return (ValueDecimal) ONE;
+        }
+        return (ValueDecimal) Value.cache(new ValueDecimal(new BigDecimal(bigInteger)));
     }
 
     @Override

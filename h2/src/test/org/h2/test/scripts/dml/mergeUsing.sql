@@ -348,5 +348,17 @@ TABLE T;
 > 3  3 3
 > rows: 3
 
+MERGE INTO T USING (S) ON T.ID = S.ID
+    WHEN MATCHED THEN UPDATE SET B = S.B + 1;
+> update count: 2
+
+TABLE T;
+> ID A B
+> -- - -
+> 1  1 4
+> 2  1 5
+> 3  3 3
+> rows: 3
+
 DROP TABLE T, S, S2 CASCADE;
 > ok

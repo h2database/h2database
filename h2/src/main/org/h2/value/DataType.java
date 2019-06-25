@@ -606,9 +606,11 @@ public class DataType {
                 } else if (LocalDateTimeUtils.isJava8DateApiPresent()
                         && LocalDateTimeUtils.OFFSET_DATE_TIME.isInstance(obj)) {
                     v = LocalDateTimeUtils.offsetDateTimeToValue(obj);
+                } else if (LocalDateTimeUtils.isJava8DateApiPresent()
+                        && LocalDateTimeUtils.ZONED_DATE_TIME.isInstance(obj)) {
+                    v = LocalDateTimeUtils.zonedDateTimeToValue(obj);
                 } else {
-                    TimestampWithTimeZone value = (TimestampWithTimeZone) obj;
-                    v = ValueTimestampTimeZone.get(value);
+                    v = ValueTimestampTimeZone.get((TimestampWithTimeZone) obj);
                 }
                 break;
             }
@@ -1181,7 +1183,7 @@ public class DataType {
         } else if (x instanceof Integer) {
             return ValueInt.get((Integer) x);
         } else if (x instanceof BigInteger) {
-            return ValueDecimal.get(new BigDecimal((BigInteger) x));
+            return ValueDecimal.get((BigInteger) x);
         } else if (x instanceof BigDecimal) {
             return ValueDecimal.get((BigDecimal) x);
         } else if (x instanceof Boolean) {
@@ -1274,6 +1276,8 @@ public class DataType {
             return LocalDateTimeUtils.instantToValue(x);
         } else if (clazz == LocalDateTimeUtils.OFFSET_DATE_TIME) {
             return LocalDateTimeUtils.offsetDateTimeToValue(x);
+        } else if (clazz == LocalDateTimeUtils.ZONED_DATE_TIME) {
+            return LocalDateTimeUtils.zonedDateTimeToValue(x);
         } else if (x instanceof TimestampWithTimeZone) {
             return ValueTimestampTimeZone.get((TimestampWithTimeZone) x);
         } else if (x instanceof Interval) {

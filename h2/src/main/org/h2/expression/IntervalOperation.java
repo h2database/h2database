@@ -29,6 +29,7 @@ import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
+import org.h2.value.ValueDecimal;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueTime;
@@ -49,6 +50,11 @@ public class IntervalOperation extends Expression {
          * Interval minus interval.
          */
         INTERVAL_MINUS_INTERVAL,
+
+        /**
+         * Interval divided by interval (non-standard).
+         */
+        INTERVAL_DIVIDE_INTERVAL,
 
         /**
          * Date-time plus interval.
@@ -96,6 +102,9 @@ public class IntervalOperation extends Expression {
         case INTERVAL_MINUS_INTERVAL:
             type = TypeInfo.getTypeInfo(Value.getHigherOrder(l, r));
             break;
+        case INTERVAL_DIVIDE_INTERVAL:
+            type = TypeInfo.TYPE_DECIMAL_DEFAULT;
+            break;
         case DATETIME_PLUS_INTERVAL:
         case DATETIME_MINUS_INTERVAL:
         case INTERVAL_MULTIPLY_NUMERIC:
@@ -131,6 +140,7 @@ public class IntervalOperation extends Expression {
             return '-';
         case INTERVAL_MULTIPLY_NUMERIC:
             return '*';
+        case INTERVAL_DIVIDE_INTERVAL:
         case INTERVAL_DIVIDE_NUMERIC:
             return '/';
         default:
@@ -155,6 +165,9 @@ public class IntervalOperation extends Expression {
                     IntervalQualifier.valueOf(Value.getHigherOrder(lType, rType) - Value.INTERVAL_YEAR),
                     opType == IntervalOpType.INTERVAL_PLUS_INTERVAL ? a1.add(a2) : a1.subtract(a2));
         }
+        case INTERVAL_DIVIDE_INTERVAL:
+            return ValueDecimal.get(IntervalUtils.intervalToAbsolute((ValueInterval) l))
+                    .divide(ValueDecimal.get(IntervalUtils.intervalToAbsolute((ValueInterval) r)));
         case DATETIME_PLUS_INTERVAL:
         case DATETIME_MINUS_INTERVAL:
             return getDateTimeWithInterval(l, r, lType, rType);

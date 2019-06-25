@@ -238,8 +238,13 @@ public class BinaryOperation extends Expression {
             }
             break;
         case DIVIDE:
-            if (lInterval && rNumeric) {
-                return new IntervalOperation(IntervalOpType.INTERVAL_DIVIDE_NUMERIC, left, right);
+            if (lInterval) {
+                if (rNumeric) {
+                    return new IntervalOperation(IntervalOpType.INTERVAL_DIVIDE_NUMERIC, left, right);
+                } else if (rInterval && DataType.isYearMonthIntervalType(l) == DataType.isYearMonthIntervalType(r)) {
+                    // Non-standard
+                    return new IntervalOperation(IntervalOpType.INTERVAL_DIVIDE_INTERVAL, left, right);
+                }
             }
             break;
         default:

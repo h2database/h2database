@@ -35,6 +35,7 @@ import static org.h2.util.DateTimeUtils.NANOS_PER_MINUTE;
 import static org.h2.util.DateTimeUtils.NANOS_PER_SECOND;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
@@ -63,6 +64,13 @@ import org.h2.value.ValueTimestampTimeZone;
  * Date and time functions.
  */
 public final class DateTimeFunctions {
+
+    private static final BigDecimal BD_SECONDS_PER_DAY = new BigDecimal(DateTimeUtils.SECONDS_PER_DAY);
+
+    private static final BigInteger BI_SECONDS_PER_DAY = BigInteger.valueOf(DateTimeUtils.SECONDS_PER_DAY);
+
+    private static final BigDecimal BD_NANOS_PER_SECOND = new BigDecimal(NANOS_PER_SECOND);
+
     private static final HashMap<String, Integer> DATE_PART = new HashMap<>(128);
 
     /**
@@ -356,65 +364,54 @@ public final class DateTimeFunctions {
             // Case where we retrieve the EPOCH time.
             if (value instanceof ValueInterval) {
                 ValueInterval interval = (ValueInterval) value;
-                BigDecimal bd;
                 if (interval.getQualifier().isYearMonth()) {
                     interval = (ValueInterval) interval.convertTo(Value.INTERVAL_YEAR_TO_MONTH);
                     long leading = interval.getLeading();
                     long remaining = interval.getRemaining();
-                    bd = BigDecimal.valueOf(leading).multiply(BigDecimal.valueOf(31557600))
-                            .add(BigDecimal.valueOf(remaining * 2592000));
+                    BigInteger bi = BigInteger.valueOf(leading).multiply(BigInteger.valueOf(31557600))
+                            .add(BigInteger.valueOf(remaining * 2592000));
                     if (interval.isNegative()) {
-                        bd = bd.negate();
+                        bi = bi.negate();
                     }
+                    return ValueDecimal.get(bi);
                 } else {
-                    bd = new BigDecimal(IntervalUtils.intervalToAbsolute(interval))
-                            .divide(BigDecimal.valueOf(NANOS_PER_SECOND));
+                    return ValueDecimal.get(new BigDecimal(IntervalUtils.intervalToAbsolute(interval))
+                            .divide(BD_NANOS_PER_SECOND));
                 }
-                return ValueDecimal.get(bd);
             }
             // First we retrieve the dateValue and his time in nanoseconds.
             long[] a = DateTimeUtils.dateAndTimeFromValue(value);
             long dateValue = a[0];
             long timeNanos = a[1];
             // We compute the time in nanoseconds and the total number of days.
-            BigDecimal timeNanosBigDecimal = new BigDecimal(timeNanos);
-            BigDecimal numberOfDays = new BigDecimal(DateTimeUtils.absoluteDayFromDateValue(dateValue));
-            BigDecimal nanosSeconds = new BigDecimal(NANOS_PER_SECOND);
-            BigDecimal secondsPerDay = new BigDecimal(DateTimeUtils.SECONDS_PER_DAY);
-
             // Case where the value is of type time e.g. '10:00:00'
             if (value instanceof ValueTime) {
-
                 // In order to retrieve the EPOCH time we only have to convert the time
                 // in nanoseconds (previously retrieved) in seconds.
-                result = ValueDecimal.get(timeNanosBigDecimal.divide(nanosSeconds));
-
+                result = ValueDecimal.get(BigDecimal.valueOf(timeNanos).divide(BD_NANOS_PER_SECOND));
             } else if (value instanceof ValueDate) {
-
                 // Case where the value is of type date '2000:01:01', we have to retrieve the
                 // total number of days and multiply it by the number of seconds in a day.
-                result = ValueDecimal.get(numberOfDays.multiply(secondsPerDay));
-
-            } else if (value instanceof ValueTimestampTimeZone) {
-
-                // Case where the value is a of type ValueTimestampTimeZone
-                // ('2000:01:01 10:00:00+05').
-                // We retrieve the time zone offset in minutes
-                ValueTimestampTimeZone v = (ValueTimestampTimeZone) value;
-                BigDecimal timeZoneOffsetSeconds = new BigDecimal(v.getTimeZoneOffsetMins() * 60);
-                // Sum the time in nanoseconds and the total number of days in seconds
-                // and adding the timeZone offset in seconds.
-                result = ValueDecimal.get(timeNanosBigDecimal.divide(nanosSeconds)
-                        .add(numberOfDays.multiply(secondsPerDay)).subtract(timeZoneOffsetSeconds));
-
+                result = ValueDecimal.get(BigInteger.valueOf(DateTimeUtils.absoluteDayFromDateValue(dateValue))
+                        .multiply(BI_SECONDS_PER_DAY));
             } else {
-
-                // By default, we have the date and the time ('2000:01:01 10:00:00') if no type
-                // is given.
-                // We just have to sum the time in nanoseconds and the total number of days in
-                // seconds.
-                result = ValueDecimal
-                        .get(timeNanosBigDecimal.divide(nanosSeconds).add(numberOfDays.multiply(secondsPerDay)));
+                BigDecimal bd = BigDecimal.valueOf(timeNanos).divide(BD_NANOS_PER_SECOND).add(BigDecimal
+                        .valueOf(DateTimeUtils.absoluteDayFromDateValue(dateValue)).multiply(BD_SECONDS_PER_DAY));
+                if (value instanceof ValueTimestampTimeZone) {
+                    // Case where the value is a of type ValueTimestampTimeZone
+                    // ('2000:01:01 10:00:00+05').
+                    // We retrieve the time zone offset in minutes
+                    // Sum the time in nanoseconds and the total number of days in seconds
+                    // and adding the timeZone offset in seconds.
+                    result = ValueDecimal.get(bd.subtract(
+                            BigDecimal.valueOf(((ValueTimestampTimeZone) value).getTimeZoneOffsetMins() * 60)));
+                } else {
+                    // By default, we have the date and the time ('2000:01:01 10:00:00') if no type
+                    // is given.
+                    // We just have to sum the time in nanoseconds and the total number of days in
+                    // seconds.
+                    result = ValueDecimal.get(bd);
+                }
             }
         }
         return result;

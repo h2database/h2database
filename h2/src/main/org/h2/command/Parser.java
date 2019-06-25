@@ -5188,7 +5188,7 @@ public class Parser {
                         c = chars[++i];
                     } while ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F'));
                     String sub = sqlCommand.substring(start, i);
-                    currentValue = ValueDecimal.get(new BigDecimal(new BigInteger(sub, 16)));
+                    currentValue = ValueDecimal.get(new BigInteger(sub, 16));
                     break;
                 }
             }
@@ -5235,7 +5235,6 @@ public class Parser {
         }
         parseIndex = i;
         checkLiterals(false);
-        BigDecimal bd;
         if (integer && i - start <= 19) {
             BigInteger bi = new BigInteger(sqlCommand.substring(start, i));
             if (bi.compareTo(ValueLong.MAX_BI) <= 0) {
@@ -5248,15 +5247,16 @@ public class Parser {
                 currentTokenType = VALUE;
                 return;
             }
-            bd = new BigDecimal(bi);
+            currentValue = ValueDecimal.get(bi);
         } else {
+            BigDecimal bd;
             try {
                 bd = new BigDecimal(sqlCommandChars, start, i - start);
             } catch (NumberFormatException e) {
                 throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, sqlCommand.substring(start, i));
             }
+            currentValue = ValueDecimal.get(bd);
         }
-        currentValue = ValueDecimal.get(bd);
         currentTokenType = VALUE;
     }
 

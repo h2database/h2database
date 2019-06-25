@@ -1181,7 +1181,7 @@ public class DataType {
         } else if (x instanceof Integer) {
             return ValueInt.get((Integer) x);
         } else if (x instanceof BigInteger) {
-            return ValueDecimal.get(new BigDecimal((BigInteger) x));
+            return ValueDecimal.get((BigInteger) x);
         } else if (x instanceof BigDecimal) {
             return ValueDecimal.get((BigDecimal) x);
         } else if (x instanceof Boolean) {

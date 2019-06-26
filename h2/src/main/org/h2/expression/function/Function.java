@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -250,7 +251,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         // RAND with one argument: seed the random generator
         addFunctionNotDeterministic("RAND", RAND, VAR_ARGS, Value.DOUBLE);
         addFunctionNotDeterministic("RANDOM", RAND, VAR_ARGS, Value.DOUBLE);
-        addFunction("ROUND", ROUND, VAR_ARGS, Value.DOUBLE);
+        addFunction("ROUND", ROUND, VAR_ARGS, Value.NULL);
         addFunction("ROUNDMAGIC", ROUNDMAGIC, 1, Value.DOUBLE);
         addFunction("RSHIFT", RSHIFT, 2, Value.LONG);
         addFunction("SIGN", SIGN, 1, Value.INT);
@@ -1336,15 +1337,9 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             result = ValueDouble.get(Math.pow(
                     v0.getDouble(), v1.getDouble()));
             break;
-        case ROUND: {
-            double f = v1 == null ? 1. : Math.pow(10., v1.getDouble());
-
-            double middleResult = v0.getDouble() * f;
-
-            int oneWithSymbol = middleResult > 0 ? 1 : -1;
-            result = ValueDouble.get(Math.round(Math.abs(middleResult)) / f * oneWithSymbol);
+        case ROUND:
+            result = round(v0, v1);
             break;
-        }
         case TRUNCATE:
             result = truncate(session, v0, v1);
             break;
@@ -1826,6 +1821,22 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         }
         default:
             throw DbException.throwInternalError("type=" + info.type);
+        }
+        return result;
+    }
+
+    private Value round(Value v0, Value v1) {
+        BigDecimal bd = v0.getBigDecimal().setScale(v1 == null ? 0 : v1.getInt(), RoundingMode.HALF_UP);
+        Value result;
+        switch (type.getValueType()) {
+        case Value.DOUBLE:
+            result = ValueDouble.get(bd.doubleValue());
+            break;
+        case Value.FLOAT:
+            result = ValueFloat.get(bd.floatValue());
+            break;
+        default:
+            result = ValueDecimal.get(bd);
         }
         return result;
     }
@@ -2746,6 +2757,18 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 typeInfo = TypeInfo.TYPE_UNKNOWN;
             }
             break;
+        case ROUND:
+            switch (p0.getType().getValueType()) {
+            case Value.DOUBLE:
+                typeInfo = TypeInfo.TYPE_DOUBLE;
+                break;
+            case Value.FLOAT:
+                typeInfo = TypeInfo.TYPE_FLOAT;
+                break;
+            default:
+                typeInfo = getRoundNumericType(session);
+            }
+            break;
         case TRUNCATE:
             switch (p0.getType().getValueType()) {
             case Value.DOUBLE:
@@ -2772,9 +2795,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 typeInfo = getRoundNumericType(session);
             }
             break;
-        case ABS:
-        case FLOOR:
-        case ROUND: {
+        case ABS: {
             TypeInfo type = p0.getType();
             typeInfo = type;
             if (typeInfo.getValueType() == Value.NULL) {

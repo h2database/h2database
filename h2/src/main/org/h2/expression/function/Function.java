@@ -231,14 +231,14 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunction("BITNOT", BITNOT, 1, Value.LONG);
         addFunction("BITOR", BITOR, 2, Value.LONG);
         addFunction("BITXOR", BITXOR, 2, Value.LONG);
-        addFunction("CEILING", CEILING, 1, Value.DOUBLE);
-        addFunction("CEIL", CEILING, 1, Value.DOUBLE);
+        addFunction("CEILING", CEILING, 1, Value.NULL);
+        addFunction("CEIL", CEILING, 1, Value.NULL);
         addFunction("COS", COS, 1, Value.DOUBLE);
         addFunction("COSH", COSH, 1, Value.DOUBLE);
         addFunction("COT", COT, 1, Value.DOUBLE);
         addFunction("DEGREES", DEGREES, 1, Value.DOUBLE);
         addFunction("EXP", EXP, 1, Value.DOUBLE);
-        addFunction("FLOOR", FLOOR, 1, Value.DOUBLE);
+        addFunction("FLOOR", FLOOR, 1, Value.NULL);
         addFunction("LOG", LOG, VAR_ARGS, Value.DOUBLE);
         addFunction("LN", LN, 1, Value.DOUBLE);
         addFunction("LOG10", LOG10, 1, Value.DOUBLE);
@@ -690,7 +690,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             result = ValueDouble.get(Math.atan(v0.getDouble()));
             break;
         case CEILING:
-            result = ValueDouble.get(Math.ceil(v0.getDouble()));
+            result = getCeilOrFloor(v0, false);
             break;
         case COS:
             result = ValueDouble.get(Math.cos(v0.getDouble()));
@@ -713,7 +713,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             result = ValueDouble.get(Math.exp(v0.getDouble()));
             break;
         case FLOOR:
-            result = ValueDouble.get(Math.floor(v0.getDouble()));
+            result = getCeilOrFloor(v0, true);
             break;
         case LN: {
             double arg = v0.getDouble();
@@ -1189,6 +1189,20 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         default:
             result = null;
+        }
+        return result;
+    }
+
+    private static Value getCeilOrFloor(Value v0, boolean floor) {
+        Value result;
+        int t = v0.getValueType();
+        if (t == Value.DOUBLE || t == Value.FLOAT) {
+            double v = v0.getDouble();
+            v = floor ? Math.floor(v) : Math.ceil(v);
+            result = t == Value.DOUBLE ? ValueDouble.get(v) : ValueFloat.get((float) v);
+        } else {
+            result = ValueDecimal
+                    .get(v0.getBigDecimal().setScale(0, floor ? RoundingMode.FLOOR : RoundingMode.CEILING));
         }
         return result;
     }
@@ -2757,6 +2771,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 typeInfo = TypeInfo.TYPE_UNKNOWN;
             }
             break;
+        case CEILING:
+        case FLOOR:
         case ROUND:
             switch (p0.getType().getValueType()) {
             case Value.DOUBLE:

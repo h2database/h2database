@@ -3891,8 +3891,8 @@ MOD(A, B)
 "Functions (Numeric)","CEILING","
 { CEILING | CEIL } (numeric)
 ","
-See also Java ""Math.ceil"".
-This method returns a double.
+Returns the smallest integer value that is greater than or equal to the argument.
+This method returns a double, float, or numeric value depending on type of the argument.
 ","
 CEIL(A)
 "
@@ -3918,8 +3918,8 @@ EXP(A)
 "Functions (Numeric)","FLOOR","
 FLOOR(numeric)
 ","
-See also Java ""Math.floor"".
-This method returns a double.
+Returns the largest integer value that is less than or equal to the argument.
+This method returns a double, float, or numeric value depending on type of the argument.
 ","
 FLOOR(A)
 "

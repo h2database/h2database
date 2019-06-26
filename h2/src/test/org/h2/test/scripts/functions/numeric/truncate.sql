@@ -3,19 +3,25 @@
 -- Initial Developer: H2 Group
 --
 
-create memory table test(id int primary key, name varchar(255));
-> ok
+SELECT TRUNCATE(1.234, 2);
+>> 1.23
 
-insert into test values(1, 'Hello');
-> update count: 1
+SELECT (CURRENT_TIMESTAMP - CURRENT_TIME(6)) = TRUNCATE(CURRENT_TIMESTAMP);
+>> TRUE
 
-select truncate(null, null) en, truncate(1.99, 0) e1, truncate(-10.9, 0) em10 from test;
+SELECT TRUNCATE('bad', 1);
+> exception INVALID_DATETIME_CONSTANT_2
+
+SELECT TRUNCATE(1, 2, 3);
+> exception INVALID_PARAMETER_COUNT_2
+
+select truncate(null, null) en, truncate(1.99, 0) e1, truncate(-10.9, 0) em10;
 > EN   E1  EM10
 > ---- --- -----
 > null 1.0 -10.0
 > rows: 1
 
-select trunc(null, null) en, trunc(1.99, 0) e1, trunc(-10.9, 0) em10 from test;
+select trunc(null, null) en, trunc(1.99, 0) e1, trunc(-10.9, 0) em10;
 > EN   E1  EM10
 > ---- --- -----
 > null 1.0 -10.0

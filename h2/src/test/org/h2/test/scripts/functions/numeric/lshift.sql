@@ -3,13 +3,7 @@
 -- Initial Developer: H2 Group
 --
 
-create memory table test(id int primary key, name varchar(255));
-> ok
-
-insert into test values(1, 'Hello');
-> update count: 1
-
-select lshift(null, 1) vn, lshift(1, null) vn1, lshift(null, null) vn2, lshift(3, 6) v1, lshift(3,0) v2 from test;
+select lshift(null, 1) vn, lshift(1, null) vn1, lshift(null, null) vn2, lshift(3, 6) v1, lshift(3,0) v2;
 > VN   VN1  VN2  V1  V2
 > ---- ---- ---- --- --
 > null null null 192 3

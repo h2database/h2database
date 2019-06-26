@@ -3,13 +3,7 @@
 -- Initial Developer: Joe Littlejohn
 --
 
-create memory table test(id int primary key, name varchar(255));
-> ok
-
-insert into test values(1, 'Hello');
-> update count: 1
-
-select bitnot(null) vn, bitnot(0) v1, bitnot(10) v2, bitnot(-10) v3 from test;
+select bitnot(null) vn, bitnot(0) v1, bitnot(10) v2, bitnot(-10) v3;
 > VN   V1 V2  V3
 > ---- -- --- --
 > null -1 -11 9

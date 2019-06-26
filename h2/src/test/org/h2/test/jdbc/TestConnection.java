@@ -115,7 +115,7 @@ public class TestConnection extends TestDb {
         assertNull(conn.getClientInfo("UnknownProperty"));
         conn.close();
     }
-    
+
     private void testCommitOnAutoCommitSetRunner() throws Exception {
         assertFalse("Default value must be false", SysProperties.FORCE_AUTOCOMMIT_OFF_ON_COMMIT);
         testCommitOnAutoCommitSet(false);
@@ -125,9 +125,9 @@ public class TestConnection extends TestDb {
         } finally {
             SysProperties.FORCE_AUTOCOMMIT_OFF_ON_COMMIT = false;
         }
-        
+
     }
-    
+
     private void testCommitOnAutoCommitSet(boolean expectedPropertyEnabled) throws Exception {
         assertEquals(SysProperties.FORCE_AUTOCOMMIT_OFF_ON_COMMIT, expectedPropertyEnabled);
         Connection conn = getConnection("clientInfo");
@@ -142,7 +142,7 @@ public class TestConnection extends TestDb {
         prep.setString(index++, "test1");
         prep.execute();
         conn.commit();
-        // no error expected 
+        // no error expected
 
         conn.setAutoCommit(true);
         index = 1;
@@ -173,7 +173,7 @@ public class TestConnection extends TestDb {
         conn.close();
         prep.close();
     }
-    
+
     private void testRollbackOnAutoCommitSetRunner() throws Exception {
         assertFalse("Default value must be false", SysProperties.FORCE_AUTOCOMMIT_OFF_ON_COMMIT);
         testRollbackOnAutoCommitSet(false);
@@ -199,8 +199,8 @@ public class TestConnection extends TestDb {
         prep.setString(index++, "test1");
         prep.execute();
         conn.rollback();
-        // no error expected 
-        
+        // no error expected
+
 
         conn.setAutoCommit(true);
         index = 1;

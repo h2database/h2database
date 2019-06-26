@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.sql.Connection;
@@ -77,7 +78,9 @@ import org.h2.value.ValueBoolean;
 import org.h2.value.ValueBytes;
 import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueDate;
+import org.h2.value.ValueDecimal;
 import org.h2.value.ValueDouble;
+import org.h2.value.ValueFloat;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueJson;
 import org.h2.value.ValueLong;
@@ -1342,27 +1345,9 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             result = ValueDouble.get(Math.round(Math.abs(middleResult)) / f * oneWithSymbol);
             break;
         }
-        case TRUNCATE: {
-            if (v0.getValueType() == Value.TIMESTAMP) {
-                result = ValueTimestamp.fromDateValueAndNanos(((ValueTimestamp) v0).getDateValue(), 0);
-            } else if (v0.getValueType() == Value.DATE) {
-                result = ValueTimestamp.fromDateValueAndNanos(((ValueDate) v0).getDateValue(), 0);
-            } else if (v0.getValueType() == Value.TIMESTAMP_TZ) {
-                ValueTimestampTimeZone ts = (ValueTimestampTimeZone) v0;
-                result = ValueTimestampTimeZone.fromDateValueAndNanos(ts.getDateValue(), 0,
-                        ts.getTimeZoneOffsetMins());
-            } else if (v0.getValueType() == Value.STRING) {
-                ValueTimestamp ts = ValueTimestamp.parse(v0.getString(), session.getDatabase().getMode());
-                result = ValueTimestamp.fromDateValueAndNanos(ts.getDateValue(), 0);
-            } else {
-                double d = v0.getDouble();
-                int p = v1 == null ? 0 : v1.getInt();
-                double f = Math.pow(10., p);
-                double g = d * f;
-                result = ValueDouble.get(((d < 0) ? Math.ceil(g) : Math.floor(g)) / f);
-            }
+        case TRUNCATE:
+            result = truncate(session, v0, v1);
             break;
-        }
         case HASH:
             result = getHash(v0.getString(), v1, v2 == null ? 1 : v2.getInt());
             break;
@@ -1841,6 +1826,46 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         }
         default:
             throw DbException.throwInternalError("type=" + info.type);
+        }
+        return result;
+    }
+
+    private static Value truncate(Session session, Value v0, Value v1) {
+        Value result;
+        int t = v0.getValueType();
+        switch (t) {
+        case Value.TIMESTAMP:
+            result = ValueTimestamp.fromDateValueAndNanos(((ValueTimestamp) v0).getDateValue(), 0);
+            break;
+        case Value.DATE:
+            result = ValueTimestamp.fromDateValueAndNanos(((ValueDate) v0).getDateValue(), 0);
+            break;
+        case Value.TIMESTAMP_TZ: {
+            ValueTimestampTimeZone ts = (ValueTimestampTimeZone) v0;
+            result = ValueTimestampTimeZone.fromDateValueAndNanos(ts.getDateValue(), 0,
+                    ts.getTimeZoneOffsetMins());
+            break;
+        }
+        case Value.STRING:
+            result = ValueTimestamp.fromDateValueAndNanos(
+                    ValueTimestamp.parse(v0.getString(), session.getDatabase().getMode()).getDateValue(), 0);
+            break;
+        default:
+            int scale = v1 == null ? 0 : v1.getInt();
+            if (t == Value.DOUBLE || t == Value.FLOAT) {
+                double d = v0.getDouble();
+                if (scale == 0) {
+                    d = d < 0 ? Math.ceil(d) : Math.floor(d);
+                } else {
+                    double f = Math.pow(10, scale);
+                    d *= f;
+                    d = (d < 0 ? Math.ceil(d) : Math.floor(d)) / f;
+                }
+                result = t == Value.DOUBLE ? ValueDouble.get(d) : ValueFloat.get((float) d);
+            } else {
+                result = ValueDecimal.get(v0.getBigDecimal().setScale(scale, RoundingMode.DOWN));
+            }
+            break;
         }
         return result;
     }
@@ -2723,16 +2748,28 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         case TRUNCATE:
             switch (p0.getType().getValueType()) {
+            case Value.DOUBLE:
+                typeInfo = TypeInfo.TYPE_DOUBLE;
+                break;
+            case Value.FLOAT:
+                typeInfo = TypeInfo.TYPE_FLOAT;
+                break;
             case Value.STRING:
             case Value.DATE:
             case Value.TIMESTAMP:
+                if (args.length > 1) {
+                    throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, "1");
+                }
                 typeInfo = TypeInfo.getTypeInfo(Value.TIMESTAMP, -1, 0, null);
                 break;
             case Value.TIMESTAMP_TZ:
+                if (args.length > 1) {
+                    throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, "1");
+                }
                 typeInfo = TypeInfo.getTypeInfo(Value.TIMESTAMP_TZ, -1, 0, null);
                 break;
             default:
-                typeInfo = TypeInfo.TYPE_DOUBLE;
+                typeInfo = getRoundNumericType(session);
             }
             break;
         case ABS:
@@ -2845,6 +2882,22 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             return ValueExpression.get(v);
         }
         return this;
+    }
+
+    private TypeInfo getRoundNumericType(Session session) {
+        int scale = 0;
+        if (args.length > 1) {
+            Expression scaleExpr = args[1];
+            if (scaleExpr.isConstant()) {
+                Value scaleValue = scaleExpr.getValue(session);
+                if (scaleValue != ValueNull.INSTANCE) {
+                    scale = scaleValue.getInt();
+                }
+            } else {
+                scale = Integer.MAX_VALUE;
+            }
+        }
+        return TypeInfo.getTypeInfo(Value.DECIMAL, Integer.MAX_VALUE, scale, null);
     }
 
     @Override

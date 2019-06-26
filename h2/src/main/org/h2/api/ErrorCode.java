@@ -2048,7 +2048,7 @@ public class ErrorCode {
      * </pre>
      */
     public static final int FOR_UPDATE_IS_NOT_ALLOWED_IN_DISTINCT_OR_GROUPED_SELECT = 90145;
-   
+
     /**
      * The error with code <code>90146</code> is thrown when trying to open a
      * database that does not exist remotely without enabling remote database
@@ -2058,10 +2058,10 @@ public class ErrorCode {
      * </pre>
      */
     public static final int DATABASE_NOT_FOUND_2 = 90146;
-    
+
     /**
      * The error with code <code>90147</code> is thrown when trying to execute a
-     * statement which closes the transaction (such as commit and rollback) and 
+     * statement which closes the transaction (such as commit and rollback) and
      * autocommit mode is on.
      *
      * @see org.h2.engine.SysProperties#FORCE_AUTOCOMMIT_OFF_ON_COMMIT

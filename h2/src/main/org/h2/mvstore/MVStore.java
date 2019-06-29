@@ -1915,7 +1915,13 @@ public class MVStore implements AutoCloseable {
         try {
             for (MVMap<?, ?> map : maps.values()) {
                 if (!map.isClosed() && !map.isSingleWriter()) {
-                    rewritedPageCount += map.rewrite(set);
+                    try {
+                        rewritedPageCount += map.rewrite(set);
+                    } catch(IllegalStateException ex) {
+                        if (!map.isClosed()) {
+                            throw ex;
+                        }
+                    }
                 }
             }
             int rewriteMetaCount = meta.rewrite(set);

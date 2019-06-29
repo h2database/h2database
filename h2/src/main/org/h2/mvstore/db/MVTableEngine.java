@@ -364,11 +364,16 @@ public class MVTableEngine implements TableEngine {
         }
 
         /**
-         * Close the store. Pending changes are persisted. Chunks with a low
-         * fill rate are compacted, but old chunks are kept for some time, so
-         * most likely the database file will not shrink.
+         * Close the store. Pending changes are persisted.
+         * If time is allocated for housekeeping, chunks with a low
+         * fill rate are compacted, and some chunks are put next to each other.
+         * If time is unlimited then full compaction is performed, which uses
+         * different algorithm - opens alternative temp store and writes all live
+         * data there, then replaces this store with a new one.
          *
-         * @param compactFully true if storage need to be compacted after closer
+         * @param allowedCompactionTime time (in milliseconds) alloted for file
+         *                              compaction activity, 0 means no compaction,
+         *                              -1 means unlimited time (full compaction)
          */
         public void close(long allowedCompactionTime) {
             try {

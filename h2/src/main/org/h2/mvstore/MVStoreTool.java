@@ -22,6 +22,7 @@ import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
+import org.h2.mvstore.tx.TransactionStore;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FilePath;
@@ -549,6 +550,15 @@ public class MVStoreTool {
                         new MVMap.Builder<>().
                                 keyType(new GenericDataType()).
                                 valueType(new GenericDataType());
+                // This is a hack to preserve chunks occupancy rate accounting.
+                // It exposes desin deficiency flaw in MVStore related to lack of
+                // map's type metadata.
+                // TODO: Introduce type metadata which will allow to open any store
+                // TODO: without prior knoledge of keys / values types and map implementation
+                // TODO: (MVMap vs MVRTreeMap, regular vs. singleWriter etc.)
+                if (mapName.startsWith(TransactionStore.UNDO_LOG_NAME_PREFIX)) {
+                    mp.singleWriter();
+                }
                 MVMap<Object, Object> sourceMap = source.openMap(mapName, mp);
                 MVMap<Object, Object> targetMap = target.openMap(mapName, mp);
                 targetMap.copyFrom(sourceMap);

@@ -630,13 +630,15 @@ public abstract class Page implements Cloneable
      *          false if page has been saved already.
      */
     private boolean markAsRemoved() {
+        assert getTotalCount() > 0 : this;
         long pagePos;
         do {
             pagePos = pos;
             if (DataUtils.isPageSaved(pagePos)) {
                 return false;
             }
-        } while (!(DataUtils.isPageRemoved(pagePos) || posUpdater.compareAndSet(this, 0L, 1L)));
+            assert !DataUtils.isPageRemoved(pagePos);
+        } while (!posUpdater.compareAndSet(this, 0L, 1L));
         return true;
     }
 
@@ -844,12 +846,12 @@ public abstract class Page implements Cloneable
      *          and 0 for page that was already saved, or in case of non-persistent map
      */
     public final int removePage(long version) {
-        if(isPersistent()) {
+        if(isPersistent() && getTotalCount() > 0) {
             MVStore store = map.store;
             if (!markAsRemoved()) { // only if it has been saved already
                 long pagePos = pos;
                 store.accountForRemovedPage(pagePos, version, map.isSingleWriter());
-            } else if (getTotalCount() > 0) {
+            } else {
                 return -memory;
             }
         }

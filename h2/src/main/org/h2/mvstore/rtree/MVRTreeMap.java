@@ -181,7 +181,9 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                         long version = lockedRootReference.version;
                         int unsavedMemory = 0;
                         for (Page page : removedPages) {
-                            unsavedMemory += page.removePage(version);
+                            if (!page.isRemoved()) {
+                                unsavedMemory += page.removePage(version);
+                            }
                         }
                         store.registerUnsavedMemory(unsavedMemory);
                     } finally {

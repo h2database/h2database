@@ -2572,7 +2572,7 @@ public class MVStore implements AutoCloseable {
         if (autoCompactFillRate > 0 && lastChunk != null && reuseSpace) {
             try {
                 int lastProjectedFillRate = -1;
-                for (int cnt = 0; ; cnt++) {
+                for (int cnt = 0; cnt < 5; cnt++) {
                     int fillRate = getFillRate();
                     int projectedFillRate = fillRate;
                     if (fillRate > targetFillRate) {

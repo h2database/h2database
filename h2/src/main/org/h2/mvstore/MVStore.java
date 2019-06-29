@@ -2556,7 +2556,7 @@ public class MVStore implements AutoCloseable {
                     compact(-targetFillRate, autoCommitMemory);
                 }
             }
-            if (fileStore.isFragmented()) {
+            if (fileStore.isFragmented() || targetFillRate == autoCompactFillRate) {
                 doMaintance(targetFillRate);
             }
             autoCompactLastFileOpCount = fileStore.getWriteCount() + fileStore.getReadCount();

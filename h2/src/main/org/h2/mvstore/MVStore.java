@@ -2556,7 +2556,7 @@ public class MVStore implements AutoCloseable {
                     compact(-targetFillRate, autoCommitMemory);
                 }
             }
-            if (fileStore.isFragmented() || targetFillRate == autoCompactFillRate) {
+            if (fileStore.isFragmented() || isIdle()) {
                 doMaintenance(targetFillRate);
             }
             autoCompactLastFileOpCount = fileStore.getWriteCount() + fileStore.getReadCount();
@@ -2612,11 +2612,14 @@ public class MVStore implements AutoCloseable {
     private int getTargetFillRate() {
         int targetRate = autoCompactFillRate;
         // use a lower fill rate if there were any file operations since the last time
-        long fileOpCount = fileStore.getWriteCount() + fileStore.getReadCount();
-        if (autoCompactLastFileOpCount != fileOpCount) {
+        if (!isIdle()) {
             targetRate /= 3;
         }
         return targetRate;
+    }
+
+    private boolean isIdle() {
+        return autoCompactLastFileOpCount == fileStore.getWriteCount() + fileStore.getReadCount();
     }
 
     private void handleException(Throwable ex) {

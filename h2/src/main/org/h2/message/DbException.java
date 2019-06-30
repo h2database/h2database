@@ -345,6 +345,8 @@ public class DbException extends RuntimeException {
                 throw (Error) e;
             }
             return get(GENERAL_ERROR_1, e, e.toString());
+        } catch (OutOfMemoryError ignore) {
+            return OOME;
         } catch (Throwable ex) {
             try {
                 DbException dbException = new DbException(

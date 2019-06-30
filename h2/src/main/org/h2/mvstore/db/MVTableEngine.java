@@ -73,6 +73,10 @@ public class MVTableEngine implements TableEngine {
                     String dir = FileUtils.getParent(fileName);
                     FileUtils.createDirectories(dir);
                 }
+                int autoCompactFillRate = db.getSettings().maxCompactCount;
+                if (autoCompactFillRate <= 100) {
+                    builder.autoCompactFillRate(autoCompactFillRate);
+                }
             }
             if (key != null) {
                 encrypted = true;
@@ -167,6 +171,7 @@ public class MVTableEngine implements TableEngine {
                 if (!db.getSettings().reuseSpace) {
                     mvStore.setReuseSpace(false);
                 }
+                mvStore.setVersionsToKeep(0);
                 this.transactionStore = new TransactionStore(mvStore,
                         new ValueDataType(db, null), db.getLockTimeout());
             } catch (IllegalStateException e) {
@@ -355,36 +360,38 @@ public class MVTableEngine implements TableEngine {
          * @param maxCompactTime the maximum time in milliseconds to compact
          */
         public void compactFile(long maxCompactTime) {
-            mvStore.setRetentionTime(0);
-            long start = System.nanoTime();
-            while (mvStore.compact(95, 16 * 1024 * 1024)) {
-                mvStore.sync();
-                mvStore.compactMoveChunks(95, 16 * 1024 * 1024);
-                long time = System.nanoTime() - start;
-                if (time > TimeUnit.MILLISECONDS.toNanos(maxCompactTime)) {
-                    break;
-                }
-            }
+            mvStore.compactFile(maxCompactTime);
         }
 
         /**
-         * Close the store. Pending changes are persisted. Chunks with a low
-         * fill rate are compacted, but old chunks are kept for some time, so
-         * most likely the database file will not shrink.
+         * Close the store. Pending changes are persisted.
+         * If time is allocated for housekeeping, chunks with a low
+         * fill rate are compacted, and some chunks are put next to each other.
+         * If time is unlimited then full compaction is performed, which uses
+         * different algorithm - opens alternative temp store and writes all live
+         * data there, then replaces this store with a new one.
          *
-         * @param compactFully true if storage need to be compacted after closer
+         * @param allowedCompactionTime time (in milliseconds) alloted for file
+         *                              compaction activity, 0 means no compaction,
+         *                              -1 means unlimited time (full compaction)
          */
-        public void close(boolean compactFully) {
+        public void close(long allowedCompactionTime) {
             try {
                 FileStore fileStore = mvStore.getFileStore();
                 if (!mvStore.isClosed() && fileStore != null) {
+                    boolean compactFully = allowedCompactionTime == -1;
                     if (fileStore.isReadOnly()) {
                         compactFully = false;
                     } else {
                         transactionStore.close();
                     }
+                    if (compactFully) {
+                        allowedCompactionTime = 0;
+                    }
+
+                    mvStore.close(allowedCompactionTime);
+
                     String fileName = fileStore.getFileName();
-                    mvStore.close();
                     if (compactFully && FileUtils.exists(fileName)) {
                         // the file could have been deleted concurrently,
                         // so only compact if the file still exists

@@ -891,6 +891,8 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         // so, we should prevent double-closure
         if (state.getAndSet(State.CLOSED) != State.CLOSED) {
             try {
+                database.throwLastBackgroundException();
+
                 database.checkPowerOff();
 
                 // release any open table locks

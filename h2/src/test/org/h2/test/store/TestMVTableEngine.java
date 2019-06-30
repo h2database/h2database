@@ -66,7 +66,7 @@ public class TestMVTableEngine extends TestDb {
         testLobCreationThenShutdown();
         testManyTransactions();
         testAppendOnly();
-        testLowRetentionTime();
+        testNoRetentionTime();
         testOldAndNew();
         testTemporaryTables();
         testUniqueIndex();
@@ -305,9 +305,9 @@ public class TestMVTableEngine extends TestDb {
         }
     }
 
-    private void testLowRetentionTime() throws SQLException {
+    private void testNoRetentionTime() throws SQLException {
         deleteDb(getTestName());
-        try (Connection conn = getConnection(getTestName() + ";RETENTION_TIME=10;WRITE_DELAY=10")) {
+        try (Connection conn = getConnection(getTestName() + ";RETENTION_TIME=0;WRITE_DELAY=10")) {
             Statement stat = conn.createStatement();
             try (Connection conn2 = getConnection(getTestName())) {
                 Statement stat2 = conn2.createStatement();
@@ -691,7 +691,7 @@ public class TestMVTableEngine extends TestDb {
                     + Constants.SUFFIX_MV_FILE;
             long size = FileUtils.size(fileName);
             if (i < 10) {
-                maxSize = (int) (Math.max(size, maxSize) * 1.2);
+                maxSize = (int) Math.max(size * 1.2, maxSize);
             } else if (size > maxSize) {
                 fail(i + " size: " + size + " max: " + maxSize);
             }

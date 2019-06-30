@@ -396,6 +396,7 @@ public class TestConcurrent extends TestMVStore {
                     fileName(fileName).autoCommitDisabled().open();
             try {
                 s.setRetentionTime(0);
+                s.setVersionsToKeep(0);
                 final ArrayList<MVMap<Integer, Integer>> list = new ArrayList<>(count);
                 for (int i = 0; i < count; i++) {
                     MVMap<Integer, Integer> m = s.openMap("d" + i);

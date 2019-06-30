@@ -43,7 +43,7 @@ public class Chunk {
     /**
      * The start block number within the file.
      */
-    public long block;
+    public volatile long block;
 
     /**
      * The length in number of blocks.
@@ -53,12 +53,12 @@ public class Chunk {
     /**
      * The total number of pages in this chunk.
      */
-    public int pageCount;
+    int pageCount;
 
     /**
      * The number of pages still alive.
      */
-    public int pageCountLive;
+    int pageCountLive;
 
     /**
      * The sum of the max length of all pages.
@@ -74,12 +74,12 @@ public class Chunk {
      * The garbage collection priority. Priority 0 means it needs to be
      * collected, a high value means low priority.
      */
-    public int collectPriority;
+    int collectPriority;
 
     /**
      * The position of the meta root.
      */
-    public long metaRootPos;
+    long metaRootPos;
 
     /**
      * The version stored in this chunk.
@@ -102,7 +102,7 @@ public class Chunk {
      * Version of the store at which chunk become unused and therefore can be
      * considered "dead" and collected after this version is no longer in use.
      */
-    public long unusedAtVersion;
+    long unusedAtVersion;
 
     /**
      * The last used map id.
@@ -113,6 +113,12 @@ public class Chunk {
      * The predicted position of the next chunk.
      */
     public long next;
+
+    /**
+     * Number of live pinned pages.
+     */
+    private int pinCount;
+
 
     Chunk(int id) {
         this.id = id;
@@ -156,12 +162,12 @@ public class Chunk {
      * @param minLength the minimum length
      */
     void writeChunkHeader(WriteBuffer buff, int minLength) {
-        long pos = buff.position();
+        long delimiterPosition = buff.position() + minLength - 1;
         buff.put(asString().getBytes(StandardCharsets.ISO_8859_1));
-        while (buff.position() - pos < minLength - 1) {
+        while (buff.position() < delimiterPosition) {
             buff.put((byte) ' ');
         }
-        if (minLength != 0 && buff.position() > minLength) {
+        if (minLength != 0 && buff.position() > delimiterPosition) {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_INTERNAL,
                     "Chunk metadata too long");
@@ -202,6 +208,7 @@ public class Chunk {
         c.unusedAtVersion = DataUtils.readHexLong(map, "unusedAtVersion", 0);
         c.version = DataUtils.readHexLong(map, "version", id);
         c.next = DataUtils.readHexLong(map, "next", 0);
+        c.pinCount = DataUtils.readHexInt(map, "pinCount", 0);
         return c;
     }
 
@@ -210,7 +217,8 @@ public class Chunk {
      *
      * @return the fill rate
      */
-    public int getFillRate() {
+    int getFillRate() {
+        assert maxLenLive <= maxLen : maxLenLive + " > " + maxLen;
         if (maxLenLive <= 0) {
             return 0;
         } else if (maxLenLive == maxLen) {
@@ -260,6 +268,7 @@ public class Chunk {
             DataUtils.appendMap(buff, "unusedAtVersion", unusedAtVersion);
         }
         DataUtils.appendMap(buff, "version", version);
+        DataUtils.appendMap(buff, "pinCount", pinCount);
         return buff.toString();
     }
 
@@ -278,10 +287,152 @@ public class Chunk {
         return buff.toString().getBytes(StandardCharsets.ISO_8859_1);
     }
 
+    boolean isSaved() {
+        return block != Long.MAX_VALUE;
+    }
+
+    boolean isLive() {
+        return pageCountLive > 0;
+    }
+
+    boolean isRewritable() {
+        return isSaved()
+                && isLive()
+                && pageCountLive < pageCount    // not fully occupied
+                && isEvacuatable();
+    }
+
+    private boolean isEvacuatable() {
+        return pinCount == 0;
+    }
+
+    /**
+     * Read a page of data into a ByteBuffer.
+     *
+     * @param fileStore to use
+     * @param pos page pos
+     * @param expectedMapId expected map id for the page
+     * @return ByteBuffer containing page data.
+     */
+    ByteBuffer readBufferForPage(FileStore fileStore, long pos, int expectedMapId) {
+        assert isSaved() : this;
+        while (true) {
+            long originalBlock = block;
+            try {
+                long filePos = originalBlock * MVStore.BLOCK_SIZE;
+                long maxPos = filePos + len * MVStore.BLOCK_SIZE;
+                filePos += DataUtils.getPageOffset(pos);
+                if (filePos < 0) {
+                    throw DataUtils.newIllegalStateException(
+                            DataUtils.ERROR_FILE_CORRUPT,
+                            "Negative position {0}; p={1}, c={2}", filePos, pos, toString());
+                }
+
+                int length = DataUtils.getPageMaxLength(pos);
+                if (length == DataUtils.PAGE_LARGE) {
+                    // read the first bytes to figure out actual lenght
+                    length = fileStore.readFully(filePos, 128).getInt();
+                }
+                length = (int) Math.min(maxPos - filePos, length);
+                if (length < 0) {
+                    throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
+                            "Illegal page length {0} reading at {1}; max pos {2} ", length, filePos, maxPos);
+                }
+
+                ByteBuffer buff = fileStore.readFully(filePos, length);
+
+                int offset = DataUtils.getPageOffset(pos);
+                int start = buff.position();
+                int remaining = buff.remaining();
+                int pageLength = buff.getInt();
+                if (pageLength > remaining || pageLength < 4) {
+                    throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
+                            "File corrupted in chunk {0}, expected page length 4..{1}, got {2}", id, remaining,
+                            pageLength);
+                }
+                buff.limit(start + pageLength);
+
+                short check = buff.getShort();
+                int checkTest = DataUtils.getCheckValue(id)
+                        ^ DataUtils.getCheckValue(offset)
+                        ^ DataUtils.getCheckValue(pageLength);
+                if (check != (short) checkTest) {
+                    throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
+                            "File corrupted in chunk {0}, expected check value {1}, got {2}", id, checkTest, check);
+                }
+
+                int mapId = DataUtils.readVarInt(buff);
+                if (mapId != expectedMapId) {
+                    throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
+                            "File corrupted in chunk {0}, expected map id {1}, got {2}", id, expectedMapId, mapId);
+                }
+
+                if (originalBlock == block) {
+                    return buff;
+                }
+            } catch (IllegalStateException ex) {
+                if (originalBlock == block) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
+    /**
+     * Modifies internal state to reflect the fact that one more page is stored within this chunk.
+     * @param pageLengthOnDisk size of the page
+     * @param singleWriter indicates whether page belongs to append mode capable map (single writer map).
+     *                     Such pages are "pinned" to the chunk, they can't be evacuated (moved to a different chunk)
+     *                     while on-line, but they assumed to be short-lived anyway.
+     */
+    void accountForWrittenPage(int pageLengthOnDisk, boolean singleWriter) {
+        maxLen += pageLengthOnDisk;
+        pageCount++;
+        maxLenLive += pageLengthOnDisk;
+        pageCountLive++;
+        if (singleWriter) {
+            pinCount++;
+        }
+    }
+
+    /**
+     * Modifies internal state to reflect the fact that one the pages within this chunk was removed from the map.
+     * @param pageLength on disk of the removed page
+     * @param pinned whether removed page was pinned
+     * @param now is a moment in time (since creation of the store), when removal is recorded,
+     *            and retention period starts
+     * @param version at which page was removed
+     * @return true if all of the pages, this chunk contains, were already removed, and false otherwise
+     */
+    boolean accountForRemovedPage(int pageLength, boolean pinned, long now, long version) {
+        assert isSaved() : this;
+        maxLenLive -= pageLength;
+        pageCountLive--;
+        if (pinned) {
+            pinCount--;
+        }
+
+        if (unusedAtVersion < version) {
+            unusedAtVersion = version;
+        }
+
+        assert pinCount >= 0 : this;
+        assert pageCountLive >= 0 : this;
+        assert pinCount <= pageCountLive : this;
+        assert maxLenLive >= 0 : this;
+        assert (pageCountLive == 0) == (maxLenLive == 0) : this;
+
+        if (!isLive()) {
+            assert isEvacuatable() : this;
+            unused = now;
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public String toString() {
         return asString();
     }
-
 }
 

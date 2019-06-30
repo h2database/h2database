@@ -175,7 +175,7 @@ public final class RootReference
         return holdCount != 0;
     }
 
-    boolean isLockedByCurrentThread() {
+    public boolean isLockedByCurrentThread() {
         return holdCount != 0 && ownerId == Thread.currentThread().getId();
     }
 

@@ -429,9 +429,9 @@ public final class DataUtils {
             }
             throw newIllegalStateException(
                     ERROR_READING_FAILED,
-                    "Reading from {0} failed; file length {1} " +
-                    "read length {2} at {3}",
-                    file, size, dst.remaining(), pos, e);
+                    "Reading from file {0} failed at {1} (length {2}), " +
+                    "read {3}, remaining {4}",
+                    file, pos, size, dst.position(), dst.remaining(), e);
         }
     }
 
@@ -501,14 +501,24 @@ public final class DataUtils {
     }
 
     /**
-     * Get the maximum length for the given code.
-     * For the code 31, PAGE_LARGE is returned.
+     * Get the maximum length for the given page position.
      *
      * @param pos the position
      * @return the maximum length
      */
     public static int getPageMaxLength(long pos) {
         int code = (int) ((pos >> 1) & 31);
+        return decodePageLength(code);
+    }
+
+    /**
+     * Get the maximum length for the given code.
+     * For the code 31, PAGE_LARGE is returned.
+     *
+     * @param code encoded page lenth
+     * @return the maximum length
+     */
+    public static int decodePageLength(int code) {
         if (code == 31) {
             return PAGE_LARGE;
         }
@@ -536,13 +546,32 @@ public final class DataUtils {
     }
 
     /**
+     * Determines whether specified file position corresponds to a leaf page
+     * @param pos the position
+     * @return true if it is a leaf, false otherwise
+     */
+    public static boolean isLeafPosition(long pos) {
+        return getPageType(pos) == PAGE_TYPE_LEAF;
+    }
+
+    /**
      * Find out if page was saved.
      *
      * @param pos the position
      * @return true if page has been saved
      */
     public static boolean isPageSaved(long pos) {
-        return pos != 0;
+        return (pos & ~1L) != 0;
+    }
+
+    /**
+     * Find out if page was removed.
+     *
+     * @param pos the position
+     * @return true if page has been removed (no longer accessible from the current root of the tree)
+     */
+    static boolean isPageRemoved(long pos) {
+        return pos == 1L;
     }
 
     /**

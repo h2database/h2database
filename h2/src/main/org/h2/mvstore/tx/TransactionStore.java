@@ -91,7 +91,7 @@ public class TransactionStore {
     private final AtomicReferenceArray<Transaction> transactions =
                                                         new AtomicReferenceArray<>(MAX_OPEN_TRANSACTIONS + 1);
 
-    private static final String UNDO_LOG_NAME_PREFIX = "undoLog";
+    public static final String UNDO_LOG_NAME_PREFIX = "undoLog";
     private static final char UNDO_LOG_COMMITTED = '-'; // must come before open in lexicographical order
     private static final char UNDO_LOG_OPEN = '.';
 
@@ -437,12 +437,10 @@ public class TransactionStore {
     /**
      * Remove the given map.
      *
-     * @param <K> the key type
-     * @param <V> the value type
      * @param map the map
      */
-    <K, V> void removeMap(TransactionMap<K, V> map) {
-        store.removeMap(map.map, false);
+    void removeMap(TransactionMap<?,?> map) {
+        store.removeMap(map.map);
     }
 
     /**

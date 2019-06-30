@@ -1029,7 +1029,7 @@ public class MVStore implements AutoCloseable {
                                 if (allowedCompactionTime > 0) {
                                     compactFile(allowedCompactionTime);
                                 } else if (allowedCompactionTime < 0) {
-                                    doMaintance(autoCompactFillRate);
+                                    doMaintenance(autoCompactFillRate);
                                 }
                                 shrinkFileIfPossible(0);
                                 assert validateFileLength("on close");
@@ -2557,7 +2557,7 @@ public class MVStore implements AutoCloseable {
                 }
             }
             if (fileStore.isFragmented() || targetFillRate == autoCompactFillRate) {
-                doMaintance(targetFillRate);
+                doMaintenance(targetFillRate);
             }
             autoCompactLastFileOpCount = fileStore.getWriteCount() + fileStore.getReadCount();
         } catch (Throwable e) {
@@ -2568,7 +2568,7 @@ public class MVStore implements AutoCloseable {
         }
     }
 
-    private void doMaintance(int targetFillRate) {
+    private void doMaintenance(int targetFillRate) {
         if (autoCompactFillRate > 0 && lastChunk != null && reuseSpace) {
             try {
                 int lastProjectedFillRate = -1;

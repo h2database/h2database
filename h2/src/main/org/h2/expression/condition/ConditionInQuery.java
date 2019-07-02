@@ -76,7 +76,7 @@ public class ConditionInQuery extends PredicateWithSubquery {
         } else {
             TypeInfo colType = rows.getColumnType(0);
             if (colType.getValueType() == Value.NULL) {
-                return ValueBoolean.FALSE;
+                return ValueNull.INSTANCE;
             }
             if (l.getValueType() == Value.ROW) {
                 Value[] leftList = ((ValueRow) l).getList();

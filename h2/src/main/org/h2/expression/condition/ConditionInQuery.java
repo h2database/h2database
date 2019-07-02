@@ -63,8 +63,7 @@ public class ConditionInQuery extends PredicateWithSubquery {
         if (!database.getSettings().optimizeInSelect) {
             return getValueSlow(rows, l);
         }
-        if (all || (compareType != Comparison.EQUAL &&
-                compareType != Comparison.EQUAL_NULL_SAFE)) {
+        if (all || compareType != Comparison.EQUAL) {
             return getValueSlow(rows, l);
         }
         int columnCount = query.getColumnCount();
@@ -77,7 +76,7 @@ public class ConditionInQuery extends PredicateWithSubquery {
         } else {
             TypeInfo colType = rows.getColumnType(0);
             if (colType.getValueType() == Value.NULL) {
-                return ValueBoolean.FALSE;
+                return ValueNull.INSTANCE;
             }
             if (l.getValueType() == Value.ROW) {
                 Value[] leftList = ((ValueRow) l).getList();

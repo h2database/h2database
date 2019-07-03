@@ -88,14 +88,14 @@ public final class RootReference
     }
 
     // This one is used for unlocking
-    private RootReference(RootReference r, Page root, int appendCounter, boolean lockedForUpdate) {
+    private RootReference(RootReference r, Page root, boolean keepLocked, int appendCounter) {
         this.root = root;
         this.version = r.version;
         this.previous = r.previous;
         this.updateCounter = r.updateCounter;
         this.updateAttemptCounter = r.updateAttemptCounter;
         assert r.holdCount > 0 && r.ownerId == Thread.currentThread().getId() : Thread.currentThread().getId() + " " + r;
-        this.holdCount = (byte)(r.holdCount - (lockedForUpdate ? 0 : 1));
+        this.holdCount = (byte)(r.holdCount - (keepLocked ? 0 : 1));
         this.ownerId = this.holdCount == 0 ? 0 : Thread.currentThread().getId();
         this.appendCounter = (byte) appendCounter;
     }
@@ -148,8 +148,9 @@ public final class RootReference
         return null;
     }
 
-    RootReference updatePageAndLockedStatus(Page page, int appendCounter, boolean lockedForUpdate) {
-        RootReference updatedRootReference = new RootReference(this, page, appendCounter, lockedForUpdate);
+    RootReference updatePageAndLockedStatus(Page page, boolean keepLocked, int appendCounter) {
+        assert isLockedByCurrentThread() : this;
+        RootReference updatedRootReference = new RootReference(this, page, keepLocked, appendCounter);
         if (root.map.compareAndSetRoot(this, updatedRootReference)) {
             return updatedRootReference;
         }

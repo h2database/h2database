@@ -424,7 +424,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 return rootReference;
             }
             if (!isPersistent()) {
-                rootReference = tryUpdateRoot(rootReference, emptyRootPage, ++attempt);
+                rootReference = rootReference.updateRootPage(emptyRootPage, ++attempt);
                 if (rootReference != null) {
                     return rootReference;
                 }
@@ -435,7 +435,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                     store.registerUnsavedMemory(page.removeAllRecursive(lockedRootReference.version));
                     page = emptyRootPage;
                 } finally {
-                    unlockRoot(page);
+                    rootReference = unlockRoot(page);
                 }
                 return rootReference;
             }
@@ -879,15 +879,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     protected final boolean updateRoot(RootReference expectedRootReference, Page newRootPage,
                                        int attemptUpdateCounter)
     {
-        return tryUpdateRoot(expectedRootReference, newRootPage, attemptUpdateCounter) != null;
-    }
-
-    private RootReference tryUpdateRoot(RootReference expectedRootReference, Page newRootPage,
-                                        int attemptUpdateCounter)
-    {
-        RootReference currentRoot = flushAndGetRoot();
-        return currentRoot != expectedRootReference ? null :
-                currentRoot.updateRootPage(newRootPage, attemptUpdateCounter);
+        return expectedRootReference.updateRootPage(newRootPage, attemptUpdateCounter) != null;
     }
 
     /**
@@ -1907,8 +1899,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             assert rootReference.isLockedByCurrentThread();
             updatedRootReference = rootReference.updatePageAndLockedStatus(
                                         newRootPage == null ? rootReference.root : newRootPage,
-                                        appendCounter == -1 ? rootReference.getAppendCounter() : appendCounter,
-                                        false);
+                                        false,
+                                        appendCounter == -1 ? rootReference.getAppendCounter() : appendCounter
+            );
         } while(updatedRootReference == null);
 
         notifyWaiters();

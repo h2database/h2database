@@ -186,6 +186,16 @@ public final class RootReference
                     version : prev.version;
     }
 
+    /**
+     * Does the root have changes since the specified version?
+     *
+     * @param version to check against
+     * @return true if this root has unsaved changes
+     */
+    boolean hasChangesSince(long version) {
+        return (root.isSaved() ? getAppendCounter() > 0 : getTotalCount() > 0) || getVersion() > version;
+    }
+
     int getAppendCounter() {
         return appendCounter & 0xff;
     }
@@ -196,7 +206,12 @@ public final class RootReference
 
     @Override
     public String toString() {
-        return "RootReference{" + System.identityHashCode(root) + "," + version + "," + ownerId + ":" + holdCount +
-                "," + getAppendCounter() + "}";
+        return "RootReference(" + System.identityHashCode(root) +
+                ", v=" + version +
+                ", owner=" + ownerId + (ownerId == Thread.currentThread().getId() ? "(current)" : "") +
+                ", holdCnt=" + holdCount +
+                ", keys=" + root.getTotalCount() +
+                ", append=" + getAppendCounter() +
+                ")";
     }
 }

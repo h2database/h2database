@@ -748,7 +748,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     @Override
     public Set<K> keySet() {
-        final Page root = this.getRootPage();
+        final Page root = getRootPage();
         return new AbstractSet<K>() {
 
             @Override
@@ -1054,10 +1054,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return true if has changes
      */
     final boolean hasChangesSince(long version) {
-        RootReference rootReference = getRoot();
-        Page root = rootReference.root;
-        return !root.isSaved() && rootReference.getTotalCount() > 0 ||
-                rootReference.getVersion() > version;
+        return getRoot().hasChangesSince(version);
     }
 
     /**

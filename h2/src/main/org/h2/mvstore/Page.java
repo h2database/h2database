@@ -786,12 +786,12 @@ public abstract class Page implements Cloneable
         long r = 0;
         if (isPersistent()) {
             r += diskSpaceUsed;
-        }
-        if (!isLeaf()) {
-            for (int i = 0; i < getRawChildPageCount(); i++) {
-                long pos = getChildPagePos(i);
-                if (pos != 0) {
-                    r += getChildPage(i).getDiskSpaceUsed();
+            if (!isLeaf()) {
+                for (int i = 0; i < getRawChildPageCount(); i++) {
+                    long pos = getChildPagePos(i);
+                    if (pos != 0) {
+                        r += getChildPage(i).getDiskSpaceUsed();
+                    }
                 }
             }
         }
@@ -847,6 +847,7 @@ public abstract class Page implements Cloneable
      */
     public final int removePage(long version) {
         if(isPersistent() && getTotalCount() > 0) {
+            assert map.getRoot().isLockedByCurrentThread();
             MVStore store = map.store;
             if (!markAsRemoved()) { // only if it has been saved already
                 long pagePos = pos;

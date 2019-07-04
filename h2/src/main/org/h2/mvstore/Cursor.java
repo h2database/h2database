@@ -152,25 +152,10 @@ public class Cursor<K, V> implements Iterator<K> {
      * @param key the key to search, null means search for the first key
      */
     private static CursorPos traverseDown(Page p, Object key) {
-        CursorPos cursorPos = null;
-        while (!p.isLeaf()) {
-            int index = 0;
-            if(key != null) {
-                index = p.binarySearch(key) + 1;
-                if (index < 0) {
-                    index = -index;
-                }
-            }
-            cursorPos = new CursorPos(p, index, cursorPos);
-            p = p.getChildPage(index);
+        CursorPos cursorPos = key == null ? p.getPrependCursorPos(null) : CursorPos.traverseDown(p, key);
+        if (cursorPos.index < 0) {
+            cursorPos.index = -cursorPos.index - 1;
         }
-        int index = 0;
-        if(key != null) {
-            index = p.binarySearch(key);
-            if (index < 0) {
-                index = -index - 1;
-            }
-        }
-        return new CursorPos(p, index, cursorPos);
+        return cursorPos;
     }
 }

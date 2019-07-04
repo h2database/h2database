@@ -1708,7 +1708,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             V result;
             unsavedMemoryHolder.value = 0;
             try {
-                CursorPos pos = traverseDown(rootPage, key);
+                CursorPos pos = CursorPos.traverseDown(rootPage, key);
                 if(!locked && rootReference != getRoot()) {
                     continue;
                 }
@@ -1918,19 +1918,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 lock.notify();
             }
         }
-    }
-
-    private static CursorPos traverseDown(Page p, Object key) {
-        CursorPos pos = null;
-        while (!p.isLeaf()) {
-            int index = p.binarySearch(key) + 1;
-            if (index < 0) {
-                index = -index;
-            }
-            pos = new CursorPos(p, index, pos);
-            p = p.getChildPage(index);
-        }
-        return new CursorPos(p, p.binarySearch(key), pos);
     }
 
     private static final class EqualsDecisionMaker<V> extends DecisionMaker<V> {

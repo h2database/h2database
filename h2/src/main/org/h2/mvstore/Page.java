@@ -860,9 +860,17 @@ public abstract class Page implements Cloneable
     }
 
     /**
-     * Update given CursorPos chain to correspond to "append point" in a B-tree rooted at this Page.
+     * Extend path from a given CursorPos chain to "prepend point" in a B-tree, rooted at this Page.
      *
-     * @param cursorPos to update, presumably pointing to this Page
+     * @param cursorPos presumably pointing to this Page (null if real root), to build upon
+     * @return new head of the CursorPos chain
+     */
+    public abstract CursorPos getPrependCursorPos(CursorPos cursorPos);
+
+    /**
+     * Extend path from a given CursorPos chain to "append point" in a B-tree, rooted at this Page.
+     *
+     * @param cursorPos presumably pointing to this Page (null if real root), to build upon
      * @return new head of the CursorPos chain
      */
     public abstract CursorPos getAppendCursorPos(CursorPos cursorPos);
@@ -1173,6 +1181,12 @@ public abstract class Page implements Cloneable
         }
 
         @Override
+        public CursorPos getPrependCursorPos(CursorPos cursorPos) {
+            Page childPage = getChildPage(0);
+            return childPage.getPrependCursorPos(new CursorPos(this, 0, cursorPos));
+        }
+
+        @Override
         public CursorPos getAppendCursorPos(CursorPos cursorPos) {
             int keyCount = getKeyCount();
             Page childPage = getChildPage(keyCount);
@@ -1470,6 +1484,11 @@ public abstract class Page implements Cloneable
         @Override
         public int removeAllRecursive(long version) {
             return removePage(version);
+        }
+
+        @Override
+        public CursorPos getPrependCursorPos(CursorPos cursorPos) {
+            return new CursorPos(this, -1, cursorPos);
         }
 
         @Override

@@ -38,12 +38,42 @@ public class CursorPos
         this.parent = parent;
     }
 
+    /**
+     * Searches for a given key and creates a breadcrumb trail through a B-tree rooted at a given Page.
+     * Resulting path starts at "insertion point" for a given key and goes back to the root.
+     *
+     * @param page      root of the tree
+     * @param key       the key to search for
+     * @return head of the CursorPos chain (insertion point)
+     */
+    public static CursorPos traverseDown(Page page, Object key) {
+        CursorPos cursorPos = null;
+        while (!page.isLeaf()) {
+            int index = page.binarySearch(key) + 1;
+            if (index < 0) {
+                index = -index;
+            }
+            cursorPos = new CursorPos(page, index, cursorPos);
+            page = page.getChildPage(index);
+        }
+        return new CursorPos(page, page.binarySearch(key), cursorPos);
+    }
+
     int processRemovalInfo(long version) {
         int unsavedMemory = 0;
         for (CursorPos head = this; head != null; head = head.parent) {
             unsavedMemory += head.page.removePage(version);
         }
         return unsavedMemory;
+    }
+
+    @Override
+    public String toString() {
+        return "CursorPos{" +
+                "page=" + page +
+                ", index=" + index +
+                ", parent=" + parent +
+                '}';
     }
 }
 

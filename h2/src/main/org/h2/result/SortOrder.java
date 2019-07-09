@@ -224,9 +224,7 @@ public class SortOrder implements Comparator<Value[]> {
         if (offset < 0) {
             offset = 0;
         }
-        if (offset + limit > rowsSize) {
-            limit = rowsSize - offset;
-        }
+        limit = Math.min(limit, rowsSize - offset);
         if (limit == 1 && offset == 0) {
             rows.set(0, Collections.min(rows, this));
             return;

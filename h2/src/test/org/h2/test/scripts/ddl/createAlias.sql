@@ -1,5 +1,5 @@
--- Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
--- and the EPL 1.0 (http://h2database.com/html/license.html).
+-- Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
 
@@ -11,6 +11,8 @@ create alias "MIN" for "java.lang.Integer.parseInt(java.lang.String)";
 
 create alias "CAST" for "java.lang.Integer.parseInt(java.lang.String)";
 > exception FUNCTION_ALIAS_ALREADY_EXISTS_1
+
+@reconnect off
 
 --- function alias ---------------------------------------------------------------------------------------------
 CREATE ALIAS MY_SQRT FOR "java.lang.Math.sqrt";
@@ -36,9 +38,9 @@ SELECT MY_SQRT(-1.0) MS, SQRT(NULL) S;
 
 SCRIPT NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> ------------------------------------------------------------
-> CREATE FORCE ALIAS PUBLIC.MY_SQRT FOR "java.lang.Math.sqrt";
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
+> ----------------------------------------------------------------
+> CREATE FORCE ALIAS "PUBLIC"."MY_SQRT" FOR "java.lang.Math.sqrt";
+> CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > rows: 2
 
 SELECT ALIAS_NAME, JAVA_CLASS, JAVA_METHOD, DATA_TYPE, COLUMN_COUNT, RETURNS_RESULT, REMARKS FROM INFORMATION_SCHEMA.FUNCTION_ALIASES;
@@ -106,3 +108,20 @@ SET BUILTIN_ALIAS_OVERRIDE=0;
 
 DROP SCHEMA TEST_SCHEMA RESTRICT;
 > ok
+
+-- test for issue #1531
+CREATE TABLE TEST (ID BIGINT, VAL VARCHAR2(10)) AS SELECT x,'val'||x FROM SYSTEM_RANGE(1,2);
+> ok
+
+CREATE ALIAS FTBL AS $$ ResultSet t(Connection c) throws SQLException {return c.prepareStatement("SELECT ID, VAL FROM TEST").executeQuery();} $$;
+> ok
+
+CREATE OR REPLACE VIEW V_TEST (ID, VAL) AS (SELECT * FROM FTBL());
+> ok
+
+SELECT * FROM V_TEST;
+> ID VAL
+> -- ----
+> 1  val1
+> 2  val2
+> rows: 2

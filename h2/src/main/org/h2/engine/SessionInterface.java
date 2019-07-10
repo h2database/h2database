@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.engine;
@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import org.h2.command.CommandInterface;
 import org.h2.message.Trace;
 import org.h2.store.DataHandler;
+import org.h2.util.NetworkConnectionInfo;
 import org.h2.value.Value;
 
 /**
@@ -161,5 +162,12 @@ public interface SessionInterface extends Closeable {
      *         {@code SCOPE_IDENTITY()} is supported
      */
     boolean isSupportsGeneratedKeys();
+
+    /**
+     * Sets the network connection information if possible.
+     *
+     * @param networkConnectionInfo the network connection information
+     */
+    void setNetworkConnectionInfo(NetworkConnectionInfo networkConnectionInfo);
 
 }

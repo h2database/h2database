@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.value;
@@ -146,13 +146,18 @@ public class ValueLong extends Value {
     }
 
     @Override
-    public String getSQL() {
-        return getString();
+    public StringBuilder getSQL(StringBuilder builder) {
+        return builder.append(value);
     }
 
     @Override
-    public int getType() {
-        return Value.LONG;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_LONG;
+    }
+
+    @Override
+    public int getValueType() {
+        return LONG;
     }
 
     @Override
@@ -161,19 +166,13 @@ public class ValueLong extends Value {
     }
 
     @Override
-    protected int compareSecure(Value o, CompareMode mode) {
-        ValueLong v = (ValueLong) o;
-        return Long.compare(value, v.value);
+    public int compareTypeSafe(Value o, CompareMode mode) {
+        return Long.compare(value, ((ValueLong) o).value);
     }
 
     @Override
     public String getString() {
         return Long.toString(value);
-    }
-
-    @Override
-    public long getPrecision() {
-        return PRECISION;
     }
 
     @Override
@@ -203,11 +202,6 @@ public class ValueLong extends Value {
             return STATIC_CACHE[(int) i];
         }
         return (ValueLong) Value.cache(new ValueLong(i));
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return DISPLAY_SIZE;
     }
 
     @Override

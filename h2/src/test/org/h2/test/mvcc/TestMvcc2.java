@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.mvcc;
@@ -11,12 +11,13 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.Task;
 
 /**
  * Additional MVCC (multi version concurrency) test cases.
  */
-public class TestMvcc2 extends TestBase {
+public class TestMvcc2 extends TestDb {
 
     private static final String DROP_TABLE =
             "DROP TABLE IF EXISTS EMPLOYEE";
@@ -34,15 +35,19 @@ public class TestMvcc2 extends TestBase {
      */
     public static void main(String... a) throws Exception {
         TestBase test = TestBase.createCaller().init();
-        test.config.mvcc = true;
         test.test();
     }
 
     @Override
-    public void test() throws Exception {
-        if (!config.mvcc) {
-            return;
+    public boolean isEnabled() {
+        if (!config.mvStore) {
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws Exception {
         deleteDb("mvcc2");
         testConcurrentInsert();
         testConcurrentUpdate();
@@ -121,22 +126,14 @@ public class TestMvcc2 extends TestBase {
     }
 
     private void testSelectForUpdate() throws SQLException {
-        Connection conn = getConnection("mvcc2;SELECT_FOR_UPDATE_MVCC=true");
-        Connection conn2 = getConnection("mvcc2;SELECT_FOR_UPDATE_MVCC=true");
+        Connection conn = getConnection("mvcc2");
+        Connection conn2 = getConnection("mvcc2");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key, name varchar)");
         conn.setAutoCommit(false);
         stat.execute("insert into test select x, 'Hello' from system_range(1, 10)");
         stat.execute("select * from test where id = 3 for update");
         conn.commit();
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, stat).
-                execute("select sum(id) from test for update");
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, stat).
-                execute("select distinct id from test for update");
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, stat).
-                execute("select id from test group by id for update");
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, stat).
-                execute("select t1.id from test t1, test t2 for update");
         stat.execute("select * from test where id = 3 for update");
         conn2.setAutoCommit(false);
         conn2.createStatement().execute("select * from test where id = 4 for update");

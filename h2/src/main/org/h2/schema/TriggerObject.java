@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.schema;
@@ -22,7 +22,6 @@ import org.h2.result.Row;
 import org.h2.table.Table;
 import org.h2.util.JdbcUtils;
 import org.h2.util.SourceCompiler;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -52,13 +51,17 @@ public class TriggerObject extends SchemaObjectBase {
     private Trigger triggerCallback;
 
     public TriggerObject(Schema schema, int id, String name, Table table) {
-        initSchemaObjectBase(schema, id, name, Trace.TRIGGER);
+        super(schema, id, name, Trace.TRIGGER);
         this.table = table;
         setTemporary(table.isTemporary());
     }
 
     public void setBefore(boolean before) {
         this.before = before;
+    }
+
+    public boolean isInsteadOf() {
+        return insteadOf;
     }
 
     public void setInsteadOf(boolean insteadOf) {
@@ -74,7 +77,7 @@ public class TriggerObject extends SchemaObjectBase {
             Connection c2 = sysSession.createConnection(false);
             Object obj;
             if (triggerClassName != null) {
-                obj = JdbcUtils.loadUserClass(triggerClassName).newInstance();
+                obj = JdbcUtils.loadUserClass(triggerClassName).getDeclaredConstructor().newInstance();
             } else {
                 obj = loadFromSource();
             }
@@ -169,8 +172,7 @@ public class TriggerObject extends SchemaObjectBase {
         try {
             triggerCallback.fire(c2, null, null);
         } catch (Throwable e) {
-            throw DbException.get(ErrorCode.ERROR_EXECUTING_TRIGGER_3, e, getName(),
-                    triggerClassName != null ? triggerClassName : "..source..", e.toString());
+            throw getErrorExecutingTrigger(e);
         } finally {
             if (session.getLastTriggerIdentity() != null) {
                 session.setLastScopeIdentity(session.getLastTriggerIdentity());
@@ -255,14 +257,16 @@ public class TriggerObject extends SchemaObjectBase {
         Value identity = session.getLastScopeIdentity();
         try {
             session.setAutoCommit(false);
-            triggerCallback.fire(c2, oldList, newList);
+            try {
+                triggerCallback.fire(c2, oldList, newList);
+            } catch (Throwable e) {
+                throw getErrorExecutingTrigger(e);
+            }
             if (newListBackup != null) {
                 for (int i = 0; i < newList.length; i++) {
                     Object o = newList[i];
                     if (o != newListBackup[i]) {
-                        Value v = DataType.convertToValue(session, o, Value.UNKNOWN);
-                        session.getGeneratedKeys().add(table.getColumn(i));
-                        newRow.setValue(i, v);
+                        newRow.setValue(i, DataType.convertToValue(session, o, Value.UNKNOWN));
                     }
                 }
             }
@@ -283,6 +287,17 @@ public class TriggerObject extends SchemaObjectBase {
             session.setAutoCommit(old);
         }
         return insteadOf;
+    }
+
+    private DbException getErrorExecutingTrigger(Throwable e) {
+        if (e instanceof DbException) {
+            return (DbException) e;
+        }
+        if (e instanceof SQLException) {
+            return DbException.convert(e);
+        }
+        return DbException.get(ErrorCode.ERROR_EXECUTING_TRIGGER_3, e, getName(),
+                triggerClassName != null ? triggerClassName : "..source..", e.toString());
     }
 
     /**
@@ -325,61 +340,80 @@ public class TriggerObject extends SchemaObjectBase {
 
     @Override
     public String getCreateSQLForCopy(Table targetTable, String quotedName) {
-        StringBuilder buff = new StringBuilder("CREATE FORCE TRIGGER ");
-        buff.append(quotedName);
+        StringBuilder builder = new StringBuilder("CREATE FORCE TRIGGER ");
+        builder.append(quotedName);
         if (insteadOf) {
-            buff.append(" INSTEAD OF ");
+            builder.append(" INSTEAD OF ");
         } else if (before) {
-            buff.append(" BEFORE ");
+            builder.append(" BEFORE ");
         } else {
-            buff.append(" AFTER ");
+            builder.append(" AFTER ");
         }
-        buff.append(getTypeNameList());
-        buff.append(" ON ").append(targetTable.getSQL());
+        getTypeNameList(builder).append(" ON ");
+        targetTable.getSQL(builder, true);
         if (rowBased) {
-            buff.append(" FOR EACH ROW");
+            builder.append(" FOR EACH ROW");
         }
         if (noWait) {
-            buff.append(" NOWAIT");
+            builder.append(" NOWAIT");
         } else {
-            buff.append(" QUEUE ").append(queueSize);
+            builder.append(" QUEUE ").append(queueSize);
         }
         if (triggerClassName != null) {
-            buff.append(" CALL ").append(Parser.quoteIdentifier(triggerClassName));
+            builder.append(" CALL ");
+            Parser.quoteIdentifier(builder, triggerClassName, true);
         } else {
-            buff.append(" AS ").append(StringUtils.quoteStringSQL(triggerSource));
+            builder.append(" AS ");
+            StringUtils.quoteStringSQL(builder, triggerSource);
         }
-        return buff.toString();
+        return builder.toString();
     }
 
-    public String getTypeNameList() {
-        StatementBuilder buff = new StatementBuilder();
+    /**
+     * Append the trigger types to the given string builder.
+     *
+     * @param builder the builder
+     * @return the passed string builder
+     */
+    public StringBuilder getTypeNameList(StringBuilder builder) {
+        boolean f = false;
         if ((typeMask & Trigger.INSERT) != 0) {
-            buff.appendExceptFirst(", ");
-            buff.append("INSERT");
+            f = true;
+            builder.append("INSERT");
         }
         if ((typeMask & Trigger.UPDATE) != 0) {
-            buff.appendExceptFirst(", ");
-            buff.append("UPDATE");
+            if (f) {
+                builder.append(", ");
+            }
+            f = true;
+            builder.append("UPDATE");
         }
         if ((typeMask & Trigger.DELETE) != 0) {
-            buff.appendExceptFirst(", ");
-            buff.append("DELETE");
+            if (f) {
+                builder.append(", ");
+            }
+            f = true;
+            builder.append("DELETE");
         }
         if ((typeMask & Trigger.SELECT) != 0) {
-            buff.appendExceptFirst(", ");
-            buff.append("SELECT");
+            if (f) {
+                builder.append(", ");
+            }
+            f = true;
+            builder.append("SELECT");
         }
         if (onRollback) {
-            buff.appendExceptFirst(", ");
-            buff.append("ROLLBACK");
+            if (f) {
+                builder.append(", ");
+            }
+            builder.append("ROLLBACK");
         }
-        return buff.toString();
+        return builder;
     }
 
     @Override
     public String getCreateSQL() {
-        return getCreateSQLForCopy(table, getSQL());
+        return getCreateSQLForCopy(table, getSQL(true));
     }
 
     @Override

@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.build.doc;
@@ -32,7 +32,11 @@ public class LinkChecker {
         "#build_index",
         "#datatypes_index",
         "#faq_index",
+        "#commands_index",
         "#grammar_index",
+        "#functions_index",
+        "#functions_aggregate_index",
+        "#functions_window_index",
         "#tutorial_index"
     };
 

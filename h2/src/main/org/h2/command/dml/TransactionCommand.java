@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.command.dml;
@@ -82,33 +82,19 @@ public class TransactionCommand extends Prepared {
         case CommandInterface.SHUTDOWN_DEFRAG: {
             session.getUser().checkAdmin();
             session.commit(false);
-            if (type == CommandInterface.SHUTDOWN_COMPACT ||
-                    type == CommandInterface.SHUTDOWN_DEFRAG) {
-                session.getDatabase().setCompactMode(type);
-            }
-            // close the database, but don't update the persistent setting
-            session.getDatabase().setCloseDelay(0);
-            Database db = session.getDatabase();
             // throttle, to allow testing concurrent
             // execution of shutdown and query
             session.throttle();
-            for (Session s : db.getSessions(false)) {
-                if (db.isMultiThreaded()) {
-                    synchronized (s) {
-                        s.rollback();
-                    }
-                } else {
-                    // if not multi-threaded, the session could already own
-                    // the lock, which would result in a deadlock
-                    // the other session can not concurrently do anything
-                    // because the current session has locked the database
-                    s.rollback();
+            Database db = session.getDatabase();
+            if (db.setExclusiveSession(session, true)) {
+                if (type == CommandInterface.SHUTDOWN_COMPACT ||
+                        type == CommandInterface.SHUTDOWN_DEFRAG) {
+                    db.setCompactMode(type);
                 }
-                if (s != session) {
-                    s.close();
-                }
+                // close the database, but don't update the persistent setting
+                db.setCloseDelay(0);
+                session.close();
             }
-            session.close();
             break;
         }
         default:

@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.tools;
@@ -9,6 +9,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import org.h2.server.ShutdownHandler;
 import org.h2.util.JdbcUtils;
+import org.h2.util.MathUtils;
+import org.h2.util.StringUtils;
 import org.h2.util.Tool;
 import org.h2.util.Utils;
 
@@ -72,7 +74,7 @@ public class Console extends Tool implements ShutdownHandler {
 
     /**
      * This tool starts the H2 Console (web-) server, as well as the TCP and PG
-     * server. For JDK 1.6, a system tray icon is created, for platforms that
+     * server. A system tray icon is created, for platforms that
      * support it. Otherwise, a small window opens.
      *
      * @param args the command line arguments
@@ -88,6 +90,7 @@ public class Console extends Tool implements ShutdownHandler {
         boolean tcpShutdown = false, tcpShutdownForce = false;
         String tcpPassword = "";
         String tcpShutdownServer = "";
+        boolean ifExists = false, webAllowOthers = false;
         for (int i = 0; args != null && i < args.length; i++) {
             String arg = args[i];
             if (arg == null) {
@@ -109,6 +112,7 @@ public class Console extends Tool implements ShutdownHandler {
                     webStart = true;
                 } else if ("-webAllowOthers".equals(arg)) {
                     // no parameters
+                    webAllowOthers = true;
                 } else if ("-webDaemon".equals(arg)) {
                     // no parameters
                 } else if ("-webSSL".equals(arg)) {
@@ -168,6 +172,7 @@ public class Console extends Tool implements ShutdownHandler {
                 // no parameters
             } else if ("-ifExists".equals(arg)) {
                 // no parameters
+                ifExists = true;
             } else if ("-baseDir".equals(arg)) {
                 i++;
             } else {
@@ -196,7 +201,9 @@ public class Console extends Tool implements ShutdownHandler {
 
         if (webStart) {
             try {
-                web = Server.createWebServer(args);
+                String webKey = webAllowOthers ? null
+                        : StringUtils.convertBytesToHex(MathUtils.secureRandomBytes(32));
+                web = Server.createWebServer(args, webKey, !ifExists);
                 web.setShutdownHandler(this);
                 web.start();
                 if (printStatus) {
@@ -255,6 +262,9 @@ public class Console extends Tool implements ShutdownHandler {
         }
     }
 
+    /**
+     * Overridden by GUIConsole to show a window
+     */
     void show() {
     }
 
@@ -287,6 +297,11 @@ public class Console extends Tool implements ShutdownHandler {
         }
     }
 
+    /**
+     * Open a new browser tab or window with the given URL.
+     *
+     * @param url the URL to open
+     */
     void openBrowser(String url) {
         try {
             Server.openBrowser(url);

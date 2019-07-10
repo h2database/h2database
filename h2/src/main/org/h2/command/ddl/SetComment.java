@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.command.ddl;
@@ -80,10 +80,10 @@ public class SetComment extends DefineCommand {
             schemaName = null;
             object = db.getUser(objectName);
             break;
-        case DbObject.USER_DATATYPE:
+        case DbObject.DOMAIN:
             schemaName = null;
-            object = db.findUserDataType(objectName);
-            errorCode = ErrorCode.USER_DATA_TYPE_ALREADY_EXISTS_1;
+            object = db.findDomain(objectName);
+            errorCode = ErrorCode.DOMAIN_ALREADY_EXISTS_1;
             break;
         default:
         }

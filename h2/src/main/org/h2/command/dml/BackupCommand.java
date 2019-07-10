@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.command.dml;
@@ -22,9 +22,9 @@ import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.db.MVTableEngine.Store;
+import org.h2.pagestore.PageStore;
 import org.h2.result.ResultInterface;
 import org.h2.store.FileLister;
-import org.h2.store.PageStore;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
 
@@ -58,9 +58,9 @@ public class BackupCommand extends Prepared {
             throw DbException.get(ErrorCode.DATABASE_IS_NOT_PERSISTENT);
         }
         try {
-            Store mvStore = db.getMvStore();
-            if (mvStore != null) {
-                mvStore.flush();
+            Store store = db.getStore();
+            if (store != null) {
+                store.flush();
             }
             String name = db.getName();
             name = FileUtils.getName(name);
@@ -83,12 +83,12 @@ public class BackupCommand extends Prepared {
                         if (n.endsWith(Constants.SUFFIX_LOB_FILE)) {
                             backupFile(out, base, n);
                         }
-                        if (n.endsWith(Constants.SUFFIX_MV_FILE) && mvStore != null) {
-                            MVStore s = mvStore.getStore();
+                        if (n.endsWith(Constants.SUFFIX_MV_FILE) && store != null) {
+                            MVStore s = store.getMvStore();
                             boolean before = s.getReuseSpace();
                             s.setReuseSpace(false);
                             try {
-                                InputStream in = mvStore.getInputStream();
+                                InputStream in = store.getInputStream();
                                 backupFile(out, base, n, in);
                             } finally {
                                 s.setReuseSpace(before);

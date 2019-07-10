@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.table;
@@ -30,14 +30,62 @@ public class IndexColumn {
     public int sortType = SortOrder.ASCENDING;
 
     /**
-     * Get the SQL snippet for this index column.
+     * Appends the specified columns to the specified builder.
      *
-     * @return the SQL snippet
+     * @param builder
+     *            string builder
+     * @param columns
+     *            index columns
+     * @param alwaysQuote quote all identifiers
+     * @return the specified string builder
      */
-    public String getSQL() {
-        StringBuilder buff = new StringBuilder(column.getSQL());
-        SortOrder.typeToString(buff, sortType);
-        return buff.toString();
+    public static StringBuilder writeColumns(StringBuilder builder, IndexColumn[] columns, boolean alwaysQuote) {
+        for (int i = 0, l = columns.length; i < l; i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            columns[i].getSQL(builder,  alwaysQuote);
+        }
+        return builder;
+    }
+
+    /**
+     * Appends the specified columns to the specified builder.
+     *
+     * @param builder
+     *            string builder
+     * @param columns
+     *            index columns
+     * @param separator
+     *            separator
+     * @param suffix
+     *            additional SQL to append after each column
+     * @param alwaysQuote quote all identifiers
+     * @return the specified string builder
+     */
+    public static StringBuilder writeColumns(StringBuilder builder, IndexColumn[] columns, String separator,
+            String suffix, boolean alwaysQuote) {
+        for (int i = 0, l = columns.length; i < l; i++) {
+            if (i > 0) {
+                builder.append(separator);
+            }
+            columns[i].getSQL(builder, alwaysQuote).append(suffix);
+        }
+        return builder;
+    }
+
+    /**
+     * Appends the SQL snippet for this index column to the specified string builder.
+     *
+     * @param builder
+     *            string builder
+     * @param alwaysQuote
+     *            quote all identifiers
+     * @return the specified string builder
+     */
+    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+        SortOrder.typeToString(column.getSQL(builder, alwaysQuote), sortType);
+        return builder;
     }
 
     /**
@@ -70,6 +118,6 @@ public class IndexColumn {
 
     @Override
     public String toString() {
-        return "IndexColumn " + getSQL();
+        return getSQL(new StringBuilder("IndexColumn "), false).toString();
     }
 }

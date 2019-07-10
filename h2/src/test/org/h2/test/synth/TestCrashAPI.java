@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.synth;
@@ -39,6 +39,7 @@ import org.h2.store.FileLister;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.test.scripts.TestScript;
 import org.h2.test.synth.sql.RandomGen;
 import org.h2.tools.Backup;
@@ -51,7 +52,7 @@ import org.h2.util.MathUtils;
  * A test that calls random methods with random parameters from JDBC objects.
  * This is sometimes called 'Fuzz Testing'.
  */
-public class TestCrashAPI extends TestBase implements Runnable {
+public class TestCrashAPI extends TestDb implements Runnable {
 
     private static final boolean RECOVER_ALL = false;
 
@@ -86,7 +87,6 @@ public class TestCrashAPI extends TestBase implements Runnable {
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public void run() {
         while (--maxWait > 0) {
             try {
@@ -103,11 +103,11 @@ public class TestCrashAPI extends TestBase implements Runnable {
         if (maxWait == 0 && running) {
             objects.clear();
             if (running) {
-                println("stopping (force)...");
+                println("stopping (trying to interrupt)...");
                 for (StackTraceElement e : mainThread.getStackTrace()) {
                     System.out.println(e.toString());
                 }
-                mainThread.stop(new SQLException("stop"));
+                mainThread.interrupt();
             }
         }
     }
@@ -149,12 +149,20 @@ public class TestCrashAPI extends TestBase implements Runnable {
     }
 
     @Override
+    public boolean isEnabled() {
+        if (config.networked) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
     public void test() throws Exception {
         if (RECOVER_ALL) {
             recoverAll();
             return;
         }
-        if (config.mvcc || config.networked) {
+        if (config.mvStore || config.networked) {
             return;
         }
         int len = getSize(2, 6);
@@ -375,6 +383,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
         boolean isDefault =
                 (m.getModifiers() & (Modifier.ABSTRACT | Modifier.PUBLIC | Modifier.STATIC)) == Modifier.PUBLIC
                 && m.getDeclaringClass().isInterface();
+        boolean allowNPE = isDefault || o instanceof Blob && "setBytes".equals(m.getName());
         Class<?>[] paramClasses = m.getParameterTypes();
         Object[] params = new Object[paramClasses.length];
         for (int i = 0; i < params.length; i++) {
@@ -384,13 +393,11 @@ public class TestCrashAPI extends TestBase implements Runnable {
         try {
             callCount++;
             result = m.invoke(o, params);
-        } catch (IllegalArgumentException e) {
-            TestBase.logError("error", e);
-        } catch (IllegalAccessException e) {
+        } catch (IllegalArgumentException | IllegalAccessException e) {
             TestBase.logError("error", e);
         } catch (InvocationTargetException e) {
             Throwable t = e.getTargetException();
-            printIfBad(seed, id, objectId, t, isDefault);
+            printIfBad(seed, id, objectId, t, allowNPE);
         }
         if (result == null) {
             return null;
@@ -406,7 +413,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
         printIfBad(seed, id, objectId, t, false);
     }
 
-    private void printIfBad(int seed, int id, int objectId, Throwable t, boolean isDefault) {
+    private void printIfBad(int seed, int id, int objectId, Throwable t, boolean allowNPE) {
         if (t instanceof BatchUpdateException) {
             // do nothing
         } else if (t.getClass().getName().contains("SQLClientInfoException")) {
@@ -430,8 +437,8 @@ public class TestCrashAPI extends TestBase implements Runnable {
                 // General error [HY000]
                 printError(seed, id, s);
             }
-        } else if (isDefault && t instanceof NullPointerException) {
-            // do nothing, default methods may throw this exception
+        } else if (allowNPE && t instanceof NullPointerException) {
+            // do nothing, this methods may throw this exception
         } else {
             printError(seed, id, t);
         }
@@ -518,20 +525,18 @@ public class TestCrashAPI extends TestBase implements Runnable {
 
     private void initMethods() {
         for (Class<?> inter : INTERFACES) {
-            classMethods.put(inter, new ArrayList<Method>());
-        }
-        for (Class<?> inter : INTERFACES) {
-            ArrayList<Method> list = classMethods.get(inter);
+            ArrayList<Method> list = new ArrayList<>();
             for (Method m : inter.getMethods()) {
                 list.add(m);
             }
+            classMethods.put(inter, list);
         }
     }
 
     @Override
     public TestBase init(TestAll conf) throws Exception {
         super.init(conf);
-        if (config.mvcc || config.networked) {
+        if (config.mvStore || config.networked) {
             return this;
         }
         startServerIfRequired();

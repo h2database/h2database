@@ -1,12 +1,13 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.engine;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 import org.h2.api.DatabaseEventListener;
@@ -15,7 +16,7 @@ import org.h2.api.JavaObjectSerializer;
 import org.h2.command.CommandInterface;
 import org.h2.command.CommandRemote;
 import org.h2.command.dml.SetTypes;
-import org.h2.jdbc.JdbcSQLException;
+import org.h2.jdbc.JdbcException;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
@@ -28,6 +29,7 @@ import org.h2.store.fs.FileUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
+import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
@@ -93,6 +95,8 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     private volatile boolean javaObjectSerializerInitialized;
 
     private final CompareMode compareMode = CompareMode.getInstance(null, 0);
+
+    private String currentSchemaName;
 
     public SessionRemote(ConnectionInfo ci) {
         this.connectionInfo = ci;
@@ -209,7 +213,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             CommandInterface c = prepareCommand(
                     "SET CLUSTER " + serverList, Integer.MAX_VALUE);
             // this will set autoCommit to false
-            c.executeUpdate(false);
+            c.executeUpdate(null);
             // so we need to switch it on
             autoCommit = true;
             cluster = true;
@@ -337,8 +341,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             DbException e = DbException.convert(re);
             if (e.getErrorCode() == ErrorCode.DATABASE_ALREADY_OPEN_1) {
                 if (autoServerMode) {
-                    String serverKey = ((JdbcSQLException) e.getSQLException()).
-                            getSQL();
+                    String serverKey = ((JdbcException) e.getSQLException()).getSQL();
                     if (serverKey != null) {
                         backup.setServerKey(serverKey);
                         // OPEN_NEW must be removed now, otherwise
@@ -376,7 +379,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
                 traceSystem.setLevelFile(level);
                 if (level > 0 && level < 4) {
                     String file = FileUtils.createTempFile(prefix,
-                            Constants.SUFFIX_TRACE_FILE, false, false);
+                            Constants.SUFFIX_TRACE_FILE, false);
                     traceSystem.setFileName(file);
                 }
             } catch (IOException e) {
@@ -409,7 +412,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
                 className = StringUtils.trim(className, true, true, "'");
                 try {
                     eventListener = (DatabaseEventListener) JdbcUtils
-                            .loadUserClass(className).newInstance();
+                            .loadUserClass(className).getDeclaredConstructor().newInstance();
                 } catch (Throwable e) {
                     throw DbException.convert(e);
                 }
@@ -450,7 +453,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
 
     private void switchOffCluster() {
         CommandInterface ci = prepareCommand("SET CLUSTER ''", Integer.MAX_VALUE);
-        ci.executeUpdate(false);
+        ci.executeUpdate(null);
     }
 
     /**
@@ -604,8 +607,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             String sql = transfer.readString();
             int errorCode = transfer.readInt();
             String stackTrace = transfer.readString();
-            JdbcSQLException s = new JdbcSQLException(message, sql, sqlstate,
-                    errorCode, null, stackTrace);
+            SQLException s = DbException.getJdbcSQLException(message, sql, sqlstate, errorCode, null, stackTrace);
             if (errorCode == ErrorCode.CONNECTION_BROKEN_1) {
                 // allow re-connect
                 throw new IOException(s.toString(), s);
@@ -615,6 +617,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             transferList = null;
         } else if (status == STATUS_OK_STATE_CHANGED) {
             sessionStateChanged = true;
+            currentSchemaName = null;
         } else if (status == STATUS_OK) {
             // ok
         } else {
@@ -794,7 +797,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
                 if (!serializerFQN.isEmpty() && !serializerFQN.equals("null")) {
                     try {
                         javaObjectSerializer = (JavaObjectSerializer) JdbcUtils
-                                .loadUserClass(serializerFQN).newInstance();
+                                .loadUserClass(serializerFQN).getDeclaredConstructor().newInstance();
                     } catch (Exception e) {
                         throw DbException.convert(e);
                     }
@@ -843,17 +846,37 @@ public class SessionRemote extends SessionWithState implements DataHandler {
 
     @Override
     public String getCurrentSchemaName() {
-        throw DbException.getUnsupportedException("getSchema && remote session");
+        String schema = currentSchemaName;
+        if (schema == null) {
+            synchronized (this) {
+                try (CommandInterface command = prepareCommand("CALL SCHEMA()", 1);
+                        ResultInterface result = command.executeQuery(1, false)) {
+                    result.next();
+                    currentSchemaName = schema = result.currentRow()[0].getString();
+                }
+            }
+        }
+        return schema;
     }
 
     @Override
-    public void setCurrentSchemaName(String schema) {
-        throw DbException.getUnsupportedException("setSchema && remote session");
+    public synchronized void setCurrentSchemaName(String schema) {
+        currentSchemaName = null;
+        try (CommandInterface command = prepareCommand(
+                StringUtils.quoteIdentifier(new StringBuilder("SET SCHEMA "), schema).toString(), 0)) {
+            command.executeUpdate(null);
+            currentSchemaName = schema;
+        }
     }
 
     @Override
     public boolean isSupportsGeneratedKeys() {
         return getClientVersion() >= Constants.TCP_PROTOCOL_VERSION_17;
+    }
+
+    @Override
+    public void setNetworkConnectionInfo(NetworkConnectionInfo networkConnectionInfo) {
+        // Not supported
     }
 
 }

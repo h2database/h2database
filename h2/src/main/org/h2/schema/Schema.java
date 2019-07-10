@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.schema;
@@ -28,7 +28,7 @@ import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.mvstore.db.MVTableEngine;
-import org.h2.table.RegularTable;
+import org.h2.pagestore.db.PageStoreTable;
 import org.h2.table.Table;
 import org.h2.table.TableLink;
 import org.h2.table.TableSynonym;
@@ -73,6 +73,7 @@ public class Schema extends DbObjectBase {
      */
     public Schema(Database database, int id, String schemaName, User owner,
             boolean system) {
+        super(database, id, schemaName, Trace.SCHEMA);
         tablesAndViews = database.newConcurrentStringMap();
         synonyms = database.newConcurrentStringMap();
         indexes = database.newConcurrentStringMap();
@@ -81,7 +82,6 @@ public class Schema extends DbObjectBase {
         constraints = database.newConcurrentStringMap();
         constants = database.newConcurrentStringMap();
         functions = database.newConcurrentStringMap();
-        initDbObjectBase(database, id, schemaName, Trace.SCHEMA);
         this.owner = owner;
         this.system = system;
     }
@@ -110,8 +110,10 @@ public class Schema extends DbObjectBase {
         if (system) {
             return null;
         }
-        return "CREATE SCHEMA IF NOT EXISTS " +
-            getSQL() + " AUTHORIZATION " + owner.getSQL();
+        StringBuilder builder = new StringBuilder("CREATE SCHEMA IF NOT EXISTS ");
+        getSQL(builder, true).append(" AUTHORIZATION ");
+        owner.getSQL(builder, true);
+        return builder.toString();
     }
 
     @Override
@@ -270,7 +272,7 @@ public class Schema extends DbObjectBase {
      * @param obj the object to add
      */
     public void add(SchemaObject obj) {
-        if (SysProperties.CHECK && obj.getSchema() != this) {
+        if (obj.getSchema() != this) {
             DbException.throwInternalError("wrong schema");
         }
         String name = obj.getName();
@@ -341,7 +343,6 @@ public class Schema extends DbObjectBase {
             if (synonym != null) {
                 return synonym.getSynonymFor();
             }
-            return null;
         }
         return table;
     }
@@ -639,17 +640,13 @@ public class Schema extends DbObjectBase {
      *
      * @return a (possible empty) list of all objects
      */
-    public ArrayList<Table> getAllTablesAndViews() {
-        synchronized (database) {
-            return new ArrayList<>(tablesAndViews.values());
-        }
+    public Collection<Table> getAllTablesAndViews() {
+        return tablesAndViews.values();
     }
 
 
-    public ArrayList<TableSynonym> getAllSynonyms() {
-        synchronized (database) {
-            return new ArrayList<>(synonyms.values());
-        }
+    public Collection<TableSynonym> getAllSynonyms() {
+        return synonyms.values();
     }
 
     /**
@@ -659,9 +656,7 @@ public class Schema extends DbObjectBase {
      * @return the table or null if not found
      */
     public Table getTableOrViewByName(String name) {
-        synchronized (database) {
-            return tablesAndViews.get(name);
-        }
+        return tablesAndViews.get(name);
     }
 
     /**
@@ -704,7 +699,7 @@ public class Schema extends DbObjectBase {
                 }
                 return database.getTableEngine(data.tableEngine).createTable(data);
             }
-            return new RegularTable(data);
+            return new PageStoreTable(data);
         }
     }
 

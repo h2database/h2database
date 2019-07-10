@@ -1,11 +1,12 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.tools;
 
 import java.awt.Button;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Frame;
@@ -19,8 +20,10 @@ import java.awt.MenuItem;
 import java.awt.Panel;
 import java.awt.PopupMenu;
 import java.awt.SystemColor;
+import java.awt.TextArea;
 import java.awt.TextField;
 import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -28,6 +31,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.IOException;
+import java.sql.DriverManager;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
@@ -39,11 +43,18 @@ import org.h2.util.Utils;
 public class GUIConsole extends Console implements ActionListener, MouseListener, WindowListener {
     private long lastOpenNs;
 
-    private Frame frame;
     private boolean trayIconUsed;
     private Font font;
-    private Button startBrowser;
+
+    private Frame statusFrame;
     private TextField urlText;
+    private Button startBrowser;
+
+    private Frame createFrame;
+    private TextField pathField, userField, passwordField, passwordConfirmationField;
+    private Button createButton;
+    private TextArea errorArea;
+
     private Object tray;
     private Object trayIcon;
 
@@ -53,7 +64,7 @@ public class GUIConsole extends Console implements ActionListener, MouseListener
             loadFont();
             try {
                 if (!createTrayIcon()) {
-                    showWindow();
+                    showStatusWindow();
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -77,9 +88,9 @@ public class GUIConsole extends Console implements ActionListener, MouseListener
     @Override
     public void shutdown() {
         super.shutdown();
-        if (frame != null) {
-            frame.dispose();
-            frame = null;
+        if (statusFrame != null) {
+            statusFrame.dispose();
+            statusFrame = null;
         }
         if (trayIconUsed) {
             try {
@@ -129,6 +140,11 @@ public class GUIConsole extends Console implements ActionListener, MouseListener
             itemConsole.addActionListener(this);
             itemConsole.setFont(font);
             menuConsole.add(itemConsole);
+            MenuItem itemCreate = new MenuItem("Create a new database...");
+            itemCreate.setActionCommand("showCreate");
+            itemCreate.addActionListener(this);
+            itemCreate.setFont(font);
+            menuConsole.add(itemCreate);
             MenuItem itemStatus = new MenuItem("Status");
             itemStatus.setActionCommand("status");
             itemStatus.addActionListener(this);
@@ -178,21 +194,21 @@ public class GUIConsole extends Console implements ActionListener, MouseListener
         }
     }
 
-    private void showWindow() {
-        if (frame != null) {
+    private void showStatusWindow() {
+        if (statusFrame != null) {
             return;
         }
-        frame = new Frame("H2 Console");
-        frame.addWindowListener(this);
+        statusFrame = new Frame("H2 Console");
+        statusFrame.addWindowListener(this);
         Image image = loadImage("/org/h2/res/h2.png");
         if (image != null) {
-            frame.setIconImage(image);
+            statusFrame.setIconImage(image);
         }
-        frame.setResizable(false);
-        frame.setBackground(SystemColor.control);
+        statusFrame.setResizable(false);
+        statusFrame.setBackground(SystemColor.control);
 
         GridBagLayout layout = new GridBagLayout();
-        frame.setLayout(layout);
+        statusFrame.setLayout(layout);
 
         // the main panel keeps everything together
         Panel mainPanel = new Panel(layout);
@@ -242,15 +258,15 @@ public class GUIConsole extends Console implements ActionListener, MouseListener
         startBrowser.addActionListener(this);
         startBrowser.setFont(font);
         mainPanel.add(startBrowser, constraintsButton);
-        frame.add(mainPanel, constraintsPanel);
+        statusFrame.add(mainPanel, constraintsPanel);
 
         int width = 300, height = 120;
-        frame.setSize(width, height);
+        statusFrame.setSize(width, height);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        frame.setLocation((screenSize.width - width) / 2,
+        statusFrame.setLocation((screenSize.width - width) / 2,
                 (screenSize.height - height) / 2);
         try {
-            frame.setVisible(true);
+            statusFrame.setVisible(true);
         } catch (Throwable t) {
             // ignore
             // some systems don't support this method, for example IKVM
@@ -258,8 +274,8 @@ public class GUIConsole extends Console implements ActionListener, MouseListener
         }
         try {
             // ensure this window is in front of the browser
-            frame.setAlwaysOnTop(true);
-            frame.setAlwaysOnTop(false);
+            statusFrame.setAlwaysOnTop(true);
+            statusFrame.setAlwaysOnTop(false);
         } catch (Throwable t) {
             // ignore
         }
@@ -279,6 +295,187 @@ public class GUIConsole extends Console implements ActionListener, MouseListener
         }
     }
 
+    private void showCreateDatabase() {
+        if (createFrame != null) {
+            return;
+        }
+        createFrame = new Frame("H2 Console");
+        createFrame.addWindowListener(this);
+        Image image = loadImage("/org/h2/res/h2.png");
+        if (image != null) {
+            createFrame.setIconImage(image);
+        }
+        createFrame.setResizable(false);
+        createFrame.setBackground(SystemColor.control);
+
+        GridBagLayout layout = new GridBagLayout();
+        createFrame.setLayout(layout);
+
+        // the main panel keeps everything together
+        Panel mainPanel = new Panel(layout);
+
+        GridBagConstraints constraints;
+
+        constraints = new GridBagConstraints();
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.insets = new Insets(10, 0, 0, 0);
+        constraints.gridx = 0;
+        constraints.gridy = 0;
+        Label urlLabel = new Label("Database path:", Label.LEFT);
+        urlLabel.setFont(font);
+        mainPanel.add(urlLabel, constraints);
+
+        constraints = new GridBagConstraints();
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.gridy = 0;
+        constraints.weightx = 1d;
+        constraints.insets = new Insets(10, 5, 0, 0);
+        constraints.gridx = 1;
+        pathField = new TextField();
+        pathField.setFont(font);
+        pathField.setText("./test");
+        mainPanel.add(pathField, constraints);
+
+        constraints = new GridBagConstraints();
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.gridx = 0;
+        constraints.gridy = 1;
+        Label userLabel = new Label("Username:", Label.LEFT);
+        userLabel.setFont(font);
+        mainPanel.add(userLabel, constraints);
+
+        constraints = new GridBagConstraints();
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.gridy = 1;
+        constraints.weightx = 1d;
+        constraints.insets = new Insets(0, 5, 0, 0);
+        constraints.gridx = 1;
+        userField = new TextField();
+        userField.setFont(font);
+        userField.setText("sa");
+        mainPanel.add(userField, constraints);
+
+        constraints = new GridBagConstraints();
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.gridx = 0;
+        constraints.gridy = 2;
+        Label passwordLabel = new Label("Password:", Label.LEFT);
+        passwordLabel.setFont(font);
+        mainPanel.add(passwordLabel, constraints);
+
+        constraints = new GridBagConstraints();
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.gridy = 2;
+        constraints.weightx = 1d;
+        constraints.insets = new Insets(0, 5, 0, 0);
+        constraints.gridx = 1;
+        passwordField = new TextField();
+        passwordField.setFont(font);
+        passwordField.setEchoChar('*');
+        mainPanel.add(passwordField, constraints);
+
+        constraints = new GridBagConstraints();
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.gridx = 0;
+        constraints.gridy = 3;
+        Label passwordConfirmationLabel = new Label("Password confirmation:", Label.LEFT);
+        passwordConfirmationLabel.setFont(font);
+        mainPanel.add(passwordConfirmationLabel, constraints);
+
+        constraints = new GridBagConstraints();
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.gridy = 3;
+        constraints.weightx = 1d;
+        constraints.insets = new Insets(0, 5, 0, 0);
+        constraints.gridx = 1;
+        passwordConfirmationField = new TextField();
+        passwordConfirmationField.setFont(font);
+        passwordConfirmationField.setEchoChar('*');
+        mainPanel.add(passwordConfirmationField, constraints);
+
+        constraints = new GridBagConstraints();
+        constraints.gridx = 0;
+        constraints.gridwidth = 2;
+        constraints.insets = new Insets(10, 0, 0, 0);
+        constraints.gridy = 4;
+        constraints.anchor = GridBagConstraints.EAST;
+        createButton = new Button("Create");
+        createButton.setFocusable(false);
+        createButton.setActionCommand("create");
+        createButton.addActionListener(this);
+        createButton.setFont(font);
+        mainPanel.add(createButton, constraints);
+
+        constraints = new GridBagConstraints();
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.gridy = 5;
+        constraints.weightx = 1d;
+        constraints.insets = new Insets(10, 0, 0, 0);
+        constraints.gridx = 0;
+        constraints.gridwidth = 2;
+        errorArea = new TextArea();
+        errorArea.setFont(font);
+        errorArea.setEditable(false);
+        mainPanel.add(errorArea, constraints);
+
+        constraints = new GridBagConstraints();
+        constraints.gridx = 0;
+        constraints.weightx = 1d;
+        constraints.weighty = 1d;
+        constraints.fill = GridBagConstraints.BOTH;
+        constraints.insets = new Insets(0, 10, 0, 10);
+        constraints.gridy = 0;
+        createFrame.add(mainPanel, constraints);
+
+        int width = 400, height = 400;
+        createFrame.setSize(width, height);
+        createFrame.pack();
+        createFrame.setLocationRelativeTo(null);
+        try {
+            createFrame.setVisible(true);
+        } catch (Throwable t) {
+            // ignore
+            // some systems don't support this method, for example IKVM
+            // however it still works
+        }
+        try {
+            // ensure this window is in front of the browser
+            createFrame.setAlwaysOnTop(true);
+            createFrame.setAlwaysOnTop(false);
+        } catch (Throwable t) {
+            // ignore
+        }
+    }
+
+    private void createDatabase() {
+        if (web == null || createFrame == null) {
+            return;
+        }
+        String path = pathField.getText(), user = userField.getText(), password = passwordField.getText(),
+                passwordConfirmation = passwordConfirmationField.getText();
+        if (!password.equals(passwordConfirmation)) {
+            errorArea.setForeground(Color.RED);
+            errorArea.setText("Passwords don't match");
+            return;
+        }
+        if (password.isEmpty()) {
+            errorArea.setForeground(Color.RED);
+            errorArea.setText("Specify a password");
+            return;
+        }
+        String url = "jdbc:h2:" + path;
+        try {
+            DriverManager.getConnection(url, user, password).close();
+            errorArea.setForeground(new Color(0, 0x99, 0));
+            errorArea.setText("Database was created successfully.\n\n"
+                    + "JDBC URL for H2 Console:\n"
+                    + url);
+        } catch (Exception ex) {
+            errorArea.setForeground(Color.RED);
+            errorArea.setText(ex.getMessage());
+        }
+    }
+
     /**
      * INTERNAL
      */
@@ -289,11 +486,17 @@ public class GUIConsole extends Console implements ActionListener, MouseListener
             shutdown();
         } else if ("console".equals(command)) {
             startBrowser();
+        } else if ("showCreate".equals(command)) {
+            showCreateDatabase();
         } else if ("status".equals(command)) {
-            showWindow();
-        } else if (startBrowser == e.getSource()) {
+            showStatusWindow();
+        } else {
             // for some reason, IKVM ignores setActionCommand
-            startBrowser();
+            if (startBrowser == e.getSource()) {
+                startBrowser();
+            } else if (createButton == e.getSource()) {
+                createDatabase();
+            }
         }
     }
 
@@ -345,8 +548,14 @@ public class GUIConsole extends Console implements ActionListener, MouseListener
     @Override
     public void windowClosing(WindowEvent e) {
         if (trayIconUsed) {
-            frame.dispose();
-            frame = null;
+            Window window = e.getWindow();
+            if (window == statusFrame) {
+                statusFrame.dispose();
+                statusFrame = null;
+            } else if (window == createFrame) {
+                createFrame.dispose();
+                createFrame = null;
+            }
         } else {
             shutdown();
         }

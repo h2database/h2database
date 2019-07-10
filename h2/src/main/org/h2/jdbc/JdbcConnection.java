@@ -1,13 +1,11 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0, and the
- * EPL 1.0 (http://h2database.com/html/license.html). Initial Developer: H2
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0, and the
+ * EPL 1.0 (https://h2database.com/html/license.html). Initial Developer: H2
  * Group
  */
 package org.h2.jdbc;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.sql.Array;
 import java.sql.Blob;
@@ -40,6 +38,7 @@ import org.h2.command.CommandInterface;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.Mode;
+import org.h2.engine.Mode.ModeEnum;
 import org.h2.engine.SessionInterface;
 import org.h2.engine.SessionRemote;
 import org.h2.engine.SysProperties;
@@ -48,12 +47,13 @@ import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 import org.h2.util.CloseWatcher;
 import org.h2.util.JdbcUtils;
-import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.Value;
+import org.h2.value.ValueBytes;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueResultSet;
 import org.h2.value.ValueString;
 
 /**
@@ -66,8 +66,53 @@ import org.h2.value.ValueString;
  * used in one thread at any time.
  * </p>
  */
-public class JdbcConnection extends TraceObject
-        implements Connection, JdbcConnectionBackwardsCompat {
+public class JdbcConnection extends TraceObject implements Connection, JdbcConnectionBackwardsCompat {
+
+    /**
+     * Database settings.
+     */
+    public static final class Settings {
+
+        /**
+         * The database mode.
+         */
+        public final Mode mode;
+
+        /**
+         * Whether unquoted identifiers are converted to upper case.
+         */
+        public final boolean databaseToUpper;
+
+        /**
+         * Whether unquoted identifiers are converted to lower case.
+         */
+        public final boolean databaseToLower;
+
+        /**
+         * Whether all identifiers are case insensitive.
+         */
+        public final boolean caseInsensitiveIdentifiers;
+
+        /**
+         * Creates new instance of database settings.
+         *
+         * @param mode
+         *            the database mode
+         * @param databaseToUpper
+         *            whether unquoted identifiers are converted to upper case
+         * @param databaseToLower
+         *            whether unquoted identifiers are converted to lower case
+         * @param caseInsensitiveIdentifiers
+         *            whether all identifiers are case insensitive
+         */
+        Settings(Mode mode, boolean databaseToUpper, boolean databaseToLower, boolean caseInsensitiveIdentifiers) {
+            this.mode = mode;
+            this.databaseToUpper = databaseToUpper;
+            this.databaseToLower = databaseToLower;
+            this.caseInsensitiveIdentifiers = caseInsensitiveIdentifiers;
+        }
+
+    }
 
     private static final String NUM_SERVERS = "numServers";
     private static final String PREFIX_SERVER = "server";
@@ -93,7 +138,7 @@ public class JdbcConnection extends TraceObject
     private int queryTimeoutCache = -1;
 
     private Map<String, String> clientInfo;
-    private String mode;
+    private volatile Settings settings;
     private final boolean scopeGeneratedKeys;
 
     /**
@@ -303,7 +348,7 @@ public class JdbcConnection extends TraceObject
             sql = translateSQL(sql);
             return new JdbcPreparedStatement(this, sql, id,
                     ResultSet.TYPE_FORWARD_ONLY,
-                    Constants.DEFAULT_RESULT_SET_CONCURRENCY, false, false);
+                    Constants.DEFAULT_RESULT_SET_CONCURRENCY, false, null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -329,7 +374,7 @@ public class JdbcConnection extends TraceObject
             sql = translateSQL(sql);
             return new JdbcPreparedStatement(this, sql, id,
                     ResultSet.TYPE_FORWARD_ONLY,
-                    Constants.DEFAULT_RESULT_SET_CONCURRENCY, true, false);
+                    Constants.DEFAULT_RESULT_SET_CONCURRENCY, true, null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -453,10 +498,10 @@ public class JdbcConnection extends TraceObject
                 debugCode("setAutoCommit(" + autoCommit + ");");
             }
             checkClosed();
-            if (autoCommit && !session.getAutoCommit()) {
-                commit();
-            }
             synchronized (session) {
+                if (autoCommit && !session.getAutoCommit()) {
+                    commit();
+                }
                 session.setAutoCommit(autoCommit);
             }
         } catch (Exception e) {
@@ -492,9 +537,13 @@ public class JdbcConnection extends TraceObject
         try {
             debugCodeCall("commit");
             checkClosedForWrite();
+            if (SysProperties.FORCE_AUTOCOMMIT_OFF_ON_COMMIT
+                    && getAutoCommit()) {
+                throw DbException.get(ErrorCode.METHOD_DISABLED_ON_AUTOCOMMIT_TRUE, "commit()");
+            }
             try {
                 commit = prepareCommand("COMMIT", commit);
-                commit.executeUpdate(false);
+                commit.executeUpdate(null);
             } finally {
                 afterWriting();
             }
@@ -514,6 +563,10 @@ public class JdbcConnection extends TraceObject
         try {
             debugCodeCall("rollback");
             checkClosedForWrite();
+            if (SysProperties.FORCE_AUTOCOMMIT_OFF_ON_COMMIT
+                    && getAutoCommit()) {
+                throw DbException.get(ErrorCode.METHOD_DISABLED_ON_AUTOCOMMIT_TRUE, "rollback()");
+            }
             try {
                 rollbackInternal();
             } finally {
@@ -692,7 +745,7 @@ public class JdbcConnection extends TraceObject
             checkClosed();
             sql = translateSQL(sql);
             return new JdbcPreparedStatement(this, sql, id, resultSetType,
-                    resultSetConcurrency, false, false);
+                    resultSetConcurrency, false, null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -745,9 +798,8 @@ public class JdbcConnection extends TraceObject
             }
             commit();
             setLockMode = prepareCommand("SET LOCK_MODE ?", setLockMode);
-            setLockMode.getParameters().get(0).setValue(ValueInt.get(lockMode),
-                    false);
-            setLockMode.executeUpdate(false);
+            setLockMode.getParameters().get(0).setValue(ValueInt.get(lockMode), false);
+            setLockMode.executeUpdate(null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -764,7 +816,7 @@ public class JdbcConnection extends TraceObject
                     setQueryTimeout);
             setQueryTimeout.getParameters().get(0)
                     .setValue(ValueInt.get(seconds * 1000), false);
-            setQueryTimeout.executeUpdate(false);
+            setQueryTimeout.executeUpdate(null);
             queryTimeoutCache = seconds;
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -1020,7 +1072,7 @@ public class JdbcConnection extends TraceObject
             CommandInterface set = prepareCommand(
                     "SAVEPOINT " + JdbcSavepoint.getName(null, savepointId),
                     Integer.MAX_VALUE);
-            set.executeUpdate(false);
+            set.executeUpdate(null);
             JdbcSavepoint savepoint = new JdbcSavepoint(this, savepointId, null,
                     trace, id);
             savepointId++;
@@ -1048,9 +1100,8 @@ public class JdbcConnection extends TraceObject
             CommandInterface set = prepareCommand(
                     "SAVEPOINT " + JdbcSavepoint.getName(name, 0),
                     Integer.MAX_VALUE);
-            set.executeUpdate(false);
-            return new JdbcSavepoint(this, 0, name, trace,
-                    id);
+            set.executeUpdate(null);
+            return new JdbcSavepoint(this, 0, name, trace, id);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1133,7 +1184,7 @@ public class JdbcConnection extends TraceObject
             checkClosed();
             sql = translateSQL(sql);
             return new JdbcPreparedStatement(this, sql, id, resultSetType,
-                    resultSetConcurrency, false, false);
+                    resultSetConcurrency, false, null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1555,7 +1606,7 @@ public class JdbcConnection extends TraceObject
 
     private void rollbackInternal() {
         rollback = prepareCommand("ROLLBACK", rollback);
-        rollback.executeUpdate(false);
+        rollback.executeUpdate(null);
     }
 
     /**
@@ -1592,7 +1643,7 @@ public class JdbcConnection extends TraceObject
     /**
      * INTERNAL
      */
-    ResultSet getGeneratedKeys(JdbcStatement stat, int id) {
+    JdbcResultSet getGeneratedKeys(JdbcStatement stat, int id) {
         getGeneratedKeys = prepareCommand(
                 "SELECT SCOPE_IDENTITY() "
                         + "WHERE SCOPE_IDENTITY() IS NOT NULL",
@@ -1613,16 +1664,7 @@ public class JdbcConnection extends TraceObject
             int id = getNextId(TraceObject.CLOB);
             debugCodeAssign("Clob", TraceObject.CLOB, id, "createClob()");
             checkClosedForWrite();
-            try {
-                Value v = session.getDataHandler().getLobStorage()
-                        .createClob(new InputStreamReader(
-                                new ByteArrayInputStream(Utils.EMPTY_BYTES)),
-                                0);
-                session.addTemporaryLob(v);
-                return new JdbcClob(this, v, id);
-            } finally {
-                afterWriting();
-            }
+            return new JdbcClob(this, ValueString.EMPTY, JdbcLob.State.NEW, id);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1639,16 +1681,7 @@ public class JdbcConnection extends TraceObject
             int id = getNextId(TraceObject.BLOB);
             debugCodeAssign("Blob", TraceObject.BLOB, id, "createClob()");
             checkClosedForWrite();
-            try {
-                Value v = session.getDataHandler().getLobStorage().createBlob(
-                        new ByteArrayInputStream(Utils.EMPTY_BYTES), 0);
-                synchronized (session) {
-                    session.addTemporaryLob(v);
-                }
-                return new JdbcBlob(this, v, id);
-            } finally {
-                afterWriting();
-            }
+            return new JdbcBlob(this, ValueBytes.EMPTY, JdbcLob.State.NEW, id);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1665,27 +1698,27 @@ public class JdbcConnection extends TraceObject
             int id = getNextId(TraceObject.CLOB);
             debugCodeAssign("NClob", TraceObject.CLOB, id, "createNClob()");
             checkClosedForWrite();
-            try {
-                Value v = session.getDataHandler().getLobStorage()
-                        .createClob(new InputStreamReader(
-                                new ByteArrayInputStream(Utils.EMPTY_BYTES)),
-                                0);
-                session.addTemporaryLob(v);
-                return new JdbcClob(this, v, id);
-            } finally {
-                afterWriting();
-            }
+            return new JdbcClob(this, ValueString.EMPTY, JdbcLob.State.NEW, id);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
 
     /**
-     * [Not supported] Create a new empty SQLXML object.
+     * Create a new SQLXML object with no data.
+     *
+     * @return the object
      */
     @Override
     public SQLXML createSQLXML() throws SQLException {
-        throw unsupported("SQLXML");
+        try {
+            int id = getNextId(TraceObject.SQLXML);
+            debugCodeAssign("SQLXML", TraceObject.SQLXML, id, "createSQLXML()");
+            checkClosedForWrite();
+            return new JdbcSQLXML(this, ValueString.EMPTY, JdbcLob.State.NEW, id);
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**
@@ -1783,8 +1816,7 @@ public class JdbcConnection extends TraceObject
                         Collections.<String, ClientInfoStatus> emptyMap());
             }
 
-            Pattern clientInfoNameRegEx = Mode
-                    .getInstance(getMode()).supportedClientInfoPropertiesRegEx;
+            Pattern clientInfoNameRegEx = getMode().supportedClientInfoPropertiesRegEx;
 
             if (clientInfoNameRegEx != null
                     && clientInfoNameRegEx.matcher(name).matches()) {
@@ -2066,14 +2098,14 @@ public class JdbcConnection extends TraceObject
      * @return the object
      */
     Object convertToDefaultObject(Value v) {
-        switch (v.getType()) {
+        switch (v.getValueType()) {
         case Value.CLOB: {
             int id = getNextId(TraceObject.CLOB);
-            return new JdbcClob(this, v, id);
+            return new JdbcClob(this, v, JdbcLob.State.WITH_VALUE, id);
         }
         case Value.BLOB: {
             int id = getNextId(TraceObject.BLOB);
-            return new JdbcBlob(this, v, id);
+            return new JdbcBlob(this, v, JdbcLob.State.WITH_VALUE, id);
         }
         case Value.JAVA_OBJECT:
             if (SysProperties.serializeJavaObject) {
@@ -2081,6 +2113,10 @@ public class JdbcConnection extends TraceObject
                         session.getDataHandler());
             }
             break;
+        case Value.RESULT_SET: {
+            int id = getNextId(TraceObject.RESULT_SET);
+            return new JdbcResultSet(this, null, null, ((ValueResultSet) v).getResult(), id, false, true, false);
+        }
         case Value.BYTE:
         case Value.SHORT:
             if (!SysProperties.OLD_RESULT_SET_GET_OBJECT) {
@@ -2102,17 +2138,62 @@ public class JdbcConnection extends TraceObject
         trace.setLevel(level);
     }
 
-    String getMode() throws SQLException {
-        if (mode == null) {
-            PreparedStatement prep = prepareStatement(
-                    "SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME=?");
-            prep.setString(1, "MODE");
-            ResultSet rs = prep.executeQuery();
-            rs.next();
-            mode = rs.getString(1);
-            prep.close();
-        }
-        return mode;
+    Mode getMode() throws SQLException {
+        return getSettings().mode;
     }
 
+    /**
+     * INTERNAL
+     */
+    public Settings getSettings() throws SQLException {
+        Settings settings = this.settings;
+        if (settings == null) {
+            String modeName = ModeEnum.REGULAR.name();
+            boolean databaseToUpper = true, databaseToLower = false, caseInsensitiveIdentifiers = false;
+            try (PreparedStatement prep = prepareStatement(
+                    "SELECT NAME, VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME IN (?, ?, ?, ?)")) {
+                prep.setString(1, "MODE");
+                prep.setString(2, "DATABASE_TO_UPPER");
+                prep.setString(3, "DATABASE_TO_LOWER");
+                prep.setString(4, "CASE_INSENSITIVE_IDENTIFIERS");
+                ResultSet rs = prep.executeQuery();
+                while (rs.next()) {
+                    String value = rs.getString(2);
+                    switch (rs.getString(1)) {
+                    case "MODE":
+                        modeName = value;
+                        break;
+                    case "DATABASE_TO_UPPER":
+                        databaseToUpper = Boolean.valueOf(value);
+                        break;
+                    case "DATABASE_TO_LOWER":
+                        databaseToLower = Boolean.valueOf(value);
+                        break;
+                    case "CASE_INSENSITIVE_IDENTIFIERS":
+                        caseInsensitiveIdentifiers = Boolean.valueOf(value);
+                    }
+                }
+            }
+            Mode mode = Mode.getInstance(modeName);
+            if (mode == null) {
+                mode = Mode.getRegular();
+            }
+            if (session instanceof SessionRemote
+                    && ((SessionRemote) session).getClientVersion() < Constants.TCP_PROTOCOL_VERSION_18) {
+                caseInsensitiveIdentifiers = !databaseToUpper;
+            }
+            settings = new Settings(mode, databaseToUpper, databaseToLower, caseInsensitiveIdentifiers);
+            this.settings = settings;
+        }
+        return settings;
+    }
+
+    /**
+     * INTERNAL
+     */
+    public boolean isRegularMode() throws SQLException {
+        // Clear cached settings if any (required by tests)
+        settings = null;
+        return getMode().getEnum() == ModeEnum.REGULAR;
+    }
 }

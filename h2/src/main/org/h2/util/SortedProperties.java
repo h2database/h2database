@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.util;
@@ -76,6 +76,18 @@ public class SortedProperties extends Properties {
             e.printStackTrace();
             return def;
         }
+    }
+
+    /**
+     * Get a string property value from a properties object.
+     *
+     * @param prop the properties object
+     * @param key the key
+     * @param def the default value
+     * @return the value if set, or the default value if not
+     */
+    public static String getStringProperty(Properties prop, String key, String def) {
+        return prop.getProperty(key, def);
     }
 
     /**

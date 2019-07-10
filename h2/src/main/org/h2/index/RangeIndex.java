@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.index;
@@ -24,7 +24,7 @@ public class RangeIndex extends BaseIndex {
     private final RangeTable rangeTable;
 
     public RangeIndex(RangeTable table, IndexColumn[] columns) {
-        initBaseIndex(table, 0, "RANGE_INDEX", columns,
+        super(table, 0, "RANGE_INDEX", columns,
                 IndexType.createNonUnique(true));
         this.rangeTable = table;
     }

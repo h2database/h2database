@@ -1,33 +1,27 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: Alessandro Ventura
  */
 package org.h2.security.auth;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-
 /**
  * Configuration property
  */
-@XmlAccessorType(XmlAccessType.FIELD)
 public class PropertyConfig {
 
-    @XmlAttribute(required = true)
     private String name;
 
-    @XmlAttribute
     private String value;
 
     public PropertyConfig() {
     }
-    
+
     public PropertyConfig(String name, String value) {
-       this.name=name;
-       this.value=value;
+        this.name = name;
+        this.value = value;
     }
+
     public String getName() {
         return name;
     }

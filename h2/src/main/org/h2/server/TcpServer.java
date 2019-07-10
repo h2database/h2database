@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.server;
@@ -26,6 +26,7 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.util.JdbcUtils;
+import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
@@ -63,7 +64,7 @@ public class TcpServer implements Service {
     private String baseDir;
     private boolean allowOthers;
     private boolean isDaemon;
-    private boolean ifExists;
+    private boolean ifExists = true;
     private Connection managementDb;
     private PreparedStatement managementDbAdd;
     private PreparedStatement managementDbRemove;
@@ -84,6 +85,9 @@ public class TcpServer implements Service {
     }
 
     private void initManagementDb() throws SQLException {
+        if (managementPassword.isEmpty()) {
+            managementPassword = StringUtils.convertBytesToHex(MathUtils.secureRandomBytes(32));
+        }
         Properties prop = new Properties();
         prop.setProperty("user", "");
         prop.setProperty("password", managementPassword);
@@ -187,6 +191,8 @@ public class TcpServer implements Service {
                 isDaemon = true;
             } else if (Tool.isOption(a, "-ifExists")) {
                 ifExists = true;
+            } else if (Tool.isOption(a, "-ifNotExists")) {
+                ifExists = false;
             }
         }
         org.h2.Driver.load();
@@ -200,6 +206,16 @@ public class TcpServer implements Service {
     @Override
     public int getPort() {
         return port;
+    }
+
+    /**
+     * Returns whether a secure protocol is used.
+     *
+     * @return {@code true} if SSL socket is used, {@code false} if plain socket
+     *         is used
+     */
+    public boolean getSSL() {
+        return ssl;
     }
 
     /**
@@ -244,9 +260,10 @@ public class TcpServer implements Service {
         try {
             while (!stop) {
                 Socket s = serverSocket.accept();
-                TcpServerThread c = new TcpServerThread(s, this, nextThreadId++);
+                int id = nextThreadId++;
+                TcpServerThread c = new TcpServerThread(s, this, id);
                 running.add(c);
-                Thread thread = new Thread(c, threadName + " thread");
+                Thread thread = new Thread(c, threadName + " thread-" + id);
                 thread.setDaemon(isDaemon);
                 c.setThread(thread);
                 thread.start();

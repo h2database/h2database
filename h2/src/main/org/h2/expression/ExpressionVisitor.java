@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.expression;
@@ -33,10 +33,10 @@ public class ExpressionVisitor {
             new ExpressionVisitor(INDEPENDENT);
 
     /**
-     * Are all aggregates MIN(column), MAX(column), or COUNT(*) for the given
-     * table (getTable)?
+     * Are all aggregates MIN(column), MAX(column), COUNT(*), MEDIAN(column),
+     * ENVELOPE(count) for the given table (getTable)?
      */
-    public static final int OPTIMIZABLE_MIN_MAX_COUNT_ALL = 1;
+    public static final int OPTIMIZABLE_AGGREGATE = 1;
 
     /**
      * Does the expression return the same results for the same parameters?
@@ -209,7 +209,7 @@ public class ExpressionVisitor {
      * @return the new visitor
      */
     public static ExpressionVisitor getOptimizableVisitor(Table table) {
-        return new ExpressionVisitor(OPTIMIZABLE_MIN_MAX_COUNT_ALL, 0, null,
+        return new ExpressionVisitor(OPTIMIZABLE_AGGREGATE, 0, null,
                 null, table, null, null, null);
     }
 
@@ -220,7 +220,7 @@ public class ExpressionVisitor {
      * @param resolver the resolver
      * @return the new visitor
      */
-    static ExpressionVisitor getNotFromResolverVisitor(ColumnResolver resolver) {
+    public static ExpressionVisitor getNotFromResolverVisitor(ColumnResolver resolver) {
         return new ExpressionVisitor(NOT_FROM_RESOLVER, 0, null, null, null,
                 resolver, null, null);
     }
@@ -271,6 +271,12 @@ public class ExpressionVisitor {
         columns1.add(column);
     }
 
+    /**
+     * Add a new column to the set of columns.
+     * This is used for GET_COLUMNS2 visitors.
+     *
+     * @param column the additional column.
+     */
     void addColumn2(Column column) {
         if (table == null || table == column.getTable()) {
             columns2.add(column);
@@ -367,6 +373,7 @@ public class ExpressionVisitor {
      * Get the set of columns of all tables.
      *
      * @param filters the filters
+     * @param allColumnsSet the on-demand all-columns set
      */
     public static void allColumnsForTableFilters(TableFilter[] filters, AllColumnsForPlan allColumnsSet) {
         for (TableFilter filter : filters) {

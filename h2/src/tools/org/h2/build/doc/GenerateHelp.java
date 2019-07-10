@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.build.doc;
@@ -62,11 +62,11 @@ public class GenerateHelp {
             rs2.addRow(row);
         }
         BufferedWriter writer = new BufferedWriter(new FileWriter(out));
-        writer.write("# Copyright 2004-2018 H2 Group. " +
+        writer.write("# Copyright 2004-2019 H2 Group. " +
                 "Multiple-Licensed under the MPL 2.0,\n" +
                 "# and the EPL 1.0 " +
-                "(http://h2database.com/html/license.html).\n" +
-                "# Initial Developer: H2 Group)\n");
+                "(https://h2database.com/html/license.html).\n" +
+                "# Initial Developer: H2 Group\n");
         csv = new Csv();
         csv.setLineSeparator("\n");
         csv.write(writer, rs2);

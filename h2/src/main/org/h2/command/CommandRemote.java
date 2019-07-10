@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.command;
@@ -199,7 +199,8 @@ public class CommandRemote implements CommandInterface {
     public ResultWithGeneratedKeys executeUpdate(Object generatedKeysRequest) {
         checkParameters();
         boolean supportsGeneratedKeys = session.isSupportsGeneratedKeys();
-        boolean readGeneratedKeys = supportsGeneratedKeys && !Boolean.FALSE.equals(generatedKeysRequest);
+        int generatedKeysMode = GeneratedKeysMode.valueOf(generatedKeysRequest);
+        boolean readGeneratedKeys = supportsGeneratedKeys && generatedKeysMode != GeneratedKeysMode.NONE;
         int objectId = readGeneratedKeys ? session.getNextId() : 0;
         synchronized (session) {
             int updateCount = 0;
@@ -213,9 +214,8 @@ public class CommandRemote implements CommandInterface {
                     transfer.writeInt(SessionRemote.COMMAND_EXECUTE_UPDATE).writeInt(id);
                     sendParameters(transfer);
                     if (supportsGeneratedKeys) {
-                        int mode = GeneratedKeysMode.valueOf(generatedKeysRequest);
-                        transfer.writeInt(mode);
-                        switch (mode) {
+                        transfer.writeInt(generatedKeysMode);
+                        switch (generatedKeysMode) {
                         case GeneratedKeysMode.COLUMN_NUMBERS: {
                             int[] keys = (int[]) generatedKeysRequest;
                             transfer.writeInt(keys.length);

@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.jdbc;
@@ -47,7 +47,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
 
     JdbcCallableStatement(JdbcConnection conn, String sql, int id,
             int resultSetType, int resultSetConcurrency) {
-        super(conn, sql, id, resultSetType, resultSetConcurrency, false, false);
+        super(conn, sql, id, resultSetType, resultSetConcurrency, false, null);
         setTrace(session.getTrace(), TraceObject.CALLABLE_STATEMENT, id);
     }
 
@@ -872,21 +872,30 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
     }
 
     /**
-     * [Not supported] Returns the value of the specified column as a SQLXML
-     * object.
+     * Returns the value of the specified column as a SQLXML object.
+     *
+     * @param parameterIndex the parameter index (1, 2, ...)
+     * @return the value
+     * @throws SQLException if the column is not found or if this object is
+     *             closed
      */
     @Override
     public SQLXML getSQLXML(int parameterIndex) throws SQLException {
-        throw unsupported("SQLXML");
+        checkRegistered(parameterIndex);
+        return getOpenResultSet().getSQLXML(parameterIndex);
     }
 
     /**
-     * [Not supported] Returns the value of the specified column as a SQLXML
-     * object.
+     * Returns the value of the specified column as a SQLXML object.
+     *
+     * @param parameterName the parameter name
+     * @return the value
+     * @throws SQLException if the column is not found or if this object is
+     *             closed
      */
     @Override
     public SQLXML getSQLXML(String parameterName) throws SQLException {
-        throw unsupported("SQLXML");
+        return getSQLXML(getIndexForName(parameterName));
     }
 
     /**
@@ -1584,12 +1593,16 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
     }
 
     /**
-     * [Not supported] Sets the value of a parameter as a SQLXML object.
+     * Sets the value of a parameter as a SQLXML object.
+     *
+     * @param parameterName the parameter name
+     * @param x the value
+     * @throws SQLException if this object is closed
      */
     @Override
     public void setSQLXML(String parameterName, SQLXML x)
             throws SQLException {
-        throw unsupported("SQLXML");
+        setSQLXML(getIndexForName(parameterName), x);
     }
 
     /**

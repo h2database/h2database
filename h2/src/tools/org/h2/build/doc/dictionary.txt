@@ -57,7 +57,7 @@ below bench benchmark benchmarks beneficial benefit bennet berger berkeley
 berlini bern bernd berne best beta better between beverages beware beyond bfff
 bgcolor biased bid biel bienne big bigger biggest bigint biginteger bigserial
 bilinear bilingual billion bin binaries binary bind bindings bio biodiversity
-biological bipush birth birthday biscuits bit bitand bitmap bitor bits bitwise
+biological bipush birth birthday biscuits bit bitand bitmap bitnot bitor bits bitwise
 bitxor biz bjorn black blank blanked blanks bleyl blind blitz blob blobs block
 blocked blocking blockquote blocks blocksize blog blogs bloom blue blume blur bnf
 bnot boat bob bocher bodies body bogus bohlen bold bom bonita boo book
@@ -77,7 +77,7 @@ called caller calling calls cally caload came camel can cancel canceled cancelin
 cancellation cancelled cancels candidates cannot canonical cap capabilities
 capability capacity capitalization capitalize capitalized capone caps capture
 captured car card cardinal cardinality care careful carriage carrier cars cartesian
-cascade cascading case cases casesensitive casewhen cash casing casqueiro cast
+cas cascade cascading case cases casesensitive casewhen cash casing casqueiro cast
 casting castore cat catalina catalog catalogs cataloguing catch catcher catches
 catching category catlog caucho caught cause caused causes causing cavestro
 cayenne cbc cbtree ccedil cdata cdd cddl cdo cdup cease cedil ceil ceiling cell
@@ -157,7 +157,7 @@ dateadd datediff datepart dates datestyle datetime datetimes datum david davide
 day daylight dayname dayofmonth dayofweek dayofyear days dba dbbench dbcp dbid
 dbms dbname dbo dbs dbserv dbsnmp dclassifier dcmpg dcmpl dconst ddiv ddl
 ddladmin deactivate deactivated deactivation dead deadlock deadlocked deadlocks
-deal dealing deallocate death debug debugging dec decade december decide decimal
+deal dealing deallocate death debug debugging dec decade december decide decided decimal
 decision deck declaration declarations declarative declaratory declare declared
 declaring decode decoded decoder decodes decoding decompile decompiler decompiles
 decompiling decompress decompressed decompresser decompression decoration
@@ -251,7 +251,7 @@ filo filter filtered filtering filters fin final finalization finalize finalizer
 finally find finder finding finds fine finer finish finished finishes finland fire
 firebird firebirdsql fired firefox firewall first firstname fish fit fitness fits
 fitting five fix fixed fixes fixing fkcolumn fktable flag flags flash flashback
-flat fle fletcher flexibility flexible flexive flip flipped fload float floating
+flat flavour fle fletcher flexibility flexible flexive flip flipped fload float floating
 flooding floor florent flow flower flows fluent fluid flush flushed flushes
 flushing flux fly flyway fmb fmc fml fmrn fmt fmul fmxx fmxxx fneg focus focusable
 fog fogh folder follow followed following follows font fontes foo footer footers
@@ -321,7 +321,7 @@ inform information informational informed informix informs informtn infos
 infrastructure infringe infringed infringement infringements infringes infringing
 inherent inherit inheritance inherited inherits ini init initial initialization
 initialize initialized initializer initializes initializing initially initiate
-initiation inits inject injection injections injury inline inlined inliner
+initiated initiation inits inject injection injections injury inline inlined inliner
 inlining inner inno innodb inplace input inputs ins insecure insensitive insert
 inserted inserting insertion inserts insets inside insists inspect inspected
 inspector inspectors inst install installation installations installed installer
@@ -379,7 +379,7 @@ longblob longer longest longitude longnvarchar longs longtext longvarbinary long
 look lookahead looking looks lookup lookups lookupswitch loop loopback looping
 loops loose lor lore lose losing loss losses lossless losslessly lost lot lots
 low lowast lower lowercase lowercased lowest loz lpad lrem lreturn lrm lru lsaquo
-lshl lshr lsm lsquo lstore lsub lte ltrim lucene lucerne lugano lukas lumber
+lshift lshl lshr lsm lsquo lstore lsub lte ltrim lucene lucerne lugano lukas lumber
 lumberjack luntbuild lushr lutin lxabcdef lxor lying lynx lzf mac macdonald
 machine machines maciej macr macro macromedia macros made magic magnolia magyar
 mahon mail mailing main mainly maintain maintained maintaining maintains
@@ -440,8 +440,8 @@ omitted omitting once onchange onclick one ones onfocus ongoing onkeydown onkeyu
 online onload only onmousedown onmousemove onmouseout onmouseover onmouseup
 onreadystatechange onresize onscroll onsubmit onto ontology ontoprise oome oops
 ooq open opened openfire opening openjpa opens opera operand operands operate
-operates operating operation operations operator operators oplus opposite ops opt
-optimal optimisation optimised optimistic optimizable optimization optimizations
+operates operating operation operational operations operator operators oplus opposite
+ops opt optimal optimisation optimised optimistic optimizable optimization optimizations
 optimize optimized optimizer optimizing option optional optionally options ora
 oracle orange oranges orchestration order orderable ordered orderid ordering
 orders ordf ordinal ordinary ordinate ordm ordplugins ordsys oren org organic
@@ -556,7 +556,7 @@ rmd rmdir rmerr rmi rmiregistry rnd rnfr rnto road roadmap roads robert roc rogu
 rojas role roles roll rollback rollbacks rolled rolling rollover rolls roman room
 root rooted roots rot rotate round rounded rounding roundmagic rounds routine routinely
 routines row rowcount rowid rowlock rownum rows rowscn rowsize roy royalty rpad rpm rsa
-rsaquo rsquo rss rtree rtrim ruby ruebezahl rule rules run rund rundll runnable
+rsaquo rshift rsquo rss rtree rtrim ruby ruebezahl rule rules run rund rundll runnable
 runner runners running runs runscript runtime rwd rws sabine safari safe safely
 safes safety said sainsbury salary sale sales saload salt salz sam same
 sameorigin samp sample samples sanitize sanity sans sastore sat satisfy saturday sauce
@@ -777,4 +777,40 @@ geometries sourceschema destschema generatedcolumn alphanumerically usages
 sizable instantiates renders sdt txcommit unhelpful optimiser treats rejects referring untrusted computes vacate inverted
 reordered colliding evgenij archaic invocations apostrophe hypothetically testref ryazanov useless completes highlighting tends degrade
 
-summands minuend subtrahend
+summands minuend subtrahend localtime localtimestamp governs unfinished pressure closure discovered victim seemingly
+flaw capture coherent removals silence opentransactions picture tokar mailto andrei dur discarded blocker captures txdm
+intentionally authenticator authrealm ventura credentials alessandro validator acquisition vital mariadb preventing
+ewkt ewkb informations authzpwd realms mappers jaxb realmname configurationfile unmarshal jaas externals customize
+authenticators appname interrogate metatable barrier preliminary staticuser staticpassword unregistered inquiry
+ldapexample remoteuser assignments djava validators mock relate mapid tighten
+retried helpers unclean missed parsers sax myclass suppose mandatory testxml miao ciao
+emptied titlecase ask snk dom xif transformer dbf stx stax xof descriptors
+inconsistencies discover eliminated violates tweaks postpone leftovers
+tied ties
+launched unavailable smallmoney erroneously multiplier newid pan streamline unmap preview unexpectedly presumably
+converging smth rng curs casts unmapping unmapper
+immediate hhmmss scheduled hhmm prematurely postponed arranges subexpression subexpressions encloses plane caution
+minxf maxxf minyf maxyf bminxf bmaxxf bminyf bmaxyf
+minxd maxxd minyd maxyd bminxd bmaxxd bminyd bmaxyd
+interior envelopes multilinestring multipoint packed exterior normalization awkward determination subgeometries
+xym normalizes coord setz xyzm geometrycollection multipolygon mixup rings polygons rejection finite
+pointzm pointz pointm dimensionality redefine forum measures
+mpg casted pzm mls constrained subtypes complains
+ranks rno dro rko precede cume reopens preceding unbounded rightly itr lag maximal tiles tile ntile signify
+partitioned tri partitions
+
+discard enhancements nolock surefire logarithm
+qualification opportunity jumping exploited unacceptable vrs duplicated
+queryparser tokenized freeze factorings recompilation unenclosed rfe dsync
+econd irst bcef ordinality nord unnest
+analyst occupation distributive josaph aor engineer sajeewa isuru randil kevin doctor businessman artist ashan
+corrupts splitted disruption unintentional octets preconditions predicates subq objectweb insn opcodes
+preserves masking holder unboxing avert iae transformed subtle reevaluate exclusions subclause ftbl rgr
+presorted inclusion contexts aax mwd percentile cont interpolate mwa hypothetical regproc childed listagg foreground
+isodow isoyear psql
+
+waiters reliably httpsdocs privileged narrow spending swallow locally uncomment builders
+setjava lift hyperlinks lazarevn nikita lazarev lvl ispras bias dbff fals tru dfff
+recognition spared hacky employing occupancy baos shifts littlejohn pushes scrub existent asterisked projections
+omits redefined ensured arrayagg objectagg bmp uabcd prefixed incoherence aggressively smb invalidating filesystems
+improper subcondition boxes negates abrupt chooses hindi updater zoned tolerable interference elimination

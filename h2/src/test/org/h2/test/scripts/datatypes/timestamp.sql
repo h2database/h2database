@@ -1,5 +1,5 @@
--- Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
--- and the EPL 1.0 (http://h2database.com/html/license.html).
+-- Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
 
@@ -21,21 +21,21 @@ ALTER TABLE TEST ADD (T3 TIMESTAMP(0), T4 TIMESTAMP(9) WITHOUT TIME ZONE,
     SDT1 SMALLDATETIME);
 > ok
 
-SELECT COLUMN_NAME, DATA_TYPE, TYPE_NAME, COLUMN_TYPE, NUMERIC_SCALE FROM INFORMATION_SCHEMA.COLUMNS
+SELECT COLUMN_NAME, DATA_TYPE, TYPE_NAME, COLUMN_TYPE, NUMERIC_SCALE, DATETIME_PRECISION FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
-> COLUMN_NAME DATA_TYPE TYPE_NAME COLUMN_TYPE                    NUMERIC_SCALE
-> ----------- --------- --------- ------------------------------ -------------
-> T1          93        TIMESTAMP TIMESTAMP                      6
-> T2          93        TIMESTAMP TIMESTAMP WITHOUT TIME ZONE    6
-> T3          93        TIMESTAMP TIMESTAMP(0)                   0
-> T4          93        TIMESTAMP TIMESTAMP(9) WITHOUT TIME ZONE 9
-> DT1         93        TIMESTAMP DATETIME                       6
-> DT2         93        TIMESTAMP DATETIME(0)                    0
-> DT3         93        TIMESTAMP DATETIME(9)                    9
-> DT2_1       93        TIMESTAMP DATETIME2                      6
-> DT2_2       93        TIMESTAMP DATETIME2(0)                   0
-> DT2_3       93        TIMESTAMP DATETIME2(7)                   7
-> SDT1        93        TIMESTAMP SMALLDATETIME                  0
+> COLUMN_NAME DATA_TYPE TYPE_NAME COLUMN_TYPE                    NUMERIC_SCALE DATETIME_PRECISION
+> ----------- --------- --------- ------------------------------ ------------- ------------------
+> T1          93        TIMESTAMP TIMESTAMP                      6             6
+> T2          93        TIMESTAMP TIMESTAMP WITHOUT TIME ZONE    6             6
+> T3          93        TIMESTAMP TIMESTAMP(0)                   0             0
+> T4          93        TIMESTAMP TIMESTAMP(9) WITHOUT TIME ZONE 9             9
+> DT1         93        TIMESTAMP DATETIME                       6             6
+> DT2         93        TIMESTAMP DATETIME(0)                    0             0
+> DT3         93        TIMESTAMP DATETIME(9)                    9             9
+> DT2_1       93        TIMESTAMP DATETIME2                      6             6
+> DT2_2       93        TIMESTAMP DATETIME2(0)                   0             0
+> DT2_3       93        TIMESTAMP DATETIME2(7)                   7             7
+> SDT1        93        TIMESTAMP SMALLDATETIME                  0             0
 > rows (ordered): 11
 
 ALTER TABLE TEST ADD T5 TIMESTAMP(10);
@@ -105,3 +105,51 @@ SELECT T0 FROM TEST;
 
 DROP TABLE TEST;
 > ok
+
+create table test(id int, d timestamp);
+> ok
+
+insert into test values(1, '2006-01-01 12:00:00.000');
+> update count: 1
+
+insert into test values(1, '1999-12-01 23:59:00.000');
+> update count: 1
+
+select * from test where d= '1999-12-01 23:59:00.000';
+> ID D
+> -- -------------------
+> 1  1999-12-01 23:59:00
+> rows: 1
+
+select * from test where d= timestamp '2006-01-01 12:00:00.000';
+> ID D
+> -- -------------------
+> 1  2006-01-01 12:00:00
+> rows: 1
+
+drop table test;
+> ok
+
+SELECT TIMESTAMP '2000-01-02 11:22:33';
+>> 2000-01-02 11:22:33
+
+SELECT TIMESTAMP '2000-01-02T11:22:33';
+>> 2000-01-02 11:22:33
+
+SELECT TIMESTAMP '20000102 11:22:33';
+>> 2000-01-02 11:22:33
+
+SELECT TIMESTAMP '20000102T11:22:33';
+>> 2000-01-02 11:22:33
+
+SELECT TIMESTAMP '2000-01-02 112233';
+>> 2000-01-02 11:22:33
+
+SELECT TIMESTAMP '2000-01-02T112233';
+>> 2000-01-02 11:22:33
+
+SELECT TIMESTAMP '20000102 112233';
+>> 2000-01-02 11:22:33
+
+SELECT TIMESTAMP '20000102T112233';
+>> 2000-01-02 11:22:33

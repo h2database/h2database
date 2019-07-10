@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.engine;
@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import org.h2.table.Table;
+import org.h2.util.StringUtils;
 
 /**
  * A right owner (sometimes called principal).
@@ -27,9 +28,13 @@ public abstract class RightOwner extends DbObjectBase {
      */
     private HashMap<DbObject, Right> grantedRights;
 
-    protected RightOwner(Database database, int id, String name,
-            int traceModuleId) {
-        initDbObjectBase(database, id, name, traceModuleId);
+    protected RightOwner(Database database, int id, String name, int traceModuleId) {
+        super(database, id, StringUtils.toUpperEnglish(name), traceModuleId);
+    }
+
+    @Override
+    public void rename(String newName) {
+        super.rename(StringUtils.toUpperEnglish(newName));
     }
 
     /**
@@ -153,9 +158,9 @@ public abstract class RightOwner extends DbObjectBase {
             grantedRoles = null;
         }
     }
-    
+
     /**
-     * Remove all the temporary rights granted on roles 
+     * Remove all the temporary rights granted on roles
      */
     public void revokeTemporaryRightsOnRoles() {
         if (grantedRoles == null) {
@@ -171,8 +176,8 @@ public abstract class RightOwner extends DbObjectBase {
             revokeRole(currentRoleToRemove);
         }
     }
-    
-    
+
+
 
     /**
      * Get the 'grant schema' right of this object.

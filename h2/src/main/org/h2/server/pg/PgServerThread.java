@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.server.pg;
@@ -30,7 +30,6 @@ import java.sql.Types;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
-
 import org.h2.command.CommandInterface;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
@@ -43,6 +42,8 @@ import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
+import org.h2.util.NetUtils;
+import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.ScriptReader;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -181,7 +182,7 @@ public class PgServerThread implements Runnable {
                         " (" + (version >> 16) + "." + (version & 0xff) + ")");
                 while (true) {
                     String param = readString();
-                    if (param.length() == 0) {
+                    if (param.isEmpty()) {
                         break;
                     }
                     String value = readString();
@@ -226,6 +227,11 @@ public class PgServerThread implements Runnable {
                 if (server.getIfExists()) {
                     ci.setProperty("IFEXISTS", "TRUE");
                 }
+                ci.setNetworkConnectionInfo(new NetworkConnectionInfo( //
+                        NetUtils.ipToShortForm(new StringBuilder("pg://"), //
+                                socket.getLocalAddress().getAddress(), true) //
+                                .append(':').append(socket.getLocalPort()).toString(), //
+                        socket.getInetAddress().getAddress(), socket.getPort(), null));
                 conn = new JdbcConnection(ci, false);
                 // can not do this because when called inside
                 // DriverManager.getConnection, a deadlock occurs
@@ -508,7 +514,7 @@ public class PgServerThread implements Runnable {
         sendMessage();
     }
 
-    private void sendDataRow(ResultSet rs, int[] formatCodes) throws Exception {
+    private void sendDataRow(ResultSet rs, int[] formatCodes) throws IOException, SQLException {
         ResultSetMetaData metaData = rs.getMetaData();
         int columns = metaData.getColumnCount();
         startMessage('D');
@@ -531,11 +537,11 @@ public class PgServerThread implements Runnable {
     }
 
     private static long toPostgreDays(long dateValue) {
-        return DateTimeUtils.prolepticGregorianAbsoluteDayFromDateValue(dateValue) - 10_957;
+        return DateTimeUtils.absoluteDayFromDateValue(dateValue) - 10_957;
     }
 
     private void writeDataColumn(ResultSet rs, int column, int pgType, boolean text)
-            throws Exception {
+            throws IOException {
         Value v = ((JdbcResultSet) rs).get(column);
         if (v == ValueNull.INSTANCE) {
             writeInt(-1);
@@ -758,7 +764,7 @@ public class PgServerThread implements Runnable {
         sendMessage();
     }
 
-    private void sendRowDescription(ResultSetMetaData meta) throws Exception {
+    private void sendRowDescription(ResultSetMetaData meta) throws IOException, SQLException {
         if (meta == null) {
             sendNoData();
         } else {

@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.command.dml;
@@ -26,7 +26,11 @@ public class AllColumnsForPlan {
         this.filters = filters;
     }
 
-    /** Called by ExpressionVisitor. */
+    /**
+     * Called by ExpressionVisitor.
+     *
+     * @param newCol new column to be added.
+     */
     public void add(Column newCol) {
         ArrayList<Column> cols = map.get(newCol.getTable());
         if (cols == null) {
@@ -37,6 +41,12 @@ public class AllColumnsForPlan {
             cols.add(newCol);
     }
 
+    /**
+     * Used by index to calculate the cost of a scan.
+     *
+     * @param table the table.
+     * @return all table's referenced columns.
+     */
     public ArrayList<Column> get(Table table) {
         if (map == null) {
             map = new HashMap<>();

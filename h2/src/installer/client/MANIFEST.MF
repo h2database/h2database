@@ -1,0 +1,39 @@
+Manifest-Version: 1.0
+Implementation-Title: H2 Database Client
+Implementation-URL: https://h2database.com
+Implementation-Version: ${version}
+Build-Jdk: ${buildJdk}
+Created-By: ${createdBy}
+Automatic-Module-Name: com.h2database.client
+Bundle-ManifestVersion: 2
+Bundle-Name: H2 Database Client
+Bundle-SymbolicName: com.h2database.client
+Bundle-Vendor: H2 Group
+Bundle-Version: ${version}
+Bundle-License: https://h2database.com/html/license.html
+Bundle-Category: jdbc
+Multi-Release: true
+Import-Package: javax.crypto,
+ javax.crypto.spec,
+ javax.naming;resolution:=optional,
+ javax.naming.spi;resolution:=optional,
+ javax.net,
+ javax.net.ssl,
+ javax.sql,
+ javax.transaction.xa;resolution:=optional,
+ javax.xml.parsers;resolution:=optional,
+ javax.xml.stream;resolution:=optional,
+ javax.xml.transform;resolution:=optional,
+ javax.xml.transform.dom;resolution:=optional,
+ javax.xml.transform.sax;resolution:=optional,
+ javax.xml.transform.stax;resolution:=optional,
+ javax.xml.transform.stream;resolution:=optional,
+ org.w3c.dom;resolution:=optional,
+ org.xml.sax;resolution:=optional,
+ org.locationtech.jts.geom;version="1.15.0";resolution:=optional,
+ org.locationtech.jts.io;version="1.15.0";resolution:=optional
+Export-Package: org.h2;version="${version}",
+ org.h2.api;version="${version}",
+ org.h2.jdbc;version="${version}",
+ org.h2.jdbcx;version="${version}",
+ org.h2.tools;version="${version}"

@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.bnf;
@@ -130,6 +130,7 @@ public class Bnf {
         addFixedRule("@digit@", RuleFixed.DIGIT);
         addFixedRule("@open_bracket@", RuleFixed.OPEN_BRACKET);
         addFixedRule("@close_bracket@", RuleFixed.CLOSE_BRACKET);
+        addFixedRule("json_text", RuleFixed.JSON_TEXT);
     }
 
     /**
@@ -258,6 +259,8 @@ public class Bnf {
         ArrayList<String> list = new ArrayList<>();
         syntax = StringUtils.replaceAll(syntax, "yyyy-MM-dd", "@ymd@");
         syntax = StringUtils.replaceAll(syntax, "hh:mm:ss", "@hms@");
+        syntax = StringUtils.replaceAll(syntax, "hh:mm", "@hms@");
+        syntax = StringUtils.replaceAll(syntax, "mm:ss", "@hms@");
         syntax = StringUtils.replaceAll(syntax, "nnnnnnnnn", "@nanos@");
         syntax = StringUtils.replaceAll(syntax, "function", "@func@");
         syntax = StringUtils.replaceAll(syntax, "0x", "@hexStart@");

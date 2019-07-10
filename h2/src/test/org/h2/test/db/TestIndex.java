@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.db;
@@ -20,13 +20,14 @@ import org.h2.api.ErrorCode;
 import org.h2.command.dml.Select;
 import org.h2.result.SortOrder;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.SimpleResultSet;
 import org.h2.value.ValueInt;
 
 /**
  * Index tests.
  */
-public class TestIndex extends TestBase {
+public class TestIndex extends TestDb {
 
     private static int testFunctionIndexCounter;
 
@@ -51,7 +52,13 @@ public class TestIndex extends TestBase {
         testHashIndexOnMemoryTable();
         testErrorMessage();
         testDuplicateKeyException();
-        testConcurrentUpdate();
+        int to = config.lockTimeout;
+        config.lockTimeout = 50000;
+        try {
+            testConcurrentUpdate();
+        } finally {
+            config.lockTimeout = to;
+        }
         testNonUniqueHashIndex();
         testRenamePrimaryKey();
         testRandomized();
@@ -171,7 +178,7 @@ public class TestIndex extends TestBase {
             fail();
         } catch (SQLException e) {
             String m = e.getMessage();
-            int start = m.indexOf('\"'), end = m.indexOf('\"', start + 1);
+            int start = m.indexOf('"'), end = m.lastIndexOf('"');
             String s = m.substring(start + 1, end);
             for (String t : expected) {
                 assertContains(s, t);
@@ -534,8 +541,7 @@ public class TestIndex extends TestBase {
         stat.execute("CREATE TABLE CHILD(ID INT PRIMARY KEY, " +
                 "PID INT, FOREIGN KEY(PID) REFERENCES PARENT(ID))");
         reconnect();
-        stat.execute("DROP TABLE PARENT");
-        stat.execute("DROP TABLE CHILD");
+        stat.execute("DROP TABLE PARENT, CHILD");
     }
 
     private void testLargeIndex() throws SQLException {

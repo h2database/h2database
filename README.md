@@ -7,11 +7,11 @@
 3. Browser based Console application
 4. Small footprint: around 2 MB jar file size
 
-More information: http://h2database.com
+More information: https://h2database.com
 
 ## Features
 
-| | [H2](http://www.h2database.com/) | [Derby](http://db.apache.org/derby) | [HSQLDB](http://hsqldb.org) | [MySQL](https://www.mysql.com/) | [PostgreSQL](https://www.postgresql.org) |
+| | [H2](https://h2database.com/) | [Derby](https://db.apache.org/derby) | [HSQLDB](http://hsqldb.org) | [MySQL](https://www.mysql.com/) | [PostgreSQL](https://www.postgresql.org) |
 |--------------------------------|---------|---------|---------|-------|---------|
 | Pure Java                      | Yes     | Yes     | Yes     | No    | No      |
 | Memory Mode                    | Yes     | Yes     | Yes     | No    | No      |

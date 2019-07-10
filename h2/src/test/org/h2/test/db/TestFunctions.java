@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.db;
@@ -46,17 +46,19 @@ import org.h2.api.Aggregate;
 import org.h2.api.AggregateFunction;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
-import org.h2.jdbc.JdbcSQLException;
+import org.h2.engine.Session;
+import org.h2.expression.function.ToDateParser;
+import org.h2.expression.function.ToChar.Capitalization;
+import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.test.ap.TestAnnotationProcessor;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
-import org.h2.util.ToChar.Capitalization;
-import org.h2.util.ToDateParser;
 import org.h2.value.Value;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
@@ -64,7 +66,7 @@ import org.h2.value.ValueTimestampTimeZone;
 /**
  * Tests for user defined functions and aggregates.
  */
-public class TestFunctions extends TestBase implements AggregateFunction {
+public class TestFunctions extends TestDb implements AggregateFunction {
 
     static int count;
 
@@ -83,10 +85,14 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     public void test() throws Exception {
         deleteDb("functions");
         testOverrideAlias();
-        testIfNull();
-        testToDate();
-        testToDateException();
-        testDataType();
+        deleteDb("functions");
+        if (!config.networked) {
+            JdbcConnection conn = (JdbcConnection) getConnection("functions");
+            Session session = (Session) conn.getSession();
+            testToDate(session);
+            testToDateException(session);
+            conn.close();
+        }
         testVersion();
         testFunctionTable();
         testFunctionTableVarArgs();
@@ -102,7 +108,6 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testDeterministic();
         testTransactionId();
         testPrecision();
-        testMathFunctions();
         testVarArgs();
         testAggregate();
         testAggregateType();
@@ -111,34 +116,17 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testValue();
         testNvl2();
         testConcatWs();
-        testTruncate();
         testToCharFromDateTime();
         testToCharFromNumber();
         testToCharFromText();
-        testTranslate();
-        testGenerateSeries();
         testFileWrite();
         testThatCurrentTimestampIsSane();
         testThatCurrentTimestampStaysTheSameWithinATransaction();
         testThatCurrentTimestampUpdatesOutsideATransaction();
         testAnnotationProcessorsOutput();
-        testRound();
         testSignal();
 
         deleteDb("functions");
-    }
-
-    private void testDataType() throws SQLException {
-        Connection conn = getConnection("functions");
-        Statement stat = conn.createStatement();
-        assertEquals(Types.DOUBLE, stat.executeQuery(
-                "select radians(x) from dual").
-                getMetaData().getColumnType(1));
-        assertEquals(Types.DOUBLE, stat.executeQuery(
-                "select power(10, 2*x) from dual").
-                getMetaData().getColumnType(1));
-        stat.close();
-        conn.close();
     }
 
     private void testVersion() throws SQLException {
@@ -373,7 +361,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         ResultSet rs;
         rs = stat.executeQuery("select * from information_schema.views");
         rs.next();
-        assertContains(rs.getString("VIEW_DEFINITION"), "SCHEMA2.FUNC");
+        assertContains(rs.getString("VIEW_DEFINITION"), "\"SCHEMA2\".\"FUNC\"");
 
         stat.execute("drop view test");
         stat.execute("drop schema schema2 cascade");
@@ -438,7 +426,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         stat.execute("create alias dynamic deterministic for \"" +
                 getClass().getName() + ".dynamic\"");
         setCount(0);
-        rs = stat.executeQuery("call dynamic(('a', 1))[0]");
+        rs = stat.executeQuery("call dynamic(ARRAY['a', 1])[1]");
         rs.next();
         String a = rs.getString(1);
         assertEquals("a1", a);
@@ -538,24 +526,9 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         stat.execute("create aggregate agg_sum for \""+getClass().getName()+"\"");
         rs = stat.executeQuery("select agg_sum(1), sum(1.6) from dual");
         rs.next();
-        assertEquals(1, rs.getMetaData().getScale(2));
-        assertEquals(32767, rs.getMetaData().getScale(1));
+        assertEquals(Integer.MAX_VALUE, rs.getMetaData().getScale(2));
+        assertEquals(Integer.MAX_VALUE, rs.getMetaData().getScale(1));
         stat.executeQuery("select * from information_schema.function_aliases");
-        conn.close();
-    }
-
-    private void testMathFunctions() throws SQLException {
-        Connection conn = getConnection("functions");
-        Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("CALL SINH(50)");
-        assertTrue(rs.next());
-        assertEquals(Math.sinh(50), rs.getDouble(1));
-        rs = stat.executeQuery("CALL COSH(50)");
-        assertTrue(rs.next());
-        assertEquals(Math.cosh(50), rs.getDouble(1));
-        rs = stat.executeQuery("CALL TANH(50)");
-        assertTrue(rs.next());
-        assertEquals(Math.tanh(50), rs.getDouble(1));
         conn.close();
     }
 
@@ -646,8 +619,14 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         InputStreamReader r = new InputStreamReader(FileUtils.newInputStream(fileName));
         String ps2 = IOUtils.readStringAndClose(r, -1);
         assertEquals(ps, ps2);
-        conn.close();
         FileUtils.delete(fileName);
+        // Test classpath prefix using this test class as input
+        fileName = "/" + this.getClass().getName().replaceAll("\\.", "/") + ".class";
+        rs = stat.executeQuery("SELECT LENGTH(FILE_READ('classpath:" + fileName + "')) LEN");
+        rs.next();
+        int fileSize = rs.getInt(1);
+        assertTrue(fileSize > 0);
+        conn.close();
     }
 
 
@@ -755,6 +734,16 @@ public class TestFunctions extends TestBase implements AggregateFunction {
                 "SELECT SIMPLE_MEDIAN(X) FILTER (WHERE X > 2) FROM SYSTEM_RANGE(1, 9)");
         rs.next();
         assertEquals("6", rs.getString(1));
+        rs = stat.executeQuery("SELECT SIMPLE_MEDIAN(X) OVER () FROM SYSTEM_RANGE(1, 9)");
+        for (int i = 1; i < 9; i++) {
+            assertTrue(rs.next());
+            assertEquals("5", rs.getString(1));
+        }
+        rs = stat.executeQuery("SELECT SIMPLE_MEDIAN(X) OVER (PARTITION BY X) FROM SYSTEM_RANGE(1, 9)");
+        for (int i = 1; i < 9; i++) {
+            assertTrue(rs.next());
+            assertEquals(Integer.toString(i), rs.getString(1));
+        }
         conn.close();
 
         if (config.memory) {
@@ -940,9 +929,9 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals("Hello", rs.getString(2));
         assertFalse(rs.next());
 
-        stat.execute("CREATE ALIAS ARRAY FOR \"" +
+        stat.execute("CREATE ALIAS GET_ARRAY FOR \"" +
                 getClass().getName() + ".getArray\"");
-        rs = stat.executeQuery("CALL ARRAY()");
+        rs = stat.executeQuery("CALL GET_ARRAY()");
         assertEquals(1, rs.getMetaData().getColumnCount());
         rs.next();
         Array a = rs.getArray(1);
@@ -951,7 +940,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals(0, ((Integer) array[0]).intValue());
         assertEquals("Hello", (String) array[1]);
         assertThrows(ErrorCode.INVALID_VALUE_2, a).getArray(1, -1);
-        assertThrows(ErrorCode.INVALID_VALUE_2, a).getArray(1, 3);
+        assertEquals(2, ((Object[]) a.getArray(1, 3)).length);
         assertEquals(0, ((Object[]) a.getArray(1, 0)).length);
         assertEquals(0, ((Object[]) a.getArray(2, 0)).length);
         assertThrows(ErrorCode.INVALID_VALUE_2, a).getArray(0, 0);
@@ -1205,96 +1194,22 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         conn.close();
     }
 
-    private void testTruncate() throws SQLException {
-        deleteDb("functions");
-        Connection conn = getConnection("functions");
-        Statement stat = conn.createStatement();
-
-        ResultSet rs = stat.executeQuery("SELECT TRUNCATE(1.234, 2) FROM dual");
-        rs.next();
-        assertEquals(1.23d, rs.getDouble(1));
-
-        rs = stat.executeQuery(
-                "SELECT CURRENT_TIMESTAMP(), " +
-                "TRUNCATE(CURRENT_TIMESTAMP()) FROM dual");
-        rs.next();
-        Calendar c = DateTimeUtils.createGregorianCalendar();
-        c.setTime(rs.getTimestamp(1));
-        c.set(Calendar.HOUR_OF_DAY, 0);
-        c.set(Calendar.MINUTE, 0);
-        c.set(Calendar.SECOND, 0);
-        c.set(Calendar.MILLISECOND, 0);
-        java.util.Date nowDate = c.getTime();
-        assertEquals(nowDate, rs.getTimestamp(2));
-
-        assertThrows(SQLException.class, stat).executeQuery("SELECT TRUNCATE('bad', 1) FROM dual");
-
-        // check for passing wrong data type
-        rs = assertThrows(SQLException.class, stat).executeQuery("SELECT TRUNCATE('bad') FROM dual");
-
-        // check for too many parameters
-        rs = assertThrows(SQLException.class, stat).executeQuery("SELECT TRUNCATE(1,2,3) FROM dual");
-
-        conn.close();
-    }
-
-    private void testTranslate() throws SQLException {
-        Connection conn = getConnection("functions");
-        Statement stat = conn.createStatement();
-
-        String createSQL = "CREATE TABLE testTranslate(id BIGINT, " +
-                "txt1 varchar);";
-        stat.execute(createSQL);
-        stat.execute("insert into testTranslate(id, txt1) " +
-                "values(1, 'test1')");
-        stat.execute("insert into testTranslate(id, txt1) " +
-                "values(2, null)");
-        stat.execute("insert into testTranslate(id, txt1) " +
-                "values(3, '')");
-        stat.execute("insert into testTranslate(id, txt1) " +
-                "values(4, 'caps')");
-
-        String query = "SELECT translate(txt1, 'p', 'r') " +
-                "FROM testTranslate order by id asc";
-        ResultSet rs = stat.executeQuery(query);
-        rs.next();
-        String actual = rs.getString(1);
-        assertEquals("test1", actual);
-        rs.next();
-        actual = rs.getString(1);
-        assertNull(actual);
-        rs.next();
-        actual = rs.getString(1);
-        assertEquals("", actual);
-        rs.next();
-        actual = rs.getString(1);
-        assertEquals("cars", actual);
-        rs.close();
-
-        rs = stat.executeQuery("select translate(null,null,null)");
-        rs.next();
-        assertNull(rs.getObject(1));
-
-        stat.execute("drop table testTranslate");
-        conn.close();
-    }
-
-    private void testToDateException() {
+    private void testToDateException(Session session) {
         try {
-            ToDateParser.toDate("1979-ThisWillFail-12", "YYYY-MM-DD");
+            ToDateParser.toDate(session, "1979-ThisWillFail-12", "YYYY-MM-DD");
         } catch (Exception e) {
             assertEquals(DbException.class.getSimpleName(), e.getClass().getSimpleName());
         }
 
         try {
-            ToDateParser.toDate("1-DEC-0000", "DD-MON-RRRR");
+            ToDateParser.toDate(session, "1-DEC-0000", "DD-MON-RRRR");
             fail("Oracle to_date should reject year 0 (ORA-01841)");
         } catch (Exception e) {
             // expected
         }
     }
 
-    private void testToDate() throws ParseException {
+    private void testToDate(Session session) {
         GregorianCalendar calendar = DateTimeUtils.createGregorianCalendar();
         int year = calendar.get(Calendar.YEAR);
         int month = calendar.get(Calendar.MONTH) + 1;
@@ -1302,133 +1217,135 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         String defDate = year + "-" + month + "-1 ";
         ValueTimestamp date = null;
         date = ValueTimestamp.parse("1979-11-12");
-        assertEquals(date, ToDateParser.toDate("1979-11-12T00:00:00Z", "YYYY-MM-DD\"T\"HH24:MI:SS\"Z\""));
-        assertEquals(date, ToDateParser.toDate("1979*foo*1112", "YYYY\"*foo*\"MM\"\"DD"));
-        assertEquals(date, ToDateParser.toDate("1979-11-12", "YYYY-MM-DD"));
-        assertEquals(date, ToDateParser.toDate("1979/11/12", "YYYY/MM/DD"));
-        assertEquals(date, ToDateParser.toDate("1979,11,12", "YYYY,MM,DD"));
-        assertEquals(date, ToDateParser.toDate("1979.11.12", "YYYY.MM.DD"));
-        assertEquals(date, ToDateParser.toDate("1979;11;12", "YYYY;MM;DD"));
-        assertEquals(date, ToDateParser.toDate("1979:11:12", "YYYY:MM:DD"));
+        assertEquals(date, ToDateParser.toDate(session, "1979-11-12T00:00:00Z", "YYYY-MM-DD\"T\"HH24:MI:SS\"Z\""));
+        assertEquals(date, ToDateParser.toDate(session, "1979*foo*1112", "YYYY\"*foo*\"MM\"\"DD"));
+        assertEquals(date, ToDateParser.toDate(session, "1979-11-12", "YYYY-MM-DD"));
+        assertEquals(date, ToDateParser.toDate(session, "1979/11/12", "YYYY/MM/DD"));
+        assertEquals(date, ToDateParser.toDate(session, "1979,11,12", "YYYY,MM,DD"));
+        assertEquals(date, ToDateParser.toDate(session, "1979.11.12", "YYYY.MM.DD"));
+        assertEquals(date, ToDateParser.toDate(session, "1979;11;12", "YYYY;MM;DD"));
+        assertEquals(date, ToDateParser.toDate(session, "1979:11:12", "YYYY:MM:DD"));
 
         date = ValueTimestamp.parse("1979-" + month + "-01");
-        assertEquals(date, ToDateParser.toDate("1979", "YYYY"));
-        assertEquals(date, ToDateParser.toDate("1979 AD", "YYYY AD"));
-        assertEquals(date, ToDateParser.toDate("1979 A.D.", "YYYY A.D."));
-        assertEquals(date, ToDateParser.toDate("1979 A.D.", "YYYY BC"));
-        assertEquals(date, ToDateParser.toDate("+1979", "SYYYY"));
-        assertEquals(date, ToDateParser.toDate("79", "RRRR"));
+        assertEquals(date, ToDateParser.toDate(session, "1979", "YYYY"));
+        assertEquals(date, ToDateParser.toDate(session, "1979 AD", "YYYY AD"));
+        assertEquals(date, ToDateParser.toDate(session, "1979 A.D.", "YYYY A.D."));
+        assertEquals(date, ToDateParser.toDate(session, "1979 A.D.", "YYYY BC"));
+        assertEquals(date, ToDateParser.toDate(session, "+1979", "SYYYY"));
+        assertEquals(date, ToDateParser.toDate(session, "79", "RRRR"));
 
         date = ValueTimestamp.parse(defDate + "00:12:00");
-        assertEquals(date, ToDateParser.toDate("12", "MI"));
+        assertEquals(date, ToDateParser.toDate(session, "12", "MI"));
 
         date = ValueTimestamp.parse("1970-11-01");
-        assertEquals(date, ToDateParser.toDate("11", "MM"));
-        assertEquals(date, ToDateParser.toDate("11", "Mm"));
-        assertEquals(date, ToDateParser.toDate("11", "mM"));
-        assertEquals(date, ToDateParser.toDate("11", "mm"));
-        assertEquals(date, ToDateParser.toDate("XI", "RM"));
+        assertEquals(date, ToDateParser.toDate(session, "11", "MM"));
+        assertEquals(date, ToDateParser.toDate(session, "11", "Mm"));
+        assertEquals(date, ToDateParser.toDate(session, "11", "mM"));
+        assertEquals(date, ToDateParser.toDate(session, "11", "mm"));
+        assertEquals(date, ToDateParser.toDate(session, "XI", "RM"));
 
         int y = (year / 10) * 10 + 9;
         date = ValueTimestamp.parse(y + "-" + month + "-01");
-        assertEquals(date, ToDateParser.toDate("9", "Y"));
+        assertEquals(date, ToDateParser.toDate(session, "9", "Y"));
         y = (year / 100) * 100 + 79;
         date = ValueTimestamp.parse(y + "-" + month + "-01");
-        assertEquals(date, ToDateParser.toDate("79", "YY"));
+        assertEquals(date, ToDateParser.toDate(session, "79", "YY"));
         y = (year / 1_000) * 1_000 + 979;
         date = ValueTimestamp.parse(y + "-" + month + "-01");
-        assertEquals(date, ToDateParser.toDate("979", "YYY"));
+        assertEquals(date, ToDateParser.toDate(session, "979", "YYY"));
 
         // Gregorian calendar does not have a year 0.
         // 0 = 0001 BC, -1 = 0002 BC, ... so we adjust
         date = ValueTimestamp.parse("-99-" + month + "-01");
-        assertEquals(date, ToDateParser.toDate("0100 BC", "YYYY BC"));
-        assertEquals(date, ToDateParser.toDate("0100 B.C.", "YYYY B.C."));
-        assertEquals(date, ToDateParser.toDate("-0100", "SYYYY"));
-        assertEquals(date, ToDateParser.toDate("-0100", "YYYY"));
+        assertEquals(date, ToDateParser.toDate(session, "0100 BC", "YYYY BC"));
+        assertEquals(date, ToDateParser.toDate(session, "0100 B.C.", "YYYY B.C."));
+        assertEquals(date, ToDateParser.toDate(session, "-0100", "SYYYY"));
+        assertEquals(date, ToDateParser.toDate(session, "-0100", "YYYY"));
 
         // Gregorian calendar does not have a year 0.
         // 0 = 0001 BC, -1 = 0002 BC, ... so we adjust
         y = -((year / 1_000) * 1_000 + 99);
         date = ValueTimestamp.parse(y + "-" + month + "-01");
-        assertEquals(date, ToDateParser.toDate("100 BC", "YYY BC"));
+        assertEquals(date, ToDateParser.toDate(session, "100 BC", "YYY BC"));
 
         // Gregorian calendar does not have a year 0.
         // 0 = 0001 BC, -1 = 0002 BC, ... so we adjust
         y = -((year / 100) * 100);
         date = ValueTimestamp.parse(y + "-" + month + "-01");
-        assertEquals(date, ToDateParser.toDate("01 BC", "YY BC"));
+        assertEquals(date, ToDateParser.toDate(session, "01 BC", "YY BC"));
         y = -((year / 10) * 10);
         date = ValueTimestamp.parse(y + "-" + month + "-01");
-        assertEquals(date, ToDateParser.toDate("1 BC", "Y BC"));
+        assertEquals(date, ToDateParser.toDate(session, "1 BC", "Y BC"));
 
         date = ValueTimestamp.parse(defDate + "08:12:00");
-        assertEquals(date, ToDateParser.toDate("08:12 AM", "HH:MI AM"));
-        assertEquals(date, ToDateParser.toDate("08:12 A.M.", "HH:MI A.M."));
-        assertEquals(date, ToDateParser.toDate("08:12", "HH24:MI"));
+        assertEquals(date, ToDateParser.toDate(session, "08:12 AM", "HH:MI AM"));
+        assertEquals(date, ToDateParser.toDate(session, "08:12 A.M.", "HH:MI A.M."));
+        assertEquals(date, ToDateParser.toDate(session, "08:12", "HH24:MI"));
 
         date = ValueTimestamp.parse(defDate + "08:12:00");
-        assertEquals(date, ToDateParser.toDate("08:12", "HH:MI"));
-        assertEquals(date, ToDateParser.toDate("08:12", "HH12:MI"));
+        assertEquals(date, ToDateParser.toDate(session, "08:12", "HH:MI"));
+        assertEquals(date, ToDateParser.toDate(session, "08:12", "HH12:MI"));
 
         date = ValueTimestamp.parse(defDate +  "08:12:34");
-        assertEquals(date, ToDateParser.toDate("08:12:34", "HH:MI:SS"));
+        assertEquals(date, ToDateParser.toDate(session, "08:12:34", "HH:MI:SS"));
 
         date = ValueTimestamp.parse(defDate + "12:00:00");
-        assertEquals(date, ToDateParser.toDate("12:00:00 PM", "HH12:MI:SS AM"));
+        assertEquals(date, ToDateParser.toDate(session, "12:00:00 PM", "HH12:MI:SS AM"));
 
         date = ValueTimestamp.parse(defDate + "00:00:00");
-        assertEquals(date, ToDateParser.toDate("12:00:00 AM", "HH12:MI:SS AM"));
+        assertEquals(date, ToDateParser.toDate(session, "12:00:00 AM", "HH12:MI:SS AM"));
 
         date = ValueTimestamp.parse(defDate + "00:00:34");
-        assertEquals(date, ToDateParser.toDate("34", "SS"));
+        assertEquals(date, ToDateParser.toDate(session, "34", "SS"));
 
         date = ValueTimestamp.parse(defDate + "08:12:34");
-        assertEquals(date, ToDateParser.toDate("29554", "SSSSS"));
+        assertEquals(date, ToDateParser.toDate(session, "29554", "SSSSS"));
 
         date = ValueTimestamp.parse(defDate + "08:12:34.550");
-        assertEquals(date, ToDateParser.toDate("08:12:34 550", "HH:MI:SS FF"));
-        assertEquals(date, ToDateParser.toDate("08:12:34 55", "HH:MI:SS FF2"));
+        assertEquals(date, ToDateParser.toDate(session, "08:12:34 550", "HH:MI:SS FF"));
+        assertEquals(date, ToDateParser.toDate(session, "08:12:34 55", "HH:MI:SS FF2"));
 
         date = ValueTimestamp.parse(defDate + "14:04:00");
-        assertEquals(date, ToDateParser.toDate("02:04 P.M.", "HH:MI p.M."));
-        assertEquals(date, ToDateParser.toDate("02:04 PM", "HH:MI PM"));
+        assertEquals(date, ToDateParser.toDate(session, "02:04 P.M.", "HH:MI p.M."));
+        assertEquals(date, ToDateParser.toDate(session, "02:04 PM", "HH:MI PM"));
 
         date = ValueTimestamp.parse("1970-" + month + "-12");
-        assertEquals(date, ToDateParser.toDate("12", "DD"));
+        assertEquals(date, ToDateParser.toDate(session, "12", "DD"));
 
         date = ValueTimestamp.parse(year + (calendar.isLeapYear(year) ? "11-11" : "-11-12"));
-        assertEquals(date, ToDateParser.toDate("316", "DDD"));
-        assertEquals(date, ToDateParser.toDate("316", "DdD"));
-        assertEquals(date, ToDateParser.toDate("316", "dDD"));
-        assertEquals(date, ToDateParser.toDate("316", "ddd"));
+        assertEquals(date, ToDateParser.toDate(session, "316", "DDD"));
+        assertEquals(date, ToDateParser.toDate(session, "316", "DdD"));
+        assertEquals(date, ToDateParser.toDate(session, "316", "dDD"));
+        assertEquals(date, ToDateParser.toDate(session, "316", "ddd"));
 
         date = ValueTimestamp.parse("2013-01-29");
-        assertEquals(date, ToDateParser.toDate("2456322", "J"));
+        assertEquals(date, ToDateParser.toDate(session, "2456322", "J"));
 
         if (Locale.getDefault().getLanguage().equals("en")) {
             date = ValueTimestamp.parse("9999-12-31 23:59:59");
-            assertEquals(date, ToDateParser.toDate("31-DEC-9999 23:59:59", "DD-MON-YYYY HH24:MI:SS"));
-            assertEquals(date, ToDateParser.toDate("31-DEC-9999 23:59:59", "DD-MON-RRRR HH24:MI:SS"));
-            assertEquals(ValueTimestamp.parse("0001-03-01"), ToDateParser.toDate("1-MAR-0001", "DD-MON-RRRR"));
-            assertEquals(ValueTimestamp.parse("9999-03-01"), ToDateParser.toDate("1-MAR-9999", "DD-MON-RRRR"));
-            assertEquals(ValueTimestamp.parse("2000-03-01"), ToDateParser.toDate("1-MAR-000", "DD-MON-RRRR"));
-            assertEquals(ValueTimestamp.parse("1999-03-01"), ToDateParser.toDate("1-MAR-099", "DD-MON-RRRR"));
-            assertEquals(ValueTimestamp.parse("0100-03-01"), ToDateParser.toDate("1-MAR-100", "DD-MON-RRRR"));
-            assertEquals(ValueTimestamp.parse("2000-03-01"), ToDateParser.toDate("1-MAR-00", "DD-MON-RRRR"));
-            assertEquals(ValueTimestamp.parse("2049-03-01"), ToDateParser.toDate("1-MAR-49", "DD-MON-RRRR"));
-            assertEquals(ValueTimestamp.parse("1950-03-01"), ToDateParser.toDate("1-MAR-50", "DD-MON-RRRR"));
-            assertEquals(ValueTimestamp.parse("1999-03-01"), ToDateParser.toDate("1-MAR-99", "DD-MON-RRRR"));
+            assertEquals(date, ToDateParser.toDate(session, "31-DEC-9999 23:59:59", "DD-MON-YYYY HH24:MI:SS"));
+            assertEquals(date, ToDateParser.toDate(session, "31-DEC-9999 23:59:59", "DD-MON-RRRR HH24:MI:SS"));
+            assertEquals(ValueTimestamp.parse("0001-03-01"),
+                    ToDateParser.toDate(session, "1-MAR-0001", "DD-MON-RRRR"));
+            assertEquals(ValueTimestamp.parse("9999-03-01"),
+                    ToDateParser.toDate(session, "1-MAR-9999", "DD-MON-RRRR"));
+            assertEquals(ValueTimestamp.parse("2000-03-01"), ToDateParser.toDate(session, "1-MAR-000", "DD-MON-RRRR"));
+            assertEquals(ValueTimestamp.parse("1999-03-01"), ToDateParser.toDate(session, "1-MAR-099", "DD-MON-RRRR"));
+            assertEquals(ValueTimestamp.parse("0100-03-01"), ToDateParser.toDate(session, "1-MAR-100", "DD-MON-RRRR"));
+            assertEquals(ValueTimestamp.parse("2000-03-01"), ToDateParser.toDate(session, "1-MAR-00", "DD-MON-RRRR"));
+            assertEquals(ValueTimestamp.parse("2049-03-01"), ToDateParser.toDate(session, "1-MAR-49", "DD-MON-RRRR"));
+            assertEquals(ValueTimestamp.parse("1950-03-01"), ToDateParser.toDate(session, "1-MAR-50", "DD-MON-RRRR"));
+            assertEquals(ValueTimestamp.parse("1999-03-01"), ToDateParser.toDate(session, "1-MAR-99", "DD-MON-RRRR"));
         }
 
         assertEquals(ValueTimestampTimeZone.parse("2000-05-10 10:11:12-08:15"),
-                ToDateParser.toTimestampTz("2000-05-10 10:11:12 -8:15", "YYYY-MM-DD HH24:MI:SS TZH:TZM"));
+                ToDateParser.toTimestampTz(session, "2000-05-10 10:11:12 -8:15", "YYYY-MM-DD HH24:MI:SS TZH:TZM"));
         assertEquals(ValueTimestampTimeZone.parse("2000-05-10 10:11:12-08:15"),
-                ToDateParser.toTimestampTz("2000-05-10 10:11:12 GMT-08:15", "YYYY-MM-DD HH24:MI:SS TZR"));
+                ToDateParser.toTimestampTz(session, "2000-05-10 10:11:12 GMT-08:15", "YYYY-MM-DD HH24:MI:SS TZR"));
         assertEquals(ValueTimestampTimeZone.parse("2000-02-10 10:11:12-08"),
-                ToDateParser.toTimestampTz("2000-02-10 10:11:12 US/Pacific", "YYYY-MM-DD HH24:MI:SS TZR"));
+                ToDateParser.toTimestampTz(session, "2000-02-10 10:11:12 US/Pacific", "YYYY-MM-DD HH24:MI:SS TZR"));
         assertEquals(ValueTimestampTimeZone.parse("2000-02-10 10:11:12-08"),
-                ToDateParser.toTimestampTz("2000-02-10 10:11:12 PST", "YYYY-MM-DD HH24:MI:SS TZD"));
+                ToDateParser.toTimestampTz(session, "2000-02-10 10:11:12 PST", "YYYY-MM-DD HH24:MI:SS TZD"));
     }
 
     private void testToCharFromDateTime() throws SQLException {
@@ -1495,8 +1412,9 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult("014", stat, "SELECT TO_CHAR(DATE '2013-12-30', 'IYY') FROM DUAL");
         assertResult("14", stat, "SELECT TO_CHAR(DATE '2013-12-30', 'IY') FROM DUAL");
         assertResult("4", stat, "SELECT TO_CHAR(DATE '2013-12-30', 'I') FROM DUAL");
-        assertResult("0001", stat, "SELECT TO_CHAR(DATE '-0001-01-01', 'IYYY') FROM DUAL");
-        assertResult("0005", stat, "SELECT TO_CHAR(DATE '-0004-01-01', 'IYYY') FROM DUAL");
+        assertResult("0002", stat, "SELECT TO_CHAR(DATE '-0001-01-01', 'IYYY') FROM DUAL");
+        assertResult("0001", stat, "SELECT TO_CHAR(DATE '-0001-01-04', 'IYYY') FROM DUAL");
+        assertResult("0004", stat, "SELECT TO_CHAR(DATE '-0004-01-01', 'IYYY') FROM DUAL");
         assertResult("08:12 AM", stat, "SELECT TO_CHAR(X, 'HH:MI AM') FROM T");
         assertResult("08:12 A.M.", stat, "SELECT TO_CHAR(X, 'HH:MI A.M.') FROM T");
         assertResult("02:04 P.M.", stat, "SELECT TO_CHAR(X, 'HH:MI A.M.') FROM U");
@@ -1651,24 +1569,6 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         if (expected.charAt(l) == '.')
             expected = expected.substring(0, l);
         return expected;
-    }
-
-    private void testIfNull() throws SQLException {
-        deleteDb("functions");
-        Connection conn = getConnection("functions");
-        Statement stat = conn.createStatement(
-                ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-        stat.execute("CREATE TABLE T(f1 double)");
-        stat.executeUpdate("INSERT INTO T VALUES( 1.2 )");
-        stat.executeUpdate("INSERT INTO T VALUES( null )");
-        ResultSet rs = stat.executeQuery("SELECT IFNULL(f1, 0.0) FROM T");
-        ResultSetMetaData metaData = rs.getMetaData();
-        assertEquals("java.lang.Double", metaData.getColumnClassName(1));
-        rs.next();
-        assertEquals("java.lang.Double", rs.getObject(1).getClass().getName());
-        rs.next();
-        assertEquals("java.lang.Double", rs.getObject(1).getClass().getName());
-        conn.close();
     }
 
     private void testToCharFromNumber() throws SQLException {
@@ -1939,91 +1839,18 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         conn.close();
     }
 
-    private void testGenerateSeries() throws SQLException {
-        Connection conn = getConnection("functions");
-        Statement stat = conn.createStatement();
-
-        ResultSet rs = stat.executeQuery("select * from system_range(1,3)");
-        rs.next();
-        assertEquals(1, rs.getInt(1));
-        rs.next();
-        assertEquals(2, rs.getInt(1));
-        rs.next();
-        assertEquals(3, rs.getInt(1));
-
-        rs = stat.executeQuery("select * from system_range(2,2)");
-        assertTrue(rs.next());
-        assertEquals(2, rs.getInt(1));
-
-        rs = stat.executeQuery("select * from system_range(2,1)");
-        assertFalse(rs.next());
-
-        rs = stat.executeQuery("select * from system_range(1,2,-1)");
-        assertFalse(rs.next());
-
-        assertThrows(ErrorCode.STEP_SIZE_MUST_NOT_BE_ZERO, stat).executeQuery(
-                "select * from system_range(1,2,0)");
-
-        rs = stat.executeQuery("select * from system_range(2,1,-1)");
-        assertTrue(rs.next());
-        assertEquals(2, rs.getInt(1));
-        assertTrue(rs.next());
-        assertEquals(1, rs.getInt(1));
-
-        rs = stat.executeQuery("select * from system_range(1,5,2)");
-        assertTrue(rs.next());
-        assertEquals(1, rs.getInt(1));
-        assertTrue(rs.next());
-        assertEquals(3, rs.getInt(1));
-        assertTrue(rs.next());
-        assertEquals(5, rs.getInt(1));
-
-        rs = stat.executeQuery("select * from system_range(1,6,2)");
-        assertTrue(rs.next());
-        assertEquals(1, rs.getInt(1));
-        assertTrue(rs.next());
-        assertEquals(3, rs.getInt(1));
-        assertTrue(rs.next());
-        assertEquals(5, rs.getInt(1));
-
-        conn.close();
-    }
-
-    private void testAnnotationProcessorsOutput() throws SQLException {
+    private void testAnnotationProcessorsOutput() {
         try {
             System.setProperty(TestAnnotationProcessor.MESSAGES_KEY, "WARNING,foo1|ERROR,foo2");
             callCompiledFunction("test_annotation_processor_warn_and_error");
             fail();
-        } catch (JdbcSQLException e) {
+        } catch (SQLException e) {
             assertEquals(ErrorCode.SYNTAX_ERROR_1, e.getErrorCode());
             assertContains(e.getMessage(), "foo1");
             assertContains(e.getMessage(), "foo2");
         } finally {
             System.clearProperty(TestAnnotationProcessor.MESSAGES_KEY);
         }
-    }
-
-    private void testRound() throws SQLException {
-        deleteDb("functions");
-
-        Connection conn = getConnection("functions");
-        Statement stat = conn.createStatement();
-
-        final ResultSet rs = stat.executeQuery(
-                "select ROUND(-1.2), ROUND(-1.5), ROUND(-1.6), " +
-                "ROUND(2), ROUND(1.5), ROUND(1.8), ROUND(1.1) from dual");
-
-        rs.next();
-        assertEquals(-1, rs.getInt(1));
-        assertEquals(-2, rs.getInt(2));
-        assertEquals(-2, rs.getInt(3));
-        assertEquals(2, rs.getInt(4));
-        assertEquals(2, rs.getInt(5));
-        assertEquals(2, rs.getInt(6));
-        assertEquals(1, rs.getInt(7));
-
-        rs.close();
-        conn.close();
     }
 
     private void testSignal() throws SQLException {
@@ -2326,10 +2153,10 @@ public class TestFunctions extends TestBase implements AggregateFunction {
                     sp != 1 || lp != 1 || byParam != 1) {
                 throw new AssertionError("params not 1/true");
             }
-            if (rowCount.intValue() >= 1) {
+            if (rowCount >= 1) {
                 rs.addRow(0, "Hello");
             }
-            if (rowCount.intValue() >= 2) {
+            if (rowCount >= 2) {
                 rs.addRow(1, "World");
             }
         }

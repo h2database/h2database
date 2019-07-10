@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.util;
@@ -21,6 +21,7 @@ import org.h2.api.CustomDataTypesHandler;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
 import org.h2.engine.SysProperties;
+import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.store.DataHandler;
 import org.h2.util.Utils.ClassFactory;
@@ -114,7 +115,7 @@ public class JdbcUtils {
         String clazz = SysProperties.JAVA_OBJECT_SERIALIZER;
         if (clazz != null) {
             try {
-                serializer = (JavaObjectSerializer) loadUserClass(clazz).newInstance();
+                serializer = (JavaObjectSerializer) loadUserClass(clazz).getDeclaredConstructor().newInstance();
             } catch (Exception e) {
                 throw DbException.convert(e);
             }
@@ -124,7 +125,7 @@ public class JdbcUtils {
         if (customTypeHandlerClass != null) {
             try {
                 customDataTypesHandler = (CustomDataTypesHandler)
-                        loadUserClass(customTypeHandlerClass).newInstance();
+                        loadUserClass(customTypeHandlerClass).getDeclaredConstructor().newInstance();
             } catch (Exception e) {
                 throw DbException.convert(e);
             }
@@ -271,7 +272,7 @@ public class JdbcUtils {
         if (password != null) {
             prop.setProperty("password", password);
         }
-        return getConnection(driver, url, prop);
+        return getConnection(driver, url, prop, null);
     }
 
     /**
@@ -280,26 +281,39 @@ public class JdbcUtils {
      * @param driver the driver class name
      * @param url the database URL
      * @param prop the properties containing at least the user name and password
+     * @param networkConnectionInfo the network connection information, or {@code null}
      * @return the database connection
      */
-    public static Connection getConnection(String driver, String url,
-            Properties prop) throws SQLException {
+    public static Connection getConnection(String driver, String url, Properties prop,
+            NetworkConnectionInfo networkConnectionInfo) throws SQLException {
+        Connection connection = getConnection(driver, url, prop);
+        if (networkConnectionInfo != null && connection instanceof JdbcConnection) {
+            ((JdbcConnection) connection).getSession().setNetworkConnectionInfo(networkConnectionInfo);
+        }
+        return connection;
+    }
+
+    private static Connection getConnection(String driver, String url, Properties prop) throws SQLException {
         if (StringUtils.isNullOrEmpty(driver)) {
             JdbcUtils.load(url);
         } else {
             Class<?> d = loadUserClass(driver);
-            if (java.sql.Driver.class.isAssignableFrom(d)) {
-                try {
-                    Driver driverInstance = (Driver) d.newInstance();
-                    return driverInstance.connect(url, prop); /*fix issue #695 with drivers with the same
-                    jdbc subprotocol in classpath of jdbc drivers (as example redshift and postgresql drivers)*/
-                } catch (Exception e) {
-                    throw DbException.toSQLException(e);
-                }
-            } else if (javax.naming.Context.class.isAssignableFrom(d)) {
-                // JNDI context
-                try {
-                    Context context = (Context) d.newInstance();
+            try {
+                if (java.sql.Driver.class.isAssignableFrom(d)) {
+                    Driver driverInstance = (Driver) d.getDeclaredConstructor().newInstance();
+                    /*
+                     * fix issue #695 with drivers with the same jdbc
+                     * subprotocol in classpath of jdbc drivers (as example
+                     * redshift and postgresql drivers)
+                     */
+                    Connection connection = driverInstance.connect(url, prop);
+                    if (connection != null) {
+                        return connection;
+                    }
+                    throw new SQLException("Driver " + driver + " is not suitable for " + url, "08001");
+                } else if (javax.naming.Context.class.isAssignableFrom(d)) {
+                    // JNDI context
+                    Context context = (Context) d.getDeclaredConstructor().newInstance();
                     DataSource ds = (DataSource) context.lookup(url);
                     String user = prop.getProperty("user");
                     String password = prop.getProperty("password");
@@ -307,13 +321,11 @@ public class JdbcUtils {
                         return ds.getConnection();
                     }
                     return ds.getConnection(user, password);
-                } catch (Exception e) {
-                    throw DbException.toSQLException(e);
                 }
-            } else {
-                // don't know, but maybe it loaded a JDBC Driver
-                return DriverManager.getConnection(url, prop);
+            } catch (Exception e) {
+                throw DbException.toSQLException(e);
             }
+            // don't know, but maybe it loaded a JDBC Driver
         }
         return DriverManager.getConnection(url, prop);
     }

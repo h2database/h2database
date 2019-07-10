@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.command;
@@ -13,7 +13,7 @@ import org.h2.result.ResultWithGeneratedKeys;
 /**
  * Represents a SQL statement.
  */
-public interface CommandInterface {
+public interface CommandInterface extends AutoCloseable {
 
     /**
      * The type for unknown statement.
@@ -63,12 +63,13 @@ public interface CommandInterface {
     int ALTER_TABLE_ALTER_COLUMN_NOT_NULL = 8;
 
     /**
-     * The type of a ALTER TABLE ALTER COLUMN SET NULL statement.
+     * The type of a ALTER TABLE ALTER COLUMN DROP NOT NULL statement.
      */
-    int ALTER_TABLE_ALTER_COLUMN_NULL = 9;
+    int ALTER_TABLE_ALTER_COLUMN_DROP_NOT_NULL = 9;
 
     /**
-     * The type of a ALTER TABLE ALTER COLUMN SET DEFAULT statement.
+     * The type of a ALTER TABLE ALTER COLUMN SET DEFAULT and ALTER TABLE ALTER
+     * COLUMN DROP DEFAULT statements.
      */
     int ALTER_TABLE_ALTER_COLUMN_DEFAULT = 10;
 
@@ -517,13 +518,13 @@ public interface CommandInterface {
      * Execute the statement
      *
      * @param generatedKeysRequest
-     *            {@code false} if generated keys are not needed, {@code true} if
-     *            generated keys should be configured automatically, {@code int[]}
-     *            to specify column indices to return generated keys from, or
-     *            {@code String[]} to specify column names to return generated keys
-     *            from
+     *            {@code null} or {@code false} if generated keys are not
+     *            needed, {@code true} if generated keys should be configured
+     *            automatically, {@code int[]} to specify column indices to
+     *            return generated keys from, or {@code String[]} to specify
+     *            column names to return generated keys from
      *
-     * @return the update count
+     * @return the update count and generated keys, if any
      */
     ResultWithGeneratedKeys executeUpdate(Object generatedKeysRequest);
 
@@ -535,6 +536,7 @@ public interface CommandInterface {
     /**
      * Close the statement.
      */
+    @Override
     void close();
 
     /**

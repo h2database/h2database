@@ -1,12 +1,13 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.store;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.net.BindException;
 import java.net.ConnectException;
 import java.net.InetAddress;
@@ -187,7 +188,7 @@ public class FileLock implements Runnable {
             try (OutputStream out = FileUtils.newOutputStream(fileName, false)) {
                 properties.store(out, MAGIC);
             }
-            lastWrite = FileUtils.lastModified(fileName);
+            lastWrite = aggressiveLastModified(fileName);
             if (trace.isDebugEnabled()) {
                 trace.debug("save " + properties);
             }
@@ -195,6 +196,29 @@ public class FileLock implements Runnable {
         } catch (IOException e) {
             throw getExceptionFatal("Could not save properties " + fileName, e);
         }
+    }
+
+    /**
+     * Aggressively read last modified time, to work-around remote filesystems.
+     *
+     * @param filename file name to check
+     * @return last modified date/time in milliseconds UTC
+     */
+    private static long aggressiveLastModified(String fileName) {
+        /*
+         * Some remote filesystem, e.g. SMB on Windows, can cache metadata for
+         * 5-10 seconds. To work around that, do a one-byte read from the
+         * underlying file, which has the effect of invalidating the metadata
+         * cache.
+         */
+        try {
+            try (RandomAccessFile raRD = new RandomAccessFile(fileName, "rws")) {
+                raRD.seek(0);
+                byte b[] = new byte[1];
+                raRD.read(b);
+            }
+        } catch (IOException ignoreEx) {}
+        return FileUtils.lastModified(fileName);
     }
 
     private void checkServer() {
@@ -257,7 +281,7 @@ public class FileLock implements Runnable {
 
     private void waitUntilOld() {
         for (int i = 0; i < 2 * TIME_GRANULARITY / SLEEP_GAP; i++) {
-            long last = FileUtils.lastModified(fileName);
+            long last = aggressiveLastModified(fileName);
             long dist = System.currentTimeMillis() - last;
             if (dist < -TIME_GRANULARITY) {
                 // lock file modified in the future -
@@ -354,7 +378,7 @@ public class FileLock implements Runnable {
         FileUtils.createDirectories(FileUtils.getParent(fileName));
         if (!FileUtils.createFile(fileName)) {
             waitUntilOld();
-            long read = FileUtils.lastModified(fileName);
+            long read = aggressiveLastModified(fileName);
             Properties p2 = load();
             String m2 = p2.getProperty("method", SOCKET);
             if (m2.equals(FILE)) {
@@ -388,7 +412,7 @@ public class FileLock implements Runnable {
                     throw getExceptionFatal("IOException", null);
                 }
             }
-            if (read != FileUtils.lastModified(fileName)) {
+            if (read != aggressiveLastModified(fileName)) {
                 throw getExceptionFatal("Concurrent update", null);
             }
             FileUtils.delete(fileName);
@@ -482,15 +506,11 @@ public class FileLock implements Runnable {
                 // trace.debug("watchdog check");
                 try {
                     if (!FileUtils.exists(fileName) ||
-                            FileUtils.lastModified(fileName) != lastWrite) {
+                            aggressiveLastModified(fileName) != lastWrite) {
                         save();
                     }
                     Thread.sleep(sleep);
-                } catch (OutOfMemoryError e) {
-                    // ignore
-                } catch (InterruptedException e) {
-                    // ignore
-                } catch (NullPointerException e) {
+                } catch (OutOfMemoryError | NullPointerException | InterruptedException e) {
                     // ignore
                 } catch (Exception e) {
                     trace.debug(e, "watchdog");

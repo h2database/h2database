@@ -5,12 +5,12 @@
     <version>@version@</version>
     <packaging>jar</packaging>
     <name>H2 Database Engine</name>
-    <url>http://www.h2database.com</url>
+    <url>https://h2database.com</url>
     <description>H2 Database Engine</description>
     <licenses>
         <license>
             <name>MPL 2.0 or EPL 1.0</name>
-            <url>http://h2database.com/html/license.html</url>
+            <url>https://h2database.com/html/license.html</url>
             <distribution>repo</distribution>
         </license>
     </licenses>

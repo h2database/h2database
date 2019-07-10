@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.engine;
@@ -37,6 +37,10 @@ public class SettingsBase {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1,
                     e, "key:" + key + " value:" + s);
         }
+    }
+
+    void set(String key, boolean value) {
+        settings.put(key, Boolean.toString(value));
     }
 
     /**

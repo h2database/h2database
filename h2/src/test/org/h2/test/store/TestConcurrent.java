@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.store;
@@ -47,7 +47,8 @@ public class TestConcurrent extends TestMVStore {
     @Override
     public void test() throws Exception {
         FileUtils.createDirectories(getBaseDir());
-        testInterruptReopen();
+        testInterruptReopenAsync();
+        testInterruptReopenRetryNIO();
         testConcurrentSaveCompact();
         testConcurrentDataType();
         testConcurrentAutoCommitAndChange();
@@ -64,8 +65,16 @@ public class TestConcurrent extends TestMVStore {
         testConcurrentRead();
     }
 
-    private void testInterruptReopen() {
-        String fileName = "retry:nio:" + getBaseDir() + "/" + getTestName();
+    private void testInterruptReopenAsync() {
+        testInterruptReopen("async:");
+    }
+
+    private void testInterruptReopenRetryNIO() {
+        testInterruptReopen("retry:nio:");
+    }
+
+    private void testInterruptReopen(String prefix) {
+        String fileName = prefix + getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         final MVStore s = new MVStore.Builder().
                 fileName(fileName).
@@ -387,6 +396,7 @@ public class TestConcurrent extends TestMVStore {
                     fileName(fileName).autoCommitDisabled().open();
             try {
                 s.setRetentionTime(0);
+                s.setVersionsToKeep(0);
                 final ArrayList<MVMap<Integer, Integer>> list = new ArrayList<>(count);
                 for (int i = 0; i < count; i++) {
                     MVMap<Integer, Integer> m = s.openMap("d" + i);
@@ -513,8 +523,10 @@ public class TestConcurrent extends TestMVStore {
                         Thread.sleep(1);
                     }
                     Exception e = task.getException();
-                    assertEquals(DataUtils.ERROR_CLOSED,
-                            DataUtils.getErrorCode(e.getMessage()));
+                    if (e != null) {
+                        assertEquals(DataUtils.ERROR_CLOSED,
+                                        DataUtils.getErrorCode(e.getMessage()));
+                    }
                 } catch (IllegalStateException e) {
                     // sometimes storing works, in which case
                     // closing must fail

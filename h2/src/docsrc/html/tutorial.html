@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0, Version 1.0,
-and under the Eclipse Public License, Version 1.0
+Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+and the EPL 1.0 (https://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
@@ -127,6 +127,12 @@ Depending on your platform and environment, there are multiple ways to start the
     </td>
 </tr>
 </table>
+<p>
+If the console startup procedure is unable to locate the default system web browser,
+an error message may be displayed. It is possible to explicitly tell H2 which
+program/script to use when opening a system web browser by setting either the BROWSER
+environment variable, or the h2.browser java property.
+</p>
 
 <h3>Firewall</h3>
 <p>
@@ -436,6 +442,7 @@ Supported settings are:
 <ul><li><code>webAllowOthers</code>: allow other computers to connect.
 </li><li><code>webPort</code>: the port of the H2 Console
 </li><li><code>webSSL</code>: use encrypted TLS (HTTPS) connections.
+</li><li><code>webAdminPassword</code>: password to access preferences and tools of H2 Console.
 </li></ul>
 <p>
 In addition to those settings, the properties of the last recently used connection
@@ -474,13 +481,60 @@ In this database, user names are not case sensitive, but passwords are.
 
 <h2 id="creating_new_databases">Creating New Databases</h2>
 <p>
-By default, if the database specified in the URL does not yet exist, a new (empty)
-database is created automatically. The user that created the database automatically becomes
-the administrator of this database.
+By default, if the database specified in the <a href="features.html#database_url">embedded</a> URL does not yet exist,
+a new (empty) database is created automatically.
+The user that created the database automatically becomes the administrator of this database.
 </p>
 <p>
-Auto-creating new database can be disabled, see
+Auto-creation of databases can be disabled, see
 <a href="features.html#database_only_if_exists">Opening a Database Only if it Already Exists</a>.
+</p>
+<p>
+H2 Console does not allow creation of databases unless a browser window is opened by Console during its
+startup or from its icon in the system tray and remote access is not enabled.
+A context menu of the tray icon can also be used to create a new database.
+</p>
+<p>
+You can also create a new local database from a command line with a Shell tool:
+</p>
+<pre>
+&gt; java -cp h2-*.jar org.h2.tools.Shell
+
+Welcome to H2 Shell
+Exit with Ctrl+C
+[Enter]   jdbc:h2:mem:2
+URL       jdbc:h2:./path/to/database
+[Enter]   org.h2.Driver
+Driver
+[Enter]   sa
+User      your_username
+Password  (hidden)
+Type the same password again to confirm database creation.
+Password  (hidden)
+Connected
+
+sql&gt; quit
+Connection closed
+</pre>
+<p>
+By default remote creation of databases from a TCP connection or a web interface is not allowed.
+It's not recommended to enable remote creation of databases due to security reasons.
+User who creates a new database becomes its administrator and therefore gets the same access to your JVM as H2 has
+and the same access to your operating system as Java and your system account allows.
+It's recommended to create all databases locally using an embedded URL, local H2 Console, or the Shell tool.
+</p>
+<p>
+If you really need to allow remote database creation, you can pass <code>-ifNotExists</code> parameter to
+TCP, PG, or Web servers (but not to the Console tool).
+Its combination with <code>-tcpAllowOthers</code>, <code>-pgAllowOthers</code>, or <code>-webAllowOthers</code>
+effectively creates a remote security hole in your system, if you use it, always guard your ports with a firewall
+or some other solution and use such combination of settings only in trusted networks.
+</p>
+<p>
+H2 Servlet also supports such option.
+When you use it always protect the servlet with security constraints,
+see <a href="#usingH2ConsoleServlet">Using the H2 Console Servlet</a> for example;
+don't forget to uncomment and adjust security configuration for your needs.
 </p>
 
 <h2 id="using_server">Using the Server</h2>
@@ -646,7 +700,7 @@ CREATE TABLE USER (ID INT, NAME VARCHAR(50));
 then run the jOOQ code generator on the command line using this command:
 </p>
 <pre>
-java -cp jooq.jar;jooq-meta.jar;jooq-codegen.jar;h2-1.3.158.jar;.
+java -cp jooq.jar;jooq-meta.jar;jooq-codegen.jar;h2-1.4.199.jar;.
 org.jooq.util.GenerationTool /codegen.xml
 </pre>
 <p>
@@ -654,7 +708,7 @@ org.jooq.util.GenerationTool /codegen.xml
 </p>
 <pre>
 &lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-&lt;configuration xmlns="http://www.jooq.org/xsd/jooq-codegen-2.3.0.xsd">
+&lt;configuration xmlns="http://www.jooq.org/xsd/jooq-codegen-3.11.0.xsd">
     &lt;jdbc>
         &lt;driver>org.h2.Driver&lt;/driver>
         &lt;url>jdbc:h2:~/test&lt;/url>
@@ -662,14 +716,11 @@ org.jooq.util.GenerationTool /codegen.xml
         &lt;password>&lt;/password>
     &lt;/jdbc>
     &lt;generator>
-        &lt;name>org.jooq.util.DefaultGenerator&lt;/name>
         &lt;database>
-            &lt;name>org.jooq.util.h2.H2Database&lt;/name>
             &lt;includes>.*&lt;/includes>
             &lt;excludes>&lt;/excludes>
             &lt;inputSchema>PUBLIC&lt;/inputSchema>
         &lt;/database>
-        &lt;generate>&lt;/generate>
         &lt;target>
             &lt;packageName>org.jooq.h2.generated&lt;/packageName>
             &lt;directory>./src&lt;/directory>
@@ -681,16 +732,16 @@ org.jooq.util.GenerationTool /codegen.xml
 Using the generated source, you can query the database as follows:
 </p>
 <pre>
-Factory create = new H2Factory(connection);
+DSLContext dsl = DSL.using(connection);
 Result&lt;UserRecord&gt; result =
-create.selectFrom(USER)
+dsl.selectFrom(USER)
     .where(NAME.like("Johnny%"))
     .orderBy(ID)
     .fetch();
 </pre>
 <p>
-See more details on <a href="http://www.jooq.org">jOOQ Homepage</a>
-and in the <a href="http://www.jooq.org/tutorial.php">jOOQ Tutorial</a>
+See more details on <a href="https://www.jooq.org">jOOQ Homepage</a>
+and in the <a href="https://www.jooq.org/tutorial">jOOQ Tutorial</a>
 </p>
 
 <h2 id="web_applications">Using Databases in Web Applications</h2>
@@ -776,10 +827,10 @@ When the web application is stopped, the database connection will be closed auto
 If the TCP server is started within the <code>DbStarter</code>, it will also be stopped automatically.
 </p>
 
-<h3>Using the H2 Console Servlet</h3>
+<h3 id="usingH2ConsoleServlet">Using the H2 Console Servlet</h3>
 <p>
 The H2 Console is a standalone application and includes its own web server, but it can be
-used as a servlet as well. To do that, include the the <code>h2*.jar</code> file in your application, and
+used as a servlet as well. To do that, include the <code>h2*.jar</code> file in your application, and
 add the following configuration to your <code>web.xml</code>:
 </p>
 <pre>
@@ -802,6 +853,20 @@ add the following configuration to your <code>web.xml</code>:
     &lt;servlet-name&gt;H2Console&lt;/servlet-name&gt;
     &lt;url-pattern&gt;/console/*&lt;/url-pattern&gt;
 &lt;/servlet-mapping&gt;
+&lt;!--
+&lt;security-role&gt;
+    &lt;role-name&gt;admin&lt;/role-name&gt;
+&lt;/security-role&gt;
+&lt;security-constraint&gt;
+    &lt;web-resource-collection&gt;
+        &lt;web-resource-name&gt;H2 Console&lt;/web-resource-name&gt;
+        &lt;url-pattern&gt;/console/*&lt;/url-pattern&gt;
+    &lt;/web-resource-collection&gt;
+    &lt;auth-constraint&gt;
+        &lt;role-name&gt;admin&lt;/role-name&gt;
+    &lt;/auth-constraint&gt;
+&lt;/security-constraint&gt;
+--&gt;
 </pre>
 <p>
 For details, see also <code>src/tools/WEB-INF/web.xml</code>.
@@ -1234,8 +1299,8 @@ org.h2.fulltext.FullText.searchData(conn, text, limit, offset);
 <h3>Using the Apache Lucene Fulltext Search</h3>
 <p>
 To use the Apache Lucene full text search, you need the Lucene library in the classpath.
-Currently, Apache Lucene 3.6.2 is used for testing.
-Newer versions may work, however they are not tested.
+Apache Lucene 5.5.5 or later version up to 8.0.* is required.
+Newer versions may also work, but were not tested.
 How to do that depends on the application; if you use the H2 Console, you can add the Lucene
 jar file to the environment variables <code>H2DRIVERS</code> or
 <code>CLASSPATH</code>.

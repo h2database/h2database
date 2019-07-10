@@ -1,5 +1,9 @@
 # Checklist for a release
 
+## Switch to Java 1.7
+
+    . setjava.sh 1.7
+
 ## Formatting, Spellchecking, Javadocs
 
     git pull
@@ -7,7 +11,7 @@
 Do this until there are no errors.
 Fix typos, add new words to dictionary.txt:
 
-    ./build.sh spellcheck
+    ./build.sh clean compile spellcheck
 
 Add documentation for all public methods. Make methods private if possible:
 
@@ -24,7 +28,7 @@ To verify, run
 
     ./build.sh clean jarClient
 
-If this fails with eg. "Expected file size 400 - 500 KB, got: 1687", then
+If this fails with eg. "Expected file size 400 - 600 KB, got: 1687", then
 find out where the dependency is, and resolve. As follows:
 start by renaming Database to Database2:
 
@@ -42,7 +46,7 @@ After everything is resolved, rename the classes back.
 
 To ensure the MVStore jar file is not too large
 (does not reference the database code by accident).
-The file size should be about 200 KB:
+The file size should be about 300 KB:
 
     ./build.sh jarMVStore
 
@@ -55,6 +59,11 @@ Update org.h2.engine.Constants.java:
     change the version and build number:
         set BUILD_DATE to today
         increment BUILD_ID
+    if the last TCP_PROTOCOL_VERSION_##
+        doesn't have a release date set it to current BUILD_DATE
+
+Update h2/pom.xml.
+    set ...-SNAPSHOT to the next version
 
 Update changelog.html:
     * create a new "Next Version (unreleased)" with an empty list
@@ -68,8 +77,6 @@ Update newsfeed.sql:
 
 ## Skipped
 
-The following can be skipped currently, as sourceError.html and source.html
-are no longer working (they can be removed, or fixed):
 * Minor version change: change sourceError.html and source.html
 * If a beta, change download.html: Version ${version} (${versionDate}), Beta
 * If a beta, change mainWeb.html: Version ${version} (${versionDate}), Beta
@@ -101,9 +108,9 @@ Check docs, versions and links in main, downloads, build numbers.
 
 Check the PDF file size.
 
-Upload (http and https) to ftp://h2database.com/javadoc
-Upload (http and https) to ftp://h2database.com
-Upload (http and https) to ftp://h2database.com/m2-repo
+Upload (<x> = httpdocs and httpsdocs) to ftp://h2database.com/<x>/javadoc
+Upload (<x> = httpdocs and httpsdocs) to ftp://h2database.com/<x>/
+Upload (<x> = httpdocs and httpsdocs) to ftp://h2database.com/<x>/m2-repo
 
 Github: create a release.
 
@@ -134,12 +141,15 @@ In Build.java, comment "-Xdoclint:none", but don't commit that change.
     # http://central.sonatype.org/pages/ossrh-guide.html
     # http://central.sonatype.org/pages/manual-staging-bundle-creation-and-deployment.html
     # https://oss.sonatype.org/#welcome - Log In "t..."
+    # sometimes this doesn't work reliably and you will have to retry
     # - Staging Upload
-    # - Upload Mode: Artifact Bundle, Select Bundle to Upload... - /data/.../bundle.jar
-    # - Upload Bundle - Staging Repositories - select comh2database - Release - Confirm
+    # - Upload Mode: Artifact Bundle, Select Bundle to Upload... - /data/h2database/.../h2/.../bundle.jar
+    # - Upload Bundle
+    # - Staging Repositories - Refresh - select comh2database-<...> - Release - Confirm
     # - Staging Upload
-    # - Upload Mode: Artifact Bundle, Select Bundle to Upload... - /data/.../bundle.jar
-    # - Upload Bundle - Staging Repositories - select comh2database - Release - Confirm
+    # - Upload Mode: Artifact Bundle, Select Bundle to Upload... - /data/h2database/.../h2-mvstore/.../bundle.jar
+    # - Upload Bundle
+    # - Staging Repositories - Refresh - select comh2database-<...> - Release - Confirm
 
 Update statistics.
 

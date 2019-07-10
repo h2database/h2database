@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.db;
@@ -11,11 +11,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests for the two-phase-commit feature.
  */
-public class TestTwoPhaseCommit extends TestBase {
+public class TestTwoPhaseCommit extends TestDb {
 
     /**
      * Run just this test.
@@ -27,11 +28,15 @@ public class TestTwoPhaseCommit extends TestBase {
     }
 
     @Override
-    public void test() throws SQLException {
+    public boolean isEnabled() {
         if (config.memory || config.networked) {
-            return;
+            return false;
         }
+        return true;
+    }
 
+    @Override
+    public void test() throws SQLException {
         deleteDb("twoPhaseCommit");
 
         prepare();

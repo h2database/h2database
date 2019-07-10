@@ -1,16 +1,16 @@
--- Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
--- and the EPL 1.0 (http://h2database.com/html/license.html).
+-- Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
 
 explain select * from system_range(1, 2) where x=x+1 and x=1;
->> SELECT SYSTEM_RANGE.X FROM SYSTEM_RANGE(1, 2) /* PUBLIC.RANGE_INDEX: X = 1 */ WHERE ((X = 1) AND (X = (X + 1))) AND (1 = (X + 1))
+>> SELECT "PUBLIC"."SYSTEM_RANGE"."X" FROM SYSTEM_RANGE(1, 2) /* PUBLIC.RANGE_INDEX: X = 1 */ WHERE ("X" = 1) AND ("X" = ("X" + 1))
 
 explain select * from system_range(1, 2) where not (x = 1 and x*2 = 2);
->> SELECT SYSTEM_RANGE.X FROM SYSTEM_RANGE(1, 2) /* PUBLIC.RANGE_INDEX */ WHERE (X <> 1) OR ((X * 2) <> 2)
+>> SELECT "PUBLIC"."SYSTEM_RANGE"."X" FROM SYSTEM_RANGE(1, 2) /* PUBLIC.RANGE_INDEX */ WHERE ("X" <> 1) OR (("X" * 2) <> 2)
 
 explain select * from system_range(1, 10) where (NOT x >= 5);
->> SELECT SYSTEM_RANGE.X FROM SYSTEM_RANGE(1, 10) /* PUBLIC.RANGE_INDEX: X < 5 */ WHERE X < 5
+>> SELECT "PUBLIC"."SYSTEM_RANGE"."X" FROM SYSTEM_RANGE(1, 10) /* PUBLIC.RANGE_INDEX: X < 5 */ WHERE "X" < 5
 
 select (select t1.x from system_range(1,1) t2) from system_range(1,1) t1;
 > SELECT T1.X FROM SYSTEM_RANGE(1, 1) T2 /* PUBLIC.RANGE_INDEX */ /* scanCount: 2 */
@@ -19,7 +19,7 @@ select (select t1.x from system_range(1,1) t2) from system_range(1,1) t1;
 > rows: 1
 
 EXPLAIN PLAN FOR SELECT * FROM SYSTEM_RANGE(1, 20);
->> SELECT SYSTEM_RANGE.X FROM SYSTEM_RANGE(1, 20) /* PUBLIC.RANGE_INDEX */
+>> SELECT "PUBLIC"."SYSTEM_RANGE"."X" FROM SYSTEM_RANGE(1, 20) /* PUBLIC.RANGE_INDEX */
 
 select sum(x) from system_range(2, 1000) r where
 not exists(select * from system_range(2, 32) r2 where r.x>r2.x and mod(r.x, r2.x)=0);

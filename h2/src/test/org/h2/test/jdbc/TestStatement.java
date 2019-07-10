@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.jdbc;
@@ -21,11 +21,12 @@ import org.h2.jdbc.JdbcStatement;
 import org.h2.jdbc.JdbcStatementBackwardsCompat;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Tests for the Statement implementation.
  */
-public class TestStatement extends TestBase {
+public class TestStatement extends TestDb {
 
     private Connection conn;
 
@@ -50,8 +51,9 @@ public class TestStatement extends TestBase {
         testStatement();
         testPreparedStatement();
         testIdentityMerge();
-        testIdentity();
         conn.close();
+        deleteDb("statement");
+        testIdentifiers();
         deleteDb("statement");
     }
 
@@ -329,19 +331,6 @@ public class TestStatement extends TestBase {
         assertNull(stat.getWarnings());
         assertTrue(conn == stat.getConnection());
 
-        assertEquals("SOME_ID", statBC.enquoteIdentifier("SOME_ID", false));
-        assertEquals("\"SOME ID\"", statBC.enquoteIdentifier("SOME ID", false));
-        assertEquals("\"SOME_ID\"", statBC.enquoteIdentifier("SOME_ID", true));
-        assertEquals("\"FROM\"", statBC.enquoteIdentifier("FROM", false));
-        assertEquals("\"Test\"", statBC.enquoteIdentifier("Test", false));
-        assertEquals("\"TODAY\"", statBC.enquoteIdentifier("TODAY", false));
-
-        assertTrue(statBC.isSimpleIdentifier("SOME_ID"));
-        assertFalse(statBC.isSimpleIdentifier("SOME ID"));
-        assertFalse(statBC.isSimpleIdentifier("FROM"));
-        assertFalse(statBC.isSimpleIdentifier("Test"));
-        assertFalse(statBC.isSimpleIdentifier("TODAY"));
-
         stat.close();
     }
 
@@ -361,6 +350,8 @@ public class TestStatement extends TestBase {
         stat.execute("merge into test1(x) key(x) values(5)",
                 Statement.RETURN_GENERATED_KEYS);
         keys = stat.getGeneratedKeys();
+        keys.next();
+        assertEquals(1, keys.getInt(1));
         assertFalse(keys.next());
         stat.execute("merge into test1(x) key(x) values(6)",
                 Statement.RETURN_GENERATED_KEYS);
@@ -368,64 +359,6 @@ public class TestStatement extends TestBase {
         keys.next();
         assertEquals(2, keys.getInt(1));
         stat.execute("drop table test1, test2");
-    }
-
-    private void testIdentity() throws SQLException {
-        Statement stat = conn.createStatement();
-        stat.execute("CREATE SEQUENCE SEQ");
-        stat.execute("CREATE TABLE TEST(ID INT)");
-        stat.execute("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)",
-                Statement.RETURN_GENERATED_KEYS);
-        ResultSet rs = stat.getGeneratedKeys();
-        rs.next();
-        assertEquals(1, rs.getInt(1));
-        assertFalse(rs.next());
-        stat.execute("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)",
-                Statement.RETURN_GENERATED_KEYS);
-        rs = stat.getGeneratedKeys();
-        rs.next();
-        assertEquals(2, rs.getInt(1));
-        assertFalse(rs.next());
-        stat.execute("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)",
-                new int[] { 1 });
-        rs = stat.getGeneratedKeys();
-        rs.next();
-        assertEquals(3, rs.getInt(1));
-        assertFalse(rs.next());
-        stat.execute("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)",
-                new String[] { "ID" });
-        rs = stat.getGeneratedKeys();
-        rs.next();
-        assertEquals(4, rs.getInt(1));
-        assertFalse(rs.next());
-        stat.executeUpdate("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)",
-                Statement.RETURN_GENERATED_KEYS);
-        rs = stat.getGeneratedKeys();
-        rs.next();
-        assertEquals(5, rs.getInt(1));
-        assertFalse(rs.next());
-        stat.executeUpdate("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)",
-                new int[] { 1 });
-        rs = stat.getGeneratedKeys();
-        rs.next();
-        assertEquals(6, rs.getInt(1));
-        assertFalse(rs.next());
-        stat.executeUpdate("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)",
-                new String[] { "ID" });
-        rs = stat.getGeneratedKeys();
-        rs.next();
-        assertEquals(7, rs.getInt(1));
-        assertFalse(rs.next());
-
-        stat.execute("CREATE TABLE TEST2(ID identity primary key)");
-        stat.execute("INSERT INTO TEST2 VALUES()");
-        stat.execute("SET @X = IDENTITY()");
-        rs = stat.executeQuery("SELECT @X");
-        rs.next();
-        assertEquals(1, rs.getInt(1));
-
-        stat.execute("DROP TABLE TEST");
-        stat.execute("DROP TABLE TEST2");
     }
 
     private void testPreparedStatement() throws SQLException{
@@ -482,6 +415,88 @@ public class TestStatement extends TestBase {
         assertEquals(1, ((JdbcPreparedStatementBackwardsCompat) ps).executeLargeUpdate());
         assertEquals(1, ((JdbcStatementBackwardsCompat) ps).getLargeUpdateCount());
         stat.execute("drop table test");
+    }
+
+    private void testIdentifiers() throws SQLException {
+        Connection conn = getConnection("statement");
+
+        JdbcStatement stat = (JdbcStatement) conn.createStatement();
+        assertEquals("SOME_ID", stat.enquoteIdentifier("SOME_ID", false));
+        assertEquals("\"SOME ID\"", stat.enquoteIdentifier("SOME ID", false));
+        assertEquals("\"SOME_ID\"", stat.enquoteIdentifier("SOME_ID", true));
+        assertEquals("\"FROM\"", stat.enquoteIdentifier("FROM", false));
+        assertEquals("\"Test\"", stat.enquoteIdentifier("Test", false));
+        assertEquals("\"test\"", stat.enquoteIdentifier("test", false));
+        assertEquals("\"TODAY\"", stat.enquoteIdentifier("TODAY", false));
+        assertEquals("\"Test\"", stat.enquoteIdentifier("\"Test\"", false));
+        assertEquals("\"Test\"", stat.enquoteIdentifier("\"Test\"", true));
+        assertEquals("\"\"\"Test\"", stat.enquoteIdentifier("\"\"\"Test\"", true));
+        try {
+            stat.enquoteIdentifier("\"Test", true);
+            fail();
+        } catch (SQLException ex) {
+            // OK
+        }
+        // Other lower case characters don't have upper case mappings
+        assertEquals("\u02B0", stat.enquoteIdentifier("\u02B0", false));
+
+        assertTrue(stat.isSimpleIdentifier("SOME_ID"));
+        assertFalse(stat.isSimpleIdentifier("SOME ID"));
+        assertFalse(stat.isSimpleIdentifier("FROM"));
+        assertFalse(stat.isSimpleIdentifier("Test"));
+        assertFalse(stat.isSimpleIdentifier("test"));
+        assertFalse(stat.isSimpleIdentifier("TODAY"));
+        // Other lower case characters don't have upper case mappings
+        assertTrue(stat.isSimpleIdentifier("\u02B0"));
+
+        conn.close();
+        deleteDb("statement");
+        conn = getConnection("statement;DATABASE_TO_LOWER=TRUE");
+
+        stat = (JdbcStatement) conn.createStatement();
+        assertEquals("some_id", stat.enquoteIdentifier("some_id", false));
+        assertEquals("\"some id\"", stat.enquoteIdentifier("some id", false));
+        assertEquals("\"some_id\"", stat.enquoteIdentifier("some_id", true));
+        assertEquals("\"from\"", stat.enquoteIdentifier("from", false));
+        assertEquals("\"Test\"", stat.enquoteIdentifier("Test", false));
+        assertEquals("\"TEST\"", stat.enquoteIdentifier("TEST", false));
+        assertEquals("\"today\"", stat.enquoteIdentifier("today", false));
+
+        assertTrue(stat.isSimpleIdentifier("some_id"));
+        assertFalse(stat.isSimpleIdentifier("some id"));
+        assertFalse(stat.isSimpleIdentifier("from"));
+        assertFalse(stat.isSimpleIdentifier("Test"));
+        assertFalse(stat.isSimpleIdentifier("TEST"));
+        assertFalse(stat.isSimpleIdentifier("today"));
+
+        conn.close();
+        deleteDb("statement");
+        conn = getConnection("statement;DATABASE_TO_UPPER=FALSE");
+
+        stat = (JdbcStatement) conn.createStatement();
+        assertEquals("SOME_ID", stat.enquoteIdentifier("SOME_ID", false));
+        assertEquals("some_id", stat.enquoteIdentifier("some_id", false));
+        assertEquals("\"SOME ID\"", stat.enquoteIdentifier("SOME ID", false));
+        assertEquals("\"some id\"", stat.enquoteIdentifier("some id", false));
+        assertEquals("\"SOME_ID\"", stat.enquoteIdentifier("SOME_ID", true));
+        assertEquals("\"some_id\"", stat.enquoteIdentifier("some_id", true));
+        assertEquals("\"FROM\"", stat.enquoteIdentifier("FROM", false));
+        assertEquals("\"from\"", stat.enquoteIdentifier("from", false));
+        assertEquals("Test", stat.enquoteIdentifier("Test", false));
+        assertEquals("\"TODAY\"", stat.enquoteIdentifier("TODAY", false));
+        assertEquals("\"today\"", stat.enquoteIdentifier("today", false));
+
+        assertTrue(stat.isSimpleIdentifier("SOME_ID"));
+        assertTrue(stat.isSimpleIdentifier("some_id"));
+        assertFalse(stat.isSimpleIdentifier("SOME ID"));
+        assertFalse(stat.isSimpleIdentifier("some id"));
+        assertFalse(stat.isSimpleIdentifier("FROM"));
+        assertFalse(stat.isSimpleIdentifier("from"));
+        assertTrue(stat.isSimpleIdentifier("Test"));
+        assertFalse(stat.isSimpleIdentifier("TODAY"));
+        assertFalse(stat.isSimpleIdentifier("today"));
+
+        conn.close();
     }
 
 }

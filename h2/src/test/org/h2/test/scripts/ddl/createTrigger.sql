@@ -1,5 +1,5 @@
--- Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
--- and the EPL 1.0 (http://h2database.com/html/license.html).
+-- Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
 
@@ -30,6 +30,18 @@ insert into items values(DEFAULT);
 drop table items, count;
 > ok
 
+CREATE TABLE TEST(A VARCHAR, B VARCHAR, C VARCHAR);
+> ok
+
+CREATE TRIGGER T1 BEFORE INSERT, UPDATE ON TEST FOR EACH ROW CALL "org.h2.test.scripts.Trigger1";
+> ok
+
+INSERT INTO TEST VALUES ('a', 'b', 'c');
+> exception ERROR_EXECUTING_TRIGGER_3
+
+DROP TABLE TEST;
+> ok
+
 -- ---------------------------------------------------------------------------
 -- PostgreSQL syntax tests
 -- ---------------------------------------------------------------------------
@@ -51,3 +63,6 @@ INSERT INTO COUNT VALUES(NULL);
 
 UPDATE COUNT SET X=2 WHERE X=1;
 > exception ERROR_CREATING_TRIGGER_OBJECT_3
+
+SET MODE Regular;
+> ok

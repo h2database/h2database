@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.server.web;
@@ -42,7 +42,7 @@ import org.h2.bnf.context.DbSchema;
 import org.h2.bnf.context.DbTableOrView;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
-import org.h2.jdbc.JdbcSQLException;
+import org.h2.jdbc.JdbcException;
 import org.h2.message.DbException;
 import org.h2.security.SHA256;
 import org.h2.tools.Backup;
@@ -56,10 +56,11 @@ import org.h2.tools.RunScript;
 import org.h2.tools.Script;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.JdbcUtils;
+import org.h2.util.NetUtils;
+import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.Profiler;
 import org.h2.util.ScriptReader;
 import org.h2.util.SortedProperties;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
 import org.h2.util.Utils;
@@ -126,10 +127,10 @@ public class WebApp {
      * Process an HTTP request.
      *
      * @param file the file that was requested
-     * @param hostAddr the host address
+     * @param networkConnectionInfo the network connection information
      * @return the name of the file to return to the client
      */
-    String processRequest(String file, String hostAddr) {
+    String processRequest(String file, NetworkConnectionInfo networkConnectionInfo) {
         int index = file.lastIndexOf('.');
         String suffix;
         if (index >= 0) {
@@ -152,7 +153,8 @@ public class WebApp {
             cache = false;
             mimeType = "text/html";
             if (session == null) {
-                session = server.createNewSession(hostAddr);
+                session = server.createNewSession(
+                        NetUtils.ipToShortForm(null, networkConnectionInfo.getClientAddr(), false).toString());
                 if (!"notAllowed.jsp".equals(file)) {
                     file = "index.do";
                 }
@@ -167,7 +169,15 @@ public class WebApp {
         trace("mimeType=" + mimeType);
         trace(file);
         if (file.endsWith(".do")) {
-            file = process(file);
+            file = process(file, networkConnectionInfo);
+        } else if (file.endsWith(".jsp")) {
+            switch (file) {
+            case "admin.jsp":
+            case "tools.jsp":
+                if (!checkAdmin(file)) {
+                    file = process("adminLogin.do", networkConnectionInfo);
+                }
+            }
         }
         return file;
     }
@@ -204,47 +214,91 @@ public class WebApp {
         return buff.toString();
     }
 
-    private String process(String file) {
+    private String process(String file, NetworkConnectionInfo networkConnectionInfo) {
         trace("process " + file);
         while (file.endsWith(".do")) {
-            if ("login.do".equals(file)) {
-                file = login();
-            } else if ("index.do".equals(file)) {
+            switch (file) {
+            case "login.do":
+                file = login(networkConnectionInfo);
+                break;
+            case "index.do":
                 file = index();
-            } else if ("logout.do".equals(file)) {
+                break;
+            case "logout.do":
                 file = logout();
-            } else if ("settingRemove.do".equals(file)) {
+                break;
+            case "settingRemove.do":
                 file = settingRemove();
-            } else if ("settingSave.do".equals(file)) {
+                break;
+            case "settingSave.do":
                 file = settingSave();
-            } else if ("test.do".equals(file)) {
-                file = test();
-            } else if ("query.do".equals(file)) {
+                break;
+            case "test.do":
+                file = test(networkConnectionInfo);
+                break;
+            case "query.do":
                 file = query();
-            } else if ("tables.do".equals(file)) {
+                break;
+            case "tables.do":
                 file = tables();
-            } else if ("editResult.do".equals(file)) {
+                break;
+            case "editResult.do":
                 file = editResult();
-            } else if ("getHistory.do".equals(file)) {
+                break;
+            case "getHistory.do":
                 file = getHistory();
-            } else if ("admin.do".equals(file)) {
-                file = admin();
-            } else if ("adminSave.do".equals(file)) {
-                file = adminSave();
-            } else if ("adminStartTranslate.do".equals(file)) {
-                file = adminStartTranslate();
-            } else if ("adminShutdown.do".equals(file)) {
-                file = adminShutdown();
-            } else if ("autoCompleteList.do".equals(file)) {
+                break;
+            case "admin.do":
+                file = checkAdmin(file) ? admin() : "adminLogin.do";
+                break;
+            case "adminSave.do":
+                file = checkAdmin(file) ? adminSave() : "adminLogin.do";
+                break;
+            case "adminStartTranslate.do":
+                file = checkAdmin(file) ? adminStartTranslate() : "adminLogin.do";
+                break;
+            case "adminShutdown.do":
+                file = checkAdmin(file) ? adminShutdown() : "adminLogin.do";
+                break;
+            case "autoCompleteList.do":
                 file = autoCompleteList();
-            } else if ("tools.do".equals(file)) {
-                file = tools();
-            } else {
+                break;
+            case "tools.do":
+                file = checkAdmin(file) ? tools() : "adminLogin.do";
+                break;
+            case "adminLogin.do":
+                file = adminLogin();
+                break;
+            default:
                 file = "error.jsp";
+                break;
             }
         }
         trace("return " + file);
         return file;
+    }
+
+    private boolean checkAdmin(String file) {
+        Boolean b = (Boolean) session.get("admin");
+        if (b != null && b) {
+            return true;
+        }
+        String key = server.getKey();
+        if (key != null && key.equals(session.get("key"))) {
+            return true;
+        }
+        session.put("adminBack", file);
+        return false;
+    }
+
+    private String adminLogin() {
+        String password = attributes.getProperty("password");
+        if (password == null || password.isEmpty() || !server.checkAdminPassword(password)) {
+            return "adminLogin.jsp";
+        }
+        String back = (String) session.remove("adminBack");
+        session.put("admin", true);
+        return back != null ? back : "admin.do";
     }
 
     private String autoCompleteList() {
@@ -324,12 +378,7 @@ public class WebApp {
                 if (query.endsWith("\n") || tQuery.endsWith(";")) {
                     list.add(0, "1#(Newline)#\n");
                 }
-                StatementBuilder buff = new StatementBuilder();
-                for (String s : list) {
-                    buff.appendExceptFirst("|");
-                    buff.append(s);
-                }
-                result = buff.toString();
+                result = StringUtils.join(new StringBuilder(), list, "|").toString();
             }
             session.put("autoCompleteList", result);
         } catch (Throwable e) {
@@ -358,6 +407,10 @@ public class WebApp {
             boolean ssl = Utils.parseBoolean((String) attributes.get("ssl"), false, false);
             prop.setProperty("webSSL", String.valueOf(ssl));
             server.setSSL(ssl);
+            byte[] adminPassword = server.getAdminPassword();
+            if (adminPassword != null) {
+                prop.setProperty("webAdminPassword", StringUtils.convertBytesToHex(adminPassword));
+            }
             server.saveProperties(prop);
         } catch (Exception e) {
             trace(e.toString());
@@ -812,7 +865,7 @@ public class WebApp {
                 error += " " + se.getSQLState() + "/" + se.getErrorCode();
                 if (isH2) {
                     int code = se.getErrorCode();
-                    error += " <a href=\"http://h2database.com/javadoc/" +
+                    error += " <a href=\"https://h2database.com/javadoc/" +
                             "org/h2/api/ErrorCode.html#c" + code +
                             "\">(${text.a.help})</a>";
                 }
@@ -853,7 +906,7 @@ public class WebApp {
                 String file = element.substring(open + 1, colon);
                 String lineNumber = element.substring(colon + 1, element.length());
                 String fullFileName = packageName.replace('.', '/') + "/" + file;
-                result.append("<a href=\"http://h2database.com/html/source.html?file=");
+                result.append("<a href=\"https://h2database.com/html/source.html?file=");
                 result.append(fullFileName);
                 result.append("&line=");
                 result.append(lineNumber);
@@ -874,7 +927,7 @@ public class WebApp {
         return "<div class=\"error\">" + s + "</div>";
     }
 
-    private String test() {
+    private String test(NetworkConnectionInfo networkConnectionInfo) {
         String driver = attributes.getProperty("driver", "");
         String url = attributes.getProperty("url", "");
         String user = attributes.getProperty("user", "");
@@ -890,7 +943,7 @@ public class WebApp {
             prof.startCollecting();
             Connection conn;
             try {
-                conn = server.getConnection(driver, url, user, password);
+                conn = server.getConnection(driver, url, user, password, null, networkConnectionInfo);
             } finally {
                 prof.stopCollecting();
                 profOpen = prof.getTop(3);
@@ -935,14 +988,13 @@ public class WebApp {
      * @return the formatted error message
      */
     private String getLoginError(Exception e, boolean isH2) {
-        if (e instanceof JdbcSQLException &&
-                ((JdbcSQLException) e).getErrorCode() == ErrorCode.CLASS_NOT_FOUND_1) {
+        if (e instanceof JdbcException && ((JdbcException) e).getErrorCode() == ErrorCode.CLASS_NOT_FOUND_1) {
             return "${text.login.driverNotFound}<br />" + getStackTrace(0, e, isH2);
         }
         return getStackTrace(0, e, isH2);
     }
 
-    private String login() {
+    private String login(NetworkConnectionInfo networkConnectionInfo) {
         String driver = attributes.getProperty("driver", "");
         String url = attributes.getProperty("url", "");
         String user = attributes.getProperty("user", "");
@@ -952,7 +1004,8 @@ public class WebApp {
         session.put("maxrows", "1000");
         boolean isH2 = url.startsWith("jdbc:h2:");
         try {
-            Connection conn = server.getConnection(driver, url, user, password);
+            Connection conn = server.getConnection(driver, url, user, password, (String) session.get("key"),
+                    networkConnectionInfo);
             session.setConnection(conn);
             session.put("url", url);
             session.put("user", user);
@@ -984,6 +1037,7 @@ public class WebApp {
         } catch (Exception e) {
             trace(e.toString());
         }
+        session.remove("admin");
         return "index.do";
     }
 
@@ -1452,7 +1506,7 @@ public class WebApp {
                 String s = sql;
                 for (Integer type : params) {
                     idx = s.indexOf('?');
-                    if (type.intValue() == 1) {
+                    if (type == 1) {
                         s = s.substring(0, idx) + random.nextInt(count) + s.substring(idx + 1);
                     } else {
                         s = s.substring(0, idx) + i + s.substring(idx + 1);
@@ -1472,7 +1526,7 @@ public class WebApp {
             for (int i = 0; !stop && i < count; i++) {
                 for (int j = 0; j < params.size(); j++) {
                     Integer type = params.get(j);
-                    if (type.intValue() == 1) {
+                    if (type == 1) {
                         prep.setInt(j + 1, random.nextInt(count));
                     } else {
                         prep.setInt(j + 1, i);
@@ -1493,19 +1547,15 @@ public class WebApp {
             }
         }
         time = System.currentTimeMillis() - time;
-        StatementBuilder buff = new StatementBuilder();
-        buff.append(time).append(" ms: ").append(count).append(" * ");
-        if (prepared) {
-            buff.append("(Prepared) ");
-        } else {
-            buff.append("(Statement) ");
+        StringBuilder builder = new StringBuilder().append(time).append(" ms: ").append(count).append(" * ")
+                .append(prepared ? "(Prepared) " : "(Statement) ").append('(');
+        for (int i = 0, size = params.size(); i < size; i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            builder.append(params.get(i) == 0 ? "i" : "rnd");
         }
-        buff.append('(');
-        for (int p : params) {
-            buff.appendExceptFirst(", ");
-            buff.append(p == 0 ? "i" : "rnd");
-        }
-        return buff.append(") ").append(sql).toString();
+        return builder.append(") ").append(sql).toString();
     }
 
     private String getCommandHistoryString() {

@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.jdbc;
@@ -20,12 +20,13 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.value.DataType;
 
 /**
  * Test for the DatabaseMetaData implementation.
  */
-public class TestMetaData extends TestBase {
+public class TestMetaData extends TestDb {
 
     private static final String CATALOG = "METADATA";
 
@@ -124,8 +125,6 @@ public class TestMetaData extends TestBase {
         assertEquals(DataType.TYPE_RESULT_SET, rsMeta.getColumnType(1));
         rs.next();
         assertTrue(rs.getObject(1) instanceof java.sql.ResultSet);
-        assertEquals("org.h2.tools.SimpleResultSet",
-                rs.getObject(1).getClass().getName());
         stat.executeUpdate("drop alias x");
 
         rs = stat.executeQuery("select 1 from dual");
@@ -177,13 +176,13 @@ public class TestMetaData extends TestBase {
 
         Statement stat = conn.createStatement();
         stat.execute("create table a(x array)");
-        stat.execute("insert into a values((1, 2))");
+        stat.execute("insert into a values(ARRAY[1, 2])");
         rs = stat.executeQuery("SELECT x[1] FROM a");
         ResultSetMetaData rsMeta = rs.getMetaData();
-        assertEquals(Types.VARCHAR, rsMeta.getColumnType(1));
+        assertEquals(Types.NULL, rsMeta.getColumnType(1));
         rs.next();
-        // assertEquals(String.class.getName(),
-        //         rs.getObject(1).getClass().getName());
+        assertEquals(Integer.class.getName(),
+                rs.getObject(1).getClass().getName());
         stat.execute("drop table a");
         conn.close();
     }
@@ -334,8 +333,7 @@ public class TestMetaData extends TestBase {
         checkCrossRef(rs);
         rs = meta.getExportedKeys(null, "PUBLIC", "PARENT");
         checkCrossRef(rs);
-        stat.execute("DROP TABLE PARENT");
-        stat.execute("DROP TABLE CHILD");
+        stat.execute("DROP TABLE PARENT, CHILD");
         conn.close();
     }
 
@@ -458,13 +456,21 @@ public class TestMetaData extends TestBase {
 
         assertEquals(ResultSet.CLOSE_CURSORS_AT_COMMIT,
                 meta.getResultSetHoldability());
-        assertEquals(DatabaseMetaData.sqlStateSQL99,
-                meta.getSQLStateType());
+        assertEquals(DatabaseMetaData.sqlStateSQL, meta.getSQLStateType());
         assertFalse(meta.locatorsUpdateCopy());
 
         assertEquals("schema", meta.getSchemaTerm());
         assertEquals("\\", meta.getSearchStringEscape());
-        assertEquals("INTERSECTS,LIMIT,MINUS,OFFSET,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY,TOP",
+        assertEquals("CURRENT_SCHEMA," //
+                + "GROUPS," //
+                + "IF,ILIKE,INTERSECTS," //
+                + "LIMIT," //
+                + "MINUS," //
+                + "OFFSET," //
+                + "QUALIFY," //
+                + "REGEXP,_ROWID_,ROWNUM," //
+                + "SYSDATE,SYSTIME,SYSTIMESTAMP," //
+                + "TODAY,TOP", //
                 meta.getSQLKeywords());
 
         assertTrue(meta.getURL().startsWith("jdbc:h2:"));
@@ -521,7 +527,7 @@ public class TestMetaData extends TestBase {
         assertFalse(meta.storesLowerCaseIdentifiers());
         assertFalse(meta.storesLowerCaseQuotedIdentifiers());
         assertFalse(meta.storesMixedCaseIdentifiers());
-        assertTrue(meta.storesMixedCaseQuotedIdentifiers());
+        assertFalse(meta.storesMixedCaseQuotedIdentifiers());
         assertTrue(meta.storesUpperCaseIdentifiers());
         assertFalse(meta.storesUpperCaseQuotedIdentifiers());
         assertTrue(meta.supportsAlterTableWithAddColumn());
@@ -610,14 +616,13 @@ public class TestMetaData extends TestBase {
         assertTrue(meta.supportsSubqueriesInQuantifieds());
         assertTrue(meta.supportsTableCorrelationNames());
         assertTrue(meta.supportsTransactions());
-        assertTrue(meta.supportsTransactionIsolationLevel(
+        assertFalse(meta.supportsTransactionIsolationLevel(
                 Connection.TRANSACTION_NONE));
         assertTrue(meta.supportsTransactionIsolationLevel(
                 Connection.TRANSACTION_READ_COMMITTED));
-        if (!config.multiThreaded) {
-            assertTrue(meta.supportsTransactionIsolationLevel(
-                    Connection.TRANSACTION_READ_UNCOMMITTED));
-        }
+        assertEquals(config.mvStore || !config.multiThreaded,
+                meta.supportsTransactionIsolationLevel(
+                        Connection.TRANSACTION_READ_UNCOMMITTED));
         assertTrue(meta.supportsTransactionIsolationLevel(
                 Connection.TRANSACTION_REPEATABLE_READ));
         assertTrue(meta.supportsTransactionIsolationLevel(
@@ -1255,6 +1260,12 @@ public class TestMetaData extends TestBase {
         assertNull(conn.getClientInfo("xxx"));
         DatabaseMetaData meta = conn.getMetaData();
         ResultSet rs = meta.getClientInfoProperties();
+        ResultSetMetaData rsMeta = rs.getMetaData();
+        assertEquals("NAME", rsMeta.getColumnName(1));
+        assertEquals("MAX_LEN", rsMeta.getColumnName(2));
+        assertEquals("DEFAULT_VALUE", rsMeta.getColumnName(3));
+        assertEquals("DESCRIPTION", rsMeta.getColumnName(4));
+        assertEquals("VALUE", rsMeta.getColumnName(5));
         int count = 0;
         while (rs.next()) {
             count++;
@@ -1266,12 +1277,13 @@ public class TestMetaData extends TestBase {
             // numServers
             assertEquals(1, count);
         }
+        rs.close();
         conn.close();
         deleteDb("metaData");
     }
 
     private void testSessionsUncommitted() throws SQLException {
-        if (config.mvcc || config.memory) {
+        if (config.mvStore || config.memory) {
             return;
         }
         Connection conn = getConnection("metaData");

@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.store;
@@ -275,7 +275,7 @@ public class TestCacheLIRS extends TestBase {
         verify(test, "mem: 4 stack: 2 3 4 6 cold: non-resident: 5 0");
         test.put(0,  0);
         test.put(1,  10);
-        // the the stack was not pruned, the following will fail
+        // the stack was not pruned, the following will fail
         verify(test, "mem: 5 stack: 1 0 2 3 4 cold: 1 non-resident: 6 5");
     }
 

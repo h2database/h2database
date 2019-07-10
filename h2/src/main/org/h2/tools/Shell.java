@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.tools;
@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.server.web.ConnectionInfo;
 import org.h2.util.JdbcUtils;
@@ -220,7 +221,7 @@ public class Shell extends Tool implements Runnable {
                     break;
                 }
                 String trimmed = line.trim();
-                if (trimmed.length() == 0) {
+                if (trimmed.isEmpty()) {
                     continue;
                 }
                 boolean end = trimmed.endsWith(";");
@@ -363,13 +364,27 @@ public class Shell extends Tool implements Runnable {
         println("[Enter]   " + user);
         print("User      ");
         user = readLine(user);
-        println("[Enter]   Hide");
-        print("Password  ");
-        String password = readLine();
-        if (password.length() == 0) {
-            password = readPassword();
+        for (;;) {
+            String password = readPassword();
+            try {
+                conn = JdbcUtils.getConnection(driver, url + ";IFEXISTS=TRUE", user, password);
+                break;
+            } catch (SQLException ex) {
+                if (ex.getErrorCode() == ErrorCode.DATABASE_NOT_FOUND_2) {
+                    println("Type the same password again to confirm database creation.");
+                    String password2 = readPassword();
+                    if (password.equals(password2)) {
+                        conn = JdbcUtils.getConnection(driver, url, user, password);
+                        break;
+                    } else {
+                        println("Passwords don't match. Try again.");
+                        continue;
+                    }
+                } else {
+                    throw ex;
+                }
+            }
         }
-        conn = JdbcUtils.getConnection(driver, url, user, password);
         stat = conn.createStatement();
         println("Connected");
     }
@@ -433,7 +448,7 @@ public class Shell extends Tool implements Runnable {
 
     private String readLine(String defaultValue) throws IOException {
         String s = readLine();
-        return s.length() == 0 ? defaultValue : s;
+        return s.isEmpty() ? defaultValue : s;
     }
 
     private String readLine() throws IOException {

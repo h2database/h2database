@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0, Version 1.0,
-and under the Eclipse Public License, Version 1.0
+Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+and the EPL 1.0 (https://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
@@ -172,7 +172,7 @@ A map is sorted by key, and supports the common lookup operations,
 including access to the first and last key, iterate over some or all keys, and so on.
 </p><p>
 Also supported, and very uncommon for maps, is fast index lookup:
-the entries of the map can be be efficiently accessed like a random-access list
+the entries of the map can be efficiently accessed like a random-access list
 (get the entry at the given index), and the index of a key can be calculated efficiently.
 That also means getting the median of two keys is very fast,
 and a range of keys can be counted very quickly.
@@ -234,7 +234,7 @@ System.out.println(map.get(1));
 <p>
 To support multiple concurrent open transactions, a transaction utility is included,
 the <code>TransactionStore</code>.
-The tool supports PostgreSQL style "read committed" transaction isolation
+The tool supports "read committed" transaction isolation
 with savepoints, two-phase commit, and other features typically available in a database.
 There is no limit on the size of a transaction
 (the log is written to disk for large or long running transactions).
@@ -466,8 +466,6 @@ For H2 version 1.4 and newer, the MVStore is the default storage engine
 For older versions, append
 <code>;MV_STORE=TRUE</code>
 to the database URL.
-Even though it can be used with the default table level locking,
-by default the MVCC mode is enabled when using the MVStore.
 </p>
 
 <h2 id="fileFormat">File Format</h2>
@@ -477,7 +475,7 @@ The file contains two file headers (for safety), and a number of chunks.
 The file headers are one block each; a block is 4096 bytes.
 Each chunk is at least one block, but typically 200 blocks or more.
 Data is stored in the chunks in the form of a
-<a href="http://en.wikipedia.org/wiki/Log-structured_file_system">log structured storage</a>.
+<a href="https://en.wikipedia.org/wiki/Log-structured_file_system">log structured storage</a>.
 There is one chunk for every version.
 </p>
 <pre>
@@ -535,18 +533,18 @@ H:2,block:2,blockSize:1000,chunk:7,created:1441235ef73,format:1,version:7,fletch
 The data is stored in the form of a key-value pair.
 Each value is stored as a hexadecimal number. The entries are:
 </p>
-<ul><li>H: The entry "H:2" stands for the the H2 database.
+<ul><li>H: The entry "H:2" stands for the H2 database.
 </li><li>block: The block number where one of the newest chunks starts
     (but not necessarily the newest).
 </li><li>blockSize: The block size of the file; currently always hex 1000, which is decimal 4096,
-    to match the <a href="http://en.wikipedia.org/wiki/Disk_sector">disk sector</a>
+    to match the <a href="https://en.wikipedia.org/wiki/Disk_sector">disk sector</a>
     length of modern hard disks.
 </li><li>chunk: The chunk id, which is normally the same value as the version;
     however, the chunk id might roll over to 0, while the version doesn't.
 </li><li>created: The number of milliseconds since 1970 when the file was created.
 </li><li>format: The file format number. Currently 1.
 </li><li>version: The version number of the chunk.
-</li><li>fletcher: The <a href="http://en.wikipedia.org/wiki/Fletcher's_checksum">
+</li><li>fletcher: The <a href="https://en.wikipedia.org/wiki/Fletcher's_checksum">
     Fletcher-32 checksum</a> of the header.
 </li></ul>
 <p>
@@ -603,7 +601,7 @@ plus all the parent nodes of those pages, recursively, up to the root page.
 If an entry in a map is changed, removed, or added, then the respective page is copied,
 modified, and stored in the next chunk, and the number of live pages in the old chunk is decremented.
 This mechanism is called copy-on-write, and is similar to how the
-<a href="http://en.wikipedia.org/wiki/Btrfs">Btrfs</a> file system works.
+<a href="https://en.wikipedia.org/wiki/Btrfs">Btrfs</a> file system works.
 Chunks without live pages are marked as free, so the space can be re-used by more recent chunks.
 Because not all chunks are of the same size, there can be a number of free blocks in front of a chunk
 for some time (until a small chunk is written or the chunks are compacted).
@@ -629,14 +627,14 @@ In any case, the file header is updated if the next chain gets longer than 20 ho
 
 <h3>Page Format</h3>
 <p>
-Each map is a <a href="http://en.wikipedia.org/wiki/B-tree">B-tree</a>,
+Each map is a <a href="https://en.wikipedia.org/wiki/B-tree">B-tree</a>,
 and the map data is stored in (B-tree-) pages.
 There are leaf pages that contain the key-value pairs of the map,
 and internal nodes, which only contain keys and pointers to leaf pages.
 The root of a tree is either a leaf or an internal node.
 Unlike file header and chunk header and footer, the page data is not human readable.
 Instead, it is stored as byte arrays, with long (8 bytes), int (4 bytes), short (2 bytes),
-and <a href="http://en.wikipedia.org/wiki/Variable-length_quantity">variable size int and long</a>
+and <a href="https://en.wikipedia.org/wiki/Variable-length_quantity">variable size int and long</a>
 (1 to 5 / 10 bytes). The page format is:
 </p>
 <ul><li>length (int): Length of the page in bytes.
@@ -680,7 +678,7 @@ This allows to estimate the amount of free space within a block, in addition to 
 <p>
 The total number of entries in child pages are kept to allow efficient range counting,
 lookup by index, and skip operations.
-The pages form a <a href="http://www.chiark.greenend.org.uk/~sgtatham/algorithms/cbtree.html">counted B-tree</a>.
+The pages form a <a href="https://www.chiark.greenend.org.uk/~sgtatham/algorithms/cbtree.html">counted B-tree</a>.
 </p>
 <p>
 Data compression: The data after the page type are optionally compressed using the LZF algorithm.

@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.value;
@@ -121,13 +121,18 @@ public class ValueInt extends Value {
     }
 
     @Override
-    public String getSQL() {
-        return getString();
+    public StringBuilder getSQL(StringBuilder builder) {
+        return builder.append(value);
     }
 
     @Override
-    public int getType() {
-        return Value.INT;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_INT;
+    }
+
+    @Override
+    public int getValueType() {
+        return INT;
     }
 
     @Override
@@ -141,19 +146,13 @@ public class ValueInt extends Value {
     }
 
     @Override
-    protected int compareSecure(Value o, CompareMode mode) {
-        ValueInt v = (ValueInt) o;
-        return Integer.compare(value, v.value);
+    public int compareTypeSafe(Value o, CompareMode mode) {
+        return Integer.compare(value, ((ValueInt) o).value);
     }
 
     @Override
     public String getString() {
         return Integer.toString(value);
-    }
-
-    @Override
-    public long getPrecision() {
-        return PRECISION;
     }
 
     @Override
@@ -170,11 +169,6 @@ public class ValueInt extends Value {
     public void set(PreparedStatement prep, int parameterIndex)
             throws SQLException {
         prep.setInt(parameterIndex, value);
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return DISPLAY_SIZE;
     }
 
     @Override

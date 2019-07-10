@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.engine;
@@ -24,7 +24,6 @@ import org.h2.schema.SchemaObjectBase;
 import org.h2.table.Table;
 import org.h2.util.JdbcUtils;
 import org.h2.util.SourceCompiler;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -44,10 +43,9 @@ public class FunctionAlias extends SchemaObjectBase {
     private String source;
     private JavaMethod[] javaMethods;
     private boolean deterministic;
-    private boolean bufferResultSetToLocalTemp = true;
 
     private FunctionAlias(Schema schema, int id, String name) {
-        initSchemaObjectBase(schema, id, name, Trace.FUNCTION);
+        super(schema, id, name, Trace.FUNCTION);
     }
 
     /**
@@ -58,12 +56,11 @@ public class FunctionAlias extends SchemaObjectBase {
      * @param name the name
      * @param javaClassMethod the class and method name
      * @param force create the object even if the class or method does not exist
-     * @param bufferResultSetToLocalTemp whether the result should be buffered
      * @return the database object
      */
     public static FunctionAlias newInstance(
             Schema schema, int id, String name, String javaClassMethod,
-            boolean force, boolean bufferResultSetToLocalTemp) {
+            boolean force) {
         FunctionAlias alias = new FunctionAlias(schema, id, name);
         int paren = javaClassMethod.indexOf('(');
         int lastDot = javaClassMethod.lastIndexOf('.', paren < 0 ?
@@ -73,7 +70,6 @@ public class FunctionAlias extends SchemaObjectBase {
         }
         alias.className = javaClassMethod.substring(0, lastDot);
         alias.methodName = javaClassMethod.substring(lastDot + 1);
-        alias.bufferResultSetToLocalTemp = bufferResultSetToLocalTemp;
         alias.init(force);
         return alias;
     }
@@ -86,15 +82,12 @@ public class FunctionAlias extends SchemaObjectBase {
      * @param name the name
      * @param source the source code
      * @param force create the object even if the class or method does not exist
-     * @param bufferResultSetToLocalTemp whether the result should be buffered
      * @return the database object
      */
     public static FunctionAlias newInstanceFromSource(
-            Schema schema, int id, String name, String source, boolean force,
-            boolean bufferResultSetToLocalTemp) {
+            Schema schema, int id, String name, String source, boolean force) {
         FunctionAlias alias = new FunctionAlias(schema, id, name);
         alias.source = source;
-        alias.bufferResultSetToLocalTemp = bufferResultSetToLocalTemp;
         alias.init(force);
         return alias;
     }
@@ -177,12 +170,16 @@ public class FunctionAlias extends SchemaObjectBase {
     }
 
     private static String getMethodSignature(Method m) {
-        StatementBuilder buff = new StatementBuilder(m.getName());
+        StringBuilder buff = new StringBuilder(m.getName());
         buff.append('(');
-        for (Class<?> p : m.getParameterTypes()) {
-            // do not use a space here, because spaces are removed
-            // in CreateFunctionAlias.setJavaClassMethod()
-            buff.appendExceptFirst(",");
+        Class<?>[] parameterTypes = m.getParameterTypes();
+        for (int i = 0, length = parameterTypes.length; i < length; i++) {
+            if (i > 0) {
+                // do not use a space here, because spaces are removed
+                // in CreateFunctionAlias.setJavaClassMethod()
+                buff.append(',');
+            }
+            Class<?> p = parameterTypes[i];
             if (p.isArray()) {
                 buff.append(p.getComponentType().getName()).append("[]");
             } else {
@@ -199,34 +196,31 @@ public class FunctionAlias extends SchemaObjectBase {
 
     @Override
     public String getDropSQL() {
-        return "DROP ALIAS IF EXISTS " + getSQL();
+        return "DROP ALIAS IF EXISTS " + getSQL(true);
     }
 
     @Override
-    public String getSQL() {
+    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
         // TODO can remove this method once FUNCTIONS_IN_SCHEMA is enabled
-        if (database.getSettings().functionsInSchema ||
-                !getSchema().getName().equals(Constants.SCHEMA_MAIN)) {
-            return super.getSQL();
+        if (database.getSettings().functionsInSchema || getSchema().getId() != Constants.MAIN_SCHEMA_ID) {
+            return super.getSQL(builder, alwaysQuote);
         }
-        return Parser.quoteIdentifier(getName());
+        return Parser.quoteIdentifier(builder, getName(), alwaysQuote);
     }
 
     @Override
     public String getCreateSQL() {
         StringBuilder buff = new StringBuilder("CREATE FORCE ALIAS ");
-        buff.append(getSQL());
+        buff.append(getSQL(true));
         if (deterministic) {
             buff.append(" DETERMINISTIC");
         }
-        if (!bufferResultSetToLocalTemp) {
-            buff.append(" NOBUFFER");
-        }
         if (source != null) {
-            buff.append(" AS ").append(StringUtils.quoteStringSQL(source));
+            buff.append(" AS ");
+            StringUtils.quoteStringSQL(buff, source);
         } else {
-            buff.append(" FOR ").append(Parser.quoteIdentifier(
-                    className + "." + methodName));
+            buff.append(" FOR ");
+            Parser.quoteIdentifier(buff, className + "." + methodName, true);
         }
         return buff.toString();
     }
@@ -299,15 +293,6 @@ public class FunctionAlias extends SchemaObjectBase {
 
     public String getSource() {
         return source;
-    }
-
-    /**
-     * Should the return value ResultSet be buffered in a local temporary file?
-     *
-     * @return true if yes
-     */
-    public boolean isBufferResultSetToLocalTemp() {
-        return bufferResultSetToLocalTemp;
     }
 
     /**
@@ -402,7 +387,7 @@ public class FunctionAlias extends SchemaObjectBase {
                 Object o;
                 if (Value.class.isAssignableFrom(paramClass)) {
                     o = v;
-                } else if (v.getType() == Value.ARRAY &&
+                } else if (v.getValueType() == Value.ARRAY &&
                         paramClass.isArray() &&
                         paramClass.getComponentType() != Object.class) {
                     Value[] array = ((ValueArray) v).getList();
@@ -410,12 +395,13 @@ public class FunctionAlias extends SchemaObjectBase {
                             paramClass.getComponentType(), array.length);
                     int componentType = DataType.getTypeFromClass(
                             paramClass.getComponentType());
+                    Mode mode = session.getDatabase().getMode();
                     for (int i = 0; i < objArray.length; i++) {
-                        objArray[i] = array[i].convertTo(componentType).getObject();
+                        objArray[i] = array[i].convertTo(componentType, mode).getObject();
                     }
                     o = objArray;
                 } else {
-                    v = v.convertTo(type, -1, session.getDatabase().getMode());
+                    v = v.convertTo(type, session.getDatabase().getMode());
                     o = v.getObject();
                 }
                 if (o == null) {
@@ -458,14 +444,15 @@ public class FunctionAlias extends SchemaObjectBase {
                         return ValueNull.INSTANCE;
                     }
                 } catch (InvocationTargetException e) {
-                    StatementBuilder buff = new StatementBuilder(method.getName());
-                    buff.append('(');
-                    for (Object o : params) {
-                        buff.appendExceptFirst(", ");
-                        buff.append(o == null ? "null" : o.toString());
+                    StringBuilder builder = new StringBuilder(method.getName()).append('(');
+                    for (int i = 0, length = params.length; i < length; i++) {
+                        if (i > 0) {
+                            builder.append(", ");
+                        }
+                        builder.append(params[i]);
                     }
-                    buff.append(')');
-                    throw DbException.convertInvocation(e, buff.toString());
+                    builder.append(')');
+                    throw DbException.convertInvocation(e, builder.toString());
                 } catch (Exception e) {
                     throw DbException.convert(e);
                 }

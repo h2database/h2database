@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.mvstore;
@@ -22,6 +22,7 @@ import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
+import org.h2.mvstore.tx.TransactionStore;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FilePath;
@@ -122,7 +123,17 @@ public class MVStoreTool {
             long pageCount = 0;
             for (long pos = 0; pos < fileSize;) {
                 block.rewind();
-                DataUtils.readFully(file, pos, block);
+                // Bugfix - An IllegalStateException that wraps EOFException is
+                // thrown when partial writes happens in the case of power off
+                // or file system issues.
+                // So we should skip the broken block at end of the DB file.
+                try {
+                    DataUtils.readFully(file, pos, block);
+                } catch (IllegalStateException e){
+                    pos += blockSize;
+                    pw.printf("ERROR illegal position %d%n", pos);
+                    continue;
+                }
                 block.rewind();
                 int headerType = block.get();
                 if (headerType == 'H') {
@@ -481,20 +492,23 @@ public class MVStoreTool {
      * @param compress whether to compress the data
      */
     public static void compact(String sourceFileName, String targetFileName, boolean compress) {
-        MVStore source = new MVStore.Builder().
-                fileName(sourceFileName).
-                readOnly().
-                open();
-        FileUtils.delete(targetFileName);
-        MVStore.Builder b = new MVStore.Builder().
+        try (MVStore source = new MVStore.Builder().
+                fileName(sourceFileName).readOnly().open()) {
+            // Bugfix - Add double "try-finally" statements to close source and target stores for
+            //releasing lock and file resources in these stores even if OOM occurs.
+            // Fix issues such as "Cannot delete file "/h2/data/test.mv.db.tempFile" [90025-197]"
+            //when client connects to this server and reopens this store database in this process.
+            // @since 2018-09-13 little-pan
+            FileUtils.delete(targetFileName);
+            MVStore.Builder b = new MVStore.Builder().
                 fileName(targetFileName);
-        if (compress) {
-            b.compress();
+            if (compress) {
+                b.compress();
+            }
+            try (MVStore target = b.open()) {
+                compact(source, target);
+            }
         }
-        MVStore target = b.open();
-        compact(source, target);
-        target.close();
-        source.close();
     }
 
     /**
@@ -504,30 +518,57 @@ public class MVStoreTool {
      * @param target the target store
      */
     public static void compact(MVStore source, MVStore target) {
-        MVMap<String, String> sourceMeta = source.getMetaMap();
-        MVMap<String, String> targetMeta = target.getMetaMap();
-        for (Entry<String, String> m : sourceMeta.entrySet()) {
-            String key = m.getKey();
-            if (key.startsWith("chunk.")) {
-                // ignore
-            } else if (key.startsWith("map.")) {
-                // ignore
-            } else if (key.startsWith("name.")) {
-                // ignore
-            } else if (key.startsWith("root.")) {
-                // ignore
-            } else {
-                targetMeta.put(key, m.getValue());
+        int autoCommitDelay = target.getAutoCommitDelay();
+        boolean reuseSpace = target.getReuseSpace();
+        try {
+            target.setReuseSpace(false);  // disable unused chunks collection
+            target.setAutoCommitDelay(0); // disable autocommit
+            MVMap<String, String> sourceMeta = source.getMetaMap();
+            MVMap<String, String> targetMeta = target.getMetaMap();
+            for (Entry<String, String> m : sourceMeta.entrySet()) {
+                String key = m.getKey();
+                if (key.startsWith("chunk.")) {
+                    // ignore
+                } else if (key.startsWith("map.")) {
+                    // ignore
+                } else if (key.startsWith("name.")) {
+                    // ignore
+                } else if (key.startsWith("root.")) {
+                    // ignore
+                } else {
+                    targetMeta.put(key, m.getValue());
+                }
             }
-        }
-        for (String mapName : source.getMapNames()) {
-            MVMap.Builder<Object, Object> mp =
-                    new MVMap.Builder<>().
-                    keyType(new GenericDataType()).
-                    valueType(new GenericDataType());
-            MVMap<Object, Object> sourceMap = source.openMap(mapName, mp);
-            MVMap<Object, Object> targetMap = target.openMap(mapName, mp);
-            targetMap.copyFrom(sourceMap);
+            // We are going to cheat a little bit in the copyFrom() by employing "incomplete" pages,
+            // which would be spared of saving, but save completed pages underneath,
+            // and those may appear as dead (non-reachable).
+            // That's why it is important to preserve all chunks
+            // created in the process, especially if retention time
+            // is set to a lower value, or even 0.
+            for (String mapName : source.getMapNames()) {
+                MVMap.Builder<Object, Object> mp =
+                        new MVMap.Builder<>().
+                                keyType(new GenericDataType()).
+                                valueType(new GenericDataType());
+                // This is a hack to preserve chunks occupancy rate accounting.
+                // It exposes desin deficiency flaw in MVStore related to lack of
+                // map's type metadata.
+                // TODO: Introduce type metadata which will allow to open any store
+                // TODO: without prior knoledge of keys / values types and map implementation
+                // TODO: (MVMap vs MVRTreeMap, regular vs. singleWriter etc.)
+                if (mapName.startsWith(TransactionStore.UNDO_LOG_NAME_PREFIX)) {
+                    mp.singleWriter();
+                }
+                MVMap<Object, Object> sourceMap = source.openMap(mapName, mp);
+                MVMap<Object, Object> targetMap = target.openMap(mapName, mp);
+                targetMap.copyFrom(sourceMap);
+            }
+            // this will end hacky mode of operation with incomplete pages
+            // end ensure that all pages are saved
+            target.commit();
+        } finally {
+            target.setAutoCommitDelay(autoCommitDelay);
+            target.setReuseSpace(reuseSpace);
         }
     }
 
@@ -569,7 +610,7 @@ public class MVStoreTool {
     }
 
     /**
-     * Roll back to a given revision into a a file called *.temp.
+     * Roll back to a given revision into a file called *.temp.
      *
      * @param fileName the file name
      * @param targetVersion the version to roll back to (Long.MAX_VALUE for the
@@ -690,8 +731,8 @@ public class MVStoreTool {
 
         @Override
         public void write(WriteBuffer buff, Object[] obj, int len, boolean key) {
-            for (Object o : obj) {
-                write(buff, o);
+            for (int i = 0; i < len; i++) {
+                write(buff, obj[i]);
             }
         }
 
@@ -708,12 +749,9 @@ public class MVStoreTool {
 
         @Override
         public void read(ByteBuffer buff, Object[] obj, int len, boolean key) {
-            for (int i = 0; i < obj.length; i++) {
+            for (int i = 0; i < len; i++) {
                 obj[i] = read(buff);
             }
         }
-
     }
-
-
 }

@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.db;
@@ -17,13 +17,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 
+import org.h2.message.TraceSystem;
 import org.h2.store.FileLister;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Test for big result sets.
  */
-public class TestBigResult extends TestBase {
+public class TestBigResult extends TestDb {
 
     /**
      * Run just this test.
@@ -36,10 +38,15 @@ public class TestBigResult extends TestBase {
     }
 
     @Override
-    public void test() throws SQLException {
+    public boolean isEnabled() {
         if (config.memory) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws SQLException {
         testLargeSubquery();
         testSortingAndDistinct();
         testLOB();
@@ -297,6 +304,11 @@ public class TestBigResult extends TestBase {
     }
 
     private void testLOB() throws SQLException {
+        if (config.traceLevelFile == TraceSystem.DEBUG) {
+            // Trace system on this level can throw OOME with such large
+            // arguments as used in this test.
+            return;
+        }
         deleteDb("bigResult");
         Connection conn = getConnection("bigResult");
         Statement stat = conn.createStatement();

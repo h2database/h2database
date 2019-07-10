@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.index;
@@ -64,7 +64,7 @@ public class LinkedCursor implements Cursor {
         current = tableLink.getTemplateRow();
         for (int i = 0; i < current.getColumnCount(); i++) {
             Column col = tableLink.getColumn(i);
-            Value v = DataType.readValue(session, rs, i + 1, col.getType());
+            Value v = DataType.readValue(session, rs, i + 1, col.getType().getValueType());
             current.setValue(i, v);
         }
         return true;

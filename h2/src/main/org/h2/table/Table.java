@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.table;
@@ -40,7 +40,6 @@ import org.h2.schema.TriggerObject;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
-import org.h2.value.ValueEnum;
 import org.h2.value.ValueNull;
 
 /**
@@ -92,10 +91,9 @@ public abstract class Table extends SchemaObjectBase {
     private volatile Row nullRow;
     private boolean tableExpression;
 
-    public Table(Schema schema, int id, String name, boolean persistIndexes,
-            boolean persistData) {
+    protected Table(Schema schema, int id, String name, boolean persistIndexes, boolean persistData) {
+        super(schema, id, name, Trace.TABLE);
         columnMap = schema.getDatabase().newStringMap();
-        initSchemaObjectBase(schema, id, name, Trace.TABLE);
         this.persistIndexes = persistIndexes;
         this.persistData = persistData;
         compareMode = schema.getDatabase().getCompareMode();
@@ -178,6 +176,17 @@ public abstract class Table extends SchemaObjectBase {
     public abstract void removeRow(Session session, Row row);
 
     /**
+     * Locks row, preventing any updated to it, except from the session specified.
+     *
+     * @param session the session
+     * @param row to lock
+     * @return locked row, or null if row does not exist anymore
+     */
+    public Row lockRow(Session session, Row row) {
+        throw DbException.getUnsupportedException("lockRow()");
+    }
+
+    /**
      * Remove all rows from the table and indexes.
      *
      * @param session the session
@@ -194,14 +203,17 @@ public abstract class Table extends SchemaObjectBase {
     public abstract void addRow(Session session, Row row);
 
     /**
-     * Commit an operation (when using multi-version concurrency).
+     * Update a row to the table and all indexes.
      *
-     * @param operation the operation
-     * @param row the row
+     * @param session the session
+     * @param oldRow the row to update
+     * @param newRow the row with updated values (_rowid_ suppose to be the same)
+     * @throws DbException if a constraint was violated
      */
-    @SuppressWarnings("unused")
-    public void commit(short operation, Row row) {
-        // nothing to do
+    public void updateRow(Session session, Row oldRow, Row newRow) {
+        newRow.setKey(oldRow.getKey());
+        removeRow(session, oldRow);
+        addRow(session, newRow);
     }
 
     /**
@@ -424,10 +436,9 @@ public abstract class Table extends SchemaObjectBase {
         }
         for (int i = 0; i < columns.length; i++) {
             Column col = columns[i];
-            int dataType = col.getType();
+            int dataType = col.getType().getValueType();
             if (dataType == Value.UNKNOWN) {
-                throw DbException.get(
-                        ErrorCode.UNKNOWN_DATA_TYPE_1, col.getSQL());
+                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, col.getSQL(false));
             }
             col.setTable(this, i);
             String columnName = col.getName();
@@ -493,8 +504,9 @@ public abstract class Table extends SchemaObjectBase {
             try {
                 removeRow(session, o);
             } catch (DbException e) {
-                if (e.getErrorCode() == ErrorCode.CONCURRENT_UPDATE_1) {
-                    session.rollbackTo(rollback, false);
+                if (e.getErrorCode() == ErrorCode.CONCURRENT_UPDATE_1
+                        || e.getErrorCode() == ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1) {
+                    session.rollbackTo(rollback);
                     session.startStatementWithinTransaction();
                     rollback = session.setSavepoint();
                 }
@@ -513,7 +525,7 @@ public abstract class Table extends SchemaObjectBase {
                 addRow(session, n);
             } catch (DbException e) {
                 if (e.getErrorCode() == ErrorCode.CONCURRENT_UPDATE_1) {
-                    session.rollbackTo(rollback, false);
+                    session.rollbackTo(rollback);
                     session.startStatementWithinTransaction();
                     rollback = session.setSavepoint();
                 }
@@ -587,8 +599,7 @@ public abstract class Table extends SchemaObjectBase {
                     if (columns.size() == 1) {
                         constraintsToDrop.add(constraint);
                     } else {
-                        throw DbException.get(
-                                ErrorCode.COLUMN_IS_REFERENCED_1, constraint.getSQL());
+                        throw DbException.get(ErrorCode.COLUMN_IS_REFERENCED_1, constraint.getSQL(false));
                     }
                 }
             }
@@ -607,8 +618,7 @@ public abstract class Table extends SchemaObjectBase {
                     if (index.getColumns().length == 1) {
                         indexesToDrop.add(index);
                     } else {
-                        throw DbException.get(
-                                ErrorCode.COLUMN_IS_REFERENCED_1, index.getSQL());
+                        throw DbException.get(ErrorCode.COLUMN_IS_REFERENCED_1, index.getSQL(false));
                     }
                 }
             }
@@ -625,6 +635,13 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
+    /**
+     * Create a new row for a table.
+     *
+     * @param data the values.
+     * @param memory whether the row is in memory.
+     * @return the created row.
+     */
     public Row createRow(Value[] data, int memory) {
         return database.createRow(data, memory);
     }
@@ -690,6 +707,32 @@ public abstract class Table extends SchemaObjectBase {
             throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, columnName);
         }
         return column;
+    }
+
+    /**
+     * Get the column with the given name.
+     *
+     * @param columnName the column name
+     * @param ifExists if (@code true) return {@code null} if column does not exist
+     * @return the column
+     * @throws DbException if the column was not found
+     */
+    public Column getColumn(String columnName, boolean ifExists) {
+        Column column = columnMap.get(columnName);
+        if (column == null && !ifExists) {
+            throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, columnName);
+        }
+        return column;
+    }
+
+    /**
+     * Get the column with the given name if it exists.
+     *
+     * @param columnName the column name, or {@code null}
+     * @return the column
+     */
+    public Column findColumn(String columnName) {
+        return columnMap.get(columnName);
     }
 
     /**
@@ -970,6 +1013,22 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     /**
+     * Check whether this table has a select trigger.
+     *
+     * @return true if it has
+     */
+    public boolean hasInsteadOfTrigger() {
+        if (triggers != null) {
+            for (TriggerObject trigger : triggers) {
+                if (trigger.isInsteadOf()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * Check if row based triggers or constraints are defined.
      * In this case the fire after and before row methods need to be called.
      *
@@ -1188,20 +1247,8 @@ public abstract class Table extends SchemaObjectBase {
      * @return 0 if both values are equal, -1 if the first value is smaller, and
      *         1 otherwise
      */
-    public int compareTypeSafe(Value a, Value b) {
-        if (a == b) {
-            return 0;
-        }
-        int dataType = Value.getHigherOrder(a.getType(), b.getType());
-        if (dataType == Value.ENUM) {
-            String[] enumerators = ValueEnum.getEnumeratorsForBinaryOperation(a, b);
-            a = a.convertToEnum(enumerators);
-            b = b.convertToEnum(enumerators);
-        } else {
-            a = a.convertTo(dataType);
-            b = b.convertTo(dataType);
-        }
-        return a.compareTypeSafe(b, compareMode);
+    public int compareValues(Value a, Value b) {
+        return a.compareTo(b, database.getMode(), compareMode);
     }
 
     public CompareMode getCompareMode() {

@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.server.web;
@@ -22,6 +22,7 @@ import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.util.IOUtils;
 import org.h2.util.NetUtils;
+import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
@@ -78,6 +79,9 @@ class WebThread extends WebApp implements Runnable {
         if (requestedFile.length() == 0) {
             return "index.do";
         }
+        if (requestedFile.charAt(0) == '?') {
+            return "index.do" + requestedFile;
+        }
         return requestedFile;
     }
 
@@ -122,16 +126,22 @@ class WebThread extends WebApp implements Runnable {
             attributes = new Properties();
             int paramIndex = file.indexOf('?');
             session = null;
+            String key = null;
             if (paramIndex >= 0) {
                 String attrib = file.substring(paramIndex + 1);
                 parseAttributes(attrib);
                 String sessionId = attributes.getProperty("jsessionid");
+                key = attributes.getProperty("key");
                 file = file.substring(0, paramIndex);
                 session = server.getSession(sessionId);
             }
             keepAlive = parseHeader();
-            String hostAddr = socket.getInetAddress().getHostAddress();
-            file = processRequest(file, hostAddr);
+            file = processRequest(file,
+                    new NetworkConnectionInfo(
+                            NetUtils.ipToShortForm(new StringBuilder(server.getSSL() ? "https://" : "http://"),
+                                    socket.getLocalAddress().getAddress(), true) //
+                                    .append(':').append(socket.getLocalPort()).toString(), //
+                            socket.getInetAddress().getAddress(), socket.getPort(), null));
             if (file.length() == 0) {
                 // asynchronous request
                 return true;
@@ -150,6 +160,9 @@ class WebThread extends WebApp implements Runnable {
                     message += "Content-Length: " + bytes.length + "\r\n";
                 } else {
                     if (session != null && file.endsWith(".jsp")) {
+                        if (key != null) {
+                            session.put("key", key);
+                        }
                         String page = new String(bytes, StandardCharsets.UTF_8);
                         if (SysProperties.CONSOLE_STREAM) {
                             Iterator<String> it = (Iterator<String>) session.map.remove("chunks");

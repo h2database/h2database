@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.db;
@@ -14,6 +14,7 @@ import java.sql.Types;
 import java.util.Random;
 import org.h2.api.Aggregate;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.SimpleResultSet;
 import org.h2.tools.SimpleRowSource;
 import org.h2.value.DataType;
@@ -38,7 +39,7 @@ import org.locationtech.jts.io.WKTReader;
  * @author Noel Grandin
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
-public class TestSpatial extends TestBase {
+public class TestSpatial extends TestDb {
 
     private static final String URL = "spatial";
 
@@ -52,18 +53,21 @@ public class TestSpatial extends TestBase {
     }
 
     @Override
+    public boolean isEnabled() {
+        if (config.memory && config.mvStore) {
+            return false;
+        }
+        if (DataType.GEOMETRY_CLASS == null) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
     public void test() throws SQLException {
-        if (!config.mvStore && config.mvcc) {
-            return;
-        }
-        if (config.memory && config.mvcc) {
-            return;
-        }
-        if (DataType.GEOMETRY_CLASS != null) {
-            deleteDb("spatial");
-            testSpatial();
-            deleteDb("spatial");
-        }
+        deleteDb("spatial");
+        testSpatial();
+        deleteDb("spatial");
     }
 
     private void testSpatial() throws SQLException {
@@ -145,6 +149,13 @@ public class TestSpatial extends TestBase {
                 new Coordinate(2, 2),
                 new Coordinate(1, 1) });
         assertTrue(polygon.equals(rs.getObject(2)));
+        rs.close();
+        rs = stat.executeQuery("select id, cast(polygon as varchar) from test");
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+        assertEquals("POLYGON ((1 1, 1 2, 2 2, 1 1))", rs.getObject(2));
+        assertTrue(polygon.equals(rs.getObject(2, Geometry.class)));
+        rs.close();
 
         rs = stat.executeQuery("select * from test where polygon = " +
                 "'POLYGON ((1 1, 1 2, 2 2, 1 1))'");
@@ -597,16 +608,17 @@ public class TestSpatial extends TestBase {
      * Test serialization of Z and SRID values.
      */
     private void testWKB() {
-        String ewkt = "SRID=27572;POLYGON ((67 13 6, 67 18 5, 59 18 4, 59 13 6, 67 13 6))";
+        String ewkt = "SRID=27572;POLYGON Z ((67 13 6, 67 18 5, 59 18 4, 59 13 6, 67 13 6))";
         ValueGeometry geom3d = ValueGeometry.get(ewkt);
         assertEquals(ewkt, geom3d.getString());
         ValueGeometry copy = ValueGeometry.get(geom3d.getBytes());
-        assertEquals(6, copy.getGeometry().getCoordinates()[0].z);
-        assertEquals(5, copy.getGeometry().getCoordinates()[1].z);
-        assertEquals(4, copy.getGeometry().getCoordinates()[2].z);
+        Geometry g = copy.getGeometry();
+        assertEquals(6, g.getCoordinates()[0].z);
+        assertEquals(5, g.getCoordinates()[1].z);
+        assertEquals(4, g.getCoordinates()[2].z);
         // Test SRID
         copy = ValueGeometry.get(geom3d.getBytes());
-        assertEquals(27572, copy.getGeometry().getSRID());
+        assertEquals(27572, g.getSRID());
 
         Point point = new GeometryFactory().createPoint((new Coordinate(1.1d, 1.2d)));
         // SRID 0
@@ -629,7 +641,7 @@ public class TestSpatial extends TestBase {
     }
 
     private void checkSRID(byte[] bytes, int srid) {
-        Point point = (Point) ValueGeometry.get(bytes).getGeometry();
+        Point point = (Point) ValueGeometry.getFromEWKB(bytes).getGeometry();
         assertEquals(1.1, point.getX());
         assertEquals(1.2, point.getY());
         assertEquals(srid, point.getSRID());
@@ -660,7 +672,7 @@ public class TestSpatial extends TestBase {
      * @param object the object
      * @return the string representation
      */
-    public static String getObjectString(Object object) {
+    public static String getObjectString(Geometry object) {
         return object.toString();
     }
 
@@ -686,13 +698,6 @@ public class TestSpatial extends TestBase {
         ValueGeometry valueGeometry3 = ValueGeometry.getFromGeometry(geometry);
         assertEquals(valueGeometry, valueGeometry3);
         assertEquals(geometry.getSRID(), valueGeometry3.getGeometry().getSRID());
-        // Check illegal geometry (no WKB representation)
-        try {
-            ValueGeometry.get("POINT EMPTY");
-            fail("expected this to throw IllegalArgumentException");
-        } catch (IllegalArgumentException ex) {
-            // expected
-        }
     }
 
     /**
@@ -712,6 +717,11 @@ public class TestSpatial extends TestBase {
             assertEquals("geometry",
                     columnMeta.getString("TYPE_NAME").toLowerCase());
             assertFalse(columnMeta.next());
+
+            ResultSet rs = stat.executeQuery("select point_table(1, 1)");
+            assertTrue(rs.next());
+            ResultSet rs2 = (ResultSet) rs.getObject(1);
+            assertEquals("GEOMETRY", rs2.getMetaData().getColumnTypeName(1));
         }
         deleteDb("spatial");
     }

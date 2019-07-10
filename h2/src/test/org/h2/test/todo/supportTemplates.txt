@@ -5,7 +5,7 @@ and only then, once you are completely sure it is an issue, submit it here.
 The reason is that only very few people actively monitor the issue tracker.
 
 Before submitting a bug, please also check the FAQ:
-http://www.h2database.com/html/faq.html
+https://h2database.com/html/faq.html
 
 What steps will reproduce the problem?
 (simple SQL scripts or simple standalone applications are preferred)

@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.server.web;
@@ -16,6 +16,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,6 +29,7 @@ import java.util.Set;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
+import org.h2.security.SHA256;
 import org.h2.server.Service;
 import org.h2.server.ShutdownHandler;
 import org.h2.store.fs.FileUtils;
@@ -35,6 +37,7 @@ import org.h2.util.DateTimeUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
+import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
@@ -52,6 +55,7 @@ public class WebServer implements Service {
         { "en", "English" },
         { "es", "Espa\u00f1ol" },
         { "fr", "Fran\u00e7ais" },
+        { "hi", "Hindi \u0939\u093f\u0902\u0926\u0940" },
         { "hu", "Magyar"},
         { "ko", "\ud55c\uad6d\uc5b4"},
         { "in", "Indonesia"},
@@ -154,6 +158,7 @@ public class WebServer implements Service {
     private final Set<WebThread> running =
             Collections.synchronizedSet(new HashSet<WebThread>());
     private boolean ssl;
+    private byte[] adminPassword;
     private final HashMap<String, ConnectionInfo> connInfoMap = new HashMap<>();
 
     private long lastTimeoutCheck;
@@ -164,7 +169,9 @@ public class WebServer implements Service {
     private String url;
     private ShutdownHandler shutdownHandler;
     private Thread listenerThread;
-    private boolean ifExists;
+    private boolean ifExists = true;
+    private String key;
+    private boolean allowSecureCreation;
     private boolean trace;
     private TranslateThread translateThread;
     private boolean allowChunked = true;
@@ -263,6 +270,36 @@ public class WebServer implements Service {
         return startDateTime;
     }
 
+    /**
+     * Returns the key for privileged connections.
+     *
+     * @return key key, or null
+     */
+    String getKey() {
+        return key;
+    }
+
+    /**
+     * Sets the key for privileged connections.
+     *
+     * @param key key, or null
+     */
+    public void setKey(String key) {
+        if (!allowOthers) {
+            this.key = key;
+        }
+    }
+
+    /**
+     * @param allowSecureCreation
+     *            whether creation of databases using the key should be allowed
+     */
+    public void setAllowSecureCreation(boolean allowSecureCreation) {
+        if (!allowOthers) {
+            this.allowSecureCreation = allowSecureCreation;
+        }
+    }
+
     @Override
     public void init(String... args) {
         // set the serverPropertiesDir, because it's used in loadProperties()
@@ -278,6 +315,7 @@ public class WebServer implements Service {
                 "webSSL", false);
         allowOthers = SortedProperties.getBooleanProperty(prop,
                 "webAllowOthers", false);
+        setAdminPassword(SortedProperties.getStringProperty(prop, "webAdminPassword", null));
         commandHistoryString = prop.getProperty(COMMAND_HISTORY);
         for (int i = 0; args != null && i < args.length; i++) {
             String a = args[i];
@@ -294,6 +332,10 @@ public class WebServer implements Service {
                 SysProperties.setBaseDir(baseDir);
             } else if (Tool.isOption(a, "-ifExists")) {
                 ifExists = true;
+            } else if (Tool.isOption(a, "-ifNotExists")) {
+                ifExists = false;
+            } else if (Tool.isOption(a, "-webAdminPassword")) {
+                setAdminPassword(args[++i]);
             } else if (Tool.isOption(a, "-properties")) {
                 // already set
                 i++;
@@ -317,6 +359,9 @@ public class WebServer implements Service {
         for (String[] lang : LANGUAGES) {
             languages.add(lang[0]);
         }
+        if (allowOthers) {
+            key = null;
+        }
         updateURL();
     }
 
@@ -328,8 +373,12 @@ public class WebServer implements Service {
 
     private void updateURL() {
         try {
-            url = (ssl ? "https" : "http") + "://" +
-                    NetUtils.getLocalAddress() + ":" + port;
+            StringBuilder builder = new StringBuilder(ssl ? "https" : "http").append("://")
+                    .append(NetUtils.getLocalAddress()).append(':').append(port);
+            if (key != null) {
+                builder.append("?key=").append(key);
+            }
+            url = builder.toString();
         } catch (NoClassDefFoundError e) {
             // Google App Engine does not allow java.net.InetAddress
         }
@@ -487,6 +536,9 @@ public class WebServer implements Service {
     }
 
     void setAllowOthers(boolean b) {
+        if (b) {
+            key = null;
+        }
         allowOthers = b;
     }
 
@@ -677,6 +729,9 @@ public class WebServer implements Service {
                         Boolean.toString(SortedProperties.getBooleanProperty(old, "webAllowOthers", allowOthers)));
                 prop.setProperty("webSSL",
                         Boolean.toString(SortedProperties.getBooleanProperty(old, "webSSL", ssl)));
+                if (adminPassword != null) {
+                    prop.setProperty("webAdminPassword", StringUtils.convertBytesToHex(adminPassword));
+                }
                 if (commandHistoryString != null) {
                     prop.setProperty(COMMAND_HISTORY, commandHistoryString);
                 }
@@ -707,36 +762,27 @@ public class WebServer implements Service {
      * @param databaseUrl the database URL
      * @param user the user name
      * @param password the password
+     * @param userKey the key of privileged user
+     * @param networkConnectionInfo the network connection information
      * @return the database connection
      */
     Connection getConnection(String driver, String databaseUrl, String user,
-            String password) throws SQLException {
+            String password, String userKey, NetworkConnectionInfo networkConnectionInfo) throws SQLException {
         driver = driver.trim();
         databaseUrl = databaseUrl.trim();
-        org.h2.Driver.load();
         Properties p = new Properties();
         p.setProperty("user", user.trim());
         // do not trim the password, otherwise an
         // encrypted H2 database with empty user password doesn't work
         p.setProperty("password", password);
         if (databaseUrl.startsWith("jdbc:h2:")) {
-            if (ifExists) {
-                databaseUrl += ";IFEXISTS=TRUE";
+            if (!allowSecureCreation || key == null || !key.equals(userKey)) {
+                if (ifExists) {
+                    databaseUrl += ";IFEXISTS=TRUE";
+                }
             }
-            // PostgreSQL would throw a NullPointerException
-            // if it is loaded before the H2 driver
-            // because it can't deal with non-String objects in the connection
-            // Properties
-            return org.h2.Driver.load().connect(databaseUrl, p);
         }
-//            try {
-//                Driver dr = (Driver) urlClassLoader.
-//                        loadClass(driver).newInstance();
-//                return dr.connect(url, p);
-//            } catch(ClassNotFoundException e2) {
-//                throw e2;
-//            }
-        return JdbcUtils.getConnection(driver, databaseUrl, p);
+        return JdbcUtils.getConnection(driver, databaseUrl, p, networkConnectionInfo);
     }
 
     /**
@@ -844,6 +890,44 @@ public class WebServer implements Service {
 
     boolean getAllowChunked() {
         return allowChunked;
+    }
+
+    byte[] getAdminPassword() {
+        return adminPassword;
+    }
+
+    void setAdminPassword(String password) {
+        if (password == null || password.isEmpty()) {
+            adminPassword = null;
+            return;
+        }
+        if (password.length() == 128) {
+            try {
+                adminPassword = StringUtils.convertHexToBytes(password);
+                return;
+            } catch (Exception ex) {}
+        }
+        byte[] salt = MathUtils.secureRandomBytes(32);
+        byte[] hash = SHA256.getHashWithSalt(password.getBytes(StandardCharsets.UTF_8), salt);
+        byte[] total = Arrays.copyOf(salt, 64);
+        System.arraycopy(hash, 0, total, 32, 32);
+        adminPassword = total;
+    }
+
+    /**
+     * Check the admin password.
+     *
+     * @param the password to test
+     * @return true if admin password not configure, or admin password correct
+     */
+    boolean checkAdminPassword(String password) {
+        if (adminPassword == null) {
+            return false;
+        }
+        byte[] salt = Arrays.copyOf(adminPassword, 32);
+        byte[] hash = new byte[32];
+        System.arraycopy(adminPassword, 32, hash, 0, 32);
+        return Utils.compareSecure(hash, SHA256.getHashWithSalt(password.getBytes(StandardCharsets.UTF_8), salt));
     }
 
 }

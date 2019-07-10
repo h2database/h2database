@@ -1,5 +1,5 @@
--- Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
--- and the EPL 1.0 (http://h2database.com/html/license.html).
+-- Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
 
@@ -26,6 +26,17 @@ select * from card;
 > 4    null
 > rows: 3
 
+@reconnect
+
+select suit from card where rank = 0;
+>> clubs
+
+alter table card alter column suit enum('a', 'b', 'c', 'd');
+> exception ENUM_VALUE_NOT_PERMITTED
+
+alter table card alter column suit enum('''none''', 'hearts', 'clubs', 'spades', 'diamonds');
+> ok
+
 select * from card order by suit;
 > RANK SUIT
 > ---- ------
@@ -50,7 +61,16 @@ select rank from card where suit = 'diamonds';
 >> 8
 
 select column_type from information_schema.columns where COLUMN_NAME = 'SUIT';
->> ENUM('hearts','clubs','spades','diamonds')
+>> ENUM('''none''', 'hearts', 'clubs', 'spades', 'diamonds')
+
+alter table card alter column suit enum('hearts', 'clubs', 'spades', 'diamonds');
+> ok
+
+alter table card alter column suit enum('hearts', 'clubs', 'spades', 'diamonds', 'long_enum_value_of_128_chars_00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000');
+> ok
+
+insert into card (rank, suit) values (11, 'long_enum_value_of_128_chars_00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000');
+> update count: 1
 
 --- ENUM integer-based operations
 
@@ -161,6 +181,26 @@ select rank from card where suit in ('clubs');
 > 1
 > rows: 2
 
+insert into card values (2, 'diamonds');
+> update count: 1
+
+select rank from card where suit in ('clubs', 'hearts');
+> RANK
+> ----
+> 0
+> 1
+> 3
+> rows: 3
+
+select rank from card where suit in ('clubs', 'hearts') or suit = 'diamonds';
+> RANK
+> ----
+> 0
+> 1
+> 2
+> 3
+> rows: 4
+
 drop table card;
 > ok
 
@@ -222,13 +262,13 @@ SELECT * FROM V3;
 >> -1
 
 SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE COLUMN_NAME = 'E' ORDER BY TABLE_NAME;
-> TABLE_CATALOG TABLE_SCHEMA TABLE_NAME COLUMN_NAME ORDINAL_POSITION COLUMN_DEFAULT IS_NULLABLE DATA_TYPE CHARACTER_MAXIMUM_LENGTH CHARACTER_OCTET_LENGTH NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE CHARACTER_SET_NAME COLLATION_NAME TYPE_NAME NULLABLE IS_COMPUTED SELECTIVITY CHECK_CONSTRAINT SEQUENCE_NAME REMARKS SOURCE_DATA_TYPE COLUMN_TYPE   COLUMN_ON_UPDATE
-> ------------- ------------ ---------- ----------- ---------------- -------------- ----------- --------- ------------------------ ---------------------- ----------------- ----------------------- ------------- ------------------ -------------- --------- -------- ----------- ----------- ---------------- ------------- ------- ---------------- ------------- ----------------
-> SCRIPT        PUBLIC       TEST       E           1                null           YES         1111      2147483647               2147483647             2147483647        10                      0             Unicode            OFF            ENUM      1        FALSE       50                           null                  null             ENUM('A','B') null
-> SCRIPT        PUBLIC       V          E           1                null           YES         1111      2147483647               2147483647             2147483647        10                      0             Unicode            OFF            ENUM      1        FALSE       50                           null                  null             ENUM('A','B') null
-> SCRIPT        PUBLIC       V1         E           1                null           YES         4         2147483647               2147483647             2147483647        10                      0             Unicode            OFF            INTEGER   1        FALSE       50                           null                  null             INTEGER       null
-> SCRIPT        PUBLIC       V2         E           1                null           YES         4         2147483647               2147483647             2147483647        10                      0             Unicode            OFF            INTEGER   1        FALSE       50                           null                  null             INTEGER       null
-> SCRIPT        PUBLIC       V3         E           1                null           YES         4         2147483647               2147483647             2147483647        10                      0             Unicode            OFF            INTEGER   1        FALSE       50                           null                  null             INTEGER       null
+> TABLE_CATALOG TABLE_SCHEMA TABLE_NAME COLUMN_NAME ORDINAL_POSITION DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME COLUMN_DEFAULT IS_NULLABLE DATA_TYPE CHARACTER_MAXIMUM_LENGTH CHARACTER_OCTET_LENGTH NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE DATETIME_PRECISION INTERVAL_TYPE INTERVAL_PRECISION CHARACTER_SET_NAME COLLATION_NAME TYPE_NAME NULLABLE IS_COMPUTED SELECTIVITY CHECK_CONSTRAINT SEQUENCE_NAME REMARKS SOURCE_DATA_TYPE COLUMN_TYPE    COLUMN_ON_UPDATE IS_VISIBLE
+> ------------- ------------ ---------- ----------- ---------------- -------------- ------------- ----------- -------------- ----------- --------- ------------------------ ---------------------- ----------------- ----------------------- ------------- ------------------ ------------- ------------------ ------------------ -------------- --------- -------- ----------- ----------- ---------------- ------------- ------- ---------------- -------------- ---------------- ----------
+> SCRIPT        PUBLIC       TEST       E           1                null           null          null        null           YES         1111      1                        1                      1                 10                      0             null               null          null               Unicode            OFF            ENUM      1        FALSE       50                           null                  null             ENUM('A', 'B') null             TRUE
+> SCRIPT        PUBLIC       V          E           1                null           null          null        null           YES         1111      1                        1                      1                 10                      0             null               null          null               Unicode            OFF            ENUM      1        FALSE       50                           null                  null             ENUM('A', 'B') null             TRUE
+> SCRIPT        PUBLIC       V1         E           1                null           null          null        null           YES         4         10                       10                     10                10                      0             null               null          null               Unicode            OFF            INTEGER   1        FALSE       50                           null                  null             INTEGER        null             TRUE
+> SCRIPT        PUBLIC       V2         E           1                null           null          null        null           YES         4         10                       10                     10                10                      0             null               null          null               Unicode            OFF            INTEGER   1        FALSE       50                           null                  null             INTEGER        null             TRUE
+> SCRIPT        PUBLIC       V3         E           1                null           null          null        null           YES         4         10                       10                     10                10                      0             null               null          null               Unicode            OFF            INTEGER   1        FALSE       50                           null                  null             INTEGER        null             TRUE
 > rows (ordered): 5
 
 DROP VIEW V;
@@ -242,6 +282,33 @@ DROP VIEW V2;
 
 DROP VIEW V3;
 > ok
+
+DROP TABLE TEST;
+> ok
+
+SELECT CAST (2 AS ENUM('a', 'b', 'c', 'd'));
+>> c
+
+CREATE TABLE TEST(E ENUM('a', 'b'));
+> ok
+
+EXPLAIN SELECT * FROM TEST WHERE E = 'a';
+>> SELECT "PUBLIC"."TEST"."E" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ WHERE "E" = 'a'
+
+INSERT INTO TEST VALUES ('a');
+> update count: 1
+
+(SELECT * FROM TEST A) UNION ALL (SELECT * FROM TEST A);
+> E
+> -
+> a
+> a
+> rows: 2
+
+(SELECT * FROM TEST A) MINUS (SELECT * FROM TEST A);
+> E
+> -
+> rows: 0
 
 DROP TABLE TEST;
 > ok

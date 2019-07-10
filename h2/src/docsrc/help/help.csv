@@ -1,47 +1,100 @@
-# Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
-# and the EPL 1.0 (http://h2database.com/html/license.html).
+# Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+# and the EPL 1.0 (https://h2database.com/html/license.html).
 # Initial Developer: H2 Group
+
 "SECTION","TOPIC","SYNTAX","TEXT","EXAMPLE"
+
 "Commands (DML)","SELECT","
-SELECT [ TOP term ] [ DISTINCT | ALL ] selectExpression [,...]
-FROM tableExpression [,...] [ WHERE expression ]
+SELECT [ TOP term [ PERCENT ] [ WITH TIES ] ]
+[ DISTINCT [ ON ( expression [,...] ) ] | ALL ]
+selectExpression [,...]
+[ FROM tableExpression [,...] ]
+[ WHERE expression ]
 [ GROUP BY expression [,...] ] [ HAVING expression ]
-[ { UNION [ ALL ] | MINUS | EXCEPT | INTERSECT } select ]
+[ WINDOW { { windowName AS windowSpecification } [,...] } ]
+[ QUALIFY expression ]
+[ { UNION [ ALL ] | EXCEPT | MINUS | INTERSECT } query ]
 [ ORDER BY order [,...] ]
-[ { LIMIT expression [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] }
-    | { [ OFFSET expression { ROW | ROWS } ]
-    [ { FETCH { FIRST | NEXT } expression { ROW | ROWS } ONLY } ] } ]
+[ LIMIT expression [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] ]
+[ [ OFFSET expression { ROW | ROWS } ]
+    [ FETCH { FIRST | NEXT } [ expression [ PERCENT ] ] { ROW | ROWS }
+        { ONLY | WITH TIES } ] [ SAMPLE_SIZE rowCountInt ] ]
 [ FOR UPDATE ]
 ","
 Selects data from a table or multiple tables.
-GROUP BY groups the the result by the given expression(s).
-HAVING filter rows after grouping.
-ORDER BY sorts the result by the given column(s) or expression(s).
-UNION combines the result of this query with the results of another query.
 
-LIMIT and FETCH FIRST/NEXT ROW(S) ONLY limits the number of rows returned by the query (no limit if null or smaller than zero).
-OFFSET specified how many rows to skip.
-Please note using high offset values should be avoided because it can cause performance problems.
-SAMPLE_SIZE limits the number of rows read for aggregate queries.
+Command is executed in the following logical order:
 
-Multiple set operators (UNION, INTERSECT, MINUS, EXCEPT) are evaluated
-from left to right. For compatibility with other databases and future versions
-of H2 please use parentheses.
+1. Data is taken from table value expressions that are specified in the FROM clause, joins are executed.
+If FROM clause is not specified a single row is constructed.
 
-If FOR UPDATE is specified, the tables are locked for writing. When using
-MVCC, only the selected rows are locked as in an UPDATE statement.
-In this case, aggregate, GROUP BY, DISTINCT queries or joins
-are not allowed in this case.
+2. WHERE filters rows. Aggregate or window functions are not allowed in this clause.
+
+3. GROUP BY groups the result by the given expression(s).
+If GROUP BY clause is not specified, but non-window aggregate functions are used or HAVING is specified
+all rows are grouped together.
+
+4. Aggregate functions are evaluated, SAMPLE_SIZE limits the number of rows read.
+
+5. HAVING filters rows after grouping and evaluation of aggregate functions.
+Non-window aggregate functions are allowed in this clause.
+
+6. Window functions are evaluated.
+
+7. QUALIFY filters rows after evaluation of window functions.
+Aggregate and window functions are allowed in this clause.
+
+8. DISTINCT removes duplicates.
+If DISTINCT ON is used only the specified expressions are checked for duplicates;
+ORDER BY clause, if any, is used to determine preserved rows.
+First row is each DISTINCT ON group is preserved.
+In absence of ORDER BY preserved rows are not determined, database may choose any row from each DISTINCT ON group.
+
+9. UNION, EXCEPT (MINUS), and INTERSECT combine the result of this query with the results of another query.
+Multiple set operators (UNION, INTERSECT, MINUS, EXCEPT) are evaluated from left to right.
+For compatibility with other databases and future versions of H2 please use parentheses.
+
+10. ORDER BY sorts the result by the given column(s) or expression(s).
+
+11. Number of rows in output can be limited either with standard OFFSET / FETCH,
+with non-standard LIMIT / OFFSET, or with non-standard TOP clauses.
+Different clauses cannot be used together.
+OFFSET specifies how many rows to skip.
+Please note that queries with high offset values can be slow.
+FETCH FIRST/NEXT, LIMIT or TOP limits the number of rows returned by the query (no limit if null or smaller than zero).
+If PERCENT is specified number of rows is specified as a percent of the total number of rows
+and should be an integer value between 0 and 100 inclusive.
+WITH TIES can be used only together with ORDER BY and means that all additional rows that have the same sorting position
+as the last row will be also returned.
+
+WINDOW clause specifies window definitions for window functions and window aggregate functions.
+This clause can be used to reuse the same definition in multiple functions.
+
+If FOR UPDATE is specified, the tables or rows are locked for writing.
+This clause is not allowed in DISTINCT queries and in queries with non-window aggregates, GROUP BY, or HAVING clauses.
+When using default MVStore engine only the selected rows are locked as in an UPDATE statement.
+Rows from the right side of a left join and from the left side of a right join, including nested joins, aren't locked.
+Locking behavior for rows that were excluded from result using OFFSET / FETCH / LIMIT / TOP or QUALIFY is undefined,
+to avoid possible locking of excessive rows try to filter out unneeded rows with the WHERE criteria when possible.
+Rows are processed one by one. Committed row is read, tested with WHERE criteria, locked, read again and re-tested,
+because its value may be changed by concurrent transaction before lock acquisition.
+Note that new uncommitted rows from other transactions are not visible due to read committed isolation level
+and therefore cannot be locked.
+With PageStore engine the whole tables are locked;
+to avoid deadlocks with this engine always lock the tables in the same order in all transactions.
 ","
 SELECT * FROM TEST;
 SELECT * FROM TEST ORDER BY NAME;
 SELECT ID, COUNT(*) FROM TEST GROUP BY ID;
 SELECT NAME, COUNT(*) FROM TEST GROUP BY NAME HAVING COUNT(*) > 2;
 SELECT 'ID' COL, MAX(ID) AS MAX FROM TEST UNION SELECT 'NAME', MAX(NAME) FROM TEST;
-SELECT * FROM TEST LIMIT 1000;
+SELECT * FROM TEST OFFSET 1000 ROWS FETCH FIRST 1000 ROWS ONLY;
+SELECT A, B FROM TEST ORDER BY A FETCH FIRST 10 ROWS WITH TIES;
 SELECT * FROM (SELECT ID, COUNT(*) FROM TEST
     GROUP BY ID UNION SELECT NULL, COUNT(*) FROM TEST)
     ORDER BY 1 NULLS LAST;
+SELECT DISTINCT C1, C2 FROM TEST;
+SELECT DISTINCT ON(C1) C1, C2 FROM TEST ORDER BY C1;
 "
 
 "Commands (DML)","INSERT","
@@ -68,7 +121,7 @@ UPDATE PERSON P SET NAME=(SELECT A.NAME FROM ADDRESS A WHERE A.ID=P.ID);
 "
 
 "Commands (DML)","DELETE","
-DELETE [ TOP term ] FROM tableName deleteSearchCondition
+DELETE [ TOP term ] FROM tableName [ WHERE expression ] [ LIMIT term ]
 ","
 Deletes rows form a table.
 If TOP or LIMIT is specified, at most the specified number of rows are deleted (no limit if null or smaller than zero).
@@ -98,7 +151,7 @@ CALL 15*25
 
 "Commands (DML)","EXPLAIN","
 EXPLAIN { [ PLAN FOR ] | ANALYZE }
-{ select | insert | update | delete | merge }
+{ query | insert | update | delete | mergeInto | mergeUsing }
 ","
 Shows the execution plan for a statement.
 When using EXPLAIN ANALYZE, the statement is actually executed, and the query plan
@@ -107,10 +160,10 @@ will include the actual row scan count for each table.
 EXPLAIN SELECT * FROM TEST WHERE ID=1
 "
 
-"Commands (DML)","MERGE","
+"Commands (DML)","MERGE INTO","
 MERGE INTO tableName [ ( columnName [,...] ) ]
 [ KEY ( columnName [,...] ) ]
-{ VALUES { ( { DEFAULT | expression } [,...] ) } [,...] | select }
+{ insertValues | query }
 ","
 Updates existing rows, and insert rows that don't exist. If no key column is
 specified, the primary key columns are used to find the row. If more than one
@@ -121,38 +174,36 @@ MERGE INTO TEST KEY(ID) VALUES(2, 'World')
 
 "Commands (DML)","MERGE USING","
 MERGE INTO targetTableName [ [AS] targetAlias]
-USING { ( select ) | sourceTableName }[ [AS] sourceAlias ]
-ON ( expression )
-[ WHEN MATCHED THEN
-    [ UPDATE SET setClauseList ] [ DELETE deleteSearchCondition ] ]
-[ WHEN NOT MATCHED THEN INSERT insertColumnsAndSource ]
+USING { ( query ) | sourceTableName }[ [AS] sourceAlias ]
+ON expression
+mergeWhenClause [,...]
 ","
-Updates or deletes existing rows, and insert rows that don't exist. The ON clause
-specifies the matching column expression and must be specified. If more than one row
-is updated per input row, an exception is thrown.
-If the source data contains duplicate rows (specifically those columns used in the
-row matching ON clause), then an exception is thrown to prevent two updates applying
-to the same target row.
-WHEN MATCHED THEN or WHEN NOT MATCHED THEN clauses or both of them in any order should be specified.
-If WHEN MATCHED THEN is specified it should contain UPDATE or DELETE clauses of both of them.
+Updates or deletes existing rows, and insert rows that don't exist.
+
+The ON clause specifies the matching column expression.
+Different rows from a source table may not match with the same target row,
+but one source row may be matched with multiple target rows.
+
 If statement doesn't need a source table a DUAL table can be substituted.
 ","
 MERGE INTO TARGET_TABLE AS T USING SOURCE_TABLE AS S
-    ON (T.ID = S.ID)
-    WHEN MATCHED THEN
-        UPDATE SET T.COL1 = S.COL1 WHERE T.COL2<>'FINAL'
-        DELETE WHERE T.COL2='FINAL'
+    ON T.ID = S.ID
+    WHEN MATCHED AND T.COL2 <> 'FINAL' THEN
+        UPDATE SET T.COL1 = S.COL1
+    WHEN MATCHED AND T.COL2 = 'FINAL' THEN
+        DELETE
     WHEN NOT MATCHED THEN
-        INSERT (ID,COL1,COL2) VALUES(S.ID,S.COL1,S.COL2)
+        INSERT (ID, COL1, COL2) VALUES(S.ID, S.COL1, S.COL2)
 MERGE INTO TARGET_TABLE AS T USING (SELECT * FROM SOURCE_TABLE) AS S
-    ON (T.ID = S.ID)
-    WHEN MATCHED THEN
-        UPDATE SET T.COL1 = S.COL1 WHERE T.COL2<>'FINAL'
-        DELETE WHERE T.COL2='FINAL'
+    ON T.ID = S.ID
+    WHEN MATCHED AND T.COL2 <> 'FINAL' THEN
+        UPDATE SET T.COL1 = S.COL1
+    WHEN MATCHED AND T.COL2 = 'FINAL' THEN
+        DELETE
     WHEN NOT MATCHED THEN
-        INSERT (ID,COL1,COL2) VALUES(S.ID,S.COL1,S.COL2)
-MERGE INTO TARGET_TABLE USING DUAL ON (ID = 1)
-    WHEN NOT MATCHED THEN INSERT (ID, NAME) VALUES (1, 'Test')
+        INSERT VALUES (S.ID, S.COL1, S.COL2)
+MERGE INTO TARGET_TABLE USING DUAL ON ID = 1
+    WHEN NOT MATCHED THEN INSERT VALUES (1, 'Test')
     WHEN MATCHED THEN UPDATE SET NAME = 'Test'
 "
 
@@ -179,7 +230,8 @@ RUNSCRIPT FROM 'classpath:/com/acme/test.sql'
 "
 
 "Commands (DML)","SCRIPT","
-SCRIPT [ SIMPLE ] [ NODATA ] [ NOPASSWORDS ] [ NOSETTINGS ]
+SCRIPT { [ NODATA ] | [ SIMPLE ] [ COLUMNS ] }
+[ NOPASSWORDS ] [ NOSETTINGS ]
 [ DROP ] [ BLOCKSIZE blockSizeInt ]
 [ TO fileNameString scriptCompressionEncryption
     [ CHARSET charsetString ] ]
@@ -188,8 +240,9 @@ SCRIPT [ SIMPLE ] [ NODATA ] [ NOPASSWORDS ] [ NOSETTINGS ]
 ","
 Creates a SQL script from the database.
 
-SIMPLE does not use multi-row insert statements.
 NODATA will not emit INSERT statements.
+SIMPLE does not use multi-row insert statements.
+COLUMNS includes column name lists into insert statements.
 If the DROP option is specified, drop statements are created for tables, views,
 and sequences. If the block size is set, CLOB and BLOB values larger than this
 size are split into separate blocks.
@@ -226,9 +279,39 @@ Lists the schemas, tables, or the columns of a table.
 SHOW TABLES
 "
 
+"Commands (DML)","Explicit table","
+TABLE [schemaName.]tableName
+[ ORDER BY order [,...] ]
+[ OFFSET expression { ROW | ROWS } ]
+[ FETCH { FIRST | NEXT } [ expression [ PERCENT ] ] { ROW | ROWS }
+    { ONLY | WITH TIES } ]
+","
+Selects data from a table.
+
+This command is an equivalent to SELECT * FROM tableName.
+See [SELECT](https://h2database.com/html/commands.html#select) command for description of ORDER BY, OFFSET, and FETCH.
+","
+TABLE TEST;
+TABLE TEST ORDER BY ID FETCH FIRST ROW ONLY;
+"
+
+"Commands (DML)","Table value","
+VALUES rowValueExpression [,...]
+[ ORDER BY order [,...] ]
+[ OFFSET expression { ROW | ROWS } ]
+[ FETCH { FIRST | NEXT } [ expression [ PERCENT ] ] { ROW | ROWS }
+    { ONLY | WITH TIES } ]
+","
+A list of rows that can be used like a table.
+See See [SELECT](https://h2database.com/html/commands.html#select) command for description of ORDER BY, OFFSET, and FETCH.
+The column list of the resulting table is C1, C2, and so on.
+","
+VALUES (1, 'Hello'), (2, 'World');
+"
+
 "Commands (DML)","WITH","
-WITH [ RECURSIVE ] { name [( columnName [,...] )] AS ( select ) [,...] }
-{ select | insert | update | merge | delete | createTable }
+WITH [ RECURSIVE ] { name [( columnName [,...] )] AS ( query ) [,...] }
+{ query | insert | update | delete | mergeInto | mergeUsing | createTable }
 ","
 Can be used to create a recursive or non-recursive query (common table expression).
 For recursive queries the first select has to be a UNION.
@@ -264,7 +347,7 @@ ALTER INDEX IDXNAME RENAME TO IDX_TEST_NAME
 "
 
 "Commands (DDL)","ALTER SCHEMA RENAME","
-ALTER SCHEMA [ IF EXISTS ] schema RENAME TO newSchemaName
+ALTER SCHEMA [ IF EXISTS ] schemaName RENAME TO newSchemaName
 ","
 Renames a schema.
 This command commits an open transaction in this connection.
@@ -329,11 +412,13 @@ ALTER TABLE [ IF EXISTS ] tableName ALTER COLUMN columnName
     | { RESTART WITH long }
     | { SELECTIVITY int }
     | { SET DEFAULT expression }
+    | { DROP DEFAULT }
     | { SET ON UPDATE expression }
-    | { SET NULL }
+    | { DROP ON UPDATE }
     | { SET NOT NULL }
-    | { SET { VISIBLE | INVISIBLE } }
-    | { DROP { DEFAULT | ON UPDATE } } }
+    | { DROP NOT NULL } | { SET NULL }
+    | { SET DATA TYPE dataType }
+    | { SET { VISIBLE | INVISIBLE } } }
 ","
 Changes the data type of a column, rename a column,
 change the identity value, or change the selectivity.
@@ -351,19 +436,20 @@ Selectivity 100 means values are unique, 10 means every distinct value appears 1
 
 SET DEFAULT changes the default value of a column.
 
+DROP DEFAULT removes the default value of a column.
+
 SET ON UPDATE changes the value that is set on update if value for this column is not specified in update statement.
 
-SET NULL sets a column to allow NULL. The row may not be part of a primary key.
-Single column indexes on this column are dropped.
+DROP ON UPDATE removes the value that is set on update of a column.
 
 SET NOT NULL sets a column to not allow NULL. Rows may not contains NULL in this column.
 
+DROP NOT NULL and SET NULL set a column to allow NULL. The row may not be part of a primary key.
+
+SET DATA TYPE changes the data type of a column.
+
 SET INVISIBLE makes the column hidden, i.e. it will not appear in SELECT * results.
 SET VISIBLE has the reverse effect.
-
-DROP DEFAULT removes the default value of a column.
-
-DROP ON UPDATE removes the value that is set on update of a column.
 
 This command commits an open transaction in this connection.
 ","
@@ -463,7 +549,7 @@ This command commits an open transaction in this connection.
 ALTER USER SA SET PASSWORD 'rioyxlgt'
 "
 
-"Commands (DDL)","ALTER VIEW","
+"Commands (DDL)","ALTER VIEW RECOMPILE","
 ALTER VIEW [ IF EXISTS ] viewName RECOMPILE
 ","
 Recompiles a view after the underlying tables have been changed or created.
@@ -471,6 +557,15 @@ This command is used for views created using CREATE FORCE VIEW.
 This command commits an open transaction in this connection.
 ","
 ALTER VIEW ADDRESS_VIEW RECOMPILE
+"
+
+"Commands (DDL)","ALTER VIEW RENAME","
+ALTER VIEW [ IF EXISTS ] viewName RENAME TO newName
+","
+Renames a view.
+This command commits an open transaction in this connection.
+","
+ALTER VIEW TEST RENAME TO MY_VIEW
 "
 
 "Commands (DDL)","ANALYZE","
@@ -510,7 +605,7 @@ CREATE AGGREGATE [ IF NOT EXISTS ] newAggregateName FOR className
 ","
 Creates a new user-defined aggregate function. The method name must be the full
 qualified class name. The class must implement the interface
-""org.h2.api.AggregateFunction"".
+""org.h2.api.Aggregate"" or ""org.h2.api.AggregateFunction"".
 
 Admin rights are required to execute this command.
 This command commits an open transaction in this connection.
@@ -520,12 +615,10 @@ CREATE AGGREGATE SIMPLE_MEDIAN FOR ""com.acme.db.Median""
 
 "Commands (DDL)","CREATE ALIAS","
 CREATE ALIAS [ IF NOT EXISTS ] newFunctionAliasName [ DETERMINISTIC ]
-[ NOBUFFER ] { FOR classAndMethodName | AS sourceCodeString }
+{ FOR classAndMethodName | AS sourceCodeString }
 ","
 Creates a new function alias. If this is a ResultSet returning function,
 by default the return value is cached in a local temporary file.
-
-NOBUFFER - disables caching of ResultSet return value to temporary file.
 
 DETERMINISTIC - Deterministic functions must always return the same value for the same parameters.
 
@@ -580,7 +673,7 @@ CREATE CONSTANT ONE VALUE 1
 
 "Commands (DDL)","CREATE DOMAIN","
 CREATE DOMAIN [ IF NOT EXISTS ] newDomainName AS dataType
-[ DEFAULT expression ] [ [ NOT ] NULL ] [ SELECTIVITY selectivity ]
+[ DEFAULT expression ] [ [ NOT ] NULL ] [ SELECTIVITY selectivityInt ]
 [ CHECK condition ]
 ","
 Creates a new data type (domain). The check condition must evaluate to true or
@@ -603,10 +696,12 @@ ON tableName ( indexColumn [,...] )
 Creates a new index.
 This command commits an open transaction in this connection.
 
-Hash indexes are meant for in-memory databases and memory tables (CREATE MEMORY TABLE).
+Hash indexes are meant for in-memory databases and memory tables (CREATE MEMORY TABLE) when PageStore engine is used.
 For other tables, or if the index contains multiple columns, the HASH keyword is ignored.
-Hash indexes can only test for equality, and do not support range queries (similar to a hash table).
+Hash indexes can only test for equality, do not support range queries (similar to a hash table), use more memory,
+but can perform lookups faster.
 Non-unique keys are supported.
+
 Spatial indexes are supported only on Geometry columns.
 ","
 CREATE INDEX IDXNAME ON TEST(NAME)
@@ -680,12 +775,7 @@ CREATE SCHEMA TEST_SCHEMA AUTHORIZATION SA
 
 "Commands (DDL)","CREATE SEQUENCE","
 CREATE SEQUENCE [ IF NOT EXISTS ] newSequenceName
-[ START WITH long ]
-[ INCREMENT BY long ]
-[ MINVALUE long | NOMINVALUE | NO MINVALUE ]
-[ MAXVALUE long | NOMAXVALUE | NO MAXVALUE ]
-[ CYCLE long | NOCYCLE | NO CYCLE ]
-[ CACHE long | NOCACHE | NO CACHE ]
+sequenceOptions
 ","
 Creates a new sequence.
 The data type of a sequence is BIGINT.
@@ -704,11 +794,11 @@ CREATE SEQUENCE SEQ_ID
 "Commands (DDL)","CREATE TABLE","
 CREATE [ CACHED | MEMORY ] [ TEMP | [ GLOBAL | LOCAL ] TEMPORARY ]
 TABLE [ IF NOT EXISTS ] name
-[ ( { columnName columnDefinition | constraint } [,...] ) ]
+[ ( { columnName [columnDefinition] | constraint } [,...] ) ]
 [ ENGINE tableEngineName ]
 [ WITH tableEngineParamName [,...] ]
 [ NOT PERSISTENT ] [ TRANSACTIONAL ]
-[ AS select [ WITH [ NO ] DATA ] ]","
+[ AS query [ WITH [ NO ] DATA ] ]","
 Creates a new table.
 
 Cached tables (the default for regular tables) are persistent,
@@ -734,7 +824,7 @@ in CREATE TABLE, then the engine specified by DEFAULT_TABLE_ENGINE option of dat
 Tables with the NOT PERSISTENT modifier are kept fully in memory, and all
 rows are lost when the database is closed.
 
-The column definition is optional if a query is specified.
+The column definitions are optional if a query is specified.
 In that case the column list of the query is used.
 If the query is specified its results are inserted into created table unless WITH NO DATA is specified.
 
@@ -820,7 +910,7 @@ CREATE USER GUEST PASSWORD 'abc'
 
 "Commands (DDL)","CREATE VIEW","
 CREATE [ OR REPLACE ] [ FORCE ] VIEW [ IF NOT EXISTS ] newViewName
-[ ( columnName [,...] ) ] AS select
+[ ( columnName [,...] ) ] AS query
 ","
 Creates a new view. If the force option is used, then the view is created even
 if the underlying table(s) don't exist.
@@ -884,9 +974,11 @@ DROP CONSTANT ONE
 "
 
 "Commands (DDL)","DROP DOMAIN","
-DROP DOMAIN [ IF EXISTS ] domainName
+DROP DOMAIN [ IF EXISTS ] domainName [ RESTRICT | CASCADE ]
 ","
 Drops a data type (domain).
+The command will fail if it is referenced by a column (the default).
+Column descriptors are replaced with original definition of specified domain if the CASCADE clause is used.
 This command commits an open transaction in this connection.
 ","
 DROP DOMAIN EMAIL
@@ -974,7 +1066,7 @@ DROP VIEW TEST_VIEW
 "
 
 "Commands (DDL)","TRUNCATE TABLE","
-TRUNCATE TABLE tableName
+TRUNCATE TABLE tableName [ [ CONTINUE | RESTART ] IDENTITY ]
 ","
 Removes all rows from a table.
 Unlike DELETE FROM without where clause, this command can not be rolled back.
@@ -982,6 +1074,7 @@ This command is faster than DELETE without where clause.
 Only regular data tables without foreign key constraints can be truncated
 (except if referential integrity is disabled for this database or for this table).
 Linked tables can't be truncated.
+If RESTART IDENTITY is specified next values for auto-incremented columns are restarted.
 
 This command commits an open transaction in this connection.
 ","
@@ -1001,7 +1094,7 @@ CHECKPOINT
 "Commands (Other)","CHECKPOINT SYNC","
 CHECKPOINT SYNC
 ","
-Flushes the data to disk and and forces all system buffers be written
+Flushes the data to disk and forces all system buffers be written
 to the underlying device.
 
 Admin rights are required to execute this command.
@@ -1216,8 +1309,7 @@ SET CLUSTER ''
 "
 
 "Commands (Other)","SET BINARY_COLLATION","
-SET BINARY_COLLATION
-{ UNSIGNED | SIGNED } ] }
+SET BINARY_COLLATION { UNSIGNED | SIGNED }
 ","
 Sets the collation used for comparing BINARY columns, the default is SIGNED
 for version 1.3 and older, and UNSIGNED for version 1.4 and newer.
@@ -1230,9 +1322,26 @@ This setting is persistent.
 SET BINARY_COLLATION SIGNED
 "
 
+"Commands (Other)","SET UUID_COLLATION","
+SET UUID_COLLATION { UNSIGNED | SIGNED }
+","
+Sets the collation used for comparing UUID columns, the default is SIGNED.
+This command can only be executed if there are no tables defined.
+
+SIGNED means signed comparison between first 64 bits of compared values treated as long values
+and if they are equal a signed comparison of the last 64 bits of compared values treated as long values.
+See also Java ""UUID.compareTo()"".
+UNSIGNED means RFC 4122 compatible unsigned comparison.
+
+Admin rights are required to execute this command.
+This command commits an open transaction in this connection.
+This setting is persistent.
+","
+SET UUID_COLLATION UNSIGNED
+"
+
 "Commands (Other)","SET BUILTIN_ALIAS_OVERRIDE","
-SET BUILTIN_ALIAS_OVERRIDE
-{ TRUE | FALSE } ] }
+SET BUILTIN_ALIAS_OVERRIDE { TRUE | FALSE }
 ","
 Allows the overriding of the builtin system date/time functions
 for unit testing purposes.
@@ -1404,7 +1513,6 @@ This setting can be appended to the database URL: ""jdbc:h2:test;JAVA_OBJECT_SER
 SET JAVA_OBJECT_SERIALIZER 'com.acme.SerializerClassName'
 "
 
-
 "Commands (Other)","SET LAZY_QUERY_EXECUTION","
 SET LAZY_QUERY_EXECUTION int
 ","
@@ -1414,9 +1522,7 @@ If true, then large results are retrieved in chunks.
 
 Note that not all queries support this feature, queries which do not are processed normally.
 
-Admin rights are required to execute this command, as it affects all connections.
-This command commits an open transaction in this connection.
-This setting is not persistent.
+This command does not commit a transaction, and rollback does not affect it.
 This setting can be appended to the database URL: ""jdbc:h2:test;LAZY_QUERY_EXECUTION=1""
 ","
 SET LAZY_QUERY_EXECUTION 1
@@ -1582,9 +1688,9 @@ SET MODE HSQLDB
 "Commands (Other)","SET MULTI_THREADED","
 SET MULTI_THREADED { 0 | 1 }
 ","
-Enabled (1) or disabled (0) multi-threading inside the database engine. By
-default, this setting is disabled. Currently, enabling this is experimental
-only.
+Enabled (1) or disabled (0) multi-threading inside the database engine.
+MULTI_THREADED is enabled by default with default MVStore storage engine.
+MULTI_THREADED is disabled by default when using PageStore storage engine, enabling this with PageStore is experimental only.
 
 This is a global setting, which means it is not possible to open multiple databases with different modes at the same time in the same virtual machine.
 This setting is not persistent, however the value is kept until the virtual machine exits or it is changed.
@@ -1814,11 +1920,311 @@ but only for at most the time defined by the database setting ""h2.maxCompactTim
 
 SHUTDOWN IMMEDIATELY closes the database files without any cleanup and without compacting.
 
-SHUTDOWN DEFRAG re-orders the pages when closing the database so that table scans are faster.
+SHUTDOWN DEFRAG re-orders the pages when closing the database so that table scans are faster. In case of MVStore it is currently equivalent to COMPACT.
 
 Admin rights are required to execute this command.
 ","
 SHUTDOWN COMPACT
+"
+
+"Literals","Value","
+string | dollarQuotedString | numeric | dateAndTime | boolean | bytes
+    | interval | array | null
+","
+A literal value of any data type, or null.
+","
+10
+"
+
+"Literals","Array","
+ARRAY '[' [ expression, [,...] ] ']'
+","
+An array of values.
+","
+ARRAY[1, 2]
+ARRAY[1]
+ARRAY[]
+"
+
+"Literals","Boolean","
+TRUE | FALSE | UNKNOWN
+","
+A boolean value.
+UNKNOWN is a NULL value with the boolean data type.
+","
+TRUE
+"
+
+"Literals","Bytes","
+X'hex' [ 'hex' [...] ]
+","
+A binary value. The hex value is not case sensitive and may contain space characters.
+","
+X''
+X'01FF'
+X'01 bc 2a'
+X'01' '02'
+"
+
+"Literals","Date","
+DATE '[-]yyyy-MM-dd'
+","
+A date literal.
+","
+DATE '2004-12-31'
+"
+
+"Literals","Date and time","
+date | time | timestamp | timestampWithTimeZone
+","
+A literal value of any date-time data type.
+","
+TIMESTAMP '1999-01-31 10:00:00'
+"
+
+"Literals","Decimal","
+[ + | - ] { { number [ . number ] } | { . number } }
+[ E [ + | - ] expNumber [...] ] ]
+","
+A decimal number with fixed precision and scale.
+Internally, ""java.lang.BigDecimal"" is used.
+To ensure the floating point representation is used, use CAST(X AS DOUBLE).
+There are some special decimal values: to represent positive infinity, use ""POWER(0, -1)"";
+for negative infinity, use ""(-POWER(0, -1))""; for -0.0, use ""(-CAST(0 AS DOUBLE))"";
+for ""NaN"" (not a number), use ""SQRT(-1)"".
+","
+SELECT -1600.05
+SELECT CAST(0 AS DOUBLE)
+SELECT -1.4e-10
+"
+
+"Literals","Dollar Quoted String","
+$$anythingExceptTwoDollarSigns$$
+","
+A string starts and ends with two dollar signs. Two dollar signs are not allowed
+within the text. A whitespace is required before the first set of dollar signs.
+No escaping is required within the text.
+","
+$$John's car$$
+"
+
+"Literals","Hex Number","
+[ + | - ] 0x { digit | a-f | A-F } [...]
+","
+A number written in hexadecimal notation.
+","
+0xff
+"
+
+"Literals","Int","
+[ + | - ] number
+","
+The maximum integer number is 2147483647, the minimum is -2147483648.
+","
+10
+"
+
+"Literals","JSON","
+JSON { bytes | string }
+","
+A binary or character string with a RFC 8259-compliant JSON text and data format.
+JSON text is parsed into internal representation.
+Order of object members is preserved as is.
+Duplicate object member names are allowed.
+","
+JSON '{""id"":10,""name"":""What''s this?""}'
+JSON '[1, ' '2]';
+JSON X'7472' '7565'
+"
+
+"Literals","Long","
+[ + | - ] number
+","
+Long numbers are between -9223372036854775808 and 9223372036854775807.
+","
+100000
+"
+
+"Literals","Null","
+NULL
+","
+NULL is a value without data type and means 'unknown value'.
+","
+NULL
+"
+
+"Literals","Number","
+digit [...]
+","
+The maximum length of the number depends on the data type used.
+","
+100
+"
+
+"Literals","Numeric","
+decimal | int | long | hexNumber
+","
+The data type of a numeric value is always the lowest possible for the given value.
+If the number contains a dot this is decimal; otherwise it is int, long, or decimal (depending on the value).
+","
+SELECT -1600.05
+SELECT CAST(0 AS DOUBLE)
+SELECT -1.4e-10
+"
+
+"Literals","String","
+'anythingExceptSingleQuote' [ 'anythingExceptSingleQuote' [...] ]
+","
+A string starts and ends with a single quote. Two single quotes can be used to
+create a single quote inside a string.
+","
+'John''s car'
+'A' 'B' 'C'
+"
+
+"Literals","Time","
+TIME [ WITHOUT TIME ZONE ] 'hh:mm:ss[.nnnnnnnnn]'
+","
+A time literal. A value is between 0:00:00 and 23:59:59.999999999
+and has nanosecond resolution.
+","
+TIME '23:59:59'
+"
+
+"Literals","Timestamp","
+TIMESTAMP [ WITHOUT TIME ZONE ] '[-]yyyy-MM-dd hh:mm:ss[.nnnnnnnnn]'
+","
+A timestamp literal.
+","
+TIMESTAMP '2005-12-31 23:59:59'
+"
+
+"Literals","Timestamp with time zone","
+TIMESTAMP WITH TIME ZONE '[-]yyyy-MM-dd hh:mm:ss[.nnnnnnnnn]
+[Z | { - | + } timeZoneOffsetString | timeZoneNameString ]'
+","
+A timestamp with time zone literal.
+If name of time zone is specified it will be converted to time zone offset.
+","
+TIMESTAMP WITH TIME ZONE '2005-12-31 23:59:59Z'
+TIMESTAMP WITH TIME ZONE '2005-12-31 23:59:59-10:00'
+TIMESTAMP WITH TIME ZONE '2005-12-31 23:59:59.123+05'
+TIMESTAMP WITH TIME ZONE '2005-12-31 23:59:59.123456789 Europe/London'
+"
+
+"Literals","Interval","
+intervalYear | intervalMonth | intervalDay | intervalHour | intervalMinute
+    | intervalSecond | intervalYearToMonth | intervalDayToHour
+    | intervalDayToMinute | intervalDayToSecond | intervalHourToMinute
+    | intervalHourToSecond | intervalMinuteToSecond
+","
+An interval literal.
+","
+INTERVAL '1-2' YEAR TO MONTH
+"
+
+"Literals","INTERVAL YEAR","
+INTERVAL [-|+] '[-|+]yearInt' YEAR
+","
+An INTERVAL YEAR literal.
+","
+INTERVAL '10' YEAR
+"
+
+"Literals","INTERVAL MONTH","
+INTERVAL [-|+] '[-|+]monthInt' MONTH
+","
+An INTERVAL MONTH literal.
+","
+INTERVAL '10' MONTH
+"
+
+"Literals","INTERVAL DAY","
+INTERVAL [-|+] '[-|+]dayInt' DAY
+","
+An INTERVAL DAY literal.
+","
+INTERVAL '10' DAY
+"
+
+"Literals","INTERVAL HOUR","
+INTERVAL [-|+] '[-|+]hourInt' HOUR
+","
+An INTERVAL HOUR literal.
+","
+INTERVAL '10' HOUR
+"
+
+"Literals","INTERVAL MINUTE","
+INTERVAL [-|+] '[-|+]minuteInt' MINUTE
+","
+An INTERVAL MINUTE literal.
+","
+INTERVAL '10' MINUTE
+"
+
+"Literals","INTERVAL SECOND","
+INTERVAL [-|+] '[-|+]secondInt[.nnnnnnnnn]' SECOND
+","
+An INTERVAL SECOND literal.
+","
+INTERVAL '10.123' SECOND
+"
+
+"Literals","INTERVAL YEAR TO MONTH","
+INTERVAL [-|+] '[-|+]yearInt-monthInt' YEAR TO MONTH
+","
+An INTERVAL YEAR TO MONTH literal.
+","
+INTERVAL '1-6' YEAR TO MONTH
+"
+
+"Literals","INTERVAL DAY TO HOUR","
+INTERVAL [-|+] '[-|+]dayInt hoursInt' DAY TO HOUR
+","
+An INTERVAL DAY TO HOUR literal.
+","
+INTERVAL '10 11' DAY TO HOUR
+"
+
+"Literals","INTERVAL DAY TO MINUTE","
+INTERVAL [-|+] '[-|+]dayInt hh:mm' DAY TO MINUTE
+","
+An INTERVAL DAY TO MINUTE literal.
+","
+INTERVAL '10 11:12' DAY TO MINUTE
+"
+
+"Literals","INTERVAL DAY TO SECOND","
+INTERVAL [-|+] '[-|+]dayInt hh:mm:ss[.nnnnnnnnn]' DAY TO SECOND
+","
+An INTERVAL DAY TO SECOND literal.
+","
+INTERVAL '10 11:12:13.123' DAY TO SECOND
+"
+
+"Literals","INTERVAL HOUR TO MINUTE","
+INTERVAL [-|+] '[-|+]hh:mm' HOUR TO MINUTE
+","
+An INTERVAL HOUR TO MINUTE literal.
+","
+INTERVAL '10:11' HOUR TO MINUTE
+"
+
+"Literals","INTERVAL HOUR TO SECOND","
+INTERVAL [-|+] '[-|+]hh:mm:ss[.nnnnnnnnn]' HOUR TO SECOND
+","
+An INTERVAL HOUR TO SECOND literal.
+","
+INTERVAL '10:11:12.123' HOUR TO SECOND
+"
+
+"Literals","INTERVAL MINUTE TO SECOND","
+INTERVAL [-|+] '[-|+]mm:ss[.nnnnnnnnn]' MINUTE TO SECOND
+","
+An INTERVAL MINUTE TO SECOND literal.
+","
+INTERVAL '11:12.123' MINUTE TO SECOND
 "
 
 "Datetime fields","Datetime field","
@@ -1826,7 +2232,7 @@ yearField | monthField | dayOfMonthField
     | hourField | minuteField | secondField
     | millisecondField | microsecondField | nanosecondField
     | timezoneHourField | timezoneMinuteField
-    | dayOfWeekField | isoDayOfWeekField
+    | dayOfWeekField | isoWeekYearField | isoDayOfWeekField
     | weekOfYearField | isoWeekOfYearField
     | quarterField | dayOfYearField | epochField
 ","
@@ -1931,8 +2337,16 @@ Day of week (1-7). Sunday is 1.
 DAY_OF_WEEK
 "
 
+"Datetime fields","ISO week year field","
+ISO_YEAR | ISOYEAR
+","
+Returns the ISO week year from a date/time value.
+","
+ISO_YEAR
+"
+
 "Datetime fields","ISO day of week field","
-ISO_DAY_OF_WEEK
+ISO_DAY_OF_WEEK | ISODOW
 ","
 ISO day of week (1-7). Monday is 1.
 ","
@@ -2002,33 +2416,6 @@ Value or condition.
 ID=1 AND NAME='Hi'
 "
 
-"Other Grammar","Array","
-( [ expression, [ expression [,...] ] ] )
-","
-An array of values. An empty array is '()'. Trailing commas are ignored.
-An array with one element must contain a comma to be parsed as an array.
-","
-(1, 2)
-(1, )
-()
-"
-
-"Other Grammar","Boolean","
-TRUE | FALSE
-","
-A boolean value.
-","
-TRUE
-"
-
-"Other Grammar","Bytes","
-X'hex'
-","
-A binary value. The hex value is not case sensitive.
-","
-X'01FF'
-"
-
 "Other Grammar","Case","
 CASE expression { WHEN expression THEN expression } [...]
 [ ELSE expression ] END
@@ -2059,10 +2446,12 @@ AES
 
 "Other Grammar","Column Definition","
 dataType [ VISIBLE | INVISIBLE ]
-[ { DEFAULT expression | AS computedColumnExpression } ]
+[ { DEFAULT expression
+    | AS computedColumnExpression
+    | GENERATED {ALWAYS | BY DEFAULT} AS IDENTITY [(sequenceOptions)]} ]
 [ ON UPDATE expression ] [ [ NOT ] NULL ]
 [ { AUTO_INCREMENT | IDENTITY } [ ( startInt [, incrementInt ] ) ] ]
-[ SELECTIVITY selectivity ] [ COMMENT expression ]
+[ SELECTIVITY selectivityInt ] [ COMMENT expression ]
 [ PRIMARY KEY [ HASH ] | UNIQUE ] [ CHECK condition ]
 ","
 Default expressions are used if no explicit value was used when adding a row.
@@ -2071,9 +2460,11 @@ On update column expression is used if row is updated,
 at least one column have a new value that is different from its previous value
 and value for this column is not set explicitly in update statement.
 
-Identity and auto-increment columns are columns with a sequence as the
-default. The column declared as the identity columns is implicitly the
-primary key column of this table (unlike auto-increment columns).
+Identity, auto-increment, or generated as identity columns are columns with a sequence as the default.
+The column declared as the identity columns with IDENTITY data type or with IDENTITY () clause
+is implicitly the primary key column of this table.
+AUTO_INCREMENT and GENERATED clauses do not create the primary key constraint.
+GENERATED ALWAYS is accepted by treated in the same way as GENERATED BY DEFAULT.
 
 The invisible column will not be displayed as a result of SELECT * query.
 Otherwise, it works as normal column.
@@ -2111,26 +2502,81 @@ The operator ""&&"" means overlapping; it can only be used with geometry types.
 "
 
 "Other Grammar","Condition","
-operand [ conditionRightHandSide ] | NOT condition | EXISTS ( select )
+operand [ conditionRightHandSide ]
+    | NOT condition
+    | EXISTS ( query )
+    | UNIQUE ( query )
+    | INTERSECTS (operand, operand)
 ","
 Boolean value or condition.
+
+""NOT"" condition negates the result of subcondition and returns ""TRUE"", ""FALSE"", or ""UNKNOWN"" (""NULL"").
+
+""EXISTS"" predicate tests whether the result of the specified subquery is not empty and returns ""TRUE"" or ""FALSE"".
+
+""UNIQUE"" predicate tests absence of duplicate rows in the specified subquery and returns ""TRUE"" or ""FALSE"".
+Rows with ""NULL"" value in any column are ignored.
+
+""INTERSECTS"" checks whether 2D bounding boxes of specified geometries intersects with each other
+and returns ""TRUE"" or ""FALSE"".
 ","
 ID<>2
+NOT(A OR B)
+EXISTS (SELECT NULL FROM TEST T WHERE T.GROUP_ID = P.ID)
+UNIQUE (SELECT A, B FROM TEST T WHERE T.CATEGORY = CAT)
+INTERSECTS(GEOM1, GEOM2)
 "
 
 "Other Grammar","Condition Right Hand Side","
-compare { { { ALL | ANY | SOME } ( select ) } | operand }
+compare { { { ALL | ANY | SOME } ( query ) } | operand }
     | IS [ NOT ] NULL
     | IS [ NOT ] [ DISTINCT FROM ] operand
+    | IS [ NOT ] { TRUE | FALSE | UNKNOWN }
+    | IS [ NOT ] OF (dataType [, dataType])
+    | IS [ NOT ] JSON [ VALUE | ARRAY | OBJECT | SCALAR ]
+        [ [ WITH | WITHOUT ] UNIQUE [ KEYS ] ]
     | BETWEEN operand AND operand
-    | IN ( { select | expression [,...] } )
+    | IN ( { query | expression [,...] } )
     | [ NOT ] [ LIKE | ILIKE ] operand [ ESCAPE string ]
     | [ NOT ] REGEXP operand
 ","
 The right hand side of a condition.
 
-The conditions ""IS [ NOT ]"" and ""IS [ NOT ] DISTINCT FROM"" are null-safe, meaning
+Quantified comparison predicate ALL returns TRUE if specified comparison operation between
+left size of condition and each row from a subquery returns TRUE, including case when there are no rows.
+ALL predicate returns FALSE if at least one such comparison returns FALSE.
+Otherwise it returns NULL.
+
+Quantified comparison predicates ANY and SOME return TRUE if specified comparison operation between
+left size of condition and at least one row from a subquery returns TRUE.
+ANY and SOME predicates return FALSE if all such comparisons return FALSE.
+Otherwise it returns NULL.
+Note that these predicates have priority over ANY and SOME aggregate functions with subquery on the right side.
+Use parentheses around aggregate function.
+
+The conditions ""IS [ NOT ] NULL"" check whether the specified value(s) are NULL values.
+To test multiple values a row value must be specified.
+""IS NULL"" returns ""TRUE"" if and only if all values are ""NULL"" values; otherwise it returns ""FALSE"".
+""IS NOT NULL"" returns ""TRUE"" if and only if all values are not ""NULL"" values; otherwise it returns ""FALSE"".
+
+The conditions ""IS [ NOT ] DISTINCT FROM"" are null-safe, meaning
 NULL is considered the same as NULL, and the condition never evaluates to NULL.
+
+Boolean tests ""IS [ NOT ] { TRUE | FALSE | UNKNOWN }"" check whether the specified value
+is (not) ""TRUE"", ""FALSE"", or ""UNKNOWN"" (""NULL"") and return ""TRUE"" or ""FALSE"".
+
+The conditions ""IS [ NOT ] OF"" check whether the data type of the specified operand
+is one of the specified data types.
+Some data types have multiple names, these names are considered as equal here.
+Domains and their base data types are currently not distinguished from each other.
+Precision and scale are also ignored.
+If operand is NULL, the result is NULL.
+
+The conditions ""IS [ NOT ] JSON"" check whether value of the specified string,
+binary data, or a JSON is a valid JSON.
+If ""ARRAY"", ""OBJECT"", or ""SCALAR"" is specified, only JSON items of the specified type are considered as valid.
+If ""WITH UNIQUE [ KEYS ]"" is specified only JSON with unique keys is considered as valid.
+These conditions aren't null-safe, they return NULL if operand is NULL.
 
 When comparing with LIKE, the wildcards characters are ""_"" (any one character)
 and ""%"" (any characters). The database uses an index when comparing with LIKE
@@ -2146,6 +2592,12 @@ ILIKE does a case-insensitive compare.
 When comparing with REGEXP, regular expression matching is used.
 See Java ""Matcher.find"" for details.
 ","
+VALUE > 10
+A IS NULL
+(A, B) IS NOT NULL
+A IS NOT DISTINCT FROM B
+T IS OF (DATE, TIMESTAMP, TIMESTAMP WITH TIME ZONE)
+T IS JSON OBJECT WITH UNIQUE KEYS
 LIKE 'Jo%'
 "
 
@@ -2214,50 +2666,34 @@ newline and tab characters are written as such.
 CALL CSVWRITE('test2.csv', 'SELECT * FROM TEST', 'charset=UTF-8 fieldSeparator=|');
 "
 
+"Other Grammar","Data Change Delta Table","
+{ OLD | NEW | FINAL } TABLE
+( { insert | update | delete | mergeInto | mergeUsing } )
+","
+Executes the inner data change command and returns old, new, or final rows.
+
+""OLD"" is not allowed for ""INSERT"" command. It returns old rows.
+
+""NEW"" and ""FINAL"" are not allowed for ""DELETE"" command.
+
+""NEW"" returns new rows after evaluation of default expressions, but before execution of triggers.
+
+""FINAL"" returns new rows after execution of triggers.
+If table or view has ""INSTEAD OF"" triggers ""FINAL"" is not allowed.
+","
+SELECT ID FROM FINAL TABLE (INSERT INTO TEST (A, B) VALUES (1, 2))
+"
+
 "Other Grammar","Data Type","
 intType | booleanType | tinyintType | smallintType | bigintType | identityType
     | decimalType | doubleType | realType | dateType | timeType | timestampType
     | timestampWithTimeZoneType | binaryType | otherType | varcharType
     | varcharIgnorecaseType | charType | blobType | clobType | uuidType
-    | arrayType | enumType
+    | arrayType | enumType | intervalType
 ","
 A data type definition.
 ","
 INT
-"
-
-"Other Grammar","Date","
-DATE 'yyyy-MM-dd'
-","
-A date literal. The limitations are the same as for the Java data type
-""java.sql.Date"", but for compatibility with other databases the suggested minimum
-and maximum years are 0001 and 9999.
-","
-DATE '2004-12-31'
-"
-
-"Other Grammar","Decimal","
-[ + | - ] { { number [ . number ] } | { . number } }
-[ E [ + | - ] expNumber [...] ] ]
-","
-A decimal number with fixed precision and scale.
-Internally, ""java.lang.BigDecimal"" is used.
-To ensure the floating point representation is used, use CAST(X AS DOUBLE).
-There are some special decimal values: to represent positive infinity, use ""POWER(0, -1)"";
-for negative infinity, use ""(-POWER(0, -1))""; for -0.0, use ""(-CAST(0 AS DOUBLE))"";
-for ""NaN"" (not a number), use ""SQRT(-1)"".
-","
-SELECT -1600.05
-SELECT CAST(0 AS DOUBLE)
-SELECT -1.4e-10
-"
-
-"Other Grammar","Delete search condition","
-[ WHERE expression ] [ LIMIT term ]
-","
-Search condition for DELETE statement.
-","
-WHERE ID = 2
 "
 
 "Other Grammar","Digit","
@@ -2266,16 +2702,6 @@ WHERE ID = 2
 A digit.
 ","
 0
-"
-
-"Other Grammar","Dollar Quoted String","
-$$anythingExceptTwoDollarSigns$$
-","
-A string starts and ends with two dollar signs. Two dollar signs are not allowed
-within the text. A whitespace is required before the first set of dollar signs.
-No escaping is required within the text.
-","
-$$John's car$$
 "
 
 "Other Grammar","Expression","
@@ -2295,20 +2721,14 @@ ID * 10
 "
 
 "Other Grammar","Hex","
-{ { digit | a-f | A-F } { digit | a-f | A-F } } [...]
+[' ' [...]] { { digit | a-f | A-F } [' ' [...]] { digit | a-f | A-F } [' ' [...]] } [...]
 ","
-The hexadecimal representation of a number or of bytes. Two characters are one
-byte.
+The hexadecimal representation of a number or of bytes with optional space characters.
+Two hexadecimal digit characters are one byte.
 ","
 cafe
-"
-
-"Other Grammar","Hex Number","
-[ + | - ] 0x hex
-","
-A number written in hexadecimal notation.
-","
-0xff
+11 22 33
+a b  c d
 "
 
 "Other Grammar","Index Column","
@@ -2323,29 +2743,63 @@ NAME
 
 "Other Grammar","Insert columns and source","
 { [ ( columnName [,...] ) ]
-    { VALUES { ( { DEFAULT | expression } [,...] ) } [,...]
-        | [ DIRECT ] [ SORTED ] select } } |
-    { SET { columnName = { DEFAULT | expression } } [,...] }
+    { insertValues | [ DIRECT ] [ SORTED ] query | DEFAULT VALUES } }
+    | { SET { columnName = { DEFAULT | expression } } [,...] }
 ","
 Names of columns and their values for INSERT statement.
 ","
 (ID, NAME) VALUES (1, 'Test')
 "
 
-"Other Grammar","Int","
-[ + | - ] number
+"Other Grammar","Insert values","
+VALUES { DEFAULT|expression | [ROW] ({DEFAULT|expression} [,...]) }, [,...]
 ","
-The maximum integer number is 2147483647, the minimum is -2147483648.
+Values for INSERT statement.
 ","
-10
+VALUES (1, 'Test')
 "
 
-"Other Grammar","Long","
-[ + | - ] number
+"Other Grammar","Join specification","
+ON expression | USING (columnName [,...])
 ","
-Long numbers are between -9223372036854775808 and 9223372036854775807.
+Specifies a join condition or column names.
 ","
-100000
+ON B.ID = A.PARENT_ID
+USING (ID)
+"
+
+"Other Grammar","Merge when clause","
+mergeWhenMatchedClause|mergeWhenNotMatchedClause
+","
+WHEN MATCHED or WHEN NOT MATCHED clause for MERGE USING command.
+","
+WHEN MATCHED THEN DELETE
+"
+
+"Other Grammar","Merge when matched clause","
+WHEN MATCHED [ AND expression ] THEN
+UPDATE SET setClauseList
+    | DELETE
+    | {UPDATE SET setClauseList [ WHERE expression ] DELETE [ WHERE expression ]}
+","
+WHEN MATCHED clause for MERGE USING command.
+
+If both UPDATE and DELETE are specified, DELETE can delete only rows that were updated,
+WHERE condition in DELETE clause can be used to specify which updated rows should be deleted.
+This condition checks values in updated row.
+Such combination of UPDATE and DELETE clauses in single ""WHEN MATCHED"" clause is not allowed
+when MERGE statement is included into data change delta table.
+","
+WHEN MATCHED THEN UPDATE SET VALUE = S.VALUE
+WHEN MATCHED THEN DELETE
+"
+
+"Other Grammar","Merge when not matched clause","
+WHEN NOT MATCHED [ AND expression ] THEN INSERT insertColumnsAndSource
+","
+WHEN NOT MATCHED clause for MERGE USING command.
+","
+WHEN NOT MATCHED THEN INSERT (ID, NAME) VALUES (S.ID, S.NAME)
 "
 
 "Other Grammar","Name","
@@ -2356,40 +2810,18 @@ Names are not case sensitive. There is no maximum name length.
 TEST
 "
 
-"Other Grammar","Null","
-NULL
-","
-NULL is a value without data type and means 'unknown value'.
-","
-NULL
-"
-
-"Other Grammar","Number","
-digit [...]
-","
-The maximum length of the number depends on the data type used.
-","
-100
-"
-
-"Other Grammar","Numeric","
-decimal | int | long | hexNumber
-","
-The data type of a numeric value is always the lowest possible for the given value.
-If the number contains a dot this is decimal; otherwise it is int, long, or decimal (depending on the value).
-","
-SELECT -1600.05
-SELECT CAST(0 AS DOUBLE)
-SELECT -1.4e-10
-"
-
 "Other Grammar","Operand","
 summand [ { || summand } [...] ]
 ","
-A value or a concatenation of values.
+Performs the concatenation of character string, binary string, or array values.
 In the default mode, the result is NULL if either parameter is NULL.
+In compatibility modes result of string concatenation with NULL parameter can be different.
 ","
 'Hi' || ' Eva'
+X'AB' || X'CD'
+ARRAY[1, 2] || 3
+1 || ARRAY[2, 3]
+ARRAY[1, 2] || ARRAY[3, 4]
 "
 
 "Other Grammar","Order","
@@ -2400,6 +2832,16 @@ expression is a single parameter, then the value is interpreted as a column
 number. Negative column numbers reverse the sort order.
 ","
 NAME DESC NULLS LAST
+"
+
+"Other Grammar","Query","
+select | explicitTable | tableValue
+","
+A query, such as SELECT, explicit table, or table value.
+","
+SELECT ID FROM TEST;
+TABLE TEST;
+VALUES (1, 2), (3, 4);
 "
 
 "Other Grammar","Quoted Name","
@@ -2449,30 +2891,49 @@ LZF is faster but uses more space.
 COMPRESSION LZF
 "
 
+"Other Grammar","Row value expression","
+ROW (expression, [,...])
+    | ( [ expression, expression [,...] ] )
+    | expression
+","
+A row value expression.
+","
+ROW (1)
+(1, 2)
+1
+"
+
 "Other Grammar","Select Expression","
-* | expression [ [ AS ] columnAlias ] | tableAlias.*
+wildcardExpression | expression [ [ AS ] columnAlias ]
 ","
 An expression in a SELECT statement.
 ","
 ID AS VALUE
 "
 
+"Other Grammar","Sequence options","
+[ START WITH long ]
+[ INCREMENT BY long ]
+[ MINVALUE long | NOMINVALUE | NO MINVALUE ]
+[ MAXVALUE long | NOMAXVALUE | NO MAXVALUE ]
+[ CYCLE long | NOCYCLE | NO CYCLE ]
+[ CACHE long | NOCACHE | NO CACHE ]
+","
+Options of a sequence.
+","
+START WITH 1
+"
+
 "Other Grammar","Set clause list","
-{ { columnName = { DEFAULT | expression } } [,...] } |
-    { ( columnName [,...] ) = ( select ) }
+{ { columnName = { DEFAULT | expression } }
+    | { ( columnName [,...] ) = { rowValueExpression | (query) } } } [,...]
 ","
 List of SET clauses.
 ","
 NAME = 'Test', VALUE = 2
-"
-
-"Other Grammar","String","
-'anythingExceptSingleQuote'
-","
-A string starts and ends with a single quote. Two single quotes can be used to
-create a single quote inside a string.
-","
-'John''s car'
+(A, B) = (1, 2)
+(A, B) = (1, 2), C = 3
+(A, B) = (SELECT X, Y FROM OTHER T2 WHERE T1.ID = T2.ID)
 "
 
 "Other Grammar","Summand","
@@ -2486,94 +2947,163 @@ ID + 20
 "
 
 "Other Grammar","Table Expression","
-{ [ schemaName. ] tableName | ( select ) | valuesExpression }
+{ [ schemaName. ] tableName
+    | ( query )
+    | unnest
+    | table
+    | dataChangeDeltaTable }
 [ [ AS ] newTableAlias [ ( columnName [,...] ) ] ]
 [ USE INDEX ([ indexName [,...] ]) ]
 [ { { LEFT | RIGHT } [ OUTER ] | [ INNER ] | CROSS | NATURAL }
-    JOIN tableExpression [ ON expression ] ]
+    JOIN tableExpression [ joinSpecification ] ]
 ","
-Joins a table. The join expression is not supported for cross and natural joins.
+Joins a table. The join specification is not supported for cross and natural joins.
 A natural join is an inner join, where the condition is automatically on the
 columns with the same name.
 ","
-TEST AS T LEFT JOIN TEST AS T1 ON T.ID = T1.ID
+TEST1 AS T1 LEFT JOIN TEST2 AS T2 ON T1.ID = T2.PARENT_ID
 "
 
-"Other Grammar","Values Expression","
-VALUES { ( expression [,...] ) } [,...]
+"Other Grammar","Within group specification","
+WITHIN GROUP (ORDER BY {expression [ASC|DESC]} [,...])
 ","
-A list of rows that can be used like a table.
-The column list of the resulting table is C1, C2, and so on.
+Group specification for ordered set functions.
 ","
-SELECT * FROM (VALUES(1, 'Hello'), (2, 'World')) AS V;
+WITHIN GROUP (ORDER BY ID DESC)
+"
+
+"Other Grammar","Wildcard expression","
+{* | tableAlias.*} [EXCEPT ([tableAlias.]columnName, [,...])]
+","
+A wildcard expression in a SELECT statement.
+A wildcard expression represents all visible columns. Some columns can be excluded with optional EXCEPT clause.
+","
+*
+* EXCEPT (DATA)
+"
+
+"Other Grammar","Window name or specification","
+windowName | windowSpecification
+","
+A window name or inline specification for a window function or aggregate.
+
+Window functions in H2 may require a lot of memory for large queries.
+","
+W1
+(ORDER BY ID)
+"
+
+"Other Grammar","Window specification","
+([existingWindowName]
+[PARTITION BY expression [,...]] [ORDER BY order [,...]]
+[windowFrame])
+","
+A window specification for a window, window function or aggregate.
+
+If name of an existing window is specified its clauses are used by default.
+
+Optional window partition clause separates rows into independent partitions.
+Each partition is processed separately.
+If this clause is not present there is one implicit partition with all rows.
+
+Optional window order clause specifies order of rows in the partition.
+If some rows have the same order position they are considered as a group of rows in optional window frame clause.
+
+Optional window frame clause specifies which rows are processed by a window function,
+see its documentation for a more details.
+","
+()
+(W1 ORDER BY ID)
+(PARTITION BY CATEGORY)
+(PARTITION BY CATEGORY ORDER BY NAME, ID)
+(ORDER BY Y RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE TIES)
+"
+
+"Other Grammar","Window frame","
+ROWS|RANGE|GROUP
+{windowFramePreceding|BETWEEN windowFrameBound AND windowFrameBound}
+[EXCLUDE {CURRENT ROW|GROUP|TIES|NO OTHERS}]
+","
+A window frame clause.
+May be specified only for aggregates and FIRST_VALUE(), LAST_VALUE(), and NTH_VALUE() window functions.
+
+If this clause is not specified for an aggregate or window function that supports this clause
+the default window frame depends on window order clause.
+If window order clause is also not specified
+the default window frame contains all the rows in the partition.
+If window order clause is specified
+the default window frame contains all preceding rows and all rows from the current group.
+
+Window frame unit determines how rows or groups of rows are selected and counted.
+If ROWS is specified rows are not grouped in any way and relative numbers of rows are used in bounds.
+If RANGE is specified rows are grouped according window order clause,
+preceding and following values mean the difference between value in the current row and in the target rows,
+and CURRENT ROW in bound specification means current group of rows.
+If GROUPS is specified rows are grouped according window order clause,
+preceding and following values means relative number of groups of rows,
+and CURRENT ROW in bound specification means current group of rows.
+
+If only window frame preceding clause is specified it is treated as
+BETWEEN windowFramePreceding AND CURRENT ROW.
+
+Optional window frame exclusion clause specifies rows that should be excluded from the frame.
+EXCLUDE CURRENT ROW excludes only the current row regardless the window frame unit.
+EXCLUDE GROUP excludes the whole current group of rows, including the current row.
+EXCLUDE TIES excludes the current group of rows, but not the current row.
+EXCLUDE NO OTHERS is default and it does not exclude anything.
+","
+ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE TIES
+"
+
+"Other Grammar","Window frame preceding","
+UNBOUNDED PRECEDING|value PRECEDING|CURRENT ROW
+","
+A window frame preceding clause.
+If value is specified it should not be negative.
+","
+UNBOUNDED PRECEDING
+1 PRECEDING
+CURRENT ROW
+"
+
+"Other Grammar","Window frame bound","
+UNBOUNDED PRECEDING|value PRECEDING|CURRENT ROW
+    |value FOLLOWING|UNBOUNDED FOLLOWING
+","
+A window frame bound clause.
+If value is specified it should not be negative.
+","
+UNBOUNDED PRECEDING
+UNBOUNDED FOLLOWING
+1 FOLLOWING
+CURRENT ROW
 "
 
 "Other Grammar","Term","
 value
-    | columnName
+    | column
     | ?[ int ]
     | NEXT VALUE FOR sequenceName
     | function
     | { - | + } term
     | ( expression )
-    | select
+    | query
     | case
     | caseWhen
-    | tableAlias.columnName
     | userDefinedFunctionName
 ","
 A value. Parameters can be indexed, for example ""?1"" meaning the first parameter.
-Each table has a pseudo-column named ""_ROWID_"" that contains the unique row identifier.
 ","
 'Hello'
 "
 
-"Other Grammar","Time","
-TIME [ WITHOUT TIME ZONE ] 'hh:mm:ss[.nnnnnnnnn]'
+"Other Grammar","Column","
+[[schemaName.]tableAlias.] { columnName | _ROWID_ }
 ","
-A time literal. A value is between 0:00:00 and 23:59:59.999999999
-and has nanosecond resolution.
+A column name with optional table alias and schema.
+_ROWID_ can be used to access unique row identifier.
 ","
-TIME '23:59:59'
-"
-
-"Other Grammar","Timestamp","
-TIMESTAMP [ WITHOUT TIME ZONE ] 'yyyy-MM-dd hh:mm:ss[.nnnnnnnnn]'
-","
-A timestamp literal. The limitations are the same as for the Java data type
-""java.sql.Timestamp"", but for compatibility with other databases the suggested
-minimum and maximum years are 0001 and 9999.
-","
-TIMESTAMP '2005-12-31 23:59:59'
-"
-
-"Other Grammar","Timestamp with time zone","
-TIMESTAMP WITH TIME ZONE 'yyyy-MM-dd hh:mm:ss[.nnnnnnnnn]
-[Z | { - | + } timeZoneOffsetString | timeZoneNameString ]'
-","
-A timestamp with time zone literal.
-If name of time zone is specified it will be converted to time zone offset.
-","
-TIMESTAMP WITH TIME ZONE '2005-12-31 23:59:59Z'
-TIMESTAMP WITH TIME ZONE '2005-12-31 23:59:59-10:00'
-TIMESTAMP WITH TIME ZONE '2005-12-31 23:59:59.123+05'
-TIMESTAMP WITH TIME ZONE '2005-12-31 23:59:59.123456789 Europe/London'
-"
-
-"Other Grammar","Date and time","
-date | time | timestamp | timestampWithTimeZone
-","
-A literal value of any date-time data type.
-","
-TIMESTAMP '1999-01-31 10:00:00'
-"
-
-"Other Grammar","Value","
-string | dollarQuotedString | numeric | dateAndTime | boolean | bytes | array | null
-","
-A literal value of any data type, or null.
-","
-10
+ID
 "
 
 "Data Types","INT Type","
@@ -2680,20 +3210,27 @@ The time data type. The format is hh:mm:ss[.nnnnnnnnn].
 If fractional seconds precision is specified it should be from 0 to 9, 0 is default.
 
 Mapped to ""java.sql.Time"". When converted to a ""java.sql.Date"", the date is set to ""1970-01-01"".
-""java.time.LocalTime"" is also supported on Java 8 and later versions.
-Resolution of ""java.sql.Time"" is limited to milliseconds, use ""String"" or ""java.time.LocalTime"" if you need nanosecond resolution.
+""java.time.LocalTime"" is also supported and recommended on Java 8 and later versions.
+Use ""java.time.LocalTime"" or ""String"" instead of ""java.sql.Time"" when non-zero precision is needed.
+Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up;
+if result of rounding is higher than maximum supported value 23:59:59.999999999 it is saturated to 23:59:59.999999999.
 ","
 TIME
+TIME(9)
 "
 
 "Data Types","DATE Type","
 DATE
 ","
-The date data type. The format is yyyy-MM-dd.
+The date data type. The proleptic Gregorian calendar is used.
 
 Mapped to ""java.sql.Date"", with the time set to ""00:00:00""
 (or to the next possible time if midnight doesn't exist for the given date and timezone due to a daylight saving change).
-""java.time.LocalDate"" is also supported on Java 8 and later versions.
+If you deal with old dates note that ""java.sql.Date"" uses a mixed Julian/Gregorian calendar,
+""java.util.GregorianCalendar"" can be configured to proleptic Gregorian with
+""setGregorianChange(new java.util.Date(Long.MIN_VALUE))"" and used to read or write fields of dates.
+
+""java.time.LocalDate"" is also supported and recommended on Java 8 and later versions.
 ","
 DATE
 "
@@ -2702,37 +3239,47 @@ DATE
 { TIMESTAMP [ ( precisionInt ) ] [ WITHOUT TIME ZONE ]
     | DATETIME [ ( precisionInt ) ] | SMALLDATETIME }
 ","
-The timestamp data type. The format is yyyy-MM-dd hh:mm:ss[.nnnnnnnnn].
+The timestamp data type. The proleptic Gregorian calendar is used.
 Stored internally as a BCD-encoded date, and nanoseconds since midnight.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
 Fractional seconds precision of SMALLDATETIME is always 0 and cannot be specified.
 
 Mapped to ""java.sql.Timestamp"" (""java.util.Date"" may be used too).
-""java.time.LocalDateTime"" is also supported on Java 8 and later versions.
+If you deal with old dates note that ""java.sql.Timestamp"" uses a mixed Julian/Gregorian calendar,
+""java.util.GregorianCalendar"" can be configured to proleptic Gregorian with
+""setGregorianChange(new java.util.Date(Long.MIN_VALUE))"" and used to read or write fields of timestamps.
+
+""java.time.LocalDateTime"" is also supported and recommended on Java 8 and later versions.
+
+Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up.
 ","
 TIMESTAMP
+TIMESTAMP(9)
 "
 
 "Data Types","TIMESTAMP WITH TIME ZONE Type","
 TIMESTAMP [ ( precisionInt ) ] WITH TIME ZONE
 ","
-The timestamp with time zone data type.
+The timestamp with time zone data type. The proleptic Gregorian calendar is used.
 Stored internally as a BCD-encoded date, nanoseconds since midnight, and time zone offset in minutes.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
 
-Mapped to ""org.h2.api.TimestampWithTimeZone"".
-""java.time.OffsetDateTime"" and ""java.time.Instant"" are also supported on Java 8 and later versions.
+Mapped to ""org.h2.api.TimestampWithTimeZone"" by default and can be optionally mapped to ""java.time.OffsetDateTime"".
+""java.time.ZonedDateTime"" and ""java.time.Instant"" are also supported on Java 8 and later versions.
 
 Values of this data type are compared by UTC values. It means that ""2010-01-01 10:00:00+01"" is greater than ""2010-01-01 11:00:00+03"".
 
 Conversion to ""TIMESTAMP"" uses time zone offset to get UTC time and converts it to local time using the system time zone.
 Conversion from ""TIMESTAMP"" does the same operations in reverse and sets time zone offset to offset of the system time zone.
+Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up.
 ","
 TIMESTAMP WITH TIME ZONE
+TIMESTAMP(9) WITH TIME ZONE
 "
 
 "Data Types","BINARY Type","
-{ BINARY | VARBINARY | LONGVARBINARY | RAW | BYTEA }
+{ BINARY | VARBINARY | BINARY VARYING
+    | LONGVARBINARY | RAW | BYTEA }
 [ ( precisionInt ) ]
 ","
 Represents a byte array. For very long arrays, use BLOB.
@@ -2761,7 +3308,7 @@ OTHER
 "
 
 "Data Types","VARCHAR Type","
-{ VARCHAR | LONGVARCHAR | VARCHAR2 | NVARCHAR
+{ VARCHAR | CHARACTER VARYING | LONGVARCHAR | VARCHAR2 | NVARCHAR
     | NVARCHAR2 | VARCHAR_CASESENSITIVE} [ ( precisionInt ) ]
 ","
 A Unicode String.
@@ -2814,8 +3361,9 @@ CHAR(10)
 "
 
 "Data Types","BLOB Type","
-{ BLOB | TINYBLOB | MEDIUMBLOB | LONGBLOB | IMAGE | OID }
-[ ( precisionInt ) ]
+{ BLOB | BINARY LARGE OBJECT
+    | TINYBLOB | MEDIUMBLOB | LONGBLOB | IMAGE | OID }
+[ ( precisionInt [K|M|G|T|P]) ]
 ","
 Like BINARY, but intended for very large values such as files or images. Unlike
 when using BINARY, large objects are not kept fully in-memory. Use
@@ -2825,11 +3373,13 @@ Advanced / Large Objects.
 Mapped to ""java.sql.Blob"" (""java.io.InputStream"" is also supported).
 ","
 BLOB
+BLOB(10K)
 "
 
 "Data Types","CLOB Type","
-{ CLOB | TINYTEXT | TEXT | MEDIUMTEXT | LONGTEXT | NTEXT | NCLOB }
-[ ( precisionInt ) ]
+{ CLOB | CHARACTER LARGE OBJECT
+    | TINYTEXT | TEXT | MEDIUMTEXT | LONGTEXT | NTEXT | NCLOB }
+[ ( precisionInt [K|M|G|T|P] [CHARACTERS|OCTETS]) ]
 ","
 CLOB is like VARCHAR, but intended for very large values. Unlike when using
 VARCHAR, large CLOB objects are not kept fully in-memory; instead, they are streamed.
@@ -2841,9 +3391,12 @@ VARCHAR should be used for text with relatively short average size (for example
 shorter than 200 characters). Short CLOB values are stored inline, but there is
 an overhead compared to VARCHAR.
 
+Precision, if any, should be specified in characters, CHARACTERS and OCTETS units have no effect in H2.
+
 Mapped to ""java.sql.Clob"" (""java.io.Reader"" is also supported).
 ","
 CLOB
+CLOB(10K)
 "
 
 "Data Types","UUID Type","
@@ -2865,16 +3418,17 @@ UUID
 "
 
 "Data Types","ARRAY Type","
-ARRAY
+ARRAY [ '[' maximumCardinalityInt ']' ]
 ","
 An array of values.
+Maximum cardinality, if any, specifies maximum allowed number of elements in the array.
 Mapped to ""java.lang.Object[]"" (arrays of any non-primitive type are also supported).
 
-
-Use a value list (1, 2) or ""PreparedStatement.setObject(.., new Object[] {..})"" to store values,
+Use ""PreparedStatement.setArray(..)"" or ""PreparedStatement.setObject(.., new Object[] {..})"" to store values,
 and ""ResultSet.getObject(..)"" or ""ResultSet.getArray(..)"" to retrieve the values.
 ","
 ARRAY
+ARRAY[10]
 "
 
 "Data Types","ENUM Type","
@@ -2888,222 +3442,257 @@ second mapped to 1, and so on.
 
 Duplicate and empty values are not permitted.
 ","
-
 ENUM('clubs', 'diamonds', 'hearts', 'spades')
 "
+
 "Data Types","GEOMETRY Type","
 GEOMETRY
+    [({ GEOMETRY |
+    { POINT
+    | LINESTRING
+    | POLYGON
+    | MULTIPOINT
+    | MULTILINESTRING
+    | MULTIPOLYGON
+    | GEOMETRYCOLLECTION } [Z|M|ZM]}
+    [, sridInt] )]
 ","
-A spatial geometry type, based on the ""org.locationtech.jts"" library.
+A spatial geometry type.
+If additional constraints are not specified this type accepts all supported types of geometries.
+A constraint with required geometry type and dimension system can be set by specifying name of the type and
+dimension system. A whitespace between them is optional.
+2D dimension system does not have a name and assumed if only a geometry type name is specified.
+POINT means 2D point, POINT Z or POINTZ means 3D point.
+GEOMETRY constraint means no restrictions on type or dimension system of geometry.
+A constraint with required spatial reference system identifier (SRID) can be set by specifying this identifier.
+
+Mapped to ""org.locationtech.jts.geom.Geometry"" if JTS library is in classpath and to ""java.lang.String"" otherwise.
 May be represented in textual format using the WKT (well-known text) or EWKT (extended well-known text) format.
 Values are stored internally in EWKB (extended well-known binary) format.
+Only a subset of EWKB and EWKT features is supported.
+Supported objects are POINT, LINESTRING, POLYGON, MULTIPOINT, MULTILINESTRING, MULTIPOLYGON, and GEOMETRYCOLLECTION.
+Supported dimension systems are 2D (XY), Z (XYZ), M (XYM), and ZM (XYZM).
+SRID (spatial reference system identifier) is supported.
 
 Use a quoted string containing a WKT/EWKT formatted string or ""PreparedStatement.setObject()"" to store values,
 and ""ResultSet.getObject(..)"" or ""ResultSet.getString(..)"" to retrieve the values.
 ","
 GEOMETRY
+GEOMETRY(POINT)
+GEOMETRY(POINT Z)
+GEOMETRY(POINT Z, 4326)
+GEOMETRY(GEOMETRY, 4326)
 "
 
-"Functions (Aggregate)","AVG","
-AVG ( [ DISTINCT ] { numeric } ) [ FILTER ( WHERE expression ) ]
+"Data Types","JSON Type","
+JSON
 ","
-The average (mean) value.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
-The returned value is of the same data type as the parameter.
+A RFC 8259-compliant JSON text.
+Mapped to ""byte[]"".
+To set a JSON value with ""java.lang.String"" in a PreparedStatement use a ""FORMAT JSON"" data format
+(""INSERT INTO TEST(ID, DATA) VALUES (?, ? FORMAT JSON)"").
+Without the data format VARCHAR values are converted to a JSON string values.
+
+Order of object members is preserved as is.
+Duplicate object member names are allowed.
 ","
-AVG(X)
+JSON
 "
 
-"Functions (Aggregate)","BIT_AND","
-BIT_AND(expression) [ FILTER ( WHERE expression ) ]
+"Data Types","INTERVAL Type","
+intervalYearType | intervalMonthType | intervalDayType
+    | intervalHourType| intervalMinuteType | intervalSecondType
+    | intervalYearToMonthType | intervalDayToHourType
+    | intervalDayToMinuteType | intervalDayToSecondType
+    | intervalHourToMinuteType | intervalHourToSecondType
+    | intervalMinuteToSecondType
 ","
-The bitwise AND of all non-null values.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
+Interval data type.
+There are two classes of intervals. Year-month intervals can store years and months.
+Day-time intervals can store days, hours, minutes, and seconds.
+Year-month intervals are comparable only with another year-month intervals.
+Day-time intervals are comparable only with another day-time intervals.
+
+Mapped to ""org.h2.api.Interval"".
 ","
-BIT_AND(ID)
+INTERVAL DAY TO SECOND
 "
 
-"Functions (Aggregate)","BIT_OR","
-BIT_OR(expression) [ FILTER ( WHERE expression ) ]
+"Interval Data Types","INTERVAL YEAR Type","
+INTERVAL YEAR [ ( precisionInt ) ]
 ","
-The bitwise OR of all non-null values.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
+Interval data type.
+If precision is specified it should be from 1 to 18, 2 is default.
+
+Mapped to ""org.h2.api.Interval"".
+""java.time.Period"" is also supported on Java 8 and later versions.
 ","
-BIT_OR(ID)
+INTERVAL YEAR
 "
 
-"Functions (Aggregate)","BOOL_AND","
-BOOL_AND(boolean) [ FILTER ( WHERE expression ) ]
+"Interval Data Types","INTERVAL MONTH Type","
+INTERVAL MONTH [ ( precisionInt ) ]
 ","
-Returns true if all expressions are true.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
+Interval data type.
+If precision is specified it should be from 1 to 18, 2 is default.
+
+Mapped to ""org.h2.api.Interval"".
+""java.time.Period"" is also supported on Java 8 and later versions.
 ","
-BOOL_AND(ID>10)
+INTERVAL MONTH
 "
 
-"Functions (Aggregate)","BOOL_OR","
-BOOL_OR(boolean) [ FILTER ( WHERE expression ) ]
+"Interval Data Types","INTERVAL DAY Type","
+INTERVAL DAY [ ( precisionInt ) ]
 ","
-Returns true if any expression is true.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
+Interval data type.
+If precision is specified it should be from 1 to 18, 2 is default.
+
+Mapped to ""org.h2.api.Interval"".
+""java.time.Duration"" is also supported on Java 8 and later versions.
 ","
-BOOL_OR(NAME LIKE 'W%')
+INTERVAL DAY
 "
 
-"Functions (Aggregate)","COUNT","
-COUNT( { * | { [ DISTINCT ] expression } } ) [ FILTER ( WHERE expression ) ]
+"Interval Data Types","INTERVAL HOUR Type","
+INTERVAL HOUR [ ( precisionInt ) ]
 ","
-The count of all row, or of the non-null values.
-This method returns a long.
-If no rows are selected, the result is 0.
-Aggregates are only allowed in select statements.
+Interval data type.
+If precision is specified it should be from 1 to 18, 2 is default.
+
+Mapped to ""org.h2.api.Interval"".
+""java.time.Duration"" is also supported on Java 8 and later versions.
 ","
-COUNT(*)
+INTERVAL HOUR
 "
 
-"Functions (Aggregate)","GROUP_CONCAT","
-GROUP_CONCAT ( [ DISTINCT ] string
-[ ORDER BY { expression [ ASC | DESC ] } [,...] ]
-[ SEPARATOR expression ] ) [ FILTER ( WHERE expression ) ]
+"Interval Data Types","INTERVAL MINUTE Type","
+INTERVAL MINUTE [ ( precisionInt ) ]
 ","
-Concatenates strings with a separator.
-The default separator is a ',' (without space).
-This method returns a string.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
+Interval data type.
+If precision is specified it should be from 1 to 18, 2 is default.
+
+Mapped to ""org.h2.api.Interval"".
+""java.time.Duration"" is also supported on Java 8 and later versions.
 ","
-GROUP_CONCAT(NAME ORDER BY ID SEPARATOR ', ')
+INTERVAL MINUTE
 "
 
-"Functions (Aggregate)","ARRAY_AGG","
-ARRAY_AGG ( [ DISTINCT ] string
-[ ORDER BY { expression [ ASC | DESC ] } [,...] ] )
-[ FILTER ( WHERE expression ) ]
+"Interval Data Types","INTERVAL SECOND Type","
+INTERVAL SECOND [ ( precisionInt [, fractionalPrecisionInt ] ) ]
 ","
-Aggregate the value into an array.
-This method returns an array.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
+Interval data type.
+If precision is specified it should be from 1 to 18, 2 is default.
+If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
+
+Mapped to ""org.h2.api.Interval"".
+""java.time.Duration"" is also supported on Java 8 and later versions.
 ","
-ARRAY_AGG(NAME ORDER BY ID)
+INTERVAL SECOND
 "
 
-"Functions (Aggregate)","MAX","
-MAX(value) [ FILTER ( WHERE expression ) ]
+"Interval Data Types","INTERVAL YEAR TO MONTH Type","
+INTERVAL YEAR [ ( precisionInt ) ] TO MONTH
 ","
-The highest value.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
-The returned value is of the same data type as the parameter.
+Interval data type.
+If leading field precision is specified it should be from 1 to 18, 2 is default.
+
+Mapped to ""org.h2.api.Interval"".
+""java.time.Period"" is also supported on Java 8 and later versions.
 ","
-MAX(NAME)
+INTERVAL YEAR TO MONTH
 "
 
-"Functions (Aggregate)","MIN","
-MIN(value) [ FILTER ( WHERE expression ) ]
+"Interval Data Types","INTERVAL DAY TO HOUR Type","
+INTERVAL DAY [ ( precisionInt ) ] TO HOUR
 ","
-The lowest value.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
-The returned value is of the same data type as the parameter.
+Interval data type.
+If leading field precision is specified it should be from 1 to 18, 2 is default.
+
+Mapped to ""org.h2.api.Interval"".
+""java.time.Duration"" is also supported on Java 8 and later versions.
 ","
-MIN(NAME)
+INTERVAL DAY TO HOUR
 "
 
-"Functions (Aggregate)","SUM","
-SUM( [ DISTINCT ] { numeric } ) [ FILTER ( WHERE expression ) ]
+"Interval Data Types","INTERVAL DAY TO MINUTE Type","
+INTERVAL DAY [ ( precisionInt ) ] TO MINUTE
 ","
-The sum of all values.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
-The data type of the returned value depends on the parameter data type like this:
-""BOOLEAN, TINYINT, SMALLINT, INT -> BIGINT, BIGINT -> DECIMAL, REAL -> DOUBLE""
+Interval data type.
+If leading field precision is specified it should be from 1 to 18, 2 is default.
+
+Mapped to ""org.h2.api.Interval"".
+""java.time.Duration"" is also supported on Java 8 and later versions.
 ","
-SUM(X)
+INTERVAL DAY TO MINUTE
 "
 
-"Functions (Aggregate)","SELECTIVITY","
-SELECTIVITY(value) [ FILTER ( WHERE expression ) ]
+"Interval Data Types","INTERVAL DAY TO SECOND Type","
+INTERVAL DAY [ ( precisionInt ) ] TO SECOND [ ( fractionalPrecisionInt ) ]
 ","
-Estimates the selectivity (0-100) of a value.
-The value is defined as (100 * distinctCount / rowCount).
-The selectivity of 0 rows is 0 (unknown).
-Up to 10000 values are kept in memory.
-Aggregates are only allowed in select statements.
+Interval data type.
+If leading field precision is specified it should be from 1 to 18, 2 is default.
+If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
+
+Mapped to ""org.h2.api.Interval"".
+""java.time.Duration"" is also supported on Java 8 and later versions.
 ","
-SELECT SELECTIVITY(FIRSTNAME), SELECTIVITY(NAME) FROM TEST WHERE ROWNUM()<20000
+INTERVAL DAY TO SECOND
 "
 
-"Functions (Aggregate)","STDDEV_POP","
-STDDEV_POP( [ DISTINCT ] numeric ) [ FILTER ( WHERE expression ) ]
+"Interval Data Types","INTERVAL HOUR TO MINUTE Type","
+INTERVAL HOUR [ ( precisionInt ) ] TO MINUTE
 ","
-The population standard deviation.
-This method returns a double.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
+Interval data type.
+If leading field precision is specified it should be from 1 to 18, 2 is default.
+
+Mapped to ""org.h2.api.Interval"".
+""java.time.Duration"" is also supported on Java 8 and later versions.
 ","
-STDDEV_POP(X)
+INTERVAL HOUR TO MINUTE
 "
 
-"Functions (Aggregate)","STDDEV_SAMP","
-STDDEV_SAMP( [ DISTINCT ] numeric ) [ FILTER ( WHERE expression ) ]
+"Interval Data Types","INTERVAL HOUR TO SECOND Type","
+INTERVAL HOUR [ ( precisionInt ) ] TO SECOND [ ( fractionalPrecisionInt ) ]
 ","
-The sample standard deviation.
-This method returns a double.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
+Interval data type.
+If leading field precision is specified it should be from 1 to 18, 2 is default.
+If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
+
+Mapped to ""org.h2.api.Interval"".
+""java.time.Duration"" is also supported on Java 8 and later versions.
 ","
-STDDEV(X)
+INTERVAL HOUR TO SECOND
 "
 
-"Functions (Aggregate)","VAR_POP","
-VAR_POP( [ DISTINCT ] numeric ) [ FILTER ( WHERE expression ) ]
+"Interval Data Types","INTERVAL MINUTE TO SECOND Type","
+INTERVAL MINUTE [ ( precisionInt ) ] TO SECOND [ ( fractionalPrecisionInt ) ]
 ","
-The population variance (square of the population standard deviation).
-This method returns a double.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
-","
-VAR_POP(X)
-"
+Interval data type.
+If leading field precision is specified it should be from 1 to 18, 2 is default.
+If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
 
-"Functions (Aggregate)","VAR_SAMP","
-VAR_SAMP( [ DISTINCT ] numeric ) [ FILTER ( WHERE expression ) ]
+Mapped to ""org.h2.api.Interval"".
+""java.time.Duration"" is also supported on Java 8 and later versions.
 ","
-The sample variance (square of the sample standard deviation).
-This method returns a double.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
-","
-VAR_SAMP(X)
-"
-
-"Functions (Aggregate)","MEDIAN","
-MEDIAN( [ DISTINCT ] value ) [ FILTER ( WHERE expression ) ]
-","
-The value separating the higher half of a values from the lower half.
-Returns the middle value or an interpolated value between two middle values if number of values is even.
-Interpolation is only supported for numeric, date, and time data types.
-NULL values are ignored in the calculation.
-If no rows are selected, the result is NULL.
-Aggregates are only allowed in select statements.
-","
-MEDIAN(X)
+INTERVAL MINUTE TO SECOND
 "
 
 "Functions (Numeric)","ABS","
-ABS ( { numeric } )
+ABS( { numeric | interval } )
 ","
-See also Java ""Math.abs"".
-Please note that ""Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE"" and ""Math.abs(Long.MIN_VALUE) == Long.MIN_VALUE"".
+Returns the absolute value of a specified value.
 The returned value is of the same data type as the parameter.
+
+Note that TINYINT, SMALLINT, INT, and BIGINT data types cannot represent absolute values
+of their minimum negative values, because they have more negative values than positive.
+For example, for INT data type allowed values are from -2147483648 to 2147483647.
+ABS(-2147483648) should be 2147483648, but this value is not allowed for this data type.
+It leads to an exception.
+To avoid it cast argument of this function to a higher data type.
 ","
-ABS(ID)
+ABS(VALUE)
+ABS(CAST(VALUE AS BIGINT))
 "
 
 "Functions (Numeric)","ACOS","
@@ -3237,6 +3826,16 @@ The second parameter is zero-indexed; the least significant bit has position 0.
 BITGET(A, 1)
 "
 
+"Functions (Numeric)","BITNOT","
+BITNOT(long)
+","
+The bitwise NOT operation.
+This method returns a long.
+See also Java operator ~.
+","
+BITNOT(A)
+"
+
 "Functions (Numeric)","BITOR","
 BITOR(long, long)
 ","
@@ -3257,6 +3856,28 @@ See also Java operator ^.
 BITXOR(A, B)
 "
 
+"Functions (Numeric)","LSHIFT","
+LSHIFT(long, int)
+","
+The bitwise left shift operation.
+Shifts the first argument by the number of bits given by the second argument.
+This method returns a long.
+See also Java operator <<.
+","
+LSHIFT(A, B)
+"
+
+"Functions (Numeric)","RSHIFT","
+RSHIFT(long, int)
+","
+The bitwise right shift operation.
+Shifts the first argument by the number of bits given by the second argument.
+This method returns a long.
+See also Java operator >>.
+","
+RSHIFT(A, B)
+"
+
 "Functions (Numeric)","MOD","
 MOD(long, long)
 ","
@@ -3270,8 +3891,8 @@ MOD(A, B)
 "Functions (Numeric)","CEILING","
 { CEILING | CEIL } (numeric)
 ","
-See also Java ""Math.ceil"".
-This method returns a double.
+Returns the smallest integer value that is greater than or equal to the argument.
+This method returns a double, float, or numeric value depending on type of the argument.
 ","
 CEIL(A)
 "
@@ -3297,27 +3918,38 @@ EXP(A)
 "Functions (Numeric)","FLOOR","
 FLOOR(numeric)
 ","
-See also Java ""Math.floor"".
-This method returns a double.
+Returns the largest integer value that is less than or equal to the argument.
+This method returns a double, float, or numeric value depending on type of the argument.
 ","
 FLOOR(A)
 "
 
+"Functions (Numeric)","LN","
+LN(numeric)
+","
+Calculates the natural (base e) logarithm as a double value.
+Argument must be a positive numeric value.
+","
+LN(A)
+"
+
 "Functions (Numeric)","LOG","
-{ LOG | LN } (numeric)
+LOG([baseNumeric,] numeric)
 ","
-See also Java ""Math.log"".
-In the PostgreSQL mode, LOG(x) is base 10.
-This method returns a double.
+Calculates the logarithm with specified base as a double value.
+Argument and base must be positive numeric values.
+Base cannot be equal to 1.
+The default base is e (natural logarithm), in the PostgreSQL mode the default base is base 10.
+In MSSQLServer mode the optional base is specified after the argument.
 ","
-LOG(A)
+LOG(2, A)
 "
 
 "Functions (Numeric)","LOG10","
 LOG10(numeric)
 ","
-See also Java ""Math.log10"".
-This method returns a double.
+Calculates the base 10 logarithm as a double value.
+Argument must be a positive numeric value.
 ","
 LOG10(A)
 "
@@ -3397,8 +4029,8 @@ RANDOM_UUID()
 "Functions (Numeric)","ROUND","
 ROUND(numeric [, digitsInt])
 ","
-Rounds to a number of digits, or to the nearest long if the number of digits if not set.
-This method returns a numeric (the same type as the input).
+Rounds to a number of fractional digits.
+This method returns a double, float, or numeric value depending on type of the argument.
 ","
 ROUND(VALUE, 2)
 "
@@ -3409,7 +4041,7 @@ ROUNDMAGIC(numeric)
 This function rounds numbers in a good way, but it is slow.
 It has a special handling for numbers around 0.
 Only numbers smaller or equal +/-1000000000000 are supported.
-The value is converted to a String internally, and then the last last 4 characters are checked.
+The value is converted to a String internally, and then the last 4 characters are checked.
 '000x' becomes '0000' and '999x' becomes '999999', which is rounded automatically.
 This method returns a double.
 ","
@@ -3426,9 +4058,9 @@ CALL SECURE_RAND(16)
 "
 
 "Functions (Numeric)","SIGN","
-SIGN ( { numeric } )
+SIGN( { numeric | interval } )
 ","
-Returns -1 if the value is smaller 0, 0 if zero, and otherwise 1.
+Returns -1 if the value is smaller than 0, 0 if zero, and otherwise 1.
 ","
 SIGN(VALUE)
 "
@@ -3467,14 +4099,16 @@ CALL HASH('SHA256', STRINGTOUTF8('Password'), 1000)
 "
 
 "Functions (Numeric)","TRUNCATE","
-{ TRUNC | TRUNCATE } ( { {numeric, digitsInt}
+{ TRUNC | TRUNCATE } ( { {numeric [, digitsInt] }
     | timestamp | timestampWithTimeZone | date | timestampString } )
 ","
-Truncates to a number of digits (to the next value closer to 0).
-This method returns a double.
-When used with a timestamp, truncates a timestamp to a date (day) value.
-When used with a date, truncates a date to a date (day) value less time part.
-When used with a timestamp as string, truncates a timestamp to a date (day) value.
+When a numeric argument is specified, truncates it to a number of digits (to the next value closer to 0)
+and returns a double, float, or numeric value depending on type of the argument.
+When used with a timestamp, truncates the timestamp to a date (day) value
+and returns a timestamp with or without time zone depending on type of the argument.
+When used with a date, returns a timestamp at start of this date.
+When used with a timestamp as string, truncates the timestamp to a date (day) value
+and returns a timestamp without time zone.
 ","
 TRUNCATE(VALUE, 2)
 "
@@ -3581,7 +4215,11 @@ CONCAT_WS(',', NAME, '!')
 DIFFERENCE(string, string)
 ","
 Returns the difference between the sounds of two strings.
-This method returns an int.
+The difference is calculated as a number of matched characters
+in the same positions in SOUNDEX representations of arguments.
+This method returns an int between 0 and 4 inclusive, or null if any of its parameters is null.
+Note that value of 0 means that strings are not similar to each other.
+Value of 4 means that strings are fully similar to each other (have the same SOUNDEX representation).
 ","
 DIFFERENCE(T1.NAME, T2.NAME)
 "
@@ -3715,7 +4353,7 @@ RTRIM(NAME)
 "
 
 "Functions (String)","TRIM","
-TRIM ( [ { LEADING | TRAILING | BOTH } [ string ] FROM ] string )
+TRIM ( [ [ LEADING | TRAILING | BOTH ] [ string ] FROM ] string )
 ","
 Removes all leading spaces, trailing spaces, or spaces at both ends, from a string.
 Other characters can be removed as well.
@@ -3770,7 +4408,6 @@ Later flags overrides first ones, for example 'ic' equivalent to case sensitive 
 REGEXP_LIKE('Hello    World', '[A-Z ]*', 'i')
 "
 
-
 "Functions (String)","REPEAT","
 REPEAT(string, int)
 ","
@@ -3793,8 +4430,8 @@ REPLACE(NAME, ' ')
 SOUNDEX(string)
 ","
 Returns a four character code representing the sound of a string.
-See also http://www.archives.gov/genealogy/census/soundex.html .
-This method returns a string.
+This method returns a string, or null if parameter is null.
+See https://en.wikipedia.org/wiki/Soundex for more information.
 ","
 SOUNDEX(NAME)
 "
@@ -3837,14 +4474,15 @@ CALL UTF8TOSTRING(STRINGTOUTF8('This is a test'))
 "
 
 "Functions (String)","SUBSTRING","
-{ SUBSTRING | SUBSTR } ( string, startInt [, lengthInt ] )
+SUBSTRING ( {string|bytes} FROM startInt [ FOR lengthInt ] )
+    | { SUBSTRING | SUBSTR } ( {string|bytes}, startInt [, lengthInt ] )
 ","
 Returns a substring of a string starting at a position.
 If the start index is negative, then the start index is relative to the end of the string.
 The length is optional.
-Also supported is: ""SUBSTRING(string [FROM start] [FOR length])"".
 ","
-CALL SUBSTR('[Hello]', 2, 5);
+CALL SUBSTRING('[Hello]' FROM 2 FOR 5);
+CALL SUBSTRING('hour' FROM 2);
 CALL SUBSTR('Hello World', -5);
 "
 
@@ -3863,7 +4501,7 @@ Creates an XML attribute element of the form ""name=value"".
 The value is encoded as XML text.
 This method returns a string.
 ","
-CALL XMLNODE('a', XMLATTR('href', 'http://h2database.com'))
+CALL XMLNODE('a', XMLATTR('href', 'https://h2database.com'))
 "
 
 "Functions (String)","XMLNODE","
@@ -3875,7 +4513,7 @@ An empty or null content string means the node is empty.
 The content is indented by default if it contains a newline.
 This method returns a string.
 ","
-CALL XMLNODE('a', XMLATTR('href', 'http://h2database.com'), 'H2')
+CALL XMLNODE('a', XMLATTR('href', 'https://h2database.com'), 'H2')
 "
 
 "Functions (String)","XMLCOMMENT","
@@ -3934,31 +4572,75 @@ CALL TRANSLATE('Hello world', 'eo', 'EO')
 "
 
 "Functions (Time and Date)","CURRENT_DATE","
-{ CURRENT_DATE [ () ] | CURDATE() | SYSDATE | TODAY }
+{ CURRENT_DATE | CURDATE() | SYSDATE | TODAY }
 ","
 Returns the current date.
-This method always returns the same value within a transaction.
+These methods always return the same value within a transaction (default)
+or within a command depending on database mode.
 ","
-CURRENT_DATE()
+CURRENT_DATE
 "
 
 "Functions (Time and Date)","CURRENT_TIME","
-{ CURRENT_TIME [ () ] | CURTIME() }
+CURRENT_TIME [ (int) ]
 ","
 Returns the current time.
-This method always returns the same value within a transaction.
+The returned value does not have time zone information, because TIME WITH TIME ZONE data type is not supported in H2.
+If fractional seconds precision is specified it should be from 0 to 9, 0 is default.
+The specified value can be used only to limit precision of a result.
+The actual maximum available precision depends on operating system and JVM and can be 3 (milliseconds) or higher.
+Higher precision is not available before Java 9.
+These methods always return the same value within a transaction (default)
+or within a command depending on database mode.
 ","
-CURRENT_TIME()
+CURRENT_TIME
+CURRENT_TIME(9)
 "
 
 "Functions (Time and Date)","CURRENT_TIMESTAMP","
-{ CURRENT_TIMESTAMP [ ( [ int ] ) ] | NOW( [ int ] ) }
+CURRENT_TIMESTAMP [ (int) ]
 ","
-Returns the current timestamp.
-The precision parameter for nanoseconds precision is optional.
-This method always returns the same value within a transaction.
+Returns the current timestamp with time zone.
+Time zone offset is set to a current time zone offset.
+If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
+The specified value can be used only to limit precision of a result.
+The actual maximum available precision depends on operating system and JVM and can be 3 (milliseconds) or higher.
+Higher precision is not available before Java 9.
+This method always returns the same value within a transaction (default)
+or within a command depending on database mode.
 ","
-CURRENT_TIMESTAMP()
+CURRENT_TIMESTAMP
+CURRENT_TIMESTAMP(9)
+"
+
+"Functions (Time and Date)","LOCALTIME","
+{ LOCALTIME [ (int) ] | CURTIME([ int ]) }
+","
+Returns the current time.
+If fractional seconds precision is specified it should be from 0 to 9, 0 is default.
+The specified value can be used only to limit precision of a result.
+The actual maximum available precision depends on operating system and JVM and can be 3 (milliseconds) or higher.
+Higher precision is not available before Java 9.
+These methods always return the same value within a transaction (default)
+or within a command depending on database mode.
+","
+LOCALTIME
+LOCALTIME(9)
+"
+
+"Functions (Time and Date)","LOCALTIMESTAMP","
+{ LOCALTIMESTAMP [ (int) ] | NOW( [ int ] ) }
+","
+Returns the current timestamp without time zone.
+If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
+The specified value can be used only to limit precision of a result.
+The actual maximum available precision depends on operating system and JVM and can be 3 (milliseconds) or higher.
+Higher precision is not available before Java 9.
+These methods always return the same value within a transaction (default)
+or within a command depending on database mode.
+","
+LOCALTIMESTAMP
+LOCALTIMESTAMP(9)
 "
 
 "Functions (Time and Date)","DATEADD","
@@ -3973,19 +4655,19 @@ If specified field is a HOUR, MINUTE, SECOND, MILLISECOND, etc and value is a DA
 Fields DAY, MONTH, YEAR, WEEK, etc are not allowed for TIME values.
 Fields TIMEZONE_HOUR and TIMEZONE_MINUTE are only allowed for TIMESTAMP WITH TIME ZONE values.
 ","
-DATEADD('MONTH', 1, DATE '2001-01-31')
+DATEADD(MONTH, 1, DATE '2001-01-31')
 "
 
 "Functions (Time and Date)","DATEDIFF","
 { DATEDIFF | TIMESTAMPDIFF } (datetimeField, aDateAndTime, bDateAndTime)
 ","
-Returns the the number of crossed unit boundaries between two date/time values.
+Returns the number of crossed unit boundaries between two date/time values.
 This method returns a long.
 The datetimeField indicates the unit.
 Only TIMEZONE_HOUR and TIMEZONE_MINUTE fields use the time zone offset component.
 With all other fields if date/time values have time zone offset component it is ignored.
 ","
-DATEDIFF('YEAR', T1.CREATED, T2.CREATED)
+DATEDIFF(YEAR, T1.CREATED, T2.CREATED)
 "
 
 "Functions (Time and Date)","DAYNAME","
@@ -3997,7 +4679,7 @@ DAYNAME(CREATED)
 "
 
 "Functions (Time and Date)","DAY_OF_MONTH","
-DAY_OF_MONTH(dateAndTime)
+DAY_OF_MONTH(dateAndTime|interval)
 ","
 Returns the day of the month (1-31).
 ","
@@ -4021,7 +4703,7 @@ ISO_DAY_OF_WEEK(CREATED)
 "
 
 "Functions (Time and Date)","DAY_OF_YEAR","
-DAY_OF_YEAR(dateAndTime)
+DAY_OF_YEAR(dateAndTime|interval)
 ","
 Returns the day of the year (1-366).
 ","
@@ -4029,7 +4711,7 @@ DAY_OF_YEAR(CREATED)
 "
 
 "Functions (Time and Date)","EXTRACT","
-EXTRACT ( datetimeField FROM dateAndTime )
+EXTRACT ( datetimeField FROM { dateAndTime | interval })
 ","
 Returns a value of the specific time unit from a date/time value.
 This method returns a numeric value with EPOCH field and
@@ -4055,7 +4737,7 @@ CALL FORMATDATETIME(TIMESTAMP '2001-02-03 04:05:06',
 "
 
 "Functions (Time and Date)","HOUR","
-HOUR(dateAndTime)
+HOUR(dateAndTime|interval)
 ","
 Returns the hour (0-23) from a date/time value.
 ","
@@ -4063,7 +4745,7 @@ HOUR(CREATED)
 "
 
 "Functions (Time and Date)","MINUTE","
-MINUTE(dateAndTime)
+MINUTE(dateAndTime|interval)
 ","
 Returns the minute (0-59) from a date/time value.
 ","
@@ -4071,7 +4753,7 @@ MINUTE(CREATED)
 "
 
 "Functions (Time and Date)","MONTH","
-MONTH(dateAndTime)
+MONTH(dateAndTime|interval)
 ","
 Returns the month (1-12) from a date/time value.
 ","
@@ -4112,7 +4794,7 @@ SECOND(dateAndTime)
 ","
 Returns the second (0-59) from a date/time value.
 ","
-SECOND(CREATED)
+SECOND(CREATED|interval)
 "
 
 "Functions (Time and Date)","WEEK","
@@ -4136,7 +4818,7 @@ ISO_WEEK(CREATED)
 "
 
 "Functions (Time and Date)","YEAR","
-YEAR(dateAndTime)
+YEAR(dateAndTime|interval)
 ","
 Returns the year from a date/time value.
 ","
@@ -4154,26 +4836,56 @@ ISO_YEAR(CREATED)
 "Functions (System)","ARRAY_GET","
 ARRAY_GET(arrayExpression, indexExpression)
 ","
-Returns one element of an array.
-This method returns a string.
+Returns element at the specified 1-based index from an array.
+Returns NULL if there is no such element or array is NULL.
 ","
-CALL ARRAY_GET(('Hello', 'World'), 2)
+CALL ARRAY_GET(ARRAY['Hello', 'World'], 2)
 "
 
 "Functions (System)","ARRAY_LENGTH","
 ARRAY_LENGTH(arrayExpression)
 ","
 Returns the length of an array.
+Returns NULL if the specified array is NULL.
 ","
-CALL ARRAY_LENGTH(('Hello', 'World'))
+CALL ARRAY_LENGTH(ARRAY['Hello', 'World'])
 "
 
 "Functions (System)","ARRAY_CONTAINS","
 ARRAY_CONTAINS(arrayExpression, value)
 ","
-Returns a boolean true if the array contains the value.
+Returns a boolean TRUE if the array contains the value or FALSE if it does not contain it.
+Returns NULL if the specified array is NULL.
 ","
-CALL ARRAY_CONTAINS(('Hello', 'World'), 'Hello')
+CALL ARRAY_CONTAINS(ARRAY['Hello', 'World'], 'Hello')
+"
+
+"Functions (System)","ARRAY_CAT","
+ARRAY_CAT(arrayExpression, arrayExpression)
+","
+Returns the concatenation of two arrays.
+Returns NULL if any parameter is NULL.
+","
+CALL ARRAY_CAT(ARRAY[1, 2], ARRAY[3, 4])
+"
+
+"Functions (System)","ARRAY_APPEND","
+ARRAY_APPEND(arrayExpression, value)
+","
+Append an element to the end of an array.
+Returns NULL if any parameter is NULL.
+","
+CALL ARRAY_APPEND(ARRAY[1, 2], 3)
+"
+
+"Functions (System)","ARRAY_SLICE","
+ARRAY_SLICE(arrayExpression, lowerBoundInt, upperBoundInt)
+","
+Returns elements from the array as specified by the lower and upper bound parameters.
+Both parameters are inclusive and the first element has index 1, i.e. ARRAY_SLICE(a, 2, 2) has only the second element.
+Returns NULL if any parameter is NULL or if an index is out of bounds.
+","
+CALL ARRAY_SLICE(ARRAY[1, 2, 3, 4], 1, 3)
 "
 
 "Functions (System)","AUTOCOMMIT","
@@ -4216,10 +4928,12 @@ When converting a number to binary, the number of bytes matches the precision.
 When converting a string to binary, it is hex encoded (every byte two characters);
 a hex string can be converted to a number by first converting it to binary.
 If a direct conversion is not possible, the value is first converted to a string.
+Note that some data types may need explicitly specified precision to avoid overflow or rounding.
 ","
 CAST(NAME AS INT);
 CAST(65535 AS BINARY);
 CAST(CAST('FFFF' AS BINARY) AS INT);
+CAST(TIMESTAMP '2010-01-01 10:40:00.123456' AS TIME(6))
 "
 
 "Functions (System)","COALESCE","
@@ -4315,6 +5029,14 @@ CALL CSVWRITE('data/test2.csv', 'SELECT * FROM TEST', 'charset=UTF-8 fieldSepara
 CALL CSVWRITE('data/test.tsv', 'SELECT * FROM TEST', 'charset=UTF-8 fieldSeparator=' || CHAR(9));
 "
 
+"Functions (System)","CURRENT_SCHEMA","
+CURRENT_SCHEMA | SCHEMA()
+","
+Returns the name of the default schema for this session.
+","
+CALL CURRENT_SCHEMA
+"
+
 "Functions (System)","DATABASE","
 DATABASE()
 ","
@@ -4358,6 +5080,23 @@ SIGNAL(sqlStateString, messageString)
 Throw an SQLException with the passed SQLState and reason.
 ","
 CALL SIGNAL('23505', 'Duplicate user ID: ' || user_id);
+"
+
+"Functions (System)","ESTIMATED_ENVELOPE","
+ESTIMATED_ENVELOPE(tableNameString, columnNameString)
+","
+Returns the estimated minimum bounding box that encloses all specified GEOMETRY values.
+Only 2D coordinate plane is supported.
+NULL values are ignored.
+This function is only supported by MVStore engine.
+Column must have a spatial index.
+This function is fast, but estimation may include uncommitted data (including data from other transactions),
+may return approximate bounds, or be different with actual value due to other reasons.
+Use with caution.
+If estimation is not available this function returns NULL.
+For accurate and reliable result use ESTIMATE aggregate function instead.
+","
+CALL ESTIMATED_ENVELOPE('MY_TABLE', 'GEOMETRY_COLUMN');
 "
 
 "Functions (System)","FILE_READ","
@@ -4512,26 +5251,18 @@ READONLY()
 "
 
 "Functions (System)","ROWNUM","
-{ ROWNUM() } | { ROW_NUMBER() OVER() }
+ROWNUM()
 ","
 Returns the number of the current row.
-This method returns a long.
+This method returns a long value.
 It is supported for SELECT statements, as well as for DELETE and UPDATE.
 The first row has the row number 1, and is calculated before ordering and grouping the result set,
 but after evaluating index conditions (even when the index conditions are specified in an outer query).
-To get the row number after ordering and grouping, use a subquery.
+Use the ROW_NUMBER() OVER () function to get row numbers after grouping or in specified order.
 ","
 SELECT ROWNUM(), * FROM TEST;
 SELECT ROWNUM(), * FROM (SELECT * FROM TEST ORDER BY NAME);
 SELECT ID FROM (SELECT T.*, ROWNUM AS R FROM TEST T) WHERE R BETWEEN 2 AND 3;
-"
-
-"Functions (System)","SCHEMA","
-SCHEMA()
-","
-Returns the name of the default schema for this session.
-","
-CALL SCHEMA()
 "
 
 "Functions (System)","SCOPE_IDENTITY","
@@ -4569,18 +5300,20 @@ SELECT X, SET(@I, IFNULL(@I, 0)+X) RUNNING_TOTAL FROM SYSTEM_RANGE(1, 10)
 "
 
 "Functions (System)","TABLE","
-{ TABLE | TABLE_DISTINCT } ( { name dataType = expression } [,...] )
+{ TABLE | TABLE_DISTINCT }
+( { name dataType = array|rowValueExpression } [,...] )
 ","
 Returns the result set. TABLE_DISTINCT removes duplicate rows.
 ","
-SELECT * FROM TABLE(ID INT=(1, 2), NAME VARCHAR=('Hello', 'World'))
+SELECT * FROM TABLE(VALUE INT = ARRAY[1, 2]);
+SELECT * FROM TABLE(ID INT=(1, 2), NAME VARCHAR=('Hello', 'World'));
 "
 
 "Functions (System)","TRANSACTION_ID","
 TRANSACTION_ID()
 ","
 Returns the current transaction id for this session.
-This method returns NULL if there is no uncommitted change, or if the the database is not persisted.
+This method returns NULL if there is no uncommitted change, or if the database is not persisted.
 Otherwise a value of the following form is returned:
 ""logFileId-position-sessionId"".
 This method returns a string.
@@ -4593,12 +5326,22 @@ CALL TRANSACTION_ID()
 TRUNCATE_VALUE(value, precisionInt, forceBoolean)
 ","
 Truncate a value to the required precision.
-The precision of the returned value may be a bit larger than requested,
-because fixed precision values are not truncated (unlike the numeric TRUNCATE method).
-Unlike CAST, the truncating a decimal value may lose precision if the force flag is set to true.
+If force flag is set to ""FALSE"" fixed precision values are not truncated.
 The method returns a value with the same data type as the first parameter.
 ","
 CALL TRUNCATE_VALUE(X, 10, TRUE);
+"
+
+"Functions (System)","UNNEST","
+UNNEST(array, [,...]) [WITH ORDINALITY]
+","
+Returns the result set.
+Number of columns is equal to number of arguments,
+plus one additional column with row number if WITH ORDINALITY is specified.
+Number of rows is equal to length of longest specified array.
+If multiple arguments are specified and they have different length, cells with missing values will contain null values.
+","
+SELECT * FROM UNNEST(ARRAY['a', 'b', 'c']);
 "
 
 "Functions (System)","USER","
@@ -4617,14 +5360,632 @@ Returns the H2 version as a String.
 H2VERSION()
 "
 
+"Functions (JSON)","JSON_OBJECT","
+JSON_OBJECT(
+[{[KEY] string VALUE expression} | {string : expression} [,...]]
+[ { NULL | ABSENT } ON NULL ]
+[ { WITH | WITHOUT } UNIQUE KEYS ]
+)
+","
+Returns a JSON object constructed from the specified properties.
+If ABSENT ON NULL is specified properties with NULL value are not included in the object.
+If WITH UNIQUE KEYS is specified the constructed object is checked for uniqueness of keys,
+nested objects, if any, are checked too.
+","
+JSON_OBJECT('id': 100, 'name': 'Joe', 'groups': '[2,5]' FORMAT JSON);
+"
+
+"Functions (JSON)","JSON_ARRAY","
+JSON_ARRAY(
+[expression [,...]]|{(query) [FORMAT JSON]}
+[ { NULL | ABSENT } ON NULL ]
+)
+","
+Returns a JSON array constructed from the specified values or from the specified single-column subquery.
+If NULL ON NULL is specified NULL values are included in the array.
+","
+JSON_ARRAY(10, 15, 20);
+JSON_ARRAY(JSON_DATA_A FORMAT JSON, JSON_DATA_B FORMAT JSON);
+JSON_ARRAY((SELECT J FROM PROPS) FORMAT JSON);
+"
+
+"Aggregate Functions (General)","AVG","
+AVG ( [ DISTINCT|ALL ] { numeric } )
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The average (mean) value.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+The returned value is of the same data type as the parameter.
+","
+AVG(X)
+"
+
+"Aggregate Functions (General)","MAX","
+MAX(value)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The highest value.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+The returned value is of the same data type as the parameter.
+","
+MAX(NAME)
+"
+
+"Aggregate Functions (General)","MIN","
+MIN(value)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The lowest value.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+The returned value is of the same data type as the parameter.
+","
+MIN(NAME)
+"
+
+"Aggregate Functions (General)","SUM","
+SUM( [ DISTINCT|ALL ] { numeric } )
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The sum of all values.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+The data type of the returned value depends on the parameter data type like this:
+""BOOLEAN, TINYINT, SMALLINT, INT -> BIGINT, BIGINT -> DECIMAL, REAL -> DOUBLE""
+","
+SUM(X)
+"
+
+"Aggregate Functions (General)","EVERY","
+{EVERY|BOOL_AND}(boolean)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Returns true if all expressions are true.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+EVERY(ID>10)
+"
+
+"Aggregate Functions (General)","ANY","
+{ANY|SOME|BOOL_OR}(boolean)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Returns true if any expression is true.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+
+Note that if ANY or SOME aggregate function is placed on the right side of comparison operation
+and argument of this function is a subquery additional parentheses around aggregate function are required,
+otherwise it will be parsed as quantified comparison predicate.
+","
+ANY(NAME LIKE 'W%')
+A = (ANY((SELECT B FROM T)))
+"
+
+"Aggregate Functions (General)","COUNT","
+COUNT( { * | { [ DISTINCT|ALL ] expression } } )
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The count of all row, or of the non-null values.
+This method returns a long.
+If no rows are selected, the result is 0.
+Aggregates are only allowed in select statements.
+","
+COUNT(*)
+"
+
+"Aggregate Functions (General)","STDDEV_POP","
+STDDEV_POP( [ DISTINCT|ALL ] numeric )
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The population standard deviation.
+This method returns a double.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+STDDEV_POP(X)
+"
+
+"Aggregate Functions (General)","STDDEV_SAMP","
+STDDEV_SAMP( [ DISTINCT|ALL ] numeric )
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The sample standard deviation.
+This method returns a double.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+STDDEV(X)
+"
+
+"Aggregate Functions (General)","VAR_POP","
+VAR_POP( [ DISTINCT|ALL ] numeric )
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The population variance (square of the population standard deviation).
+This method returns a double.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+VAR_POP(X)
+"
+
+"Aggregate Functions (General)","VAR_SAMP","
+VAR_SAMP( [ DISTINCT|ALL ] numeric )
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The sample variance (square of the sample standard deviation).
+This method returns a double.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+VAR_SAMP(X)
+"
+
+"Aggregate Functions (General)","BIT_AND","
+BIT_AND(expression)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The bitwise AND of all non-null values.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+BIT_AND(ID)
+"
+
+"Aggregate Functions (General)","BIT_OR","
+BIT_OR(expression)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The bitwise OR of all non-null values.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+BIT_OR(ID)
+"
+
+"Aggregate Functions (General)","SELECTIVITY","
+SELECTIVITY(value)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Estimates the selectivity (0-100) of a value.
+The value is defined as (100 * distinctCount / rowCount).
+The selectivity of 0 rows is 0 (unknown).
+Up to 10000 values are kept in memory.
+Aggregates are only allowed in select statements.
+","
+SELECT SELECTIVITY(FIRSTNAME), SELECTIVITY(NAME) FROM TEST WHERE ROWNUM()<20000
+"
+
+"Aggregate Functions (General)","ENVELOPE","
+ENVELOPE( value )
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Returns the minimum bounding box that encloses all specified GEOMETRY values.
+Only 2D coordinate plane is supported.
+NULL values are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+ENVELOPE(X)
+"
+
+"Aggregate Functions (Ordered)","LISTAGG","
+{ LISTAGG ( [ DISTINCT|ALL ] string [, separatorString] [ ON OVERFLOW ERROR ] )
+    withinGroupSpecification }
+| { GROUP_CONCAT ( [ DISTINCT|ALL ] string
+    [ ORDER BY { expression [ ASC | DESC ] } [,...] ]
+    [ SEPARATOR separatorString ] ) }
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Concatenates strings with a separator.
+Separator must be the same for all rows in the same group.
+The default separator is a ',' (without space).
+This method returns a string.
+NULL values are ignored in the calculation, COALESCE can be used to replace them.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+LISTAGG(NAME, ', ') WITHIN GROUP (ORDER BY ID)
+LISTAGG(COALESCE(NAME, 'null'), ', ') WITHIN GROUP (ORDER BY ID)
+LISTAGG(ID, ', ') WITHIN GROUP (ORDER BY ID) OVER (ORDER BY ID)
+"
+
+"Aggregate Functions (Ordered)","ARRAY_AGG","
+ARRAY_AGG ( [ DISTINCT|ALL ] value
+[ ORDER BY { expression [ ASC | DESC ] } [,...] ] )
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Aggregate the value into an array.
+This method returns an array.
+NULL values are included in the array, FILTER clause can be used to exclude them.
+If no rows are selected, the result is NULL.
+If ORDER BY is not specified order of values is not determined.
+When this aggregate is used with OVER clause that contains ORDER BY subclause
+it does not enforce exact order of values.
+This aggregate needs additional own ORDER BY clause to make it deterministic.
+Aggregates are only allowed in select statements.
+","
+ARRAY_AGG(NAME ORDER BY ID)
+ARRAY_AGG(NAME ORDER BY ID) FILTER (WHERE NAME IS NOT NULL)
+ARRAY_AGG(ID ORDER BY ID) OVER (ORDER BY ID)
+"
+
+"Aggregate Functions (Hypothetical Set)","RANK aggregate","
+RANK(value [,...])
+withinGroupSpecification
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Returns the rank of the hypothetical row in specified collection of rows.
+The rank of a row is the number of rows that precede this row plus 1.
+If two or more rows have the same values in ORDER BY columns, these rows get the same rank from the first row with the same values.
+It means that gaps in ranks are possible.
+
+See [RANK](https://h2database.com/html/functions-window.html#rank) for a window function with the same name.
+","
+SELECT RANK(5) WITHIN GROUP (ORDER BY V) FROM TEST;
+"
+
+"Aggregate Functions (Hypothetical Set)","DENSE_RANK aggregate","
+DENSE_RANK(value [,...])
+withinGroupSpecification
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Returns the dense rank of the hypothetical row in specified collection of rows.
+The rank of a row is the number of groups of rows with the same values in ORDER BY columns that precede group with this row plus 1.
+If two or more rows have the same values in ORDER BY columns, these rows get the same rank.
+Gaps in ranks are not possible.
+
+See [DENSE_RANK](https://h2database.com/html/functions-window.html#dense_rank) for a window function with the same name.
+","
+SELECT DENSE_RANK(5) WITHIN GROUP (ORDER BY V) FROM TEST;
+"
+
+"Aggregate Functions (Hypothetical Set)","PERCENT_RANK aggregate","
+PERCENT_RANK(value [,...])
+withinGroupSpecification
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Returns the relative rank of the hypothetical row in specified collection of rows.
+The relative rank is calculated as (RANK - 1) / (NR - 1),
+where RANK is a rank of the row and NR is a total number of rows in the collection including hypothetical row.
+
+See [PERCENT_RANK](https://h2database.com/html/functions-window.html#percent_rank) for a window function with the same name.
+","
+SELECT PERCENT_RANK(5) WITHIN GROUP (ORDER BY V) FROM TEST;
+"
+
+"Aggregate Functions (Hypothetical Set)","CUME_DIST aggregate","
+CUME_DIST(value [,...])
+withinGroupSpecification
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Returns the relative rank of the hypothetical row in specified collection of rows.
+The relative rank is calculated as NP / NR
+where NP is a number of rows that precede the current row or have the same values in ORDER BY columns
+and NR is a total number of rows in the collection including hypothetical row.
+
+See [CUME_DIST](https://h2database.com/html/functions-window.html#cume_dist) for a window function with the same name.
+","
+SELECT CUME_DIST(5) WITHIN GROUP (ORDER BY V) FROM TEST;
+"
+
+"Aggregate Functions (Inverse Distribution)","PERCENTILE_CONT","
+PERCENTILE_CONT(numeric) WITHIN GROUP (ORDER BY value [ASC|DESC])
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Return percentile of values from the group with interpolation.
+Interpolation is only supported for numeric, date-time, and interval data types.
+Argument must be between 0 and 1 inclusive.
+Argument must be the same for all rows in the same group.
+If argument is NULL, the result is NULL.
+NULL values are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY V)
+"
+
+"Aggregate Functions (Inverse Distribution)","PERCENTILE_DISC","
+PERCENTILE_DISC(numeric) WITHIN GROUP (ORDER BY value [ASC|DESC])
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Return percentile of values from the group.
+Interpolation is not performed.
+Argument must be between 0 and 1 inclusive.
+Argument must be the same for all rows in the same group.
+If argument is NULL, the result is NULL.
+NULL values are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY V)
+"
+
+"Aggregate Functions (Inverse Distribution)","MEDIAN","
+MEDIAN( [ DISTINCT|ALL ] value )
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+The value separating the higher half of a values from the lower half.
+Returns the middle value or an interpolated value between two middle values if number of values is even.
+Interpolation is only supported for numeric, date-time, and interval data types.
+NULL values are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+MEDIAN(X)
+"
+
+"Aggregate Functions (Inverse Distribution)","MODE","
+{ MODE( value ) [ ORDER BY value [ ASC | DESC ] ] }
+    | { MODE() WITHIN GROUP (ORDER BY expression [ ASC | DESC ]) }
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Returns the value that occurs with the greatest frequency.
+If there are multiple values with the same frequency only one value will be returned.
+In this situation value will be chosen based on optional ORDER BY clause
+that should specify exactly the same expression as argument of this function.
+Use ascending order to get smallest value or descending order to get largest value
+from multiple values with the same frequency.
+If this clause is not specified the exact chosen value is not determined in this situation.
+NULL values are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+MODE(X)
+MODE(X ORDER BY X)
+MODE() WITHIN GROUP (ORDER BY X)
+"
+
+"Aggregate Functions (JSON)","JSON_OBJECTAGG","
+JSON_OBJECTAGG(
+{[KEY] string VALUE value} | {string : value}
+[ { NULL | ABSENT } ON NULL ]
+[ { WITH | WITHOUT } UNIQUE KEYS ]
+)
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Aggregates the keys with values into a JSON object.
+If ABSENT ON NULL is specified properties with NULL value are not included in the object.
+If WITH UNIQUE KEYS is specified the constructed object is checked for uniqueness of keys,
+nested objects, if any, are checked too.
+If no values are selected, the result is SQL NULL value.
+","
+JSON_OBJECTAGG(NAME: VAL);
+JSON_OBJECTAGG(KEY NAME VALUE VAL);
+"
+
+"Aggregate Functions (JSON)","JSON_ARRAYAGG","
+JSON_ARRAYAGG(expression [ { NULL | ABSENT } ON NULL ])
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Aggregates the values into a JSON array.
+If NULL ON NULL is specified NULL values are included in the array.
+If no values are selected, the result is SQL NULL value.
+","
+JSON_ARRAYAGG(NUMBER)
+"
+
+"Window Functions (Row Number)","ROW_NUMBER","
+ROW_NUMBER() OVER windowNameOrSpecification
+","
+Returns the number of the current row starting with 1.
+Window frame clause is not allowed for this function.
+
+Window functions in H2 may require a lot of memory for large queries.
+","
+SELECT ROW_NUMBER() OVER (), * FROM TEST;
+SELECT ROW_NUMBER() OVER (ORDER BY ID), * FROM TEST;
+SELECT ROW_NUMBER() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
+"
+
+"Window Functions (Rank)","RANK","
+RANK() OVER windowNameOrSpecification
+","
+Returns the rank of the current row.
+The rank of a row is the number of rows that precede this row plus 1.
+If two or more rows have the same values in ORDER BY columns, these rows get the same rank from the first row with the same values.
+It means that gaps in ranks are possible.
+This function requires window order clause.
+Window frame clause is not allowed for this function.
+
+Window functions in H2 may require a lot of memory for large queries.
+
+See [RANK aggregate](https://h2database.com/html/functions-aggregate.html#rank_aggregate) for a hypothetical set function with the same name.
+","
+SELECT RANK() OVER (ORDER BY ID), * FROM TEST;
+SELECT RANK() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
+"
+
+"Window Functions (Rank)","DENSE_RANK","
+DENSE_RANK() OVER windowNameOrSpecification
+","
+Returns the dense rank of the current row.
+The rank of a row is the number of groups of rows with the same values in ORDER BY columns that precede group with this row plus 1.
+If two or more rows have the same values in ORDER BY columns, these rows get the same rank.
+Gaps in ranks are not possible.
+This function requires window order clause.
+Window frame clause is not allowed for this function.
+
+Window functions in H2 may require a lot of memory for large queries.
+
+See [DENSE_RANK aggregate](https://h2database.com/html/functions-aggregate.html#dense_rank_aggregate) for a hypothetical set function with the same name.
+","
+SELECT DENSE_RANK() OVER (ORDER BY ID), * FROM TEST;
+SELECT DENSE_RANK() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
+"
+
+"Window Functions (Rank)","PERCENT_RANK","
+PERCENT_RANK() OVER windowNameOrSpecification
+","
+Returns the relative rank of the current row.
+The relative rank is calculated as (RANK - 1) / (NR - 1),
+where RANK is a rank of the row and NR is a number of rows in window partition with this row.
+Note that result is always 0 if window order clause is not specified.
+Window frame clause is not allowed for this function.
+
+Window functions in H2 may require a lot of memory for large queries.
+
+See [PERCENT_RANK aggregate](https://h2database.com/html/functions-aggregate.html#percent_rank_aggregate) for a hypothetical set function with the same name.
+","
+SELECT PERCENT_RANK() OVER (ORDER BY ID), * FROM TEST;
+SELECT PERCENT_RANK() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
+"
+
+"Window Functions (Rank)","CUME_DIST","
+CUME_DIST() OVER windowNameOrSpecification
+","
+Returns the relative rank of the current row.
+The relative rank is calculated as NP / NR
+where NP is a number of rows that precede the current row or have the same values in ORDER BY columns
+and NR is a number of rows in window partition with this row.
+Note that result is always 1 if window order clause is not specified.
+Window frame clause is not allowed for this function.
+
+Window functions in H2 may require a lot of memory for large queries.
+
+See [CUME_DIST aggregate](https://h2database.com/html/functions-aggregate.html#cume_dist_aggregate) for a hypothetical set function with the same name.
+","
+SELECT CUME_DIST() OVER (ORDER BY ID), * FROM TEST;
+SELECT CUME_DIST() OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
+"
+
+"Window Functions (Lead or Lag)","LEAD","
+LEAD(value [, offsetInt [, defaultValue]]) [{RESPECT|IGNORE} NULLS]
+OVER windowNameOrSpecification
+","
+Returns the value in a next row with specified offset relative to the current row.
+Offset must be non-negative.
+If IGNORE NULLS is specified rows with null values in selected expression are skipped.
+If number of considered rows is less than specified relative number this function returns NULL
+or the specified default value, if any.
+If offset is 0 the value from the current row is returned unconditionally.
+This function requires window order clause.
+Window frame clause is not allowed for this function.
+
+Window functions in H2 may require a lot of memory for large queries.
+","
+SELECT LEAD(X) OVER (ORDER BY ID), * FROM TEST;
+SELECT LEAD(X, 2, 0) IGNORE NULLS OVER (
+    PARTITION BY CATEGORY ORDER BY ID
+), * FROM TEST;
+"
+
+"Window Functions (Lead or Lag)","LAG","
+LAG(value [, offsetInt [, defaultValue]]) [{RESPECT|IGNORE} NULLS]
+OVER windowNameOrSpecification
+","
+Returns the value in a previous row with specified offset relative to the current row.
+Offset must be non-negative.
+If IGNORE NULLS is specified rows with null values in selected expression are skipped.
+If number of considered rows is less than specified relative number this function returns NULL
+or the specified default value, if any.
+If offset is 0 the value from the current row is returned unconditionally.
+This function requires window order clause.
+Window frame clause is not allowed for this function.
+
+Window functions in H2 may require a lot of memory for large queries.
+","
+SELECT LAG(X) OVER (ORDER BY ID), * FROM TEST;
+SELECT LAG(X, 2, 0) IGNORE NULLS OVER (
+    PARTITION BY CATEGORY ORDER BY ID
+), * FROM TEST;
+"
+
+"Window Functions (Nth Value)","FIRST_VALUE","
+FIRST_VALUE(value) [{RESPECT|IGNORE} NULLS]
+OVER windowNameOrSpecification
+","
+Returns the first value in a window.
+If IGNORE NULLS is specified null values are skipped and the function returns first non-null value, if any.
+
+Window functions in H2 may require a lot of memory for large queries.
+","
+SELECT FIRST_VALUE(X) OVER (ORDER BY ID), * FROM TEST;
+SELECT FIRST_VALUE(X) IGNORE NULLS OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
+"
+
+"Window Functions (Nth Value)","LAST_VALUE","
+LAST_VALUE(value) [{RESPECT|IGNORE} NULLS]
+OVER windowNameOrSpecification
+","
+Returns the last value in a window.
+If IGNORE NULLS is specified null values are skipped and the function returns last non-null value before them, if any;
+if there is no non-null value it returns NULL.
+Note that the last value is actually a value in the current group of rows
+if window order clause is specified and window frame clause is not specified.
+
+Window functions in H2 may require a lot of memory for large queries.
+","
+SELECT LAST_VALUE(X) OVER (ORDER BY ID), * FROM TEST;
+SELECT LAST_VALUE(X) IGNORE NULLS OVER (
+    PARTITION BY CATEGORY ORDER BY ID
+    RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING
+), * FROM TEST;
+"
+
+"Window Functions (Nth Value)","NTH_VALUE","
+NTH_VALUE(value, nInt) [FROM {FIRST|LAST}] [{RESPECT|IGNORE} NULLS]
+OVER windowNameOrSpecification
+","
+Returns the value in a row with a specified relative number in a window.
+Relative row number must be positive.
+If FROM LAST is specified rows a counted backwards from the last row.
+If IGNORE NULLS is specified rows with null values in selected expression are skipped.
+If number of considered rows is less than specified relative number this function returns NULL.
+Note that the last row is actually a last row in the current group of rows
+if window order clause is specified and window frame clause is not specified.
+
+Window functions in H2 may require a lot of memory for large queries.
+","
+SELECT NTH_VALUE(X) OVER (ORDER BY ID), * FROM TEST;
+SELECT NTH_VALUE(X) IGNORE NULLS OVER (
+    PARTITION BY CATEGORY ORDER BY ID
+    RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+), * FROM TEST;
+"
+
+"Window Functions (Other)","NTILE","
+NTILE(long) OVER windowNameOrSpecification
+","
+Distributes the rows into a specified number of groups.
+Number of groups should be a positive long value.
+NTILE returns the 1-based number of the group to which the current row belongs.
+First groups will have more rows if number of rows is not divisible by number of groups.
+For example, if 5 rows are distributed into 2 groups this function returns 1 for the first 3 row and 2 for the last 2 rows.
+This function requires window order clause.
+Window frame clause is not allowed for this function.
+
+Window functions in H2 may require a lot of memory for large queries.
+","
+SELECT NTILE(10) OVER (ORDER BY ID), * FROM TEST;
+SELECT NTILE(5) OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
+"
+
+"Window Functions (Other)","RATIO_TO_REPORT","
+RATIO_TO_REPORT(value)
+OVER windowNameOrSpecification
+","
+Returns the ratio of a value to the sum of all values.
+If argument is NULL or sum of all values is 0, then the value of function is NULL.
+Window ordering and window frame clauses are not allowed for this function.
+
+Window functions in H2 may require a lot of memory for large queries.
+","
+SELECT X, RATIO_TO_REPORT(X) OVER (PARTITION BY CATEGORY), CATEGORY FROM TEST;
+"
+
 "System Tables","Information Schema","
 INFORMATION_SCHEMA
 ","
 To get the list of system tables, execute the statement SELECT * FROM
 INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'INFORMATION_SCHEMA'
 ","
-
 "
+
 "System Tables","Range Table","
 SYSTEM_RANGE(start, end)
 ","
@@ -4632,4 +5993,3 @@ Contains all values from start to end (this is a dynamic table).
 ","
 SYSTEM_RANGE(0, 100)
 "
-

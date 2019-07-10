@@ -1,12 +1,14 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.command;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -16,6 +18,7 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultWithGeneratedKeys;
+import org.h2.result.ResultWithPaddedStrings;
 import org.h2.util.MathUtils;
 
 /**
@@ -99,12 +102,16 @@ public abstract class Command implements CommandInterface {
      * Execute an updating statement (for example insert, delete, or update), if
      * this is possible.
      *
-     * @return the update count
+     * @param generatedKeysRequest
+     *            {@code false} if generated keys are not needed, {@code true} if
+     *            generated keys should be configured automatically, {@code int[]}
+     *            to specify column indices to return generated keys from, or
+     *            {@code String[]} to specify column names to return generated keys
+     *            from
+     * @return the update count and generated keys, if any
      * @throws DbException if the command is not an updating statement
      */
-    public int update() {
-        throw DbException.get(ErrorCode.METHOD_NOT_ALLOWED_FOR_QUERY);
-    }
+    public abstract ResultWithGeneratedKeys update(Object generatedKeysRequest);
 
     /**
      * Execute a query statement, if this is possible.
@@ -113,9 +120,7 @@ public abstract class Command implements CommandInterface {
      * @return the local result set
      * @throws DbException if the command is not a query
      */
-    public ResultInterface query(@SuppressWarnings("unused") int maxrows) {
-        throw DbException.get(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY);
-    }
+    public abstract ResultInterface query(int maxrows);
 
     @Override
     public final ResultInterface getMetaData() {
@@ -149,20 +154,15 @@ public abstract class Command implements CommandInterface {
 
     @Override
     public void stop() {
-        session.endStatement();
-        session.setCurrentCommand(null, false);
+        session.setCurrentCommand(null);
         if (!isTransactional()) {
             session.commit(true);
         } else if (session.getAutoCommit()) {
             session.commit(false);
-        } else if (session.getDatabase().isMultiThreaded()) {
-            Database db = session.getDatabase();
-            if (db != null) {
-                if (db.getLockMode() == Constants.LOCK_MODE_READ_COMMITTED) {
-                    session.unlockReadLocks();
-                }
-            }
+        } else {
+            session.unlockReadLocks();
         }
+        session.endStatement();
         if (trace.isInfoEnabled() && startTimeNanos > 0) {
             long timeMillis = (System.nanoTime() - startTimeNanos) / 1000 / 1000;
             if (timeMillis > Constants.SLOW_QUERY_LIMIT_MS) {
@@ -184,7 +184,7 @@ public abstract class Command implements CommandInterface {
         startTimeNanos = 0;
         long start = 0;
         Database database = session.getDatabase();
-        Object sync = database.isMultiThreaded() ? (Object) session : (Object) database;
+        Object sync = database.isMultiThreaded() || database.getStore() != null ? session : database;
         session.waitIfExclusiveModeEnabled();
         boolean callStop = true;
         boolean writing = !isReadOnly();
@@ -193,14 +193,19 @@ public abstract class Command implements CommandInterface {
                 // wait
             }
         }
+        //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (sync) {
-            session.setCurrentCommand(this, false);
+            session.startStatementWithinTransaction();
+            session.setCurrentCommand(this);
             try {
                 while (true) {
                     database.checkPowerOff();
                     try {
                         ResultInterface result = query(maxrows);
                         callStop = !result.isLazy();
+                        if (database.getMode().padFixedLengthStrings) {
+                            return ResultWithPaddedStrings.get(result);
+                        }
                         return result;
                     } catch (DbException e) {
                         start = filterConcurrentUpdate(e, start);
@@ -242,7 +247,7 @@ public abstract class Command implements CommandInterface {
     public ResultWithGeneratedKeys executeUpdate(Object generatedKeysRequest) {
         long start = 0;
         Database database = session.getDatabase();
-        Object sync = database.isMultiThreaded() ? (Object) session : (Object) database;
+        Object sync = database.isMultiThreaded() || database.getStore() != null ? session : database;
         session.waitIfExclusiveModeEnabled();
         boolean callStop = true;
         boolean writing = !isReadOnly();
@@ -251,19 +256,17 @@ public abstract class Command implements CommandInterface {
                 // wait
             }
         }
+        //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (sync) {
             Session.Savepoint rollback = session.setSavepoint();
-            session.setCurrentCommand(this, generatedKeysRequest);
+            session.startStatementWithinTransaction();
+            session.setCurrentCommand(this);
+            DbException ex = null;
             try {
                 while (true) {
                     database.checkPowerOff();
                     try {
-                        int updateCount = update();
-                        if (!Boolean.FALSE.equals(generatedKeysRequest)) {
-                            return new ResultWithGeneratedKeys.WithKeys(updateCount,
-                                    session.getGeneratedKeys().getKeys(session));
-                        }
-                        return ResultWithGeneratedKeys.of(updateCount);
+                        return update(generatedKeysRequest);
                     } catch (DbException e) {
                         start = filterConcurrentUpdate(e, start);
                     } catch (OutOfMemoryError e) {
@@ -283,17 +286,28 @@ public abstract class Command implements CommandInterface {
                     database.shutdownImmediately();
                     throw e;
                 }
-                database.checkPowerOff();
-                if (s.getErrorCode() == ErrorCode.DEADLOCK_1) {
-                    session.rollback();
-                } else {
-                    session.rollbackTo(rollback, false);
+                try {
+                    database.checkPowerOff();
+                    if (s.getErrorCode() == ErrorCode.DEADLOCK_1) {
+                        session.rollback();
+                    } else {
+                        session.rollbackTo(rollback);
+                    }
+                } catch (Throwable nested) {
+                    e.addSuppressed(nested);
                 }
+                ex = e;
                 throw e;
             } finally {
                 try {
                     if (callStop) {
                         stop();
+                    }
+                } catch (Throwable nested) {
+                    if (ex == null) {
+                        throw nested;
+                    } else {
+                        ex.addSuppressed(nested);
                     }
                 } finally {
                     if (writing) {
@@ -311,25 +325,30 @@ public abstract class Command implements CommandInterface {
                 errorCode != ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1) {
             throw e;
         }
-        long now = System.nanoTime() / 1_000_000;
-        if (start != 0 && now - start > session.getLockTimeout()) {
-            throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, e.getCause(), "");
+        long now = System.nanoTime();
+        if (start != 0 && TimeUnit.NANOSECONDS.toMillis(now - start) > session.getLockTimeout()) {
+            throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, e);
         }
+        // Only in PageStore mode we need to sleep here to avoid busy wait loop
         Database database = session.getDatabase();
-        int sleep = 1 + MathUtils.randomInt(10);
-        while (true) {
-            try {
-                if (database.isMultiThreaded()) {
-                    Thread.sleep(sleep);
-                } else {
-                    database.wait(sleep);
+        if (database.getStore() == null) {
+            int sleep = 1 + MathUtils.randomInt(10);
+            while (true) {
+                try {
+                    if (database.isMultiThreaded()) {
+                        Thread.sleep(sleep);
+                    } else {
+                        // although nobody going to notify us
+                        // it is vital to give up lock on a database
+                        database.wait(sleep);
+                    }
+                } catch (InterruptedException e1) {
+                    // ignore
                 }
-            } catch (InterruptedException e1) {
-                // ignore
-            }
-            long slept = System.nanoTime() / 1_000_000 - now;
-            if (slept >= sleep) {
-                break;
+                long slept = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - now);
+                if (slept >= sleep) {
+                    break;
+                }
             }
         }
         return start == 0 ? now : start;

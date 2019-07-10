@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0, Version 1.0,
-and under the Eclipse Public License, Version 1.0
+Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+and the EPL 1.0 (https://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
@@ -21,8 +21,6 @@ Features
 
 <a href="#feature_list">
     Feature List</a><br />
-<a href="#comparison">
-    Comparison to Other Database Engines</a><br />
 <a href="#products_work_with">
     H2 in Use</a><br />
 <a href="#connection_modes">
@@ -119,7 +117,9 @@ Features
 </li><li>Many built-in functions, including XML and lossless data compression
 </li><li>Wide range of data types including large objects (BLOB/CLOB) and arrays
 </li><li>Sequence and autoincrement columns, computed columns (can be used for function based indexes)
-</li><li><code>ORDER BY, GROUP BY, HAVING, UNION, LIMIT, TOP</code>
+</li><li>ORDER BY, GROUP BY, HAVING, UNION, OFFSET / FETCH (including PERCENT and WITH TIES), LIMIT, TOP,
+    DISTINCT / DISTINCT ON (...)
+</li><li>Window functions
 </li><li>Collation support, including support for the ICU4J library
 </li><li>Support for users and roles
 </li><li>Compatibility modes for IBM DB2, Apache Derby, HSQLDB,
@@ -142,7 +142,7 @@ encrypted using the AES-128 encryption algorithm
 
 <h3>Other Features and Tools</h3>
 <ul>
-<li>Small footprint (smaller than 1.5 MB), low memory requirements
+<li>Small footprint (around 2 MB), low memory requirements
 </li><li>Multiple index types (b-tree, tree, hash)
 </li><li>Support for multi-dimensional indexes
 </li><li>CSV (comma separated values) file support
@@ -159,231 +159,10 @@ encrypted using the AES-128 encryption algorithm
 </li><li>Well tested (high code coverage, randomized stress tests)
 </li></ul>
 
-<h2 id="comparison">Comparison to Other Database Engines</h2>
-<p>
-This comparison is based on
-H2 1.3,
-<a href="http://db.apache.org/derby">Apache Derby version 10.8</a>,
-<a href="http://hsqldb.org">HSQLDB 2.2</a>,
-<a href="https://www.mysql.com/">MySQL 5.5</a>,
-<a href="https://www.postgresql.org/">PostgreSQL 9.0</a>.
-</p>
-<table class="main">
-<tr>
-<th>Feature</th>
-<th>H2</th>
-<th>Derby</th>
-<th>HSQLDB</th>
-<th>MySQL</th>
-<th>PostgreSQL</th>
-</tr><tr>
-<td>Pure Java</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareN">No</td>
-</tr><tr>
-<td>Embedded Mode (Java)</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareN">No</td>
-</tr><tr>
-<td>In-Memory Mode</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareN">No</td>
-</tr><tr>
-</tr><tr>
-<td>Explain Plan</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes *12</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Built-in Clustering / Replication</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Encrypted Database</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes *10</td>
-<td class="compareY">Yes *10</td>
-<td class="compareN">No</td>
-<td class="compareN">No</td>
-</tr><tr>
-<td>Linked Tables</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareY">Partially *1</td>
-<td class="compareY">Partially *2</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>ODBC Driver</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareN">No</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Fulltext Search</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Domains (User-Defined Types)</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Files per Database</td>
-<td class="compareY">Few</td>
-<td class="compareN">Many</td>
-<td class="compareY">Few</td>
-<td class="compareN">Many</td>
-<td class="compareN">Many</td>
-</tr><tr>
-<td>Row Level Locking</td>
-<td class="compareY">Yes *9</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes *9</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Multi Version Concurrency</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Multi-Threaded Processing</td>
-<td class="compareN">No *11</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Role Based Security</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes *3</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Updatable Result Sets</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes *7</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Sequences</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Limit and Offset</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes *13</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Window Functions</td>
-<td class="compareN">No *15</td>
-<td class="compareN">No *15</td>
-<td class="compareN">No</td>
-<td class="compareN">No</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Temporary Tables</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes *4</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Information Schema</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No *8</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Computed Columns</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes *6</td>
-</tr><tr>
-<td>Case Insensitive Columns</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes *14</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
-<td class="compareY">Yes *6</td>
-</tr><tr>
-<td>Custom Aggregate Functions</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>CLOB/BLOB Compression</td>
-<td class="compareY">Yes</td>
-<td class="compareN">No</td>
-<td class="compareN">No</td>
-<td class="compareN">No</td>
-<td class="compareY">Yes</td>
-</tr><tr>
-<td>Footprint (jar/dll size)</td>
-<td>~1.5 MB *5</td>
-<td>~3 MB</td>
-<td>~1.5 MB</td>
-<td>~4 MB</td>
-<td>~6 MB</td>
-</tr>
-</table>
-<p>
-*1 HSQLDB supports text tables.<br />
-*2 MySQL supports linked MySQL tables under the name 'federated tables'.<br />
-*3 Derby support for roles based security and password checking as an option.<br />
-*4 Derby only supports global temporary tables.<br />
-*5 The default H2 jar file contains debug information, jar files for other databases do not.<br />
-*6 PostgreSQL supports functional indexes.<br />
-*7 Derby only supports updatable result sets if the query is not sorted.<br />
-*8 Derby doesn't support standard compliant information schema tables.<br />
-*9 When using MVCC (multi version concurrency).<br />
-*10 Derby and HSQLDB
-    <a href="https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Electronic_Codebook_(ECB)">don't hide data patterns well</a>.<br />
-*11 The MULTI_THREADED option is not enabled by default, and with version 1.3.x not supported when using MVCC.<br />
-*12 Derby doesn't support the <code>EXPLAIN</code> statement, but it supports runtime statistics and retrieving statement execution plans.<br />
-*13 Derby doesn't support the syntax <code>LIMIT .. [OFFSET ..]</code>, however it supports <code>FETCH FIRST .. ROW[S] ONLY</code>.<br />
-*14 Using collations.
-*15 Derby and H2 support <code>ROW_NUMBER() OVER()</code>.
-</p>
-
 <h2 id="products_work_with">H2 in Use</h2>
 <p>
 For a list of applications that work with or use H2, see:
-<a href="http://www.h2database.com/html/links.html">Links</a>.
+<a href="https://h2database.com/html/links.html">Links</a>.
 </p>
 
 <h2 id="connection_modes">Connection Modes</h2>
@@ -560,7 +339,7 @@ This is achieved using different database URLs. Settings in the URLs are not cas
     <td><a href="#compatibility">Compatibility mode</a></td>
     <td class="notranslate">
         jdbc:h2:&lt;url&gt;;MODE=&lt;databaseType&gt;<br />
-        jdbc:h2:~/test;MODE=MYSQL
+        jdbc:h2:~/test;MODE=MYSQL;DATABASE_TO_LOWER=TRUE
     </td>
 </tr>
 <tr>
@@ -637,19 +416,22 @@ To keep the content of an in-memory database as long as the virtual machine is a
 <p>
 The database files can be encrypted.
 Three encryption algorithms are supported:
+</p>
 <ul>
 <li>"AES" - also known as Rijndael, only AES-128 is implemented.</li>
 <li>"XTEA" - the 32 round version.</li>
 <li>"FOG" - pseudo-encryption only useful for hiding data from a text editor.</li>
 </ul>
+<p>
 To use file encryption, you need to specify the encryption algorithm (the 'cipher')
 and the file password (in addition to the user password) when connecting to the database.
 </p>
 
 <h3>Creating a New Database with File Encryption</h3>
 <p>
-By default, a new database is automatically created if it does not exist yet.
-To create an encrypted database, connect to it as it would already exist.
+By default, a new database is automatically created if it does not exist yet
+when the <a href="#database_url">embedded</a> url is used.
+To create an encrypted database, connect to it as it would already exist locally using the embedded URL.
 </p>
 
 <h3>Connecting to an Encrypted Database</h3>
@@ -719,7 +501,8 @@ For more information about the algorithms, see
 <h2 id="database_only_if_exists">Opening a Database Only if it Already Exists</h2>
 <p>
 By default, when an application calls <code>DriverManager.getConnection(url, ...)</code>
-and the database specified in the URL does not yet exist, a new (empty) database is created.
+with <a href="features.html#database_url">embedded</a> URL and the database specified in the URL does not yet exist,
+a new (empty) database is created.
 In some situations, it is better to restrict creating new databases, and only allow to open
 existing databases. To do this, add <code>;IFEXISTS=TRUE</code>
 to the database URL. In this case, if the database does not already exist, an exception is thrown when
@@ -811,7 +594,7 @@ other database settings can be passed in the database URL.
 Adding <code>;setting=value</code> at the end of a database URL is the
 same as executing the statement <code>SET setting value</code> just after
 connecting. For a list of supported settings, see <a href="grammar.html">SQL Grammar</a>
-or the <a href="http://www.h2database.com/javadoc/org/h2/engine/DbSettings.html">DbSettings</a> javadoc.
+or the <a href="https://h2database.com/javadoc/org/h2/engine/DbSettings.html">DbSettings</a> javadoc.
 </p>
 
 <h2 id="custom_access_mode">Custom File Access Mode</h2>
@@ -857,10 +640,14 @@ This database synchronizes access to the same connection, but other databases ma
 To get higher concurrency, you need to use multiple connections.
 </p>
 <p>
-By default, requests to the same database are synchronized.
-That means an application can use multiple threads that access the same database
-at the same time, however if one thread executes a long running query, the other threads need to wait.
-To enable concurrent database usage, see the setting <code>MULTI_THREADED</code>.
+An application can use multiple threads that access the same database at the same time.
+With default MVStore engine threads that use different connections can use the database concurrently.
+With PageStore engine requests to the same database are synchronized,
+that means that if one thread executes a long running query, the other threads need to wait.
+Concurrent database usage may be enabled for PageStore or disabled for MVStore
+with <code>MULTI_THREADED</code> setting.
+Note that multi-threaded mode for PageStore engine is not tested well and has some issues;
+it should be used with caution.
 </p>
 
 <h3>Locking, Lock-Timeout, Deadlocks</h3>
@@ -932,6 +719,9 @@ The initial lock timeout (that is the timeout used for new connections) can be s
 To avoid deadlocks, ensure that all transactions lock the tables in the same order
 (for example in alphabetical order), and avoid upgrading read locks to write locks.
 Both can be achieved using explicitly locking tables using <code>SELECT ... FOR UPDATE</code>.
+</p><p>
+Note that delete, insert and update operations issue table level locks with PageStore engine,
+but does not issue them with default MVStore engine.
 </p>
 
 <h2 id="database_file_layout">Database File Layout</h2>
@@ -1044,12 +834,12 @@ or the SQL statement <code>SET MODE DB2</code>.
 <ul><li>For aliased columns, <code>ResultSetMetaData.getColumnName()</code>
     returns the alias name and <code>getTableName()</code> returns
     <code>null</code>.
-</li><li>Support for the syntax <code>[OFFSET .. ROW] [FETCH ... ONLY]</code>
-    as an alternative for <code>LIMIT .. OFFSET</code>.
 </li><li>Concatenating <code>NULL</code> with another value
     results in the other value.
 </li><li>Support the pseudo-table SYSIBM.SYSDUMMY1.
 </li><li>Timestamps with dash between date and time are supported.
+</li><li>Datetime value functions return the same value within a command.
+</li><li>Second and third arguments of TRANSLATE() function are swapped.
 </li></ul>
 
 <h3>Derby Compatibility Mode</h3>
@@ -1065,6 +855,7 @@ or the SQL statement <code>SET MODE Derby</code>.
 </li><li>Concatenating <code>NULL</code> with another value
     results in the other value.
 </li><li>Support the pseudo-table SYSIBM.SYSDUMMY1.
+</li><li>Datetime value functions return the same value within a command.
 </li></ul>
 
 <h3>HSQLDB Compatibility Mode</h3>
@@ -1072,14 +863,8 @@ or the SQL statement <code>SET MODE Derby</code>.
 To use the HSQLDB mode, use the database URL <code>jdbc:h2:~/test;MODE=HSQLDB</code>
 or the SQL statement <code>SET MODE HSQLDB</code>.
 </p>
-<ul><li>For aliased columns, <code>ResultSetMetaData.getColumnName()</code>
-    returns the alias name and <code>getTableName()</code> returns
-    <code>null</code>.
-</li><li>When converting the scale of decimal data, the number is only converted if the new scale is
-    smaller than the current scale. Usually, the scale is converted and 0s are added if required.
-</li><li>For unique indexes, <code>NULL</code> is distinct.
-    That means only one row with <code>NULL</code> in one of the columns is allowed.
-</li><li>Text can be concatenated using '+'.
+<ul><li>Text can be concatenated using '+'.
+</li><li>Datetime value functions return the same value within a command.
 </li></ul>
 
 <h3>MS SQL Server Compatibility Mode</h3>
@@ -1096,28 +881,38 @@ or the SQL statement <code>SET MODE MSSQLServer</code>.
 </li><li>Concatenating <code>NULL</code> with another value
     results in the other value.
 </li><li>Text can be concatenated using '+'.
+</li><li>Arguments of LOG() function are swapped.
+</li><li>MONEY data type is treated like NUMERIC(19, 4) data type. SMALLMONEY data type is treated like NUMERIC(10, 4)
+    data type.
+</li><li><code>IDENTITY</code> can be used for automatic id generation on column level.
+</li><li>Table hints are discarded. Example: <code>SELECT * FROM table WITH (NOLOCK)</code>.
+</li><li>Datetime value functions return the same value within a command.
+</li><li>0x literals are parsed as binary string literals.
 </li></ul>
 
 <h3>MySQL Compatibility Mode</h3>
 <p>
-To use the MySQL mode, use the database URL <code>jdbc:h2:~/test;MODE=MySQL</code>
-or the SQL statement <code>SET MODE MySQL</code>. Use this mode for compatibility with MariaDB too.
+To use the MySQL mode, use the database URL <code>jdbc:h2:~/test;MODE=MySQL;DATABASE_TO_LOWER=TRUE</code>.
+Use this mode for compatibility with MariaDB too.
+When case-insensitive identifiers are needed append <code>;CASE_INSENSITIVE_IDENTIFIERS=TRUE</code> to URL.
+Do not change value of DATABASE_TO_LOWER after creation of database.
 </p>
-<ul><li>When inserting data, if a column is defined to be <code>NOT NULL</code>
-    and <code>NULL</code> is inserted,
-    then a 0 (or empty string, or the current timestamp for timestamp columns) value is used.
-    Usually, this operation is not allowed and an exception is thrown.
-</li><li>Creating indexes in the <code>CREATE TABLE</code> statement is allowed using
+<ul><li>Creating indexes in the <code>CREATE TABLE</code> statement is allowed using
     <code>INDEX(..)</code> or <code>KEY(..)</code>.
     Example: <code>create table test(id int primary key, name varchar(255), key idx_name(name));</code>
-</li><li>Meta data calls return identifiers in lower case.
 </li><li>When converting a floating point number to an integer, the fractional
     digits are not truncated, but the value is rounded.
 </li><li>Concatenating <code>NULL</code> with another value
     results in the other value.
-</li><li>ON DUPLICATE KEY UPDATE is supported in INSERT statements.
-</li><li>INSERT IGNORE is partially supported and may be used to skip rows with duplicate keys if ON DUPLICATE KEY UPDATE is not specified.
+</li><li>ON DUPLICATE KEY UPDATE is supported in INSERT statements, due to this feature VALUES has special non-standard
+    meaning is some contexts.
+</li><li>INSERT IGNORE is partially supported and may be used to skip rows with duplicate keys if ON DUPLICATE KEY
+    UPDATE is not specified.
+</li><li>REPLACE INTO is partially supported.
 </li><li>REGEXP_REPLACE() uses \ for back-references for compatibility with MariaDB.
+</li><li>Datetime value functions return the same value within a command.
+</li><li>0x literals are parsed as binary string literals.
+</li><li>Unrelated expressions in ORDER BY clause of DISTINCT queries are allowed.
 </li></ul>
 <p>
 Text comparison in MySQL is case insensitive by default, while in H2 it is case sensitive (as in most other databases).
@@ -1141,13 +936,14 @@ or the SQL statement <code>SET MODE Oracle</code>.
     results in the other value.
 </li><li>Empty strings are treated like <code>NULL</code> values.
 </li><li>REGEXP_REPLACE() uses \ for back-references.
-</li><li>DATE data type is treated like TIMESTAMP data type.
+</li><li>DATE data type is treated like TIMESTAMP(0) data type.
+</li><li>Datetime value functions return the same value within a command.
 </li></ul>
 
 <h3>PostgreSQL Compatibility Mode</h3>
 <p>
-To use the PostgreSQL mode, use the database URL <code>jdbc:h2:~/test;MODE=PostgreSQL</code>
-or the SQL statement <code>SET MODE PostgreSQL</code>.
+To use the PostgreSQL mode, use the database URL <code>jdbc:h2:~/test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE</code>.
+Do not change value of DATABASE_TO_LOWER after creation of database.
 </p>
 <ul><li>For aliased columns, <code>ResultSetMetaData.getColumnName()</code>
     returns the alias name and <code>getTableName()</code> returns
@@ -1157,8 +953,18 @@ or the SQL statement <code>SET MODE PostgreSQL</code>.
 </li><li>The system columns <code>CTID</code> and
     <code>OID</code> are supported.
 </li><li>LOG(x) is base 10 in this mode.
-</li><li>REGEXP_REPLACE() uses \ for back-references.
+</li><li>REGEXP_REPLACE():
+    <ul>
+    <li>uses \ for back-references;</li>
+    <li>does not throw an exception when the <code>flagsString</code> parameter contains a 'g';</li>
+    <li>replaces only the first matched substring in the absence of the 'g' flag in the <code>flagsString</code> parameter.</li>
+    </ul>
+</li><li>ON CONFLICT DO NOTHING is supported in INSERT statements.
 </li><li>Fixed-width strings are padded with spaces.
+</li><li>MONEY data type is treated like NUMERIC(19, 2) data type.
+</li><li>Datetime value functions return the same value within a transaction.
+</li><li>ARRAY_SLICE() out of bounds parameters are silently corrected.
+</li><li>EXTRACT function with DOW field returns (0-6), Sunday is 0.
 </li></ul>
 
 <h3>Ignite Compatibility Mode</h3>
@@ -1170,6 +976,7 @@ or the SQL statement <code>SET MODE Ignite</code>.
     <code>INDEX(..)</code> or <code>KEY(..)</code>.
     Example: <code>create table test(id int primary key, name varchar(255), key idx_name(name));</code>
 </li><li>AFFINITY KEY and SHARD KEY keywords may be used in index definition.
+</li><li>Datetime value functions return the same value within a transaction.
 </li></ul>
 
 <h2 id="auto_reconnect">Auto-Reconnect</h2>
@@ -1212,7 +1019,7 @@ The application that opens the first connection to the database uses the embedde
 which is faster than the server mode. Therefore the main application should open
 the database first if possible. The first connection automatically starts a server on a random port.
 This server allows remote connections, however only to this database (to ensure that,
-the client reads <code>.lock.db</code> file and sends the the random key that is stored there to the server).
+the client reads <code>.lock.db</code> file and sends the random key that is stored there to the server).
 When the first connection is closed, the server stops. If other (remote) connections are still
 open, one of them will then start a server (auto-reconnect is enabled automatically).
 </p>
@@ -1665,6 +1472,7 @@ For some examples, have a look at the code in <code>org.h2.test.db.TestTableEngi
 <p>
 In order to create your own TableEngine, you need to implement the <code>org.h2.api.TableEngine</code> interface e.g.
 something like this:
+</p>
 <pre>
 package acme;
 public static class MyTableEngine implements org.h2.api.TableEngine {
@@ -1678,12 +1486,13 @@ public static class MyTableEngine implements org.h2.api.TableEngine {
     }
 }
 </pre>
+<p>
 and then create the table from SQL like this:
+</p>
 <pre>
 CREATE TABLE TEST(ID INT, NAME VARCHAR)
     ENGINE "acme.MyTableEngine";
 </pre>
-</p>
 <p>
 It is also possible to pass in parameters to the table engine, like so:
 </p>
@@ -1831,11 +1640,11 @@ is listed.
 <h2 id="external_authentication">External authentication (Experimental)</h2>
 <p>
 External authentication allows to optionally validate user credentials externally (JAAS,LDAP,custom classes).
-Is also possible to temporary assign roles to to externally authenticated users.  <b>This feature is experimental and subject to change</b>
+Is also possible to temporary assign roles to externally authenticated users.  <b>This feature is experimental and subject to change</b>
 </p>
 <p>Master user cannot be externally authenticated</p>
 <p>
-To enable external authentication on a database execute statement <code>SET AUTHENTICATOR TRUE</code>. This setting in persisted on the database. 
+To enable external authentication on a database execute statement <code>SET AUTHENTICATOR TRUE</code>. This setting in persisted on the database.
 </p>
 <p>
 To connect on a database by using external credentials client must append <code>AUTHREALM=H2</code> to the database URL. <code>H2</code>
@@ -1850,9 +1659,9 @@ JAAS login configuration file</a> content:
 </p>
 <pre>
 h2 {
- com.sun.security.auth.module.LdapLoginModule REQUIRED \
-   userProvider="ldap://127.0.0.1:10389" authIdentity="uid={USERNAME},ou=people,dc=example,dc=com" \
-   debug=true useSSL=false ;
+    com.sun.security.auth.module.LdapLoginModule REQUIRED \
+    userProvider="ldap://127.0.0.1:10389" authIdentity="uid={USERNAME},ou=people,dc=example,dc=com" \
+    debug=true useSSL=false ;
 };
 </pre>
 <p>
@@ -1863,14 +1672,14 @@ JVM argument <code>-Dh2auth.configurationFile={urlOfH2Auth.xml}</code>. Here an 
 &lt;h2Auth allowUserRegistration="false" createMissingRoles="true"&gt;
 
     &lt;!-- realm: DUMMY authenticate users named DUMMY[0-9] with a static password --&gt;
-    &lt;realm name="DUMMY" 
+    &lt;realm name="DUMMY"
     validatorClass="org.h2.security.auth.impl.FixedPasswordCredentialsValidator"&gt;
-    	&lt;property name="userNamePattern" value="DUMMY[0-9]" /&gt;
+        &lt;property name="userNamePattern" value="DUMMY[0-9]" /&gt;
         &lt;property name="password" value="mock" /&gt;
     &lt;/realm&gt;
-    
+
     &lt;!-- realm LDAPEXAMPLE:perform credentials validation on LDAP --&gt;
-    &lt;realm name="LDAPEXAMPLE" 
+    &lt;realm name="LDAPEXAMPLE"
     validatorClass="org.h2.security.auth.impl.LdapCredentialsValidator"&gt;
         &lt;property name="bindDnPattern" value="uid=%u,ou=people,dc=example,dc=com" /&gt;
         &lt;property name="host" value="127.0.0.1" /&gt;
@@ -1879,7 +1688,7 @@ JVM argument <code>-Dh2auth.configurationFile={urlOfH2Auth.xml}</code>. Here an 
     &lt;/realm&gt;
 
     &lt;!-- realm JAAS: perform credentials validation by using JAAS api --&gt;
-    &lt;realm name="JAAS" 
+    &lt;realm name="JAAS"
     validatorClass="org.h2.security.auth.impl.JaasCredentialsValidator"&gt;
         &lt;property name="appName" value="H2" /&gt;
     &lt;/realm&gt;

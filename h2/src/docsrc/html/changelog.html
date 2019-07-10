@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0, Version 1.0,
-and under the Eclipse Public License, Version 1.0
+Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+and the EPL 1.0 (https://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
@@ -21,6 +21,949 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>Issue #2025: Incorrect query result when (OFFSET + FETCH) &gt; Integer.MAX_VALUE
+</li>
+<li>PR #2023: traverseDown() code deduplication
+</li>
+<li>PR #2022: Mvmap minor cleanup
+</li>
+<li>Issue #2020: Wrong implementation of IN predicate with subquery
+</li>
+<li>PR #2003: Change dead chunks determination algorithm
+</li>
+<li>Issue #2013: DECIMAL is casted to double in ROUND function
+</li>
+<li>PR #2011: ZonedDateTime and (INTERVAL / INTERVAL)
+</li>
+<li>Issue #1997: TestRandomSQL failure with ClassCastException
+</li>
+<li>Issue #2007: PostgreSQL compatibility mode: support ON CONFLICT DO NOTHING
+</li>
+<li>Issue #1927: Do not allow commit() when auto-commit is enabled
+</li>
+<li>PR #1998: Reduce TxCounter memory footprint
+</li>
+<li>PR #1999: Make RootReference lock re-enterant
+</li>
+<li>PR #2001: Test improvements, OOME elimination
+</li>
+<li>Issue #1995: Obscure condition in MVPrimaryIndex.extractPKFromRow()
+</li>
+<li>Issue #1975: Add client ip address to information_schema
+</li>
+<li>PR #1982: Hindi language translation added
+</li>
+<li>Issue #1985: Add thread number to TCP server thread names
+</li>
+<li>Do not allow empty password for management DB
+</li>
+<li>Issue #1978: getGeneratedKeys() can use the same rules as FINAL TABLE
+</li>
+<li>PR #1977: Change JSON literals and add support for compound character literals
+</li>
+<li>PR #1974: Use proleptic Gregorian calendar for datetime values
+</li>
+<li>Issue #1847: Add support for data change delta tables
+</li>
+<li>PR #1971: Add maximum cardinality parameter to ARRAY data type
+</li>
+<li>PR #1970: Switch from log map rename to "committed" marker log record
+</li>
+<li>PR #1969: Add unique predicate
+</li>
+<li>Issue #1963: Expression.addFilterConditions() with outer joins
+</li>
+<li>PR #1966: Add standard CURRENT_SCHEMA function
+</li>
+<li>PR #1964: Add Feature T571: Truth value tests
+</li>
+<li>PR #1962: Fix data types of optimized conditions
+</li>
+<li>PR #1961: Failure to open DB after improper shutdown
+</li>
+<li>Issue #1957: NullPointerException with DISTINCT and ORDER BY CASE
+</li>
+<li>PR #1956: Fix row value handling in the null predicate
+</li>
+<li>PR #1955: Add standard UNKNOWN literal
+</li>
+<li>Issue #1952: Connection.setSchema doesn't work with query cache
+</li>
+<li>PR #1951: Assorted changes
+</li>
+<li>PR #1950: Fix NULL handling in ARRAY_AGG
+</li>
+<li>PR #1949: Extract aggregate and window functions into own pages in documentation
+</li>
+<li>PR #1948: Add standard LOG() function with two arguments
+</li>
+<li>Issue #1935: Improve file locking on shared filesystems like SMB
+</li>
+<li>PR #1946: Reimplement table value constructor on top of Query
+</li>
+<li>PR #1945: Fix IN (SELECT UNION with OFFSET/FETCH)
+</li>
+<li>Issue #1942: MySQL Mode: convertInsertNullToZero should be turned off by default?
+</li>
+<li>Issue #1940: MySQL Mode: Modify column from NOT NULL to NULL syntax
+</li>
+<li>PR #1941: Extract OFFSET / FETCH handling from Select and SelectUnion to Query
+</li>
+<li>Issue #1938: Regression with CREATE OR REPLACE VIEW. Causes "Duplicate column name" exception.
+</li>
+<li>PR #1937: Get rid of FunctionCursorResultSet
+</li>
+<li>Issue #1932: Incoherence between DbSettings.mvStore and getSettings()
+</li>
+<li>PR #1931: Fix wildcard expansion for multiple schemas
+</li>
+<li>PR #1930: Move PageStore table engine into own package
+</li>
+<li>PR #1929: Initial implementation of type predicate and other changes
+</li>
+<li>PR #1926: Assorted improvements for BINARY data type
+</li>
+<li>Issue #1925: Support SQL Server binary literal syntax
+</li>
+<li>Issue #1918: MySQL: CREATE TABLE with both CHARSET and COMMENT failed
+</li>
+<li>Issue #1913: MySQL: auto_increment changing SQL not supported
+</li>
+<li>Issue #1585: The translate function on DB2 mode could have parameters order changed
+</li>
+<li>PR #1914: Change storage and network format of JSON to byte[]
+</li>
+<li>Issue #1911: Foreign key constraint does not prevent table being dropped
+</li>
+<li>PR #1909: Add JSON_OBJECTAGG and JSON_ARRAYAGG aggregate functions
+</li>
+<li>PR #1908: Cast VARCHAR to JSON properly and require FORMAT JSON in literals
+</li>
+<li>PR #1906: Add JSON_OBJECT and JSON_ARRAY functions
+</li>
+<li>Issue #1887: Infinite recursion in ConditionAndOr.java
+</li>
+<li>Issue #1903: MSSQLServer Mode - Support Update TOP(X)
+</li>
+<li>Issue #1900: Support SQLServer stored procedure execution syntax
+</li>
+<li>PR #1898: Add IS JSON predicate
+</li>
+<li>Issue #1896: MSSQLServer compatibility mode - GETDATE() incorrectly omits time
+</li>
+<li>PR #1895: Add standard array concatenation operation
+</li>
+<li>Issue #1892: Window aggregate functions return incorrect result without window ordering and with ROWS unit
+</li>
+<li>Issue #1890: ArrayIndexOutOfBoundsException in MVSortedTempResult.getKey
+</li>
+<li>Issue #308: Mode MySQL and LAST_INSERT_ID with argument
+</li>
+<li>Issue #1883: Suspicious code in Session.getLocks()
+</li>
+<li>Issue #1878: OPTIMIZE_REUSE_RESULTS causes incorrect result after rollback since 1.4.198
+</li>
+<li>PR #1880: Collation names like CHARSET_* recognition
+</li>
+<li>Issue #1844: MySQL Compatibility: create table error when primary key has comment
+</li>
+<li>PR #1873: Concurrency in database metadata
+</li>
+<li>Issue #1864: Failing to format NotSerializableException corrupting the database
+</li>
+<li>PR #1868: add more checking to TestFileLock
+</li>
+<li>Issue #1819: Trace.db file exceed file size limit (64MB)
+</li>
+<li>Issue #1861: Use COALESCE in named columns join for some data types
+</li>
+<li>PR #1860: Additional fix for deadlock on shutdown (exclusively in PageStore mode)
+</li>
+<li>Issue #1855: Wrong qualified asterisked projections in named column join
+</li>
+<li>Issue #1854: Wrong asterisked projection and result in named column right outer join
+</li>
+<li>Issue #1852: Named column joins doesn't work with the VALUES constructor and derived column lists
+</li>
+<li>Issue #1851: Wrong asterisked projection in named column joins
+</li>
+<li>PR #1850: Duplicate map identifiers
+</li>
+<li>PR #1849: Reimplement MVStore.findOldChunks() with PriorityQueue
+</li>
+<li>PR #1848: Reimplement MVStore.findChunksToMove() with PriorityQueue
+</li>
+<li>Issue #1843: Named columns join syntax is not supported
+</li>
+<li>Issue #1841: Deadlock during concurrent shutdown attempts with 1.4.199
+</li>
+<li>Issue #1834: NUMERIC does not preserve its scale for some values
+</li>
+<li>PR #1838: Implement conversion from JSON to GEOMETRY
+</li>
+<li>PR #1837: Implement conversion from GEOMETRY to JSON
+</li>
+<li>PR #1836: Add LSHIFT and RSHIFT function
+</li>
+<li>PR #1833: Add BITNOT function
+</li>
+<li>PR #1832: JSON validation and normalization
+</li>
+<li>PR #1829: MVStore chunks occupancy rate calculation fixes
+</li>
+<li>PR #1828: Basis for implementation of SQL/JSON standard
+</li>
+<li>PR #1827: Add support for Lucene 8.0.0
+</li>
+<li>Issue #1820: Performance problem on commit
+</li>
+<li>Issue #1822: Use https:// in h2database.com hyperlinks
+</li>
+<li>PR #1817: Assorted minor changes in documentation and other places
+</li>
+<li>PR #1812: An IllegalStateException that wraps EOFException is thrown when partial writes happens
+</li>
+</ul>
+
+<h2>Version 1.4.199 (2019-03-13)</h2>
+<ul>
+<li>PR #1807: Reduce code duplication and remove h2.mixedGeometries
+</li>
+<li>PR #1806: Improve SELECT FOR UPDATE documentation
+</li>
+<li>PR #1804: Lift limit of 10 characters on enum value (1.4.198 regression)
+</li>
+<li>PR #1803: Do not rely on index sorting in SELECT FOR UPDATE
+</li>
+<li>Issue #1800: Remove experimental status from window functions
+</li>
+<li>PR #1799: Fire triggers after row locking and remove some leftovers
+</li>
+<li>PR #1798: Reuse some string builders, remove StatementBuilder and other minor changes
+</li>
+<li>Issue #1795: 1.4.198 regression with batch updates and transactions
+</li>
+<li>PR #1794: Ask password in Shell in secure way and improve database creation information in tutorial
+</li>
+<li>PR #1791: Move commands to commands.html and other changes
+</li>
+<li>Issue #1774: H2 Browser configuration is unclear and fails on KUbuntu
+</li>
+<li>PR #1790: Do not convert standard TRIM function to non-standard functions
+</li>
+<li>Issue #1787: Non-standard MERGE throws LOCK_TIMEOUT_1 on violation of some constraints
+</li>
+<li>PR #1784: improve database not found error
+</li>
+<li>Issue #1740: Enhancement Request: h2 server: do not swallow exceptions
+</li>
+<li>Issue #1616: Metadata and scripts should be persisted with unconditionally quoted identifiers
+</li>
+<li>PR #1779: Improve isSimpleIdentifier() and enquoteIdentifier()
+</li>
+<li> PR #1776: Improve DATABASE_TO_LOWER handling
+</li>
+<li>Issue #1771: NPE in Comparison.createIndexConditions
+</li>
+<li>PR #1772: Fix newlines in test scripts
+</li>
+<li>Issue #1762: NullPointerException in Parser. Introduced in 1.4.198
+</li>
+<li>PR #1768: Add more context-sensitive keywords
+</li>
+<li>Issue #1758: sequence restart issue with 1.4.198
+</li>
+<li>Issue #1759: SELECT &#8230; FOR UPDATE returns old data in 1.4.198
+</li>
+<li>PR #1756: Fix DISTINCT ON in presence of ORDER BY
+</li>
+<li>PR #1754: Fix window functions in JOIN with ON condition
+</li>
+<li>Issue #1751: making it easier to open console and create local databases
+</li>
+<li>Issue #1750: JOIN t ON t.col IN (SELECT ...) throws AssertionError
+</li>
+</ul>
+
+<h2>Version 1.4.198 (2019-02-22)</h2>
+<ul>
+<li>Issue #1746: Infinite loop in TestConcurrent.testConcurrentChangeAndGetVersion()
+</li>
+<li>Issue #1739: Table and view names not case sensitive when using DATABASE_TO_UPPER=FALSE
+</li>
+<li>Issue #848: H2 PostgreSQL Compatibility Mode: lowercase metadata
+</li>
+<li>Issue #485: Problem is in invalid case for schema's IGNORECASE=true;DATABASE_TO_UPPER=false
+</li>
+<li>Issue #1742, PR #1743: Assorted small changes
+</li>
+<li>PR #1738: Reduce memory allocation in getSQL() methods
+</li>
+<li>PR #1737: more javadoc updates
+</li>
+<li>Issue #1735: Creating views with DATABASE_TO_UPPER=FALSE fails
+</li>
+<li>Issue #1732: source.html does not work
+</li>
+<li>Issue #1730: Show error in H2 Console if specified driver is not compatible with URL
+</li>
+<li>Issue #1590: Error on executing "DELETE FROM table1 WHERE ID = ?; DELETE FROM table2 WHERE ID = ?;"
+</li>
+<li>Issue #1727: Support ISODOW as identifier for the extract function additional to ISO_DAY_OF_WEEK
+</li>
+<li>PR #1580, #1726: Disable remote database creation by default
+</li>
+<li>PR #1725: Add partial implementation of standard LISTAGG aggregate function
+</li>
+<li>PR #1722: Fix window definition lookup in some queries
+</li>
+<li>PR #1721: Fix derived column list in complex queries
+</li>
+<li>Issue #1718: Window function and values clause don't work well together
+</li>
+<li>Issue #1592: Index out of bounds exception in Page.getKey()
+</li>
+<li>PR #1716: Improve documentation of some DML commands
+</li>
+<li>Issue #1715: Postgres mode: Domain "regproc" already exists
+</li>
+<li>PR #1714: Assorted changes
+</li>
+<li>PR #1713: Remove DataType.defaultDisplaySize and fix display size in TypeInfo
+</li>
+<li>PR #1711: Add QUALIFY clause to SELECT command
+</li>
+<li>Issue #1708: CREATE TABLE AS doesn't support column lists without data types
+</li>
+<li>PR #1707: Fix sort order and ENUM data type in external results
+</li>
+<li>PR #1706: Add hypothetical set functions
+</li>
+<li>PR #1705: Fix GROUP_CONCAT with variable separator
+</li>
+<li>PR #1704: Fix return type of PERCENTILE_CONT and MEDIAN
+</li>
+<li>PR #1701: Add PERCENTILE_CONT and PERCENTILE_DISC inverse distribution functions
+</li>
+<li>Issues #1297, #1697: Failure on concurrent session closure
+</li>
+<li>Issue #1297: removeOldTempIndexes on PageStore causes NullPointerException
+</li>
+<li>Issue #1354: TestCrashAPI: another NPE
+</li>
+<li>PR #1695: Reduce memory for TestMVTempResult to 64m
+</li>
+<li>Issue #1691: Append mode causes OOME in MVPlainTempResult
+</li>
+<li>PR #1692: Use MVTempResult unconditionally
+</li>
+<li>Issue #1689: Use separate constants for data types in Data, ValueDataType, and Transfer
+</li>
+<li>PR #1687: MVMap minor cleanup
+</li>
+<li>PR #1686: Fix a regression with ENUM data type
+</li>
+<li>PR #1685: Fix CHAR in PostgreSQL mode and refactor some code
+</li>
+<li>Issue #1681: IN () doesn't work with row values when data types are not exactly the same
+</li>
+<li>Issue #1320: OOME / GC overhead in IndexCursor.nextCursor()
+</li>
+<li>PR #1680: Assorted fixes for ALTER TABLE ALTER COLUMN
+</li>
+<li>PR #1679: Use TestScript for testSimple
+</li>
+<li>Issue #1677: Unable to use VALUES keyword in WHERE clause
+</li>
+<li>Issue #1672: Deadlock on MVStore close in TestOutOfMemory
+</li>
+<li>Issue #1665: TestCrashAPI: NPE with ENUM in MINUS operator
+</li>
+<li>Issue #1602: Combine type, precision, scale, display size and extTypeInfo into one object
+</li>
+<li>PR #1671: Assorted changes
+</li>
+<li>Issue #1668: MySQL compatibility DATE() function should return NULL on error
+</li>
+<li>Issue #1604: TestCrashAPI: PreparedStatement.getGeneratedKeys() is already closed
+</li>
+<li>PR #1667: Detect NULL values and overflow in window frame bounds
+</li>
+<li>PR #1664: Allow any expressions in window frames
+</li>
+<li>Issue #1576: H2 Console should not display precision and scale for data types that don't have them
+</li>
+<li>PR #1662: Fix Alter Table Drop Column In View when table name is wrapped by Double Quotes
+</li>
+<li>PR #1660: Optimize window aggregates with AND UNBOUNDED FOLLOWING and no exclusions
+</li>
+<li>PR #1658: Assorted small changes
+</li>
+<li>PR #1657: Failure to stop background thread
+</li>
+<li>PR #1656: Optimize window aggregates with ORDER BY + UNBOUNDED PRECEDING + no exclusions
+</li>
+<li>Issue #1654: OOM in TestMemoryUsage, in big mode
+</li>
+<li>Issue #1651: TIMESTAMP values near DST may be changed in MVStore database due to UTC-based PageStore format in some
+temporary storages
+</li>
+<li>PR #1650: Fix race in MVStore.close()
+</li>
+<li>Issue #1212: TestDiskFull: The file is locked
+</li>
+<li>PR #1648: Add functions ARRAY_CAT(), ARRAY_APPEND() and ARRAY_SLICE()
+</li>
+<li>PR #1646: In preparation to a release
+</li>
+<li>PR #1643: more javadoc update
+</li>
+<li>PR #1642: update javadoc
+</li>
+<li>PR #1641: Update copyright years
+</li>
+<li>PR #1640: Suggest ANY(?) instead of variable IN() again
+</li>
+<li>PR #1638: Add support for Java 11 to test suite
+</li>
+<li>PR #1637: Remove explicit unboxing
+</li>
+<li>PR #1635: Optimize UUID to VARCHAR conversion and use correct time check in Engine.openSession()
+</li>
+<li>Issue #1632: TestMVTableEngine failure
+</li>
+<li>PR #1631: Prepare to release: javadoc cleanup
+</li>
+<li>PR #1630: fix duplicate words typos in comments and javadoc
+</li>
+<li>PR #1627: Use lock to protect append buffer
+</li>
+<li>Issue #1618: GROUP BY does not work with two identical columns in selected expressions
+</li>
+<li>Issue #1619: Two-phase commit regression in MASTER
+</li>
+<li>PR #1626: fix doc
+</li>
+<li>PR #1625: Prepare to release: javadoc cleanup, fix maven build, fix javadoc build
+</li>
+<li>Issue #1620: UUIDs are unexpectedly sorted as signed
+</li>
+<li>PR #1614: Use bulk .addAll() operation
+</li>
+<li>PR #1613: Add explicit table query
+</li>
+<li>Issue #1608: ARRAY and row value expression should not be the same
+</li>
+<li>Issue #1606: Quantified comparison predicate doesn't work correctly on primary key column
+</li>
+<li>Issue #1057: Very slow execution with subquery and connection parameter LAZY_QUERY_EXECUTION=1
+</li>
+<li>Issue #1072: Very slow execution with join and connection parameter LAZY_QUERY_EXECUTION=1
+</li>
+<li>PR #1601: Return BIGINT from ROWNUM(), ROW_NUMBER() and rank functions
+</li>
+<li>PR #1599: cleanup StringUtils.cache
+</li>
+<li>PR #1598: Minor changes in parser and documentation
+</li>
+<li>PR #1597: Remove SysProperties.CHECK preconditions around simple assertions
+</li>
+<li>PR #1596: Improve SQL Standard compliance in LOB precision parsing
+</li>
+<li>Issue #1594: DBSettings.optimizeIsNull and dead code in IndexCursor.getMax()
+</li>
+<li>PR #1591: Use multi-catch java 7 language construction to simplify code
+</li>
+<li>Issue #1582: h2 not using best index for &gt;=
+</li>
+<li>PR #1588: Add support for java.time.Period
+</li>
+<li>Issue #446: FILE_READ from classpath not working because of 0 byte file length
+</li>
+<li>PR #1579: fix unintentional append mode disruption
+</li>
+<li>Issue #1573: DELETE FROM w/ ROWNUM and subquery
+</li>
+<li>Issue #187: SHUTDOWN DEFRAG corrupts splitted file database
+</li>
+<li>PR #1571: Optimizing ConditionAndOr queries
+</li>
+<li>Issue #1565: SOME / ANY conflict
+</li>
+<li>PR #1564: Refactor Expression implementations
+</li>
+<li>Issue #1561: Incorrect documentation and strange fallback value of SysProperties.FILE_ENCODING
+</li>
+<li>Issue #1566: MVStore implements Closeable/AutoCloseable
+</li>
+<li>Issue #1550: OutOfMemoryError during "shutdown defrag"
+</li>
+<li>Issue #1440: OOM when executing "shutdown compact" in server mode
+</li>
+<li>Issue #1561: Incorrect documentation and strange fallback value of SysProperties.FILE_ENCODING
+</li>
+<li>PR #1557: increase lock timeout to TestConcurrentUpdate due to Travis failures
+</li>
+<li>Issue #1554: REGEXP_REPLACE - accept 'g' flag in PostgreSQL compatibility mode
+</li>
+<li>Issue #950: Comparison between databases in README.md and in features.html
+</li>
+<li>Issue #1549: [RFE] Implement locking modes (select for update)
+</li>
+<li>PR #1548: Add AsynchronousFileChannel-based experimental FilePathAsync
+</li>
+<li>PR #1547: Speedup unused chunks collection
+</li>
+<li>PR #1546: Tiny optimization: use `System.arraycopy` when possible
+</li>
+<li>PR #1545: Export datetime value functions to SQL using standard syntax
+</li>
+<li>Issue #1371: NPE in CacheLRU
+</li>
+<li>Issue #1534: Typo in message
+</li>
+<li>Issue #1527: Parser performance: Excessive use of regular expressions to validate column names
+</li>
+<li>PR #1543: MVStore assorted re-factorings
+</li>
+<li>PR #1538: Add support for newer Lucene versions without recompilation
+</li>
+<li>Issue #1536: CURRENT_TIMESTAMP result doesn't change under Transactions
+</li>
+<li>Issue #239: Consider supporting Lucene 5 indexes
+</li>
+<li>PR #1520: Fixes bug in PutIfAbsentDecisionMaker
+</li>
+<li>Issue #1518: ENUM and VIEW with filtering on enum column
+</li>
+<li>Issue #1516: Array element reference array[index] should be 1-based
+</li>
+<li>Issue #1512: TestMVTableEngine.testLowRetentionTime(): NPE in VersionedValue.Type
+</li>
+<li>PR #1513: Assorted minor changes
+</li>
+<li>PR #1510: Add optional EXCEPT clause to wildcards
+</li>
+<li>PR #1509: Use domain term everywhere
+</li>
+<li>Issue #1507: Add INFORMATION_SCHEMA.COLUMNS.COLUMN_TYPE qualification for domains
+</li>
+<li>Issue #1499: TestScript::envelope.sql failure in &#8220;big&#8221; mode
+</li>
+<li>Issue #1498: NPE in SimpleResultSet.getColumnCount()
+</li>
+<li>Issue #1495: MERGE statement doesn't affect any rows when Oracle UPDATE .. WHERE .. DELETE .. WHERE is used
+</li>
+<li>Issue #1493: MERGE statement fails when it updates more than one row
+</li>
+<li>Issue #1492: Unnecessary restriction on MERGE USING statement when ON clause doesn't reference any target table columns
+</li>
+<li>Issue #1491: Unnecessary restriction on MERGE USING statement when ON predicate doesn't match inserted row
+</li>
+<li>Issue #1490: NullPointerException when running invalid MERGE statement
+</li>
+<li>Issue #1489: MERGE USING documentation has misleading railroad diagram
+</li>
+<li>Issue #1488: Improve documentation of window and some other functions
+</li>
+<li>Issue #1485: Default window frame in presence of ORDER BY is RANGE .., not ROWS
+</li>
+<li>PR #1484: New tests, reimplemented EXCLUDE clause, and assorted changes
+</li>
+<li>Issue #1338: MSSQLServer compatibility enhancements
+</li>
+<li>PR #1480: Update Maven build instruction and fix some problems
+</li>
+<li>PR #1478: Upgrade maven-surefire-plugin
+</li>
+<li>PR #1476: Add TransactionStore to MVStore jar
+</li>
+<li>Issue #1475: Dropping column used by a view produces misleading error message
+</li>
+<li>Issue #1473: TestScript needs better detection of sorted result
+</li>
+<li>PR #1471: issue 1350: TestCrashAPI: PageStore.freeListPagesPerList
+</li>
+<li>PR #1470: Fix window functions in queries with HAVING
+</li>
+<li>PR #1469: Forbid incorrect nesting of aggregates and window functions
+</li>
+<li>Issue #1437: Generated as Identity has a different behaviour.
+</li>
+<li>PR #1467: Fix subtraction of timestamps
+</li>
+<li>PR #1464: Assorted minor changes in window processing code
+</li>
+<li>PR #1463: Fix some window aggregates and reduce amount of collecting implementations
+</li>
+<li>PR #1462: Separate aggregate and window code in some places
+</li>
+<li>PR #1461: Add WINDOW clause support
+</li>
+<li>Issue #1427: Scalability problem in MVSpatialIndex
+</li>
+<li>PR #1459: Improve window clause correctness checks
+</li>
+<li>PR #1457: Add NTILE(), LEAD() and LAG() window functions
+</li>
+<li>PR #1456: Add experimental implementation of remaining types of window frames
+</li>
+<li>PR #1454: Add FIRST_VALUE(), LAST_VALUE(), and NTH_VALUE()
+</li>
+<li>PR #1453, Issue #1161: Add ROW_NUMBER(), RANK(), DENSE_RANK(), PERCENT_RANK(), and CUME_DIST() window functions
+</li>
+<li>PR #1452: Reset aggregates before reuse
+</li>
+<li>PR #1451: Add experimental support for aggregates with OVER (ORDER BY *)
+</li>
+<li>PR #1450: Evaluate window aggregates only once for each partition
+</li>
+<li>PR #1449: Move more code from Aggregate and JavaAggregate to AbstractAggregate
+</li>
+<li>PR #1448: Add experimental implementation of grouped window queries
+</li>
+<li>PR #1447: Refactor OVER() processing code and fix some issues
+</li>
+<li>PR #1446: fix : The French messages are bad generated (not contain DB message)
+</li>
+<li>PR #1445: Use PostGIS-compatible format for SRID-only constraint in GEOMETRY
+</li>
+<li>PR #1444: Add experimental unoptimized support for OVER ([PARTITION BY ...]) in aggregates
+</li>
+<li>PR #1442: Bugfix - Release MVStore lock and file resources rightly even if errors when compacting database
+</li>
+<li>PR #1441: Add GEOMETRY type subtypes with type and SRID constraints
+</li>
+<li>PR #1434: Add support for ENUM in CAST and other changes
+</li>
+<li>PR #1431: Fix some inconsistencies in documentation and improve mvn build
+</li>
+<li>PR #1428: Add support for M and ZM dimensions to GEOMETRY data type
+</li>
+<li>Issue #1405: Introduce LocalResult factory
+</li>
+<li>PR #1422: Add ENVELOPE aggregate function
+</li>
+<li>Issue #1421: Remove old-style outer join
+</li>
+<li>PR #1419: Assorted minor changes
+</li>
+<li>PR #1414: DEFRAG and COMPACT mixup
+</li>
+<li>PR #1413: improvements to MVStore garbage collection
+</li>
+<li>PR #1412: Added org.h2.store.fs package to exported osgi bundles
+</li>
+<li>PR #1409: Map all remaining error codes to custom exception classes
+</li>
+<li>Issue #1407: Add a MODE() aggregate function
+</li>
+<li>PR #1402: Duplicate conditions in column check constraint
+</li>
+<li>PR #1399: Add more subclasses of SQLException and use it for some error codes
+</li>
+<li>PR #1397: Add DATEADD return type detection
+</li>
+<li>Issue #1393: Add INFORMATION_SCHEMA.COLUMNS.IS_VISIBLE
+</li>
+<li>PR #1392: Some refactoring and assorted minor optimizations
+</li>
+<li>PR #1388: Extract UnaryOperation from Operation and other changes
+</li>
+<li>PR #1386: DISK_SPACE_USED() for MVStore and other minor changes
+</li>
+<li>PR #1385: split up the rather large convertTo method
+</li>
+<li>PR #1384: Throw exception if unknown mode is specified in database URL
+</li>
+<li>Issue #1365, PR #1382: Parse more date-time literals for compatibility with other databases
+</li>
+<li>PR #1381: Minor fixes for INTERVAL data type
+</li>
+<li>PR #1380: Improve documentation of intervals
+</li>
+<li>Issue #1189: "Merge into using" parameters aren't found
+</li>
+<li>Issue #1377: org.h2.api.Interval and TIME leftovers
+</li>
+<li>PR #1376: TestMultiThreadedKernel is back
+</li>
+<li>PR #1373: INTERVAL data type
+</li>
+<li>Issue #1369: In MSSQL Server Mode generated UUID fields need NEWID() function
+</li>
+<li>Issue #756: FunctionsMySql is not in the main jar
+</li>
+<li>PR #1368: Parse BINARY VARYING, BINARY LARGE OBJECT, and CHARACTER LARGE OBJECT
+</li>
+<li>PR #1367: Assorted changes with SELECT output limitation clauses
+</li>
+<li>Issue #1363: Why H2 requires random own packages in OSGi bundle description?
+</li>
+<li>Issue #1192: Add an Automatic-Module-Name
+</li>
+<li>Issue #1361, PR #1362: Add limited support for MONEY and SMALLMONEY in compatibility modes
+</li>
+<li>Issue #1327: mvn build misses some resources
+</li>
+<li>PR #1359: Add system property to return OffsetDateTime from ResultSet.getObject()
+</li>
+<li>PR #1357: Simplify execution flow in some places
+</li>
+<li>PR #1356: Fix NPE in Query.initExpression()
+</li>
+<li>PR #1355: Assorted changes in MetaTable
+</li>
+<li>Issue #1352: TestCrashAPI: Prepared.getObjectId() was called before
+</li>
+<li>PR #1349: Changes is conversion and comparison methods of Value
+</li>
+<li>Issue #1346: Exception when using IN condition for enums
+</li>
+<li>PR #1345: Replace some init methods with constructors
+</li>
+<li>PR #1344: Streamline last chunk verification on startup
+</li>
+<li>PR #1341: Optimize MVSecondaryIndex.convertToKey()
+</li>
+<li>PR #1340: NoSuchElementException instead of returning null
+</li>
+<li>PR #1339: Add support of TIMESTAMP WITH TIME ZONE to addition and subtraction operators
+</li>
+<li>PR #1337: Streamline Value comparison
+</li>
+<li>PR #1336: Minor refactorings
+</li>
+<li>Issue #1332: Constraint name not set correctly
+</li>
+<li>Rename fields to reflect actual type
+</li>
+<li>Issue #1331: Regression in Database.updateMeta()
+</li>
+<li>Issue #1323: Slow update after altering table in 1.4.197
+</li>
+<li>PR #1326: Add support of PERCENT in FETCH and TOP clauses
+</li>
+<li>PR #1325: Optimize WITH TIES in some queries and specify data types for KEY_COLUMN_USAGE
+</li>
+<li>PR #1321: Do not add rows before OFFSET to result if possible
+</li>
+<li>PR #1319: Treat NEXTVAL as an auto-generated key
+</li>
+<li>PR #1318: Mode append fo MVPlainTempResult
+</li>
+<li>PR #1314: Add ALTER VIEW RENAME command
+</li>
+<li>PR #1313, issue #1315: Bugfix - using default locale encoding issue in conversion between varchar and varbinary value, and checking javac output text issue in SourceCompiler
+</li>
+<li>PR #1312: Add Java 9+ support to NIO_CLEANER_HACK
+</li>
+<li>PR #1311: Fix minor issues with ResultSet.getObject(..., Class) and WITH TIES
+</li>
+<li>Issue #1298: TestKillRestartMulti: A map named undoLog.2 already exists
+</li>
+<li>Issue #1307: Invalid value "null" for parameter "calendar" [90008-193]
+</li>
+<li>PR #1306: Add initial implementation of WITH TIES clause
+</li>
+<li>PR #1304: Update changelog and fix building of documentation
+</li>
+<li>PR #1302: Use OpenJDK instead of OracleJDK 10 in Travis builds due to Travis problem
+</li>
+<li>Issue #1032: Error when executing "SELECT DISTINCT ON"
+</li>
+<li>Issue #1295: ConditionInSelect violates requirements of LocalResult
+</li>
+<li>PR #1296: Assorted minor changes
+</li>
+<li>PR #1293: Move HELP and SHOW tests into own files
+</li>
+<li>PR #1291: Fix update count for REPLACE and move some SQL tests into separate files
+</li>
+<li>PR #1290: Do not load the whole LOBs into memory for comparison operation
+</li>
+<li>Issue #408: DISTINCT does not properly work with ORDER BY on function like LOWER
+</li>
+<li>PR #1286: Fix MVTempResult implementations for results with invisible columns
+</li>
+<li>Issue #1284: Nanoseconds of timestamps from old H2 versions are not read properly
+</li>
+<li>PR #1283: Clean up interaction between LocalResult and ResultExternal
+</li>
+<li>Issue #1265: OOME is not handled properly in TraceObject.logAndConvert()
+</li>
+<li>Issue #1061: Regression: Braces after WITH clause not allowed anymore
+</li>
+<li>PR #1277: Assorted changes in Parser
+</li>
+<li>PR #1276: Improve support of ARRAY and SQLXML in JDBC layer
+</li>
+<li>PR #1275: Do not quote other lower case characters
+</li>
+<li>PR #1274: Use token type in Parser instead of string comparisons
+</li>
+<li>PR #1272: Reduce code duplication in Parser
+</li>
+<li>PR #1271: Minor memory leak
+</li>
+<li>PR #1270: drop TableView isPersistent field
+</li>
+<li>PR #1269: Eliminate commit of empty batch in some tests
+</li>
+<li>Issue #1266: Add INFORMATION_SCHEMA.COLUMNS.DATETIME_PRECISION
+</li>
+<li>Issue #1261: How to discover stored enum types through INFORMATION_SCHEMA
+</li>
+<li>Issue #1258: Failing to remove index when using schema.table
+</li>
+<li>PR #1256: misc tiny refactorings
+</li>
+<li>PR #1255: Minor changes in MERGE USING, DATE_TRUNC, and EXTRACT
+</li>
+<li>Issue #1214: Internal compiler believes that "3 warnings" is an error
+</li>
+<li>PR #1252: Assorted minor changes
+</li>
+<li>PR #1251: Fix SQL representation of CAST for types with fractional seconds precision
+</li>
+<li>PR #1250: Batch append mode for MVMap
+</li>
+<li>PR #1248: StringIndexOutOfBoundsException due to undoLog map
+</li>
+<li>PR #1246: Detect disabled tests
+</li>
+<li>PR #1242: Add implementation of SQLXML interface
+</li>
+<li>PR #1241: Various tweaks in attempting to fix TestDiskFull test
+</li>
+<li>PR #1240: Optimise ValueLobDB comparison methods
+</li>
+<li>PR #1239: Don't try to find tools.jar on Java 9+
+</li>
+<li>PR #1238: remove unfinished android API
+</li>
+<li>PR #1237: remove JaQu
+</li>
+<li>PR #1236: remove STORE_LOCAL_TIME code
+</li>
+<li>PR #1235: Do not use deprecated Class.newInstance()
+</li>
+<li>PR #1234: Fix NPE in Parser.parseMergeUsing()
+</li>
+<li>PR #1233: Simplify old lob ValueLob class
+</li>
+<li>Issue 1227: lob growth in pagestore mode
+</li>
+<li>PR #1230: clean up some javadoc and some throws clauses
+</li>
+<li>PR #1229: Create UndoLog only when necessary and remove outdated code
+</li>
+<li>PR #1228: Remove some PageStore+MVCC leftovers
+</li>
+<li>PR #1226: Fix inconsistencies in checks for transaction isolation level
+</li>
+<li>PR #1224: Enable Java 10 testing on Travis
+</li>
+<li>PR #1223: Fix issues with testing on latest Java versions
+</li>
+<li>PR #1222: Leftovers handling
+</li>
+<li>Issue #1220: JDK-9 build fails due to usage of java.xml.bind in external authentication
+</li>
+<li>PR #1218: Test utilities only once during TestAll
+</li>
+<li>PR #1217: Postpone session.endStatement() until after commit
+</li>
+<li>PR #1213: KillRestart fix
+</li>
+<li>PR #1211: Assorted minor changes
+</li>
+<li>Issue #1204: Always use MVCC with MVStore and never use it with PageStore
+</li>
+<li>PR #1206: Forbid reconnects in non-regular modes in TestScript
+</li>
+<li>PR #1205: Misc test fixes
+</li>
+<li>Issue 1198: Enable MULTI_THREADED by default for MVStore mode
+</li>
+<li>Issue #1195: Calling setBytes to set VARCHAR field fails
+</li>
+<li>PR #1197: Fix or suppress errors in tests
+</li>
+<li>PR #1194: TestKillRestartMulti: A map named undoLog-1 already exists
+</li>
+<li>PR #1193: enable TestRandomSQL on non-memory databases
+</li>
+<li>PR #1191: External authentication with datasource issue
+</li>
+<li>PR #1188: Undo log split to reduce contention
+</li>
+<li>PR #1186: TransactionMap::sizeAsLong() optimized - temp map eliminated
+</li>
+<li>PR #1185: Improve naming of the object id field in Prepared
+</li>
+<li>Issue #1196: Feature request for MS SQL Server Compatibility Mode
+</li>
+<li>Issue #1177: Resource leak in Recover tool
+</li>
+<li>PR #1183: Improve concurrency of connection pool with wait-free implement
+</li>
+<li>Issue #1073: H2 v1.4.197 fails to open an existing database with the error [Unique index or primary key violation: "PRIMARY KEY ON """".PAGE_INDEX"]
+</li>
+<li>PR #1179: Drop TransactionMap.readLogId
+</li>
+<li>PR #1181: Improve CURRENT_TIMESTAMP and add LOCALTIME and LOCALTIMESTAMP
+</li>
+<li>PR #1176: Magic value replacement with constant
+</li>
+<li>PR #1171: Introduce last committed value into a VersionedValue
+</li>
+<li>PR #1175: tighten test conditions - do not ignore any exceptions
+</li>
+<li>PR #1174: Remove mapid
+</li>
+<li>PR #1173: protect first background exception encountered and relate it to clients
+</li>
+<li>PR #1172: Yet another attempt to tighten that testing loop
+</li>
+<li>PR #1170: Add support of CONTINUE | RESTART IDENTITY to TRUNCATE TABLE
+</li>
+<li>Issue #1168: ARRAY_CONTAINS() returning incorrect results when inside subquery with Long elements.
+</li>
+<li>PR #1167: MVStore: Undo log synchronization removal
+</li>
+<li>PR #1166: Add SRID support to EWKT format
+</li>
+<li>PR #1165: Optimize isTargetRowFound() and buildColumnListFromOnCondition() in MergeUsing
+</li>
+<li>PR #1164: More fixes for parsing of MERGE USING and other changes in Parser
+</li>
+<li>PR #1154: Support for external authentication
+</li>
+<li>PR #1162: Reduce allocation of temporary strings
+</li>
+<li>PR #1158: make fields final
+</li>
+<li>Issue #1129: TestCrashAPI / TestFuzzOptimizations throw OOME on Travis in PageStore mode
+</li>
+<li>PR #1156: Add support for SQL:2003 WITH [NO] DATA to CREATE TABLE AS
+</li>
+<li>PR #1149: fix deadlock between OnExitDatabaseCloser.DATABASES and Engine.DATABASES
+</li>
+<li>PR #1152: skip intermediate DbException object when creating SQLException
+</li>
+<li>PR #1144: Add missing schema name with recursive view
+</li>
+<li>Issue #1091: get rid of the "New" class
+</li>
+<li>PR #1147: Assorted minor optimizations
+</li>
+<li>PR #1145: Reduce code duplication
+</li>
+<li>PR #1142: Misc small fixes
+</li>
+<li>PR #1141: Assorted optimizations and fixes
+</li>
 <li>PR #1138, #1139: Fix a memory leak caused by DatabaseCloser objects
 </li>
 <li>PR #1137: Step toward making transaction commit atomic
@@ -627,7 +1570,7 @@ Change Log
 </li>
 <li>Issue #662: column called CONSTRAINT is not properly escaped when storing to metadata
 </li>
-<li>Issue #660: Outdated java version mentioned on http://h2database.com/html/build.html#providing_patches
+<li>Issue #660: Outdated java version mentioned on https://h2database.com/html/build.html#providing_patches
 </li>
 <li>Issue #643: H2 doesn't use index when I use IN and EQUAL in one query
 </li>
@@ -738,263 +1681,6 @@ Change Log
 <li>MVStore: for object data types, the cache size memory estimation
     was sometimes far off in a read-only scenario.
     This could result in inefficient cache usage.
-</li>
-</ul>
-
-<h2>Version 1.4.194 (2017-03-10)</h2>
-<ul>
-<li>Issue #453: MVStore setCacheSize() should also limit the cacheChunkRef.
-</li>
-<li>Issue #448: Newly added TO_DATE and TO_TIMESTAMP functions have wrong datatype.
-</li>
-<li>The "nioMemLZF" filesystem now supports an extra option "nioMemLZF:12:" to tweak the size of the compress later cache.
-</li>
-<li>Various multi-threading fixes and optimisations to the "nioMemLZF" filesystem.
-</li>
-<li><strong>[API CHANGE]</strong> #439: the JDBC type of TIMESTAMP WITH TIME ZONE
-changed from Types.OTHER (1111) to Types.TIMESTAMP_WITH_TIMEZONE (2014)
-</li>
-<li>#430: Subquery not cached if number of rows exceeds MAX_MEMORY_ROWS.
-</li>
-<li>#411: "TIMEZONE" should be "TIME ZONE" in type "TIMESTAMP WITH TIMEZONE".
-</li>
-<li>PR #418, Implement Connection#createArrayOf and PreparedStatement#setArray.
-</li>
-<li>PR #427, Add MySQL compatibility functions UNIX_TIMESTAMP, FROM_UNIXTIME and DATE.
-</li>
-<li>#429: Tables not found : Fix some Turkish locale bugs around uppercasing.
-</li>
-<li>Fixed bug in metadata locking, obscure combination of DDL and SELECT SEQUENCE.NEXTVAL required.
-</li>
-<li>Added index hints: SELECT * FROM TEST USE INDEX (idx1, idx2).
-</li>
-<li>Add a test case to ensure that spatial index is used with and order by command by Fortin N.
-</li>
-<li>Fix multi-threaded mode update exception "NullPointerException", test case by Anatolii K.
-</li>
-<li>Fix multi-threaded mode insert exception "Unique index or primary key violation", test case by Anatolii K.
-</li>
-<li>Implement ILIKE operator for case-insensitive matching.
-</li>
-<li>Optimise LIKE queries for the common cases of '%Foo' and '%Foo%'.
-</li>
-<li>Issue #387: H2 MSSQL Compatibility Mode - Support uniqueidentifier.
-</li>
-<li>Issue #401: NPE in "SELECT DISTINCT * ORDER BY".
-</li>
-<li>Added BITGET function.
-</li>
-<li>Fixed bug in FilePathRetryOnInterrupt that caused infinite loop.
-</li>
-<li>PR #389, Handle LocalTime with nanosecond resolution, patch by katzyn.
-</li>
-<li>PR #382, Recover for "page store" H2 breaks LOBs consistency, patch by vitalus.
-</li>
-<li>PR #393, Run tests on Travis, patch by marschall.
-</li>
-<li>Fix bug in REGEX_REPLACE, not parsing the mode parameter.
-</li>
-<li>ResultSet.getObject(..., Class) threw a ClassNotFoundException if the JTS suite was not in the classpath.
-</li>
-<li>File systems: the "cache:" file system, and the
-    compressed in-memory file systems memLZF and nioMemLZF did not
-    correctly support concurrent reading and writing.
-</li>
-<li>TIMESTAMP WITH TIMEZONE: serialization for the PageStore was broken.
-</li>
-</ul>
-
-<h2>Version 1.4.193 (2016-10-31)</h2>
-<ul>
-<li>PR #386: Add JSR-310 Support (introduces JTS dependency fixed in 1.4.194)
-</li>
-<li>WARNING: THE MERGE BELOW WILL AFFECT ANY 'TIMESTAMP WITH TIMEZONE' INDEXES. You will need to drop and recreate any such indexes.
-</li>
-<li>PR #364: fix compare TIMESTAMP WITH TIMEZONE
-</li>
-<li>Fix bug in picking the right index for INSERT..ON DUPLICATE KEY UPDATE when there are both UNIQUE and PRIMARY KEY constraints.
-</li>
-<li>Issue #380: Error Analyzer doesn't show source code
-</li>
-<li>Remove the "TIMESTAMP UTC" datatype, an experiment that was never finished.
-</li>
-<li>PR #363: Added support to define last IDENTIFIER on a Trigger.
-</li>
-<li>PR #366: Tests for timestamps
-</li>
-<li>PR #361: Improve TimestampWithTimeZone javadoc
-</li>
-<li>PR #360: Change getters in TimestampWithTimeZone to int
-</li>
-<li>PR #359: Added missing source encoding. Assuming UTF-8.
-</li>
-<li>PR #353: Add support for converting JAVA_OBJECT to UUID
-</li>
-<li>PR #358: Add support for getObject(int|String, Class)
-</li>
-<li>PR #357: Server: use xdg-open to open the WebConsole in the user's preferred browser on Linux
-</li>
-<li>PR #356: Support for BEFORE and AFTER clauses when using multiple columns in ALTER TABLE ADD
-</li>
-<li>PR #351: Respect format codes from Bind message when sending results
-</li>
-<li>ignore summary line when compiling stored procedure
-</li>
-<li>PR #348: pg: send RowDescription in response to Describe (statement variant), patch by kostya-sh
-</li>
-<li>PR #337: Update russian translation, patch by avp1983
-</li>
-<li>PR #329: Update to servlet API version 3.1.0 from 3.0.1, patch by Mat Booth
-</li>
-<li>PR #331: ChangeFileEncryption progress logging ignores -quiet flag, patch by Stefan Bodewig
-</li>
-<li>PR #325: Make Row an interface
-</li>
-<li>PR #323: Regular expression functions (REGEXP_REPLACE, REGEXP_LIKE) enhancement, patch by Akkuzin
-</li>
-<li>Use System.nanoTime for measuring query statistics
-</li>
-<li>Issue #324: Deadlock when sending BLOBs over TCP
-</li>
-<li>Fix for creating and accessing views in MULTITHREADED mode, test-case courtesy of Daniel Rosenbaum
-</li>
-<li>Issue #266: Spatial index not updating, fixed by merging PR #267
-</li>
-<li>PR #302: add support for "with"-subqueries into "join" &amp; "sub-query" statements
-</li>
-<li>Issue #299: Nested derived tables did not always work as expected.
-</li>
-<li>Use interfaces to replace the java version templating, idea from Lukas Eder.
-</li>
-<li>Issue #295: JdbcResultSet.getObject(int, Class) returns null instead of throwing.
-</li>
-<li>Mac OS X: Console tool process did not stop on exit.
-</li>
-<li>MVStoreTool: add "repair" feature.
-</li>
-<li>Garbage collection of unused chunks should be faster still.
-</li>
-<li>MVStore / transaction store: opening a store in read-only mode does no longer loop.
-</li>
-<li>MVStore: disabled the file system cache by default, because it limits concurrency
-    when using larger databases and many threads.
-    To re-enable, use the file name prefix "cache:".
-</li>
-<li>MVStore: add feature to set the cache concurrency.
-</li>
-<li>File system nioMemFS: support concurrent reads.
-</li>
-<li>File systems: the compressed in-memory file systems now compress better.
-</li>
-<li>LIRS cache: improved hit rate because now added entries get hot if they
-    were in the non-resident part of the cache before.
-</li>
-</ul>
-
-<h2>Version 1.4.192 Beta (2016-05-26)</h2>
-<ul>
-<li>Java 6 is no longer supported (the jar files are compiled for Java 7).
-</li>
-<li>Garbage collection of unused chunks should now be faster.
-</li>
-<li>Prevent people using unsupported combination of auto-increment columns and clustering mode.
-</li>
-<li>Support for DB2 time format, patch by Niklas Mehner
-</li>
-<li>Added support for Connection.setClientInfo() in compatibility modes for DB2, Postgresql, Oracle and MySQL.
-</li>
-<li>Issue #249: Clarify license declaration in Maven POM xml
-</li>
-<li>Fix NullPointerException in querying spatial data through a sub-select.
-</li>
-<li>Fix bug where a lock on the SYS table was not released when closing a session that contained a temp
-table with an LOB column.
-</li>
-<li>Issue #255: ConcurrentModificationException with multiple threads in embedded mode and temporary LOBs
-</li>
-<li>Issue #235: Anonymous SSL connections fail in many situations
-</li>
-<li>Fix race condition in FILE_LOCK=SOCKET, which could result in the watchdog thread not running
-</li>
-<li>Experimental support for datatype TIMESTAMP WITH TIMEZONE
-</li>
-<li>Add support for ALTER TABLE ... RENAME CONSTRAINT .. TO ...
-</li>
-<li>Add support for PostgreSQL ALTER TABLE ... RENAME COLUMN .. TO ...
-</li>
-<li>Add support for ALTER SCHEMA [ IF EXISTS ]
-</li>
-<li>Add support for ALTER TABLE [ IF EXISTS ]
-</li>
-<li>Add support for ALTER VIEW [ IF EXISTS ]
-</li>
-<li>Add support for ALTER INDEX [ IF EXISTS ]
-</li>
-<li>Add support for ALTER SEQUENCE [ IF EXISTS ]
-</li>
-<li>Improve performance of cleaning up temp tables - patch from Eric Faulhaber.
-</li>
-<li>Fix bug where table locks were not dropped when the connection closed
-</li>
-<li>Fix extra CPU usage caused by query planner enhancement in 1.4.191
-</li>
-<li>improve performance of queries that use LIKE 'foo%' - 10x in the case of one of my queries
-</li>
-<li>The function IFNULL did not always return the result in the right data type.
-</li>
-<li>Issue #231: Possible infinite loop when initializing the ObjectDataType class
-    when concurrently writing into MVStore.
-</li>
-</ul>
-
-<h2>Version 1.4.191 Beta (2016-01-21)</h2>
-<ul>
-<li>TO_DATE and TO_TIMESTAMP functions. Thanks a lot to Sam Blume for the patch!
-</li>
-<li>Issue #229: DATEDIFF does not work for 'WEEK'.
-</li>
-<li>Issue #156: Add support for getGeneratedKeys() when executing commands via PreparedStatement#executeBatch.
-</li>
-<li>Issue #195: The new Maven uses a .cmd file instead of a .bat file.
-</li>
-<li>Issue #212: EXPLAIN PLAN for UPDATE statement did not display LIMIT expression.
-</li>
-<li>Support OFFSET without LIMIT in SELECT.
-</li>
-<li>Improve error message for METHOD_NOT_FOUND_1/90087.
-</li>
-<li>CLOB and BLOB objects of removed rows were sometimes kept in the database file.
-</li>
-<li>Server mode: executing "shutdown" left a thread on the server.
-</li>
-<li>The condition "in(select...)" did not work correctly in some cases if the subquery had an "order by".
-</li>
-<li>Issue #184: The Platform-independent zip had Windows line endings in Linux scripts.
-</li>
-<li>Issue #186: The "script" command did not include sequences of temporary tables.
-</li>
-<li>Issue #115: to_char fails with pattern FM0D099.
-</li>
-</ul>
-
-<h2>Version 1.4.190 Beta (2015-10-11)</h2>
-<ul>
-<li>Pull request #183: optimizer hints (so far without special SQL syntax).
-</li>
-<li>Issue #180: In MVCC mode, executing UPDATE and SELECT ... FOR UPDATE
-    simultaneously silently can drop rows.
-</li>
-<li>PageStore storage: the cooperative file locking mechanism
-    did not always work as expected (with very slow computers).
-</li>
-<li>Temporary CLOB and BLOB objects are now removed while the database is open
-    (and not just when closing the database).
-</li>
-<li>MVStore CLOB and BLOB larger than about 25 MB: An exception could be thrown
-    when using the MVStore storage.
-</li>
-<li>Add FILE_WRITE function. Patch provided by Nicolas Fortin
-    (Lab-STICC - CNRS UMR 6285 and Ecole Centrale de Nantes)
 </li>
 </ul>
 

@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: Alessandro Ventura
  */
 package org.h2.security.auth;
@@ -19,16 +19,16 @@ public class AuthenticationInfo {
 
     private String realm;
 
-    /*
-     * Can be used by authenticator to hold informations
+    /**
+     * Can be used by authenticator to hold information.
      */
     Object nestedIdentity;
 
     public AuthenticationInfo(ConnectionInfo connectionInfo) {
         this.connectionInfo = connectionInfo;
         this.realm = connectionInfo.getProperty("AUTHREALM", null);
-        if (this.realm!=null) {
-            this.realm=StringUtils.toUpperEnglish(this.realm);
+        if (this.realm != null) {
+            this.realm = StringUtils.toUpperEnglish(this.realm);
         }
         this.password = connectionInfo.getProperty("AUTHZPWD", null);
     }
@@ -50,29 +50,36 @@ public class AuthenticationInfo {
     }
 
     public String getFullyQualifiedName() {
-        if (realm==null) {
-           return connectionInfo.getUserName();
+        if (realm == null) {
+            return connectionInfo.getUserName();
         } else {
-           return connectionInfo.getUserName()+"@"+realm;
+            return connectionInfo.getUserName() + "@" + realm;
         }
     }
 
     /**
-     * get nested identity
-     * @return
+     * Gets nested identity object that can be used by authenticator to hold information.
+     *
+     * @return nested identity object.
      */
     public Object getNestedIdentity() {
         return nestedIdentity;
     }
 
     /**
-     * Method used by authenticators to hold informations about authenticated user
-     * @param nestedIdentity = nested identity object
+     * Method used by authenticators to hold information about authenticated
+     * user
+     *
+     * @param nestedIdentity
+     *            = nested identity object
      */
     public void setNestedIdentity(Object nestedIdentity) {
         this.nestedIdentity = nestedIdentity;
     }
 
+    /**
+     * Clean authentication data.
+     */
     public void clean() {
         this.password = null;
         this.nestedIdentity = null;

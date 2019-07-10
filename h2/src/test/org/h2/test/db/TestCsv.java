@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.db;
@@ -28,6 +28,7 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.Csv;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
@@ -38,7 +39,7 @@ import org.h2.util.StringUtils;
  * @author Thomas Mueller
  * @author Sylvain Cuaz (testNull)
  */
-public class TestCsv extends TestBase {
+public class TestCsv extends TestDb {
 
     /**
      * Run just this test.
@@ -106,9 +107,7 @@ public class TestCsv extends TestBase {
         csv.setLineSeparator(";");
         csv.write(writer, rs);
         conn.close();
-        // getTimestamp().getString() needs to be used (not for H2, but for
-        // Oracle)
-        assertEquals("TS,N;0101-01-01 12:00:00.0,;", writer.toString());
+        assertEquals("TS,N;-100-01-01 12:00:00,;", writer.toString());
     }
 
     private void testCaseSensitiveColumnNames() throws Exception {

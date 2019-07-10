@@ -1,11 +1,12 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: Sergi Vladykin
  */
 package org.h2.test.unit;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashSet;
@@ -15,6 +16,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
+import org.h2.build.BuildBase;
 import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.util.NetUtils;
@@ -49,6 +51,7 @@ public class TestNetUtils extends TestBase {
         testTlsSessionWithServerSideAnonymousDisabled();
         testFrequentConnections(true, 100);
         testFrequentConnections(false, 1000);
+        testIpToShortForm();
     }
 
     /**
@@ -57,6 +60,10 @@ public class TestNetUtils extends TestBase {
      * (no SSL certificate is needed).
      */
     private void testAnonymousTlsSession() throws Exception {
+        if (BuildBase.getJavaVersion() >= 11) {
+            // Issue #1303
+            return;
+        }
         assertTrue("Failed assumption: the default value of ENABLE_ANONYMOUS_TLS" +
                 " property should be true", SysProperties.ENABLE_ANONYMOUS_TLS);
         boolean ssl = true;
@@ -260,6 +267,30 @@ public class TestNetUtils extends TestBase {
             return exception;
         }
 
+    }
+
+    private void testIpToShortForm() throws Exception {
+        testIpToShortForm("1.2.3.4", "1.2.3.4");
+        testIpToShortForm("1:2:3:4:a:b:c:d", "1:2:3:4:a:b:c:d");
+        testIpToShortForm("::1", "::1");
+        testIpToShortForm("1::", "1::");
+        testIpToShortForm("c1c1:0:0:2::fffe", "c1c1:0:0:2:0:0:0:fffe");
+    }
+
+    private void testIpToShortForm(String expected, String source) throws Exception {
+        byte[] addr = InetAddress.getByName(source).getAddress();
+        testIpToShortForm(expected, addr, false);
+        if (expected.indexOf(':') >= 0) {
+            expected = '[' + expected + ']';
+        }
+        testIpToShortForm(expected, addr, true);
+    }
+
+    private void testIpToShortForm(String expected, byte[] addr, boolean addBrackets) {
+        assertEquals(expected, NetUtils.ipToShortForm(null, addr, addBrackets).toString());
+        assertEquals(expected, NetUtils.ipToShortForm(new StringBuilder(), addr, addBrackets).toString());
+        assertEquals(expected,
+                NetUtils.ipToShortForm(new StringBuilder("*"), addr, addBrackets).deleteCharAt(0).toString());
     }
 
 }

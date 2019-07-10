@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.synth;
@@ -18,6 +18,7 @@ import java.util.Random;
 import org.h2.api.ErrorCode;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.test.utils.SelfDestructor;
 import org.h2.tools.Backup;
 
@@ -25,7 +26,7 @@ import org.h2.tools.Backup;
  * Standalone recovery test. A new process is started and then killed while it
  * executes random statements using multiple connection.
  */
-public class TestKillRestartMulti extends TestBase {
+public class TestKillRestartMulti extends TestDb {
 
     /**
      * We want self-destruct to occur before the read times out and we kill the
@@ -67,22 +68,28 @@ public class TestKillRestartMulti extends TestBase {
     }
 
     @Override
-    public void test() throws Exception {
+    public boolean isEnabled() {
         if (config.networked) {
-            return;
+            return false;
         }
         if (getBaseDir().indexOf(':') > 0) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws Exception {
         deleteDb("killRestartMulti");
-        url = getURL("killRestartMulti", true);
+        url = getURL("killRestartMulti;RETENTION_TIME=0", true);
         user = getUser();
         password = getPassword();
         String selfDestruct = SelfDestructor.getPropertyString(60);
         // Inherit error so that the stacktraces reported from SelfDestructor
         // show up in our log.
         ProcessBuilder pb = new ProcessBuilder().redirectError(Redirect.INHERIT)
-                .command("java", selfDestruct, "-cp", getClassPath(),
+                .command(getJVM(), selfDestruct, "-cp", getClassPath(),
+                        "-ea",
                         getClass().getName(), "-url", url, "-user", user,
                         "-password", password);
         deleteDb("killRestartMulti");

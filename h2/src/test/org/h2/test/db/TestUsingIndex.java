@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.db;
@@ -10,14 +10,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.test.TestBase;
-import org.h2.value.DataType;
+import org.h2.test.TestDb;
 
 /**
  * Tests the "create index ... using" syntax.
  *
  * @author Erwan Bocher Atelier SIG, IRSTV FR CNRS 2488
  */
-public class TestUsingIndex extends TestBase {
+public class TestUsingIndex extends TestDb {
 
     private Connection conn;
     private Statement stat;
@@ -111,13 +111,7 @@ public class TestUsingIndex extends TestBase {
     }
 
     private void testSpatialIndex() throws SQLException {
-        if (!config.mvStore && config.mvcc) {
-            return;
-        }
-        if (config.memory && config.mvcc) {
-            return;
-        }
-        if (DataType.GEOMETRY_CLASS == null) {
+        if (config.memory && config.mvStore) {
             return;
         }
         deleteDb("spatial");
@@ -147,13 +141,7 @@ public class TestUsingIndex extends TestBase {
     }
 
     private void testBadSpatialSyntax() throws SQLException {
-        if (!config.mvStore && config.mvcc) {
-            return;
-        }
-        if (config.memory && config.mvcc) {
-            return;
-        }
-        if (DataType.GEOMETRY_CLASS == null) {
+        if (config.memory && config.mvStore) {
             return;
         }
         deleteDb("spatial");

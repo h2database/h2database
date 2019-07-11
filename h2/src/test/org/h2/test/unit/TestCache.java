@@ -186,7 +186,7 @@ public class TestCache extends TestDb implements CacheWriter {
                 " after closing: " + afterClose);
     }
 
-    private int getRealMemory() {
+    private static int getRealMemory() {
         StringUtils.clearCache();
         Value.clearCache();
         return Utils.getMemoryUsed();

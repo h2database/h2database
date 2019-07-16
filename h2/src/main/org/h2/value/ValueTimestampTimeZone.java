@@ -36,16 +36,6 @@ public class ValueTimestampTimeZone extends Value {
     public static final int MAXIMUM_PRECISION = 35;
 
     /**
-     * The default scale for timestamps.
-     */
-    static final int DEFAULT_SCALE = ValueTimestamp.DEFAULT_SCALE;
-
-    /**
-     * The default scale for timestamps.
-     */
-    static final int MAXIMUM_SCALE = ValueTimestamp.MAXIMUM_SCALE;
-
-    /**
      * A bit field with bits for the year, month, and day (see DateTimeUtils for
      * encoding)
      */
@@ -196,7 +186,7 @@ public class ValueTimestampTimeZone extends Value {
 
     @Override
     public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
-        if (targetScale >= MAXIMUM_SCALE) {
+        if (targetScale >= ValueTimestamp.MAXIMUM_SCALE) {
             return this;
         }
         if (targetScale < 0) {
@@ -221,7 +211,7 @@ public class ValueTimestampTimeZone extends Value {
         // Maximum time zone offset is +/-18 hours so difference in days between local
         // and UTC cannot be more than one day
         long dateValueA = dateValue;
-        long timeA = timeNanos - timeZoneOffsetMins * 60_000_000_000L;
+        long timeA = timeNanos - timeZoneOffsetMins * DateTimeUtils.NANOS_PER_MINUTE;
         if (timeA < 0) {
             timeA += DateTimeUtils.NANOS_PER_DAY;
             dateValueA = DateTimeUtils.decrementDateValue(dateValueA);
@@ -230,7 +220,7 @@ public class ValueTimestampTimeZone extends Value {
             dateValueA = DateTimeUtils.incrementDateValue(dateValueA);
         }
         long dateValueB = t.dateValue;
-        long timeB = t.timeNanos - t.timeZoneOffsetMins * 60_000_000_000L;
+        long timeB = t.timeNanos - t.timeZoneOffsetMins * DateTimeUtils.NANOS_PER_MINUTE;
         if (timeB < 0) {
             timeB += DateTimeUtils.NANOS_PER_DAY;
             dateValueB = DateTimeUtils.decrementDateValue(dateValueB);
@@ -272,21 +262,18 @@ public class ValueTimestampTimeZone extends Value {
     }
 
     @Override
-    public void set(PreparedStatement prep, int parameterIndex)
-            throws SQLException {
+    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            try {
+                prep.setObject(parameterIndex, LocalDateTimeUtils.valueToOffsetDateTime(this),
+                        // TODO use Types.TIMESTAMP_WITH_TIMEZONE on Java 8
+                        2014);
+                return;
+            } catch (SQLException ignore) {
+                // Nothing to do
+            }
+        }
         prep.setString(parameterIndex, getString());
-    }
-
-    @Override
-    public Value add(Value v) {
-        throw DbException.getUnsupportedException(
-                "manipulating TIMESTAMP WITH TIME ZONE values is unsupported");
-    }
-
-    @Override
-    public Value subtract(Value v) {
-        throw DbException.getUnsupportedException(
-                "manipulating TIMESTAMP WITH TIME ZONE values is unsupported");
     }
 
 }

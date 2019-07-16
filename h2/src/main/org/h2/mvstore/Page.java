@@ -47,10 +47,10 @@ public abstract class Page implements Cloneable
      * This "removed" flag is to keep track of pages that concurrently
      * changed while they are being stored, in which case the live bookkeeping
      * needs to be aware of such cases.
-     * Field need to be volatile to avoid races bettwen saving thread setting it
+     * Field need to be volatile to avoid races between saving thread setting it
      * and other thread reading it to access the page.
      * On top of this update atomicity is required so removal mark and saved position
-     * cas be set concurrently
+     * can be set concurrently
      */
     private volatile long pos;
 
@@ -569,7 +569,9 @@ public abstract class Page implements Cloneable
      * @param chunkId the chunk id
      */
     private void read(ByteBuffer buff, int chunkId) {
-        int pageLength = buff.remaining() + 10;  // size of int + short + varint, since we've read page length, check and mapId already
+        // size of int + short + varint, since we've read page length, check and
+        // mapId already
+        int pageLength = buff.remaining() + 10;
         int len = DataUtils.readVarInt(buff);
         keys = createKeyStorage(len);
         int type = buff.get();
@@ -624,10 +626,13 @@ public abstract class Page implements Cloneable
     }
 
     /**
-     * Mark this page as removed "in memory". That means that only adjustment of "unsaved memory" amount is required.
-     * On the other hand, if page was persisted, it's removal should be reflected in occupancy of the containing chunk.
+     * Mark this page as removed "in memory". That means that only adjustment of
+     * "unsaved memory" amount is required. On the other hand, if page was
+     * persisted, it's removal should be reflected in occupancy of the
+     * containing chunk.
+     *
      * @return true if it was marked by this call or has been marked already,
-     *          false if page has been saved already.
+     *         false if page has been saved already.
      */
     private boolean markAsRemoved() {
         assert getTotalCount() > 0 : this;
@@ -840,10 +845,13 @@ public abstract class Page implements Cloneable
     public void setComplete() {}
 
     /**
-     * Make accounting changes (chunk occupancy or "unsaved" RAM), related to this page removal.
+     * Make accounting changes (chunk occupancy or "unsaved" RAM), related to
+     * this page removal.
+     *
      * @param version at which page was removed
-     * @return amount (negative), by which "unsaved memory" should be adjusted, if page is unsaved one,
-     *          and 0 for page that was already saved, or in case of non-persistent map
+     * @return amount (negative), by which "unsaved memory" should be adjusted,
+     *         if page is unsaved one, and 0 for page that was already saved, or
+     *         in case of non-persistent map
      */
     public final int removePage(long version) {
         if(isPersistent() && getTotalCount() > 0) {
@@ -877,7 +885,7 @@ public abstract class Page implements Cloneable
 
     /**
      * Remove all page data recursively.
-     * @param version at wich page got removed
+     * @param version at which page got removed
      * @return adjustment for "unsaved memory" amount
      */
     public abstract int removeAllRecursive(long version);

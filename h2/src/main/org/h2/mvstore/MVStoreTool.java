@@ -551,10 +551,10 @@ public class MVStoreTool {
                                 keyType(new GenericDataType()).
                                 valueType(new GenericDataType());
                 // This is a hack to preserve chunks occupancy rate accounting.
-                // It exposes desin deficiency flaw in MVStore related to lack of
+                // It exposes design deficiency flaw in MVStore related to lack of
                 // map's type metadata.
                 // TODO: Introduce type metadata which will allow to open any store
-                // TODO: without prior knoledge of keys / values types and map implementation
+                // TODO: without prior knowledge of keys / values types and map implementation
                 // TODO: (MVMap vs MVRTreeMap, regular vs. singleWriter etc.)
                 if (mapName.startsWith(TransactionStore.UNDO_LOG_NAME_PREFIX)) {
                     mp.singleWriter();

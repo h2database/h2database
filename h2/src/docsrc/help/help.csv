@@ -3111,6 +3111,7 @@ INT | INTEGER | MEDIUMINT | INT4 | SIGNED
 ","
 Possible values: -2147483648 to 2147483647.
 
+See also [integer](https://h2database.com/html/grammar.html#int) literal grammar.
 Mapped to ""java.lang.Integer"".
 ","
 INT
@@ -3119,8 +3120,9 @@ INT
 "Data Types","BOOLEAN Type","
 BOOLEAN | BIT | BOOL
 ","
-Possible values: TRUE and FALSE.
+Possible values: TRUE, FALSE, and UNKNOWN (NULL).
 
+See also [boolean](https://h2database.com/html/grammar.html#boolean) literal grammar.
 Mapped to ""java.lang.Boolean"".
 ","
 BOOLEAN
@@ -3131,6 +3133,7 @@ TINYINT
 ","
 Possible values are: -128 to 127.
 
+See also [integer](https://h2database.com/html/grammar.html#int) literal grammar.
 Mapped to ""java.lang.Byte"".
 ","
 TINYINT
@@ -3141,6 +3144,7 @@ SMALLINT | INT2 | YEAR
 ","
 Possible values: -32768 to 32767.
 
+See also [integer](https://h2database.com/html/grammar.html#int) literal grammar.
 Mapped to ""java.lang.Short"".
 ","
 SMALLINT
@@ -3151,6 +3155,7 @@ BIGINT | INT8
 ","
 Possible values: -9223372036854775808 to 9223372036854775807.
 
+See also [long](https://h2database.com/html/grammar.html#long) literal grammar.
 Mapped to ""java.lang.Long"".
 ","
 BIGINT
@@ -3163,6 +3168,7 @@ Auto-Increment value. Possible values: -9223372036854775808 to
 9223372036854775807. Used values are never re-used, even when the transaction is
 rolled back.
 
+See also [long](https://h2database.com/html/grammar.html#long) literal grammar.
 Mapped to ""java.lang.Long"".
 ","
 IDENTITY
@@ -3174,6 +3180,7 @@ IDENTITY
 Data type with fixed precision and scale. This data type is recommended for
 storing currency values.
 
+See also [numeric](https://h2database.com/html/grammar.html#numeric) literal grammar.
 Mapped to ""java.math.BigDecimal"".
 ","
 DECIMAL(20, 2)
@@ -3186,6 +3193,7 @@ A floating point number. Should not be used to represent currency values, becaus
 of rounding problems.
 If precision value is specified for FLOAT type name, it should be from 25 to 53.
 
+See also [numeric](https://h2database.com/html/grammar.html#numeric) literal grammar.
 Mapped to ""java.lang.Double"".
 ","
 DOUBLE
@@ -3198,6 +3206,7 @@ A single precision floating point number. Should not be used to represent curren
 values, because of rounding problems.
 Precision value for FLOAT type name should be from 0 to 24.
 
+See also [numeric](https://h2database.com/html/grammar.html#numeric) literal grammar.
 Mapped to ""java.lang.Float"".
 ","
 REAL
@@ -3209,6 +3218,7 @@ TIME [ ( precisionInt ) ] [ WITHOUT TIME ZONE ]
 The time data type. The format is hh:mm:ss[.nnnnnnnnn].
 If fractional seconds precision is specified it should be from 0 to 9, 0 is default.
 
+See also [time](https://h2database.com/html/grammar.html#time) literal grammar.
 Mapped to ""java.sql.Time"". When converted to a ""java.sql.Date"", the date is set to ""1970-01-01"".
 ""java.time.LocalTime"" is also supported and recommended on Java 8 and later versions.
 Use ""java.time.LocalTime"" or ""String"" instead of ""java.sql.Time"" when non-zero precision is needed.
@@ -3224,6 +3234,7 @@ DATE
 ","
 The date data type. The proleptic Gregorian calendar is used.
 
+See also [date](https://h2database.com/html/grammar.html#date) literal grammar.
 Mapped to ""java.sql.Date"", with the time set to ""00:00:00""
 (or to the next possible time if midnight doesn't exist for the given date and timezone due to a daylight saving change).
 If you deal with old dates note that ""java.sql.Date"" uses a mixed Julian/Gregorian calendar,
@@ -3244,6 +3255,7 @@ Stored internally as a BCD-encoded date, and nanoseconds since midnight.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
 Fractional seconds precision of SMALLDATETIME is always 0 and cannot be specified.
 
+See also [timestamp](https://h2database.com/html/grammar.html#timestamp) literal grammar.
 Mapped to ""java.sql.Timestamp"" (""java.util.Date"" may be used too).
 If you deal with old dates note that ""java.sql.Timestamp"" uses a mixed Julian/Gregorian calendar,
 ""java.util.GregorianCalendar"" can be configured to proleptic Gregorian with
@@ -3264,6 +3276,7 @@ The timestamp with time zone data type. The proleptic Gregorian calendar is used
 Stored internally as a BCD-encoded date, nanoseconds since midnight, and time zone offset in minutes.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
 
+See also [timestamp with time zone](https://h2database.com/html/grammar.html#timestamp_with_time_zone) literal grammar.
 Mapped to ""org.h2.api.TimestampWithTimeZone"" by default and can be optionally mapped to ""java.time.OffsetDateTime"".
 ""java.time.ZonedDateTime"" and ""java.time.Instant"" are also supported on Java 8 and later versions.
 
@@ -3288,6 +3301,7 @@ memory when using this data type. The precision is a size constraint;
 only the actual data is persisted. For large text data BLOB or CLOB
 should be used.
 
+See also [bytes](https://h2database.com/html/grammar.html#bytes) literal grammar.
 Mapped to byte[].
 ","
 BINARY(1000)
@@ -3320,6 +3334,7 @@ The precision is a size constraint; only the actual data is persisted.
 The whole text is loaded into memory when using this data type.
 For large text data CLOB should be used; see there for details.
 
+See also [string](https://h2database.com/html/grammar.html#string) literal grammar.
 Mapped to ""java.lang.String"".
 ","
 VARCHAR(255)
@@ -3337,6 +3352,7 @@ The precision is a size constraint; only the actual data is persisted.
 The whole text is loaded into memory when using this data type.
 For large text data CLOB should be used; see there for details.
 
+See also [string](https://h2database.com/html/grammar.html#string) literal grammar.
 Mapped to ""java.lang.String"".
 ","
 VARCHAR_IGNORECASE
@@ -3355,6 +3371,7 @@ The precision is a size constraint; only the actual data is persisted.
 The whole text is kept in memory when using this data type.
 For large text data CLOB should be used; see there for details.
 
+See also [string](https://h2database.com/html/grammar.html#string) literal grammar.
 Mapped to ""java.lang.String"".
 ","
 CHAR(10)
@@ -3422,6 +3439,8 @@ ARRAY [ '[' maximumCardinalityInt ']' ]
 ","
 An array of values.
 Maximum cardinality, if any, specifies maximum allowed number of elements in the array.
+
+See also [array](https://h2database.com/html/grammar.html#array) literal grammar.
 Mapped to ""java.lang.Object[]"" (arrays of any non-primitive type are also supported).
 
 Use ""PreparedStatement.setArray(..)"" or ""PreparedStatement.setObject(.., new Object[] {..})"" to store values,
@@ -3488,6 +3507,8 @@ GEOMETRY(GEOMETRY, 4326)
 JSON
 ","
 A RFC 8259-compliant JSON text.
+
+See also [json](https://h2database.com/html/grammar.html#json) literal grammar.
 Mapped to ""byte[]"".
 To set a JSON value with ""java.lang.String"" in a PreparedStatement use a ""FORMAT JSON"" data format
 (""INSERT INTO TEST(ID, DATA) VALUES (?, ? FORMAT JSON)"").
@@ -3524,6 +3545,7 @@ INTERVAL YEAR [ ( precisionInt ) ]
 Interval data type.
 If precision is specified it should be from 1 to 18, 2 is default.
 
+See also [year interval](https://h2database.com/html/grammar.html#interval_year) literal grammar.
 Mapped to ""org.h2.api.Interval"".
 ""java.time.Period"" is also supported on Java 8 and later versions.
 ","
@@ -3536,6 +3558,7 @@ INTERVAL MONTH [ ( precisionInt ) ]
 Interval data type.
 If precision is specified it should be from 1 to 18, 2 is default.
 
+See also [month interval](https://h2database.com/html/grammar.html#interval_month) literal grammar.
 Mapped to ""org.h2.api.Interval"".
 ""java.time.Period"" is also supported on Java 8 and later versions.
 ","
@@ -3548,6 +3571,7 @@ INTERVAL DAY [ ( precisionInt ) ]
 Interval data type.
 If precision is specified it should be from 1 to 18, 2 is default.
 
+See also [day interval](https://h2database.com/html/grammar.html#interval_day) literal grammar.
 Mapped to ""org.h2.api.Interval"".
 ""java.time.Duration"" is also supported on Java 8 and later versions.
 ","
@@ -3560,6 +3584,7 @@ INTERVAL HOUR [ ( precisionInt ) ]
 Interval data type.
 If precision is specified it should be from 1 to 18, 2 is default.
 
+See also [hour interval](https://h2database.com/html/grammar.html#interval_hour) literal grammar.
 Mapped to ""org.h2.api.Interval"".
 ""java.time.Duration"" is also supported on Java 8 and later versions.
 ","
@@ -3572,6 +3597,7 @@ INTERVAL MINUTE [ ( precisionInt ) ]
 Interval data type.
 If precision is specified it should be from 1 to 18, 2 is default.
 
+See also [minute interval](https://h2database.com/html/grammar.html#interval_minute) literal grammar.
 Mapped to ""org.h2.api.Interval"".
 ""java.time.Duration"" is also supported on Java 8 and later versions.
 ","
@@ -3585,6 +3611,7 @@ Interval data type.
 If precision is specified it should be from 1 to 18, 2 is default.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
 
+See also [second interval](https://h2database.com/html/grammar.html#interval_second) literal grammar.
 Mapped to ""org.h2.api.Interval"".
 ""java.time.Duration"" is also supported on Java 8 and later versions.
 ","
@@ -3597,6 +3624,7 @@ INTERVAL YEAR [ ( precisionInt ) ] TO MONTH
 Interval data type.
 If leading field precision is specified it should be from 1 to 18, 2 is default.
 
+See also [year to month interval](https://h2database.com/html/grammar.html#interval_year_to_month) literal grammar.
 Mapped to ""org.h2.api.Interval"".
 ""java.time.Period"" is also supported on Java 8 and later versions.
 ","
@@ -3609,6 +3637,7 @@ INTERVAL DAY [ ( precisionInt ) ] TO HOUR
 Interval data type.
 If leading field precision is specified it should be from 1 to 18, 2 is default.
 
+See also [day to hour interval](https://h2database.com/html/grammar.html#interval_day_to_hour) literal grammar.
 Mapped to ""org.h2.api.Interval"".
 ""java.time.Duration"" is also supported on Java 8 and later versions.
 ","
@@ -3621,6 +3650,7 @@ INTERVAL DAY [ ( precisionInt ) ] TO MINUTE
 Interval data type.
 If leading field precision is specified it should be from 1 to 18, 2 is default.
 
+See also [day to minute interval](https://h2database.com/html/grammar.html#interval_day_to_minute) literal grammar.
 Mapped to ""org.h2.api.Interval"".
 ""java.time.Duration"" is also supported on Java 8 and later versions.
 ","
@@ -3634,6 +3664,7 @@ Interval data type.
 If leading field precision is specified it should be from 1 to 18, 2 is default.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
 
+See also [day to second interval](https://h2database.com/html/grammar.html#interval_day_to_second) literal grammar.
 Mapped to ""org.h2.api.Interval"".
 ""java.time.Duration"" is also supported on Java 8 and later versions.
 ","
@@ -3646,6 +3677,7 @@ INTERVAL HOUR [ ( precisionInt ) ] TO MINUTE
 Interval data type.
 If leading field precision is specified it should be from 1 to 18, 2 is default.
 
+See also [hour to minute interval](https://h2database.com/html/grammar.html#interval_hour_to_minute) literal grammar.
 Mapped to ""org.h2.api.Interval"".
 ""java.time.Duration"" is also supported on Java 8 and later versions.
 ","
@@ -3659,6 +3691,7 @@ Interval data type.
 If leading field precision is specified it should be from 1 to 18, 2 is default.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
 
+See also [hour to second interval](https://h2database.com/html/grammar.html#interval_hour_to_second) literal grammar.
 Mapped to ""org.h2.api.Interval"".
 ""java.time.Duration"" is also supported on Java 8 and later versions.
 ","
@@ -3672,6 +3705,7 @@ Interval data type.
 If leading field precision is specified it should be from 1 to 18, 2 is default.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
 
+See also [minute to second interval](https://h2database.com/html/grammar.html#interval_minute_to_second) literal grammar.
 Mapped to ""org.h2.api.Interval"".
 ""java.time.Duration"" is also supported on Java 8 and later versions.
 ","

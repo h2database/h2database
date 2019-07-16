@@ -515,7 +515,7 @@ public final class DataUtils {
      * Get the maximum length for the given code.
      * For the code 31, PAGE_LARGE is returned.
      *
-     * @param code encoded page lenth
+     * @param code encoded page length
      * @return the maximum length
      */
     public static int decodePageLength(int code) {
@@ -568,7 +568,8 @@ public final class DataUtils {
      * Find out if page was removed.
      *
      * @param pos the position
-     * @return true if page has been removed (no longer accessible from the current root of the tree)
+     * @return true if page has been removed (no longer accessible from the
+     *         current root of the tree)
      */
     static boolean isPageRemoved(long pos) {
         return pos == 1L;

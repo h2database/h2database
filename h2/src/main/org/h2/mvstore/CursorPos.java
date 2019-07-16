@@ -8,7 +8,7 @@ package org.h2.mvstore;
 /**
  * A position in a cursor.
  * Instance represents a node in the linked list, which traces path
- * fom a specific (target) key within a leaf node all the way up to te root
+ * from a specific (target) key within a leaf node all the way up to te root
  * (bottom up path).
  */
 public class CursorPos
@@ -39,8 +39,9 @@ public class CursorPos
     }
 
     /**
-     * Searches for a given key and creates a breadcrumb trail through a B-tree rooted at a given Page.
-     * Resulting path starts at "insertion point" for a given key and goes back to the root.
+     * Searches for a given key and creates a breadcrumb trail through a B-tree
+     * rooted at a given Page. Resulting path starts at "insertion point" for a
+     * given key and goes back to the root.
      *
      * @param page      root of the tree
      * @param key       the key to search for

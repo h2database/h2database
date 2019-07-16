@@ -8,9 +8,11 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Time;
+import java.sql.Types;
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
+import org.h2.util.LocalDateTimeUtils;
 
 /**
  * Implementation of the TIME data type.
@@ -189,8 +191,14 @@ public class ValueTime extends Value {
     }
 
     @Override
-    public void set(PreparedStatement prep, int parameterIndex)
-            throws SQLException {
+    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            try {
+                prep.setObject(parameterIndex, LocalDateTimeUtils.valueToLocalTime(this), Types.TIME);
+            } catch (SQLException ignore) {
+                // Nothing to do
+            }
+        }
         prep.setTime(parameterIndex, getTime());
     }
 

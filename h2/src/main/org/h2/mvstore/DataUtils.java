@@ -515,7 +515,7 @@ public final class DataUtils {
      * Get the maximum length for the given code.
      * For the code 31, PAGE_LARGE is returned.
      *
-     * @param code encoded page lenth
+     * @param code encoded page length
      * @return the maximum length
      */
     public static int decodePageLength(int code) {

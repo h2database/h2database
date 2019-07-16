@@ -1911,13 +1911,13 @@ public class MVStore implements AutoCloseable {
         writeStoreHeader();
         sync();
 
-        int rewritedPageCount = 0;
+        int rewrittenPageCount = 0;
         storeLock.unlock();
         try {
             for (MVMap<?, ?> map : maps.values()) {
                 if (!map.isClosed() && !map.isSingleWriter()) {
                     try {
-                        rewritedPageCount += map.rewrite(set);
+                        rewrittenPageCount += map.rewrite(set);
                     } catch(IllegalStateException ex) {
                         if (!map.isClosed()) {
                             throw ex;
@@ -1928,14 +1928,14 @@ public class MVStore implements AutoCloseable {
             int rewriteMetaCount = meta.rewrite(set);
             if (rewriteMetaCount > 0) {
                 markMetaChanged();
-                rewritedPageCount += rewriteMetaCount;
+                rewrittenPageCount += rewriteMetaCount;
             }
         } finally {
             storeLock.lock();
         }
         commit();
         assert validateRewrite(set);
-        return rewritedPageCount;
+        return rewrittenPageCount;
     }
 
     private boolean validateRewrite(Set<Integer> set) {
@@ -2197,8 +2197,8 @@ public class MVStore implements AutoCloseable {
      * @param memory adjustment
      */
     public void registerUnsavedMemory(int memory) {
-        // this counter was intentionaly left unprotected against race condition
-        // for performance reasons
+        // this counter was intentionally left unprotected against race
+        // condition for performance reasons
         // TODO: evaluate performance impact of atomic implementation,
         //       since updates to unsavedMemory are largely aggregated now
         unsavedMemory += memory;

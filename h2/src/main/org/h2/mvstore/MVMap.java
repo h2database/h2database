@@ -852,7 +852,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * Roll the root back to the specified version.
      *
      * @param version to rollback to
-     * @return true if rollback was a cuccess, false if there was not enough in-memory history
+     * @return true if rollback was a success, false if there was not enough in-memory history
      */
     boolean rollbackRoot(long version)
     {

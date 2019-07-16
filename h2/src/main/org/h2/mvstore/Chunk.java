@@ -330,7 +330,7 @@ public class Chunk {
 
                 int length = DataUtils.getPageMaxLength(pos);
                 if (length == DataUtils.PAGE_LARGE) {
-                    // read the first bytes to figure out actual lenght
+                    // read the first bytes to figure out actual length
                     length = fileStore.readFully(filePos, 128).getInt();
                 }
                 length = (int) Math.min(maxPos - filePos, length);

@@ -8,7 +8,7 @@ package org.h2.mvstore;
 /**
  * A position in a cursor.
  * Instance represents a node in the linked list, which traces path
- * fom a specific (target) key within a leaf node all the way up to te root
+ * from a specific (target) key within a leaf node all the way up to te root
  * (bottom up path).
  */
 public class CursorPos

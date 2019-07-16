@@ -47,10 +47,10 @@ public abstract class Page implements Cloneable
      * This "removed" flag is to keep track of pages that concurrently
      * changed while they are being stored, in which case the live bookkeeping
      * needs to be aware of such cases.
-     * Field need to be volatile to avoid races bettwen saving thread setting it
+     * Field need to be volatile to avoid races between saving thread setting it
      * and other thread reading it to access the page.
      * On top of this update atomicity is required so removal mark and saved position
-     * cas be set concurrently
+     * can be set concurrently
      */
     private volatile long pos;
 
@@ -885,7 +885,7 @@ public abstract class Page implements Cloneable
 
     /**
      * Remove all page data recursively.
-     * @param version at wich page got removed
+     * @param version at which page got removed
      * @return adjustment for "unsaved memory" amount
      */
     public abstract int removeAllRecursive(long version);

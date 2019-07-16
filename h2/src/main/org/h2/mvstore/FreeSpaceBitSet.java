@@ -32,10 +32,11 @@ public class FreeSpaceBitSet {
     private final BitSet set = new BitSet();
 
     /**
-     * Left-shifting register, which holds outcomes of recent allocations.
-     * Only allocations done in "reuseSpace" mode are recorded here.
-     * For example, rightmost bit set to 1 means that last allocation failed to find a hole big enough,
-     * and next bit set to 0 means that previous allocation request have found one.
+     * Left-shifting register, which holds outcomes of recent allocations. Only
+     * allocations done in "reuseSpace" mode are recorded here. For example,
+     * rightmost bit set to 1 means that last allocation failed to find a hole
+     * big enough, and next bit set to 0 means that previous allocation request
+     * have found one.
      */
     private int failureFlags;
 
@@ -193,10 +194,15 @@ public class FreeSpaceBitSet {
     }
 
     /**
-     * Calculates a prospective fill rate, which store would have after rewrite of sparsely populated chunk(s)
-     * and evacuation of still live data into a new chunk.
-     * @param live amount of memory (bytes) from vacated block, which would be written into a new chunk
-     * @param vacatedBlocks number of blocks vacated
+     * Calculates a prospective fill rate, which store would have after rewrite
+     * of sparsely populated chunk(s) and evacuation of still live data into a
+     * new chunk.
+     *
+     * @param live
+     *            amount of memory (bytes) from vacated block, which would be
+     *            written into a new chunk
+     * @param vacatedBlocks
+     *            number of blocks vacated
      * @return prospective fill rate (0 - 100)
      */
     int getProjectedFillRate(long live, int vacatedBlocks) {

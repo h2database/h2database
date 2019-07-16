@@ -379,11 +379,16 @@ public class Chunk {
     }
 
     /**
-     * Modifies internal state to reflect the fact that one more page is stored within this chunk.
-     * @param pageLengthOnDisk size of the page
-     * @param singleWriter indicates whether page belongs to append mode capable map (single writer map).
-     *                     Such pages are "pinned" to the chunk, they can't be evacuated (moved to a different chunk)
-     *                     while on-line, but they assumed to be short-lived anyway.
+     * Modifies internal state to reflect the fact that one more page is stored
+     * within this chunk.
+     *
+     * @param pageLengthOnDisk
+     *            size of the page
+     * @param singleWriter
+     *            indicates whether page belongs to append mode capable map
+     *            (single writer map). Such pages are "pinned" to the chunk,
+     *            they can't be evacuated (moved to a different chunk) while
+     *            on-line, but they assumed to be short-lived anyway.
      */
     void accountForWrittenPage(int pageLengthOnDisk, boolean singleWriter) {
         maxLen += pageLengthOnDisk;
@@ -396,13 +401,20 @@ public class Chunk {
     }
 
     /**
-     * Modifies internal state to reflect the fact that one the pages within this chunk was removed from the map.
-     * @param pageLength on disk of the removed page
-     * @param pinned whether removed page was pinned
-     * @param now is a moment in time (since creation of the store), when removal is recorded,
-     *            and retention period starts
-     * @param version at which page was removed
-     * @return true if all of the pages, this chunk contains, were already removed, and false otherwise
+     * Modifies internal state to reflect the fact that one the pages within
+     * this chunk was removed from the map.
+     *
+     * @param pageLength
+     *            on disk of the removed page
+     * @param pinned
+     *            whether removed page was pinned
+     * @param now
+     *            is a moment in time (since creation of the store), when
+     *            removal is recorded, and retention period starts
+     * @param version
+     *            at which page was removed
+     * @return true if all of the pages, this chunk contains, were already
+     *         removed, and false otherwise
      */
     boolean accountForRemovedPage(int pageLength, boolean pinned, long now, long version) {
         assert isSaved() : this;

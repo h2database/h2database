@@ -1186,7 +1186,8 @@ public class MVStore implements AutoCloseable {
                         } catch (IllegalStateException e) {
                             panic(e);
                         } catch (Throwable e) {
-                            panic(DataUtils.newIllegalStateException(DataUtils.ERROR_INTERNAL, "{0}", e.toString(), e));
+                            panic(DataUtils.newIllegalStateException(DataUtils.ERROR_INTERNAL, "{0}", e.toString(),
+                                    e));
                         }
                     }
                 } finally {
@@ -2190,13 +2191,14 @@ public class MVStore implements AutoCloseable {
     }
 
     /**
-     * Adjust amount of "unsaved memory" meaning amount of RAM occupied by pages not saved yet to the file.
-     * This is the amount which triggers auto-commit.
+     * Adjust amount of "unsaved memory" meaning amount of RAM occupied by pages
+     * not saved yet to the file. This is the amount which triggers auto-commit.
      *
      * @param memory adjustment
      */
     public void registerUnsavedMemory(int memory) {
-        // this counter was intentionaly left unprotected against race condition for performance reasons
+        // this counter was intentionaly left unprotected against race condition
+        // for performance reasons
         // TODO: evaluate performance impact of atomic implementation,
         //       since updates to unsavedMemory are largely aggregated now
         unsavedMemory += memory;

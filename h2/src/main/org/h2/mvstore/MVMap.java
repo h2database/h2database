@@ -877,8 +877,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return new RootReference or null if update failed
      */
     protected final boolean updateRoot(RootReference expectedRootReference, Page newRootPage,
-                                       int attemptUpdateCounter)
-    {
+            int attemptUpdateCounter) {
         return expectedRootReference.updateRootPage(newRootPage, attemptUpdateCounter) != null;
     }
 
@@ -1293,7 +1292,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                     }
                 }
                 p = replacePage(pos, p, unsavedMemoryHolder);
-                rootReference = rootReference.updatePageAndLockedStatus(p, preLocked || isPersistent(), remainingBuffer);
+                rootReference = rootReference.updatePageAndLockedStatus(p, preLocked || isPersistent(),
+                        remainingBuffer);
                 if (rootReference != null) {    // should always be the case, except for spurious failure?
                     locked = preLocked || isPersistent();
                     if (isPersistent() && tip != null) {

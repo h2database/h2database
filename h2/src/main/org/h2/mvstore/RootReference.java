@@ -81,7 +81,8 @@ public final class RootReference
         this.previous = r.previous;
         this.updateCounter = r.updateCounter + 1;
         this.updateAttemptCounter = r.updateAttemptCounter + attempt;
-        assert r.holdCount == 0 || r.ownerId == Thread.currentThread().getId() : Thread.currentThread().getId() + " " + r;
+        assert r.holdCount == 0 || r.ownerId == Thread.currentThread().getId() //
+                : Thread.currentThread().getId() + " " + r;
         this.holdCount = (byte)(r.holdCount + 1);
         this.ownerId = Thread.currentThread().getId();
         this.appendCounter = r.appendCounter;
@@ -94,7 +95,8 @@ public final class RootReference
         this.previous = r.previous;
         this.updateCounter = r.updateCounter;
         this.updateAttemptCounter = r.updateAttemptCounter;
-        assert r.holdCount > 0 && r.ownerId == Thread.currentThread().getId() : Thread.currentThread().getId() + " " + r;
+        assert r.holdCount > 0 && r.ownerId == Thread.currentThread().getId() //
+                : Thread.currentThread().getId() + " " + r;
         this.holdCount = (byte)(r.holdCount - (keepLocked ? 0 : 1));
         this.ownerId = this.holdCount == 0 ? 0 : Thread.currentThread().getId();
         this.appendCounter = (byte) appendCounter;
@@ -166,7 +168,8 @@ public final class RootReference
         for(RootReference rootRef = this; rootRef != null; rootRef = rootRef.previous) {
             if (rootRef.version < oldestVersionToKeep) {
                 RootReference previous;
-                assert (previous = rootRef.previous) == null || previous.getAppendCounter() == 0 : oldestVersionToKeep + " " + rootRef.previous;
+                assert (previous = rootRef.previous) == null || previous.getAppendCounter() == 0 //
+                        : oldestVersionToKeep + " " + rootRef.previous;
                 rootRef.previous = null;
             }
         }

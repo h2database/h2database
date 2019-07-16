@@ -39,8 +39,9 @@ public class CursorPos
     }
 
     /**
-     * Searches for a given key and creates a breadcrumb trail through a B-tree rooted at a given Page.
-     * Resulting path starts at "insertion point" for a given key and goes back to the root.
+     * Searches for a given key and creates a breadcrumb trail through a B-tree
+     * rooted at a given Page. Resulting path starts at "insertion point" for a
+     * given key and goes back to the root.
      *
      * @param page      root of the tree
      * @param key       the key to search for

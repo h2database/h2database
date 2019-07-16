@@ -262,8 +262,17 @@ public class ValueTimestampTimeZone extends Value {
     }
 
     @Override
-    public void set(PreparedStatement prep, int parameterIndex)
-            throws SQLException {
+    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            try {
+                prep.setObject(parameterIndex, LocalDateTimeUtils.valueToOffsetDateTime(this),
+                        // TODO use Types.TIMESTAMP_WITH_TIMEZONE on Java 8
+                        2014);
+                return;
+            } catch (SQLException ignore) {
+                // Nothing to do
+            }
+        }
         prep.setString(parameterIndex, getString());
     }
 

@@ -211,7 +211,7 @@ public class TypeInfo {
         infos[Value.GEOMETRY] = TYPE_GEOMETRY = new TypeInfo(Value.GEOMETRY, Integer.MAX_VALUE, 0, Integer.MAX_VALUE,
                 null);
         infos[Value.TIMESTAMP_TZ] = TYPE_TIMESTAMP_TZ = new TypeInfo(Value.TIMESTAMP_TZ,
-                ValueTimestampTimeZone.MAXIMUM_PRECISION, ValueTimestampTimeZone.MAXIMUM_SCALE,
+                ValueTimestampTimeZone.MAXIMUM_PRECISION, ValueTimestamp.MAXIMUM_SCALE,
                 ValueTimestampTimeZone.MAXIMUM_PRECISION, null);
         infos[Value.ENUM] = TYPE_ENUM_UNDEFINED = new TypeInfo(Value.ENUM, Integer.MAX_VALUE, 0, Integer.MAX_VALUE,
                 null);
@@ -320,7 +320,7 @@ public class TypeInfo {
             return new TypeInfo(Value.TIMESTAMP, d, scale, d, null);
         }
         case Value.TIMESTAMP_TZ: {
-            if (scale < 0 || scale >= ValueTimestampTimeZone.MAXIMUM_SCALE) {
+            if (scale < 0 || scale >= ValueTimestamp.MAXIMUM_SCALE) {
                 return TYPE_TIMESTAMP_TZ;
             }
             int d = scale == 0 ? 25 : 26 + scale;

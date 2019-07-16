@@ -267,16 +267,4 @@ public class ValueTimestampTimeZone extends Value {
         prep.setString(parameterIndex, getString());
     }
 
-    @Override
-    public Value add(Value v) {
-        throw DbException.getUnsupportedException(
-                "manipulating TIMESTAMP WITH TIME ZONE values is unsupported");
-    }
-
-    @Override
-    public Value subtract(Value v) {
-        throw DbException.getUnsupportedException(
-                "manipulating TIMESTAMP WITH TIME ZONE values is unsupported");
-    }
-
 }

@@ -195,6 +195,7 @@ public class ValueTime extends Value {
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             try {
                 prep.setObject(parameterIndex, LocalDateTimeUtils.valueToLocalTime(this), Types.TIME);
+                return;
             } catch (SQLException ignore) {
                 // Nothing to do
             }

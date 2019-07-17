@@ -579,32 +579,67 @@ public class DataType {
                 break;
             }
             case Value.DATE: {
+                if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+                    try {
+                        Object value = rs.getObject(columnIndex, LocalDateTimeUtils.LOCAL_DATE);
+                        v = value == null ? ValueNull.INSTANCE : LocalDateTimeUtils.localDateToDateValue(value);
+                        break;
+                    } catch (SQLException ignore) {
+                        // Nothing to do
+                    }
+                }
                 Date value = rs.getDate(columnIndex);
                 v = value == null ? ValueNull.INSTANCE : ValueDate.get(value);
                 break;
             }
             case Value.TIME: {
+                if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+                    try {
+                        Object value = rs.getObject(columnIndex, LocalDateTimeUtils.LOCAL_TIME);
+                        v = value == null ? ValueNull.INSTANCE : LocalDateTimeUtils.localTimeToTimeValue(value);
+                        break;
+                    } catch (SQLException ignore) {
+                        // Nothing to do
+                    }
+                }
                 Time value = rs.getTime(columnIndex);
                 v = value == null ? ValueNull.INSTANCE : ValueTime.get(value);
                 break;
             }
             case Value.TIMESTAMP: {
+                if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+                    try {
+                        Object value = rs.getObject(columnIndex, LocalDateTimeUtils.LOCAL_DATE_TIME);
+                        v = value == null ? ValueNull.INSTANCE : LocalDateTimeUtils.localDateTimeToValue(value);
+                        break;
+                    } catch (SQLException ignore) {
+                        // Nothing to do
+                    }
+                }
                 Timestamp value = rs.getTimestamp(columnIndex);
                 v = value == null ? ValueNull.INSTANCE : ValueTimestamp.get(value);
                 break;
             }
             case Value.TIMESTAMP_TZ: {
+                if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+                    try {
+                        Object value = rs.getObject(columnIndex, LocalDateTimeUtils.OFFSET_DATE_TIME);
+                        v = value == null ? ValueNull.INSTANCE : LocalDateTimeUtils.offsetDateTimeToValue(value);
+                        break;
+                    } catch (SQLException ignore) {
+                        // Nothing to do
+                    }
+                }
                 Object obj = rs.getObject(columnIndex);
                 if (obj == null) {
                     v = ValueNull.INSTANCE;
                 } else if (LocalDateTimeUtils.isJava8DateApiPresent()
-                        && LocalDateTimeUtils.OFFSET_DATE_TIME.isInstance(obj)) {
-                    v = LocalDateTimeUtils.offsetDateTimeToValue(obj);
-                } else if (LocalDateTimeUtils.isJava8DateApiPresent()
                         && LocalDateTimeUtils.ZONED_DATE_TIME.isInstance(obj)) {
                     v = LocalDateTimeUtils.zonedDateTimeToValue(obj);
-                } else {
+                } else if (obj instanceof TimestampWithTimeZone) {
                     v = ValueTimestampTimeZone.get((TimestampWithTimeZone) obj);
+                } else {
+                    v = ValueTimeTimeZone.parse(obj.toString());
                 }
                 break;
             }

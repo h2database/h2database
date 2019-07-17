@@ -50,6 +50,11 @@ public class TableValueConstructor extends Query {
         }
 
         @Override
+        public Column findColumn(String name) {
+            return table.findColumn(name);
+        }
+
+        @Override
         public String getColumnName(Column column) {
             return column.getName();
         }

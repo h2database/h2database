@@ -102,19 +102,14 @@ public class ExpressionColumn extends Expression {
             }
             return;
         }
-        for (Column col : resolver.getColumns()) {
-            String n = resolver.getColumnName(col);
-            if (database.equalsIdentifiers(columnName, n)) {
-                mapColumn(resolver, col, level);
-                if (resolver.hasDerivedColumnList()) {
-                    columnName = n;
-                }
-                return;
-            }
+        Column col = resolver.findColumn(columnName);
+        if (col != null) {
+            mapColumn(resolver, col, level);
+            return;
         }
         Column[] columns = resolver.getSystemColumns();
         for (int i = 0; columns != null && i < columns.length; i++) {
-            Column col = columns[i];
+            col = columns[i];
             if (database.equalsIdentifiers(columnName, col.getName())) {
                 mapColumn(resolver, col, level);
                 return;

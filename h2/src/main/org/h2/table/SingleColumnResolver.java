@@ -6,6 +6,7 @@
 package org.h2.table;
 
 import org.h2.command.dml.Select;
+import org.h2.engine.Database;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.value.Value;
@@ -16,10 +17,12 @@ import org.h2.value.Value;
  */
 public class SingleColumnResolver implements ColumnResolver {
 
+    private final Database database;
     private final Column column;
     private Value value;
 
-    SingleColumnResolver(Column column) {
+    SingleColumnResolver(Database database, Column column) {
+        this.database = database;
         this.column = column;
     }
 
@@ -40,6 +43,14 @@ public class SingleColumnResolver implements ColumnResolver {
     @Override
     public Column[] getColumns() {
         return new Column[] { column };
+    }
+
+    @Override
+    public Column findColumn(String name) {
+        if (database.equalsIdentifiers(column.getName(), name)) {
+            return column;
+        }
+        return null;
     }
 
     @Override

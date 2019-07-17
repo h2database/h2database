@@ -646,7 +646,7 @@ public class Column {
             return;
         }
         if (resolver == null) {
-            resolver = new SingleColumnResolver(this);
+            resolver = new SingleColumnResolver(session.getDatabase(), this);
         }
         synchronized (this) {
             String oldName = name;

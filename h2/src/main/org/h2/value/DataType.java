@@ -639,7 +639,7 @@ public class DataType {
                 } else if (obj instanceof TimestampWithTimeZone) {
                     v = ValueTimestampTimeZone.get((TimestampWithTimeZone) obj);
                 } else {
-                    v = ValueTimeTimeZone.parse(obj.toString());
+                    v = ValueTimestampTimeZone.parse(obj.toString());
                 }
                 break;
             }

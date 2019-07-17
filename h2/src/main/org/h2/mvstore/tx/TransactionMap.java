@@ -285,7 +285,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
     }
 
     private V set(Object key, V value) {
-        TxDecisionMaker decisionMaker = new TxDecisionMaker.PutDecisionMaker(map.getId(), key, value, transaction);
+        TxDecisionMaker decisionMaker = new TxDecisionMaker(map.getId(), key, value, transaction);
         return set(key, decisionMaker);
     }
 

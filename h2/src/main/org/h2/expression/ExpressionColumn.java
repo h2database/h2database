@@ -69,7 +69,7 @@ public class ExpressionColumn extends Expression {
         }
         if (column != null) {
             if (columnResolver != null && columnResolver.hasDerivedColumnList()) {
-                Parser.quoteIdentifier(builder, columnName, alwaysQuote);
+                Parser.quoteIdentifier(builder, columnResolver.getColumnName(column), alwaysQuote);
             } else {
                 column.getSQL(builder, alwaysQuote);
             }
@@ -102,19 +102,14 @@ public class ExpressionColumn extends Expression {
             }
             return;
         }
-        for (Column col : resolver.getColumns()) {
-            String n = resolver.getColumnName(col);
-            if (database.equalsIdentifiers(columnName, n)) {
-                mapColumn(resolver, col, level);
-                if (resolver.hasDerivedColumnList()) {
-                    columnName = n;
-                }
-                return;
-            }
+        Column col = resolver.findColumn(columnName);
+        if (col != null) {
+            mapColumn(resolver, col, level);
+            return;
         }
         Column[] columns = resolver.getSystemColumns();
         for (int i = 0; columns != null && i < columns.length; i++) {
-            Column col = columns[i];
+            col = columns[i];
             if (database.equalsIdentifiers(columnName, col.getName())) {
                 mapColumn(resolver, col, level);
                 return;
@@ -247,7 +242,13 @@ public class ExpressionColumn extends Expression {
 
     @Override
     public String getColumnName() {
-        return columnName != null ? columnName : column.getName();
+        if (column != null) {
+            if (columnResolver != null) {
+                return columnResolver.getColumnName(column);
+            }
+            return column.getName();
+        }
+        return columnName;
     }
 
     @Override
@@ -271,7 +272,7 @@ public class ExpressionColumn extends Expression {
             return column.getName();
         }
         if (tableAlias != null) {
-            return tableAlias + "." + columnName;
+            return tableAlias + '.' + columnName;
         }
         return columnName;
     }

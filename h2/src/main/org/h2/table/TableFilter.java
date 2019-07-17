@@ -1064,6 +1064,21 @@ public class TableFilter implements ColumnResolver {
     }
 
     @Override
+    public Column findColumn(String name) {
+        HashMap<Column, String> map = derivedColumnMap;
+        if (map != null) {
+            Database db = session.getDatabase();
+            for (Entry<Column, String> entry : derivedColumnMap.entrySet()) {
+                if (db.equalsIdentifiers(entry.getValue(), name)) {
+                    return entry.getKey();
+                }
+            }
+            return null;
+        }
+        return table.findColumn(name);
+    }
+
+    @Override
     public String getColumnName(Column column) {
         HashMap<Column, String> map = derivedColumnMap;
         return map != null ? map.get(column) : column.getName();

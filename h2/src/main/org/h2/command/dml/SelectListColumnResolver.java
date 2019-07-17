@@ -6,6 +6,8 @@
 package org.h2.command.dml;
 
 import java.util.ArrayList;
+
+import org.h2.engine.Database;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.table.Column;
@@ -50,6 +52,17 @@ public class SelectListColumnResolver implements ColumnResolver {
     @Override
     public Column[] getColumns() {
         return columns;
+    }
+
+    @Override
+    public Column findColumn(String name) {
+        Database db = select.getSession().getDatabase();
+        for (Column column : columns) {
+            if (db.equalsIdentifiers(column.getName(), name)) {
+                return column;
+            }
+        }
+        return null;
     }
 
     @Override

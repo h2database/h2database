@@ -31,6 +31,16 @@ public interface ColumnResolver {
     Column[] getColumns();
 
     /**
+     * Get the column with the specified name.
+     *
+     * @param name
+     *            the column name, must be a derived name if this column
+     *            resolver has a derived column list
+     * @return the column with the specified name, or {@code null}
+     */
+    Column findColumn(String name);
+
+    /**
      * Get the name of the specified column.
      *
      * @param column column

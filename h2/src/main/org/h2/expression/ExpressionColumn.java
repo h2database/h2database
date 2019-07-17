@@ -69,7 +69,7 @@ public class ExpressionColumn extends Expression {
         }
         if (column != null) {
             if (columnResolver != null && columnResolver.hasDerivedColumnList()) {
-                Parser.quoteIdentifier(builder, columnName, alwaysQuote);
+                Parser.quoteIdentifier(builder, columnResolver.getColumnName(column), alwaysQuote);
             } else {
                 column.getSQL(builder, alwaysQuote);
             }
@@ -242,7 +242,13 @@ public class ExpressionColumn extends Expression {
 
     @Override
     public String getColumnName() {
-        return columnName != null ? columnName : column.getName();
+        if (column != null) {
+            if (columnResolver != null) {
+                return columnResolver.getColumnName(column);
+            }
+            return column.getName();
+        }
+        return columnName;
     }
 
     @Override
@@ -266,7 +272,7 @@ public class ExpressionColumn extends Expression {
             return column.getName();
         }
         if (tableAlias != null) {
-            return tableAlias + "." + columnName;
+            return tableAlias + '.' + columnName;
         }
         return columnName;
     }

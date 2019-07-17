@@ -59,6 +59,7 @@ public class TestCompatibility extends TestDb {
 
         conn.close();
         testIdentifiers();
+        testIdentifiersCaseInResultSet();
         deleteDb("compatibility");
 
         testUnknownURL();
@@ -774,6 +775,22 @@ public class TestCompatibility extends TestDb {
             return;
         }
         fail();
+    }
+
+    private void testIdentifiersCaseInResultSet() throws SQLException {
+        try (Connection conn = getConnection(
+                "compatibility;DATABASE_TO_UPPER=FALSE;CASE_INSENSITIVE_IDENTIFIERS=TRUE")) {
+            Statement stat = conn.createStatement();
+            stat.execute("CREATE TABLE TEST(A INT)");
+            ResultSet rs = stat.executeQuery("SELECT a from test");
+            ResultSetMetaData md = rs.getMetaData();
+            assertEquals("A", md.getColumnName(1));
+            rs = stat.executeQuery("SELECT a FROM (SELECT 1) t(A)");
+            md = rs.getMetaData();
+            assertEquals("A", md.getColumnName(1));
+        } finally {
+            deleteDb("compatibility");
+        }
     }
 
 }

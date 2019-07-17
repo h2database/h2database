@@ -535,8 +535,7 @@ public class DataType {
      * @param type the data type
      * @return the value
      */
-    public static Value readValue(SessionInterface session, ResultSet rs,
-            int columnIndex, int type) {
+    public static Value readValue(SessionInterface session, ResultSet rs, int columnIndex, int type) {
         try {
             Value v;
             switch (type) {
@@ -571,32 +570,27 @@ public class DataType {
             }
             case Value.BOOLEAN: {
                 boolean value = rs.getBoolean(columnIndex);
-                v = rs.wasNull() ? (Value) ValueNull.INSTANCE :
-                    ValueBoolean.get(value);
+                v = rs.wasNull() ? ValueNull.INSTANCE : ValueBoolean.get(value);
                 break;
             }
             case Value.BYTE: {
                 byte value = rs.getByte(columnIndex);
-                v = rs.wasNull() ? (Value) ValueNull.INSTANCE :
-                    ValueByte.get(value);
+                v = rs.wasNull() ? ValueNull.INSTANCE : ValueByte.get(value);
                 break;
             }
             case Value.DATE: {
                 Date value = rs.getDate(columnIndex);
-                v = value == null ? (Value) ValueNull.INSTANCE :
-                    ValueDate.get(value);
+                v = value == null ? ValueNull.INSTANCE : ValueDate.get(value);
                 break;
             }
             case Value.TIME: {
                 Time value = rs.getTime(columnIndex);
-                v = value == null ? (Value) ValueNull.INSTANCE :
-                    ValueTime.get(value);
+                v = value == null ? ValueNull.INSTANCE : ValueTime.get(value);
                 break;
             }
             case Value.TIMESTAMP: {
                 Timestamp value = rs.getTimestamp(columnIndex);
-                v = value == null ? (Value) ValueNull.INSTANCE :
-                    ValueTimestamp.get(value);
+                v = value == null ? ValueNull.INSTANCE : ValueTimestamp.get(value);
                 break;
             }
             case Value.TIMESTAMP_TZ: {
@@ -616,56 +610,47 @@ public class DataType {
             }
             case Value.DECIMAL: {
                 BigDecimal value = rs.getBigDecimal(columnIndex);
-                v = value == null ? (Value) ValueNull.INSTANCE :
-                    ValueDecimal.get(value);
+                v = value == null ? ValueNull.INSTANCE : ValueDecimal.get(value);
                 break;
             }
             case Value.DOUBLE: {
                 double value = rs.getDouble(columnIndex);
-                v = rs.wasNull() ? (Value) ValueNull.INSTANCE :
-                    ValueDouble.get(value);
+                v = rs.wasNull() ? ValueNull.INSTANCE : ValueDouble.get(value);
                 break;
             }
             case Value.FLOAT: {
                 float value = rs.getFloat(columnIndex);
-                v = rs.wasNull() ? (Value) ValueNull.INSTANCE :
-                    ValueFloat.get(value);
+                v = rs.wasNull() ? ValueNull.INSTANCE : ValueFloat.get(value);
                 break;
             }
             case Value.INT: {
                 int value = rs.getInt(columnIndex);
-                v = rs.wasNull() ? (Value) ValueNull.INSTANCE :
-                    ValueInt.get(value);
+                v = rs.wasNull() ? ValueNull.INSTANCE : ValueInt.get(value);
                 break;
             }
             case Value.LONG: {
                 long value = rs.getLong(columnIndex);
-                v = rs.wasNull() ? (Value) ValueNull.INSTANCE :
-                    ValueLong.get(value);
+                v = rs.wasNull() ? ValueNull.INSTANCE : ValueLong.get(value);
                 break;
             }
             case Value.SHORT: {
                 short value = rs.getShort(columnIndex);
-                v = rs.wasNull() ? (Value) ValueNull.INSTANCE :
-                    ValueShort.get(value);
+                v = rs.wasNull() ? ValueNull.INSTANCE : ValueShort.get(value);
                 break;
             }
             case Value.STRING_IGNORECASE: {
                 String s = rs.getString(columnIndex);
-                v = (s == null) ? (Value) ValueNull.INSTANCE :
-                    ValueStringIgnoreCase.get(s);
+                v = (s == null) ? ValueNull.INSTANCE : ValueStringIgnoreCase.get(s);
                 break;
             }
             case Value.STRING_FIXED: {
                 String s = rs.getString(columnIndex);
-                v = (s == null) ? (Value) ValueNull.INSTANCE :
-                    ValueStringFixed.get(s);
+                v = (s == null) ? ValueNull.INSTANCE : ValueStringFixed.get(s);
                 break;
             }
             case Value.STRING: {
                 String s = rs.getString(columnIndex);
-                v = (s == null) ? (Value) ValueNull.INSTANCE :
-                    ValueString.get(s);
+                v = (s == null) ? ValueNull.INSTANCE : ValueString.get(s);
                 break;
             }
             case Value.CLOB: {
@@ -678,8 +663,7 @@ public class DataType {
                     if (in == null) {
                         v = ValueNull.INSTANCE;
                     } else {
-                        v = session.getDataHandler().getLobStorage().
-                                createClob(new BufferedReader(in), -1);
+                        v = session.getDataHandler().getLobStorage().createClob(new BufferedReader(in), -1);
                     }
                 }
                 if (session != null) {
@@ -690,12 +674,10 @@ public class DataType {
             case Value.BLOB: {
                 if (session == null) {
                     byte[] buff = rs.getBytes(columnIndex);
-                    return buff == null ? ValueNull.INSTANCE :
-                        ValueLobDb.createSmallLob(Value.BLOB, buff);
+                    return buff == null ? ValueNull.INSTANCE : ValueLobDb.createSmallLob(Value.BLOB, buff);
                 }
                 InputStream in = rs.getBinaryStream(columnIndex);
-                v = (in == null) ? (Value) ValueNull.INSTANCE :
-                    session.getDataHandler().getLobStorage().createBlob(in, -1);
+                v = (in == null) ? ValueNull.INSTANCE : session.getDataHandler().getLobStorage().createBlob(in, -1);
                 session.addTemporaryLob(v);
                 break;
             }
@@ -706,8 +688,7 @@ public class DataType {
                         ValueJavaObject.getNoCopy(null, buff, session.getDataHandler());
                 } else {
                     Object o = rs.getObject(columnIndex);
-                    v = o == null ? ValueNull.INSTANCE :
-                        ValueJavaObject.getNoCopy(o, null, session.getDataHandler());
+                    v = o == null ? ValueNull.INSTANCE : ValueJavaObject.getNoCopy(o, null, session.getDataHandler());
                 }
                 break;
             }
@@ -730,8 +711,7 @@ public class DataType {
             }
             case Value.ENUM: {
                 int value = rs.getInt(columnIndex);
-                v = rs.wasNull() ? (Value) ValueNull.INSTANCE :
-                    ValueInt.get(value);
+                v = rs.wasNull() ? ValueNull.INSTANCE : ValueInt.get(value);
                 break;
             }
             case Value.ROW: {

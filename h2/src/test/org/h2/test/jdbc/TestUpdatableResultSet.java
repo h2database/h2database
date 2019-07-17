@@ -528,6 +528,25 @@ public class TestUpdatableResultSet extends TestDb {
         // auml ouml uuml
         assertEquals("\u00ef\u00f6\u00fc", rs.getString(++c));
         assertEquals(new byte[] { (byte) 0xab, 0x12 }, rs.getBytes(++c));
+        c = 1;
+        rs.updateString(++c, "-");
+        rs.updateBigDecimal(++c, new BigDecimal("1.30"));
+        rs.updateBoolean(++c, false);
+        rs.updateByte(++c, (byte) 0x55);
+        rs.updateBytes(++c, new byte[] { 0x01, (byte) 0xfe });
+        rs.updateDate(++c, Date.valueOf("2005-09-22"));
+        rs.updateTime(++c, Time.valueOf("21:46:29"));
+        rs.updateTimestamp(++c, Timestamp.valueOf("2005-09-21 21:47:10.111222333"));
+        rs.updateObject(++c, new TimestampWithTimeZone(DateTimeUtils.dateValue(2005, 9, 22), 10_111_222_333L,
+                (short) 120));
+        rs.updateDouble(++c, 2.25);
+        rs.updateFloat(++c, 3.5f);
+        rs.updateLong(++c, Long.MAX_VALUE - 1);
+        rs.updateInt(++c, 11);
+        rs.updateShort(++c, (short) -1_000);
+        rs.updateString(++c, "ABCD");
+        rs.updateBytes(++c, new byte[] { 1, 2 });
+        rs.updateRow();
 
         for (int i = 3; i <= 14; i++) {
             rs.next();
@@ -535,6 +554,30 @@ public class TestUpdatableResultSet extends TestDb {
             assertEquals("\u00ef\u00f6\u00fc", rs.getString(clobIndex));
             assertEquals(new byte[] { (byte) 0xab, 0x12 }, rs.getBytes(blobIndex));
         }
+        assertFalse(rs.next());
+
+        rs = stat.executeQuery("SELECT * FROM TEST WHERE ID = 2");
+        rs.next();
+        c = 0;
+        assertTrue(rs.getInt(++c) == 2);
+        assertEquals("-", rs.getString(++c));
+        assertEquals("1.30", rs.getBigDecimal(++c).toString());
+        assertFalse(rs.getBoolean(++c));
+        assertTrue((rs.getByte(++c) & 0xff) == 0x55);
+        assertEquals(new byte[] { 0x01, (byte) 0xfe }, rs.getBytes(++c));
+        assertEquals("2005-09-22", rs.getDate(++c).toString());
+        assertEquals("21:46:29", rs.getTime(++c).toString());
+        assertEquals("2005-09-21 21:47:10.111222333", rs.getTimestamp(++c).toString());
+        assertEquals(SysProperties.RETURN_OFFSET_DATE_TIME && LocalDateTimeUtils.isJava8DateApiPresent() //
+                ? "2005-09-22T00:00:10.111222333+02:00" : "2005-09-22 00:00:10.111222333+02", //
+                rs.getObject(++c).toString());
+        assertTrue(rs.getDouble(++c) == 2.25);
+        assertTrue(rs.getFloat(++c) == 3.5f);
+        assertTrue(rs.getLong(++c) == Long.MAX_VALUE - 1);
+        assertEquals(11, ((Integer) rs.getObject(++c)).intValue());
+        assertTrue(rs.getShort(++c) == -1_000);
+        assertEquals("ABCD", rs.getString(++c));
+        assertEquals(new byte[] { 1, 2 }, rs.getBytes(++c));
         assertFalse(rs.next());
 
         stat.execute("DROP TABLE TEST");

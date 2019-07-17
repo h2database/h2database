@@ -14,7 +14,7 @@ import org.h2.value.VersionedValue;
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
-abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
+class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
     /**
      * Map to decide upon
      */
@@ -28,7 +28,7 @@ abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
     /**
      * Value for the map entry
      */
-    final Object                 value;
+    private final Object         value;
 
     /**
      * Transaction we are operating within
@@ -38,15 +38,16 @@ abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
     /**
      * Id for the undo log entry created for this modification
      */
-    long                         undoKey;
+    private       long           undoKey;
 
     /**
-     * Id of the last operation, we decided to {@link MVMap.Decision.REPEAT}.
+     * Id of the last operation, we decided to {@link MVMap.Decision#REPEAT}.
      */
     private       long           lastOperationId;
 
     private       Transaction    blockingTransaction;
     private       MVMap.Decision decision;
+    private       Object         lastCommittedValue;
 
     TxDecisionMaker(int mapId, Object key, Object value, Transaction transaction) {
         this.mapId = mapId;
@@ -66,16 +67,15 @@ abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
                 (id = existingValue.getOperationId()) == 0 ||
                 // or it came from the same transaction
                 isThisTransaction(blockingId = TransactionStore.getTransactionId(id))) {
-            logIt(existingValue);
-            decision = MVMap.Decision.PUT;
+            logAndDecideToPut(existingValue, existingValue == null ? null : existingValue.getCommittedValue());
         } else if (isCommitted(blockingId)) {
             // Condition above means that entry belongs to a committing transaction.
             // We assume that we are looking at the final value for this transaction,
             // and if it's not the case, then it will fail later,
             // because a tree root has definitely been changed.
-            logIt(existingValue.getCurrentValue() == null ? null
-                    : VersionedValueCommitted.getInstance(existingValue.getCurrentValue()));
-            decision = MVMap.Decision.PUT;
+            Object currentValue = existingValue.getCurrentValue();
+            logAndDecideToPut(currentValue == null ? null : VersionedValueCommitted.getInstance(currentValue),
+                                currentValue);
         } else if (getBlockingTransaction() != null) {
             // this entry comes from a different transaction, and this
             // transaction is not committed yet
@@ -90,8 +90,8 @@ abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
             // was written but not undo log), and will effectively roll it back
             // (just assume committed value and overwrite).
             Object committedValue = existingValue.getCommittedValue();
-            logIt(committedValue == null ? null : VersionedValueCommitted.getInstance(committedValue));
-            decision = MVMap.Decision.PUT;
+            logAndDecideToPut(committedValue == null ? null : VersionedValueCommitted.getInstance(committedValue),
+                                committedValue);
         } else {
             // transaction has been committed/rolled back and is closed by now, so
             // we can retry immediately and either that entry become committed
@@ -115,20 +115,36 @@ abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
         decision = null;
     }
 
-    public final MVMap.Decision getDecision() {
+    @SuppressWarnings("unchecked")
+    @Override
+    public final VersionedValue selectValue(VersionedValue existingValue, VersionedValue providedValue) {
+        return VersionedValueUncommitted.getInstance(undoKey, getNewValue(existingValue), lastCommittedValue);
+    }
+
+    Object getNewValue(VersionedValue existingValue) {
+        return value;
+    }
+
+    /**
+     * Create undo log entry and record for future references {@link MVMap.Decision#PUT} decision
+     * along with last known committed value
+     *
+     * @param valueToLog previous value to be logged
+     * @param value last known committed value
+     * @return {@link MVMap.Decision#PUT}
+     */
+    final MVMap.Decision logAndDecideToPut(VersionedValue valueToLog, Object value) {
+        undoKey = transaction.log(mapId, key, valueToLog);
+        lastCommittedValue = value;
+        return setDecision(MVMap.Decision.PUT);
+    }
+
+    final MVMap.Decision getDecision() {
         return decision;
     }
 
     final Transaction getBlockingTransaction() {
         return blockingTransaction;
-    }
-
-    /**
-     * Create undo log entry
-     * @param value previous value to be logged
-     */
-    final void logIt(VersionedValue value) {
-        undoKey = transaction.log(mapId, key, value);
     }
 
     /**
@@ -153,10 +169,11 @@ abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
     final boolean isCommitted(int transactionId) {
         Transaction blockingTx;
         boolean result;
+        TransactionStore store = transaction.store;
         do {
-            blockingTx = transaction.store.getTransaction(transactionId);
-            result = transaction.store.committingTransactions.get().get(transactionId);
-        } while (blockingTx != transaction.store.getTransaction(transactionId));
+            blockingTx = store.getTransaction(transactionId);
+            result = store.committingTransactions.get().get(transactionId);
+        } while (blockingTx != store.getTransaction(transactionId));
 
         if (!result) {
             blockingTransaction = blockingTx;
@@ -169,7 +186,7 @@ abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
      * This is to prevent an infinite loop in case of uncommitted "leftover" entry
      * (one without a corresponding undo log entry, most likely as a result of unclean shutdown).
      *
-     * @param id for the operation we decided to {@link MVMap.Decision.REPEAT}
+     * @param id for the operation we decided to {@link MVMap.Decision#REPEAT}
      * @return true if the same as last operation id, false otherwise
      */
     final boolean isRepeatedOperation(long id) {
@@ -196,22 +213,8 @@ abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
     }
 
 
-    public static class PutDecisionMaker extends TxDecisionMaker
-    {
-        PutDecisionMaker(int mapId, Object key, Object value, Transaction transaction) {
-            super(mapId, key, value, transaction);
-        }
 
-        @SuppressWarnings("unchecked")
-        @Override
-        public final VersionedValue selectValue(VersionedValue existingValue, VersionedValue providedValue) {
-            return VersionedValueUncommitted.getInstance(undoKey, value,
-                                                existingValue == null ? null : existingValue.getCommittedValue());
-        }
-    }
-
-
-    public static final class PutIfAbsentDecisionMaker extends PutDecisionMaker
+    public static final class PutIfAbsentDecisionMaker extends TxDecisionMaker
     {
         PutIfAbsentDecisionMaker(int mapId, Object key, Object value, Transaction transaction) {
             super(mapId, key, value, transaction);
@@ -223,8 +226,7 @@ abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
             int blockingId;
             // if map does not have that entry yet
             if (existingValue == null) {
-                logIt(null);
-                return setDecision(MVMap.Decision.PUT);
+                return logAndDecideToPut(null, null);
             } else {
                 long id = existingValue.getOperationId();
                 if (id == 0 // entry is a committed one
@@ -233,16 +235,14 @@ abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
                     if(existingValue.getCurrentValue() != null) {
                         return setDecision(MVMap.Decision.ABORT);
                     }
-                    logIt(existingValue);
-                    return setDecision(MVMap.Decision.PUT);
+                    return logAndDecideToPut(existingValue, existingValue.getCommittedValue());
                 } else if (isCommitted(blockingId)) {
                     // entry belongs to a committing transaction
                     // and therefore will be committed soon
                     if(existingValue.getCurrentValue() != null) {
                         return setDecision(MVMap.Decision.ABORT);
                     }
-                    logIt(null);
-                    return setDecision(MVMap.Decision.PUT);
+                    return logAndDecideToPut(null, null);
                 } else if (getBlockingTransaction() != null) {
                     // this entry comes from a different transaction, and this
                     // transaction is not committed yet
@@ -262,8 +262,7 @@ abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
                     if (committedValue != null) {
                         return setDecision(MVMap.Decision.ABORT);
                     }
-                    logIt(null);
-                    return setDecision(MVMap.Decision.PUT);
+                    return logAndDecideToPut(null, null);
                 } else {
                     // transaction has been committed/rolled back and is closed
                     // by now, so we can retry immediately and either that entry
@@ -291,12 +290,9 @@ abstract class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
             return decision;
         }
 
-        @SuppressWarnings("unchecked")
         @Override
-        public VersionedValue selectValue(VersionedValue existingValue, VersionedValue providedValue) {
-            return VersionedValueUncommitted.getInstance(undoKey,
-                    existingValue == null ? null : existingValue.getCurrentValue(),
-                    existingValue == null ? null : existingValue.getCommittedValue());
+        Object getNewValue(VersionedValue existingValue) {
+            return existingValue == null ? null : existingValue.getCurrentValue();
         }
     }
 }

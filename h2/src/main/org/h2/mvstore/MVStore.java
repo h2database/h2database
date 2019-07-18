@@ -1618,12 +1618,17 @@ public class MVStore implements AutoCloseable {
                     new Comparator<Chunk>() {
                         @Override
                         public int compare(Chunk o1, Chunk o2) {
+                            int res = Integer.compare(o2.collectPriority, o1.collectPriority);
+                            if (res != 0) {
+                                return res;
+                            }
                             return Long.signum(o2.block - o1.block);
                         }
                     });
             long size = 0;
             for (Chunk chunk : chunks.values()) {
                 if (chunk.isSaved() && chunk.block > startBlock) {
+                    chunk.collectPriority = getMovePriority(chunk);
                     queue.offer(chunk);
                     size += chunk.len;
                     while (size > maxBlocksToMove) {
@@ -1642,6 +1647,10 @@ public class MVStore implements AutoCloseable {
         return result;
     }
 
+    private int getMovePriority(Chunk chunk) {
+        return fileStore.getMovePriority((int)chunk.block);
+    }
+
     private void compactMoveChunks(Iterable<Chunk> move, long targetRegionEnd) {
         assert storeLock.isHeldByCurrentThread();
         if (move != null) {
@@ -1651,9 +1660,9 @@ public class MVStore implements AutoCloseable {
             writeStoreHeader();
             sync();
             for (Chunk c : move) {
-                if (c.block < targetRegionEnd) {
+//                if (c.block < targetRegionEnd) {
                     moveChunk(c, true);
-                }
+//                }
             }
 
             // update the metadata (store at the end of the file)
@@ -2550,18 +2559,40 @@ public class MVStore implements AutoCloseable {
             // could also commit when there are many unsaved pages,
             // but according to a test it doesn't really help
 
-            int targetFillRate = getTargetFillRate();
             long time = getTimeSinceCreation();
             if (time > lastCommitTime + autoCommitDelay) {
                 tryCommit();
                 if (autoCompactFillRate < 0) {
-                    compact(-targetFillRate, autoCommitMemory);
+                    compact(-getTargetFillRate(), autoCommitMemory);
+                }
+                }
+            int targetFillRate;
+            int projectedFillRate;
+            if (isIdle()) {
+                doMaintenance(autoCompactFillRate);
+            } else if (fileStore.isFragmented()) {
+                if (storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
+                    try {
+                        compactMoveChunks(autoCommitMemory * 4);
+                    } finally {
+                        storeLock.unlock();
+                    }
+                }
+            } else if (lastChunk != null && getFillRate() > (targetFillRate = getTargetFillRate())
+                    && (projectedFillRate = getProjectedFillRate()) < targetFillRate) {
+                if (storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
+                    try {
+                        int writeLimit = autoCommitMemory * targetFillRate / Math.max(projectedFillRate, 1);
+                        if (rewriteChunks(writeLimit)) {
+                            dropUnusedChunks();
+                        }
+                    } finally {
+                        storeLock.unlock();
+            }
                 }
             }
-            if (fileStore.isFragmented() || isIdle()) {
-                doMaintenance(targetFillRate);
-            }
             autoCompactLastFileOpCount = fileStore.getWriteCount() + fileStore.getReadCount();
+        } catch (InterruptedException ignore) {
         } catch (Throwable e) {
             handleException(e);
             if (backgroundExceptionHandler == null) {
@@ -2821,6 +2852,14 @@ public class MVStore implements AutoCloseable {
      */
     public boolean isReadOnly() {
         return fileStore != null && fileStore.isReadOnly();
+    }
+
+    public int getCacheHitRatio() {
+        if (cache == null) {
+            return 0;
+        }
+        long hits = cache.getHits();
+        return (int) (100 * hits / (hits + cache.getMisses() + 1));
     }
 
     public double getUpdateFailureRatio() {

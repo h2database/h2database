@@ -388,6 +388,10 @@ public class FileStore {
         return freeSpace.getLastFree();
     }
 
+    int getMovePriority(int block) {
+        return freeSpace.getMovePiority(block);
+    }
+
     /**
      * Mark the file as empty.
      */

@@ -47,6 +47,7 @@ import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mode.FunctionsMSSQLServer;
 import org.h2.mode.FunctionsMySQL;
+import org.h2.mode.FunctionsOracle;
 import org.h2.mvstore.db.MVSpatialIndex;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
@@ -271,7 +272,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunction("EXPAND", EXPAND, 1, Value.BYTES);
         addFunction("ZERO", ZERO, 0, Value.INT);
         addFunctionNotDeterministic("RANDOM_UUID", RANDOM_UUID, 0, Value.UUID);
-        addFunctionNotDeterministic("SYS_GUID", RANDOM_UUID, 0, Value.UUID);
         addFunctionNotDeterministic("UUID", RANDOM_UUID, 0, Value.UUID);
         addFunction("ORA_HASH", ORA_HASH, VAR_ARGS, Value.LONG);
         // string
@@ -582,6 +582,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 return FunctionsMSSQLServer.getFunction(database, name);
             case MySQL:
                 return FunctionsMySQL.getFunction(database, name);
+            case Oracle:
+                return FunctionsOracle.getFunction(database, name);
             default:
                 return null;
             }

@@ -853,10 +853,11 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             result = ValueString.get(v0.getString().toLowerCase(),
                     database.getMode().treatEmptyStringsAsNull);
             break;
-        case RAWTOHEX:
-            result = ValueString.get(rawToHex(v0.getString()),
-                    database.getMode().treatEmptyStringsAsNull);
+        case RAWTOHEX: {
+            Mode mode = database.getMode();
+            result = ValueString.get(rawToHex(v0, mode), mode.treatEmptyStringsAsNull);
             break;
+        }
         case SOUNDEX:
             result = ValueString.get(getSoundex(v0.getString()),
                     database.getMode().treatEmptyStringsAsNull);
@@ -2073,7 +2074,14 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         return buff.toString();
     }
 
-    private static String rawToHex(String s) {
+    private static String rawToHex(Value v, Mode mode) {
+        if (DataType.isBinaryStringOrSpecialBinaryType(v.getValueType())) {
+            return StringUtils.convertBytesToHex(v.getBytesNoCopy());
+        }
+        String s = v.getString();
+        if (mode.getEnum() == ModeEnum.Oracle) {
+            return StringUtils.convertBytesToHex(s.getBytes(StandardCharsets.UTF_8));
+        }
         int length = s.length();
         StringBuilder buff = new StringBuilder(4 * length);
         for (int i = 0; i < length; i++) {
@@ -2890,9 +2898,15 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case UTF8TOSTRING:
             typeInfo = TypeInfo.getTypeInfo(info.returnDataType, args[0].getType().getPrecision(), 0, null);
             break;
-        case RAWTOHEX:
-            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, args[0].getType().getPrecision() * 4, 0, null);
+        case RAWTOHEX: {
+            TypeInfo t = args[0].getType();
+            long precision = t.getPrecision();
+            int mul = DataType.isBinaryStringOrSpecialBinaryType(t.getValueType()) ? 2
+                    : database.getMode().getEnum() == ModeEnum.Oracle ? 6 : 4;
+            typeInfo = TypeInfo.getTypeInfo(info.returnDataType,
+                    precision <= Long.MAX_VALUE / mul ? precision * mul : Long.MAX_VALUE, 0, null);
             break;
+        }
         case SOUNDEX:
             typeInfo = TypeInfo.getTypeInfo(info.returnDataType, 4, 0, null);
             break;

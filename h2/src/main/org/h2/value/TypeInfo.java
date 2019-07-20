@@ -89,6 +89,11 @@ public class TypeInfo {
     public static final TypeInfo TYPE_TIMESTAMP;
 
     /**
+     * BYTES type with maximum parameters.
+     */
+    public static final TypeInfo TYPE_BYTES;
+
+    /**
      * STRING type with maximum parameters.
      */
     public static final TypeInfo TYPE_STRING;
@@ -194,7 +199,7 @@ public class TypeInfo {
         infos[Value.DATE] = TYPE_DATE = new TypeInfo(Value.DATE, ValueDate.PRECISION, 0, ValueDate.PRECISION, null);
         infos[Value.TIMESTAMP] = TYPE_TIMESTAMP = new TypeInfo(Value.TIMESTAMP, ValueTimestamp.MAXIMUM_PRECISION,
                 ValueTimestamp.MAXIMUM_SCALE, ValueTimestamp.MAXIMUM_PRECISION, null);
-        infos[Value.BYTES] = new TypeInfo(Value.BYTES, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
+        infos[Value.BYTES] = TYPE_BYTES = new TypeInfo(Value.BYTES, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
         infos[Value.STRING] = TYPE_STRING = new TypeInfo(Value.STRING, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
         infos[Value.STRING_IGNORECASE] = TYPE_STRING_IGNORECASE = new TypeInfo(Value.STRING_IGNORECASE,
                 Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
@@ -328,7 +333,7 @@ public class TypeInfo {
         }
         case Value.BYTES:
             if (precision < 0 || precision > Integer.MAX_VALUE) {
-                precision = Integer.MAX_VALUE;
+                return TYPE_BYTES;
             }
             return new TypeInfo(Value.BYTES, precision, 0, MathUtils.convertLongToInt(precision * 2), null);
         case Value.STRING:

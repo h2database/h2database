@@ -285,7 +285,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunctionWithNull("CONCAT", CONCAT, VAR_ARGS, Value.STRING);
         addFunctionWithNull("CONCAT_WS", CONCAT_WS, VAR_ARGS, Value.STRING);
         addFunction("DIFFERENCE", DIFFERENCE, 2, Value.INT);
-        addFunction("HEXTORAW", HEXTORAW, 1, Value.STRING);
+        addFunction("HEXTORAW", HEXTORAW, 1, Value.NULL);
         addFunctionWithNull("INSERT", INSERT, 4, Value.STRING);
         addFunction("LCASE", LCASE, 1, Value.STRING);
         addFunction("LEFT", LEFT, 2, Value.STRING);
@@ -843,8 +843,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         }
         case HEXTORAW:
-            result = ValueString.get(hexToRaw(v0.getString()),
-                    database.getMode().treatEmptyStringsAsNull);
+            result = hexToRaw(v0.getString(), database.getMode());
             break;
         case LOWER:
         case LCASE:
@@ -2140,8 +2139,10 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         return s1.substring(0, start) + s2 + s1.substring(start + length);
     }
 
-    private static String hexToRaw(String s) {
-        // TODO function hextoraw compatibility with oracle
+    private static Value hexToRaw(String s, Mode mode) {
+        if (mode.getEnum() == ModeEnum.Oracle) {
+            return ValueBytes.get(StringUtils.convertHexToBytes(s));
+        }
         int len = s.length();
         if (len % 4 != 0) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, s);
@@ -2155,7 +2156,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, s);
             }
         }
-        return buff.toString();
+        return ValueString.get(buff.toString(), mode.treatEmptyStringsAsNull);
     }
 
     private static int getDifference(String s1, String s2) {
@@ -2883,9 +2884,23 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             typeInfo = TypeInfo.getTypeInfo(info.returnDataType, p, 0, null);
             break;
         }
-        case HEXTORAW:
-            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, (args[0].getType().getPrecision() + 3) / 4, 0, null);
+        case HEXTORAW: {
+            TypeInfo t = args[0].getType();
+            if (database.getMode().getEnum() == ModeEnum.Oracle) {
+                if (DataType.isStringType(t.getValueType())) {
+                    typeInfo = TypeInfo.getTypeInfo(Value.BYTES, t.getPrecision() / 2, 0, null);
+                } else {
+                    typeInfo = TypeInfo.TYPE_BYTES;
+                }
+            } else {
+                if (DataType.isStringType(t.getValueType())) {
+                    typeInfo = TypeInfo.getTypeInfo(Value.STRING, t.getPrecision() / 4, 0, null);
+                } else {
+                    typeInfo = TypeInfo.TYPE_STRING;
+                }
+            }
             break;
+        }
         case LCASE:
         case LTRIM:
         case RIGHT:

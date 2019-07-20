@@ -575,7 +575,7 @@ public class TestResultSet extends TestDb {
         assertEquals(10, meta.getPrecision(1));
         assertEquals(1, meta.getPrecision(2));
         assertEquals(30, meta.getPrecision(3));
-        assertEquals(3, meta.getPrecision(4));
+        assertEquals(2, meta.getPrecision(4));
         assertEquals(40, meta.getPrecision(5));
         stat.execute("DROP TABLE one");
     }

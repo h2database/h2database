@@ -47,6 +47,7 @@ import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mode.FunctionsMSSQLServer;
 import org.h2.mode.FunctionsMySQL;
+import org.h2.mode.FunctionsOracle;
 import org.h2.mvstore.db.MVSpatialIndex;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
@@ -271,7 +272,6 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunction("EXPAND", EXPAND, 1, Value.BYTES);
         addFunction("ZERO", ZERO, 0, Value.INT);
         addFunctionNotDeterministic("RANDOM_UUID", RANDOM_UUID, 0, Value.UUID);
-        addFunctionNotDeterministic("SYS_GUID", RANDOM_UUID, 0, Value.UUID);
         addFunctionNotDeterministic("UUID", RANDOM_UUID, 0, Value.UUID);
         addFunction("ORA_HASH", ORA_HASH, VAR_ARGS, Value.LONG);
         // string
@@ -285,7 +285,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunctionWithNull("CONCAT", CONCAT, VAR_ARGS, Value.STRING);
         addFunctionWithNull("CONCAT_WS", CONCAT_WS, VAR_ARGS, Value.STRING);
         addFunction("DIFFERENCE", DIFFERENCE, 2, Value.INT);
-        addFunction("HEXTORAW", HEXTORAW, 1, Value.STRING);
+        addFunction("HEXTORAW", HEXTORAW, 1, Value.NULL);
         addFunctionWithNull("INSERT", INSERT, 4, Value.STRING);
         addFunction("LCASE", LCASE, 1, Value.STRING);
         addFunction("LEFT", LEFT, 2, Value.STRING);
@@ -582,6 +582,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 return FunctionsMSSQLServer.getFunction(database, name);
             case MySQL:
                 return FunctionsMySQL.getFunction(database, name);
+            case Oracle:
+                return FunctionsOracle.getFunction(database, name);
             default:
                 return null;
             }
@@ -841,8 +843,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         }
         case HEXTORAW:
-            result = ValueString.get(hexToRaw(v0.getString()),
-                    database.getMode().treatEmptyStringsAsNull);
+            result = hexToRaw(v0.getString(), database.getMode());
             break;
         case LOWER:
         case LCASE:
@@ -851,10 +852,11 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             result = ValueString.get(v0.getString().toLowerCase(),
                     database.getMode().treatEmptyStringsAsNull);
             break;
-        case RAWTOHEX:
-            result = ValueString.get(rawToHex(v0.getString()),
-                    database.getMode().treatEmptyStringsAsNull);
+        case RAWTOHEX: {
+            Mode mode = database.getMode();
+            result = ValueString.get(rawToHex(v0, mode), mode.treatEmptyStringsAsNull);
             break;
+        }
         case SOUNDEX:
             result = ValueString.get(getSoundex(v0.getString()),
                     database.getMode().treatEmptyStringsAsNull);
@@ -2071,7 +2073,14 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         return buff.toString();
     }
 
-    private static String rawToHex(String s) {
+    private static String rawToHex(Value v, Mode mode) {
+        if (DataType.isBinaryStringOrSpecialBinaryType(v.getValueType())) {
+            return StringUtils.convertBytesToHex(v.getBytesNoCopy());
+        }
+        String s = v.getString();
+        if (mode.getEnum() == ModeEnum.Oracle) {
+            return StringUtils.convertBytesToHex(s.getBytes(StandardCharsets.UTF_8));
+        }
         int length = s.length();
         StringBuilder buff = new StringBuilder(4 * length);
         for (int i = 0; i < length; i++) {
@@ -2130,8 +2139,10 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         return s1.substring(0, start) + s2 + s1.substring(start + length);
     }
 
-    private static String hexToRaw(String s) {
-        // TODO function hextoraw compatibility with oracle
+    private static Value hexToRaw(String s, Mode mode) {
+        if (mode.getEnum() == ModeEnum.Oracle) {
+            return ValueBytes.get(StringUtils.convertHexToBytes(s));
+        }
         int len = s.length();
         if (len % 4 != 0) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, s);
@@ -2145,7 +2156,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, s);
             }
         }
-        return buff.toString();
+        return ValueString.get(buff.toString(), mode.treatEmptyStringsAsNull);
     }
 
     private static int getDifference(String s1, String s2) {
@@ -2873,9 +2884,23 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             typeInfo = TypeInfo.getTypeInfo(info.returnDataType, p, 0, null);
             break;
         }
-        case HEXTORAW:
-            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, (args[0].getType().getPrecision() + 3) / 4, 0, null);
+        case HEXTORAW: {
+            TypeInfo t = args[0].getType();
+            if (database.getMode().getEnum() == ModeEnum.Oracle) {
+                if (DataType.isStringType(t.getValueType())) {
+                    typeInfo = TypeInfo.getTypeInfo(Value.BYTES, t.getPrecision() / 2, 0, null);
+                } else {
+                    typeInfo = TypeInfo.TYPE_BYTES;
+                }
+            } else {
+                if (DataType.isStringType(t.getValueType())) {
+                    typeInfo = TypeInfo.getTypeInfo(Value.STRING, t.getPrecision() / 4, 0, null);
+                } else {
+                    typeInfo = TypeInfo.TYPE_STRING;
+                }
+            }
             break;
+        }
         case LCASE:
         case LTRIM:
         case RIGHT:
@@ -2888,9 +2913,15 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case UTF8TOSTRING:
             typeInfo = TypeInfo.getTypeInfo(info.returnDataType, args[0].getType().getPrecision(), 0, null);
             break;
-        case RAWTOHEX:
-            typeInfo = TypeInfo.getTypeInfo(info.returnDataType, args[0].getType().getPrecision() * 4, 0, null);
+        case RAWTOHEX: {
+            TypeInfo t = args[0].getType();
+            long precision = t.getPrecision();
+            int mul = DataType.isBinaryStringOrSpecialBinaryType(t.getValueType()) ? 2
+                    : database.getMode().getEnum() == ModeEnum.Oracle ? 6 : 4;
+            typeInfo = TypeInfo.getTypeInfo(info.returnDataType,
+                    precision <= Long.MAX_VALUE / mul ? precision * mul : Long.MAX_VALUE, 0, null);
             break;
+        }
         case SOUNDEX:
             typeInfo = TypeInfo.getTypeInfo(info.returnDataType, 4, 0, null);
             break;

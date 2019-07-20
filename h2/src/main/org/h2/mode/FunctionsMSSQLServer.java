@@ -16,6 +16,7 @@ import org.h2.expression.function.FunctionInfo;
  * mode.
  */
 public final class FunctionsMSSQLServer extends FunctionsBase {
+
     private static final HashMap<String, FunctionInfo> FUNCTIONS = new HashMap<>();
 
     static {
@@ -42,4 +43,5 @@ public final class FunctionsMSSQLServer extends FunctionsBase {
     private FunctionsMSSQLServer(Database database, FunctionInfo info) {
         super(database, info);
     }
+
 }

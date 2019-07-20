@@ -1464,6 +1464,29 @@ public class DataType {
     }
 
     /**
+     * Check if the given value type is a binary string type or a compatible
+     * special data type such as Java object, UUID, geometry object, or JSON.
+     *
+     * @param type
+     *            the value type
+     * @return true if the value type is a binary string type or a compatible
+     *         special data type
+     */
+    public static boolean isBinaryStringOrSpecialBinaryType(int type) {
+        switch (type) {
+        case Value.BYTES:
+        case Value.BLOB:
+        case Value.JAVA_OBJECT:
+        case Value.UUID:
+        case Value.GEOMETRY:
+        case Value.JSON:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    /**
      * Check if the given type has total ordering.
      *
      * @param type the value type

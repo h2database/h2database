@@ -8,3 +8,18 @@ select hextoraw(null) en, rawtohex(null) en1, hextoraw(rawtohex('abc')) abc;
 > ---- ---- ---
 > null null abc
 > rows: 1
+
+SELECT HEXTORAW('0049');
+>> I
+
+SET MODE Oracle;
+> ok
+
+SELECT HEXTORAW('0049');
+>> 0049
+
+SELECT HEXTORAW('0049') IS OF (RAW);
+>> TRUE
+
+SET MODE Regular;
+> ok

@@ -4268,9 +4268,9 @@ HEXTORAW(DATA)
 "
 
 "Functions (String)","RAWTOHEX","
-RAWTOHEX(string)
+RAWTOHEX(string|bytes)
 ","
-Converts a string to the hex representation.
+Converts a string or bytes to the hex representation.
 4 hex characters per string character are used.
 This method returns a string.
 ","

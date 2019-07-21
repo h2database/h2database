@@ -855,7 +855,6 @@ public abstract class Page implements Cloneable
      */
     public final int removePage(long version) {
         if(isPersistent() && getTotalCount() > 0) {
-            assert map.getRoot().isLockedByCurrentThread();
             MVStore store = map.store;
             if (!markAsRemoved()) { // only if it has been saved already
                 long pagePos = pos;

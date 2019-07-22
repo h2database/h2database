@@ -1211,17 +1211,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             int keyCount;
             int availabilityThreshold = fullFlush ? 0 : keysPerPage - 1;
             while ((keyCount = rootReference.getAppendCounter()) > availabilityThreshold) {
-                if (!locked) {
-                    // instead of just calling lockRoot() we loop here and check if someone else
-                    // already flushed the buffer, then we don't need a lock
-                    rootReference = tryLock(rootReference, ++attempt);
-                    if (rootReference == null) {
-                        rootReference = getRoot();
-                        continue;
-                    }
-                    locked = true;
-                }
-
                 Page rootPage = rootReference.root;
                 long version = rootReference.version;
                 CursorPos pos = rootPage.getAppendCursorPos(null);
@@ -1232,6 +1221,17 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 Page p = pos.page;
                 CursorPos tip = pos;
                 pos = pos.parent;
+
+                if (!locked) {
+                    // instead of just calling lockRoot() we loop here and check if someone else
+                    // already flushed the buffer, then we don't need a lock
+                    rootReference = tryLock(rootReference, ++attempt);
+                    if (rootReference == null) {
+                        rootReference = getRoot();
+                        continue;
+                    }
+                    locked = true;
+                }
 
                 int remainingBuffer = 0;
                 Page page = null;

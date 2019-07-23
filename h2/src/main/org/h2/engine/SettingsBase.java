@@ -5,7 +5,11 @@
  */
 package org.h2.engine;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
@@ -106,6 +110,23 @@ public class SettingsBase {
      */
     public HashMap<String, String> getSettings() {
         return settings;
+    }
+
+    /**
+     * Get all settings in alphabetical order.
+     *
+     * @return the settings
+     */
+    public Entry<String, String>[] getSortedSettings() {
+        @SuppressWarnings("unchecked")
+        Map.Entry<String, String>[] entries = settings.entrySet().toArray(new Map.Entry[0]);
+        Arrays.sort(entries, new Comparator<Map.Entry<String, String>>() {
+            @Override
+            public int compare(Entry<String, String> o1, Entry<String, String> o2) {
+                return o1.getKey().compareTo(o2.getKey());
+            }
+        });
+        return entries;
     }
 
 }

@@ -11,7 +11,7 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.Map.Entry;
 import javax.management.JMException;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -229,13 +229,11 @@ public class DatabaseInfo implements DatabaseInfoMBean {
 
     @Override
     public String listSettings() {
-        StringBuilder buff = new StringBuilder();
-        for (Map.Entry<String, String> e :
-                new TreeMap<>(
-                database.getSettings().getSettings()).entrySet()) {
-            buff.append(e.getKey()).append(" = ").append(e.getValue()).append('\n');
+        StringBuilder builder = new StringBuilder();
+        for (Entry<String, String> e : database.getSettings().getSortedSettings()) {
+            builder.append(e.getKey()).append(" = ").append(e.getValue()).append('\n');
         }
-        return buff.toString();
+        return builder.toString();
     }
 
     @Override

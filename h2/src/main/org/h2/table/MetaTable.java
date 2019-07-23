@@ -14,9 +14,8 @@ import java.sql.ResultSet;
 import java.sql.Types;
 import java.text.Collator;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import org.h2.command.Command;
 import org.h2.constraint.Constraint;
@@ -1129,12 +1128,8 @@ public class MetaTable extends Table {
             add(rows, "RETENTION_TIME", Integer.toString(database.getRetentionTime()));
             add(rows, "LOG", Integer.toString(database.getLogMode()));
             // database settings
-            HashMap<String, String> s = database.getSettings().getSettings();
-            ArrayList<String> settingNames = new ArrayList<>(s.size());
-            settingNames.addAll(s.keySet());
-            Collections.sort(settingNames);
-            for (String k : settingNames) {
-                add(rows, k, s.get(k));
+            for (Map.Entry<String, String> entry : database.getSettings().getSortedSettings()) {
+                add(rows, entry.getKey(), entry.getValue());
             }
             if (database.isPersistent()) {
                 PageStore pageStore = database.getPageStore();

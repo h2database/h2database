@@ -423,21 +423,31 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             if (rootReference.getTotalCount() == 0) {
                 return rootReference;
             }
-            if (!isPersistent()) {
-                rootReference = rootReference.updateRootPage(emptyRootPage, ++attempt);
-                if (rootReference != null) {
-                    return rootReference;
+            boolean locked = rootReference.isLockedByCurrentThread();
+            if (!locked) {
+                if (attempt++ == 0) {
+                    beforeWrite();
+                } else if (attempt > 3 || rootReference.isLocked()) {
+                    rootReference = lockRoot(rootReference, attempt);
+                    locked = true;
                 }
-            } else {
-                RootReference lockedRootReference = lockRoot(rootReference, ++attempt);
-                Page page = lockedRootReference.root;
-                try {
-                    store.registerUnsavedMemory(page.removeAllRecursive(lockedRootReference.version));
-                    page = emptyRootPage;
-                } finally {
-                    rootReference = unlockRoot(page);
+            }
+            Page rootPage = rootReference.root;
+            long version = rootReference.version;
+            try {
+                if (!locked) {
+                    rootReference = rootReference.updateRootPage(emptyRootPage, attempt);
+                    if (rootReference == null) {
+                        continue;
+                    }
                 }
+                store.registerUnsavedMemory(rootPage.removeAllRecursive(version));
+                rootPage = emptyRootPage;
                 return rootReference;
+            } finally {
+                if(locked) {
+                    unlockRoot(rootPage);
+                }
             }
         }
     }
@@ -1807,20 +1817,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 }
                 rootPage = replacePage(pos, p, unsavedMemoryHolder);
                 if (!locked) {
-                    if (!isPersistent()) {
-                        if (updateRoot(rootReference, rootPage, attempt)) {
-                            notifyWaiters();
-                            return result;
-                        } else {
-                            decisionMaker.reset();
-                            continue;
-                        }
-                    } else {
-                        locked = tryLock(rootReference, attempt) != null;
-                        if (!locked) {
-                            decisionMaker.reset();
-                            continue;
-                        }
+                    rootReference = rootReference.updateRootPage(rootPage, attempt);
+                    if (rootReference == null) {
+                        decisionMaker.reset();
+                        continue;
                     }
                 }
                 store.registerUnsavedMemory(unsavedMemoryHolder.value + tip.processRemovalInfo(version));

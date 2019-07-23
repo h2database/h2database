@@ -2473,8 +2473,8 @@ public class MVStore implements AutoCloseable {
             checkOpen();
             DataUtils.checkArgument(map != meta,
                     "Removing the meta map is not allowed");
-            map.close();
             RootReference rootReference = map.clearIt();
+            map.close();
 
             updateCounter += rootReference.updateCounter;
             updateAttemptCounter += rootReference.updateAttemptCounter;

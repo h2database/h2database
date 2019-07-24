@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -789,8 +790,24 @@ public class Database implements DataHandler {
                 getPageStore();
             }
         }
-        if(store != null) {
+        if (store != null) {
             store.getTransactionStore().init();
+        }
+        if (dbSettings.mvStore) {
+            // MVStore
+            for (Iterator<String> i = dbSettings.getSettings().keySet().iterator(); i.hasNext();) {
+                if (i.next().startsWith("PAGE_STORE_")) {
+                    i.remove();
+                }
+            }
+        } else if (store == null) {
+            // PageStore without additional MVStore for spatial features
+            for (Iterator<String> i = dbSettings.getSettings().keySet().iterator(); i.hasNext();) {
+                String name = i.next();
+                if ("COMPRESS".equals(name) || "REUSE_SPACE".equals(name)) {
+                    i.remove();
+                }
+            }
         }
         systemUser = new User(this, 0, SYSTEM_USER_NAME, true);
         mainSchema = new Schema(this, Constants.MAIN_SCHEMA_ID, sysIdentifier(Constants.SCHEMA_MAIN), systemUser,

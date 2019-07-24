@@ -1200,11 +1200,18 @@ public class TestMetaData extends TestDb {
         stat.execute("DROP TABLE TEST");
 
         rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.SETTINGS");
+        int mvStoreSettingsCount = 0, pageStoreSettingsCount = 0;
         while (rs.next()) {
             String name = rs.getString("NAME");
-            String value = rs.getString("VALUE");
-            trace(name + "=" + value);
+            trace(name + '=' + rs.getString("VALUE"));
+            if ("COMPRESS".equals(name) || "REUSE_SPACE".equals(name)) {
+                mvStoreSettingsCount++;
+            } else if (name.startsWith("PAGE_STORE_")) {
+                pageStoreSettingsCount++;
+            }
         }
+        assertEquals(config.mvStore ? 2 : 0, mvStoreSettingsCount);
+        assertEquals(config.mvStore ? 0 : 3, pageStoreSettingsCount);
 
         testMore();
 

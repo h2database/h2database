@@ -652,7 +652,7 @@ public class ConnectionInfo implements Cloneable {
 
     public DbSettings getDbSettings() {
         DbSettings defaultSettings = DbSettings.getDefaultSettings();
-        HashMap<String, String> s = new HashMap<>();
+        HashMap<String, String> s = new HashMap<>(DbSettings.TABLE_SIZE);
         for (Object k : prop.keySet()) {
             String key = k.toString();
             if (!isKnownSetting(key) && defaultSettings.containsKey(key)) {

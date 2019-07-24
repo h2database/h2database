@@ -27,6 +27,11 @@ public class DbSettings extends SettingsBase {
     private static DbSettings defaultSettings;
 
     /**
+     * The intitial size of the hash table.
+     */
+    static final int TABLE_SIZE = 64;
+
+    /**
      * Database setting <code>ALIAS_COLUMN_NAME</code> (default: false).<br />
      * When enabled, aliased columns (as in SELECT ID AS I FROM TEST) return the
      * alias (I in this case) in ResultSetMetaData.getColumnName() and 'null' in
@@ -381,7 +386,7 @@ public class DbSettings extends SettingsBase {
      */
     public static DbSettings getDefaultSettings() {
         if (defaultSettings == null) {
-            defaultSettings = new DbSettings(new HashMap<String, String>());
+            defaultSettings = new DbSettings(new HashMap<String, String>(TABLE_SIZE));
         }
         return defaultSettings;
     }

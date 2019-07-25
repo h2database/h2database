@@ -184,6 +184,15 @@ As in all modes, both persistent and in-memory databases are supported.
 There is no limit on the number of database open concurrently,
 or on the number of open connections.
 </p>
+<p>
+In embedded mode I/O operations can be performed by application's threads that execute a SQL command.
+The application may not interrupt these threads, it can lead to database corruption,
+because JVM closes I/O handle during thread interruption.
+Consider other ways to control execution of your application.
+When interrupts are possible the <a href="advanced.html#file_system"><code>async:</code></a>
+file system can be used as a workaround, but full safety is not guaranteed.
+It's recommended to use the client-server model instead, the client side may interrupt own threads.
+</p>
 <img src="images/connection-mode-embedded-2.png"
     width="208" height="259"
     alt="The database is embedded in the application" />

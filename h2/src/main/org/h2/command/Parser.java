@@ -674,11 +674,26 @@ public class Parser {
     private boolean literalsChecked;
     private int orderInFrom;
 
+    /**
+     * Creates a new instance of parser.
+     *
+     * @param session the session
+     */
     public Parser(Session session) {
         this.database = session.getDatabase();
         this.identifiersToLower = database.getSettings().databaseToLower;
         this.identifiersToUpper = database.getSettings().databaseToUpper;
         this.session = session;
+    }
+
+    /**
+     * Creates a new instance of parser for special use cases.
+     */
+    public Parser() {
+        database = null;
+        identifiersToLower = false;
+        identifiersToUpper = false;
+        session = null;
     }
 
     /**
@@ -5140,7 +5155,7 @@ public class Parser {
     }
 
     private void checkLiterals(boolean text) {
-        if (!literalsChecked && !session.getAllowLiterals()) {
+        if (!literalsChecked && session != null && !session.getAllowLiterals()) {
             int allowed = database.getAllowLiterals();
             if (allowed == Constants.ALLOW_LITERALS_NONE ||
                     (text && allowed != Constants.ALLOW_LITERALS_ALL)) {
@@ -8558,6 +8573,58 @@ public class Parser {
         initialize(sql);
         read();
         return readTableOrView();
+    }
+
+    /**
+     * Parses a list of column names or numbers in parentheses.
+     *
+     * @param sql the source SQL
+     * @param offset the initial offset
+     * @return the array of column names ({@code String[]}) or numbers
+     *         ({@code int[]})
+     * @throws DbException on syntax error
+     */
+    public Object parseColumnList(String sql, int offset) {
+        initialize(sql);
+        parseIndex = offset;
+        read();
+        read(OPEN_PAREN);
+        if (readIf(CLOSE_PAREN)) {
+            return Utils.EMPTY_INT_ARRAY;
+        }
+        if (currentTokenType == IDENTIFIER) {
+            ArrayList<String> list = Utils.newSmallArrayList();
+            do {
+                if (currentTokenType != IDENTIFIER) {
+                    throw getSyntaxError();
+                }
+                list.add(currentToken);
+                read();
+            } while (readIfMore(true));
+            return list.toArray(new String[0]);
+        } else if (currentTokenType == VALUE) {
+            ArrayList<Integer> list = Utils.newSmallArrayList();
+            do {
+                list.add(readInt());
+            } while (readIfMore(true));
+            int count = list.size();
+            int[] array = new int[count];
+            for (int i = 0; i < count; i++) {
+                array[i] = list.get(i);
+            }
+            return array;
+        } else {
+            throw getSyntaxError();
+        }
+    }
+
+    /**
+     * Returns the last parse index.
+     *
+     * @return the last parse index
+     */
+    public int getLastParseIndex() {
+        return lastParseIndex;
     }
 
     @Override

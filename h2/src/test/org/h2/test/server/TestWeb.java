@@ -452,6 +452,21 @@ public class TestWeb extends TestDb {
             result = client.get(url,
                     "query.do?sql=@generated insert into test(id) values(test_sequence.nextval)");
             assertContains(result, "<tr><th>ID</th></tr><tr><td>1</td></tr>");
+            result = client.get(url,
+                    "query.do?sql=@generated(1) insert into test(id) values(test_sequence.nextval)");
+            assertContains(result, "<tr><th>ID</th></tr><tr><td>2</td></tr>");
+            result = client.get(url,
+                    "query.do?sql=@generated(1, 1) insert into test(id) values(test_sequence.nextval)");
+            assertContains(result, "<tr><th>ID</th><th>ID</th></tr><tr><td>3</td><td>3</td></tr>");
+            result = client.get(url,
+                    "query.do?sql=@generated(id) insert into test(id) values(test_sequence.nextval)");
+            assertContains(result, "<tr><th>ID</th></tr><tr><td>4</td></tr>");
+            result = client.get(url,
+                    "query.do?sql=@generated(id, id) insert into test(id) values(test_sequence.nextval)");
+            assertContains(result, "<tr><th>ID</th><th>ID</th></tr><tr><td>5</td><td>5</td></tr>");
+            result = client.get(url,
+                    "query.do?sql=@generated() insert into test(id) values(test_sequence.nextval)");
+            assertContains(result, "<table cellspacing=0 cellpadding=0><tr></tr></table>");
             result = client.get(url, "query.do?sql=@maxrows 2000");
             assertContains(result, "Max rowcount is set");
             result = client.get(url, "query.do?sql=@password_hash user password");

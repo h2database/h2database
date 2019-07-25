@@ -1721,12 +1721,12 @@ The file system implementation is selected using a file name prefix.
 Internally, the interfaces are very similar to the Java 7 NIO2 API, but do not (yet) use or require Java 7.
 The following file systems are included:
 </p>
-<ul><li><code>zip:</code>  read-only zip-file based file system. Format: <code>zip:/zipFileName!/fileName</code>.
+<ul><li><code>zip:</code>  read-only zip-file based file system. Format: <code>zip:~/zipFileName!/fileName</code>.
 </li><li><code>split:</code> file system that splits files in 1 GB files (stackable with other file systems).
 </li><li><code>nio:</code> file system that uses <code>FileChannel</code> instead of <code>RandomAccessFile</code> (faster in some operating systems).
 </li><li><code>nioMapped:</code> file system that uses memory mapped files (faster in some operating systems).
     Please note that there currently is a file size limitation of 2 GB when using this file system.
-    To work around this limitation, combine it with the split file system: <code>split:nioMapped:test</code>.
+    To work around this limitation, combine it with the split file system: <code>split:nioMapped:~/test</code>.
 </li><li><code>async:</code> experimental file system that uses <code>AsynchronousFileChannel</code> instead of <code>RandomAccessFile</code> (faster in some operating systems).
 </li><li><code>memFS:</code> in-memory file system (slower than mem; experimental; mainly used for testing the database engine itself).
 </li><li><code>memLZF:</code> compressing in-memory file system (slower than memFS but uses less memory; experimental; mainly used for testing the database engine itself).
@@ -1771,7 +1771,7 @@ The maximum physical file size of a block is 2^30 bytes, which is also called 1 
 However this can be changed if required, by specifying the block size in the file name.
 The file name format is: <code>split:&lt;x&gt;:&lt;fileName&gt;</code> where the file size per block is 2^x.
 For 1 MiB block sizes, use x = 20 (because 2^20 is 1 MiB).
-The following file name means the logical file is split into 1 MiB blocks: <code>split:20:test.h2.db</code>.
+The following file name means the logical file is split into 1 MiB blocks: <code>split:20:~/test.h2.db</code>.
 An example database URL for this case is <code>jdbc:h2:split:20:~/test</code>.
 </p>
 

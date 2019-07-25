@@ -1474,8 +1474,7 @@ public class WebApp {
     }
 
     private static boolean isBuiltIn(String sql, String builtIn) {
-        int len = builtIn.length();
-        return sql.length() >= len && sql.regionMatches(true, 0, builtIn, 0, len);
+        return sql.regionMatches(true, 0, builtIn, 0, builtIn.length());
     }
 
     private String executeLoop(Connection conn, int count, String sql)

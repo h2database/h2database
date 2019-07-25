@@ -27,7 +27,7 @@ public class DbSettings extends SettingsBase {
     private static DbSettings defaultSettings;
 
     /**
-     * The intitial size of the hash table.
+     * The initial size of the hash table.
      */
     static final int TABLE_SIZE = 64;
 

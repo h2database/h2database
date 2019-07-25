@@ -317,10 +317,13 @@ otherwise they are not parsed correctly. If in doubt, add <code>;</code> before 
     </tr>
     <tr>
         <td class="notranslate">
-            @generated&nbsp;insert&nbsp;into&nbsp;test()&nbsp;values();
+            @generated&nbsp;insert&nbsp;into&nbsp;test()&nbsp;values();<br />
+            @generated(1)&nbsp;insert&nbsp;into&nbsp;test()&nbsp;values();<br />
+            @generated(ID, "TIMESTAMP")&nbsp;insert&nbsp;into&nbsp;test()&nbsp;values();
         </td>
         <td>
             Show the result of <code>Statement.getGeneratedKeys()</code>.
+            Names or one-based indexes of required columns can be optionally specified.
         </td>
     </tr>
     <tr>

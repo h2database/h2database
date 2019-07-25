@@ -40,6 +40,7 @@ import org.h2.bnf.context.DbColumn;
 import org.h2.bnf.context.DbContents;
 import org.h2.bnf.context.DbSchema;
 import org.h2.bnf.context.DbTableOrView;
+import org.h2.command.Parser;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcException;
@@ -1337,7 +1338,7 @@ public class WebApp {
             ResultSet rs;
             long time = System.currentTimeMillis();
             boolean metadata = false;
-            int generatedKeys = Statement.NO_GENERATED_KEYS;
+            Object generatedKeys = null;
             boolean edit = false;
             boolean list = false;
             if (isBuiltIn(sql, "@autocommit_true")) {
@@ -1369,8 +1370,22 @@ public class WebApp {
                 sql = StringUtils.trimSubstring(sql, "@meta".length());
             }
             if (isBuiltIn(sql, "@generated")) {
-                generatedKeys = Statement.RETURN_GENERATED_KEYS;
-                sql = StringUtils.trimSubstring(sql, "@generated".length());
+                generatedKeys = true;
+                int offset = "@generated".length();
+                int length = sql.length();
+                for (; offset < length; offset++) {
+                    char c = sql.charAt(offset);
+                    if (c == '(') {
+                        Parser p = new Parser();
+                        generatedKeys = p.parseColumnList(sql, offset);
+                        offset = p.getLastParseIndex();
+                        break;
+                    }
+                    if (!Character.isWhitespace(c)) {
+                        break;
+                    }
+                }
+                sql = StringUtils.trimSubstring(sql, offset);
             } else if (isBuiltIn(sql, "@history")) {
                 buff.append(getCommandHistoryString());
                 return buff.toString();
@@ -1437,9 +1452,19 @@ public class WebApp {
                 int maxrows = getMaxrows();
                 stat.setMaxRows(maxrows);
                 session.executingStatement = stat;
-                boolean isResultSet = stat.execute(sql, generatedKeys);
+                boolean isResultSet;
+                if (generatedKeys == null) {
+                    isResultSet = stat.execute(sql);
+                } else if (generatedKeys instanceof Boolean) {
+                    isResultSet = stat.execute(sql,
+                            ((Boolean) generatedKeys) ? Statement.RETURN_GENERATED_KEYS : Statement.NO_GENERATED_KEYS);
+                } else if (generatedKeys instanceof String[]) {
+                    isResultSet = stat.execute(sql, (String[]) generatedKeys);
+                } else {
+                    isResultSet = stat.execute(sql, (int[]) generatedKeys);
+                }
                 session.addCommand(sql);
-                if (generatedKeys == Statement.RETURN_GENERATED_KEYS) {
+                if (generatedKeys != null) {
                     rs = null;
                     rs = stat.getGeneratedKeys();
                 } else {

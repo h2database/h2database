@@ -8580,7 +8580,9 @@ public class Parser {
      *
      * @param sql the source SQL
      * @param offset the initial offset
-     * @return the array of column names or numbers
+     * @return the array of column names ({@code String[]}) or numbers
+     *         ({@code int[]})
+     * @throws DbException on syntax error
      */
     public Object parseColumnList(String sql, int offset) {
         initialize(sql);

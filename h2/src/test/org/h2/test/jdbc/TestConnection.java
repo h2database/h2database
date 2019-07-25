@@ -44,6 +44,7 @@ public class TestConnection extends TestDb {
         testSetGetSchema();
         testCommitOnAutoCommitSetRunner();
         testRollbackOnAutoCommitSetRunner();
+        testChangeTransactionLevelCommitRunner();
     }
 
     private void testSetInternalProperty() throws SQLException {
@@ -169,6 +170,42 @@ public class TestConnection extends TestDb {
             assertTrue(rs.getInt(1) == 2);
             rs.close();
         }
+
+        conn.close();
+        prep.close();
+    }
+    
+     private void testChangeTransactionLevelCommitRunner() throws Exception {
+        assertFalse("Default value must be false", SysProperties.FORCE_AUTOCOMMIT_OFF_ON_COMMIT);
+        testChangeTransactionLevelCommit(false);
+        testChangeTransactionLevelCommit(true);
+        try {
+            SysProperties.FORCE_AUTOCOMMIT_OFF_ON_COMMIT = true;
+            testChangeTransactionLevelCommit(true);
+            testChangeTransactionLevelCommit(false);
+        } finally {
+            SysProperties.FORCE_AUTOCOMMIT_OFF_ON_COMMIT = false;
+        }
+
+    }
+     
+     private void testChangeTransactionLevelCommit(boolean setAutoCommit) throws Exception {
+        Connection conn = getConnection("clientInfo");
+        conn.setAutoCommit(setAutoCommit);
+        Statement stat = conn.createStatement();
+        stat.execute("DROP TABLE IF EXISTS TEST");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
+        PreparedStatement prep = conn.prepareStatement(
+                "INSERT INTO TEST VALUES(?, ?)");
+        int index = 1;
+        prep.setInt(index++, 1);
+        prep.setString(index++, "test1");
+        prep.execute();
+        conn.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
+        
+        
+        conn.createStatement().executeQuery("SELECT COUNT(*) FROM TEST");
+        // throws exception if TransactionIsolation did not commit
 
         conn.close();
         prep.close();

@@ -796,7 +796,9 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             default:
                 throw DbException.getInvalidValueException("level", level);
             }
-            commit();
+            if (!getAutoCommit()) {
+                commit();
+            }
             setLockMode = prepareCommand("SET LOCK_MODE ?", setLockMode);
             setLockMode.getParameters().get(0).setValue(ValueInt.get(lockMode), false);
             setLockMode.executeUpdate(null);

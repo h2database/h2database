@@ -602,19 +602,19 @@ public class Recover extends Tool implements DataHandler {
         resetSchema();
         setDatabaseName(fileName.substring(0, fileName.length() -
                 Constants.SUFFIX_MV_FILE.length()));
-        MVStore mv = new MVStore.Builder().
-                fileName(fileName).readOnly().open();
-        dumpLobMaps(writer, mv);
-        writer.println("-- Meta");
-        dumpMeta(writer, mv);
-        writer.println("-- Tables");
-        TransactionStore store = new TransactionStore(mv);
-        try {
-            store.init();
-        } catch (Throwable e) {
-            writeError(writer, e);
-        }
-        try {
+        try (MVStore mv = new MVStore.Builder().
+                fileName(fileName).recoveryMode().readOnly().open()) {
+            dumpLobMaps(writer, mv);
+            writer.println("-- Meta");
+            dumpMeta(writer, mv);
+            writer.println("-- Tables");
+            TransactionStore store = new TransactionStore(mv);
+            try {
+                store.init();
+            } catch (Throwable e) {
+                writeError(writer, e);
+            }
+
             // extract the metadata so we can dump the settings
             ValueDataType type = new ValueDataType();
             for (String mapName : mv.getMapNames()) {
@@ -695,8 +695,6 @@ public class Recover extends Tool implements DataHandler {
             writer.println("DROP TABLE IF EXISTS INFORMATION_SCHEMA.LOB_BLOCKS;");
         } catch (Throwable e) {
             writeError(writer, e);
-        } finally {
-            mv.close();
         }
     }
 

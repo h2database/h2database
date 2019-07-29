@@ -234,6 +234,8 @@ public class MVStore implements AutoCloseable {
 
     private Compressor compressorHigh;
 
+    private final boolean recoveryMode;
+
     private final UncaughtExceptionHandler backgroundExceptionHandler;
 
     private volatile long currentVersion;
@@ -312,7 +314,8 @@ public class MVStore implements AutoCloseable {
      * @throws IllegalArgumentException if the directory does not exist
      */
     MVStore(Map<String, Object> config) {
-        this.compressionLevel = DataUtils.getConfigParam(config, "compress", 0);
+        recoveryMode = config.containsKey("recoveryMode");
+        compressionLevel = DataUtils.getConfigParam(config, "compress", 0);
         String fileName = (String) config.get("fileName");
         FileStore fileStore = (FileStore) config.get("fileStore");
         fileStoreIsProvided = fileStore != null;
@@ -850,7 +853,7 @@ public class MVStore implements AutoCloseable {
                     // this "last chunk" candidate is not suitable
                     // but we continue to process all references
                     // to find other potential candidates
-                    verified = false;
+                    verified = recoveryMode;
                 }
             } catch(IllegalStateException ignored) {
                 verified = false;
@@ -1982,17 +1985,24 @@ public class MVStore implements AutoCloseable {
      * @return the page
      */
     Page readPage(MVMap<?, ?> map, long pos) {
-        if (!DataUtils.isPageSaved(pos)) {
-            throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_FILE_CORRUPT, "Position 0");
+        try {
+            if (!DataUtils.isPageSaved(pos)) {
+                throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_FILE_CORRUPT, "Position 0");
+            }
+            Page p = cache == null ? null : cache.get(pos);
+            if (p == null) {
+                ByteBuffer buff = readBufferForPage(pos, map.getId());
+                p = Page.read(buff, pos, map);
+                cachePage(p);
+            }
+            return p;
+        } catch (IllegalStateException e) {
+            if (recoveryMode) {
+                return map.createEmptyLeaf();
+            }
+            throw e;
         }
-        Page p = cache == null ? null : cache.get(pos);
-        if (p == null) {
-            ByteBuffer buff = readBufferForPage(pos, map.getId());
-            p = Page.read(buff, pos, map);
-            cachePage(p);
-        }
-        return p;
     }
 
     /**
@@ -3197,6 +3207,15 @@ public class MVStore implements AutoCloseable {
          */
         public Builder readOnly() {
             return set("readOnly", 1);
+        }
+
+        /**
+         * Open the file in recoverty mode, where some errors may be ignored.
+         *
+         * @return this
+         */
+        public Builder recoveryMode() {
+            return set("recoveryMode", 1);
         }
 
         /**

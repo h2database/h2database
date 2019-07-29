@@ -1591,11 +1591,11 @@ public class MVStore implements AutoCloseable {
 
     private boolean compactMoveChunks(long moveSize) {
         long start = fileStore.getFirstFree() / BLOCK_SIZE;
-        Iterable<Chunk> move = findChunksToMove(start, moveSize);
-        if (move == null) {
+        Iterable<Chunk> chunksToMove = findChunksToMove(start, moveSize);
+        if (chunksToMove == null) {
             return false;
         }
-        compactMoveChunks(move);
+        compactMoveChunks(chunksToMove);
         return true;
     }
 
@@ -1607,6 +1607,8 @@ public class MVStore implements AutoCloseable {
                     new Comparator<Chunk>() {
                         @Override
                         public int compare(Chunk o1, Chunk o2) {
+                            // instead of selectiong just closest to beginning of the file,
+                            // pick smaller chunk(s) which sit in between bigger holes
                             int res = Integer.compare(o2.collectPriority, o1.collectPriority);
                             if (res != 0) {
                                 return res;

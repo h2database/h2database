@@ -242,7 +242,15 @@ public class FreeSpaceBitSet {
         return getPos(set.previousSetBit(set.size()-1) + 1);
     }
 
+    /**
+     * Calculates relative "priority" for chunk to be moved.
+     * @param block where chunk starts
+     * @return priority, bigger number indicate that chunk need to be moved sooner
+     */
     int getMovePiority(int block) {
+        // The most desirable chunks to move are the ones sitting within
+        // a relatively short span of occupied blocks which is surrounded
+        // from both sides by relatively long free spans
         int prevEnd = set.previousClearBit(block);
         int freeSize;
         if (prevEnd < 0) {

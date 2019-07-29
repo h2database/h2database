@@ -63,13 +63,15 @@ public class Cursor<K, V> implements Iterator<K> {
                         }
                         index = 0;
                     }
-                    K key = (K) page.getKey(index);
-                    if (to != null && page.map.getKeyType().compare(key, to) > 0) {
-                        return false;
+                    if (index < page.getKeyCount()) {
+                        K key = (K) page.getKey(index);
+                        if (to != null && page.map.getKeyType().compare(key, to) > 0) {
+                            return false;
+                        }
+                        current = last = key;
+                        lastValue = (V) page.getValue(index);
+                        lastPage = page;
                     }
-                    current = last = key;
-                    lastValue = (V) page.getValue(index);
-                    lastPage = page;
                 }
                 ++cursorPos.index;
             }

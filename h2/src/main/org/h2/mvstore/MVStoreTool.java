@@ -355,10 +355,9 @@ public class MVStoreTool {
             return "File not found: " + fileName;
         }
         long fileLength = FileUtils.size(fileName);
-        MVStore store = new MVStore.Builder().
-                fileName(fileName).
-                readOnly().open();
-        try {
+        try (MVStore store = new MVStore.Builder().
+                fileName(fileName).recoveryMode().
+                readOnly().open()) {
             MVMap<String, String> meta = store.getMetaMap();
             Map<String, Object> header = store.getStoreHeader();
             long fileCreated = DataUtils.readHexLong(header, "created", 0L);
@@ -412,8 +411,6 @@ public class MVStoreTool {
             pw.println("ERROR: " + e);
             e.printStackTrace(pw);
             return e.getMessage();
-        } finally {
-            store.close();
         }
         pw.flush();
         return null;

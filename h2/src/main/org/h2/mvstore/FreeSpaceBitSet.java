@@ -123,22 +123,25 @@ public class FreeSpaceBitSet {
 
     private long allocate(int length, boolean allocate) {
         int blocks = getBlockCount(length);
+        int freeBlocksTotal = 0;
         for (int i = 0;;) {
             int start = set.nextClearBit(i);
             int end = set.nextSetBit(start + 1);
-            if (end < 0 || end - start >= blocks) {
+            int freeBlocks = end - start;
+            if (end < 0 || freeBlocks >= blocks) {
                 assert set.nextSetBit(start) == -1 || set.nextSetBit(start) >= start + blocks :
                         "Double alloc: " + Integer.toHexString(start) + "/" + Integer.toHexString(blocks) + " " + this;
                 if (allocate) {
                     set.set(start, start + blocks);
                 } else {
                     failureFlags <<= 1;
-                    if (end < 0) {
+                    if (end < 0 && freeBlocksTotal > 4 * blocks) {
                         failureFlags |= 1;
                     }
                 }
                 return getPos(start);
             }
+            freeBlocksTotal += freeBlocks;
             i = end;
         }
     }
@@ -237,6 +240,32 @@ public class FreeSpaceBitSet {
      */
     long getLastFree() {
         return getPos(set.previousSetBit(set.size()-1) + 1);
+    }
+
+    /**
+     * Calculates relative "priority" for chunk to be moved.
+     * @param block where chunk starts
+     * @return priority, bigger number indicate that chunk need to be moved sooner
+     */
+    int getMovePiority(int block) {
+        // The most desirable chunks to move are the ones sitting within
+        // a relatively short span of occupied blocks which is surrounded
+        // from both sides by relatively long free spans
+        int prevEnd = set.previousClearBit(block);
+        int freeSize;
+        if (prevEnd < 0) {
+            prevEnd = firstFreeBlock;
+            freeSize = 0;
+        } else {
+            freeSize = prevEnd - set.previousSetBit(prevEnd);
+        }
+
+        int nextStart = set.nextClearBit(block);
+        int nextEnd = set.nextSetBit(nextStart);
+        if (nextEnd >= 0) {
+            freeSize += nextEnd - nextStart;
+        }
+        return (nextStart - prevEnd - 1) * 1000 / (freeSize + 1);
     }
 
     @Override

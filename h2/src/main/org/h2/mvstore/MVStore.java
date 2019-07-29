@@ -1594,39 +1594,35 @@ public class MVStore implements AutoCloseable {
 
     private boolean compactMoveChunks(long moveSize) {
         long start = fileStore.getFirstFree() / BLOCK_SIZE;
-        ChunkSelectionResult move = findChunksToMove(start, moveSize);
-        if (move == null) {
+        Iterable<Chunk> chunksToMove = findChunksToMove(start, moveSize);
+        if (chunksToMove == null) {
             return false;
         }
-        compactMoveChunks(move.chunksToMove, start + move.blocksToMove);
+        compactMoveChunks(chunksToMove);
         return true;
     }
 
-    private static class ChunkSelectionResult
-    {
-        final Iterable<Chunk> chunksToMove;
-        final long blocksToMove;
-
-        ChunkSelectionResult(Iterable<Chunk> chunksToMove, long blocksToMove) {
-            this.chunksToMove = chunksToMove;
-            this.blocksToMove = blocksToMove;
-        }
-    }
-
-    private ChunkSelectionResult findChunksToMove(long startBlock, long moveSize) {
+    private Iterable<Chunk> findChunksToMove(long startBlock, long moveSize) {
         long maxBlocksToMove = moveSize / BLOCK_SIZE;
-        ChunkSelectionResult result = null;
+        Iterable<Chunk> result = null;
         if (maxBlocksToMove > 0) {
             PriorityQueue<Chunk> queue = new PriorityQueue<>(this.chunks.size() / 2 + 1,
                     new Comparator<Chunk>() {
                         @Override
                         public int compare(Chunk o1, Chunk o2) {
+                            // instead of selectiong just closest to beginning of the file,
+                            // pick smaller chunk(s) which sit in between bigger holes
+                            int res = Integer.compare(o2.collectPriority, o1.collectPriority);
+                            if (res != 0) {
+                                return res;
+                            }
                             return Long.signum(o2.block - o1.block);
                         }
                     });
             long size = 0;
             for (Chunk chunk : chunks.values()) {
                 if (chunk.isSaved() && chunk.block > startBlock) {
+                    chunk.collectPriority = getMovePriority(chunk);
                     queue.offer(chunk);
                     size += chunk.len;
                     while (size > maxBlocksToMove) {
@@ -1639,13 +1635,17 @@ public class MVStore implements AutoCloseable {
                 }
             }
             if (!queue.isEmpty()) {
-                result = new ChunkSelectionResult(queue, size);
+                result = queue;
             }
         }
         return result;
     }
 
-    private void compactMoveChunks(Iterable<Chunk> move, long targetRegionEnd) {
+    private int getMovePriority(Chunk chunk) {
+        return fileStore.getMovePriority((int)chunk.block);
+    }
+
+    private void compactMoveChunks(Iterable<Chunk> move) {
         assert storeLock.isHeldByCurrentThread();
         if (move != null) {
             // this will ensure better recognition of the last chunk
@@ -1654,9 +1654,7 @@ public class MVStore implements AutoCloseable {
             writeStoreHeader();
             sync();
             for (Chunk c : move) {
-                if (c.block < targetRegionEnd) {
-                    moveChunk(c, true);
-                }
+                moveChunk(c, true);
             }
 
             // update the metadata (store at the end of the file)
@@ -2560,18 +2558,40 @@ public class MVStore implements AutoCloseable {
             // could also commit when there are many unsaved pages,
             // but according to a test it doesn't really help
 
-            int targetFillRate = getTargetFillRate();
             long time = getTimeSinceCreation();
             if (time > lastCommitTime + autoCommitDelay) {
                 tryCommit();
                 if (autoCompactFillRate < 0) {
-                    compact(-targetFillRate, autoCommitMemory);
+                    compact(-getTargetFillRate(), autoCommitMemory);
+                }
+                }
+            int targetFillRate;
+            int projectedFillRate;
+            if (isIdle()) {
+                doMaintenance(autoCompactFillRate);
+            } else if (fileStore.isFragmented()) {
+                if (storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
+                    try {
+                        compactMoveChunks(autoCommitMemory * 4);
+                    } finally {
+                        storeLock.unlock();
+                    }
+                }
+            } else if (lastChunk != null && getFillRate() > (targetFillRate = getTargetFillRate())
+                    && (projectedFillRate = getProjectedFillRate()) < targetFillRate) {
+                if (storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
+                    try {
+                        int writeLimit = autoCommitMemory * targetFillRate / Math.max(projectedFillRate, 1);
+                        if (rewriteChunks(writeLimit)) {
+                            dropUnusedChunks();
+                        }
+                    } finally {
+                        storeLock.unlock();
+            }
                 }
             }
-            if (fileStore.isFragmented() || isIdle()) {
-                doMaintenance(targetFillRate);
-            }
             autoCompactLastFileOpCount = fileStore.getWriteCount() + fileStore.getReadCount();
+        } catch (InterruptedException ignore) {
         } catch (Throwable e) {
             handleException(e);
             if (backgroundExceptionHandler == null) {
@@ -2831,6 +2851,14 @@ public class MVStore implements AutoCloseable {
      */
     public boolean isReadOnly() {
         return fileStore != null && fileStore.isReadOnly();
+    }
+
+    public int getCacheHitRatio() {
+        if (cache == null) {
+            return 0;
+        }
+        long hits = cache.getHits();
+        return (int) (100 * hits / (hits + cache.getMisses() + 1));
     }
 
     public double getUpdateFailureRatio() {

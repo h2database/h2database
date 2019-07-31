@@ -39,13 +39,14 @@ public class TestReorderWrites extends TestBase {
     public void test() throws Exception {
         testMVStore(false);
         testMVStore(true);
-        testFileSystem();
+        testFileSystem(false);
+        testFileSystem(true);
     }
 
     private void testMVStore(final boolean partialWrite) {
         // Add partial write test
         // @since 2019-07-31 little-pan
-        println("partial write: " + partialWrite);
+        println(String.format("testMVStore(): %s partial write", partialWrite? "Enable": "Disable"));
         FilePathReorderWrites.setPartialWrites(partialWrite);
         
         FilePathReorderWrites fs = FilePathReorderWrites.register();
@@ -142,10 +143,14 @@ public class TestReorderWrites extends TestBase {
         }
     }
 
-    private void testFileSystem() throws IOException {
+    private void testFileSystem(final boolean partialWrite) throws IOException {
         FilePathReorderWrites fs = FilePathReorderWrites.register();
-        // disable this for now, still bug(s) in our code
-        FilePathReorderWrites.setPartialWrites(false);
+        // *disable this for now, still bug(s) in our code*
+        // Add partial write enable test
+        // @since 2019-07-31 little-pan
+        FilePathReorderWrites.setPartialWrites(partialWrite);
+        println(String.format("testFileSystem(): %s partial write", partialWrite? "Enable": "Disable"));
+        
         String fileName = "reorder:memFS:test";
         final ByteBuffer empty = ByteBuffer.allocate(1024);
         Random r = new Random(1);

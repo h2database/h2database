@@ -893,7 +893,7 @@ public class MVStore implements AutoCloseable {
         long end = fileStore.size();
         // The end position of chunk should be block align
         final long part = end % BLOCK_SIZE;
-        if(part > 0){
+        if(part > 0L){
             end -= part;
         }
         
@@ -916,12 +916,11 @@ public class MVStore implements AutoCloseable {
                     final int chunk = DataUtils.readHexInt(m, "chunk", 0);
                     final Chunk c = new Chunk(chunk);
                     c.version = DataUtils.readHexLong(m, "version", 0);
-                    c.block = DataUtils.readHexLong(m, "block", 0);
-                    // read the chunk header
-                    final Chunk header = readChunkHeader(c.block);
-                    if(header != null && header.id == c.id){
-                        if(newest == null || header.version > newest.version){
-                            return header;
+                    c.block   = DataUtils.readHexLong(m, "block", 0);
+                    final Chunk test = readChunkHeaderAndFooter(c.block);
+                    if(test != null && test.id == c.id){
+                        if(newest == null || test.version > newest.version){
+                            return test;
                         }
                         return newest;
                     }

@@ -37,11 +37,17 @@ public class TestReorderWrites extends TestBase {
 
     @Override
     public void test() throws Exception {
-        testMVStore();
+        testMVStore(false);
+        testMVStore(true);
         testFileSystem();
     }
 
-    private void testMVStore() {
+    private void testMVStore(final boolean partialWrite) {
+        // Add partial write test
+        // @since 2019-07-31 little-pan
+        System.out.println("partial write: " + partialWrite);
+        FilePathReorderWrites.setPartialWrites(partialWrite);
+        
         FilePathReorderWrites fs = FilePathReorderWrites.register();
         String fileName = "reorder:memFS:test.mv";
         try {

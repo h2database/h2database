@@ -104,25 +104,24 @@ public class FreeSpaceBitSet {
      * @return the start position in bytes
      */
     public long allocate(int length) {
-        return allocate(length, true);
+        return getPos(allocate(getBlockCount(length), true));
     }
 
     /**
      * Calculate starting position of the prospective allocation.
      *
-     * @param length the number of bytes to allocate
-     * @return the start position in bytes
+     * @param blocks the number of blocks to allocate
+     * @return the starting block index
      */
-    long predictAllocation(int length) {
-        return allocate(length, false);
+    long predictAllocation(int blocks) {
+        return allocate(blocks, false);
     }
 
     boolean isFragmented() {
         return Integer.bitCount(failureFlags & 0x0F) > 1;
     }
 
-    private long allocate(int length, boolean allocate) {
-        int blocks = getBlockCount(length);
+    private int allocate(int blocks, boolean allocate) {
         int freeBlocksTotal = 0;
         for (int i = 0;;) {
             int start = set.nextClearBit(i);
@@ -139,7 +138,7 @@ public class FreeSpaceBitSet {
                         failureFlags |= 1;
                     }
                 }
-                return getPos(start);
+                return start;
             }
             freeBlocksTotal += freeBlocks;
             i = end;

@@ -1359,7 +1359,7 @@ public class MVStore implements AutoCloseable {
         c.metaRootPos = metaRoot.getPos();
         // calculate and set the likely next position
         if (reuseSpace) {
-            c.next = fileStore.predictAllocation(length) / BLOCK_SIZE;
+            c.next = fileStore.predictAllocation(c.len);
         } else {
             // just after this chunk
             c.next = 0;
@@ -1701,13 +1701,27 @@ public class MVStore implements AutoCloseable {
     private void compactMoveChunks(Iterable<Chunk> move) {
         assert storeLock.isHeldByCurrentThread();
         if (move != null) {
+            long leftmostBlock = Long.MAX_VALUE;
+            for (Chunk chunk : move) {
+                leftmostBlock = Math.min(leftmostBlock, chunk.block);
+            }
+
             // this will ensure better recognition of the last chunk
             // in case of power failure, since we are going to move older chunks
             // to the end of the file
             writeStoreHeader();
             sync();
-            for (Chunk c : move) {
-                moveChunk(c, true);
+            for (Iterator<Chunk> iter = move.iterator(); iter.hasNext(); ) {
+                Chunk chunk = iter.next();
+                if (fileStore.predictAllocation(chunk.len) >= leftmostBlock) {
+                    break;
+                }
+                moveChunk(chunk, false);
+                iter.remove();
+            }
+
+            for (Chunk chunk : move) {
+                moveChunk(chunk, true);
             }
 
             // update the metadata (store at the end of the file)

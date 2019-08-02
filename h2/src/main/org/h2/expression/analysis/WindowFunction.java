@@ -496,8 +496,7 @@ public class WindowFunction extends DataAnalysisOperation {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
-        String name = type.getSQL();
-        builder.append(name).append('(');
+        builder.append(type.getSQL()).append('(');
         if (args != null) {
             writeExpressions(builder, args, alwaysQuote);
         }

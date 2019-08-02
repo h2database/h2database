@@ -1288,10 +1288,7 @@ public class Parser {
                 read(EQUAL);
                 Expression expression = readExpression();
                 int columnCount = columns.size();
-                if (columnCount == 1 && expression.getType().getValueType() != Value.ROW) {
-                    // Row value special case
-                    command.setAssignment(columns.get(0), expression);
-                } else if (expression instanceof ExpressionList) {
+                if (expression instanceof ExpressionList) {
                     ExpressionList list = (ExpressionList) expression;
                     if (list.getType().getValueType() != Value.ROW || columnCount != list.getSubexpressionCount()) {
                         throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
@@ -1299,6 +1296,9 @@ public class Parser {
                     for (int i = 0; i < columnCount; i++) {
                         command.setAssignment(columns.get(i), list.getSubexpression(i));
                     }
+                } else if (columnCount == 1) {
+                    // Row value special case
+                    command.setAssignment(columns.get(0), expression);
                 } else {
                     for (int i = 0; i < columnCount; i++) {
                         command.setAssignment(columns.get(i),

@@ -389,7 +389,7 @@ public class FileStore {
     }
 
     int getMovePriority(int block) {
-        return freeSpace.getMovePiority(block);
+        return freeSpace.getMovePriority(block);
     }
 
     /**

@@ -69,7 +69,7 @@ public class TestReorderWrites extends TestBase {
                 store.commit();
                 store.getFileStore().sync();
                 Random r = new Random(i);
-                int stop = 4 + r.nextInt(20);
+                int stop = 4 + r.nextInt(150);
                 log("countdown start");
                 fs.setPowerOffCountdown(stop, i);
                 try {

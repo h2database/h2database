@@ -752,7 +752,7 @@ public class MVStore implements AutoCloseable {
             creationTime = now;
             storeHeader.put("created", creationTime);
         }
-        
+
         // bugfix - data lost issue when partial write occurs at end of file store.
         // @since 2019-07-31 little-pan
         newest = readChunkHeaderAndFooterFromStoreTail(newest);
@@ -874,19 +874,19 @@ public class MVStore implements AutoCloseable {
             lastStoredVersion = currentVersion - 1;
         }
     }
-    
+
     /**
-     * <p>Try to read a chunk with valid header and footer from the end of the file store, and 
+     * <p>Try to read a chunk with valid header and footer from the end of the file store, and
      * compare it with the given newest, return the newest one.
      * </p>
-     * 
-     * <p>We skip these chunks with invalid header or footer block by block, because of these 
+     *
+     * <p>We skip these chunks with invalid header or footer block by block, because of these
      * chunks are corrupted by partial write in the case of power off, or OOM etc.
      * </p>
-     * 
+     *
      * @param newest
      * @return the newest chunk
-     * 
+     *
      * @since 2019-07-31 little-pan
      */
     private Chunk readChunkHeaderAndFooterFromStoreTail(final Chunk newest){
@@ -896,9 +896,9 @@ public class MVStore implements AutoCloseable {
         if(part > 0L){
             end -= part;
         }
-        
+
         final byte[] buff = new byte[Chunk.FOOTER_LENGTH];
-        // We should read and check the chunk header and footer straight ahead block by block 
+        // We should read and check the chunk header and footer straight ahead block by block
         //for chunk partial write issue.
         for(;;){
             // read the chunk footer of the last block of the file
@@ -906,7 +906,7 @@ public class MVStore implements AutoCloseable {
             if(pos < 0L) {
                 return newest;
             }
-            
+
             final ByteBuffer lastBlock = fileStore.readFully(pos, Chunk.FOOTER_LENGTH);
             lastBlock.get(buff);
             // check the chunk
@@ -924,10 +924,10 @@ public class MVStore implements AutoCloseable {
                         }
                         return newest;
                     }
-                } 
+                }
             } catch(final Exception e){
                 // ignore: corrupted chunk or normal pages
-            } 
+            }
             end -= BLOCK_SIZE;
         }
     }
@@ -1663,7 +1663,7 @@ public class MVStore implements AutoCloseable {
                     new Comparator<Chunk>() {
                         @Override
                         public int compare(Chunk o1, Chunk o2) {
-                            // instead of selectiong just closest to beginning of the file,
+                            // instead of selection just closest to beginning of the file,
                             // pick smaller chunk(s) which sit in between bigger holes
                             int res = Integer.compare(o2.collectPriority, o1.collectPriority);
                             if (res != 0) {
@@ -3291,7 +3291,7 @@ public class MVStore implements AutoCloseable {
         }
 
         /**
-         * Open the file in recoverty mode, where some errors may be ignored.
+         * Open the file in recovery mode, where some errors may be ignored.
          *
          * @return this
          */

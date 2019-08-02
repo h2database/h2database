@@ -247,7 +247,7 @@ public class FreeSpaceBitSet {
      * @param block where chunk starts
      * @return priority, bigger number indicate that chunk need to be moved sooner
      */
-    int getMovePiority(int block) {
+    int getMovePriority(int block) {
         // The most desirable chunks to move are the ones sitting within
         // a relatively short span of occupied blocks which is surrounded
         // from both sides by relatively long free spans

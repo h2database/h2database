@@ -48,7 +48,7 @@ public class TestReorderWrites extends TestBase {
         // @since 2019-07-31 little-pan
         println(String.format("testMVStore(): %s partial write", partialWrite? "Enable": "Disable"));
         FilePathReorderWrites.setPartialWrites(partialWrite);
-        
+
         FilePathReorderWrites fs = FilePathReorderWrites.register();
         String fileName = "reorder:memFS:test.mv";
         try {
@@ -150,7 +150,7 @@ public class TestReorderWrites extends TestBase {
         // @since 2019-07-31 little-pan
         FilePathReorderWrites.setPartialWrites(partialWrite);
         println(String.format("testFileSystem(): %s partial write", partialWrite? "Enable": "Disable"));
-        
+
         String fileName = "reorder:memFS:test";
         final ByteBuffer empty = ByteBuffer.allocate(1024);
         Random r = new Random(1);

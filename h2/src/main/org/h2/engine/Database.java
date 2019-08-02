@@ -774,11 +774,6 @@ public class Database implements DataHandler {
                 getPageStore();
             }
             starting = false;
-            if (store == null) {
-                writer = WriterThread.create(this, writeDelay);
-            } else {
-                setWriteDelay(writeDelay);
-            }
         } else {
             if (autoServerMode) {
                 throw DbException.getUnsupportedException(
@@ -896,6 +891,13 @@ public class Database implements DataHandler {
         systemSession.commit(true);
 
         trace.info("opened {0}", databaseName);
+        if (persistent) {
+            if (store == null) {
+                writer = WriterThread.create(this, writeDelay);
+            } else {
+                setWriteDelay(writeDelay);
+            }
+        }
         if (checkpointAllowed > 0) {
             afterWriting();
         }

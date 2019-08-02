@@ -752,15 +752,10 @@ public class MVStore implements AutoCloseable {
             creationTime = now;
             storeHeader.put("created", creationTime);
         }
-        Chunk test = readChunkFooter(fileStore.size());
-        if (test != null) {
-            test = readChunkHeaderAndFooter(test.block);
-            if (test != null) {
-                if (newest == null || test.version > newest.version) {
-                    newest = test;
-                }
-            }
-        }
+        
+        // bugfix - data lost issue when partial write occurs at end of file store.
+        // @since 2019-07-31 little-pan
+        newest = readChunkHeaderAndFooterFromStoreTail(newest);
 
         long blocksInStore = fileStore.size() / BLOCK_SIZE;
         // this queue will hold potential candidates for lastChunk to fall back to
@@ -779,6 +774,7 @@ public class MVStore implements AutoCloseable {
         });
         Map<Long, Chunk> validChunkCacheByLocation = new HashMap<>();
 
+        Chunk test;
         if (newest != null) {
             // read the chunk header and footer,
             // and follow the chain of next chunks
@@ -876,6 +872,63 @@ public class MVStore implements AutoCloseable {
         setWriteVersion(currentVersion);
         if (lastStoredVersion == INITIAL_VERSION) {
             lastStoredVersion = currentVersion - 1;
+        }
+    }
+    
+    /**
+     * <p>Try to read a chunk with valid header and footer from the end of the file store, and 
+     * compare it with the given newest, return the newest one.
+     * </p>
+     * 
+     * <p>We skip these chunks with invalid header or footer block by block, because of these 
+     * chunks are corrupted by partial write in the case of power off, or OOM etc.
+     * </p>
+     * 
+     * @param newest
+     * @return the newest chunk
+     * 
+     * @since 2019-07-31 little-pan
+     */
+    private Chunk readChunkHeaderAndFooterFromStoreTail(final Chunk newest){
+        long end = fileStore.size();
+        // The end position of chunk should be block align
+        final long part = end % BLOCK_SIZE;
+        if(part > 0L){
+            end -= part;
+        }
+        
+        final byte[] buff = new byte[Chunk.FOOTER_LENGTH];
+        // We should read and check the chunk header and footer straight ahead block by block 
+        //for chunk partial write issue.
+        for(;;){
+            // read the chunk footer of the last block of the file
+            final long pos = end - Chunk.FOOTER_LENGTH;
+            if(pos < 0L) {
+                return newest;
+            }
+            
+            final ByteBuffer lastBlock = fileStore.readFully(pos, Chunk.FOOTER_LENGTH);
+            lastBlock.get(buff);
+            // check the chunk
+            try {
+                final HashMap<String, String> m = DataUtils.parseChecksummedMap(buff);
+                if (m != null) {
+                    final int chunk = DataUtils.readHexInt(m, "chunk", 0);
+                    final Chunk c = new Chunk(chunk);
+                    c.version = DataUtils.readHexLong(m, "version", 0);
+                    c.block   = DataUtils.readHexLong(m, "block", 0);
+                    final Chunk test = readChunkHeaderAndFooter(c.block);
+                    if(test != null && test.id == c.id){
+                        if(newest == null || test.version > newest.version){
+                            return test;
+                        }
+                        return newest;
+                    }
+                } 
+            } catch(final Exception e){
+                // ignore: corrupted chunk or normal pages
+            } 
+            end -= BLOCK_SIZE;
         }
     }
 
@@ -2520,7 +2573,7 @@ public class MVStore implements AutoCloseable {
     public void removeMap(String name) {
         int id = getMapId(name);
         if(id > 0) {
-            MVMap map = getMap(id);
+            MVMap<?, ?> map = getMap(id);
             if (map == null) {
                 map = openMap(name);
             }

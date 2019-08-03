@@ -749,7 +749,7 @@ public final class DataUtils {
      *
      * @param bytes encoded map
      * @return the map without mapping for {@code "fletcher"}, or {@code null} if checksum is wrong
-     * @throws IllegalStateException if parsing failed
+     *              or parameter do not represent a properly formatted map serialization
      */
     static HashMap<String, String> parseChecksummedMap(byte[] bytes) {
         int start = 0, end = bytes.length;

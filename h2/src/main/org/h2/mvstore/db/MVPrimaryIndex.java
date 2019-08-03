@@ -19,6 +19,7 @@ import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
+import org.h2.mvstore.MVStore;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionMap;
 import org.h2.result.Row;
@@ -54,7 +55,7 @@ public class MVPrimaryIndex extends BaseIndex {
         ValueDataType keyType = new ValueDataType();
         ValueDataType valueType = new ValueDataType(db, sortTypes);
         mapName = "table." + getId();
-        assert db.isStarting() || !db.getStore().getMvStore().getMetaMap().containsKey("name." + mapName);
+        assert db.isStarting() || !db.getStore().getMvStore().getMetaMap().containsKey(MVStore.META_NAME + mapName);
         Transaction t = mvTable.getTransactionBegin();
         dataMap = t.openMap(mapName, keyType, valueType);
         dataMap.map.setVolatile(!table.isPersistData() || !indexType.isPersistent());

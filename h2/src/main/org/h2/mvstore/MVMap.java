@@ -125,7 +125,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the metadata key
      */
     static String getMapRootKey(int mapId) {
-        return "root." + Integer.toHexString(mapId);
+        return MVStore.META_ROOT + Integer.toHexString(mapId);
     }
 
     /**
@@ -135,7 +135,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the metadata key
      */
     static String getMapKey(int mapId) {
-        return "map." + Integer.toHexString(mapId);
+        return MVStore.META_MAP + Integer.toHexString(mapId);
     }
 
     /**

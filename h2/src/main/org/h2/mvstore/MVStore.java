@@ -140,6 +140,12 @@ public class MVStore implements AutoCloseable
     private static final String HDR_CLEAN = "clean";
     private static final String HDR_FLETCHER = "fletcher";
 
+    public static final String META_CHUNK = "chunk.";
+    public static final String META_NAME = "name.";
+    public static final String META_MAP = "map.";
+    public static final String META_ROOT = "root.";
+
+
     /**
      * The block size (physical sector size) of the disk. The store header is
      * written twice, one copy in each block, to ensure it survives a crash.
@@ -422,12 +428,12 @@ public class MVStore implements AutoCloseable
 
         // ensure that there is only one name mapped to this id
         // this could be a leftover of an unfinished map rename
-        for (Iterator<String> it = meta.keyIterator("name."); it.hasNext();) {
+        for (Iterator<String> it = meta.keyIterator(META_NAME); it.hasNext();) {
             String key = it.next();
-            if (!key.startsWith("name.")) {
+            if (!key.startsWith(META_NAME)) {
                 break;
             }
-            String mapName = key.substring("name.".length());
+            String mapName = key.substring(META_NAME.length());
             int mapId = DataUtils.parseHexInt(meta.get(key));
             String realMapName = getMapName(mapId);
             if(!mapName.equals(realMapName)) {
@@ -436,13 +442,13 @@ public class MVStore implements AutoCloseable
         }
 
         // remove roots of non-existent maps (leftover after unfinished map removal)
-        for (Iterator<String> it = meta.keyIterator("root."); it.hasNext();) {
+        for (Iterator<String> it = meta.keyIterator(META_ROOT); it.hasNext();) {
             String key = it.next();
-            if (!key.startsWith("root.")) {
+            if (!key.startsWith(META_ROOT)) {
                 break;
             }
             String mapIdStr = key.substring(key.lastIndexOf('.') + 1);
-            if(!meta.containsKey("map." + mapIdStr)) {
+            if(!meta.containsKey(MVStore.META_MAP + mapIdStr)) {
                 meta.remove(key);
                 markMetaChanged();
                 keysToRemove.add(key);
@@ -454,21 +460,21 @@ public class MVStore implements AutoCloseable
             markMetaChanged();
         }
 
-        for (Iterator<String> it = meta.keyIterator("map."); it.hasNext();) {
+        for (Iterator<String> it = meta.keyIterator(MVStore.META_MAP); it.hasNext();) {
             String key = it.next();
-            if (!key.startsWith("map.")) {
+            if (!key.startsWith(MVStore.META_MAP)) {
                 break;
             }
             String mapName = DataUtils.getMapName(meta.get(key));
-            String mapIdStr = key.substring("map.".length());
+            String mapIdStr = key.substring(MVStore.META_MAP.length());
             // ensure that last map id is not smaller than max of any existing map ids
             int mapId = DataUtils.parseHexInt(mapIdStr);
             if (mapId > lastMapId.get()) {
                 lastMapId.set(mapId);
             }
             // each map should have a proper name
-            if(!mapIdStr.equals(meta.get("name." + mapName))) {
-                meta.put("name." + mapName, mapIdStr);
+            if(!mapIdStr.equals(meta.get(META_NAME + mapName))) {
+                meta.put(META_NAME + mapName, mapIdStr);
                 markMetaChanged();
             }
         }
@@ -543,7 +549,7 @@ public class MVStore implements AutoCloseable
             map = builder.create(this, c);
             String x = Integer.toHexString(id);
             meta.put(MVMap.getMapKey(id), map.asString(name));
-            meta.put("name." + name, x);
+            meta.put(META_NAME + name, x);
             map.setRootPos(0, lastStoredVersion);
             markMetaChanged();
             @SuppressWarnings("unchecked")
@@ -603,12 +609,12 @@ public class MVStore implements AutoCloseable
     public Set<String> getMapNames() {
         HashSet<String> set = new HashSet<>();
         checkOpen();
-        for (Iterator<String> it = meta.keyIterator("name."); it.hasNext();) {
+        for (Iterator<String> it = meta.keyIterator(META_NAME); it.hasNext();) {
             String x = it.next();
-            if (!x.startsWith("name.")) {
+            if (!x.startsWith(META_NAME)) {
                 break;
             }
-            String mapName = x.substring("name.".length());
+            String mapName = x.substring(META_NAME.length());
             set.add(mapName);
         }
         return set;
@@ -666,7 +672,7 @@ public class MVStore implements AutoCloseable
      * @return true if it exists
      */
     public boolean hasMap(String name) {
-        return meta.containsKey("name." + name);
+        return meta.containsKey(META_NAME + name);
     }
 
     /**
@@ -807,8 +813,8 @@ public class MVStore implements AutoCloseable
                 try {
                     // load the chunk metadata: although meta's root page resides in the lastChunk,
                     // traversing meta map might recursively load another chunk(s)
-                    Cursor<String, String> cursor = meta.cursor("chunk.");
-                    while (cursor.hasNext() && cursor.next().startsWith("chunk.")) {
+                    Cursor<String, String> cursor = meta.cursor(META_CHUNK);
+                    while (cursor.hasNext() && cursor.next().startsWith(META_CHUNK)) {
                         Chunk c = Chunk.fromString(cursor.getValue());
                         assert c.version <= currentVersion;
                         // might be there already, due to meta traversal
@@ -883,8 +889,8 @@ public class MVStore implements AutoCloseable
                 try {
                     // load the chunk metadata: although meta's root page resides in the lastChunk,
                     // traversing meta map might recursively load another chunk(s)
-                    Cursor<String, String> cursor = meta.cursor("chunk.");
-                    while (cursor.hasNext() && cursor.next().startsWith("chunk.")) {
+                    Cursor<String, String> cursor = meta.cursor(META_CHUNK);
+                    while (cursor.hasNext() && cursor.next().startsWith(META_CHUNK)) {
                         Chunk c = Chunk.fromString(cursor.getValue());
                         assert c.version <= currentVersion;
                         // might be there already, due to meta traversal
@@ -2282,10 +2288,10 @@ public class MVStore implements AutoCloseable
         // need to be available in the file
         MVMap<String, String> oldMeta = getMetaMap(version);
         try {
-            for (Iterator<String> it = oldMeta.keyIterator("chunk.");
-                    it.hasNext();) {
+            for (Iterator<String> it = oldMeta.keyIterator(META_CHUNK);
+                 it.hasNext();) {
                 String chunkKey = it.next();
-                if (!chunkKey.startsWith("chunk.")) {
+                if (!chunkKey.startsWith(META_CHUNK)) {
                     break;
                 }
                 if (!meta.containsKey(chunkKey)) {
@@ -2563,7 +2569,7 @@ public class MVStore implements AutoCloseable
         if (oldName != null && !oldName.equals(newName)) {
             String idHexStr = Integer.toHexString(id);
             // at first create a new name as an "alias"
-            String existingIdHexStr = meta.putIfAbsent("name." + newName, idHexStr);
+            String existingIdHexStr = meta.putIfAbsent(META_NAME + newName, idHexStr);
             // we need to cope with the case of previously unfinished rename
             DataUtils.checkArgument(
                     existingIdHexStr == null || existingIdHexStr.equals(idHexStr),
@@ -2571,7 +2577,7 @@ public class MVStore implements AutoCloseable
             // switch roles of a new and old names - old one is an alias now
             meta.put(MVMap.getMapKey(id), map.asString(newName));
             // get rid of the old name completely
-            meta.remove("name." + oldName);
+            meta.remove(META_NAME + oldName);
             markMetaChanged();
         }
     }
@@ -2598,7 +2604,7 @@ public class MVStore implements AutoCloseable
             if (meta.remove(MVMap.getMapKey(id)) != null) {
                 markMetaChanged();
             }
-            if (meta.remove("name." + name) != null) {
+            if (meta.remove(META_NAME + name) != null) {
                 markMetaChanged();
             }
         } finally {
@@ -2647,7 +2653,7 @@ public class MVStore implements AutoCloseable
     }
 
     private int getMapId(String name) {
-        String m = meta.get("name." + name);
+        String m = meta.get(META_NAME + name);
         return m == null ? -1 : DataUtils.parseHexInt(m);
     }
 

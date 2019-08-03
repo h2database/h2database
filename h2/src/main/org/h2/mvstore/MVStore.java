@@ -777,7 +777,7 @@ public class MVStore implements AutoCloseable
             public int compare(Chunk one, Chunk two) {
                 int result = Long.compare(two.version, one.version);
                 if (result == 0) {
-                    // out of two versions of the same chunk we prefer the one
+                    // out of two copies of the same chunk we prefer the one
                     // close to the beginning of file (presumably later version)
                     result = Long.compare(one.block, two.block);
                 }
@@ -830,17 +830,16 @@ public class MVStore implements AutoCloseable
         }
 
         if (!assumeCleanShutdown) {
+            // now we know, that previous shutdown did not go well and file is possibly corrupted
+            // scan whole file and try to fetch chunk header and/or footer out of every block
+            // matching pairs with nothing in-between are considered as valid chunk
             Map<Long, Chunk> validChunksByLocation = new HashMap<>();
             long candidateLocation = Long.MAX_VALUE;
             Chunk candidate = null;
             long block = blocksInStore;
             while (true) {
                 if (block == candidateLocation) {
-                    assert candidate != null;
                     validChunksByLocation.put(candidateLocation, candidate);
-                    if (newest == null || candidate.version >= newest.version) {
-                        newest = candidate;
-                    }
                 }
                 if (block == 2) { // number of blocks occupied by headers
                     break;
@@ -866,8 +865,9 @@ public class MVStore implements AutoCloseable
                 }
             }
 
+            // this collection will hold potential candidates for lastChunk to fall back to,
+            // in order from the most to least likely
             Chunk[] lastChunkCandidates = validChunksByLocation.values().toArray(new Chunk[0]);
-            // this collection will hold potential candidates for lastChunk to fall back to
             Arrays.sort(lastChunkCandidates, chunkComparator);
             Map<Integer, Chunk> validChunksById = new HashMap<>();
             for (Chunk chunk : lastChunkCandidates) {
@@ -897,6 +897,11 @@ public class MVStore implements AutoCloseable
                         if ((test = validChunksByLocation.get(c.block)) != null && test.id == c.id) {
                             continue;
                         } else if ((test = validChunksById.get(c.id)) != null) {
+                            // We do not have a valid chunk at that location, but there is a copy
+                            // of same chunk from original location.
+                            // Chunk header at original location does not have any dynamic (occupancy)
+                            // metadata, so it can't be used here as is,
+                            // re-point our chunk to original location instead.
                             c.block = test.block;
                             continue;
                         }
@@ -919,11 +924,11 @@ public class MVStore implements AutoCloseable
 
                         // chunk reference is invalid
                         // this "last chunk" candidate is not suitable
-                        verified = false;
+                        verified = recoveryMode;
                         break;
                     }
                 } catch(Exception ignored) {
-                    verified = false;
+                    verified = recoveryMode;
                 }
                 if (verified) {
                     break;

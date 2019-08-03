@@ -127,7 +127,18 @@ MVStore:
 /**
  * A persistent storage for maps.
  */
-public class MVStore implements AutoCloseable {
+public class MVStore implements AutoCloseable
+{
+    private static final String HDR_H = "H";
+    private static final String HDR_BLOCK_SIZE = "blockSize";
+    private static final String HDR_FORMAT = "format";
+    private static final String HDR_CREATED = "created";
+    private static final String HDR_FORMAT_READ = "formatRead";
+    private static final String HDR_CHUNK = "chunk";
+    private static final String HDR_BLOCK = "block";
+    private static final String HDR_VERSION = "version";
+    private static final String HDR_CLEAN = "clean";
+    private static final String HDR_FLETCHER = "fletcher";
 
     /**
      * The block size (physical sector size) of the disk. The store header is
@@ -370,10 +381,10 @@ public class MVStore implements AutoCloseable {
                 if (this.fileStore.size() == 0) {
                     creationTime = getTimeAbsolute();
                     lastCommitTime = creationTime;
-                    storeHeader.put("H", 2);
-                    storeHeader.put("blockSize", BLOCK_SIZE);
-                    storeHeader.put("format", FORMAT_WRITE);
-                    storeHeader.put("created", creationTime);
+                    storeHeader.put(HDR_H, 2);
+                    storeHeader.put(HDR_BLOCK_SIZE, BLOCK_SIZE);
+                    storeHeader.put(HDR_FORMAT, FORMAT_WRITE);
+                    storeHeader.put(HDR_CREATED, creationTime);
                     writeStoreHeader();
                 } else {
                     // there is no need to lock store here, since it is not opened yet,
@@ -690,22 +701,21 @@ public class MVStore implements AutoCloseable {
                 if (m == null) {
                     continue;
                 }
-                int blockSize = DataUtils.readHexInt(
-                        m, "blockSize", BLOCK_SIZE);
+                int blockSize = DataUtils.readHexInt(m, HDR_BLOCK_SIZE, BLOCK_SIZE);
                 if (blockSize != BLOCK_SIZE) {
                     throw DataUtils.newIllegalStateException(
                             DataUtils.ERROR_UNSUPPORTED_FORMAT,
                             "Block size {0} is currently not supported",
                             blockSize);
                 }
-                long version = DataUtils.readHexLong(m, "version", 0);
+                long version = DataUtils.readHexLong(m, HDR_VERSION, 0);
                 assumeCleanShutdown = newest == null || version == newest.version;
                 if (newest == null || version > newest.version) {
                     validStoreHeader = true;
                     storeHeader.putAll(m);
-                    creationTime = DataUtils.readHexLong(m, "created", 0);
-                    int chunkId = DataUtils.readHexInt(m, "chunk", 0);
-                    long block = DataUtils.readHexLong(m, "block", 0);
+                    creationTime = DataUtils.readHexLong(m, HDR_CREATED, 0);
+                    int chunkId = DataUtils.readHexInt(m, HDR_CHUNK, 0);
+                    long block = DataUtils.readHexLong(m, HDR_BLOCK, 0);
                     Chunk test = readChunkHeaderAndFooter(block, chunkId);
                     if (test != null) {
                         newest = test;
@@ -719,7 +729,7 @@ public class MVStore implements AutoCloseable {
                     DataUtils.ERROR_FILE_CORRUPT,
                     "Store header is corrupt: {0}", fileStore);
         }
-        long format = DataUtils.readHexLong(storeHeader, "format", 1);
+        long format = DataUtils.readHexLong(storeHeader, HDR_FORMAT, 1);
         if (format > FORMAT_WRITE && !fileStore.isReadOnly()) {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_UNSUPPORTED_FORMAT,
@@ -728,7 +738,7 @@ public class MVStore implements AutoCloseable {
                     "and the file was not opened in read-only mode",
                     format, FORMAT_WRITE);
         }
-        format = DataUtils.readHexLong(storeHeader, "formatRead", format);
+        format = DataUtils.readHexLong(storeHeader, HDR_FORMAT_READ, format);
         if (format > FORMAT_READ) {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_UNSUPPORTED_FORMAT,
@@ -738,7 +748,7 @@ public class MVStore implements AutoCloseable {
         }
 
         assumeCleanShutdown = assumeCleanShutdown && newest != null
-                && DataUtils.readHexInt(storeHeader, "clean", 0) != 0
+                && DataUtils.readHexInt(storeHeader, HDR_CLEAN, 0) != 0
                 && !recoveryMode;
         lastStoredVersion = INITIAL_VERSION;
         chunks.clear();
@@ -756,7 +766,7 @@ public class MVStore implements AutoCloseable {
             // the system time was set to the past:
             // we change the creation time
             creationTime = now;
-            storeHeader.put("created", creationTime);
+            storeHeader.put(HDR_CREATED, creationTime);
         }
 
         long fileSize = fileStore.size();
@@ -998,10 +1008,10 @@ public class MVStore implements AutoCloseable {
             lastBlock.get(buff);
             HashMap<String, String> m = DataUtils.parseChecksummedMap(buff);
             if (m != null) {
-                int chunk = DataUtils.readHexInt(m, "chunk", 0);
+                int chunk = DataUtils.readHexInt(m, HDR_CHUNK, 0);
                 Chunk c = new Chunk(chunk);
-                c.version = DataUtils.readHexLong(m, "version", 0);
-                c.block = DataUtils.readHexLong(m, "block", 0);
+                c.version = DataUtils.readHexLong(m, HDR_VERSION, 0);
+                c.block = DataUtils.readHexLong(m, HDR_BLOCK, 0);
                 return c;
             }
         } catch (Exception e) {
@@ -1013,14 +1023,14 @@ public class MVStore implements AutoCloseable {
     private void writeStoreHeader() {
         StringBuilder buff = new StringBuilder(112);
         if (lastChunk != null) {
-            storeHeader.put("block", lastChunk.block);
-            storeHeader.put("chunk", lastChunk.id);
-            storeHeader.put("version", lastChunk.version);
+            storeHeader.put(HDR_BLOCK, lastChunk.block);
+            storeHeader.put(HDR_CHUNK, lastChunk.id);
+            storeHeader.put(HDR_VERSION, lastChunk.version);
         }
         DataUtils.appendMap(buff, storeHeader);
         byte[] bytes = buff.toString().getBytes(StandardCharsets.ISO_8859_1);
         int checksum = DataUtils.getFletcher32(bytes, 0, bytes.length);
-        DataUtils.appendMap(buff, "fletcher", checksum);
+        DataUtils.appendMap(buff, HDR_FLETCHER, checksum);
         buff.append('\n');
         bytes = buff.toString().getBytes(StandardCharsets.ISO_8859_1);
         ByteBuffer header = ByteBuffer.allocate(2 * BLOCK_SIZE);
@@ -1090,7 +1100,7 @@ public class MVStore implements AutoCloseable {
                                     doMaintenance(autoCompactFillRate);
                                 }
                                 shrinkFileIfPossible(0);
-                                storeHeader.put("clean", 1);
+                                storeHeader.put(HDR_CLEAN, 1);
                                 writeStoreHeader();
                                 sync();
                                 assert validateFileLength("on close");
@@ -1404,13 +1414,12 @@ public class MVStore implements AutoCloseable {
                 // the last prediction did not matched
                 writeStoreHeader = true;
             } else {
-                long headerVersion = DataUtils.readHexLong(
-                        storeHeader, "version", 0);
+                long headerVersion = DataUtils.readHexLong(storeHeader, HDR_VERSION, 0);
                 if (lastChunk.version - headerVersion > 20) {
                     // we write after at least every 20 versions
                     writeStoreHeader = true;
                 } else {
-                    int chunkId = DataUtils.readHexInt(storeHeader, "chunk", 0);
+                    int chunkId = DataUtils.readHexInt(storeHeader, HDR_CHUNK, 0);
                     while (true) {
                         Chunk old = chunks.get(chunkId);
                         if (old == null) {
@@ -1428,7 +1437,7 @@ public class MVStore implements AutoCloseable {
             }
         }
 
-        if (storeHeader.remove("clean") != null) {
+        if (storeHeader.remove(HDR_CLEAN) != null) {
             writeStoreHeader = true;
         }
 

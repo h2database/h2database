@@ -761,22 +761,6 @@ public class MVStore implements AutoCloseable {
 
         long fileSize = fileStore.size();
         long blocksInStore = fileSize / BLOCK_SIZE;
-        if (assumeCleanShutdown) {
-            // read the chunk header and footer,
-            // and follow the chain of next chunks
-            while (true) {
-                if (newest.next == 0 || newest.next >= blocksInStore) {
-                    // no (valid) next
-                    break;
-                }
-                Chunk test = readChunkHeaderAndFooter(newest.next, newest.id + 1);
-                if (test == null || test.version <= newest.version) {
-                    break;
-                }
-                assumeCleanShutdown = false;
-                newest = test;
-            }
-        }
 
         Comparator<Chunk> chunkComparator = new Comparator<Chunk>() {
             @Override
@@ -792,53 +776,86 @@ public class MVStore implements AutoCloseable {
         };
 
         if (assumeCleanShutdown) {
-            setLastChunk(newest);
-            Queue<Chunk> chunksToVerify = new PriorityQueue<>(20, Collections.reverseOrder(chunkComparator));
-            try {
-                // load the chunk metadata: although meta's root page resides in the lastChunk,
-                // traversing meta map might recursively load another chunk(s)
-                Cursor<String, String> cursor = meta.cursor("chunk.");
-                while (cursor.hasNext() && cursor.next().startsWith("chunk.")) {
-                    Chunk c = Chunk.fromString(cursor.getValue());
-                    assert c.version <= currentVersion;
-                    // might be there already, due to meta traversal
-                    // see readPage() ... getChunkIfFound()
-                    chunks.putIfAbsent(c.id, c);
-                    chunksToVerify.offer(c);
-                    if (chunksToVerify.size() == 20) {
-                        chunksToVerify.poll();
-                    }
+            // read the chunk header and footer,
+            // and follow the chain of next chunks
+            while (true) {
+                if (newest.next == 0 || newest.next >= blocksInStore) {
+                    // no (valid) next
+                    break;
                 }
-                Chunk c;
-                while (assumeCleanShutdown && (c = chunksToVerify.poll()) != null) {
-                    assumeCleanShutdown = readChunkHeaderAndFooter(c.block, c.id) != null;
+                Chunk test = readChunkHeaderAndFooter(newest.next, newest.id + 1);
+                if (test == null || test.version <= newest.version) {
+                    break;
                 }
-            } catch(IllegalStateException ignored) {
                 assumeCleanShutdown = false;
+                newest = test;
+            }
+
+            if (assumeCleanShutdown) {
+                setLastChunk(newest);
+                Queue<Chunk> chunksToVerify = new PriorityQueue<>(20, Collections.reverseOrder(chunkComparator));
+                try {
+                    // load the chunk metadata: although meta's root page resides in the lastChunk,
+                    // traversing meta map might recursively load another chunk(s)
+                    Cursor<String, String> cursor = meta.cursor("chunk.");
+                    while (cursor.hasNext() && cursor.next().startsWith("chunk.")) {
+                        Chunk c = Chunk.fromString(cursor.getValue());
+                        assert c.version <= currentVersion;
+                        // might be there already, due to meta traversal
+                        // see readPage() ... getChunkIfFound()
+                        chunks.putIfAbsent(c.id, c);
+                        chunksToVerify.offer(c);
+                        if (chunksToVerify.size() == 20) {
+                            chunksToVerify.poll();
+                        }
+                    }
+                    Chunk c;
+                    while (assumeCleanShutdown && (c = chunksToVerify.poll()) != null) {
+                        assumeCleanShutdown = readChunkHeaderAndFooter(c.block, c.id) != null;
+                    }
+                } catch(IllegalStateException ignored) {
+                    assumeCleanShutdown = false;
+                }
             }
         }
 
         if (!assumeCleanShutdown) {
             Map<Long, Chunk> validChunksByLocation = new HashMap<>();
-            long leftmostLocation = Long.MAX_VALUE;
-            for (long block = blocksInStore; block > 1; --block) {
-                Chunk test = readChunkFooter(block * BLOCK_SIZE);
-                if (test != null) {
-                    // if this block overlaps with the previous one
-                    // then we remove the other one as it's invalid
-                    if (block > leftmostLocation) {
-                        validChunksByLocation.remove(leftmostLocation);
-                    }
-                    test = readChunkHeader(test.block, test.id);
-                    if (test != null) {
-                        leftmostLocation = test.block;
-                        validChunksByLocation.put(test.block, test);
-                        if (newest == null || test.version >= newest.version) {
-                            newest = test;
-                        }
+            long candidateLocation = Long.MAX_VALUE;
+            Chunk candidate = null;
+            long block = blocksInStore;
+            while (true) {
+                if (block == candidateLocation) {
+                    assert candidate != null;
+                    validChunksByLocation.put(candidateLocation, candidate);
+                    if (newest == null || candidate.version >= newest.version) {
+                        newest = candidate;
                     }
                 }
+                if (block == 2) { // number of blocks occupied by headers
+                    break;
+                }
+                Chunk test = readChunkFooter(block);
+                if (test != null) {
+                    // if we encounter chunk footer (with or without corresponding header)
+                    // in the middle of prospective chunk, stop considering it
+                    candidateLocation = Long.MAX_VALUE;
+                    test = readChunkHeaderOptionally(test.block, test.id);
+                    if (test != null) {
+                        // if that footer has a corresponding header,
+                        // consider them as a new candidate for a valid chunk
+                        candidate = test;
+                        candidateLocation = test.block;
+                    }
+                }
+
+                // if we encounter chunk header without corresponding footer (due to incomplete write ?)
+                // in the middle of prospective chunk, stop considering it
+                if (--block > candidateLocation && readChunkHeaderOptionally(block) != null) {
+                    candidateLocation = Long.MAX_VALUE;
+                }
             }
+
             Chunk[] lastChunkCandidates = validChunksByLocation.values().toArray(new Chunk[0]);
             // this collection will hold potential candidates for lastChunk to fall back to
             Arrays.sort(lastChunkCandidates, chunkComparator);
@@ -895,7 +912,7 @@ public class MVStore implements AutoCloseable {
                         verified = false;
                         break;
                     }
-                } catch(IllegalStateException ignored) {
+                } catch(Exception ignored) {
                     verified = false;
                 }
                 if (verified) {
@@ -951,9 +968,9 @@ public class MVStore implements AutoCloseable {
      *         consistent
      */
     private Chunk readChunkHeaderAndFooter(long block, int expectedId) {
-        Chunk header = readChunkHeader(block, expectedId);
+        Chunk header = readChunkHeaderOptionally(block, expectedId);
         if (header != null) {
-            Chunk footer = readChunkFooter((block + header.len) * BLOCK_SIZE);
+            Chunk footer = readChunkFooter(block + header.len);
             if (footer == null || footer.id != expectedId || footer.block != header.block) {
                 return null;
             }
@@ -964,14 +981,15 @@ public class MVStore implements AutoCloseable {
     /**
      * Try to read a chunk footer.
      *
-     * @param end the end of the chunk
+     * @param block the index of the next block after the chunk
      * @return the chunk, or null if not successful
      */
-    private Chunk readChunkFooter(long end) {
+    private Chunk readChunkFooter(long block) {
+
         // the following can fail for various reasons
         try {
             // read the chunk footer of the last block of the file
-            long pos = end - Chunk.FOOTER_LENGTH;
+            long pos = block * BLOCK_SIZE - Chunk.FOOTER_LENGTH;
             if(pos < 0) {
                 return null;
             }
@@ -1596,13 +1614,18 @@ public class MVStore implements AutoCloseable {
         return Chunk.readChunkHeader(buff, p);
     }
 
-    private Chunk readChunkHeader(long block, int expectedId) {
+    private Chunk readChunkHeaderOptionally(long block) {
         try {
             Chunk chunk = readChunkHeader(block);
-            return chunk.id != expectedId || chunk.block != block ? null : chunk;
+            return chunk.block != block ? null : chunk;
         } catch (Exception ignore) {
             return null;
         }
+    }
+
+    private Chunk readChunkHeaderOptionally(long block, int expectedId) {
+        Chunk chunk = readChunkHeaderOptionally(block);
+        return chunk == null || chunk.id != expectedId ? null : chunk;
     }
 
     /**
@@ -2058,7 +2081,12 @@ public class MVStore implements AutoCloseable {
             Page p = cache == null ? null : cache.get(pos);
             if (p == null) {
                 ByteBuffer buff = readBufferForPage(pos, map.getId());
-                p = Page.read(buff, pos, map);
+                try {
+                    p = Page.read(buff, pos, map);
+                } catch (Exception e) {
+                    throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
+                            "Unable to read the page at position {0}", pos, e);
+                }
                 cachePage(p);
             }
             return p;

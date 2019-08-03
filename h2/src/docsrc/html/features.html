@@ -735,7 +735,41 @@ but does not issue them with default MVStore engine.
 
 <h2 id="database_file_layout">Database File Layout</h2>
 <p>
-The following files are created for persistent databases:
+The following files are created for persistent databases when the default MVStore engine is used:
+</p>
+<table class="main">
+<tr><th>File Name</th><th>Description</th><th>Number of Files</th></tr>
+<tr><td class="notranslate">
+    test.mv.db
+</td><td>
+    Database file.<br />
+    Contains the transaction log, indexes, and data for all tables.<br />
+    Format: <code>&lt;database&gt;.mv.db</code>
+</td><td>
+    1 per database
+</td></tr>
+<tr><td class="notranslate">
+    test.newFile
+</td><td>
+    Temporary file for database compaction.<br />
+    Contains the new MVStore file.<br />
+    Format: <code>&lt;database&gt;.newFile</code>
+</td><td>
+    0 or 1 per database
+</td></tr>
+<tr><td class="notranslate">
+    test.tempFile
+</td><td>
+    Temporary file for database compaction.<br />
+    Contains the temporary MVStore file.<br />
+    Format: <code>&lt;database&gt;.tempFile</code>
+</td><td>
+    0 or 1 per database
+</td></tr>
+</table>
+
+<p>
+The following file is created for persistent databases when PageStore engine is used:
 </p>
 <table class="main">
 <tr><th>File Name</th><th>Description</th><th>Number of Files</th></tr>
@@ -748,6 +782,13 @@ The following files are created for persistent databases:
 </td><td>
     1 per database
 </td></tr>
+</table>
+
+<p>
+The following files are created for persistent databases by both MVStore and PageStore engines:
+</p>
+<table class="main">
+<tr><th>File Name</th><th>Description</th><th>Number of Files</th></tr>
 <tr><td class="notranslate">
     test.lock.db
 </td><td>
@@ -763,18 +804,9 @@ The following files are created for persistent databases:
     Trace file (if the trace option is enabled).<br />
     Contains trace information.<br />
     Format: <code>&lt;database&gt;.trace.db</code><br />
-    Renamed to <code>&lt;database&gt;.trace.db.old</code> is too big.
+    Renamed to <code>&lt;database&gt;.trace.db.old</code> if too big.
 </td><td>
     0 or 1 per database
-</td></tr>
-<tr><td class="notranslate">
-    test.lobs.db/*
-</td><td>
-    Directory containing one file for each<br />
-    BLOB or CLOB value larger than a certain size.<br />
-    Format: <code>&lt;id&gt;.t&lt;tableId&gt;.lob.db</code>
-</td><td>
-    1 per large object
 </td></tr>
 <tr><td class="notranslate">
     test.123.temp.db
@@ -784,6 +816,23 @@ The following files are created for persistent databases:
     Format: <code>&lt;database&gt;.&lt;id&gt;.temp.db</code>
 </td><td>
     1 per object
+</td></tr>
+</table>
+
+<p>
+Legacy PageStore databases from old versions of H2 can have the following additional files:
+</p>
+<table class="main">
+<tr><th>File Name</th><th>Description</th><th>Number of Files</th></tr>
+<tr><td class="notranslate">
+    test.lobs.db/*
+</td><td>
+    Directory containing one file for each<br />
+    BLOB or CLOB value larger than a certain size.
+    <br />
+    Format: <code>&lt;id&gt;.t&lt;tableId&gt;.lob.db</code>
+</td><td>
+    1 per large object
 </td></tr>
 </table>
 

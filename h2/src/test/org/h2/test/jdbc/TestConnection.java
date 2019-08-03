@@ -174,8 +174,8 @@ public class TestConnection extends TestDb {
         conn.close();
         prep.close();
     }
-    
-     private void testChangeTransactionLevelCommitRunner() throws Exception {
+
+    private void testChangeTransactionLevelCommitRunner() throws Exception {
         assertFalse("Default value must be false", SysProperties.FORCE_AUTOCOMMIT_OFF_ON_COMMIT);
         testChangeTransactionLevelCommit(false);
         testChangeTransactionLevelCommit(true);
@@ -186,10 +186,9 @@ public class TestConnection extends TestDb {
         } finally {
             SysProperties.FORCE_AUTOCOMMIT_OFF_ON_COMMIT = false;
         }
-
     }
-     
-     private void testChangeTransactionLevelCommit(boolean setAutoCommit) throws Exception {
+
+    private void testChangeTransactionLevelCommit(boolean setAutoCommit) throws Exception {
         Connection conn = getConnection("clientInfo");
         conn.setAutoCommit(setAutoCommit);
         Statement stat = conn.createStatement();
@@ -202,8 +201,7 @@ public class TestConnection extends TestDb {
         prep.setString(index++, "test1");
         prep.execute();
         conn.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
-        
-        
+
         conn.createStatement().executeQuery("SELECT COUNT(*) FROM TEST");
         // throws exception if TransactionIsolation did not commit
 

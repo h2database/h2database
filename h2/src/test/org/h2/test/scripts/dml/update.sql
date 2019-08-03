@@ -51,6 +51,9 @@ EXPLAIN UPDATE TEST SET A = 3, (B) = 4;
 UPDATE TEST SET (A, B) = (1, 2), (B, A) = (2, 1);
 > exception DUPLICATE_COLUMN_NAME_1
 
+UPDATE TEST SET (A) = A * 3;
+> update count: 1
+
 DROP TABLE TEST;
 > ok
 

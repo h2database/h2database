@@ -3344,7 +3344,7 @@ public class MVStore implements AutoCloseable
         }
 
         /**
-         * Open the file in recoverty mode, where some errors may be ignored.
+         * Open the file in recovery mode, where some errors may be ignored.
          *
          * @return this
          */

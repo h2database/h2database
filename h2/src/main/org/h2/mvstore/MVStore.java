@@ -129,6 +129,7 @@ MVStore:
  */
 public class MVStore implements AutoCloseable
 {
+    // The following are attribute names (keys) in store header map
     private static final String HDR_H = "H";
     private static final String HDR_BLOCK_SIZE = "blockSize";
     private static final String HDR_FORMAT = "format";
@@ -140,10 +141,11 @@ public class MVStore implements AutoCloseable
     private static final String HDR_CLEAN = "clean";
     private static final String HDR_FLETCHER = "fletcher";
 
-    public static final String META_CHUNK = "chunk.";
-    public static final String META_NAME = "name.";
-    public static final String META_MAP = "map.";
-    public static final String META_ROOT = "root.";
+    // The following are key prefixes used in meta map
+    public static final String META_CHUNK = "chunk."; // + hex chunk id -> serialized chunk metadata
+    public static final String META_NAME = "name.";   // + map's name -> hex map id
+    public static final String META_MAP = "map.";     // + hex map id -> serialized map metadata
+    public static final String META_ROOT = "root.";   // + hex map id -> hex root page "position"
 
 
     /**

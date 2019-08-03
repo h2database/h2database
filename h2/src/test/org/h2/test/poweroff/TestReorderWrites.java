@@ -52,7 +52,7 @@ public class TestReorderWrites extends TestBase {
         FilePathReorderWrites fs = FilePathReorderWrites.register();
         String fileName = "reorder:memFS:test.mv";
         try {
-            for (int i = 0; i < 1000; i++) {
+            for (int i = 0; i < (config.big ? 1000 : 100); i++) {
                 log(i + " --------------------------------");
                 // this test is not interested in power off failures during
                 // initial creation
@@ -69,7 +69,7 @@ public class TestReorderWrites extends TestBase {
                 store.commit();
                 store.getFileStore().sync();
                 Random r = new Random(i);
-                int stop = 4 + r.nextInt(150);
+                int stop = 4 + r.nextInt(config.big ? 150 : 20);
                 log("countdown start");
                 fs.setPowerOffCountdown(stop, i);
                 try {

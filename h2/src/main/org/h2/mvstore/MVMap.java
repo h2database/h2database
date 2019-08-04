@@ -125,7 +125,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the metadata key
      */
     static String getMapRootKey(int mapId) {
-        return "root." + Integer.toHexString(mapId);
+        return DataUtils.META_ROOT + Integer.toHexString(mapId);
     }
 
     /**
@@ -135,7 +135,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the metadata key
      */
     static String getMapKey(int mapId) {
-        return "map." + Integer.toHexString(mapId);
+        return DataUtils.META_MAP + Integer.toHexString(mapId);
     }
 
     /**
@@ -886,7 +886,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      *                             were made to update root
      * @return new RootReference or null if update failed
      */
-    protected final boolean updateRoot(RootReference expectedRootReference, Page newRootPage,
+    protected static boolean updateRoot(RootReference expectedRootReference, Page newRootPage,
             int attemptUpdateCounter) {
         return expectedRootReference.updateRootPage(newRootPage, attemptUpdateCounter) != null;
     }

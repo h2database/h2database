@@ -447,7 +447,7 @@ public class TestConcurrent extends TestMVStore {
                 MVMap<String, String> meta = s.getMetaMap();
                 int chunkCount = 0;
                 for (String k : meta.keyList()) {
-                    if (k.startsWith("chunk.")) {
+                    if (k.startsWith(DataUtils.META_CHUNK)) {
                         chunkCount++;
                     }
                 }

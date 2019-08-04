@@ -19,6 +19,7 @@ import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
+import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.tx.Transaction;
@@ -58,7 +59,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
         // even for unique indexes, as some of the index columns could be null
         keyColumns = columns.length + 1;
         String mapName = "index." + getId();
-        assert db.isStarting() || !db.getStore().getMvStore().getMetaMap().containsKey("name." + mapName);
+        assert db.isStarting() || !db.getStore().getMvStore().getMetaMap().containsKey(DataUtils.META_NAME + mapName);
         int[] sortTypes = new int[keyColumns];
         for (int i = 0; i < columns.length; i++) {
             sortTypes[i] = columns[i].sortType;

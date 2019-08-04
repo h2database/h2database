@@ -284,7 +284,7 @@ public class TestMVStore extends TestBase {
         map.put(1, new byte[10 * 1024]);
         s.commit();
         MVMap<String, String> meta = s.getMetaMap();
-        Chunk c = Chunk.fromString(meta.get("chunk.1"));
+        Chunk c = Chunk.fromString(meta.get(DataUtils.META_CHUNK+"1"));
         assertTrue(c.maxLen < Integer.MAX_VALUE);
         assertTrue(c.maxLenLive < Integer.MAX_VALUE);
         s.close();
@@ -1462,7 +1462,7 @@ public class TestMVStore extends TestBase {
         assertEquals(0, m.size());
         s.commit();
         // ensure only nodes are read, but not leaves
-        assertEquals(8, s.getFileStore().getReadCount());
+        assertEquals(5, s.getFileStore().getReadCount());
         assertTrue(s.getFileStore().getWriteCount() < 5);
         s.close();
     }
@@ -1528,7 +1528,7 @@ public class TestMVStore extends TestBase {
         assertTrue(s.hasUnsavedChanges());
         s.rollbackTo(v2);
         assertFalse(s.hasUnsavedChanges());
-        assertNull(meta.get("name.data1"));
+        assertNull(meta.get(DataUtils.META_NAME+"data1"));
         assertNull(m0.get("1"));
         assertEquals("Hello", m.get("1"));
         // no changes - no real commit here
@@ -1539,9 +1539,9 @@ public class TestMVStore extends TestBase {
         s.setRetentionTime(45000);
         assertEquals(2, s.getCurrentVersion());
         meta = s.getMetaMap();
-        assertNotNull(meta.get("name.data"));
-        assertNotNull(meta.get("name.data0"));
-        assertNull(meta.get("name.data1"));
+        assertNotNull(meta.get(DataUtils.META_NAME + "data"));
+        assertNotNull(meta.get(DataUtils.META_NAME + "data0"));
+        assertNull(meta.get(DataUtils.META_NAME + "data1"));
         m = s.openMap("data");
         m0 = s.openMap("data0");
         assertNull(m0.get("1"));
@@ -1634,13 +1634,13 @@ public class TestMVStore extends TestBase {
         assertNull(s.getMapName(s.getMetaMap().getId()));
         assertNull(s.getMapName(data.getId() + 1));
 
-        String id = s.getMetaMap().get("name.data");
-        assertEquals("name:data", m.get("map." + id));
+        String id = s.getMetaMap().get(DataUtils.META_NAME + "data");
+        assertEquals("name:data", m.get(DataUtils.META_MAP + id));
         assertEquals("Hello", data.put("1", "Hallo"));
         s.commit();
-        assertEquals("name:data", m.get("map." + id));
+        assertEquals("name:data", m.get(DataUtils.META_MAP + id));
         assertTrue(m.get("root.1").length() > 0);
-        assertTrue(m.containsKey("chunk.1"));
+        assertTrue(m.containsKey(DataUtils.META_CHUNK + "1"));
 
         assertEquals(2, s.getCurrentVersion());
 
@@ -1800,7 +1800,7 @@ public class TestMVStore extends TestBase {
     private int getChunkCount(Map<String, String> meta) {
         int chunkCount = 0;
         for (String k : meta.keySet()) {
-            if (k.startsWith("chunk.")) {
+            if (k.startsWith(DataUtils.META_CHUNK)) {
                 chunkCount++;
             }
         }

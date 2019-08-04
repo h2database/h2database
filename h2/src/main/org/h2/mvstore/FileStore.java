@@ -351,11 +351,11 @@ public class FileStore {
     /**
      * Calculate starting position of the prospective allocation.
      *
-     * @param length the number of bytes to allocate
-     * @return the start position in bytes
+     * @param blocks the number of blocks to allocate
+     * @return the starting block index
      */
-    long predictAllocation(int length) {
-        return freeSpace.predictAllocation(length);
+    long predictAllocation(int blocks) {
+        return freeSpace.predictAllocation(blocks);
     }
 
     boolean isFragmented() {

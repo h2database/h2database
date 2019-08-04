@@ -94,6 +94,11 @@ public class MVTableEngine implements TableEngine {
                 }
 
             });
+            // always start without background thread first, and if neccessary,
+            // it will be set up later, after db has been fully started,
+            // otherwise background thread would compete for store lock
+            // with maps opening procedure
+            builder.autoCommitDisabled();
         }
         store.open(db, builder, encrypted);
         db.setStore(store);

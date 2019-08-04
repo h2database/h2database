@@ -154,6 +154,12 @@ public final class DataUtils {
      */
     public static final int PAGE_LARGE = 2 * 1024 * 1024;
 
+    // The following are key prefixes used in meta map
+    public static final String META_CHUNK = "chunk."; // + hex chunk id -> serialized chunk metadata
+    public static final String META_NAME = "name.";   // + map's name -> hex map id
+    public static final String META_MAP = "map.";     // + hex map id -> serialized map metadata
+    public static final String META_ROOT = "root.";   // + hex map id -> hex root page "position"
+
     /**
      * Get the length of the variable size int.
      *
@@ -749,9 +755,9 @@ public final class DataUtils {
      *
      * @param bytes encoded map
      * @return the map without mapping for {@code "fletcher"}, or {@code null} if checksum is wrong
-     * @throws IllegalStateException if parsing failed
+     *              or parameter do not represent a properly formatted map serialization
      */
-    public static HashMap<String, String> parseChecksummedMap(byte[] bytes) {
+    static HashMap<String, String> parseChecksummedMap(byte[] bytes) {
         int start = 0, end = bytes.length;
         while (start < end && bytes[start] <= ' ') {
             start++;
@@ -766,7 +772,8 @@ public final class DataUtils {
             int startKey = i;
             i = s.indexOf(':', i);
             if (i < 0) {
-                throw newIllegalStateException(ERROR_FILE_CORRUPT, "Not a map: {0}", s);
+                // Corrupted map
+                return null;
             }
             if (i - startKey == 8 && s.regionMatches(startKey, "fletcher", 0, 8)) {
                 parseMapValue(buff, s, i + 1, size);

@@ -450,7 +450,7 @@ public class MVStore implements AutoCloseable
                 break;
             }
             String mapIdStr = key.substring(key.lastIndexOf('.') + 1);
-            if(!meta.containsKey(MVStore.META_MAP + mapIdStr)) {
+            if(!meta.containsKey(META_MAP + mapIdStr)) {
                 meta.remove(key);
                 markMetaChanged();
                 keysToRemove.add(key);
@@ -462,13 +462,13 @@ public class MVStore implements AutoCloseable
             markMetaChanged();
         }
 
-        for (Iterator<String> it = meta.keyIterator(MVStore.META_MAP); it.hasNext();) {
+        for (Iterator<String> it = meta.keyIterator(META_MAP); it.hasNext();) {
             String key = it.next();
-            if (!key.startsWith(MVStore.META_MAP)) {
+            if (!key.startsWith(META_MAP)) {
                 break;
             }
             String mapName = DataUtils.getMapName(meta.get(key));
-            String mapIdStr = key.substring(MVStore.META_MAP.length());
+            String mapIdStr = key.substring(META_MAP.length());
             // ensure that last map id is not smaller than max of any existing map ids
             int mapId = DataUtils.parseHexInt(mapIdStr);
             if (mapId > lastMapId.get()) {
@@ -717,6 +717,8 @@ public class MVStore implements AutoCloseable
                             blockSize);
                 }
                 long version = DataUtils.readHexLong(m, HDR_VERSION, 0);
+                // if both header blocks do agree on version
+                // we'll continue on happy path - assume that previous shutdown was clean
                 assumeCleanShutdown = newest == null || version == newest.version;
                 if (newest == null || version > newest.version) {
                     validStoreHeader = true;
@@ -1503,7 +1505,7 @@ public class MVStore implements AutoCloseable
         }
     }
 
-    private boolean canOverwriteChunk(Chunk c, long oldestVersionToKeep) {
+    private static boolean canOverwriteChunk(Chunk c, long oldestVersionToKeep) {
         return !c.isLive() && c.unusedAtVersion < oldestVersionToKeep;
     }
 
@@ -2079,7 +2081,7 @@ public class MVStore implements AutoCloseable
         return true;
     }
 
-    private HashSet<Integer> createIdSet(Iterable<Chunk> toCompact) {
+    private static HashSet<Integer> createIdSet(Iterable<Chunk> toCompact) {
         HashSet<Integer> set = new HashSet<>();
         for (Chunk c : toCompact) {
             set.add(c.id);

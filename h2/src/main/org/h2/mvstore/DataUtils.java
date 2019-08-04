@@ -154,6 +154,12 @@ public final class DataUtils {
      */
     public static final int PAGE_LARGE = 2 * 1024 * 1024;
 
+    // The following are key prefixes used in meta map
+    public static final String META_CHUNK = "chunk."; // + hex chunk id -> serialized chunk metadata
+    public static final String META_NAME = "name.";   // + map's name -> hex map id
+    public static final String META_MAP = "map.";     // + hex map id -> serialized map metadata
+    public static final String META_ROOT = "root.";   // + hex map id -> hex root page "position"
+
     /**
      * Get the length of the variable size int.
      *

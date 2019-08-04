@@ -368,7 +368,7 @@ public class MVStoreTool {
             long maxLengthNotEmpty = 0;
             for (Entry<String, String> e : meta.entrySet()) {
                 String k = e.getKey();
-                if (k.startsWith(MVStore.META_CHUNK)) {
+                if (k.startsWith(DataUtils.META_CHUNK)) {
                     Chunk c = Chunk.fromString(e.getValue());
                     chunks.put(c.id, c);
                     chunkLength += c.len * MVStore.BLOCK_SIZE;
@@ -524,13 +524,13 @@ public class MVStoreTool {
             MVMap<String, String> targetMeta = target.getMetaMap();
             for (Entry<String, String> m : sourceMeta.entrySet()) {
                 String key = m.getKey();
-                if (key.startsWith(MVStore.META_CHUNK)) {
+                if (key.startsWith(DataUtils.META_CHUNK)) {
                     // ignore
-                } else if (key.startsWith(MVStore.META_MAP)) {
+                } else if (key.startsWith(DataUtils.META_MAP)) {
                     // ignore
-                } else if (key.startsWith(MVStore.META_NAME)) {
+                } else if (key.startsWith(DataUtils.META_NAME)) {
                     // ignore
-                } else if (key.startsWith(MVStore.META_ROOT)) {
+                } else if (key.startsWith(DataUtils.META_ROOT)) {
                     // ignore
                 } else {
                     targetMeta.put(key, m.getValue());

@@ -1376,18 +1376,17 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
      *            if {@code true} identifier will be quoted unconditionally
      * @return specified identifier quoted if required, explicitly requested, or
      *         if it was already quoted
+     * @throws NullPointerException
+     *             if identifier is {@code null}
      * @throws SQLException
      *             if identifier is not a valid identifier
      */
     @Override
     public String enquoteIdentifier(String identifier, boolean alwaysQuote) throws SQLException {
+        if (isSimpleIdentifier(identifier)) {
+            return alwaysQuote ? '"' + identifier + '"': identifier;
+        }
         try {
-            if (identifier == null) {
-                throw DbException.get(ErrorCode.INVALID_NAME_1, identifier);
-            }
-            if (isSimpleIdentifier(identifier)) {
-                return alwaysQuote ? '"' + identifier + '"': identifier;
-            }
             int length = identifier.length();
             if (length > 0 && identifier.charAt(0) == '"') {
                 boolean quoted = true;
@@ -1413,6 +1412,8 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
      * @param identifier
      *            identifier to check
      * @return is specified identifier may be used without quotes
+     * @throws NullPointerException
+     *             if identifier is {@code null}
      */
     @Override
     public boolean isSimpleIdentifier(String identifier) throws SQLException {

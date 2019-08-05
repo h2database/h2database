@@ -436,8 +436,8 @@ public class TestStatement extends TestDb {
         try {
             stat.enquoteIdentifier(null, false);
             fail();
-        } catch (SQLException ex) {
-            assertEquals(ErrorCode.INVALID_NAME_1, ex.getErrorCode());
+        } catch (NullPointerException ex) {
+            // OK
         }
         try {
             stat.enquoteIdentifier("\"Test", true);
@@ -509,6 +509,12 @@ public class TestStatement extends TestDb {
         assertTrue(stat.isSimpleIdentifier("Test"));
         assertFalse(stat.isSimpleIdentifier("TODAY"));
         assertFalse(stat.isSimpleIdentifier("today"));
+        try {
+            stat.isSimpleIdentifier(null);
+            fail();
+        } catch (NullPointerException ex) {
+            // OK
+        }
 
         conn.close();
     }

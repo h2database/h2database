@@ -26,6 +26,7 @@
 40001=Deadlock detected. The current transaction was rolled back. Details: {0}
 42000=Syntax error in SQL statement {0}
 42001=Syntax error in SQL statement {0}; expected {1}
+42602=Invalid name {0}
 42S01=Table {0} already exists
 42S02=Table {0} not found
 42S11=Index {0} already exists

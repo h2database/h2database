@@ -1376,6 +1376,8 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
      *            if {@code true} identifier will be quoted unconditionally
      * @return specified identifier quoted if required, explicitly requested, or
      *         if it was already quoted
+     * @throws NullPointerException
+     *             if identifier is {@code null}
      * @throws SQLException
      *             if identifier is not a valid identifier
      */
@@ -1384,28 +1386,34 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
         if (isSimpleIdentifier(identifier)) {
             return alwaysQuote ? '"' + identifier + '"': identifier;
         }
-        int length = identifier.length();
-        if (length > 0 && identifier.charAt(0) == '"') {
-            boolean quoted = true;
-            for (int i = 1; i < length; i++) {
-                if (identifier.charAt(i) == '"') {
-                    quoted = !quoted;
-                } else if (!quoted) {
-                    throw new SQLException();
+        try {
+            int length = identifier.length();
+            if (length > 0 && identifier.charAt(0) == '"') {
+                boolean quoted = true;
+                for (int i = 1; i < length; i++) {
+                    if (identifier.charAt(i) == '"') {
+                        quoted = !quoted;
+                    } else if (!quoted) {
+                        throw DbException.get(ErrorCode.INVALID_NAME_1, identifier);
+                    }
                 }
+                if (quoted) {
+                    throw DbException.get(ErrorCode.INVALID_NAME_1, identifier);
+                }
+                return identifier;
             }
-            if (quoted) {
-                throw new SQLException();
-            }
-            return identifier;
+            return StringUtils.quoteIdentifier(identifier);
+        } catch (Exception e) {
+            throw logAndConvert(e);
         }
-        return StringUtils.quoteIdentifier(identifier);
     }
 
     /**
      * @param identifier
      *            identifier to check
      * @return is specified identifier may be used without quotes
+     * @throws NullPointerException
+     *             if identifier is {@code null}
      */
     @Override
     public boolean isSimpleIdentifier(String identifier) throws SQLException {

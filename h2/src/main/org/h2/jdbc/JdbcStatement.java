@@ -1381,25 +1381,32 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
      */
     @Override
     public String enquoteIdentifier(String identifier, boolean alwaysQuote) throws SQLException {
-        if (isSimpleIdentifier(identifier)) {
-            return alwaysQuote ? '"' + identifier + '"': identifier;
-        }
-        int length = identifier.length();
-        if (length > 0 && identifier.charAt(0) == '"') {
-            boolean quoted = true;
-            for (int i = 1; i < length; i++) {
-                if (identifier.charAt(i) == '"') {
-                    quoted = !quoted;
-                } else if (!quoted) {
-                    throw new SQLException();
+        try {
+            if (identifier == null) {
+                throw DbException.get(ErrorCode.INVALID_NAME_1, identifier);
+            }
+            if (isSimpleIdentifier(identifier)) {
+                return alwaysQuote ? '"' + identifier + '"': identifier;
+            }
+            int length = identifier.length();
+            if (length > 0 && identifier.charAt(0) == '"') {
+                boolean quoted = true;
+                for (int i = 1; i < length; i++) {
+                    if (identifier.charAt(i) == '"') {
+                        quoted = !quoted;
+                    } else if (!quoted) {
+                        throw DbException.get(ErrorCode.INVALID_NAME_1, identifier);
+                    }
                 }
+                if (quoted) {
+                    throw DbException.get(ErrorCode.INVALID_NAME_1, identifier);
+                }
+                return identifier;
             }
-            if (quoted) {
-                throw new SQLException();
-            }
-            return identifier;
+            return StringUtils.quoteIdentifier(identifier);
+        } catch (Exception e) {
+            throw logAndConvert(e);
         }
-        return StringUtils.quoteIdentifier(identifier);
     }
 
     /**

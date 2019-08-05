@@ -26,6 +26,7 @@
 40001=Detekován deadlock. Probíhající transakce byla vrácena zpět. Podrobnosti: {0}
 42000=Chyba syntaxe v SQL příkazu {0}
 42001=Chyba syntaxe v SQL příkazu {0}; očekáváno {1}
+42602=#Invalid name {0}
 42S01=Tabulka {0} již existuje
 42S02=Tabulka {0} nenalezena
 42S11=Index {0} již existuje

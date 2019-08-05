@@ -422,6 +422,16 @@ public class ErrorCode {
      */
     public static final int IDENTICAL_EXPRESSIONS_SHOULD_BE_USED = 42131;
 
+    /**
+     * The error with code <code>42602</code> is thrown when
+     * invalid name of identifier is used.
+     * Example:
+     * <pre>
+     * statement.enquoteIdentifier("\"", true);
+     * </pre>
+     */
+    public static final int INVALID_NAME_1 = 42602;
+
     // 0A: feature not supported
 
     // HZ: remote database access

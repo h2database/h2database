@@ -26,6 +26,7 @@
 40001=Wykryto zakleszczenie. Bieżąca transakcja została wycofana. Szczegóły : {0}
 42000=Błąd składniowy w wyrażeniu SQL {0}
 42001=Błąd składniowy w wyrażeniu SQL {0}; oczekiwano {1}
+42602=#Invalid name {0}
 42S01=Tabela {0} już istnieje
 42S02=Tabela {0} nie istnieje
 42S11=Indeks {0} już istnieje

@@ -431,11 +431,25 @@ public class TestStatement extends TestDb {
         assertEquals("\"Test\"", stat.enquoteIdentifier("\"Test\"", false));
         assertEquals("\"Test\"", stat.enquoteIdentifier("\"Test\"", true));
         assertEquals("\"\"\"Test\"", stat.enquoteIdentifier("\"\"\"Test\"", true));
+        assertEquals("\"\"", stat.enquoteIdentifier("", false));
+        assertEquals("\"\"", stat.enquoteIdentifier("", true));
+        try {
+            stat.enquoteIdentifier(null, false);
+            fail();
+        } catch (SQLException ex) {
+            assertEquals(ErrorCode.INVALID_NAME_1, ex.getErrorCode());
+        }
         try {
             stat.enquoteIdentifier("\"Test", true);
             fail();
         } catch (SQLException ex) {
-            // OK
+            assertEquals(ErrorCode.INVALID_NAME_1, ex.getErrorCode());
+        }
+        try {
+            stat.enquoteIdentifier("\"a\"a\"", true);
+            fail();
+        } catch (SQLException ex) {
+            assertEquals(ErrorCode.INVALID_NAME_1, ex.getErrorCode());
         }
         // Other lower case characters don't have upper case mappings
         assertEquals("\u02B0", stat.enquoteIdentifier("\u02B0", false));

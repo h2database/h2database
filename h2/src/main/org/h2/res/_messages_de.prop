@@ -26,6 +26,7 @@
 40001=Eine Verklemmung (Deadlock) ist aufgetreten. Die aktuelle Transaktion wurde rückgängig gemacht. Details: {0}
 42000=Syntax Fehler in SQL Befehl {0}
 42001=Syntax Fehler in SQL Befehl {0}; erwartet {1}
+42602=#Invalid name {0}
 42S01=Tabelle {0} besteht bereits
 42S02=Tabelle {0} nicht gefunden
 42S11=Index {0} besteht bereits

@@ -865,8 +865,9 @@ public class MVStore implements AutoCloseable
                     }
                 }
 
-                // if we encounter chunk header without corresponding footer (due to incomplete write ?)
-                // in the middle of prospective chunk, stop considering it
+                // if we encounter chunk header without corresponding footer
+                // (due to incomplete write?) in the middle of prospective
+                // chunk, stop considering it
                 if (--block > candidateLocation && readChunkHeaderOptionally(block) != null) {
                     candidateLocation = Long.MAX_VALUE;
                 }
@@ -904,11 +905,13 @@ public class MVStore implements AutoCloseable
                         if ((test = validChunksByLocation.get(c.block)) != null && test.id == c.id) {
                             continue;
                         } else if ((test = validChunksById.get(c.id)) != null) {
-                            // We do not have a valid chunk at that location, but there is a copy
-                            // of same chunk from original location.
-                            // Chunk header at original location does not have any dynamic (occupancy)
-                            // metadata, so it can't be used here as is,
-                            // re-point our chunk to original location instead.
+                            // We do not have a valid chunk at that location,
+                            // but there is a copy of same chunk from original
+                            // location.
+                            // Chunk header at original location does not have
+                            // any dynamic (occupancy) metadata, so it can't be
+                            // used here as is, re-point our chunk to original
+                            // location instead.
                             c.block = test.block;
                             continue;
                         }
@@ -2289,8 +2292,7 @@ public class MVStore implements AutoCloseable
         // need to be available in the file
         MVMap<String, String> oldMeta = getMetaMap(version);
         try {
-            for (Iterator<String> it = oldMeta.keyIterator(DataUtils.META_CHUNK);
-                 it.hasNext();) {
+            for (Iterator<String> it = oldMeta.keyIterator(DataUtils.META_CHUNK); it.hasNext();) {
                 String chunkKey = it.next();
                 if (!chunkKey.startsWith(DataUtils.META_CHUNK)) {
                     break;

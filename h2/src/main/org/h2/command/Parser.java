@@ -3151,12 +3151,7 @@ public class Parser {
                     }
                 }
             } else if (readIf("IN")) {
-                read(OPEN_PAREN);
-                if (!database.getMode().prohibitEmptyInPredicate && readIf(CLOSE_PAREN)) {
-                    r = ValueExpression.getBoolean(false);
-                } else {
-                    r = readInPredicate(r);
-                }
+                r = readInPredicate(r);
             } else if (readIf("BETWEEN")) {
                 Expression low = readConcat();
                 read("AND");
@@ -3213,16 +3208,20 @@ public class Parser {
         return r;
     }
 
-    private TypePredicate readTypePredicate(Expression r, boolean not) {
+    private TypePredicate readTypePredicate(Expression left, boolean not) {
         read(OPEN_PAREN);
         ArrayList<TypeInfo> typeList = Utils.newSmallArrayList();
         do {
             typeList.add(parseColumnWithType(null, false).getType());
         } while (readIfMore(true));
-        return new TypePredicate(r, not, typeList.toArray(new TypeInfo[0]));
+        return new TypePredicate(left, not, typeList.toArray(new TypeInfo[0]));
     }
 
     private Expression readInPredicate(Expression left) {
+        read(OPEN_PAREN);
+        if (!database.getMode().prohibitEmptyInPredicate && readIf(CLOSE_PAREN)) {
+            return ValueExpression.getBoolean(false);
+        }
         ArrayList<Expression> v;
         if (isSelect()) {
             Query query = parseSelect();
@@ -3240,7 +3239,7 @@ public class Parser {
         return new ConditionIn(database, left, v);
     }
 
-    private IsJsonPredicate readJsonPredicate(Expression r, boolean not) {
+    private IsJsonPredicate readJsonPredicate(Expression left, boolean not) {
         JSONItemType itemType;
         if (readIf("VALUE")) {
             itemType = JSONItemType.VALUE;
@@ -3262,7 +3261,7 @@ public class Parser {
             read(UNIQUE);
             readIf("KEYS");
         }
-        return new IsJsonPredicate(r, not, unique, itemType);
+        return new IsJsonPredicate(left, not, unique, itemType);
     }
 
     private Expression readConcat() {

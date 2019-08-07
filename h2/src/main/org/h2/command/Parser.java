@@ -3152,10 +3152,7 @@ public class Parser {
                 }
             } else if (readIf("IN")) {
                 read(OPEN_PAREN);
-                if (readIf(CLOSE_PAREN)) {
-                    if (database.getMode().prohibitEmptyInPredicate) {
-                        throw getSyntaxError();
-                    }
+                if (!database.getMode().prohibitEmptyInPredicate && readIf(CLOSE_PAREN)) {
                     r = ValueExpression.getBoolean(false);
                 } else {
                     if (isSelect()) {

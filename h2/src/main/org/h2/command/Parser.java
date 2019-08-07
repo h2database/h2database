@@ -3155,23 +3155,23 @@ public class Parser {
                 if (!database.getMode().prohibitEmptyInPredicate && readIf(CLOSE_PAREN)) {
                     r = ValueExpression.getBoolean(false);
                 } else {
-                    if (isSelect()) {
-                        Query query = parseSelect();
-                        r = new ConditionInQuery(database, r, query, false, Comparison.EQUAL);
-                    } else {
-                        ArrayList<Expression> v = Utils.newSmallArrayList();
-                        Expression last;
-                        do {
-                            last = readExpression();
-                            v.add(last);
-                        } while (readIf(COMMA));
-                        if (v.size() == 1 && (last instanceof Subquery)) {
-                            Subquery s = (Subquery) last;
-                            Query q = s.getQuery();
-                            r = new ConditionInQuery(database, r, q, false, Comparison.EQUAL);
+                    readInValueList: {
+                        ArrayList<Expression> v;
+                        if (isSelect()) {
+                            Query query = parseSelect();
+                            if (!readIf(COMMA)) {
+                                r = new ConditionInQuery(database, r, query, false, Comparison.EQUAL);
+                                break readInValueList;
+                            }
+                            v = Utils.newSmallArrayList();
+                            v.add(new Subquery(query));
                         } else {
-                            r = new ConditionIn(database, r, v);
+                            v = Utils.newSmallArrayList();
                         }
+                        do {
+                            v.add(readExpression());
+                        } while (readIf(COMMA));
+                        r = new ConditionIn(database, r, v);
                     }
                     read(CLOSE_PAREN);
                 }

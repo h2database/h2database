@@ -3,25 +3,6 @@
 -- Initial Developer: H2 Group
 --
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
-create table test(id int) as select 1;
-> ok
-
-select * from test where id in (select id from test order by 'x');
-> ID
-> --
-> 1
-> rows: 1
-
-drop table test;
-> ok
-
-select x, x in(2, 3) i from system_range(1, 2) group by x;
-> X I
-> - -----
-> 1 FALSE
-> 2 TRUE
-> rows: 2
-
 select * from dual join(select x from dual) on 1=1;
 > X X
 > - -
@@ -114,21 +95,10 @@ select case seq.nextval when 2 then 'two' when 3 then 'three' when 1 then 'one' 
 drop sequence seq;
 > ok
 
-select * from dual where x = x + 1 or x in(2, 0);
-> X
-> -
-> rows: 0
-
 select * from system_range(1,1) order by x limit 3 offset 3;
 > X
 > -
 > rows (ordered): 0
-
-select * from dual where cast('a' || x as varchar_ignorecase) in ('A1', 'B1');
-> X
-> -
-> 1
-> rows: 1
 
 create sequence seq start with 65 increment by 1;
 > ok
@@ -308,34 +278,8 @@ update test set (id)=(id);
 drop table test;
 > ok
 
-create table test(x int) as select x from system_range(1, 2);
-> ok
-
-select * from (select rownum r from test) where r in (1, 2);
-> R
-> -
-> 1
-> 2
-> rows: 2
-
-select * from (select rownum r from test) where r = 1 or r = 2;
-> R
-> -
-> 1
-> 2
-> rows: 2
-
-drop table test;
-> ok
-
 select 2^2;
 > exception SYNTAX_ERROR_1
-
-select * from dual where x in (select x from dual group by x order by max(x));
-> X
-> -
-> 1
-> rows: 1
 
 create table test(d decimal(1, 2));
 > exception INVALID_VALUE_SCALE_PRECISION
@@ -394,31 +338,6 @@ select * from test order by id limit null;
 > 2
 > 4
 > rows (ordered): 3
-
-select a.id, a.id in(select 4) x  from test a, test b where a.id in (b.id, b.id - 1);
-> ID X
-> -- -----
-> 1  FALSE
-> 1  FALSE
-> 2  FALSE
-> 4  TRUE
-> rows: 4
-
-select a.id, a.id in(select 4) x  from test a, test b where a.id in (b.id, b.id - 1) group by a.id;
-> ID X
-> -- -----
-> 1  FALSE
-> 2  FALSE
-> 4  TRUE
-> rows: 3
-
-select a.id, 4 in(select a.id) x  from test a, test b where a.id in (b.id, b.id - 1) group by a.id;
-> ID X
-> -- -----
-> 1  FALSE
-> 2  FALSE
-> 4  TRUE
-> rows: 3
 
 delete from test limit 0;
 > ok
@@ -541,22 +460,6 @@ select * from (select null as x) where x=1;
 > X
 > -
 > rows: 0
-
-create table test(id int primary key, d int);
-> ok
-
-insert into test values(1,1), (2, 1);
-> update count: 2
-
-select id from test where id in (1, 2) and d = 1;
-> ID
-> --
-> 1
-> 2
-> rows: 2
-
-drop table test;
-> ok
 
 create table test(id decimal(10, 2) primary key) as select 0;
 > ok
@@ -865,43 +768,6 @@ select column_name, numeric_scale from information_schema.columns c where c.tabl
 drop table test;
 > ok
 
-create table test(id int);
-> ok
-
-insert into test values(null), (1);
-> update count: 2
-
-select * from test where id not in (select id from test where 1=0);
-> ID
-> ----
-> 1
-> null
-> rows: 2
-
-select * from test where null not in (select id from test where 1=0);
-> ID
-> ----
-> 1
-> null
-> rows: 2
-
-select * from test where not (id in (select id from test where 1=0));
-> ID
-> ----
-> 1
-> null
-> rows: 2
-
-select * from test where not (null in (select id from test where 1=0));
-> ID
-> ----
-> 1
-> null
-> rows: 2
-
-drop table test;
-> ok
-
 create table test(a int);
 > ok
 
@@ -1117,31 +983,6 @@ drop schema a cascade;
 drop schema b cascade;
 > ok
 
-create table t1 (id int primary key);
-> ok
-
-create table t2 (id int primary key);
-> ok
-
-insert into t1 select x from system_range(1, 1000);
-> update count: 1000
-
-insert into t2 select x from system_range(1, 1000);
-> update count: 1000
-
-explain select count(*) from t1 where t1.id in ( select t2.id from t2 );
-#+mvStore#>> SELECT COUNT(*) FROM "PUBLIC"."T1" /* PUBLIC.PRIMARY_KEY_A: ID IN(SELECT T2.ID FROM PUBLIC.T2 /++ PUBLIC.T2.tableScan ++/) */ WHERE "T1"."ID" IN( SELECT "T2"."ID" FROM "PUBLIC"."T2" /* PUBLIC.T2.tableScan */)
-#-mvStore#>> SELECT COUNT(*) FROM "PUBLIC"."T1" /* PUBLIC.PRIMARY_KEY_A: ID IN(SELECT T2.ID FROM PUBLIC.T2 /++ PUBLIC.PRIMARY_KEY_A5 ++/) */ WHERE "T1"."ID" IN( SELECT "T2"."ID" FROM "PUBLIC"."T2" /* PUBLIC.PRIMARY_KEY_A5 */)
-
-select count(*) from t1 where t1.id in ( select t2.id from t2 );
-> COUNT(*)
-> --------
-> 1000
-> rows: 1
-
-drop table t1, t2;
-> ok
-
 CREATE TABLE p(d date);
 > ok
 
@@ -1289,12 +1130,6 @@ select * from ((test d1 inner join test d2 on d1.id = d2.id) inner join test d3 
 
 drop table test;
 > ok
-
-select count(*) from system_range(1, 2) where x in(1, 1, 1);
-> COUNT(*)
-> --------
-> 1
-> rows: 1
 
 create table person(id bigint auto_increment, name varchar(100));
 > ok
@@ -1470,18 +1305,6 @@ explain select * from test where id = 3;
 
 explain select * from test where id = 255;
 >> SELECT "PUBLIC"."TEST"."ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2: ID = 255 */ WHERE "ID" = 255
-
-drop table test;
-> ok
-
-create table test(id int primary key);
-> ok
-
-insert into test values(1), (2), (3);
-> update count: 3
-
-explain select * from test where id in(1, 2, null);
->> SELECT "PUBLIC"."TEST"."ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2: ID IN(1, 2, NULL) */ WHERE "ID" IN(1, 2, NULL)
 
 drop table test;
 > ok
@@ -2328,36 +2151,6 @@ select timestamp '2001-02-03T10:30:33';
 > 2001-02-03 10:30:33
 > rows: 1
 
-CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255));
-> ok
-
-INSERT INTO TEST VALUES(1, 'Hello'), (2, 'World');
-> update count: 2
-
-select * from test where id in (select id from test);
-> ID NAME
-> -- -----
-> 1  Hello
-> 2  World
-> rows: 2
-
-select * from test where id in ((select id from test));
-> ID NAME
-> -- -----
-> 1  Hello
-> 2  World
-> rows: 2
-
-select * from test where id in (((select id from test)));
-> ID NAME
-> -- -----
-> 1  Hello
-> 2  World
-> rows: 2
-
-DROP TABLE TEST;
-> ok
-
 create table test(id int);
 > ok
 
@@ -3081,55 +2874,6 @@ SELECT * FROM TEST WHERE foo = 123456789014567;
 
 DROP TABLE IF EXISTS TEST;
 > ok
-
-create table test(v boolean);
-> ok
-
-insert into test values(null), (true), (false);
-> update count: 3
-
-SELECT CASE WHEN NOT (false IN (null)) THEN false END;
-> NULL
-> ----
-> null
-> rows: 1
-
-select a.v as av, b.v as bv, a.v IN (b.v), not a.v IN (b.v) from test a, test b;
-> AV    BV    A.V = B.V NOT (A.V = B.V)
-> ----- ----- --------- ---------------
-> FALSE FALSE TRUE      FALSE
-> FALSE TRUE  FALSE     TRUE
-> FALSE null  null      null
-> TRUE  FALSE FALSE     TRUE
-> TRUE  TRUE  TRUE      FALSE
-> TRUE  null  null      null
-> null  FALSE null      null
-> null  TRUE  null      null
-> null  null  null      null
-> rows: 9
-
-select a.v as av, b.v as bv, a.v IN (b.v, null), not a.v IN (b.v, null) from test a, test b;
-> AV    BV    A.V IN(B.V, NULL) NOT (A.V IN(B.V, NULL))
-> ----- ----- ----------------- -----------------------
-> FALSE FALSE TRUE              FALSE
-> FALSE TRUE  null              null
-> FALSE null  null              null
-> TRUE  FALSE null              null
-> TRUE  TRUE  TRUE              FALSE
-> TRUE  null  null              null
-> null  FALSE null              null
-> null  TRUE  null              null
-> null  null  null              null
-> rows: 9
-
-drop table test;
-> ok
-
-SELECT CASE WHEN NOT (false IN (null)) THEN false END;
-> NULL
-> ----
-> null
-> rows: 1
 
 create table test(id int);
 > ok

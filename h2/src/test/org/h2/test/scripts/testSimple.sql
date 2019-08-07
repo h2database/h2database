@@ -77,44 +77,8 @@ delete from a;
 drop table a, b;
 > ok
 
-create table test(a int, b int) as select 2, 0;
-> ok
-
-create index idx on test(b, a);
-> ok
-
-select count(*) from test where a in(2, 10) and b in(0, null);
->> 1
-
-drop table test;
-> ok
-
-create table test(a int, b int) as select 1, 0;
-> ok
-
-create index idx on test(b, a);
-> ok
-
-select count(*) from test where b in(null, 0) and a in(1, null);
->> 1
-
-drop table test;
-> ok
-
 create cached temp table test(id identity) not persistent;
 > ok
-
-drop table test;
-> ok
-
-create table test(a int, b int, unique(a, b));
-> ok
-
-insert into test values(1,1), (1,2);
-> update count: 2
-
-select count(*) from test where a in(1,2) and b in(1,2);
->> 2
 
 drop table test;
 > ok

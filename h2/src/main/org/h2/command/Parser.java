@@ -3151,33 +3151,7 @@ public class Parser {
                     }
                 }
             } else if (readIf("IN")) {
-                read(OPEN_PAREN);
-                if (readIf(CLOSE_PAREN)) {
-                    if (database.getMode().prohibitEmptyInPredicate) {
-                        throw getSyntaxError();
-                    }
-                    r = ValueExpression.getBoolean(false);
-                } else {
-                    if (isSelect()) {
-                        Query query = parseSelect();
-                        r = new ConditionInQuery(database, r, query, false, Comparison.EQUAL);
-                    } else {
-                        ArrayList<Expression> v = Utils.newSmallArrayList();
-                        Expression last;
-                        do {
-                            last = readExpression();
-                            v.add(last);
-                        } while (readIf(COMMA));
-                        if (v.size() == 1 && (last instanceof Subquery)) {
-                            Subquery s = (Subquery) last;
-                            Query q = s.getQuery();
-                            r = new ConditionInQuery(database, r, q, false, Comparison.EQUAL);
-                        } else {
-                            r = new ConditionIn(database, r, v);
-                        }
-                    }
-                    read(CLOSE_PAREN);
-                }
+                r = readInPredicate(r);
             } else if (readIf("BETWEEN")) {
                 Expression low = readConcat();
                 read("AND");
@@ -3234,16 +3208,38 @@ public class Parser {
         return r;
     }
 
-    private TypePredicate readTypePredicate(Expression r, boolean not) {
+    private TypePredicate readTypePredicate(Expression left, boolean not) {
         read(OPEN_PAREN);
         ArrayList<TypeInfo> typeList = Utils.newSmallArrayList();
         do {
             typeList.add(parseColumnWithType(null, false).getType());
         } while (readIfMore(true));
-        return new TypePredicate(r, not, typeList.toArray(new TypeInfo[0]));
+        return new TypePredicate(left, not, typeList.toArray(new TypeInfo[0]));
     }
 
-    private IsJsonPredicate readJsonPredicate(Expression r, boolean not) {
+    private Expression readInPredicate(Expression left) {
+        read(OPEN_PAREN);
+        if (!database.getMode().prohibitEmptyInPredicate && readIf(CLOSE_PAREN)) {
+            return ValueExpression.getBoolean(false);
+        }
+        ArrayList<Expression> v;
+        if (isSelect()) {
+            Query query = parseSelect();
+            if (!readIfMore(true)) {
+                return new ConditionInQuery(database, left, query, false, Comparison.EQUAL);
+            }
+            v = Utils.newSmallArrayList();
+            v.add(new Subquery(query));
+        } else {
+            v = Utils.newSmallArrayList();
+        }
+        do {
+            v.add(readExpression());
+        } while (readIfMore(true));
+        return new ConditionIn(database, left, v);
+    }
+
+    private IsJsonPredicate readJsonPredicate(Expression left, boolean not) {
         JSONItemType itemType;
         if (readIf("VALUE")) {
             itemType = JSONItemType.VALUE;
@@ -3265,7 +3261,7 @@ public class Parser {
             read(UNIQUE);
             readIf("KEYS");
         }
-        return new IsJsonPredicate(r, not, unique, itemType);
+        return new IsJsonPredicate(left, not, unique, itemType);
     }
 
     private Expression readConcat() {

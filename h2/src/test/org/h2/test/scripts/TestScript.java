@@ -167,11 +167,6 @@ public class TestScript extends TestDb {
                 "replace", "script", "select", "show", "table", "update", "values", "with" }) {
             testScript("dml/" + s + ".sql");
         }
-        for (String s : new String[] { "boolean-test", "conditions", "data-change-delta-table",
-                "help", "null-predicate", "type-predicate",
-                "unique-predicate" }) {
-            testScript("other/" + s + ".sql");
-        }
         for (String s : new String[] { "any", "array-agg", "avg", "bit-and", "bit-or", "count", "envelope",
                 "every", "histogram",
                 "json_arrayagg", "json_objectagg",
@@ -222,6 +217,12 @@ public class TestScript extends TestDb {
         }
         for (String s : new String[] { "lead", "nth_value", "ntile", "ratio_to_report", "row_number" }) {
             testScript("functions/window/" + s + ".sql");
+        }
+        for (String s : new String[] { "boolean-test", "conditions", "data-change-delta-table", "help" }) {
+            testScript("other/" + s + ".sql");
+        }
+        for (String s : new String[] { "in", "null", "type", "unique" }) {
+            testScript("predicates/" + s + ".sql");
         }
 
         deleteDb("script");

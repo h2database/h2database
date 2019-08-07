@@ -3155,25 +3155,7 @@ public class Parser {
                 if (!database.getMode().prohibitEmptyInPredicate && readIf(CLOSE_PAREN)) {
                     r = ValueExpression.getBoolean(false);
                 } else {
-                    readInValueList: {
-                        ArrayList<Expression> v;
-                        if (isSelect()) {
-                            Query query = parseSelect();
-                            if (!readIf(COMMA)) {
-                                r = new ConditionInQuery(database, r, query, false, Comparison.EQUAL);
-                                break readInValueList;
-                            }
-                            v = Utils.newSmallArrayList();
-                            v.add(new Subquery(query));
-                        } else {
-                            v = Utils.newSmallArrayList();
-                        }
-                        do {
-                            v.add(readExpression());
-                        } while (readIf(COMMA));
-                        r = new ConditionIn(database, r, v);
-                    }
-                    read(CLOSE_PAREN);
+                    r = readInPredicate(r);
                 }
             } else if (readIf("BETWEEN")) {
                 Expression low = readConcat();
@@ -3238,6 +3220,24 @@ public class Parser {
             typeList.add(parseColumnWithType(null, false).getType());
         } while (readIfMore(true));
         return new TypePredicate(r, not, typeList.toArray(new TypeInfo[0]));
+    }
+
+    private Expression readInPredicate(Expression left) {
+        ArrayList<Expression> v;
+        if (isSelect()) {
+            Query query = parseSelect();
+            if (!readIfMore(true)) {
+                return new ConditionInQuery(database, left, query, false, Comparison.EQUAL);
+            }
+            v = Utils.newSmallArrayList();
+            v.add(new Subquery(query));
+        } else {
+            v = Utils.newSmallArrayList();
+        }
+        do {
+            v.add(readExpression());
+        } while (readIfMore(true));
+        return new ConditionIn(database, left, v);
     }
 
     private IsJsonPredicate readJsonPredicate(Expression r, boolean not) {

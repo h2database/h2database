@@ -7990,8 +7990,8 @@ public class Parser {
             Schema schema, boolean ifTableExists) {
         String constraintName = null, comment = null;
         boolean ifNotExists = false;
-        boolean allowIndexDefinition = database.getMode().indexDefinitionInCreateTable;
-        boolean allowAffinityKey = database.getMode().allowAffinityKey;
+        Mode mode = database.getMode();
+        boolean allowIndexDefinition = mode.indexDefinitionInCreateTable;
         if (readIf(CONSTRAINT)) {
             ifNotExists = readIfNotExists();
             constraintName = readIdentifierWithSchema(schema.getName());
@@ -8023,7 +8023,7 @@ public class Parser {
             // need to read ahead, as it could be a column name
             int start = lastParseIndex;
             read();
-            if (DataType.getTypeByName(currentToken, database.getMode()) != null) {
+            if (DataType.getTypeByName(currentToken, mode) != null) {
                 // known data type
                 parseIndex = start;
                 read();
@@ -8043,7 +8043,7 @@ public class Parser {
                 read("BTREE");
             }
             return command;
-        } else if (allowAffinityKey && readIfAffinity()) {
+        } else if (mode.allowAffinityKey && readIfAffinity()) {
             read("KEY");
             read(OPEN_PAREN);
             CreateIndex command = createAffinityIndex(schema, tableName, parseIndexColumnList());
@@ -8273,9 +8273,9 @@ public class Parser {
             if (readIf(CONSTRAINT)) {
                 constraintName = readColumnIdentifier();
             }
+            Mode mode = database.getMode();
             // For compatibility with Apache Ignite.
-            boolean allowAffinityKey = database.getMode().allowAffinityKey;
-            boolean affinity = allowAffinityKey && readIfAffinity();
+            boolean affinity = mode.allowAffinityKey && readIfAffinity();
             if (readIf(PRIMARY)) {
                 read("KEY");
                 boolean hash = readIf("HASH");
@@ -8292,7 +8292,7 @@ public class Parser {
                 if (readIf("AUTO_INCREMENT")) {
                     parseAutoIncrement(column);
                 }
-                if (database.getMode().useIdentityAsAutoIncrement) {
+                if (mode.useIdentityAsAutoIncrement) {
                     if (readIf(NOT)) {
                         read(NULL);
                         column.setNullable(false);

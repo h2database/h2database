@@ -8,7 +8,6 @@ package org.h2.index;
 import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
-import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.IndexColumn;
@@ -19,29 +18,13 @@ import org.h2.table.TableFilter;
  * An index for the SYSTEM_RANGE table.
  * This index can only scan through all rows, search is not supported.
  */
-public class RangeIndex extends BaseIndex {
+public class RangeIndex extends VirtualTableIndex {
 
     private final RangeTable rangeTable;
 
     public RangeIndex(RangeTable table, IndexColumn[] columns) {
-        super(table, 0, "RANGE_INDEX", columns,
-                IndexType.createNonUnique(true));
+        super(table, "RANGE_INDEX", columns);
         this.rangeTable = table;
-    }
-
-    @Override
-    public void close(Session session) {
-        // nothing to do
-    }
-
-    @Override
-    public void add(Session session, Row row) {
-        throw DbException.getUnsupportedException("SYSTEM_RANGE");
-    }
-
-    @Override
-    public void remove(Session session, Row row) {
-        throw DbException.getUnsupportedException("SYSTEM_RANGE");
     }
 
     @Override
@@ -84,32 +67,12 @@ public class RangeIndex extends BaseIndex {
     public double getCost(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
             AllColumnsForPlan allColumnsSet) {
-        return 1;
+        return 1d;
     }
 
     @Override
     public String getCreateSQL() {
         return null;
-    }
-
-    @Override
-    public void remove(Session session) {
-        throw DbException.getUnsupportedException("SYSTEM_RANGE");
-    }
-
-    @Override
-    public void truncate(Session session) {
-        throw DbException.getUnsupportedException("SYSTEM_RANGE");
-    }
-
-    @Override
-    public boolean needRebuild() {
-        return false;
-    }
-
-    @Override
-    public void checkRename() {
-        throw DbException.getUnsupportedException("SYSTEM_RANGE");
     }
 
     @Override
@@ -124,17 +87,8 @@ public class RangeIndex extends BaseIndex {
     }
 
     @Override
-    public long getRowCount(Session session) {
-        return rangeTable.getRowCount(session);
+    public String getPlanSQL() {
+        return "range index";
     }
 
-    @Override
-    public long getRowCountApproximation() {
-        return rangeTable.getRowCountApproximation();
-    }
-
-    @Override
-    public long getDiskSpaceUsed() {
-        return 0;
-    }
 }

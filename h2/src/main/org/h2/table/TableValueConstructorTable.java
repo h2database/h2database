@@ -17,7 +17,7 @@ import org.h2.schema.Schema;
 /**
  * A table for table value constructor.
  */
-public class TableValueConstructorTable extends VirtualTable {
+public class TableValueConstructorTable extends VirtualConstructedTable {
 
     private final ArrayList<ArrayList<Expression>> rows;
 

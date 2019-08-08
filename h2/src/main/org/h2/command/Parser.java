@@ -1559,30 +1559,30 @@ public class Parser {
         return prep;
     }
 
-    private boolean isSelect() {
+    private boolean isQuery() {
         int start = lastParseIndex;
         while (readIf(OPEN_PAREN)) {
             // need to read ahead, it could be a nested union:
             // ((select 1) union (select 1))
         }
-        boolean select;
+        boolean query;
         switch (currentTokenType) {
         case FROM:
         case SELECT:
         case VALUES:
         case WITH:
-            select = true;
+            query = true;
             break;
         case TABLE:
             read();
-            select = !readIf(OPEN_PAREN);
+            query = !readIf(OPEN_PAREN);
             break;
         default:
-            select = false;
+            query = false;
         }
         parseIndex = start;
         read();
-        return select;
+        return query;
     }
 
     private Prepared parseMerge() {
@@ -1598,7 +1598,7 @@ public class Parser {
         command.setTableFilter(targetTableFilter);
         Table table = command.getTable();
         if (readIf(OPEN_PAREN)) {
-            if (isSelect()) {
+            if (isQuery()) {
                 command.setQuery(parseSelect());
                 read(CLOSE_PAREN);
                 return command;
@@ -1623,7 +1623,7 @@ public class Parser {
         MergeUsing command = new MergeUsing(session, targetTableFilter);
         currentPrepared = command;
 
-        if (isSelect()) {
+        if (isQuery()) {
             command.setQuery(parseSelect());
             String queryAlias = readFromAlias(null, null);
             if (queryAlias == null) {
@@ -1784,7 +1784,7 @@ public class Parser {
     private Insert parseInsertGivenTable(Insert command, Table table) {
         Column[] columns = null;
         if (readIf(OPEN_PAREN)) {
-            if (isSelect()) {
+            if (isQuery()) {
                 command.setQuery(parseSelect());
                 read(CLOSE_PAREN);
                 return command;
@@ -1832,7 +1832,7 @@ public class Parser {
         Table table = readTableOrView();
         command.setTable(table);
         if (readIf(OPEN_PAREN)) {
-            if (isSelect()) {
+            if (isQuery()) {
                 command.setQuery(parseSelect());
                 read(CLOSE_PAREN);
                 return command;
@@ -1876,7 +1876,7 @@ public class Parser {
         Table table;
         String alias = null;
         label: if (readIf(OPEN_PAREN)) {
-            if (isSelect()) {
+            if (isQuery()) {
                 Query query = parseSelectUnion();
                 read(CLOSE_PAREN);
                 alias = session.getNextSystemIdentifier(sqlCommand);
@@ -3173,7 +3173,7 @@ public class Parser {
                 int start = lastParseIndex;
                 if (readIf(ALL)) {
                     read(OPEN_PAREN);
-                    if (isSelect()) {
+                    if (isQuery()) {
                         Query query = parseSelect();
                         r = new ConditionInQuery(database, r, query, true, compareType);
                         read(CLOSE_PAREN);
@@ -3188,7 +3188,7 @@ public class Parser {
                         Parameter p = readParameter();
                         r = new ConditionInParameter(database, r, p);
                         read(CLOSE_PAREN);
-                    } else if (isSelect()) {
+                    } else if (isQuery()) {
                         Query query = parseSelect();
                         r = new ConditionInQuery(database, r, query, false, compareType);
                         read(CLOSE_PAREN);
@@ -3223,7 +3223,7 @@ public class Parser {
             return ValueExpression.getBoolean(false);
         }
         ArrayList<Expression> v;
-        if (isSelect()) {
+        if (isQuery()) {
             Query query = parseSelect();
             if (!readIfMore(true)) {
                 return new ConditionInQuery(database, left, query, false, Comparison.EQUAL);
@@ -7990,8 +7990,8 @@ public class Parser {
             Schema schema, boolean ifTableExists) {
         String constraintName = null, comment = null;
         boolean ifNotExists = false;
-        boolean allowIndexDefinition = database.getMode().indexDefinitionInCreateTable;
-        boolean allowAffinityKey = database.getMode().allowAffinityKey;
+        Mode mode = database.getMode();
+        boolean allowIndexDefinition = mode.indexDefinitionInCreateTable;
         if (readIf(CONSTRAINT)) {
             ifNotExists = readIfNotExists();
             constraintName = readIdentifierWithSchema(schema.getName());
@@ -8023,7 +8023,7 @@ public class Parser {
             // need to read ahead, as it could be a column name
             int start = lastParseIndex;
             read();
-            if (DataType.getTypeByName(currentToken, database.getMode()) != null) {
+            if (DataType.getTypeByName(currentToken, mode) != null) {
                 // known data type
                 parseIndex = start;
                 read();
@@ -8043,7 +8043,7 @@ public class Parser {
                 read("BTREE");
             }
             return command;
-        } else if (allowAffinityKey && readIfAffinity()) {
+        } else if (mode.allowAffinityKey && readIfAffinity()) {
             read("KEY");
             read(OPEN_PAREN);
             CreateIndex command = createAffinityIndex(schema, tableName, parseIndexColumnList());
@@ -8273,9 +8273,9 @@ public class Parser {
             if (readIf(CONSTRAINT)) {
                 constraintName = readColumnIdentifier();
             }
+            Mode mode = database.getMode();
             // For compatibility with Apache Ignite.
-            boolean allowAffinityKey = database.getMode().allowAffinityKey;
-            boolean affinity = allowAffinityKey && readIfAffinity();
+            boolean affinity = mode.allowAffinityKey && readIfAffinity();
             if (readIf(PRIMARY)) {
                 read("KEY");
                 boolean hash = readIf("HASH");
@@ -8292,7 +8292,7 @@ public class Parser {
                 if (readIf("AUTO_INCREMENT")) {
                     parseAutoIncrement(column);
                 }
-                if (database.getMode().useIdentityAsAutoIncrement) {
+                if (mode.useIdentityAsAutoIncrement) {
                     if (readIf(NOT)) {
                         read(NULL);
                         column.setNullable(false);

@@ -21,7 +21,7 @@ import org.h2.value.ValueResultSet;
  * A table backed by a system or user-defined function that returns a result
  * set.
  */
-public class FunctionTable extends VirtualTable {
+public class FunctionTable extends VirtualConstructedTable {
 
     private final FunctionCall function;
     private final long rowCount;

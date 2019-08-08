@@ -5,15 +5,12 @@
  */
 package org.h2.table;
 
-import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.index.Index;
-import org.h2.index.IndexType;
 import org.h2.index.RangeIndex;
 import org.h2.message.DbException;
-import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.value.Value;
 
@@ -21,7 +18,7 @@ import org.h2.value.Value;
  * The table SYSTEM_RANGE is a virtual table that generates incrementing numbers
  * with a given start end point.
  */
-public class RangeTable extends Table {
+public class RangeTable extends VirtualTable {
 
     /**
      * The name of the range table.
@@ -44,11 +41,9 @@ public class RangeTable extends Table {
      * @param max the end expression
      * @param noColumns whether this table has no columns
      */
-    public RangeTable(Schema schema, Expression min, Expression max,
-            boolean noColumns) {
-        super(schema, 0, NAME, true, true);
-        Column[] cols = noColumns ? new Column[0] : new Column[] { new Column(
-                "X", Value.LONG) };
+    public RangeTable(Schema schema, Expression min, Expression max, boolean noColumns) {
+        super(schema, 0, NAME);
+        Column[] cols = noColumns ? new Column[0] : new Column[] { new Column("X", Value.LONG) };
         this.min = min;
         this.max = max;
         setColumns(cols);
@@ -58,16 +53,6 @@ public class RangeTable extends Table {
             Expression step, boolean noColumns) {
         this(schema, min, max, noColumns);
         this.step = step;
-    }
-
-    @Override
-    public String getDropSQL() {
-        return null;
-    }
-
-    @Override
-    public String getCreateSQL() {
-        return null;
     }
 
     @Override
@@ -83,61 +68,8 @@ public class RangeTable extends Table {
     }
 
     @Override
-    public boolean lock(Session session, boolean exclusive, boolean forceLockEvenInMvcc) {
-        // nothing to do
-        return false;
-    }
-
-    @Override
-    public void close(Session session) {
-        // nothing to do
-    }
-
-    @Override
-    public void unlock(Session s) {
-        // nothing to do
-    }
-
-    @Override
-    public boolean isLockedExclusively() {
-        return false;
-    }
-
-    @Override
-    public Index addIndex(Session session, String indexName,
-            int indexId, IndexColumn[] cols, IndexType indexType,
-            boolean create, String indexComment) {
-        throw DbException.getUnsupportedException("SYSTEM_RANGE");
-    }
-
-    @Override
-    public void removeRow(Session session, Row row) {
-        throw DbException.getUnsupportedException("SYSTEM_RANGE");
-    }
-
-    @Override
-    public void addRow(Session session, Row row) {
-        throw DbException.getUnsupportedException("SYSTEM_RANGE");
-    }
-
-    @Override
-    public void checkSupportAlter() {
-        throw DbException.getUnsupportedException("SYSTEM_RANGE");
-    }
-
-    @Override
-    public void checkRename() {
-        throw DbException.getUnsupportedException("SYSTEM_RANGE");
-    }
-
-    @Override
     public boolean canGetRowCount() {
         return true;
-    }
-
-    @Override
-    public boolean canDrop() {
-        return false;
     }
 
     @Override
@@ -218,23 +150,8 @@ public class RangeTable extends Table {
     }
 
     @Override
-    public ArrayList<Index> getIndexes() {
-        return null;
-    }
-
-    @Override
-    public void truncate(Session session) {
-        throw DbException.getUnsupportedException("SYSTEM_RANGE");
-    }
-
-    @Override
     public long getMaxDataModificationId() {
         return 0;
-    }
-
-    @Override
-    public Index getUniqueIndex() {
-        return null;
     }
 
     @Override
@@ -243,18 +160,8 @@ public class RangeTable extends Table {
     }
 
     @Override
-    public long getDiskSpaceUsed() {
-        return 0;
-    }
-
-    @Override
     public boolean isDeterministic() {
         return true;
-    }
-
-    @Override
-    public boolean canReference() {
-        return false;
     }
 
 }

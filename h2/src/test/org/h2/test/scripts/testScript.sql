@@ -291,7 +291,7 @@ select * from dual where cast('xx' as varchar_ignorecase(1)) = 'X' and cast('x x
 > rows: 1
 
 explain select -cast(0 as real), -cast(0 as double);
->> SELECT 0.0, 0.0 FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */
+>> SELECT 0.0, 0.0 FROM SYSTEM_RANGE(1, 1) /* range index */
 
 select (1) one;
 > ONE
@@ -373,7 +373,7 @@ insert into test(id) direct sorted select x from system_range(1, 100);
 > update count: 100
 
 explain insert into test(id) direct sorted select x from system_range(1, 100);
->> INSERT INTO "PUBLIC"."TEST"("ID") DIRECT SORTED SELECT "X" FROM SYSTEM_RANGE(1, 100) /* PUBLIC.RANGE_INDEX */
+>> INSERT INTO "PUBLIC"."TEST"("ID") DIRECT SORTED SELECT "X" FROM SYSTEM_RANGE(1, 100) /* range index */
 
 explain select * from test limit 10 sample_size 10;
 #+mvStore#>> SELECT "PUBLIC"."TEST"."ID" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ FETCH FIRST 10 ROWS ONLY SAMPLE_SIZE 10
@@ -395,7 +395,7 @@ drop table test;
 > ok
 
 explain analyze select 1;
->> SELECT 1 FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */ /* scanCount: 2 */
+>> SELECT 1 FROM SYSTEM_RANGE(1, 1) /* range index */ /* scanCount: 2 */
 
 create table test(id int);
 > ok
@@ -2890,14 +2890,14 @@ drop table test;
 > ok
 
 call select 1.0/3.0*3.0, 100.0/2.0, -25.0/100.0, 0.0/3.0, 6.9/2.0, 0.72179425150347250912311550800000 / 5314251955.21;
-> SELECT 0.999999999999999999999999990, 5E+1, -0.25, 0, 3.45, 1.35822361752313607260107721120531135706133161972E-10 FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */ /* scanCount: 2 */
-> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT 0.999999999999999999999999990, 5E+1, -0.25, 0, 3.45, 1.35822361752313607260107721120531135706133161972E-10 FROM SYSTEM_RANGE(1, 1) /* range index */ /* scanCount: 2 */
+> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > ROW (0.999999999999999999999999990, 5E+1, -0.25, 0, 3.45, 1.35822361752313607260107721120531135706133161972E-10)
 > rows: 1
 
 call (select x from dual where x is null);
-> SELECT X FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX: X IS NULL */ /* scanCount: 1 */ WHERE X IS NULL
-> -------------------------------------------------------------------------------------------------------
+> SELECT X FROM SYSTEM_RANGE(1, 1) /* range index: X IS NULL */ /* scanCount: 1 */ WHERE X IS NULL
+> ------------------------------------------------------------------------------------------------
 > null
 > rows: 1
 
@@ -4999,7 +4999,7 @@ SELECT * FROM SYSTEM_RANGE(1,2) UNION ALL SELECT * FROM SYSTEM_RANGE(1,2) ORDER 
 > rows (ordered): 4
 
 EXPLAIN (SELECT * FROM SYSTEM_RANGE(1,2) UNION ALL SELECT * FROM SYSTEM_RANGE(1,2) ORDER BY 1);
->> (SELECT "PUBLIC"."SYSTEM_RANGE"."X" FROM SYSTEM_RANGE(1, 2) /* PUBLIC.RANGE_INDEX */) UNION ALL (SELECT "PUBLIC"."SYSTEM_RANGE"."X" FROM SYSTEM_RANGE(1, 2) /* PUBLIC.RANGE_INDEX */) ORDER BY 1
+>> (SELECT "SYSTEM_RANGE"."X" FROM SYSTEM_RANGE(1, 2) /* range index */) UNION ALL (SELECT "SYSTEM_RANGE"."X" FROM SYSTEM_RANGE(1, 2) /* range index */) ORDER BY 1
 
 CREATE TABLE CHILDREN(ID INT PRIMARY KEY, NAME VARCHAR(255), CLASS INT);
 > ok

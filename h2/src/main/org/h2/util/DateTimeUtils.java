@@ -664,13 +664,7 @@ public class DateTimeUtils {
                     throw e;
                 }
             } else if (message.indexOf("DAY_OF_MONTH") > 0) {
-                int maxDay;
-                if (month == 2) {
-                    maxDay = c.isLeapYear(year) ? 29 : 28;
-                } else {
-                    maxDay = NORMAL_DAYS_PER_MONTH[month];
-                }
-                if (day < 1 || day > maxDay) {
+                if (day < 1 || day > getDaysInMonth(year, month)) {
                     throw e;
                 }
                 // DAY_OF_MONTH is thrown for years > 2037

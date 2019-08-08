@@ -16,7 +16,7 @@ import org.h2.schema.Schema;
 /**
  * A data change delta table.
  */
-public class DataChangeDeltaTable extends VirtualTable {
+public class DataChangeDeltaTable extends VirtualConstructedTable {
 
     /**
      * Result option.

@@ -10,9 +10,7 @@ import java.util.ArrayList;
 import org.h2.engine.Session;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
-import org.h2.index.VirtualTableIndex;
 import org.h2.message.DbException;
-import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
 
@@ -24,15 +22,6 @@ public abstract class VirtualTable extends Table {
     protected VirtualTable(Schema schema, int id, String name) {
         super(schema, id, name, false, true);
     }
-
-    /**
-     * Read the rows from the table.
-     *
-     * @param session
-     *            the session
-     * @return the result
-     */
-    public abstract ResultInterface getResult(Session session);
 
     @Override
     public boolean lock(Session session, boolean exclusive, boolean forceLockEvenInMvcc) {
@@ -80,11 +69,6 @@ public abstract class VirtualTable extends Table {
     @Override
     public TableType getTableType() {
         return null;
-    }
-
-    @Override
-    public Index getScanIndex(Session session) {
-        return new VirtualTableIndex(this, IndexColumn.wrap(columns));
     }
 
     @Override

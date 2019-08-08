@@ -34,4 +34,11 @@ public abstract class VirtualConstructedTable extends VirtualTable {
         return new VirtualConstructedTableIndex(this, IndexColumn.wrap(columns));
     }
 
+    @Override
+    public long getMaxDataModificationId() {
+        // TODO optimization: virtual table currently doesn't know the
+        // last modified date
+        return Long.MAX_VALUE;
+    }
+
 }

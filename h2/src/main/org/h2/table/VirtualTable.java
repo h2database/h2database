@@ -88,9 +88,7 @@ public abstract class VirtualTable extends Table {
 
     @Override
     public long getMaxDataModificationId() {
-        // TODO optimization: virtual table currently doesn't know the
-        // last modified date
-        return Long.MAX_VALUE;
+        return 0;
     }
 
     @Override

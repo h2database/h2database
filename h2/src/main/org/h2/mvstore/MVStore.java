@@ -788,6 +788,10 @@ public class MVStore implements AutoCloseable
         // bugfix - data lost issue when partial write occurs at end of file store.
         // @since 2019-07-31 little-pan
         newest = readChunkHeaderAndFooterFromStoreTail(newest);
+        if(newest == null){
+            // Only file headers
+            return;
+        }
         
         // Step-3: read the newest chunk by following the chain of next chunks in the current newest
         // recursively, until the partial write chunk or invalid chunk

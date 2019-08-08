@@ -150,6 +150,11 @@ public class RangeTable extends VirtualTable {
     }
 
     @Override
+    public long getMaxDataModificationId() {
+        return 0;
+    }
+
+    @Override
     public long getRowCountApproximation() {
         return 100;
     }

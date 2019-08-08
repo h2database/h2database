@@ -87,11 +87,6 @@ public abstract class VirtualTable extends Table {
     }
 
     @Override
-    public long getMaxDataModificationId() {
-        return 0;
-    }
-
-    @Override
     public boolean canReference() {
         return false;
     }

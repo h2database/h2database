@@ -594,7 +594,7 @@ public class Database implements DataHandler {
                 DbException.traceThrowable(e);
             }
         }
-        Engine.getInstance().close(databaseName);
+        Engine.getInstance().close(this);
         throw DbException.get(ErrorCode.DATABASE_IS_CLOSED);
     }
 
@@ -1552,7 +1552,7 @@ public class Database implements DataHandler {
                 }
             }
         } finally {
-            Engine.getInstance().close(databaseName);
+            Engine.getInstance().close(this);
         }
     }
 

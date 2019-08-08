@@ -375,48 +375,60 @@ public class MVStore implements AutoCloseable
             autoCommitMemory = kb * 1024;
             autoCompactFillRate = DataUtils.getConfigParam(config, "autoCompactFillRate", 90);
             char[] encryptionKey = (char[]) config.get("encryptionKey");
+            // bugfix - can't release file and its lock resources when open failed
+            // @since 2019-08-08 little-pan
+            boolean success = false;
             try {
-                if (!fileStoreIsProvided) {
-                    boolean readOnly = config.containsKey("readOnly");
-                    this.fileStore.open(fileName, readOnly, encryptionKey);
-                }
-                if (this.fileStore.size() == 0) {
-                    creationTime = getTimeAbsolute();
-                    lastCommitTime = creationTime;
-                    storeHeader.put(HDR_H, 2);
-                    storeHeader.put(HDR_BLOCK_SIZE, BLOCK_SIZE);
-                    storeHeader.put(HDR_FORMAT, FORMAT_WRITE);
-                    storeHeader.put(HDR_CREATED, creationTime);
-                    writeStoreHeader();
-                } else {
-                    // there is no need to lock store here, since it is not opened yet,
-                    // just to make some assertions happy, when they ensure single-threaded access
-                    storeLock.lock();
-                    try {
-                        readStoreHeader();
-                    } finally {
-                        storeLock.unlock();
+                try {
+                    if (!fileStoreIsProvided) {
+                        boolean readOnly = config.containsKey("readOnly");
+                        this.fileStore.open(fileName, readOnly, encryptionKey);
+                    }
+                    if (this.fileStore.size() == 0) {
+                        creationTime = getTimeAbsolute();
+                        lastCommitTime = creationTime;
+                        storeHeader.put(HDR_H, 2);
+                        storeHeader.put(HDR_BLOCK_SIZE, BLOCK_SIZE);
+                        storeHeader.put(HDR_FORMAT, FORMAT_WRITE);
+                        storeHeader.put(HDR_CREATED, creationTime);
+                        writeStoreHeader();
+                    } else {
+                        // there is no need to lock store here, since it is not opened yet,
+                        // just to make some assertions happy, when they ensure single-threaded access
+                        storeLock.lock();
+                        try {
+                            readStoreHeader();
+                        } finally {
+                            storeLock.unlock();
+                        }
+                    }
+                } catch (IllegalStateException e) {
+                    panic(e);
+                } finally {
+                    if (encryptionKey != null) {
+                        Arrays.fill(encryptionKey, (char) 0);
                     }
                 }
-            } catch (IllegalStateException e) {
-                panic(e);
+                lastCommitTime = getTimeSinceCreation();
+
+                scrubMetaMap();
+
+                // setAutoCommitDelay starts the thread, but only if
+                // the parameter is different from the old value
+                int delay = DataUtils.getConfigParam(config, "autoCommitDelay", 1000);
+                setAutoCommitDelay(delay);
+                
+                success = true;
             } finally {
-                if (encryptionKey != null) {
-                    Arrays.fill(encryptionKey, (char) 0);
+                if(!success && !fileStoreIsProvided){
+                    closeImmediately();
                 }
             }
-            lastCommitTime = getTimeSinceCreation();
-
-            scrubMetaMap();
-
-            // setAutoCommitDelay starts the thread, but only if
-            // the parameter is different from the old value
-            int delay = DataUtils.getConfigParam(config, "autoCommitDelay", 1000);
-            setAutoCommitDelay(delay);
-        } else {
-            autoCommitMemory = 0;
-            autoCompactFillRate = 0;
+            return;
         }
+        
+        autoCommitMemory = 0;
+        autoCompactFillRate = 0;
     }
 
     private void scrubMetaMap() {
@@ -689,38 +701,36 @@ public class MVStore implements AutoCloseable
 
     private void readStoreHeader() {
         Chunk newest = null;
-        boolean assumeCleanShutdown = true;
+        
+        // find out which chunk and version are the newest, and as the last chunk
+        // Step-1: read the newest chunk from the first two blocks(file header)
         boolean validStoreHeader = false;
-        // find out which chunk and version are the newest
-        // read the first two blocks
         ByteBuffer fileHeaderBlocks = fileStore.readFully(0, 2 * BLOCK_SIZE);
         byte[] buff = new byte[BLOCK_SIZE];
         for (int i = 0; i <= BLOCK_SIZE; i += BLOCK_SIZE) {
             fileHeaderBlocks.get(buff);
             // the following can fail for various reasons
             try {
-                HashMap<String, String> m = DataUtils.parseChecksummedMap(buff);
+                final HashMap<String, String> m = DataUtils.parseChecksummedMap(buff);
                 if (m == null) {
-                    assumeCleanShutdown = false;
                     continue;
                 }
-                long version = DataUtils.readHexLong(m, HDR_VERSION, 0);
+                final long version = DataUtils.readHexLong(m, HDR_VERSION, 0);
                 // if both header blocks do agree on version
                 // we'll continue on happy path - assume that previous shutdown was clean
-                assumeCleanShutdown = assumeCleanShutdown && (newest == null || version == newest.version);
                 if (newest == null || version > newest.version) {
                     validStoreHeader = true;
                     storeHeader.putAll(m);
                     creationTime = DataUtils.readHexLong(m, HDR_CREATED, 0);
-                    int chunkId = DataUtils.readHexInt(m, HDR_CHUNK, 0);
-                    long block = DataUtils.readHexLong(m, HDR_BLOCK, 0);
-                    Chunk test = readChunkHeaderAndFooter(block, chunkId);
+                    final int chunkId = DataUtils.readHexInt(m, HDR_CHUNK, 0);
+                    final long block = DataUtils.readHexLong(m, HDR_BLOCK, 0);
+                    final Chunk test = readChunkHeaderAndFooter(block, chunkId);
                     if (test != null) {
                         newest = test;
                     }
                 }
             } catch (Exception ignore) {
-                assumeCleanShutdown = false;
+                // ignore
             }
         }
 
@@ -753,13 +763,10 @@ public class MVStore implements AutoCloseable
                     "than the supported format {1}",
                     format, FORMAT_READ);
         }
-
-        assumeCleanShutdown = assumeCleanShutdown && newest != null
-                && DataUtils.readHexInt(storeHeader, HDR_CLEAN, 0) != 0
-                && !recoveryMode;
+        
         lastStoredVersion = INITIAL_VERSION;
         chunks.clear();
-        long now = System.currentTimeMillis();
+        final long now = System.currentTimeMillis();
         // calculate the year (doesn't have to be exact;
         // we assume 365.25 days per year, * 4 = 1461)
         int year =  1970 + (int) (now / (1000L * 60 * 60 * 6 * 1461));
@@ -776,182 +783,58 @@ public class MVStore implements AutoCloseable
             storeHeader.put(HDR_CREATED, creationTime);
         }
 
-        long fileSize = fileStore.size();
-        long blocksInStore = fileSize / BLOCK_SIZE;
-
-        Comparator<Chunk> chunkComparator = new Comparator<Chunk>() {
-            @Override
-            public int compare(Chunk one, Chunk two) {
-                int result = Long.compare(two.version, one.version);
-                if (result == 0) {
-                    // out of two copies of the same chunk we prefer the one
-                    // close to the beginning of file (presumably later version)
-                    result = Long.compare(one.block, two.block);
-                }
-                return result;
+        // Step-2: read one chunk of the newest chunk candidates at the end of file, and ignore
+        // the partial write part
+        // bugfix - data lost issue when partial write occurs at end of file store.
+        // @since 2019-07-31 little-pan
+        newest = readChunkHeaderAndFooterFromStoreTail(newest);
+        
+        // Step-3: read the newest chunk by following the chain of next chunks in the current newest
+        // recursively, until the partial write chunk or invalid chunk
+        final long fileSize = fileStore.size();
+        final long blocksInStore = fileSize / BLOCK_SIZE;
+        while (true) {
+            if (newest.next == 0 || newest.next >= blocksInStore) {
+                // no (valid) next
+                break;
             }
-        };
-
-        if (assumeCleanShutdown) {
-            // read the chunk header and footer,
-            // and follow the chain of next chunks
-            while (true) {
-                if (newest.next == 0 || newest.next >= blocksInStore) {
-                    // no (valid) next
-                    break;
-                }
-                Chunk test = readChunkHeaderAndFooter(newest.next, newest.id + 1);
-                if (test == null || test.version <= newest.version) {
-                    break;
-                }
-                assumeCleanShutdown = false;
-                newest = test;
+            // Maybe the next chunk id is wrapped around, here can't use newest.id + 1
+            // @since 2019-08-08 little-pan
+            final Chunk test = readChunkHeaderAndFooter(newest.next);
+            if (test == null || test.version <= newest.version) {
+                break;
             }
-
-            if (assumeCleanShutdown) {
-                setLastChunk(newest);
-                Queue<Chunk> chunksToVerify = new PriorityQueue<>(20, Collections.reverseOrder(chunkComparator));
-                try {
-                    // load the chunk metadata: although meta's root page resides in the lastChunk,
-                    // traversing meta map might recursively load another chunk(s)
-                    Cursor<String, String> cursor = meta.cursor(DataUtils.META_CHUNK);
-                    while (cursor.hasNext() && cursor.next().startsWith(DataUtils.META_CHUNK)) {
-                        Chunk c = Chunk.fromString(cursor.getValue());
-                        assert c.version <= currentVersion;
-                        // might be there already, due to meta traversal
-                        // see readPage() ... getChunkIfFound()
-                        chunks.putIfAbsent(c.id, c);
-                        chunksToVerify.offer(c);
-                        if (chunksToVerify.size() == 20) {
-                            chunksToVerify.poll();
-                        }
-                    }
-                    Chunk c;
-                    while (assumeCleanShutdown && (c = chunksToVerify.poll()) != null) {
-                        assumeCleanShutdown = readChunkHeaderAndFooter(c.block, c.id) != null;
-                    }
-                } catch(IllegalStateException ignored) {
-                    assumeCleanShutdown = false;
-                }
-            }
+            newest = test;
         }
-
-        if (!assumeCleanShutdown) {
-            // now we know, that previous shutdown did not go well and file is possibly corrupted
-            // scan whole file and try to fetch chunk header and/or footer out of every block
-            // matching pairs with nothing in-between are considered as valid chunk
-            Map<Long, Chunk> validChunksByLocation = new HashMap<>();
-            long candidateLocation = Long.MAX_VALUE;
-            Chunk candidate = null;
-            long block = blocksInStore;
-            while (true) {
-                if (block == candidateLocation) {
-                    validChunksByLocation.put(candidateLocation, candidate);
-                }
-                if (block == 2) { // number of blocks occupied by headers
-                    break;
-                }
-                Chunk test = readChunkFooter(block);
-                if (test != null) {
-                    // if we encounter chunk footer (with or without corresponding header)
-                    // in the middle of prospective chunk, stop considering it
-                    candidateLocation = Long.MAX_VALUE;
-                    test = readChunkHeaderOptionally(test.block, test.id);
-                    if (test != null) {
-                        // if that footer has a corresponding header,
-                        // consider them as a new candidate for a valid chunk
-                        candidate = test;
-                        candidateLocation = test.block;
-                    }
-                }
-
-                // if we encounter chunk header without corresponding footer
-                // (due to incomplete write?) in the middle of prospective
-                // chunk, stop considering it
-                if (--block > candidateLocation && readChunkHeaderOptionally(block) != null) {
-                    candidateLocation = Long.MAX_VALUE;
-                }
-            }
-
-            // this collection will hold potential candidates for lastChunk to fall back to,
-            // in order from the most to least likely
-            Chunk[] lastChunkCandidates = validChunksByLocation.values().toArray(new Chunk[0]);
-            Arrays.sort(lastChunkCandidates, chunkComparator);
-            Map<Integer, Chunk> validChunksById = new HashMap<>();
-            for (Chunk chunk : lastChunkCandidates) {
-                validChunksById.put(chunk.id, chunk);
-            }
-
-            // Try candidates for "last chunk" in order from newest to oldest
-            // until suitable is found. Suitable one should have meta map
-            // where all chunk references point to valid locations.
-            for (Chunk chunk : lastChunkCandidates) {
-                setLastChunk(chunk);
-                boolean verified = true;
-                try {
-                    // load the chunk metadata: although meta's root page resides in the lastChunk,
-                    // traversing meta map might recursively load another chunk(s)
-                    Cursor<String, String> cursor = meta.cursor(DataUtils.META_CHUNK);
-                    while (cursor.hasNext() && cursor.next().startsWith(DataUtils.META_CHUNK)) {
-                        Chunk c = Chunk.fromString(cursor.getValue());
-                        assert c.version <= currentVersion;
-                        // might be there already, due to meta traversal
-                        // see readPage() ... getChunkIfFound()
-                        Chunk test = chunks.putIfAbsent(c.id, c);
-                        if (test != null) {
-                            c = test;
-                        }
-                        assert chunks.get(c.id) == c;
-                        if ((test = validChunksByLocation.get(c.block)) != null && test.id == c.id) {
-                            continue;
-                        } else if ((test = validChunksById.get(c.id)) != null) {
-                            // We do not have a valid chunk at that location,
-                            // but there is a copy of same chunk from original
-                            // location.
-                            // Chunk header at original location does not have
-                            // any dynamic (occupancy) metadata, so it can't be
-                            // used here as is, re-point our chunk to original
-                            // location instead.
-                            c.block = test.block;
-                            continue;
-                        }
-
-                        if (!c.isLive()) {
-                            // we can just remove entry from meta, referencing to this chunk,
-                            // but store maybe R/O, and it's not properly started yet,
-                            // so lets make this chunk "dead" and taking no space,
-                            // and it will be automatically removed later.
-                            c.block = Long.MAX_VALUE;
-                            c.len = Integer.MAX_VALUE;
-                            if (c.unused == 0) {
-                                c.unused = creationTime;
-                            }
-                            if (c.unusedAtVersion == 0) {
-                                c.unusedAtVersion = INITIAL_VERSION;
-                            }
-                            continue;
-                        }
-
-                        // chunk reference is invalid
-                        // this "last chunk" candidate is not suitable
-                        verified = recoveryMode;
-                        break;
-                    }
-                } catch(Exception ignored) {
-                    verified = recoveryMode;
-                }
-                if (verified) {
-                    break;
-                }
-            }
+        
+        // Here is OK. Actually the newest is the last chunk, otherwise the store is corrupted by
+        // H2 bug, a rogue thread or process.
+        // It's unnecessary that verifying the all chunk validity in the meta of last chunk candidates:
+        // 1) If the store corrupted by a rogue thread or process and we fall back to the older chunk,
+        // then the data lost, it's very bad. We should suggest recovering the store by tool to user.
+        // 2) And if the newest chunk valid(both header and footer valid), the all chunks referenced 
+        // in the meta of the newest also valid, otherwise why is the newest valid?, or the store corrupted.
+        // 3) The bug of database corruption by partial write and the store not closed when fatal error
+        // occurs in H2 has been fixed.
+        // @since 2019-08-08 little-pan
+        setLastChunk(newest);
+        
+        // load the all chunk meta-data from the meta map in the last chunk
+        final Cursor<String, String> cursor = meta.cursor(DataUtils.META_CHUNK);
+        while (cursor.hasNext() && cursor.next().startsWith(DataUtils.META_CHUNK)) {
+            final Chunk c = Chunk.fromString(cursor.getValue());
+            assert c.version <= currentVersion;
+            // might be there already, due to meta traversal
+            // see readPage() ... getChunkIfFound()
+            chunks.putIfAbsent(c.id, c);
         }
-
-        fileStore.clear();
+        
         // build the free space list
-        for (Chunk c : chunks.values()) {
+        fileStore.clear();
+        for (final Chunk c : chunks.values()) {
             if (c.isSaved()) {
-                long start = c.block * BLOCK_SIZE;
-                int length = c.len * BLOCK_SIZE;
+                final long start = c.block * BLOCK_SIZE;
+                final int length = c.len * BLOCK_SIZE;
                 fileStore.markUsed(start, length);
             }
             if (!c.isLive()) {
@@ -962,6 +845,63 @@ public class MVStore implements AutoCloseable
         setWriteVersion(currentVersion);
         if (lastStoredVersion == INITIAL_VERSION) {
             lastStoredVersion = currentVersion - 1;
+        }
+    }
+    
+    /**
+     * <p>Try to read a chunk with valid header and footer from the end of the file store, and
+     * compare it with the given newest, return the newest one.
+     * </p>
+     *
+     * <p>We skip these chunks with invalid header or footer block by block, because of these
+     * chunks are corrupted by partial write in the case of power off, or OOM etc.
+     * </p>
+     *
+     * @param newest
+     * @return the newest chunk
+     *
+     * @since 2019-07-31 little-pan
+     */
+    private Chunk readChunkHeaderAndFooterFromStoreTail(final Chunk newest){
+        long end = fileStore.size();
+        // The end position of chunk should be block align
+        final long part = end % BLOCK_SIZE;
+        if(part > 0L){
+            end -= part;
+        }
+
+        final byte[] buff = new byte[Chunk.FOOTER_LENGTH];
+        // We should read and check the chunk header and footer straight ahead block by block
+        //for chunk partial write issue.
+        for(;;){
+            // read the chunk footer of the last block of the file
+            final long pos = end - Chunk.FOOTER_LENGTH;
+            if(pos < 0L) {
+                return newest;
+            }
+
+            final ByteBuffer lastBlock = fileStore.readFully(pos, Chunk.FOOTER_LENGTH);
+            lastBlock.get(buff);
+            // check the chunk
+            try {
+                final HashMap<String, String> m = DataUtils.parseChecksummedMap(buff);
+                if (m != null) {
+                    final int chunk = DataUtils.readHexInt(m, "chunk", 0);
+                    final Chunk c = new Chunk(chunk);
+                    c.version = DataUtils.readHexLong(m, "version", 0);
+                    c.block   = DataUtils.readHexLong(m, "block", 0);
+                    final Chunk test = readChunkHeaderAndFooter(c.block);
+                    if(test != null && test.id == c.id){
+                        if(newest == null || test.version > newest.version){
+                            return test;
+                        }
+                        return newest;
+                    }
+                }
+            } catch(final Exception e){
+                // ignore: corrupted chunk or normal pages
+            }
+            end -= BLOCK_SIZE;
         }
     }
 
@@ -997,6 +937,26 @@ public class MVStore implements AutoCloseable
         if (header != null) {
             Chunk footer = readChunkFooter(block + header.len);
             if (footer == null || footer.id != expectedId || footer.block != header.block) {
+                return null;
+            }
+        }
+        return header;
+    }
+    
+    /**
+     * Read a chunk header and footer, and verify the stored data is consistent.
+     *
+     * @param block the block
+     * @return the chunk, or null if the header or footer don't match or are not
+     *         consistent
+     *         
+     * @since 2019-08-08 little-pan
+     */
+    private Chunk readChunkHeaderAndFooter(long block) {
+        final Chunk header = readChunkHeaderOptionally(block);
+        if (header != null) {
+            final Chunk footer = readChunkFooter(block + header.len);
+            if (footer == null || footer.id != header.id || footer.block != header.block) {
                 return null;
             }
         }

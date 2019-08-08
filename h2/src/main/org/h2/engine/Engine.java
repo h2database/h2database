@@ -287,20 +287,36 @@ public class Engine implements SessionFactory {
     }
 
     /**
-     * Called after a database has been closed, to remove the object from the
+     * <p>Called after a database has been closed, to remove the object from the
      * list of open databases.
+     * </p>
+     * 
+     * <p>Support the method close() that should be resilient against being called more
+     * than once, and fix the error code 90020 issue caused by closing the database incorrectly.
+     * @since 2019-08-08 little-pan
+     * </p>
      *
-     * @param name the database name
+     * @param maybeOlder the database will be closed from the engine
      */
-    void close(String name) {
-        if (jmx) {
-            try {
-                Utils.callStaticMethod("org.h2.jmx.DatabaseInfo.unregisterMBean", name);
-            } catch (Exception e) {
-                throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, e, "JMX");
-            }
+    void close(final Database maybeOlder) {
+        if(maybeOlder == null){
+            return;
         }
+        
+        final String name = maybeOlder.getName();
         synchronized (DATABASES) {
+            final Database intent = DATABASES.get(name);
+            if(intent != maybeOlder){
+                return;
+            }
+            
+            if (jmx) {
+                try {
+                    Utils.callStaticMethod("org.h2.jmx.DatabaseInfo.unregisterMBean", name);
+                } catch (Exception e) {
+                    throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, e, "JMX");
+                }
+            }
             DATABASES.remove(name);
         }
     }

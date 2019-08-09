@@ -408,7 +408,11 @@ public class TestTransactionStore extends TestBase {
             // re-open TransactionStore, because we rolled back
             // underlying MVStore without rolling back TransactionStore
             s.close();
-            s = MVStore.open(fileName);
+            // enable recoveryMode
+            s = new MVStore.Builder().
+                fileName(fileName).
+                recoveryMode().
+                open();
             ts = new TransactionStore(s);
             List<Transaction> list = ts.getOpenTransactions();
             if (list.size() != 0) {

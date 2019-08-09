@@ -816,12 +816,12 @@ public class MVStore implements AutoCloseable
         }
         if(newest == null){
             // + Check integrity of the newest chunk and it's version in file header
-            if(headerVersion > 0L){
+            if(headerVersion > 0L && !recoveryMode){
                 throw DataUtils.newIllegalStateException(
                         DataUtils.ERROR_FILE_CORRUPT, 
                         "No valid chunk for last version {0}", headerVersion);
             }
-            // Only file headers for new database
+            // Only file headers for new database or in recoveryMode
             return;
         }
         
@@ -904,7 +904,7 @@ public class MVStore implements AutoCloseable
         if(newest == null){
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_FILE_CORRUPT, 
-                    "Restore failed, no valid chunk for last version {0}", currentVersion);
+                    "Restore failed, not valid chunk for last version {0}", currentVersion);
         }
         
         // build the free space list

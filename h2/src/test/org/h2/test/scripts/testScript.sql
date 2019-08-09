@@ -542,45 +542,6 @@ alter table test alter column id identity;
 drop table test;
 > ok
 
-create table test(id int primary key, name varchar);
-> ok
-
-alter table test alter column id int auto_increment;
-> ok
-
-create table otherTest(id int primary key, name varchar);
-> ok
-
-alter table otherTest add constraint fk foreign key(id) references test(id);
-> ok
-
-alter table otherTest drop foreign key fk;
-> ok
-
-create unique index idx on otherTest(name);
-> ok
-
-alter table otherTest drop index idx;
-> ok
-
-drop table otherTest;
-> ok
-
-insert into test(id) values(1);
-> update count: 1
-
-alter table test change column id id2 int;
-> ok
-
-select id2 from test;
-> ID2
-> ---
-> 1
-> rows: 1
-
-drop table test;
-> ok
-
 create table test(id identity);
 > ok
 
@@ -7572,6 +7533,9 @@ alter table if exists z add constraint z_fk foreign key (id) references x (id);
 insert into z (id) values (1);
 > exception REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1
 
+SET MODE MySQL;
+> ok
+
 alter table if exists y drop foreign key z_fk;
 > ok
 
@@ -7580,6 +7544,9 @@ alter table if exists z drop foreign key z_fk;
 
 alter table if exists z drop foreign key z_fk;
 > exception CONSTRAINT_NOT_FOUND_1
+
+SET MODE Regular;
+> ok
 
 insert into z (id) values (1);
 > update count: 1

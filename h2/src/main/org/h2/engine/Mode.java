@@ -229,6 +229,16 @@ public class Mode {
     public boolean allowUnrelatedOrderByExpressionsInDistinctQueries;
 
     /**
+     * if {@code true} some additional non-standard ALTER TABLE commands are allowed.
+     */
+    public boolean alterTableExtensionsMySQL;
+
+    /**
+     * if {@code true} non-standard ALTER TABLE MODIFY COLUMN is allowed.
+     */
+    public boolean alterTableModifyColumn;
+
+    /**
      * An optional Set of hidden/disallowed column types.
      * Certain DBMSs don't support all column types provided by H2, such as
      * "NUMBER" when using PostgreSQL mode.
@@ -326,6 +336,8 @@ public class Mode {
         mode.charToBinaryInUtf8 = true;
         mode.zeroExLiteralsAreBinaryStrings = true;
         mode.allowUnrelatedOrderByExpressionsInDistinctQueries = true;
+        mode.alterTableExtensionsMySQL = true;
+        mode.alterTableModifyColumn = true;
         add(mode);
 
         mode = new Mode(ModeEnum.Oracle);
@@ -340,6 +352,7 @@ public class Mode {
         mode.supportedClientInfoPropertiesRegEx =
                 Pattern.compile(".*\\..*");
         mode.prohibitEmptyInPredicate = true;
+        mode.alterTableModifyColumn = true;
         dt = DataType.createDate(/* 2001-01-01 23:59:59 */ 19, 19, "DATE", false, 0, 0);
         dt.type = Value.TIMESTAMP;
         dt.sqlType = Types.TIMESTAMP;

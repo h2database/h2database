@@ -124,6 +124,30 @@ DROP TABLE TEST;
 
 -- Compatibility syntax
 
+SET MODE MySQL;
+> ok
+
+create table test(id int primary key, name varchar);
+> ok
+
+insert into test(id) values(1);
+> update count: 1
+
+alter table test change column id id2 int;
+> ok
+
+select id2 from test;
+> ID2
+> ---
+> 1
+> rows: 1
+
+drop table test;
+> ok
+
+SET MODE Oracle;
+> ok
+
 CREATE MEMORY TABLE TEST(V INT NOT NULL);
 > ok
 

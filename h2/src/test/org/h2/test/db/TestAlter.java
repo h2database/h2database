@@ -291,10 +291,12 @@ public class TestAlter extends TestDb {
     }
 
     private void testAlterTableModifyColumn() throws SQLException {
+        stat.execute("SET MODE MySQL");
         stat.execute("create table t(x int)");
         stat.execute("alter table t modify column x varchar(20)");
         stat.execute("insert into t values('Hello')");
         stat.execute("drop table t");
+        stat.execute("SET MODE Regular");
     }
 
     /**
@@ -308,6 +310,7 @@ public class TestAlter extends TestDb {
      * </pre>
      */
     private void testAlterTableModifyColumnSetNull() throws SQLException {
+        stat.execute("SET MODE MySQL");
         // This worked in v1.4.196
         stat.execute("create table T (C varchar not null)");
         stat.execute("alter table T modify C int null");
@@ -318,9 +321,11 @@ public class TestAlter extends TestDb {
         stat.execute("alter table T modify C null"); // Silently corrupted column C
         stat.execute("insert into T values(null)"); // <- Fixed in v1.4.196 - NULL is allowed
         stat.execute("drop table T");
+        stat.execute("SET MODE Regular");
     }
 
     private void testAlterTableModifyColumnNotNullOracle() throws SQLException {
+        stat.execute("SET MODE Oracle");
         stat.execute("create table foo (bar varchar(255))");
         stat.execute("alter table foo modify (bar varchar(255) not null)");
         try {
@@ -330,5 +335,6 @@ public class TestAlter extends TestDb {
         catch(SQLException e) {
             // This is what we expect, fails to insert null.
         }
+        stat.execute("SET MODE Regular");
     }
 }

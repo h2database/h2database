@@ -707,10 +707,10 @@ public class MVStore implements AutoCloseable
 
     private void readStoreHeader() {
         Chunk newest = null;
-        // We only need to check the validity of recent 20 chunks for calling sync() 
+        // We only need to check the validity of recent chunks for calling sync() 
         // after writeStoreHeader() in the method storeNow().
         // @since 2019-08-09 little-pan
-        final Chunk[] lastCandidates = new Chunk[SYNC_MAX_DIFF];
+        final Chunk[] lastCandidates = new Chunk[SYNC_MAX_DIFF + 2/* last + new chunk(maybe write header failed)*/];
         
         // find out which chunk and version are the newest, and as the last chunk
         // Step-1: read the newest chunk from the first two blocks(file header)
@@ -870,14 +870,14 @@ public class MVStore implements AutoCloseable
                 // might be there already, due to meta traversal
                 // see readPage() ... getChunkIfFound()
                 chunks.putIfAbsent(c.id, c);
-                // only need to check the validity of recent 20 chunks
+                // only need to check the validity of recent chunks
                 vdiff = c.version - headerVersion;
                 if(vdiff < lastCandidates.length && vdiff >= 0L){
                     if(lastCandidates[(int)vdiff] == null) {
                         final Chunk test = readChunkHeaderAndFooter(c.block, c.id);
                         if(test == null || test.version != c.version){
                             // chunk reference is invalid:
-                            // 1)Not in recovery mode, it's fatal and open fauire, otherwise
+                            // 1)Not in recovery mode, it's fatal and open failure, otherwise
                             // 2)this "last chunk" candidate is not suitable but we continue to process 
                             // all references to find other potential candidates
                             if(!recoveryMode){

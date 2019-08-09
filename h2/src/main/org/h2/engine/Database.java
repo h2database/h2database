@@ -239,6 +239,7 @@ public class Database implements DataHandler {
     private LocalResultFactory resultFactory = LocalResultFactory.DEFAULT;
 
     private Authenticator authenticator;
+    private boolean recoveryMode;
 
     public Database(ConnectionInfo ci, String cipher) {
         if (ASSERT) {
@@ -315,6 +316,7 @@ public class Database implements DataHandler {
                 TraceSystem.DEFAULT_TRACE_LEVEL_SYSTEM_OUT);
         this.cacheType = StringUtils.toUpperEnglish(
                 ci.removeProperty("CACHE_TYPE", Constants.CACHE_TYPE_DEFAULT));
+        this.recoveryMode = ci.removeProperty("RECOVER", false);
         openDatabase(traceLevelFile, traceLevelSystemOut, closeAtVmShutdown, ci);
     }
 
@@ -3230,4 +3232,15 @@ public class Database implements DataHandler {
         }
         this.authenticator=authenticator;
     }
+    
+    /**
+     * Whether enable recoveryMode in MVStore.
+     * 
+     * @return true if enable recoveryMode
+     * @since 2019-08-10 little-pan
+     */
+    public boolean isRecoveryMode() {
+        return recoveryMode;
+    }
+    
 }

@@ -715,6 +715,7 @@ public class MVStore implements AutoCloseable
         // find out which chunk and version are the newest, and as the last chunk
         // Step-1: read the newest chunk from the first two blocks(file header)
         boolean validStoreHeader = false;
+        long headerVersion = 0L;
         ByteBuffer fileHeaderBlocks = fileStore.readFully(0, 2 * BLOCK_SIZE);
         byte[] buff = new byte[BLOCK_SIZE];
         for (int i = 0; i <= BLOCK_SIZE; i += BLOCK_SIZE) {
@@ -730,7 +731,7 @@ public class MVStore implements AutoCloseable
                 // we'll continue on happy path - assume that previous shutdown was clean
                 if (newest == null || version > newest.version) {
                     validStoreHeader = true;
-                    currentVersion = version;
+                    headerVersion = version;
                     storeHeader.putAll(m);
                     creationTime = DataUtils.readHexLong(m, HDR_CREATED, 0);
                     final int chunkId = DataUtils.readHexInt(m, HDR_CHUNK, 0);
@@ -744,7 +745,6 @@ public class MVStore implements AutoCloseable
                 // ignore
             }
         }
-        final long headerVersion = currentVersion;
 
         if (!validStoreHeader) {
             throw DataUtils.newIllegalStateException(
@@ -806,14 +806,20 @@ public class MVStore implements AutoCloseable
                 lastCandidates[(int)vdiff] = newest;
             }
             newest = tail;
-            currentVersion = newest.version;
+        }
+        if(newest == null && recoveryMode && tail != null) {
+            headerVersion = tail.version;
+            storeHeader.put(HDR_BLOCK, tail.block);
+            storeHeader.put(HDR_CHUNK, tail.id);
+            storeHeader.put(HDR_VERSION, headerVersion);
+            newest = tail;
         }
         if(newest == null){
             // + Check integrity of the newest chunk and it's version in file header
-            if(currentVersion > 0L){
+            if(headerVersion > 0L){
                 throw DataUtils.newIllegalStateException(
                         DataUtils.ERROR_FILE_CORRUPT, 
-                        "No valid chunk for last version {0}", currentVersion);
+                        "No valid chunk for last version {0}", headerVersion);
             }
             // Only file headers for new database
             return;
@@ -837,7 +843,6 @@ public class MVStore implements AutoCloseable
             vdiff = newest.version - headerVersion;
             lastCandidates[(int)vdiff] = newest;
             newest = test;
-            currentVersion = newest.version;
         }
         
         // In most cases, the newest is the last chunk, otherwise the store is corrupted by
@@ -861,16 +866,13 @@ public class MVStore implements AutoCloseable
                 assert c.version <= currentVersion;
                 // might be there already, due to meta traversal
                 // see readPage() ... getChunkIfFound()
-                Chunk test = chunks.putIfAbsent(c.id, c);
-                if(test == null){
-                    test = c;
-                }
+                chunks.putIfAbsent(c.id, c);
                 // only need to check the validity of recent 20 chunks
-                vdiff = test.version - headerVersion;
+                vdiff = c.version - headerVersion;
                 if(vdiff < lastCandidates.length && vdiff >= 0L){
-                    if(lastCandidates[(int)vdiff] == null && test == c){
-                        test = readChunkHeaderAndFooter(c.block, c.id);
-                        if(test == null || test.version != test.version){
+                    if(lastCandidates[(int)vdiff] == null) {
+                        final Chunk test = readChunkHeaderAndFooter(c.block, c.id);
+                        if(test == null || test.version != c.version){
                             // chunk reference is invalid:
                             // 1)Not in recovery mode, it's fatal and open fauire, otherwise
                             // 2)this "last chunk" candidate is not suitable but we continue to process 
@@ -883,8 +885,8 @@ public class MVStore implements AutoCloseable
                             newest = null;
                             continue;
                         }
+                        lastCandidates[(int)vdiff] = test;
                     }
-                    lastCandidates[(int)vdiff] = test;
                 }
             }
             
@@ -902,7 +904,7 @@ public class MVStore implements AutoCloseable
         if(newest == null){
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_FILE_CORRUPT, 
-                    "No valid chunk for last version {0}", currentVersion);
+                    "Restore failed, no valid chunk for last version {0}", currentVersion);
         }
         
         // build the free space list

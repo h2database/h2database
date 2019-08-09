@@ -99,6 +99,10 @@ public class MVTableEngine implements TableEngine {
             // otherwise background thread would compete for store lock
             // with maps opening procedure
             builder.autoCommitDisabled();
+            
+            if(db.isRecoveryMode()) {
+                builder.recoveryMode();
+            }
         }
         store.open(db, builder, encrypted);
         db.setStore(store);

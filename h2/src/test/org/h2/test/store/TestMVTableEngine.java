@@ -297,7 +297,7 @@ public class TestMVTableEngine extends TestDb {
             fc.truncate(fileSize);
         }
 
-        try (Connection conn = getConnection(getTestName())) {
+        try (Connection conn = getConnection(getTestName()+";recover=true")) {
             Statement stat = conn.createStatement();
             stat.execute("select * from dummy0 where 1 = 0");
             stat.execute("select * from dummy9 where 1 = 0");

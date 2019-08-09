@@ -37,36 +37,18 @@ public class TestAlter extends TestDb {
         conn = getConnection(getTestName());
         stat = conn.createStatement();
         testAlterTableRenameConstraint();
-        testAlterTableAlterColumnAsSelfColumn();
         testAlterTableDropColumnWithReferences();
         testAlterTableDropMultipleColumns();
-        testAlterTableAlterColumnWithConstraint();
-        testAlterTableAlterColumn();
         testAlterTableAddColumnIdentity();
         testAlterTableDropIdentityColumn();
         testAlterTableAddColumnIfNotExists();
         testAlterTableAddMultipleColumns();
-        testAlterTableAlterColumn2();
         testAlterTableAddColumnBefore();
         testAlterTableAddColumnAfter();
         testAlterTableAddMultipleColumnsBefore();
         testAlterTableAddMultipleColumnsAfter();
-        testAlterTableModifyColumn();
-        testAlterTableModifyColumnSetNull();
-        testAlterTableModifyColumnNotNullOracle();
         conn.close();
         deleteDb(getTestName());
-    }
-
-    private void testAlterTableAlterColumnAsSelfColumn() throws SQLException {
-        stat.execute("create table test(id int, name varchar)");
-        stat.execute("alter table test alter column id int as id+1");
-        stat.execute("insert into test values(1, 'Hello')");
-        stat.execute("update test set name='World'");
-        ResultSet rs = stat.executeQuery("select * from test");
-        rs.next();
-        assertEquals(3, rs.getInt(1));
-        stat.execute("drop table test");
     }
 
     private void testAlterTableDropColumnWithReferences() throws SQLException {
@@ -133,27 +115,6 @@ public class TestAlter extends TestDb {
         stat.execute("drop table test");
     }
 
-    /**
-     * Tests a bug we used to have where altering the name of a column that had
-     * a check constraint that referenced itself would result in not being able
-     * to re-open the DB.
-     */
-    private void testAlterTableAlterColumnWithConstraint() throws SQLException {
-        if (config.memory) {
-            return;
-        }
-        stat.execute("create table test(id int check(id in (1,2)) )");
-        stat.execute("alter table test alter id rename to id2");
-        // disconnect and reconnect
-        conn.close();
-        conn = getConnection(getTestName());
-        stat = conn.createStatement();
-        stat.execute("insert into test values(1)");
-        assertThrows(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, stat).
-            execute("insert into test values(3)");
-        stat.execute("drop table test");
-    }
-
     private void testAlterTableRenameConstraint() throws SQLException {
         stat.execute("create table test(id int, name varchar(255))");
         stat.execute("alter table test add constraint x check (id > name)");
@@ -173,17 +134,6 @@ public class TestAlter extends TestDb {
         rs = stat.executeQuery("select * from INFORMATION_SCHEMA.SEQUENCES");
         assertTrue(rs.next());
         stat.execute("drop table test");
-    }
-
-    private void testAlterTableAlterColumn() throws SQLException {
-        stat.execute("create table t(x varchar) as select 'x'");
-        assertThrows(ErrorCode.DATA_CONVERSION_ERROR_1, stat).
-                execute("alter table t alter column x int");
-        stat.execute("drop table t");
-        stat.execute("create table t(id identity, x varchar) as select null, 'x'");
-        assertThrows(ErrorCode.DATA_CONVERSION_ERROR_1, stat).
-                execute("alter table t alter column x int");
-        stat.execute("drop table t");
     }
 
     private void testAlterTableAddColumnIdentity() throws SQLException {
@@ -281,60 +231,4 @@ public class TestAlter extends TestDb {
         stat.execute("drop table T");
     }
 
-    private void testAlterTableAlterColumn2() throws SQLException {
-        // ensure that increasing a VARCHAR columns length takes effect because
-        // we optimize this case
-        stat.execute("create table t(x varchar(2)) as select 'x'");
-        stat.execute("alter table t alter column x varchar(20)");
-        stat.execute("insert into t values('Hello')");
-        stat.execute("drop table t");
-    }
-
-    private void testAlterTableModifyColumn() throws SQLException {
-        stat.execute("SET MODE MySQL");
-        stat.execute("create table t(x int)");
-        stat.execute("alter table t modify column x varchar(20)");
-        stat.execute("insert into t values('Hello')");
-        stat.execute("drop table t");
-        stat.execute("SET MODE Regular");
-    }
-
-    /**
-     * Test for fix "Change not-null / null -constraint to existing column"
-     * (MySql/ORACLE - SQL style) that failed silently corrupting the changed
-     * column.<br/>
-     * Before the change (added after v1.4.196) following was observed:
-     * <pre>
-     *  alter table T modify C int null; -- Worked as expected
-     *  alter table T modify C null;     -- Silently corrupted column C
-     * </pre>
-     */
-    private void testAlterTableModifyColumnSetNull() throws SQLException {
-        stat.execute("SET MODE MySQL");
-        // This worked in v1.4.196
-        stat.execute("create table T (C varchar not null)");
-        stat.execute("alter table T modify C int null");
-        stat.execute("insert into T values(null)");
-        stat.execute("drop table T");
-        // This failed in v1.4.196
-        stat.execute("create table T (C int not null)");
-        stat.execute("alter table T modify C null"); // Silently corrupted column C
-        stat.execute("insert into T values(null)"); // <- Fixed in v1.4.196 - NULL is allowed
-        stat.execute("drop table T");
-        stat.execute("SET MODE Regular");
-    }
-
-    private void testAlterTableModifyColumnNotNullOracle() throws SQLException {
-        stat.execute("SET MODE Oracle");
-        stat.execute("create table foo (bar varchar(255))");
-        stat.execute("alter table foo modify (bar varchar(255) not null)");
-        try {
-            stat.execute("insert into foo values(null)");
-            fail("Null should not be allowed after modification.");
-        }
-        catch(SQLException e) {
-            // This is what we expect, fails to insert null.
-        }
-        stat.execute("SET MODE Regular");
-    }
 }

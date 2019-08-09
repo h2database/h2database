@@ -822,6 +822,9 @@ public class MVStore implements AutoCloseable
                         "No valid chunk for last version {0}", headerVersion);
             }
             // Only file headers for new database or in recoveryMode
+            storeHeader.remove(HDR_BLOCK);
+            storeHeader.remove(HDR_CHUNK);
+            storeHeader.remove(HDR_VERSION);
             return;
         }
         

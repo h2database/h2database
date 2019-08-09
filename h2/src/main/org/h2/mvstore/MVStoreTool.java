@@ -161,16 +161,22 @@ public class MVStoreTool {
                     continue;
                 }
                 int length = c.len * MVStore.BLOCK_SIZE;
-                pw.printf("%n%0" + len + "x chunkHeader %s%n",
-                        pos, c.toString());
+                pw.printf("%n%0" + len + "x chunkHeader %s%n", pos, c.toString());
                 ByteBuffer chunk = ByteBuffer.allocate(length);
-                DataUtils.readFully(file, pos, chunk);
+                // bugfix - not catch EOF
+                // @since 2019-08-09 little-pan
+                try {
+                    DataUtils.readFully(file, pos, chunk);
+                } catch (IllegalStateException e){
+                    pos += length;
+                    pw.printf("ERROR illegal eof %d%n", pos);
+                    continue;
+                }
                 int p = block.position();
                 pos += length;
                 int remaining = c.pageCount;
                 pageCount += c.pageCount;
-                TreeMap<Integer, Integer> mapSizes =
-                        new TreeMap<>();
+                TreeMap<Integer, Integer> mapSizes = new TreeMap<>();
                 int pageSizeSum = 0;
                 while (remaining > 0) {
                     int start = p;

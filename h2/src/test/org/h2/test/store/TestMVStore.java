@@ -980,10 +980,13 @@ public class TestMVStore extends TestBase {
         // test corrupt file headers
         for (int i = 0; i <= blockSize; i += blockSize) {
             FileChannel fc = f.open("rw");
-            if (i == 0) {
+            // Since h2-1.3.176, file header doesn't be written at the end of the
+            // store file again in MVStore, so we need comment the following code.
+            // @since 2019-08-09 little-pan
+            //if (i == 0) {
                 // corrupt the last block (the end header)
-                fc.write(ByteBuffer.allocate(256), fc.size() - 256);
-            }
+            //    fc.write(ByteBuffer.allocate(256), fc.size() - 256);
+            //}
             ByteBuffer buff = ByteBuffer.allocate(4 * 1024);
             fc.read(buff, i);
             String h = new String(buff.array(), StandardCharsets.UTF_8).trim();
@@ -1008,7 +1011,7 @@ public class TestMVStore extends TestBase {
                 map = s.openMap("test");
                 assertEquals(100, map.get(0).length);
                 map = s.openMap("test2");
-                assertFalse(map.containsKey(1));
+                assertTrue(map.containsKey(1));
                 s.close();
             } else {
                 // both headers are corrupt
@@ -1462,7 +1465,10 @@ public class TestMVStore extends TestBase {
         assertEquals(0, m.size());
         s.commit();
         // ensure only nodes are read, but not leaves
-        assertEquals(5, s.getFileStore().getReadCount());
+        // *We must read a chunk from the end of store file, otherwise maybe data lost,
+        // so read count should be 8 here as before.
+        // @since 2019-08-09 little-pan
+        assertEquals(8, s.getFileStore().getReadCount());
         assertTrue(s.getFileStore().getWriteCount() < 5);
         s.close();
     }

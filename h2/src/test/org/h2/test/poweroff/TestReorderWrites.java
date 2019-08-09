@@ -116,7 +116,9 @@ public class TestReorderWrites extends TestBase {
                 }
                 store = new MVStore.Builder().
                         fileName(fileName).
-                        autoCommitDisabled().open();
+                        autoCommitDisabled().
+                        recoveryMode().
+                        open();
                 map = store.openMap("data");
                 if (!map.containsKey(-1)) {
                     fail("key not found, size=" + map.size() + " i=" + i);

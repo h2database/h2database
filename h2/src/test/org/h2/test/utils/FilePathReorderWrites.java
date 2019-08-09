@@ -222,13 +222,13 @@ class FileReorderWrites extends FileBase {
         return this;
     }
 
-    private int addOperation(FileWriteOperation op) throws IOException {
+    private int addOperation(final FileWriteOperation op) throws IOException {
         trace("op " + op);
         checkError();
         notAppliedList.add(op);
         long now = op.getTime();
         for (int i = 0; i < notAppliedList.size() - 1; i++) {
-            FileWriteOperation old = notAppliedList.get(i);
+            final FileWriteOperation old = notAppliedList.get(i);
             boolean applyOld = false;
             // String reason = "";
             if (old.getTime() + 45000 < now) {
@@ -242,7 +242,9 @@ class FileReorderWrites extends FileBase {
                 applyOld = true;
             }
             if (applyOld) {
-                trace("op apply " + op);
+                // bugfix - here should trace old instead of op
+                // @since 2019-08-09 little-pan
+                trace("op apply " + old);
                 old.apply(base);
                 notAppliedList.remove(i);
                 i--;

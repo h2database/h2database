@@ -7728,12 +7728,16 @@ public class Parser {
     private Prepared parseAlterTableDropCompatibility(Schema schema, String tableName, boolean ifTableExists) {
         if (readIf(FOREIGN)) {
             read("KEY");
+            // For MariaDB
+            boolean ifExists = readIfExists(false);
             String constraintName = readIdentifierWithSchema(schema.getName());
             checkSchema(schema);
-            AlterTableDropConstraint command = new AlterTableDropConstraint(session, getSchema(), false);
+            AlterTableDropConstraint command = new AlterTableDropConstraint(session, getSchema(), ifExists);
             command.setConstraintName(constraintName);
             return commandIfTableExists(schema, tableName, ifTableExists, command);
         } else if (readIf("INDEX")) {
+            // For MariaDB
+            boolean ifExists = readIfExists(false);
             String indexOrConstraintName = readIdentifierWithSchema(schema.getName());
             final SchemaCommand command;
             if (schema.findIndex(session, indexOrConstraintName) != null) {
@@ -7741,7 +7745,7 @@ public class Parser {
                 dropIndexCommand.setIndexName(indexOrConstraintName);
                 command = dropIndexCommand;
             } else {
-                AlterTableDropConstraint dropCommand = new AlterTableDropConstraint(session, getSchema(), false);
+                AlterTableDropConstraint dropCommand = new AlterTableDropConstraint(session, getSchema(), ifExists);
                 dropCommand.setConstraintName(indexOrConstraintName);
                 command = dropCommand;
             }

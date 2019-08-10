@@ -163,8 +163,6 @@ public class MVStoreTool {
                 int length = c.len * MVStore.BLOCK_SIZE;
                 pw.printf("%n%0" + len + "x chunkHeader %s%n", pos, c.toString());
                 ByteBuffer chunk = ByteBuffer.allocate(length);
-                // bugfix - not catch EOF
-                // @since 2019-08-09 little-pan
                 try {
                     DataUtils.readFully(file, pos, chunk);
                 } catch (IllegalStateException e){

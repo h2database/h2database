@@ -381,9 +381,6 @@ public class MVStore implements AutoCloseable
             autoCommitMemory = kb * 1024;
             autoCompactFillRate = DataUtils.getConfigParam(config, "autoCompactFillRate", 90);
             char[] encryptionKey = (char[]) config.get("encryptionKey");
-            // bugfix - can't release file and its lock resources when open failed
-            // @since 2019-08-08 little-pan
-            boolean success = false;
             try {
                 if (!fileStoreIsProvided) {
                     boolean readOnly = config.containsKey("readOnly");
@@ -416,14 +413,15 @@ public class MVStore implements AutoCloseable
                 // the parameter is different from the old value
                 int delay = DataUtils.getConfigParam(config, "autoCommitDelay", 1000);
                 setAutoCommitDelay(delay);
-                
-                success = true;
             } catch (IllegalStateException e) {
                 panic(e);
+            } catch (Throwable e) {
+                // bugfix - can't release file and its lock resources when open failed. So here
+                // we must catch and handle the cause such as OOM etc.
+                // @since 2019-08-08 little-pan
+                panic(DataUtils.newIllegalStateException(DataUtils.ERROR_INTERNAL, "{0}", 
+                        e.toString(), e));
             } finally {
-                if (!success && !fileStoreIsProvided) {
-                    closeImmediately();
-                }
                 if (encryptionKey != null) {
                     Arrays.fill(encryptionKey, (char) 0);
                 }
@@ -2723,7 +2721,7 @@ public class MVStore implements AutoCloseable
                 if (autoCompactFillRate < 0) {
                     compact(-getTargetFillRate(), autoCommitMemory);
                 }
-                }
+            }
             int targetFillRate;
             int projectedFillRate;
             if (isIdle()) {
@@ -2746,7 +2744,7 @@ public class MVStore implements AutoCloseable
                         }
                     } finally {
                         storeLock.unlock();
-            }
+                    }
                 }
             }
             autoCompactLastFileOpCount = fileStore.getWriteCount() + fileStore.getReadCount();

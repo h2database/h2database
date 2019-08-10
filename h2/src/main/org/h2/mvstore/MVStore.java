@@ -792,10 +792,22 @@ public class MVStore implements AutoCloseable
             }
         };
 
-        if (assumeCleanShutdown) {
+        if (!assumeCleanShutdown) {
+            Chunk tailChunk = discoverChunk(blockSize);
+            if (tailChunk != null) {
+                blocksInStore = tailChunk.block; // for a possible full scan later on
+                if (newest == null || tailChunk.version > newest.version) {
+                    newest = tailChunk;
+                }
+            }
+        }
+
+        Map<Long, Chunk> validChunksByLocation = new HashMap<>();
+        if (newest != null) {
             // read the chunk header and footer,
             // and follow the chain of next chunks
             while (true) {
+                validChunksByLocation.put(newest.block, newest);
                 if (newest.next == 0 || newest.next >= blocksInStore) {
                     // no (valid) next
                     break;
@@ -804,145 +816,76 @@ public class MVStore implements AutoCloseable
                 if (test == null || test.version <= newest.version) {
                     break;
                 }
+                // if shutdown was really clean then chain should be empty
                 assumeCleanShutdown = false;
                 newest = test;
             }
+        }
 
-            if (assumeCleanShutdown) {
-                setLastChunk(newest);
-                Queue<Chunk> chunksToVerify = new PriorityQueue<>(20, Collections.reverseOrder(chunkComparator));
-                try {
-                    // load the chunk metadata: although meta's root page resides in the lastChunk,
-                    // traversing meta map might recursively load another chunk(s)
-                    Cursor<String, String> cursor = meta.cursor(DataUtils.META_CHUNK);
-                    while (cursor.hasNext() && cursor.next().startsWith(DataUtils.META_CHUNK)) {
-                        Chunk c = Chunk.fromString(cursor.getValue());
-                        assert c.version <= currentVersion;
-                        // might be there already, due to meta traversal
-                        // see readPage() ... getChunkIfFound()
-                        chunks.putIfAbsent(c.id, c);
-                        chunksToVerify.offer(c);
-                        if (chunksToVerify.size() == 20) {
-                            chunksToVerify.poll();
-                        }
+        if (assumeCleanShutdown) {
+            setLastChunk(newest);
+            // quickly check latest 20 chunks referenced in meta table
+            Queue<Chunk> chunksToVerify = new PriorityQueue<>(20, Collections.reverseOrder(chunkComparator));
+            try {
+                // load the chunk metadata: although meta's root page resides in the lastChunk,
+                // traversing meta map might recursively load another chunk(s)
+                Cursor<String, String> cursor = meta.cursor(DataUtils.META_CHUNK);
+                while (cursor.hasNext() && cursor.next().startsWith(DataUtils.META_CHUNK)) {
+                    Chunk c = Chunk.fromString(cursor.getValue());
+                    assert c.version <= currentVersion;
+                    // might be there already, due to meta traversal
+                    // see readPage() ... getChunkIfFound()
+                    chunks.putIfAbsent(c.id, c);
+                    chunksToVerify.offer(c);
+                    if (chunksToVerify.size() == 20) {
+                        chunksToVerify.poll();
                     }
-                    Chunk c;
-                    while (assumeCleanShutdown && (c = chunksToVerify.poll()) != null) {
-                        assumeCleanShutdown = readChunkHeaderAndFooter(c.block, c.id) != null;
-                    }
-                } catch(IllegalStateException ignored) {
-                    assumeCleanShutdown = false;
                 }
+                Chunk c;
+                while (assumeCleanShutdown && (c = chunksToVerify.poll()) != null) {
+                    assumeCleanShutdown = readChunkHeaderAndFooter(c.block, c.id) != null;
+                }
+            } catch(IllegalStateException ignored) {
+                assumeCleanShutdown = false;
             }
         }
 
         if (!assumeCleanShutdown) {
-            // now we know, that previous shutdown did not go well and file is possibly corrupted
-            // scan whole file and try to fetch chunk header and/or footer out of every block
-            // matching pairs with nothing in-between are considered as valid chunk
-            Map<Long, Chunk> validChunksByLocation = new HashMap<>();
-            long candidateLocation = Long.MAX_VALUE;
-            Chunk candidate = null;
-            long block = blocksInStore;
-            while (true) {
-                if (block == candidateLocation) {
-                    validChunksByLocation.put(candidateLocation, candidate);
-                }
-                if (block == 2) { // number of blocks occupied by headers
-                    break;
-                }
-                Chunk test = readChunkFooter(block);
-                if (test != null) {
-                    // if we encounter chunk footer (with or without corresponding header)
-                    // in the middle of prospective chunk, stop considering it
-                    candidateLocation = Long.MAX_VALUE;
-                    test = readChunkHeaderOptionally(test.block, test.id);
-                    if (test != null) {
-                        // if that footer has a corresponding header,
-                        // consider them as a new candidate for a valid chunk
-                        candidate = test;
-                        candidateLocation = test.block;
-                    }
-                }
+            boolean quickRecovery = false;
+            if (!recoveryMode) {
+                // now we know, that previous shutdown did not go well and file is possibly corrupted
+                // but there is still hope for a quick recovery
 
-                // if we encounter chunk header without corresponding footer
-                // (due to incomplete write?) in the middle of prospective
-                // chunk, stop considering it
-                if (--block > candidateLocation && readChunkHeaderOptionally(block) != null) {
-                    candidateLocation = Long.MAX_VALUE;
+                // this collection will hold potential candidates for lastChunk to fall back to,
+                // in order from the most to least likely
+                Chunk[] lastChunkCandidates = validChunksByLocation.values().toArray(new Chunk[0]);
+                Arrays.sort(lastChunkCandidates, chunkComparator);
+                Map<Integer, Chunk> validChunksById = new HashMap<>();
+                for (Chunk chunk : lastChunkCandidates) {
+                    validChunksById.put(chunk.id, chunk);
                 }
+                quickRecovery = findLastChunkWithCompleteValidChunkSet(lastChunkCandidates, validChunksByLocation, validChunksById);
             }
 
-            // this collection will hold potential candidates for lastChunk to fall back to,
-            // in order from the most to least likely
-            Chunk[] lastChunkCandidates = validChunksByLocation.values().toArray(new Chunk[0]);
-            Arrays.sort(lastChunkCandidates, chunkComparator);
-            Map<Integer, Chunk> validChunksById = new HashMap<>();
-            for (Chunk chunk : lastChunkCandidates) {
-                validChunksById.put(chunk.id, chunk);
-            }
-
-            // Try candidates for "last chunk" in order from newest to oldest
-            // until suitable is found. Suitable one should have meta map
-            // where all chunk references point to valid locations.
-            for (Chunk chunk : lastChunkCandidates) {
-                setLastChunk(chunk);
-                boolean verified = true;
-                try {
-                    // load the chunk metadata: although meta's root page resides in the lastChunk,
-                    // traversing meta map might recursively load another chunk(s)
-                    Cursor<String, String> cursor = meta.cursor(DataUtils.META_CHUNK);
-                    while (cursor.hasNext() && cursor.next().startsWith(DataUtils.META_CHUNK)) {
-                        Chunk c = Chunk.fromString(cursor.getValue());
-                        assert c.version <= currentVersion;
-                        // might be there already, due to meta traversal
-                        // see readPage() ... getChunkIfFound()
-                        Chunk test = chunks.putIfAbsent(c.id, c);
-                        if (test != null) {
-                            c = test;
-                        }
-                        assert chunks.get(c.id) == c;
-                        if ((test = validChunksByLocation.get(c.block)) != null && test.id == c.id) {
-                            continue;
-                        } else if ((test = validChunksById.get(c.id)) != null) {
-                            // We do not have a valid chunk at that location,
-                            // but there is a copy of same chunk from original
-                            // location.
-                            // Chunk header at original location does not have
-                            // any dynamic (occupancy) metadata, so it can't be
-                            // used here as is, re-point our chunk to original
-                            // location instead.
-                            c.block = test.block;
-                            continue;
-                        }
-
-                        if (!c.isLive()) {
-                            // we can just remove entry from meta, referencing to this chunk,
-                            // but store maybe R/O, and it's not properly started yet,
-                            // so lets make this chunk "dead" and taking no space,
-                            // and it will be automatically removed later.
-                            c.block = Long.MAX_VALUE;
-                            c.len = Integer.MAX_VALUE;
-                            if (c.unused == 0) {
-                                c.unused = creationTime;
-                            }
-                            if (c.unusedAtVersion == 0) {
-                                c.unusedAtVersion = INITIAL_VERSION;
-                            }
-                            continue;
-                        }
-
-                        // chunk reference is invalid
-                        // this "last chunk" candidate is not suitable
-                        verified = recoveryMode;
-                        break;
-                    }
-                } catch(Exception ignored) {
-                    verified = recoveryMode;
+            if (!quickRecovery) {
+                // scan whole file and try to fetch chunk header and/or footer out of every block
+                // matching pairs with nothing in-between are considered as valid chunk
+                long block = blocksInStore;
+                Chunk tailChunk;
+                while ((tailChunk = discoverChunk(block)) != null) {
+                    block = tailChunk.block;
+                    validChunksByLocation.put(block, tailChunk);
                 }
-                if (verified) {
-                    break;
+
+                // this collection will hold potential candidates for lastChunk to fall back to,
+                // in order from the most to least likely
+                Chunk[] lastChunkCandidates = validChunksByLocation.values().toArray(new Chunk[0]);
+                Arrays.sort(lastChunkCandidates, chunkComparator);
+                Map<Integer, Chunk> validChunksById = new HashMap<>();
+                for (Chunk chunk : lastChunkCandidates) {
+                    validChunksById.put(chunk.id, chunk);
                 }
+                findLastChunkWithCompleteValidChunkSet(lastChunkCandidates, validChunksByLocation, validChunksById);
             }
         }
 
@@ -965,6 +908,74 @@ public class MVStore implements AutoCloseable
         }
     }
 
+    private boolean findLastChunkWithCompleteValidChunkSet(Chunk[] lastChunkCandidates,
+                                                            Map<Long, Chunk> validChunksByLocation,
+                                                            Map<Integer, Chunk> validChunksById) {
+        // Try candidates for "last chunk" in order from newest to oldest
+        // until suitable is found. Suitable one should have meta map
+        // where all chunk references point to valid locations.
+        for (Chunk chunk : lastChunkCandidates) {
+            boolean verified = true;
+            try {
+                setLastChunk(chunk);
+                // load the chunk metadata: although meta's root page resides in the lastChunk,
+                // traversing meta map might recursively load another chunk(s)
+                Cursor<String, String> cursor = meta.cursor(DataUtils.META_CHUNK);
+                while (cursor.hasNext() && cursor.next().startsWith(DataUtils.META_CHUNK)) {
+                    Chunk c = Chunk.fromString(cursor.getValue());
+                    assert c.version <= currentVersion;
+                    // might be there already, due to meta traversal
+                    // see readPage() ... getChunkIfFound()
+                    Chunk test = chunks.putIfAbsent(c.id, c);
+                    if (test != null) {
+                        c = test;
+                    }
+                    assert chunks.get(c.id) == c;
+                    if ((test = validChunksByLocation.get(c.block)) != null && test.id == c.id) {
+                        continue;
+                    } else if ((test = validChunksById.get(c.id)) != null) {
+                        // We do not have a valid chunk at that location,
+                        // but there is a copy of same chunk from original
+                        // location.
+                        // Chunk header at original location does not have
+                        // any dynamic (occupancy) metadata, so it can't be
+                        // used here as is, re-point our chunk to original
+                        // location instead.
+                        c.block = test.block;
+                        continue;
+                    }
+
+                    if (!c.isLive()) {
+                        // we can just remove entry from meta, referencing to this chunk,
+                        // but store maybe R/O, and it's not properly started yet,
+                        // so lets make this chunk "dead" and taking no space,
+                        // and it will be automatically removed later.
+                        c.block = Long.MAX_VALUE;
+                        c.len = Integer.MAX_VALUE;
+                        if (c.unused == 0) {
+                            c.unused = creationTime;
+                        }
+                        if (c.unusedAtVersion == 0) {
+                            c.unusedAtVersion = INITIAL_VERSION;
+                        }
+                        continue;
+                    }
+
+                    // chunk reference is invalid
+                    // this "last chunk" candidate is not suitable
+                    verified = false;
+                    break;
+                }
+            } catch(Exception ignored) {
+                verified = false;
+            }
+            if (verified) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void setLastChunk(Chunk last) {
         chunks.clear();
         lastChunk = last;
@@ -980,6 +991,44 @@ public class MVStore implements AutoCloseable
             chunks.put(last.id, last);
             lastStoredVersion = currentVersion - 1;
             meta.setRootPos(last.metaRootPos, lastStoredVersion);
+        }
+    }
+
+    /**
+     * Discover a valid chunk, searching file backwards from the given block
+     * @param block to start search from (found chunk footer should be no further than blok-1)
+     * @return valid Chunk or null if none found
+     */
+    private Chunk discoverChunk(long block) {
+        long candidateLocation = Long.MAX_VALUE;
+        Chunk candidate = null;
+        while (true) {
+            if (block == candidateLocation) {
+                return candidate;
+            }
+            if (block == 2) { // number of blocks occupied by headers
+                return null;
+            }
+            Chunk test = readChunkFooter(block);
+            if (test != null) {
+                // if we encounter chunk footer (with or without corresponding header)
+                // in the middle of prospective chunk, stop considering it
+                candidateLocation = Long.MAX_VALUE;
+                test = readChunkHeaderOptionally(test.block, test.id);
+                if (test != null) {
+                    // if that footer has a corresponding header,
+                    // consider them as a new candidate for a valid chunk
+                    candidate = test;
+                    candidateLocation = test.block;
+                }
+            }
+
+            // if we encounter chunk header without corresponding footer
+            // (due to incomplete write?) in the middle of prospective
+            // chunk, stop considering it
+            if (--block > candidateLocation && readChunkHeaderOptionally(block) != null) {
+                candidateLocation = Long.MAX_VALUE;
+            }
         }
     }
 

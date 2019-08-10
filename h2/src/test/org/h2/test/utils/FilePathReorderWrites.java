@@ -222,13 +222,13 @@ class FileReorderWrites extends FileBase {
         return this;
     }
 
-    private int addOperation(final FileWriteOperation op) throws IOException {
+    private int addOperation(FileWriteOperation op) throws IOException {
         trace("op " + op);
         checkError();
         notAppliedList.add(op);
         long now = op.getTime();
         for (int i = 0; i < notAppliedList.size() - 1; i++) {
-            final FileWriteOperation old = notAppliedList.get(i);
+            FileWriteOperation old = notAppliedList.get(i);
             boolean applyOld = false;
             // String reason = "";
             if (old.getTime() + 45000 < now) {

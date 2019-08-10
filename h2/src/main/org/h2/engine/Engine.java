@@ -298,14 +298,14 @@ public class Engine implements SessionFactory {
      *
      * @param maybeOlder the database will be closed from the engine
      */
-    void close(final Database maybeOlder) {
+    void close(Database maybeOlder) {
         if(maybeOlder == null){
             return;
         }
         
-        final String name = maybeOlder.getName();
+        String name = maybeOlder.getName();
         synchronized (DATABASES) {
-            final Database intent = DATABASES.get(name);
+            Database intent = DATABASES.get(name);
             if(intent != maybeOlder){
                 return;
             }

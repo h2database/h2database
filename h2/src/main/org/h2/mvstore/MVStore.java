@@ -719,11 +719,11 @@ public class MVStore implements AutoCloseable
             fileHeaderBlocks.get(buff);
             // the following can fail for various reasons
             try {
-                final HashMap<String, String> m = DataUtils.parseChecksummedMap(buff);
+                HashMap<String, String> m = DataUtils.parseChecksummedMap(buff);
                 if (m == null) {
                     continue;
                 }
-                final long version = DataUtils.readHexLong(m, HDR_VERSION, 0);
+                long version = DataUtils.readHexLong(m, HDR_VERSION, 0);
                 // if both header blocks do agree on version
                 // we'll continue on happy path - assume that previous shutdown was clean
                 if (newest == null || version > newest.version) {
@@ -731,9 +731,9 @@ public class MVStore implements AutoCloseable
                     headerVersion = version;
                     storeHeader.putAll(m);
                     creationTime = DataUtils.readHexLong(m, HDR_CREATED, 0);
-                    final int chunkId = DataUtils.readHexInt(m, HDR_CHUNK, 0);
-                    final long block = DataUtils.readHexLong(m, HDR_BLOCK, 0);
-                    final Chunk test = readChunkHeaderAndFooter(block, chunkId);
+                    int chunkId = DataUtils.readHexInt(m, HDR_CHUNK, 0);
+                    long block = DataUtils.readHexLong(m, HDR_BLOCK, 0);
+                    Chunk test = readChunkHeaderAndFooter(block, chunkId);
                     if (test != null) {
                         newest = test;
                     }
@@ -775,7 +775,7 @@ public class MVStore implements AutoCloseable
         
         lastStoredVersion = INITIAL_VERSION;
         chunks.clear();
-        final long now = System.currentTimeMillis();
+        long now = System.currentTimeMillis();
         // calculate the year (doesn't have to be exact;
         // we assume 365.25 days per year, * 4 = 1461)
         int year =  1970 + (int) (now / (1000L * 60 * 60 * 6 * 1461));
@@ -913,10 +913,10 @@ public class MVStore implements AutoCloseable
         
         // build the free space list
         fileStore.clear();
-        for (final Chunk c : chunks.values()) {
+        for (Chunk c : chunks.values()) {
             if (c.isSaved()) {
-                final long start = c.block * BLOCK_SIZE;
-                final int length = c.len * BLOCK_SIZE;
+                long start = c.block * BLOCK_SIZE;
+                int length = c.len * BLOCK_SIZE;
                 fileStore.markUsed(start, length);
             }
             if (!c.isLive()) {
@@ -974,7 +974,7 @@ public class MVStore implements AutoCloseable
                         return test;
                     }
                 }
-            } catch(final Exception e) {
+            } catch(Exception e) {
                 // ignore: corrupted chunk or normal pages
             }
             end -= BLOCK_SIZE;
@@ -1029,9 +1029,9 @@ public class MVStore implements AutoCloseable
      * @since 2019-08-08 little-pan
      */
     private Chunk readChunkHeaderAndFooter(long block) {
-        final Chunk header = readChunkHeaderOptionally(block);
+        Chunk header = readChunkHeaderOptionally(block);
         if (header != null) {
-            final Chunk footer = readChunkFooter(block + header.len);
+            Chunk footer = readChunkFooter(block + header.len);
             if (footer == null || footer.id != header.id || footer.block != header.block) {
                 return null;
             }

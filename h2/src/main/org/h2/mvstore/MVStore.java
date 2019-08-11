@@ -1886,8 +1886,8 @@ public class MVStore implements AutoCloseable
                 
                 Chunk copy = Chunk.fromString(chunk.asString());
                 if (moveChunk(chunk, false)) {
-                    commit();
                     freePending.add(copy);
+                    commit();
                 }
                 shrinkFileIfPossible(0);
                 sync();

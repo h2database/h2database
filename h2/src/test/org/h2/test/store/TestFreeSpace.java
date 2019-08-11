@@ -54,7 +54,7 @@ public class TestFreeSpace extends TestBase {
                 f.free(j * 2 * 4096, 4096);
             }
             for (int j = 0; j < 100000; j++) {
-                f.allocate(4096 * 2);
+                f.allocate(4096 * 2, 0);
             }
             System.out.println(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - t));
         }
@@ -95,7 +95,7 @@ public class TestFreeSpace extends TestBase {
         FreeSpaceTree f3 = new FreeSpaceTree(2, 1024);
         assertEquals(f1.toString(), f2.toString());
         assertEquals(f1.toString(), f3.toString());
-        assertEquals(2 * 1024, f1.allocate(10240));
+        assertEquals(2 * 1024, f1.allocate(10240, 0));
         assertEquals(2 * 1024, f2.allocate(10240));
         assertEquals(2 * 1024, f3.allocate(10240));
         assertEquals(f1.toString(), f2.toString());
@@ -118,7 +118,7 @@ public class TestFreeSpace extends TestBase {
             switch (r.nextInt(3)) {
             case 0: {
                 log.append("allocate(" + length + ");\n");
-                long a = f1.allocate(length);
+                long a = f1.allocate(length, 0);
                 long b = f2.allocate(length);
                 assertEquals(a, b);
                 break;

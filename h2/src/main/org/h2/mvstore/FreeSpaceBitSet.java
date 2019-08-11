@@ -101,10 +101,11 @@ public class FreeSpaceBitSet {
      * Allocate a number of blocks and mark them as used.
      *
      * @param length the number of bytes to allocate
+     * @param reservedAreaSize from the beginning of the file
      * @return the start position in bytes
      */
-    public long allocate(int length) {
-        return getPos(allocate(getBlockCount(length), true));
+    public long allocate(int length, long reservedAreaSize) {
+        return getPos(allocate(getBlockCount(length), getBlock(reservedAreaSize), true));
     }
 
     /**
@@ -114,16 +115,16 @@ public class FreeSpaceBitSet {
      * @return the starting block index
      */
     long predictAllocation(int blocks) {
-        return allocate(blocks, false);
+        return allocate(blocks, 0, false);
     }
 
     boolean isFragmented() {
         return Integer.bitCount(failureFlags & 0x0F) > 1;
     }
 
-    private int allocate(int blocks, boolean allocate) {
+    private int allocate(int blocks, int reserved, boolean allocate) {
         int freeBlocksTotal = 0;
-        for (int i = 0;;) {
+        for (int i = reserved;;) {
             int start = set.nextClearBit(i);
             int end = set.nextSetBit(start + 1);
             int freeBlocks = end - start;

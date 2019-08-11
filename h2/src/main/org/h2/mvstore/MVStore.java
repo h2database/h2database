@@ -1395,7 +1395,7 @@ public class MVStore implements AutoCloseable
                 Chunk.FOOTER_LENGTH, BLOCK_SIZE);
         buff.limit(length);
 
-        long filePos = allocateFileSpace(length, !reuseSpace);
+        long filePos = allocateFileSpace(length, reuseSpace ? 0 : getFileLengthInUse());
         c.block = filePos / BLOCK_SIZE;
         c.len = length / BLOCK_SIZE;
         assert validateFileLength(c.asString());
@@ -1706,7 +1706,7 @@ public class MVStore implements AutoCloseable
         long maxBlocksToMove = moveSize / BLOCK_SIZE;
         Iterable<Chunk> result = null;
         if (maxBlocksToMove > 0) {
-            PriorityQueue<Chunk> queue = new PriorityQueue<>(this.chunks.size() / 2 + 1,
+            PriorityQueue<Chunk> queue = new PriorityQueue<>(chunks.size() / 2 + 1,
                     new Comparator<Chunk>() {
                         @Override
                         public int compare(Chunk o1, Chunk o2) {
@@ -1758,17 +1758,22 @@ public class MVStore implements AutoCloseable
             // to the end of the file
             writeStoreHeader();
             sync();
+
+            long reservedAreaSize = getFileLengthInUse();
             for (Iterator<Chunk> iter = move.iterator(); iter.hasNext(); ) {
                 Chunk chunk = iter.next();
                 if (fileStore.predictAllocation(chunk.len) >= leftmostBlock) {
                     break;
                 }
-                moveChunk(chunk, false);
+                moveChunk(chunk, 0);
                 iter.remove();
             }
-
+            // we need to ensure that chunks moved within the following loop
+            // do not overlap with space just released by chunks moved above,
+            // if some of them happened to sit right at the end of used space,
+            // hence the need to reserve this area
             for (Chunk chunk : move) {
-                moveChunk(chunk, true);
+                moveChunk(chunk, reservedAreaSize);
             }
 
             // update the metadata (store at the end of the file)
@@ -1781,13 +1786,13 @@ public class MVStore implements AutoCloseable
             // now re-use the empty space
             reuseSpace = true;
             for (Chunk c : move) {
-                moveChunk(c, false);
+                moveChunk(c, 0);
             }
 
             // update the metadata (within the file)
             commit();
             sync();
-            if (moveChunk(chunk, false)) {
+            if (moveChunk(chunk, 0)) {
                 commit();
             }
             shrinkFileIfPossible(0);
@@ -1795,53 +1800,53 @@ public class MVStore implements AutoCloseable
         }
     }
 
-    private boolean moveChunk(Chunk c, boolean toTheEnd) {
+    /**
+     * Move specified chunk into free area of the file
+     * @param chunk to move
+     * @param reservedAreaSize govern how unallocated space will be chosen,
+     *                        -1 means reuse space within the filefrom within
+     * @return
+     */
+    private boolean moveChunk(Chunk chunk, long reservedAreaSize) {
         // ignore if already removed during the previous store operations
         // those are possible either as explicit commit calls
         // or from meta map updates at the end of this method
-        if (!chunks.containsKey(c.id)) {
+        if (!chunks.containsKey(chunk.id)) {
             return false;
         }
         WriteBuffer buff = getWriteBuffer();
-        long start = c.block * BLOCK_SIZE;
-        int length = c.len * BLOCK_SIZE;
+        long start = chunk.block * BLOCK_SIZE;
+        int length = chunk.len * BLOCK_SIZE;
         buff.limit(length);
         ByteBuffer readBuff = fileStore.readFully(start, length);
-        Chunk chunk = Chunk.readChunkHeader(readBuff, start);
+        Chunk chunkFromFile = Chunk.readChunkHeader(readBuff, start);
         int chunkHeaderLen = readBuff.position();
         buff.position(chunkHeaderLen);
         buff.put(readBuff);
-        long pos = allocateFileSpace(length, toTheEnd);
+        long pos = allocateFileSpace(length, reservedAreaSize);
         long block = pos / BLOCK_SIZE;
         buff.position(0);
         // can not set chunk's new block/len until it's fully written at new location,
         // because concurrent reader can pick it up prematurely,
         // also occupancy accounting fields should not leak into header
-        chunk.block = block;
-        chunk.next = 0;
-        chunk.writeChunkHeader(buff, chunkHeaderLen);
+        chunkFromFile.block = block;
+        chunkFromFile.next = 0;
+        chunkFromFile.writeChunkHeader(buff, chunkHeaderLen);
         buff.position(length - Chunk.FOOTER_LENGTH);
-        buff.put(chunk.getFooterBytes());
+        buff.put(chunkFromFile.getFooterBytes());
         buff.position(0);
         write(pos, buff.getBuffer());
         releaseWriteBuffer(buff);
         fileStore.free(start, length);
-        c.block = block;
-        c.next = 0;
-        meta.put(Chunk.getMetaKey(c.id), c.asString());
+        chunk.block = block;
+        chunk.next = 0;
+        meta.put(Chunk.getMetaKey(chunk.id), chunk.asString());
         markMetaChanged();
         return true;
     }
 
-    private long allocateFileSpace(int length, boolean atTheEnd) {
-        long filePos;
-        if (atTheEnd) {
-            filePos = getFileLengthInUse();
-            fileStore.markUsed(filePos, length);
-        } else {
-            filePos = fileStore.allocate(length);
-        }
-        return filePos;
+    private long allocateFileSpace(int length, long reservedAreSize) {
+        return fileStore.allocate(length, reservedAreSize);
     }
 
     /**

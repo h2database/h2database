@@ -1815,6 +1815,7 @@ public class MVStore implements AutoCloseable
         buff.put(readBuff);
         long pos = allocateFileSpace(length, toTheEnd);
         long block = pos / BLOCK_SIZE;
+        assert toTheEnd || block <= c.block; // block should always move closer to the beginning of the file
         buff.position(0);
         // can not set chunk's new block/len until it's fully written at new location,
         // because concurrent reader can pick it up prematurely,

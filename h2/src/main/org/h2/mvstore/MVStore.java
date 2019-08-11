@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
@@ -31,6 +32,7 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
+
 import org.h2.compress.CompressDeflate;
 import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
@@ -860,35 +862,44 @@ public class MVStore implements AutoCloseable
             setLastChunk(newest);
             // load the all chunk meta-data from the meta map in the last chunk and check recent 20 chunks
             Cursor<String, String> cursor = meta.cursor(DataUtils.META_CHUNK);
-            while (cursor.hasNext() && cursor.next().startsWith(DataUtils.META_CHUNK)) {
-                Chunk c = Chunk.fromString(cursor.getValue());
-                assert c.version <= currentVersion;
-                // might be there already, due to meta traversal
-                // see readPage() ... getChunkIfFound()
-                chunks.putIfAbsent(c.id, c);
-                // only need to check the validity of recent chunks
-                vdiff = c.version - headerVersion;
-                if (vdiff < lastCandidates.length && vdiff >= 0L) {
-                    if (lastCandidates[(int)vdiff] == null) {
-                        Chunk test = readChunkHeaderAndFooter(c.block, c.id);
-                        if (test == null || test.version != c.version) {
-                            // chunk reference is invalid:
-                            // 1)Not in recovery mode, it's fatal and open failure, otherwise
-                            // 2)this "last chunk" candidate is not suitable but we continue to process 
-                            // all references to find other potential candidates
-                            if (!recoveryMode) {
-                                throw DataUtils.newIllegalStateException(
-                                        DataUtils.ERROR_FILE_CORRUPT, 
-                                        "Chunk reference not valid in the newest version {0}: " + 
-                                        "Be sure to make a backup of the database, then open " + 
-                                        "in recovery mode", currentVersion);
+            try {
+                while (cursor.hasNext() && cursor.next().startsWith(DataUtils.META_CHUNK)) {
+                    Chunk c = Chunk.fromString(cursor.getValue());
+                    assert c.version <= currentVersion;
+                    // might be there already, due to meta traversal
+                    // see readPage() ... getChunkIfFound()
+                    chunks.putIfAbsent(c.id, c);
+                    // only need to check the validity of recent chunks
+                    vdiff = c.version - headerVersion;
+                    if (vdiff < lastCandidates.length && vdiff >= 0L) {
+                        if (lastCandidates[(int)vdiff] == null) {
+                            Chunk test = readChunkHeaderAndFooter(c.block, c.id);
+                            if (test == null || test.version != c.version) {
+                                // chunk reference is invalid:
+                                // 1)Not in recovery mode, it's fatal and open failure, otherwise
+                                // 2)this "last chunk" candidate is not suitable but we continue to process 
+                                // all references to find other potential candidates
+                                if (!recoveryMode) {
+                                    throw DataUtils.newIllegalStateException(
+                                            DataUtils.ERROR_FILE_CORRUPT, 
+                                            "Chunk reference not valid in the newest version {0}: " + 
+                                            "Be sure to make a backup of the database, then open " + 
+                                            "in recovery mode", currentVersion);
+                                }
+                                newest = null;
+                                continue;
                             }
-                            newest = null;
-                            continue;
+                            lastCandidates[(int)vdiff] = test;
                         }
-                        lastCandidates[(int)vdiff] = test;
                     }
                 }
+            } catch (IllegalStateException e) {
+                // maybe page corruption
+                int errorCode = DataUtils.getErrorCode(e.getMessage());
+                if (DataUtils.ERROR_FILE_CORRUPT != errorCode || !recoveryMode) {
+                    throw e;
+                }
+                newest = null;
             }
             
             if (newest != null) {
@@ -1633,25 +1644,42 @@ public class MVStore implements AutoCloseable
         }
         fileStore.truncate(end);
     }
+    
+    private long getFileLengthInUse() {
+        return getFileLengthInUse(null);
+    }
 
     /**
      * Get the position right after the last used byte.
-     *
+     * 
+     * @freePending
      * @return the position
      */
-    private long getFileLengthInUse() {
+    private long getFileLengthInUse(Iterable<Chunk> freePending) {
         long result = fileStore.getFileLengthInUse();
-        assert result == measureFileLengthInUse() : result + " != " + measureFileLengthInUse();
+        assert result == measureFileLengthInUse(freePending) : result + " != " + measureFileLengthInUse(freePending);
         return result;
     }
-
+    
     private long measureFileLengthInUse() {
+        return measureFileLengthInUse(null);
+    }
+
+    private long measureFileLengthInUse(Iterable<Chunk> freePending) {
         long size = 2;
         for (Chunk c : chunks.values()) {
             if (c.isSaved()) {
                 size = Math.max(size, c.block + c.len);
             }
         }
+        if (freePending != null) {
+            for (Chunk c: freePending) {
+                if (c.isSaved()) {
+                    size = Math.max(size, c.block + c.len);
+                }
+            }
+        }
+        
         return size * BLOCK_SIZE;
     }
 
@@ -1800,44 +1828,91 @@ public class MVStore implements AutoCloseable
             // to the end of the file
             writeStoreHeader();
             sync();
-            for (Iterator<Chunk> iter = move.iterator(); iter.hasNext(); ) {
-                Chunk chunk = iter.next();
-                if (fileStore.predictAllocation(chunk.len) >= leftmostBlock) {
-                    break;
+            
+            // bugfix - the successive moving chunk uses the previous freed space, it
+            // can cause the store corrupt when the process killed, OOM or IO error.So
+            // we can't free any space of the moving or moved chunks until the changed
+            // meta map is persisted.
+            // @since 2019-08-11 little-pan
+            List<Chunk> freePending = new ArrayList<>();
+            try {
+
+                for (Iterator<Chunk> iter = move.iterator(); iter.hasNext(); ) {
+                    Chunk chunk = iter.next();
+                    if (fileStore.predictAllocation(chunk.len) >= leftmostBlock) {
+                        break;
+                    }
+                    Chunk copy = Chunk.fromString(chunk.asString());
+                    if(moveChunk(chunk, false, freePending)) {
+                        freePending.add(copy);
+                    }
+                    iter.remove();
                 }
-                moveChunk(chunk, false);
-                iter.remove();
-            }
 
-            for (Chunk chunk : move) {
-                moveChunk(chunk, true);
-            }
+                for (Chunk chunk : move) {
+                    Chunk copy = Chunk.fromString(chunk.asString());
+                    if(moveChunk(chunk, true, freePending)) {
+                        freePending.add(copy);
+                    }
+                }
 
-            // update the metadata (store at the end of the file)
-            reuseSpace = false;
-            commit();
-            sync();
-
-            Chunk chunk = lastChunk;
-
-            // now re-use the empty space
-            reuseSpace = true;
-            for (Chunk c : move) {
-                moveChunk(c, false);
-            }
-
-            // update the metadata (within the file)
-            commit();
-            sync();
-            if (moveChunk(chunk, false)) {
+                // update the metadata (store at the end of the file)
+                reuseSpace = false;
                 commit();
+                sync();
+                // free the spaces have been moved
+                for (Iterator<Chunk> iter = freePending.iterator(); iter.hasNext(); ) {
+                    Chunk c = iter.next();
+                    long start = c.block * BLOCK_SIZE;
+                    int length = c.len * BLOCK_SIZE;
+                    fileStore.free(start, length);
+                    iter.remove();
+                }
+
+                Chunk chunk = lastChunk;
+
+                // now re-use the empty space
+                reuseSpace = true;
+                for (Chunk c : move) {
+                    Chunk copy = Chunk.fromString(c.asString());
+                    if(moveChunk(c, false, freePending)) {
+                        freePending.add(copy);
+                    }
+                }
+
+                // update the metadata (within the file)
+                commit();
+                sync();
+                // free the spaces have been moved
+                for (Iterator<Chunk> iter = freePending.iterator(); iter.hasNext(); ) {
+                    Chunk c = iter.next();
+                    long start = c.block * BLOCK_SIZE;
+                    int length = c.len * BLOCK_SIZE;
+                    fileStore.free(start, length);
+                    iter.remove();
+                }
+                
+                Chunk copy = Chunk.fromString(chunk.asString());
+                if (moveChunk(chunk, false, freePending)) {
+                    commit();
+                    freePending.add(copy);
+                }
+                shrinkFileIfPossible(0);
+                sync();
+            } finally {
+                // free the spaces have been moved
+                for (Iterator<Chunk> iter = freePending.iterator(); iter.hasNext(); ) {
+                    Chunk c = iter.next();
+                    long start = c.block * BLOCK_SIZE;
+                    int length = c.len * BLOCK_SIZE;
+                    fileStore.free(start, length);
+                    iter.remove();
+                }
             }
-            shrinkFileIfPossible(0);
-            sync();
         }
     }
 
-    private boolean moveChunk(Chunk c, boolean toTheEnd) {
+    private boolean moveChunk(Chunk c, boolean toTheEnd, Iterable<Chunk> freePending) {
         // ignore if already removed during the previous store operations
         // those are possible either as explicit commit calls
         // or from meta map updates at the end of this method
@@ -1853,7 +1928,7 @@ public class MVStore implements AutoCloseable
         int chunkHeaderLen = readBuff.position();
         buff.position(chunkHeaderLen);
         buff.put(readBuff);
-        long pos = allocateFileSpace(length, toTheEnd);
+        long pos = allocateFileSpace(length, toTheEnd, freePending);
         long block = pos / BLOCK_SIZE;
         buff.position(0);
         // can not set chunk's new block/len until it's fully written at new location,
@@ -1867,18 +1942,22 @@ public class MVStore implements AutoCloseable
         buff.position(0);
         write(pos, buff.getBuffer());
         releaseWriteBuffer(buff);
-        fileStore.free(start, length);
+        
         c.block = block;
         c.next = 0;
         meta.put(Chunk.getMetaKey(c.id), c.asString());
         markMetaChanged();
         return true;
     }
-
+    
     private long allocateFileSpace(int length, boolean atTheEnd) {
+        return allocateFileSpace(length, atTheEnd, null);
+    }
+
+    private long allocateFileSpace(int length, boolean atTheEnd, Iterable<Chunk> freePendings) {
         long filePos;
         if (atTheEnd) {
-            filePos = getFileLengthInUse();
+            filePos = getFileLengthInUse(freePendings);
             fileStore.markUsed(filePos, length);
         } else {
             filePos = fileStore.allocate(length);
@@ -2157,9 +2236,11 @@ public class MVStore implements AutoCloseable
             }
             return p;
         } catch (IllegalStateException e) {
-            if (recoveryMode) {
-                return map.createEmptyLeaf();
-            }
+            // Empty leaf page also not good in recovery mode, it can lead to assertion error 
+            // when enable -ea and can't continue to recovery. So comment it.
+            //if (recoveryMode) {
+            //    return map.createEmptyLeaf();
+            //}
             throw e;
         }
     }

@@ -1735,7 +1735,9 @@ public class MVStore implements AutoCloseable
                 }
             }
             if (!queue.isEmpty()) {
-                result = queue;
+                ArrayList<Chunk> list = new ArrayList<>(queue);
+                Collections.sort(list, Chunk.PositionComparator.INSTANCE);
+                result = list;
             }
         }
         return result;

@@ -7,6 +7,7 @@ package org.h2.mvstore;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Comparator;
 import java.util.HashMap;
 
 /**
@@ -463,6 +464,18 @@ public class Chunk
     @Override
     public String toString() {
         return asString();
+    }
+
+
+    public static final class PositionComparator implements Comparator<Chunk> {
+        public static final Comparator<Chunk> INSTANCE = new PositionComparator();
+
+        private PositionComparator() {}
+
+        @Override
+        public int compare(Chunk one, Chunk two) {
+            return Long.compare(one.block, two.block);
+        }
     }
 }
 

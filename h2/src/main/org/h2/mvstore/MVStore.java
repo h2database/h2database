@@ -324,6 +324,7 @@ public class MVStore implements AutoCloseable
     private volatile IllegalStateException panicException;
 
     private long lastTimeAbsolute;
+    private volatile List<Chunk> freePending;
 
 
     /**
@@ -1644,28 +1645,19 @@ public class MVStore implements AutoCloseable
         }
         fileStore.truncate(end);
     }
-    
-    private long getFileLengthInUse() {
-        return getFileLengthInUse(null);
-    }
 
     /**
      * Get the position right after the last used byte.
      * 
-     * @freePending
      * @return the position
      */
-    private long getFileLengthInUse(Iterable<Chunk> freePending) {
+    private long getFileLengthInUse() {
         long result = fileStore.getFileLengthInUse();
-        assert result == measureFileLengthInUse(freePending) : result + " != " + measureFileLengthInUse(freePending);
+        assert result == measureFileLengthInUse() : result + " != " + measureFileLengthInUse();
         return result;
     }
-    
-    private long measureFileLengthInUse() {
-        return measureFileLengthInUse(null);
-    }
 
-    private long measureFileLengthInUse(Iterable<Chunk> freePending) {
+    private long measureFileLengthInUse() {
         long size = 2;
         for (Chunk c : chunks.values()) {
             if (c.isSaved()) {
@@ -1834,16 +1826,16 @@ public class MVStore implements AutoCloseable
             // we can't free any space of the moving or moved chunks until the changed
             // meta map is persisted.
             // @since 2019-08-11 little-pan
-            List<Chunk> freePending = new ArrayList<>();
+            assert freePending == null;
+            freePending = new ArrayList<>();
             try {
-
                 for (Iterator<Chunk> iter = move.iterator(); iter.hasNext(); ) {
                     Chunk chunk = iter.next();
                     if (fileStore.predictAllocation(chunk.len) >= leftmostBlock) {
                         break;
                     }
                     Chunk copy = Chunk.fromString(chunk.asString());
-                    if(moveChunk(chunk, false, freePending)) {
+                    if(moveChunk(chunk, false)) {
                         freePending.add(copy);
                     }
                     iter.remove();
@@ -1851,7 +1843,7 @@ public class MVStore implements AutoCloseable
 
                 for (Chunk chunk : move) {
                     Chunk copy = Chunk.fromString(chunk.asString());
-                    if(moveChunk(chunk, true, freePending)) {
+                    if(moveChunk(chunk, true)) {
                         freePending.add(copy);
                     }
                 }
@@ -1875,7 +1867,7 @@ public class MVStore implements AutoCloseable
                 reuseSpace = true;
                 for (Chunk c : move) {
                     Chunk copy = Chunk.fromString(c.asString());
-                    if(moveChunk(c, false, freePending)) {
+                    if(moveChunk(c, false)) {
                         freePending.add(copy);
                     }
                 }
@@ -1893,7 +1885,7 @@ public class MVStore implements AutoCloseable
                 }
                 
                 Chunk copy = Chunk.fromString(chunk.asString());
-                if (moveChunk(chunk, false, freePending)) {
+                if (moveChunk(chunk, false)) {
                     commit();
                     freePending.add(copy);
                 }
@@ -1908,11 +1900,12 @@ public class MVStore implements AutoCloseable
                     fileStore.free(start, length);
                     iter.remove();
                 }
+                freePending = null;
             }
         }
     }
 
-    private boolean moveChunk(Chunk c, boolean toTheEnd, Iterable<Chunk> freePending) {
+    private boolean moveChunk(Chunk c, boolean toTheEnd) {
         // ignore if already removed during the previous store operations
         // those are possible either as explicit commit calls
         // or from meta map updates at the end of this method
@@ -1928,7 +1921,7 @@ public class MVStore implements AutoCloseable
         int chunkHeaderLen = readBuff.position();
         buff.position(chunkHeaderLen);
         buff.put(readBuff);
-        long pos = allocateFileSpace(length, toTheEnd, freePending);
+        long pos = allocateFileSpace(length, toTheEnd);
         long block = pos / BLOCK_SIZE;
         buff.position(0);
         // can not set chunk's new block/len until it's fully written at new location,
@@ -1949,15 +1942,11 @@ public class MVStore implements AutoCloseable
         markMetaChanged();
         return true;
     }
-    
-    private long allocateFileSpace(int length, boolean atTheEnd) {
-        return allocateFileSpace(length, atTheEnd, null);
-    }
 
-    private long allocateFileSpace(int length, boolean atTheEnd, Iterable<Chunk> freePendings) {
+    private long allocateFileSpace(int length, boolean atTheEnd) {
         long filePos;
         if (atTheEnd) {
-            filePos = getFileLengthInUse(freePendings);
+            filePos = getFileLengthInUse();
             fileStore.markUsed(filePos, length);
         } else {
             filePos = fileStore.allocate(length);

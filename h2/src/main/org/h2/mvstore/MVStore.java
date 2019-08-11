@@ -1762,34 +1762,46 @@ public class MVStore implements AutoCloseable
             sync();
             for (Iterator<Chunk> iter = move.iterator(); iter.hasNext(); ) {
                 Chunk chunk = iter.next();
+                // while chunks destination do not overlap with their
+                // source location as a group, we can move them directly
+                // to the target destination
                 if (fileStore.predictAllocation(chunk.len) >= leftmostBlock) {
+                    // overlap encountered, now rest of the chunks
+                    // are going to be moved in two steps - first to EOF,
+                    // and only then to target destination
+                    // this is to avoid possible corruption on abrupt shutdown
                     break;
                 }
                 moveChunk(chunk, false);
                 iter.remove();
             }
 
+            boolean movedToEOF = false;
             for (Chunk chunk : move) {
                 moveChunk(chunk, true);
+                movedToEOF = true;
             }
 
-            // update the metadata (store at the end of the file)
-            reuseSpace = false;
-            commit();
-            sync();
+            Chunk chunk = null;
+            if (movedToEOF) {
+                // update the metadata (store at the end of the file)
+                reuseSpace = false;
+                commit();
+                sync();
 
-            Chunk chunk = lastChunk;
+                chunk = lastChunk;
 
-            // now re-use the empty space
-            reuseSpace = true;
-            for (Chunk c : move) {
-                moveChunk(c, false);
+                // now re-use the empty space
+                reuseSpace = true;
+                for (Chunk c : move) {
+                    moveChunk(c, false);
+                }
             }
 
             // update the metadata (within the file)
             commit();
             sync();
-            if (moveChunk(chunk, false)) {
+            if (chunk != null && moveChunk(chunk, false)) {
                 commit();
             }
             shrinkFileIfPossible(0);

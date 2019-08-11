@@ -7543,152 +7543,306 @@ public class Parser {
         String tableName = readIdentifierWithSchema();
         Schema schema = getSchema();
         if (readIf("ADD")) {
-            Prepared command = parseAlterTableAddConstraintIf(tableName,
-                    schema, ifTableExists);
+            Prepared command = parseAlterTableAddConstraintIf(tableName, schema, ifTableExists);
             if (command != null) {
                 return command;
             }
             return parseAlterTableAddColumn(tableName, schema, ifTableExists);
         } else if (readIf("SET")) {
-            read("REFERENTIAL_INTEGRITY");
-            int type = CommandInterface.ALTER_TABLE_SET_REFERENTIAL_INTEGRITY;
-            boolean value = readBooleanSetting();
-            AlterTableSet command = new AlterTableSet(session,
-                    schema, type, value);
+            return parseAlterTableSet(schema, tableName, ifTableExists);
+        } else if (readIf("RENAME")) {
+            return parseAlterTableRename(schema, tableName, ifTableExists);
+        } else if (readIf("DROP")) {
+            return parseAlterTableDrop(schema, tableName, ifTableExists);
+        } else if (readIf("ALTER")) {
+            return parseAlterTableAlter(schema, tableName, ifTableExists);
+        } else {
+            Mode mode = database.getMode();
+            if (mode.alterTableExtensionsMySQL || mode.alterTableModifyColumn) {
+                return parseAlterTableCompatibility(schema, tableName, ifTableExists, mode);
+            }
+        }
+        throw getSyntaxError();
+    }
+
+    private Prepared parseAlterTableAlter(Schema schema, String tableName, boolean ifTableExists) {
+        readIf("COLUMN");
+        String columnName = readColumnIdentifier();
+        Column column = columnIfTableExists(schema, tableName, columnName, ifTableExists);
+        if (readIf("RENAME")) {
+            read("TO");
+            AlterTableRenameColumn command = new AlterTableRenameColumn(
+                    session, schema);
             command.setTableName(tableName);
             command.setIfTableExists(ifTableExists);
-            if (readIf(CHECK)) {
-                command.setCheckExisting(true);
-            } else if (readIf("NOCHECK")) {
-                command.setCheckExisting(false);
-            }
+            command.setOldColumnName(columnName);
+            String newName = readColumnIdentifier();
+            command.setNewColumnName(newName);
             return command;
-        } else if (readIf("RENAME")) {
-            if (readIf("COLUMN")) {
-                // PostgreSQL syntax
-                String columnName = readColumnIdentifier();
-                read("TO");
-                AlterTableRenameColumn command = new AlterTableRenameColumn(
-                        session, schema);
+        } else if (readIf("DROP")) {
+            if (readIf("DEFAULT")) {
+                AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
                 command.setTableName(tableName);
                 command.setIfTableExists(ifTableExists);
-                command.setOldColumnName(columnName);
-                String newName = readColumnIdentifier();
-                command.setNewColumnName(newName);
-                return command;
-            } else if (readIf(CONSTRAINT)) {
-                String constraintName = readIdentifierWithSchema(schema.getName());
-                checkSchema(schema);
-                read("TO");
-                AlterTableRenameConstraint command = new AlterTableRenameConstraint(
-                        session, schema);
-                command.setConstraintName(constraintName);
-                String newName = readColumnIdentifier();
-                command.setNewConstraintName(newName);
-                return commandIfTableExists(schema, tableName, ifTableExists, command);
-            } else {
-                read("TO");
-                String newName = readIdentifierWithSchema(schema.getName());
-                checkSchema(schema);
-                AlterTableRename command = new AlterTableRename(session,
-                        getSchema());
-                command.setOldTableName(tableName);
-                command.setNewTableName(newName);
-                command.setIfTableExists(ifTableExists);
-                command.setHidden(readIf("HIDDEN"));
+                command.setOldColumn(column);
+                command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT);
+                command.setDefaultExpression(null);
                 return command;
             }
-        } else if (readIf("DROP")) {
-            if (readIf(CONSTRAINT)) {
-                boolean ifExists = readIfExists(false);
-                String constraintName = readIdentifierWithSchema(schema.getName());
-                ifExists = readIfExists(ifExists);
-                checkSchema(schema);
-                AlterTableDropConstraint command = new AlterTableDropConstraint(
-                        session, getSchema(), ifExists);
-                command.setConstraintName(constraintName);
-                return commandIfTableExists(schema, tableName, ifTableExists, command);
-            } else if (readIf(FOREIGN)) {
-                // MySQL compatibility
-                read("KEY");
-                String constraintName = readIdentifierWithSchema(schema.getName());
-                checkSchema(schema);
-                AlterTableDropConstraint command = new AlterTableDropConstraint(
-                        session, getSchema(), false);
-                command.setConstraintName(constraintName);
-                return commandIfTableExists(schema, tableName, ifTableExists, command);
-            } else if (readIf("INDEX")) {
-                // MySQL compatibility
-                String indexOrConstraintName = readIdentifierWithSchema(schema.getName());
-                final SchemaCommand command;
-                if (schema.findIndex(session, indexOrConstraintName) != null) {
-                    DropIndex dropIndexCommand = new DropIndex(session, getSchema());
-                    dropIndexCommand.setIndexName(indexOrConstraintName);
-                    command = dropIndexCommand;
-                } else {
-                    AlterTableDropConstraint dropCommand = new AlterTableDropConstraint(
-                            session, getSchema(), false/*ifExists*/);
-                    dropCommand.setConstraintName(indexOrConstraintName);
-                    command = dropCommand;
+            if (readIf(ON)) {
+                read("UPDATE");
+                AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
+                command.setTableName(tableName);
+                command.setIfTableExists(ifTableExists);
+                command.setOldColumn(column);
+                command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_ON_UPDATE);
+                command.setDefaultExpression(null);
+                return command;
+            }
+            read(NOT);
+            read(NULL);
+            AlterTableAlterColumn command = new AlterTableAlterColumn(
+                    session, schema);
+            command.setTableName(tableName);
+            command.setIfTableExists(ifTableExists);
+            command.setOldColumn(column);
+            command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_DROP_NOT_NULL);
+            return command;
+        } else if (readIf("TYPE")) {
+            // PostgreSQL compatibility
+            return parseAlterTableAlterColumnDataType(schema, tableName, columnName, ifTableExists);
+        } else if (readIf("SET")) {
+            if (readIf("DATA")) {
+                read("TYPE");
+                return parseAlterTableAlterColumnDataType(schema, tableName, columnName, ifTableExists);
+            }
+            AlterTableAlterColumn command = new AlterTableAlterColumn(
+                    session, schema);
+            command.setTableName(tableName);
+            command.setIfTableExists(ifTableExists);
+            command.setOldColumn(column);
+            NullConstraintType nullConstraint = parseNotNullConstraint();
+            switch (nullConstraint) {
+            case NULL_IS_ALLOWED:
+                command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_DROP_NOT_NULL);
+                break;
+            case NULL_IS_NOT_ALLOWED:
+                command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_NOT_NULL);
+                break;
+            case NO_NULL_CONSTRAINT_FOUND:
+                if (readIf("DEFAULT")) {
+                    Expression defaultExpression = readExpression();
+                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT);
+                    command.setDefaultExpression(defaultExpression);
+                } else if (readIf(ON)) {
+                    read("UPDATE");
+                    Expression onUpdateExpression = readExpression();
+                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_ON_UPDATE);
+                    command.setDefaultExpression(onUpdateExpression);
+                } else if (readIf("INVISIBLE")) {
+                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_VISIBILITY);
+                    command.setVisible(false);
+                } else if (readIf("VISIBLE")) {
+                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_VISIBILITY);
+                    command.setVisible(true);
                 }
-                return commandIfTableExists(schema, tableName, ifTableExists, command);
-            } else if (readIf(PRIMARY)) {
-                read("KEY");
+                break;
+            default:
+                throw DbException.get(ErrorCode.UNKNOWN_MODE_1,
+                        "Internal Error - unhandled case: " + nullConstraint.name());
+            }
+            return command;
+        } else if (readIf("RESTART")) {
+            readIf(WITH);
+            AlterSequence command = readAlterColumnRestartWith(schema, column);
+            return commandIfTableExists(schema, tableName, ifTableExists, command);
+        } else if (readIf("SELECTIVITY")) {
+            AlterTableAlterColumn command = new AlterTableAlterColumn(
+                    session, schema);
+            command.setTableName(tableName);
+            command.setIfTableExists(ifTableExists);
+            command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_SELECTIVITY);
+            command.setOldColumn(column);
+            command.setSelectivity(readExpression());
+            return command;
+        } else {
+            return parseAlterTableAlterColumnType(schema, tableName, columnName, ifTableExists, true);
+        }
+    }
+
+    private Prepared parseAlterTableDrop(Schema schema, String tableName, boolean ifTableExists) {
+        if (readIf(CONSTRAINT)) {
+            boolean ifExists = readIfExists(false);
+            String constraintName = readIdentifierWithSchema(schema.getName());
+            ifExists = readIfExists(ifExists);
+            checkSchema(schema);
+            AlterTableDropConstraint command = new AlterTableDropConstraint(session, getSchema(), ifExists);
+            command.setConstraintName(constraintName);
+            return commandIfTableExists(schema, tableName, ifTableExists, command);
+        } else if (readIf(PRIMARY)) {
+            read("KEY");
+            Table table = tableIfTableExists(schema, tableName, ifTableExists);
+            if (table == null) {
+                return new NoOperation(session);
+            }
+            Index idx = table.getPrimaryKey();
+            DropIndex command = new DropIndex(session, schema);
+            command.setIndexName(idx.getName());
+            return command;
+        } else if (database.getMode().alterTableExtensionsMySQL) {
+            Prepared command = parseAlterTableDropCompatibility(schema, tableName, ifTableExists);
+            if (command != null) {
+                return command;
+            }
+        }
+        readIf("COLUMN");
+        boolean ifExists = readIfExists(false);
+        ArrayList<Column> columnsToRemove = new ArrayList<>();
+        Table table = tableIfTableExists(schema, tableName, ifTableExists);
+        // For Oracle compatibility - open bracket required
+        boolean openingBracketDetected = readIf(OPEN_PAREN);
+        do {
+            String columnName = readColumnIdentifier();
+            if (table != null) {
+                Column column = table.getColumn(columnName, ifExists);
+                if (column != null) {
+                    columnsToRemove.add(column);
+                }
+            }
+        } while (readIf(COMMA));
+        if (openingBracketDetected) {
+            // For Oracle compatibility - close bracket
+            read(CLOSE_PAREN);
+        }
+        if (table == null || columnsToRemove.isEmpty()) {
+            return new NoOperation(session);
+        }
+        AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
+        command.setType(CommandInterface.ALTER_TABLE_DROP_COLUMN);
+        command.setTableName(tableName);
+        command.setIfTableExists(ifTableExists);
+        command.setColumnsToRemove(columnsToRemove);
+        return command;
+    }
+
+    private Prepared parseAlterTableDropCompatibility(Schema schema, String tableName, boolean ifTableExists) {
+        if (readIf(FOREIGN)) {
+            read("KEY");
+            // For MariaDB
+            boolean ifExists = readIfExists(false);
+            String constraintName = readIdentifierWithSchema(schema.getName());
+            checkSchema(schema);
+            AlterTableDropConstraint command = new AlterTableDropConstraint(session, getSchema(), ifExists);
+            command.setConstraintName(constraintName);
+            return commandIfTableExists(schema, tableName, ifTableExists, command);
+        } else if (readIf("INDEX")) {
+            // For MariaDB
+            boolean ifExists = readIfExists(false);
+            String indexOrConstraintName = readIdentifierWithSchema(schema.getName());
+            final SchemaCommand command;
+            if (schema.findIndex(session, indexOrConstraintName) != null) {
+                DropIndex dropIndexCommand = new DropIndex(session, getSchema());
+                dropIndexCommand.setIndexName(indexOrConstraintName);
+                command = dropIndexCommand;
+            } else {
+                AlterTableDropConstraint dropCommand = new AlterTableDropConstraint(session, getSchema(), ifExists);
+                dropCommand.setConstraintName(indexOrConstraintName);
+                command = dropCommand;
+            }
+            return commandIfTableExists(schema, tableName, ifTableExists, command);
+        }
+        return null;
+    }
+
+    private Prepared parseAlterTableRename(Schema schema, String tableName, boolean ifTableExists) {
+        if (readIf("COLUMN")) {
+            // PostgreSQL syntax
+            String columnName = readColumnIdentifier();
+            read("TO");
+            AlterTableRenameColumn command = new AlterTableRenameColumn(
+                    session, schema);
+            command.setTableName(tableName);
+            command.setIfTableExists(ifTableExists);
+            command.setOldColumnName(columnName);
+            String newName = readColumnIdentifier();
+            command.setNewColumnName(newName);
+            return command;
+        } else if (readIf(CONSTRAINT)) {
+            String constraintName = readIdentifierWithSchema(schema.getName());
+            checkSchema(schema);
+            read("TO");
+            AlterTableRenameConstraint command = new AlterTableRenameConstraint(
+                    session, schema);
+            command.setConstraintName(constraintName);
+            String newName = readColumnIdentifier();
+            command.setNewConstraintName(newName);
+            return commandIfTableExists(schema, tableName, ifTableExists, command);
+        } else {
+            read("TO");
+            String newName = readIdentifierWithSchema(schema.getName());
+            checkSchema(schema);
+            AlterTableRename command = new AlterTableRename(session,
+                    getSchema());
+            command.setOldTableName(tableName);
+            command.setNewTableName(newName);
+            command.setIfTableExists(ifTableExists);
+            command.setHidden(readIf("HIDDEN"));
+            return command;
+        }
+    }
+
+    private Prepared parseAlterTableSet(Schema schema, String tableName, boolean ifTableExists) {
+        read("REFERENTIAL_INTEGRITY");
+        int type = CommandInterface.ALTER_TABLE_SET_REFERENTIAL_INTEGRITY;
+        boolean value = readBooleanSetting();
+        AlterTableSet command = new AlterTableSet(session,
+                schema, type, value);
+        command.setTableName(tableName);
+        command.setIfTableExists(ifTableExists);
+        if (readIf(CHECK)) {
+            command.setCheckExisting(true);
+        } else if (readIf("NOCHECK")) {
+            command.setCheckExisting(false);
+        }
+        return command;
+    }
+
+    private Prepared parseAlterTableCompatibility(Schema schema, String tableName, boolean ifTableExists, Mode mode) {
+        if (mode.alterTableExtensionsMySQL) {
+            if (readIf("AUTO_INCREMENT")) {
+                readIf(EQUAL);
                 Table table = tableIfTableExists(schema, tableName, ifTableExists);
                 if (table == null) {
                     return new NoOperation(session);
                 }
-                Index idx = table.getPrimaryKey();
-                DropIndex command = new DropIndex(session, schema);
-                command.setIndexName(idx.getName());
-                return command;
-            } else {
-                readIf("COLUMN");
-                boolean ifExists = readIfExists(false);
-                ArrayList<Column> columnsToRemove = new ArrayList<>();
-                Table table = tableIfTableExists(schema, tableName, ifTableExists);
-                // For Oracle compatibility - open bracket required
-                boolean openingBracketDetected = readIf(OPEN_PAREN);
-                do {
-                    String columnName = readColumnIdentifier();
-                    if (table != null) {
-                        Column column = table.getColumn(columnName, ifExists);
-                        if (column != null) {
-                            columnsToRemove.add(column);
+                Index idx = table.findPrimaryKey();
+                if (idx != null) {
+                    for (IndexColumn ic : idx.getIndexColumns()) {
+                        Column column = ic.column;
+                        if (column.getSequence() != null) {
+                            return readAlterColumnRestartWith(schema, column);
                         }
                     }
-                } while (readIf(COMMA));
-                if (openingBracketDetected) {
-                    // For Oracle compatibility - close bracket
-                    read(CLOSE_PAREN);
                 }
-                if (table == null || columnsToRemove.isEmpty()) {
-                    return new NoOperation(session);
-                }
-                AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
-                command.setType(CommandInterface.ALTER_TABLE_DROP_COLUMN);
+                throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, "AUTO_INCREMENT PRIMARY KEY");
+            } else if (readIf("CHANGE")) {
+                readIf("COLUMN");
+                String columnName = readColumnIdentifier();
+                String newColumnName = readColumnIdentifier();
+                Column column = columnIfTableExists(schema, tableName, columnName, ifTableExists);
+                boolean nullable = column == null ? true : column.isNullable();
+                // new column type ignored. RENAME and MODIFY are
+                // a single command in MySQL but two different commands in H2.
+                parseColumnForTable(newColumnName, nullable, true);
+                AlterTableRenameColumn command = new AlterTableRenameColumn(session, schema);
                 command.setTableName(tableName);
                 command.setIfTableExists(ifTableExists);
-                command.setColumnsToRemove(columnsToRemove);
+                command.setOldColumnName(columnName);
+                command.setNewColumnName(newColumnName);
                 return command;
-            }
-        } else if (readIf("CHANGE")) {
-            // MySQL compatibility
-            readIf("COLUMN");
-            String columnName = readColumnIdentifier();
-            String newColumnName = readColumnIdentifier();
-            Column column = columnIfTableExists(schema, tableName, columnName, ifTableExists);
-            boolean nullable = column == null ? true : column.isNullable();
-            // new column type ignored. RENAME and MODIFY are
-            // a single command in MySQL but two different commands in H2.
-            parseColumnForTable(newColumnName, nullable, true);
-            AlterTableRenameColumn command = new AlterTableRenameColumn(session, schema);
-            command.setTableName(tableName);
-            command.setIfTableExists(ifTableExists);
-            command.setOldColumnName(columnName);
-            command.setNewColumnName(newColumnName);
-            return command;
-        } else if (readIf("MODIFY")) {
+            } 
+        }
+        if (mode.alterTableModifyColumn && readIf("MODIFY")) {
             // MySQL compatibility (optional)
             readIf("COLUMN");
             // Oracle specifies (but will not require) an opening parenthesis
@@ -7712,7 +7866,7 @@ public class Parser {
                 break;
             case NO_NULL_CONSTRAINT_FOUND:
                 command = parseAlterTableAlterColumnType(schema, tableName, columnName, ifTableExists,
-                        database.getMode().getEnum() != ModeEnum.MySQL);
+                        mode.getEnum() != ModeEnum.MySQL);
                 break;
             default:
                 throw DbException.get(ErrorCode.UNKNOWN_MODE_1,
@@ -7722,125 +7876,6 @@ public class Parser {
                 read(CLOSE_PAREN);
             }
             return command;
-        } else if (readIf("ALTER")) {
-            readIf("COLUMN");
-            String columnName = readColumnIdentifier();
-            Column column = columnIfTableExists(schema, tableName, columnName, ifTableExists);
-            if (readIf("RENAME")) {
-                read("TO");
-                AlterTableRenameColumn command = new AlterTableRenameColumn(
-                        session, schema);
-                command.setTableName(tableName);
-                command.setIfTableExists(ifTableExists);
-                command.setOldColumnName(columnName);
-                String newName = readColumnIdentifier();
-                command.setNewColumnName(newName);
-                return command;
-            } else if (readIf("DROP")) {
-                if (readIf("DEFAULT")) {
-                    AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
-                    command.setTableName(tableName);
-                    command.setIfTableExists(ifTableExists);
-                    command.setOldColumn(column);
-                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT);
-                    command.setDefaultExpression(null);
-                    return command;
-                }
-                if (readIf(ON)) {
-                    read("UPDATE");
-                    AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
-                    command.setTableName(tableName);
-                    command.setIfTableExists(ifTableExists);
-                    command.setOldColumn(column);
-                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_ON_UPDATE);
-                    command.setDefaultExpression(null);
-                    return command;
-                }
-                read(NOT);
-                read(NULL);
-                AlterTableAlterColumn command = new AlterTableAlterColumn(
-                        session, schema);
-                command.setTableName(tableName);
-                command.setIfTableExists(ifTableExists);
-                command.setOldColumn(column);
-                command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_DROP_NOT_NULL);
-                return command;
-            } else if (readIf("TYPE")) {
-                // PostgreSQL compatibility
-                return parseAlterTableAlterColumnDataType(schema, tableName, columnName, ifTableExists);
-            } else if (readIf("SET")) {
-                if (readIf("DATA")) {
-                    read("TYPE");
-                    return parseAlterTableAlterColumnDataType(schema, tableName, columnName, ifTableExists);
-                }
-                AlterTableAlterColumn command = new AlterTableAlterColumn(
-                        session, schema);
-                command.setTableName(tableName);
-                command.setIfTableExists(ifTableExists);
-                command.setOldColumn(column);
-                NullConstraintType nullConstraint = parseNotNullConstraint();
-                switch (nullConstraint) {
-                case NULL_IS_ALLOWED:
-                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_DROP_NOT_NULL);
-                    break;
-                case NULL_IS_NOT_ALLOWED:
-                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_NOT_NULL);
-                    break;
-                case NO_NULL_CONSTRAINT_FOUND:
-                    if (readIf("DEFAULT")) {
-                        Expression defaultExpression = readExpression();
-                        command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT);
-                        command.setDefaultExpression(defaultExpression);
-                    } else if (readIf(ON)) {
-                        read("UPDATE");
-                        Expression onUpdateExpression = readExpression();
-                        command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_ON_UPDATE);
-                        command.setDefaultExpression(onUpdateExpression);
-                    } else if (readIf("INVISIBLE")) {
-                        command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_VISIBILITY);
-                        command.setVisible(false);
-                    } else if (readIf("VISIBLE")) {
-                        command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_VISIBILITY);
-                        command.setVisible(true);
-                    }
-                    break;
-                default:
-                    throw DbException.get(ErrorCode.UNKNOWN_MODE_1,
-                            "Internal Error - unhandled case: " + nullConstraint.name());
-                }
-                return command;
-            } else if (readIf("RESTART")) {
-                readIf(WITH);
-                AlterSequence command = readAlterColumnRestartWith(schema, column);
-                return commandIfTableExists(schema, tableName, ifTableExists, command);
-            } else if (readIf("SELECTIVITY")) {
-                AlterTableAlterColumn command = new AlterTableAlterColumn(
-                        session, schema);
-                command.setTableName(tableName);
-                command.setIfTableExists(ifTableExists);
-                command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_SELECTIVITY);
-                command.setOldColumn(column);
-                command.setSelectivity(readExpression());
-                return command;
-            } else {
-                return parseAlterTableAlterColumnType(schema, tableName, columnName, ifTableExists, true);
-            }
-        } else if (database.getMode().getEnum() == ModeEnum.MySQL && readIf("AUTO_INCREMENT")) {
-            readIf(EQUAL);
-            Table table = tableIfTableExists(schema, tableName, ifTableExists);
-            if (table == null) {
-                return new NoOperation(session);
-            }
-            Index idx = table.findPrimaryKey();
-            if (idx != null) {
-                for (IndexColumn ic : idx.getIndexColumns()) {
-                    Column column = ic.column;
-                    if (column.getSequence() != null) {
-                        return readAlterColumnRestartWith(schema, column);
-                    }
-                }
-            }
-            throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, "AUTO_INCREMENT PRIMARY KEY");
         }
         throw getSyntaxError();
     }

@@ -971,6 +971,7 @@ Do not change value of DATABASE_TO_LOWER after creation of database.
 </li><li>Datetime value functions return the same value within a command.
 </li><li>0x literals are parsed as binary string literals.
 </li><li>Unrelated expressions in ORDER BY clause of DISTINCT queries are allowed.
+</li><li>Some MySQL-specific ALTER TABLE commands are partially supported.
 </li></ul>
 <p>
 Text comparison in MySQL is case insensitive by default, while in H2 it is case sensitive (as in most other databases).
@@ -998,6 +999,7 @@ or the SQL statement <code>SET MODE Oracle</code>.
 </li><li>HEXTORAW() decodes a hexadecimal character string to a binary string.
 </li><li>DATE data type is treated like TIMESTAMP(0) data type.
 </li><li>Datetime value functions return the same value within a command.
+</li><li>ALTER TABLE MODIFY COLUMN command is partially supported.
 </li></ul>
 
 <h3>PostgreSQL Compatibility Mode</h3>

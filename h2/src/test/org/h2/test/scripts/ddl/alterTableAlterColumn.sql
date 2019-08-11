@@ -124,6 +124,30 @@ DROP TABLE TEST;
 
 -- Compatibility syntax
 
+SET MODE MySQL;
+> ok
+
+create table test(id int primary key, name varchar);
+> ok
+
+insert into test(id) values(1);
+> update count: 1
+
+alter table test change column id id2 int;
+> ok
+
+select id2 from test;
+> ID2
+> ---
+> 1
+> rows: 1
+
+drop table test;
+> ok
+
+SET MODE Oracle;
+> ok
+
 CREATE MEMORY TABLE TEST(V INT NOT NULL);
 > ok
 
@@ -167,4 +191,130 @@ SET MODE Regular;
 > ok
 
 DROP TABLE TEST;
+> ok
+
+create table test(id int, name varchar);
+> ok
+
+alter table test alter column id int as id+1;
+> ok
+
+insert into test values(1, 'Hello');
+> update count: 1
+
+update test set name='World';
+> update count: 1
+
+select id from test;
+>> 3
+
+drop table test;
+> ok
+
+create table t(x varchar) as select 'x';
+> ok
+
+alter table t alter column x int;
+> exception DATA_CONVERSION_ERROR_1
+
+drop table t;
+> ok
+
+create table t(id identity, x varchar) as select null, 'x';
+> ok
+
+alter table t alter column x int;
+> exception DATA_CONVERSION_ERROR_1
+
+drop table t;
+> ok
+
+-- ensure that increasing a VARCHAR columns length takes effect because we optimize this case
+create table t(x varchar(2)) as select 'x';
+> ok
+
+alter table t alter column x varchar(20);
+> ok
+
+insert into t values 'Hello';
+> update count: 1
+
+drop table t;
+> ok
+
+SET MODE MySQL;
+> ok
+
+create table t(x int);
+> ok
+
+alter table t modify column x varchar(20);
+> ok
+
+insert into t values('Hello');
+> update count: 1
+
+drop table t;
+> ok
+
+-- This worked in v1.4.196
+create table T (C varchar not null);
+> ok
+
+alter table T modify C int null;
+> ok
+
+insert into T values(null);
+> update count: 1
+
+drop table T;
+> ok
+
+-- This failed in v1.4.196
+create table T (C int not null);
+> ok
+
+-- Silently corrupted column C
+alter table T modify C null;
+> ok
+
+insert into T values(null);
+> update count: 1
+
+drop table T;
+> ok
+
+SET MODE Oracle;
+> ok
+
+create table foo (bar varchar(255));
+> ok
+
+alter table foo modify (bar varchar(255) not null);
+> ok
+
+insert into foo values(null);
+> exception NULL_NOT_ALLOWED
+
+SET MODE Regular;
+> ok
+
+-- Tests a bug we used to have where altering the name of a column that had
+-- a check constraint that referenced itself would result in not being able
+-- to re-open the DB.
+create table test(id int check(id in (1,2)) );
+> ok
+
+alter table test alter id rename to id2;
+> ok
+
+@reconnect
+
+insert into test values 1;
+> update count: 1
+
+insert into test values 3;
+> exception CHECK_CONSTRAINT_VIOLATED_1
+
+drop table test;
 > ok

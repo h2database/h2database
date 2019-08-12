@@ -1767,7 +1767,7 @@ public class MVStore implements AutoCloseable
                 // while chunks destination do not overlap with their
                 // source location as a group, we can move them directly
                 // to the target destination
-                if (fileStore.predictAllocation(chunk.len) >= leftmostBlock) {
+                if (fileStore.predictAllocation(chunk.len) + chunk.len > leftmostBlock) {
                     // overlap encountered, now rest of the chunks
                     // are going to be moved in two steps - first to EOF,
                     // and only then to target destination
@@ -1808,7 +1808,7 @@ public class MVStore implements AutoCloseable
             commit();
             sync();
             if (chunk != null &&
-                    allocateFileSpace(chunk.len * BLOCK_SIZE, 0) < chunk.block * BLOCK_SIZE &&
+                    fileStore.predictAllocation(chunk.len) + chunk.len < chunk.block &&
                     moveChunk(chunk, 0)) {
                 commit();
             }

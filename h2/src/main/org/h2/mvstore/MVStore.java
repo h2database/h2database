@@ -1807,7 +1807,9 @@ public class MVStore implements AutoCloseable
             // update the metadata (within the file)
             commit();
             sync();
-            if (chunk != null && moveChunk(chunk, 0)) {
+            if (chunk != null &&
+                    allocateFileSpace(chunk.len * BLOCK_SIZE, 0) < chunk.block * BLOCK_SIZE &&
+                    moveChunk(chunk, 0)) {
                 commit();
             }
             shrinkFileIfPossible(0);
@@ -1840,7 +1842,7 @@ public class MVStore implements AutoCloseable
         buff.put(readBuff);
         long pos = allocateFileSpace(length, reservedAreaSize);
         long block = pos / BLOCK_SIZE;
-        assert reservedAreaSize > 0 || block <= chunk.block; // block should always move closer to the beginning of the file
+        assert reservedAreaSize > 0 || block <= chunk.block : block + " " + chunk; // block should always move closer to the beginning of the file
         buff.position(0);
         // can not set chunk's new block/len until it's fully written at new location,
         // because concurrent reader can pick it up prematurely,

@@ -1735,7 +1735,9 @@ public class MVStore implements AutoCloseable
                 }
             }
             if (!queue.isEmpty()) {
-                result = queue;
+                ArrayList<Chunk> list = new ArrayList<>(queue);
+                Collections.sort(list, Chunk.PositionComparator.INSTANCE);
+                result = list;
             }
         }
         return result;
@@ -1762,37 +1764,50 @@ public class MVStore implements AutoCloseable
             long reservedAreaSize = getFileLengthInUse();
             for (Iterator<Chunk> iter = move.iterator(); iter.hasNext(); ) {
                 Chunk chunk = iter.next();
+                // while chunks destination do not overlap with their
+                // source location as a group, we can move them directly
+                // to the target destination
                 if (fileStore.predictAllocation(chunk.len) >= leftmostBlock) {
+                    // overlap encountered, now rest of the chunks
+                    // are going to be moved in two steps - first to EOF,
+                    // and only then to target destination
+                    // this is to avoid possible corruption on abrupt shutdown
                     break;
                 }
                 moveChunk(chunk, 0);
                 iter.remove();
             }
+
+            boolean movedToEOF = false;
             // we need to ensure that chunks moved within the following loop
             // do not overlap with space just released by chunks moved above,
             // if some of them happened to sit right at the end of used space,
             // hence the need to reserve this area
             for (Chunk chunk : move) {
                 moveChunk(chunk, reservedAreaSize);
+                movedToEOF = true;
             }
 
-            // update the metadata (store at the end of the file)
-            reuseSpace = false;
-            commit();
-            sync();
+            Chunk chunk = null;
+            if (movedToEOF) {
+                // update the metadata (store at the end of the file)
+                reuseSpace = false;
+                commit();
+                sync();
 
-            Chunk chunk = lastChunk;
+                chunk = lastChunk;
 
-            // now re-use the empty space
-            reuseSpace = true;
-            for (Chunk c : move) {
-                moveChunk(c, 0);
+                // now re-use the empty space
+                reuseSpace = true;
+                for (Chunk c : move) {
+                    moveChunk(c, 0);
+                }
             }
 
             // update the metadata (within the file)
             commit();
             sync();
-            if (moveChunk(chunk, 0)) {
+            if (chunk != null && moveChunk(chunk, 0)) {
                 commit();
             }
             shrinkFileIfPossible(0);
@@ -1825,6 +1840,7 @@ public class MVStore implements AutoCloseable
         buff.put(readBuff);
         long pos = allocateFileSpace(length, reservedAreaSize);
         long block = pos / BLOCK_SIZE;
+        assert reservedAreaSize > 0 || block <= chunk.block; // block should always move closer to the beginning of the file
         buff.position(0);
         // can not set chunk's new block/len until it's fully written at new location,
         // because concurrent reader can pick it up prematurely,

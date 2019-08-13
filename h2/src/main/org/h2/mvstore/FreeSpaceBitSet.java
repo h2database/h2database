@@ -135,7 +135,7 @@ public class FreeSpaceBitSet {
 
     private int allocate(int blocks, int reservedLow, int reservedHigh, boolean allocate) {
         int freeBlocksTotal = 0;
-        for (int i = 2;;) {
+        for (int i = 0;;) {
             int start = set.nextClearBit(i);
             int end = set.nextSetBit(start + 1);
             int freeBlocks = end - start;

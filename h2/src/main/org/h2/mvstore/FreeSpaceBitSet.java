@@ -101,11 +101,22 @@ public class FreeSpaceBitSet {
      * Allocate a number of blocks and mark them as used.
      *
      * @param length the number of bytes to allocate
-     * @param reservedAreaSize from the beginning of the file
      * @return the start position in bytes
      */
-    public long allocate(int length, long reservedAreaSize) {
-        return getPos(allocate(getBlockCount(length), getBlock(reservedAreaSize), true));
+    public long allocate(int length) {
+        return allocate(length, 0, 0);
+    }
+
+    /**
+     * Allocate a number of blocks and mark them as used.
+     *
+     * @param length the number of bytes to allocate
+     * @param reservedLow start position of the reserved are
+     * @param reservedHigh end position of the reserved area
+     * @return the start position in bytes
+     */
+    long allocate(int length, long reservedLow, long reservedHigh) {
+        return getPos(allocate(getBlockCount(length), getBlock(reservedLow), getBlock(reservedHigh), true));
     }
 
     /**
@@ -115,20 +126,24 @@ public class FreeSpaceBitSet {
      * @return the starting block index
      */
     long predictAllocation(int blocks) {
-        return allocate(blocks, 0, false);
+        return allocate(blocks, 0, 0, false);
     }
 
     boolean isFragmented() {
         return Integer.bitCount(failureFlags & 0x0F) > 1;
     }
 
-    private int allocate(int blocks, int reserved, boolean allocate) {
+    private int allocate(int blocks, int reservedLow, int reservedHigh, boolean allocate) {
         int freeBlocksTotal = 0;
-        for (int i = reserved;;) {
+        for (int i = 2;;) {
             int start = set.nextClearBit(i);
             int end = set.nextSetBit(start + 1);
             int freeBlocks = end - start;
             if (end < 0 || freeBlocks >= blocks) {
+                if (start < reservedHigh && start + blocks > reservedLow) { // overlap detected
+                    i = reservedHigh;
+                    continue;
+                }
                 assert set.nextSetBit(start) == -1 || set.nextSetBit(start) >= start + blocks :
                         "Double alloc: " + Integer.toHexString(start) + "/" + Integer.toHexString(blocks) + " " + this;
                 if (allocate) {

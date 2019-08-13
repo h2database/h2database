@@ -339,14 +339,15 @@ public class FileStore {
     }
 
     /**
-     * Allocate a number of blocks and mark them as used.
+     * Allocate an area of the file and mark it as used.
      *
      * @param length the number of bytes to allocate
-     * @param reservedAreaSize from the beginning of the file
+     * @param reservedLow start position of the reserved are
+     * @param reservedHigh end position of the reserved area
      * @return the start position in bytes
      */
-    public long allocate(int length, long reservedAreaSize) {
-        return freeSpace.allocate(length, reservedAreaSize);
+    long allocate(int length, long reservedLow, long reservedHigh) {
+        return freeSpace.allocate(length, reservedLow, reservedHigh);
     }
 
     /**

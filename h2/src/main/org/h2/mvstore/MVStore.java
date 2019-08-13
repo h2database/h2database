@@ -188,6 +188,13 @@ public class MVStore implements AutoCloseable
 
     private volatile boolean reuseSpace = true;
 
+    /**
+     * reserved area boundaries (low inclusive, high exclusive) to prevent commit()
+     * from allocating new chunk there
+     */
+    private long reservedLow;
+    private long reservedHigh;
+
     private volatile int state;
 
     private final FileStore fileStore;
@@ -1395,7 +1402,9 @@ public class MVStore implements AutoCloseable
                 Chunk.FOOTER_LENGTH, BLOCK_SIZE);
         buff.limit(length);
 
-        long filePos = allocateFileSpace(length, reuseSpace ? 0 : getFileLengthInUse());
+        long filePos = allocateFileSpace(length,
+                reuseSpace ? reservedLow : 0,
+                reuseSpace ? reservedHigh : Math.max(reservedHigh, getFileLengthInUse()));
         c.block = filePos / BLOCK_SIZE;
         c.len = length / BLOCK_SIZE;
         assert validateFileLength(c.asString());
@@ -1788,6 +1797,7 @@ public class MVStore implements AutoCloseable
                 movedToEOF = true;
             }
 
+            long reservedAreaHigh = getFileLengthInUse();
             Chunk chunk = null;
             if (movedToEOF) {
                 // update the metadata (store at the end of the file)
@@ -1796,6 +1806,7 @@ public class MVStore implements AutoCloseable
                 sync();
 
                 chunk = lastChunk;
+                reservedAreaHigh = getFileLengthInUse();
 
                 // now re-use the empty space
                 reuseSpace = true;
@@ -1805,6 +1816,8 @@ public class MVStore implements AutoCloseable
             }
 
             // update the metadata (within the file)
+            reservedLow = movedToEOF ? reservedAreaSize : leftmostBlock * BLOCK_SIZE;
+            reservedHigh = reservedAreaHigh;
             commit();
             sync();
             if (chunk != null &&
@@ -1812,6 +1825,8 @@ public class MVStore implements AutoCloseable
                     moveChunk(chunk, 0)) {
                 commit();
             }
+            reservedLow = 0;
+            reservedHigh = 0;
             shrinkFileIfPossible(0);
             sync();
         }
@@ -1821,8 +1836,8 @@ public class MVStore implements AutoCloseable
      * Move specified chunk into free area of the file
      * @param chunk to move
      * @param reservedAreaSize govern how unallocated space will be chosen,
-     *                        -1 means reuse space within the filefrom within
-     * @return
+     *                        0 means reuse space within the file
+     * @return true if block was moved, false otherwise
      */
     private boolean moveChunk(Chunk chunk, long reservedAreaSize) {
         // ignore if already removed during the previous store operations
@@ -1840,7 +1855,7 @@ public class MVStore implements AutoCloseable
         int chunkHeaderLen = readBuff.position();
         buff.position(chunkHeaderLen);
         buff.put(readBuff);
-        long pos = allocateFileSpace(length, reservedAreaSize);
+        long pos = allocateFileSpace(length, 0, reservedAreaSize);
         long block = pos / BLOCK_SIZE;
         assert reservedAreaSize > 0 || block <= chunk.block : block + " " + chunk; // block should always move closer to the beginning of the file
         buff.position(0);
@@ -1863,8 +1878,8 @@ public class MVStore implements AutoCloseable
         return true;
     }
 
-    private long allocateFileSpace(int length, long reservedAreSize) {
-        return fileStore.allocate(length, reservedAreSize);
+    private long allocateFileSpace(int length, long reservedLow, long reservedHigh) {
+        return fileStore.allocate(length, reservedLow, reservedHigh);
     }
 
     /**

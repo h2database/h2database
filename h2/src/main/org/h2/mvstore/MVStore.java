@@ -1896,6 +1896,7 @@ public class MVStore implements AutoCloseable
             
             // last do shrink
             shrinkFileIfPossible(0);
+            sync();
         }
     }
     

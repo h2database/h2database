@@ -208,7 +208,7 @@ public class FreeSpaceBitSet {
      * @return the fill rate (0 - 100)
      */
     int getFillRate() {
-        return getProjectedFillRate(0L, 0);
+        return getProjectedFillRate(0);
     }
 
     /**
@@ -220,11 +220,11 @@ public class FreeSpaceBitSet {
      *            amount of memory (bytes) from vacated block, which would be
      *            written into a new chunk
      * @param vacatedBlocks
-     *            number of blocks vacated
+     *            number of blocks vacated  as a result of live data evacuation less
+     *            number of blocks in prospective chunk with evacuated live data
      * @return prospective fill rate (0 - 100)
      */
-    int getProjectedFillRate(long live, int vacatedBlocks) {
-        int additionalBlocks = getBlock(live + blockSize - 1);
+    int getProjectedFillRate(int vacatedBlocks) {
         // it's not bullet-proof against race condition but should be good enough
         // to get approximation without holding a store lock
         int usedBlocks;
@@ -233,9 +233,8 @@ public class FreeSpaceBitSet {
             totalBlocks = set.length();
             usedBlocks = set.cardinality();
         } while (totalBlocks != set.length() || usedBlocks > totalBlocks);
-        int totalBlocksAdjustment = additionalBlocks - firstFreeBlock;
-        usedBlocks += totalBlocksAdjustment - vacatedBlocks;
-        totalBlocks += totalBlocksAdjustment;
+        usedBlocks -= firstFreeBlock + vacatedBlocks;
+        totalBlocks -= firstFreeBlock;
         return usedBlocks == 0 ? 0 : (int)((100L * usedBlocks + totalBlocks - 1) / totalBlocks);
     }
 

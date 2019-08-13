@@ -1993,17 +1993,21 @@ public class MVStore implements AutoCloseable
     }
 
     private int getProjectedFillRate() {
-        int maxLengthSum = 0;
-        long maxLengthLiveSum = 0;
+        int vacatedBlocks = 0;
+        long maxLengthSum = 1;
+        long maxLengthLiveSum = 1;
         long time = getTimeSinceCreation();
         for (Chunk c : chunks.values()) {
             assert c.maxLen >= 0;
             if (isRewritable(c, time)) {
-                maxLengthSum += c.len;
+                assert c.maxLenLive >= c.maxLenLive;
+                vacatedBlocks += c.len;
+                maxLengthSum += c.maxLen;
                 maxLengthLiveSum += c.maxLenLive;
             }
         }
-        int fillRate = fileStore.getProjectedFillRate(maxLengthLiveSum, maxLengthSum);
+        int addidionalBlocks  = (int) (vacatedBlocks * maxLengthLiveSum / maxLengthSum);
+        int fillRate = fileStore.getProjectedFillRate(vacatedBlocks - addidionalBlocks);
         return fillRate;
     }
 
@@ -3110,9 +3114,7 @@ public class MVStore implements AutoCloseable
                     !deadChunks.offerFirst(chunk))) {
 
             if (chunks.remove(chunk.id) != null) {
-                if (meta.remove(Chunk.getMetaKey(chunk.id)) != null) {
-                    markMetaChanged();
-                }
+                meta.remove(Chunk.getMetaKey(chunk.id));
                 if (chunk.isSaved()) {
                     freeChunkSpace(chunk);
                 }

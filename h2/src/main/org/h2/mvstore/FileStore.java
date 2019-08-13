@@ -378,8 +378,8 @@ public class FileStore {
         return freeSpace.getFillRate();
     }
 
-    public int getProjectedFillRate(long live, int total) {
-        return freeSpace.getProjectedFillRate(live, total);
+    public int getProjectedFillRate(int vacatedBlocks) {
+        return freeSpace.getProjectedFillRate(vacatedBlocks);
     }
 
     long getFirstFree() {

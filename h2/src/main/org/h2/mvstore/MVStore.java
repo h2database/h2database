@@ -6,12 +6,14 @@
 package org.h2.mvstore;
 
 import static org.h2.mvstore.MVMap.INITIAL_VERSION;
+
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Deque;
@@ -19,7 +21,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
@@ -324,7 +325,7 @@ public class MVStore implements AutoCloseable
     private volatile IllegalStateException panicException;
 
     private long lastTimeAbsolute;
-    private volatile List<Chunk> freePending;
+    private volatile Queue<Chunk> freePending;
 
 
     /**
@@ -862,8 +863,8 @@ public class MVStore implements AutoCloseable
         do {
             setLastChunk(newest);
             // load the all chunk meta-data from the meta map in the last chunk and check recent 20 chunks
-            Cursor<String, String> cursor = meta.cursor(DataUtils.META_CHUNK);
             try {
+                Cursor<String, String> cursor = meta.cursor(DataUtils.META_CHUNK);
                 while (cursor.hasNext() && cursor.next().startsWith(DataUtils.META_CHUNK)) {
                     Chunk c = Chunk.fromString(cursor.getValue());
                     assert c.version <= currentVersion;
@@ -896,9 +897,16 @@ public class MVStore implements AutoCloseable
                 }
             } catch (IllegalStateException e) {
                 // maybe page corruption
-                int errorCode = DataUtils.getErrorCode(e.getMessage());
-                if (DataUtils.ERROR_FILE_CORRUPT != errorCode || !recoveryMode) {
+                String message = e.getMessage();
+                int errorCode = DataUtils.getErrorCode(message);
+                if (DataUtils.ERROR_FILE_CORRUPT != errorCode) {
                     throw e;
+                }
+                if (!recoveryMode) {
+                    throw DataUtils.newIllegalStateException(
+                            DataUtils.ERROR_FILE_CORRUPT, 
+                            "{0}: Be sure to make a backup of the database, then open " + 
+                            "in recovery mode", message);
                 }
                 newest = null;
             }
@@ -915,7 +923,7 @@ public class MVStore implements AutoCloseable
             if (i == 0 && newest == null) {
                 throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_FILE_CORRUPT, 
-                    "Restore failed: Not a valid chunk for last version {0}", 
+                    "Recovery failed: Not a valid chunk for last version {0}", 
                     currentVersion);
             }
             
@@ -1756,7 +1764,7 @@ public class MVStore implements AutoCloseable
 
     private boolean compactMoveChunks(long moveSize) {
         long start = fileStore.getFirstFree() / BLOCK_SIZE;
-        Iterable<Chunk> chunksToMove = findChunksToMove(start, moveSize);
+        Collection<Chunk> chunksToMove = findChunksToMove(start, moveSize);
         if (chunksToMove == null) {
             return false;
         }
@@ -1764,9 +1772,9 @@ public class MVStore implements AutoCloseable
         return true;
     }
 
-    private Iterable<Chunk> findChunksToMove(long startBlock, long moveSize) {
+    private Collection<Chunk> findChunksToMove(long startBlock, long moveSize) {
         long maxBlocksToMove = moveSize / BLOCK_SIZE;
-        Iterable<Chunk> result = null;
+        Collection<Chunk> result = null;
         if (maxBlocksToMove > 0) {
             PriorityQueue<Chunk> queue = new PriorityQueue<>(this.chunks.size() / 2 + 1,
                     new Comparator<Chunk>() {
@@ -1807,7 +1815,7 @@ public class MVStore implements AutoCloseable
         return fileStore.getMovePriority((int)chunk.block);
     }
 
-    private void compactMoveChunks(Iterable<Chunk> move) {
+    private void compactMoveChunks(Collection<Chunk> move) {
         assert storeLock.isHeldByCurrentThread();
         if (move != null) {
             long leftmostBlock = Long.MAX_VALUE;
@@ -1827,81 +1835,75 @@ public class MVStore implements AutoCloseable
             // meta map is persisted.
             // @since 2019-08-11 little-pan
             assert freePending == null;
-            freePending = new ArrayList<>();
-            try {
-                for (Iterator<Chunk> iter = move.iterator(); iter.hasNext(); ) {
-                    Chunk chunk = iter.next();
-                    if (fileStore.predictAllocation(chunk.len) >= leftmostBlock) {
-                        break;
-                    }
-                    Chunk copy = Chunk.fromString(chunk.asString());
-                    if(moveChunk(chunk, false)) {
-                        freePending.add(copy);
-                    }
-                    iter.remove();
+            freePending = new ArrayDeque<>(move.size() >> 1);
+            
+            // Step-1 prepare and move a part
+            // a) The first part moved to the left of the area of moving chunks 
+            for (Iterator<Chunk> iter = move.iterator(); iter.hasNext(); ) {
+                Chunk chunk = iter.next();
+                if (fileStore.predictAllocation(chunk.len) >= leftmostBlock) {
+                    break;
                 }
-
-                for (Chunk chunk : move) {
-                    Chunk copy = Chunk.fromString(chunk.asString());
-                    if(moveChunk(chunk, true)) {
-                        freePending.add(copy);
-                    }
-                }
-
-                // update the metadata (store at the end of the file)
-                reuseSpace = false;
-                commit();
-                sync();
-                // free the spaces have been moved
-                for (Iterator<Chunk> iter = freePending.iterator(); iter.hasNext(); ) {
-                    Chunk c = iter.next();
-                    long start = c.block * BLOCK_SIZE;
-                    int length = c.len * BLOCK_SIZE;
-                    fileStore.free(start, length);
-                    iter.remove();
-                }
-
-                Chunk chunk = lastChunk;
-
-                // now re-use the empty space
-                reuseSpace = true;
-                for (Chunk c : move) {
-                    Chunk copy = Chunk.fromString(c.asString());
-                    if(moveChunk(c, false)) {
-                        freePending.add(copy);
-                    }
-                }
-
-                // update the metadata (within the file)
-                commit();
-                sync();
-                // free the spaces have been moved
-                for (Iterator<Chunk> iter = freePending.iterator(); iter.hasNext(); ) {
-                    Chunk c = iter.next();
-                    long start = c.block * BLOCK_SIZE;
-                    int length = c.len * BLOCK_SIZE;
-                    fileStore.free(start, length);
-                    iter.remove();
-                }
-                
                 Chunk copy = Chunk.fromString(chunk.asString());
                 if (moveChunk(chunk, false)) {
                     freePending.add(copy);
-                    commit();
                 }
-                shrinkFileIfPossible(0);
-                sync();
-            } finally {
-                // free the spaces have been moved
-                for (Iterator<Chunk> iter = freePending.iterator(); iter.hasNext(); ) {
-                    Chunk c = iter.next();
-                    long start = c.block * BLOCK_SIZE;
-                    int length = c.len * BLOCK_SIZE;
-                    fileStore.free(start, length);
-                    iter.remove();
-                }
-                freePending = null;
+                iter.remove();
             }
+            // b) The second part of moved to the right of EOF for compacting space
+            for (Chunk chunk : move) {
+                Chunk copy = Chunk.fromString(chunk.asString());
+                if (moveChunk(chunk, true)) {
+                    freePending.add(copy);
+                }
+            }
+            // update the metadata (store at the end of the file)
+            reuseSpace = false;
+            commit();
+            sync();
+            freeMovedChunkSpaces();
+            
+            Chunk chunk = lastChunk;
+            // Step-2: move the second part to the continuous empty space
+            // now re-use the empty space
+            reuseSpace = true;
+            for (Chunk c : move) {
+                Chunk copy = Chunk.fromString(c.asString());
+                if (moveChunk(c, false)) {
+                    freePending.add(copy);
+                }
+            }
+            // update the metadata (maybe within the file)
+            commit();
+            sync();
+            freeMovedChunkSpaces();
+            
+            Chunk last = lastChunk;
+            // Step-3: move the two last chunks above to the freed front of file
+            for (Chunk c: new Chunk[]{chunk, last}) {
+                Chunk copy = Chunk.fromString(c.asString());
+                if (moveChunk(c, false)) {
+                    freePending.add(copy);
+                }
+            }
+            // update the metadata (maybe within the file)
+            commit();
+            // a) sync() must be before free for consistency and security
+            sync();
+            // b) free() must be before shrink for calculation of free space
+            freeMovedChunkSpaces();
+            freePending = null;
+            
+            // last do shrink
+            shrinkFileIfPossible(0);
+        }
+    }
+    
+    private void freeMovedChunkSpaces(){
+        for (Iterator<Chunk> iter = freePending.iterator(); iter.hasNext(); ) {
+            Chunk c = iter.next();
+            iter.remove();
+            freeChunkSpace(c);
         }
     }
 

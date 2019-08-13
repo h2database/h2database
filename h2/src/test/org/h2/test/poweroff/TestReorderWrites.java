@@ -37,16 +37,19 @@ public class TestReorderWrites extends TestBase {
 
     @Override
     public void test() throws Exception {
-        testMVStore(false);
-        testMVStore(true);
+        testMVStore(false, false);
+        testMVStore(true, false);
+        testMVStore(false, true);
+        testMVStore(true, true);
+        
         testFileSystem(false);
         testFileSystem(true);
     }
 
-    private void testMVStore(final boolean partialWrite) {
+    private void testMVStore(boolean partialWrite, boolean consistent) {
         // Add partial write test
         // @since 2019-07-31 little-pan
-        println(String.format("testMVStore(): %s partial write", partialWrite? "Enable": "Disable"));
+        println("testMVStore(): partial write " + partialWrite + ", check consistency " + consistent);
         FilePathReorderWrites.setPartialWrites(partialWrite);
 
         FilePathReorderWrites fs = FilePathReorderWrites.register();
@@ -62,7 +65,8 @@ public class TestReorderWrites extends TestBase {
                 FileUtils.delete("memFS:test.mv.copy");
                 MVStore store = new MVStore.Builder().
                         fileName(fileName).
-                        autoCommitDisabled().open();
+                        autoCommitDisabled().
+                        open();
                 // store.setRetentionTime(10);
                 Map<Integer, byte[]> map = store.openMap("data");
                 map.put(-1, new byte[1]);
@@ -72,19 +76,39 @@ public class TestReorderWrites extends TestBase {
                 int stop = 4 + r.nextInt(config.big ? 150 : 20);
                 log("countdown start");
                 fs.setPowerOffCountdown(stop, i);
+                int lastj = 0, lastKey = -1, lastLen = -1;
                 try {
                     for (int j = 1; j < 100; j++) {
                         Map<Integer, Integer> newMap = store.openMap("d" + j);
                         newMap.put(j, j * 10);
                         int key = r.nextInt(10);
                         int len = 10 * r.nextInt(1000);
+                        boolean put = false;
                         if (r.nextBoolean()) {
                             map.remove(key);
+                            log("DEL: key=" +key);
                         } else {
                             map.put(key, new byte[len]);
+                            put = true;
+                            log("PUT: key=" +key + ", value.len="+len);
                         }
                         log("op " + j + ": ");
                         store.commit();
+                        lastLen = -2;
+                        
+                        // enhance test: whether data lost for consistency
+                        if (consistent) {
+                            store.sync();
+                            log("SYN: key=" +key + ", j=" +j);
+                            lastj = j;
+                            lastKey = key;
+                            if (put) {
+                                lastLen = len;
+                            } else {
+                                lastLen = -3;
+                            }
+                        }
+                        
                         switch (r.nextInt(10)) {
                         case 0:
                             log("op compact");
@@ -125,9 +149,33 @@ public class TestReorderWrites extends TestBase {
                 } else {
                     assertEquals("i=" + i, 1, map.get(-1).length);
                 }
+                
+                if (consistent && lastKey > -1) {
+                    byte[] value = map.get(lastKey);
+                    switch(lastLen){
+                    case -1: // init
+                    case -2: // commit
+                        break;
+                    case -3: // remove & sync()
+                        assertTrue("i=" + i + ", lastKey="+lastKey, value == null);
+                        log("consistency: map.remove ok");
+                        break;
+                    default: // put & sync()
+                        assertTrue("i=" + i + ", lastKey="+lastKey, value != null);
+                        assertTrue("i=" + i + ", lastKey="+lastKey, value.length == lastLen);
+                        log("consistency: map.put ok");
+                        break;
+                    }
+                }
+                
                 for (int j = 0; j < 100; j++) {
                     Map<Integer, Integer> newMap = store.openMap("d" + j);
-                    newMap.get(j);
+                    Integer v = newMap.get(j);
+                    if (consistent && lastj >= j && j > 0) {
+                        assertTrue("i=" + i + ", j="+j + ", lastj="+lastj, v != null);
+                        assertTrue("i=" + i + ", j="+j + ", lastj="+lastj, v == j * 10);
+                        log("consistency: d"+j+".put ok");
+                    }
                 }
                 map.keySet();
                 store.close();
@@ -151,7 +199,7 @@ public class TestReorderWrites extends TestBase {
         // Add partial write enable test
         // @since 2019-07-31 little-pan
         FilePathReorderWrites.setPartialWrites(partialWrite);
-        println(String.format("testFileSystem(): %s partial write", partialWrite? "Enable": "Disable"));
+        println("testFileSystem(): partial write " + partialWrite);
 
         String fileName = "reorder:memFS:test";
         final ByteBuffer empty = ByteBuffer.allocate(1024);

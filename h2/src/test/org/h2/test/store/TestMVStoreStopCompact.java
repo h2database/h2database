@@ -61,9 +61,9 @@ public class TestMVStoreStopCompact extends TestBase {
             s.setAutoCommitDelay(100);
             long oldWriteCount = s.getFileStore().getWriteCount();
             long totalWrites = 0;
-            // expect background write to stop after 5 seconds
-            for (int i = 0; i < 15; i++) {
-                Thread.sleep(1000);
+            // expect background write to stop after a few seconds
+            for (int i = 0; i < 50; i++) {
+                Thread.sleep(200);
                 long newWriteCount = s.getFileStore().getWriteCount();
                 long delta = newWriteCount - oldWriteCount;
                 if (delta == 0) {
@@ -74,7 +74,7 @@ public class TestMVStoreStopCompact extends TestBase {
             }
             // expect that compaction didn't cause many writes
             assertTrue("writeCount diff: " + retentionTime + "/" + timeout + " " + totalWrites,
-                    totalWrites < 60);
+                    totalWrites < 90);
         }
     }
 }

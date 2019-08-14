@@ -1261,6 +1261,7 @@ public class MVStore implements AutoCloseable
     private void store() {
         if (isOpenOrStopping()) {
             if (hasUnsavedChanges()) {
+                dropUnusedChunks();
                 try {
                     currentStoreVersion = currentVersion;
                     if (fileStore == null) {
@@ -2721,7 +2722,7 @@ public class MVStore implements AutoCloseable
                 if (autoCompactFillRate < 0) {
                     compact(-getTargetFillRate(), autoCommitMemory);
                 }
-                }
+            }
             int targetFillRate;
             int projectedFillRate;
             if (isIdle()) {
@@ -2744,7 +2745,7 @@ public class MVStore implements AutoCloseable
                         }
                     } finally {
                         storeLock.unlock();
-            }
+                    }
                 }
             }
             autoCompactLastFileOpCount = fileStore.getWriteCount() + fileStore.getReadCount();
@@ -3114,7 +3115,9 @@ public class MVStore implements AutoCloseable
                     !deadChunks.offerFirst(chunk))) {
 
             if (chunks.remove(chunk.id) != null) {
-                meta.remove(Chunk.getMetaKey(chunk.id));
+                if (meta.remove(Chunk.getMetaKey(chunk.id)) != null) {
+                    markMetaChanged();
+                }
                 if (chunk.isSaved()) {
                     freeChunkSpace(chunk);
                 }

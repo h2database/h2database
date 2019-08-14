@@ -982,7 +982,6 @@ public class TestMVStore extends TestBase {
             FileChannel fc = f.open("rw");
             // Since h2-1.3.176, file header doesn't be written at the end of the
             // store file again in MVStore, so we need comment the following code.
-            // @since 2019-08-09 little-pan
             //if (i == 0) {
                 // corrupt the last block (the end header)
             //    fc.write(ByteBuffer.allocate(256), fc.size() - 256);
@@ -1467,7 +1466,6 @@ public class TestMVStore extends TestBase {
         // ensure only nodes are read, but not leaves
         // *We must read a chunk from the end of store file, otherwise maybe data lost,
         // so read count should be 8 here as before.
-        // @since 2019-08-09 little-pan
         assertEquals(8, s.getFileStore().getReadCount());
         assertTrue(s.getFileStore().getWriteCount() < 5);
         s.close();

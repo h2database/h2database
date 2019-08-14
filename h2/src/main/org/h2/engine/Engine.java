@@ -293,7 +293,6 @@ public class Engine implements SessionFactory {
      * 
      * <p>Support the method close() that should be resilient against being called more
      * than once, and fix the error code 90020 issue caused by closing the database incorrectly.
-     * @since 2019-08-08 little-pan
      * </p>
      *
      * @param maybeOlder the database will be closed from the engine

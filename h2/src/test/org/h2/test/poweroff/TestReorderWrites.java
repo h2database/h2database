@@ -48,7 +48,6 @@ public class TestReorderWrites extends TestBase {
 
     private void testMVStore(boolean partialWrite, boolean consistent) {
         // Add partial write test
-        // @since 2019-07-31 little-pan
         println("testMVStore(): partial write " + partialWrite + ", check consistency " + consistent);
         FilePathReorderWrites.setPartialWrites(partialWrite);
 
@@ -93,12 +92,22 @@ public class TestReorderWrites extends TestBase {
                             log("PUT: key=" +key + ", value.len="+len);
                         }
                         log("op " + j + ": ");
-                        store.commit();
+                        boolean failed = true;
+                        try {
+                            store.commit();
+                            failed = false;
+                        } finally {
+                            if (failed && key == lastKey) {
+                                // unknown state
+                                lastKey = lastLen = -1;
+                            }
+                        }
                         lastLen = -2;
                         
                         // enhance test: whether data lost for consistency
                         if (consistent) {
                             store.sync();
+                            // consistent state
                             log("SYN: key=" +key + ", j=" +j);
                             lastj = j;
                             lastKey = key;
@@ -197,7 +206,6 @@ public class TestReorderWrites extends TestBase {
         FilePathReorderWrites fs = FilePathReorderWrites.register();
         // *disable this for now, still bug(s) in our code*
         // Add partial write enable test
-        // @since 2019-07-31 little-pan
         FilePathReorderWrites.setPartialWrites(partialWrite);
         println("testFileSystem(): partial write " + partialWrite);
 

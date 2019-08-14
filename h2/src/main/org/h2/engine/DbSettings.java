@@ -299,8 +299,6 @@ public class DbSettings extends SettingsBase {
      * Database setting <code>RECOVER</code> (default: false).<br />
      * If setting it true, then enable recoveryMode(skipping invalid disc chunk) 
      * in MVStore.
-     * 
-     * @since 2019-08-10 little-pan
      */
     public final boolean recover = get("RECOVER", false);
 

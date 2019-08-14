@@ -3237,7 +3237,6 @@ public class Database implements DataHandler {
      * Whether enable recoveryMode in MVStore.
      * 
      * @return true if enable recoveryMode
-     * @since 2019-08-10 little-pan
      */
     public boolean isRecoveryMode() {
         return recoveryMode;

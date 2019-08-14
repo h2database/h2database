@@ -153,7 +153,6 @@ public class MVStore implements AutoCloseable
     /**
      * The max version difference of the sync() operation in storeNow(), is the max range of 
      * chunk recovery.
-     * @since 2019-08-09 little-pan
      */
     static final int SYNC_MAX_DIFF = 20;
 
@@ -422,7 +421,6 @@ public class MVStore implements AutoCloseable
             } catch (Throwable e) {
                 // bugfix - can't release file and its lock resources when open failed. So here
                 // we must catch and handle the cause such as OOM etc.
-                // @since 2019-08-08 little-pan
                 panic(DataUtils.newIllegalStateException(DataUtils.ERROR_INTERNAL, "{0}", 
                         e.toString(), e));
             } finally {
@@ -708,7 +706,6 @@ public class MVStore implements AutoCloseable
         Chunk newest = null;
         // We only need to check the validity of recent chunks for calling sync() 
         // after writeStoreHeader() in the method storeNow().
-        // @since 2019-08-09 little-pan
         Chunk[] lastCandidates = new Chunk[SYNC_MAX_DIFF + 2/* last + new chunk(maybe write header failed)*/];
         
         // find out which chunk and version are the newest, and as the last chunk
@@ -797,7 +794,6 @@ public class MVStore implements AutoCloseable
         // Step-2: read one chunk of the newest chunk candidates at the end of file, and ignore
         // the partial write part
         // bugfix - data lost issue when partial write occurs at end of file store.
-        // @since 2019-07-31 little-pan
         Chunk tail = readChunkHeaderAndFooterFromStoreTail();
         long vdiff;
         if (tail != null && (vdiff = tail.version - headerVersion) > 0L) {
@@ -840,7 +836,6 @@ public class MVStore implements AutoCloseable
                 break;
             }
             // Maybe the next chunk id is wrapped around, here can't use newest.id + 1
-            // @since 2019-08-08 little-pan
             Chunk test = readChunkHeaderAndFooter(newest.next);
             if (test == null || test.version <= newest.version) {
                 break;
@@ -858,7 +853,6 @@ public class MVStore implements AutoCloseable
         // in recovery mode.
         // 2) The bug of database corruption by partial write and the store not closed when a fatal error
         // occurs in H2-1.4.199 has been fixed.
-        // @since 2019-08-08 little-pan
         int i = lastCandidates.length;
         do {
             setLastChunk(newest);
@@ -956,8 +950,6 @@ public class MVStore implements AutoCloseable
      * </p>
      *
      * @return the valid chunk at the end of file, or null if no valid one
-     *
-     * @since 2019-07-31 little-pan
      */
     private Chunk readChunkHeaderAndFooterFromStoreTail(){
         long end = fileStore.size();
@@ -1043,8 +1035,6 @@ public class MVStore implements AutoCloseable
      * @param block the block
      * @return the chunk, or null if the header or footer don't match or are not
      *         consistent
-     *         
-     * @since 2019-08-08 little-pan
      */
     private Chunk readChunkHeaderAndFooter(long block) {
         Chunk header = readChunkHeaderOptionally(block);
@@ -1519,7 +1509,6 @@ public class MVStore implements AutoCloseable
         if (writeStoreHeader) {
             writeStoreHeader();
             // Here sync() so that we only check the validity of recent 20 chunks
-            // @since 2019-08-09 little-pan
             sync();
         }
         if (!storeAtEndOfFile) {
@@ -1833,7 +1822,6 @@ public class MVStore implements AutoCloseable
             // can cause the store corrupt when the process killed, OOM or IO error.So
             // we can't free any space of the moving or moved chunks until the changed
             // meta map is persisted.
-            // @since 2019-08-11 little-pan
             assert freePending == null;
             freePending = new ArrayDeque<>(move.size() >> 1);
             
@@ -1882,21 +1870,25 @@ public class MVStore implements AutoCloseable
             // Step-3: move the two last chunks above to the freed front of file
             for (Chunk c: new Chunk[]{chunk, last}) {
                 Chunk copy = Chunk.fromString(c.asString());
-                if (moveChunk(c, false)) {
+                boolean canMoved = fileStore.predictAllocation(c.len) < c.block;
+                if (canMoved && moveChunk(c, false)) {
                     freePending.add(copy);
                 }
             }
-            // update the metadata (maybe within the file)
-            commit();
-            // a) sync() must be before free for consistency and security
-            sync();
-            // b) free() must be before shrink for calculation of free space
-            freeMovedChunkSpaces();
-            freePending = null;
-            
-            // last do shrink
-            shrinkFileIfPossible(0);
-            sync();
+            // commit & shrink only if a last chunk(at the end of file) has been moved
+            if(freePending.size() > 0) {
+                // update the metadata (maybe within the file)
+                commit();
+                // a) sync() must be before free for consistency and security
+                sync();
+                // b) free() must be before shrink for calculation of free space
+                freeMovedChunkSpaces();
+                freePending = null;
+                
+                // last do shrink
+                shrinkFileIfPossible(0);
+                sync();
+            }
         }
     }
     

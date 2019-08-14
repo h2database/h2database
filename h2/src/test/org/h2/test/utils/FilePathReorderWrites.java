@@ -243,7 +243,6 @@ class FileReorderWrites extends FileBase {
             }
             if (applyOld) {
                 // bugfix - here should trace old instead of op
-                // @since 2019-08-09 little-pan
                 trace("op apply " + old);
                 old.apply(base);
                 notAppliedList.remove(i);

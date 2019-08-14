@@ -1678,7 +1678,7 @@ public class MVStore implements AutoCloseable
      *            than this
      * @param moveSize the number of bytes to move
      */
-    public void compactMoveChunks(int targetFillRate, long moveSize) {
+    private void compactMoveChunks(int targetFillRate, long moveSize) {
         storeLock.lock();
         try {
             checkOpen();
@@ -1687,7 +1687,6 @@ public class MVStore implements AutoCloseable
                 boolean oldReuse = reuseSpace;
                 try {
                     retentionTime = -1;
-                    dropUnusedChunks();
                     if (getFillRate() <= targetFillRate) {
                         compactMoveChunks(moveSize);
                     }
@@ -1702,6 +1701,7 @@ public class MVStore implements AutoCloseable
     }
 
     private boolean compactMoveChunks(long moveSize) {
+        dropUnusedChunks();
         long start = fileStore.getFirstFree() / BLOCK_SIZE;
         Iterable<Chunk> chunksToMove = findChunksToMove(start, moveSize);
         if (chunksToMove == null) {
@@ -3103,24 +3103,26 @@ public class MVStore implements AutoCloseable
 
     private int dropUnusedChunks() {
         assert storeLock.isHeldByCurrentThread();
-        long oldestVersionToKeep = getOldestVersionToKeep();
-        long time = getTimeSinceCreation();
         int count = 0;
-        Chunk chunk;
-        while ((chunk = deadChunks.poll()) != null &&
-            (isSeasonedChunk(chunk, time) && canOverwriteChunk(chunk, oldestVersionToKeep) ||
-                    // if chunk is not ready yet, put it back and exit
-                    // since this deque is inbounded, offerFirst() always return true
-                    !deadChunks.offerFirst(chunk))) {
+        if (!deadChunks.isEmpty()) {
+            long oldestVersionToKeep = getOldestVersionToKeep();
+            long time = getTimeSinceCreation();
+            Chunk chunk;
+            while ((chunk = deadChunks.poll()) != null &&
+                    (isSeasonedChunk(chunk, time) && canOverwriteChunk(chunk, oldestVersionToKeep) ||
+                            // if chunk is not ready yet, put it back and exit
+                            // since this deque is inbounded, offerFirst() always return true
+                            !deadChunks.offerFirst(chunk))) {
 
-            if (chunks.remove(chunk.id) != null) {
-                if (meta.remove(Chunk.getMetaKey(chunk.id)) != null) {
-                    markMetaChanged();
+                if (chunks.remove(chunk.id) != null) {
+                    if (meta.remove(Chunk.getMetaKey(chunk.id)) != null) {
+                        markMetaChanged();
+                    }
+                    if (chunk.isSaved()) {
+                        freeChunkSpace(chunk);
+                    }
+                    ++count;
                 }
-                if (chunk.isSaved()) {
-                    freeChunkSpace(chunk);
-                }
-                ++count;
             }
         }
         return count;

@@ -1765,7 +1765,7 @@ public class MVStore implements AutoCloseable
             writeStoreHeader();
             sync();
 
-            long reservedAreaSize = getFileLengthInUse();
+            long originalFileSize = getFileLengthInUse();
             for (Iterator<Chunk> iter = move.iterator(); iter.hasNext(); ) {
                 Chunk chunk = iter.next();
                 // while chunks destination do not overlap with their
@@ -1788,20 +1788,20 @@ public class MVStore implements AutoCloseable
             // if some of them happened to sit right at the end of used space,
             // hence the need to reserve this area
             for (Chunk chunk : move) {
-                moveChunk(chunk, reservedAreaSize);
+                moveChunk(chunk, originalFileSize);
                 movedToEOF = true;
             }
 
-            long reservedAreaHigh = getFileLengthInUse();
-            Chunk chunk = null;
+            long biggestFileSize = getFileLengthInUse();
+            Chunk chunkWithMetaToMove = null;
             if (movedToEOF) {
                 // update the metadata (store at the end of the file)
                 reuseSpace = false;
-                store(0, reservedAreaHigh);
+                store(0, biggestFileSize);
                 sync();
 
-                chunk = lastChunk;
-                reservedAreaHigh = getFileLengthInUse();
+                chunkWithMetaToMove = lastChunk;
+                biggestFileSize = getFileLengthInUse();
 
                 // now re-use the empty space
                 reuseSpace = true;
@@ -1811,12 +1811,20 @@ public class MVStore implements AutoCloseable
             }
 
             // update the metadata (within the file)
-            store(movedToEOF ? reservedAreaSize : leftmostBlock * BLOCK_SIZE, reservedAreaHigh);
+            store(movedToEOF ? originalFileSize : leftmostBlock * BLOCK_SIZE, biggestFileSize);
             sync();
-            if (chunk != null &&
-                    fileStore.predictAllocation(chunk.len) + chunk.len < chunk.block &&
-                    moveChunk(chunk, 0)) {
-                store(reservedAreaSize, reservedAreaHigh);
+
+            // if all chunks where moved straight to their target locations, but that last chunk
+            // with updated metadata did not fit, now we need to move it again
+            assert lastChunk != null;
+            if (!movedToEOF && lastChunk.block >= biggestFileSize) {
+                chunkWithMetaToMove = lastChunk;
+            }
+
+            if (chunkWithMetaToMove != null &&
+                    fileStore.predictAllocation(chunkWithMetaToMove.len) + chunkWithMetaToMove.len < chunkWithMetaToMove.block &&
+                    moveChunk(chunkWithMetaToMove, 0)) {
+                store(originalFileSize, biggestFileSize);
             }
             shrinkFileIfPossible(0);
             sync();

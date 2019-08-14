@@ -1290,7 +1290,6 @@ public class MVStore implements AutoCloseable
                     currentStoreVersion = -1;
                 }
             }
-            dropUnusedChunks();
         }
     }
 

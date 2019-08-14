@@ -1883,12 +1883,13 @@ public class MVStore implements AutoCloseable
                 sync();
                 // b) free() must be before shrink for calculation of free space
                 freeMovedChunkSpaces();
-                freePending = null;
                 
                 // last do shrink
                 shrinkFileIfPossible(0);
                 sync();
             }
+            // cleanup & reset
+            freePending = null;
         }
     }
     

@@ -239,6 +239,11 @@ public class Mode {
     public boolean alterTableModifyColumn;
 
     /**
+     * if {@code true} TRUNCATE TABLE uses RESTART IDENTITY by default.
+     */
+    public boolean truncateTableRestartIdentity;
+
+    /**
      * An optional Set of hidden/disallowed column types.
      * Certain DBMSs don't support all column types provided by H2, such as
      * "NUMBER" when using PostgreSQL mode.
@@ -307,6 +312,7 @@ public class Mode {
         // https://msdn.microsoft.com/en-Us/library/dd571296%28v=sql.110%29.aspx
         mode.supportedClientInfoPropertiesRegEx = null;
         mode.zeroExLiteralsAreBinaryStrings = true;
+        mode.truncateTableRestartIdentity = true;
         DataType dt = DataType.createNumeric(19, 4, false);
         dt.type = Value.DECIMAL;
         dt.sqlType = Types.NUMERIC;
@@ -338,6 +344,7 @@ public class Mode {
         mode.allowUnrelatedOrderByExpressionsInDistinctQueries = true;
         mode.alterTableExtensionsMySQL = true;
         mode.alterTableModifyColumn = true;
+        mode.truncateTableRestartIdentity = true;
         add(mode);
 
         mode = new Mode(ModeEnum.Oracle);

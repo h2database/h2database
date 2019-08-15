@@ -118,6 +118,41 @@ SELECT * FROM TEST ORDER BY VALUE;
 > 2   2   8   2
 > rows (ordered): 2
 
+SET MODE MSSQLServer;
+> ok
+
+TRUNCATE TABLE TEST;
+> ok
+
+INSERT INTO TEST(VALUE) VALUES (1), (2);
+> update count: 2
+
+SELECT * FROM TEST ORDER BY VALUE;
+> ID1 ID2 ID3 VALUE
+> --- --- --- -----
+> 1   1   9   1
+> 2   2   10  2
+> rows (ordered): 2
+
+SET MODE MySQL;
+> ok
+
+TRUNCATE TABLE TEST;
+> ok
+
+INSERT INTO TEST(VALUE) VALUES (1), (2);
+> update count: 2
+
+SELECT * FROM TEST ORDER BY VALUE;
+> ID1 ID2 ID3 VALUE
+> --- --- --- -----
+> 1   1   11  1
+> 2   2   12  2
+> rows (ordered): 2
+
+SET MODE Regular;
+> ok
+
 DROP TABLE TEST;
 > ok
 

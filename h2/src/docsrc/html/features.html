@@ -946,6 +946,7 @@ or the SQL statement <code>SET MODE MSSQLServer</code>.
 </li><li>Table hints are discarded. Example: <code>SELECT * FROM table WITH (NOLOCK)</code>.
 </li><li>Datetime value functions return the same value within a command.
 </li><li>0x literals are parsed as binary string literals.
+</li><li>TRUNCATE TABLE restarts next values of generated columns.
 </li></ul>
 
 <h3>MySQL Compatibility Mode</h3>
@@ -972,6 +973,7 @@ Do not change value of DATABASE_TO_LOWER after creation of database.
 </li><li>0x literals are parsed as binary string literals.
 </li><li>Unrelated expressions in ORDER BY clause of DISTINCT queries are allowed.
 </li><li>Some MySQL-specific ALTER TABLE commands are partially supported.
+</li><li>TRUNCATE TABLE restarts next values of generated columns.
 </li></ul>
 <p>
 Text comparison in MySQL is case insensitive by default, while in H2 it is case sensitive (as in most other databases).

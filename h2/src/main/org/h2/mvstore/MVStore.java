@@ -1766,6 +1766,7 @@ public class MVStore implements AutoCloseable
             }
             long sourceAreaLow = leftmostBlock * BLOCK_SIZE;
             long originalFileSize = getFileLengthInUse();
+            long originalBlokCount = (originalFileSize + BLOCK_SIZE - 1) / BLOCK_SIZE;
             boolean movedToEOF = false;
             // we need to ensure that chunks moved within the following loop
             // do not overlap with space just released by chunks moved above,
@@ -1773,7 +1774,7 @@ public class MVStore implements AutoCloseable
             // hence the need to reserve this area
             for (Chunk chunk : move) {
                 moveChunk(chunk, sourceAreaLow, originalFileSize);
-                movedToEOF = movedToEOF || chunk.block >= originalFileSize;
+                movedToEOF = movedToEOF || chunk.block >= originalBlokCount;
             }
 
             long biggestFileSize = getFileLengthInUse();
@@ -1790,7 +1791,7 @@ public class MVStore implements AutoCloseable
                 // now re-use the empty space
                 reuseSpace = true;
                 for (Chunk c : move) {
-                    if (c.block >= originalFileSize) {
+                    if (c.block >= originalBlokCount) {
                         moveChunk(c, 0, 0);
                     }
                 }
@@ -1804,7 +1805,7 @@ public class MVStore implements AutoCloseable
             // but that last chunk with updated metadata did not fit,
             // then our hope was unfounded and now we need to move it again
             assert lastChunk != null;
-            if (!movedToEOF && lastChunk.block >= biggestFileSize) {
+            if (!movedToEOF && lastChunk.block * BLOCK_SIZE >= biggestFileSize) {
                 chunkToMove = lastChunk;
             }
 

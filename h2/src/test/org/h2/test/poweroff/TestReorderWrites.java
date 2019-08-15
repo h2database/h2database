@@ -73,7 +73,7 @@ public class TestReorderWrites extends TestBase {
                 log("countdown start");
                 fs.setPowerOffCountdown(stop, i);
                 try {
-                    for (int j = 1; j < 100; j++) {
+                    for (int j = 1; j < 1000; j++) {
                         Map<Integer, Integer> newMap = store.openMap("d" + j);
                         newMap.put(j, j * 10);
                         int key = r.nextInt(10);

@@ -1754,76 +1754,63 @@ public class MVStore implements AutoCloseable
     private void compactMoveChunks(Iterable<Chunk> move) {
         assert storeLock.isHeldByCurrentThread();
         if (move != null) {
-            long leftmostBlock = Long.MAX_VALUE;
-            for (Chunk chunk : move) {
-                leftmostBlock = Math.min(leftmostBlock, chunk.block);
-            }
-
             // this will ensure better recognition of the last chunk
             // in case of power failure, since we are going to move older chunks
             // to the end of the file
             writeStoreHeader();
             sync();
 
-            long originalFileSize = getFileLengthInUse();
-            for (Iterator<Chunk> iter = move.iterator(); iter.hasNext(); ) {
-                Chunk chunk = iter.next();
-                // while chunks destination do not overlap with their
-                // source location as a group, we can move them directly
-                // to the target destination
-                if (fileStore.predictAllocation(chunk.len) + chunk.len > leftmostBlock) {
-                    // overlap encountered, now rest of the chunks
-                    // are going to be moved in two steps - first to EOF,
-                    // and only then to target destination
-                    // this is to avoid possible corruption on abrupt shutdown
-                    break;
-                }
-                moveChunk(chunk, 0);
-                iter.remove();
+            long leftmostBlock = Long.MAX_VALUE;
+            for (Chunk chunk : move) {
+                leftmostBlock = Math.min(leftmostBlock, chunk.block);
             }
-
+            long sourceAreaLow = leftmostBlock * BLOCK_SIZE;
+            long originalFileSize = getFileLengthInUse();
             boolean movedToEOF = false;
             // we need to ensure that chunks moved within the following loop
             // do not overlap with space just released by chunks moved above,
             // if some of them happened to sit right at the end of used space,
             // hence the need to reserve this area
             for (Chunk chunk : move) {
-                moveChunk(chunk, originalFileSize);
-                movedToEOF = true;
+                moveChunk(chunk, sourceAreaLow, originalFileSize);
+                movedToEOF = movedToEOF || chunk.block >= originalFileSize;
             }
 
             long biggestFileSize = getFileLengthInUse();
-            Chunk chunkWithMetaToMove = null;
+            Chunk chunkToMove = null;
             if (movedToEOF) {
                 // update the metadata (store at the end of the file)
                 reuseSpace = false;
                 store(0, biggestFileSize);
                 sync();
 
-                chunkWithMetaToMove = lastChunk;
+                chunkToMove = lastChunk;
                 biggestFileSize = getFileLengthInUse();
 
                 // now re-use the empty space
                 reuseSpace = true;
                 for (Chunk c : move) {
-                    moveChunk(c, 0);
+                    if (c.block >= originalFileSize) {
+                        moveChunk(c, 0, 0);
+                    }
                 }
             }
 
-            // update the metadata (within the file)
-            store(movedToEOF ? originalFileSize : leftmostBlock * BLOCK_SIZE, biggestFileSize);
+            // update the metadata (hopefully within the file)
+            store(movedToEOF ? originalFileSize : sourceAreaLow, biggestFileSize);
             sync();
 
-            // if all chunks where moved straight to their target locations, but that last chunk
-            // with updated metadata did not fit, now we need to move it again
+            // if all chunks where moved straight to their target locations,
+            // but that last chunk with updated metadata did not fit,
+            // then our hope was unfounded and now we need to move it again
             assert lastChunk != null;
             if (!movedToEOF && lastChunk.block >= biggestFileSize) {
-                chunkWithMetaToMove = lastChunk;
+                chunkToMove = lastChunk;
             }
 
-            if (chunkWithMetaToMove != null &&
-                    fileStore.predictAllocation(chunkWithMetaToMove.len) + chunkWithMetaToMove.len < chunkWithMetaToMove.block &&
-                    moveChunk(chunkWithMetaToMove, 0)) {
+            if (chunkToMove != null &&
+                    fileStore.predictAllocation(chunkToMove.len) + chunkToMove.len < chunkToMove.block &&
+                    moveChunk(chunkToMove, 0, 0)) {
                 store(originalFileSize, biggestFileSize);
             }
             shrinkFileIfPossible(0);
@@ -1832,13 +1819,16 @@ public class MVStore implements AutoCloseable
     }
 
     /**
-     * Move specified chunk into free area of the file
+     * Move specified chunk into free area of the file.
+     * "Reserved" area specifies file interval to be avoided,
+     * when unallocated space will be chosen for a new chunk's location.
+     *
      * @param chunk to move
-     * @param reservedAreaSize govern how unallocated space will be chosen,
-     *                        0 means reuse space within the file
+     * @param reservedAreaLow low boundary of reserved area, inclusive
+     * @param reservedAreaHigh high boundary of reserved area, exclusive
      * @return true if block was moved, false otherwise
      */
-    private boolean moveChunk(Chunk chunk, long reservedAreaSize) {
+    private boolean moveChunk(Chunk chunk, long reservedAreaLow, long reservedAreaHigh) {
         // ignore if already removed during the previous store operations
         // those are possible either as explicit commit calls
         // or from meta map updates at the end of this method
@@ -1854,9 +1844,9 @@ public class MVStore implements AutoCloseable
         int chunkHeaderLen = readBuff.position();
         buff.position(chunkHeaderLen);
         buff.put(readBuff);
-        long pos = allocateFileSpace(length, 0, reservedAreaSize);
+        long pos = allocateFileSpace(length, reservedAreaLow, reservedAreaHigh);
         long block = pos / BLOCK_SIZE;
-        assert reservedAreaSize > 0 || block <= chunk.block : block + " " + chunk; // block should always move closer to the beginning of the file
+        assert reservedAreaHigh > 0 || block <= chunk.block : block + " " + chunk; // block should always move closer to the beginning of the file
         buff.position(0);
         // can not set chunk's new block/len until it's fully written at new location,
         // because concurrent reader can pick it up prematurely,

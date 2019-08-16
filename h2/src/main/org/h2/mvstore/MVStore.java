@@ -1405,7 +1405,7 @@ public class MVStore implements AutoCloseable
         assert validateFileLength(c.asString());
         c.metaRootPos = metaRoot.getPos();
         // calculate and set the likely next position
-        if (reuseSpace) {
+        if (reservedLow > 0 || reservedHigh == reservedLow) {
             c.next = fileStore.predictAllocation(c.len);
         } else {
             // just after this chunk
@@ -1754,6 +1754,7 @@ public class MVStore implements AutoCloseable
     private void compactMoveChunks(Iterable<Chunk> move) {
         assert storeLock.isHeldByCurrentThread();
         if (move != null) {
+            assert lastChunk != null;
             // this will ensure better recognition of the last chunk
             // in case of power failure, since we are going to move older chunks
             // to the end of the file
@@ -1764,59 +1765,56 @@ public class MVStore implements AutoCloseable
             for (Chunk chunk : move) {
                 leftmostBlock = Math.min(leftmostBlock, chunk.block);
             }
-            long sourceAreaLow = leftmostBlock * BLOCK_SIZE;
+            long sourceAreaBegin = leftmostBlock * BLOCK_SIZE;
             long originalFileSize = getFileLengthInUse();
             long originalBlokCount = (originalFileSize + BLOCK_SIZE - 1) / BLOCK_SIZE;
-            boolean movedToEOF = false;
             // we need to ensure that chunks moved within the following loop
-            // do not overlap with space just released by chunks moved above,
-            // if some of them happened to sit right at the end of used space,
-            // hence the need to reserve this area
+            // do not overlap with space just released by chunks moved before them,
+            // hence the need to reserve this area [sourceAreaBegin, originalFileSize)
             for (Chunk chunk : move) {
-                moveChunk(chunk, sourceAreaLow, originalFileSize);
-                movedToEOF = movedToEOF || chunk.block >= originalBlokCount;
+                moveChunk(chunk, sourceAreaBegin, originalFileSize);
             }
+            // update the metadata (hopefully within the file)
+            store(sourceAreaBegin, originalFileSize);
+            sync();
 
+            Chunk chunkToMove = lastChunk;
             long biggestFileSize = getFileLengthInUse();
-            Chunk chunkToMove = null;
-            if (movedToEOF) {
-                // update the metadata (store at the end of the file)
-                reuseSpace = false;
-                store(0, biggestFileSize);
+
+            boolean movedToEOF = false;
+            // move all chunks, which previously did not fit before reserved area
+            // now we can re-use previously reserved area [sourceAreaBegin, originalFileSize),
+            // but need to reserve [originalFileSize, biggestFileSize)
+            for (Chunk c : move) {
+                if (c.block >= originalBlokCount) {
+                    moveChunk(c, originalFileSize, biggestFileSize);
+                    assert c.block < originalBlokCount;
+                    movedToEOF = true;
+                }
+            }
+            if ((movedToEOF || chunkToMove.block >= originalBlokCount) &&
+                    moveChunk(chunkToMove, originalFileSize, biggestFileSize)) {
+                // store a new chunk with updated metadata (hopefully within a file)
+                store(originalFileSize, biggestFileSize);
                 sync();
-
-                chunkToMove = lastChunk;
-                biggestFileSize = getFileLengthInUse();
-
-                // now re-use the empty space
-                reuseSpace = true;
-                for (Chunk c : move) {
-                    if (c.block >= originalBlokCount) {
-                        moveChunk(c, 0, 0);
-                    }
+                // and if last chunk did not fit within a file, since we can use
+                // previously reserved area [originalFileSize, biggestFileSize) now,
+                // try to move it closer to BOF
+                boolean moved = moveChunkInside(chunkToMove, biggestFileSize);
+                if (moveChunkInside(lastChunk, biggestFileSize) || moved) {
+                    store(0, 0);
                 }
             }
 
-            // update the metadata (hopefully within the file)
-            store(movedToEOF ? originalFileSize : sourceAreaLow, biggestFileSize);
-            sync();
-
-            // if all chunks where moved straight to their target locations,
-            // but that last chunk with updated metadata did not fit,
-            // then our hope was unfounded and now we need to move it again
-            assert lastChunk != null;
-            if (!movedToEOF && lastChunk.block * BLOCK_SIZE >= biggestFileSize) {
-                chunkToMove = lastChunk;
-            }
-
-            if (chunkToMove != null &&
-                    fileStore.predictAllocation(chunkToMove.len) + chunkToMove.len < chunkToMove.block &&
-                    moveChunk(chunkToMove, 0, 0)) {
-                store(originalFileSize, biggestFileSize);
-            }
             shrinkFileIfPossible(0);
             sync();
         }
+    }
+
+    private boolean moveChunkInside(Chunk chunkToMove, long boundary) {
+        return chunkToMove.block >= boundary &&
+                fileStore.predictAllocation(chunkToMove.len) + chunkToMove.len < chunkToMove.block &&
+                moveChunk(chunkToMove, 0, 0);
     }
 
     /**

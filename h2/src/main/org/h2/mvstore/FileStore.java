@@ -339,11 +339,12 @@ public class FileStore {
     }
 
     /**
-     * Allocate an area of the file and mark it as used.
+     * Allocate a number of blocks and mark them as used.
      *
      * @param length the number of bytes to allocate
-     * @param reservedLow start position of the reserved are
-     * @param reservedHigh end position of the reserved area
+     * @param reservedLow start block index of the reserved area (inclusive)
+     * @param reservedHigh end block index of the reserved area (exclusive),
+     *                     special value -1 means beginning of the infinite free area
      * @return the start position in bytes
      */
     long allocate(int length, long reservedLow, long reservedHigh) {
@@ -392,6 +393,10 @@ public class FileStore {
 
     int getMovePriority(int block) {
         return freeSpace.getMovePriority(block);
+    }
+
+    long getAfterLastBlock() {
+        return freeSpace.getAfterLastBlock();
     }
 
     /**

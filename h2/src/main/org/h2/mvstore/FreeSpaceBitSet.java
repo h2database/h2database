@@ -111,12 +111,13 @@ public class FreeSpaceBitSet {
      * Allocate a number of blocks and mark them as used.
      *
      * @param length the number of bytes to allocate
-     * @param reservedLow start position of the reserved are
-     * @param reservedHigh end position of the reserved area
+     * @param reservedLow start block index of the reserved area (inclusive)
+     * @param reservedHigh end block index of the reserved area (exclusive),
+     *                     special value -1 means beginning of the infinite free area
      * @return the start position in bytes
      */
     long allocate(int length, long reservedLow, long reservedHigh) {
-        return getPos(allocate(getBlockCount(length), getBlock(reservedLow), getBlock(reservedHigh), true));
+        return getPos(allocate(getBlockCount(length), (int)reservedLow, (int)reservedHigh, true));
     }
 
     /**
@@ -140,9 +141,14 @@ public class FreeSpaceBitSet {
             int end = set.nextSetBit(start + 1);
             int freeBlocks = end - start;
             if (end < 0 || freeBlocks >= blocks) {
-                if (start < reservedHigh && start + blocks > reservedLow) { // overlap detected
-                    i = reservedHigh;
-                    continue;
+                if ((reservedHigh < 0 || start < reservedHigh) && start + blocks > reservedLow) { // overlap detected
+                    if (reservedHigh < 0) {
+                        start = getAfterLastBlock();
+                        end = -1;
+                    } else {
+                        i = reservedHigh;
+                        continue;
+                    }
                 }
                 assert set.nextSetBit(start) == -1 || set.nextSetBit(start) >= start + blocks :
                         "Double alloc: " + Integer.toHexString(start) + "/" + Integer.toHexString(blocks) + " " + this;
@@ -216,9 +222,6 @@ public class FreeSpaceBitSet {
      * of sparsely populated chunk(s) and evacuation of still live data into a
      * new chunk.
      *
-     * @param live
-     *            amount of memory (bytes) from vacated block, which would be
-     *            written into a new chunk
      * @param vacatedBlocks
      *            number of blocks vacated  as a result of live data evacuation less
      *            number of blocks in prospective chunk with evacuated live data
@@ -253,7 +256,17 @@ public class FreeSpaceBitSet {
      * @return the position.
      */
     long getLastFree() {
-        return getPos(set.previousSetBit(set.size()-1) + 1);
+        return getPos(getAfterLastBlock());
+    }
+
+    /**
+     * Get the index of the first block after last occupied one.
+     * It marks the beginning og the last (infinite) free space.
+     *
+     * @return block index
+     */
+    int getAfterLastBlock() {
+        return set.previousSetBit(set.size() - 1) + 1;
     }
 
     /**

@@ -1399,14 +1399,14 @@ public class MVStore implements AutoCloseable
                 Chunk.FOOTER_LENGTH, BLOCK_SIZE);
         buff.limit(length);
 
-        long filePos = allocateFileSpace(length, reservedLow, reservedHigh);
+        long filePos = fileStore.allocate(length, reservedLow, reservedHigh);
         c.block = filePos / BLOCK_SIZE;
         c.len = length / BLOCK_SIZE;
         assert validateFileLength(c.asString());
         c.metaRootPos = metaRoot.getPos();
         // calculate and set the likely next position
         if (reservedLow > 0 || reservedHigh == reservedLow) {
-            c.next = fileStore.predictAllocation(c.len);
+            c.next = fileStore.predictAllocation(c.len, 0, 0);
         } else {
             // just after this chunk
             c.next = 0;
@@ -1789,7 +1789,7 @@ public class MVStore implements AutoCloseable
             Chunk chunkToMove = lastChunk;
             long postEvacuationBlockCount = getAfterLastBlock();
 
-            boolean movedToEOF = false;
+            boolean movedToEOF = chunkToMove.block >= originalBlokCount;
             // move all chunks, which previously did not fit before reserved area
             // now we can re-use previously reserved area [leftmostBlock, originalBlokCount),
             // but need to reserve [originalBlokCount, postEvacuationBlockCount)
@@ -1802,16 +1802,16 @@ public class MVStore implements AutoCloseable
             }
             assert postEvacuationBlockCount >= getAfterLastBlock();
 
-            if ((movedToEOF || chunkToMove.block >= originalBlokCount)) {
-                moveChunkInside(chunkToMove, originalBlokCount);
+            if (movedToEOF) {
+                boolean moved = moveChunkInside(chunkToMove, originalBlokCount);
 
                 // store a new chunk with updated metadata (hopefully within a file)
                 store(originalBlokCount, postEvacuationBlockCount);
                 sync();
                 // and if last chunk did not fit within a file, since we can use
-                // previously reserved area [originalFileSize, biggestFileSize) now,
+                // previously reserved area [originalBlokCount, postEvacuationBlockCount) now,
                 // try to move it closer to BOF
-                boolean moved = moveChunkInside(chunkToMove, postEvacuationBlockCount);
+                moved = !moved && moveChunkInside(chunkToMove, postEvacuationBlockCount);
                 if (moveChunkInside(lastChunk, postEvacuationBlockCount) || moved) {
                     store(postEvacuationBlockCount, -1);
                 }
@@ -1824,7 +1824,7 @@ public class MVStore implements AutoCloseable
 
     private boolean moveChunkInside(Chunk chunkToMove, long boundary) {
         boolean res = chunkToMove.block >= boundary &&
-                fileStore.predictAllocation(chunkToMove.len) + chunkToMove.len <= boundary &&
+                fileStore.predictAllocation(chunkToMove.len, boundary, -1) < boundary &&
                 moveChunk(chunkToMove, boundary, -1);
         assert !res || chunkToMove.block + chunkToMove.len <= boundary;
         return res;
@@ -1856,7 +1856,7 @@ public class MVStore implements AutoCloseable
         int chunkHeaderLen = readBuff.position();
         buff.position(chunkHeaderLen);
         buff.put(readBuff);
-        long pos = allocateFileSpace(length, reservedAreaLow, reservedAreaHigh);
+        long pos = fileStore.allocate(length, reservedAreaLow, reservedAreaHigh);
         long block = pos / BLOCK_SIZE;
         assert reservedAreaHigh > 0 || block <= chunk.block : block + " " + chunk; // block should always move closer to the beginning of the file
         buff.position(0);
@@ -1877,19 +1877,6 @@ public class MVStore implements AutoCloseable
         meta.put(Chunk.getMetaKey(chunk.id), chunk.asString());
         markMetaChanged();
         return true;
-    }
-
-    /**
-     * Allocate a number of blocks and mark them as used.
-     *
-     * @param length the number of bytes to allocate
-     * @param reservedLow start block index of the reserved area (inclusive)
-     * @param reservedHigh end block index of the reserved area (exclusive),
-     *                     special value -1 means beginning of the infinite free area
-     * @return the start position in bytes
-     */
-    private long allocateFileSpace(int length, long reservedLow, long reservedHigh) {
-        return fileStore.allocate(length, reservedLow, reservedHigh);
     }
 
     /**

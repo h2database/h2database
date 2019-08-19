@@ -355,10 +355,13 @@ public class FileStore {
      * Calculate starting position of the prospective allocation.
      *
      * @param blocks the number of blocks to allocate
+     * @param reservedLow start block index of the reserved area (inclusive)
+     * @param reservedHigh end block index of the reserved area (exclusive),
+     *                     special value -1 means beginning of the infinite free area
      * @return the starting block index
      */
-    long predictAllocation(int blocks) {
-        return freeSpace.predictAllocation(blocks);
+    long predictAllocation(int blocks, long reservedLow, long reservedHigh) {
+        return freeSpace.predictAllocation(blocks, reservedLow, reservedHigh);
     }
 
     boolean isFragmented() {

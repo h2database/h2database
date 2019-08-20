@@ -264,7 +264,7 @@ public class FreeSpaceBitSet {
 
     /**
      * Get the index of the first block after last occupied one.
-     * It marks the beginning og the last (infinite) free space.
+     * It marks the beginning of the last (infinite) free space.
      *
      * @return block index
      */

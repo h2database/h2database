@@ -1609,14 +1609,13 @@ public class MVStore implements AutoCloseable
 
     /**
      * Get the index of the first block after last occupied one.
-     * It marks the beginning og the last (infinite) free space.
+     * It marks the beginning of the last (infinite) free space.
      *
      * @return block index
      */
     private long getAfterLastBlock() {
         return fileStore.getAfterLastBlock();
     }
-
 
     private long measureFileLengthInUse() {
         long size = 2;
@@ -1808,12 +1807,13 @@ public class MVStore implements AutoCloseable
                 // store a new chunk with updated metadata (hopefully within a file)
                 store(originalBlokCount, postEvacuationBlockCount);
                 sync();
-                // and if last chunk did not fit within a file, since we can use
-                // previously reserved area [originalBlokCount, postEvacuationBlockCount) now,
-                // try to move it closer to BOF
-                moved = !moved && moveChunkInside(chunkToMove, postEvacuationBlockCount);
-                if (moveChunkInside(lastChunk, postEvacuationBlockCount) || moved) {
-                    store(postEvacuationBlockCount, -1);
+                // if chunkToMove did not fit within originalBlockCount (move is false), and since now
+                // previously reserved area [originalBlokCount, postEvacuationBlockCount) also can be used,
+                // lets try to move that chunk into this area, closer to BOF
+                long lastBoundary = moved ? postEvacuationBlockCount : chunkToMove.block;
+                moved = !moved && moveChunkInside(chunkToMove, lastBoundary);
+                if (moveChunkInside(lastChunk, lastBoundary) || moved) {
+                    store(lastBoundary, -1);
                 }
             }
 

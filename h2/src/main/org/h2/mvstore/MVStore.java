@@ -1788,7 +1788,8 @@ public class MVStore implements AutoCloseable
             Chunk chunkToMove = lastChunk;
             long postEvacuationBlockCount = getAfterLastBlock();
 
-            boolean movedToEOF = chunkToMove.block >= originalBlokCount;
+            boolean chunkToMoveIsAlreadyInside = chunkToMove.block < leftmostBlock;
+            boolean movedToEOF = !chunkToMoveIsAlreadyInside;
             // move all chunks, which previously did not fit before reserved area
             // now we can re-use previously reserved area [leftmostBlock, originalBlokCount),
             // but need to reserve [originalBlokCount, postEvacuationBlockCount)
@@ -1810,7 +1811,8 @@ public class MVStore implements AutoCloseable
                 // if chunkToMove did not fit within originalBlockCount (move is false), and since now
                 // previously reserved area [originalBlokCount, postEvacuationBlockCount) also can be used,
                 // lets try to move that chunk into this area, closer to BOF
-                long lastBoundary = moved ? postEvacuationBlockCount : chunkToMove.block;
+                long lastBoundary = moved || chunkToMoveIsAlreadyInside ?
+                                        postEvacuationBlockCount : chunkToMove.block;
                 moved = !moved && moveChunkInside(chunkToMove, lastBoundary);
                 if (moveChunkInside(lastChunk, lastBoundary) || moved) {
                     store(lastBoundary, -1);

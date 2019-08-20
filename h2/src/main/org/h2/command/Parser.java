@@ -7447,7 +7447,7 @@ public class Parser {
      * @return {@code true} if the table is DUAL special table. Otherwise returns {@code false}.
      * @see <a href="https://en.wikipedia.org/wiki/DUAL_table">Wikipedia: DUAL table</a>
      */
-    boolean isDualTable(String tableName) {
+    private boolean isDualTable(String tableName) {
         return ((schemaName == null || equalsToken(schemaName, "SYS")) && equalsToken("DUAL", tableName))
                 || (database.getMode().sysDummy1 && (schemaName == null || equalsToken(schemaName, "SYSIBM"))
                         && equalsToken("SYSDUMMY1", tableName));

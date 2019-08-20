@@ -220,14 +220,14 @@ public class TableLink extends Table {
             // http://www.datadirect.com/index.ssp
             rs = null;
         }
-        String pkName = "";
+        String pkName = null;
         ArrayList<Column> list;
         if (rs != null && rs.next()) {
             // the problem is, the rows are not sorted by KEY_SEQ
             list = Utils.newSmallArrayList();
             do {
                 int idx = rs.getInt("KEY_SEQ");
-                if (pkName == null) {
+                if (StringUtils.isNullOrEmpty(pkName)) {
                     pkName = rs.getString("PK_NAME");
                 }
                 while (list.size() < idx) {
@@ -263,7 +263,7 @@ public class TableLink extends Table {
                     continue;
                 }
                 String newIndex = rs.getString("INDEX_NAME");
-                if (pkName.equals(newIndex)) {
+                if (pkName != null && pkName.equals(newIndex)) {
                     continue;
                 }
                 if (indexName != null && !indexName.equals(newIndex)) {

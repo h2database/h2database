@@ -3288,7 +3288,10 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     }
 
     /**
-     * [Not supported]
+     * Returns whether database always returns generated keys if valid names or
+     * indexes of columns were specified and command was completed successfully.
+     *
+     * @return true
      */
     @Override
     public boolean generatedKeyAlwaysReturned() {

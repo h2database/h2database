@@ -50,7 +50,7 @@ public class MixedMode {
         try {
             while (true) {
                 // runs forever, except if you drop the table remotely
-                stat.execute("MERGE INTO TIMER VALUES(1, NOW())");
+                stat.execute("MERGE INTO TIMER VALUES(1, LOCALTIME)");
                 Thread.sleep(1000);
             }
         } catch (SQLException e) {

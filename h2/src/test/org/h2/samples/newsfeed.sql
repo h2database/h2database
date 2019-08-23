@@ -29,7 +29,7 @@ CREATE TABLE CHANNEL(TITLE VARCHAR, LINK VARCHAR, DESC VARCHAR,
     LANGUAGE VARCHAR, PUB TIMESTAMP, LAST TIMESTAMP, AUTHOR VARCHAR);
 
 INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
-    'https://h2database.com/', 'H2 Database Engine', 'en-us', NOW(), NOW(), 'Thomas Mueller');
+    'https://h2database.com/', 'H2 Database Engine', 'en-us', LOCALTIMESTAMP, LOCALTIMESTAMP, 'Thomas Mueller');
 
 CREATE VIEW ITEM AS
 SELECT ID, 'New version available: ' || VERSION || ' (' || CREATED || ')' TITLE,

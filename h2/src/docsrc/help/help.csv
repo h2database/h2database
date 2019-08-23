@@ -781,11 +781,6 @@ Creates a new sequence.
 The data type of a sequence is BIGINT.
 Used values are never re-used, even when the transaction is rolled back.
 
-The cache is the number of pre-allocated numbers.
-If the system crashes without closing the database, at most this many numbers are lost.
-The default cache size is 32.
-To disable caching, use the cache size 1 or lower.
-
 This command commits an open transaction in this connection.
 ","
 CREATE SEQUENCE SEQ_ID
@@ -2920,6 +2915,11 @@ ID AS VALUE
 [ CACHE long | NOCACHE | NO CACHE ]
 ","
 Options of a sequence.
+
+The cache is the number of pre-allocated numbers.
+If the system crashes without closing the database, at most this many numbers are lost.
+The default cache size is 32.
+To disable caching, use the cache size 1 or lower.
 ","
 START WITH 1
 "

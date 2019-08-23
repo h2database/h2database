@@ -189,6 +189,10 @@
         <directory>src/java9/precompiled</directory>
         <targetPath>META-INF/versions/9</targetPath>
       </resource>
+      <resource>
+        <directory>src/java10/precompiled</directory>
+        <targetPath>META-INF/versions/10</targetPath>
+      </resource>
     </resources>
     <testResources>
   <testResource>

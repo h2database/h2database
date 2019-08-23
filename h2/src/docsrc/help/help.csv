@@ -4606,7 +4606,7 @@ CALL TRANSLATE('Hello world', 'eo', 'EO')
 "
 
 "Functions (Time and Date)","CURRENT_DATE","
-{ CURRENT_DATE | CURDATE() | SYSDATE | TODAY }
+CURRENT_DATE | CURDATE() | SYSDATE | TODAY
 ","
 Returns the current date.
 These methods always return the same value within a transaction (default)
@@ -4648,7 +4648,7 @@ CURRENT_TIMESTAMP(9)
 "
 
 "Functions (Time and Date)","LOCALTIME","
-{ LOCALTIME [ (int) ] | CURTIME([ int ]) }
+LOCALTIME [ (int) ] | CURTIME([ int ])
 ","
 Returns the current time.
 If fractional seconds precision is specified it should be from 0 to 9, 0 is default.
@@ -4663,7 +4663,7 @@ LOCALTIME(9)
 "
 
 "Functions (Time and Date)","LOCALTIMESTAMP","
-{ LOCALTIMESTAMP [ (int) ] | NOW( [ int ] ) }
+LOCALTIMESTAMP [ (int) ] | NOW( [ int ] )
 ","
 Returns the current timestamp without time zone.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.

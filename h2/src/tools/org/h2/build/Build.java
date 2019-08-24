@@ -975,11 +975,11 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/asm-7.0.jar" +
                 File.pathSeparator + javaToolsJar;
         int version = getJavaVersion();
-        if (version >= 10) {
-            cp = "src/java10/precompiled" + File.pathSeparator + cp;
-        }
         if (version >= 9) {
             cp = "src/java9/precompiled" + File.pathSeparator + cp;
+            if (version >= 10) {
+                cp = "src/java10/precompiled" + File.pathSeparator + cp;
+            }
         }
         int ret;
         if (travis) {

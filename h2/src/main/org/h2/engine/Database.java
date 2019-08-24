@@ -1431,7 +1431,7 @@ public class Database implements DataHandler, CastDataProvider {
                 try {
                     // this will rollback outstanding transaction
                     s.close();
-                } catch (DbException e) {
+                } catch (Throwable e) {
                     trace.error(e, "disconnecting session #{0}", s.getId());
                 }
             }

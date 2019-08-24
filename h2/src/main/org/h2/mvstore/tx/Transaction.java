@@ -447,11 +447,17 @@ public class Transaction {
                 store.rollbackTo(this, logId, 0);
             }
         } catch (Throwable e) {
-            ex = e;
-            throw e;
+            int status = getStatus();
+            if (status != STATUS_CLOSED && status != STATUS_COMMITTED) {
+                ex = e;
+                throw e;
+            }
         } finally {
             try {
-                store.endTransaction(this, true);
+                int status = getStatus();
+                if (status != STATUS_CLOSED && status != STATUS_COMMITTED) {
+                    store.endTransaction(this, true);
+                }
             } catch (Throwable e) {
                 if (ex == null) {
                     throw e;

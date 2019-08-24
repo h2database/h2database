@@ -216,7 +216,11 @@ public class Sequence extends SchemaObjectBase {
             buff.append(" CYCLE");
         }
         if (cacheSize != DEFAULT_CACHE_SIZE) {
-            buff.append(" CACHE ").append(cacheSize);
+            if (cacheSize == 1) {
+                buff.append(" NO CACHE");
+            } else {
+                buff.append(" CACHE ").append(cacheSize);
+            }
         }
         if (belongsToTable) {
             buff.append(" BELONGS_TO_TABLE");

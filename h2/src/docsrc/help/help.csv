@@ -356,13 +356,7 @@ ALTER SCHEMA TEST RENAME TO PRODUCTION
 "
 
 "Commands (DDL)","ALTER SEQUENCE","
-ALTER SEQUENCE [ IF EXISTS ] sequenceName
-[ RESTART WITH long ]
-[ INCREMENT BY long ]
-[ MINVALUE long | NOMINVALUE | NO MINVALUE ]
-[ MAXVALUE long | NOMAXVALUE | NO MAXVALUE ]
-[ CYCLE long | NOCYCLE | NO CYCLE ]
-[ CACHE long | NOCACHE | NO CACHE ]
+ALTER SEQUENCE [ IF EXISTS ] sequenceName sequenceOptions
 ","
 Changes the parameters of a sequence.
 This command does not commit the current transaction; however the new value is used by other
@@ -774,8 +768,7 @@ CREATE SCHEMA TEST_SCHEMA AUTHORIZATION SA
 "
 
 "Commands (DDL)","CREATE SEQUENCE","
-CREATE SEQUENCE [ IF NOT EXISTS ] newSequenceName
-sequenceOptions
+CREATE SEQUENCE [ IF NOT EXISTS ] newSequenceName [ sequenceOptions ]
 ","
 Creates a new sequence.
 The data type of a sequence is BIGINT.
@@ -2907,21 +2900,45 @@ ID AS VALUE
 "
 
 "Other Grammar","Sequence options","
-[ START WITH long ]
-[ INCREMENT BY long ]
-[ MINVALUE long | NOMINVALUE | NO MINVALUE ]
-[ MAXVALUE long | NOMAXVALUE | NO MAXVALUE ]
-[ CYCLE long | NOCYCLE | NO CYCLE ]
-[ CACHE long | NOCACHE | NO CACHE ]
+sequenceOption [...]
 ","
 Options of a sequence.
-
-The cache is the number of pre-allocated numbers.
-If the system crashes without closing the database, at most this many numbers are lost.
-The default cache size is 32.
-To disable caching, use the cache size 1 or lower.
 ","
 START WITH 1
+START WITH 10 INCREMENT BY 10
+"
+
+"Other Grammar","Sequence option","
+{ START | RESTART } WITH long
+    | INCREMENT BY long
+    | MINVALUE long | NO MINVALUE | NOMINVALUE
+    | MAXVALUE long | NO MAXVALUE | NOMAXVALUE
+    | CYCLE | NO CYCLE | NOCYCLE
+    | CACHE long | NO CACHE | NOCACHE
+","
+Option of a sequence.
+
+START WITH and RESTART WITH are used to set the first generated value of the sequence.
+START WITH may only be used in CREATE SEQUENCE command and it column definition,
+RESTART WITH may only be used in ALTER SEQUENCE command.
+The default is MINVALUE for incrementing sequences and MAXVALUE for decrementing sequences.
+
+INCREMENT BY specifies the step of the sequence, may be positive or negative, but may not be zero.
+The default is 1.
+
+MINVALUE and MAXVALUE specify the bounds of the sequence.
+
+Sequences with CYCLE option start the generation again from
+MINVALUE (incrementing sequences) or MAXVALUE (decrementing sequences) instead of exhausting with an error.
+
+The CACHE option sets the number of pre-allocated numbers.
+If the system crashes without closing the database, at most this many numbers are lost.
+The default cache size is 32.
+NO CACHE option or the cache size 1 or lower disable the cache.
+","
+START WITH 10000
+CYCLE
+NO CACHE
 "
 
 "Other Grammar","Set clause list","

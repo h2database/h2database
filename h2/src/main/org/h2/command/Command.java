@@ -7,11 +7,13 @@ package org.h2.command;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
+import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.expression.ParameterInterface;
 import org.h2.message.DbException;
@@ -195,7 +197,7 @@ public abstract class Command implements CommandInterface {
         }
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (sync) {
-            session.startStatementWithinTransaction();
+            session.startStatementWithinTransaction(this);
             session.setCurrentCommand(this);
             try {
                 while (true) {
@@ -259,7 +261,7 @@ public abstract class Command implements CommandInterface {
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (sync) {
             Session.Savepoint rollback = session.setSavepoint();
-            session.startStatementWithinTransaction();
+            session.startStatementWithinTransaction(this);
             session.setCurrentCommand(this);
             DbException ex = null;
             try {
@@ -397,4 +399,6 @@ public abstract class Command implements CommandInterface {
     public void setCanReuse(boolean canReuse) {
         this.canReuse = canReuse;
     }
+
+    public abstract Set<DbObject> getDependencies();
 }

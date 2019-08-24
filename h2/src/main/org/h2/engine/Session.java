@@ -1741,11 +1741,12 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     /**
      * Start a new statement within a transaction.
+     * @param command about to be started
      */
-    public void startStatementWithinTransaction() {
+    public void startStatementWithinTransaction(Command command) {
         Transaction transaction = getTransaction();
         if(transaction != null) {
-            transaction.markStatementStart();
+            transaction.markStatementStart(command);
         }
         startStatement = -1;
     }

@@ -431,6 +431,11 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
         return dataMap.getInstance(t);
     }
 
+    @Override
+    public MVMap getMVMap() {
+        return dataMap.map;
+    }
+
     /**
      * A cursor.
      */

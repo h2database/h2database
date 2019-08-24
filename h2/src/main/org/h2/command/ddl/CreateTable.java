@@ -135,7 +135,7 @@ public class CreateTable extends CommandWithColumns {
                 boolean old = session.isUndoLogEnabled();
                 try {
                     session.setUndoLogEnabled(false);
-                    session.startStatementWithinTransaction();
+                    session.startStatementWithinTransaction(null);
                     Insert insert = new Insert(session);
                     insert.setSortedInsertMode(sortedInsertMode);
                     insert.setQuery(asQuery);

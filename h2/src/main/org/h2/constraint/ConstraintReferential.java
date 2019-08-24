@@ -606,7 +606,7 @@ public class ConstraintReferential extends Constraint {
             // don't check at startup
             return;
         }
-        session.startStatementWithinTransaction();
+        session.startStatementWithinTransaction(null);
         StringBuilder builder = new StringBuilder("SELECT 1 FROM (SELECT ");
         IndexColumn.writeColumns(builder, columns, true);
         builder.append(" FROM ");

@@ -385,6 +385,27 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
     @Override
     @SuppressWarnings("unchecked")
     public V get(Object key) {
+        RootReference rootReference = getRootReference();
+        VersionedValue data = map.get(rootReference.root, key);
+        if (data == null) {
+            // doesn't exist or deleted by a committed transaction
+            return null;
+        }
+        long id = data.getOperationId();
+        if (id == 0) {
+            // it is committed
+            return (V)data.getCurrentValue();
+        }
+        int tx = TransactionStore.getTransactionId(id);
+        if (tx == transaction.transactionId || getCommittingTransactions().get(tx)) {
+            // added by this transaction or another transaction which is committed by now
+            return (V) data.getCurrentValue();
+        } else {
+            return (V) data.getCommittedValue();
+        }
+    }
+
+    public V getImmetiate(Object key) {
         VersionedValue data = map.get(key);
         if (data == null) {
             // doesn't exist or deleted by a committed transaction
@@ -402,6 +423,19 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         } else {
             return (V) data.getCommittedValue();
         }
+    }
+
+    private BitSet getCommittingTransactions() {
+        BitSet committingTransactions = transaction.getCommittingTransactions();
+        assert committingTransactions != null;
+        return committingTransactions;
+    }
+
+    private RootReference getRootReference() {
+        int mapId = map.getId();
+        RootReference rootReference = transaction.getMapRoot(mapId);
+        assert rootReference != null : mapId;
+        return rootReference;
     }
 
     /**
@@ -690,10 +724,17 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
             // when neither of the variables concurrently changes it's value.
             BitSet committingTransactions;
             RootReference mapRootReference;
-            do {
-                committingTransactions = store.committingTransactions.get();
-                mapRootReference = map.flushAndGetRoot();
-            } while (committingTransactions != store.committingTransactions.get());
+            if (includeAllUncommitted) {
+                do {
+                    committingTransactions = store.committingTransactions.get();
+                    mapRootReference = map.flushAndGetRoot();
+                } while (committingTransactions != store.committingTransactions.get());
+            } else {
+                do {
+                    committingTransactions = transactionMap.getCommittingTransactions();
+                    mapRootReference = transactionMap.getRootReference();
+                } while (committingTransactions != transactionMap.getCommittingTransactions());
+            }
             // Now we have a snapshot, where mapRootReference points to state of the map
             // and committingTransactions mask tells us which of seemingly uncommitted changes
             // should be considered as committed.

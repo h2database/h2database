@@ -6,10 +6,12 @@
 package org.h2.command;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
+import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.Parameter;
@@ -473,4 +475,6 @@ public abstract class Prepared {
     public Session getSession() {
         return session;
     }
+
+    public void collectDependecies(HashSet<DbObject> dependencies) {}
 }

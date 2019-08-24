@@ -6,13 +6,16 @@
 package org.h2.command;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.command.dml.DataChangeStatement;
 import org.h2.command.dml.Explain;
 import org.h2.command.dml.Query;
 import org.h2.engine.Database;
+import org.h2.engine.DbObject;
 import org.h2.engine.DbSettings;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -329,4 +332,10 @@ public class CommandContainer extends Command {
         clearCTE(session, prepared);
     }
 
+    @Override
+    public Set<DbObject> getDependencies() {
+        HashSet<DbObject> dependencies = new HashSet<>();
+        prepared.collectDependecies(dependencies);
+        return dependencies;
+    }
 }

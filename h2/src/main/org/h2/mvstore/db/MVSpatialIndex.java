@@ -5,6 +5,7 @@
  */
 package org.h2.mvstore.db;
 
+import org.h2.mvstore.MVMap;
 import static org.h2.util.geometry.GeometryUtils.MAX_X;
 import static org.h2.util.geometry.GeometryUtils.MAX_Y;
 import static org.h2.util.geometry.GeometryUtils.MIN_X;
@@ -395,6 +396,11 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
         }
         Transaction t = session.getTransaction();
         return dataMap.getInstance(t);
+    }
+
+    @Override
+    public MVMap getMVMap() {
+        return dataMap.map;
     }
 
     /**

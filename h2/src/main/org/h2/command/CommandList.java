@@ -6,7 +6,10 @@
 package org.h2.command;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
+import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.expression.Parameter;
 import org.h2.expression.ParameterInterface;
@@ -113,4 +116,12 @@ class CommandList extends Command {
         return command.getCommandType();
     }
 
+    @Override
+    public Set<DbObject> getDependencies() {
+        HashSet<DbObject> dependencies = new HashSet<>();
+        for (Prepared prepared : commands) {
+            prepared.collectDependecies(dependencies);
+        }
+        return dependencies;
+    }
 }

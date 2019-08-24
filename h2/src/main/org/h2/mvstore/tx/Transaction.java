@@ -5,12 +5,24 @@
  */
 package org.h2.mvstore.tx;
 
+import org.h2.command.Command;
+import org.h2.engine.DbObject;
+import org.h2.index.Index;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
+import org.h2.mvstore.RootReference;
+import org.h2.mvstore.db.MVIndex;
+import org.h2.mvstore.db.MVPrimaryIndex;
+import org.h2.mvstore.db.MVTable;
 import org.h2.mvstore.type.DataType;
 import org.h2.value.VersionedValue;
+import java.util.BitSet;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -154,6 +166,10 @@ public class Transaction {
      */
     private volatile boolean notificationRequested;
 
+    final Map<Integer, RootReference> mapRoots = new HashMap<>();
+
+    BitSet committingTransactions;
+
 
     Transaction(TransactionStore store, int transactionId, long sequenceNum, int status,
                 String name, long logId, int timeoutMillis, int ownerId,
@@ -178,6 +194,21 @@ public class Transaction {
 
     public int getStatus() {
         return getStatus(statusAndLogId.get());
+    }
+
+    public BitSet getCommittingTransactions() {
+        if (committingTransactions == null) {
+            return store.committingTransactions.get();
+        }
+        return committingTransactions;
+    }
+
+    public RootReference getMapRoot(int mapId) {
+        RootReference rootReference = mapRoots.get(mapId);
+        if (rootReference == null) {
+            rootReference = store.openMap(mapId).getRoot();
+        }
+        return rootReference;
     }
 
     /**
@@ -266,16 +297,61 @@ public class Transaction {
 
     /**
      * Mark an entry into a new SQL statement execution within this transaction.
+     * @param command about to be executed
      */
-    public void markStatementStart() {
+    public void markStatementStart(Command command) {
         markStatementEnd();
         txCounter = store.store.registerVersionUsage();
+        if (command != null) {
+            Set<DbObject> dependencies = command.getDependencies();
+            Set<MVMap> maps = new HashSet<>();
+            for (DbObject dependency : dependencies) {
+                if (dependency instanceof MVTable) {
+                    MVTable table = (MVTable) dependency;
+                    for (Index index : table.getIndexes()) {
+                        collectDependensies(maps, index);
+                    }
+                } else {
+                    collectDependensies(maps, dependency);
+                }
+            }
+
+            // The purpose of the following loop is to get a coherent picture
+            // In order to get such a "snapshot", we wait for a moment of silence,
+            // when no new transaction were committed / closed.
+            do {
+                mapRoots.clear();
+                committingTransactions = store.committingTransactions.get();
+                for (MVMap map : maps) {
+                    RootReference rootReference = map.flushAndGetRoot();
+                    mapRoots.put(map.getId(), rootReference);
+                }
+            } while (committingTransactions != store.committingTransactions.get());
+            // Now we have a snapshot, where each map RootReference point to state of the map
+            // and committingTransactions mask tells us which of seemingly uncommitted changes
+            // should be considered as committed.
+            // Subsequent map traversals should use this snapshot info only.
+        }
+    }
+
+    private void collectDependensies(Set<MVMap> maps, DbObject dependency) {
+        if (dependency instanceof MVPrimaryIndex) {
+            MVPrimaryIndex primaryIndex = (MVPrimaryIndex) dependency;
+            MVMap map = primaryIndex.getMVMap();
+            maps.add(map);
+        } else if (dependency instanceof MVIndex) {
+            MVIndex index = (MVIndex) dependency;
+            MVMap map = index.getMVMap();
+            maps.add(map);
+        }
     }
 
     /**
      * Mark an exit from SQL statement execution within this transaction.
      */
     public void markStatementEnd() {
+        mapRoots.clear();
+        committingTransactions = null;
         MVStore.TxCounter counter = txCounter;
         if(counter != null) {
             txCounter = null;
@@ -510,6 +586,8 @@ public class Transaction {
      * Transition this transaction into a closed state.
      */
     void closeIt() {
+        mapRoots.clear();
+        committingTransactions = null;
         long lastState = setStatus(STATUS_CLOSED);
         store.store.deregisterVersionUsage(txCounter);
         if((hasChanges(lastState) || hasRollback(lastState)) && notificationRequested) {

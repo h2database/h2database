@@ -20,6 +20,7 @@ import org.h2.index.Cursor;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
+import org.h2.mvstore.MVMap;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionMap;
 import org.h2.result.Row;
@@ -413,6 +414,10 @@ public class MVPrimaryIndex extends BaseIndex {
         }
         Transaction t = session.getTransaction();
         return dataMap.getInstance(t);
+    }
+
+    public MVMap getMVMap() {
+        return dataMap.map;
     }
 
     /**

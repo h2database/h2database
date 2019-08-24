@@ -7838,7 +7838,7 @@ public class Parser {
                 command.setOldColumnName(columnName);
                 command.setNewColumnName(newColumnName);
                 return command;
-            } 
+            }
         }
         if (mode.alterTableModifyColumn && readIf("MODIFY")) {
             // MySQL compatibility (optional)

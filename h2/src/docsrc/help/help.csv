@@ -356,13 +356,7 @@ ALTER SCHEMA TEST RENAME TO PRODUCTION
 "
 
 "Commands (DDL)","ALTER SEQUENCE","
-ALTER SEQUENCE [ IF EXISTS ] sequenceName
-[ RESTART WITH long ]
-[ INCREMENT BY long ]
-[ MINVALUE long | NOMINVALUE | NO MINVALUE ]
-[ MAXVALUE long | NOMAXVALUE | NO MAXVALUE ]
-[ CYCLE long | NOCYCLE | NO CYCLE ]
-[ CACHE long | NOCACHE | NO CACHE ]
+ALTER SEQUENCE [ IF EXISTS ] sequenceName sequenceOptions
 ","
 Changes the parameters of a sequence.
 This command does not commit the current transaction; however the new value is used by other
@@ -774,17 +768,11 @@ CREATE SCHEMA TEST_SCHEMA AUTHORIZATION SA
 "
 
 "Commands (DDL)","CREATE SEQUENCE","
-CREATE SEQUENCE [ IF NOT EXISTS ] newSequenceName
-sequenceOptions
+CREATE SEQUENCE [ IF NOT EXISTS ] newSequenceName [ sequenceOptions ]
 ","
 Creates a new sequence.
 The data type of a sequence is BIGINT.
 Used values are never re-used, even when the transaction is rolled back.
-
-The cache is the number of pre-allocated numbers.
-If the system crashes without closing the database, at most this many numbers are lost.
-The default cache size is 32.
-To disable caching, use the cache size 1 or lower.
 
 This command commits an open transaction in this connection.
 ","
@@ -2912,16 +2900,45 @@ ID AS VALUE
 "
 
 "Other Grammar","Sequence options","
-[ START WITH long ]
-[ INCREMENT BY long ]
-[ MINVALUE long | NOMINVALUE | NO MINVALUE ]
-[ MAXVALUE long | NOMAXVALUE | NO MAXVALUE ]
-[ CYCLE long | NOCYCLE | NO CYCLE ]
-[ CACHE long | NOCACHE | NO CACHE ]
+sequenceOption [...]
 ","
 Options of a sequence.
 ","
 START WITH 1
+START WITH 10 INCREMENT BY 10
+"
+
+"Other Grammar","Sequence option","
+{ START | RESTART } WITH long
+    | INCREMENT BY long
+    | MINVALUE long | NO MINVALUE | NOMINVALUE
+    | MAXVALUE long | NO MAXVALUE | NOMAXVALUE
+    | CYCLE | NO CYCLE | NOCYCLE
+    | CACHE long | NO CACHE | NOCACHE
+","
+Option of a sequence.
+
+START WITH and RESTART WITH are used to set the first generated value of the sequence.
+START WITH may only be used in CREATE SEQUENCE command and it column definition,
+RESTART WITH may only be used in ALTER SEQUENCE command.
+The default is MINVALUE for incrementing sequences and MAXVALUE for decrementing sequences.
+
+INCREMENT BY specifies the step of the sequence, may be positive or negative, but may not be zero.
+The default is 1.
+
+MINVALUE and MAXVALUE specify the bounds of the sequence.
+
+Sequences with CYCLE option start the generation again from
+MINVALUE (incrementing sequences) or MAXVALUE (decrementing sequences) instead of exhausting with an error.
+
+The CACHE option sets the number of pre-allocated numbers.
+If the system crashes without closing the database, at most this many numbers are lost.
+The default cache size is 32.
+NO CACHE option or the cache size 1 or lower disable the cache.
+","
+START WITH 10000
+CYCLE
+NO CACHE
 "
 
 "Other Grammar","Set clause list","
@@ -4606,7 +4623,7 @@ CALL TRANSLATE('Hello world', 'eo', 'EO')
 "
 
 "Functions (Time and Date)","CURRENT_DATE","
-{ CURRENT_DATE | CURDATE() | SYSDATE | TODAY }
+CURRENT_DATE | CURDATE() | SYSDATE | TODAY
 ","
 Returns the current date.
 These methods always return the same value within a transaction (default)
@@ -4648,7 +4665,7 @@ CURRENT_TIMESTAMP(9)
 "
 
 "Functions (Time and Date)","LOCALTIME","
-{ LOCALTIME [ (int) ] | CURTIME([ int ]) }
+LOCALTIME [ (int) ] | CURTIME([ int ])
 ","
 Returns the current time.
 If fractional seconds precision is specified it should be from 0 to 9, 0 is default.
@@ -4663,7 +4680,7 @@ LOCALTIME(9)
 "
 
 "Functions (Time and Date)","LOCALTIMESTAMP","
-{ LOCALTIMESTAMP [ (int) ] | NOW( [ int ] ) }
+LOCALTIMESTAMP [ (int) ] | NOW( [ int ] )
 ","
 Returns the current timestamp without time zone.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.

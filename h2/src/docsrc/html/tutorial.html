@@ -600,13 +600,13 @@ The TCP server can be stopped from another process.
 To stop the server from the command line, run:
 </p>
 <pre>
-java org.h2.tools.Server -tcpShutdown tcp://localhost:9092
+java org.h2.tools.Server -tcpShutdown tcp://localhost:9092 -tcpPassword password
 </pre>
 <p>
 To stop the server from a user application, use the following code:
 </p>
 <pre>
-org.h2.tools.Server.shutdownTcpServer("tcp://localhost:9094");
+org.h2.tools.Server.shutdownTcpServer("tcp://localhost:9092", "password", false, false);
 </pre>
 <p>
 This function will only stop the TCP server.
@@ -614,7 +614,7 @@ If other server were started in the same process, they will continue to run.
 To avoid recovery when the databases are opened the next time,
 all connections to the databases should be closed before calling this method.
 To stop a remote server, remote connections must be enabled on the server.
-Shutting down a TCP server can be protected using the option <code>-tcpPassword</code>
+Shutting down a TCP server is protected using the option <code>-tcpPassword</code>
 (the same password must be used to start and stop the TCP server).
 </p>
 

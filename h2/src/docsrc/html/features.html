@@ -1288,7 +1288,11 @@ The formula is evaluated when the row is inserted, and re-evaluated every time t
 One use case is to automatically update the last-modification time:
 </p>
 <pre>
-CREATE TABLE TEST(ID INT, NAME VARCHAR, LAST_MOD TIMESTAMP AS NOW());
+CREATE TABLE TEST(
+    ID INT,
+    NAME VARCHAR,
+    LAST_MOD TIMESTAMP WITH TIME ZONE AS CURRENT_TIMESTAMP
+);
 </pre>
 <p>
 Function indexes are not directly supported by this database, but they can be emulated

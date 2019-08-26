@@ -29,6 +29,7 @@ import org.h2.expression.analysis.DataAnalysisOperation;
 import org.h2.expression.analysis.Window;
 import org.h2.expression.condition.Comparison;
 import org.h2.expression.condition.ConditionAndOr;
+import org.h2.expression.condition.ConditionLocalAndGlobal;
 import org.h2.expression.function.Function;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
@@ -1635,8 +1636,7 @@ public class Select extends Query {
     }
 
     @Override
-    public void addGlobalCondition(Parameter param, int columnId,
-            int comparisonType) {
+    public void addGlobalCondition(Parameter param, int columnId, int comparisonType) {
         addParameter(param);
         Expression comp;
         Expression col = expressions.get(columnId);
@@ -1649,41 +1649,37 @@ public class Select extends Query {
             comp = new Comparison(session, Comparison.EQUAL_NULL_SAFE, param, param);
         }
         comp = comp.optimize(session);
-        boolean addToCondition = true;
         if (isWindowQuery) {
-            if (qualify == null) {
-                qualify = comp;
-            } else {
-                qualify = new ConditionAndOr(ConditionAndOr.AND, comp, qualify);
-            }
-            return;
-        }
-        if (isGroupQuery) {
-            addToCondition = false;
+            qualify = addGlobalCondition(qualify, comp);
+        } else if (isGroupQuery) {
             for (int i = 0; groupIndex != null && i < groupIndex.length; i++) {
                 if (groupIndex[i] == columnId) {
-                    addToCondition = true;
-                    break;
+                    condition = addGlobalCondition(condition, comp);
+                    return;
                 }
             }
-            if (!addToCondition) {
-                if (havingIndex >= 0) {
-                    having = expressions.get(havingIndex);
-                }
-                if (having == null) {
-                    having = comp;
-                } else {
-                    having = new ConditionAndOr(ConditionAndOr.AND, having, comp);
-                }
+            if (havingIndex >= 0) {
+                having = expressions.get(havingIndex);
             }
+            having = addGlobalCondition(having, comp);
+        } else {
+            condition = addGlobalCondition(condition, comp);
         }
-        if (addToCondition) {
-            if (condition == null) {
-                condition = comp;
-            } else {
-                condition = new ConditionAndOr(ConditionAndOr.AND, condition, comp);
-            }
+    }
+
+    private static Expression addGlobalCondition(Expression condition, Expression additional) {
+        if (!(condition instanceof ConditionLocalAndGlobal)) {
+            return new ConditionLocalAndGlobal(condition, additional);
         }
+        Expression oldLocal, oldGlobal;
+        if (condition.getSubexpressionCount() == 1) {
+            oldLocal = null;
+            oldGlobal = condition.getSubexpression(0);
+        } else {
+            oldLocal = condition.getSubexpression(0);
+            oldGlobal = condition.getSubexpression(1);
+        }
+        return new ConditionLocalAndGlobal(oldLocal, new ConditionAndOr(ConditionAndOr.AND, oldGlobal, additional));
     }
 
     @Override

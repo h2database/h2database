@@ -29,6 +29,7 @@ import org.h2.expression.analysis.DataAnalysisOperation;
 import org.h2.expression.analysis.Window;
 import org.h2.expression.condition.Comparison;
 import org.h2.expression.condition.ConditionAndOr;
+import org.h2.expression.condition.ConditionLocalAndGlobal;
 import org.h2.expression.function.Function;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
@@ -1667,7 +1668,18 @@ public class Select extends Query {
     }
 
     private static Expression addGlobalCondition(Expression condition, Expression additional) {
-        return condition == null ? additional : new ConditionAndOr(ConditionAndOr.AND, condition, additional);
+        if (!(condition instanceof ConditionLocalAndGlobal)) {
+            return new ConditionLocalAndGlobal(condition, additional);
+        }
+        Expression oldLocal, oldGlobal;
+        if (condition.getSubexpressionCount() == 1) {
+            oldLocal = null;
+            oldGlobal = condition.getSubexpression(0);
+        } else {
+            oldLocal = condition.getSubexpression(0);
+            oldGlobal = condition.getSubexpression(1);
+        }
+        return new ConditionLocalAndGlobal(oldLocal, new ConditionAndOr(ConditionAndOr.AND, oldGlobal, additional));
     }
 
     @Override

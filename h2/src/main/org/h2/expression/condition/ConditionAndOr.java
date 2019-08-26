@@ -40,12 +40,12 @@ public class ConditionAndOr extends Condition {
     private Expression added;
 
     public ConditionAndOr(int andOrType, Expression left, Expression right) {
-        this.andOrType = andOrType;
-        this.left = left;
-        this.right = right;
         if (left == null || right == null) {
             DbException.throwInternalError(left + " " + right);
         }
+        this.andOrType = andOrType;
+        this.left = left;
+        this.right = right;
     }
 
     @Override
@@ -134,7 +134,8 @@ public class ConditionAndOr extends Condition {
         // http://www-cs-students.stanford.edu/~wlam/compsci/sqlnulls
         left = left.optimize(session);
         right = right.optimize(session);
-        int lc = left.getCost(), rc = right.getCost();
+        int lc = left.getCost();
+        int rc = right.getCost();
         if (rc < lc) {
             Expression t = left;
             left = right;
@@ -185,13 +186,18 @@ public class ConditionAndOr extends Condition {
                 return reduced.optimize(session);
             }
         }
+        return optimizeConstant(session, this, andOrType, left, right);
+    }
+
+    static Expression optimizeConstant(Session session, Expression condition, int andOrType, Expression left,
+            Expression right) {
         Value l = left.isConstant() ? left.getValue(session) : null;
         Value r = right.isConstant() ? right.getValue(session) : null;
         if (l == null && r == null) {
-            return this;
+            return condition;
         }
         if (l != null && r != null) {
-            return ValueExpression.getBoolean(getValue(session));
+            return ValueExpression.getBoolean(condition.getValue(session));
         }
         switch (andOrType) {
         case AND:
@@ -227,7 +233,7 @@ public class ConditionAndOr extends Condition {
         default:
             DbException.throwInternalError("type=" + andOrType);
         }
-        return this;
+        return condition;
     }
 
     @Override

@@ -5,14 +5,15 @@
  */
 package org.h2.engine;
 
+import org.h2.util.StringUtils;
+import org.h2.value.DataType;
+import org.h2.value.Value;
+
 import java.sql.Types;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.regex.Pattern;
-import org.h2.util.StringUtils;
-import org.h2.value.DataType;
-import org.h2.value.Value;
 
 /**
  * The compatibility modes. There is a fixed set of modes (for example
@@ -244,6 +245,11 @@ public class Mode {
     public boolean truncateTableRestartIdentity;
 
     /**
+     * if {@code true} NEXTVAL returns DECIMAL instead of LONG.
+     */
+    public boolean decimalSequences;
+
+    /**
      * An optional Set of hidden/disallowed column types.
      * Certain DBMSs don't support all column types provided by H2, such as
      * "NUMBER" when using PostgreSQL mode.
@@ -360,6 +366,7 @@ public class Mode {
                 Pattern.compile(".*\\..*");
         mode.prohibitEmptyInPredicate = true;
         mode.alterTableModifyColumn = true;
+        mode.decimalSequences = true;
         dt = DataType.createDate(/* 2001-01-01 23:59:59 */ 19, 19, "DATE", false, 0, 0);
         dt.type = Value.TIMESTAMP;
         dt.sqlType = Types.TIMESTAMP;

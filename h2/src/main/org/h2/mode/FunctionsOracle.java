@@ -5,8 +5,6 @@
  */
 package org.h2.mode;
 
-import java.util.HashMap;
-
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -16,6 +14,8 @@ import org.h2.message.DbException;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueUuid;
+
+import java.util.HashMap;
 
 /**
  * Functions for {@link org.h2.engine.Mode.ModeEnum#Oracle} compatibility mode.
@@ -28,6 +28,9 @@ public final class FunctionsOracle extends FunctionsBase {
 
     static {
         FUNCTIONS.put("SYS_GUID", new FunctionInfo("SYS_GUID", SYS_GUID, 0, Value.BYTES, false, false, true, false));
+
+        // Override NEXTVAL for Oracle to return DECIMAL
+        FUNCTIONS.put("NEXTVAL", new FunctionInfo("NEXTVAL", NEXTVAL, VAR_ARGS, Value.DECIMAL, false, false, true, false));
     }
 
     /**

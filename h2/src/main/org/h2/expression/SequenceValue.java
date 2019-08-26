@@ -12,7 +12,10 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueDecimal;
 import org.h2.value.ValueLong;
+
+import java.math.BigDecimal;
 
 /**
  * Wraps a sequence when used in a statement.
@@ -20,21 +23,35 @@ import org.h2.value.ValueLong;
 public class SequenceValue extends Expression {
 
     private final Sequence sequence;
+    private final TypeInfo type;
 
-    public SequenceValue(Sequence sequence) {
+    public SequenceValue(Sequence sequence, boolean decimalSequences) {
         this.sequence = sequence;
+        if(decimalSequences) {
+            this.type = TypeInfo.TYPE_DECIMAL;
+        } else {
+            this.type = TypeInfo.TYPE_LONG;
+        }
     }
 
     @Override
     public Value getValue(Session session) {
-        ValueLong value = ValueLong.get(sequence.getNext(session));
+        long longValue = sequence.getNext(session);
+        Value value;
+        if(type == TypeInfo.TYPE_DECIMAL) {
+            value = ValueDecimal.get(BigDecimal.valueOf(longValue));
+        } else if(type == TypeInfo.TYPE_LONG) {
+            value = ValueLong.get(longValue);
+        } else {
+            throw DbException.throwInternalError("unknown type for sequence");
+        }
         session.setLastIdentity(value);
         return value;
     }
 
     @Override
     public TypeInfo getType() {
-        return TypeInfo.TYPE_LONG;
+        return type;
     }
 
     @Override

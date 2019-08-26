@@ -8,78 +8,6 @@
  */
 package org.h2.command;
 
-import static org.h2.util.ParserUtil.ALL;
-import static org.h2.util.ParserUtil.ARRAY;
-import static org.h2.util.ParserUtil.CASE;
-import static org.h2.util.ParserUtil.CHECK;
-import static org.h2.util.ParserUtil.CONSTRAINT;
-import static org.h2.util.ParserUtil.CROSS;
-import static org.h2.util.ParserUtil.CURRENT_DATE;
-import static org.h2.util.ParserUtil.CURRENT_SCHEMA;
-import static org.h2.util.ParserUtil.CURRENT_TIME;
-import static org.h2.util.ParserUtil.CURRENT_TIMESTAMP;
-import static org.h2.util.ParserUtil.CURRENT_USER;
-import static org.h2.util.ParserUtil.DISTINCT;
-import static org.h2.util.ParserUtil.EXCEPT;
-import static org.h2.util.ParserUtil.EXISTS;
-import static org.h2.util.ParserUtil.FALSE;
-import static org.h2.util.ParserUtil.FETCH;
-import static org.h2.util.ParserUtil.FOR;
-import static org.h2.util.ParserUtil.FOREIGN;
-import static org.h2.util.ParserUtil.FROM;
-import static org.h2.util.ParserUtil.FULL;
-import static org.h2.util.ParserUtil.GROUP;
-import static org.h2.util.ParserUtil.HAVING;
-import static org.h2.util.ParserUtil.IDENTIFIER;
-import static org.h2.util.ParserUtil.IF;
-import static org.h2.util.ParserUtil.INNER;
-import static org.h2.util.ParserUtil.INTERSECT;
-import static org.h2.util.ParserUtil.INTERSECTS;
-import static org.h2.util.ParserUtil.INTERVAL;
-import static org.h2.util.ParserUtil.IS;
-import static org.h2.util.ParserUtil.JOIN;
-import static org.h2.util.ParserUtil.LIKE;
-import static org.h2.util.ParserUtil.LIMIT;
-import static org.h2.util.ParserUtil.LOCALTIME;
-import static org.h2.util.ParserUtil.LOCALTIMESTAMP;
-import static org.h2.util.ParserUtil.MINUS;
-import static org.h2.util.ParserUtil.NATURAL;
-import static org.h2.util.ParserUtil.NOT;
-import static org.h2.util.ParserUtil.NULL;
-import static org.h2.util.ParserUtil.OFFSET;
-import static org.h2.util.ParserUtil.ON;
-import static org.h2.util.ParserUtil.ORDER;
-import static org.h2.util.ParserUtil.PRIMARY;
-import static org.h2.util.ParserUtil.QUALIFY;
-import static org.h2.util.ParserUtil.ROW;
-import static org.h2.util.ParserUtil.ROWNUM;
-import static org.h2.util.ParserUtil.SELECT;
-import static org.h2.util.ParserUtil.TABLE;
-import static org.h2.util.ParserUtil.TRUE;
-import static org.h2.util.ParserUtil.UNION;
-import static org.h2.util.ParserUtil.UNIQUE;
-import static org.h2.util.ParserUtil.UNKNOWN;
-import static org.h2.util.ParserUtil.USING;
-import static org.h2.util.ParserUtil.VALUES;
-import static org.h2.util.ParserUtil.WHERE;
-import static org.h2.util.ParserUtil.WINDOW;
-import static org.h2.util.ParserUtil.WITH;
-import static org.h2.util.ParserUtil._ROWID_;
-
-import java.io.ByteArrayOutputStream;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.nio.charset.Charset;
-import java.text.Collator;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.api.Trigger;
@@ -224,6 +152,7 @@ import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.table.Column;
 import org.h2.table.DataChangeDeltaTable;
+import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.FunctionTable;
 import org.h2.table.IndexColumn;
 import org.h2.table.IndexHints;
@@ -232,7 +161,6 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableFilter.TableFilterVisitor;
 import org.h2.table.TableView;
-import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.util.IntervalUtils;
 import org.h2.util.ParserUtil;
 import org.h2.util.StringUtils;
@@ -260,6 +188,78 @@ import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
+
+import java.io.ByteArrayOutputStream;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.nio.charset.Charset;
+import java.text.Collator;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+
+import static org.h2.util.ParserUtil.ALL;
+import static org.h2.util.ParserUtil.ARRAY;
+import static org.h2.util.ParserUtil.CASE;
+import static org.h2.util.ParserUtil.CHECK;
+import static org.h2.util.ParserUtil.CONSTRAINT;
+import static org.h2.util.ParserUtil.CROSS;
+import static org.h2.util.ParserUtil.CURRENT_DATE;
+import static org.h2.util.ParserUtil.CURRENT_SCHEMA;
+import static org.h2.util.ParserUtil.CURRENT_TIME;
+import static org.h2.util.ParserUtil.CURRENT_TIMESTAMP;
+import static org.h2.util.ParserUtil.CURRENT_USER;
+import static org.h2.util.ParserUtil.DISTINCT;
+import static org.h2.util.ParserUtil.EXCEPT;
+import static org.h2.util.ParserUtil.EXISTS;
+import static org.h2.util.ParserUtil.FALSE;
+import static org.h2.util.ParserUtil.FETCH;
+import static org.h2.util.ParserUtil.FOR;
+import static org.h2.util.ParserUtil.FOREIGN;
+import static org.h2.util.ParserUtil.FROM;
+import static org.h2.util.ParserUtil.FULL;
+import static org.h2.util.ParserUtil.GROUP;
+import static org.h2.util.ParserUtil.HAVING;
+import static org.h2.util.ParserUtil.IDENTIFIER;
+import static org.h2.util.ParserUtil.IF;
+import static org.h2.util.ParserUtil.INNER;
+import static org.h2.util.ParserUtil.INTERSECT;
+import static org.h2.util.ParserUtil.INTERSECTS;
+import static org.h2.util.ParserUtil.INTERVAL;
+import static org.h2.util.ParserUtil.IS;
+import static org.h2.util.ParserUtil.JOIN;
+import static org.h2.util.ParserUtil.LIKE;
+import static org.h2.util.ParserUtil.LIMIT;
+import static org.h2.util.ParserUtil.LOCALTIME;
+import static org.h2.util.ParserUtil.LOCALTIMESTAMP;
+import static org.h2.util.ParserUtil.MINUS;
+import static org.h2.util.ParserUtil.NATURAL;
+import static org.h2.util.ParserUtil.NOT;
+import static org.h2.util.ParserUtil.NULL;
+import static org.h2.util.ParserUtil.OFFSET;
+import static org.h2.util.ParserUtil.ON;
+import static org.h2.util.ParserUtil.ORDER;
+import static org.h2.util.ParserUtil.PRIMARY;
+import static org.h2.util.ParserUtil.QUALIFY;
+import static org.h2.util.ParserUtil.ROW;
+import static org.h2.util.ParserUtil.ROWNUM;
+import static org.h2.util.ParserUtil.SELECT;
+import static org.h2.util.ParserUtil.TABLE;
+import static org.h2.util.ParserUtil.TRUE;
+import static org.h2.util.ParserUtil.UNION;
+import static org.h2.util.ParserUtil.UNIQUE;
+import static org.h2.util.ParserUtil.UNKNOWN;
+import static org.h2.util.ParserUtil.USING;
+import static org.h2.util.ParserUtil.VALUES;
+import static org.h2.util.ParserUtil.WHERE;
+import static org.h2.util.ParserUtil.WINDOW;
+import static org.h2.util.ParserUtil.WITH;
+import static org.h2.util.ParserUtil._ROWID_;
 
 /**
  * The parser is used to convert a SQL statement string to an command object.
@@ -4099,7 +4099,7 @@ public class Parser {
         if (readIf("NEXTVAL")) {
             Sequence sequence = findSequence(schema, objectName);
             if (sequence != null) {
-                return new SequenceValue(sequence);
+                return new SequenceValue(sequence, database.getMode().decimalSequences);
             }
         } else if (readIf("CURRVAL")) {
             Sequence sequence = findSequence(schema, objectName);
@@ -4521,7 +4521,7 @@ public class Parser {
         case 'N':
             if (equalsToken("NEXT", name) && readIf("VALUE")) {
                 read(FOR);
-                return new SequenceValue(readSequence());
+                return new SequenceValue(readSequence(), database.getMode().decimalSequences);
             } else if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING
                     && equalsToken("N", name)) {
                 // National character string literal

@@ -5,15 +5,15 @@
  */
 package org.h2.engine;
 
-import org.h2.util.StringUtils;
-import org.h2.value.DataType;
-import org.h2.value.Value;
-
 import java.sql.Types;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.regex.Pattern;
+
+import org.h2.util.StringUtils;
+import org.h2.value.DataType;
+import org.h2.value.Value;
 
 /**
  * The compatibility modes. There is a fixed set of modes (for example

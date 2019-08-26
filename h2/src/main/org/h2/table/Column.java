@@ -5,6 +5,9 @@
  */
 package org.h2.table;
 
+import java.sql.ResultSetMetaData;
+import java.util.Objects;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.command.ddl.SequenceOptions;
@@ -29,9 +32,6 @@ import org.h2.value.Value;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueUuid;
-
-import java.sql.ResultSetMetaData;
-import java.util.Objects;
 
 /**
  * This class represents a column in a table.
@@ -460,8 +460,6 @@ public class Column {
         seq.setTemporary(temporary);
         session.getDatabase().addSchemaObject(session, seq);
         setAutoIncrementOptions(null);
-
-        Mode mode = session.getDatabase().getMode();
         SequenceValue seqValue = new SequenceValue(seq);
         setDefaultExpression(session, seqValue);
         setSequence(seq);

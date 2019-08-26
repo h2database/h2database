@@ -23,27 +23,19 @@ import java.math.BigDecimal;
 public class SequenceValue extends Expression {
 
     private final Sequence sequence;
-    private final TypeInfo type;
 
-    public SequenceValue(Sequence sequence, boolean decimalSequences) {
+    public SequenceValue(Sequence sequence) {
         this.sequence = sequence;
-        if(decimalSequences) {
-            this.type = TypeInfo.TYPE_DECIMAL;
-        } else {
-            this.type = TypeInfo.TYPE_LONG;
-        }
     }
 
     @Override
     public Value getValue(Session session) {
         long longValue = sequence.getNext(session);
         Value value;
-        if(type == TypeInfo.TYPE_DECIMAL) {
+        if(sequence.getDatabase().getMode().decimalSequences) {
             value = ValueDecimal.get(BigDecimal.valueOf(longValue));
-        } else if(type == TypeInfo.TYPE_LONG) {
-            value = ValueLong.get(longValue);
         } else {
-            throw DbException.throwInternalError("unknown type for sequence");
+            value = ValueLong.get(longValue);
         }
         session.setLastIdentity(value);
         return value;
@@ -51,7 +43,7 @@ public class SequenceValue extends Expression {
 
     @Override
     public TypeInfo getType() {
-        return type;
+        return sequence.getDatabase().getMode().decimalSequences ? TypeInfo.TYPE_DECIMAL : TypeInfo.TYPE_LONG;
     }
 
     @Override

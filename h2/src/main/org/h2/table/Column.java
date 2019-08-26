@@ -462,7 +462,7 @@ public class Column {
         setAutoIncrementOptions(null);
 
         Mode mode = session.getDatabase().getMode();
-        SequenceValue seqValue = new SequenceValue(seq, mode.decimalSequences);
+        SequenceValue seqValue = new SequenceValue(seq);
         setDefaultExpression(session, seqValue);
         setSequence(seq);
     }

@@ -1599,7 +1599,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             // system
         case NEXTVAL: {
             Sequence sequence = getSequence(session, v0, v1);
-            SequenceValue value = new SequenceValue(sequence, database.getMode().decimalSequences);
+            SequenceValue value = new SequenceValue(sequence);
             result = value.getValue(session);
             break;
         }

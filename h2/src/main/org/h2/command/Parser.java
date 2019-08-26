@@ -4099,7 +4099,7 @@ public class Parser {
         if (readIf("NEXTVAL")) {
             Sequence sequence = findSequence(schema, objectName);
             if (sequence != null) {
-                return new SequenceValue(sequence, database.getMode().decimalSequences);
+                return new SequenceValue(sequence);
             }
         } else if (readIf("CURRVAL")) {
             Sequence sequence = findSequence(schema, objectName);
@@ -4521,7 +4521,7 @@ public class Parser {
         case 'N':
             if (equalsToken("NEXT", name) && readIf("VALUE")) {
                 read(FOR);
-                return new SequenceValue(readSequence(), database.getMode().decimalSequences);
+                return new SequenceValue(readSequence());
             } else if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING
                     && equalsToken("N", name)) {
                 // National character string literal

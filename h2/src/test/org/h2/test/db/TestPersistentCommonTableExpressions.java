@@ -56,8 +56,8 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
                 "    INNER JOIN PUBLIC.C\n" +
                 "        /++ PUBLIC.C.tableScan ++/\n" +
                 "        ON 1=1\n" +
-                "    WHERE (A IS NOT DISTINCT FROM ?1)\n" +
-                "        AND (B.VAL = C.B)\n" +
+                "    WHERE (B.VAL = C.B)\n" +
+                "        _LOCAL_AND_GLOBAL_ (A IS NOT DISTINCT FROM ?1)\n" +
                 "    GROUP BY A: A IS NOT DISTINCT FROM A.VAL\n" +
                 "     */\n" +
                 "    /* scanCount: 1 */\n" +

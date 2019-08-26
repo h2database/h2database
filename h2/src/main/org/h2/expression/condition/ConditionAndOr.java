@@ -134,8 +134,7 @@ public class ConditionAndOr extends Condition {
         // http://www-cs-students.stanford.edu/~wlam/compsci/sqlnulls
         left = left.optimize(session);
         right = right.optimize(session);
-        int lc = left.getCost();
-        int rc = right.getCost();
+        int lc = left.getCost(), rc = right.getCost();
         if (rc < lc) {
             Expression t = left;
             left = right;

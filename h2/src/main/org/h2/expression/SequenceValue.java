@@ -12,7 +12,10 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueDecimal;
 import org.h2.value.ValueLong;
+
+import java.math.BigDecimal;
 
 /**
  * Wraps a sequence when used in a statement.
@@ -27,14 +30,20 @@ public class SequenceValue extends Expression {
 
     @Override
     public Value getValue(Session session) {
-        ValueLong value = ValueLong.get(sequence.getNext(session));
+        long longValue = sequence.getNext(session);
+        Value value;
+        if(sequence.getDatabase().getMode().decimalSequences) {
+            value = ValueDecimal.get(BigDecimal.valueOf(longValue));
+        } else {
+            value = ValueLong.get(longValue);
+        }
         session.setLastIdentity(value);
         return value;
     }
 
     @Override
     public TypeInfo getType() {
-        return TypeInfo.TYPE_LONG;
+        return sequence.getDatabase().getMode().decimalSequences ? TypeInfo.TYPE_DECIMAL : TypeInfo.TYPE_LONG;
     }
 
     @Override

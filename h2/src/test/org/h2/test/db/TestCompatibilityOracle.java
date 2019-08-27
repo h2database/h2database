@@ -16,6 +16,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Locale;
 
+import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.tools.SimpleResultSet;
@@ -290,7 +291,7 @@ public class TestCompatibilityOracle extends TestDb {
         // Test NEXTVAL without Oracle MODE should return BIGINT
         checkSequenceTypeWithMode("REGULAR", Types.BIGINT);
         // Test NEXTVAL with Oracle MODE should return DECIMAL
-        checkSequenceTypeWithMode("Oracle", Types.DECIMAL);
+        checkSequenceTypeWithMode("Oracle", SysProperties.BIG_DECIMAL_IS_DECIMAL ? Types.DECIMAL : Types.NUMERIC);
     }
 
     private void checkSequenceTypeWithMode(final String mode, final int expectedType) throws SQLException {

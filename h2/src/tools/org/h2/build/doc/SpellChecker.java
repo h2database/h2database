@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.build.doc;
@@ -31,7 +31,7 @@ public class SpellChecker {
             "properties", "task", "MF", "mf", "sh", "" };
     private static final String[] IGNORE = { "dev", "nsi", "gif", "png", "odg",
             "ico", "sxd", "zip", "bz2", "rc", "layout", "res", "dll", "jar",
-            "svg", "prefs", "prop", "iml" };
+            "svg", "prefs", "prop", "iml", "class" };
     private static final String DELIMITERS =
             " \n.();-\"=,*/{}_<>+\r:'@[]&\\!#|?$^%~`\t";
     private static final String PREFIX_IGNORE = "abc";
@@ -81,8 +81,7 @@ public class SpellChecker {
         // System.out.println(unused);
         if (printDictionary) {
             System.out.println("USED WORDS");
-            String[] list = new String[used.size()];
-            used.toArray(list);
+            String[] list = used.toArray(new String[used.size()]);
             Arrays.sort(list);
             StringBuilder buff = new StringBuilder();
             for (String s : list) {

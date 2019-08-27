@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.dev.fs;
@@ -426,8 +426,7 @@ public class ArchiveTool {
             for (int pos = 0; pos < len;) {
                 int[] key = getKey(bytes, pos, len);
                 int l = key[3];
-                byte[] buff = new byte[l];
-                System.arraycopy(bytes, pos, buff, 0, l);
+                byte[] buff = Arrays.copyOfRange(bytes, pos, pos + l);
                 pos += l;
                 Chunk c = new Chunk(null, key, buff);
                 Chunk old = map.get(c);
@@ -477,9 +476,7 @@ public class ArchiveTool {
                     if (last == null) {
                         last = c;
                     } else if (last.compareTo(c) == 0) {
-                        for (long x : c.idList) {
-                            last.idList.add(x);
-                        }
+                        last.idList.addAll(c.idList);
                     } else {
                         outPos += last.write(tempOut2, true);
                         last = c;
@@ -521,9 +518,7 @@ public class ArchiveTool {
             if (last == null) {
                 last = c;
             } else if (last.compareTo(c) == 0) {
-                for (long x : c.idList) {
-                    last.idList.add(x);
-                }
+                last.idList.addAll(c.idList);
             } else {
                 last.write(dataOut, false);
                 last = c;
@@ -656,7 +651,7 @@ public class ArchiveTool {
             }
         }
         int[] key = new int[4];
-        ; // TODO test if cs makes a difference
+        // TODO test if cs makes a difference
         key[0] = (int) (min >>> 32);
         key[1] = (int) min;
         key[2] = cs;

@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.tools;
@@ -15,11 +15,13 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.SequenceInputStream;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -40,9 +42,15 @@ import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreTool;
 import org.h2.mvstore.StreamStore;
-import org.h2.mvstore.db.TransactionStore;
-import org.h2.mvstore.db.TransactionStore.TransactionMap;
+import org.h2.mvstore.db.LobStorageMap;
 import org.h2.mvstore.db.ValueDataType;
+import org.h2.mvstore.tx.TransactionMap;
+import org.h2.mvstore.tx.TransactionStore;
+import org.h2.pagestore.Page;
+import org.h2.pagestore.PageFreeList;
+import org.h2.pagestore.PageLog;
+import org.h2.pagestore.PageStore;
+import org.h2.pagestore.db.LobStorageBackend;
 import org.h2.result.Row;
 import org.h2.result.RowFactory;
 import org.h2.result.SimpleRow;
@@ -53,21 +61,12 @@ import org.h2.store.DataReader;
 import org.h2.store.FileLister;
 import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
-import org.h2.store.LobStorageBackend;
 import org.h2.store.LobStorageFrontend;
-import org.h2.store.LobStorageMap;
-import org.h2.store.Page;
-import org.h2.store.PageFreeList;
-import org.h2.store.PageLog;
-import org.h2.store.PageStore;
 import org.h2.store.fs.FileUtils;
-import org.h2.util.BitField;
 import org.h2.util.IOUtils;
 import org.h2.util.IntArray;
 import org.h2.util.MathUtils;
-import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Tool;
@@ -165,7 +164,7 @@ public class Recover extends Tool implements DataHandler {
      * open the database and can be used even if the database files are
      * corrupted. A database can get corrupted if there is a bug in the database
      * engine or file system software, or if an application writes into the
-     * database file that doesn't understand the the file format, or if there is
+     * database file that doesn't understand the file format, or if there is
      * a hardware problem.
      *
      * @param args the command line arguments
@@ -201,7 +200,7 @@ public class Recover extends Tool implements DataHandler {
      */
     public static Reader readClob(String fileName) throws IOException {
         return new BufferedReader(new InputStreamReader(readBlob(fileName),
-                Constants.UTF8));
+                StandardCharsets.UTF_8));
     }
 
     /**
@@ -214,7 +213,7 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
-    public static Value.ValueBlob readBlobDb(Connection conn, long lobId,
+    public static ValueLobDb readBlobDb(Connection conn, long lobId,
             long precision) {
         DataHandler h = ((JdbcConnection) conn).getSession().getDataHandler();
         verifyPageStore(h);
@@ -235,7 +234,7 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
-    public static Value.ValueClob readClobDb(Connection conn, long lobId,
+    public static ValueLobDb readClobDb(Connection conn, long lobId,
             long precision) {
         DataHandler h = ((JdbcConnection) conn).getSession().getDataHandler();
         verifyPageStore(h);
@@ -297,7 +296,7 @@ public class Recover extends Tool implements DataHandler {
     public static Reader readClobMap(Connection conn, long lobId, long precision)
             throws Exception {
         InputStream in = readBlobMap(conn, lobId, precision);
-        return new BufferedReader(new InputStreamReader(in, Constants.UTF8));
+        return new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
     }
 
     private void trace(String message) {
@@ -329,7 +328,7 @@ public class Recover extends Tool implements DataHandler {
 
     private void process(String dir, String db) {
         ArrayList<String> list = FileLister.getDatabaseFiles(dir, db, true);
-        if (list.size() == 0) {
+        if (list.isEmpty()) {
             printNoDatabaseFilesFound(dir, db);
         }
         for (String fileName : list) {
@@ -340,14 +339,13 @@ public class Recover extends Tool implements DataHandler {
             } else if (fileName.endsWith(Constants.SUFFIX_MV_FILE)) {
                 String f = fileName.substring(0, fileName.length() -
                         Constants.SUFFIX_PAGE_FILE.length());
-                PrintWriter writer;
-                writer = getWriter(fileName, ".txt");
-                MVStoreTool.dump(fileName, writer, true);
-                MVStoreTool.info(fileName, writer);
-                writer.close();
-                writer = getWriter(f + ".h2.db", ".sql");
-                dumpMVStoreFile(writer, fileName);
-                writer.close();
+                try (PrintWriter writer = getWriter(fileName, ".txt")) {
+                    MVStoreTool.dump(fileName, writer, true);
+                    MVStoreTool.info(fileName, writer);
+                }
+                try (PrintWriter writer = getWriter(f + ".h2.db", ".sql")) {
+                    dumpMVStoreFile(writer, fileName);
+                }
             }
         }
     }
@@ -368,8 +366,8 @@ public class Recover extends Tool implements DataHandler {
         writer.println("-- ERROR: " + error + " storageId: "
                 + storageId + " recordLength: " + recordLength + " valueId: " + valueId);
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < data.length; i++) {
-            int x = data[i] & 0xff;
+        for (byte aData1 : data) {
+            int x = aData1 & 0xff;
             if (x >= ' ' && x < 128) {
                 sb.append((char) x);
             } else {
@@ -378,8 +376,8 @@ public class Recover extends Tool implements DataHandler {
         }
         writer.println("-- dump: " + sb.toString());
         sb = new StringBuilder();
-        for (int i = 0; i < data.length; i++) {
-            int x = data[i] & 0xff;
+        for (byte aData : data) {
+            int x = aData & 0xff;
             sb.append(' ');
             if (x < 16) {
                 sb.append('0');
@@ -418,45 +416,46 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private String getSQL(String column, Value v) {
+    private void getSQL(StringBuilder builder, String column, Value v) {
         if (v instanceof ValueLob) {
             ValueLob lob = (ValueLob) v;
             byte[] small = lob.getSmall();
             if (small == null) {
                 String file = lob.getFileName();
-                String type = lob.getType() == Value.BLOB ? "BLOB" : "CLOB";
+                String type = lob.getValueType() == Value.BLOB ? "BLOB" : "CLOB";
                 if (lob.isCompressed()) {
                     dumpLob(file, true);
                     file += ".comp";
                 }
-                return "READ_" + type + "('" + file + ".txt')";
+                builder.append("READ_").append(type).append("('").append(file).append(".txt')");
+                return;
             }
         } else if (v instanceof ValueLobDb) {
             ValueLobDb lob = (ValueLobDb) v;
             byte[] small = lob.getSmall();
             if (small == null) {
-                int type = lob.getType();
+                int type = lob.getValueType();
                 long id = lob.getLobId();
-                long precision = lob.getPrecision();
-                String m;
+                long precision = lob.getType().getPrecision();
                 String columnType;
                 if (type == Value.BLOB) {
                     columnType = "BLOB";
-                    m = "READ_BLOB";
+                    builder.append("READ_BLOB");
                 } else {
                     columnType = "CLOB";
-                    m = "READ_CLOB";
+                    builder.append("READ_CLOB");
                 }
                 if (lobMaps) {
-                    m += "_MAP";
+                    builder.append("_MAP");
                 } else {
-                    m += "_DB";
+                    builder.append("_DB");
                 }
                 columnTypeMap.put(column, columnType);
-                return m + "(" + id + ", " + precision + ")";
+                builder.append('(').append(id).append(", ").append(precision).append(')');
+                return;
             }
         }
-        return v.getSQL();
+        v.getSQL(builder);
     }
 
     private void setDatabaseName(String name) {
@@ -486,7 +485,7 @@ public class Recover extends Tool implements DataHandler {
             } catch (Exception e) {
                 writeError(writer, e);
             }
-            Data s = Data.create(this, 128);
+            Data s = Data.create(this, 128, false);
             seek(0);
             store.readFully(s.getBytes(), 0, 128);
             s.setPos(48);
@@ -503,7 +502,7 @@ public class Recover extends Tool implements DataHandler {
             }
             long pageCount = length / pageSize;
             parents = new int[(int) pageCount];
-            s = Data.create(this, pageSize);
+            s = Data.create(this, pageSize, false);
             for (long i = 3; i < pageCount; i++) {
                 s.reset();
                 seek(i);
@@ -513,7 +512,7 @@ public class Recover extends Tool implements DataHandler {
                 parents[(int) i] = s.readInt();
             }
             int logKey = 0, logFirstTrunkPage = 0, logFirstDataPage = 0;
-            s = Data.create(this, pageSize);
+            s = Data.create(this, pageSize, false);
             for (long i = 1;; i++) {
                 if (i == 3) {
                     break;
@@ -552,8 +551,9 @@ public class Recover extends Tool implements DataHandler {
             dumpPageStore(devNull, pageCount);
             stat = new Stats();
             schema.clear();
-            objectIdSet = New.hashSet();
+            objectIdSet = new HashSet<>();
             dumpPageStore(writer, pageCount);
+            writeSchemaSET(writer);
             writeSchema(writer);
             try {
                 dumpPageLogStream(writer, logKey, logFirstTrunkPage,
@@ -602,59 +602,33 @@ public class Recover extends Tool implements DataHandler {
         resetSchema();
         setDatabaseName(fileName.substring(0, fileName.length() -
                 Constants.SUFFIX_MV_FILE.length()));
-        MVStore mv = new MVStore.Builder().
-                fileName(fileName).readOnly().open();
-        dumpLobMaps(writer, mv);
-        writer.println("-- Meta");
-        dumpMeta(writer, mv);
-        writer.println("-- Tables");
-        TransactionStore store = new TransactionStore(mv);
-        try {
-            store.init();
-        } catch (Throwable e) {
-            writeError(writer, e);
-        }
-        try {
+        try (MVStore mv = new MVStore.Builder().
+                fileName(fileName).recoveryMode().readOnly().open()) {
+            dumpLobMaps(writer, mv);
+            writer.println("-- Meta");
+            dumpMeta(writer, mv);
+            writer.println("-- Tables");
+            TransactionStore store = new TransactionStore(mv);
+            try {
+                store.init();
+            } catch (Throwable e) {
+                writeError(writer, e);
+            }
+
+            // extract the metadata so we can dump the settings
+            ValueDataType type = new ValueDataType();
             for (String mapName : mv.getMapNames()) {
                 if (!mapName.startsWith("table.")) {
                     continue;
                 }
                 String tableId = mapName.substring("table.".length());
-                ValueDataType keyType = new ValueDataType(
-                        null, this, null);
-                ValueDataType valueType = new ValueDataType(
-                        null, this, null);
-                TransactionMap<Value, Value> dataMap = store.begin().openMap(
-                        mapName, keyType, valueType);
-                Iterator<Value> dataIt = dataMap.keyIterator(null);
-                boolean init = false;
-                while (dataIt.hasNext()) {
-                    Value rowId = dataIt.next();
-                    Value[] values = ((ValueArray) dataMap.get(rowId)).getList();
-                    recordLength = values.length;
-                    if (!init) {
-                        setStorage(Integer.parseInt(tableId));
-                        // init the column types
-                        for (valueId = 0; valueId < recordLength; valueId++) {
-                            String columnName = storageName + "." + valueId;
-                            getSQL(columnName, values[valueId]);
-                        }
-                        createTemporaryTable(writer);
-                        init = true;
-                    }
-                    StringBuilder buff = new StringBuilder();
-                    buff.append("INSERT INTO O_").append(tableId)
-                            .append(" VALUES(");
-                    for (valueId = 0; valueId < recordLength; valueId++) {
-                        if (valueId > 0) {
-                            buff.append(", ");
-                        }
-                        String columnName = storageName + "." + valueId;
-                        buff.append(getSQL(columnName, values[valueId]));
-                    }
-                    buff.append(");");
-                    writer.println(buff.toString());
-                    if (storageId == 0) {
+                if (Integer.parseInt(tableId) == 0) {
+                    TransactionMap<Value, Value> dataMap = store.begin().openMap(mapName, type, type);
+                    Iterator<Value> dataIt = dataMap.keyIterator(null);
+                    while (dataIt.hasNext()) {
+                        Value rowId = dataIt.next();
+                        Value[] values = ((ValueArray) dataMap.get(rowId))
+                                .getList();
                         try {
                             SimpleRow r = new SimpleRow(values);
                             MetaRecord meta = new MetaRecord(r);
@@ -670,14 +644,57 @@ public class Recover extends Tool implements DataHandler {
                     }
                 }
             }
+            // Have to do these before the tables because settings like COLLATION may affect
+            // some of them, and we can't change settings after we have created user tables
+            writeSchemaSET(writer);
+            writer.println("---- Table Data ----");
+            for (String mapName : mv.getMapNames()) {
+                if (!mapName.startsWith("table.")) {
+                    continue;
+                }
+                String tableId = mapName.substring("table.".length());
+                if (Integer.parseInt(tableId) == 0) {
+                    continue;
+                }
+                TransactionMap<Value, Value> dataMap = store.begin().openMap(mapName, type, type);
+                Iterator<Value> dataIt = dataMap.keyIterator(null);
+                boolean init = false;
+                while (dataIt.hasNext()) {
+                    Value rowId = dataIt.next();
+                    Value[] values = ((ValueArray) dataMap.get(rowId)).getList();
+                    recordLength = values.length;
+                    if (!init) {
+                        setStorage(Integer.parseInt(tableId));
+                        // init the column types
+                        StringBuilder builder = new StringBuilder();
+                        for (valueId = 0; valueId < recordLength; valueId++) {
+                            String columnName = storageName + "." + valueId;
+                            builder.setLength(0);
+                            getSQL(builder, columnName, values[valueId]);
+                        }
+                        createTemporaryTable(writer);
+                        init = true;
+                    }
+                    StringBuilder buff = new StringBuilder();
+                    buff.append("INSERT INTO O_").append(tableId)
+                            .append(" VALUES(");
+                    for (valueId = 0; valueId < recordLength; valueId++) {
+                        if (valueId > 0) {
+                            buff.append(", ");
+                        }
+                        String columnName = storageName + "." + valueId;
+                        getSQL(buff, columnName, values[valueId]);
+                    }
+                    buff.append(");");
+                    writer.println(buff.toString());
+                }
+            }
             writeSchema(writer);
             writer.println("DROP ALIAS READ_BLOB_MAP;");
             writer.println("DROP ALIAS READ_CLOB_MAP;");
             writer.println("DROP TABLE IF EXISTS INFORMATION_SCHEMA.LOB_BLOCKS;");
         } catch (Throwable e) {
             writeError(writer, e);
-        } finally {
-            mv.close();
         }
     }
 
@@ -712,10 +729,11 @@ public class Recover extends Tool implements DataHandler {
             try {
                 for (int seq = 0;; seq++) {
                     int l = IOUtils.readFully(in, block, block.length);
-                    String x = StringUtils.convertBytesToHex(block, l);
                     if (l > 0) {
-                        writer.println("INSERT INTO INFORMATION_SCHEMA.LOB_BLOCKS " +
-                                "VALUES(" + lobId + ", " + seq + ", '" + x + "');");
+                        writer.print("INSERT INTO INFORMATION_SCHEMA.LOB_BLOCKS " +
+                                "VALUES(" + lobId + ", " + seq + ", '");
+                        writer.print(StringUtils.convertBytesToHex(block, l));
+                        writer.println("');");
                     }
                     if (l != len) {
                         break;
@@ -768,9 +786,9 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void dumpPageStore(PrintWriter writer, long pageCount) {
-        Data s = Data.create(this, pageSize);
+        Data s = Data.create(this, pageSize, false);
         for (long page = 3; page < pageCount; page++) {
-            s = Data.create(this, pageSize);
+            s = Data.create(this, pageSize, false);
             seek(page);
             store.readFully(s.getBytes(), 0, pageSize);
             dumpPage(writer, s, page, pageCount);
@@ -878,7 +896,7 @@ public class Recover extends Tool implements DataHandler {
     private void dumpPageLogStream(PrintWriter writer, int logKey,
             int logFirstTrunkPage, int logFirstDataPage, long pageCount)
             throws IOException {
-        Data s = Data.create(this, pageSize);
+        Data s = Data.create(this, pageSize, false);
         DataReader in = new DataReader(
                 new PageInputStream(writer, this, store, logKey,
                 logFirstTrunkPage, logFirstDataPage, pageSize)
@@ -947,7 +965,7 @@ public class Recover extends Tool implements DataHandler {
                 }
                 writer.println("-- undo page " + pageId + " " + typeName);
                 if (trace) {
-                    Data d = Data.create(null, data);
+                    Data d = Data.create(null, data, false);
                     dumpPage(writer, d, pageId, pageCount);
                 }
             } else if (x == PageLog.ADD) {
@@ -969,15 +987,17 @@ public class Recover extends Tool implements DataHandler {
                     } else {
                         String tableName = tableMap.get(storageId);
                         if (tableName != null) {
-                            StatementBuilder buff = new StatementBuilder();
-                            buff.append("INSERT INTO ").append(tableName).
+                            StringBuilder builder = new StringBuilder();
+                            builder.append("INSERT INTO ").append(tableName).
                                     append(" VALUES(");
                             for (int i = 0; i < row.getColumnCount(); i++) {
-                                buff.appendExceptFirst(", ");
-                                buff.append(row.getValue(i).getSQL());
+                                if (i > 0) {
+                                    builder.append(", ");
+                                }
+                                row.getValue(i).getSQL(builder);
                             }
-                            buff.append(");");
-                            writer.println(buff.toString());
+                            builder.append(");");
+                            writer.println(builder.toString());
                         }
                     }
                 }
@@ -1043,7 +1063,7 @@ public class Recover extends Tool implements DataHandler {
 
     private String setStorage(int storageId) {
         this.storageId = storageId;
-        this.storageName = "O_" + String.valueOf(storageId).replace('-', 'M');
+        this.storageName = "O_" + Integer.toString(storageId).replace('-', 'M');
         return storageName;
     }
 
@@ -1073,7 +1093,7 @@ public class Recover extends Tool implements DataHandler {
             this.logKey = logKey - 1;
             this.nextTrunkPage = firstTrunkPage;
             this.dataPage = firstDataPage;
-            page = Data.create(handler, pageSize);
+            page = Data.create(handler, pageSize, false);
         }
 
         @Override
@@ -1247,15 +1267,10 @@ public class Recover extends Tool implements DataHandler {
     private int dumpPageFreeList(PrintWriter writer, Data s, long pageId,
             long pageCount) {
         int pagesAddressed = PageFreeList.getPagesAddressed(pageSize);
-        BitField used = new BitField();
-        for (int i = 0; i < pagesAddressed; i += 8) {
-            int x = s.readByte() & 255;
-            for (int j = 0; j < 8; j++) {
-                if ((x & (1 << j)) != 0) {
-                    used.set(i + j);
-                }
-            }
-        }
+        int len = pagesAddressed >> 3;
+        byte[] b = new byte[len];
+        s.read(b, 0, len);
+        BitSet used = BitSet.valueOf(b);
         int free = 0;
         for (long i = 0, j = pageId; i < pagesAddressed && j < pageCount; i++, j++) {
             if (i == 0 || j % 100 == 0) {
@@ -1363,7 +1378,7 @@ public class Recover extends Tool implements DataHandler {
             writer.println("--   empty: " + empty);
         }
         if (!last) {
-            Data s2 = Data.create(this, pageSize);
+            Data s2 = Data.create(this, pageSize, false);
             s.setPos(pageSize);
             long parent = pageId;
             while (true) {
@@ -1431,12 +1446,12 @@ public class Recover extends Tool implements DataHandler {
                             byte[] salt = MathUtils.secureRandomBytes(Constants.SALT_LEN);
                             byte[] passwordHash = SHA256.getHashWithSalt(
                                     userPasswordHash, salt);
-                            StringBuilder buff = new StringBuilder();
-                            buff.append("SALT '").
-                                append(StringUtils.convertBytesToHex(salt)).
-                                append("' HASH '").
-                                append(StringUtils.convertBytesToHex(passwordHash)).
-                                append('\'');
+                            StringBuilder buff = new StringBuilder()
+                                    .append("SALT '");
+                            StringUtils.convertBytesToHex(buff, salt)
+                                    .append("' HASH '");
+                            StringUtils.convertBytesToHex(buff, passwordHash)
+                                    .append('\'');
                             byte[] replacement = buff.toString().getBytes();
                             System.arraycopy(replacement, 0, s.getBytes(),
                                     saltIndex, replacement.length);
@@ -1476,7 +1491,7 @@ public class Recover extends Tool implements DataHandler {
 
     private void writeRow(PrintWriter writer, Data s, Value[] data) {
         StringBuilder sb = new StringBuilder();
-        sb.append("INSERT INTO " + storageName + " VALUES(");
+        sb.append("INSERT INTO ").append(storageName).append(" VALUES(");
         for (valueId = 0; valueId < recordLength; valueId++) {
             try {
                 Value v = s.readValue();
@@ -1485,13 +1500,11 @@ public class Recover extends Tool implements DataHandler {
                     sb.append(", ");
                 }
                 String columnName = storageName + "." + valueId;
-                sb.append(getSQL(columnName, v));
+                getSQL(sb, columnName, v);
             } catch (Exception e) {
                 writeDataError(writer, "exception " + e, s.getBytes());
-                continue;
             } catch (OutOfMemoryError e) {
                 writeDataError(writer, "out of memory", s.getBytes());
-                continue;
             }
         }
         sb.append(");");
@@ -1513,17 +1526,28 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void resetSchema() {
-        schema = New.arrayList();
-        objectIdSet = New.hashSet();
-        tableMap = New.hashMap();
-        columnTypeMap = New.hashMap();
+        schema = new ArrayList<>();
+        objectIdSet = new HashSet<>();
+        tableMap = new HashMap<>();
+        columnTypeMap = new HashMap<>();
+    }
+
+    private void writeSchemaSET(PrintWriter writer) {
+        writer.println("---- Schema SET ----");
+        for (MetaRecord m : schema) {
+            if (m.getObjectType() == DbObject.SETTING) {
+                String sql = m.getSQL();
+                writer.println(sql + ";");
+            }
+        }
     }
 
     private void writeSchema(PrintWriter writer) {
         writer.println("---- Schema ----");
         Collections.sort(schema);
         for (MetaRecord m : schema) {
-            if (!isSchemaObjectTypeDelayed(m)) {
+            if (m.getObjectType() != DbObject.SETTING
+                    && !isSchemaObjectTypeDelayed(m)) {
                 // create, but not referential integrity constraints and so on
                 // because they could fail on duplicate keys
                 String sql = m.getSQL();
@@ -1538,12 +1562,13 @@ public class Recover extends Tool implements DataHandler {
             Integer objectId = entry.getKey();
             String name = entry.getValue();
             if (objectIdSet.contains(objectId)) {
-                if (name.startsWith("INFORMATION_SCHEMA.LOB")) {
+                if (isLobTable(name)) {
                     setStorage(objectId);
                     writer.println("DELETE FROM " + name + ";");
                     writer.println("INSERT INTO " + name + " SELECT * FROM " + storageName + ";");
-                    if (name.startsWith("INFORMATION_SCHEMA.LOBS")) {
-                        writer.println("UPDATE " + name + " SET TABLE = " +
+                    if (name.equals("INFORMATION_SCHEMA.LOBS")
+                            || name.equalsIgnoreCase("\"INFORMATION_SCHEMA\".\"LOBS\"")) {
+                        writer.println("UPDATE " + name + " SET `TABLE` = " +
                                 LobStorageFrontend.TABLE_TEMP + ";");
                         deleteLobs = true;
                     }
@@ -1555,7 +1580,7 @@ public class Recover extends Tool implements DataHandler {
             String name = entry.getValue();
             if (objectIdSet.contains(objectId)) {
                 setStorage(objectId);
-                if (name.startsWith("INFORMATION_SCHEMA.LOB")) {
+                if (isLobTable(name)) {
                     continue;
                 }
                 writer.println("INSERT INTO " + name + " SELECT * FROM " + storageName + ";");
@@ -1570,7 +1595,7 @@ public class Recover extends Tool implements DataHandler {
         writer.println("DROP ALIAS READ_BLOB_DB;");
         writer.println("DROP ALIAS READ_CLOB_DB;");
         if (deleteLobs) {
-            writer.println("DELETE FROM INFORMATION_SCHEMA.LOBS WHERE TABLE = " +
+            writer.println("DELETE FROM INFORMATION_SCHEMA.LOBS WHERE `TABLE` = " +
                     LobStorageFrontend.TABLE_TEMP + ";");
         }
         for (MetaRecord m : schema) {
@@ -1579,6 +1604,11 @@ public class Recover extends Tool implements DataHandler {
                 writer.println(sql + ";");
             }
         }
+    }
+
+    private static boolean isLobTable(String name) {
+        return name.startsWith("INFORMATION_SCHEMA.LOB") || name.startsWith("\"INFORMATION_SCHEMA\".\"LOB")
+                || name.startsWith("\"information_schema\".\"lob");
     }
 
     private static boolean isSchemaObjectTypeDelayed(MetaRecord m) {
@@ -1594,19 +1624,20 @@ public class Recover extends Tool implements DataHandler {
     private void createTemporaryTable(PrintWriter writer) {
         if (!objectIdSet.contains(storageId)) {
             objectIdSet.add(storageId);
-            StatementBuilder buff = new StatementBuilder("CREATE TABLE ");
-            buff.append(storageName).append('(');
+            writer.write("CREATE TABLE ");
+            writer.write(storageName);
+            writer.write('(');
             for (int i = 0; i < recordLength; i++) {
-                buff.appendExceptFirst(", ");
-                buff.append('C').append(i).append(' ');
-                String columnType = columnTypeMap.get(storageName + "." + i);
-                if (columnType == null) {
-                    buff.append("VARCHAR");
-                } else {
-                    buff.append(columnType);
+                if (i > 0) {
+                    writer.print(", ");
                 }
+                writer.write('C');
+                writer.print(i);
+                writer.write(' ');
+                String columnType = columnTypeMap.get(storageName + "." + i);
+                writer.write(columnType == null ? "VARCHAR" : columnType);
             }
-            writer.println(buff.append(");").toString());
+            writer.println(");");
             writer.flush();
         }
     }

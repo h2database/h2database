@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.value;
@@ -8,11 +8,12 @@ package org.h2.value;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Types;
 
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.StringUtils;
+import org.h2.util.LocalDateTimeUtils;
 
 /**
  * Implementation of the DATE data type.
@@ -20,15 +21,10 @@ import org.h2.util.StringUtils;
 public class ValueDate extends Value {
 
     /**
-     * The precision in digits.
-     */
-    public static final int PRECISION = 8;
-
-    /**
-     * The display size of the textual representation of a date.
+     * The default precision and display size of the textual representation of a date.
      * Example: 2000-01-02
      */
-    public static final int DISPLAY_SIZE = 10;
+    public static final int PRECISION = 10;
 
     private final long dateValue;
 
@@ -53,7 +49,8 @@ public class ValueDate extends Value {
      * @return the value
      */
     public static ValueDate get(Date date) {
-        return fromDateValue(DateTimeUtils.dateValueFromDate(date.getTime()));
+        long ms = date.getTime();
+        return fromDateValue(DateTimeUtils.dateValueFromLocalMillis(ms + DateTimeUtils.getTimeZoneOffset(ms)));
     }
 
     /**
@@ -64,7 +61,7 @@ public class ValueDate extends Value {
      * @return the value
      */
     public static ValueDate fromMillis(long ms) {
-        return fromDateValue(DateTimeUtils.dateValueFromDate(ms));
+        return fromDateValue(DateTimeUtils.dateValueFromLocalMillis(ms + DateTimeUtils.getTimeZoneOffset(ms)));
     }
 
     /**
@@ -92,34 +89,31 @@ public class ValueDate extends Value {
     }
 
     @Override
-    public int getType() {
-        return Value.DATE;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_DATE;
+    }
+
+    @Override
+    public int getValueType() {
+        return DATE;
     }
 
     @Override
     public String getString() {
-        StringBuilder buff = new StringBuilder(DISPLAY_SIZE);
-        appendDate(buff, dateValue);
+        StringBuilder buff = new StringBuilder(PRECISION);
+        DateTimeUtils.appendDate(buff, dateValue);
         return buff.toString();
     }
 
     @Override
-    public String getSQL() {
-        return "DATE '" + getString() + "'";
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append("DATE '");
+        DateTimeUtils.appendDate(builder, dateValue);
+        return builder.append('\'');
     }
 
     @Override
-    public long getPrecision() {
-        return PRECISION;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return DISPLAY_SIZE;
-    }
-
-    @Override
-    protected int compareSecure(Value o, CompareMode mode) {
+    public int compareTypeSafe(Value o, CompareMode mode) {
         return Long.compare(dateValue, ((ValueDate) o).dateValue);
     }
 
@@ -143,30 +137,16 @@ public class ValueDate extends Value {
     }
 
     @Override
-    public void set(PreparedStatement prep, int parameterIndex)
-            throws SQLException {
-        prep.setDate(parameterIndex, getDate());
-    }
-
-    /**
-     * Append a date to the string builder.
-     *
-     * @param buff the target string builder
-     * @param dateValue the date value
-     */
-    static void appendDate(StringBuilder buff, long dateValue) {
-        int y = DateTimeUtils.yearFromDateValue(dateValue);
-        int m = DateTimeUtils.monthFromDateValue(dateValue);
-        int d = DateTimeUtils.dayFromDateValue(dateValue);
-        if (y > 0 && y < 10000) {
-            StringUtils.appendZeroPadded(buff, 4, y);
-        } else {
-            buff.append(y);
+    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            try {
+                prep.setObject(parameterIndex, LocalDateTimeUtils.valueToLocalDate(this), Types.DATE);
+                return;
+            } catch (SQLException ignore) {
+                // Nothing to do
+            }
         }
-        buff.append('-');
-        StringUtils.appendZeroPadded(buff, 2, m);
-        buff.append('-');
-        StringUtils.appendZeroPadded(buff, 2, d);
+        prep.setDate(parameterIndex, getDate());
     }
 
 }

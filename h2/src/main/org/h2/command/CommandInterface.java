@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.command;
@@ -8,11 +8,12 @@ package org.h2.command;
 import java.util.ArrayList;
 import org.h2.expression.ParameterInterface;
 import org.h2.result.ResultInterface;
+import org.h2.result.ResultWithGeneratedKeys;
 
 /**
  * Represents a SQL statement.
  */
-public interface CommandInterface {
+public interface CommandInterface extends AutoCloseable {
 
     /**
      * The type for unknown statement.
@@ -62,12 +63,13 @@ public interface CommandInterface {
     int ALTER_TABLE_ALTER_COLUMN_NOT_NULL = 8;
 
     /**
-     * The type of a ALTER TABLE ALTER COLUMN SET NULL statement.
+     * The type of a ALTER TABLE ALTER COLUMN DROP NOT NULL statement.
      */
-    int ALTER_TABLE_ALTER_COLUMN_NULL = 9;
+    int ALTER_TABLE_ALTER_COLUMN_DROP_NOT_NULL = 9;
 
     /**
-     * The type of a ALTER TABLE ALTER COLUMN SET DEFAULT statement.
+     * The type of a ALTER TABLE ALTER COLUMN SET DEFAULT and ALTER TABLE ALTER
+     * COLUMN DROP DEFAULT statements.
      */
     int ALTER_TABLE_ALTER_COLUMN_DEFAULT = 10;
 
@@ -478,6 +480,11 @@ public interface CommandInterface {
     int DROP_SYNONYM = 89;
 
     /**
+     * The type of a ALTER TABLE ALTER COLUMN SET ON UPDATE statement.
+     */
+    int ALTER_TABLE_ALTER_COLUMN_ON_UPDATE = 90;
+
+    /**
      * Get command type.
      *
      * @return one of the constants above
@@ -510,9 +517,16 @@ public interface CommandInterface {
     /**
      * Execute the statement
      *
-     * @return the update count
+     * @param generatedKeysRequest
+     *            {@code null} or {@code false} if generated keys are not
+     *            needed, {@code true} if generated keys should be configured
+     *            automatically, {@code int[]} to specify column indices to
+     *            return generated keys from, or {@code String[]} to specify
+     *            column names to return generated keys from
+     *
+     * @return the update count and generated keys, if any
      */
-    int executeUpdate();
+    ResultWithGeneratedKeys executeUpdate(Object generatedKeysRequest);
 
     /**
      * Stop the command execution, release all locks and resources
@@ -522,6 +536,7 @@ public interface CommandInterface {
     /**
      * Close the statement.
      */
+    @Override
     void close();
 
     /**

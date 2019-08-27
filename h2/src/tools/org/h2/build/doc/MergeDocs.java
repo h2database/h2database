@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.build.doc;
@@ -31,8 +31,10 @@ public class MergeDocs {
         // the order of pages is important here
         String[] pages = { "quickstart.html", "installation.html",
                 "tutorial.html", "features.html", "performance.html",
-                "advanced.html", "grammar.html", "functions.html",
-                "datatypes.html", "build.html", "history.html", "faq.html" };
+                "advanced.html", "commands.html",
+                "functions.html", "functions-aggregate.html", "functions-window.html",
+                "datatypes.html", "grammar.html", "systemtables.html",
+                "build.html", "history.html", "faq.html" };
         StringBuilder buff = new StringBuilder();
         for (String fileName : pages) {
             String text = getContent(fileName);
@@ -41,6 +43,8 @@ public class MergeDocs {
             }
             text = disableRailroads(text);
             text = removeHeaderFooter(fileName, text);
+            text = fixLinks(text);
+            text = fixTableBorders(text);
             buff.append(text);
         }
         String finalText = buff.toString();
@@ -51,7 +55,7 @@ public class MergeDocs {
         writer.println("H2 Documentation");
         writer.println("</title><link rel=\"stylesheet\" type=\"text/css\" " +
                 "href=\"stylesheetPdf.css\" /></head><body>");
-        writer.println("<h1>H2 Database Engine</h1>");
+        writer.println("<p class=\"title\">H2 Database Engine</p>");
         writer.println("<p>Version " + Constants.getFullVersion() + "</p>");
         writer.println(finalText);
         writer.println("</body></html>");
@@ -90,6 +94,25 @@ public class MergeDocs {
         idx = text.indexOf(start) + start.length();
         text = text.substring(idx + 1);
         return text;
+    }
+
+    private static String fixLinks(String text) {
+        return text
+                .replaceAll("href=\"build.html\"", "href=\"#build_index\"")
+                .replaceAll("href=\"datatypes.html\"", "href=\"#datatypes_index\"")
+                .replaceAll("href=\"faq.html\"", "href=\"#faq_index\"")
+                .replaceAll("href=\"commands.html\"", "href=\"#commands_index\"")
+                .replaceAll("href=\"grammar.html\"", "href=\"#grammar_index\"")
+                .replaceAll("href=\"functions.html\"", "href=\"#functions_index\"")
+                .replaceAll("href=\"functions-aggregate.html\"", "href=\"#functions_aggregate_index\"")
+                .replaceAll("href=\"functions-window.html\"", "href=\"#functions_window_index\"")
+                .replaceAll("href=\"tutorial.html\"", "href=\"#tutorial_index\"");
+    }
+
+    private static String fixTableBorders(String text) {
+        return text
+                .replaceAll("<table class=\"main\">",
+                        "<table class=\"main\" border=\"1\" cellpadding=\"5\" cellspacing=\"0\">");
     }
 
     private static String getContent(String fileName) throws Exception {

@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.constraint;
@@ -10,7 +10,6 @@ import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.index.Index;
-import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
@@ -24,25 +23,40 @@ import org.h2.table.Table;
 public abstract class Constraint extends SchemaObjectBase implements
         Comparable<Constraint> {
 
-    /**
-     * The constraint type name for check constraints.
-     */
-    public static final String CHECK = "CHECK";
+    public enum Type {
+        /**
+         * The constraint type for check constraints.
+         */
+        CHECK,
+        /**
+         * The constraint type for primary key constraints.
+         */
+        PRIMARY_KEY,
+        /**
+         * The constraint type for unique constraints.
+         */
+        UNIQUE,
+        /**
+         * The constraint type for referential constraints.
+         */
+        REFERENTIAL;
 
-    /**
-     * The constraint type name for referential constraints.
-     */
-    public static final String REFERENTIAL = "REFERENTIAL";
+        /**
+         * Get standard SQL type name.
+         *
+         * @return standard SQL type name
+         */
+        public String getSqlName() {
+            if (this == Constraint.Type.PRIMARY_KEY) {
+                return "PRIMARY KEY";
+            }
+            if (this == Constraint.Type.REFERENTIAL) {
+                return "FOREIGN KEY";
+            }
+            return name();
+        }
 
-    /**
-     * The constraint type name for unique constraints.
-     */
-    public static final String UNIQUE = "UNIQUE";
-
-    /**
-     * The constraint type name for primary key constraints.
-     */
-    public static final String PRIMARY_KEY = "PRIMARY KEY";
+    }
 
     /**
      * The table for which this constraint is defined.
@@ -50,7 +64,7 @@ public abstract class Constraint extends SchemaObjectBase implements
     protected Table table;
 
     Constraint(Schema schema, int id, String name, Table table) {
-        initSchemaObjectBase(schema, id, name, Trace.CONSTRAINT);
+        super(schema, id, name, Trace.CONSTRAINT);
         this.table = table;
         this.setTemporary(table.isTemporary());
     }
@@ -60,7 +74,7 @@ public abstract class Constraint extends SchemaObjectBase implements
      *
      * @return the name
      */
-    public abstract String getConstraintType();
+    public abstract Type getConstraintType();
 
     /**
      * Check if this row fulfils the constraint.
@@ -155,29 +169,12 @@ public abstract class Constraint extends SchemaObjectBase implements
         return null;
     }
 
-    private int getConstraintTypeOrder() {
-        String constraintType = getConstraintType();
-        if (CHECK.equals(constraintType)) {
-            return 0;
-        } else if (PRIMARY_KEY.equals(constraintType)) {
-            return 1;
-        } else if (UNIQUE.equals(constraintType)) {
-            return 2;
-        } else if (REFERENTIAL.equals(constraintType)) {
-            return 3;
-        } else {
-            throw DbException.throwInternalError("type: " + constraintType);
-        }
-    }
-
     @Override
     public int compareTo(Constraint other) {
         if (this == other) {
             return 0;
         }
-        int thisType = getConstraintTypeOrder();
-        int otherType = other.getConstraintTypeOrder();
-        return thisType - otherType;
+        return Integer.compare(getConstraintType().ordinal(), other.getConstraintType().ordinal());
     }
 
     @Override

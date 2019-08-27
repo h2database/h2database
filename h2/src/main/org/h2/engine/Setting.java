@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.engine;
@@ -18,7 +18,17 @@ public class Setting extends DbObjectBase {
     private String stringValue;
 
     public Setting(Database database, int id, String settingName) {
-        initDbObjectBase(database, id, settingName, Trace.SETTING);
+        super(database, id, settingName, Trace.SETTING);
+    }
+
+    @Override
+    public String getSQL(boolean alwaysQuote) {
+        return getName();
+    }
+
+    @Override
+    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+        return builder.append(getName());
     }
 
     public void setIntValue(int value) {
@@ -50,7 +60,7 @@ public class Setting extends DbObjectBase {
     @Override
     public String getCreateSQL() {
         StringBuilder buff = new StringBuilder("SET ");
-        buff.append(getSQL()).append(' ');
+        getSQL(buff, true).append(' ');
         if (stringValue != null) {
             buff.append(stringValue);
         } else {

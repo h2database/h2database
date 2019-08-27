@@ -1,7 +1,7 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0, Version
- * 1.0, and under the Eclipse Public License, Version 1.0
- * (http://h2database.com/html/license.html). Initial Developer: H2 Group
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
  */
 package org.h2.util;
 
@@ -184,15 +184,15 @@ public class AbbaLockingDetector implements Runnable {
      * stack frames)
      */
     private static String getStackTraceForThread(ThreadInfo info) {
-        StringBuilder sb = new StringBuilder("\"" +
-                info.getThreadName() + "\"" + " Id=" +
-                info.getThreadId() + " " + info.getThreadState());
+        StringBuilder sb = new StringBuilder().append('"')
+                .append(info.getThreadName()).append("\"" + " Id=")
+                .append(info.getThreadId()).append(' ').append(info.getThreadState());
         if (info.getLockName() != null) {
-            sb.append(" on " + info.getLockName());
+            sb.append(" on ").append(info.getLockName());
         }
         if (info.getLockOwnerName() != null) {
-            sb.append(" owned by \"" + info.getLockOwnerName() +
-                    "\" Id=" + info.getLockOwnerId());
+            sb.append(" owned by \"").append(info.getLockOwnerName())
+                    .append("\" Id=").append(info.getLockOwnerId());
         }
         if (info.isSuspended()) {
             sb.append(" (suspended)");
@@ -219,7 +219,7 @@ public class AbbaLockingDetector implements Runnable {
                         dumpStackTraceElement(info, sb, i, e);
                         startDumping = true;
                     }
-                    sb.append("\t-  locked " + mi);
+                    sb.append("\t-  locked ").append(mi);
                     sb.append('\n');
                 }
             }
@@ -229,22 +229,25 @@ public class AbbaLockingDetector implements Runnable {
 
     private static void dumpStackTraceElement(ThreadInfo info,
             StringBuilder sb, int i, StackTraceElement e) {
-        sb.append('\t').append("at ").append(e.toString());
-        sb.append('\n');
+        sb.append('\t').append("at ").append(e)
+                .append('\n');
         if (i == 0 && info.getLockInfo() != null) {
             Thread.State ts = info.getThreadState();
             switch (ts) {
             case BLOCKED:
-                sb.append("\t-  blocked on " + info.getLockInfo());
-                sb.append('\n');
+                sb.append("\t-  blocked on ")
+                        .append(info.getLockInfo())
+                        .append('\n');
                 break;
             case WAITING:
-                sb.append("\t-  waiting on " + info.getLockInfo());
-                sb.append('\n');
+                sb.append("\t-  waiting on ")
+                        .append(info.getLockInfo())
+                        .append('\n');
                 break;
             case TIMED_WAITING:
-                sb.append("\t-  waiting on " + info.getLockInfo());
-                sb.append('\n');
+                sb.append("\t-  waiting on ")
+                        .append(info.getLockInfo())
+                        .append('\n');
                 break;
             default:
             }

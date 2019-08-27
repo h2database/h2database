@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.dev.util;
@@ -14,6 +14,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.RandomAccessFile;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeUnit;
@@ -95,7 +96,7 @@ public class Migrate {
                 "-password", password
         });
         file.renameTo(new File(file.getAbsoluteFile() + ".backup"));
-        RunScript.execute(url, user, password, TEMP_SCRIPT, Constants.UTF8, true);
+        RunScript.execute(url, user, password, TEMP_SCRIPT, StandardCharsets.UTF_8, true);
         new File(TEMP_SCRIPT).delete();
     }
 

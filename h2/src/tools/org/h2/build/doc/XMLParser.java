@@ -1,9 +1,11 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.build.doc;
+
+import java.util.Arrays;
 
 /**
  * This class implements a simple XML pull parser.
@@ -94,9 +96,7 @@ public class XMLParser {
 
     private void addAttributeName(String pre, String name) {
         if (attributeValues.length <= currentAttribute) {
-            String[] temp = new String[attributeValues.length * 2];
-            System.arraycopy(attributeValues, 0, temp, 0, attributeValues.length);
-            attributeValues = temp;
+            attributeValues = Arrays.copyOf(attributeValues, attributeValues.length * 2);
         }
         attributeValues[currentAttribute++] = pre;
         attributeValues[currentAttribute++] = name;

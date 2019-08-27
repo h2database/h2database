@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.jdbcx;
@@ -23,6 +23,7 @@ import javax.sql.XAConnection;
 import javax.sql.XADataSource;
 import org.h2.Driver;
 import org.h2.jdbc.JdbcConnection;
+import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.util.StringUtils;
 
@@ -334,7 +335,7 @@ public class JdbcDataSource extends TraceObject implements XADataSource,
         ref.add(new StringRefAddr("url", url));
         ref.add(new StringRefAddr("user", userName));
         ref.add(new StringRefAddr("password", convertToString(passwordChars)));
-        ref.add(new StringRefAddr("loginTimeout", String.valueOf(loginTimeout)));
+        ref.add(new StringRefAddr("loginTimeout", Integer.toString(loginTimeout)));
         ref.add(new StringRefAddr("description", description));
         return ref;
     }
@@ -401,23 +402,33 @@ public class JdbcDataSource extends TraceObject implements XADataSource,
     }
 
     /**
-     * [Not supported] Return an object of this class if possible.
+     * Return an object of this class if possible.
      *
      * @param iface the class
+     * @return this
      */
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T unwrap(Class<T> iface) throws SQLException {
-        throw unsupported("unwrap");
+        try {
+            if (isWrapperFor(iface)) {
+                return (T) this;
+            }
+            throw DbException.getInvalidValueException("iface", iface);
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**
-     * [Not supported] Checks if unwrap can return an object of this class.
+     * Checks if unwrap can return an object of this class.
      *
      * @param iface the class
+     * @return whether or not the interface is assignable from this class
      */
     @Override
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
-        throw unsupported("isWrapperFor");
+        return iface != null && iface.isAssignableFrom(getClass());
     }
 
     /**

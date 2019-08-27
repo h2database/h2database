@@ -1,11 +1,12 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.synth;
 
 import java.io.InputStream;
+import java.lang.ProcessBuilder.Redirect;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -13,54 +14,94 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
+
 import org.h2.api.ErrorCode;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.test.utils.SelfDestructor;
 import org.h2.tools.Backup;
-import org.h2.util.New;
 
 /**
  * Standalone recovery test. A new process is started and then killed while it
  * executes random statements using multiple connection.
  */
-public class TestKillRestartMulti extends TestBase {
+public class TestKillRestartMulti extends TestDb {
+
+    /**
+     * We want self-destruct to occur before the read times out and we kill the
+     * child process.
+     */
+    private static final int CHILD_READ_TIMEOUT_MS = 7 * 60 * 1000; // 7 minutes
+    private static final int CHILD_SELFDESTRUCT_TIMEOUT_MINS = 5;
 
     private String driver = "org.h2.Driver";
     private String url;
     private String user = "sa";
     private String password = "sa";
-    private final ArrayList<Connection> connections = New.arrayList();
-    private final ArrayList<String> tables = New.arrayList();
+    private final ArrayList<Connection> connections = new ArrayList<>();
+    private final ArrayList<String> tables = new ArrayList<>();
     private int openCount;
+
+
+    /**
+     * This method is called when executing this application from the command
+     * line.
+     *
+     * Note that this entry can be used in two different ways, either
+     * (a) running just this test
+     * (b) or when this test invokes itself in a child process
+     *
+     * @param args the command line parameters
+     */
+    public static void main(String... args) throws Exception {
+        if (args != null && args.length > 0) {
+            // the child process case
+            SelfDestructor.startCountdown(CHILD_SELFDESTRUCT_TIMEOUT_MINS);
+            new TestKillRestartMulti().test(args);
+        }
+        else
+        {
+            // the standalone test case
+            TestBase.createCaller().init().test();
+        }
+    }
+
+    @Override
+    public boolean isEnabled() {
+        if (config.networked) {
+            return false;
+        }
+        if (getBaseDir().indexOf(':') > 0) {
+            return false;
+        }
+        return true;
+    }
 
     @Override
     public void test() throws Exception {
-        if (config.networked) {
-            return;
-        }
-        if (getBaseDir().indexOf(':') > 0) {
-            return;
-        }
         deleteDb("killRestartMulti");
-        url = getURL("killRestartMulti", true);
+        url = getURL("killRestartMulti;RETENTION_TIME=0", true);
         user = getUser();
         password = getPassword();
         String selfDestruct = SelfDestructor.getPropertyString(60);
-        String[] procDef = { "java", selfDestruct,
-                "-cp", getClassPath(),
-                getClass().getName(), "-url", url, "-user", user,
-                "-password", password };
+        // Inherit error so that the stacktraces reported from SelfDestructor
+        // show up in our log.
+        ProcessBuilder pb = new ProcessBuilder().redirectError(Redirect.INHERIT)
+                .command(getJVM(), selfDestruct, "-cp", getClassPath(),
+                        "-ea",
+                        getClass().getName(), "-url", url, "-user", user,
+                        "-password", password);
         deleteDb("killRestartMulti");
         int len = getSize(3, 10);
         Random random = new Random();
         for (int i = 0; i < len; i++) {
-            Process p = Runtime.getRuntime().exec(procDef);
+            Process p = pb.start();
             InputStream in = p.getInputStream();
             OutputCatcher catcher = new OutputCatcher(in);
             catcher.start();
             while (true) {
-                String s = catcher.readLine(5 * 60 * 1000);
+                String s = catcher.readLine(CHILD_READ_TIMEOUT_MS);
                 // System.out.println("> " + s);
                 if (s == null) {
                     fail("No reply from process");
@@ -72,14 +113,16 @@ public class TestKillRestartMulti extends TestBase {
                     Thread.sleep(sleep);
                     printTime("killing: " + i);
                     p.destroy();
+                    printTime("killing, waiting for: " + i);
                     p.waitFor();
+                    printTime("killing, dead: " + i);
                     break;
                 } else if (s.startsWith("#Info")) {
                     // System.out.println("info: " + s);
                 } else if (s.startsWith("#Fail")) {
                     System.err.println(s);
                     while (true) {
-                        String a = catcher.readLine(5 * 60 * 1000);
+                        String a = catcher.readLine(CHILD_READ_TIMEOUT_MS);
                         if (a == null || "#End".endsWith(a)) {
                             break;
                         }
@@ -119,17 +162,6 @@ public class TestKillRestartMulti extends TestBase {
             }
         }
         deleteDb("killRestartMulti");
-    }
-
-    /**
-     * This method is called when executing this application from the command
-     * line.
-     *
-     * @param args the command line parameters
-     */
-    public static void main(String... args) {
-        SelfDestructor.startCountdown(60);
-        new TestKillRestartMulti().test(args);
     }
 
     private void test(String... args) {

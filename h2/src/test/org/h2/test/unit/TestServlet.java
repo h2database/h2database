@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.unit;
@@ -32,13 +32,13 @@ import javax.servlet.descriptor.JspConfigDescriptor;
 import org.h2.api.ErrorCode;
 import org.h2.server.web.DbStarter;
 import org.h2.test.TestBase;
-import org.h2.util.New;
+import org.h2.test.TestDb;
 
 /**
  * Tests the DbStarter servlet.
  * This test simulates a minimum servlet container environment.
  */
-public class TestServlet extends TestBase {
+public class TestServlet extends TestDb {
 
     /**
      * Run just this test.
@@ -56,7 +56,7 @@ public class TestServlet extends TestBase {
     static class TestServletContext implements ServletContext {
 
         private final Properties initParams = new Properties();
-        private final HashMap<String, Object> attributes = New.hashMap();
+        private final HashMap<String, Object> attributes = new HashMap<>();
 
         @Override
         public void setAttribute(String key, Object value) {
@@ -345,10 +345,15 @@ public class TestServlet extends TestBase {
     }
 
     @Override
-    public void test() throws SQLException {
+    public boolean isEnabled() {
         if (config.networked || config.memory) {
-            return;
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws SQLException {
         DbStarter listener = new DbStarter();
 
         TestServletContext context = new TestServletContext();

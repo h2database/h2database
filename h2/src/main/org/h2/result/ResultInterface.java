@@ -1,11 +1,12 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.result;
 
-import org.h2.engine.Session;
+import org.h2.engine.SessionInterface;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
 /**
@@ -123,31 +124,7 @@ public interface ResultInterface extends AutoCloseable {
      * @param i the column number (starting with 0)
      * @return the column data type
      */
-    int getColumnType(int i);
-
-    /**
-     * Get the precision for this column.
-     *
-     * @param i the column number (starting with 0)
-     * @return the precision
-     */
-    long getColumnPrecision(int i);
-
-    /**
-     * Get the scale for this column.
-     *
-     * @param i the column number (starting with 0)
-     * @return the scale
-     */
-    int getColumnScale(int i);
-
-    /**
-     * Get the display size for this column.
-     *
-     * @param i the column number (starting with 0)
-     * @return the display size
-     */
-    int getDisplaySize(int i);
+    TypeInfo getColumnType(int i);
 
     /**
      * Check if this is an auto-increment column.
@@ -200,13 +177,6 @@ public interface ResultInterface extends AutoCloseable {
      * @param targetSession the session of the copy
      * @return the copy if possible, or null if copying is not possible
      */
-    ResultInterface createShallowCopy(Session targetSession);
+    ResultInterface createShallowCopy(SessionInterface targetSession);
 
-    /**
-     * Check if this result set contains the given row.
-     *
-     * @param values the row
-     * @return true if the row exists
-     */
-    boolean containsDistinct(Value[] values);
 }

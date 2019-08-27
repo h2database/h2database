@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.synth;
@@ -12,12 +12,13 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.DeleteDbFiles;
 
 /**
  * A b-tree index test.
  */
-public class TestBtreeIndex extends TestBase {
+public class TestBtreeIndex extends TestDb {
 
     /**
      * Run just this test.
@@ -71,8 +72,7 @@ public class TestBtreeIndex extends TestBase {
         deleteDb(getTestName());
     }
 
-    @Override
-    public void testCase(int seed) throws SQLException {
+    private void testCase(int seed) throws SQLException {
         testOne(seed);
     }
 
@@ -102,8 +102,7 @@ public class TestBtreeIndex extends TestBase {
         }
         String prefix = buff.toString().substring(0, prefixLength);
         DeleteDbFiles.execute(getBaseDir() + "/" + getTestName(), null, true);
-        Connection conn = getConnection(getTestName());
-        try {
+        try (Connection conn = getConnection(getTestName())) {
             Statement stat = conn.createStatement();
             stat.execute("CREATE TABLE a(text VARCHAR PRIMARY KEY)");
             PreparedStatement prepInsert = conn.prepareStatement(
@@ -189,8 +188,6 @@ public class TestBtreeIndex extends TestBase {
             if (rs.next()) {
                 printError(seed, "testCount:" + testCount + " " + rs.getString(1));
             }
-        } finally {
-            conn.close();
         }
         deleteDb(getTestName());
     }

@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.tools;
@@ -15,7 +15,6 @@ import java.util.StringTokenizer;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
 
@@ -27,7 +26,7 @@ import org.h2.util.Tool;
  */
 public class ConvertTraceFile extends Tool {
 
-    private final HashMap<String, Stat> stats = New.hashMap();
+    private final HashMap<String, Stat> stats = new HashMap<>();
     private long timeTotal;
 
     /**
@@ -179,7 +178,7 @@ public class ConvertTraceFile extends Tool {
             scriptWriter.println("-----------------------------------------");
             scriptWriter.println("-- self accu    time   count  result sql");
             int accumTime = 0;
-            ArrayList<Stat> list = New.arrayList(stats.values());
+            ArrayList<Stat> list = new ArrayList<>(stats.values());
             Collections.sort(list);
             if (timeTotal == 0) {
                 timeTotal = 1;
@@ -208,7 +207,7 @@ public class ConvertTraceFile extends Tool {
     }
 
     private static String padNumberLeft(long number, int digits) {
-        return StringUtils.pad(String.valueOf(number), digits, " ", false);
+        return StringUtils.pad(Long.toString(number), digits, " ", false);
     }
 
     private void addToStats(String sql, int resultCount, long time) {

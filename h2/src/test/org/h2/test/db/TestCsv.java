@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.db;
@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -27,9 +28,9 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.Csv;
 import org.h2.util.IOUtils;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 
 /**
@@ -38,7 +39,7 @@ import org.h2.util.StringUtils;
  * @author Thomas Mueller
  * @author Sylvain Cuaz (testNull)
  */
-public class TestCsv extends TestBase {
+public class TestCsv extends TestDb {
 
     /**
      * Run just this test.
@@ -106,9 +107,7 @@ public class TestCsv extends TestBase {
         csv.setLineSeparator(";");
         csv.write(writer, rs);
         conn.close();
-        // getTimestamp().getString() needs to be used (not for H2, but for
-        // Oracle)
-        assertEquals("TS,N;0101-01-01 12:00:00.0,;", writer.toString());
+        assertEquals("TS,N;-100-01-01 12:00:00,;", writer.toString());
     }
 
     private void testCaseSensitiveColumnNames() throws Exception {
@@ -242,9 +241,9 @@ public class TestCsv extends TestBase {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         // UTF-8 "BOM" / marker
         out.write(StringUtils.convertHexToBytes("ef" + "bb" + "bf"));
-        out.write("\"ID\", \"NAME\"\n1, Hello".getBytes("UTF-8"));
+        out.write("\"ID\", \"NAME\"\n1, Hello".getBytes(StandardCharsets.UTF_8));
         byte[] buff = out.toByteArray();
-        Reader r = new InputStreamReader(new ByteArrayInputStream(buff), "UTF-8");
+        Reader r = new InputStreamReader(new ByteArrayInputStream(buff), StandardCharsets.UTF_8);
         ResultSet rs = new Csv().read(r, null);
         assertEquals("ID", rs.getMetaData().getColumnLabel(1));
         assertEquals("NAME", rs.getMetaData().getColumnLabel(2));
@@ -306,7 +305,7 @@ public class TestCsv extends TestBase {
 
         OutputStream out = FileUtils.newOutputStream(fileName, false);
         String csvContent = "\"A\",\"B\",\"C\",\"D\"\n\\N,\"\",\"\\N\",";
-        byte[] b = csvContent.getBytes("UTF-8");
+        byte[] b = csvContent.getBytes(StandardCharsets.UTF_8);
         out.write(b, 0, b.length);
         out.close();
         Csv csv = new Csv();
@@ -352,7 +351,7 @@ public class TestCsv extends TestBase {
         int len = getSize(1000, 10000);
         PreparedStatement prep = conn.prepareStatement(
                 "insert into test(a, b) values(?, ?)");
-        ArrayList<String[]> list = New.arrayList();
+        ArrayList<String[]> list = new ArrayList<>(len);
         Random random = new Random(1);
         for (int i = 0; i < len; i++) {
             String a = randomData(random), b = randomData(random);
@@ -401,7 +400,7 @@ public class TestCsv extends TestBase {
         InputStreamReader reader = new InputStreamReader(
                 FileUtils.newInputStream(fileName));
         String text = IOUtils.readStringAndClose(reader, -1).trim();
-        text = StringUtils.replaceAll(text, "\n", " ");
+        text = text.replace('\n', ' ');
         assertEquals("ID|NAME 1|Hello", text);
         ResultSet rs = stat.executeQuery("select * from csvread('" +
                 fileName + "', null, null, '|', '')");

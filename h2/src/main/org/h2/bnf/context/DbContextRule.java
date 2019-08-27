@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.bnf.context;
@@ -15,8 +15,8 @@ import org.h2.bnf.RuleElement;
 import org.h2.bnf.RuleHead;
 import org.h2.bnf.RuleList;
 import org.h2.bnf.Sentence;
-import org.h2.command.Parser;
 import org.h2.message.DbException;
+import org.h2.util.ParserUtil;
 import org.h2.util.StringUtils;
 
 /**
@@ -154,7 +154,7 @@ public class DbContextRule implements Rule {
                 break;
             }
             String alias = up.substring(0, i);
-            if (Parser.isKeyword(alias, true)) {
+            if (ParserUtil.isKeyword(alias, false)) {
                 break;
             }
             s = s.substring(alias.length());
@@ -244,9 +244,9 @@ public class DbContextRule implements Rule {
         }
         String incompleteSentence = sentence.getQueryUpper();
         String incompleteFunctionName = incompleteSentence;
-        if (incompleteSentence.contains("(")) {
-            incompleteFunctionName = incompleteSentence.substring(0,
-                    incompleteSentence.indexOf('(')).trim();
+        int bracketIndex = incompleteSentence.indexOf('(');
+        if (bracketIndex != -1) {
+            incompleteFunctionName = StringUtils.trimSubstring(incompleteSentence, 0, bracketIndex);
         }
 
         // Common elements
@@ -301,7 +301,7 @@ public class DbContextRule implements Rule {
             return s;
         }
         String alias = up.substring(0, i);
-        if ("SET".equals(alias) || Parser.isKeyword(alias, true)) {
+        if ("SET".equals(alias) || ParserUtil.isKeyword(alias, false)) {
             return s;
         }
         if (newAlias) {

@@ -1,55 +1,156 @@
-git pull
-./build.sh spellcheck
-./build.sh javadocImpl
-./build.sh docs
-./build.sh jarMVStore (should be about 200 KB)
-Update Constants.java - change version and build number
-Update changelog.html - add new version, remove oldest
-Update newsfeed.sql - add new version, remove oldest
-Minor version change: change sourceError.html and source.html
-If a beta, change download.html: Version ${version} (${versionDate}), Beta
-If a beta, change mainWeb.html: Version ${version} (${versionDate}), Beta
-Benchmark: use latest versions of other dbs, change version(s) in performance.html
-Run ./buildRelease.sh / buildRelease.bat
+# Checklist for a release
 
-Scan for viruses
-Test installer, H2 Console (test new languages)
-Check docs, versions and links in main, downloads, build numbers
-Check the PDF file size
+## Switch to Java 1.7
 
-Upload (http and https) to ftp://h2database.com/javadoc
-Upload (http and https) to ftp://h2database.com
-Upload (http and https) to ftp://h2database.com/m2-repo
-Github: create a release
-Newsletter: prepare (always to BCC)
-Newsletter: send to h2-database-jp@googlegroups.com; h2-database@googlegroups.com; h2database-news@googlegroups.com; ...
-Add to http://twitter.com
-- tweet: add @geospatialnews for the new geometry type and disk spatial index
+    . setjava.sh 1.7
 
-Sign files and publish files on Maven Central
-(check java version is 1.7)
-./build.sh clean compile jar mavenDeployCentral
-cd /data/h2database/m2-repo/com/h2database
-# remove sha and md5 files:
-find . -name "*.sha1" -delete
-find . -name "*.md5" -delete
-cd h2/1...
-# for each file separately (-javadoc.jar, -sources.jar, .jar, .pom):
-gpg -u "Thomas Mueller Graf <thomas.tom.mueller@gmail.com>" -ab h2-...
-jar -cvf bundle.jar h2-*
-cd ../../h2-mvstore/1...
-# for each file separately (-javadoc.jar, -sources.jar, .jar, .pom):
-gpg -u "Thomas Mueller Graf <thomas.tom.mueller@gmail.com>" -ab h2-mvstore...
-jar -cvf bundle.jar h2-*
-# http://central.sonatype.org/pages/ossrh-guide.html
-# http://central.sonatype.org/pages/manual-staging-bundle-creation-and-deployment.html
-# https://oss.sonatype.org/#welcome - Log In "t..."
-# - Staging Upload
-# - Upload Mode: Artifact Bundle, Select Bundle to Upload... - /data/.../bundle.jar
-# - Upload Bundle - Staging Repositories - select comh2database - Release - Confirm
-# - Staging Upload
-# - Upload Mode: Artifact Bundle, Select Bundle to Upload... - /data/.../bundle.jar
-# - Upload Bundle - Staging Repositories - select comh2database - Release - Confirm
+## Formatting, Spellchecking, Javadocs
 
-Update statistics
-Change version in pom.xml, commit
+    git pull
+
+Do this until there are no errors.
+Fix typos, add new words to dictionary.txt:
+
+    ./build.sh clean compile spellcheck
+
+Add documentation for all public methods. Make methods private if possible:
+
+    ./build.sh javadocImpl
+
+Ensure lines are not overly long:
+
+    ./build.sh docs
+
+## JDBC Client Jar File Size Verification
+
+The JDBC client is supposed to not have dependencies to the database engine.
+To verify, run
+
+    ./build.sh clean jarClient
+
+If this fails with eg. "Expected file size 400 - 600 KB, got: 1687", then
+find out where the dependency is, and resolve. As follows:
+start by renaming Database to Database2:
+
+    mv src/main/org/h2/engine/Database.java src/main/org/h2/engine/Database2.java
+    ./build.sh clean jarClient
+
+This will fail, the first error is for example can not compile Session because Database was not found.
+So rename Session to Session2 and try again.
+This will fail again, the first error is different, now for example can not compile ResultInterface
+because Session was not found. Now, ResultInterface should not depend on the Session.
+So this needs to be fixed (the JDBC API shouldn't indirectly depend on it).
+After everything is resolved, rename the classes back.
+
+## MVStore Jar File Size Verification
+
+To ensure the MVStore jar file is not too large
+(does not reference the database code by accident).
+The file size should be about 300 KB:
+
+    ./build.sh jarMVStore
+
+## Changing Version Numbers
+
+Update org.h2.engine.Constants.java:
+    if the last build was stable (the normal case):
+        set BUILD_DATE_STABLE to current BUILD_DATE
+        set BUILD_ID_STABLE to current BUILD_ID
+    change the version and build number:
+        set BUILD_DATE to today
+        increment BUILD_ID
+    if the last TCP_PROTOCOL_VERSION_##
+        doesn't have a release date set it to current BUILD_DATE
+
+Update h2/pom.xml.
+    set ...-SNAPSHOT to the next version
+
+Update changelog.html:
+    * create a new "Next Version (unreleased)" with an empty list
+    * add a new version
+    * remove change log entries of the oldest version (keeping about 500 lines)
+
+Update newsfeed.sql:
+    * add new version, for example:
+    * (146, '1.4.197', '2017-06-10'),
+    * remove oldest entry in that list
+
+## Skipped
+
+* Minor version change: change sourceError.html and source.html
+* If a beta, change download.html: Version ${version} (${versionDate}), Beta
+* If a beta, change mainWeb.html: Version ${version} (${versionDate}), Beta
+
+The following can be skipped currently; benchmarks should probably be removed:
+* To update benchmark data: use latest versions of other dbs, change version(s) in performance.html
+
+## Build the Release
+
+Switch to Java 1.7.
+In Build.java, comment "-Xdoclint:none", but don't commit that change.
+
+Run the following commands:
+Non-Windows:
+
+    cd src/installer
+    ./buildRelease.sh
+
+Windows:
+
+    cd src/installer
+    buildRelease.bat
+
+Scan for viruses.
+
+Test installer, H2 Console (test new languages).
+
+Check docs, versions and links in main, downloads, build numbers.
+
+Check the PDF file size.
+
+Upload (<x> = httpdocs and httpsdocs) to ftp://h2database.com/<x>/javadoc
+Upload (<x> = httpdocs and httpsdocs) to ftp://h2database.com/<x>/
+Upload (<x> = httpdocs and httpsdocs) to ftp://h2database.com/<x>/m2-repo
+
+Github: create a release.
+
+Newsletter: send (always to BCC!), the following:
+
+    h2-database-jp@googlegroups.com; h2-database@googlegroups.com; h2database-news@googlegroups.com; ...
+
+Create tweet at http://twitter.com
+
+## Sign files and publish files on Maven Central
+
+Switch to Java 1.7.
+In Build.java, comment "-Xdoclint:none", but don't commit that change.
+
+    ./build.sh clean compile jar mavenDeployCentral
+    cd /data/h2database/m2-repo/com/h2database
+    # remove sha and md5 files:
+    find . -name "*.sha1" -delete
+    find . -name "*.md5" -delete
+    cd h2/1<latest>
+    # for each file separately (-javadoc.jar, -sources.jar, .jar, .pom):
+    gpg -u "Thomas Mueller Graf <thomas.tom.mueller@gmail.com>" -ab h2-<...>
+    jar -cvf bundle.jar h2-*
+    cd ../../h2-mvstore/1<latest>
+    # for each file separately (-javadoc.jar, -sources.jar, .jar, .pom):
+    gpg -u "Thomas Mueller Graf <thomas.tom.mueller@gmail.com>" -ab h2-mvstore<...>
+    jar -cvf bundle.jar h2-*
+    # http://central.sonatype.org/pages/ossrh-guide.html
+    # http://central.sonatype.org/pages/manual-staging-bundle-creation-and-deployment.html
+    # https://oss.sonatype.org/#welcome - Log In "t..."
+    # sometimes this doesn't work reliably and you will have to retry
+    # - Staging Upload
+    # - Upload Mode: Artifact Bundle, Select Bundle to Upload... - /data/h2database/.../h2/.../bundle.jar
+    # - Upload Bundle
+    # - Staging Repositories - Refresh - select comh2database-<...> - Release - Confirm
+    # - Staging Upload
+    # - Upload Mode: Artifact Bundle, Select Bundle to Upload... - /data/h2database/.../h2-mvstore/.../bundle.jar
+    # - Upload Bundle
+    # - Staging Repositories - Refresh - select comh2database-<...> - Release - Confirm
+
+Update statistics.
+
+Change version in pom.xml, commit.

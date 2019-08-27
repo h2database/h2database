@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.store;
@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
@@ -34,6 +35,15 @@ public class FileStore {
      */
     private static final String HEADER =
             "-- H2 0.5/B --      ".substring(0, Constants.FILE_BLOCK_SIZE - 1) + "\n";
+
+    private static final boolean ASSERT;
+
+    static {
+        boolean a = false;
+        // Intentional side-effect
+        assert a = true;
+        ASSERT = a;
+    }
 
     /**
      * The file name.
@@ -139,7 +149,7 @@ public class FileStore {
      * @return the random salt or the magic
      */
     protected byte[] generateSalt() {
-        return HEADER.getBytes(Constants.UTF8);
+        return HEADER.getBytes(StandardCharsets.UTF_8);
     }
 
     /**
@@ -175,7 +185,7 @@ public class FileStore {
     public void init() {
         int len = Constants.FILE_BLOCK_SIZE;
         byte[] salt;
-        byte[] magic = HEADER.getBytes(Constants.UTF8);
+        byte[] magic = HEADER.getBytes(StandardCharsets.UTF_8);
         if (length() < HEADER_LENGTH) {
             // write unencrypted
             checkedWriting = false;
@@ -251,7 +261,7 @@ public class FileStore {
      * @param off the offset
      * @param len the number of bytes to read
      */
-    protected void readFullyDirect(byte[] b, int off, int len) {
+    public void readFullyDirect(byte[] b, int off, int len) {
         readFully(b, off, len);
     }
 
@@ -263,8 +273,7 @@ public class FileStore {
      * @param len the number of bytes to read
      */
     public void readFully(byte[] b, int off, int len) {
-        if (SysProperties.CHECK &&
-                (len < 0 || len % Constants.FILE_BLOCK_SIZE != 0)) {
+        if (len < 0 || len % Constants.FILE_BLOCK_SIZE != 0) {
             DbException.throwInternalError(
                     "unaligned read " + name + " len " + len);
         }
@@ -283,8 +292,7 @@ public class FileStore {
      * @param pos the location
      */
     public void seek(long pos) {
-        if (SysProperties.CHECK &&
-                pos % Constants.FILE_BLOCK_SIZE != 0) {
+        if (pos % Constants.FILE_BLOCK_SIZE != 0) {
             DbException.throwInternalError(
                     "unaligned seek " + name + " pos " + pos);
         }
@@ -317,8 +325,7 @@ public class FileStore {
      * @param len the number of bytes to write
      */
     public void write(byte[] b, int off, int len) {
-        if (SysProperties.CHECK && (len < 0 ||
-                len % Constants.FILE_BLOCK_SIZE != 0)) {
+        if (len < 0 || len % Constants.FILE_BLOCK_SIZE != 0) {
             DbException.throwInternalError(
                     "unaligned write " + name + " len " + len);
         }
@@ -340,7 +347,7 @@ public class FileStore {
      * @param newLength the new file size
      */
     public void setLength(long newLength) {
-        if (SysProperties.CHECK && newLength % Constants.FILE_BLOCK_SIZE != 0) {
+        if (newLength % Constants.FILE_BLOCK_SIZE != 0) {
             DbException.throwInternalError(
                     "unaligned setLength " + name + " pos " + newLength);
         }
@@ -368,27 +375,27 @@ public class FileStore {
      * @return the file size
      */
     public long length() {
-        try {
-            long len = fileLength;
-            if (SysProperties.CHECK2) {
+        long len = fileLength;
+        if (ASSERT) {
+            try {
                 len = file.size();
                 if (len != fileLength) {
                     DbException.throwInternalError(
                             "file " + name + " length " + len + " expected " + fileLength);
                 }
+                if (len % Constants.FILE_BLOCK_SIZE != 0) {
+                    long newLength = len + Constants.FILE_BLOCK_SIZE -
+                            (len % Constants.FILE_BLOCK_SIZE);
+                    file.truncate(newLength);
+                    fileLength = newLength;
+                    DbException.throwInternalError(
+                            "unaligned file length " + name + " len " + len);
+                }
+            } catch (IOException e) {
+                throw DbException.convertIOException(e, name);
             }
-            if (SysProperties.CHECK2 && len % Constants.FILE_BLOCK_SIZE != 0) {
-                long newLength = len + Constants.FILE_BLOCK_SIZE -
-                        (len % Constants.FILE_BLOCK_SIZE);
-                file.truncate(newLength);
-                fileLength = newLength;
-                DbException.throwInternalError(
-                        "unaligned file length " + name + " len " + len);
-            }
-            return len;
-        } catch (IOException e) {
-            throw DbException.convertIOException(e, name);
         }
+        return len;
     }
 
     /**
@@ -397,7 +404,7 @@ public class FileStore {
      * @return the location
      */
     public long getFilePointer() {
-        if (SysProperties.CHECK2) {
+        if (ASSERT) {
             try {
                 if (file.position() != filePos) {
                     DbException.throwInternalError(file.position() + " " + filePos);

@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.util;
@@ -9,7 +9,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,6 +18,8 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
@@ -31,22 +32,6 @@ public class IOUtils {
 
     private IOUtils() {
         // utility class
-    }
-
-    /**
-     * Close a Closeable without throwing an exception.
-     *
-     * @param out the Closeablem or null
-     */
-    public static void closeSilently(Closeable out) {
-        if (out != null) {
-            try {
-                trace("closeSilently", null, out);
-                out.close();
-            } catch (Exception e) {
-                // ignore
-            }
-        }
     }
 
     /**
@@ -233,53 +218,6 @@ public class IOUtils {
     }
 
     /**
-     * Close an input stream without throwing an exception.
-     *
-     * @param in the input stream or null
-     */
-    public static void closeSilently(InputStream in) {
-        if (in != null) {
-            try {
-                trace("closeSilently", null, in);
-                in.close();
-            } catch (Exception e) {
-                // ignore
-            }
-        }
-    }
-
-    /**
-     * Close a reader without throwing an exception.
-     *
-     * @param reader the reader or null
-     */
-    public static void closeSilently(Reader reader) {
-        if (reader != null) {
-            try {
-                reader.close();
-            } catch (Exception e) {
-                // ignore
-            }
-        }
-    }
-
-    /**
-     * Close a writer without throwing an exception.
-     *
-     * @param writer the writer or null
-     */
-    public static void closeSilently(Writer writer) {
-        if (writer != null) {
-            try {
-                writer.flush();
-                writer.close();
-            } catch (Exception e) {
-                // ignore
-            }
-        }
-    }
-
-    /**
      * Read a number of bytes from an input stream and close the stream.
      *
      * @param in the input stream
@@ -394,7 +332,7 @@ public class IOUtils {
      */
     public static Reader getBufferedReader(InputStream in) {
         return in == null ? null : new BufferedReader(
-                new InputStreamReader(in, Constants.UTF8));
+                new InputStreamReader(in, StandardCharsets.UTF_8));
     }
 
     /**
@@ -409,7 +347,7 @@ public class IOUtils {
     public static Reader getReader(InputStream in) {
         // InputStreamReader may read some more bytes
         return in == null ? null : new BufferedReader(
-                new InputStreamReader(in, Constants.UTF8));
+                new InputStreamReader(in, StandardCharsets.UTF_8));
     }
 
     /**
@@ -421,7 +359,7 @@ public class IOUtils {
      */
     public static Writer getBufferedWriter(OutputStream out) {
         return out == null ? null : new BufferedWriter(
-                new OutputStreamWriter(out, Constants.UTF8));
+                new OutputStreamWriter(out, StandardCharsets.UTF_8));
     }
 
     /**
@@ -432,12 +370,7 @@ public class IOUtils {
      * @return the reader
      */
     public static Reader getAsciiReader(InputStream in) {
-        try {
-            return in == null ? null : new InputStreamReader(in, "US-ASCII");
-        } catch (Exception e) {
-            // UnsupportedEncodingException
-            throw DbException.convert(e);
-        }
+        return in == null ? null : new InputStreamReader(in, StandardCharsets.US_ASCII);
     }
 
     /**
@@ -449,7 +382,7 @@ public class IOUtils {
      */
     public static void trace(String method, String fileName, Object o) {
         if (SysProperties.TRACE_IO) {
-            System.out.println("IOUtils." + method + " " + fileName + " " + o);
+            System.out.println("IOUtils." + method + ' ' + fileName + ' ' + o);
         }
     }
 
@@ -465,7 +398,7 @@ public class IOUtils {
         if (s == null) {
             return null;
         }
-        return new ByteArrayInputStream(s.getBytes(Constants.UTF8));
+        return new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8));
     }
 
     /**

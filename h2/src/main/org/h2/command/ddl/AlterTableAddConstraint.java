@@ -1,15 +1,18 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.command.ddl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.constraint.Constraint;
+import org.h2.constraint.ConstraintActionType;
 import org.h2.constraint.ConstraintCheck;
 import org.h2.constraint.ConstraintReferential;
 import org.h2.constraint.ConstraintUnique;
@@ -26,7 +29,6 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.New;
 
 /**
  * This class represents the statement
@@ -38,8 +40,8 @@ public class AlterTableAddConstraint extends SchemaCommand {
     private String constraintName;
     private String tableName;
     private IndexColumn[] indexColumns;
-    private int deleteAction;
-    private int updateAction;
+    private ConstraintActionType deleteAction = ConstraintActionType.RESTRICT;
+    private ConstraintActionType updateAction = ConstraintActionType.RESTRICT;
     private Schema refSchema;
     private String refTableName;
     private IndexColumn[] refIndexColumns;
@@ -50,7 +52,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
     private boolean primaryKeyHash;
     private boolean ifTableExists;
     private final boolean ifNotExists;
-    private final ArrayList<Index> createdIndexes = New.arrayList();
+    private final ArrayList<Index> createdIndexes = new ArrayList<>();
 
     public AlterTableAddConstraint(Session session, Schema schema,
             boolean ifNotExists) {
@@ -75,8 +77,12 @@ public class AlterTableAddConstraint extends SchemaCommand {
         try {
             return tryUpdate();
         } catch (DbException e) {
-            for (Index index : createdIndexes) {
-                session.getDatabase().removeSchemaObject(session, index);
+            try {
+                for (Index index : createdIndexes) {
+                    session.getDatabase().removeSchemaObject(session, index);
+                }
+            } catch (Throwable ex) {
+                e.addSuppressed(ex);
             }
             throw e;
         } finally {
@@ -101,7 +107,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             }
             throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
         }
-        if (getSchema().findConstraint(session, constraintName) != null) {
+        if (constraintName != null && getSchema().findConstraint(session, constraintName) != null) {
             if (ifNotExists) {
                 return 0;
             }
@@ -119,7 +125,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             ArrayList<Constraint> constraints = table.getConstraints();
             for (int i = 0; constraints != null && i < constraints.size(); i++) {
                 Constraint c = constraints.get(i);
-                if (Constraint.PRIMARY_KEY.equals(c.getConstraintType())) {
+                if (Constraint.Type.PRIMARY_KEY == c.getConstraintType()) {
                     throw DbException.get(ErrorCode.SECOND_PRIMARY_KEY);
                 }
             }
@@ -135,25 +141,24 @@ public class AlterTableAddConstraint extends SchemaCommand {
                         throw DbException.get(ErrorCode.SECOND_PRIMARY_KEY);
                     }
                 }
-            }
-            if (index == null) {
+            } else {
                 IndexType indexType = IndexType.createPrimaryKey(
                         table.isPersistIndexes(), primaryKeyHash);
                 String indexName = table.getSchema().getUniqueIndexName(
                         session, table, Constants.PREFIX_PRIMARY_KEY);
-                int id = getObjectId();
+                int indexId = session.getDatabase().allocateObjectId();
                 try {
-                    index = table.addIndex(session, indexName, id,
+                    index = table.addIndex(session, indexName, indexId,
                             indexColumns, indexType, true, null);
                 } finally {
                     getSchema().freeUniqueName(indexName);
                 }
             }
             index.getIndexType().setBelongsToConstraint(true);
-            int constraintId = getObjectId();
+            int id = getObjectId();
             String name = generateConstraintName(table);
             ConstraintUnique pk = new ConstraintUnique(getSchema(),
-                    constraintId, name, table, true);
+                    id, name, table, true);
             pk.setColumns(indexColumns);
             pk.setIndex(index, true);
             constraint = pk;
@@ -186,7 +191,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             String name = generateConstraintName(table);
             ConstraintCheck check = new ConstraintCheck(getSchema(), id, name, table);
             TableFilter filter = new TableFilter(session, table, null, false, null, 0, null);
-            checkExpression.mapColumns(filter, 0);
+            checkExpression.mapColumns(filter, 0, Expression.MAP_INITIAL);
             checkExpression = checkExpression.optimize(session);
             check.setExpression(checkExpression);
             check.setTableFilter(filter);
@@ -203,8 +208,9 @@ public class AlterTableAddConstraint extends SchemaCommand {
             }
             session.getUser().checkRight(refTable, Right.ALL);
             if (!refTable.canReference()) {
-                throw DbException.getUnsupportedException("Reference " +
-                        refTable.getSQL());
+                StringBuilder builder = new StringBuilder("Reference ");
+                refTable.getSQL(builder, false);
+                throw DbException.getUnsupportedException(builder.toString());
             }
             boolean isOwner = false;
             IndexColumn.mapColumns(indexColumns, table);
@@ -275,7 +281,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
     }
 
     private Index createIndex(Table t, IndexColumn[] cols, boolean unique) {
-        int indexId = getObjectId();
+        int indexId = session.getDatabase().allocateObjectId();
         IndexType indexType;
         if (unique) {
             // for unique constraints
@@ -298,11 +304,11 @@ public class AlterTableAddConstraint extends SchemaCommand {
         }
     }
 
-    public void setDeleteAction(int action) {
+    public void setDeleteAction(ConstraintActionType action) {
         this.deleteAction = action;
     }
 
-    public void setUpdateAction(int action) {
+    public void setUpdateAction(ConstraintActionType action) {
         this.updateAction = action;
     }
 
@@ -338,11 +344,9 @@ public class AlterTableAddConstraint extends SchemaCommand {
             return false;
         }
         Column[] indexCols = idx.getColumns();
-        HashSet<Column> indexColsSet = New.hashSet();
-        for (Column c : indexCols) {
-            indexColsSet.add(c);
-        }
-        HashSet<Column> colsSet = New.hashSet();
+        HashSet<Column> indexColsSet = new HashSet<>();
+        Collections.addAll(indexColsSet, indexCols);
+        HashSet<Column> colsSet = new HashSet<>();
         for (IndexColumn c : cols) {
             colsSet.add(c.column);
         }
@@ -388,6 +392,10 @@ public class AlterTableAddConstraint extends SchemaCommand {
 
     public void setConstraintName(String constraintName) {
         this.constraintName = constraintName;
+    }
+
+    public String getConstraintName() {
+        return constraintName;
     }
 
     public void setType(int type) {

@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.dev.ftp.server;
@@ -13,7 +13,8 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import org.h2.engine.Constants;
+import java.nio.charset.StandardCharsets;
+
 import org.h2.store.fs.FileUtils;
 import org.h2.util.StringUtils;
 
@@ -47,7 +48,7 @@ public class FtpControl extends Thread {
     public void run() {
         try {
             output = new PrintWriter(new OutputStreamWriter(
-                    control.getOutputStream(), Constants.UTF8));
+                    control.getOutputStream(), StandardCharsets.UTF_8));
             if (stop) {
                 reply(421, "Too many users");
             } else {
@@ -159,7 +160,7 @@ public class FtpControl extends Thread {
                 }
             } else if ("CDUP".equals(command)) {
                 if (currentDir.length() > 1) {
-                    int idx = currentDir.lastIndexOf("/", currentDir.length() - 2);
+                    int idx = currentDir.lastIndexOf('/', currentDir.length() - 2);
                     currentDir = currentDir.substring(0, idx + 1);
                     reply(250, "Ok");
                 } else {
@@ -303,7 +304,7 @@ public class FtpControl extends Thread {
             } else if ("SIZE".equals(command)) {
                 param = getFileName(param);
                 if (FileUtils.exists(param) && !FileUtils.isDirectory(param)) {
-                    reply(250, String.valueOf(FileUtils.size(param)));
+                    reply(250, Long.toString(FileUtils.size(param)));
                 } else {
                     reply(500, "Failed");
                 }

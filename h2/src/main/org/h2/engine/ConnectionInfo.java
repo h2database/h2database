@@ -1,12 +1,11 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.engine;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,7 +18,7 @@ import org.h2.security.SHA256;
 import org.h2.store.fs.FilePathEncrypt;
 import org.h2.store.fs.FilePathRec;
 import org.h2.store.fs.FileUtils;
-import org.h2.util.New;
+import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -28,7 +27,7 @@ import org.h2.util.Utils;
  * Encapsulates the connection settings, including user name and password.
  */
 public class ConnectionInfo implements Cloneable {
-    private static final HashSet<String> KNOWN_SETTINGS = New.hashSet();
+    private static final HashSet<String> KNOWN_SETTINGS;
 
     private Properties prop = new Properties();
     private String originalURL;
@@ -47,6 +46,8 @@ public class ConnectionInfo implements Cloneable {
     private boolean ssl;
     private boolean persistent;
     private boolean unnamed;
+
+    private NetworkConnectionInfo networkConnectionInfo;
 
     /**
      * Create a connection info object.
@@ -76,9 +77,9 @@ public class ConnectionInfo implements Cloneable {
         readProperties(info);
         readSettingsFromURL();
         setUserName(removeProperty("USER", ""));
-        convertPasswords();
         name = url.substring(Constants.START_URL.length());
         parseName();
+        convertPasswords();
         String recoverTest = removeProperty("RECOVER_TEST", null);
         if (recoverTest != null) {
             FilePathRec.register();
@@ -92,20 +93,20 @@ public class ConnectionInfo implements Cloneable {
     }
 
     static {
-        ArrayList<String> list = SetTypes.getTypes();
-        HashSet<String> set = KNOWN_SETTINGS;
-        set.addAll(list);
         String[] connectionTime = { "ACCESS_MODE_DATA", "AUTOCOMMIT", "CIPHER",
                 "CREATE", "CACHE_TYPE", "FILE_LOCK", "IGNORE_UNKNOWN_SETTINGS",
-                "IFEXISTS", "INIT", "PASSWORD", "RECOVER", "RECOVER_TEST",
+                "IFEXISTS", "INIT", "MVCC", "PASSWORD", "RECOVER", "RECOVER_TEST",
                 "USER", "AUTO_SERVER", "AUTO_SERVER_PORT", "NO_UPGRADE",
-                "AUTO_RECONNECT", "OPEN_NEW", "PAGE_SIZE", "PASSWORD_HASH", "JMX" };
+                "AUTO_RECONNECT", "OPEN_NEW", "PAGE_SIZE", "PASSWORD_HASH", "JMX",
+                "SCOPE_GENERATED_KEYS", "AUTHREALM", "AUTHZPWD" };
+        HashSet<String> set = new HashSet<>(128);
+        set.addAll(SetTypes.getTypes());
         for (String key : connectionTime) {
-            if (SysProperties.CHECK && set.contains(key)) {
+            if (!set.add(key)) {
                 DbException.throwInternalError(key);
             }
-            set.add(key);
         }
+        KNOWN_SETTINGS = set;
     }
 
     private static boolean isKnownSetting(String s) {
@@ -225,8 +226,7 @@ public class ConnectionInfo implements Cloneable {
     }
 
     private void readProperties(Properties info) {
-        Object[] list = new Object[info.size()];
-        info.keySet().toArray(list);
+        Object[] list = info.keySet().toArray();
         DbSettings s = null;
         for (Object k : list) {
             String key = StringUtils.toUpperEnglish(k.toString());
@@ -255,7 +255,7 @@ public class ConnectionInfo implements Cloneable {
             url = url.substring(0, idx);
             String[] list = StringUtils.arraySplit(settings, ';', false);
             for (String setting : list) {
-                if (setting.length() == 0) {
+                if (setting.isEmpty()) {
                     continue;
                 }
                 int equal = setting.indexOf('=');
@@ -277,8 +277,15 @@ public class ConnectionInfo implements Cloneable {
         }
     }
 
+    private void preservePasswordForAuthentication(Object password) {
+        if ((!isRemote() || isSSL()) &&  prop.containsKey("AUTHREALM") && password!=null) {
+            prop.put("AUTHZPWD",password instanceof char[] ? new String((char[])password) : password);
+        }
+    }
+
     private char[] removePassword() {
         Object p = prop.remove("PASSWORD");
+        preservePasswordForAuthentication(p);
         if (p == null) {
             return new char[0];
         } else if (p instanceof char[]) {
@@ -307,10 +314,8 @@ public class ConnectionInfo implements Cloneable {
             if (space < 0) {
                 throw DbException.get(ErrorCode.WRONG_PASSWORD_FORMAT);
             }
-            char[] np = new char[password.length - space - 1];
-            char[] filePassword = new char[space];
-            System.arraycopy(password, space + 1, np, 0, np.length);
-            System.arraycopy(password, 0, filePassword, 0, space);
+            char[] np = Arrays.copyOfRange(password, space + 1, password.length);
+            char[] filePassword = Arrays.copyOf(password, space);
             Arrays.fill(password, (char) 0);
             password = np;
             fileEncryptionKey = FilePathEncrypt.getPasswordBytes(filePassword);
@@ -324,7 +329,7 @@ public class ConnectionInfo implements Cloneable {
         if (passwordHash) {
             return StringUtils.convertHexToBytes(new String(password));
         }
-        if (userName.length() == 0 && password.length == 0) {
+        if (userName.isEmpty() && password.length == 0) {
             return new byte[0];
         }
         return SHA256.getKeyPasswordHash(userName, password);
@@ -337,16 +342,8 @@ public class ConnectionInfo implements Cloneable {
      * @param defaultValue the default value
      * @return the value
      */
-    boolean getProperty(String key, boolean defaultValue) {
-        String x = getProperty(key, null);
-        if (x == null) {
-            return defaultValue;
-        }
-        // support 0 / 1 (like the parser)
-        if (x.length() == 1 && Character.isDigit(x.charAt(0))) {
-            return Integer.parseInt(x) != 0;
-        }
-        return Boolean.parseBoolean(x);
+    public boolean getProperty(String key, boolean defaultValue) {
+        return Utils.parseBoolean(getProperty(key, null), defaultValue, false);
     }
 
     /**
@@ -357,8 +354,7 @@ public class ConnectionInfo implements Cloneable {
      * @return the value
      */
     public boolean removeProperty(String key, boolean defaultValue) {
-        String x = removeProperty(key, null);
-        return x == null ? defaultValue : Boolean.parseBoolean(x);
+        return Utils.parseBoolean(removeProperty(key, null), defaultValue, false);
     }
 
     /**
@@ -388,10 +384,10 @@ public class ConnectionInfo implements Cloneable {
         if (nameNormalized == null) {
             if (!SysProperties.IMPLICIT_RELATIVE_PATH) {
                 if (!FileUtils.isAbsolute(name)) {
-                    if (name.indexOf("./") < 0 &&
-                            name.indexOf(".\\") < 0 &&
-                            name.indexOf(":/") < 0 &&
-                            name.indexOf(":\\") < 0) {
+                    if (!name.contains("./") &&
+                            !name.contains(".\\") &&
+                            !name.contains(":/") &&
+                            !name.contains(":\\")) {
                         // the name could start with "./", or
                         // it could start with a prefix such as "nio:./"
                         // for Windows, the path "\test" is not considered
@@ -457,9 +453,7 @@ public class ConnectionInfo implements Cloneable {
      * @return the property keys
      */
     String[] getKeys() {
-        String[] keys = new String[prop.size()];
-        prop.keySet().toArray(keys);
-        return keys;
+        return prop.keySet().toArray(new String[prop.size()]);
     }
 
     /**
@@ -470,7 +464,7 @@ public class ConnectionInfo implements Cloneable {
      */
     String getProperty(String key) {
         Object value = prop.get(key);
-        if (value == null || !(value instanceof String)) {
+        if (!(value instanceof String)) {
             return null;
         }
         return value.toString();
@@ -638,9 +632,27 @@ public class ConnectionInfo implements Cloneable {
         this.name = serverKey;
     }
 
+    /**
+     * Returns the network connection information, or {@code null}.
+     *
+     * @return the network connection information, or {@code null}
+     */
+    public NetworkConnectionInfo getNetworkConnectionInfo() {
+        return networkConnectionInfo;
+    }
+
+    /**
+     * Sets the network connection information.
+     *
+     * @param networkConnectionInfo the network connection information
+     */
+    public void setNetworkConnectionInfo(NetworkConnectionInfo networkConnectionInfo) {
+        this.networkConnectionInfo = networkConnectionInfo;
+    }
+
     public DbSettings getDbSettings() {
         DbSettings defaultSettings = DbSettings.getDefaultSettings();
-        HashMap<String, String> s = New.hashMap();
+        HashMap<String, String> s = new HashMap<>(DbSettings.TABLE_SIZE);
         for (Object k : prop.keySet()) {
             String key = k.toString();
             if (!isKnownSetting(key) && defaultSettings.containsKey(key)) {
@@ -652,7 +664,7 @@ public class ConnectionInfo implements Cloneable {
 
     private static String remapURL(String url) {
         String urlMap = SysProperties.URL_MAP;
-        if (urlMap != null && urlMap.length() > 0) {
+        if (urlMap != null && !urlMap.isEmpty()) {
             try {
                 SortedProperties prop;
                 prop = SortedProperties.loadProperties(urlMap);
@@ -662,7 +674,7 @@ public class ConnectionInfo implements Cloneable {
                     prop.store(urlMap);
                 } else {
                     url2 = url2.trim();
-                    if (url2.length() > 0) {
+                    if (!url2.isEmpty()) {
                         return url2;
                     }
                 }
@@ -673,4 +685,11 @@ public class ConnectionInfo implements Cloneable {
         return url;
     }
 
+    /**
+     * Clear authentication properties.
+     */
+    public void cleanAuthenticationInfo() {
+        removeProperty("AUTHREALM", false);
+        removeProperty("AUTHZPWD", false);
+    }
 }

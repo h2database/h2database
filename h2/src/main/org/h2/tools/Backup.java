@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.tools;
@@ -93,7 +93,7 @@ public class Backup extends Tool {
      * @param zipFileName the name of the target backup file (including path)
      * @param directory the source directory name
      * @param db the source database name (null if there is only one database,
-     *            and and empty string to backup all files in this directory)
+     *            and empty string to backup all files in this directory)
      * @param quiet don't print progress information
      */
     public static void execute(String zipFileName, String directory, String db,
@@ -108,13 +108,13 @@ public class Backup extends Tool {
     private void process(String zipFileName, String directory, String db,
             boolean quiet) throws SQLException {
         List<String> list;
-        boolean allFiles = db != null && db.length() == 0;
+        boolean allFiles = db != null && db.isEmpty();
         if (allFiles) {
             list = FileUtils.newDirectoryStream(directory);
         } else {
             list = FileLister.getDatabaseFiles(directory, db, true);
         }
-        if (list.size() == 0) {
+        if (list.isEmpty()) {
             if (!quiet) {
                 printNoDatabaseFilesFound(directory, db);
             }
@@ -128,47 +128,47 @@ public class Backup extends Tool {
         OutputStream fileOut = null;
         try {
             fileOut = FileUtils.newOutputStream(zipFileName, false);
-            ZipOutputStream zipOut = new ZipOutputStream(fileOut);
-            String base = "";
-            for (String fileName : list) {
-                if (allFiles ||
-                        fileName.endsWith(Constants.SUFFIX_PAGE_FILE) ||
-                        fileName.endsWith(Constants.SUFFIX_MV_FILE)) {
-                    base = FileUtils.getParent(fileName);
-                    break;
+            try (ZipOutputStream zipOut = new ZipOutputStream(fileOut)) {
+                String base = "";
+                for (String fileName : list) {
+                    if (allFiles ||
+                            fileName.endsWith(Constants.SUFFIX_PAGE_FILE) ||
+                            fileName.endsWith(Constants.SUFFIX_MV_FILE)) {
+                        base = FileUtils.getParent(fileName);
+                        break;
+                    }
+                }
+                for (String fileName : list) {
+                    String f = FileUtils.toRealPath(fileName);
+                    if (!f.startsWith(base)) {
+                        DbException.throwInternalError(f + " does not start with " + base);
+                    }
+                    if (f.endsWith(zipFileName)) {
+                        continue;
+                    }
+                    if (FileUtils.isDirectory(fileName)) {
+                        continue;
+                    }
+                    f = f.substring(base.length());
+                    f = BackupCommand.correctFileName(f);
+                    ZipEntry entry = new ZipEntry(f);
+                    zipOut.putNextEntry(entry);
+                    InputStream in = null;
+                    try {
+                        in = FileUtils.newInputStream(fileName);
+                        IOUtils.copyAndCloseInput(in, zipOut);
+                    } catch (FileNotFoundException e) {
+                        // the file could have been deleted in the meantime
+                        // ignore this (in this case an empty file is created)
+                    } finally {
+                        IOUtils.closeSilently(in);
+                    }
+                    zipOut.closeEntry();
+                    if (!quiet) {
+                        out.println("Processed: " + fileName);
+                    }
                 }
             }
-            for (String fileName : list) {
-                String f = FileUtils.toRealPath(fileName);
-                if (!f.startsWith(base)) {
-                    DbException.throwInternalError(f + " does not start with " + base);
-                }
-                if (f.endsWith(zipFileName)) {
-                    continue;
-                }
-                if (FileUtils.isDirectory(fileName)) {
-                    continue;
-                }
-                f = f.substring(base.length());
-                f = BackupCommand.correctFileName(f);
-                ZipEntry entry = new ZipEntry(f);
-                zipOut.putNextEntry(entry);
-                InputStream in = null;
-                try {
-                    in = FileUtils.newInputStream(fileName);
-                    IOUtils.copyAndCloseInput(in, zipOut);
-                } catch (FileNotFoundException e) {
-                    // the file could have been deleted in the meantime
-                    // ignore this (in this case an empty file is created)
-                } finally {
-                    IOUtils.closeSilently(in);
-                }
-                zipOut.closeEntry();
-                if (!quiet) {
-                    out.println("Processed: " + fileName);
-                }
-            }
-            zipOut.close();
         } catch (IOException e) {
             throw DbException.convertIOException(e, zipFileName);
         } finally {

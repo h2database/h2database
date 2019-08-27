@@ -1,16 +1,16 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.mvstore.rtree;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.DataType;
-import org.h2.util.New;
 
 /**
  * A spatial data type. This class supports up to 31 dimensions. Each dimension
@@ -42,7 +42,7 @@ public class SpatialDataType implements DataType {
         }
         long la = ((SpatialKey) a).getId();
         long lb = ((SpatialKey) b).getId();
-        return la < lb ? -1 : la > lb ? 1 : 0;
+        return Long.compare(la, lb);
     }
 
     /**
@@ -163,8 +163,14 @@ public class SpatialDataType implements DataType {
             return;
         }
         for (int i = 0; i < dimensions; i++) {
-            b.setMin(i, Math.min(b.min(i), a.min(i)));
-            b.setMax(i, Math.max(b.max(i), a.max(i)));
+            float v = a.min(i);
+            if (v < b.min(i)) {
+                b.setMin(i, v);
+            }
+            v = a.max(i);
+            if (v > b.max(i)) {
+                b.setMax(i, v);
+            }
         }
     }
 
@@ -287,12 +293,7 @@ public class SpatialDataType implements DataType {
         if (a.isNull()) {
             return a;
         }
-        float[] minMax = new float[dimensions * 2];
-        for (int i = 0; i < dimensions; i++) {
-            minMax[i + i] = a.min(i);
-            minMax[i + i + 1] = a.max(i);
-        }
-        return new SpatialKey(0, minMax);
+        return new SpatialKey(0, a);
     }
 
     /**
@@ -305,7 +306,7 @@ public class SpatialDataType implements DataType {
      */
     public int[] getExtremes(ArrayList<Object> list) {
         list = getNotNull(list);
-        if (list.size() == 0) {
+        if (list.isEmpty()) {
             return null;
         }
         SpatialKey bounds = (SpatialKey) createBoundingBox(list.get(0));
@@ -315,8 +316,7 @@ public class SpatialDataType implements DataType {
             boundsInner.setMin(i, boundsInner.max(i));
             boundsInner.setMax(i, t);
         }
-        for (int i = 0; i < list.size(); i++) {
-            Object o = list.get(i);
+        for (Object o : list) {
             increaseBounds(bounds, o);
             increaseMaxInnerBounds(boundsInner, o);
         }
@@ -353,17 +353,18 @@ public class SpatialDataType implements DataType {
     }
 
     private static ArrayList<Object> getNotNull(ArrayList<Object> list) {
-        ArrayList<Object> result = null;
+        boolean foundNull = false;
         for (Object o : list) {
             SpatialKey a = (SpatialKey) o;
             if (a.isNull()) {
-                result = New.arrayList();
+                foundNull = true;
                 break;
             }
         }
-        if (result == null) {
+        if (!foundNull) {
             return list;
         }
+        ArrayList<Object> result = new ArrayList<>();
         for (Object o : list) {
             SpatialKey a = (SpatialKey) o;
             if (!a.isNull()) {

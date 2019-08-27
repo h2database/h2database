@@ -1,10 +1,11 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.util;
 
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.management.LockInfo;
@@ -31,19 +32,19 @@ public class ThreadDeadlockDetector {
 
     private final ThreadMXBean threadBean;
 
-    // a daemon thread
-    private final Timer threadCheck = new Timer("ThreadDeadlockDetector", true);
-
     private ThreadDeadlockDetector() {
         this.threadBean = ManagementFactory.getThreadMXBean();
+
+        // a daemon thread
         // delay: 10 ms
         // period: 10000 ms (100 seconds)
+        Timer threadCheck = new Timer("ThreadDeadlockDetector", true);
         threadCheck.schedule(new TimerTask() {
             @Override
             public void run() {
                 checkForDeadlocks();
             }
-        }, 10, 10000);
+        }, 10, 10_000);
     }
 
     /**
@@ -65,7 +66,7 @@ public class ThreadDeadlockDetector {
             return;
         }
         dumpThreadsAndLocks("ThreadDeadlockDetector - deadlock found :",
-                threadBean, deadlockedThreadIds);
+                threadBean, deadlockedThreadIds, System.out);
     }
 
     /**
@@ -74,13 +75,23 @@ public class ThreadDeadlockDetector {
      * @param msg the message
      */
     public static void dumpAllThreadsAndLocks(String msg) {
+        dumpAllThreadsAndLocks(msg, System.out);
+    }
+
+    /**
+     * Dump all deadlocks (if any).
+     *
+     * @param msg the message
+     * @param out the output
+     */
+    public static void dumpAllThreadsAndLocks(String msg, PrintStream out) {
         final ThreadMXBean threadBean = ManagementFactory.getThreadMXBean();
         final long[] allThreadIds = threadBean.getAllThreadIds();
-        dumpThreadsAndLocks(msg, threadBean, allThreadIds);
+        dumpThreadsAndLocks(msg, threadBean, allThreadIds, out);
     }
 
     private static void dumpThreadsAndLocks(String msg, ThreadMXBean threadBean,
-            long[] threadIds) {
+            long[] threadIds, PrintStream out) {
         final StringWriter stringWriter = new StringWriter();
         final PrintWriter print = new PrintWriter(stringWriter);
 
@@ -97,9 +108,9 @@ public class ThreadDeadlockDetector {
             tableSharedLocksMap = MVTable.SHARED_LOCKS
                     .getSnapshotOfAllThreads();
         } else {
-            tableWaitingForLockMap = New.hashMap();
-            tableExclusiveLocksMap = New.hashMap();
-            tableSharedLocksMap = New.hashMap();
+            tableWaitingForLockMap = new HashMap<>();
+            tableExclusiveLocksMap = new HashMap<>();
+            tableSharedLocksMap = new HashMap<>();
         }
 
         final ThreadInfo[] infos = threadBean.getThreadInfo(threadIds, true,
@@ -115,7 +126,8 @@ public class ThreadDeadlockDetector {
         print.flush();
         // Dump it to system.out in one block, so it doesn't get mixed up with
         // other stuff when we're using a logging subsystem.
-        System.out.println(stringWriter.getBuffer());
+        out.println(stringWriter.getBuffer());
+        out.flush();
     }
 
     private static void printThreadInfo(PrintWriter print, ThreadInfo ti) {
@@ -141,7 +153,7 @@ public class ThreadDeadlockDetector {
         print.print("\"" + ti.getThreadName() + "\"" + " Id="
                 + ti.getThreadId() + " in " + ti.getThreadState());
         if (ti.getLockName() != null) {
-            print.append(" on lock=" + ti.getLockName());
+            print.append(" on lock=").append(ti.getLockName());
         }
         if (ti.isSuspended()) {
             print.append(" (suspended)");

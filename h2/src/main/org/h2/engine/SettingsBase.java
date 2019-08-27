@@ -1,11 +1,15 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.engine;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
@@ -30,13 +34,17 @@ public class SettingsBase {
      * @return the setting
      */
     protected boolean get(String key, boolean defaultValue) {
-        String s = get(key, "" + defaultValue);
+        String s = get(key, Boolean.toString(defaultValue));
         try {
-            return Boolean.parseBoolean(s);
-        } catch (NumberFormatException e) {
+            return Utils.parseBoolean(s, defaultValue, true);
+        } catch (IllegalArgumentException e) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1,
                     e, "key:" + key + " value:" + s);
         }
+    }
+
+    void set(String key, boolean value) {
+        settings.put(key, Boolean.toString(value));
     }
 
     /**
@@ -47,7 +55,7 @@ public class SettingsBase {
      * @return the setting
      */
     protected int get(String key, int defaultValue) {
-        String s = get(key, "" + defaultValue);
+        String s = get(key, Integer.toString(defaultValue));
         try {
             return Integer.decode(s);
         } catch (NumberFormatException e) {
@@ -102,6 +110,23 @@ public class SettingsBase {
      */
     public HashMap<String, String> getSettings() {
         return settings;
+    }
+
+    /**
+     * Get all settings in alphabetical order.
+     *
+     * @return the settings
+     */
+    public Entry<String, String>[] getSortedSettings() {
+        @SuppressWarnings("unchecked")
+        Map.Entry<String, String>[] entries = settings.entrySet().toArray(new Map.Entry[0]);
+        Arrays.sort(entries, new Comparator<Map.Entry<String, String>>() {
+            @Override
+            public int compare(Entry<String, String> o1, Entry<String, String> o2) {
+                return o1.getKey().compareTo(o2.getKey());
+            }
+        });
+        return entries;
     }
 
 }

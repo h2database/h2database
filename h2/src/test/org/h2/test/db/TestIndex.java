@@ -1,27 +1,35 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.db;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Random;
-
+import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.api.ErrorCode;
+import org.h2.command.dml.Select;
 import org.h2.result.SortOrder;
 import org.h2.test.TestBase;
-import org.h2.util.New;
+import org.h2.test.TestDb;
+import org.h2.tools.SimpleResultSet;
+import org.h2.value.ValueInt;
 
 /**
  * Index tests.
  */
-public class TestIndex extends TestBase {
+public class TestIndex extends TestDb {
+
+    private static int testFunctionIndexCounter;
 
     private Connection conn;
     private Statement stat;
@@ -44,6 +52,13 @@ public class TestIndex extends TestBase {
         testHashIndexOnMemoryTable();
         testErrorMessage();
         testDuplicateKeyException();
+        int to = config.lockTimeout;
+        config.lockTimeout = 50000;
+        try {
+            testConcurrentUpdate();
+        } finally {
+            config.lockTimeout = to;
+        }
         testNonUniqueHashIndex();
         testRenamePrimaryKey();
         testRandomized();
@@ -88,8 +103,13 @@ public class TestIndex extends TestBase {
 
         testMultiColumnHashIndex();
 
+        testFunctionIndex();
+
         conn.close();
         deleteDb("index");
+
+        // This test uses own connection
+        testEnumIndex();
     }
 
     private void testOrderIndex() throws SQLException {
@@ -158,7 +178,7 @@ public class TestIndex extends TestBase {
             fail();
         } catch (SQLException e) {
             String m = e.getMessage();
-            int start = m.indexOf('\"'), end = m.indexOf('\"', start + 1);
+            int start = m.indexOf('"'), end = m.lastIndexOf('"');
             String s = m.substring(start + 1, end);
             for (String t : expected) {
                 assertContains(s, t);
@@ -187,6 +207,104 @@ public class TestIndex extends TestBase {
         stat.execute("drop table test");
     }
 
+    private class ConcurrentUpdateThread extends Thread {
+        private final AtomicInteger concurrentUpdateId, concurrentUpdateValue;
+
+        private final PreparedStatement psInsert, psDelete;
+
+        boolean haveDuplicateKeyException;
+
+        ConcurrentUpdateThread(Connection c, AtomicInteger concurrentUpdateId,
+                AtomicInteger concurrentUpdateValue) throws SQLException {
+            this.concurrentUpdateId = concurrentUpdateId;
+            this.concurrentUpdateValue = concurrentUpdateValue;
+            psInsert = c.prepareStatement("insert into test(id, value) values (?, ?)");
+            psDelete = c.prepareStatement("delete from test where value = ?");
+        }
+
+        @Override
+        public void run() {
+            for (int i = 0; i < 10000; i++) {
+                try {
+                    if (Math.random() > 0.05) {
+                        psInsert.setInt(1, concurrentUpdateId.incrementAndGet());
+                        psInsert.setInt(2, concurrentUpdateValue.get());
+                        psInsert.executeUpdate();
+                    } else {
+                        psDelete.setInt(1, concurrentUpdateValue.get());
+                        psDelete.executeUpdate();
+                    }
+                } catch (SQLException ex) {
+                    switch (ex.getErrorCode()) {
+                    case 23505:
+                        haveDuplicateKeyException = true;
+                        break;
+                    case 90131:
+                        // Unlikely but possible
+                        break;
+                    default:
+                        ex.printStackTrace();
+                    }
+                }
+                if (Math.random() > 0.95)
+                    concurrentUpdateValue.incrementAndGet();
+            }
+        }
+    }
+
+    private void testConcurrentUpdate() throws SQLException {
+        Connection c = getConnection("index");
+        Statement stat = c.createStatement();
+        stat.execute("create table test(id int primary key, value int)");
+        stat.execute("create unique index idx_value_name on test(value)");
+        PreparedStatement check = c.prepareStatement("select value from test");
+        ConcurrentUpdateThread[] threads = new ConcurrentUpdateThread[4];
+        AtomicInteger concurrentUpdateId = new AtomicInteger(), concurrentUpdateValue = new AtomicInteger();
+
+        // The same connection
+        for (int i = 0; i < threads.length; i++) {
+            threads[i] = new ConcurrentUpdateThread(c, concurrentUpdateId, concurrentUpdateValue);
+        }
+        testConcurrentUpdateRun(threads, check);
+        // Different connections
+        Connection[] connections = new Connection[threads.length];
+        for (int i = 0; i < threads.length; i++) {
+            Connection c2 = getConnection("index");
+            connections[i] = c2;
+            threads[i] = new ConcurrentUpdateThread(c2, concurrentUpdateId, concurrentUpdateValue);
+        }
+        testConcurrentUpdateRun(threads, check);
+        for (Connection c2 : connections) {
+            c2.close();
+        }
+        stat.execute("drop table test");
+        c.close();
+    }
+
+    private void testConcurrentUpdateRun(ConcurrentUpdateThread[] threads, PreparedStatement check)
+            throws SQLException {
+        for (ConcurrentUpdateThread t : threads) {
+            t.start();
+        }
+        boolean haveDuplicateKeyException = false;
+        for (ConcurrentUpdateThread t : threads) {
+            try {
+                t.join();
+                haveDuplicateKeyException |= t.haveDuplicateKeyException;
+            } catch (InterruptedException e) {
+            }
+        }
+        assertTrue("haveDuplicateKeys", haveDuplicateKeyException);
+        HashSet<Integer> set = new HashSet<>();
+        try (ResultSet rs = check.executeQuery()) {
+            while (rs.next()) {
+                if (!set.add(rs.getInt(1))) {
+                    fail("unique index violation");
+                }
+            }
+        }
+    }
+
     private void testNonUniqueHashIndex() throws SQLException {
         reconnect();
         stat.execute("create memory table test(id bigint, data bigint)");
@@ -198,7 +316,7 @@ public class TestIndex extends TestBase {
                 "delete from test where id=?");
         PreparedStatement prepSelect = conn.prepareStatement(
                 "select count(*) from test where id=?");
-        HashMap<Long, Integer> map = New.hashMap();
+        HashMap<Long, Integer> map = new HashMap<>();
         for (int i = 0; i < 1000; i++) {
             long key = rand.nextInt(10) * 1000000000L;
             Integer r = map.get(key);
@@ -423,8 +541,7 @@ public class TestIndex extends TestBase {
         stat.execute("CREATE TABLE CHILD(ID INT PRIMARY KEY, " +
                 "PID INT, FOREIGN KEY(PID) REFERENCES PARENT(ID))");
         reconnect();
-        stat.execute("DROP TABLE PARENT");
-        stat.execute("DROP TABLE CHILD");
+        stat.execute("DROP TABLE PARENT, CHILD");
     }
 
     private void testLargeIndex() throws SQLException {
@@ -601,6 +718,69 @@ public class TestIndex extends TestBase {
             trace(buff.toString());
         }
         trace("---done---");
+    }
+
+    /**
+     * This method is called from the database.
+     *
+     * @return the result set
+     */
+    public static ResultSet testFunctionIndexFunction() {
+        // There are additional callers like JdbcConnection.prepareCommand() and
+        // CommandContainer.recompileIfRequired()
+        for (StackTraceElement element : Thread.currentThread().getStackTrace()) {
+            if (element.getClassName().startsWith(Select.class.getName())) {
+                testFunctionIndexCounter++;
+                break;
+            }
+        }
+        SimpleResultSet rs = new SimpleResultSet();
+        rs.addColumn("ID", Types.INTEGER, ValueInt.PRECISION, 0);
+        rs.addColumn("VALUE", Types.INTEGER, ValueInt.PRECISION, 0);
+        rs.addRow(1, 10);
+        rs.addRow(2, 20);
+        rs.addRow(3, 30);
+        return rs;
+    }
+
+    private void testFunctionIndex() throws SQLException {
+        testFunctionIndexCounter = 0;
+        stat.execute("CREATE ALIAS TEST_INDEX FOR \"" + TestIndex.class.getName() + ".testFunctionIndexFunction\"");
+        try (ResultSet rs = stat.executeQuery("SELECT * FROM TEST_INDEX() WHERE ID = 1 OR ID = 3")) {
+            assertTrue(rs.next());
+            assertEquals(1, rs.getInt(1));
+            assertEquals(10, rs.getInt(2));
+            assertTrue(rs.next());
+            assertEquals(3, rs.getInt(1));
+            assertEquals(30, rs.getInt(2));
+            assertFalse(rs.next());
+        } finally {
+            stat.execute("DROP ALIAS TEST_INDEX");
+        }
+        assertEquals(1, testFunctionIndexCounter);
+    }
+
+    private void testEnumIndex() throws SQLException {
+        if (config.memory || config.networked) {
+            return;
+        }
+        deleteDb("index");
+        String url = "jdbc:h2:" + getBaseDir() + "/index;DB_CLOSE_DELAY=0";
+        Connection conn = DriverManager.getConnection(url);
+        Statement stat = conn.createStatement();
+
+        stat.execute("CREATE TABLE TEST(ID INT, V ENUM('A', 'B'), CONSTRAINT PK PRIMARY KEY(ID, V))");
+        stat.execute("INSERT INTO TEST VALUES (1, 'A'), (2, 'B')");
+
+        conn.close();
+        conn = DriverManager.getConnection(url);
+        stat = conn.createStatement();
+
+        stat.execute("DELETE FROM TEST WHERE V = 'A'");
+        stat.execute("DROP TABLE TEST");
+
+        conn.close();
+        deleteDb("index");
     }
 
 }

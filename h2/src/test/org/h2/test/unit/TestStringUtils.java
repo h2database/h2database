@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.unit;
@@ -10,10 +10,10 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Date;
 import java.util.Random;
+import org.h2.expression.function.DateTimeFunctions;
 import org.h2.message.DbException;
 import org.h2.test.TestBase;
 import org.h2.test.utils.AssertThrows;
-import org.h2.util.DateTimeUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -32,6 +32,7 @@ public class TestStringUtils extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testParseUInt31();
         testHex();
         testXML();
         testSplit();
@@ -39,6 +40,34 @@ public class TestStringUtils extends TestBase {
         testURL();
         testPad();
         testReplaceAll();
+        testTrim();
+        testTrimSubstring();
+    }
+
+    private void testParseUInt31() {
+        assertEquals(0, StringUtils.parseUInt31("101", 1, 2));
+        assertEquals(11, StringUtils.parseUInt31("11", 0, 2));
+        assertEquals(0, StringUtils.parseUInt31("000", 0, 3));
+        assertEquals(1, StringUtils.parseUInt31("01", 0, 2));
+        assertEquals(999999999, StringUtils.parseUInt31("X999999999", 1, 10));
+        assertEquals(2147483647, StringUtils.parseUInt31("2147483647", 0, 10));
+        testParseUInt31Bad(null, 0, 1);
+        testParseUInt31Bad("1", -1, 1);
+        testParseUInt31Bad("1", 0, 0);
+        testParseUInt31Bad("12", 1, 0);
+        testParseUInt31Bad("-0", 0, 2);
+        testParseUInt31Bad("+0", 0, 2);
+        testParseUInt31Bad("2147483648", 0, 10);
+        testParseUInt31Bad("21474836470", 0, 11);
+    }
+
+    private void testParseUInt31Bad(String s, int start, int end) {
+        try {
+            StringUtils.parseUInt31(s, start, end);
+        } catch (NullPointerException | IndexOutOfBoundsException | NumberFormatException e) {
+            return;
+        }
+        fail();
     }
 
     private void testHex() {
@@ -84,7 +113,7 @@ public class TestStringUtils extends TestBase {
                 StringUtils.xmlText("Rand&Blue"));
         assertEquals("&lt;&lt;[[[]]]&gt;&gt;",
                 StringUtils.xmlCData("<<[[[]]]>>"));
-        Date dt = DateTimeUtils.parseDateTime(
+        Date dt = DateTimeFunctions.parseDateTime(
                 "2001-02-03 04:05:06 GMT",
                 "yyyy-MM-dd HH:mm:ss z", "en", "GMT");
         String s = StringUtils.xmlStartDoc()
@@ -94,19 +123,19 @@ public class TestStringUtils extends TestBase {
                     StringUtils.xmlComment("Test Comment\nZeile2")
                     + StringUtils.xmlNode("channel", null,
                         StringUtils.xmlNode("title", null, "H2 Database Engine")
-                        + StringUtils.xmlNode("link", null, "http://www.h2database.com")
+                        + StringUtils.xmlNode("link", null, "https://h2database.com")
                         + StringUtils.xmlNode("description", null, "H2 Database Engine")
                         + StringUtils.xmlNode("language", null, "en-us")
                         + StringUtils.xmlNode("pubDate", null,
-                                DateTimeUtils.formatDateTime(dt,
+                                DateTimeFunctions.formatDateTime(dt,
                                 "EEE, d MMM yyyy HH:mm:ss z", "en", "GMT"))
                         + StringUtils.xmlNode("lastBuildDate", null,
-                                DateTimeUtils.formatDateTime(dt,
+                                DateTimeFunctions.formatDateTime(dt,
                                 "EEE, d MMM yyyy HH:mm:ss z", "en", "GMT"))
                         + StringUtils.xmlNode("item", null,
                                 StringUtils.xmlNode("title", null,
                                 "New Version 0.9.9.9.9")
-                                + StringUtils.xmlNode("link", null, "http://www.h2database.com")
+                                + StringUtils.xmlNode("link", null, "https://h2database.com")
                                 + StringUtils.xmlNode("description", null,
                                         StringUtils.xmlCData("\nNew Features\nTest\n")))));
         assertEquals(
@@ -120,14 +149,14 @@ public class TestStringUtils extends TestBase {
                         + "    -->\n"
                         + "    <channel>\n"
                         + "        <title>H2 Database Engine</title>\n"
-                        + "        <link>http://www.h2database.com</link>\n"
+                        + "        <link>https://h2database.com</link>\n"
                         + "        <description>H2 Database Engine</description>\n"
                         + "        <language>en-us</language>\n"
                         + "        <pubDate>Sat, 3 Feb 2001 04:05:06 GMT</pubDate>\n"
                         + "        <lastBuildDate>Sat, 3 Feb 2001 04:05:06 GMT</lastBuildDate>\n"
                         + "        <item>\n"
                         + "            <title>New Version 0.9.9.9.9</title>\n"
-                        + "            <link>http://www.h2database.com</link>\n"
+                        + "            <link>https://h2database.com</link>\n"
                         + "            <description>\n"
                         + "                <![CDATA[\n"
                         + "                New Features\n"
@@ -224,6 +253,50 @@ public class TestStringUtils extends TestBase {
                 StringUtils.replaceAll("abcabcabc", "abc", ""));
         assertEquals("abcabcabc",
                 StringUtils.replaceAll("abcabcabc", "aBc", ""));
+        assertEquals("abcabcabc",
+                StringUtils.replaceAll("abcabcabc", "", "abc"));
+    }
+
+    private void testTrim() {
+        assertEquals("a a",
+                StringUtils.trim("a a", true, true, null));
+        assertEquals("  a a  ",
+                StringUtils.trim("  a a  ", false, false, null));
+        assertEquals("  a a",
+                StringUtils.trim("  a a  ", false, true, null));
+        assertEquals("a a  ",
+                StringUtils.trim("  a a  ", true, false, null));
+        assertEquals("a a",
+                StringUtils.trim("  a a  ", true, true, null));
+        assertEquals("a a",
+                StringUtils.trim("  a a  ", true, true, ""));
+        assertEquals("zzbbzz",
+                StringUtils.trim("zzbbzz", false, false, "z"));
+        assertEquals("zzbb",
+                StringUtils.trim("zzbbzz", false, true, "z"));
+        assertEquals("bbzz",
+                StringUtils.trim("zzbbzz", true, false, "z"));
+        assertEquals("bb",
+                StringUtils.trim("zzbbzz", true, true, "z"));
+    }
+
+    private void testTrimSubstring() {
+        testTrimSubstringImpl("", "", 0, 0);
+        testTrimSubstringImpl("", "    ", 0, 0);
+        testTrimSubstringImpl("", "    ", 4, 4);
+        testTrimSubstringImpl("select", " select  from", 1, 7);
+        testTrimSubstringImpl("a b", " a b ", 1, 4);
+        testTrimSubstringImpl("a b", " a b ", 1, 5);
+        testTrimSubstringImpl("b", " a b ", 2, 5);
+        new AssertThrows(StringIndexOutOfBoundsException.class) { @Override
+            public void test() { StringUtils.trimSubstring(" with (", 1, 8); }
+        };
+    }
+
+    private void testTrimSubstringImpl(String expected, String string, int startIndex, int endIndex) {
+        assertEquals(expected, StringUtils.trimSubstring(string, startIndex, endIndex));
+        assertEquals(expected, StringUtils
+                .trimSubstring(new StringBuilder(endIndex - startIndex), string, startIndex, endIndex).toString());
     }
 
 }

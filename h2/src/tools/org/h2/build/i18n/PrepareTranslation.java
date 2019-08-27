@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.build.i18n;
@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,7 +23,6 @@ import java.util.Stack;
 import org.h2.build.doc.XMLParser;
 import org.h2.server.web.PageParser;
 import org.h2.util.IOUtils;
-import org.h2.util.New;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 
@@ -33,7 +33,7 @@ import org.h2.util.StringUtils;
  */
 public class PrepareTranslation {
     private static final String MAIN_LANGUAGE = "en";
-    private static final String[] EXCLUDE = { "datatypes.html",
+    private static final String[] EXCLUDE = { "commands.html", "datatypes.html",
             "functions.html", "grammar.html" };
 
     /**
@@ -128,7 +128,7 @@ public class PrepareTranslation {
             name = name.substring(0, name.length() - 4);
             String template = IOUtils.readStringAndClose(new FileReader(
                     templateDir + "/" + name + ".jsp"), -1);
-            HashMap<String, Object> map = New.hashMap();
+            HashMap<String, Object> map = new HashMap<>();
             for (Object k : prop.keySet()) {
                 map.put(k.toString(), prop.get(k));
             }
@@ -153,7 +153,7 @@ public class PrepareTranslation {
                 target = targetDir + "/" + name + "_" + language + ".html";
             }
             OutputStream out = new FileOutputStream(target);
-            OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8");
+            OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
             writer.write(html);
             writer.close();
         }
@@ -231,7 +231,7 @@ public class PrepareTranslation {
     private static String extract(String documentName, File f, String target)
             throws Exception {
         String xml = IOUtils.readStringAndClose(new InputStreamReader(
-                new FileInputStream(f), "UTF-8"), -1);
+                new FileInputStream(f), StandardCharsets.UTF_8), -1);
         // the template contains ${} instead of text
         StringBuilder template = new StringBuilder(xml.length());
         int id = 0;
@@ -444,7 +444,7 @@ public class PrepareTranslation {
             throws IOException {
         if (utf8) {
             String s = new String(IOUtils.readBytesAndClose(
-                    new FileInputStream(fileName), -1), "UTF-8");
+                    new FileInputStream(fileName), -1), StandardCharsets.UTF_8);
             return SortedProperties.fromLines(s);
         }
         return SortedProperties.loadProperties(fileName);
@@ -455,7 +455,7 @@ public class PrepareTranslation {
         if (utf8) {
             String s = p.toLines();
             FileOutputStream f = new FileOutputStream(fileName);
-            f.write(s.getBytes("UTF-8"));
+            f.write(s.getBytes(StandardCharsets.UTF_8));
             f.close();
         } else {
             p.store(fileName);

@@ -1,13 +1,13 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.dev.hash;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Set;
@@ -330,8 +330,7 @@ public class MinimalPerfectHash<K> {
      * @return the hash function description
      */
     public static <K> byte[] generate(Set<K> set, UniversalHash<K> hash) {
-        ArrayList<K> list = new ArrayList<>();
-        list.addAll(set);
+        ArrayList<K> list = new ArrayList<>(set);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         int seed = RANDOM.nextInt();
         out.write(seed >>> 24);
@@ -500,9 +499,7 @@ public class MinimalPerfectHash<K> {
             for (ByteArrayOutputStream temp : outList) {
                 out.write(temp.toByteArray());
             }
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
+        } catch (InterruptedException | IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -659,7 +656,7 @@ public class MinimalPerfectHash<K> {
             if (index == 0) {
                 return o.hashCode();
             } else if (index < 8) {
-                long x = o.longValue();
+                long x = o;
                 x += index;
                 x = ((x >>> 32) ^ x) * 0x45d9f3b;
                 x = ((x >>> 32) ^ x) * 0x45d9f3b;
@@ -667,7 +664,7 @@ public class MinimalPerfectHash<K> {
             }
             // get the lower or higher 32 bit depending on the index
             int shift = (index & 1) * 32;
-            return (int) (o.longValue() >>> shift);
+            return (int) (o >>> shift);
         }
 
     }
@@ -676,8 +673,6 @@ public class MinimalPerfectHash<K> {
      * A sample hash implementation for integer keys.
      */
     public static class StringHash implements UniversalHash<String> {
-
-        private static final Charset UTF8 = Charset.forName("UTF-8");
 
         @Override
         public int hashCode(String o, int index, int seed) {
@@ -723,7 +718,7 @@ public class MinimalPerfectHash<K> {
          * @return the hash value
          */
         public static int getSipHash24(String o, long k0, long k1) {
-            byte[] b = o.getBytes(UTF8);
+            byte[] b = o.getBytes(StandardCharsets.UTF_8);
             return getSipHash24(b, 0, b.length, k0, k1);
         }
 

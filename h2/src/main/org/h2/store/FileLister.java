@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.store;
@@ -15,7 +15,6 @@ import org.h2.message.DbException;
 import org.h2.message.TraceSystem;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
-import org.h2.util.New;
 
 /**
  * Utility class to list the files of a database.
@@ -41,21 +40,21 @@ public class FileLister {
                 FileLock lock = new FileLock(new TraceSystem(null), fileName,
                         Constants.LOCK_SLEEP);
                 try {
-                    lock.lock(FileLock.LOCK_FILE);
+                    lock.lock(FileLockMethod.FILE);
                     lock.unlock();
                 } catch (DbException e) {
-                    throw DbException.get(
+                    throw DbException.getJdbcSQLException(
                             ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1,
-                            message).getSQLException();
+                            message);
                 }
             } else if (fileName.endsWith(Constants.SUFFIX_MV_FILE)) {
                 try (FileChannel f = FilePath.get(fileName).open("r")) {
                     java.nio.channels.FileLock lock = f.tryLock(0, Long.MAX_VALUE, true);
                     lock.release();
                 } catch (Exception e) {
-                    throw DbException.get(
+                    throw DbException.getJdbcSQLException(
                             ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, e,
-                            message).getSQLException();
+                            message);
                 }
             }
         }
@@ -86,7 +85,7 @@ public class FileLister {
      */
     public static ArrayList<String> getDatabaseFiles(String dir, String db,
             boolean all) {
-        ArrayList<String> files = New.arrayList();
+        ArrayList<String> files = new ArrayList<>();
         // for Windows, File.getCanonicalPath("...b.") returns just "...b"
         String start = db == null ? null : (FileUtils.toRealPath(dir + "/" + db) + ".");
         for (String f : FileUtils.newDirectoryStream(dir)) {
@@ -113,8 +112,7 @@ public class FileLister {
             }
             if (ok) {
                 if (db == null || f.startsWith(start)) {
-                    String fileName = f;
-                    files.add(fileName);
+                    files.add(f);
                 }
             }
         }

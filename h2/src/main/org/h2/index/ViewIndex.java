@@ -1,23 +1,23 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.index;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
+import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.command.dml.Query;
 import org.h2.command.dml.SelectUnion;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
-import org.h2.expression.Comparison;
 import org.h2.expression.Parameter;
+import org.h2.expression.condition.Comparison;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
@@ -30,7 +30,6 @@ import org.h2.table.JoinBatch;
 import org.h2.table.TableFilter;
 import org.h2.table.TableView;
 import org.h2.util.IntArray;
-import org.h2.util.New;
 import org.h2.value.Value;
 
 /**
@@ -65,7 +64,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
      */
     public ViewIndex(TableView view, String querySQL,
             ArrayList<Parameter> originalParameters, boolean recursive) {
-        initBaseIndex(view, 0, null, null, IndexType.createNonUnique(false));
+        super(view, 0, null, null, IndexType.createNonUnique(false));
         this.view = view;
         this.querySQL = querySQL;
         this.originalParameters = originalParameters;
@@ -92,7 +91,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
      */
     public ViewIndex(TableView view, ViewIndex index, Session session,
             int[] masks, TableFilter[] filters, int filter, SortOrder sortOrder) {
-        initBaseIndex(view, 0, null, null, IndexType.createNonUnique(false));
+        super(view, 0, null, null, IndexType.createNonUnique(false));
         this.view = view;
         this.querySQL = index.querySQL;
         this.originalParameters = index.originalParameters;
@@ -131,7 +130,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
 
     @Override
     public String getPlanSQL() {
-        return query == null ? null : query.getPlanSQL();
+        return query == null ? null : query.getPlanSQL(false);
     }
 
     @Override
@@ -152,7 +151,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
     @Override
     public double getCost(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
-            HashSet<Column> allColumnsSet) {
+            AllColumnsForPlan allColumnsSet) {
         return recursive ? 1000 : query.getCost();
     }
 
@@ -169,7 +168,6 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
 
     private static Query prepareSubQuery(String sql, Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder) {
-        assert filters != null;
         Prepared p;
         session.pushSubQueryInfo(masks, filters, filter, sortOrder);
         try {
@@ -182,10 +180,10 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
 
     private Cursor findRecursive(SearchRow first, SearchRow last) {
         assert recursive;
-        ResultInterface recResult = view.getRecursiveResult();
-        if (recResult != null) {
-            recResult.reset();
-            return new ViewCursor(this, recResult, first, last);
+        ResultInterface recursiveResult = view.getRecursiveResult();
+        if (recursiveResult != null) {
+            recursiveResult.reset();
+            return new ViewCursor(this, recursiveResult, first, last);
         }
         if (query == null) {
             Parser parser = new Parser(createSession);
@@ -200,35 +198,39 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         }
         SelectUnion union = (SelectUnion) query;
         Query left = union.getLeft();
+        left.setNeverLazy(true);
         // to ensure the last result is not closed
         left.disableCache();
-        ResultInterface r = left.query(0);
-        LocalResult result = union.getEmptyResult();
+        ResultInterface resultInterface = left.query(0);
+        LocalResult localResult = union.getEmptyResult();
         // ensure it is not written to disk,
         // because it is not closed normally
-        result.setMaxMemoryRows(Integer.MAX_VALUE);
-        while (r.next()) {
-            result.addRow(r.currentRow());
+        localResult.setMaxMemoryRows(Integer.MAX_VALUE);
+        while (resultInterface.next()) {
+            Value[] cr = resultInterface.currentRow();
+            localResult.addRow(cr);
         }
         Query right = union.getRight();
-        r.reset();
-        view.setRecursiveResult(r);
+        right.setNeverLazy(true);
+        resultInterface.reset();
+        view.setRecursiveResult(resultInterface);
         // to ensure the last result is not closed
         right.disableCache();
         while (true) {
-            r = right.query(0);
-            if (!r.hasNext()) {
+            resultInterface = right.query(0);
+            if (!resultInterface.hasNext()) {
                 break;
             }
-            while (r.next()) {
-                result.addRow(r.currentRow());
+            while (resultInterface.next()) {
+                Value[] cr = resultInterface.currentRow();
+                localResult.addRow(cr);
             }
-            r.reset();
-            view.setRecursiveResult(r);
+            resultInterface.reset();
+            view.setRecursiveResult(resultInterface);
         }
         view.setRecursiveResult(null);
-        result.done();
-        return new ViewCursor(this, result, first, last);
+        localResult.done();
+        return new ViewCursor(this, localResult, first, last);
     }
 
     /**
@@ -243,8 +245,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
             SearchRow intersection) {
         ArrayList<Parameter> paramList = query.getParameters();
         if (originalParameters != null) {
-            for (int i = 0, size = originalParameters.size(); i < size; i++) {
-                Parameter orig = originalParameters.get(i);
+            for (Parameter orig : originalParameters) {
                 int idx = orig.getIndex();
                 Value value = orig.getValue(session);
                 setParameter(paramList, idx, value);
@@ -333,7 +334,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
             }
         }
         int len = paramColumnIndex.size();
-        ArrayList<Column> columnList = New.arrayList();
+        ArrayList<Column> columnList = new ArrayList<>(len);
         for (int i = 0; i < len;) {
             int idx = paramColumnIndex.get(i);
             columnList.add(table.getColumn(idx));
@@ -359,8 +360,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
                 i++;
             }
         }
-        columns = new Column[columnList.size()];
-        columnList.toArray(columns);
+        columns = columnList.toArray(new Column[0]);
 
         // reconstruct the index columns from the masks
         this.indexColumns = new IndexColumn[indexColumnCount];
@@ -390,7 +390,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
             }
         }
 
-        String sql = q.getPlanSQL();
+        String sql = q.getPlanSQL(true);
         q = prepareSubQuery(sql, session, masks, filters, filter, sortOrder);
         return q;
     }

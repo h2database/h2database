@@ -1,18 +1,20 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.util;
 
+import java.io.ByteArrayOutputStream;
 import java.lang.ref.SoftReference;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 
@@ -21,8 +23,7 @@ import org.h2.message.DbException;
  */
 public class StringUtils {
 
-    private static SoftReference<String[]> softCache =
-            new SoftReference<>(null);
+    private static SoftReference<String[]> softCache;
     private static long softCacheCreatedNs;
 
     private static final char[] HEX = "0123456789abcdef".toCharArray();
@@ -77,20 +78,6 @@ public class StringUtils {
     }
 
     /**
-     * Check if two strings are equal. Here, null is equal to null.
-     *
-     * @param a the first value
-     * @param b the second value
-     * @return true if both are null or both are equal
-     */
-    public static boolean equals(String a, String b) {
-        if (a == null) {
-            return b == null;
-        }
-        return a.equals(b);
-    }
-
-    /**
      * Convert a string to uppercase using the English locale.
      *
      * @param s the test to convert
@@ -124,20 +111,6 @@ public class StringUtils {
     }
 
     /**
-     * Check is a string starts with another string, ignoring the case.
-     *
-     * @param s the string to check (must be longer than start)
-     * @param start the prefix of s
-     * @return true if start is a prefix of s
-     */
-    public static boolean startsWithIgnoreCase(String s, String start) {
-        if (s.length() < start.length()) {
-            return false;
-        }
-        return s.substring(0, start.length()).equalsIgnoreCase(start);
-    }
-
-    /**
      * Convert a string to a SQL literal. Null is converted to NULL. The text is
      * enclosed in single quotes. If there are any special characters, the
      * method STRINGDECODE is used.
@@ -149,22 +122,41 @@ public class StringUtils {
         if (s == null) {
             return "NULL";
         }
+        return quoteStringSQL(new StringBuilder(s.length() + 2), s).toString();
+    }
+
+    /**
+     * Convert a string to a SQL literal. Null is converted to NULL. The text is
+     * enclosed in single quotes. If there are any special characters, the
+     * method STRINGDECODE is used.
+     *
+     * @param builder
+     *            string builder to append result to
+     * @param s the text to convert.
+     * @return the specified string builder
+     */
+    public static StringBuilder quoteStringSQL(StringBuilder builder, String s) {
+        if (s == null) {
+            return builder.append("NULL");
+        }
+        int builderLength = builder.length();
         int length = s.length();
-        StringBuilder buff = new StringBuilder(length + 2);
-        buff.append('\'');
+        builder.append('\'');
         for (int i = 0; i < length; i++) {
             char c = s.charAt(i);
             if (c == '\'') {
-                buff.append(c);
+                builder.append(c);
             } else if (c < ' ' || c > 127) {
                 // need to start from the beginning because maybe there was a \
                 // that was not quoted
-                return "STRINGDECODE(" + quoteStringSQL(javaEncode(s)) + ")";
+                builder.setLength(builderLength);
+                builder.append("STRINGDECODE('");
+                javaEncode(s, builder, true);
+                return builder.append("')");
             }
-            buff.append(c);
+            builder.append(c);
         }
-        buff.append('\'');
-        return buff.toString();
+        return builder.append('\'');
     }
 
     /**
@@ -176,8 +168,22 @@ public class StringUtils {
      * @return the Java representation
      */
     public static String javaEncode(String s) {
+        StringBuilder buff = new StringBuilder(s.length());
+        javaEncode(s, buff, false);
+        return buff.toString();
+    }
+
+    /**
+     * Convert a string to a Java literal using the correct escape sequences.
+     * The literal is not enclosed in double quotes. The result can be used in
+     * properties files or in Java source code.
+     *
+     * @param s the text to convert
+     * @param buff the Java representation to return
+     * @param forSQL true if we embedding this inside a STRINGDECODE SQL command
+     */
+    public static void javaEncode(String s, StringBuilder buff, boolean forSQL) {
         int length = s.length();
-        StringBuilder buff = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
             char c = s.charAt(i);
             switch (c) {
@@ -206,31 +212,34 @@ public class StringUtils {
                 // double quote
                 buff.append("\\\"");
                 break;
+            case '\'':
+                // quote:
+                if (forSQL) {
+                    buff.append('\'');
+                }
+                buff.append('\'');
+                break;
             case '\\':
                 // backslash
                 buff.append("\\\\");
                 break;
             default:
-                int ch = c & 0xffff;
-                if (ch >= ' ' && (ch < 0x80)) {
+                if (c >= ' ' && (c < 0x80)) {
                     buff.append(c);
                 // not supported in properties files
-                // } else if (ch < 0xff) {
+                // } else if (c < 0xff) {
                 // buff.append("\\");
                 // // make sure it's three characters (0x200 is octal 1000)
-                // buff.append(Integer.toOctalString(0x200 | ch).substring(1));
+                // buff.append(Integer.toOctalString(0x200 | c).substring(1));
                 } else {
-                    buff.append("\\u");
-                    String hex = Integer.toHexString(ch);
-                    // make sure it's four characters
-                    for (int len = hex.length(); len < 4; len++) {
-                        buff.append('0');
-                    }
-                    buff.append(hex);
+                    buff.append("\\u")
+                            .append(HEX[c >>> 12])
+                            .append(HEX[c >>> 8 & 0xf])
+                            .append(HEX[c >>> 4 & 0xf])
+                            .append(HEX[c & 0xf]);
                 }
             }
         }
-        return buff.toString();
     }
 
     /**
@@ -243,8 +252,9 @@ public class StringUtils {
      */
     public static String addAsterisk(String s, int index) {
         if (s != null) {
-            index = Math.min(index, s.length());
-            s = s.substring(0, index) + "[*]" + s.substring(index);
+            int len = s.length();
+            index = Math.min(index, len);
+            s = new StringBuilder(len + 3).append(s, 0, index).append("[*]").append(s, index, len).toString();
         }
         return s;
     }
@@ -345,7 +355,9 @@ public class StringUtils {
         if (s == null) {
             return "null";
         }
-        return "\"" + javaEncode(s) + "\"";
+        StringBuilder builder = new StringBuilder(s.length() + 2).append('"');
+        javaEncode(s, builder, false);
+        return builder.append('"').toString();
     }
 
     /**
@@ -359,10 +371,12 @@ public class StringUtils {
         if (array == null) {
             return "null";
         }
-        StatementBuilder buff = new StatementBuilder("new String[]{");
-        for (String a : array) {
-            buff.appendExceptFirst(", ");
-            buff.append(quoteJavaString(a));
+        StringBuilder buff = new StringBuilder("new String[]{");
+        for (int i = 0; i < array.length; i++) {
+            if (i > 0) {
+                buff.append(", ");
+            }
+            buff.append(quoteJavaString(array[i]));
         }
         return buff.append('}').toString();
     }
@@ -378,25 +392,14 @@ public class StringUtils {
         if (array == null) {
             return "null";
         }
-        StatementBuilder buff = new StatementBuilder("new int[]{");
-        for (int a : array) {
-            buff.appendExceptFirst(", ");
-            buff.append(a);
+        StringBuilder builder = new StringBuilder("new int[]{");
+        for (int i = 0; i < array.length; i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            builder.append(array[i]);
         }
-        return buff.append('}').toString();
-    }
-
-    /**
-     * Enclose a string with '(' and ')' if this is not yet done.
-     *
-     * @param s the string
-     * @return the enclosed string
-     */
-    public static String enclose(String s) {
-        if (s.startsWith("(")) {
-            return s;
-        }
-        return "(" + s + ")";
+        return builder.append('}').toString();
     }
 
     /**
@@ -444,18 +447,13 @@ public class StringUtils {
             } else if (ch == '%') {
                 buff[j++] = (byte) Integer.parseInt(encoded.substring(i + 1, i + 3), 16);
                 i += 2;
-            } else {
-                if (SysProperties.CHECK) {
-                    if (ch > 127 || ch < ' ') {
-                        throw new IllegalArgumentException(
-                                "Unexpected char " + (int) ch + " decoding " + encoded);
-                    }
-                }
+            } else if (ch <= 127 && ch >= ' ') {
                 buff[j++] = (byte) ch;
+            } else {
+                throw new IllegalArgumentException("Unexpected char " + (int) ch + " decoding " + encoded);
             }
         }
-        String s = new String(buff, 0, j, Constants.UTF8);
-        return s;
+        return new String(buff, 0, j, StandardCharsets.UTF_8);
     }
 
     /**
@@ -476,7 +474,7 @@ public class StringUtils {
         if (length == 0) {
             return new String[0];
         }
-        ArrayList<String> list = New.arrayList();
+        ArrayList<String> list = Utils.newSmallArrayList();
         StringBuilder buff = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
             char c = s.charAt(i);
@@ -492,9 +490,7 @@ public class StringUtils {
         }
         String e = buff.toString();
         list.add(trim ? e.trim() : e);
-        String[] array = new String[list.size()];
-        list.toArray(array);
-        return array;
+        return list.toArray(new String[0]);
     }
 
     /**
@@ -507,21 +503,42 @@ public class StringUtils {
      * @return the combined string
      */
     public static String arrayCombine(String[] list, char separatorChar) {
-        StatementBuilder buff = new StatementBuilder();
-        for (String s : list) {
-            buff.appendExceptFirst(String.valueOf(separatorChar));
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < list.length; i++) {
+            if (i > 0) {
+                builder.append(separatorChar);
+            }
+            String s = list[i];
             if (s == null) {
-                s = "";
+                continue;
             }
             for (int j = 0, length = s.length(); j < length; j++) {
                 char c = s.charAt(j);
                 if (c == '\\' || c == separatorChar) {
-                    buff.append('\\');
+                    builder.append('\\');
                 }
-                buff.append(c);
+                builder.append(c);
             }
         }
-        return buff.toString();
+        return builder.toString();
+    }
+
+    /**
+     * Join specified strings and add them to the specified string builder.
+     *
+     * @param builder string builder
+     * @param strings strings to join
+     * @param separator separator
+     * @return the specified string builder
+     */
+    public static StringBuilder join(StringBuilder builder, ArrayList<String> strings, String separator) {
+        for (int i = 0, l = strings.size(); i < l; i++) {
+            if (i > 0) {
+                builder.append(separator);
+            }
+            builder.append(strings.get(i));
+        }
+        return builder;
     }
 
     /**
@@ -562,49 +579,49 @@ public class StringUtils {
      */
     public static String xmlNode(String name, String attributes,
             String content, boolean indent) {
-        String start = attributes == null ? name : name + attributes;
+        StringBuilder builder = new StringBuilder();
+        builder.append('<').append(name);
+        if (attributes != null) {
+            builder.append(attributes);
+        }
         if (content == null) {
-            return "<" + start + "/>\n";
+            builder.append("/>\n");
+            return builder.toString();
         }
+        builder.append('>');
         if (indent && content.indexOf('\n') >= 0) {
-            content = "\n" + indent(content);
+            builder.append('\n');
+            indent(builder, content, 4, true);
+        } else {
+            builder.append(content);
         }
-        return "<" + start + ">" + content + "</" + name + ">\n";
+        builder.append("</").append(name).append(">\n");
+        return builder.toString();
     }
 
     /**
-     * Indents a string with 4 spaces.
+     * Indents a string with spaces and appends it to a specified builder.
      *
-     * @param s the string
-     * @return the indented string
-     */
-    public static String indent(String s) {
-        return indent(s, 4, true);
-    }
-
-    /**
-     * Indents a string with spaces.
-     *
+     * @param builder string builder to append to
      * @param s the string
      * @param spaces the number of spaces
      * @param newline append a newline if there is none
-     * @return the indented string
+     * @return the specified string builder
      */
-    public static String indent(String s, int spaces, boolean newline) {
-        StringBuilder buff = new StringBuilder(s.length() + spaces);
-        for (int i = 0; i < s.length();) {
+    public static StringBuilder indent(StringBuilder builder, String s, int spaces, boolean newline) {
+        for (int i = 0, length = s.length(); i < length;) {
             for (int j = 0; j < spaces; j++) {
-                buff.append(' ');
+                builder.append(' ');
             }
             int n = s.indexOf('\n', i);
-            n = n < 0 ? s.length() : n + 1;
-            buff.append(s.substring(i, n));
+            n = n < 0 ? length : n + 1;
+            builder.append(s, i, n);
             i = n;
         }
         if (newline && !s.endsWith("\n")) {
-            buff.append('\n');
+            builder.append('\n');
         }
-        return buff.toString();
+        return builder;
     }
 
     /**
@@ -627,7 +644,8 @@ public class StringUtils {
         // must have a space at the beginning and at the end,
         // otherwise the data must not contain '-' as the first/last character
         if (data.indexOf('\n') >= 0) {
-            return "<!--\n" + indent(data) + "-->\n";
+            StringBuilder builder = new StringBuilder(data.length() + 18).append("<!--\n");
+            return indent(builder, data, 4, true).append("-->\n").toString();
         }
         return "<!-- " + data + " -->\n";
     }
@@ -689,7 +707,8 @@ public class StringUtils {
                 buff.append("&amp;");
                 break;
             case '\'':
-                buff.append("&apos;");
+                // &apos; is not valid in HTML
+                buff.append("&#39;");
                 break;
             case '\"':
                 buff.append("&quot;");
@@ -721,7 +740,10 @@ public class StringUtils {
     }
 
     /**
-     * Replace all occurrences of the before string with the after string.
+     * Replace all occurrences of the before string with the after string. Unlike
+     * {@link String#replaceAll(String, String)} this method reads {@code before}
+     * and {@code after} arguments as plain strings and if {@code before} argument
+     * is an empty string this method returns original string {@code s}.
      *
      * @param s the string
      * @param before the old text
@@ -730,18 +752,18 @@ public class StringUtils {
      */
     public static String replaceAll(String s, String before, String after) {
         int next = s.indexOf(before);
-        if (next < 0) {
+        if (next < 0 || before.isEmpty()) {
             return s;
         }
         StringBuilder buff = new StringBuilder(
                 s.length() - before.length() + after.length());
         int index = 0;
         while (true) {
-            buff.append(s.substring(index, next)).append(after);
+            buff.append(s, index, next).append(after);
             index = next + before.length();
             next = s.indexOf(before, index);
             if (next < 0) {
-                buff.append(s.substring(index));
+                buff.append(s, index, s.length());
                 break;
             }
         }
@@ -756,17 +778,28 @@ public class StringUtils {
      * @return the double quoted text
      */
     public static String quoteIdentifier(String s) {
-        int length = s.length();
-        StringBuilder buff = new StringBuilder(length + 2);
-        buff.append('\"');
-        for (int i = 0; i < length; i++) {
+        return quoteIdentifier(new StringBuilder(s.length() + 2), s).toString();
+    }
+
+    /**
+     * Enclose a string with double quotes and append it to the specified
+     * string builder. A double quote inside the string is escaped using a
+     * double quote.
+     *
+     * @param builder string builder to append to
+     * @param s the text
+     * @return the specified builder
+     */
+    public static StringBuilder quoteIdentifier(StringBuilder builder, String s) {
+        builder.append('"');
+        for (int i = 0, length = s.length(); i < length; i++) {
             char c = s.charAt(i);
             if (c == '"') {
-                buff.append(c);
+                builder.append(c);
             }
-            buff.append(c);
+            builder.append(c);
         }
-        return buff.append('\"').toString();
+        return builder.append('"');
     }
 
     /**
@@ -776,7 +809,7 @@ public class StringUtils {
      * @return true if it is null or empty
      */
     public static boolean isNullOrEmpty(String s) {
-        return s == null || s.length() == 0;
+        return s == null || s.isEmpty();
     }
 
     /**
@@ -809,7 +842,7 @@ public class StringUtils {
             return string;
         }
         char paddingChar;
-        if (padding == null || padding.length() == 0) {
+        if (padding == null || padding.isEmpty()) {
             paddingChar = ' ';
         } else {
             paddingChar = padding.charAt(0);
@@ -843,9 +876,7 @@ public class StringUtils {
         if (len == 0) {
             return chars;
         }
-        char[] copy = new char[len];
-        System.arraycopy(chars, 0, copy, 0, len);
-        return copy;
+        return Arrays.copyOf(chars, len);
     }
 
     /**
@@ -860,23 +891,72 @@ public class StringUtils {
      */
     public static String trim(String s, boolean leading, boolean trailing,
             String sp) {
-        char space = (sp == null || sp.length() < 1) ? ' ' : sp.charAt(0);
+        char space = sp == null || sp.isEmpty() ? ' ' : sp.charAt(0);
+        int begin = 0, end = s.length();
         if (leading) {
-            int len = s.length(), i = 0;
-            while (i < len && s.charAt(i) == space) {
-                i++;
+            while (begin < end && s.charAt(begin) == space) {
+                begin++;
             }
-            s = (i == 0) ? s : s.substring(i);
         }
         if (trailing) {
-            int endIndex = s.length() - 1;
-            int i = endIndex;
-            while (i >= 0 && s.charAt(i) == space) {
-                i--;
+            while (end > begin && s.charAt(end - 1) == space) {
+                end--;
             }
-            s = i == endIndex ? s : s.substring(0, i + 1);
         }
-        return s;
+        // substring() returns self if start == 0 && end == length()
+        return s.substring(begin, end);
+    }
+
+    /**
+     * Trim a whitespace from a substring. Equivalent of
+     * {@code substring(beginIndex).trim()}.
+     *
+     * @param s the string
+     * @param beginIndex start index of substring (inclusive)
+     * @return trimmed substring
+     */
+    public static String trimSubstring(String s, int beginIndex) {
+        return trimSubstring(s, beginIndex, s.length());
+    }
+
+    /**
+     * Trim a whitespace from a substring. Equivalent of
+     * {@code substring(beginIndex, endIndex).trim()}.
+     *
+     * @param s the string
+     * @param beginIndex start index of substring (inclusive)
+     * @param endIndex end index of substring (exclusive)
+     * @return trimmed substring
+     */
+    public static String trimSubstring(String s, int beginIndex, int endIndex) {
+        while (beginIndex < endIndex && s.charAt(beginIndex) <= ' ') {
+            beginIndex++;
+        }
+        while (beginIndex < endIndex && s.charAt(endIndex - 1) <= ' ') {
+            endIndex--;
+        }
+        return s.substring(beginIndex, endIndex);
+    }
+
+    /**
+     * Trim a whitespace from a substring and append it to a specified string
+     * builder. Equivalent of
+     * {@code builder.append(substring(beginIndex, endIndex).trim())}.
+     *
+     * @param builder string builder to append to
+     * @param s the string
+     * @param beginIndex start index of substring (inclusive)
+     * @param endIndex end index of substring (exclusive)
+     * @return the specified builder
+     */
+    public static StringBuilder trimSubstring(StringBuilder builder, String s, int beginIndex, int endIndex) {
+        while (beginIndex < endIndex && s.charAt(beginIndex) <= ' ') {
+            beginIndex++;
+        }
+        while (beginIndex < endIndex && s.charAt(endIndex - 1) <= ' ') {
+            endIndex--;
+        }
+        return builder.append(s, beginIndex, endIndex);
     }
 
     /**
@@ -893,18 +973,16 @@ public class StringUtils {
         }
         if (s == null) {
             return s;
-        } else if (s.length() == 0) {
+        } else if (s.isEmpty()) {
             return "";
         }
-        int hash = s.hashCode();
         String[] cache = getCache();
         if (cache != null) {
+            int hash = s.hashCode();
             int index = hash & (SysProperties.OBJECT_CACHE_SIZE - 1);
             String cached = cache[index];
-            if (cached != null) {
-                if (s.equals(cached)) {
-                    return cached;
-                }
+            if (s.equals(cached)) {
+                return cached;
             }
             cache[index] = s;
         }
@@ -915,7 +993,39 @@ public class StringUtils {
      * Clear the cache. This method is used for testing.
      */
     public static void clearCache() {
-        softCache = new SoftReference<>(null);
+        softCache = null;
+    }
+
+    /**
+     * Parses an unsigned 31-bit integer. Neither - nor + signs are allowed.
+     *
+     * @param s string to parse
+     * @param start the beginning index, inclusive
+     * @param end the ending index, exclusive
+     * @return the unsigned {@code int} not greater than {@link Integer#MAX_VALUE}.
+     */
+    public static int parseUInt31(String s, int start, int end) {
+        if (end > s.length() || start < 0 || start > end) {
+            throw new IndexOutOfBoundsException();
+        }
+        if (start == end) {
+            throw new NumberFormatException("");
+        }
+        int result = 0;
+        for (int i = start; i < end; i++) {
+            char ch = s.charAt(i);
+            // Ensure that character is valid and that multiplication by 10 will
+            // be performed without overflow
+            if (ch < '0' || ch > '9' || result > 214_748_364) {
+                throw new NumberFormatException(s.substring(start, end));
+            }
+            result = result * 10 + ch - '0';
+            if (result < 0) {
+                // Overflow
+                throw new NumberFormatException(s.substring(start, end));
+            }
+        }
+        return result;
     }
 
     /**
@@ -949,6 +1059,52 @@ public class StringUtils {
     }
 
     /**
+     * Parses a hex encoded string with possible space separators and appends
+     * the decoded binary string to the specified output stream.
+     *
+     * @param baos the output stream, or {@code null}
+     * @param s the hex encoded string
+     * @return the specified output stream or a new output stream
+     */
+    public static ByteArrayOutputStream convertHexWithSpacesToBytes(ByteArrayOutputStream baos, String s) {
+        int len = s.length();
+        if (baos == null) {
+            baos = new ByteArrayOutputStream(len / 2);
+        }
+        int mask = 0;
+        int[] hex = HEX_DECODE;
+        try {
+            loop: for (int i = 0;;) {
+                char c1, c2;
+                do {
+                    if (i >= len) {
+                        break loop;
+                    }
+                    c1 = s.charAt(i++);
+                } while (c1 == ' ');
+                do {
+                    if (i >= len) {
+                        if (((mask | hex[c1]) & ~255) != 0) {
+                            throw DbException.get(ErrorCode.HEX_STRING_WRONG_1, s);
+                        }
+                        throw DbException.get(ErrorCode.HEX_STRING_ODD_1, s);
+                    }
+                    c2 = s.charAt(i++);
+                } while (c2 == ' ');
+                int d = hex[c1] << 4 | hex[c2];
+                mask |= d;
+                baos.write(d);
+            }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw DbException.get(ErrorCode.HEX_STRING_WRONG_1, s);
+        }
+        if ((mask & ~255) != 0) {
+            throw DbException.get(ErrorCode.HEX_STRING_WRONG_1, s);
+        }
+        return baos;
+    }
+
+    /**
      * Convert a byte array to a hex encoded string.
      *
      * @param value the byte array
@@ -977,17 +1133,82 @@ public class StringUtils {
     }
 
     /**
+     * Convert a byte array to a hex encoded string and appends it to a specified string builder.
+     *
+     * @param builder string builder to append to
+     * @param value the byte array
+     * @return the hex encoded string
+     */
+    public static StringBuilder convertBytesToHex(StringBuilder builder, byte[] value) {
+        return convertBytesToHex(builder, value, value.length);
+    }
+
+    /**
+     * Convert a byte array to a hex encoded string and appends it to a specified string builder.
+     *
+     * @param builder string builder to append to
+     * @param value the byte array
+     * @param len the number of bytes to encode
+     * @return the hex encoded string
+     */
+    public static StringBuilder convertBytesToHex(StringBuilder builder, byte[] value, int len) {
+        char[] hex = HEX;
+        for (int i = 0; i < len; i++) {
+            int c = value[i] & 0xff;
+            builder.append(hex[c >>> 4]).append(hex[c & 0xf]);
+        }
+        return builder;
+    }
+
+    /**
+     * Appends specified number of trailing bytes from unsigned long value to a
+     * specified string builder.
+     *
+     * @param builder
+     *            string builder to append to
+     * @param x
+     *            value to append
+     * @param bytes
+     *            number of bytes to append
+     * @return the specified string builder
+     */
+    public static StringBuilder appendHex(StringBuilder builder, long x, int bytes) {
+        char[] hex = HEX;
+        for (int i = bytes * 8; i > 0;) {
+            builder.append(hex[(int) (x >> (i -= 4)) & 0xf]).append(hex[(int) (x >> (i -= 4)) & 0xf]);
+        }
+        return builder;
+    }
+
+    /**
      * Check if this string is a decimal number.
      *
      * @param s the string
      * @return true if it is
      */
     public static boolean isNumber(String s) {
-        if (s.length() == 0) {
+        int l = s.length();
+        if (l == 0) {
             return false;
         }
-        for (char c : s.toCharArray()) {
-            if (!Character.isDigit(c)) {
+        for (int i = 0; i < l; i++) {
+            if (!Character.isDigit(s.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Check if the specified string is empty or contains only whitespace.
+     *
+     * @param s
+     *            the string
+     * @return whether the specified string is empty or contains only whitespace
+     */
+    public static boolean isWhitespaceOrEmpty(String s) {
+        for (int i = 0, l = s.length(); i < l; i++) {
+            if (s.charAt(i) > ' ') {
                 return false;
             }
         }
@@ -1026,7 +1247,7 @@ public class StringUtils {
      * @return the escaped pattern
      */
     public static String escapeMetaDataPattern(String pattern) {
-        if (pattern == null || pattern.length() == 0) {
+        if (pattern == null || pattern.isEmpty()) {
             return pattern;
         }
         return replaceAll(pattern, "\\", "\\\\");

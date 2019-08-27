@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.command.dml;
@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -22,12 +23,12 @@ import java.util.Comparator;
 import java.util.Set;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
-import org.h2.command.Parser;
 import org.h2.constraint.Constraint;
 import org.h2.engine.Comment;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
+import org.h2.engine.Domain;
 import org.h2.engine.Right;
 import org.h2.engine.Role;
 import org.h2.engine.Session;
@@ -35,7 +36,6 @@ import org.h2.engine.Setting;
 import org.h2.engine.SysProperties;
 import org.h2.engine.User;
 import org.h2.engine.UserAggregate;
-import org.h2.engine.UserDataType;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.index.Cursor;
@@ -55,7 +55,6 @@ import org.h2.table.Table;
 import org.h2.table.TableType;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
-import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
@@ -67,7 +66,7 @@ import org.h2.value.ValueString;
  */
 public class ScriptCommand extends ScriptBase {
 
-    private Charset charset = Constants.UTF8;
+    private Charset charset = StandardCharsets.UTF_8;
     private Set<String> schemaNames;
     private Collection<Table> tables;
     private boolean passwords;
@@ -79,6 +78,7 @@ public class ScriptCommand extends ScriptBase {
     // true if we're generating the DROP statements
     private boolean drop;
     private boolean simple;
+    private boolean withColumns;
     private LocalResult result;
     private String lineSeparatorString;
     private byte[] lineSeparator;
@@ -134,9 +134,9 @@ public class ScriptCommand extends ScriptBase {
     }
 
     private LocalResult createResult() {
-        Expression[] expressions = { new ExpressionColumn(
-                session.getDatabase(), new Column("SCRIPT", Value.STRING)) };
-        return new LocalResult(session, expressions, 1);
+        Database db = session.getDatabase();
+        return db.getResultFactory().create(session,
+                new Expression[] { new ExpressionColumn(db, new Column("SCRIPT", Value.STRING)) }, 1, 1);
     }
 
     @Override
@@ -186,7 +186,7 @@ public class ScriptCommand extends ScriptBase {
                 }
                 add(schema.getCreateSQL(), false);
             }
-            for (UserDataType datatype : db.getAllUserDataTypes()) {
+            for (Domain datatype : db.getAllDomains()) {
                 if (drop) {
                     add(datatype.getDropSQL(), false);
                 }
@@ -283,18 +283,17 @@ public class ScriptCommand extends ScriptBase {
                 final ArrayList<Constraint> constraints = table.getConstraints();
                 if (constraints != null) {
                     for (Constraint constraint : constraints) {
-                        if (Constraint.PRIMARY_KEY.equals(
-                                constraint.getConstraintType())) {
+                        if (Constraint.Type.PRIMARY_KEY == constraint.getConstraintType()) {
                             add(constraint.getCreateSQLWithoutIndexes(), false);
                         }
                     }
                 }
                 if (TableType.TABLE == tableType) {
                     if (table.canGetRowCount()) {
-                        String rowcount = "-- " +
-                                table.getRowCountApproximation() +
-                                " +/- SELECT COUNT(*) FROM " + table.getSQL();
-                        add(rowcount, false);
+                        StringBuilder builder = new StringBuilder("-- ").append(table.getRowCountApproximation())
+                                .append(" +/- SELECT COUNT(*) FROM ");
+                        table.getSQL(builder, false);
+                        add(builder.toString(), false);
                     }
                     if (data) {
                         count = generateInsertValues(count, table);
@@ -318,12 +317,7 @@ public class ScriptCommand extends ScriptBase {
             // Generate CREATE CONSTRAINT ...
             final ArrayList<SchemaObject> constraints = db.getAllSchemaObjects(
                     DbObject.CONSTRAINT);
-            Collections.sort(constraints, new Comparator<SchemaObject>() {
-                @Override
-                public int compare(SchemaObject c1, SchemaObject c2) {
-                    return ((Constraint) c1).compareTo((Constraint) c2);
-                }
-            });
+            Collections.sort(constraints, null);
             for (SchemaObject obj : constraints) {
                 if (excludeSchema(obj.getSchema())) {
                     continue;
@@ -335,7 +329,7 @@ public class ScriptCommand extends ScriptBase {
                 if (constraint.getTable().isHidden()) {
                     continue;
                 }
-                if (!Constraint.PRIMARY_KEY.equals(constraint.getConstraintType())) {
+                if (Constraint.Type.PRIMARY_KEY != constraint.getConstraintType()) {
                     add(constraint.getCreateSQLWithoutIndexes(), false);
                 }
             }
@@ -393,58 +387,59 @@ public class ScriptCommand extends ScriptBase {
         Index index = plan.getIndex();
         Cursor cursor = index.find(session, null, null);
         Column[] columns = table.getColumns();
-        StatementBuilder buff = new StatementBuilder("INSERT INTO ");
-        buff.append(table.getSQL()).append('(');
-        for (Column col : columns) {
-            buff.appendExceptFirst(", ");
-            buff.append(Parser.quoteIdentifier(col.getName()));
+        StringBuilder builder = new StringBuilder("INSERT INTO ");
+        table.getSQL(builder, true);
+        if (withColumns) {
+            builder.append('(');
+            Column.writeColumns(builder, columns, true);
+            builder.append(')');
         }
-        buff.append(") VALUES");
+        builder.append(" VALUES");
         if (!simple) {
-            buff.append('\n');
+            builder.append('\n');
         }
-        buff.append('(');
-        String ins = buff.toString();
-        buff = null;
+        builder.append('(');
+        String ins = builder.toString();
+        builder = null;
         while (cursor.next()) {
             Row row = cursor.get();
-            if (buff == null) {
-                buff = new StatementBuilder(ins);
+            if (builder == null) {
+                builder = new StringBuilder(ins);
             } else {
-                buff.append(",\n(");
+                builder.append(",\n(");
             }
             for (int j = 0; j < row.getColumnCount(); j++) {
                 if (j > 0) {
-                    buff.append(", ");
+                    builder.append(", ");
                 }
                 Value v = row.getValue(j);
-                if (v.getPrecision() > lobBlockSize) {
+                if (v.getType().getPrecision() > lobBlockSize) {
                     int id;
-                    if (v.getType() == Value.CLOB) {
+                    if (v.getValueType() == Value.CLOB) {
                         id = writeLobStream(v);
-                        buff.append("SYSTEM_COMBINE_CLOB(" + id + ")");
-                    } else if (v.getType() == Value.BLOB) {
+                        builder.append("SYSTEM_COMBINE_CLOB(").append(id).append(')');
+                    } else if (v.getValueType() == Value.BLOB) {
                         id = writeLobStream(v);
-                        buff.append("SYSTEM_COMBINE_BLOB(" + id + ")");
+                        builder.append("SYSTEM_COMBINE_BLOB(").append(id).append(')');
                     } else {
-                        buff.append(v.getSQL());
+                        v.getSQL(builder);
                     }
                 } else {
-                    buff.append(v.getSQL());
+                    v.getSQL(builder);
                 }
             }
-            buff.append(')');
+            builder.append(')');
             count++;
             if ((count & 127) == 0) {
                 checkCanceled();
             }
-            if (simple || buff.length() > Constants.IO_BUFFER_SIZE) {
-                add(buff.toString(), true);
-                buff = null;
+            if (simple || builder.length() > Constants.IO_BUFFER_SIZE) {
+                add(builder.toString(), true);
+                builder = null;
             }
         }
-        if (buff != null) {
-            add(buff.toString(), true);
+        if (builder != null) {
+            add(builder.toString(), true);
         }
         return count;
     }
@@ -464,19 +459,19 @@ public class ScriptCommand extends ScriptBase {
             tempLobTableCreated = true;
         }
         int id = nextLobId++;
-        switch (v.getType()) {
+        switch (v.getValueType()) {
         case Value.BLOB: {
             byte[] bytes = new byte[lobBlockSize];
             try (InputStream input = v.getInputStream()) {
                 for (int i = 0;; i++) {
                     StringBuilder buff = new StringBuilder(lobBlockSize * 2);
-                    buff.append("INSERT INTO SYSTEM_LOB_STREAM VALUES(" + id +
-                            ", " + i + ", NULL, '");
+                    buff.append("INSERT INTO SYSTEM_LOB_STREAM VALUES(").append(id)
+                            .append(", ").append(i).append(", NULL, '");
                     int len = IOUtils.readFully(input, bytes, lobBlockSize);
                     if (len <= 0) {
                         break;
                     }
-                    buff.append(StringUtils.convertBytesToHex(bytes, len)).append("')");
+                    StringUtils.convertBytesToHex(buff, bytes, len).append("')");
                     String sql = buff.toString();
                     add(sql, true);
                 }
@@ -489,12 +484,13 @@ public class ScriptCommand extends ScriptBase {
             try (Reader reader = v.getReader()) {
                 for (int i = 0;; i++) {
                     StringBuilder buff = new StringBuilder(lobBlockSize * 2);
-                    buff.append("INSERT INTO SYSTEM_LOB_STREAM VALUES(" + id + ", " + i + ", ");
+                    buff.append("INSERT INTO SYSTEM_LOB_STREAM VALUES(").append(id).append(", ").append(i)
+                            .append(", ");
                     int len = IOUtils.readFully(reader, chars, lobBlockSize);
                     if (len == 0) {
                         break;
                     }
-                    buff.append(StringUtils.quoteStringSQL(new String(chars, 0, len))).
+                    StringUtils.quoteStringSQL(buff, new String(chars, 0, len)).
                         append(", NULL)");
                     String sql = buff.toString();
                     add(sql, true);
@@ -503,7 +499,7 @@ public class ScriptCommand extends ScriptBase {
             break;
         }
         default:
-            DbException.throwInternalError("type:" + v.getType());
+            DbException.throwInternalError("type:" + v.getValueType());
         }
         return id;
     }
@@ -703,17 +699,19 @@ public class ScriptCommand extends ScriptBase {
             }
             out.write(buffer, 0, len);
             if (!insert) {
-                Value[] row = { ValueString.get(s) };
-                result.addRow(row);
+                result.addRow(ValueString.get(s));
             }
         } else {
-            Value[] row = { ValueString.get(s) };
-            result.addRow(row);
+            result.addRow(ValueString.get(s));
         }
     }
 
     public void setSimple(boolean simple) {
         this.simple = simple;
+    }
+
+    public void setWithColumns(boolean withColumns) {
+        this.withColumns = withColumns;
     }
 
     public void setCharset(Charset charset) {

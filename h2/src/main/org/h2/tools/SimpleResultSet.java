@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.tools;
@@ -8,6 +8,7 @@ package org.h2.tools;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.net.URL;
 import java.sql.Array;
 import java.sql.Blob;
@@ -28,12 +29,15 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Map;
+import java.util.UUID;
 import org.h2.api.ErrorCode;
 import org.h2.jdbc.JdbcResultSetBackwardsCompat;
 import org.h2.message.DbException;
+import org.h2.util.Bits;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
-import org.h2.util.New;
+import org.h2.util.SimpleColumnInfo;
+import org.h2.util.Utils;
 import org.h2.value.DataType;
 
 /**
@@ -62,7 +66,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
     private int rowId = -1;
     private boolean wasNull;
     private SimpleRowSource source;
-    private ArrayList<Column> columns = New.arrayList();
+    private ArrayList<SimpleColumnInfo> columns = Utils.newSmallArrayList();
     private boolean autoClose = true;
 
     /**
@@ -70,7 +74,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
      * addRow.
      */
     public SimpleResultSet() {
-        rows = New.arrayList();
+        rows = Utils.newSmallArrayList();
     }
 
     /**
@@ -111,20 +115,14 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
      */
     public void addColumn(String name, int sqlType, String sqlTypeName,
             int precision, int scale) {
-        if (rows != null && rows.size() > 0) {
+        if (rows != null && !rows.isEmpty()) {
             throw new IllegalStateException(
                     "Cannot add a column after adding rows");
         }
         if (name == null) {
             name = "C" + (columns.size() + 1);
         }
-        Column column = new Column();
-        column.name = name;
-        column.sqlType = sqlType;
-        column.precision = precision;
-        column.scale = scale;
-        column.sqlTypeName = sqlTypeName;
-        columns.add(column);
+        columns.add(new SimpleColumnInfo(name, sqlType, sqlTypeName, precision, scale));
     }
 
     /**
@@ -244,7 +242,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
     @Override
     public void beforeFirst() throws SQLException {
         if (autoClose) {
-            throw DbException.get(ErrorCode.RESULT_SET_NOT_SCROLLABLE);
+            throw DbException.getJdbcSQLException(ErrorCode.RESULT_SET_NOT_SCROLLABLE);
         }
         rowId = -1;
         if (source != null) {
@@ -280,8 +278,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
                 }
             }
         }
-        throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, columnLabel)
-                .getSQLException();
+        throw DbException.getJdbcSQLException(ErrorCode.COLUMN_NOT_FOUND_1, columnLabel);
     }
 
     /**
@@ -475,10 +472,26 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
     @Override
     public boolean getBoolean(int columnIndex) throws SQLException {
         Object o = get(columnIndex);
-        if (o != null && !(o instanceof Boolean)) {
-            o = Boolean.valueOf(o.toString());
+        if (o == null) {
+            return false;
         }
-        return o == null ? false : ((Boolean) o).booleanValue();
+        if (o instanceof Boolean) {
+            return (Boolean) o;
+        }
+        if (o instanceof Number) {
+            Number n = (Number) o;
+            if (n instanceof Double || n instanceof Float) {
+                return n.doubleValue() != 0;
+            }
+            if (n instanceof BigDecimal) {
+                return ((BigDecimal) n).signum() != 0;
+            }
+            if (n instanceof BigInteger) {
+                return ((BigInteger) n).signum() != 0;
+            }
+            return n.longValue() != 0;
+        }
+        return Utils.parseBoolean(o.toString(), false, true);
     }
 
     /**
@@ -529,6 +542,9 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
         Object o = get(columnIndex);
         if (o == null || o instanceof byte[]) {
             return (byte[]) o;
+        }
+        if (o instanceof UUID) {
+            return Bits.uuidToBytes((UUID) o);
         }
         return JdbcUtils.serialize(o, null);
     }
@@ -589,8 +605,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
      */
     @Override
     public Clob getClob(int columnIndex) throws SQLException {
-        Clob c = (Clob) get(columnIndex);
-        return c == null ? null : c;
+        return (Clob) get(columnIndex);
     }
 
     /**
@@ -819,25 +834,69 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
     }
 
     /**
-     * INTERNAL
+     * Returns the value as an Object of the specified type.
      *
      * @param columnIndex the column index (1, 2, ...)
      * @param type the class of the returned value
+     * @return the value
      */
     @Override
     public <T> T getObject(int columnIndex, Class<T> type) throws SQLException {
-        throw getUnsupportedException();
+        if (wasNull()) {
+            return null;
+        }
+
+        if (type == BigDecimal.class) {
+            return type.cast(getBigDecimal(columnIndex));
+        } else if (type == BigInteger.class) {
+            return type.cast(getBigDecimal(columnIndex).toBigInteger());
+        } else if (type == String.class) {
+            return type.cast(getString(columnIndex));
+        } else if (type == Boolean.class) {
+            return type.cast(getBoolean(columnIndex));
+        } else if (type == Byte.class) {
+            return type.cast(getByte(columnIndex));
+        } else if (type == Short.class) {
+            return type.cast(getShort(columnIndex));
+        } else if (type == Integer.class) {
+            return type.cast(getInt(columnIndex));
+        } else if (type == Long.class) {
+            return type.cast(getLong(columnIndex));
+        } else if (type == Float.class) {
+            return type.cast(getFloat(columnIndex));
+        } else if (type == Double.class) {
+            return type.cast(getDouble(columnIndex));
+        } else if (type == Date.class) {
+            return type.cast(getDate(columnIndex));
+        } else if (type == Time.class) {
+            return type.cast(getTime(columnIndex));
+        } else if (type == Timestamp.class) {
+            return type.cast(getTimestamp(columnIndex));
+        } else if (type == UUID.class) {
+            return type.cast(getObject(columnIndex));
+        } else if (type == byte[].class) {
+            return type.cast(getBytes(columnIndex));
+        } else if (type == java.sql.Array.class) {
+            return type.cast(getArray(columnIndex));
+        } else if (type == Blob.class) {
+            return type.cast(getBlob(columnIndex));
+        } else if (type == Clob.class) {
+            return type.cast(getClob(columnIndex));
+        } else {
+            throw getUnsupportedException();
+        }
     }
 
     /**
-     * INTERNAL
+     * Returns the value as an Object of the specified type.
      *
      * @param columnName the column name
      * @param type the class of the returned value
+     * @return the value
      */
     @Override
     public <T> T getObject(String columnName, Class<T> type) throws SQLException {
-        throw getUnsupportedException();
+        return getObject(findColumn(columnName), type);
     }
 
     /**
@@ -944,7 +1003,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
         if (o == null) {
             return null;
         }
-        switch (columns.get(columnIndex - 1).sqlType) {
+        switch (columns.get(columnIndex - 1).type) {
         case Types.CLOB:
             Clob c = (Clob) o;
             return c.getSubString(1, MathUtils.convertLongToInt(c.length()));
@@ -1800,7 +1859,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
      */
     @Override
     public int getColumnType(int columnIndex) throws SQLException {
-        return getColumn(columnIndex - 1).sqlType;
+        return getColumn(columnIndex - 1).type;
     }
 
     /**
@@ -1925,14 +1984,14 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
     }
 
     /**
-     * Returns null.
+     * Returns empty string.
      *
      * @param columnIndex (1,2,...)
-     * @return null
+     * @return empty string
      */
     @Override
     public String getCatalogName(int columnIndex) {
-        return null;
+        return "";
     }
 
     /**
@@ -1944,7 +2003,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
     @Override
     public String getColumnClassName(int columnIndex) throws SQLException {
         int type = DataType.getValueTypeFromResultSet(this, columnIndex);
-        return DataType.getTypeClassName(type);
+        return DataType.getTypeClassName(type, true);
     }
 
     /**
@@ -1977,29 +2036,29 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
      */
     @Override
     public String getColumnTypeName(int columnIndex) throws SQLException {
-        return getColumn(columnIndex - 1).sqlTypeName;
+        return getColumn(columnIndex - 1).typeName;
     }
 
     /**
-     * Returns null.
+     * Returns empty string.
      *
      * @param columnIndex (1,2,...)
-     * @return null
+     * @return empty string
      */
     @Override
     public String getSchemaName(int columnIndex) {
-        return null;
+        return "";
     }
 
     /**
-     * Returns null.
+     * Returns empty string.
      *
      * @param columnIndex (1,2,...)
-     * @return null
+     * @return empty string
      */
     @Override
     public String getTableName(int columnIndex) {
-        return null;
+        return "";
     }
 
     // ---- unsupported / result set -----------------------------------
@@ -2191,6 +2250,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
     // --- private -----------------------------
 
     private void update(int columnIndex, Object obj) throws SQLException {
+        checkClosed();
         checkColumnIndex(columnIndex);
         this.currentRow[columnIndex - 1] = obj;
     }
@@ -2203,8 +2263,13 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
      * INTERNAL
      */
     static SQLException getUnsupportedException() {
-        return DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1).
-                getSQLException();
+        return DbException.getJdbcSQLException(ErrorCode.FEATURE_NOT_SUPPORTED_1);
+    }
+
+    private void checkClosed() throws SQLException {
+        if (columns == null) {
+            throw DbException.getJdbcSQLException(ErrorCode.OBJECT_CLOSED);
+        }
     }
 
     private void checkColumnIndex(int columnIndex) throws SQLException {
@@ -2216,8 +2281,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
 
     private Object get(int columnIndex) throws SQLException {
         if (currentRow == null) {
-            throw DbException.get(ErrorCode.NO_DATA_AVAILABLE).
-                    getSQLException();
+            throw DbException.getJdbcSQLException(ErrorCode.NO_DATA_AVAILABLE);
         }
         checkColumnIndex(columnIndex);
         columnIndex--;
@@ -2227,7 +2291,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
         return o;
     }
 
-    private Column getColumn(int i) throws SQLException {
+    private SimpleColumnInfo getColumn(int i) throws SQLException {
         checkColumnIndex(i + 1);
         return columns.get(i);
     }
@@ -2285,37 +2349,6 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
      */
     public boolean getAutoClose() {
         return autoClose;
-    }
-
-    /**
-     * This class holds the data of a result column.
-     */
-    static class Column {
-
-        /**
-         * The column label.
-         */
-        String name;
-
-        /**
-         * The column type Name
-         */
-        String sqlTypeName;
-
-        /**
-         * The SQL type.
-         */
-        int sqlType;
-
-        /**
-         * The precision.
-         */
-        int precision;
-
-        /**
-         * The scale.
-         */
-        int scale;
     }
 
     /**

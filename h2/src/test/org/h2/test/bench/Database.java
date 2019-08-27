@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.bench;
@@ -46,7 +46,7 @@ class Database {
     private final ArrayList<Object[]> results = new ArrayList<>();
     private int totalTime;
     private int totalGCTime;
-    private final AtomicInteger executedStatements = new AtomicInteger(0);
+    private final AtomicInteger executedStatements = new AtomicInteger();
     private int threadCount;
 
     private Server serverH2;
@@ -107,7 +107,7 @@ class Database {
             Thread.sleep(100);
         } else if (url.startsWith("jdbc:derby://")) {
             serverDerby = Class.forName(
-                    "org.apache.derby.drda.NetworkServerControl").newInstance();
+                    "org.apache.derby.drda.NetworkServerControl").getDeclaredConstructor().newInstance();
             Method m = serverDerby.getClass().getMethod("start", PrintWriter.class);
             m.invoke(serverDerby, new Object[] { null });
             // serverDerby = new NetworkServerControl();
@@ -247,7 +247,7 @@ class Database {
             String key = (String) k;
             if (key.startsWith(databaseType + ".")) {
                 String pattern = key.substring(databaseType.length() + 1);
-                pattern = StringUtils.replaceAll(pattern, "_", " ");
+                pattern = pattern.replace('_', ' ');
                 pattern = StringUtils.toUpperEnglish(pattern);
                 String replacement = prop.getProperty(key);
                 replace.add(new String[]{pattern, replacement});
@@ -436,7 +436,7 @@ class Database {
      * @param prep the prepared statement
      */
     void queryReadResult(PreparedStatement prep) throws SQLException {
-        ResultSet rs = prep.executeQuery();
+        ResultSet rs = query(prep);
         ResultSetMetaData meta = rs.getMetaData();
         int columnCount = meta.getColumnCount();
         while (rs.next()) {

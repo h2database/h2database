@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.synth;
@@ -13,15 +13,16 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
+
 import org.h2.test.TestBase;
-import org.h2.util.New;
+import org.h2.test.TestDb;
 
 /**
  * Tests random compare operations.
  */
-public class TestRandomCompare extends TestBase {
+public class TestRandomCompare extends TestDb {
 
-    private final ArrayList<Statement> dbs = New.arrayList();
+    private final ArrayList<Statement> dbs = new ArrayList<>();
     private int aliasId;
 
     /**
@@ -50,7 +51,7 @@ public class TestRandomCompare extends TestBase {
         try {
             Class.forName("org.postgresql.Driver");
             Connection c2 = DriverManager.getConnection(
-                    "jdbc:postgresql:test", "sa", "sa");
+                    "jdbc:postgresql:test?loggerLevel=OFF", "sa", "sa");
             dbs.add(c2.createStatement());
         } catch (Exception e) {
             // database not installed - ok
@@ -246,7 +247,7 @@ public class TestRandomCompare extends TestBase {
     }
 
     private static String getResult(ResultSet rs) throws SQLException {
-        ArrayList<String> list = New.arrayList();
+        ArrayList<String> list = new ArrayList<>();
         while (rs.next()) {
             StringBuilder buff = new StringBuilder();
             for (int i = 0; i < rs.getMetaData().getColumnCount(); i++) {

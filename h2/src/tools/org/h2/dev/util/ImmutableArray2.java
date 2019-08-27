@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.dev.util;
@@ -138,10 +138,7 @@ public final class ImmutableArray2<K> implements Iterable<K> {
         if (fromIndex == 0) {
             return new ImmutableArray2<>(array, len);
         }
-        @SuppressWarnings("unchecked")
-        K[] a2 = (K[]) new Object[len];
-        System.arraycopy(array, fromIndex, a2, 0, toIndex - fromIndex);
-        return new ImmutableArray2<>(a2, len);
+        return new ImmutableArray2<>(Arrays.copyOfRange(array, fromIndex, toIndex), len);
     }
 
     /**

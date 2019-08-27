@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.server;
@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.net.ConnectException;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -44,6 +46,7 @@ import org.h2.engine.SysProperties;
 import org.h2.server.web.WebServlet;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.test.utils.AssertThrows;
 import org.h2.tools.Server;
 import org.h2.util.StringUtils;
@@ -52,7 +55,7 @@ import org.h2.util.Task;
 /**
  * Tests the H2 Console application.
  */
-public class TestWeb extends TestBase {
+public class TestWeb extends TestDb {
 
     private static volatile String lastUrl;
 
@@ -169,7 +172,7 @@ public class TestWeb extends TestBase {
         Server server = new Server();
         server.setOut(new PrintStream(new ByteArrayOutputStream()));
         server.runTool("-web", "-webPort", "8182",
-                "-properties", "null", "-tcp", "-tcpPort", "9101");
+                "-properties", "null", "-tcp", "-tcpPort", "9101", "-webAdminPassword", "123");
         try {
             String url = "http://localhost:8182";
             WebClient client;
@@ -177,6 +180,7 @@ public class TestWeb extends TestBase {
             client = new WebClient();
             result = client.get(url);
             client.readSessionId(result);
+            result = client.get(url, "adminLogin.do?password=123");
             result = client.get(url, "tools.jsp");
             FileUtils.delete(getBaseDir() + "/backup.zip");
             result = client.get(url, "tools.do?tool=Backup&args=-dir," +
@@ -261,7 +265,8 @@ public class TestWeb extends TestBase {
                 getUser(), getPassword());
         Server server = new Server();
         server.setOut(new PrintStream(new ByteArrayOutputStream()));
-        server.runTool("-ifExists", "-web", "-webPort", "8182",
+        // -ifExists is the default
+        server.runTool("-web", "-webPort", "8182",
                 "-properties", "null", "-tcp", "-tcpPort", "9101");
         try {
             String url = "http://localhost:8182";
@@ -285,12 +290,13 @@ public class TestWeb extends TestBase {
             server.shutdown();
             conn.close();
         }
+
     }
 
     private void testWebApp() throws Exception {
         Server server = new Server();
         server.setOut(new PrintStream(new ByteArrayOutputStream()));
-        server.runTool("-web", "-webPort", "8182",
+        server.runTool("-ifNotExists", "-web", "-webPort", "8182",
                 "-properties", "null", "-tcp", "-tcpPort", "9101");
         try {
             String url = "http://localhost:8182";
@@ -445,7 +451,22 @@ public class TestWeb extends TestBase {
             assertContains(result, "There is currently no running statement");
             result = client.get(url,
                     "query.do?sql=@generated insert into test(id) values(test_sequence.nextval)");
-            assertContains(result, "SCOPE_IDENTITY()");
+            assertContains(result, "<tr><th>ID</th></tr><tr><td>1</td></tr>");
+            result = client.get(url,
+                    "query.do?sql=@generated(1) insert into test(id) values(test_sequence.nextval)");
+            assertContains(result, "<tr><th>ID</th></tr><tr><td>2</td></tr>");
+            result = client.get(url,
+                    "query.do?sql=@generated(1, 1) insert into test(id) values(test_sequence.nextval)");
+            assertContains(result, "<tr><th>ID</th><th>ID</th></tr><tr><td>3</td><td>3</td></tr>");
+            result = client.get(url,
+                    "query.do?sql=@generated(id) insert into test(id) values(test_sequence.nextval)");
+            assertContains(result, "<tr><th>ID</th></tr><tr><td>4</td></tr>");
+            result = client.get(url,
+                    "query.do?sql=@generated(id, id) insert into test(id) values(test_sequence.nextval)");
+            assertContains(result, "<tr><th>ID</th><th>ID</th></tr><tr><td>5</td><td>5</td></tr>");
+            result = client.get(url,
+                    "query.do?sql=@generated() insert into test(id) values(test_sequence.nextval)");
+            assertContains(result, "<table cellspacing=0 cellpadding=0><tr></tr></table>");
             result = client.get(url, "query.do?sql=@maxrows 2000");
             assertContains(result, "Max rowcount is set");
             result = client.get(url, "query.do?sql=@password_hash user password");
@@ -556,7 +577,7 @@ public class TestWeb extends TestBase {
             Task t = new Task() {
                 @Override
                 public void call() throws Exception {
-                    Server.startWebServer(conn);
+                    Server.startWebServer(conn, true);
                 }
             };
             t.execute();
@@ -572,7 +593,7 @@ public class TestWeb extends TestBase {
             url = client.getBaseUrl(url);
             try {
                 client.get(url, "logout.do");
-            } catch (Exception e) {
+            } catch (ConnectException e) {
                 // the server stops on logout
             }
             t.get();
@@ -719,7 +740,7 @@ public class TestWeb extends TestBase {
 
         @Override
         public String getScheme() {
-            return null;
+            return "http";
         }
 
         @Override
@@ -729,7 +750,7 @@ public class TestWeb extends TestBase {
 
         @Override
         public int getServerPort() {
-            return 0;
+            return 80;
         }
 
         @Override
@@ -1174,11 +1195,7 @@ public class TestWeb extends TestBase {
 
         @Override
         public String toString() {
-            try {
-                return new String(buff.toByteArray(), "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                return e.toString();
-            }
+            return new String(buff.toByteArray(), StandardCharsets.UTF_8);
         }
 
         @Override

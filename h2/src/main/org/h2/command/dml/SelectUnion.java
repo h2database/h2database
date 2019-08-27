@@ -1,76 +1,80 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.command.dml;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+
 import org.h2.api.ErrorCode;
-import org.h2.command.CommandInterface;
+import org.h2.engine.Database;
+import org.h2.engine.Mode;
 import org.h2.engine.Session;
-import org.h2.engine.SysProperties;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
-import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
 import org.h2.result.LazyResult;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
-import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.ColumnNamer;
-import org.h2.util.New;
-import org.h2.util.StringUtils;
 import org.h2.value.Value;
-import org.h2.value.ValueInt;
-import org.h2.value.ValueNull;
 
 /**
  * Represents a union SELECT statement.
  */
 public class SelectUnion extends Query {
 
-    /**
-     * The type of a UNION statement.
-     */
-    public static final int UNION = 0;
+    public enum UnionType {
+        /**
+         * The type of a UNION statement.
+         */
+        UNION,
+
+        /**
+         * The type of a UNION ALL statement.
+         */
+        UNION_ALL,
+
+        /**
+         * The type of an EXCEPT statement.
+         */
+        EXCEPT,
+
+        /**
+         * The type of an INTERSECT statement.
+         */
+        INTERSECT
+    }
+
+    private final UnionType unionType;
 
     /**
-     * The type of a UNION ALL statement.
+     * The left hand side of the union (the first subquery).
      */
-    public static final int UNION_ALL = 1;
+    final Query left;
 
     /**
-     * The type of an EXCEPT statement.
+     * The right hand side of the union (the second subquery).
      */
-    public static final int EXCEPT = 2;
+    final Query right;
 
-    /**
-     * The type of an INTERSECT statement.
-     */
-    public static final int INTERSECT = 3;
-
-    private int unionType;
-    private final Query left;
-    private Query right;
-    private ArrayList<Expression> expressions;
-    private Expression[] expressionArray;
-    private ArrayList<SelectOrderBy> orderList;
-    private SortOrder sort;
     private boolean isPrepared, checkInit;
     private boolean isForUpdate;
 
-    public SelectUnion(Session session, Query query) {
+    public SelectUnion(Session session, UnionType unionType, Query query, Query right) {
         super(session);
+        this.unionType = unionType;
         this.left = query;
+        this.right = right;
     }
 
     @Override
@@ -84,16 +88,8 @@ public class SelectUnion extends Query {
         right.prepareJoinBatch();
     }
 
-    public void setUnionType(int type) {
-        this.unionType = type;
-    }
-
-    public int getUnionType() {
+    public UnionType getUnionType() {
         return unionType;
-    }
-
-    public void setRight(Query select) {
-        right = select;
     }
 
     public Query getLeft() {
@@ -102,21 +98,6 @@ public class SelectUnion extends Query {
 
     public Query getRight() {
         return right;
-    }
-
-    @Override
-    public void setSQL(String sql) {
-        this.sqlStatement = sql;
-    }
-
-    @Override
-    public void setOrder(ArrayList<SelectOrderBy> order) {
-        orderList = order;
-    }
-
-    @Override
-    public boolean hasOrder() {
-        return orderList != null || sort != null;
     }
 
     private Value[] convert(Value[] values, int columnCount) {
@@ -129,49 +110,29 @@ public class SelectUnion extends Query {
             // for the value hash set
             newValues = new Value[columnCount];
         }
+        Mode mode = session.getDatabase().getMode();
         for (int i = 0; i < columnCount; i++) {
             Expression e = expressions.get(i);
-            newValues[i] = values[i].convertTo(e.getType());
+            newValues[i] = values[i].convertTo(e.getType(), mode, null);
         }
         return newValues;
     }
 
-    @Override
-    public ResultInterface queryMeta() {
-        int columnCount = left.getColumnCount();
-        LocalResult result = new LocalResult(session, expressionArray, columnCount);
-        result.done();
-        return result;
-    }
-
     public LocalResult getEmptyResult() {
         int columnCount = left.getColumnCount();
-        return new LocalResult(session, expressionArray, columnCount);
+        return createLocalResult(columnCount);
     }
 
     @Override
     protected ResultInterface queryWithoutCache(int maxRows, ResultTarget target) {
-        if (maxRows != 0) {
-            // maxRows is set (maxRows 0 means no limit)
-            int l;
-            if (limitExpr == null) {
-                l = -1;
-            } else {
-                Value v = limitExpr.getValue(session);
-                l = v == ValueNull.INSTANCE ? -1 : v.getInt();
-            }
-            if (l < 0) {
-                // for limitExpr, 0 means no rows, and -1 means no limit
-                l = maxRows;
-            } else {
-                l = Math.min(l, maxRows);
-            }
-            limitExpr = ValueExpression.get(ValueInt.get(l));
-        }
-        if (session.getDatabase().getSettings().optimizeInsertFromSelect) {
-            if (unionType == UNION_ALL && target != null) {
-                if (sort == null && !distinct && maxRows == 0 &&
-                        offsetExpr == null && limitExpr == null) {
+        OffsetFetch offsetFetch = getOffsetFetch(maxRows);
+        long offset = offsetFetch.offset;
+        int fetch = offsetFetch.fetch;
+        boolean fetchPercent = offsetFetch.fetchPercent;
+        Database db = session.getDatabase();
+        if (db.getSettings().optimizeInsertFromSelect) {
+            if (unionType == UnionType.UNION_ALL && target != null) {
+                if (sort == null && !distinct && fetch < 0 && offset == 0) {
                     left.query(0, target);
                     right.query(0, target);
                     return null;
@@ -179,49 +140,39 @@ public class SelectUnion extends Query {
             }
         }
         int columnCount = left.getColumnCount();
-        if (session.isLazyQueryExecution() && unionType == UNION_ALL && !distinct &&
+        if (session.isLazyQueryExecution() && unionType == UnionType.UNION_ALL && !distinct &&
                 sort == null && !randomAccessResult && !isForUpdate &&
-                offsetExpr == null && isReadOnly()) {
-            int limit = -1;
-            if (limitExpr != null) {
-                Value v = limitExpr.getValue(session);
-                if (v != ValueNull.INSTANCE) {
-                    limit = v.getInt();
-                }
-            }
+                offset == 0 && !fetchPercent && !withTies && isReadOnly()) {
             // limit 0 means no rows
-            if (limit != 0) {
+            if (fetch != 0) {
                 LazyResultUnion lazyResult = new LazyResultUnion(expressionArray, columnCount);
-                if (limit > 0) {
-                    lazyResult.setLimit(limit);
+                if (fetch > 0) {
+                    lazyResult.setLimit(fetch);
                 }
                 return lazyResult;
             }
         }
-        LocalResult result = new LocalResult(session, expressionArray, columnCount);
+        LocalResult result = createLocalResult(columnCount);
         if (sort != null) {
             result.setSortOrder(sort);
         }
         if (distinct) {
-            left.setDistinct(true);
-            right.setDistinct(true);
+            left.setDistinctIfPossible();
+            right.setDistinctIfPossible();
             result.setDistinct();
-        }
-        if (randomAccessResult) {
-            result.setRandomAccess();
         }
         switch (unionType) {
         case UNION:
         case EXCEPT:
-            left.setDistinct(true);
-            right.setDistinct(true);
+            left.setDistinctIfPossible();
+            right.setDistinctIfPossible();
             result.setDistinct();
             break;
         case UNION_ALL:
             break;
         case INTERSECT:
-            left.setDistinct(true);
-            right.setDistinct(true);
+            left.setDistinctIfPossible();
+            right.setDistinctIfPossible();
             break;
         default:
             DbException.throwInternalError("type=" + unionType);
@@ -251,9 +202,8 @@ public class SelectUnion extends Query {
             break;
         }
         case INTERSECT: {
-            LocalResult temp = new LocalResult(session, expressionArray, columnCount);
+            LocalResult temp = createLocalResult(columnCount);
             temp.setDistinct();
-            temp.setRandomAccess();
             while (l.next()) {
                 temp.addRow(convert(l.currentRow(), columnCount));
             }
@@ -269,31 +219,18 @@ public class SelectUnion extends Query {
         default:
             DbException.throwInternalError("type=" + unionType);
         }
-        if (offsetExpr != null) {
-            result.setOffset(offsetExpr.getValue(session).getInt());
-        }
-        if (limitExpr != null) {
-            Value v = limitExpr.getValue(session);
-            if (v != ValueNull.INSTANCE) {
-                result.setLimit(v.getInt());
-            }
-        }
         l.close();
         r.close();
-        result.done();
-        if (target != null) {
-            while (result.next()) {
-                target.addRow(result.currentRow());
-            }
-            result.close();
-            return null;
-        }
-        return result;
+        return finishResult(result, offset, fetch, fetchPercent, target);
+    }
+
+    private LocalResult createLocalResult(int columnCount) {
+        return session.getDatabase().getResultFactory().create(session, expressionArray, columnCount, columnCount);
     }
 
     @Override
     public void init() {
-        if (SysProperties.CHECK && checkInit) {
+        if (checkInit) {
             DbException.throwInternalError();
         }
         checkInit = true;
@@ -306,10 +243,14 @@ public class SelectUnion extends Query {
         ArrayList<Expression> le = left.getExpressions();
         // set the expressions to get the right column count and names,
         // but can't validate at this time
-        expressions = New.arrayList();
+        expressions = new ArrayList<>(len);
         for (int i = 0; i < len; i++) {
             Expression l = le.get(i);
             expressions.add(l);
+        }
+        visibleColumnCount = len;
+        if (withTies && !hasOrder()) {
+            throw DbException.get(ErrorCode.WITH_TIES_WITHOUT_ORDER_BY);
         }
     }
 
@@ -319,7 +260,7 @@ public class SelectUnion extends Query {
             // sometimes a subquery is prepared twice (CREATE TABLE AS SELECT)
             return;
         }
-        if (SysProperties.CHECK && !checkInit) {
+        if (!checkInit) {
             DbException.throwInternalError("not initialized");
         }
         isPrepared = true;
@@ -327,19 +268,15 @@ public class SelectUnion extends Query {
         right.prepare();
         int len = left.getColumnCount();
         // set the correct expressions now
-        expressions = New.arrayList();
+        expressions = new ArrayList<>(len);
         ArrayList<Expression> le = left.getExpressions();
         ArrayList<Expression> re = right.getExpressions();
         ColumnNamer columnNamer= new ColumnNamer(session);
         for (int i = 0; i < len; i++) {
             Expression l = le.get(i);
             Expression r = re.get(i);
-            int type = Value.getHigherOrder(l.getType(), r.getType());
-            long prec = Math.max(l.getPrecision(), r.getPrecision());
-            int scale = Math.max(l.getScale(), r.getScale());
-            int displaySize = Math.max(l.getDisplaySize(), r.getDisplaySize());
-            String columnName = columnNamer.getColumnName(l,i,l.getAlias());
-            Column col = new Column(columnName, type, prec, scale, displaySize);
+            String columnName = columnNamer.getColumnName(l, i, l.getAlias());
+            Column col = new Column(columnName, Value.getHigherType(l.getType(), r.getType()));
             Expression e = new ExpressionColumn(session.getDatabase(), col);
             expressions.add(e);
         }
@@ -348,8 +285,8 @@ public class SelectUnion extends Query {
             sort = prepareOrder(orderList, expressions.size());
             orderList = null;
         }
-        expressionArray = new Expression[expressions.size()];
-        expressions.toArray(expressionArray);
+        resultColumnCount = expressions.size();
+        expressionArray = expressions.toArray(new Expression[0]);
     }
 
     @Override
@@ -365,20 +302,10 @@ public class SelectUnion extends Query {
     }
 
     @Override
-    public ArrayList<Expression> getExpressions() {
-        return expressions;
-    }
-
-    @Override
     public void setForUpdate(boolean forUpdate) {
         left.setForUpdate(forUpdate);
         right.setForUpdate(forUpdate);
         isForUpdate = forUpdate;
-    }
-
-    @Override
-    public int getColumnCount() {
-        return left.getColumnCount();
     }
 
     @Override
@@ -415,9 +342,9 @@ public class SelectUnion extends Query {
     }
 
     @Override
-    public String getPlanSQL() {
+    public String getPlanSQL(boolean alwaysQuote) {
         StringBuilder buff = new StringBuilder();
-        buff.append('(').append(left.getPlanSQL()).append(')');
+        buff.append('(').append(left.getPlanSQL(alwaysQuote)).append(')');
         switch (unionType) {
         case UNION_ALL:
             buff.append("\nUNION ALL\n");
@@ -434,22 +361,11 @@ public class SelectUnion extends Query {
         default:
             DbException.throwInternalError("type=" + unionType);
         }
-        buff.append('(').append(right.getPlanSQL()).append(')');
-        Expression[] exprList = expressions.toArray(new Expression[expressions.size()]);
-        if (sort != null) {
-            buff.append("\nORDER BY ").append(sort.getSQL(exprList, exprList.length));
-        }
-        if (limitExpr != null) {
-            buff.append("\nLIMIT ").append(
-                    StringUtils.unEnclose(limitExpr.getSQL()));
-            if (offsetExpr != null) {
-                buff.append("\nOFFSET ").append(
-                        StringUtils.unEnclose(offsetExpr.getSQL()));
-            }
-        }
+        buff.append('(').append(right.getPlanSQL(alwaysQuote)).append(')');
+        appendEndOfQueryToSQL(buff, alwaysQuote, expressions.toArray(new Expression[0]));
         if (sampleSizeExpr != null) {
-            buff.append("\nSAMPLE_SIZE ").append(
-                    StringUtils.unEnclose(sampleSizeExpr.getSQL()));
+            buff.append("\nSAMPLE_SIZE ");
+            sampleSizeExpr.getUnenclosedSQL(buff, alwaysQuote);
         }
         if (isForUpdate) {
             buff.append("\nFOR UPDATE");
@@ -463,25 +379,15 @@ public class SelectUnion extends Query {
     }
 
     @Override
-    public boolean isReadOnly() {
-        return left.isReadOnly() && right.isReadOnly();
-    }
-
-    @Override
-    public void updateAggregate(Session s) {
-        left.updateAggregate(s);
-        right.updateAggregate(s);
+    public void updateAggregate(Session s, int stage) {
+        left.updateAggregate(s, stage);
+        right.updateAggregate(s, stage);
     }
 
     @Override
     public void fireBeforeSelectTriggers() {
         left.fireBeforeSelectTriggers();
         right.fireBeforeSelectTriggers();
-    }
-
-    @Override
-    public int getType() {
-        return CommandInterface.SELECT;
     }
 
     @Override

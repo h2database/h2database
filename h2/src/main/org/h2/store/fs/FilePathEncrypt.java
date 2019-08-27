@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.store.fs;
@@ -12,10 +12,9 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-import org.h2.engine.Constants;
-import org.h2.mvstore.DataUtils;
 import org.h2.security.AES;
 import org.h2.security.BlockCipher;
 import org.h2.security.SHA256;
@@ -39,7 +38,7 @@ public class FilePathEncrypt extends FilePathWrapper {
     public FileChannel open(String mode) throws IOException {
         String[] parsed = parse(name);
         FileChannel file = FileUtils.open(parsed[1], mode);
-        byte[] passwordBytes = parsed[0].getBytes(Constants.UTF8);
+        byte[] passwordBytes = parsed[0].getBytes(StandardCharsets.UTF_8);
         return new FileEncrypt(name, passwordBytes, file);
     }
 
@@ -194,11 +193,11 @@ public class FilePathEncrypt extends FilePathWrapper {
                 byte[] header = Arrays.copyOf(HEADER, BLOCK_SIZE);
                 salt = MathUtils.secureRandomBytes(SALT_LENGTH);
                 System.arraycopy(salt, 0, header, SALT_POS, salt.length);
-                DataUtils.writeFully(base, 0, ByteBuffer.wrap(header));
+                writeFully(base, 0, ByteBuffer.wrap(header));
                 size = 0;
             } else {
                 salt = new byte[SALT_LENGTH];
-                DataUtils.readFully(base, SALT_POS, ByteBuffer.wrap(salt));
+                readFully(base, SALT_POS, ByteBuffer.wrap(salt));
                 if ((size & BLOCK_SIZE_MASK) != 0) {
                     size -= BLOCK_SIZE;
                 }
@@ -319,7 +318,7 @@ public class FilePathEncrypt extends FilePathWrapper {
                 int plus = (int) (size & BLOCK_SIZE_MASK);
                 if (plus > 0) {
                     temp = ByteBuffer.allocate(plus);
-                    DataUtils.writeFully(base, p + HEADER_LENGTH + l, temp);
+                    writeFully(base, p + HEADER_LENGTH + l, temp);
                 }
                 return len;
             }

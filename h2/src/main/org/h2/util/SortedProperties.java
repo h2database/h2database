@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.util;
@@ -15,6 +15,7 @@ import java.io.LineNumberReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Map.Entry;
@@ -51,10 +52,9 @@ public class SortedProperties extends Properties {
      */
     public static boolean getBooleanProperty(Properties prop, String key,
             boolean def) {
-        String value = prop.getProperty(key, "" + def);
         try {
-            return Boolean.parseBoolean(value);
-        } catch (Exception e) {
+            return Utils.parseBoolean(prop.getProperty(key, null), def, true);
+        } catch (IllegalArgumentException e) {
             e.printStackTrace();
             return def;
         }
@@ -69,13 +69,25 @@ public class SortedProperties extends Properties {
      * @return the value if set, or the default value if not
      */
     public static int getIntProperty(Properties prop, String key, int def) {
-        String value = prop.getProperty(key, "" + def);
+        String value = prop.getProperty(key, Integer.toString(def));
         try {
             return Integer.decode(value);
         } catch (Exception e) {
             e.printStackTrace();
             return def;
         }
+    }
+
+    /**
+     * Get a string property value from a properties object.
+     *
+     * @param prop the properties object
+     * @param key the key
+     * @param def the default value
+     * @return the value if set, or the default value if not
+     */
+    public static String getStringProperty(Properties prop, String key, String def) {
+        return prop.getProperty(key, def);
     }
 
     /**
@@ -104,7 +116,7 @@ public class SortedProperties extends Properties {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         store(out, null);
         ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-        InputStreamReader reader = new InputStreamReader(in, "ISO8859-1");
+        InputStreamReader reader = new InputStreamReader(in, StandardCharsets.ISO_8859_1);
         LineNumberReader r = new LineNumberReader(reader);
         Writer w;
         try {
@@ -112,17 +124,17 @@ public class SortedProperties extends Properties {
         } catch (Exception e) {
             throw new IOException(e.toString(), e);
         }
-        PrintWriter writer = new PrintWriter(new BufferedWriter(w));
-        while (true) {
-            String line = r.readLine();
-            if (line == null) {
-                break;
-            }
-            if (!line.startsWith("#")) {
-                writer.print(line + "\n");
+        try (PrintWriter writer = new PrintWriter(new BufferedWriter(w))) {
+            while (true) {
+                String line = r.readLine();
+                if (line == null) {
+                    break;
+                }
+                if (!line.startsWith("#")) {
+                    writer.print(line + "\n");
+                }
             }
         }
-        writer.close();
     }
 
     /**

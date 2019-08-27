@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.build.doc;
@@ -13,6 +13,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -54,7 +55,7 @@ public class UploadBuild {
         if (coverage) {
             byte[] data = IOUtils.readBytesAndClose(
                     new FileInputStream("coverage/index.html"), -1);
-            String index = new String(data, "ISO-8859-1");
+            String index = new String(data, StandardCharsets.ISO_8859_1);
             coverageFailed = index.contains("CLASS=\"h\"");
             while (true) {
                 int idx = index.indexOf("<A HREF=\"");
@@ -69,7 +70,7 @@ public class UploadBuild {
             index = StringUtils.replaceAll(index, "[all", "");
             index = StringUtils.replaceAll(index, "classes]", "");
             FileOutputStream out = new FileOutputStream("coverage/overview.html");
-            out.write(index.getBytes("ISO-8859-1"));
+            out.write(index.getBytes(StandardCharsets.ISO_8859_1));
             out.close();
             new File("details").mkdir();
             zip("details/coverage_files.zip", "coverage", true);
@@ -124,11 +125,11 @@ public class UploadBuild {
             (error ? " FAILED" : "") +
             (coverageFailed ? " COVERAGE" : "") +
             "', '" + ts +
-            "', '<a href=\"http://www.h2database.com/" +
+            "', '<a href=\"https://h2database.com/" +
             "html/testOutput.html\">Output</a>" +
-            " - <a href=\"http://www.h2database.com/" +
+            " - <a href=\"https://h2database.com/" +
             "coverage/overview.html\">Coverage</a>" +
-            " - <a href=\"http://www.h2database.com/" +
+            " - <a href=\"https://h2database.com/" +
             "automated/h2-latest.jar\">Jar</a>');\n";
         buildSql += sql;
         Connection conn;

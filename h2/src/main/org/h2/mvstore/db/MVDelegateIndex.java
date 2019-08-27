@@ -1,12 +1,12 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.mvstore.db;
 
-import java.util.HashSet;
 import java.util.List;
+import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Session;
 import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
@@ -30,12 +30,12 @@ public class MVDelegateIndex extends BaseIndex implements MVIndex {
     public MVDelegateIndex(MVTable table, int id, String name,
             MVPrimaryIndex mainIndex,
             IndexType indexType) {
-        IndexColumn[] cols = IndexColumn.wrap(new Column[] { table
-                .getColumn(mainIndex.getMainIndexColumn()) });
-        this.initBaseIndex(table, id, name, cols, indexType);
+        super(table, id, name,
+                IndexColumn.wrap(new Column[] { table.getColumn(mainIndex.getMainIndexColumn()) }),
+                indexType);
         this.mainIndex = mainIndex;
         if (id < 0) {
-            throw DbException.throwInternalError("" + name);
+            throw DbException.throwInternalError(name);
         }
     }
 
@@ -55,6 +55,16 @@ public class MVDelegateIndex extends BaseIndex implements MVIndex {
     }
 
     @Override
+    public Row getRow(Session session, long key) {
+        return mainIndex.getRow(session, key);
+    }
+
+    @Override
+    public boolean isRowIdIndex() {
+        return true;
+    }
+
+    @Override
     public boolean canGetFirstOrLast() {
         return true;
     }
@@ -66,12 +76,10 @@ public class MVDelegateIndex extends BaseIndex implements MVIndex {
 
     @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
-        ValueLong min = mainIndex.getKey(first,
-                MVPrimaryIndex.MIN, MVPrimaryIndex.MIN);
-        // ifNull is MIN_VALUE as well, because the column is never NULL
+        ValueLong min = mainIndex.getKey(first, ValueLong.MIN, ValueLong.MIN);
+        // ifNull is MIN as well, because the column is never NULL
         // so avoid returning all rows (returning one row is OK)
-        ValueLong max = mainIndex.getKey(last,
-                MVPrimaryIndex.MAX, MVPrimaryIndex.MIN);
+        ValueLong max = mainIndex.getKey(last, ValueLong.MAX, ValueLong.MIN);
         return mainIndex.find(session, min, max);
     }
 
@@ -96,7 +104,7 @@ public class MVDelegateIndex extends BaseIndex implements MVIndex {
     @Override
     public double getCost(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
-            HashSet<Column> allColumnsSet) {
+            AllColumnsForPlan allColumnsSet) {
         return 10 * getCostRangeIndex(masks, mainIndex.getRowCountApproximation(),
                 filters, filter, sortOrder, true, allColumnsSet);
     }
@@ -112,8 +120,13 @@ public class MVDelegateIndex extends BaseIndex implements MVIndex {
     }
 
     @Override
+    public void update(Session session, Row oldRow, Row newRow) {
+        // nothing to do
+    }
+
+    @Override
     public void remove(Session session) {
-        mainIndex.setMainIndexColumn(-1);
+        mainIndex.setMainIndexColumn(SearchRow.ROWID_INDEX);
     }
 
     @Override

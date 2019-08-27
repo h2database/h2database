@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.server.web;
@@ -12,17 +12,19 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.StringTokenizer;
-import org.h2.engine.Constants;
+
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
-import org.h2.mvstore.DataUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.NetUtils;
+import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * For each connection to a session, an object of this class is created.
@@ -77,6 +79,9 @@ class WebThread extends WebApp implements Runnable {
         if (requestedFile.length() == 0) {
             return "index.do";
         }
+        if (requestedFile.charAt(0) == '?') {
+            return "index.do" + requestedFile;
+        }
         return requestedFile;
     }
 
@@ -114,23 +119,29 @@ class WebThread extends WebApp implements Runnable {
             if (begin < 0 || end < begin) {
                 file = "";
             } else {
-                file = head.substring(begin + 1, end).trim();
+                file = StringUtils.trimSubstring(head, begin + 1, end);
             }
             trace(head + ": " + file);
             file = getAllowedFile(file);
             attributes = new Properties();
-            int paramIndex = file.indexOf("?");
+            int paramIndex = file.indexOf('?');
             session = null;
+            String key = null;
             if (paramIndex >= 0) {
                 String attrib = file.substring(paramIndex + 1);
                 parseAttributes(attrib);
                 String sessionId = attributes.getProperty("jsessionid");
+                key = attributes.getProperty("key");
                 file = file.substring(0, paramIndex);
                 session = server.getSession(sessionId);
             }
             keepAlive = parseHeader();
-            String hostAddr = socket.getInetAddress().getHostAddress();
-            file = processRequest(file, hostAddr);
+            file = processRequest(file,
+                    new NetworkConnectionInfo(
+                            NetUtils.ipToShortForm(new StringBuilder(server.getSSL() ? "https://" : "http://"),
+                                    socket.getLocalAddress().getAddress(), true) //
+                                    .append(':').append(socket.getLocalPort()).toString(), //
+                            socket.getInetAddress().getAddress(), socket.getPort(), null));
             if (file.length() == 0) {
                 // asynchronous request
                 return true;
@@ -145,11 +156,14 @@ class WebThread extends WebApp implements Runnable {
                 bytes = server.getFile(file);
                 if (bytes == null) {
                     message = "HTTP/1.1 404 Not Found\r\n";
-                    bytes = ("File not found: " + file).getBytes(Constants.UTF8);
+                    bytes = ("File not found: " + file).getBytes(StandardCharsets.UTF_8);
                     message += "Content-Length: " + bytes.length + "\r\n";
                 } else {
                     if (session != null && file.endsWith(".jsp")) {
-                        String page = new String(bytes, Constants.UTF8);
+                        if (key != null) {
+                            session.put("key", key);
+                        }
+                        String page = new String(bytes, StandardCharsets.UTF_8);
                         if (SysProperties.CONSOLE_STREAM) {
                             Iterator<String> it = (Iterator<String>) session.map.remove("chunks");
                             if (it != null) {
@@ -163,7 +177,7 @@ class WebThread extends WebApp implements Runnable {
                                 while (it.hasNext()) {
                                     String s = it.next();
                                     s = PageParser.parse(s, session.map);
-                                    bytes = s.getBytes(Constants.UTF8);
+                                    bytes = s.getBytes(StandardCharsets.UTF_8);
                                     if (bytes.length == 0) {
                                         continue;
                                     }
@@ -179,7 +193,7 @@ class WebThread extends WebApp implements Runnable {
                             }
                         }
                         page = PageParser.parse(page, session.map);
-                        bytes = page.getBytes(Constants.UTF8);
+                        bytes = page.getBytes(StandardCharsets.UTF_8);
                     }
                     message = "HTTP/1.1 200 OK\r\n";
                     message += "Content-Type: " + mimeType + "\r\n";
@@ -309,14 +323,14 @@ class WebThread extends WebApp implements Runnable {
                         }
                     }
                 }
-            } else if (line.trim().length() == 0) {
+            } else if (StringUtils.isWhitespaceOrEmpty(line)) {
                 break;
             }
         }
         if (multipart) {
             // not supported
         } else if (session != null && len > 0) {
-            byte[] bytes = DataUtils.newBytes(len);
+            byte[] bytes = Utils.newBytes(len);
             for (int pos = 0; pos < len;) {
                 pos += input.read(bytes, pos, len - pos);
             }
@@ -327,7 +341,7 @@ class WebThread extends WebApp implements Runnable {
     }
 
     private static String getHeaderLineValue(String line) {
-        return line.substring(line.indexOf(':') + 1).trim();
+        return StringUtils.trimSubstring(line, line.indexOf(':') + 1);
     }
 
     @Override

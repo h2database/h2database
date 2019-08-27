@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.build.indexer;
@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -167,7 +168,7 @@ public class Indexer {
         Collections.sort(pages, new Comparator<Page>() {
             @Override
             public int compare(Page p0, Page p1) {
-                return p0.relations == p1.relations ? 0 : p0.relations < p1.relations ? 1 : -1;
+                return Integer.compare(p1.relations, p0.relations);
             }
         });
         for (int i = 0; i < pages.size(); i++) {
@@ -256,7 +257,7 @@ public class Indexer {
 
     private void readPage(File file) throws Exception {
         byte[] data = IOUtils.readBytesAndClose(new FileInputStream(file), 0);
-        String text = new String(data, "UTF-8");
+        String text = new String(data, StandardCharsets.UTF_8);
         StringTokenizer t = new StringTokenizer(text, "<> \r\n", true);
         boolean inTag = false;
         title = false;

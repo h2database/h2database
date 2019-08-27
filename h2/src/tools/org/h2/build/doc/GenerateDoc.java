@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.build.doc;
@@ -14,6 +14,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -70,36 +71,62 @@ public class GenerateDoc {
         // String help = "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION";
         String help = "SELECT ROWNUM ID, * FROM CSVREAD('" +
                 IN_HELP + "', NULL, 'lineComment=#') WHERE SECTION ";
-        map("commands",
-                help + "LIKE 'Commands%' ORDER BY ID", true);
         map("commandsDML",
-                help + "= 'Commands (DML)' ORDER BY ID", false);
+                help + "= 'Commands (DML)' ORDER BY ID", true, false);
         map("commandsDDL",
-                help + "= 'Commands (DDL)' ORDER BY ID", false);
+                help + "= 'Commands (DDL)' ORDER BY ID", true, false);
         map("commandsOther",
-                help + "= 'Commands (Other)' ORDER BY ID", false);
+                help + "= 'Commands (Other)' ORDER BY ID", true, false);
+        map("literals",
+                help + "= 'Literals' ORDER BY ID", true, false);
+        map("datetimeFields",
+                help + "= 'Datetime fields' ORDER BY ID", true, false);
         map("otherGrammar",
-                help + "= 'Other Grammar' ORDER BY ID", true);
-        map("functionsAggregate",
-                help + "= 'Functions (Aggregate)' ORDER BY ID", false);
+                help + "= 'Other Grammar' ORDER BY ID", true, false);
+
         map("functionsNumeric",
-                help + "= 'Functions (Numeric)' ORDER BY ID", false);
+                help + "= 'Functions (Numeric)' ORDER BY ID", true, false);
         map("functionsString",
-                help + "= 'Functions (String)' ORDER BY ID", false);
+                help + "= 'Functions (String)' ORDER BY ID", true, false);
         map("functionsTimeDate",
-                help + "= 'Functions (Time and Date)' ORDER BY ID", false);
+                help + "= 'Functions (Time and Date)' ORDER BY ID", true, false);
         map("functionsSystem",
-                help + "= 'Functions (System)' ORDER BY ID", false);
-        map("functionsAll",
-                help + "LIKE 'Functions%' ORDER BY SECTION, ID", true);
+                help + "= 'Functions (System)' ORDER BY ID", true, false);
+        map("functionsJson",
+                help + "= 'Functions (JSON)' ORDER BY ID", true, false);
+
+        map("aggregateFunctionsGeneral",
+                help + "= 'Aggregate Functions (General)' ORDER BY ID", true, false);
+        map("aggregateFunctionsOrdered",
+                help + "= 'Aggregate Functions (Ordered)' ORDER BY ID", true, false);
+        map("aggregateFunctionsHypothetical",
+                help + "= 'Aggregate Functions (Hypothetical Set)' ORDER BY ID", true, false);
+        map("aggregateFunctionsInverse",
+                help + "= 'Aggregate Functions (Inverse Distribution)' ORDER BY ID", true, false);
+        map("aggregateFunctionsJSON",
+                help + "= 'Aggregate Functions (JSON)' ORDER BY ID", true, false);
+
+        map("windowFunctionsRowNumber",
+                help + "= 'Window Functions (Row Number)' ORDER BY ID", true, false);
+        map("windowFunctionsRank",
+                help + "= 'Window Functions (Rank)' ORDER BY ID", true, false);
+        map("windowFunctionsLeadLag",
+                help + "= 'Window Functions (Lead or Lag)' ORDER BY ID", true, false);
+        map("windowFunctionsNth",
+                help + "= 'Window Functions (Nth Value)' ORDER BY ID", true, false);
+        map("windowFunctionsOther",
+                help + "= 'Window Functions (Other)' ORDER BY ID", true, false);
+
         map("dataTypes",
-                help + "LIKE 'Data Types%' ORDER BY SECTION, ID", true);
+                help + "LIKE 'Data Types%' ORDER BY SECTION, ID", true, true);
+        map("intervalDataTypes",
+                help + "LIKE 'Interval Data Types%' ORDER BY SECTION, ID", true, true);
         map("informationSchema", "SELECT TABLE_NAME TOPIC, " +
                 "GROUP_CONCAT(COLUMN_NAME " +
                 "ORDER BY ORDINAL_POSITION SEPARATOR ', ') SYNTAX " +
                 "FROM INFORMATION_SCHEMA.COLUMNS " +
                 "WHERE TABLE_SCHEMA='INFORMATION_SCHEMA' " +
-                "GROUP BY TABLE_NAME ORDER BY TABLE_NAME", false);
+                "GROUP BY TABLE_NAME ORDER BY TABLE_NAME", false, false);
         processAll("");
         conn.close();
     }
@@ -134,7 +161,7 @@ public class GenerateDoc {
         out.close();
     }
 
-    private void map(String key, String sql, boolean railroads)
+    private void map(String key, String sql, boolean railroads, boolean forDataTypes)
             throws Exception {
         ResultSet rs = null;
         Statement stat = null;
@@ -146,13 +173,17 @@ public class GenerateDoc {
             while (rs.next()) {
                 HashMap<String, String> map = new HashMap<>();
                 ResultSetMetaData meta = rs.getMetaData();
-                for (int i = 0; i < meta.getColumnCount(); i++) {
-                    String k = StringUtils.toLowerEnglish(meta.getColumnLabel(i + 1));
-                    String value = rs.getString(i + 1);
+                for (int i = 1; i <= meta.getColumnCount(); i++) {
+                    String k = StringUtils.toLowerEnglish(meta.getColumnLabel(i));
+                    String value = rs.getString(i);
                     value = value.trim();
                     map.put(k, PageParser.escapeHtml(value));
                 }
                 String topic = rs.getString("TOPIC");
+                // Convert "INT Type" to "INT" etc.
+                if (forDataTypes && topic.endsWith(" Type")) {
+                    map.put("topic", topic.substring(0, topic.length() - 5));
+                }
                 String syntax = rs.getString("SYNTAX").trim();
                 if (railroads) {
                     BnfRailroad r = new BnfRailroad();
@@ -172,13 +203,14 @@ public class GenerateDoc {
                     text = StringUtils.replaceAll(text,
                             "<br />", " ");
                     text = addCode(text);
+                    text = addLinks(text);
                     map.put("text", text);
                 }
 
                 String link = topic.toLowerCase();
-                link = StringUtils.replaceAll(link, " ", "_");
+                link = link.replace(' ', '_');
                 // link = StringUtils.replaceAll(link, "_", "");
-                link = StringUtils.replaceAll(link, "@", "_");
+                link = link.replace('@', '_');
                 map.put("link", StringUtils.urlEncode(link));
 
                 list.add(map);
@@ -187,8 +219,9 @@ public class GenerateDoc {
             int div = 3;
             int part = (list.size() + div - 1) / div;
             for (int i = 0, start = 0; i < div; i++, start += part) {
-                List<HashMap<String, String>> listThird = list.subList(start,
-                        Math.min(start + part, list.size()));
+                int end = Math.min(start + part, list.size());
+                List<HashMap<String, String>> listThird = start <= end ? list.subList(start, end)
+                        : Collections.<HashMap<String, String>> emptyList();
                 session.put(key + "-" + i, listThird);
             }
         } finally {
@@ -248,4 +281,54 @@ public class GenerateDoc {
         s = StringUtils.replaceAll(s, "<code>GB</code>", "GB");
         return s;
     }
+
+    private static String addLinks(String text) {
+        int start = nextLink(text, 0);
+        if (start < 0) {
+            return text;
+        }
+        StringBuilder buff = new StringBuilder(text.length());
+        int len = text.length();
+        int offset = 0;
+        do {
+            if (start > 2 && text.regionMatches(start - 2, "](https://h2database.com/html/", 0, 30)) {
+                int descEnd = start - 2;
+                int descStart = text.lastIndexOf('[', descEnd - 1) + 1;
+                int linkStart = start + 28;
+                int linkEnd = text.indexOf(')', start + 29);
+                buff.append(text, offset, descStart - 1) //
+                        .append("<a href=\"").append(text, linkStart, linkEnd).append("\">") //
+                        .append(text, descStart, descEnd) //
+                        .append("</a>");
+                offset = linkEnd + 1;
+            } else {
+                int end = start + 7;
+                for (; end < len && !Character.isWhitespace(text.charAt(end)); end++) {
+                    // Nothing to do
+                }
+                buff.append(text, offset, start) //
+                        .append("<a href=\"").append(text, start, end).append("\">") //
+                        .append(text, start, end) //
+                        .append("</a>");
+                offset = end;
+            }
+        } while ((start = nextLink(text, offset)) >= 0);
+        return buff.append(text, offset, len).toString();
+    }
+
+    private static int nextLink(String text, int i) {
+        int found = -1;
+        found = findLink(text, i, "http://", found);
+        found = findLink(text, i, "https://", found);
+        return found;
+    }
+
+    private static int findLink(String text, int offset, String prefix, int found) {
+        int idx = text.indexOf(prefix, offset);
+        if (idx >= 0 && (found < 0 || idx < found)) {
+            found = idx;
+        }
+        return found;
+    }
+
 }

@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.message;
@@ -8,7 +8,9 @@ package org.h2.message;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicIntegerArray;
+
+import org.h2.api.ErrorCode;
 import org.h2.util.StringUtils;
 
 /**
@@ -91,16 +93,19 @@ public class TraceObject {
      */
     protected static final int ARRAY = 16;
 
-    private static final int LAST = ARRAY + 1;
-    private static final AtomicInteger[] ID = new AtomicInteger[LAST];
-    static {
-        for (int i=0; i<LAST; i++) {
-            ID[i] = new AtomicInteger(-1);
-        }
-    }
+    /**
+     * The trace type id  for SQLXML objects.
+     */
+    protected static final int SQLXML = 17;
+
+    private static final int LAST = SQLXML + 1;
+    private static final AtomicIntegerArray ID = new AtomicIntegerArray(LAST);
+
     private static final String[] PREFIX = { "call", "conn", "dbMeta", "prep",
             "rs", "rsMeta", "sp", "ex", "stat", "blob", "clob", "pMeta", "ds",
-            "xads", "xares", "xid", "ar" };
+            "xads", "xares", "xid", "ar", "sqlxml" };
+
+    private static final SQLException SQL_OOME = DbException.SQL_OOME;
 
     /**
      * The trace module used by this object.
@@ -144,7 +149,7 @@ public class TraceObject {
      * @return the new trace object id
      */
     protected static int getNextId(int type) {
-        return ID[type].incrementAndGet();
+        return ID.getAndIncrement(type);
     }
 
     /**
@@ -307,8 +312,9 @@ public class TraceObject {
         if (x == null) {
             return "null";
         }
-        return "org.h2.util.StringUtils.convertHexToBytes(\"" +
-                StringUtils.convertBytesToHex(x) + "\")";
+        StringBuilder builder = new StringBuilder(x.length * 2 + 45)
+                .append("org.h2.util.StringUtils.convertHexToBytes(\"");
+        return StringUtils.convertBytesToHex(builder, x).append("\")").toString();
     }
 
     /**
@@ -354,17 +360,29 @@ public class TraceObject {
      * @param ex the exception
      * @return the SQL exception object
      */
-    protected SQLException logAndConvert(Exception ex) {
-        SQLException e = DbException.toSQLException(ex);
-        if (trace == null) {
-            DbException.traceThrowable(e);
-        } else {
-            int errorCode = e.getErrorCode();
-            if (errorCode >= 23000 && errorCode < 24000) {
-                trace.info(e, "exception");
+    protected SQLException logAndConvert(Throwable ex) {
+        SQLException e = null;
+        try {
+            e = DbException.toSQLException(ex);
+            if (trace == null) {
+                DbException.traceThrowable(e);
             } else {
-                trace.error(e, "exception");
+                int errorCode = e.getErrorCode();
+                if (errorCode >= 23000 && errorCode < 24000) {
+                    trace.info(e, "exception");
+                } else {
+                    trace.error(e, "exception");
+                }
             }
+        } catch(Throwable another) {
+            if (e == null) {
+                try {
+                    e = new SQLException("GeneralError", "HY000", ErrorCode.GENERAL_ERROR_1, ex);
+                } catch (OutOfMemoryError | NoClassDefFoundError ignored) {
+                    return SQL_OOME;
+                }
+            }
+            e.addSuppressed(another);
         }
         return e;
     }

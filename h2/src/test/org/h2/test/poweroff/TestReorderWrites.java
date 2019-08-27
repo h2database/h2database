@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.poweroff;
@@ -37,15 +37,22 @@ public class TestReorderWrites extends TestBase {
 
     @Override
     public void test() throws Exception {
-        testMVStore();
-        testFileSystem();
+        testMVStore(false);
+        testMVStore(true);
+        testFileSystem(false);
+        testFileSystem(true);
     }
 
-    private void testMVStore() {
+    private void testMVStore(final boolean partialWrite) {
+        // Add partial write test
+        // @since 2019-07-31 little-pan
+        println(String.format("testMVStore(): %s partial write", partialWrite? "Enable": "Disable"));
+        FilePathReorderWrites.setPartialWrites(partialWrite);
+
         FilePathReorderWrites fs = FilePathReorderWrites.register();
         String fileName = "reorder:memFS:test.mv";
         try {
-            for (int i = 0; i < 1000; i++) {
+            for (int i = 0; i < (config.big ? 1000 : 100); i++) {
                 log(i + " --------------------------------");
                 // this test is not interested in power off failures during
                 // initial creation
@@ -62,7 +69,7 @@ public class TestReorderWrites extends TestBase {
                 store.commit();
                 store.getFileStore().sync();
                 Random r = new Random(i);
-                int stop = 4 + r.nextInt(20);
+                int stop = 4 + r.nextInt(config.big ? 150 : 20);
                 log("countdown start");
                 fs.setPowerOffCountdown(stop, i);
                 try {
@@ -136,10 +143,14 @@ public class TestReorderWrites extends TestBase {
         }
     }
 
-    private void testFileSystem() throws IOException {
+    private void testFileSystem(final boolean partialWrite) throws IOException {
         FilePathReorderWrites fs = FilePathReorderWrites.register();
-        // disable this for now, still bug(s) in our code
-        FilePathReorderWrites.setPartialWrites(false);
+        // *disable this for now, still bug(s) in our code*
+        // Add partial write enable test
+        // @since 2019-07-31 little-pan
+        FilePathReorderWrites.setPartialWrites(partialWrite);
+        println(String.format("testFileSystem(): %s partial write", partialWrite? "Enable": "Disable"));
+
         String fileName = "reorder:memFS:test";
         final ByteBuffer empty = ByteBuffer.allocate(1024);
         Random r = new Random(1);

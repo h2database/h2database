@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.value;
@@ -25,57 +25,65 @@ public class ValueBoolean extends Value {
     public static final int DISPLAY_SIZE = 5;
 
     /**
-     * Of type Object so that Tomcat doesn't set it to null.
+     * TRUE value.
      */
-    private static final Object TRUE = new ValueBoolean(true);
-    private static final Object FALSE = new ValueBoolean(false);
+    public static final ValueBoolean TRUE = new ValueBoolean(true);
 
-    private final Boolean value;
+    /**
+     * FALSE value.
+     */
+    public static final ValueBoolean FALSE = new ValueBoolean(false);
+
+    private final boolean value;
 
     private ValueBoolean(boolean value) {
-        this.value = Boolean.valueOf(value);
+        this.value = value;
     }
 
     @Override
-    public int getType() {
-        return Value.BOOLEAN;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_BOOLEAN;
     }
 
     @Override
-    public String getSQL() {
-        return getString();
+    public int getValueType() {
+        return BOOLEAN;
+    }
+
+    @Override
+    public int getMemory() {
+        // Singleton TRUE and FALSE values
+        return 0;
+    }
+
+    @Override
+    public StringBuilder getSQL(StringBuilder builder) {
+        return builder.append(getString());
     }
 
     @Override
     public String getString() {
-        return value.booleanValue() ? "TRUE" : "FALSE";
+        return value ? "TRUE" : "FALSE";
     }
 
     @Override
     public Value negate() {
-        return (ValueBoolean) (value.booleanValue() ? FALSE : TRUE);
+        return value ? FALSE : TRUE;
     }
 
     @Override
-    public Boolean getBoolean() {
+    public boolean getBoolean() {
         return value;
     }
 
     @Override
-    protected int compareSecure(Value o, CompareMode mode) {
-        boolean v2 = ((ValueBoolean) o).value.booleanValue();
-        boolean v = value.booleanValue();
-        return (v == v2) ? 0 : (v ? 1 : -1);
-    }
-
-    @Override
-    public long getPrecision() {
-        return PRECISION;
+    public int compareTypeSafe(Value o, CompareMode mode) {
+        return Boolean.compare(value, ((ValueBoolean) o).value);
     }
 
     @Override
     public int hashCode() {
-        return value.booleanValue() ? 1 : 0;
+        return value ? 1 : 0;
     }
 
     @Override
@@ -86,7 +94,7 @@ public class ValueBoolean extends Value {
     @Override
     public void set(PreparedStatement prep, int parameterIndex)
             throws SQLException {
-        prep.setBoolean(parameterIndex, value.booleanValue());
+        prep.setBoolean(parameterIndex, value);
     }
 
     /**
@@ -96,12 +104,7 @@ public class ValueBoolean extends Value {
      * @return the value
      */
     public static ValueBoolean get(boolean b) {
-        return (ValueBoolean) (b ? TRUE : FALSE);
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return DISPLAY_SIZE;
+        return b ? TRUE : FALSE;
     }
 
     @Override

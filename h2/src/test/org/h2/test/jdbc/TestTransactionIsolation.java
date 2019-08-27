@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.jdbc;
@@ -9,11 +9,12 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Transaction isolation level tests.
  */
-public class TestTransactionIsolation extends TestBase {
+public class TestTransactionIsolation extends TestDb {
 
     private Connection conn1, conn2;
 
@@ -27,12 +28,17 @@ public class TestTransactionIsolation extends TestBase {
     }
 
     @Override
-    public void test() throws SQLException {
-        if (config.mvcc || config.mvStore) {
+    public boolean isEnabled() {
+        if (config.mvStore) {
             // no tests yet
-        } else {
-            testTableLevelLocking();
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public void test() throws SQLException {
+        testTableLevelLocking();
     }
 
     private void testTableLevelLocking() throws SQLException {

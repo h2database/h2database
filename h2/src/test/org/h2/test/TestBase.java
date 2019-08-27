@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test;
@@ -21,7 +21,6 @@ import java.lang.reflect.Proxy;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -32,15 +31,18 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Objects;
 import java.util.SimpleTimeZone;
 import java.util.concurrent.TimeUnit;
+
+import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.utils.ProxyCodeGenerator;
 import org.h2.test.utils.ResultVerifier;
-import org.h2.tools.DeleteDbFiles;
+import org.h2.util.Utils;
 
 /**
  * The base class for all tests.
@@ -79,6 +81,8 @@ public abstract class TestBase {
 
     private final LinkedList<byte[]> memory = new LinkedList<>();
 
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+
     /**
      * Get the test directory for this test.
      *
@@ -87,13 +91,6 @@ public abstract class TestBase {
      */
     public static String getTestDir(String name) {
         return BASE_TEST_DIR + "/test" + name;
-    }
-
-    /**
-     * Start the TCP server if enabled in the configuration.
-     */
-    protected void startServerIfRequired() throws SQLException {
-        config.beforeTest();
     }
 
     /**
@@ -120,16 +117,6 @@ public abstract class TestBase {
     }
 
     /**
-     * Run a test case using the given seed value.
-     *
-     * @param seed the random seed value
-     */
-    @SuppressWarnings("unused")
-    public void testCase(int seed) throws Exception {
-        // do nothing
-    }
-
-    /**
      * This method is initializes the test, runs the test by calling the test()
      * method, and prints status information. It also catches exceptions so that
      * the tests can continue.
@@ -142,12 +129,19 @@ public abstract class TestBase {
         }
         try {
             init(conf);
+            if (!isEnabled()) {
+                if (!conf.executedTests.containsKey(getClass())) {
+                    conf.executedTests.put(getClass(), false);
+                }
+                return;
+            }
+            conf.executedTests.put(getClass(), true);
             start = System.nanoTime();
             test();
             println("");
         } catch (Throwable e) {
             println("FAIL " + e.toString());
-            logError("FAIL " + e.toString(), e);
+            logError("FAIL ("+conf+") " + e.toString(), e);
             if (config.stopOnError) {
                 throw new AssertionError("ERROR");
             }
@@ -156,31 +150,6 @@ public abstract class TestBase {
                 throw (OutOfMemoryError) e;
             }
         }
-    }
-
-    /**
-     * Open a database connection in admin mode. The default user name and
-     * password is used.
-     *
-     * @param name the database name
-     * @return the connection
-     */
-    public Connection getConnection(String name) throws SQLException {
-        return getConnectionInternal(getURL(name, true), getUser(),
-                getPassword());
-    }
-
-    /**
-     * Open a database connection.
-     *
-     * @param name the database name
-     * @param user the user name to use
-     * @param password the password to use
-     * @return the connection
-     */
-    public Connection getConnection(String name, String user, String password)
-            throws SQLException {
-        return getConnectionInternal(getURL(name, false), user, password);
     }
 
     /**
@@ -234,123 +203,7 @@ public abstract class TestBase {
         return dir;
     }
 
-    /**
-     * Get the database URL for the given database name using the current
-     * configuration options.
-     *
-     * @param name the database name
-     * @param admin true if the current user is an admin
-     * @return the database URL
-     */
-    protected String getURL(String name, boolean admin) {
-        String url;
-        if (name.startsWith("jdbc:")) {
-            if (config.mvStore) {
-                name = addOption(name, "MV_STORE", "true");
-                // name = addOption(name, "MVCC", "true");
-            }
-            return name;
-        }
-        if (admin) {
-            // name = addOption(name, "RETENTION_TIME", "10");
-            // name = addOption(name, "WRITE_DELAY", "10");
-        }
-        int idx = name.indexOf(':');
-        if (idx == -1 && config.memory) {
-            name = "mem:" + name;
-        } else {
-            if (idx < 0 || idx > 10) {
-                // index > 10 if in options
-                name = getBaseDir() + "/" + name;
-            }
-        }
-        if (config.networked) {
-            if (config.ssl) {
-                url = "ssl://localhost:9192/" + name;
-            } else {
-                url = "tcp://localhost:9192/" + name;
-            }
-        } else if (config.googleAppEngine) {
-            url = "gae://" + name +
-                    ";FILE_LOCK=NO;AUTO_SERVER=FALSE;DB_CLOSE_ON_EXIT=FALSE";
-        } else {
-            url = name;
-        }
-        if (config.mvStore) {
-            url = addOption(url, "MV_STORE", "true");
-            // url = addOption(url, "MVCC", "true");
-        } else {
-            url = addOption(url, "MV_STORE", "false");
-        }
-        if (!config.memory) {
-            if (config.smallLog && admin) {
-                url = addOption(url, "MAX_LOG_SIZE", "1");
-            }
-        }
-        if (config.traceSystemOut) {
-            url = addOption(url, "TRACE_LEVEL_SYSTEM_OUT", "2");
-        }
-        if (config.traceLevelFile > 0 && admin) {
-            url = addOption(url, "TRACE_LEVEL_FILE", "" + config.traceLevelFile);
-            url = addOption(url, "TRACE_MAX_FILE_SIZE", "8");
-        }
-        url = addOption(url, "LOG", "1");
-        if (config.throttleDefault > 0) {
-            url = addOption(url, "THROTTLE", "" + config.throttleDefault);
-        } else if (config.throttle > 0) {
-            url = addOption(url, "THROTTLE", "" + config.throttle);
-        }
-        url = addOption(url, "LOCK_TIMEOUT", "" + config.lockTimeout);
-        if (config.diskUndo && admin) {
-            url = addOption(url, "MAX_MEMORY_UNDO", "3");
-        }
-        if (config.big && admin) {
-            // force operations to disk
-            url = addOption(url, "MAX_OPERATION_MEMORY", "1");
-        }
-        if (config.mvcc) {
-            url = addOption(url, "MVCC", "TRUE");
-        }
-        if (config.multiThreaded) {
-            url = addOption(url, "MULTI_THREADED", "TRUE");
-        }
-        if (config.lazy) {
-            url = addOption(url, "LAZY_QUERY_EXECUTION", "1");
-        }
-        if (config.cacheType != null && admin) {
-            url = addOption(url, "CACHE_TYPE", config.cacheType);
-        }
-        if (config.diskResult && admin) {
-            url = addOption(url, "MAX_MEMORY_ROWS", "100");
-            url = addOption(url, "CACHE_SIZE", "0");
-        }
-        if (config.cipher != null) {
-            url = addOption(url, "CIPHER", config.cipher);
-        }
-        if (config.defrag) {
-            url = addOption(url, "DEFRAG_ALWAYS", "TRUE");
-        }
-        if (config.collation != null) {
-            url = addOption(url, "COLLATION", config.collation);
-        }
-        return "jdbc:h2:" + url;
-    }
 
-    private static String addOption(String url, String option, String value) {
-        if (url.indexOf(";" + option + "=") < 0) {
-            url += ";" + option + "=" + value;
-        }
-        return url;
-    }
-
-    private static Connection getConnectionInternal(String url, String user,
-            String password) throws SQLException {
-        org.h2.Driver.load();
-        // url += ";DEFAULT_TABLE_TYPE=1";
-        // Class.forName("org.hsqldb.jdbcDriver");
-        // return DriverManager.getConnection("jdbc:hsqldb:" + name, "sa", "");
-        return DriverManager.getConnection(url, user, password);
-    }
 
     /**
      * Get the small or the big value depending on the configuration.
@@ -405,7 +258,9 @@ public abstract class TestBase {
      */
     public void printTimeMemory(String s, long time) {
         if (config.big) {
-            println(getMemoryUsed() + " MB: " + s + " ms: " + time);
+            Runtime rt = Runtime.getRuntime();
+            long memNow = rt.totalMemory() - rt.freeMemory();
+            println(memNow / 1024 / 1024 + " MB: " + s + " ms: " + time);
         }
     }
 
@@ -476,6 +331,17 @@ public abstract class TestBase {
      * Log an error message.
      *
      * @param s the message
+     */
+    public static void logErrorMessage(String s) {
+        System.out.flush();
+        System.err.println("ERROR: " + s + "------------------------------");
+        logThrowable(s, null);
+    }
+
+    /**
+     * Log an error message.
+     *
+     * @param s the message
      * @param e the exception
      */
     public static void logError(String s, Throwable e) {
@@ -486,6 +352,10 @@ public abstract class TestBase {
         System.err.println("ERROR: " + s + " " + e.toString()
                 + " ------------------------------");
         e.printStackTrace();
+        logThrowable(null, e);
+    }
+
+    private static void logThrowable(String s, Throwable e) {
         // synchronize on this class, because file locks are only visible to
         // other JVMs
         synchronized (TestBase.class) {
@@ -502,9 +372,14 @@ public abstract class TestBase {
                 }
                 // append
                 FileWriter fw = new FileWriter("error.txt", true);
-                PrintWriter pw = new PrintWriter(fw);
-                e.printStackTrace(pw);
-                pw.close();
+                if (s != null) {
+                    fw.write(s);
+                }
+                if (e != null) {
+                    PrintWriter pw = new PrintWriter(fw);
+                    e.printStackTrace(pw);
+                    pw.close();
+                }
                 fw.close();
                 // unlock
                 lock.release();
@@ -533,7 +408,6 @@ public abstract class TestBase {
      * @param s the message
      */
     static synchronized void printlnWithTime(long millis, String s) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
         s = dateFormat.format(new java.util.Date()) + " " +
                 formatTime(millis) + " " + s;
         System.out.println(s);
@@ -566,27 +440,10 @@ public abstract class TestBase {
     }
 
     /**
-     * Delete all database files for this database.
-     *
-     * @param name the database name
+     * @return whether this test is enabled in the current configuration
      */
-    protected void deleteDb(String name) {
-        deleteDb(getBaseDir(), name);
-    }
-
-    /**
-     * Delete all database files for a database.
-     *
-     * @param dir the directory where the database files are located
-     * @param name the database name
-     */
-    protected void deleteDb(String dir, String name) {
-        DeleteDbFiles.execute(dir, name, true);
-        // ArrayList<String> list;
-        // list = FileLister.getDatabaseFiles(baseDir, name, true);
-        // if (list.size() >  0) {
-        //    System.out.println("Not deleted: " + list);
-        // }
+    public boolean isEnabled() {
+        return true;
     }
 
     /**
@@ -652,11 +509,14 @@ public abstract class TestBase {
      * @throws AssertionError if the values are not equal
      */
     public void assertEquals(java.util.Date expected, java.util.Date actual) {
-        if (expected != actual && !expected.equals(actual)) {
+        if (!Objects.equals(expected, actual)) {
             DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
             SimpleTimeZone gmt = new SimpleTimeZone(0, "Z");
             df.setTimeZone(gmt);
-            fail("Expected: " + df.format(expected) + " actual: " + df.format(actual));
+            fail("Expected: " +
+                    (expected != null ? df.format(expected) : "null") +
+                    " actual: " +
+                    (actual != null ? df.format(actual) : "null"));
         }
     }
 
@@ -696,11 +556,7 @@ public abstract class TestBase {
      * @throws AssertionError if the values are not equal
      */
     public void assertEquals(Object expected, Object actual) {
-        if (expected == null || actual == null) {
-            assertTrue(expected == actual);
-            return;
-        }
-        if (!expected.equals(actual)) {
+        if (!Objects.equals(expected, actual)) {
             fail(" expected: " + expected + " actual: " + actual);
         }
     }
@@ -834,6 +690,19 @@ public abstract class TestBase {
     }
 
     /**
+     * Check if two objects are the same, and if not throw an exception.
+     *
+     * @param expected the expected value
+     * @param actual the actual value
+     * @throws AssertionError if the objects are not the same
+     */
+    public void assertSame(Object expected, Object actual) {
+        if (expected != actual) {
+            fail(" expected: " + expected + " != actual: " + actual);
+        }
+    }
+
+    /**
      * Check if the first value is larger or equal than the second value, and if
      * not throw an exception.
      *
@@ -941,7 +810,9 @@ public abstract class TestBase {
      * @throws AssertionError if the condition is false
      */
     public void assertTrue(boolean condition) {
-        assertTrue("Expected: true got: false", condition);
+        if (!condition) {
+            fail("Expected: true got: false");
+        }
     }
 
     /**
@@ -957,13 +828,38 @@ public abstract class TestBase {
     }
 
     /**
+     * Check that the passed object is not null.
+     *
+     * @param obj the object
+     * @throws AssertionError if the condition is false
+     */
+    public void assertNotNull(Object obj) {
+        if (obj == null) {
+            fail("Expected: not null got: null");
+        }
+    }
+
+    /**
+     * Check that the passed object is not null.
+     *
+     * @param message the message to print if the condition is false
+     * @param obj the object
+     * @throws AssertionError if the condition is false
+     */
+    public void assertNotNull(String message, Object obj) {
+        if (obj == null) {
+            fail(message);
+        }
+    }
+
+    /**
      * Check that the passed boolean is true.
      *
      * @param message the message to print if the condition is false
      * @param condition the condition
      * @throws AssertionError if the condition is false
      */
-    protected void assertTrue(String message, boolean condition) {
+    public void assertTrue(String message, boolean condition) {
         if (!condition) {
             fail(message);
         }
@@ -976,7 +872,9 @@ public abstract class TestBase {
      * @throws AssertionError if the condition is true
      */
     protected void assertFalse(boolean value) {
-        assertFalse("Expected: false got: true", value);
+        if (value) {
+            fail("Expected: false got: true");
+        }
     }
 
     /**
@@ -1065,7 +963,7 @@ public abstract class TestBase {
      *
      * @param stat the statement
      */
-    protected void execute(PreparedStatement stat) throws SQLException {
+    public void execute(PreparedStatement stat) throws SQLException {
         execute(stat, null);
     }
 
@@ -1132,7 +1030,8 @@ public abstract class TestBase {
                     break;
                 case Types.SMALLINT:
                     assertEquals("SMALLINT", typeName);
-                    assertEquals("java.lang.Short", className);
+                    assertEquals(SysProperties.OLD_RESULT_SET_GET_OBJECT ? "java.lang.Short" : "java.lang.Integer",
+                            className);
                     break;
                 case Types.TIMESTAMP:
                     assertEquals("TIMESTAMP", typeName);
@@ -1353,7 +1252,7 @@ public abstract class TestBase {
     }
 
     /**
-     * Check if two databases contain the same met data.
+     * Check if two databases contain the same meta data.
      *
      * @param stat1 the connection to the first database
      * @param stat2 the connection to the second database
@@ -1413,7 +1312,7 @@ public abstract class TestBase {
         try {
             return (TestBase) new SecurityManager() {
                 Class<?> clazz = getClassContext()[2];
-            }.clazz.newInstance();
+            }.clazz.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -1425,7 +1324,17 @@ public abstract class TestBase {
      * @return the classpath list
      */
     protected String getClassPath() {
-        return "bin" + File.pathSeparator + "temp" + File.pathSeparator + ".";
+        return System.getProperty("java.class.path");
+    }
+
+    /**
+     * Get the path to a java executable of the current process
+     *
+     * @return the path to java
+     */
+    public static String getJVM() {
+        return System.getProperty("java.home") + File.separatorChar + "bin"
+                + File.separator + "java";
     }
 
     /**
@@ -1434,20 +1343,19 @@ public abstract class TestBase {
      * @param remainingKB the number of kilobytes that are not referenced
      */
     protected void eatMemory(int remainingKB) {
-        byte[] reserve = new byte[remainingKB * 1024];
-        // first, eat memory in 16 KB blocks, then eat in 16 byte blocks
-        for (int size = 16 * 1024; size > 0; size /= 1024) {
-            while (true) {
-                try {
-                    byte[] block = new byte[16 * 1024];
-                    memory.add(block);
-                } catch (OutOfMemoryError e) {
-                    break;
-                }
+        int memoryFreeKB;
+        try {
+            while ((memoryFreeKB = Utils.getMemoryFree()) > remainingKB) {
+                byte[] block = new byte[Math.max((memoryFreeKB - remainingKB) / 16, 16) * 1024];
+                memory.add(block);
             }
+        } catch (OutOfMemoryError e) {
+            if (remainingKB >= 3000) { // OOM is not expected
+                memory.clear();
+                throw e;
+            }
+            // OOM can be ignored because it's tolerable (separate process?)
         }
-        // silly code - makes sure there are no warnings
-        reserve[0] = reserve[1];
     }
 
     /**
@@ -1455,6 +1363,12 @@ public abstract class TestBase {
      */
     protected void freeMemory() {
         memory.clear();
+        for (int i = 0; i < 5; i++) {
+            System.gc();
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException ignore) {/**/}
+        }
     }
 
     /**
@@ -1623,7 +1537,6 @@ public abstract class TestBase {
         }
     }
 
-
     /**
      * Construct a stream of 20 KB that fails while reading with the provided
      * exception.
@@ -1658,8 +1571,12 @@ public abstract class TestBase {
         throw (E) e;
     }
 
-    protected String getTestName() {
+    /**
+     * Get the name of the test.
+     *
+     * @return the name of the test class
+     */
+    public String getTestName() {
         return getClass().getSimpleName();
     }
-
 }

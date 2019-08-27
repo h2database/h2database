@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.jdbc;
@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Connection;
@@ -24,12 +25,13 @@ import java.util.Random;
 import org.h2.api.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.IOUtils;
 
 /**
  * Test the Blob, Clob, and NClob implementations.
  */
-public class TestLobApi extends TestBase {
+public class TestLobApi extends TestDb {
 
     private JdbcConnection conn;
     private Statement stat;
@@ -76,38 +78,30 @@ public class TestLobApi extends TestBase {
         rs.next();
         Clob clob = rs.getClob(2);
         byte[] data = IOUtils.readBytesAndClose(clob.getAsciiStream(), -1);
-        assertEquals("x", new String(data, "UTF-8"));
+        assertEquals("x", new String(data, StandardCharsets.UTF_8));
         assertTrue(clob.toString().endsWith("'x'"));
         clob.free();
-        assertTrue(clob.toString().endsWith("null"));
+        assertTrue(clob.toString().endsWith("<closed>"));
 
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).
                 truncate(0);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).
                 setAsciiStream(1);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).
-                setString(1, "", 0, 1);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).
                 position("", 0);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).
                 position((Clob) null, 0);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).
-                getCharacterStream(1, 1);
 
         Blob blob = rs.getBlob(3);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).
                 truncate(0);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).
-                setBytes(1, new byte[0], 0, 0);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).
                 position(new byte[1], 0);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).
                 position((Blob) null, 0);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).
-                getBinaryStream(1, 1);
         assertTrue(blob.toString().endsWith("X'00'"));
         blob.free();
-        assertTrue(blob.toString().endsWith("null"));
+        assertTrue(blob.toString().endsWith("<closed>"));
 
         stat.execute("drop table test");
         conn.close();
@@ -126,7 +120,20 @@ public class TestLobApi extends TestBase {
         prep.setString(1, "");
         prep.setBytes(2, new byte[0]);
         prep.execute();
+
         Random r = new Random(1);
+
+        char[] charsSmall = new char[20];
+        for (int i = 0; i < charsSmall.length; i++) {
+            charsSmall[i] = (char) r.nextInt(10000);
+        }
+        String dSmall = new String(charsSmall);
+        prep.setCharacterStream(1, new StringReader(dSmall), -1);
+        byte[] bytesSmall = new byte[20];
+        r.nextBytes(bytesSmall);
+        prep.setBinaryStream(2, new ByteArrayInputStream(bytesSmall), -1);
+        prep.execute();
+
         char[] chars = new char[100000];
         for (int i = 0; i < chars.length; i++) {
             chars[i] = (char) r.nextInt(10000);
@@ -137,6 +144,7 @@ public class TestLobApi extends TestBase {
         r.nextBytes(bytes);
         prep.setBinaryStream(2, new ByteArrayInputStream(bytes), -1);
         prep.execute();
+
         conn.setAutoCommit(false);
         ResultSet rs = stat.executeQuery("select * from test order by id");
         rs.next();
@@ -145,18 +153,27 @@ public class TestLobApi extends TestBase {
         rs.next();
         Clob c2 = rs.getClob(2);
         Blob b2 = rs.getBlob(3);
+        rs.next();
+        Clob c3 = rs.getClob(2);
+        Blob b3 = rs.getBlob(3);
         assertFalse(rs.next());
         // now close
         rs.close();
         // but the LOBs must stay open
         assertEquals(0, c1.length());
         assertEquals(0, b1.length());
-        assertEquals(chars.length, c2.length());
-        assertEquals(bytes.length, b2.length());
         assertEquals("", c1.getSubString(1, 0));
         assertEquals(new byte[0], b1.getBytes(1, 0));
-        assertEquals(d, c2.getSubString(1, (int) c2.length()));
-        assertEquals(bytes, b2.getBytes(1, (int) b2.length()));
+
+        assertEquals(charsSmall.length, c2.length());
+        assertEquals(bytesSmall.length, b2.length());
+        assertEquals(dSmall, c2.getSubString(1, (int) c2.length()));
+        assertEquals(bytesSmall, b2.getBytes(1, (int) b2.length()));
+
+        assertEquals(chars.length, c3.length());
+        assertEquals(bytes.length, b3.length());
+        assertEquals(d, c3.getSubString(1, (int) c3.length()));
+        assertEquals(bytes, b3.getBytes(1, (int) b3.length()));
         stat.execute("drop table test");
         conn.close();
     }
@@ -240,30 +257,43 @@ public class TestLobApi extends TestBase {
 
         prep.setInt(1, 2);
         b = conn.createBlob();
-        b.setBytes(1, data);
+        assertEquals(length, b.setBytes(1, data));
         prep.setBlob(2, b);
         prep.execute();
 
         prep.setInt(1, 3);
-        prep.setBlob(2, new ByteArrayInputStream(data));
+        Blob b2 = conn.createBlob();
+        byte[] xdata = new byte[length + 2];
+        System.arraycopy(data, 0, xdata, 1, length);
+        assertEquals(length, b2.setBytes(1, xdata, 1, length));
+        prep.setBlob(2, b2);
         prep.execute();
 
         prep.setInt(1, 4);
+        prep.setBlob(2, new ByteArrayInputStream(data));
+        prep.execute();
+
+        prep.setInt(1, 5);
         prep.setBlob(2, new ByteArrayInputStream(data), -1);
         prep.execute();
 
         ResultSet rs;
         rs = stat.executeQuery("select * from test");
         rs.next();
-        Blob b2 = rs.getBlob(2);
-        assertEquals(length, b2.length());
+        Blob b3 = rs.getBlob(2);
+        assertEquals(length, b3.length());
         byte[] bytes = b.getBytes(1, length);
-        byte[] bytes2 = b2.getBytes(1, length);
+        byte[] bytes2 = b3.getBytes(1, length);
         assertEquals(bytes, bytes2);
         rs.next();
-        b2 = rs.getBlob(2);
-        assertEquals(length, b2.length());
-        bytes2 = b2.getBytes(1, length);
+        b3 = rs.getBlob(2);
+        assertEquals(length, b3.length());
+        bytes2 = b3.getBytes(1, length);
+        assertEquals(bytes, bytes2);
+        rs.next();
+        b3 = rs.getBlob(2);
+        assertEquals(length, b3.length());
+        bytes2 = b3.getBytes(1, length);
         assertEquals(bytes, bytes2);
         while (rs.next()) {
             bytes2 = rs.getBytes(2);
@@ -314,20 +344,28 @@ public class TestLobApi extends TestBase {
 
         NClob nc;
         nc = conn.createNClob();
-        nc.setString(1, new String(data));
+        assertEquals(length, nc.setString(1, new String(data)));
         prep.setInt(1, 5);
         prep.setNClob(2, nc);
         prep.execute();
 
-        prep.setInt(1, 5);
-        prep.setNClob(2, new StringReader(new String(data)));
-        prep.execute();
-
+        nc = conn.createNClob();
+        char[] xdata = new char[length + 2];
+        System.arraycopy(data, 0, xdata, 1, length);
+        assertEquals(length, nc.setString(1, new String(xdata), 1, length));
         prep.setInt(1, 6);
-        prep.setNClob(2, new StringReader(new String(data)), -1);
+        prep.setNClob(2, nc);
         prep.execute();
 
         prep.setInt(1, 7);
+        prep.setNClob(2, new StringReader(new String(data)));
+        prep.execute();
+
+        prep.setInt(1, 8);
+        prep.setNClob(2, new StringReader(new String(data)), -1);
+        prep.execute();
+
+        prep.setInt(1, 9);
         prep.setNString(2, new String(data));
         prep.execute();
 

@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.db;
@@ -8,6 +8,8 @@ package org.h2.test.db;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
+
 import org.h2.test.utils.SelfDestructor;
 
 /**
@@ -26,7 +28,7 @@ public abstract class TaskDef {
         TaskDef task;
         try {
             String className = args[0];
-            task = (TaskDef) Class.forName(className).newInstance();
+            task = (TaskDef) Class.forName(className).getDeclaredConstructor().newInstance();
             System.out.println("running");
         } catch (Throwable t) {
             System.out.println("init error: " + t);
@@ -34,9 +36,7 @@ public abstract class TaskDef {
             return;
         }
         try {
-            String[] taskArgs = new String[args.length - 1];
-            System.arraycopy(args, 0, taskArgs, 0, args.length - 1);
-            task.run(taskArgs);
+            task.run(Arrays.copyOf(args, args.length - 1));
         } catch (Throwable t) {
             System.out.println("error: " + t);
             t.printStackTrace();

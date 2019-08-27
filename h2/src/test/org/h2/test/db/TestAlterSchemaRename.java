@@ -1,12 +1,13 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.db;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -16,7 +17,7 @@ import java.sql.Statement;
 /**
  * Test ALTER SCHEMA RENAME statements.
  */
-public class TestAlterSchemaRename extends TestBase {
+public class TestAlterSchemaRename extends TestDb {
 
     private Connection conn;
     private Statement stat;
@@ -63,7 +64,7 @@ public class TestAlterSchemaRename extends TestBase {
         rs = stat.executeQuery("select * from s2.tab");
         assertTrue(rs.next());
         assertEquals(3, rs.getInt(1));
-        stat.execute("drop schema s2");
+        stat.execute("drop schema s2 cascade");
     }
 
 
@@ -97,8 +98,8 @@ public class TestAlterSchemaRename extends TestBase {
             stat = conn.createStatement();
             stat.executeQuery("select * from s2_new.v1");
         }
-        stat.execute("drop schema s1");
-        stat.execute("drop schema s2_new");
+        stat.execute("drop schema s1 cascade");
+        stat.execute("drop schema s2_new cascade");
     }
 
     /**
@@ -120,7 +121,7 @@ public class TestAlterSchemaRename extends TestBase {
             stat = conn.createStatement();
             stat.executeQuery("CALL S2.REVERSE('1234')");
         }
-        stat.execute("drop schema s2");
+        stat.execute("drop schema s2 cascade");
     }
 
 }

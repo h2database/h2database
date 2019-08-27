@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.synth;
@@ -15,18 +15,19 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
+
 import org.h2.api.ErrorCode;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.util.New;
+import org.h2.test.TestDb;
 import org.h2.util.ScriptReader;
 
 /**
  * Tests nested joins and right outer joins.
  */
-public class TestNestedJoins extends TestBase {
+public class TestNestedJoins extends TestDb {
 
-    private final ArrayList<Statement> dbs = New.arrayList();
+    private final ArrayList<Statement> dbs = new ArrayList<>();
 
     /**
      * Run just this test.
@@ -54,7 +55,7 @@ public class TestNestedJoins extends TestBase {
 
         try {
             Class.forName("org.postgresql.Driver");
-            Connection c2 = DriverManager.getConnection("jdbc:postgresql:test", "sa", "sa");
+            Connection c2 = DriverManager.getConnection("jdbc:postgresql:test?loggerLevel=OFF", "sa", "sa");
             dbs.add(c2.createStatement());
         } catch (Exception e) {
             // database not installed - ok
@@ -218,7 +219,7 @@ public class TestNestedJoins extends TestBase {
     }
 
     private static String getResult(ResultSet rs) throws SQLException {
-        ArrayList<String> list = New.arrayList();
+        ArrayList<String> list = new ArrayList<>();
         while (rs.next()) {
             StringBuilder buff = new StringBuilder();
             for (int i = 0; i < rs.getMetaData().getColumnCount(); i++) {
@@ -243,7 +244,7 @@ public class TestNestedJoins extends TestBase {
         // issue 288
         assertThrows(ErrorCode.COLUMN_NOT_FOUND_1, stat).
                 execute("select 1 from dual a right outer join " +
-                        "(select b.x from dual b) c on unknown.x = c.x, dual d");
+                        "(select b.x from dual b) c on unknown_table.x = c.x, dual d");
 
         // issue 288
         stat.execute("create table test(id int primary key)");
@@ -379,21 +380,23 @@ public class TestNestedJoins extends TestBase {
                 "right outer join t3 on t1.b=t3.a right outer join t2 on t2.b=t1.a");
         assertTrue(rs.next());
         sql = cleanRemarks(rs.getString(1));
-        assertEquals("SELECT DISTINCT T1.A, T2.A, T3.A FROM PUBLIC.T2 " +
-                "LEFT OUTER JOIN ( PUBLIC.T3 LEFT OUTER JOIN ( PUBLIC.T1 ) " +
-                "ON T1.B = T3.A ) ON T2.B = T1.A", sql);
+        assertEquals("SELECT DISTINCT \"T1\".\"A\", \"T2\".\"A\", \"T3\".\"A\" FROM \"PUBLIC\".\"T2\" " +
+                "LEFT OUTER JOIN ( \"PUBLIC\".\"T3\" LEFT OUTER JOIN \"PUBLIC\".\"T1\" " +
+                "ON \"T1\".\"B\" = \"T3\".\"A\" ) ON \"T2\".\"B\" = \"T1\".\"A\"", sql);
         rs = stat.executeQuery("select distinct t1.a, t2.a, t3.a from t1 " +
                 "right outer join t3 on t1.b=t3.a " +
                 "right outer join t2 on t2.b=t1.a");
-        // expected: 1  1       1; null    2       null
-        assertTrue(rs.next());
-        assertEquals("1", rs.getString(1));
-        assertEquals("1", rs.getString(2));
-        assertEquals("1", rs.getString(3));
+        // expected:
+        // null 2 null
+        // 1    1 1
         assertTrue(rs.next());
         assertEquals(null, rs.getString(1));
         assertEquals("2", rs.getString(2));
         assertEquals(null, rs.getString(3));
+        assertTrue(rs.next());
+        assertEquals("1", rs.getString(1));
+        assertEquals("1", rs.getString(2));
+        assertEquals("1", rs.getString(3));
         assertFalse(rs.next());
         stat.execute("drop table t1, t2, t3, t4");
 
@@ -418,8 +421,9 @@ public class TestNestedJoins extends TestBase {
                 "inner join b on a.x = b.x right outer join c on c.x = a.x");
         assertTrue(rs.next());
         sql = cleanRemarks(rs.getString(1));
-        assertEquals("SELECT A.X, B.X, C.X FROM PUBLIC.C LEFT OUTER JOIN " +
-                "( PUBLIC.A INNER JOIN PUBLIC.B ON A.X = B.X ) ON C.X = A.X", sql);
+        assertEquals("SELECT \"A\".\"X\", \"B\".\"X\", \"C\".\"X\" FROM \"PUBLIC\".\"C\" LEFT OUTER JOIN " +
+                "( \"PUBLIC\".\"A\" INNER JOIN \"PUBLIC\".\"B\" "
+                + "ON \"A\".\"X\" = \"B\".\"X\" ) ON \"C\".\"X\" = \"A\".\"X\"", sql);
         rs = stat.executeQuery("select a.x, b.x, c.x from a " +
                 "inner join b on a.x = b.x " +
                 "right outer join c on c.x = a.x");
@@ -463,11 +467,12 @@ public class TestNestedJoins extends TestBase {
                 "on a.x = c.x");
         assertTrue(rs.next());
         sql = cleanRemarks(rs.getString(1));
-        assertEquals("SELECT A.X, B.X, C.X, C.Y FROM PUBLIC.A " +
-                "LEFT OUTER JOIN ( PUBLIC.B " +
-                "LEFT OUTER JOIN PUBLIC.C " +
-                "ON B.X = C.Y ) " +
-                "ON A.X = C.X", sql);
+        assertEquals("SELECT \"PUBLIC\".\"A\".\"X\", \"PUBLIC\".\"B\".\"X\", " +
+                "\"PUBLIC\".\"C\".\"X\", \"PUBLIC\".\"C\".\"Y\" FROM \"PUBLIC\".\"A\" " +
+                "LEFT OUTER JOIN ( \"PUBLIC\".\"B\" " +
+                "LEFT OUTER JOIN \"PUBLIC\".\"C\" " +
+                "ON \"B\".\"X\" = \"C\".\"Y\" ) " +
+                "ON \"A\".\"X\" = \"C\".\"X\"", sql);
         rs = stat.executeQuery("select * from a " +
                 "left outer join (b " +
                 "left outer join c " +
@@ -544,9 +549,10 @@ public class TestNestedJoins extends TestBase {
                 "inner join c on c.x = 1) on a.x = b.x");
         assertTrue(rs.next());
         sql = cleanRemarks(rs.getString(1));
-        assertEquals("SELECT A.X, B.X, C.X FROM PUBLIC.A " +
-                "LEFT OUTER JOIN ( PUBLIC.B " +
-                "INNER JOIN PUBLIC.C ON C.X = 1 ) ON A.X = B.X", sql);
+        assertEquals("SELECT \"PUBLIC\".\"A\".\"X\", \"PUBLIC\".\"B\".\"X\", \"PUBLIC\".\"C\".\"X\" " +
+                "FROM \"PUBLIC\".\"A\" " +
+                "LEFT OUTER JOIN ( \"PUBLIC\".\"B\" " +
+                "INNER JOIN \"PUBLIC\".\"C\" ON \"C\".\"X\" = 1 ) ON \"A\".\"X\" = \"B\".\"X\"", sql);
         stat.execute("drop table a, b, c");
 
         stat.execute("create table test(id int primary key)");
@@ -592,13 +598,13 @@ public class TestNestedJoins extends TestBase {
                 "on b.pk = b_base.pk and b_base.deleted = 0) on 1=1");
         assertTrue(rs.next());
         sql = cleanRemarks(rs.getString(1));
-        assertEquals("SELECT A.PK, A_BASE.PK, B.PK, B_BASE.PK " +
-                "FROM PUBLIC.BASE A_BASE " +
-                "LEFT OUTER JOIN ( PUBLIC.B " +
-                "INNER JOIN PUBLIC.BASE B_BASE " +
-                "ON (B_BASE.DELETED = 0) AND (B.PK = B_BASE.PK) ) " +
-                "ON TRUE INNER JOIN PUBLIC.A ON 1=1 " +
-                "WHERE A.PK = A_BASE.PK", sql);
+        assertEquals("SELECT \"A\".\"PK\", \"A_BASE\".\"PK\", \"B\".\"PK\", \"B_BASE\".\"PK\" " +
+                "FROM \"PUBLIC\".\"BASE\" \"A_BASE\" " +
+                "LEFT OUTER JOIN ( \"PUBLIC\".\"B\" " +
+                "INNER JOIN \"PUBLIC\".\"BASE\" \"B_BASE\" " +
+                "ON (\"B_BASE\".\"DELETED\" = 0) AND (\"B\".\"PK\" = \"B_BASE\".\"PK\") ) " +
+                "ON TRUE INNER JOIN \"PUBLIC\".\"A\" ON 1=1 " +
+                "WHERE \"A\".\"PK\" = \"A_BASE\".\"PK\"", sql);
         rs = stat.executeQuery(
                 "select a.pk, a_base.pk, b.pk, b_base.pk from a " +
                 "inner join base a_base on a.pk = a_base.pk " +

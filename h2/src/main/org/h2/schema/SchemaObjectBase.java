@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.schema;
@@ -13,7 +13,7 @@ import org.h2.engine.DbObjectBase;
 public abstract class SchemaObjectBase extends DbObjectBase implements
         SchemaObject {
 
-    private Schema schema;
+    private final Schema schema;
 
     /**
      * Initialize some attributes of this object.
@@ -23,9 +23,9 @@ public abstract class SchemaObjectBase extends DbObjectBase implements
      * @param name the name
      * @param traceModuleId the trace module id
      */
-    protected void initSchemaObjectBase(Schema newSchema, int id, String name,
+    protected SchemaObjectBase(Schema newSchema, int id, String name,
             int traceModuleId) {
-        initDbObjectBase(newSchema.getDatabase(), id, name, traceModuleId);
+        super(newSchema.getDatabase(), id, name, traceModuleId);
         this.schema = newSchema;
     }
 
@@ -35,8 +35,14 @@ public abstract class SchemaObjectBase extends DbObjectBase implements
     }
 
     @Override
-    public String getSQL() {
-        return schema.getSQL() + "." + super.getSQL();
+    public String getSQL(boolean alwaysQuote) {
+        return getSQL(new StringBuilder(), alwaysQuote).toString();
+    }
+
+    @Override
+    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+        schema.getSQL(builder, alwaysQuote).append('.');
+        return super.getSQL(builder, alwaysQuote);
     }
 
     @Override

@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.server.web;
@@ -8,6 +8,7 @@ package org.h2.server.web;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Properties;
@@ -18,8 +19,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.h2.engine.Constants;
-import org.h2.util.New;
+import org.h2.util.NetworkConnectionInfo;
 
 /**
  * This servlet lets the H2 Console be used in a standard servlet container
@@ -34,7 +34,7 @@ public class WebServlet extends HttpServlet {
     public void init() {
         ServletConfig config = getServletConfig();
         Enumeration<?> en = config.getInitParameterNames();
-        ArrayList<String> list = New.arrayList();
+        ArrayList<String> list = new ArrayList<>();
         while (en.hasMoreElements()) {
             String name = en.nextElement().toString();
             String value = config.getInitParameter(name);
@@ -46,8 +46,7 @@ public class WebServlet extends HttpServlet {
                 list.add(value);
             }
         }
-        String[] args = new String[list.size()];
-        list.toArray(args);
+        String[] args = list.toArray(new String[0]);
         server = new WebServer();
         server.setAllowChunked(false);
         server.init(args);
@@ -66,12 +65,11 @@ public class WebServlet extends HttpServlet {
         try {
             InetAddress address = InetAddress.getByName(addr);
             return address.isLoopbackAddress();
-        } catch (UnknownHostException e) {
-            return false;
-        } catch (NoClassDefFoundError e) {
+        } catch (UnknownHostException | NoClassDefFoundError e) {
             // Google App Engine does not allow java.net.InetAddress
             return false;
         }
+
     }
 
     private String getAllowedFile(HttpServletRequest req, String requestedFile) {
@@ -121,8 +119,14 @@ public class WebServlet extends HttpServlet {
         app.setSession(session, attributes);
         String ifModifiedSince = req.getHeader("if-modified-since");
 
-        String hostAddr = req.getRemoteAddr();
-        file = app.processRequest(file, hostAddr);
+        String scheme = req.getScheme();
+        StringBuilder builder = new StringBuilder(scheme).append("://").append(req.getServerName());
+        int serverPort = req.getServerPort();
+        if (!(serverPort == 80 && scheme.equals("http") || serverPort == 443 && scheme.equals("https"))) {
+            builder.append(':').append(serverPort);
+        }
+        String path = builder.append(req.getContextPath()).toString();
+        file = app.processRequest(file, new NetworkConnectionInfo(path, req.getRemoteAddr(), req.getRemotePort()));
         session = app.getSession();
 
         String mimeType = app.getMimeType();
@@ -135,12 +139,12 @@ public class WebServlet extends HttpServlet {
         byte[] bytes = server.getFile(file);
         if (bytes == null) {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-            bytes = ("File not found: " + file).getBytes(Constants.UTF8);
+            bytes = ("File not found: " + file).getBytes(StandardCharsets.UTF_8);
         } else {
             if (session != null && file.endsWith(".jsp")) {
-                String page = new String(bytes, Constants.UTF8);
+                String page = new String(bytes, StandardCharsets.UTF_8);
                 page = PageParser.parse(page, session.map);
-                bytes = page.getBytes(Constants.UTF8);
+                bytes = page.getBytes(StandardCharsets.UTF_8);
             }
             resp.setContentType(mimeType);
             if (!cache) {

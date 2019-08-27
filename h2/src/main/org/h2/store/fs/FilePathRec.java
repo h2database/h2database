@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.store.fs;
@@ -10,6 +10,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.util.Arrays;
 
 /**
  * A file system that records all write operations and can re-play them.
@@ -45,11 +46,9 @@ public class FilePathRec extends FilePathWrapper {
     }
 
     @Override
-    public FilePath createTempFile(String suffix, boolean deleteOnExit,
-            boolean inTempDir) throws IOException {
-        log(Recorder.CREATE_TEMP_FILE, unwrap(name) + ":" + suffix + ":" +
-                deleteOnExit + ":" + inTempDir);
-        return super.createTempFile(suffix, deleteOnExit, inTempDir);
+    public FilePath createTempFile(String suffix, boolean inTempDir) throws IOException {
+        log(Recorder.CREATE_TEMP_FILE, unwrap(name) + ":" + suffix + ":" + inTempDir);
+        return super.createTempFile(suffix, inTempDir);
     }
 
     @Override
@@ -182,9 +181,8 @@ class FileRec extends FileBase {
         byte[] buff = src.array();
         int len = src.remaining();
         if (src.position() != 0 || len != buff.length) {
-            byte[] b = new byte[len];
-            System.arraycopy(buff, src.arrayOffset() + src.position(), b, 0, len);
-            buff = b;
+            int offset = src.arrayOffset() + src.position();
+            buff = Arrays.copyOfRange(buff, offset, offset + len);
         }
         int result = channel.write(src);
         rec.log(Recorder.WRITE, name, buff, channel.position());
@@ -196,9 +194,8 @@ class FileRec extends FileBase {
         byte[] buff = src.array();
         int len = src.remaining();
         if (src.position() != 0 || len != buff.length) {
-            byte[] b = new byte[len];
-            System.arraycopy(buff, src.arrayOffset() + src.position(), b, 0, len);
-            buff = b;
+            int offset = src.arrayOffset() + src.position();
+            buff = Arrays.copyOfRange(buff, offset, offset + len);
         }
         int result = channel.write(src, position);
         rec.log(Recorder.WRITE, name, buff, position);

@@ -1,0 +1,275 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!--
+Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+and the EPL 1.0 (https://h2database.com/html/license.html).
+Initial Developer: H2 Group
+-->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>
+Aggregate Functions
+</title>
+<link rel="stylesheet" type="text/css" href="stylesheet.css" />
+<!-- [search] { -->
+<script type="text/javascript" src="navigation.js"></script>
+</head><body onload="frameMe();">
+<table class="content"><tr class="content"><td class="content"><div class="contentDiv">
+<!-- } -->
+
+<h1>Aggregate Functions</h1>
+<h2 id="functions_aggregate_index">Index</h2>
+<h3>General Aggregate Functions</h3>
+<!-- syntax-start
+<p class="notranslate">
+<c:forEach var="item" items="aggregateFunctionsGeneral">
+    <a href="#${item.link}" >${item.topic}</a><br />
+</c:forEach>
+</p>
+syntax-end -->
+<!-- railroad-start -->
+<table class="notranslate index">
+    <tr>
+        <td class="index">
+            <c:forEach var="item" items="aggregateFunctionsGeneral-0">
+                <a href="#${item.link}" >${item.topic}</a><br />
+            </c:forEach>
+        </td><td class="index">
+            <c:forEach var="item" items="aggregateFunctionsGeneral-1">
+                <a href="#${item.link}" >${item.topic}</a><br />
+            </c:forEach>
+        </td><td class="index">
+            <c:forEach var="item" items="aggregateFunctionsGeneral-2">
+                <a href="#${item.link}" >${item.topic}</a><br />
+            </c:forEach>
+        </td>
+    </tr>
+</table>
+<!-- railroad-end -->
+
+<h3>Ordered Aggregate Functions</h3>
+<!-- syntax-start
+<p class="notranslate">
+<c:forEach var="item" items="aggregateFunctionsOrdered">
+    <a href="#${item.link}" >${item.topic}</a><br />
+</c:forEach>
+</p>
+syntax-end -->
+<!-- railroad-start -->
+<table class="notranslate index">
+    <tr>
+        <td class="index">
+            <c:forEach var="item" items="aggregateFunctionsOrdered-0">
+                <a href="#${item.link}" >${item.topic}</a><br />
+            </c:forEach>
+        </td><td class="index">
+            <c:forEach var="item" items="aggregateFunctionsOrdered-1">
+                <a href="#${item.link}" >${item.topic}</a><br />
+            </c:forEach>
+        </td><td class="index">
+            <c:forEach var="item" items="aggregateFunctionsOrdered-2">
+                <a href="#${item.link}" >${item.topic}</a><br />
+            </c:forEach>
+        </td>
+    </tr>
+</table>
+<!-- railroad-end -->
+
+<h3>Hypothetical Set Functions</h3>
+<!-- syntax-start
+<p class="notranslate">
+<c:forEach var="item" items="aggregateFunctionsHypothetical">
+    <a href="#${item.link}" >${item.topic}</a><br />
+</c:forEach>
+</p>
+syntax-end -->
+<!-- railroad-start -->
+<table class="notranslate index">
+    <tr>
+        <td class="index">
+            <c:forEach var="item" items="aggregateFunctionsHypothetical-0">
+                <a href="#${item.link}" >${item.topic}</a><br />
+            </c:forEach>
+        </td><td class="index">
+            <c:forEach var="item" items="aggregateFunctionsHypothetical-1">
+                <a href="#${item.link}" >${item.topic}</a><br />
+            </c:forEach>
+        </td><td class="index">
+            <c:forEach var="item" items="aggregateFunctionsHypothetical-2">
+                <a href="#${item.link}" >${item.topic}</a><br />
+            </c:forEach>
+        </td>
+    </tr>
+</table>
+<!-- railroad-end -->
+
+<h3>Inverse Distribution Functions</h3>
+<!-- syntax-start
+<p class="notranslate">
+<c:forEach var="item" items="aggregateFunctionsInverse">
+    <a href="#${item.link}" >${item.topic}</a><br />
+</c:forEach>
+</p>
+syntax-end -->
+<!-- railroad-start -->
+<table class="notranslate index">
+    <tr>
+        <td class="index">
+            <c:forEach var="item" items="aggregateFunctionsInverse-0">
+                <a href="#${item.link}" >${item.topic}</a><br />
+            </c:forEach>
+        </td><td class="index">
+            <c:forEach var="item" items="aggregateFunctionsInverse-1">
+                <a href="#${item.link}" >${item.topic}</a><br />
+            </c:forEach>
+        </td><td class="index">
+            <c:forEach var="item" items="aggregateFunctionsInverse-2">
+                <a href="#${item.link}" >${item.topic}</a><br />
+            </c:forEach>
+        </td>
+    </tr>
+</table>
+<!-- railroad-end -->
+
+<h3>JSON Aggregate Functions</h3>
+<!-- syntax-start
+<p class="notranslate">
+<c:forEach var="item" items="aggregateFunctionsJSON">
+    <a href="#${item.link}" >${item.topic}</a><br />
+</c:forEach>
+</p>
+syntax-end -->
+<!-- railroad-start -->
+<table class="notranslate index">
+    <tr>
+        <td class="index">
+            <c:forEach var="item" items="aggregateFunctionsJSON-0">
+                <a href="#${item.link}" >${item.topic}</a><br />
+            </c:forEach>
+        </td><td class="index">
+            <c:forEach var="item" items="aggregateFunctionsJSON-1">
+                <a href="#${item.link}" >${item.topic}</a><br />
+            </c:forEach>
+        </td><td class="index">
+            <c:forEach var="item" items="aggregateFunctionsJSON-2">
+                <a href="#${item.link}" >${item.topic}</a><br />
+            </c:forEach>
+        </td>
+    </tr>
+</table>
+<!-- railroad-end -->
+
+<!-- railroad-start -->
+<h2>Details</h2>
+<p>Click on the header to switch between railroad diagram and BNF.</p>
+<!-- railroad-end -->
+
+<h2>General Aggregate Functions</h2>
+<c:forEach var="item" items="aggregateFunctionsGeneral">
+<h3 id="${item.link}" class="notranslate" onclick="switchBnf(this)">${item.topic}</h3>
+<!-- railroad-start -->
+<pre name="bnf" style="display: none">
+${item.syntax}
+</pre>
+<div name="railroad">
+${item.railroad}
+</div>
+<!-- railroad-end -->
+<!-- syntax-start
+<pre>
+${item.syntax}
+</pre>
+syntax-end -->
+<p>${item.text}</p>
+<p>Example:</p>
+<p class="notranslate">${item.example}</p>
+</c:forEach>
+
+<h2>Ordered Aggregate Functions</h2>
+<c:forEach var="item" items="aggregateFunctionsOrdered">
+<h3 id="${item.link}" class="notranslate" onclick="switchBnf(this)">${item.topic}</h3>
+<!-- railroad-start -->
+<pre name="bnf" style="display: none">
+${item.syntax}
+</pre>
+<div name="railroad">
+${item.railroad}
+</div>
+<!-- railroad-end -->
+<!-- syntax-start
+<pre>
+${item.syntax}
+</pre>
+syntax-end -->
+<p>${item.text}</p>
+<p>Example:</p>
+<p class="notranslate">${item.example}</p>
+</c:forEach>
+
+<h2>Hypothetical Set Functions</h2>
+<c:forEach var="item" items="aggregateFunctionsHypothetical">
+<h3 id="${item.link}" class="notranslate" onclick="switchBnf(this)">${item.topic}</h3>
+<!-- railroad-start -->
+<pre name="bnf" style="display: none">
+${item.syntax}
+</pre>
+<div name="railroad">
+${item.railroad}
+</div>
+<!-- railroad-end -->
+<!-- syntax-start
+<pre>
+${item.syntax}
+</pre>
+syntax-end -->
+<p>${item.text}</p>
+<p>Example:</p>
+<p class="notranslate">${item.example}</p>
+</c:forEach>
+
+<h2>Inverse Distribution Functions</h2>
+<c:forEach var="item" items="aggregateFunctionsInverse">
+<h3 id="${item.link}" class="notranslate" onclick="switchBnf(this)">${item.topic}</h3>
+<!-- railroad-start -->
+<pre name="bnf" style="display: none">
+${item.syntax}
+</pre>
+<div name="railroad">
+${item.railroad}
+</div>
+<!-- railroad-end -->
+<!-- syntax-start
+<pre>
+${item.syntax}
+</pre>
+syntax-end -->
+<p>${item.text}</p>
+<p>Example:</p>
+<p class="notranslate">${item.example}</p>
+</c:forEach>
+
+<h2>JSON Aggregate Functions</h2>
+<c:forEach var="item" items="aggregateFunctionsJSON">
+<h3 id="${item.link}" class="notranslate" onclick="switchBnf(this)">${item.topic}</h3>
+<!-- railroad-start -->
+<pre name="bnf" style="display: none">
+${item.syntax}
+</pre>
+<div name="railroad">
+${item.railroad}
+</div>
+<!-- railroad-end -->
+<!-- syntax-start
+<pre>
+${item.syntax}
+</pre>
+syntax-end -->
+<p>${item.text}</p>
+<p>Example:</p>
+<p class="notranslate">${item.example}</p>
+</c:forEach>
+
+<!--[if lte IE 7]><script language="javascript">switchBnf(null);</script><![endif]-->
+
+<!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>
+

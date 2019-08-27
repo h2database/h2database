@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.synth;
@@ -10,20 +10,21 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.test.db.Db;
 import org.h2.test.db.Db.Prepared;
-import org.h2.util.New;
 
 /**
  * This test executes random SQL statements to test if optimizations are working
  * correctly.
  */
-public class TestFuzzOptimizations extends TestBase {
+public class TestFuzzOptimizations extends TestDb {
 
     private Connection conn;
 
@@ -102,36 +103,40 @@ public class TestFuzzOptimizations extends TestBase {
         int size = getSize(100, 1000);
         for (int i = 0; i < size; i++) {
             long seed = seedGenerator.nextLong();
-            println("seed: " + seed);
+            println("testIn() seed: " + seed);
             Random random = new Random(seed);
-            ArrayList<String> params = New.arrayList();
+            ArrayList<String> params = new ArrayList<>();
             String condition = getRandomCondition(random, params, columns,
                     compares, values);
-            //   System.out.println(condition + " " + params);
-            PreparedStatement prep0 = conn.prepareStatement(
-                    "select * from test0 where " + condition
-                    + " order by 1, 2, 3");
-            PreparedStatement prep1 = conn.prepareStatement(
-                    "select * from test1 where " + condition
-                    + " order by 1, 2, 3");
-            for (int j = 0; j < params.size(); j++) {
-                prep0.setString(j + 1, params.get(j));
-                prep1.setString(j + 1, params.get(j));
-            }
-            ResultSet rs0 = prep0.executeQuery();
-            ResultSet rs1 = prep1.executeQuery();
-            assertEquals("seed: " + seed + " " + condition, rs0, rs1);
+            String message = "testIn() seed: " + seed + " " + condition;
+            executeAndCompare(condition, params, message);
             if (params.size() > 0) {
                 for (int j = 0; j < params.size(); j++) {
                     String value = values[random.nextInt(values.length - 2)];
                     params.set(j, value);
-                    prep0.setString(j + 1, value);
-                    prep1.setString(j + 1, value);
                 }
-                assertEquals("seed: " + seed + " " + condition, rs0, rs1);
+                executeAndCompare(condition, params, message);
             }
         }
+        executeAndCompare("a >=0 and b in(?, 2) and a in(1, ?, null)", Arrays.asList("10", "2"),
+                "testIn() seed=-6191135606105920350L");
         db.execute("drop table test0, test1");
+    }
+
+    private void executeAndCompare(String condition, List<String> params, String message) throws SQLException {
+        PreparedStatement prep0 = conn.prepareStatement(
+                "select * from test0 where " + condition
+                + " order by 1, 2, 3");
+        PreparedStatement prep1 = conn.prepareStatement(
+                "select * from test1 where " + condition
+                + " order by 1, 2, 3");
+        for (int j = 0; j < params.size(); j++) {
+            prep0.setString(j + 1, params.get(j));
+            prep1.setString(j + 1, params.get(j));
+        }
+        ResultSet rs0 = prep0.executeQuery();
+        ResultSet rs1 = prep1.executeQuery();
+        assertEquals(message, rs0, rs1);
     }
 
     private String getRandomCondition(Random random, ArrayList<String> params,
@@ -188,7 +193,7 @@ public class TestFuzzOptimizations extends TestBase {
         db.execute("UPDATE TEST SET B = NULL WHERE B = 0");
         Random random = new Random();
         long seed = random.nextLong();
-        println("seed: " + seed);
+        println("testInSelect() seed: " + seed);
         for (int i = 0; i < 100; i++) {
             String column = random.nextBoolean() ? "A" : "B";
             String value = new String[] { "NULL", "0", "A", "B" }[random.nextInt(4)];
@@ -202,7 +207,7 @@ public class TestFuzzOptimizations extends TestBase {
                 " FROM TEST I WHERE I." + compare + "=?) ORDER BY 1, 2";
             List<Map<String, Object>> a = db.prepare(sql1).set(x).query();
             List<Map<String, Object>> b = db.prepare(sql2).set(x).query();
-            assertTrue("seed: " + seed + " sql: " + sql1 +
+            assertTrue("testInSelect() seed: " + seed + " sql: " + sql1 +
                     " a: " + a + " b: " + b, a.equals(b));
         }
         db.execute("DROP TABLE TEST");
@@ -213,7 +218,7 @@ public class TestFuzzOptimizations extends TestBase {
         db.execute("CREATE TABLE TEST(A INT, B INT, C INT)");
         Random random = new Random();
         long seed = random.nextLong();
-        println("seed: " + seed);
+        println("testGroupSorted() seed: " + seed);
         for (int i = 0; i < 100; i++) {
             Prepared p = db.prepare("INSERT INTO TEST VALUES(?, ?, ?)");
             p.set(new String[] { null, "0", "1", "2" }[random.nextInt(4)]);

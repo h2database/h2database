@@ -5,9 +5,10 @@
 21S02=A quantidade de colunas não corresponde
 22001=Valor muito longo para a coluna {0}: {1}
 22003=Valor númerico não esta dentro do limite: {0}
-22004=#Valor númerico não esta dentro do limite: {0} in column {1}
+22004=#Numeric value out of range: {0} in column {1}
 22007=Não é possível converter {1} para {0}
 22012=Divisão por zero: {0}
+22013=#Invalid PRECEDING or FOLLOWING size in window function: {0}
 22018=Erro na conversão de dado, convertendo {0}
 22025=Erro em LIKE ESCAPE: {0}
 22030=#Value not permitted for column {0}: {1}
@@ -25,13 +26,14 @@
 40001=#Deadlock detected. The current transaction was rolled back. Details: {0}
 42000=Erro de sintax na declaração SQL {0}
 42001=Erro de sintax na declaração SQL {0}; esperado {1}
+42602=#Invalid name {0}
 42S01=Tabela {0} já existe
 42S02=Tabela {0} não foi encontrada
 42S11=índice {0} já existe
 42S12=índice {0} não foi encontrado
 42S21=Nome duplicado da coluna {0}
 42S22=Coluna {0} não foi encontrada
-42S32=Definição {0} não foi encontrada
+42S31=#Identical expressions should be used; expected {0}, found {1}
 57014=#Statement was canceled or the session timed out
 90000=Função {0} deve retornar algum resultado
 90001=O método não esta hábilitado para consulta. Use o execute ou o executeQuery em vez de executeUpdate
@@ -140,6 +142,7 @@
 90107=Não pode apagar {0} por que depende de {1}
 90108=#Out of memory.
 90109=Vista {0} é inválida: {1}
+90110=#Comparing ARRAY to scalar value
 90111=Erro ao acessar a tabela lincada com a instrução SQL {0}, causa: {1}
 90112=A linha não foi encontrada ao tentar eliminar apartir do índice {0}
 90113=Não suporta a definição de conecção {0}
@@ -148,10 +151,10 @@
 90116=Literais deste tipo não são permitidas
 90117=Conecções remotas para este servidor não estão habilitadas, veja -tcpAllowOthers
 90118=Não pode apagar a tabela {0}
-90119=Tipo de dados do usuário {0} já existe
-90120=Tipo de dados do usuário {0} não foram encontrados
+90119=Domínio {0} já existe
+90120=Domínio {0} não foram encontrados
 90121=Base de dados já está fechada (para desabilitar o fechamento automático quando a VM terminar, addicione ";DB_CLOSE_ON_EXIT=FALSE" na url da base de dados)
-90122=Operação não suportada para a tabela {0} quando existe alguma vista sobre a tabela: {1}
+90122=#The WITH TIES clause is not allowed without a corresponding ORDER BY clause.
 90123=Não pode combinar parâmetros de índices com não índices
 90124=Arquivo não encontrado: {0}
 90125=Classe inválida, experada {0} mas está {1}
@@ -165,14 +168,18 @@
 90133=#Cannot change the setting {0} when the database is already open
 90134=#Access to the class {0} is denied
 90135=#The database is open in exclusive mode; can not open additional connections
-90136=#Unsupported outer join condition: {0}
+90136=#Window not found: {0}
 90137=#Can only assign to a variable, not to: {0}
 90138=#Invalid database name: {0}
 90139=#The public static Java method was not found: {0}
 90140=#The result set is readonly. You may need to use conn.createStatement(.., ResultSet.CONCUR_UPDATABLE).
 90141=#Serializer cannot be changed because there is a data table: {0}
 90142=#Step size must not be zero
-90143=##Row {1} not found in primary index {0}
+90143=#Row {1} not found in primary index {0}
+90144=#Authenticator not enabled on database {0}
+90145=#FOR UPDATE is not allowed in DISTINCT or grouped select
+90146=#Database {0} not found, and IFEXISTS=true, so we can't auto-create it
+90147=#Method {0} is not allowed when connection is in auto-commit mode
 HY000=Erro geral: {0}
 HY004=Tipo de dados desconhecido: {0}
 HYC00=Recurso não suportado: {0}

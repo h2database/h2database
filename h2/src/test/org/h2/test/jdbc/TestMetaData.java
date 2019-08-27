@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.jdbc;
@@ -8,20 +8,25 @@ package org.h2.test.jdbc;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Driver;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.util.UUID;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
+import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.value.DataType;
 
 /**
  * Test for the DatabaseMetaData implementation.
  */
-public class TestMetaData extends TestBase {
+public class TestMetaData extends TestDb {
 
     private static final String CATALOG = "METADATA";
 
@@ -45,6 +50,7 @@ public class TestMetaData extends TestBase {
         testColumnMetaData();
         testColumnPrecision();
         testColumnDefault();
+        testColumnGenerated();
         testCrossReferences();
         testProcedureColumns();
         testUDTs();
@@ -119,14 +125,12 @@ public class TestMetaData extends TestBase {
         assertEquals(DataType.TYPE_RESULT_SET, rsMeta.getColumnType(1));
         rs.next();
         assertTrue(rs.getObject(1) instanceof java.sql.ResultSet);
-        assertEquals("org.h2.tools.SimpleResultSet",
-                rs.getObject(1).getClass().getName());
         stat.executeUpdate("drop alias x");
 
         rs = stat.executeQuery("select 1 from dual");
         rs.next();
         rsMeta = rs.getMetaData();
-        assertTrue(rsMeta.getCatalogName(1) != null);
+        assertNotNull(rsMeta.getCatalogName(1));
         assertEquals("1", rsMeta.getColumnLabel(1));
         assertEquals("1", rsMeta.getColumnName(1));
         assertEquals("", rsMeta.getSchemaName(1));
@@ -134,6 +138,13 @@ public class TestMetaData extends TestBase {
         assertEquals(ResultSet.HOLD_CURSORS_OVER_COMMIT, conn.getHoldability());
         assertEquals(ResultSet.HOLD_CURSORS_OVER_COMMIT, rs.getHoldability());
         stat.executeUpdate("drop table test");
+
+        PreparedStatement prep = conn.prepareStatement("SELECT X FROM TABLE (X UUID = ?)");
+        prep.setObject(1, UUID.randomUUID());
+        rs = prep.executeQuery();
+        rsMeta = rs.getMetaData();
+        assertEquals("UUID", rsMeta.getColumnTypeName(1));
+
         conn.close();
     }
 
@@ -165,18 +176,24 @@ public class TestMetaData extends TestBase {
 
         Statement stat = conn.createStatement();
         stat.execute("create table a(x array)");
-        stat.execute("insert into a values((1, 2))");
+        stat.execute("insert into a values(ARRAY[1, 2])");
         rs = stat.executeQuery("SELECT x[1] FROM a");
         ResultSetMetaData rsMeta = rs.getMetaData();
-        assertEquals(Types.VARCHAR, rsMeta.getColumnType(1));
+        assertEquals(Types.NULL, rsMeta.getColumnType(1));
         rs.next();
-        // assertEquals(String.class.getName(),
-        //         rs.getObject(1).getClass().getName());
+        assertEquals(Integer.class.getName(),
+                rs.getObject(1).getClass().getName());
         stat.execute("drop table a");
         conn.close();
     }
 
     private void testColumnPrecision() throws SQLException {
+        int numericType;
+        if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
+            numericType = Types.DECIMAL;
+        } else {
+            numericType = Types.NUMERIC;
+        }
         Connection conn = getConnection("metaData");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE ONE(X NUMBER(12,2), Y FLOAT)");
@@ -187,13 +204,13 @@ public class TestMetaData extends TestBase {
         rsMeta = rs.getMetaData();
         assertEquals(12, rsMeta.getPrecision(1));
         assertEquals(17, rsMeta.getPrecision(2));
-        assertEquals(Types.DECIMAL, rsMeta.getColumnType(1));
+        assertEquals(numericType, rsMeta.getColumnType(1));
         assertEquals(Types.DOUBLE, rsMeta.getColumnType(2));
         rs = stat.executeQuery("SELECT * FROM TWO");
         rsMeta = rs.getMetaData();
         assertEquals(12, rsMeta.getPrecision(1));
         assertEquals(17, rsMeta.getPrecision(2));
-        assertEquals(Types.DECIMAL, rsMeta.getColumnType(1));
+        assertEquals(numericType, rsMeta.getColumnType(1));
         assertEquals(Types.DOUBLE, rsMeta.getColumnType(2));
         stat.execute("DROP TABLE ONE, TWO");
         conn.close();
@@ -212,6 +229,24 @@ public class TestMetaData extends TestBase {
         rs.next();
         assertEquals("B", rs.getString("COLUMN_NAME"));
         assertEquals("NULL", rs.getString("COLUMN_DEF"));
+        assertFalse(rs.next());
+        stat.execute("DROP TABLE TEST");
+        conn.close();
+    }
+
+    private void testColumnGenerated() throws SQLException {
+        Connection conn = getConnection("metaData");
+        DatabaseMetaData meta = conn.getMetaData();
+        ResultSet rs;
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(A INT, B INT AS A + 1)");
+        rs = meta.getColumns(null, null, "TEST", null);
+        rs.next();
+        assertEquals("A", rs.getString("COLUMN_NAME"));
+        assertEquals("NO", rs.getString("IS_GENERATEDCOLUMN"));
+        rs.next();
+        assertEquals("B", rs.getString("COLUMN_NAME"));
+        assertEquals("YES", rs.getString("IS_GENERATEDCOLUMN"));
         assertFalse(rs.next());
         stat.execute("DROP TABLE TEST");
         conn.close();
@@ -298,8 +333,7 @@ public class TestMetaData extends TestBase {
         checkCrossRef(rs);
         rs = meta.getExportedKeys(null, "PUBLIC", "PARENT");
         checkCrossRef(rs);
-        stat.execute("DROP TABLE PARENT");
-        stat.execute("DROP TABLE CHILD");
+        stat.execute("DROP TABLE PARENT, CHILD");
         conn.close();
     }
 
@@ -360,7 +394,7 @@ public class TestMetaData extends TestBase {
         assertTrue(dr.jdbcCompliant());
 
         assertEquals(0, dr.getPropertyInfo(null, null).length);
-        assertTrue(dr.connect("jdbc:test:false", null) == null);
+        assertNull(dr.connect("jdbc:test:false", null));
 
         assertTrue(meta.getNumericFunctions().length() > 0);
         assertTrue(meta.getStringFunctions().length() > 0);
@@ -387,7 +421,7 @@ public class TestMetaData extends TestBase {
                 meta.getDriverMinorVersion());
         int majorVersion = 4;
         assertEquals(majorVersion, meta.getJDBCMajorVersion());
-        assertEquals(0, meta.getJDBCMinorVersion());
+        assertEquals(1, meta.getJDBCMinorVersion());
         assertEquals("H2", meta.getDatabaseProductName());
         assertEquals(Connection.TRANSACTION_READ_COMMITTED,
                 meta.getDefaultTransactionIsolation());
@@ -422,13 +456,21 @@ public class TestMetaData extends TestBase {
 
         assertEquals(ResultSet.CLOSE_CURSORS_AT_COMMIT,
                 meta.getResultSetHoldability());
-        assertEquals(DatabaseMetaData.sqlStateSQL99,
-                meta.getSQLStateType());
+        assertEquals(DatabaseMetaData.sqlStateSQL, meta.getSQLStateType());
         assertFalse(meta.locatorsUpdateCopy());
 
         assertEquals("schema", meta.getSchemaTerm());
         assertEquals("\\", meta.getSearchStringEscape());
-        assertEquals("LIMIT,MINUS,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY",
+        assertEquals("CURRENT_SCHEMA," //
+                + "GROUPS," //
+                + "IF,ILIKE,INTERSECTS," //
+                + "LIMIT," //
+                + "MINUS," //
+                + "OFFSET," //
+                + "QUALIFY," //
+                + "REGEXP,_ROWID_,ROWNUM," //
+                + "SYSDATE,SYSTIME,SYSTIMESTAMP," //
+                + "TODAY,TOP", //
                 meta.getSQLKeywords());
 
         assertTrue(meta.getURL().startsWith("jdbc:h2:"));
@@ -485,7 +527,7 @@ public class TestMetaData extends TestBase {
         assertFalse(meta.storesLowerCaseIdentifiers());
         assertFalse(meta.storesLowerCaseQuotedIdentifiers());
         assertFalse(meta.storesMixedCaseIdentifiers());
-        assertTrue(meta.storesMixedCaseQuotedIdentifiers());
+        assertFalse(meta.storesMixedCaseQuotedIdentifiers());
         assertTrue(meta.storesUpperCaseIdentifiers());
         assertFalse(meta.storesUpperCaseQuotedIdentifiers());
         assertTrue(meta.supportsAlterTableWithAddColumn());
@@ -574,14 +616,13 @@ public class TestMetaData extends TestBase {
         assertTrue(meta.supportsSubqueriesInQuantifieds());
         assertTrue(meta.supportsTableCorrelationNames());
         assertTrue(meta.supportsTransactions());
-        assertTrue(meta.supportsTransactionIsolationLevel(
+        assertFalse(meta.supportsTransactionIsolationLevel(
                 Connection.TRANSACTION_NONE));
         assertTrue(meta.supportsTransactionIsolationLevel(
                 Connection.TRANSACTION_READ_COMMITTED));
-        if (!config.multiThreaded) {
-            assertTrue(meta.supportsTransactionIsolationLevel(
-                    Connection.TRANSACTION_READ_UNCOMMITTED));
-        }
+        assertEquals(config.mvStore || !config.multiThreaded,
+                meta.supportsTransactionIsolationLevel(
+                        Connection.TRANSACTION_READ_UNCOMMITTED));
         assertTrue(meta.supportsTransactionIsolationLevel(
                 Connection.TRANSACTION_REPEATABLE_READ));
         assertTrue(meta.supportsTransactionIsolationLevel(
@@ -597,6 +638,15 @@ public class TestMetaData extends TestBase {
     }
 
     private void testMore() throws SQLException {
+        int numericType;
+        String numericName;
+        if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
+            numericType = Types.DECIMAL;
+            numericName = "DECIMAL";
+        } else {
+            numericType = Types.NUMERIC;
+            numericName = "NUMERIC";
+        }
         Connection conn = getConnection("metaData");
         DatabaseMetaData meta = conn.getMetaData();
         Statement stat = conn.createStatement();
@@ -685,7 +735,7 @@ public class TestMetaData extends TestBase {
                 "SQL_DATA_TYPE", "SQL_DATETIME_SUB", "CHAR_OCTET_LENGTH",
                 "ORDINAL_POSITION", "IS_NULLABLE", "SCOPE_CATALOG",
                 "SCOPE_SCHEMA", "SCOPE_TABLE", "SOURCE_DATA_TYPE",
-                "IS_AUTOINCREMENT", "SCOPE_CATLOG" }, new int[] {
+                "IS_AUTOINCREMENT", "IS_GENERATEDCOLUMN" }, new int[] {
                 Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                 Types.INTEGER, Types.VARCHAR, Types.INTEGER, Types.INTEGER,
                 Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.VARCHAR,
@@ -703,13 +753,13 @@ public class TestMetaData extends TestBase {
                         "" + DatabaseMetaData.columnNullable, "", null,
                         "" + Types.VARCHAR, "0", "120", "2", "YES" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "DEC_V",
-                        "" + Types.DECIMAL, "DECIMAL", "12", "12", "3", "10",
+                        "" + numericType, numericName, "12", "12", "3", "10",
                         "" + DatabaseMetaData.columnNullable, "", null,
-                        "" + Types.DECIMAL, "0", "12", "3", "YES" },
+                        "" + numericType, "0", "12", "3", "YES" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "DATE_V",
-                        "" + Types.TIMESTAMP, "TIMESTAMP", "23", "23", "10",
+                        "" + Types.TIMESTAMP, "TIMESTAMP", "26", "26", "6",
                         "10", "" + DatabaseMetaData.columnNullable, "", null,
-                        "" + Types.TIMESTAMP, "0", "23", "4", "YES" },
+                        "" + Types.TIMESTAMP, "0", "26", "4", "YES" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "BLOB_V",
                         "" + Types.BLOB, "BLOB", "" + Integer.MAX_VALUE,
                         "" + Integer.MAX_VALUE, "0", "10",
@@ -978,9 +1028,9 @@ public class TestMetaData extends TestBase {
                 Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                 Types.VARCHAR, Types.VARCHAR, Types.VARCHAR }, null, null);
 
-        assertTrue(conn.getWarnings() == null);
+        assertNull(conn.getWarnings());
         conn.clearWarnings();
-        assertTrue(conn.getWarnings() == null);
+        assertNull(conn.getWarnings());
         conn.close();
     }
 
@@ -1034,7 +1084,7 @@ public class TestMetaData extends TestBase {
 
         rs = meta.getTables(null, Constants.SCHEMA_MAIN,
                 null, new String[] { "TABLE" });
-        assertTrue(rs.getStatement() == null);
+        assertNull(rs.getStatement());
         rs.next();
         assertEquals("TEST", rs.getString("TABLE_NAME"));
         assertFalse(rs.next());
@@ -1068,9 +1118,13 @@ public class TestMetaData extends TestBase {
         rs.next();
         assertEquals("IN_DOUBT", rs.getString("TABLE_NAME"));
         rs.next();
+        assertEquals("KEY_COLUMN_USAGE", rs.getString("TABLE_NAME"));
+        rs.next();
         assertEquals("LOCKS", rs.getString("TABLE_NAME"));
         rs.next();
         assertEquals("QUERY_STATISTICS", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("REFERENTIAL_CONSTRAINTS", rs.getString("TABLE_NAME"));
         rs.next();
         assertEquals("RIGHTS", rs.getString("TABLE_NAME"));
         rs.next();
@@ -1089,6 +1143,8 @@ public class TestMetaData extends TestBase {
         assertEquals("SYNONYMS", rs.getString("TABLE_NAME"));
         rs.next();
         assertEquals("TABLES", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("TABLE_CONSTRAINTS", rs.getString("TABLE_NAME"));
         rs.next();
         assertEquals("TABLE_PRIVILEGES", rs.getString("TABLE_NAME"));
         rs.next();
@@ -1144,11 +1200,18 @@ public class TestMetaData extends TestBase {
         stat.execute("DROP TABLE TEST");
 
         rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.SETTINGS");
+        int mvStoreSettingsCount = 0, pageStoreSettingsCount = 0;
         while (rs.next()) {
             String name = rs.getString("NAME");
-            String value = rs.getString("VALUE");
-            trace(name + "=" + value);
+            trace(name + '=' + rs.getString("VALUE"));
+            if ("COMPRESS".equals(name) || "REUSE_SPACE".equals(name)) {
+                mvStoreSettingsCount++;
+            } else if (name.startsWith("PAGE_STORE_")) {
+                pageStoreSettingsCount++;
+            }
         }
+        assertEquals(config.mvStore ? 2 : 0, mvStoreSettingsCount);
+        assertEquals(config.mvStore ? 0 : 3, pageStoreSettingsCount);
 
         testMore();
 
@@ -1204,6 +1267,12 @@ public class TestMetaData extends TestBase {
         assertNull(conn.getClientInfo("xxx"));
         DatabaseMetaData meta = conn.getMetaData();
         ResultSet rs = meta.getClientInfoProperties();
+        ResultSetMetaData rsMeta = rs.getMetaData();
+        assertEquals("NAME", rsMeta.getColumnName(1));
+        assertEquals("MAX_LEN", rsMeta.getColumnName(2));
+        assertEquals("DEFAULT_VALUE", rsMeta.getColumnName(3));
+        assertEquals("DESCRIPTION", rsMeta.getColumnName(4));
+        assertEquals("VALUE", rsMeta.getColumnName(5));
         int count = 0;
         while (rs.next()) {
             count++;
@@ -1215,12 +1284,13 @@ public class TestMetaData extends TestBase {
             // numServers
             assertEquals(1, count);
         }
+        rs.close();
         conn.close();
         deleteDb("metaData");
     }
 
     private void testSessionsUncommitted() throws SQLException {
-        if (config.mvcc || config.memory) {
+        if (config.mvStore || config.memory) {
             return;
         }
         Connection conn = getConnection("metaData");

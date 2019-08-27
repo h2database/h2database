@@ -1,13 +1,14 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.bnf;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import org.h2.util.New;
+
+import org.h2.util.Utils;
 
 /**
  * Represents a sequence of BNF rules, or a list of alternative rules.
@@ -19,7 +20,7 @@ public class RuleList implements Rule {
     private boolean mapSet;
 
     public RuleList(Rule first, Rule next, boolean or) {
-        list = New.arrayList();
+        list = Utils.newSmallArrayList();
         if (first instanceof RuleList && ((RuleList) first).or == or) {
             list.addAll(((RuleList) first).list);
         } else {

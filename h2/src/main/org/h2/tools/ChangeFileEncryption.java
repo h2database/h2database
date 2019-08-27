@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.tools;
@@ -12,9 +12,9 @@ import java.nio.channels.FileChannel;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
-
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
+import org.h2.mvstore.MVStore;
 import org.h2.security.SHA256;
 import org.h2.store.FileLister;
 import org.h2.store.FileStore;
@@ -63,8 +63,13 @@ public class ChangeFileEncryption extends Tool {
      *
      * @param args the command line arguments
      */
-    public static void main(String... args) throws SQLException {
-        new ChangeFileEncryption().runTool(args);
+    public static void main(String... args) {
+        try {
+            new ChangeFileEncryption().runTool(args);
+        } catch (SQLException ex) {
+            ex.printStackTrace(System.err);
+            System.exit(1);
+        }
     }
 
     @Override
@@ -109,8 +114,7 @@ public class ChangeFileEncryption extends Tool {
     }
 
     /**
-     * Get the file encryption key for a given password. The password must be
-     * supplied as char arrays and is cleaned in this method.
+     * Get the file encryption key for a given password.
      *
      * @param password the password as a char array
      * @return the encryption key
@@ -119,7 +123,8 @@ public class ChangeFileEncryption extends Tool {
         if (password == null) {
             return null;
         }
-        return SHA256.getKeyPasswordHash("file", password);
+        // the clone is to avoid the unhelpful array cleaning
+        return SHA256.getKeyPasswordHash("file", password.clone());
     }
 
     /**
@@ -170,7 +175,7 @@ public class ChangeFileEncryption extends Tool {
         ArrayList<String> files = FileLister.getDatabaseFiles(dir, db, true);
         FileLister.tryUnlockDatabase(files, "encryption");
         files = FileLister.getDatabaseFiles(dir, db, false);
-        if (files.size() == 0 && !quiet) {
+        if (files.isEmpty() && !quiet) {
             printNoDatabaseFilesFound(dir, db);
         }
         // first, test only if the file can be renamed
@@ -187,22 +192,22 @@ public class ChangeFileEncryption extends Tool {
         for (String fileName : files) {
             // don't process a lob directory, just the files in the directory.
             if (!FileUtils.isDirectory(fileName)) {
-                change.process(fileName, quiet);
+                change.process(fileName, quiet, decryptPassword);
             }
         }
     }
 
-    private void process(String fileName, boolean quiet) {
+    private void process(String fileName, boolean quiet, char[] decryptPassword) throws SQLException {
         if (fileName.endsWith(Constants.SUFFIX_MV_FILE)) {
             try {
-                copy(fileName, quiet);
+                copyMvStore(fileName, quiet, decryptPassword);
             } catch (IOException e) {
                 throw DbException.convertIOException(e,
                         "Error encrypting / decrypting file " + fileName);
             }
             return;
         }
-        FileStore in;
+        final FileStore in;
         if (decrypt == null) {
             in = FileStore.open(null, fileName, "r");
         } else {
@@ -210,61 +215,70 @@ public class ChangeFileEncryption extends Tool {
         }
         try {
             in.init();
-            copy(fileName, in, encrypt, quiet);
+            copyPageStore(fileName, in, encrypt, quiet);
         } finally {
             in.closeSilently();
         }
     }
 
-    private void copy(String fileName, boolean quiet) throws IOException {
+    private void copyMvStore(String fileName, boolean quiet, char[] decryptPassword) throws IOException, SQLException {
         if (FileUtils.isDirectory(fileName)) {
             return;
         }
-        FileChannel fileIn = FilePath.get(fileName).open("r");
-        FileChannel fileOut = null;
-        String temp = directory + "/temp.db";
+        // check that we have the right encryption key
         try {
-            if (decryptKey != null) {
-                fileIn = new FilePathEncrypt.FileEncrypt(fileName, decryptKey, fileIn);
-            }
-            InputStream inStream = new FileChannelInputStream(fileIn, true);
-            FileUtils.delete(temp);
-            fileOut = FilePath.get(temp).open("rw");
-            if (encryptKey != null) {
-                fileOut = new FilePathEncrypt.FileEncrypt(temp, encryptKey, fileOut);
-            }
-            OutputStream outStream = new FileChannelOutputStream(fileOut, true);
-            byte[] buffer = new byte[4 * 1024];
-            long remaining = fileIn.size();
-            long total = remaining;
-            long time = System.nanoTime();
-            while (remaining > 0) {
-                if (!quiet && System.nanoTime() - time > TimeUnit.SECONDS.toNanos(1)) {
-                    out.println(fileName + ": " + (100 - 100 * remaining / total) + "%");
-                    time = System.nanoTime();
+            final MVStore source = new MVStore.Builder().
+                    fileName(fileName).
+                    readOnly().
+                    encryptionKey(decryptPassword).
+                    open();
+            source.close();
+        } catch (IllegalStateException ex) {
+            throw new SQLException("error decrypting file " + fileName, ex);
+        }
+
+        String temp = directory + "/temp.db";
+        try (FileChannel fileIn = getFileChannel(fileName, "r", decryptKey)){
+            try(InputStream inStream = new FileChannelInputStream(fileIn, true)) {
+                FileUtils.delete(temp);
+                try (OutputStream outStream = new FileChannelOutputStream(getFileChannel(temp, "rw", encryptKey),
+                        true)) {
+                    final byte[] buffer = new byte[4 * 1024];
+                    long remaining = fileIn.size();
+                    long total = remaining;
+                    long time = System.nanoTime();
+                    while (remaining > 0) {
+                        if (!quiet && System.nanoTime() - time > TimeUnit.SECONDS.toNanos(1)) {
+                            out.println(fileName + ": " + (100 - 100 * remaining / total) + "%");
+                            time = System.nanoTime();
+                        }
+                        int len = (int) Math.min(buffer.length, remaining);
+                        len = inStream.read(buffer, 0, len);
+                        outStream.write(buffer, 0, len);
+                        remaining -= len;
+                    }
                 }
-                int len = (int) Math.min(buffer.length, remaining);
-                len = inStream.read(buffer, 0, len);
-                outStream.write(buffer, 0, len);
-                remaining -= len;
-            }
-            inStream.close();
-            outStream.close();
-        } finally {
-            fileIn.close();
-            if (fileOut != null) {
-                fileOut.close();
             }
         }
         FileUtils.delete(fileName);
         FileUtils.move(temp, fileName);
     }
 
-    private void copy(String fileName, FileStore in, byte[] key, boolean quiet) {
+    private static FileChannel getFileChannel(String fileName, String r,
+            byte[] decryptKey) throws IOException {
+        FileChannel fileIn = FilePath.get(fileName).open(r);
+        if (decryptKey != null) {
+            fileIn = new FilePathEncrypt.FileEncrypt(fileName, decryptKey,
+                    fileIn);
+        }
+        return fileIn;
+    }
+
+    private void copyPageStore(String fileName, FileStore in, byte[] key, boolean quiet) {
         if (FileUtils.isDirectory(fileName)) {
             return;
         }
-        String temp = directory + "/temp.db";
+        final String temp = directory + "/temp.db";
         FileUtils.delete(temp);
         FileStore fileOut;
         if (key == null) {
@@ -272,8 +286,8 @@ public class ChangeFileEncryption extends Tool {
         } else {
             fileOut = FileStore.open(null, temp, "rw", cipherType, key);
         }
+        final byte[] buffer = new byte[4 * 1024];
         fileOut.init();
-        byte[] buffer = new byte[4 * 1024];
         long remaining = in.length() - FileStore.HEADER_LENGTH;
         long total = remaining;
         in.seek(FileStore.HEADER_LENGTH);

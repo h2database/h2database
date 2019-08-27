@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.command.ddl;
@@ -11,38 +11,32 @@ import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.dml.Insert;
 import org.h2.command.dml.Query;
-import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
-import org.h2.expression.ExpressionColumn;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.table.Column;
-import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.util.ColumnNamer;
-import org.h2.util.New;
-import org.h2.value.DataType;
 import org.h2.value.Value;
 
 /**
  * This class represents the statement
  * CREATE TABLE
  */
-public class CreateTable extends SchemaCommand {
+public class CreateTable extends CommandWithColumns {
 
     private final CreateTableData data = new CreateTableData();
-    private final ArrayList<DefineCommand> constraintCommands = New.arrayList();
-    private IndexColumn[] pkColumns;
     private boolean ifNotExists;
     private boolean onCommitDrop;
     private boolean onCommitTruncate;
     private Query asQuery;
     private String comment;
     private boolean sortedInsertMode;
+    private boolean withNoData;
 
     public CreateTable(Session session, Schema schema) {
         super(session, schema);
@@ -62,36 +56,13 @@ public class CreateTable extends SchemaCommand {
         data.tableName = tableName;
     }
 
-    /**
-     * Add a column to this table.
-     *
-     * @param column the column to add
-     */
+    @Override
     public void addColumn(Column column) {
         data.columns.add(column);
     }
 
-    /**
-     * Add a constraint statement to this statement.
-     * The primary key definition is one possible constraint statement.
-     *
-     * @param command the statement to add
-     */
-    public void addConstraintCommand(DefineCommand command) {
-        if (command instanceof CreateIndex) {
-            constraintCommands.add(command);
-        } else {
-            AlterTableAddConstraint con = (AlterTableAddConstraint) command;
-            boolean alreadySet;
-            if (con.getType() == CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY) {
-                alreadySet = setPrimaryKeyColumns(con.getIndexColumns());
-            } else {
-                alreadySet = false;
-            }
-            if (!alreadySet) {
-                constraintCommands.add(command);
-            }
-        }
+    public ArrayList<Column> getColumns() {
+        return data.columns;
     }
 
     public void setIfNotExists(boolean ifNotExists) {
@@ -119,41 +90,26 @@ public class CreateTable extends SchemaCommand {
         }
         if (asQuery != null) {
             asQuery.prepare();
-            if (data.columns.size() == 0) {
+            if (data.columns.isEmpty()) {
                 generateColumnsFromQuery();
             } else if (data.columns.size() != asQuery.getColumnCount()) {
                 throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
-            }
-        }
-        if (pkColumns != null) {
-            for (Column c : data.columns) {
-                for (IndexColumn idxCol : pkColumns) {
-                    if (c.getName().equals(idxCol.columnName)) {
-                        c.setNullable(false);
+            } else {
+                ArrayList<Column> columns = data.columns;
+                for (int i = 0; i < columns.size(); i++) {
+                    Column column = columns.get(i);
+                    if (column.getType().getValueType() == Value.UNKNOWN) {
+                        columns.set(i, new Column(column.getName(), asQuery.getExpressions().get(i).getType()));
                     }
                 }
             }
         }
+        changePrimaryKeysToNotNull(data.columns);
         data.id = getObjectId();
         data.create = create;
         data.session = session;
         Table table = getSchema().createTable(data);
-        ArrayList<Sequence> sequences = New.arrayList();
-        for (Column c : data.columns) {
-            if (c.isAutoIncrement()) {
-                int objId = getObjectId();
-                c.convertAutoIncrementToSequence(session, getSchema(), objId, data.temporary);
-                if (!Constants.CLUSTERING_DISABLED
-                        .equals(session.getDatabase().getCluster())) {
-                    throw DbException.getUnsupportedException(
-                            "CLUSTERING && auto-increment columns");
-                }
-            }
-            Sequence seq = c.getSequence();
-            if (seq != null) {
-                sequences.add(seq);
-            }
-        }
+        ArrayList<Sequence> sequences = generateSequences(data.columns, data.temporary);
         table.setComment(comment);
         if (isSessionTemporary) {
             if (onCommitDrop) {
@@ -174,17 +130,13 @@ public class CreateTable extends SchemaCommand {
             for (Sequence sequence : sequences) {
                 table.addSequence(sequence);
             }
-            for (DefineCommand command : constraintCommands) {
-                command.setTransactional(transactional);
-                command.update();
-            }
-            if (asQuery != null) {
+            createConstraints();
+            if (asQuery != null && !withNoData) {
                 boolean old = session.isUndoLogEnabled();
                 try {
                     session.setUndoLogEnabled(false);
                     session.startStatementWithinTransaction();
-                    Insert insert = null;
-                    insert = new Insert(session);
+                    Insert insert = new Insert(session);
                     insert.setSortedInsertMode(sortedInsertMode);
                     insert.setQuery(asQuery);
                     insert.setTable(table);
@@ -195,8 +147,7 @@ public class CreateTable extends SchemaCommand {
                     session.setUndoLogEnabled(old);
                 }
             }
-            HashSet<DbObject> set = New.hashSet();
-            set.clear();
+            HashSet<DbObject> set = new HashSet<>();
             table.addDependencies(set);
             for (DbObject obj : set) {
                 if (obj == table) {
@@ -218,10 +169,14 @@ public class CreateTable extends SchemaCommand {
                 }
             }
         } catch (DbException e) {
-            db.checkPowerOff();
-            db.removeSchemaObject(session, table);
-            if (!transactional) {
-                session.commit(true);
+            try {
+                db.checkPowerOff();
+                db.removeSchemaObject(session, table);
+                if (!transactional) {
+                    session.commit(true);
+                }
+            } catch (Throwable ex) {
+                e.addSuppressed(ex);
             }
             throw e;
         }
@@ -234,62 +189,10 @@ public class CreateTable extends SchemaCommand {
         ColumnNamer columnNamer= new ColumnNamer(session);
         for (int i = 0; i < columnCount; i++) {
             Expression expr = expressions.get(i);
-            int type = expr.getType();
-            String name = columnNamer.getColumnName(expr,i,expr.getAlias());
-            long precision = expr.getPrecision();
-            int displaySize = expr.getDisplaySize();
-            DataType dt = DataType.getDataType(type);
-            if (precision > 0 && (dt.defaultPrecision == 0 ||
-                    (dt.defaultPrecision > precision && dt.defaultPrecision < Byte.MAX_VALUE))) {
-                // dont' set precision to MAX_VALUE if this is the default
-                precision = dt.defaultPrecision;
-            }
-            int scale = expr.getScale();
-            if (scale > 0 && (dt.defaultScale == 0 ||
-                    (dt.defaultScale > scale && dt.defaultScale < precision))) {
-                scale = dt.defaultScale;
-            }
-            if (scale > precision) {
-                precision = scale;
-            }
-            String[] enumerators = null;
-            if (dt.type == Value.ENUM) {
-                /**
-                 * Only columns of tables may be enumerated.
-                 */
-                if(!(expr instanceof ExpressionColumn)) {
-                    throw DbException.get(ErrorCode.GENERAL_ERROR_1,
-                            "Unable to resolve enumerators of expression");
-                }
-                enumerators = ((ExpressionColumn)expr).getColumn().getEnumerators();
-            }
-            Column col = new Column(name, type, precision, scale, displaySize, enumerators);
+            String name = columnNamer.getColumnName(expr, i, expr.getAlias());
+            Column col = new Column(name, expr.getType());
             addColumn(col);
         }
-    }
-
-    /**
-     * Sets the primary key columns, but also check if a primary key
-     * with different columns is already defined.
-     *
-     * @param columns the primary key columns
-     * @return true if the same primary key columns where already set
-     */
-    private boolean setPrimaryKeyColumns(IndexColumn[] columns) {
-        if (pkColumns != null) {
-            int len = columns.length;
-            if (len != pkColumns.length) {
-                throw DbException.get(ErrorCode.SECOND_PRIMARY_KEY);
-            }
-            for (int i = 0; i < len; i++) {
-                if (!columns[i].columnName.equals(pkColumns[i].columnName)) {
-                    throw DbException.get(ErrorCode.SECOND_PRIMARY_KEY);
-                }
-            }
-            return true;
-        }
-        this.pkColumns = columns;
-        return false;
     }
 
     public void setPersistIndexes(boolean persistIndexes) {
@@ -327,6 +230,10 @@ public class CreateTable extends SchemaCommand {
 
     public void setSortedInsertMode(boolean sortedInsertMode) {
         this.sortedInsertMode = sortedInsertMode;
+    }
+
+    public void setWithNoData(boolean withNoData) {
+        this.withNoData = withNoData;
     }
 
     public void setTableEngine(String tableEngine) {

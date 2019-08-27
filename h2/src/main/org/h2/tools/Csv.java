@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.tools;
@@ -30,8 +30,8 @@ import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * A facility to read from and write to CSV (comma separated values) files. When
@@ -44,7 +44,7 @@ public class Csv implements SimpleRowSource {
 
     private String[] columnNames;
 
-    private String characterSet = SysProperties.FILE_ENCODING;
+    private String characterSet;
     private char escapeCharacter = '\"';
     private char fieldDelimiter = '\"';
     private char fieldSeparatorRead = ',';
@@ -81,21 +81,7 @@ public class Csv implements SimpleRowSource {
             }
             while (rs.next()) {
                 for (int i = 0; i < columnCount; i++) {
-                    Object o;
-                    switch (sqlTypes[i]) {
-                    case Types.DATE:
-                        o = rs.getDate(i + 1);
-                        break;
-                    case Types.TIME:
-                        o = rs.getTime(i + 1);
-                        break;
-                    case Types.TIMESTAMP:
-                        o = rs.getTimestamp(i + 1);
-                        break;
-                    default:
-                        o = rs.getString(i + 1);
-                    }
-                    row[i] = o == null ? null : o.toString();
+                    row[i] = rs.getString(i + 1);
                 }
                 writeRow(row);
                 rows++;
@@ -136,7 +122,6 @@ public class Csv implements SimpleRowSource {
      * @param rs the result set - the result set must be positioned before the
      *          first row.
      * @param charset the charset or null to use the system default charset
-     *          (see system property file.encoding)
      * @return the number of rows written
      */
     public int write(String outputFileName, ResultSet rs, String charset)
@@ -184,7 +169,6 @@ public class Csv implements SimpleRowSource {
      * @param colNames or null if the column names should be read from the CSV
      *          file
      * @param charset the charset or null to use the system default charset
-     *          (see system property file.encoding)
      * @return the result set
      */
     public ResultSet read(String inputFileName, String[] colNames,
@@ -228,7 +212,7 @@ public class Csv implements SimpleRowSource {
         for (int i = 0; i < columnNames.length; i++) {
             StringBuilder buff = new StringBuilder();
             String n = columnNames[i];
-            if (n == null || n.length() == 0) {
+            if (n == null || n.isEmpty()) {
                 buff.append('C').append(i + 1);
             } else {
                 buff.append(n);
@@ -246,9 +230,7 @@ public class Csv implements SimpleRowSource {
 
     private void init(String newFileName, String charset) {
         this.fileName = newFileName;
-        if (charset != null) {
-            this.characterSet = charset;
-        }
+        this.characterSet = charset;
     }
 
     private void initWrite() throws IOException {
@@ -256,7 +238,8 @@ public class Csv implements SimpleRowSource {
             try {
                 OutputStream out = FileUtils.newOutputStream(fileName, false);
                 out = new BufferedOutputStream(out, Constants.IO_BUFFER_SIZE);
-                output = new BufferedWriter(new OutputStreamWriter(out, characterSet));
+                output = new BufferedWriter(characterSet != null ?
+                        new OutputStreamWriter(out, characterSet) : new OutputStreamWriter(out));
             } catch (Exception e) {
                 close();
                 throw DbException.convertToIOException(e);
@@ -314,7 +297,7 @@ public class Csv implements SimpleRowSource {
             try {
                 InputStream in = FileUtils.newInputStream(fileName);
                 in = new BufferedInputStream(in, Constants.IO_BUFFER_SIZE);
-                input = new InputStreamReader(in, characterSet);
+                input = characterSet != null ? new InputStreamReader(in, characterSet) : new InputStreamReader(in);
             } catch (IOException e) {
                 close();
                 throw e;
@@ -337,12 +320,12 @@ public class Csv implements SimpleRowSource {
     }
 
     private void readHeader() throws IOException {
-        ArrayList<String> list = New.arrayList();
+        ArrayList<String> list = new ArrayList<>();
         while (true) {
             String v = readValue();
             if (v == null) {
                 if (endOfLine) {
-                    if (endOfFile || list.size() > 0) {
+                    if (endOfFile || !list.isEmpty()) {
                         break;
                     }
                 } else {
@@ -350,7 +333,7 @@ public class Csv implements SimpleRowSource {
                     list.add(v);
                 }
             } else {
-                if (v.length() == 0) {
+                if (v.isEmpty()) {
                     v = "COLUMN" + list.size();
                 } else if (!caseSensitiveColumnNames && isSimpleColumnName(v)) {
                     v = StringUtils.toUpperEnglish(v);
@@ -361,8 +344,7 @@ public class Csv implements SimpleRowSource {
                 }
             }
         }
-        columnNames = new String[list.size()];
-        list.toArray(columnNames);
+        columnNames = list.toArray(new String[0]);
     }
 
     private static boolean isSimpleColumnName(String columnName) {
@@ -378,10 +360,7 @@ public class Csv implements SimpleRowSource {
                 }
             }
         }
-        if (columnName.length() == 0) {
-            return false;
-        }
-        return true;
+        return columnName.length() != 0;
     }
 
     private void pushBack() {
@@ -489,16 +468,12 @@ public class Csv implements SimpleRowSource {
                 return null;
             } else if (ch <= ' ') {
                 // ignore spaces
-                continue;
             } else if (lineComment != 0 && ch == lineComment) {
                 // comment until end of line
                 inputBufferStart = -1;
-                while (true) {
+                do {
                     ch = readChar();
-                    if (ch == '\n' || ch < 0 || ch == '\r') {
-                        break;
-                    }
-                }
+                } while (ch != '\n' && ch >= 0 && ch != '\r');
                 endOfLine = true;
                 return null;
             } else {
@@ -551,7 +526,7 @@ public class Csv implements SimpleRowSource {
             buff.append(chars[idx + 1]);
             start = idx + 2;
         }
-        buff.append(s.substring(start));
+        buff.append(s, start, s.length());
         return buff.toString();
     }
 
@@ -594,7 +569,7 @@ public class Csv implements SimpleRowSource {
     }
 
     private static SQLException convertException(String message, Exception e) {
-        return DbException.get(ErrorCode.IO_EXCEPTION_1, e, message).getSQLException();
+        return DbException.getJdbcSQLException(ErrorCode.IO_EXCEPTION_1, e, message);
     }
 
     /**
@@ -828,20 +803,20 @@ public class Csv implements SimpleRowSource {
      * INTERNAL.
      * Parse and set the CSV options.
      *
-     * @param options the the options
+     * @param options the options
      * @return the character set
      */
     public String setOptions(String options) {
         String charset = null;
         String[] keyValuePairs = StringUtils.arraySplit(options, ' ', false);
         for (String pair : keyValuePairs) {
-            if (pair.length() == 0) {
+            if (pair.isEmpty()) {
                 continue;
             }
             int index = pair.indexOf('=');
             String key = StringUtils.trim(pair.substring(0, index), true, true, " ");
             String value = pair.substring(index + 1);
-            char ch = value.length() == 0 ? 0 : value.charAt(0);
+            char ch = value.isEmpty() ? 0 : value.charAt(0);
             if (isParam(key, "escape", "esc", "escapeCharacter")) {
                 setEscapeCharacter(ch);
             } else if (isParam(key, "fieldDelimiter", "fieldDelim")) {
@@ -858,11 +833,11 @@ public class Csv implements SimpleRowSource {
             } else if (isParam(key, "charset", "characterSet")) {
                 charset = value;
             } else if (isParam(key, "preserveWhitespace")) {
-                setPreserveWhitespace(Boolean.parseBoolean(value));
+                setPreserveWhitespace(Utils.parseBoolean(value, false, false));
             } else if (isParam(key, "writeColumnHeader")) {
-                setWriteColumnHeader(Boolean.parseBoolean(value));
+                setWriteColumnHeader(Utils.parseBoolean(value, true, false));
             } else if (isParam(key, "caseSensitiveColumnNames")) {
-                setCaseSensitiveColumnNames(Boolean.parseBoolean(value));
+                setCaseSensitiveColumnNames(Utils.parseBoolean(value, false, false));
             } else {
                 throw DbException.getUnsupportedException(key);
             }

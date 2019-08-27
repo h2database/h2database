@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.jdbc;
@@ -10,6 +10,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.sql.Array;
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -25,6 +26,7 @@ import java.util.Collections;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
@@ -34,7 +36,7 @@ import org.h2.util.Utils;
 /**
  * Tests for the CallableStatement class.
  */
-public class TestCallableStatement extends TestBase {
+public class TestCallableStatement extends TestDb {
 
     /**
      * Run just this test.
@@ -89,8 +91,6 @@ public class TestCallableStatement extends TestBase {
                 getRef(1);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
                 getRowId(1);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
-                getSQLXML(1);
 
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
                 getURL("a");
@@ -100,8 +100,6 @@ public class TestCallableStatement extends TestBase {
                 getRef("a");
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
                 getRowId("a");
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
-                getSQLXML("a");
 
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
                 setURL(1, (URL) null);
@@ -109,16 +107,11 @@ public class TestCallableStatement extends TestBase {
                 setRef(1, (Ref) null);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
                 setRowId(1, (RowId) null);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
-                setSQLXML(1, (SQLXML) null);
 
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
                 setURL("a", (URL) null);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
                 setRowId("a", (RowId) null);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
-                setSQLXML("a", (SQLXML) null);
-
     }
 
     private void testCallWithResultSet(Connection conn) throws SQLException {
@@ -176,7 +169,7 @@ public class TestCallableStatement extends TestBase {
         assertEquals("2000-01-01", call.getDate(1).toString());
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("2000-01-01", call.getObject(1,
-                            LocalDateTimeUtils.getLocalDateClass()).toString());
+                            LocalDateTimeUtils.LOCAL_DATE).toString());
         }
 
         call.setTime(2, java.sql.Time.valueOf("01:02:03"));
@@ -185,7 +178,7 @@ public class TestCallableStatement extends TestBase {
         assertEquals("01:02:03", call.getTime(1).toString());
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("01:02:03", call.getObject(1,
-                            LocalDateTimeUtils.getLocalTimeClass()).toString());
+                            LocalDateTimeUtils.LOCAL_TIME).toString());
         }
 
         call.setTimestamp(2, java.sql.Timestamp.valueOf(
@@ -195,7 +188,7 @@ public class TestCallableStatement extends TestBase {
         assertEquals("2001-02-03 04:05:06.789", call.getTimestamp(1).toString());
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("2001-02-03T04:05:06.789", call.getObject(1,
-                            LocalDateTimeUtils.getLocalDateTimeClass()).toString());
+                            LocalDateTimeUtils.LOCAL_DATE_TIME).toString());
         }
 
         call.setBoolean(2, true);
@@ -282,25 +275,25 @@ public class TestCallableStatement extends TestBase {
         assertEquals("2001-02-03 10:20:30.0", call.getTimestamp("D").toString());
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("2001-02-03T10:20:30", call.getObject(4,
-                            LocalDateTimeUtils.getLocalDateTimeClass()).toString());
+                            LocalDateTimeUtils.LOCAL_DATE_TIME).toString());
             assertEquals("2001-02-03T10:20:30", call.getObject("D",
-                            LocalDateTimeUtils.getLocalDateTimeClass()).toString());
+                            LocalDateTimeUtils.LOCAL_DATE_TIME).toString());
         }
         assertEquals("10:20:30", call.getTime(4).toString());
         assertEquals("10:20:30", call.getTime("D").toString());
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("10:20:30", call.getObject(4,
-                            LocalDateTimeUtils.getLocalTimeClass()).toString());
+                            LocalDateTimeUtils.LOCAL_TIME).toString());
             assertEquals("10:20:30", call.getObject("D",
-                            LocalDateTimeUtils.getLocalTimeClass()).toString());
+                            LocalDateTimeUtils.LOCAL_TIME).toString());
         }
         assertEquals("2001-02-03", call.getDate(4).toString());
         assertEquals("2001-02-03", call.getDate("D").toString());
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("2001-02-03", call.getObject(4,
-                            LocalDateTimeUtils.getLocalDateClass()).toString());
+                            LocalDateTimeUtils.LOCAL_DATE).toString());
             assertEquals("2001-02-03", call.getObject("D",
-                            LocalDateTimeUtils.getLocalDateClass()).toString());
+                            LocalDateTimeUtils.LOCAL_DATE).toString());
         }
 
         assertEquals(100, call.getInt(1));
@@ -332,6 +325,8 @@ public class TestCallableStatement extends TestBase {
         assertEquals("ABC", call.getClob("B").getSubString(1, 3));
         assertEquals("ABC", call.getNClob(2).getSubString(1, 3));
         assertEquals("ABC", call.getNClob("B").getSubString(1, 3));
+        assertEquals("ABC", call.getSQLXML(2).getString());
+        assertEquals("ABC", call.getSQLXML("B").getString());
 
         try {
             call.getString(100);
@@ -365,15 +360,15 @@ public class TestCallableStatement extends TestBase {
         call.executeUpdate();
         assertEquals("XYZ", call.getString("B"));
         call.setAsciiStream("B",
-                new ByteArrayInputStream("xyz".getBytes("UTF-8")));
+                new ByteArrayInputStream("xyz".getBytes(StandardCharsets.UTF_8)));
         call.executeUpdate();
         assertEquals("XYZ", call.getString("B"));
         call.setAsciiStream("B",
-                new ByteArrayInputStream("xyz-".getBytes("UTF-8")), 3);
+                new ByteArrayInputStream("xyz-".getBytes(StandardCharsets.UTF_8)), 3);
         call.executeUpdate();
         assertEquals("XYZ", call.getString("B"));
         call.setAsciiStream("B",
-                new ByteArrayInputStream("xyz-".getBytes("UTF-8")), 3L);
+                new ByteArrayInputStream("xyz-".getBytes(StandardCharsets.UTF_8)), 3L);
         call.executeUpdate();
         assertEquals("XYZ", call.getString("B"));
 
@@ -397,6 +392,11 @@ public class TestCallableStatement extends TestBase {
         call.setNString("B", "xyz");
         call.executeUpdate();
         assertEquals("XYZ", call.getString("B"));
+        SQLXML xml = conn.createSQLXML();
+        xml.setString("<x>xyz</x>");
+        call.setSQLXML("B", xml);
+        call.executeUpdate();
+        assertEquals("<X>XYZ</X>", call.getString("B"));
 
         // test for exceptions after closing
         call.close();

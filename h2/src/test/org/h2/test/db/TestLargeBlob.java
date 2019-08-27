@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.db;
@@ -11,11 +11,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 
 /**
  * Test a BLOB larger than Integer.MAX_VALUE
  */
-public class TestLargeBlob extends TestBase {
+public class TestLargeBlob extends TestDb {
 
     /**
      * Run just this test.
@@ -27,11 +28,15 @@ public class TestLargeBlob extends TestBase {
     }
 
     @Override
-    public void test() throws Exception {
-        if (!config.big || config.memory || config.mvcc || config.networked) {
-            return;
+    public boolean isEnabled() {
+        if (!config.big || config.memory || config.networked) {
+            return false;
         }
+        return true;
+    }
 
+    @Override
+    public void test() throws Exception {
         deleteDb("largeBlob");
         String url = getURL("largeBlob;TRACE_LEVEL_FILE=0", true);
         Connection conn = getConnection(url);

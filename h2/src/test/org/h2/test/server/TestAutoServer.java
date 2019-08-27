@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.server;
@@ -10,12 +10,13 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.util.SortedProperties;
 
 /**
  * Tests automatic embedded/server mode.
  */
-public class TestAutoServer extends TestBase {
+public class TestAutoServer extends TestDb {
 
     /**
      * The number of iterations.
@@ -80,7 +81,7 @@ public class TestAutoServer extends TestBase {
             String key = prop.getProperty("id");
             String server = prop.getProperty("server");
             if (server != null) {
-                String u2 = url.substring(url.indexOf(";"));
+                String u2 = url.substring(url.indexOf(';'));
                 u2 = "jdbc:h2:tcp://" + server + "/" + key + u2;
                 Connection conn = DriverManager.getConnection(u2, user, password);
                 conn.close();

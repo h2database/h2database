@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.jdbc;
@@ -22,6 +22,7 @@ import java.sql.SQLException;
 import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.util.BitSet;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,8 +30,6 @@ import org.h2.api.ErrorCode;
 import org.h2.expression.ParameterInterface;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
-import org.h2.util.BitField;
-import org.h2.util.New;
 import org.h2.value.ValueNull;
 
 /**
@@ -42,13 +41,13 @@ import org.h2.value.ValueNull;
 public class JdbcCallableStatement extends JdbcPreparedStatement implements
         CallableStatement, JdbcCallableStatementBackwardsCompat {
 
-    private BitField outParameters;
+    private BitSet outParameters;
     private int maxOutParameters;
     private HashMap<String, Integer> namedParameters;
 
     JdbcCallableStatement(JdbcConnection conn, String sql, int id,
             int resultSetType, int resultSetConcurrency) {
-        super(conn, sql, id, resultSetType, resultSetConcurrency, false);
+        super(conn, sql, id, resultSetType, resultSetConcurrency, false, null);
         setTrace(session.getTrace(), TraceObject.CALLABLE_STATEMENT, id);
     }
 
@@ -77,6 +76,36 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
                 return 0;
             }
             return super.executeUpdate();
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
+    }
+
+    /**
+     * Executes a statement (insert, update, delete, create, drop)
+     * and returns the update count.
+     * If another result set exists for this statement, this will be closed
+     * (even if this statement fails).
+     *
+     * If auto commit is on, this statement will be committed.
+     * If the statement is a DDL statement (create, drop, alter) and does not
+     * throw an exception, the current transaction (if any) is committed after
+     * executing the statement.
+     *
+     * @return the update count (number of row affected by an insert, update or
+     *         delete, or 0 if no rows or the statement was a create, drop,
+     *         commit or rollback)
+     * @throws SQLException if this object is closed or invalid
+     */
+    @Override
+    public long executeLargeUpdate() throws SQLException {
+        try {
+            checkClosed();
+            if (command.isQuery()) {
+                super.executeQuery();
+                return 0;
+            }
+            return super.executeLargeUpdate();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -843,21 +872,30 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
     }
 
     /**
-     * [Not supported] Returns the value of the specified column as a SQLXML
-     * object.
+     * Returns the value of the specified column as a SQLXML object.
+     *
+     * @param parameterIndex the parameter index (1, 2, ...)
+     * @return the value
+     * @throws SQLException if the column is not found or if this object is
+     *             closed
      */
     @Override
     public SQLXML getSQLXML(int parameterIndex) throws SQLException {
-        throw unsupported("SQLXML");
+        checkRegistered(parameterIndex);
+        return getOpenResultSet().getSQLXML(parameterIndex);
     }
 
     /**
-     * [Not supported] Returns the value of the specified column as a SQLXML
-     * object.
+     * Returns the value of the specified column as a SQLXML object.
+     *
+     * @param parameterName the parameter name
+     * @return the value
+     * @throws SQLException if the column is not found or if this object is
+     *             closed
      */
     @Override
     public SQLXML getSQLXML(String parameterName) throws SQLException {
-        throw unsupported("SQLXML");
+        return getSQLXML(getIndexForName(parameterName));
     }
 
     /**
@@ -1555,12 +1593,16 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
     }
 
     /**
-     * [Not supported] Sets the value of a parameter as a SQLXML object.
+     * Sets the value of a parameter as a SQLXML object.
+     *
+     * @param parameterName the parameter name
+     * @param x the value
+     * @throws SQLException if this object is closed
      */
     @Override
     public void setSQLXML(String parameterName, SQLXML x)
             throws SQLException {
-        throw unsupported("SQLXML");
+        setSQLXML(getIndexForName(parameterName), x);
     }
 
     /**
@@ -1608,7 +1650,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
                 maxOutParameters = Math.min(
                         getParameterMetaData().getParameterCount(),
                         getCheckedMetaData().getColumnCount());
-                outParameters = new BitField();
+                outParameters = new BitSet();
             }
             checkIndexBounds(parameterIndex);
             ParameterInterface param = command.getParameters().get(--parameterIndex);
@@ -1638,7 +1680,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
             if (namedParameters == null) {
                 ResultSetMetaData meta = getCheckedMetaData();
                 int columnCount = meta.getColumnCount();
-                HashMap<String, Integer> map = New.hashMap(columnCount);
+                HashMap<String, Integer> map = new HashMap<>();
                 for (int i = 1; i <= columnCount; i++) {
                     map.put(meta.getColumnLabel(i), i);
                 }

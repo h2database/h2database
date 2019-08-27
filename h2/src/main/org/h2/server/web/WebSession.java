@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.server.web;
@@ -19,7 +19,6 @@ import org.h2.bnf.Bnf;
 import org.h2.bnf.context.DbContents;
 import org.h2.bnf.context.DbContextRule;
 import org.h2.message.DbException;
-import org.h2.util.New;
 
 /**
  * The web session keeps all data of a user session.
@@ -37,7 +36,7 @@ class WebSession {
     /**
      * The session attribute map.
      */
-    final HashMap<String, Object> map = New.hashMap();
+    final HashMap<String, Object> map = new HashMap<>();
 
     /**
      * The current locale.
@@ -99,9 +98,10 @@ class WebSession {
      * Remove a session attribute from the map.
      *
      * @param key the key
+     * @return value that was associated with the key, or null
      */
-    void remove(String key) {
-        map.remove(key);
+    Object remove(String key) {
+        return map.remove(key);
     }
 
     /**
@@ -168,7 +168,7 @@ class WebSession {
             return;
         }
         sql = sql.trim();
-        if (sql.length() == 0) {
+        if (sql.isEmpty()) {
             return;
         }
         if (commandHistory.size() > MAX_HISTORY) {
@@ -199,7 +199,7 @@ class WebSession {
      * @return a map containing the session meta data
      */
     HashMap<String, Object> getInfo() {
-        HashMap<String, Object> m = New.hashMap();
+        HashMap<String, Object> m = new HashMap<>();
         m.putAll(map);
         m.put("lastAccess", new Timestamp(lastAccess).toString());
         try {
@@ -207,7 +207,7 @@ class WebSession {
                     "${text.admin.notConnected}" : conn.getMetaData().getURL());
             m.put("user", conn == null ?
                     "-" : conn.getMetaData().getUserName());
-            m.put("lastQuery", commandHistory.size() == 0 ?
+            m.put("lastQuery", commandHistory.isEmpty() ?
                     "" : commandHistory.get(0));
             m.put("executing", executingStatement == null ?
                     "${text.admin.no}" : "${text.admin.yes}");

@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.compress;
@@ -8,7 +8,7 @@ package org.h2.compress;
 import java.io.IOException;
 import java.io.InputStream;
 import org.h2.message.DbException;
-import org.h2.mvstore.DataUtils;
+import org.h2.util.Utils;
 
 /**
  * An input stream to read from an LZF stream.
@@ -31,7 +31,7 @@ public class LZFInputStream extends InputStream {
     }
 
     private static byte[] ensureSize(byte[] buff, int len) {
-        return buff == null || buff.length < len ? DataUtils.newBytes(len) : buff;
+        return buff == null || buff.length < len ? Utils.newBytes(len) : buff;
     }
 
     private void fillBuffer() throws IOException {

@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.security;
@@ -182,7 +182,7 @@ public class CipherFactory {
         boolean ecdhAnonRemoved = algorithms.remove("ECDH_anon");
         if (dhAnonRemoved || ecdhAnonRemoved) {
             String string = Arrays.toString(algorithms.toArray(new String[algorithms.size()]));
-            return (algorithms.size() > 0) ? string.substring(1, string.length() - 1): "";
+            return (!algorithms.isEmpty()) ? string.substring(1, string.length() - 1): "";
         }
         return list;
     }
@@ -389,10 +389,8 @@ public class CipherFactory {
     private static String[] enableAnonymous(String[] enabled, String[] supported) {
         LinkedHashSet<String> set = new LinkedHashSet<>();
         for (String x : supported) {
-            if (!x.startsWith("SSL") &&
-                    x.indexOf("_anon_") >= 0 &&
-                    (x.indexOf("_AES_") >= 0 || x.indexOf("_3DES_") >= 0) &&
-                    x.indexOf("_SHA") >= 0) {
+            if (!x.startsWith("SSL") && x.contains("_anon_") &&
+                    (x.contains("_AES_") || x.contains("_3DES_")) && x.contains("_SHA")) {
                 set.add(x);
             }
         }

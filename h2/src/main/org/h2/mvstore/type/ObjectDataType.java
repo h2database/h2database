@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.mvstore.type;
@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.UUID;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
-import org.h2.util.New;
+import org.h2.util.Utils;
 
 /**
  * A data type implementation for the most common data types, including
@@ -94,8 +94,7 @@ public class ObjectDataType implements DataType {
             Float.class, Double.class, BigDecimal.class, String.class,
             UUID.class, Date.class };
 
-    private static final HashMap<Class<?>, Integer> COMMON_CLASSES_MAP = New
-            .hashMap();
+    private static final HashMap<Class<?>, Integer> COMMON_CLASSES_MAP = new HashMap<>(32);
 
     private AutoDetectDataType last = new StringType(this);
 
@@ -289,7 +288,7 @@ public class ObjectDataType implements DataType {
      * @return true if yes
      */
     static boolean isBigInteger(Object obj) {
-        return obj instanceof BigInteger && obj.getClass() == BigInteger.class;
+        return obj != null && obj.getClass() == BigInteger.class;
     }
 
     /**
@@ -299,7 +298,7 @@ public class ObjectDataType implements DataType {
      * @return true if yes
      */
     static boolean isBigDecimal(Object obj) {
-        return obj instanceof BigDecimal && obj.getClass() == BigDecimal.class;
+        return obj != null && obj.getClass() == BigDecimal.class;
     }
 
     /**
@@ -309,7 +308,7 @@ public class ObjectDataType implements DataType {
      * @return true if yes
      */
     static boolean isDate(Object obj) {
-        return obj instanceof Date && obj.getClass() == Date.class;
+        return obj != null && obj.getClass() == Date.class;
     }
 
     /**
@@ -597,12 +596,12 @@ public class ObjectDataType implements DataType {
                 return;
             }
             buff.put((byte) TYPE_BYTE);
-            buff.put(((Byte) obj).byteValue());
+            buff.put((Byte) obj);
         }
 
         @Override
         public Object read(ByteBuffer buff, int tag) {
-            return Byte.valueOf(buff.get());
+            return buff.get();
         }
 
     }
@@ -638,12 +637,12 @@ public class ObjectDataType implements DataType {
                 return;
             }
             buff.put((byte) TYPE_CHAR);
-            buff.putChar(((Character) obj).charValue());
+            buff.putChar((Character) obj);
         }
 
         @Override
         public Object read(ByteBuffer buff, int tag) {
-            return Character.valueOf(buff.getChar());
+            return buff.getChar();
         }
 
     }
@@ -679,12 +678,12 @@ public class ObjectDataType implements DataType {
                 return;
             }
             buff.put((byte) TYPE_SHORT);
-            buff.putShort(((Short) obj).shortValue());
+            buff.putShort((Short) obj);
         }
 
         @Override
         public Object read(ByteBuffer buff, int tag) {
-            return Short.valueOf(buff.getShort());
+            return buff.getShort();
         }
 
     }
@@ -812,7 +811,7 @@ public class ObjectDataType implements DataType {
             case TAG_LONG_FIXED:
                 return buff.getLong();
             }
-            return Long.valueOf(tag - TAG_LONG_0_7);
+            return (long) (tag - TAG_LONG_0_7);
         }
 
     }
@@ -1002,7 +1001,7 @@ public class ObjectDataType implements DataType {
                 return BigInteger.valueOf(DataUtils.readVarLong(buff));
             }
             int len = DataUtils.readVarInt(buff);
-            byte[] bytes = DataUtils.newBytes(len);
+            byte[] bytes = Utils.newBytes(len);
             buff.get(bytes);
             return new BigInteger(bytes);
         }
@@ -1079,7 +1078,7 @@ public class ObjectDataType implements DataType {
             }
             int scale = DataUtils.readVarInt(buff);
             int len = DataUtils.readVarInt(buff);
-            byte[] bytes = DataUtils.newBytes(len);
+            byte[] bytes = Utils.newBytes(len);
             buff.get(bytes);
             BigInteger b = new BigInteger(bytes);
             return new BigDecimal(b, scale);
@@ -1248,21 +1247,13 @@ public class ObjectDataType implements DataType {
             Class<?> type = obj.getClass().getComponentType();
             if (type.isPrimitive()) {
                 int len = Array.getLength(obj);
-                if (type == boolean.class) {
+                if (type == boolean.class || type == byte.class) {
                     size += len;
-                } else if (type == byte.class) {
-                    size += len;
-                } else if (type == char.class) {
+                } else if (type == char.class || type == short.class) {
                     size += len * 2;
-                } else if (type == short.class) {
-                    size += len * 2;
-                } else if (type == int.class) {
+                } else if (type == int.class || type == float.class) {
                     size += len * 4;
-                } else if (type == float.class) {
-                    size += len * 4;
-                } else if (type == double.class) {
-                    size += len * 8;
-                } else if (type == long.class) {
+                } else if (type == double.class || type == long.class) {
                     size += len * 8;
                 }
             } else {
@@ -1323,7 +1314,7 @@ public class ObjectDataType implements DataType {
                     } else if (type == int.class) {
                         int a = ((int[]) aObj)[i];
                         int b = ((int[]) bObj)[i];
-                        x = a == b ? 0 : a < b ? -1 : 1;
+                        x = Integer.compare(a, b);
                     } else if (type == float.class) {
                         x = Float.compare(((float[]) aObj)[i],
                                 ((float[]) bObj)[i]);
@@ -1333,7 +1324,7 @@ public class ObjectDataType implements DataType {
                     } else {
                         long a = ((long[]) aObj)[i];
                         long b = ((long[]) bObj)[i];
-                        x = a == b ? 0 : a < b ? -1 : 1;
+                        x = Long.compare(a, b);
                     }
                     if (x != 0) {
                         return x;
@@ -1349,7 +1340,7 @@ public class ObjectDataType implements DataType {
                     }
                 }
             }
-            return aLen == bLen ? 0 : aLen < bLen ? -1 : 1;
+            return Integer.compare(aLen, bLen);
         }
 
         @Override
@@ -1416,7 +1407,7 @@ public class ObjectDataType implements DataType {
             if (tag != TYPE_ARRAY) {
                 byte[] data;
                 int len = tag - TAG_BYTE_ARRAY_0_15;
-                data = DataUtils.newBytes(len);
+                data = Utils.newBytes(len);
                 buff.get(data);
                 return data;
             }
@@ -1480,7 +1471,7 @@ public class ObjectDataType implements DataType {
      */
     static class SerializedObjectType extends AutoDetectDataType {
 
-        private int averageSize = 10000;
+        private int averageSize = 10_000;
 
         SerializedObjectType(ObjectDataType base) {
             super(base, TYPE_SERIALIZED_OBJECT);
@@ -1547,7 +1538,7 @@ public class ObjectDataType implements DataType {
         @Override
         public Object read(ByteBuffer buff, int tag) {
             int len = DataUtils.readVarInt(buff);
-            byte[] data = DataUtils.newBytes(len);
+            byte[] data = Utils.newBytes(len);
             int size = data.length * 2;
             // adjust the average size
             // using an exponential moving average

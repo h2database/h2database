@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.util;
@@ -21,9 +21,16 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
+
+import javax.script.Compilable;
+import javax.script.CompiledScript;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import javax.tools.FileObject;
 import javax.tools.ForwardingJavaFileManager;
 import javax.tools.JavaCompiler;
@@ -33,8 +40,8 @@ import javax.tools.JavaFileObject.Kind;
 import javax.tools.SimpleJavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
+
 import org.h2.api.ErrorCode;
-import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
@@ -58,12 +65,17 @@ public class SourceCompiler {
     /**
      * The class name to source code map.
      */
-    final HashMap<String, String> sources = New.hashMap();
+    final HashMap<String, String> sources = new HashMap<>();
 
     /**
      * The class name to byte code map.
      */
-    final HashMap<String, Class<?>> compiled = New.hashMap();
+    final HashMap<String, Class<?>> compiled = new HashMap<>();
+
+    /**
+     * The class name to compiled scripts map.
+     */
+    final Map<String, CompiledScript> compiledScripts = new HashMap<>();
 
     /**
      * Whether to use the ToolProvider.getSystemJavaCompiler().
@@ -166,6 +178,50 @@ public class SourceCompiler {
 
     private static boolean isGroovySource(String source) {
         return source.startsWith("//groovy") || source.startsWith("@groovy");
+    }
+
+    private static boolean isJavascriptSource(String source) {
+        return source.startsWith("//javascript");
+    }
+
+    private static boolean isRubySource(String source) {
+        return source.startsWith("#ruby");
+    }
+
+    /**
+     * Whether the passed source can be compiled using {@link javax.script.ScriptEngineManager}.
+     *
+     * @param source the source to test.
+     * @return <code>true</code> if {@link #getCompiledScript(String)} can be called.
+     */
+    public static boolean isJavaxScriptSource(String source) {
+        return isJavascriptSource(source) || isRubySource(source);
+    }
+
+    /**
+     * Get the compiled script.
+     *
+     * @param packageAndClassName the package and class name
+     * @return the compiled script
+     */
+    public CompiledScript getCompiledScript(String packageAndClassName) throws ScriptException {
+        CompiledScript compiledScript = compiledScripts.get(packageAndClassName);
+        if (compiledScript == null) {
+            String source = sources.get(packageAndClassName);
+            final String lang;
+            if (isJavascriptSource(source)) {
+                lang = "javascript";
+            } else if (isRubySource(source)) {
+                lang = "ruby";
+            } else {
+                throw new IllegalStateException("Unknown language for " + source);
+            }
+
+            final Compilable jsEngine = (Compilable) new ScriptEngineManager().getEngineByName(lang);
+            compiledScript = jsEngine.compile(source);
+            compiledScripts.put(packageAndClassName, compiledScript);
+        }
+        return compiledScript;
     }
 
     /**
@@ -277,21 +333,21 @@ public class SourceCompiler {
     Class<?> javaxToolsJavac(String packageName, String className, String source) {
         String fullClassName = packageName + "." + className;
         StringWriter writer = new StringWriter();
-        JavaFileManager fileManager = new
+        try (JavaFileManager fileManager = new
                 ClassFileManager(JAVA_COMPILER
-                    .getStandardFileManager(null, null, null));
-        ArrayList<JavaFileObject> compilationUnits = new ArrayList<>();
-        compilationUnits.add(new StringJavaFileObject(fullClassName, source));
-        // cannot concurrently compile
-        synchronized (JAVA_COMPILER) {
-            JAVA_COMPILER.getTask(writer, fileManager, null, null,
-                null, compilationUnits).call();
-        }
-        String output = writer.toString();
-        handleSyntaxError(output);
-        try {
+                    .getStandardFileManager(null, null, null))) {
+            ArrayList<JavaFileObject> compilationUnits = new ArrayList<>();
+            compilationUnits.add(new StringJavaFileObject(fullClassName, source));
+            // cannot concurrently compile
+            final boolean ok;
+            synchronized (JAVA_COMPILER) {
+                ok = JAVA_COMPILER.getTask(writer, fileManager, null, null,
+                        null, compilationUnits).call();
+            }
+            String output = writer.toString();
+            handleSyntaxError(output, (ok? 0: 1));
             return fileManager.getClassLoader(null).loadClass(fullClassName);
-        } catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException | IOException e) {
             throw DbException.convert(e);
         }
     }
@@ -319,8 +375,8 @@ public class SourceCompiler {
             copyInThread(p.getInputStream(), buff);
             copyInThread(p.getErrorStream(), buff);
             p.waitFor();
-            String output = new String(buff.toByteArray(), Constants.UTF8);
-            handleSyntaxError(output);
+            String output = new String(buff.toByteArray(), StandardCharsets.UTF_8);
+            handleSyntaxError(output, p.exitValue());
             return p.exitValue();
         } catch (Exception e) {
             throw DbException.convert(e);
@@ -344,15 +400,18 @@ public class SourceCompiler {
             System.setErr(temp);
             Method compile;
             compile = JAVAC_SUN.getMethod("compile", String[].class);
-            Object javac = JAVAC_SUN.newInstance();
-            compile.invoke(javac, (Object) new String[] {
+            Object javac = JAVAC_SUN.getDeclaredConstructor().newInstance();
+            // Bugfix: Here we should check exit status value instead of parsing javac output text.
+            // Because of the output text is different in different locale environment.
+            // @since 2018-07-20 little-pan
+            final Integer status = (Integer)compile.invoke(javac, (Object) new String[] {
                     "-sourcepath", COMPILE_DIR,
                     // "-Xlint:unchecked",
                     "-d", COMPILE_DIR,
                     "-encoding", "UTF-8",
                     javaFile.getAbsolutePath() });
-            String output = new String(buff.toByteArray(), Constants.UTF8);
-            handleSyntaxError(output);
+            String output = new String(buff.toByteArray(), StandardCharsets.UTF_8);
+            handleSyntaxError(output, status);
         } catch (Exception e) {
             throw DbException.convert(e);
         } finally {
@@ -360,12 +419,15 @@ public class SourceCompiler {
         }
     }
 
-    private static void handleSyntaxError(String output) {
+    private static void handleSyntaxError(String output, int exitStatus) {
+        if(0 == exitStatus){
+            return;
+        }
         boolean syntaxError = false;
         final BufferedReader reader = new BufferedReader(new StringReader(output));
         try {
             for (String line; (line = reader.readLine()) != null;) {
-                if (line.endsWith("warning")) {
+                if (line.endsWith("warning") || line.endsWith("warnings")) {
                     // ignore summary line
                 } else if (line.startsWith("Note:")
                         || line.startsWith("warning:")) {
@@ -405,7 +467,7 @@ public class SourceCompiler {
                 Object importCustomizer = Utils.newInstance(
                         "org.codehaus.groovy.control.customizers.ImportCustomizer");
                 // Call the method ImportCustomizer.addImports(String[])
-                String[] importsArray = new String[] {
+                String[] importsArray = {
                         "java.sql.Connection",
                         "java.sql.Types",
                         "java.sql.ResultSet",
@@ -422,7 +484,7 @@ public class SourceCompiler {
                 Object configuration = Utils.newInstance(
                         "org.codehaus.groovy.control.CompilerConfiguration");
                 Utils.callMethod(configuration,
-                        "addCompilationCustomizers", new Object[] { importCustomizerArray });
+                        "addCompilationCustomizers", importCustomizerArray);
 
                 ClassLoader parent = GroovyCompiler.class.getClassLoader();
                 loader = Utils.newInstance(
@@ -444,9 +506,8 @@ public class SourceCompiler {
                 Object codeSource = Utils.newInstance("groovy.lang.GroovyCodeSource",
                         source, packageAndClassName + ".groovy", "UTF-8");
                 Utils.callMethod(codeSource, "setCachable", false);
-                Class<?> clazz = (Class<?>) Utils.callMethod(
+                return (Class<?>) Utils.callMethod(
                         LOADER, "parseClass", codeSource);
-                return clazz;
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

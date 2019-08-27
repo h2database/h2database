@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0, Version 1.0,
-and under the Eclipse Public License, Version 1.0
+Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+and the EPL 1.0 (https://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
@@ -41,6 +41,8 @@ Advanced
     Two Phase Commit</a><br />
 <a href="#compatibility">
     Compatibility</a><br />
+<a href="#keywords">
+    Keywords / Reserved Words</a><br />
 <a href="#standards_compliance">
     Standards Compliance</a><br />
 <a href="#windows_service">
@@ -96,7 +98,10 @@ Advanced
 
 <h3>Statements that Return a Result Set</h3>
 <p>
-The following statements return a result set: <code>SELECT, EXPLAIN, CALL, SCRIPT, SHOW, HELP</code>.
+The following statements return a result set: <code>SELECT</code>, <code>TABLE</code>, <code>VALUES</code>,
+<code>EXPLAIN</code>, <code>CALL</code>, <code>SCRIPT</code>, <code>SHOW</code>, <code>HELP</code>.
+<code>EXECUTE</code> may return either a result set or an update count.
+Result of a <code>WITH</code> statement depends on inner command.
 All other statements return an update count.
 </p>
 
@@ -106,8 +111,8 @@ Before the result is returned to the application, all rows are read by the datab
 Server side cursors are not supported currently.
 If only the first few rows are interesting for the application, then the
 result set size should be limited to improve the performance.
-This can be done using <code>LIMIT</code> in a query
-(example: <code>SELECT * FROM TEST LIMIT 100</code>),
+This can be done using <code>FETCH</code> in a query
+(example: <code>SELECT * FROM TEST FETCH FIRST 100 ROWS ONLY</code>),
 or by using <code>Statement.setMaxRows(max)</code>.
 </p>
 
@@ -139,7 +144,7 @@ on the client side.
 <p>
 By default, this database stores large LOB (CLOB and BLOB) objects separate from the main table data.
 Small LOB objects are stored in-place, the threshold can be set using
-<a href="grammar.html#set_max_length_inplace_lob" class="notranslate" >MAX_LENGTH_INPLACE_LOB</a>,
+<a href="commands.html#set_max_length_inplace_lob" class="notranslate" >MAX_LENGTH_INPLACE_LOB</a>,
 but there is still an overhead to use CLOB/BLOB. Because of this, BLOB and CLOB
 should never be used for columns with a maximum size below about 200 bytes.
 The best threshold depends on the use case; reading in-place objects is faster
@@ -153,7 +158,7 @@ The following feature is only available for the PageStore storage engine.
 For the MVStore engine (the default for H2 version 1.4.x),
 append <code>;COMPRESS=TRUE</code> to the database URL instead.
 CLOB and BLOB values can be compressed by using
-<a href="grammar.html#set_compress_lob" class="notranslate" >SET COMPRESS_LOB</a>.
+<a href="commands.html#set_compress_lob" class="notranslate" >SET COMPRESS_LOB</a>.
 The LZF algorithm is faster but needs more disk space. By default compression is disabled, which usually speeds up write
 operations. If you store many large compressible values such as XML, HTML, text, and uncompressed binary files,
 then compressing can save a lot of disk space (sometimes more than 50%), and read operations may even be faster.
@@ -186,7 +191,7 @@ If multiple linked tables point to the same database (using the same database UR
 is shared. To disable this, set the system property <code>h2.shareLinkedConnections=false</code>.
 </p>
 <p>
-The statement <a href="grammar.html#create_linked_table" class="notranslate" >CREATE LINKED TABLE</a>
+The statement <a href="commands.html#create_linked_table" class="notranslate" >CREATE LINKED TABLE</a>
 supports an optional schema name parameter.
 </p>
 <p>
@@ -221,16 +226,15 @@ For details, see the sample application <code>org.h2.samples.UpdatableView</code
 <p>
 Please note that most data definition language (DDL) statements,
 such as "create table", commit the current transaction.
-See the <a href="grammar.html">Grammar</a> for details.
+See the <a href="commands.html">Commands</a> for details.
 </p>
 <p>
 Transaction isolation is provided for all data manipulation language (DML) statements.
 </p>
 <p>
-Please note MVCC is enabled in version 1.4.x by default, when using the MVStore.
-In this case, table level locking is not used.
+Please note that with default MVStore storage engine table level locking is not used.
 Instead, rows are locked for update, and read committed is used in all cases
-(changing the isolation level has no effect).
+except for explicitly selected read uncommitted transaction isolation level.
 </p>
 <p>
 This database supports the following transaction isolation levels:
@@ -248,7 +252,9 @@ This database supports the following transaction isolation levels:
     To enable, execute the SQL statement <code>SET LOCK_MODE 1</code><br />
     or append <code>;LOCK_MODE=1</code> to the database URL: <code>jdbc:h2:~/test;LOCK_MODE=1</code>
 </li><li><b>Read Uncommitted</b><br />
-    This level means that transaction isolation is disabled.<br />
+    This level means that transaction isolation is disabled.
+    This level is not supported by PageStore engine if multi-threaded mode is enabled.
+    <br />
     To enable, execute the SQL statement <code>SET LOCK_MODE 0</code><br />
     or append <code>;LOCK_MODE=0</code> to the database URL: <code>jdbc:h2:~/test;LOCK_MODE=0</code>
 </li>
@@ -272,10 +278,20 @@ When using the isolation level 'serializable', dirty reads, non-repeatable reads
 </li>
 </ul>
 
-<h3>Table Level Locking</h3>
+<h3 id="mvcc">Multi-Version Concurrency Control (MVCC)</h3>
 <p>
-The database allows multiple concurrent connections to the same database.
-To make sure all connections only see consistent data, table level locking is used by default.
+With default MVStore engine delete, insert and update operations only issue a shared lock on the table.
+An exclusive lock is still used when adding or removing columns or when dropping the table.
+Connections only 'see' committed data, and own changes. That means, if connection A updates
+a row but doesn't commit this change yet, connection B will see the old value.
+Only when the change is committed, the new value is visible by other connections
+(read committed). If multiple connections concurrently try to lock or update the same row, the
+database waits until it can apply the change, but at most until the lock timeout expires.
+</p>
+
+<h3>Table Level Locking (PageStore engine)</h3>
+<p>
+With PageStore engine to make sure all connections only see consistent data, table level locking is used.
 This mechanism does not allow high concurrency, but is very fast.
 Shared locks and exclusive locks are supported.
 Before reading from a table, the database tries to add a shared lock to the table
@@ -298,43 +314,6 @@ the other connection does not release the lock for some time, the unsuccessful
 connection will get a lock timeout exception. The lock timeout can be set individually
 for each connection.
 </p>
-
-<h2 id="mvcc">Multi-Version Concurrency Control (MVCC)</h2>
-<p>
-The MVCC feature allows higher concurrency than using (table level or row level) locks.
-When using MVCC in this database, delete, insert and update operations will only issue a
-shared lock on the table. An exclusive lock is still used when adding or removing columns,
-when dropping the table, and when using <code>SELECT ... FOR UPDATE</code>.
-Connections only 'see' committed data, and own changes. That means, if connection A updates
-a row but doesn't commit this change yet, connection B will see the old value.
-Only when the change is committed, the new value is visible by other connections
-(read committed). If multiple connections concurrently try to update the same row, the
-database waits until it can apply the change, but at most until the lock timeout expires.
-</p>
-<p>
-To use the MVCC feature, append <code>;MVCC=TRUE</code> to the database URL:
-</p>
-<pre>
-jdbc:h2:~/test;MVCC=TRUE
-</pre>
-<p>
-The setting must be specified in the first connection (the one that opens the database).
-It is not possible to enable or disable this setting while the database is already open.
-</p>
-<p>
-If MVCC is enabled, changing the lock mode (<code>LOCK_MODE</code>) has no effect.
-</p>
-The MVCC mode is enabled by default in version 1.4.x,
-with the default MVStore storage engine.
-MVCC is disabled by default when using the PageStore storage engine
-(which is the default in version 1.3.x).
-The following applies when using the PageStore storage engine:
-The MVCC feature is not fully tested yet.
-The limitations of the MVCC mode are:
-with the PageStore storage engine, it can not be used at the same time as
-<code>MULTI_THREADED=TRUE</code>;
-the complete undo log (the list of uncommitted changes) must fit in memory when using multi-version concurrency.
-The setting <code>MAX_MEMORY_UNDO</code> has no effect.
 
 <h2 id="clustering">Clustering / High Availability</h2>
 <p>
@@ -494,20 +473,190 @@ For a query, this means the transaction is committed even before the application
 Other database engines may commit the transaction in this case when the result set is closed.
 </p>
 
-<h3>Keywords / Reserved Words</h3>
+<h2 id="keywords">Keywords / Reserved Words</h2>
 <p>
 There is a list of keywords that can't be used as identifiers (table names, column names and so on),
-unless they are quoted (surrounded with double quotes). The list is currently:
-</p><p>
-<code>
-CROSS, CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP, DISTINCT, EXCEPT, EXISTS, FALSE,
-FETCH, FOR, FROM, FULL, GROUP, HAVING, INNER, INTERSECT, IS, JOIN, LIKE, LIMIT, MINUS, NATURAL,
-NOT, NULL, OFFSET, ON, ORDER, PRIMARY, ROWNUM, SELECT, SYSDATE, SYSTIME, SYSTIMESTAMP, TODAY,
-TRUE, UNION, UNIQUE, WHERE
-</code>
-</p><p>
-Certain words of this list are keywords because they are functions that can be used without '()' for compatibility,
-for example <code>CURRENT_TIMESTAMP</code>.
+unless they are quoted (surrounded with double quotes).
+The following tokens are keywords in H2:
+</p>
+<table class="main">
+<thead>
+<tr>
+<th>Keyword</th>
+<th>H2</th>
+<th>SQL:&#8203;2011</th>
+<th>SQL:&#8203;2008</th>
+<th>SQL:&#8203;2003</th>
+<th>SQL:&#8203;1999</th>
+<th>SQL-92</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>ALL</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>AND</td>
+<td>CS</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>ARRAY</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td></td></tr>
+<tr><td>AS</td>
+<td>CS</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>BETWEEN</td>
+<td>CS</td><td>+</td><td>+</td><td>+</td><td>NR</td><td>+</td></tr>
+<tr><td>BOTH</td>
+<td>CS</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>CASE</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>CHECK</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>CONSTRAINT</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>CROSS</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>CURRENT_DATE</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>CURRENT_SCHEMA</td>
+<td>+</td><td>+</td><td>+</td><td></td><td></td><td></td></tr>
+<tr><td>CURRENT_TIME</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>CURRENT_TIMESTAMP</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>CURRENT_USER</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>DISTINCT</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>EXCEPT</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>EXISTS</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>NR</td><td>+</td></tr>
+<tr><td>FALSE</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>FETCH</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>FILTER</td>
+<td>CS</td><td>+</td><td>+</td><td>+</td><td></td><td></td></tr>
+<tr><td>FOR</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>FOREIGN</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>FROM</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>FULL</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>GROUP</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>GROUPS</td>
+<td>CS</td><td>+</td><td></td><td></td><td></td><td></td></tr>
+<tr><td>HAVING</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>IF</td>
+<td>+</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>ILIKE</td>
+<td>CS</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>IN</td>
+<td>CS</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>INNER</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>INTERSECT</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>INTERSECTS</td>
+<td>+</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>INTERVAL</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>IS</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>JOIN</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>LEADING</td>
+<td>CS</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>LEFT</td>
+<td>CS</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>LIKE</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>LIMIT</td>
+<td>+</td><td></td><td></td><td></td><td>+</td><td></td></tr>
+<tr><td>LOCALTIME</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td></td></tr>
+<tr><td>LOCALTIMESTAMP</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td></td></tr>
+<tr><td>MINUS</td>
+<td>+</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>NATURAL</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>NOT</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>NULL</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>OFFSET</td>
+<td>+</td><td>+</td><td>+</td><td></td><td></td><td></td></tr>
+<tr><td>ON</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>OR</td>
+<td>CS</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>ORDER</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>OVER</td>
+<td>CS</td><td>+</td><td>+</td><td>+</td><td></td><td></td></tr>
+<tr><td>PARTITION</td>
+<td>CS</td><td>+</td><td>+</td><td>+</td><td></td><td></td></tr>
+<tr><td>PRIMARY</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>QUALIFY</td>
+<td>+</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>RANGE</td>
+<td>CS</td><td>+</td><td>+</td><td>+</td><td></td><td></td></tr>
+<tr><td>REGEXP</td>
+<td>CS</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>RIGHT</td>
+<td>CS</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>ROW</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td></td></tr>
+<tr><td>_ROWID_</td>
+<td>+</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>ROWNUM</td>
+<td>+</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>ROWS</td>
+<td>CS</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>SELECT</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>SYSDATE</td>
+<td>CS</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>SYSTIME</td>
+<td>CS</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>SYSTIMESTAMP</td>
+<td>CS</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>TABLE</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>TODAY</td>
+<td>CS</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>TOP</td>
+<td>CS</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>TRAILING</td>
+<td>CS</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>TRUE</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>UNION</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>UNIQUE</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>UNKNOWN</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>USING</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>VALUES</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>WHERE</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>WINDOW</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td></td><td></td></tr>
+<tr><td>WITH</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+</tbody>
+</table>
+<p>
+Some keywords in H2 are context-sensitive (CS), such keywords may be used as identifiers in some places,
+but cannot be used as identifiers in others.
+Most keywords in H2 are also reserved (+) or non-reserved (NR) words in the SQL Standard.
+Newer versions of H2 may have more keywords than older ones.
 </p>
 
 <h2 id="standards_compliance">Standards Compliance</h2>
@@ -527,7 +676,7 @@ H2 internally uses Unicode, and supports all character encoding systems and char
 <p>
 Using a native wrapper / adapter, Java applications can be run as a Windows Service.
 There are various tools available to do that. The Java Service Wrapper from
-<a href="http://wrapper.tanukisoftware.org">Tanuki Software, Inc.</a>
+<a href="https://wrapper.tanukisoftware.org">Tanuki Software, Inc.</a>
 is included in the installation. Batch files are provided to install, start, stop and uninstall the
 H2 Database Engine Service. This service contains the TCP Server and the H2 Console web application.
 The batch files are located in the directory <code>h2/service</code>.
@@ -536,7 +685,7 @@ The batch files are located in the directory <code>h2/service</code>.
 The service wrapper bundled with H2 is a 32-bit version.
 To use a 64-bit version of Windows (x64), you need to use a 64-bit version of the wrapper,
 for example the one from
-<a href="http://www.krenger.ch/blog/java-service-wrapper-3-5-14-for-windows-x64/">
+<a href="https://www.krenger.ch/blog/java-service-wrapper-3-5-14-for-windows-x64/">
 Simon Krenger</a>.
 </p>
 <p>
@@ -602,7 +751,7 @@ To use the PostgreSQL ODBC driver on 64 bit versions of Windows,
 first run <code>c:/windows/syswow64/odbcad32.exe</code>.
 At this point you set up your DSN just like you would on any other system.
 See also:
-<a href="http://archives.postgresql.org/pgsql-odbc/2005-09/msg00125.php">Re: ODBC Driver on Windows 64 bit</a>
+<a href="https://www.postgresql.org/message-id/dg76q0$khn$1@sea.gmane.org">Re: ODBC Driver on Windows 64 bit</a>
 </p>
 
 <h3>ODBC Installation</h3>
@@ -610,7 +759,7 @@ See also:
 First, the ODBC driver must be installed.
 Any recent PostgreSQL ODBC driver should work, however version 8.2 (<code>psqlodbc-08_02*</code>) or newer is recommended.
 The Windows version of the PostgreSQL ODBC driver is available at
-<a href="http://www.postgresql.org/ftp/odbc/versions/msi">http://www.postgresql.org/ftp/odbc/versions/msi</a>.
+<a href="https://www.postgresql.org/ftp/odbc/versions/msi/">https://www.postgresql.org/ftp/odbc/versions/msi/</a>.
 </p>
 
 <h3>Starting the Server</h3>
@@ -725,11 +874,11 @@ You can access a H2 database on .NET using the JDBC API, or using the ADO.NET in
 <h3>Using the ADO.NET API on .NET</h3>
 <p>
 An implementation of the ADO.NET interface is available in the open source project
-<a href="http://code.google.com/p/h2sharp">H2Sharp</a>.
+<a href="https://code.google.com/archive/p/h2sharp/">H2Sharp</a>.
 </p>
 
 <h3>Using the JDBC API on .NET</h3>
-<ul><li>Install the .NET Framework from <a href="http://www.microsoft.com">Microsoft</a>.
+<ul><li>Install the .NET Framework from <a href="https://www.microsoft.com">Microsoft</a>.
     Mono has not yet been tested.
 </li><li>Install <a href="http://www.ikvm.net">IKVM.NET</a>.
 </li><li>Copy the <code>h2*.jar</code> file to <code>ikvm/bin</code>
@@ -853,9 +1002,9 @@ Unfortunately, even when calling <code>FileDescriptor.sync()</code> or
 <code>FileChannel.force()</code>,
 data is not always persisted to the hard drive, because most hard drives do not obey
 <code>fsync()</code>: see
-<a href="http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252">Your Hard Drive Lies to You</a>.
+<a href="https://hardware.slashdot.org/story/05/05/13/0529252/your-hard-drive-lies-to-you">Your Hard Drive Lies to You</a>.
 In Mac OS X, <code>fsync</code> does not flush hard drive buffers. See
-<a href="http://lists.apple.com/archives/darwin-dev/2005/Feb/msg00072.html">Bad fsync?</a>.
+<a href="https://lists.apple.com/archives/darwin-dev/2005/Feb/msg00072.html">Bad fsync?</a>.
 So the situation is confusing, and tests prove there is a problem.
 </p>
 <p>
@@ -1065,7 +1214,6 @@ import java.sql.*;
 import java.util.*;
 public class Test {
     public static void main(String[] args) throws Exception {
-        Class.forName("org.h2.Driver");
         String url = "jdbc:h2:~/test";
         Properties prop = new Properties();
         prop.setProperty("user", "sa");
@@ -1083,7 +1231,6 @@ public class Test {
 }
 </pre>
 <p>
-This example requires Java 1.6.
 When using Swing, use <code>javax.swing.JPasswordField</code>.
 </p>
 
@@ -1223,7 +1370,7 @@ options <code>-webAllowOthers, -tcpAllowOthers, -pgAllowOthers</code>.
 <p>
 If you enable remote access using
 <code>-tcpAllowOthers</code> or <code>-pgAllowOthers</code>,
-please also consider using the options <code>-baseDir, -ifExists</code>,
+please also consider using the options <code>-baseDir</code>,
 so that remote users can not create new databases
 or access existing databases with weak passwords.
 When using the option <code>-baseDir</code>, only databases within that directory may be accessed.
@@ -1232,7 +1379,7 @@ Ensure the existing accessible databases are protected using strong passwords.
 <p>
 If you enable remote access using <code>-webAllowOthers</code>,
 please ensure the web server can only be accessed from trusted networks.
-The options <code>-baseDir, -ifExists</code> don't protect
+The options <code>-baseDir</code> don't protect
 access to the tools section, prevent remote shutdown of the web server,
 changes to the preferences, the saved connection settings,
 or access to other databases accessible from the system.
@@ -1380,7 +1527,7 @@ Remote TLS connections are supported using the Java Secure Socket Extension
 <p>
 To use your own keystore, set the system properties <code>javax.net.ssl.keyStore</code> and
 <code>javax.net.ssl.keyStorePassword</code> before starting the H2 server and client.
-See also <a href="http://java.sun.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html#CustomizingStores">
+See also <a href="https://docs.oracle.com/javase/7/docs/technotes/guides/security/jsse/JSSERefGuide.html#CustomizingStores">
 Customizing the Default Key and Trust Stores, Store Types, and Store Passwords</a>
 for more information.
 </p>
@@ -1432,19 +1579,7 @@ that means the probability is about 0.000'000'000'06.
 
 <h2 id="spatial_features">Spatial Features</h2>
 <p>
-H2 supports the geometry data type and spatial indexes if
-the <a href="http://tsusiatsoftware.net/jts/main.html">JTS Topology Suite</a>
-is in the classpath.
-To run the H2 Console tool with the JTS tool, you need to download the
-<a href="http://search.maven.org/remotecontent?filepath=com/vividsolutions/jts-core/1.14.0/jts-core-1.14.0.jar">JTS-CORE 1.14.0 jar file</a>
-and place it in the h2 bin directory. Then edit the <code>h2.sh</code> file as follows:
-</p>
-<pre>
-#!/bin/sh
-dir=$(dirname "$0")
-java -cp "$dir/h2.jar:jts-core-1.14.0.jar:$H2DRIVERS:$CLASSPATH" org.h2.tools.Console "$@"
-</pre>
-<p>
+H2 supports the geometry data type and spatial indexes.
 Here is an example SQL script to create a table with a spatial column and index:
 </p>
 <pre>
@@ -1453,31 +1588,35 @@ INSERT INTO GEO_TABLE(THE_GEOM) VALUES
     ('POINT(500 505)'),
     ('LINESTRING(550 551, 525 512, 565 566)'),
     ('POLYGON ((550 521, 580 540, 570 564, 512 566, 550 521))');
-CREATE SPATIAL INDEX GEO_TABLE_SPATIAL_INDEX ON GEO_TABLE(THE_GEOM);
+CREATE SPATIAL INDEX GEO_TABLE_SPATIAL_INDEX
+    ON GEO_TABLE(THE_GEOM);
 </pre>
 <p>
 To query the table using geometry envelope intersection,
-use the operation <code>&&</code>, as in PostGIS:
+use the operation <code>&amp;&amp;</code>, as in PostGIS:
 </p>
 <pre>
 SELECT * FROM GEO_TABLE
-WHERE THE_GEOM && 'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))';
+    WHERE THE_GEOM &amp;&amp;
+    'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))';
 </pre>
 <p>
 You can verify that the spatial index is used using the "explain plan" feature:
 </p>
 <pre>
 EXPLAIN SELECT * FROM GEO_TABLE
-WHERE THE_GEOM && 'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))';
+    WHERE THE_GEOM &amp;&amp;
+    'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))';
 -- Result
 SELECT
-    GEO_TABLE.GID,
-    GEO_TABLE.THE_GEOM
-FROM PUBLIC.GEO_TABLE
+    "GEO_TABLE"."GID",
+    "GEO_TABLE"."THE_GEOM"
+FROM "PUBLIC"."GEO_TABLE"
     /* PUBLIC.GEO_TABLE_SPATIAL_INDEX:
-    THE_GEOM && 'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))' */
-WHERE INTERSECTS(THE_GEOM,
-    'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))')
+    THE_GEOM &amp;&amp;
+    'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))'::Geometry */
+WHERE INTERSECTS("THE_GEOM",
+    'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))'::Geometry)
 </pre>
 <p>
 For persistent databases, the spatial index is stored on disk;
@@ -1563,7 +1702,7 @@ The current value of the settings can be read in the table
 </p>
 <p>
 For a complete list of settings, see
-<a href="../javadoc/org/h2/engine/SysProperties.html">SysProperties</a>.
+<a href="https://h2database.com/javadoc/org/h2/engine/SysProperties.html">SysProperties</a>.
 </p>
 
 <h2 id="server_bind_address">Setting the Server Bind Address</h2>
@@ -1582,12 +1721,13 @@ The file system implementation is selected using a file name prefix.
 Internally, the interfaces are very similar to the Java 7 NIO2 API, but do not (yet) use or require Java 7.
 The following file systems are included:
 </p>
-<ul><li><code>zip:</code>  read-only zip-file based file system. Format: <code>zip:/zipFileName!/fileName</code>.
+<ul><li><code>zip:</code>  read-only zip-file based file system. Format: <code>zip:~/zipFileName!/fileName</code>.
 </li><li><code>split:</code> file system that splits files in 1 GB files (stackable with other file systems).
 </li><li><code>nio:</code> file system that uses <code>FileChannel</code> instead of <code>RandomAccessFile</code> (faster in some operating systems).
 </li><li><code>nioMapped:</code> file system that uses memory mapped files (faster in some operating systems).
     Please note that there currently is a file size limitation of 2 GB when using this file system.
-    To work around this limitation, combine it with the split file system: <code>split:nioMapped:test</code>.
+    To work around this limitation, combine it with the split file system: <code>split:nioMapped:~/test</code>.
+</li><li><code>async:</code> experimental file system that uses <code>AsynchronousFileChannel</code> instead of <code>RandomAccessFile</code> (faster in some operating systems).
 </li><li><code>memFS:</code> in-memory file system (slower than mem; experimental; mainly used for testing the database engine itself).
 </li><li><code>memLZF:</code> compressing in-memory file system (slower than memFS but uses less memory; experimental; mainly used for testing the database engine itself).
 </li><li><code>nioMemFS:</code> stores data outside of the VM's heap - useful for large memory DBs without incurring GC costs.
@@ -1601,8 +1741,9 @@ The following file systems are included:
     The default value is 1%.
 </li></ul>
 <p>
-As an example, to use the the <code>nio</code> file system, use the following database URL:
-<code>jdbc:h2:nio:~/test</code>.
+As an example, to use the <code>nio</code> file system with PageStore storage engine,
+use the following database URL: <code>jdbc:h2:nio:~/test;MV_STORE=FALSE</code>.
+With MVStore storage engine nio file system is used by default.
 </p>
 <p>
 To register a new file system, extend the classes <code>org.h2.store.fs.FilePath, FileBase</code>,
@@ -1630,7 +1771,7 @@ The maximum physical file size of a block is 2^30 bytes, which is also called 1 
 However this can be changed if required, by specifying the block size in the file name.
 The file name format is: <code>split:&lt;x&gt;:&lt;fileName&gt;</code> where the file size per block is 2^x.
 For 1 MiB block sizes, use x = 20 (because 2^20 is 1 MiB).
-The following file name means the logical file is split into 1 MiB blocks: <code>split:20:test.h2.db</code>.
+The following file name means the logical file is split into 1 MiB blocks: <code>split:20:~/test.h2.db</code>.
 An example database URL for this case is <code>jdbc:h2:split:20:~/test</code>.
 </p>
 
@@ -1638,22 +1779,26 @@ An example database URL for this case is <code>jdbc:h2:split:20:~/test</code>.
 <p>
 In version 1.2, H2 introduced a new file store implementation which is incompatible to the one used in versions &lt; 1.2.
 To automatically convert databases to the new file store, it is necessary to include an additional jar file.
-The file can be found at <a href="http://h2database.com/h2mig_pagestore_addon.jar">http://h2database.com/h2mig_pagestore_addon.jar</a> .
+The file can be found at <a href="https://h2database.com/h2mig_pagestore_addon.jar">https://h2database.com/h2mig_pagestore_addon.jar</a> .
 If this file is in the classpath, every connect to an older database will result in a conversion process.
 </p>
 <p>
 The conversion itself is done internally via <code>'script to'</code> and <code>'runscript from'</code>. After the conversion process, the files will be
 renamed from
+</p>
 <ul>
 <li><code>dbName.data.db</code> to <code>dbName.data.db.backup</code>
 </li><li><code>dbName.index.db</code> to <code>dbName.index.db.backup</code>
 </li></ul>
+<p>
 by default. Also, the temporary script will be written to the database directory instead of a temporary directory.
 Both defaults can be customized via
+</p>
 <ul>
 <li><code>org.h2.upgrade.DbUpgrade.setDeleteOldDb(boolean)</code>
 </li><li><code>org.h2.upgrade.DbUpgrade.setScriptInTmpDir(boolean)</code>
 </li></ul>
+<p>
 prior opening a database connection.
 </p>
 <p>
@@ -1675,7 +1820,9 @@ Java objects serialization is enabled by default for columns of type <code>OTHER
 To disable this feature set the system property <code>h2.serializeJavaObject=false</code> (default: true).
 </p>
 <p>
-Serialization and deserialization of java objects is customizable both at system level and at database level providing a <a href="../javadoc/org/h2/api/JavaObjectSerializer.html">JavaObjectSerializer</a> implementation:
+Serialization and deserialization of java objects is customizable both at system level and at database level providing a
+<a href="https://h2database.com/javadoc/org/h2/api/JavaObjectSerializer.html">JavaObjectSerializer</a> implementation:
+</p>
 <ul>
 <li>
 At system level set the system property <code>h2.javaObjectSerializer</code> with the
@@ -1691,7 +1838,6 @@ Please note that this SQL statement can only be executed before any tables are d
 </p>
 </li>
 </ul>
-</p>
 
 <h2 id="custom_data_types_handler_api">Custom Data Types Handler API</h2>
 <p>
@@ -1699,8 +1845,10 @@ It is possible to extend the type system of the database by providing your own i
 of minimal required API basically consisting of type identification and conversion routines.
 </p>
 <p>
-In order to enable this feature, set the system property <code>h2.customDataTypesHandler</code> (default: null) to the fully qualified name of the class providing <a href="../javadoc/org/h2/api/CustomDataTypesHandler.html">CustomDataTypesHandler</a> interface implementation. <br />
+In order to enable this feature, set the system property <code>h2.customDataTypesHandler</code> (default: null) to the fully qualified name of the class providing
+<a href="https://h2database.com/javadoc/org/h2/api/CustomDataTypesHandler.html">CustomDataTypesHandler</a> interface implementation. <br />
 The instance of that class will be created by H2 and used to:
+</p>
 <ul>
 <li>resolve the names and identifiers of extrinsic data types.
 </li>
@@ -1709,7 +1857,6 @@ The instance of that class will be created by H2 and used to:
 <li>provide order of the data types.
 </li>
 </ul>
-</p>
 <p>This is a system-level setting, i.e. affects all the databases.</p>
 
 <p><b>Note: </b>Please keep in mind that this feature may not possibly provide the same ABI stability level as other features as it exposes many of the H2 internals. You may be required to update your code occasionally due to internal changes in H2 if you are going to use this feature.
@@ -1764,60 +1911,53 @@ OR X = 2 OR X = 2 OR X = 2 OR X = 2 OR X = 2
     <tr>
         <td>AES-128</td>
         <td>A block encryption algorithm. See also: <a
-            href="http://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia:
-        AES</a></td>
+            href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia:
+        Advanced Encryption Standard</a></td>
     </tr>
     <tr>
         <td>Birthday Paradox</td>
         <td>Describes the higher than expected probability that two
         persons in a room have the same birthday. Also valid for randomly
         generated UUIDs. See also: <a
-            href="http://en.wikipedia.org/wiki/Birthday_paradox">Wikipedia:
-        Birthday Paradox</a></td>
+            href="https://en.wikipedia.org/wiki/Birthday_problem">Wikipedia:
+        Birthday problem</a></td>
     </tr>
     <tr>
         <td>Digest</td>
         <td>Protocol to protect a password (but not to protect data).
-        See also: <a href="http://www.faqs.org/rfcs/rfc2617.html">RFC
+        See also: <a href="https://www.ietf.org/rfc/rfc2617.txt">RFC
         2617: HTTP Digest Access Authentication</a></td>
-    </tr>
-    <tr>
-        <td>GCJ</td>
-        <td>Compiler for Java. <a href="http://gcc.gnu.org/java">GNU
-        Compiler for the Java</a> and <a
-            href="http://www.dobysoft.com/products/nativej">NativeJ
-        (commercial)</a></td>
     </tr>
     <tr>
         <td>HTTPS</td>
         <td>A protocol to provide security to HTTP connections. See
-        also: <a href="http://www.ietf.org/rfc/rfc2818.txt">RFC 2818:
+        also: <a href="https://www.ietf.org/rfc/rfc2818.txt">RFC 2818:
         HTTP Over TLS</a></td>
     </tr>
     <tr>
         <td>Modes of Operation</td>
         <td><a
-            href="http://en.wikipedia.org/wiki/Block_cipher_modes_of_operation">Wikipedia:
-        Block cipher modes of operation</a></td>
+            href="https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation">Wikipedia:
+        Block cipher mode of operation</a></td>
     </tr>
     <tr>
         <td>Salt</td>
         <td>Random number to increase the security of passwords. See
-        also: <a href="http://en.wikipedia.org/wiki/Key_derivation_function">Wikipedia:
+        also: <a href="https://en.wikipedia.org/wiki/Key_derivation_function">Wikipedia:
         Key derivation function</a></td>
     </tr>
     <tr>
         <td>SHA-256</td>
         <td>A cryptographic one-way hash function. See also: <a
-            href="http://en.wikipedia.org/wiki/SHA_family">Wikipedia: SHA
-        hash functions</a></td>
+            href="https://en.wikipedia.org/wiki/Secure_Hash_Algorithms">Wikipedia:
+            Secure Hash Algorithms</a></td>
     </tr>
     <tr>
         <td>SQL Injection</td>
         <td>A security vulnerability where an application embeds SQL
         statements or expressions in user input. See also: <a
-            href="http://en.wikipedia.org/wiki/SQL_injection">Wikipedia:
-        SQL Injection</a></td>
+            href="https://en.wikipedia.org/wiki/SQL_injection">Wikipedia:
+        SQL injection</a></td>
     </tr>
     <tr>
         <td>Watermark Attack</td>
@@ -1829,7 +1969,7 @@ OR X = 2 OR X = 2 OR X = 2 OR X = 2 OR X = 2
     <tr>
         <td>SSL/TLS</td>
         <td>Secure Sockets Layer / Transport Layer Security. See also:
-        <a href="http://java.sun.com/products/jsse/">Java Secure Socket
+        <a href="https://docs.oracle.com/javase/7/docs/technotes/guides/security/jsse/JSSERefGuide.html">Java Secure Socket
         Extension (JSSE)</a></td>
     </tr>
 </table>

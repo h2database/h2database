@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.mvstore;
@@ -10,14 +10,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.h2.engine.Constants;
-import org.h2.util.New;
+import org.h2.util.StringUtils;
 
 /**
  * Utility methods
@@ -98,6 +98,16 @@ public final class DataUtils {
     public static final int ERROR_TRANSACTION_ILLEGAL_STATE = 103;
 
     /**
+     * The transaction contains too many changes.
+     */
+    public static final int ERROR_TRANSACTION_TOO_BIG = 104;
+
+    /**
+     * Deadlock discovered and one of transactions involved chosen as victim and rolled back.
+     */
+    public static final int ERROR_TRANSACTIONS_DEADLOCK = 105;
+
+    /**
      * The type for leaf page.
      */
     public static final int PAGE_TYPE_LEAF = 0;
@@ -140,34 +150,15 @@ public final class DataUtils {
     public static final long COMPRESSED_VAR_LONG_MAX = 0x1ffffffffffffL;
 
     /**
-     * The estimated number of bytes used per page object.
-     */
-    public static final int PAGE_MEMORY = 128;
-
-    /**
-     * The estimated number of bytes used per child entry.
-     */
-    public static final int PAGE_MEMORY_CHILD = 16;
-
-    /**
      * The marker size of a very large page.
      */
     public static final int PAGE_LARGE = 2 * 1024 * 1024;
 
-    /**
-     * The UTF-8 character encoding format.
-     */
-    public static final Charset UTF8 = Charset.forName("UTF-8");
-
-    /**
-     * The ISO Latin character encoding format.
-     */
-    public static final Charset LATIN = Charset.forName("ISO-8859-1");
-
-    /**
-     * An 0-size byte array.
-     */
-    private static final byte[] EMPTY_BYTES = {};
+    // The following are key prefixes used in meta map
+    public static final String META_CHUNK = "chunk."; // + hex chunk id -> serialized chunk metadata
+    public static final String META_NAME = "name.";   // + map's name -> hex map id
+    public static final String META_MAP = "map.";     // + hex map id -> serialized map metadata
+    public static final String META_ROOT = "root.";   // + hex map id -> hex root page "position"
 
     /**
      * Get the length of the variable size int.
@@ -267,10 +258,11 @@ public final class DataUtils {
      *
      * @param out the output stream
      * @param x the value
+     * @throws IOException if some data could not be written
      */
     public static void writeVarInt(OutputStream out, int x) throws IOException {
         while ((x & ~0x7f) != 0) {
-            out.write((byte) (0x80 | (x & 0x7f)));
+            out.write((byte) (x | 0x80));
             x >>>= 7;
         }
         out.write((byte) x);
@@ -284,7 +276,7 @@ public final class DataUtils {
      */
     public static void writeVarInt(ByteBuffer buff, int x) {
         while ((x & ~0x7f) != 0) {
-            buff.put((byte) (0x80 | (x & 0x7f)));
+            buff.put((byte) (x | 0x80));
             x >>>= 7;
         }
         buff.put((byte) x);
@@ -318,6 +310,16 @@ public final class DataUtils {
      * Read a string.
      *
      * @param buff the source buffer
+     * @return the value
+     */
+    public static String readString(ByteBuffer buff) {
+        return readString(buff, readVarInt(buff));
+    }
+
+    /**
+     * Read a string.
+     *
+     * @param buff the source buffer
      * @param len the number of characters
      * @return the value
      */
@@ -345,7 +347,7 @@ public final class DataUtils {
      */
     public static void writeVarLong(ByteBuffer buff, long x) {
         while ((x & ~0x7f) != 0) {
-            buff.put((byte) (0x80 | (x & 0x7f)));
+            buff.put((byte) (x | 0x80));
             x >>>= 7;
         }
         buff.put((byte) x);
@@ -356,11 +358,12 @@ public final class DataUtils {
      *
      * @param out the output stream
      * @param x the value
+     * @throws IOException if some data could not be written
      */
     public static void writeVarLong(OutputStream out, long x)
             throws IOException {
         while ((x & ~0x7f) != 0) {
-            out.write((byte) (0x80 | (x & 0x7f)));
+            out.write((byte) (x | 0x80));
             x >>>= 7;
         }
         out.write((byte) x);
@@ -432,9 +435,9 @@ public final class DataUtils {
             }
             throw newIllegalStateException(
                     ERROR_READING_FAILED,
-                    "Reading from {0} failed; file length {1} " +
-                    "read length {2} at {3}",
-                    file, size, dst.remaining(), pos, e);
+                    "Reading from file {0} failed at {1} (length {2}), " +
+                    "read {3}, remaining {4}",
+                    file, pos, size, dst.position(), dst.remaining(), e);
         }
     }
 
@@ -504,14 +507,24 @@ public final class DataUtils {
     }
 
     /**
-     * Get the maximum length for the given code.
-     * For the code 31, PAGE_LARGE is returned.
+     * Get the maximum length for the given page position.
      *
      * @param pos the position
      * @return the maximum length
      */
     public static int getPageMaxLength(long pos) {
         int code = (int) ((pos >> 1) & 31);
+        return decodePageLength(code);
+    }
+
+    /**
+     * Get the maximum length for the given code.
+     * For the code 31, PAGE_LARGE is returned.
+     *
+     * @param code encoded page length
+     * @return the maximum length
+     */
+    public static int decodePageLength(int code) {
         if (code == 31) {
             return PAGE_LARGE;
         }
@@ -536,6 +549,36 @@ public final class DataUtils {
      */
     public static int getPageType(long pos) {
         return ((int) pos) & 1;
+    }
+
+    /**
+     * Determines whether specified file position corresponds to a leaf page
+     * @param pos the position
+     * @return true if it is a leaf, false otherwise
+     */
+    public static boolean isLeafPosition(long pos) {
+        return getPageType(pos) == PAGE_TYPE_LEAF;
+    }
+
+    /**
+     * Find out if page was saved.
+     *
+     * @param pos the position
+     * @return true if page has been saved
+     */
+    public static boolean isPageSaved(long pos) {
+        return (pos & ~1L) != 0;
+    }
+
+    /**
+     * Find out if page was removed.
+     *
+     * @param pos the position
+     * @return true if page has been removed (no longer accessible from the
+     *         current root of the tree)
+     */
+    static boolean isPageRemoved(long pos) {
+        return pos == 1L;
     }
 
     /**
@@ -577,14 +620,28 @@ public final class DataUtils {
      * @param map the map
      * @return the string builder
      */
-    public static StringBuilder appendMap(StringBuilder buff,
-            HashMap<String, ?> map) {
-        ArrayList<String> list = New.arrayList(map.keySet());
-        Collections.sort(list);
-        for (String k : list) {
-            appendMap(buff, k, map.get(k));
+    public static StringBuilder appendMap(StringBuilder buff, HashMap<String, ?> map) {
+        Object[] keys = map.keySet().toArray();
+        Arrays.sort(keys);
+        for (Object k : keys) {
+            String key = (String) k;
+            Object value = map.get(key);
+            if (value instanceof Long) {
+                appendMap(buff, key, (long) value);
+            } else if (value instanceof Integer) {
+                appendMap(buff, key, (int) value);
+            } else {
+                appendMap(buff, key, value.toString());
+            }
         }
         return buff;
+    }
+
+    private static StringBuilder appendMapKey(StringBuilder buff, String key) {
+        if (buff.length() > 0) {
+            buff.append(',');
+        }
+        return buff.append(key).append(':');
     }
 
     /**
@@ -596,25 +653,14 @@ public final class DataUtils {
      * @param key the key
      * @param value the value
      */
-    public static void appendMap(StringBuilder buff, String key, Object value) {
-        if (buff.length() > 0) {
-            buff.append(',');
-        }
-        buff.append(key).append(':');
-        String v;
-        if (value instanceof Long) {
-            v = Long.toHexString((Long) value);
-        } else if (value instanceof Integer) {
-            v = Integer.toHexString((Integer) value);
-        } else {
-            v = value.toString();
-        }
-        if (v.indexOf(',') < 0 && v.indexOf('\"') < 0) {
-            buff.append(v);
+    public static void appendMap(StringBuilder buff, String key, String value) {
+        appendMapKey(buff, key);
+        if (value.indexOf(',') < 0 && value.indexOf('\"') < 0) {
+            buff.append(value);
         } else {
             buff.append('\"');
-            for (int i = 0, size = v.length(); i < size; i++) {
-                char c = v.charAt(i);
+            for (int i = 0, size = value.length(); i < size; i++) {
+                char c = value.charAt(i);
                 if (c == '\"') {
                     buff.append('\\');
                 }
@@ -625,6 +671,62 @@ public final class DataUtils {
     }
 
     /**
+     * Append a key-value pair to the string builder. Keys may not contain a
+     * colon.
+     *
+     * @param buff the target buffer
+     * @param key the key
+     * @param value the value
+     */
+    public static void appendMap(StringBuilder buff, String key, long value) {
+        appendMapKey(buff, key).append(Long.toHexString(value));
+    }
+
+    /**
+     * Append a key-value pair to the string builder. Keys may not contain a
+     * colon.
+     *
+     * @param buff the target buffer
+     * @param key the key
+     * @param value the value
+     */
+    public static void appendMap(StringBuilder buff, String key, int value) {
+        appendMapKey(buff, key).append(Integer.toHexString(value));
+    }
+
+    /**
+     * @param buff output buffer, should be empty
+     * @param s parsed string
+     * @param i offset to parse from
+     * @param size stop offset (exclusive)
+     * @return new offset
+     */
+    private static int parseMapValue(StringBuilder buff, String s, int i, int size) {
+        while (i < size) {
+            char c = s.charAt(i++);
+            if (c == ',') {
+                break;
+            } else if (c == '\"') {
+                while (i < size) {
+                    c = s.charAt(i++);
+                    if (c == '\\') {
+                        if (i == size) {
+                            throw newIllegalStateException(ERROR_FILE_CORRUPT, "Not a map: {0}", s);
+                        }
+                        c = s.charAt(i++);
+                    } else if (c == '\"') {
+                        break;
+                    }
+                    buff.append(c);
+                }
+            } else {
+                buff.append(c);
+            }
+        }
+        return i;
+    }
+
+    /**
      * Parse a key-value pair list.
      *
      * @param s the list
@@ -632,64 +734,140 @@ public final class DataUtils {
      * @throws IllegalStateException if parsing failed
      */
     public static HashMap<String, String> parseMap(String s) {
-        HashMap<String, String> map = New.hashMap();
+        HashMap<String, String> map = new HashMap<>();
+        StringBuilder buff = new StringBuilder();
         for (int i = 0, size = s.length(); i < size;) {
             int startKey = i;
             i = s.indexOf(':', i);
             if (i < 0) {
-                throw DataUtils.newIllegalStateException(
-                        DataUtils.ERROR_FILE_CORRUPT, "Not a map: {0}", s);
+                throw newIllegalStateException(ERROR_FILE_CORRUPT, "Not a map: {0}", s);
             }
             String key = s.substring(startKey, i++);
-            StringBuilder buff = new StringBuilder();
-            while (i < size) {
-                char c = s.charAt(i++);
-                if (c == ',') {
-                    break;
-                } else if (c == '\"') {
-                    while (i < size) {
-                        c = s.charAt(i++);
-                        if (c == '\\') {
-                            if (i == size) {
-                                throw DataUtils.newIllegalStateException(
-                                        DataUtils.ERROR_FILE_CORRUPT,
-                                        "Not a map: {0}", s);
-                            }
-                            c = s.charAt(i++);
-                        } else if (c == '\"') {
-                            break;
-                        }
-                        buff.append(c);
-                    }
-                } else {
-                    buff.append(c);
-                }
-            }
+            i = parseMapValue(buff, s, i, size);
             map.put(key, buff.toString());
+            buff.setLength(0);
         }
         return map;
+    }
+
+    /**
+     * Parse a key-value pair list and checks its checksum.
+     *
+     * @param bytes encoded map
+     * @return the map without mapping for {@code "fletcher"}, or {@code null} if checksum is wrong
+     *              or parameter do not represent a properly formatted map serialization
+     */
+    static HashMap<String, String> parseChecksummedMap(byte[] bytes) {
+        int start = 0, end = bytes.length;
+        while (start < end && bytes[start] <= ' ') {
+            start++;
+        }
+        while (start < end && bytes[end - 1] <= ' ') {
+            end--;
+        }
+        String s = new String(bytes, start, end - start, StandardCharsets.ISO_8859_1);
+        HashMap<String, String> map = new HashMap<>();
+        StringBuilder buff = new StringBuilder();
+        for (int i = 0, size = s.length(); i < size;) {
+            int startKey = i;
+            i = s.indexOf(':', i);
+            if (i < 0) {
+                // Corrupted map
+                return null;
+            }
+            if (i - startKey == 8 && s.regionMatches(startKey, "fletcher", 0, 8)) {
+                parseMapValue(buff, s, i + 1, size);
+                int check = (int) Long.parseLong(buff.toString(), 16);
+                if (check == getFletcher32(bytes, start, startKey - 1)) {
+                    return map;
+                }
+                // Corrupted map
+                return null;
+            }
+            String key = s.substring(startKey, i++);
+            i = parseMapValue(buff, s, i, size);
+            map.put(key, buff.toString());
+            buff.setLength(0);
+        }
+        // Corrupted map
+        return null;
+    }
+
+    /**
+     * Parse a name from key-value pair list.
+     *
+     * @param s the list
+     * @return value of name item, or {@code null}
+     * @throws IllegalStateException if parsing failed
+     */
+    public static String getMapName(String s) {
+        return getFromMap(s, "name");
+    }
+
+    /**
+     * Parse a specified pair from key-value pair list.
+     *
+     * @param s the list
+     * @param key the name of the key
+     * @return value of the specified item, or {@code null}
+     * @throws IllegalStateException if parsing failed
+     */
+    public static String getFromMap(String s, String key) {
+        int keyLength = key.length();
+        for (int i = 0, size = s.length(); i < size;) {
+            int startKey = i;
+            i = s.indexOf(':', i);
+            if (i < 0) {
+                throw newIllegalStateException(ERROR_FILE_CORRUPT, "Not a map: {0}", s);
+            }
+            if (i++ - startKey == keyLength && s.regionMatches(startKey, key, 0, keyLength)) {
+                StringBuilder buff = new StringBuilder();
+                parseMapValue(buff, s, i, size);
+                return buff.toString();
+            } else {
+                while (i < size) {
+                    char c = s.charAt(i++);
+                    if (c == ',') {
+                        break;
+                    } else if (c == '\"') {
+                        while (i < size) {
+                            c = s.charAt(i++);
+                            if (c == '\\') {
+                                if (i++ == size) {
+                                    throw newIllegalStateException(ERROR_FILE_CORRUPT, "Not a map: {0}", s);
+                                }
+                            } else if (c == '\"') {
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     /**
      * Calculate the Fletcher32 checksum.
      *
      * @param bytes the bytes
+     * @param offset initial offset
      * @param length the message length (if odd, 0 is appended)
      * @return the checksum
      */
-    public static int getFletcher32(byte[] bytes, int length) {
+    public static int getFletcher32(byte[] bytes, int offset, int length) {
         int s1 = 0xffff, s2 = 0xffff;
-        int i = 0, evenLength = length / 2 * 2;
-        while (i < evenLength) {
+        int i = offset, len = offset + (length & ~1);
+        while (i < len) {
             // reduce after 360 words (each word is two bytes)
-            for (int end = Math.min(i + 720, evenLength); i < end;) {
+            for (int end = Math.min(i + 720, len); i < end;) {
                 int x = ((bytes[i++] & 0xff) << 8) | (bytes[i++] & 0xff);
                 s2 += s1 += x;
             }
             s1 = (s1 & 0xffff) + (s1 >>> 16);
             s2 = (s2 & 0xffff) + (s2 >>> 16);
         }
-        if (i < length) {
+        if ((length & 1) != 0) {
             // odd length: append 0
             int x = (bytes[i] & 0xff) << 8;
             s2 += s1 += x;
@@ -803,41 +981,14 @@ public final class DataUtils {
         if (m != null && m.endsWith("]")) {
             int dash = m.lastIndexOf('/');
             if (dash >= 0) {
-                String s = m.substring(dash + 1, m.length() - 1);
                 try {
-                    return Integer.parseInt(s);
+                    return StringUtils.parseUInt31(m, dash + 1, m.length() - 1);
                 } catch (NumberFormatException e) {
                     // no error code
                 }
             }
         }
         return 0;
-    }
-
-    /**
-     * Create an array of bytes with the given size. If this is not possible
-     * because not enough memory is available, an OutOfMemoryError with the
-     * requested size in the message is thrown.
-     * <p>
-     * This method should be used if the size of the array is user defined, or
-     * stored in a file, so wrong size data can be distinguished from regular
-     * out-of-memory.
-     *
-     * @param len the number of bytes requested
-     * @return the byte array
-     * @throws OutOfMemoryError if the allocation was too large
-     */
-    public static byte[] newBytes(int len) {
-        if (len == 0) {
-            return EMPTY_BYTES;
-        }
-        try {
-            return new byte[len];
-        } catch (OutOfMemoryError e) {
-            Error e2 = new OutOfMemoryError("Requested memory: " + len);
-            e2.initCause(e);
-            throw e2;
-        }
     }
 
     /**
@@ -849,8 +1000,7 @@ public final class DataUtils {
      * @return the parsed value
      * @throws IllegalStateException if parsing fails
      */
-    public static long readHexLong(Map<String, ? extends Object> map,
-            String key, long defaultValue) {
+    public static long readHexLong(Map<String, ?> map, String key, long defaultValue) {
         Object v = map.get(key);
         if (v == null) {
             return defaultValue;
@@ -914,8 +1064,7 @@ public final class DataUtils {
      * @return the parsed value
      * @throws IllegalStateException if parsing fails
      */
-    public static int readHexInt(HashMap<String, ? extends Object> map,
-            String key, int defaultValue) {
+    public static int readHexInt(Map<String, ?> map, String key, int defaultValue) {
         Object v = map.get(key);
         if (v == null) {
             return defaultValue;
@@ -932,37 +1081,25 @@ public final class DataUtils {
     }
 
     /**
-     * An entry of a map.
+     * Get the configuration parameter value, or default.
      *
-     * @param <K> the key type
-     * @param <V> the value type
+     * @param config the configuration
+     * @param key the key
+     * @param defaultValue the default
+     * @return the configured value or default
      */
-    public static final class MapEntry<K, V> implements Map.Entry<K, V> {
-
-        private final K key;
-        private final V value;
-
-        public MapEntry(K key, V value) {
-            this.key = key;
-            this.value = value;
+    public static int getConfigParam(Map<String, ?> config, String key, int defaultValue) {
+        Object o = config.get(key);
+        if (o instanceof Number) {
+            return ((Number) o).intValue();
+        } else if (o != null) {
+            try {
+                return Integer.decode(o.toString());
+            } catch (NumberFormatException e) {
+                // ignore
+            }
         }
-
-        @Override
-        public K getKey() {
-            return key;
-        }
-
-        @Override
-        public V getValue() {
-            return value;
-        }
-
-        @Override
-        public V setValue(V value) {
-            throw DataUtils.newUnsupportedOperationException(
-                    "Updating the value is not supported");
-        }
-
+        return defaultValue;
     }
 
 }

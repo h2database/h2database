@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.synth.sql;
@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import org.h2.test.TestBase;
-import org.h2.util.New;
 
 /**
  * Represents an in-memory result.
@@ -59,8 +58,8 @@ class Result implements Comparable<Result> {
         this.sql = sql;
         type = RESULT_SET;
         try {
-            rows = New.arrayList();
-            header = New.arrayList();
+            rows = new ArrayList<>();
+            header = new ArrayList<>();
             ResultSetMetaData meta = rs.getMetaData();
             int len = meta.getColumnCount();
             Column[] cols = new Column[len];

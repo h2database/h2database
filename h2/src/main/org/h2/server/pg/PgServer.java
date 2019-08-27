@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.server.pg;
@@ -15,6 +15,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -24,7 +25,7 @@ import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.server.Service;
 import org.h2.util.NetUtils;
-import org.h2.util.New;
+import org.h2.util.NetUtils2;
 import org.h2.util.Tool;
 
 /**
@@ -66,7 +67,7 @@ public class PgServer implements Service {
     public static final int PG_TYPE_TIMESTAMP_NO_TMZONE = 1114;
     public static final int PG_TYPE_NUMERIC = 1700;
 
-    private final HashSet<Integer> typeSet = New.hashSet();
+    private final HashSet<Integer> typeSet = new HashSet<>();
 
     private int port = PgServer.DEFAULT_PORT;
     private boolean portIsSet;
@@ -79,7 +80,7 @@ public class PgServer implements Service {
     private String baseDir;
     private boolean allowOthers;
     private boolean isDaemon;
-    private boolean ifExists;
+    private boolean ifExists = true;
     private String key, keyDatabase;
 
     @Override
@@ -100,6 +101,8 @@ public class PgServer implements Service {
                 isDaemon = true;
             } else if (Tool.isOption(a, "-ifExists")) {
                 ifExists = true;
+            } else if (Tool.isOption(a, "-ifNotExists")) {
+                ifExists = false;
             } else if (Tool.isOption(a, "-key")) {
                 key = args[++i];
                 keyDatabase = args[++i];
@@ -192,10 +195,12 @@ public class PgServer implements Service {
                     trace("Connection not allowed");
                     s.close();
                 } else {
+                    NetUtils2.setTcpQuickack(s, true);
                     PgServerThread c = new PgServerThread(s, this);
                     running.add(c);
-                    c.setProcessId(pid.incrementAndGet());
-                    Thread thread = new Thread(c, threadName+" thread");
+                    int id = pid.incrementAndGet();
+                    c.setProcessId(id);
+                    Thread thread = new Thread(c, threadName + " thread-" + id);
                     thread.setDaemon(isDaemon);
                     c.setThread(thread);
                     thread.start();
@@ -224,7 +229,7 @@ public class PgServer implements Service {
             }
         }
         // TODO server: using a boolean 'now' argument? a timeout?
-        for (PgServerThread c : New.arrayList(running)) {
+        for (PgServerThread c : new ArrayList<>(running)) {
             c.close();
             try {
                 Thread t = c.getThread();
@@ -262,7 +267,7 @@ public class PgServer implements Service {
      * @return the thread
      */
     PgServerThread getThread(int processId) {
-        for (PgServerThread c : New.arrayList(running)) {
+        for (PgServerThread c : new ArrayList<>(running)) {
             if (c.getProcessId() == processId) {
                 return c;
             }
@@ -308,7 +313,7 @@ public class PgServer implements Service {
     @SuppressWarnings("unused")
     public static String getIndexColumn(Connection conn, int indexId,
             Integer ordinalPosition, Boolean pretty) throws SQLException {
-        if (ordinalPosition == null || ordinalPosition.intValue() == 0) {
+        if (ordinalPosition == null || ordinalPosition == 0) {
             PreparedStatement prep = conn.prepareStatement(
                     "select sql from information_schema.indexes where id=?");
             prep.setInt(1, indexId);
@@ -322,25 +327,12 @@ public class PgServer implements Service {
                 "select column_name from information_schema.indexes " +
                 "where id=? and ordinal_position=?");
         prep.setInt(1, indexId);
-        prep.setInt(2, ordinalPosition.intValue());
+        prep.setInt(2, ordinalPosition);
         ResultSet rs = prep.executeQuery();
         if (rs.next()) {
             return rs.getString(1);
         }
         return "";
-    }
-
-    /**
-     * Get the name of the current schema.
-     * This method is called by the database.
-     *
-     * @param conn the connection
-     * @return the schema name
-     */
-    public static String getCurrentSchema(Connection conn) throws SQLException {
-        ResultSet rs = conn.createStatement().executeQuery("call schema()");
-        rs.next();
-        return rs.getString(1);
     }
 
     /**
@@ -392,7 +384,7 @@ public class PgServer implements Service {
      * @return the server name and version
      */
     public static String getVersion() {
-        return "PostgreSQL 8.1.4  server protocol using H2 " +
+        return "PostgreSQL " + Constants.PG_VERSION + " server protocol using H2 " +
                 Constants.getFullVersion();
     }
 

@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.tools;
@@ -25,8 +25,9 @@ import org.h2.compress.LZFInputStream;
 import org.h2.compress.LZFOutputStream;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
-import org.h2.mvstore.DataUtils;
+import org.h2.util.Bits;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * A tool to losslessly compress data, and expand the compressed data again.
@@ -43,10 +44,10 @@ public class CompressTool {
 
     private byte[] getBuffer(int min) {
         if (min > MAX_BUFFER_SIZE) {
-            return DataUtils.newBytes(min);
+            return Utils.newBytes(min);
         }
         if (cachedBuffer == null || cachedBuffer.length < min) {
-            cachedBuffer = DataUtils.newBytes(min);
+            cachedBuffer = Utils.newBytes(min);
         }
         return cachedBuffer;
     }
@@ -78,9 +79,7 @@ public class CompressTool {
         Compressor compress = getCompressor(algorithm);
         byte[] buff = getBuffer((len < 100 ? len + 100 : len) * 2);
         int newLen = compress(in, in.length, compress, buff);
-        byte[] out = DataUtils.newBytes(newLen);
-        System.arraycopy(buff, 0, out, 0, newLen);
-        return out;
+        return Utils.copyBytes(buff, newLen);
     }
 
     private static int compress(byte[] in, int len, Compressor compress,
@@ -109,7 +108,7 @@ public class CompressTool {
         try {
             int len = readVariableInt(in, 1);
             int start = 1 + getVariableIntLength(len);
-            byte[] buff = DataUtils.newBytes(len);
+            byte[] buff = Utils.newBytes(len);
             compress.expand(in, start, in.length - start, buff, 0, len);
             return buff;
         } catch (Exception e) {
@@ -158,10 +157,7 @@ public class CompressTool {
                     ((buff[pos++] & 0xff) << 8) +
                     (buff[pos] & 0xff);
         }
-        return ((buff[pos++] & 0xff) << 24) +
-                ((buff[pos++] & 0xff) << 16) +
-                ((buff[pos++] & 0xff) << 8) +
-                (buff[pos] & 0xff);
+        return Bits.readInt(buff, pos);
     }
 
     /**
@@ -176,10 +172,7 @@ public class CompressTool {
     public static int writeVariableInt(byte[] buff, int pos, int x) {
         if (x < 0) {
             buff[pos++] = (byte) 0xf0;
-            buff[pos++] = (byte) (x >> 24);
-            buff[pos++] = (byte) (x >> 16);
-            buff[pos++] = (byte) (x >> 8);
-            buff[pos] = (byte) x;
+            Bits.writeInt(buff, pos, x);
             return 5;
         } else if (x < 0x80) {
             buff[pos] = (byte) x;
@@ -188,23 +181,17 @@ public class CompressTool {
             buff[pos++] = (byte) (0x80 | (x >> 8));
             buff[pos] = (byte) x;
             return 2;
-        } else if (x < 0x200000) {
+        } else if (x < 0x20_0000) {
             buff[pos++] = (byte) (0xc0 | (x >> 16));
             buff[pos++] = (byte) (x >> 8);
             buff[pos] = (byte) x;
             return 3;
-        } else if (x < 0x10000000) {
-            buff[pos++] = (byte) (0xe0 | (x >> 24));
-            buff[pos++] = (byte) (x >> 16);
-            buff[pos++] = (byte) (x >> 8);
-            buff[pos] = (byte) x;
+        } else if (x < 0x1000_0000) {
+            Bits.writeInt(buff, pos, x | 0xe000_0000);
             return 4;
         } else {
             buff[pos++] = (byte) 0xf0;
-            buff[pos++] = (byte) (x >> 24);
-            buff[pos++] = (byte) (x >> 16);
-            buff[pos++] = (byte) (x >> 8);
-            buff[pos] = (byte) x;
+            Bits.writeInt(buff, pos, x);
             return 5;
         }
     }
@@ -223,9 +210,9 @@ public class CompressTool {
             return 1;
         } else if (x < 0x4000) {
             return 2;
-        } else if (x < 0x200000) {
+        } else if (x < 0x20_0000) {
             return 3;
-        } else if (x < 0x10000000) {
+        } else if (x < 0x1000_0000) {
             return 4;
         } else {
             return 5;
@@ -277,7 +264,7 @@ public class CompressTool {
         default:
             throw DbException.get(
                     ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1,
-                    "" + algorithm);
+                    Integer.toString(algorithm));
         }
     }
 

@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.build.doc;
@@ -41,21 +41,32 @@ public class GenerateHelp {
             for (int i = 0; i < columnCount; i++) {
                 String s = rs.getString(1 + i);
                 if (i == 3) {
-                    int dot = s.indexOf('.');
-                    if (dot >= 0) {
-                        s = s.substring(0, dot + 1);
+                    int len = s.length();
+                    int end = 0;
+                    for (; end < len; end++) {
+                        char ch = s.charAt(end);
+                        if (ch == '.') {
+                            end++;
+                            break;
+                        }
+                        if (ch == '"') {
+                            do {
+                                end++;
+                            } while (end < len && s.charAt(end) != '"');
+                        }
                     }
+                    s = s.substring(0, end);
                 }
                 row[i] = s;
             }
             rs2.addRow(row);
         }
         BufferedWriter writer = new BufferedWriter(new FileWriter(out));
-        writer.write("# Copyright 2004-2014 H2 Group. " +
+        writer.write("# Copyright 2004-2019 H2 Group. " +
                 "Multiple-Licensed under the MPL 2.0,\n" +
                 "# and the EPL 1.0 " +
-                "(http://h2database.com/html/license.html).\n" +
-                "# Initial Developer: H2 Group)\n");
+                "(https://h2database.com/html/license.html).\n" +
+                "# Initial Developer: H2 Group\n");
         csv = new Csv();
         csv.setLineSeparator("\n");
         csv.write(writer, rs2);

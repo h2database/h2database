@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.db;
@@ -17,6 +17,7 @@ import org.h2.api.Trigger;
 import org.h2.engine.Session;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestBase;
+import org.h2.test.TestDb;
 import org.h2.tools.TriggerAdapter;
 import org.h2.util.Task;
 import org.h2.value.ValueLong;
@@ -24,7 +25,7 @@ import org.h2.value.ValueLong;
 /**
  * Tests for trigger and constraints.
  */
-public class TestTriggersConstraints extends TestBase implements Trigger {
+public class TestTriggersConstraints extends TestDb implements Trigger {
 
     private static boolean mustNotCallTrigger;
     private String triggerName;
@@ -50,6 +51,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         testTriggerBeforeSelect();
         testTriggerAlterTable();
         testTriggerAsSource();
+        testTriggerAsJavascript();
         testTriggers();
         testConstraints();
         testCheckConstraintErrorMessage();
@@ -95,7 +97,11 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
             stat.execute("update test2 set id = 3");
             task.get();
         } catch (SQLException e) {
-            assertEquals(ErrorCode.LOCK_TIMEOUT_1, e.getErrorCode());
+            int errorCode = e.getErrorCode();
+            assertTrue(String.valueOf(errorCode),
+                        ErrorCode.LOCK_TIMEOUT_1 == errorCode ||
+                        ErrorCode.DEADLOCK_1 == errorCode ||
+                        ErrorCode.COMMIT_ROLLBACK_NOT_ALLOWED == errorCode);
         }
         conn2.rollback();
         conn.rollback();
@@ -106,7 +112,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
     }
 
     private void testDeleteInTrigger() throws SQLException {
-        if (config.mvcc || config.mvStore) {
+        if (config.mvStore) {
             return;
         }
         Connection conn;
@@ -116,9 +122,8 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         stat.execute("create table test(id int) as select 1");
         stat.execute("create trigger test_u before update on test " +
                 "for each row call \"" + DeleteTrigger.class.getName() + "\"");
-        // this threw a NullPointerException
-        assertThrows(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, stat).
-                execute("update test set id = 2");
+        // this used to throw a NullPointerException before we fixed it
+        stat.execute("update test set id = 2");
         stat.execute("drop table test");
         conn.close();
     }
@@ -163,14 +168,9 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         stat = conn.createStatement();
         stat.execute("drop table if exists test");
         stat.execute("create table test(id int)");
-        try {
-            stat.execute("create trigger test_insert before select on test " +
+        assertThrows(ErrorCode.TRIGGER_SELECT_AND_ROW_BASED_NOT_SUPPORTED, stat)
+                .execute("create trigger test_insert before select on test " +
                     "for each row call \"" + TestTriggerAdapter.class.getName() + "\"");
-            fail();
-        } catch (SQLException ex) {
-            assertEquals(ErrorCode.TRIGGER_SELECT_AND_ROW_BASED_NOT_SUPPORTED,
-                    ex.getErrorCode());
-        }
         conn.close();
     }
 
@@ -230,7 +230,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         assertEquals(1, count);
 
         ResultSet gkRs;
-        gkRs = pstat.getGeneratedKeys();
+        gkRs = stat.executeQuery("select scope_identity()");
 
         assertTrue(gkRs.next());
         assertEquals(1, gkRs.getInt(1));
@@ -471,15 +471,20 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
 
     private void testTriggerAlterTable() throws SQLException {
         deleteDb("trigger");
-        testTrigger(false);
+        testTrigger(null);
     }
 
     private void testTriggerAsSource() throws SQLException {
         deleteDb("trigger");
-        testTrigger(true);
+        testTrigger("java");
     }
 
-    private void testTrigger(final boolean asSource) throws SQLException {
+    private void testTriggerAsJavascript() throws SQLException {
+        deleteDb("trigger");
+        testTrigger("javascript");
+    }
+
+    private void testTrigger(final String sourceLang) throws SQLException {
         final String callSeq = "call seq.nextval";
         Connection conn = getConnection("trigger");
         Statement stat = conn.createStatement();
@@ -490,12 +495,19 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         conn.setAutoCommit(false);
         Trigger t = new org.h2.test.db.TestTriggersConstraints.TestTriggerAlterTable();
         t.close();
-        if (asSource) {
+        if ("java".equals(sourceLang)) {
             String triggerClassName = this.getClass().getName() + "."
                     + TestTriggerAlterTable.class.getSimpleName();
             stat.execute("create trigger test_upd before insert on test "
                     + "as $$org.h2.api.Trigger create() " + "{ return new "
                     + triggerClassName + "(); } $$");
+        } else if ("javascript".equals(sourceLang)) {
+            String triggerClassName = this.getClass().getName() + "."
+                    + TestTriggerAlterTable.class.getSimpleName();
+            final String body = "//javascript\n"
+                    + "new Packages." + triggerClassName + "();";
+            stat.execute("create trigger test_upd before insert on test as $$"
+                    + body + " $$");
         } else {
             stat.execute("create trigger test_upd before insert on test call \""
                     + TestTriggerAlterTable.class.getName() + "\"");
@@ -579,8 +591,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         assertSingleValue(stat, "select count(*) from test1", 3);
         assertSingleValue(stat, "select count(*) from test2", 1);
 
-        stat.execute("drop table test1");
-        stat.execute("drop table test2");
+        stat.execute("drop table test1, test2");
         conn.close();
     }
 
@@ -612,17 +623,17 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         ResultSet rs;
         rs = stat.executeQuery("SCRIPT");
         checkRows(rs, new String[] {
-                "CREATE FORCE TRIGGER PUBLIC.INS_BEFORE " +
-                    "BEFORE INSERT ON PUBLIC.TEST " +
+                "CREATE FORCE TRIGGER \"PUBLIC\".\"INS_BEFORE\" " +
+                    "BEFORE INSERT ON \"PUBLIC\".\"TEST\" " +
                     "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\";",
-                "CREATE FORCE TRIGGER PUBLIC.INS_AFTER " +
-                    "AFTER INSERT ON PUBLIC.TEST " +
+                "CREATE FORCE TRIGGER \"PUBLIC\".\"INS_AFTER\" " +
+                    "AFTER INSERT ON \"PUBLIC\".\"TEST\" " +
                     "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\";",
-                "CREATE FORCE TRIGGER PUBLIC.UPD_BEFORE " +
-                    "BEFORE UPDATE ON PUBLIC.TEST " +
+                "CREATE FORCE TRIGGER \"PUBLIC\".\"UPD_BEFORE\" " +
+                    "BEFORE UPDATE ON \"PUBLIC\".\"TEST\" " +
                     "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\";",
-                "CREATE FORCE TRIGGER PUBLIC.INS_AFTER_ROLLBACK " +
-                    "AFTER INSERT, ROLLBACK ON PUBLIC.TEST " +
+                "CREATE FORCE TRIGGER \"PUBLIC\".\"INS_AFTER_ROLLBACK\" " +
+                    "AFTER INSERT, ROLLBACK ON \"PUBLIC\".\"TEST\" " +
                     "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\";",
                         });
         while (rs.next()) {

@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.store;
@@ -54,24 +54,24 @@ public class TestDataUtils extends TestBase {
     private void testFletcher() {
         byte[] data = new byte[10000];
         for (int i = 0; i < 10000; i += 1000) {
-            assertEquals(-1, DataUtils.getFletcher32(data, i));
+            assertEquals(-1, DataUtils.getFletcher32(data, 0, i));
         }
         Arrays.fill(data, (byte) 255);
         for (int i = 0; i < 10000; i += 1000) {
-            assertEquals(-1, DataUtils.getFletcher32(data, i));
+            assertEquals(-1, DataUtils.getFletcher32(data, 0, i));
         }
         for (int i = 0; i < 1000; i++) {
             for (int j = 0; j < 255; j++) {
                 Arrays.fill(data, 0, i, (byte) j);
                 data[i] = 0;
-                int a = DataUtils.getFletcher32(data, i);
+                int a = DataUtils.getFletcher32(data, 0, i);
                 if (i % 2 == 1) {
                     // add length: same as appending a 0
-                    int b = DataUtils.getFletcher32(data, i + 1);
+                    int b = DataUtils.getFletcher32(data, 0, i + 1);
                     assertEquals(a, b);
                 }
                 data[i] = 10;
-                int c = DataUtils.getFletcher32(data, i);
+                int c = DataUtils.getFletcher32(data, 0, i);
                 assertEquals(a, c);
             }
         }
@@ -79,16 +79,18 @@ public class TestDataUtils extends TestBase {
         for (int i = 1; i < 255; i++) {
             Arrays.fill(data, (byte) i);
             for (int j = 0; j < 10; j += 2) {
-                int x = DataUtils.getFletcher32(data, j);
+                int x = DataUtils.getFletcher32(data, 0, j);
                 assertTrue(x != last);
                 last = x;
             }
         }
         Arrays.fill(data, (byte) 10);
         assertEquals(0x1e1e1414,
-                DataUtils.getFletcher32(data, 10000));
+                DataUtils.getFletcher32(data, 0, 10000));
         assertEquals(0x1e3fa7ed,
-                DataUtils.getFletcher32("Fletcher32".getBytes(), 10));
+                DataUtils.getFletcher32("Fletcher32".getBytes(), 0, 10));
+        assertEquals(0x1e3fa7ed,
+                DataUtils.getFletcher32("XFletcher32".getBytes(), 1, 10));
     }
 
     private void testMap() {
@@ -99,16 +101,34 @@ public class TestDataUtils extends TestBase {
         DataUtils.appendMap(buff,  "c", "1,2");
         DataUtils.appendMap(buff,  "d", "\"test\"");
         DataUtils.appendMap(buff,  "e", "}");
-        assertEquals(":,a:1,b:\",\",c:\"1,2\",d:\"\\\"test\\\"\",e:}", buff.toString());
+        DataUtils.appendMap(buff,  "name", "1:1\",");
+        String encoded = buff.toString();
+        assertEquals(":,a:1,b:\",\",c:\"1,2\",d:\"\\\"test\\\"\",e:},name:\"1:1\\\",\"", encoded);
 
-        HashMap<String, String> m = DataUtils.parseMap(buff.toString());
-        assertEquals(6, m.size());
+        HashMap<String, String> m = DataUtils.parseMap(encoded);
+        assertEquals(7, m.size());
         assertEquals("", m.get(""));
         assertEquals("1", m.get("a"));
         assertEquals(",", m.get("b"));
         assertEquals("1,2", m.get("c"));
         assertEquals("\"test\"", m.get("d"));
         assertEquals("}", m.get("e"));
+        assertEquals("1:1\",", m.get("name"));
+        assertEquals("1:1\",", DataUtils.getMapName(encoded));
+
+        buff.setLength(0);
+        DataUtils.appendMap(buff,  "1", "1");
+        DataUtils.appendMap(buff,  "name", "2");
+        DataUtils.appendMap(buff,  "3", "3");
+        encoded = buff.toString();
+        assertEquals("2", DataUtils.parseMap(encoded).get("name"));
+        assertEquals("2", DataUtils.getMapName(encoded));
+
+        buff.setLength(0);
+        DataUtils.appendMap(buff,  "name", "xx");
+        encoded = buff.toString();
+        assertEquals("xx", DataUtils.parseMap(encoded).get("name"));
+        assertEquals("xx", DataUtils.getMapName(encoded));
     }
 
     private void testMapRandomized() {
@@ -121,7 +141,7 @@ public class TestDataUtils extends TestBase {
             }
             try {
                 HashMap<String, String> map = DataUtils.parseMap(buff.toString());
-                assertFalse(map == null);
+                assertNotNull(map);
                 // ok
             } catch (IllegalStateException e) {
                 // ok - but not another exception

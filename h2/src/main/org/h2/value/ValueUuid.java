@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.value;
@@ -11,7 +11,7 @@ import java.util.UUID;
 
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
-import org.h2.util.Utils;
+import org.h2.util.Bits;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 
@@ -23,13 +23,13 @@ public class ValueUuid extends Value {
     /**
      * The precision of this value in number of bytes.
      */
-    private static final int PRECISION = 16;
+    static final int PRECISION = 16;
 
     /**
      * The display size of the textual representation of a UUID.
      * Example: cd38d882-7ada-4589-b5fb-7da0ca559d9a
      */
-    private static final int DISPLAY_SIZE = 36;
+    static final int DISPLAY_SIZE = 36;
 
     private final long high, low;
 
@@ -54,7 +54,7 @@ public class ValueUuid extends Value {
         // version 4 (random)
         high = (high & (~0xf000L)) | 0x4000L;
         // variant (Leach-Salz)
-        low = (low & 0x3fffffffffffffffL) | 0x8000000000000000L;
+        low = (low & 0x3fff_ffff_ffff_ffffL) | 0x8000_0000_0000_0000L;
         return new ValueUuid(high, low);
     }
 
@@ -68,8 +68,8 @@ public class ValueUuid extends Value {
         if (binary.length < 16) {
             return get(StringUtils.convertBytesToHex(binary));
         }
-        long high = Utils.readLong(binary, 0);
-        long low = Utils.readLong(binary, 8);
+        long high = Bits.readLong(binary, 0);
+        long low = Bits.readLong(binary, 8);
         return (ValueUuid) Value.cache(new ValueUuid(high, low));
     }
 
@@ -82,6 +82,16 @@ public class ValueUuid extends Value {
      */
     public static ValueUuid get(long high, long low) {
         return (ValueUuid) Value.cache(new ValueUuid(high, low));
+    }
+
+    /**
+     * Get or create a UUID for the given Java UUID.
+     *
+     * @param uuid Java UUID
+     * @return the UUID
+     */
+    public static ValueUuid get(UUID uuid) {
+        return get(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits());
     }
 
     /**
@@ -116,57 +126,69 @@ public class ValueUuid extends Value {
     }
 
     @Override
-    public String getSQL() {
-        return StringUtils.quoteStringSQL(getString());
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append('\'');
+        return addString(builder).append('\'');
     }
 
     @Override
-    public int getType() {
-        return Value.UUID;
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_UUID;
     }
 
     @Override
-    public long getPrecision() {
-        return PRECISION;
+    public int getMemory() {
+        return 32;
     }
 
-    private static void appendHex(StringBuilder buff, long x, int bytes) {
-        for (int i = bytes * 8 - 4; i >= 0; i -= 8) {
-            buff.append(Integer.toHexString((int) (x >> i) & 0xf)).
-                append(Integer.toHexString((int) (x >> (i - 4)) & 0xf));
-        }
+    @Override
+    public int getValueType() {
+        return UUID;
     }
 
     @Override
     public String getString() {
-        StringBuilder buff = new StringBuilder(36);
-        appendHex(buff, high >> 32, 4);
-        buff.append('-');
-        appendHex(buff, high >> 16, 2);
-        buff.append('-');
-        appendHex(buff, high, 2);
-        buff.append('-');
-        appendHex(buff, low >> 48, 2);
-        buff.append('-');
-        appendHex(buff, low, 6);
-        return buff.toString();
+        return addString(new StringBuilder(36)).toString();
+    }
+
+    private StringBuilder addString(StringBuilder builder) {
+        StringUtils.appendHex(builder, high >> 32, 4).append('-');
+        StringUtils.appendHex(builder, high >> 16, 2).append('-');
+        StringUtils.appendHex(builder, high, 2).append('-');
+        StringUtils.appendHex(builder, low >> 48, 2).append('-');
+        return StringUtils.appendHex(builder, low, 6);
     }
 
     @Override
-    protected int compareSecure(Value o, CompareMode mode) {
+    public int compareTypeSafe(Value o, CompareMode mode) {
         if (o == this) {
             return 0;
         }
         ValueUuid v = (ValueUuid) o;
-        if (high == v.high) {
-            return Long.compare(low, v.low);
+        long v1 = high, v2 = v.high;
+        if (v1 == v2) {
+            v1 = low;
+            v2 = v.low;
+            if (mode.isUuidUnsigned()) {
+                v1 += Long.MIN_VALUE;
+                v2 += Long.MIN_VALUE;
+            }
+            return Long.compare(v1, v2);
         }
-        return high > v.high ? 1 : -1;
+        if (mode.isUuidUnsigned()) {
+            v1 += Long.MIN_VALUE;
+            v2 += Long.MIN_VALUE;
+        }
+        return v1 > v2 ? 1 : -1;
     }
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof ValueUuid && compareSecure((Value) other, null) == 0;
+        if (!(other instanceof ValueUuid)) {
+            return false;
+        }
+        ValueUuid v = (ValueUuid) other;
+        return high == v.high && low == v.low;
     }
 
     @Override
@@ -176,12 +198,7 @@ public class ValueUuid extends Value {
 
     @Override
     public byte[] getBytes() {
-        byte[] buff = new byte[16];
-        for (int i = 0; i < 8; i++) {
-            buff[i] = (byte) ((high >> (8 * (7 - i))) & 255);
-            buff[8 + i] = (byte) ((low >> (8 * (7 - i))) & 255);
-        }
-        return buff;
+        return Bits.uuidToBytes(high, low);
     }
 
     @Override
@@ -206,11 +223,6 @@ public class ValueUuid extends Value {
      */
     public long getLow() {
         return low;
-    }
-
-    @Override
-    public int getDisplaySize() {
-        return DISPLAY_SIZE;
     }
 
 }

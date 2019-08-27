@@ -207,6 +207,7 @@ import org.h2.expression.condition.ConditionAndOr;
 import org.h2.expression.condition.ConditionIn;
 import org.h2.expression.condition.ConditionInParameter;
 import org.h2.expression.condition.ConditionInQuery;
+import org.h2.expression.condition.ConditionLocalAndGlobal;
 import org.h2.expression.condition.ConditionNot;
 import org.h2.expression.condition.ExistsPredicate;
 import org.h2.expression.condition.IsJsonPredicate;
@@ -2944,8 +2945,7 @@ public class Parser {
             }
         }
         if (readIf(WHERE)) {
-            Expression condition = readExpression();
-            command.addCondition(condition);
+            command.addCondition(readExpressionWithGlobalConditions());
         }
         // the group by is read for the outer select (or not a select)
         // so that columns that are not grouped can be used
@@ -2963,8 +2963,7 @@ public class Parser {
         currentSelect = command;
         if (readIf(HAVING)) {
             command.setGroupQuery();
-            Expression condition = readExpression();
-            command.setHaving(condition);
+            command.setHaving(readExpressionWithGlobalConditions());
         }
         if (readIf(WINDOW)) {
             do {
@@ -2979,8 +2978,7 @@ public class Parser {
         }
         if (readIf(QUALIFY)) {
             command.setWindowQuery();
-            Expression condition = readExpression();
-            command.setQualify(condition);
+            command.setQualify(readExpressionWithGlobalConditions());
         }
         command.setParameterList(parameters);
         currentSelect = oldSelect;
@@ -3015,16 +3013,28 @@ public class Parser {
         return readExpression();
     }
 
-    private Expression readExpression() {
-        Expression r = readAnd();
+    private Expression readExpressionWithGlobalConditions() {
+        Expression r = readCondition();
+        if (readIf("AND")) {
+            r = readAnd(new ConditionAndOr(ConditionAndOr.AND, r, readCondition()));
+        } else if (readIf("_LOCAL_AND_GLOBAL_")) {
+            r = readAnd(new ConditionLocalAndGlobal(r, readCondition()));
+        }
         while (readIf("OR")) {
-            r = new ConditionAndOr(ConditionAndOr.OR, r, readAnd());
+            r = new ConditionAndOr(ConditionAndOr.OR, r, readAnd(readCondition()));
         }
         return r;
     }
 
-    private Expression readAnd() {
-        Expression r = readCondition();
+    private Expression readExpression() {
+        Expression r = readAnd(readCondition());
+        while (readIf("OR")) {
+            r = new ConditionAndOr(ConditionAndOr.OR, r, readAnd(readCondition()));
+        }
+        return r;
+    }
+
+    private Expression readAnd(Expression r) {
         while (readIf("AND")) {
             r = new ConditionAndOr(ConditionAndOr.AND, r, readCondition());
         }

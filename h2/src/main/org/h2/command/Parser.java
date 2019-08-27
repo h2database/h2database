@@ -4861,7 +4861,7 @@ public class Parser {
         schemaName = s;
         s = readColumnIdentifier();
         if (currentTokenType == DOT) {
-            if (equalsToken(schemaName, database.getShortName())) {
+            if (equalsToken(schemaName, database.getShortName()) || database.getSettings().ignoreCatalogs) {
                 read();
                 schemaName = s;
                 s = readColumnIdentifier();

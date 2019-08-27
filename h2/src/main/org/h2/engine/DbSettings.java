@@ -334,6 +334,13 @@ public class DbSettings extends SettingsBase {
      */
     public final boolean compressData = get("COMPRESS", false);
 
+    /**
+     * Database setting <code>IGNORE_CATALOGS</code>
+     * (default: false).<br />
+     * Compress data when storing.
+     */
+    public final boolean ignoreCatalogs = get("IGNORE_CATALOGS", false);
+
     private DbSettings(HashMap<String, String> s) {
         super(s);
         if (s.get("NESTED_JOINS") != null || Utils.getProperty("h2.nestedJoins", null) != null) {

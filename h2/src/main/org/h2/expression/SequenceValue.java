@@ -17,6 +17,8 @@ import org.h2.value.Value;
 import org.h2.value.ValueDecimal;
 import org.h2.value.ValueLong;
 
+import java.math.BigDecimal;
+
 /**
  * Wraps a sequence when used in a statement.
  */

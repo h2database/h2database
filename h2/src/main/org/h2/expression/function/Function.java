@@ -38,7 +38,6 @@ import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ExpressionWithFlags;
 import org.h2.expression.Format;
-import org.h2.expression.SequenceValue;
 import org.h2.expression.Subquery;
 import org.h2.expression.TypedValueExpression;
 import org.h2.expression.ValueExpression;
@@ -1599,8 +1598,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             // system
         case NEXTVAL: {
             Sequence sequence = getSequence(session, v0, v1);
-            SequenceValue value = new SequenceValue(sequence);
-            result = value.getValue(session);
+            result = ValueLong.get(sequence.getNext(session));
+            session.setLastIdentity(result);
             break;
         }
         case CURRVAL: {

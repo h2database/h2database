@@ -28,25 +28,36 @@ public class CatalogTest {
         DeleteDbFiles.execute("~", "test", true);
 
         Class.forName("org.h2.Driver");
-        Connection conn = DriverManager.getConnection("jdbc:h2:~/test;IGNORE_CATALOGS=TRUE");
-        Statement stat = conn.createStatement();
+        try (Connection conn = DriverManager.getConnection("jdbc:h2:~/test;IGNORE_CATALOGS=TRUE")) {
+            try (Statement stat = conn.createStatement()) {
 
-        // this line would initialize the database
-        // from the SQL script file 'init.sql'
-        // stat.execute("runscript from 'init.sql'");
-        stat.execute("create schema dbo");
-        stat.execute("set schema dbo");
-        stat.execute("create table dbo.test(id int primary key, name varchar(255))");
-        stat.execute("create table catalog1.dbo.test2(id int primary key, name varchar(255))");
-        stat.execute("insert into dbo.test values(1, 'Hello')");
-        stat.execute("insert into dbo.test2 values(1, 'Hello')");
-        ResultSet rs;
-        rs = stat.executeQuery("select * from test");
-        while (rs.next()) {
-            System.out.println(rs.getString("name"));
+                stat.execute("create schema dbo");
+                stat.execute("set schema dbo");
+                stat.execute("create table dbo.test(id int primary key, name varchar(255))");
+                stat.execute("create table catalog1.dbo.test2(id int primary key, name varchar(255))");
+                stat.execute("insert into dbo.test values(1, 'Hello')");
+                stat.execute("insert into dbo.test2 values(1, 'Hello')");
+                stat.execute("set ignore_catalogs=false");
+                try {
+                    stat.execute("insert into catalog1.dbo.test2 values(2, 'Hello2')");
+                    throw new RuntimeException("expected exception because of not existing catalog name.");
+
+                } catch (Exception e) {
+                    stat.execute("set ignore_catalogs=true");
+                }
+                stat.execute("insert into catalog1.dbo.test2 values(2, 'Hello2')");
+                try (ResultSet rs = stat.executeQuery("select * from test")) {
+                    while (rs.next()) {
+                        System.out.println(rs.getString("name"));
+                    }
+                }
+                try (ResultSet rs = stat.executeQuery("select * from catalogx.dbo.test2")) {
+                    while (rs.next()) {
+                        System.out.println(rs.getString("name"));
+                    }
+                }
+            }
         }
-        stat.close();
-        conn.close();
     }
 
 }

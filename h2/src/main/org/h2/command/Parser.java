@@ -4861,7 +4861,7 @@ public class Parser {
         schemaName = s;
         s = readColumnIdentifier();
         if (currentTokenType == DOT) {
-            if (equalsToken(schemaName, database.getShortName()) || database.getSettings().ignoreCatalogs) {
+            if (equalsToken(schemaName, database.getShortName()) || database.getIgnoreCatalogs()) {
                 read();
                 schemaName = s;
                 s = readColumnIdentifier();
@@ -7290,6 +7290,13 @@ public class Parser {
         } else if (readIf("JAVA_OBJECT_SERIALIZER")) {
             readIfEqualOrTo();
             return parseSetJavaObjectSerializer();
+        } else if (readIf("IGNORE_CATALOGS")) {
+            readIfEqualOrTo();
+            // Simulate multiple catalog compatibility by just ignoring (IGNORE_CATALOGS=TRUE in the database URL)
+
+            database.setIgnoreCatalogs(readBooleanSetting());
+
+            return new NoOperation(session);
         } else {
             if (isToken("LOGSIZE")) {
                 // HSQLDB compatibility

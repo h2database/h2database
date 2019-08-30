@@ -2202,6 +2202,9 @@ public class Parser {
                     list.add(readUniqueIdentifier());
                 } else if(database.getMode().allowEmptySchemaValuesAsDefaultSchema) {
                     list.add(null);
+                } else {
+                    // produce same response in other modes
+                    list.add(readUniqueIdentifier());
                 }
             } while (readIf(DOT));
             schemaName = session.getCurrentSchemaName();

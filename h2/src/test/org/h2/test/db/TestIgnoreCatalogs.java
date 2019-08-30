@@ -28,6 +28,7 @@ public class TestIgnoreCatalogs extends TestDb {
 
     @Override
     public void test() throws Exception {
+        canCommentOn();
         canUseDefaultSchema();
         canYetIdentifyWrongCatalogName();
         canUseSettingInUrl();
@@ -66,6 +67,9 @@ public class TestIgnoreCatalogs extends TestDb {
                 stat.execute("comment on column dbo.test.id is 'id comment1'");
                 stat.execute("comment on column catalog1..test.id is 'id comment1'");
                 stat.execute("comment on column test.id is 'id comment1'");
+                assertThrows(ErrorCode.SYNTAX_ERROR_2,stat,"comment on column catalog1...test.id is 'id comment1'");
+                assertThrows(ErrorCode.SYNTAX_ERROR_2,stat,"comment on column catalog1..test..id is 'id comment1'");
+                assertThrows(ErrorCode.SYNTAX_ERROR_2,stat,"comment on column ..test..id is 'id comment1'");
             }
         } finally {
             deleteDb("ignoreCatalogs");

@@ -8,6 +8,7 @@ package org.h2.samples;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.tools.DeleteDbFiles;
@@ -42,7 +43,7 @@ public class CatalogTest {
                     stat.execute("insert into catalog1.dbo.test2 values(2, 'Hello2')");
                     throw new RuntimeException("expected exception because of not existing catalog name.");
 
-                } catch (Exception e) {
+                } catch (SQLException e) {
                     stat.execute("set ignore_catalogs=true");
                 }
                 stat.execute("insert into catalog1.dbo.test2 values(2, 'Hello2')");

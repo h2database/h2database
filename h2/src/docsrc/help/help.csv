@@ -733,9 +733,9 @@ be the resource name (for example ""java:comp/env/jdbc/Test"").
 Admin rights are required to execute this command.
 This command commits an open transaction in this connection.
 ","
-CREATE LINKED TABLE LINK('org.h2.Driver', 'jdbc:h2:test2',
+CREATE LINKED TABLE LINK('org.h2.Driver', 'jdbc:h2:./test2',
     'sa', 'sa', 'TEST');
-CREATE LINKED TABLE LINK('', 'jdbc:h2:test2', 'sa', 'sa',
+CREATE LINKED TABLE LINK('', 'jdbc:h2:./test2', 'sa', 'sa',
     '(SELECT * FROM TEST WHERE ID>0)');
 CREATE LINKED TABLE LINK('javax.naming.InitialContext',
     'java:comp/env/jdbc/Test', NULL, NULL,
@@ -1241,7 +1241,7 @@ See also CREATE CONSTANT.
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.
 This setting is persistent.
-This setting can be appended to the database URL: ""jdbc:h2:test;ALLOW_LITERALS=NONE""
+This setting can be appended to the database URL: ""jdbc:h2:./test;ALLOW_LITERALS=NONE""
 ","
 SET ALLOW_LITERALS NONE
 "
@@ -1250,7 +1250,7 @@ SET ALLOW_LITERALS NONE
 SET AUTOCOMMIT { TRUE | ON | FALSE | OFF }
 ","
 Switches auto commit on or off.
-This setting can be appended to the database URL: ""jdbc:h2:test;AUTOCOMMIT=OFF"" -
+This setting can be appended to the database URL: ""jdbc:h2:./test;AUTOCOMMIT=OFF"" -
 however this will not work as expected when using a connection pool
 (the connection pool manager will re-enable autocommit when returning
 the connection to the pool, so autocommit will only be disabled the first
@@ -1276,7 +1276,7 @@ It has no effect for in-memory databases.
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.
 This setting is persistent.
-This setting can be appended to the database URL: ""jdbc:h2:test;CACHE_SIZE=8192""
+This setting can be appended to the database URL: ""jdbc:h2:./test;CACHE_SIZE=8192""
 ","
 SET CACHE_SIZE 8192
 "
@@ -1362,7 +1362,7 @@ strings according to the binary representation in the given charset.
 Admin rights are required to execute this command.
 This command commits an open transaction in this connection.
 This setting is persistent.
-This setting can be appended to the database URL: ""jdbc:h2:test;COLLATION='ENGLISH'""
+This setting can be appended to the database URL: ""jdbc:h2:./test;COLLATION='ENGLISH'""
 ","
 SET COLLATION ENGLISH
 SET COLLATION CHARSET_CP500
@@ -1393,7 +1393,7 @@ used. This setting is not persistent.
 
 Admin rights are required to execute this command, except if it is set when
 opening the database (in this case it is reset just after opening the database).
-This setting can be appended to the database URL: ""jdbc:h2:test;DATABASE_EVENT_LISTENER='sample.MyListener'""
+This setting can be appended to the database URL: ""jdbc:h2:./test;DATABASE_EVENT_LISTENER='sample.MyListener'""
 ","
 SET DATABASE_EVENT_LISTENER 'sample.MyListener'
 "
@@ -1411,7 +1411,7 @@ If the application exits normally or System.exit is called, the database is clos
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.
 This setting is persistent.
-This setting can be appended to the database URL: ""jdbc:h2:test;DB_CLOSE_DELAY=-1""
+This setting can be appended to the database URL: ""jdbc:h2:./test;DB_CLOSE_DELAY=-1""
 ","
 SET DB_CLOSE_DELAY -1
 "
@@ -1477,7 +1477,7 @@ String literals and parameters are however still considered case sensitive even 
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.
 This setting is persistent.
-This setting can be appended to the database URL: ""jdbc:h2:test;IGNORECASE=TRUE""
+This setting can be appended to the database URL: ""jdbc:h2:./test;IGNORECASE=TRUE""
 ","
 SET IGNORECASE TRUE
 "
@@ -1496,7 +1496,7 @@ This command can only be executed if there are no tables defined.
 Admin rights are required to execute this command.
 This command commits an open transaction in this connection.
 This setting is persistent.
-This setting can be appended to the database URL: ""jdbc:h2:test;JAVA_OBJECT_SERIALIZER='com.acme.SerializerClassName'""
+This setting can be appended to the database URL: ""jdbc:h2:./test;JAVA_OBJECT_SERIALIZER='com.acme.SerializerClassName'""
 ","
 SET JAVA_OBJECT_SERIALIZER 'com.acme.SerializerClassName'
 "
@@ -1511,7 +1511,7 @@ If true, then large results are retrieved in chunks.
 Note that not all queries support this feature, queries which do not are processed normally.
 
 This command does not commit a transaction, and rollback does not affect it.
-This setting can be appended to the database URL: ""jdbc:h2:test;LAZY_QUERY_EXECUTION=1""
+This setting can be appended to the database URL: ""jdbc:h2:./test;LAZY_QUERY_EXECUTION=1""
 ","
 SET LAZY_QUERY_EXECUTION 1
 "
@@ -1538,7 +1538,7 @@ file system, this will also protect against power failure in the majority if cas
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.
 This setting is not persistent.
-This setting can be appended to the database URL: ""jdbc:h2:test;LOG=0""
+This setting can be appended to the database URL: ""jdbc:h2:./test;LOG=0""
 ","
 SET LOG 1
 "
@@ -1564,7 +1564,7 @@ The value 3 means table level locking, but read locks are released immediately
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.
 This setting is persistent.
-This setting can be appended to the database URL: ""jdbc:h2:test;LOCK_MODE=3""
+This setting can be appended to the database URL: ""jdbc:h2:./test;LOCK_MODE=3""
 ","
 SET LOCK_MODE 1
 "
@@ -1576,7 +1576,7 @@ Sets the lock timeout (in milliseconds) for the current session. The default
 value for this setting is 1000 (one second).
 
 This command does not commit a transaction, and rollback does not affect it.
-This setting can be appended to the database URL: ""jdbc:h2:test;LOCK_TIMEOUT=10000""
+This setting can be appended to the database URL: ""jdbc:h2:./test;LOCK_TIMEOUT=10000""
 ","
 SET LOCK_TIMEOUT 1000
 "
@@ -1654,7 +1654,7 @@ operation. The default max size is 100000. 0 means no limit.
 This setting is not persistent.
 Admin rights are required to execute this command, as it affects all connections.
 It has no effect for in-memory databases.
-This setting can be appended to the database URL: ""jdbc:h2:test;MAX_OPERATION_MEMORY=10000""
+This setting can be appended to the database URL: ""jdbc:h2:./test;MAX_OPERATION_MEMORY=10000""
 ","
 SET MAX_OPERATION_MEMORY 0
 "
@@ -1668,7 +1668,7 @@ Modes in the feature section.
 This setting is not persistent.
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.
-This setting can be appended to the database URL: ""jdbc:h2:test;MODE=MYSQL""
+This setting can be appended to the database URL: ""jdbc:h2:./test;MODE=MYSQL""
 ","
 SET MODE HSQLDB
 "
@@ -1685,7 +1685,7 @@ This setting is not persistent, however the value is kept until the virtual mach
 
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.
-This setting can be appended to the database URL: ""jdbc:h2:test;MULTI_THREADED=1""
+This setting can be appended to the database URL: ""jdbc:h2:./test;MULTI_THREADED=1""
 ","
 SET MULTI_THREADED 1
 "
@@ -1699,7 +1699,7 @@ the tables was changed. This option is enabled by default.
 
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.
-This setting can be appended to the database URL: ""jdbc:h2:test;OPTIMIZE_REUSE_RESULTS=0""
+This setting can be appended to the database URL: ""jdbc:h2:./test;OPTIMIZE_REUSE_RESULTS=0""
 ","
 SET OPTIMIZE_REUSE_RESULTS 0
 "
@@ -1782,7 +1782,7 @@ depending on the operating system and hardware.
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.
 This setting is persistent.
-This setting can be appended to the database URL: ""jdbc:h2:test;RETENTION_TIME=0""
+This setting can be appended to the database URL: ""jdbc:h2:./test;RETENTION_TIME=0""
 ","
 SET RETENTION_TIME 0
 "
@@ -1806,7 +1806,7 @@ in statements where no schema is set explicitly. The default schema for new
 connections is PUBLIC.
 
 This command does not commit a transaction, and rollback does not affect it.
-This setting can be appended to the database URL: ""jdbc:h2:test;SCHEMA=ABC""
+This setting can be appended to the database URL: ""jdbc:h2:./test;SCHEMA=ABC""
 ","
 SET SCHEMA INFORMATION_SCHEMA
 "
@@ -1819,7 +1819,7 @@ used in statements where no schema is set explicitly. The default schema for new
 connections is PUBLIC.
 
 This command does not commit a transaction, and rollback does not affect it.
-This setting can be appended to the database URL: ""jdbc:h2:test;SCHEMA_SEARCH_PATH=ABC,DEF""
+This setting can be appended to the database URL: ""jdbc:h2:./test;SCHEMA_SEARCH_PATH=ABC,DEF""
 ","
 SET SCHEMA_SEARCH_PATH INFORMATION_SCHEMA, PUBLIC
 "
@@ -1832,7 +1832,7 @@ milliseconds delay after each 50 ms. The default value is 0 (throttling
 disabled).
 
 This command does not commit a transaction, and rollback does not affect it.
-This setting can be appended to the database URL: ""jdbc:h2:test;THROTTLE=50""
+This setting can be appended to the database URL: ""jdbc:h2:./test;THROTTLE=50""
 ","
 SET THROTTLE 200
 "
@@ -1847,7 +1847,7 @@ To use SLF4J, append "";TRACE_LEVEL_FILE=4"" to the database URL when opening th
 This setting is not persistent.
 Admin rights are required to execute this command, as it affects all connections.
 This command does not commit a transaction, and rollback does not affect it.
-This setting can be appended to the database URL: ""jdbc:h2:test;TRACE_LEVEL_SYSTEM_OUT=3""
+This setting can be appended to the database URL: ""jdbc:h2:./test;TRACE_LEVEL_SYSTEM_OUT=3""
 ","
 SET TRACE_LEVEL_SYSTEM_OUT 3
 "
@@ -1862,7 +1862,7 @@ deleted. The default max size is 16 MB.
 This setting is persistent.
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.
-This setting can be appended to the database URL: ""jdbc:h2:test;TRACE_MAX_FILE_SIZE=3""
+This setting can be appended to the database URL: ""jdbc:h2:./test;TRACE_MAX_FILE_SIZE=3""
 ","
 SET TRACE_MAX_FILE_SIZE 10
 "
@@ -1887,7 +1887,7 @@ This setting is persistent. The default is 500 ms.
 
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.
-This setting can be appended to the database URL: ""jdbc:h2:test;WRITE_DELAY=0""
+This setting can be appended to the database URL: ""jdbc:h2:./test;WRITE_DELAY=0""
 ","
 SET WRITE_DELAY 2000
 "
@@ -5240,7 +5240,7 @@ The driver name may be empty if the driver is already loaded.
 The list of tables linked is returned in the form of a result set.
 Admin rights are required to execute this command.
 ","
-CALL LINK_SCHEMA('TEST2', '', 'jdbc:h2:test2', 'sa', 'sa', 'PUBLIC');
+CALL LINK_SCHEMA('TEST2', '', 'jdbc:h2:./test2', 'sa', 'sa', 'PUBLIC');
 "
 
 "Functions (System)","MEMORY_FREE","

@@ -53,7 +53,7 @@ public class TestDataSource extends TestDb {
 //     System.setProperty(Context.PROVIDER_URL, "rmi://localhost:1099");
 //
 //     JdbcDataSource ds = new JdbcDataSource();
-//     ds.setURL("jdbc:h2:test");
+//     ds.setURL("jdbc:h2:./test");
 //     ds.setUser("test");
 //     ds.setPassword("");
 //

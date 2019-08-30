@@ -250,7 +250,7 @@ public class Mode {
     public boolean decimalSequences;
 
     /**
-     * if {@code true} constructs like create table catalog..tablename are possible if
+     * if {@code true} constructs like 'create table catalog..tablename' are possible if
      * the default-schemaname should be used.
      */
     public boolean allowEmptySchemaValuesAsDefaultSchema;

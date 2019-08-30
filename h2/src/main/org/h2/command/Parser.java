@@ -225,6 +225,7 @@ import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.table.Column;
 import org.h2.table.DataChangeDeltaTable;
+import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.FunctionTable;
 import org.h2.table.IndexColumn;
 import org.h2.table.IndexHints;
@@ -233,7 +234,6 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableFilter.TableFilterVisitor;
 import org.h2.table.TableView;
-import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.util.IntervalUtils;
 import org.h2.util.ParserUtil;
 import org.h2.util.StringUtils;
@@ -2158,7 +2158,7 @@ public class Parser {
         return ifExists;
     }
 
-    private Prepared parseComment() {
+        private Prepared parseComment() {
         int type = 0;
         read(ON);
         boolean column = false;
@@ -2198,17 +2198,24 @@ public class Parser {
             // if the db name is equal to the schema name
             ArrayList<String> list = Utils.newSmallArrayList();
             do {
-                list.add(readUniqueIdentifier());
+                if (currentTokenType == DOT) {
+                  list.add(null);
+                } else {
+                    list.add(readUniqueIdentifier());
+                }
             } while (readIf(DOT));
             schemaName = session.getCurrentSchemaName();
             if (list.size() == 4) {
-                if (!equalsToken(database.getShortName(), list.remove(0))) {
+                final String catalogname = list.remove(0);
+                if (!equalsToken(database.getShortName(), catalogname) && !database.getIgnoreCatalogs()) {
                     throw DbException.getSyntaxError(sqlCommand, parseIndex,
                             "database name");
                 }
             }
             if (list.size() == 3) {
-                schemaName = list.remove(0);
+                String tmpSchemaName = list.remove(0);
+                if (tmpSchemaName != null)
+                    schemaName = tmpSchemaName;
             }
             if (list.size() != 2) {
                 throw DbException.getSyntaxError(sqlCommand, parseIndex,
@@ -4859,12 +4866,19 @@ public class Parser {
 
     private String readIdentifierWithSchema2(String s) {
         schemaName = s;
-        s = readColumnIdentifier();
-        if (currentTokenType == DOT) {
+        if (readIf(DOT)) {
             if (equalsToken(schemaName, database.getShortName()) || database.getIgnoreCatalogs()) {
-                read();
-                schemaName = s;
+                schemaName = session.getCurrentSchemaName();
                 s = readColumnIdentifier();
+            }
+        } else {
+            s = readColumnIdentifier();
+            if(currentTokenType == DOT) {
+                if(equalsToken(schemaName, database.getShortName()) || database.getIgnoreCatalogs()) {
+                    read();
+                    schemaName = s;
+                    s = readColumnIdentifier();
+                }
             }
         }
         return s;
@@ -7293,10 +7307,10 @@ public class Parser {
         } else if (readIf("IGNORE_CATALOGS")) {
             readIfEqualOrTo();
             // Simulate multiple catalog compatibility by just ignoring (IGNORE_CATALOGS=TRUE in the database URL)
-
-            database.setIgnoreCatalogs(readBooleanSetting());
-
-            return new NoOperation(session);
+            boolean value = readBooleanSetting();
+            Set command = new Set(session, SetTypes.IGNORE_CATALOGS);
+            command.setInt(value ? 1 : 0);
+            return command;
         } else {
             if (isToken("LOGSIZE")) {
                 // HSQLDB compatibility

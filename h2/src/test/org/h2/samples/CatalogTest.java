@@ -32,6 +32,7 @@ public class CatalogTest {
         try (Connection conn = DriverManager.getConnection("jdbc:h2:~/test;IGNORE_CATALOGS=TRUE")) {
             try (Statement stat = conn.createStatement()) {
 
+                // stat.execute("set ignore_catalogs=true");
                 stat.execute("create schema dbo");
                 stat.execute("set schema dbo");
                 stat.execute("create table dbo.test(id int primary key, name varchar(255))");

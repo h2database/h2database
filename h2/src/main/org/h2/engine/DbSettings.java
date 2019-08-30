@@ -6,6 +6,7 @@
 package org.h2.engine;
 
 import java.util.HashMap;
+
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.util.Utils;
@@ -337,7 +338,7 @@ public class DbSettings extends SettingsBase {
     /**
      * Database setting <code>IGNORE_CATALOGS</code>
      * (default: false).<br />
-     * Compress data when storing.
+     * ignore Catalog-Prefix at object-Names.
      */
     public final boolean ignoreCatalogs = get("IGNORE_CATALOGS", false);
 

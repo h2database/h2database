@@ -84,9 +84,9 @@ import org.h2.util.SourceCompiler;
 import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Utils;
+import org.h2.value.CaseInsensitiveConcurrentMap;
 import org.h2.value.CaseInsensitiveMap;
 import org.h2.value.CompareMode;
-import org.h2.value.CaseInsensitiveConcurrentMap;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 
@@ -316,7 +316,8 @@ public class Database implements DataHandler {
                 TraceSystem.DEFAULT_TRACE_LEVEL_SYSTEM_OUT);
         this.cacheType = StringUtils.toUpperEnglish(
                 ci.removeProperty("CACHE_TYPE", Constants.CACHE_TYPE_DEFAULT));
-        this.ignoreCatalogs = dbSettings.ignoreCatalogs;
+        this.ignoreCatalogs = ci.getProperty("IGNORE_CATALOGS",
+                dbSettings.ignoreCatalogs ? "TRUE" : "FALSE").equals("TRUE");
         openDatabase(traceLevelFile, traceLevelSystemOut, closeAtVmShutdown, ci);
     }
 

@@ -13,6 +13,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
+
 import org.h2.Driver;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FilePathRec;
@@ -191,6 +192,7 @@ import org.h2.test.unit.TestFileLockSerialized;
 import org.h2.test.unit.TestFileSystem;
 import org.h2.test.unit.TestFtp;
 import org.h2.test.unit.TestGeometryUtils;
+import org.h2.test.unit.TestIgnoreCatalogs;
 import org.h2.test.unit.TestIntArray;
 import org.h2.test.unit.TestIntIntHashMap;
 import org.h2.test.unit.TestIntPerfectHash;
@@ -929,6 +931,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestFileLockProcess());
         addTest(new TestDefrag());
         addTest(new TestTools());
+        addTest(new TestIgnoreCatalogs());
         addTest(new TestSampleApps());
         addTest(new TestSubqueryPerformanceOnLazyExecutionMode());
 

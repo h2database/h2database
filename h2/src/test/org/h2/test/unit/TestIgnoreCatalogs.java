@@ -1,0 +1,158 @@
+package org.h2.test.unit;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+import org.h2.test.TestBase;
+import org.h2.test.TestDb;
+
+/**
+ * @author aschoerk
+ */
+public class TestIgnoreCatalogs extends TestDb {
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String... a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
+    @Override
+    public void test() throws Exception {
+        canUseDefaultSchema();
+        canYetIdentifyWrongCatalogName();
+        canUseSettingInUrl();
+        canUseSetterSyntax();
+        canCatalogNameEqualSchemaName();
+        canUseCatalogAtIndexName();
+        canCommentOn();
+        canAllCombined();
+    }
+
+    public void canCommentOn() throws Exception {
+        try (Connection conn = getConnection("jdbc:h2:mem:testdb;IGNORE_CATALOGS=TRUE;init=drop all objects\\;create schema dbo\\;set schema dbo\\;")) {
+            try (Statement stat = conn.createStatement()) {
+                stat.execute("create table catalog1.dbo.test(id int primary key, name varchar(255))");
+                stat.execute("comment on table catalog1.dbo.test is 'table comment1'");
+                stat.execute("comment on table dbo.test is 'table comment2'");
+                stat.execute("comment on table catalog1..test is 'table comment3'");
+                stat.execute("comment on table test is 'table comment4'");
+                stat.execute("comment on column catalog1.dbo.test.id is 'id comment1'");
+                stat.execute("comment on column dbo.test.id is 'id comment1'");
+                stat.execute("comment on column catalog1..test.id is 'id comment1'");
+                stat.execute("comment on column test.id is 'id comment1'");
+            }
+        }
+    }
+
+    public void canUseDefaultSchema() throws Exception {
+        try (Connection conn = getConnection("jdbc:h2:mem:testdb;IGNORE_CATALOGS=TRUE;init=drop all objects\\;create schema dbo\\;set schema dbo\\;")) {
+            try (Statement stat = conn.createStatement()) {
+                stat.execute("create table catalog1..test(id int primary key, name varchar(255))");
+
+                stat.execute("create table test2(id int primary key, name varchar(255))");
+                // expect table already exists
+                assertThrows(42101, stat, "create table catalog2.dbo.test(id int primary key, name varchar(255))");
+                stat.execute("insert into test values(1, 'Hello')");
+                stat.execute("insert into test2 values(1, 'Hello')");
+            }
+        }
+    }
+
+    public void canUseSettingInUrl() throws Exception {
+        try (Connection conn = getConnection("jdbc:h2:mem:testdb;IGNORE_CATALOGS=TRUE;init=drop all objects\\;create schema dbo\\;")) {
+            try (Statement stat = conn.createStatement()) {
+                stat.execute("create table catalog1.dbo.test(id int primary key, name varchar(255))");
+                // expect table already exists
+                assertThrows(42101, stat, "create table catalog2.dbo.test(id int primary key, name varchar(255))");
+                stat.execute("insert into dbo.test values(1, 'Hello')");
+            }
+        }
+    }
+
+    public void canUseSetterSyntax() throws Exception {
+        try (Connection conn = getConnection("jdbc:h2:mem:test2;init=drop all objects\\;create schema dbo\\;")) {
+            try (Statement stat = conn.createStatement()) {
+                stat.execute("set IGNORE_CATALOGS=TRUE");
+                stat.execute("create table catalog1.dbo.test(id int primary key, name varchar(255))");
+                // expect table already exists
+                assertThrows(42101, stat, "create table catalog2.dbo.test(id int primary key, name varchar(255))");
+                stat.execute("insert into dbo.test values(1, 'Hello')");
+            }
+        }
+    }
+
+    public void canCatalogNameEqualSchemaName() throws Exception {
+        try (Connection conn = getConnection("jdbc:h2:mem:test2;init=drop all objects\\;create schema dbo\\;")) {
+            try (Statement stat = conn.createStatement()) {
+                stat.execute("set IGNORE_CATALOGS=TRUE");
+                stat.execute("create table dbo.dbo.test(id int primary key, name varchar(255))");
+                // expect object already exists
+                assertThrows(42101, stat, "create table catalog2.dbo.test(id int primary key, name varchar(255))");
+                stat.execute("insert into dbo.test values(1, 'Hello')");
+            }
+        }
+    }
+
+    public void canYetIdentifyWrongCatalogName() throws Exception {
+        try (Connection conn = getConnection("jdbc:h2:mem:test2;init=drop all objects\\;create schema dbo\\;")) {
+            try (Statement stat = conn.createStatement()) {
+                // works, since catalog name equals databasename
+                stat.execute("create table test2.dbo.test(id int primary key, name varchar(255))");
+                // schema testx not found error
+                assertThrows(90079, stat, "create table testx.dbo.test(id int primary key, name varchar(255))");
+            }
+        }
+    }
+
+    public void canUseCatalogAtIndexName() throws Exception {
+        try (Connection conn = getConnection("jdbc:h2:mem:test2;init=drop all objects\\;create schema dbo\\;")) {
+            try (Statement stat = conn.createStatement()) {
+                stat.execute("set IGNORE_CATALOGS=TRUE");
+                stat.execute("create table dbo.dbo.test(id int primary key, name varchar(255))");
+                stat.execute("create index i on dbo.dbo.test(id,name)");
+                stat.execute("create index dbo.i2 on dbo.dbo.test(id,name)");
+                stat.execute("create index catalog.dbo.i3 on dbo.dbo.test(id,name)");
+                assertThrows(90079, stat,"create index dboNotExistent.i4 on dbo.dbo.test(id,name)");
+                // expect object already exists
+                stat.execute("insert into dbo.test values(1, 'Hello')");
+            }
+        }
+    }
+
+
+    public void canAllCombined() throws SQLException {
+        try (Connection conn = getConnection("jdbc:h2:mem:test2;IGNORE_CATALOGS=TRUE;init=drop all objects\\;create schema dbo\\;set schema dbo\\;")) {
+            try (Statement stat = conn.createStatement()) {
+                stat.execute("create table dbo.test(id int primary key, name varchar(255))");
+                stat.execute("create table catalog1.dbo.test2(id int primary key, name varchar(255))");
+                stat.execute("insert into dbo.test values(1, 'Hello')");
+                stat.execute("insert into dbo.test2 values(1, 'Hello2')");
+                stat.execute("set ignore_catalogs=false");
+                assertThrows(90079, stat, "insert into catalog1.dbo.test2 values(2, 'Hello2')");
+                stat.execute("set ignore_catalogs=true");
+                assertResult("1", stat, "select * from test");
+                assertResult("1", stat, "select * from test2");
+                stat.execute("alter table xxx.dbo.test add column (a varchar(200))");
+                stat.execute("alter table xxx..test add column (b varchar(200))");
+                stat.execute("alter table test add column (c varchar(200))");
+                stat.execute("drop table xxx.dbo.test");
+                stat.execute("drop table catalog1.dbo.test2");
+                stat.execute("drop table if exists xxx.dbo.test");
+                stat.execute("drop table if exists catalog1.dbo.test2");
+                stat.execute("set ignore_catalogs=false");
+                assertThrows(90079, stat, "alter table xxx.dbo.test add column (a varchar(200))");
+                assertThrows(90079, stat, "alter table xxx..test add column (b varchar(200))");
+                assertThrows(42102, stat, "alter table test add column (c varchar(200))");
+                assertThrows(90079, stat, "drop table if exists xxx.dbo.test");
+                assertThrows(90079, stat, "drop table if exists xxx2..test");
+                assertThrows(42102, stat, "drop table test");
+            }
+        }
+    }
+
+
+}

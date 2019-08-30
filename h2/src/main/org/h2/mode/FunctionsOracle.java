@@ -28,6 +28,9 @@ public final class FunctionsOracle extends FunctionsBase {
 
     static {
         FUNCTIONS.put("SYS_GUID", new FunctionInfo("SYS_GUID", SYS_GUID, 0, Value.BYTES, false, false, true, false));
+
+        // Override NEXTVAL for Oracle to return DECIMAL
+        FUNCTIONS.put("NEXTVAL", new FunctionInfo("NEXTVAL", NEXTVAL, VAR_ARGS, Value.DECIMAL, false, false, true, false));
     }
 
     /**

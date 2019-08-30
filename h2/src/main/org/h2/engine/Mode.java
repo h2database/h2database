@@ -245,6 +245,11 @@ public class Mode {
     public boolean truncateTableRestartIdentity;
 
     /**
+     * if {@code true} NEXTVAL returns DECIMAL instead of LONG.
+     */
+    public boolean decimalSequences;
+
+    /**
      * if {@code true} constructs like create table catalog..tablename are possible if
      * the default-schemaname should be used.
      */
@@ -368,6 +373,7 @@ public class Mode {
                 Pattern.compile(".*\\..*");
         mode.prohibitEmptyInPredicate = true;
         mode.alterTableModifyColumn = true;
+        mode.decimalSequences = true;
         dt = DataType.createDate(/* 2001-01-01 23:59:59 */ 19, 19, "DATE", false, 0, 0);
         dt.type = Value.TIMESTAMP;
         dt.sqlType = Types.TIMESTAMP;

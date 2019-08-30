@@ -5,6 +5,8 @@
  */
 package org.h2.expression;
 
+import java.math.BigDecimal;
+
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.schema.Sequence;
@@ -12,6 +14,7 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueDecimal;
 import org.h2.value.ValueLong;
 
 /**
@@ -27,14 +30,20 @@ public class SequenceValue extends Expression {
 
     @Override
     public Value getValue(Session session) {
-        ValueLong value = ValueLong.get(sequence.getNext(session));
+        long longValue = sequence.getNext(session);
+        Value value;
+        if(sequence.getDatabase().getMode().decimalSequences) {
+            value = ValueDecimal.get(BigDecimal.valueOf(longValue));
+        } else {
+            value = ValueLong.get(longValue);
+        }
         session.setLastIdentity(value);
         return value;
     }
 
     @Override
     public TypeInfo getType() {
-        return TypeInfo.TYPE_LONG;
+        return sequence.getDatabase().getMode().decimalSequences ? TypeInfo.TYPE_DECIMAL : TypeInfo.TYPE_LONG;
     }
 
     @Override

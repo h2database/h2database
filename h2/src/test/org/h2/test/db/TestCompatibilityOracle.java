@@ -15,6 +15,8 @@ import java.sql.Types;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Locale;
+
+import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.tools.SimpleResultSet;
@@ -44,6 +46,7 @@ public class TestCompatibilityOracle extends TestDb {
         testForbidEmptyInClause();
         testSpecialTypes();
         testDate();
+        testSequenceNextval();
     }
 
     private void testNotNullSyntax() throws SQLException {
@@ -281,6 +284,25 @@ public class TestCompatibilityOracle extends TestDb {
         assertEquals(t4, rs.getTimestamp(1));
         assertFalse(rs.next());
 
+        conn.close();
+    }
+
+    private void testSequenceNextval() throws SQLException {
+        // Test NEXTVAL without Oracle MODE should return BIGINT
+        checkSequenceTypeWithMode("REGULAR", Types.BIGINT);
+        // Test NEXTVAL with Oracle MODE should return DECIMAL
+        checkSequenceTypeWithMode("Oracle", SysProperties.BIG_DECIMAL_IS_DECIMAL ? Types.DECIMAL : Types.NUMERIC);
+    }
+
+    private void checkSequenceTypeWithMode(final String mode, final int expectedType) throws SQLException {
+        deleteDb("oracle");
+        Connection conn = getConnection("oracle;MODE=" + mode);
+        Statement stat = conn.createStatement();
+
+        stat.execute("CREATE SEQUENCE seq");
+        ResultSet rs = stat.executeQuery("SELECT seq.NEXTVAL FROM DUAL");
+        // Check type:
+        assertEquals(rs.getMetaData().getColumnType(1), expectedType);
         conn.close();
     }
 

@@ -2158,7 +2158,7 @@ public class Parser {
         return ifExists;
     }
 
-        private Prepared parseComment() {
+    private Prepared parseComment() {
         int type = 0;
         read(ON);
         boolean column = false;

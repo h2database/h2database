@@ -317,7 +317,7 @@ public class Database implements DataHandler {
         this.cacheType = StringUtils.toUpperEnglish(
                 ci.removeProperty("CACHE_TYPE", Constants.CACHE_TYPE_DEFAULT));
         this.ignoreCatalogs = ci.getProperty("IGNORE_CATALOGS",
-                dbSettings.ignoreCatalogs ? "TRUE" : "FALSE").equals("TRUE");
+                dbSettings.ignoreCatalogs);
         openDatabase(traceLevelFile, traceLevelSystemOut, closeAtVmShutdown, ci);
     }
 

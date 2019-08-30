@@ -338,7 +338,7 @@ public class DbSettings extends SettingsBase {
     /**
      * Database setting <code>IGNORE_CATALOGS</code>
      * (default: false).<br />
-     * ignore Catalog-Prefix at object-Names.
+     * Generally accept the all catalog prefixes at objectnames even if they are not equal to the current databasename.
      */
     public final boolean ignoreCatalogs = get("IGNORE_CATALOGS", false);
 

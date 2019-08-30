@@ -1,9 +1,10 @@
-package org.h2.test.unit;
+package org.h2.test.db;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 
@@ -55,7 +56,7 @@ public class TestIgnoreCatalogs extends TestDb {
 
                 stat.execute("create table test2(id int primary key, name varchar(255))");
                 // expect table already exists
-                assertThrows(42101, stat, "create table catalog2.dbo.test(id int primary key, name varchar(255))");
+                assertThrows(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, stat, "create table catalog2.dbo.test(id int primary key, name varchar(255))");
                 stat.execute("insert into test values(1, 'Hello')");
                 stat.execute("insert into test2 values(1, 'Hello')");
             }
@@ -67,7 +68,7 @@ public class TestIgnoreCatalogs extends TestDb {
             try (Statement stat = conn.createStatement()) {
                 stat.execute("create table catalog1.dbo.test(id int primary key, name varchar(255))");
                 // expect table already exists
-                assertThrows(42101, stat, "create table catalog2.dbo.test(id int primary key, name varchar(255))");
+                assertThrows(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, stat, "create table catalog2.dbo.test(id int primary key, name varchar(255))");
                 stat.execute("insert into dbo.test values(1, 'Hello')");
             }
         }
@@ -79,7 +80,7 @@ public class TestIgnoreCatalogs extends TestDb {
                 stat.execute("set IGNORE_CATALOGS=TRUE");
                 stat.execute("create table catalog1.dbo.test(id int primary key, name varchar(255))");
                 // expect table already exists
-                assertThrows(42101, stat, "create table catalog2.dbo.test(id int primary key, name varchar(255))");
+                assertThrows(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, stat, "create table catalog2.dbo.test(id int primary key, name varchar(255))");
                 stat.execute("insert into dbo.test values(1, 'Hello')");
             }
         }
@@ -91,7 +92,7 @@ public class TestIgnoreCatalogs extends TestDb {
                 stat.execute("set IGNORE_CATALOGS=TRUE");
                 stat.execute("create table dbo.dbo.test(id int primary key, name varchar(255))");
                 // expect object already exists
-                assertThrows(42101, stat, "create table catalog2.dbo.test(id int primary key, name varchar(255))");
+                assertThrows(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, stat, "create table catalog2.dbo.test(id int primary key, name varchar(255))");
                 stat.execute("insert into dbo.test values(1, 'Hello')");
             }
         }
@@ -103,7 +104,7 @@ public class TestIgnoreCatalogs extends TestDb {
                 // works, since catalog name equals databasename
                 stat.execute("create table test2.dbo.test(id int primary key, name varchar(255))");
                 // schema testx not found error
-                assertThrows(90079, stat, "create table testx.dbo.test(id int primary key, name varchar(255))");
+                assertThrows(ErrorCode.SCHEMA_NOT_FOUND_1, stat, "create table testx.dbo.test(id int primary key, name varchar(255))");
             }
         }
     }
@@ -116,7 +117,7 @@ public class TestIgnoreCatalogs extends TestDb {
                 stat.execute("create index i on dbo.dbo.test(id,name)");
                 stat.execute("create index dbo.i2 on dbo.dbo.test(id,name)");
                 stat.execute("create index catalog.dbo.i3 on dbo.dbo.test(id,name)");
-                assertThrows(90079, stat,"create index dboNotExistent.i4 on dbo.dbo.test(id,name)");
+                assertThrows(ErrorCode.SCHEMA_NOT_FOUND_1, stat,"create index dboNotExistent.i4 on dbo.dbo.test(id,name)");
                 // expect object already exists
                 stat.execute("insert into dbo.test values(1, 'Hello')");
             }
@@ -132,7 +133,7 @@ public class TestIgnoreCatalogs extends TestDb {
                 stat.execute("insert into dbo.test values(1, 'Hello')");
                 stat.execute("insert into dbo.test2 values(1, 'Hello2')");
                 stat.execute("set ignore_catalogs=false");
-                assertThrows(90079, stat, "insert into catalog1.dbo.test2 values(2, 'Hello2')");
+                assertThrows(ErrorCode.SCHEMA_NOT_FOUND_1, stat, "insert into catalog1.dbo.test2 values(2, 'Hello2')");
                 stat.execute("set ignore_catalogs=true");
                 assertResult("1", stat, "select * from test");
                 assertResult("1", stat, "select * from test2");
@@ -144,12 +145,12 @@ public class TestIgnoreCatalogs extends TestDb {
                 stat.execute("drop table if exists xxx.dbo.test");
                 stat.execute("drop table if exists catalog1.dbo.test2");
                 stat.execute("set ignore_catalogs=false");
-                assertThrows(90079, stat, "alter table xxx.dbo.test add column (a varchar(200))");
-                assertThrows(90079, stat, "alter table xxx..test add column (b varchar(200))");
-                assertThrows(42102, stat, "alter table test add column (c varchar(200))");
-                assertThrows(90079, stat, "drop table if exists xxx.dbo.test");
-                assertThrows(90079, stat, "drop table if exists xxx2..test");
-                assertThrows(42102, stat, "drop table test");
+                assertThrows(ErrorCode.SCHEMA_NOT_FOUND_1, stat, "alter table xxx.dbo.test add column (a varchar(200))");
+                assertThrows(ErrorCode.SCHEMA_NOT_FOUND_1, stat, "alter table xxx..test add column (b varchar(200))");
+                assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, stat, "alter table test add column (c varchar(200))");
+                assertThrows(ErrorCode.SCHEMA_NOT_FOUND_1, stat, "drop table if exists xxx.dbo.test");
+                assertThrows(ErrorCode.SCHEMA_NOT_FOUND_1, stat, "drop table if exists xxx2..test");
+                assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, stat, "drop table test");
             }
         }
     }

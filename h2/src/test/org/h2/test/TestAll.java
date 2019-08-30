@@ -43,6 +43,7 @@ import org.h2.test.db.TestFullText;
 import org.h2.test.db.TestFunctionOverload;
 import org.h2.test.db.TestFunctions;
 import org.h2.test.db.TestGeneralCommonTableQueries;
+import org.h2.test.db.TestIgnoreCatalogs;
 import org.h2.test.db.TestIndex;
 import org.h2.test.db.TestIndexHints;
 import org.h2.test.db.TestLargeBlob;
@@ -192,7 +193,6 @@ import org.h2.test.unit.TestFileLockSerialized;
 import org.h2.test.unit.TestFileSystem;
 import org.h2.test.unit.TestFtp;
 import org.h2.test.unit.TestGeometryUtils;
-import org.h2.test.unit.TestIgnoreCatalogs;
 import org.h2.test.unit.TestIntArray;
 import org.h2.test.unit.TestIntIntHashMap;
 import org.h2.test.unit.TestIntPerfectHash;
@@ -885,6 +885,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         // other unsafe
         addTest(new TestOptimizations());
         addTest(new TestOutOfMemory());
+        addTest(new TestIgnoreCatalogs());
+
 
         runAddedTests(1);
 
@@ -931,7 +933,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestFileLockProcess());
         addTest(new TestDefrag());
         addTest(new TestTools());
-        addTest(new TestIgnoreCatalogs());
         addTest(new TestSampleApps());
         addTest(new TestSubqueryPerformanceOnLazyExecutionMode());
 

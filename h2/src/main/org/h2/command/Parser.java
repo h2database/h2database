@@ -2198,10 +2198,10 @@ public class Parser {
             // if the db name is equal to the schema name
             ArrayList<String> list = Utils.newSmallArrayList();
             do {
-                if (currentTokenType == DOT) {
-                  list.add(null);
-                } else {
+                if (currentTokenType != DOT) {
                     list.add(readUniqueIdentifier());
+                } else if(database.getMode().allowEmptySchemaValuesAsDefaultSchema) {
+                    list.add(null);
                 }
             } while (readIf(DOT));
             schemaName = session.getCurrentSchemaName();
@@ -4866,12 +4866,7 @@ public class Parser {
 
     private String readIdentifierWithSchema2(String s) {
         schemaName = s;
-        if (readIf(DOT)) {
-            if (equalsToken(schemaName, database.getShortName()) || database.getIgnoreCatalogs()) {
-                schemaName = session.getCurrentSchemaName();
-                s = readColumnIdentifier();
-            }
-        } else {
+        if (!readIf(DOT)) {
             s = readColumnIdentifier();
             if(currentTokenType == DOT) {
                 if(equalsToken(schemaName, database.getShortName()) || database.getIgnoreCatalogs()) {
@@ -4879,6 +4874,11 @@ public class Parser {
                     schemaName = s;
                     s = readColumnIdentifier();
                 }
+            }
+        } else if (database.getMode().allowEmptySchemaValuesAsDefaultSchema) {
+            if (equalsToken(schemaName, database.getShortName()) || database.getIgnoreCatalogs()) {
+                schemaName = session.getCurrentSchemaName();
+                s = readColumnIdentifier();
             }
         }
         return s;

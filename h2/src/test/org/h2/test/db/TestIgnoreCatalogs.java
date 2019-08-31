@@ -45,10 +45,13 @@ public class TestIgnoreCatalogs extends TestDb {
             try (Statement stat = conn.createStatement()) {
                 stat.execute("create table catalog1.dbo.test(id int primary key, name varchar(255))");
                 assertThrows(ErrorCode.SYNTAX_ERROR_2,stat,"comment on table catalog1..test is 'table comment3'");
-                assertThrows(ErrorCode.SCHEMA_NOT_FOUND_1,stat,"create table catalog1..test2(id int primary key, name varchar(255))");
+                assertThrows(ErrorCode.SYNTAX_ERROR_2,stat,"create table catalog1..test2(id int primary key, name varchar(255))");
                 stat.execute("comment on table catalog1.dbo.test is 'table comment1'");
                 stat.execute("insert into test values(1, 'Hello')");
                 stat.execute("insert into cat.dbo.test values(2, 'Hello2')");
+                assertThrows(ErrorCode.SYNTAX_ERROR_2,stat,"comment on column catalog1...test.id is 'id comment1'");
+                assertThrows(ErrorCode.SYNTAX_ERROR_2,stat,"comment on column catalog1..test..id is 'id comment1'");
+                assertThrows(ErrorCode.SYNTAX_ERROR_2,stat,"comment on column ..test..id is 'id comment1'");
             }
         } finally {
             deleteDb("ignoreCatalogs");
@@ -63,10 +66,11 @@ public class TestIgnoreCatalogs extends TestDb {
                 stat.execute("comment on table dbo.test is 'table comment2'");
                 stat.execute("comment on table catalog1..test is 'table comment3'");
                 stat.execute("comment on table test is 'table comment4'");
+                stat.execute("comment on column catalog1..test.id is 'id comment1'");
                 stat.execute("comment on column catalog1.dbo.test.id is 'id comment1'");
                 stat.execute("comment on column dbo.test.id is 'id comment1'");
-                stat.execute("comment on column catalog1..test.id is 'id comment1'");
                 stat.execute("comment on column test.id is 'id comment1'");
+                assertThrows(ErrorCode.SYNTAX_ERROR_2,stat,"comment on column catalog1...id is 'id comment1'");
                 assertThrows(ErrorCode.SYNTAX_ERROR_2,stat,"comment on column catalog1...test.id is 'id comment1'");
                 assertThrows(ErrorCode.SYNTAX_ERROR_2,stat,"comment on column catalog1..test..id is 'id comment1'");
                 assertThrows(ErrorCode.SYNTAX_ERROR_2,stat,"comment on column ..test..id is 'id comment1'");

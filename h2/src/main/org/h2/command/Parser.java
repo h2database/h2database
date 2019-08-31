@@ -2198,19 +2198,14 @@ public class Parser {
             // if the db name is equal to the schema name
             ArrayList<String> list = Utils.newSmallArrayList();
             do {
-                if (currentTokenType != DOT) {
-                    list.add(readUniqueIdentifier());
-                } else if(database.getMode().allowEmptySchemaValuesAsDefaultSchema) {
+                if(database.getMode().allowEmptySchemaValuesAsDefaultSchema && readIf(DOT)) {
                     list.add(null);
-                } else {
-                    // produce same response in other modes
-                    list.add(readUniqueIdentifier());
                 }
+                list.add(readUniqueIdentifier());
             } while (readIf(DOT));
             schemaName = session.getCurrentSchemaName();
             if (list.size() == 4) {
-                final String catalogname = list.remove(0);
-                if (!equalsToken(database.getShortName(), catalogname) && !database.getIgnoreCatalogs()) {
+                if (!equalsToken(database.getShortName(), list.remove(0)) && !database.getIgnoreCatalogs()) {
                     throw DbException.getSyntaxError(sqlCommand, parseIndex,
                             "database name");
                 }
@@ -4869,7 +4864,12 @@ public class Parser {
 
     private String readIdentifierWithSchema2(String s) {
         schemaName = s;
-        if (!readIf(DOT)) {
+        if (database.getMode().allowEmptySchemaValuesAsDefaultSchema && readIf(DOT)) {
+            if (equalsToken(schemaName, database.getShortName()) || database.getIgnoreCatalogs()) {
+                schemaName = session.getCurrentSchemaName();
+                s = readColumnIdentifier();
+            }
+        } else {
             s = readColumnIdentifier();
             if(currentTokenType == DOT) {
                 if(equalsToken(schemaName, database.getShortName()) || database.getIgnoreCatalogs()) {
@@ -4877,11 +4877,6 @@ public class Parser {
                     schemaName = s;
                     s = readColumnIdentifier();
                 }
-            }
-        } else if (database.getMode().allowEmptySchemaValuesAsDefaultSchema) {
-            if (equalsToken(schemaName, database.getShortName()) || database.getIgnoreCatalogs()) {
-                schemaName = session.getCurrentSchemaName();
-                s = readColumnIdentifier();
             }
         }
         return s;

@@ -97,12 +97,11 @@ Initial Developer: H2 Group
             Absolute locations like <code>jdbc:h2:/data/db/test</code> are supported.
             In embedded mode, the database runs in the same process as the application.
             Only one process may access a database at any time.
-            Databases are automatically created if they don't exist.
-            <b>Warning</b>: if no path is used (for example jdbc:h2:test),
-            then the database is stored in the current working directory
-            (the directory where the application was started).
-            URLs of the form jdbc:h2:data/test are relative to
-            the current working directory. It is recommended to use locations relative to ~
+            Databases are automatically created if they don't exist
+            <a target="_blank" href="https://h2database.com/html/tutorial.html#creating_new_databases">if you have a permission</a>.
+            URLs of the form <code>jdbc:h2:./data/test</code> are relative to
+            the current working directory (the directory where the application was started).
+            It is recommended to use locations relative to <code>~</code>
             or absolute locations.
             </p>
 

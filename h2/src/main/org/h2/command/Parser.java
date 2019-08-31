@@ -4114,14 +4114,12 @@ public class Parser {
         if (readIf("NEXTVAL")) {
             Sequence sequence = findSequence(schema, objectName);
             if (sequence != null) {
-                return new SequenceValue(sequence);
+                return new SequenceValue(sequence, false);
             }
         } else if (readIf("CURRVAL")) {
             Sequence sequence = findSequence(schema, objectName);
             if (sequence != null) {
-                return Function.getFunctionWithArgs(database, Function.CURRVAL,
-                        ValueExpression.get(ValueString.get(sequence.getSchema().getName())),
-                        ValueExpression.get(ValueString.get(sequence.getName())));
+                return new SequenceValue(sequence, true);
             }
         }
         return null;
@@ -4493,8 +4491,16 @@ public class Parser {
          */
         switch (name.charAt(0) & 0xffdf) {
         case 'C':
-            if (database.getMode().getEnum() == ModeEnum.DB2 && equalsToken("CURRENT", name)) {
-                return parseDB2SpecialRegisters(name);
+            if (equalsToken("CURRENT", name)) {
+                int index = lastParseIndex;
+                if (readIf("VALUE") && readIf(FOR)) {
+                    return new SequenceValue(readSequence(), true);
+                }
+                parseIndex = index;
+                read();
+                if (database.getMode().getEnum() == ModeEnum.DB2) {
+                    return parseDB2SpecialRegisters(name);
+                }
             }
             break;
         case 'D':
@@ -4534,9 +4540,13 @@ public class Parser {
             }
             break;
         case 'N':
-            if (equalsToken("NEXT", name) && readIf("VALUE")) {
-                read(FOR);
-                return new SequenceValue(readSequence());
+            if (equalsToken("NEXT", name)) {
+                int index = lastParseIndex;
+                if (readIf("VALUE") && readIf(FOR)) {
+                    return new SequenceValue(readSequence(), false);
+                }
+                parseIndex = index;
+                read();
             } else if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING
                     && equalsToken("N", name)) {
                 // National character string literal

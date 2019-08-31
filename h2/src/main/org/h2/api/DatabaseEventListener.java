@@ -12,7 +12,7 @@ import java.util.EventListener;
  * A class that implements this interface can get notified about exceptions
  * and other events. A database event listener can be registered when
  * connecting to a database. Example database URL:
- * jdbc:h2:test;DATABASE_EVENT_LISTENER='com.acme.DbListener'
+ * jdbc:h2:./test;DATABASE_EVENT_LISTENER='com.acme.DbListener'
  */
 public interface DatabaseEventListener extends EventListener {
 

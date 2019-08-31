@@ -5,8 +5,6 @@
  */
 package org.h2.expression;
 
-import java.math.BigDecimal;
-
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.schema.Sequence;
@@ -17,6 +15,8 @@ import org.h2.value.Value;
 import org.h2.value.ValueDecimal;
 import org.h2.value.ValueLong;
 
+import java.math.BigDecimal;
+
 /**
  * Wraps a sequence when used in a statement.
  */
@@ -24,20 +24,25 @@ public class SequenceValue extends Expression {
 
     private final Sequence sequence;
 
-    public SequenceValue(Sequence sequence) {
+    private final boolean current;
+
+    public SequenceValue(Sequence sequence, boolean current) {
         this.sequence = sequence;
+        this.current = current;
     }
 
     @Override
     public Value getValue(Session session) {
-        long longValue = sequence.getNext(session);
+        long longValue = current ? sequence.getCurrentValue() : sequence.getNext(session);
         Value value;
-        if(sequence.getDatabase().getMode().decimalSequences) {
+        if (sequence.getDatabase().getMode().decimalSequences) {
             value = ValueDecimal.get(BigDecimal.valueOf(longValue));
         } else {
             value = ValueLong.get(longValue);
         }
-        session.setLastIdentity(value);
+        if (!current) {
+            session.setLastIdentity(value);
+        }
         return value;
     }
 
@@ -63,8 +68,8 @@ public class SequenceValue extends Expression {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
-        builder.append("(NEXT VALUE FOR ");
-        return sequence.getSQL(builder, alwaysQuote).append(')');
+        builder.append(current ? "CURRENT" : "NEXT").append(" VALUE FOR ");
+        return sequence.getSQL(builder, alwaysQuote);
     }
 
     @Override
@@ -75,25 +80,26 @@ public class SequenceValue extends Expression {
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         switch (visitor.getType()) {
-            case ExpressionVisitor.EVALUATABLE:
-            case ExpressionVisitor.OPTIMIZABLE_AGGREGATE:
-            case ExpressionVisitor.NOT_FROM_RESOLVER:
-            case ExpressionVisitor.GET_COLUMNS1:
-            case ExpressionVisitor.GET_COLUMNS2:
-                return true;
-            case ExpressionVisitor.DETERMINISTIC:
-            case ExpressionVisitor.READONLY:
-            case ExpressionVisitor.INDEPENDENT:
-            case ExpressionVisitor.QUERY_COMPARABLE:
-                return false;
-            case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
-                visitor.addDataModificationId(sequence.getModificationId());
-                return true;
-            case ExpressionVisitor.GET_DEPENDENCIES:
-                visitor.addDependency(sequence);
-                return true;
-            default:
-                throw DbException.throwInternalError("type=" + visitor.getType());
+          case ExpressionVisitor.EVALUATABLE:
+          case ExpressionVisitor.OPTIMIZABLE_AGGREGATE:
+          case ExpressionVisitor.NOT_FROM_RESOLVER:
+          case ExpressionVisitor.GET_COLUMNS1:
+          case ExpressionVisitor.GET_COLUMNS2:
+              return true;
+          case ExpressionVisitor.DETERMINISTIC:
+          case ExpressionVisitor.INDEPENDENT:
+          case ExpressionVisitor.QUERY_COMPARABLE:
+              return false;
+          case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
+              visitor.addDataModificationId(sequence.getModificationId());
+              return true;
+          case ExpressionVisitor.GET_DEPENDENCIES:
+              visitor.addDependency(sequence);
+              return true;
+          case ExpressionVisitor.READONLY:
+              return current;
+          default:
+              throw DbException.throwInternalError("type="+visitor.getType());
         }
     }
 

@@ -2899,6 +2899,17 @@ An expression in a SELECT statement.
 ID AS VALUE
 "
 
+"Other Grammar","Sequence value expression","
+{ NEXT | CURRENT } VALUE FOR [schemaName.]sequenceName
+","
+The next or current value of a sequence.
+
+When the next value is requested the sequence is incremented and the last identity in the current session is updated.
+","
+NEXT VALUE FOR SEQ1
+CURRENT VALUE FOR SCHEMA2.SEQ2
+"
+
 "Other Grammar","Sequence options","
 sequenceOption [...]
 ","
@@ -3100,7 +3111,7 @@ CURRENT ROW
 value
     | column
     | ?[ int ]
-    | NEXT VALUE FOR sequenceName
+    | sequenceValueExpression
     | function
     | { - | + } term
     | ( expression )

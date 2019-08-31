@@ -460,7 +460,7 @@ public class Column {
         seq.setTemporary(temporary);
         session.getDatabase().addSchemaObject(session, seq);
         setAutoIncrementOptions(null);
-        SequenceValue seqValue = new SequenceValue(seq);
+        SequenceValue seqValue = new SequenceValue(seq, false);
         setDefaultExpression(session, seqValue);
         setSequence(seq);
     }

@@ -33,7 +33,7 @@ public class SQLInjection {
      */
     public static void main(String... args) throws Exception {
         new SQLInjection().run("org.h2.Driver",
-                "jdbc:h2:test", "sa", "sa");
+                "jdbc:h2:./test", "sa", "sa");
 //        new SQLInjection().run("org.postgresql.Driver",
 //                "jdbc:postgresql:jpox2", "sa", "sa");
 //        new SQLInjection().run("com.mysql.jdbc.Driver",

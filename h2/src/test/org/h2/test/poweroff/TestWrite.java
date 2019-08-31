@@ -39,7 +39,7 @@ public class TestWrite {
         testFile("rwd", true);
         testFile("rws", true);
         testDatabase("org.h2.Driver",
-                "jdbc:h2:test", "sa", "");
+                "jdbc:h2:./test", "sa", "");
         testDatabase("org.hsqldb.jdbcDriver",
                 "jdbc:hsqldb:test4", "sa", "");
         testDatabase("org.apache.derby.jdbc.EmbeddedDriver",

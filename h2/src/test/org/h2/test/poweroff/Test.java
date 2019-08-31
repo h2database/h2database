@@ -142,9 +142,9 @@ public class Test {
     private static void testDatabases(DataOutputStream out) throws Exception {
         Test[] dbs = {
                 new Test("org.h2.Driver",
-                        "jdbc:h2:test1", "sa", "", true),
+                        "jdbc:h2:./test1", "sa", "", true),
                 new Test("org.h2.Driver",
-                        "jdbc:h2:test2", "sa", "", false),
+                        "jdbc:h2:./test2", "sa", "", false),
                 new Test("org.hsqldb.jdbcDriver",
                         "jdbc:hsqldb:test4", "sa", "", false),
                 // new Test("com.mysql.jdbc.Driver",
@@ -154,9 +154,9 @@ public class Test {
                 new Test("org.apache.derby.jdbc.EmbeddedDriver",
                         "jdbc:derby:test;create=true", "sa", "", false),
                 new Test("org.h2.Driver",
-                        "jdbc:h2:test5", "sa", "", true),
+                        "jdbc:h2:./test5", "sa", "", true),
                 new Test("org.h2.Driver",
-                        "jdbc:h2:test6", "sa", "", false), };
+                        "jdbc:h2:./test6", "sa", "", false), };
         for (int i = 0;; i++) {
             for (Test t : dbs) {
                 t.insert(i);

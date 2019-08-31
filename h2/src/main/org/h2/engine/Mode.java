@@ -230,22 +230,24 @@ public class Mode {
     public boolean allowUnrelatedOrderByExpressionsInDistinctQueries;
 
     /**
-     * if {@code true} some additional non-standard ALTER TABLE commands are allowed.
+     * If {@code true} some additional non-standard ALTER TABLE commands are allowed.
      */
     public boolean alterTableExtensionsMySQL;
 
     /**
-     * if {@code true} non-standard ALTER TABLE MODIFY COLUMN is allowed.
+     * If {@code true} non-standard ALTER TABLE MODIFY COLUMN is allowed.
      */
     public boolean alterTableModifyColumn;
 
     /**
-     * if {@code true} TRUNCATE TABLE uses RESTART IDENTITY by default.
+     * If {@code true} TRUNCATE TABLE uses RESTART IDENTITY by default.
      */
     public boolean truncateTableRestartIdentity;
 
     /**
-     * if {@code true} NEXTVAL returns DECIMAL instead of LONG.
+     * If {@code true} NEXT VALUE FOR SEQUENCE, CURRENT VALUE FOR SEQUENCE,
+     * SEQUENCE.NEXTVAL, and SEQUENCE.CURRVAL return values with DECIMAL/NUMERIC
+     * data type instead of BIGINT.
      */
     public boolean decimalSequences;
 

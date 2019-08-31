@@ -24,20 +24,25 @@ public class SequenceValue extends Expression {
 
     private final Sequence sequence;
 
-    public SequenceValue(Sequence sequence) {
+    private final boolean current;
+
+    public SequenceValue(Sequence sequence, boolean current) {
         this.sequence = sequence;
+        this.current = current;
     }
 
     @Override
     public Value getValue(Session session) {
-        long longValue = sequence.getNext(session);
+        long longValue = current ? sequence.getCurrentValue() : sequence.getNext(session);
         Value value;
-        if(sequence.getDatabase().getMode().decimalSequences) {
+        if (sequence.getDatabase().getMode().decimalSequences) {
             value = ValueDecimal.get(BigDecimal.valueOf(longValue));
         } else {
             value = ValueLong.get(longValue);
         }
-        session.setLastIdentity(value);
+        if (!current) {
+            session.setLastIdentity(value);
+        }
         return value;
     }
 
@@ -63,8 +68,8 @@ public class SequenceValue extends Expression {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
-        builder.append("(NEXT VALUE FOR ");
-        return sequence.getSQL(builder, alwaysQuote).append(')');
+        builder.append(current ? "CURRENT" : "NEXT").append(" VALUE FOR ");
+        return sequence.getSQL(builder, alwaysQuote);
     }
 
     @Override
@@ -82,7 +87,6 @@ public class SequenceValue extends Expression {
         case ExpressionVisitor.GET_COLUMNS2:
             return true;
         case ExpressionVisitor.DETERMINISTIC:
-        case ExpressionVisitor.READONLY:
         case ExpressionVisitor.INDEPENDENT:
         case ExpressionVisitor.QUERY_COMPARABLE:
             return false;
@@ -92,6 +96,8 @@ public class SequenceValue extends Expression {
         case ExpressionVisitor.GET_DEPENDENCIES:
             visitor.addDependency(sequence);
             return true;
+        case ExpressionVisitor.READONLY:
+            return current;
         default:
             throw DbException.throwInternalError("type="+visitor.getType());
         }

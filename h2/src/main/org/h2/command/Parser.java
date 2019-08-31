@@ -4529,9 +4529,13 @@ public class Parser {
             }
             break;
         case 'N':
-            if (equalsToken("NEXT", name) && readIf("VALUE")) {
-                read(FOR);
-                return new SequenceValue(readSequence());
+            if (equalsToken("NEXT", name)) {
+                int index = lastParseIndex;
+                if (readIf("VALUE") && readIf(FOR)) {
+                    return new SequenceValue(readSequence());
+                }
+                parseIndex = index;
+                read();
             } else if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING
                     && equalsToken("N", name)) {
                 // National character string literal

@@ -5015,7 +5015,7 @@ CONVERT(NAME, INT)
 "
 
 "Functions (System)","CURRVAL","
-CURRVAL( [ schemaName, ] sequenceString )
+CURRVAL( [ schemaNameString, ] sequenceString )
 ","
 Returns the current (last) value of the sequence, independent of the session.
 If the sequence was just created, the method returns (start - interval).
@@ -5277,7 +5277,7 @@ MEMORY_USED()
 "
 
 "Functions (System)","NEXTVAL","
-NEXTVAL ( [ schemaName, ] sequenceString )
+NEXTVAL ( [ schemaNameString, ] sequenceString )
 ","
 Returns the next value of the sequence.
 Used values are never re-used, even when the transaction is rolled back.

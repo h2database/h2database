@@ -74,6 +74,7 @@ public class TestIgnoreCatalogs extends TestDb {
                 assertThrows(ErrorCode.SYNTAX_ERROR_2,stat,"comment on column catalog1...test.id is 'id comment1'");
                 assertThrows(ErrorCode.SYNTAX_ERROR_2,stat,"comment on column catalog1..test..id is 'id comment1'");
                 assertThrows(ErrorCode.SYNTAX_ERROR_2,stat,"comment on column ..test..id is 'id comment1'");
+                assertThrows(ErrorCode.SYNTAX_ERROR_2,stat,"comment on column .PUBLIC.TEST.ID 'id comment1'");
             }
         } finally {
             deleteDb("ignoreCatalogs");

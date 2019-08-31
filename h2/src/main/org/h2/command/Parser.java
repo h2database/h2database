@@ -2198,7 +2198,7 @@ public class Parser {
             // if the db name is equal to the schema name
             ArrayList<String> list = Utils.newSmallArrayList();
             do {
-                if(database.getMode().allowEmptySchemaValuesAsDefaultSchema && readIf(DOT)) {
+                if (database.getMode().allowEmptySchemaValuesAsDefaultSchema && readIf(DOT)) {
                     list.add(null);
                 }
                 list.add(readUniqueIdentifier());
@@ -4871,8 +4871,8 @@ public class Parser {
             }
         } else {
             s = readColumnIdentifier();
-            if(currentTokenType == DOT) {
-                if(equalsToken(schemaName, database.getShortName()) || database.getIgnoreCatalogs()) {
+            if (currentTokenType == DOT) {
+                if (equalsToken(schemaName, database.getShortName()) || database.getIgnoreCatalogs()) {
                     read();
                     schemaName = s;
                     s = readColumnIdentifier();
@@ -7899,7 +7899,7 @@ public class Parser {
                 throw DbException.get(ErrorCode.UNKNOWN_MODE_1,
                         "Internal Error - unhandled case: " + nullConstraint.name());
             }
-            if(hasOpeningBracket) {
+            if (hasOpeningBracket) {
                 read(CLOSE_PAREN);
             }
             return command;

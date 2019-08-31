@@ -289,7 +289,7 @@ public class ErrorCode {
 
     /**
      * The error with code <code>23514</code> is thrown when
-     * evaluation of a check constraint resulted in a error.
+     * evaluation of a check constraint resulted in an error.
      */
     public static final int CHECK_CONSTRAINT_INVALID = 23514;
 

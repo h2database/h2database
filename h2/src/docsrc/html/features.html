@@ -1002,7 +1002,7 @@ or the SQL statement <code>SET MODE Oracle</code>.
 </li><li>DATE data type is treated like TIMESTAMP(0) data type.
 </li><li>Datetime value functions return the same value within a command.
 </li><li>ALTER TABLE MODIFY COLUMN command is partially supported.
-</li><li>NEXTVAL/sequences return a DECIMAL instead of LONG (default).
+</li><li>SEQUENCE.NEXTVAL and SEQUENCE.CURRVAL return values with DECIMAL/NUMERIC data type.
 </li></ul>
 
 <h3>PostgreSQL Compatibility Mode</h3>

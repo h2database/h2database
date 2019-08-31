@@ -2905,6 +2905,7 @@ ID AS VALUE
 The next or current value of a sequence.
 
 When the next value is requested the sequence is incremented and the last identity in the current session is updated.
+Used values are never re-used, even when the transaction is rolled back.
 ","
 NEXT VALUE FOR SEQ1
 CURRENT VALUE FOR SCHEMA2.SEQ2
@@ -5019,8 +5020,11 @@ CURRVAL( [ schemaNameString, ] sequenceString )
 ","
 Returns the current (last) value of the sequence, independent of the session.
 If the sequence was just created, the method returns (start - interval).
+This method exists only for compatibility, when it isn't required use
+[CURRENT VALUE FOR sequenceName](https://h2database.com/html/grammar.html#sequence_value_expression)
+instead.
 If the schema name is not set, the current schema is used.
-If the schema name is not set, the sequence name is converted to uppercase (for compatibility).
+When sequence is not found, the uppercase name is also checked.
 This method returns a long.
 ","
 CURRVAL('TEST_SEQ')
@@ -5281,7 +5285,11 @@ NEXTVAL ( [ schemaNameString, ] sequenceString )
 ","
 Returns the next value of the sequence.
 Used values are never re-used, even when the transaction is rolled back.
-If the schema name is not set, the current schema is used, and the sequence name is converted to uppercase (for compatibility).
+This method exists only for compatibility, it's recommended to use the standard
+[NEXT VALUE FOR sequenceName](https://h2database.com/html/grammar.html#sequence_value_expression)
+instead.
+If the schema name is not set, the current schema is used.
+When sequence is not found, the uppercase name is also checked.
 This method returns a long.
 ","
 NEXTVAL('TEST_SEQ')

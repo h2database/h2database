@@ -38,6 +38,7 @@ import static org.h2.util.ParserUtil.INTERSECTS;
 import static org.h2.util.ParserUtil.INTERVAL;
 import static org.h2.util.ParserUtil.IS;
 import static org.h2.util.ParserUtil.JOIN;
+import static org.h2.util.ParserUtil.LEFT;
 import static org.h2.util.ParserUtil.LIKE;
 import static org.h2.util.ParserUtil.LIMIT;
 import static org.h2.util.ParserUtil.LOCALTIME;
@@ -51,6 +52,7 @@ import static org.h2.util.ParserUtil.ON;
 import static org.h2.util.ParserUtil.ORDER;
 import static org.h2.util.ParserUtil.PRIMARY;
 import static org.h2.util.ParserUtil.QUALIFY;
+import static org.h2.util.ParserUtil.RIGHT;
 import static org.h2.util.ParserUtil.ROW;
 import static org.h2.util.ParserUtil.ROWNUM;
 import static org.h2.util.ParserUtil.SELECT;
@@ -504,6 +506,8 @@ public class Parser {
             "IS",
             // JOIN
             "JOIN",
+            // LEFT
+            "LEFT",
             // LIKE
             "LIKE",
             // LIMIT
@@ -530,6 +534,8 @@ public class Parser {
             "PRIMARY",
             // QUALIFY
             "QUALIFY",
+            // RIGHT
+            "RIGHT",
             // ROW
             "ROW",
             // _ROWID_
@@ -1626,7 +1632,7 @@ public class Parser {
 
         if (isQuery()) {
             command.setQuery(parseSelect());
-            String queryAlias = readFromAlias(null, null);
+            String queryAlias = readFromAlias(null);
             if (queryAlias == null) {
                 queryAlias = Constants.PREFIX_QUERY_ALIAS + parseIndex;
             }
@@ -2081,21 +2087,11 @@ public class Parser {
         return IndexHints.createUseIndexHints(indexNames);
     }
 
-    private String readFromAlias(String alias, List<String> excludeIdentifiers) {
-        if (readIf("AS")) {
-            alias = readAliasIdentifier();
-        } else if (currentTokenType == IDENTIFIER
-                && (excludeIdentifiers == null || !isTokenInList(excludeIdentifiers))) {
+    private String readFromAlias(String alias) {
+        if (readIf("AS") || currentTokenType == IDENTIFIER) {
             alias = readAliasIdentifier();
         }
         return alias;
-    }
-
-    private String readFromAlias(String alias) {
-        // left and right are not keywords (because they are functions as
-        // well)
-        List<String> excludeIdentifiers = Arrays.asList("LEFT", "RIGHT");
-        return readFromAlias(alias, excludeIdentifiers);
     }
 
     private ArrayList<String> readDerivedColumnNames() {
@@ -2386,10 +2382,10 @@ public class Parser {
     }
 
     private TableFilter readJoin(TableFilter top) {
-        TableFilter last = top;
-        while (true) {
-            TableFilter join;
-            if (readIf("RIGHT")) {
+        for (TableFilter last = top, join;; last = join) {
+            switch (currentTokenType) {
+            case RIGHT: {
+                read();
                 readIf("OUTER");
                 read(JOIN);
                 // the right hand side is the 'inner' table usually
@@ -2398,31 +2394,47 @@ public class Parser {
                 Expression on = readJoinSpecification(top, join, true);
                 addJoin(join, top, true, on);
                 top = join;
-            } else if (readIf("LEFT")) {
+                break;
+            }
+            case LEFT: {
+                read();
                 readIf("OUTER");
                 read(JOIN);
                 join = readTableFilter();
                 join = readJoin(join);
                 Expression on = readJoinSpecification(top, join, false);
                 addJoin(top, join, true, on);
-            } else if (readIf(FULL)) {
+                break;
+            }
+            case FULL:
+                read();
                 throw getSyntaxError();
-            } else if (readIf(INNER)) {
+            case INNER: {
+                read();
                 read(JOIN);
                 join = readTableFilter();
                 top = readJoin(top);
                 Expression on = readJoinSpecification(top, join, false);
                 addJoin(top, join, false, on);
-            } else if (readIf(JOIN)) {
+                break;
+            }
+            case JOIN: {
+                read();
                 join = readTableFilter();
                 top = readJoin(top);
                 Expression on = readJoinSpecification(top, join, false);
                 addJoin(top, join, false, on);
-            } else if (readIf(CROSS)) {
+                break;
+            }
+            case CROSS: {
+                read();
                 read(JOIN);
                 join = readTableFilter();
                 addJoin(top, join, false, null);
-            } else if (readIf(NATURAL)) {
+                break;
+            }
+            case NATURAL: {
+                read();
                 read(JOIN);
                 join = readTableFilter();
                 Expression on = null;
@@ -2433,12 +2445,16 @@ public class Parser {
                     }
                 }
                 addJoin(top, join, false, on);
-            } else {
                 break;
             }
-            last = join;
+            default:
+                if (expectedList != null) {
+                    // FULL is intentionally excluded
+                    addMultipleExpected(RIGHT, LEFT, INNER, JOIN, CROSS, NATURAL);
+                }
+                return top;
+            }
         }
-        return top;
     }
 
     private Expression readJoinSpecification(TableFilter filter1, TableFilter filter2, boolean rightJoin) {
@@ -4434,6 +4450,10 @@ public class Parser {
             read();
             r = readKeywordFunction(Function.USER);
             break;
+        case LEFT:
+            read();
+            r = readKeywordFunction(Function.LEFT);
+            break;
         case LOCALTIME:
             read();
             r = readKeywordFunction(Function.LOCALTIME);
@@ -4441,6 +4461,10 @@ public class Parser {
         case LOCALTIMESTAMP:
             read();
             r = readKeywordFunction(Function.LOCALTIMESTAMP);
+            break;
+        case RIGHT:
+            read();
+            r = readKeywordFunction(Function.RIGHT);
             break;
         default:
             throw getSyntaxError();

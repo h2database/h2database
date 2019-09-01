@@ -163,9 +163,14 @@ public class ParserUtil {
     public static final int JOIN = IS + 1;
 
     /**
+     * The token "LEFT".
+     */
+    public static final int LEFT = JOIN + 1;
+
+    /**
      * The token "LIKE".
      */
-    public static final int LIKE = JOIN + 1;
+    public static final int LIKE = LEFT + 1;
 
     /**
      * The token "LIMIT".
@@ -228,9 +233,14 @@ public class ParserUtil {
     public static final int QUALIFY = PRIMARY + 1;
 
     /**
+     * The token "RIGHT".
+     */
+    public static final int RIGHT = QUALIFY + 1;
+
+    /**
      * The token "ROW".
      */
-    public static final int ROW = QUALIFY + 1;
+    public static final int ROW = RIGHT + 1;
 
     /**
      * The token "_ROWID_".
@@ -526,7 +536,9 @@ public class ParserUtil {
             }
             return IDENTIFIER;
         case 'L':
-            if (eq("LIMIT", s, ignoreCase, start, end)) {
+            if (eq("LEFT", s, ignoreCase, start, end)) {
+                return LEFT;
+            } else if (eq("LIMIT", s, ignoreCase, start, end)) {
                 return LIMIT;
             } else if (eq("LIKE", s, ignoreCase, start, end)) {
                 return LIKE;
@@ -536,7 +548,7 @@ public class ParserUtil {
                 return LOCALTIMESTAMP;
             }
             if (additionalKeywords) {
-                if (eq("LEADING", s, ignoreCase, start, end) || eq("LEFT", s, ignoreCase, start, end)) {
+                if (eq("LEADING", s, ignoreCase, start, end)) {
                     return KEYWORD;
                 }
             }
@@ -585,14 +597,16 @@ public class ParserUtil {
             }
             return IDENTIFIER;
         case 'R':
-            if (eq("ROW", s, ignoreCase, start, end)) {
+            if (eq("RIGHT", s, ignoreCase, start, end)) {
+                return RIGHT;
+            } else if (eq("ROW", s, ignoreCase, start, end)) {
                 return ROW;
             } else if (eq("ROWNUM", s, ignoreCase, start, end)) {
                 return ROWNUM;
             }
             if (additionalKeywords) {
                 if (eq("RANGE", s, ignoreCase, start, end) || eq("REGEXP", s, ignoreCase, start, end)
-                        || eq("ROWS", s, ignoreCase, start, end) || eq("RIGHT", s, ignoreCase, start, end)) {
+                        || eq("ROWS", s, ignoreCase, start, end)) {
                     return KEYWORD;
                 }
             }

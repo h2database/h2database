@@ -252,8 +252,8 @@ public class Mode {
     public boolean decimalSequences;
 
     /**
-     * if {@code true} constructs like 'create table catalog..tablename' are possible if
-     * the default-schemaname should be used.
+     * If {@code true} constructs like 'CREATE TABLE CATALOG..TABLE_NAME' are allowed,
+     * the default schema is used.
      */
     public boolean allowEmptySchemaValuesAsDefaultSchema;
 

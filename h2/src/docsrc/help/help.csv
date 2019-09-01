@@ -1482,16 +1482,16 @@ This setting can be appended to the database URL: ""jdbc:h2:./test;IGNORECASE=TR
 SET IGNORECASE TRUE
 "
 
-"Commands (Other)","SET IGNORE_CATALOG","
-SET IGNORECATALOG { TRUE | FALSE }
+"Commands (Other)","SET IGNORE_CATALOGS","
+SET IGNORE_CATALOGS { TRUE | FALSE }
 ","
-If IGNORECATALOG is enabled, catalognames in front of schema names will be ignored. This can be used if
-multiple catalogs used by the same connections must be simulated. Caveat: If both catalogs contain schemas of the
+If IGNORE_CATALOGS is enabled, catalog names in front of schema names will be ignored. This can be used if
+multiple catalogs used by the same connections must be simulated. Caveat: if both catalogs contain schemas of the
 same name and if those schemas contain objects of the same name, this will lead to errors, when trying to manage,
 access or change these objects.
-This setting can be appended to the database URL: ""jdbc:h2:./test;IGNORE_CATALOG=TRUE""
+This setting can be appended to the database URL: ""jdbc:h2:./test;IGNORE_CATALOGS=TRUE""
 ","
-SET IGNORECATALOG TRUE
+SET IGNORE_CATALOGS TRUE
 "
 
 "Commands (Other)","SET JAVA_OBJECT_SERIALIZER","

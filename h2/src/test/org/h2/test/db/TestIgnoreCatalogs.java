@@ -48,7 +48,7 @@ public class TestIgnoreCatalogs extends TestDb {
                 stat.execute("create table catalog1.dbo.test(id int primary key, name varchar(255))");
                 assertThrows(ErrorCode.SYNTAX_ERROR_2, stat, "comment on table catalog1..test is 'table comment3'");
                 assertThrows(ErrorCode.SYNTAX_ERROR_2, stat, "create table catalog1..test2(id int primary key, "
-                                                             + "name varchar(255))");
+                        + "name varchar(255))");
                 stat.execute("comment on table catalog1.dbo.test is 'table comment1'");
                 stat.execute("insert into test values(1, 'Hello')");
                 stat.execute("insert into cat.dbo.test values(2, 'Hello2')");
@@ -157,11 +157,11 @@ public class TestIgnoreCatalogs extends TestDb {
         try (Connection conn = getConnection("ignoreCatalogs;MODE=MSSQLSERVER;")) {
             try (Statement stat = conn.createStatement()) {
                 prepareDb(stat);
-                // works, since catalog name equals databasename
+                // works, since catalog name equals database name
                 stat.execute("create table ignoreCatalogs.dbo.test(id int primary key, name varchar(255))");
-                // schema testx not found error
+                // schema test_x not found error
                 assertThrows(ErrorCode.SCHEMA_NOT_FOUND_1, stat,
-                        "create table testx.dbo.test(id int primary key, name varchar(255))");
+                        "create table test_x.dbo.test(id int primary key, name varchar(255))");
             }
         } finally {
             deleteDb("ignoreCatalogs");
@@ -227,11 +227,14 @@ public class TestIgnoreCatalogs extends TestDb {
         }
     }
 
-    private void prepareDb(final Statement stat) throws SQLException {
+    private static void prepareDb(Statement stat) throws SQLException {
         stat.execute("drop all objects");
         stat.execute("create schema dbo");
     }
-    private void prepareDbAndSetDefaultSchema(final Statement stat) throws SQLException {
+
+    private static void prepareDbAndSetDefaultSchema(Statement stat) throws SQLException {
         prepareDb(stat);
         stat.execute("set schema dbo");
-    }}
+    }
+
+}

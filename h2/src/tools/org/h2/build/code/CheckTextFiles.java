@@ -85,18 +85,6 @@ public class CheckTextFiles {
                     check = true;
                 }
             }
-//            if (name.endsWith(".html") && name.indexOf("_ja") > 0) {
-//                int todoRemoveJapaneseFiles;
-//                // Japanese html files are UTF-8 at this time
-//                check = false;
-//                ignore = true;
-//            }
-            if (name.endsWith(".utf8.txt") ||
-                    (name.startsWith("_docs_") &&
-                    name.endsWith(".properties"))) {
-                check = false;
-                ignore = true;
-            }
             for (String s : SUFFIX_IGNORE) {
                 if (suffix.equals(s)) {
                     ignore = true;

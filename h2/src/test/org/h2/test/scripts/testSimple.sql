@@ -325,22 +325,10 @@ drop table test2;
 SELECT X FROM dual GROUP BY X HAVING X=AVG(X);
 >> 1
 
-create view test_view(id,) as select * from dual;
+create view test_view(id) as select * from dual;
 > ok
 
 drop view test_view;
-> ok
-
-create table test(id int,);
-> ok
-
-insert into test(id,) values(1,);
-> update count: 1
-
-merge into test(id,) key(id,) values(1,);
-> update count: 1
-
-drop table test;
 > ok
 
 SET MODE DB2;

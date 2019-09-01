@@ -38,6 +38,7 @@ import static org.h2.util.ParserUtil.INTERSECTS;
 import static org.h2.util.ParserUtil.INTERVAL;
 import static org.h2.util.ParserUtil.IS;
 import static org.h2.util.ParserUtil.JOIN;
+import static org.h2.util.ParserUtil.LEFT;
 import static org.h2.util.ParserUtil.LIKE;
 import static org.h2.util.ParserUtil.LIMIT;
 import static org.h2.util.ParserUtil.LOCALTIME;
@@ -51,6 +52,7 @@ import static org.h2.util.ParserUtil.ON;
 import static org.h2.util.ParserUtil.ORDER;
 import static org.h2.util.ParserUtil.PRIMARY;
 import static org.h2.util.ParserUtil.QUALIFY;
+import static org.h2.util.ParserUtil.RIGHT;
 import static org.h2.util.ParserUtil.ROW;
 import static org.h2.util.ParserUtil.ROWNUM;
 import static org.h2.util.ParserUtil.SELECT;
@@ -504,6 +506,8 @@ public class Parser {
             "IS",
             // JOIN
             "JOIN",
+            // LEFT
+            "LEFT",
             // LIKE
             "LIKE",
             // LIMIT
@@ -530,6 +534,8 @@ public class Parser {
             "PRIMARY",
             // QUALIFY
             "QUALIFY",
+            // RIGHT
+            "RIGHT",
             // ROW
             "ROW",
             // _ROWID_
@@ -1130,7 +1136,7 @@ public class Parser {
             for (int i = 0;; i++) {
                 Column column = parseColumnForTable("C" + i, true, false);
                 list.add(column);
-                if (!readIfMore(true)) {
+                if (!readIfMore()) {
                     break;
                 }
             }
@@ -1285,7 +1291,7 @@ public class Parser {
                 do {
                     Column column = readTableColumn(filter);
                     columns.add(column);
-                } while (readIfMore(true));
+                } while (readIfMore());
                 read(EQUAL);
                 Expression expression = readExpression();
                 int columnCount = columns.size();
@@ -1380,7 +1386,7 @@ public class Parser {
             column.columnName = readColumnIdentifier();
             column.sortType = parseSortType();
             columns.add(column);
-        } while (readIfMore(true));
+        } while (readIfMore());
         return columns.toArray(new IndexColumn[0]);
     }
 
@@ -1409,7 +1415,7 @@ public class Parser {
         do {
             String columnName = readColumnIdentifier();
             columns.add(columnName);
-        } while (readIfMore(false));
+        } while (readIfMore());
         return columns.toArray(new String[0]);
     }
 
@@ -1423,7 +1429,7 @@ public class Parser {
                     throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, column.getSQL(false));
                 }
                 columns.add(column);
-            } while (readIfMore(false));
+            } while (readIfMore());
         }
         return columns.toArray(new Column[0]);
     }
@@ -1439,13 +1445,11 @@ public class Parser {
     /**
      * Read comma or closing brace.
      *
-     * @param strict
-     *            if {@code false} additional comma before brace is allowed
      * @return {@code true} if comma is read, {@code false} if brace is read
      */
-    private boolean readIfMore(boolean strict) {
+    private boolean readIfMore() {
         if (readIf(COMMA)) {
-            return strict || !readIf(CLOSE_PAREN);
+            return true;
         }
         read(CLOSE_PAREN);
         return false;
@@ -1626,7 +1630,7 @@ public class Parser {
 
         if (isQuery()) {
             command.setQuery(parseSelect());
-            String queryAlias = readFromAlias(null, null);
+            String queryAlias = readFromAlias(null);
             if (queryAlias == null) {
                 queryAlias = Constants.PREFIX_QUERY_ALIAS + parseIndex;
             }
@@ -1864,7 +1868,7 @@ public class Parser {
                 if (!readIf(CLOSE_PAREN)) {
                     do {
                         values.add(readIf("DEFAULT") ? null : readExpression());
-                    } while (readIfMore(false));
+                    } while (readIfMore());
                 }
             } else {
                 values.add(readIf("DEFAULT") ? null : readExpression());
@@ -2076,26 +2080,16 @@ public class Parser {
                 String indexName = readIdentifierWithSchema();
                 Index index = table.getIndex(indexName);
                 indexNames.add(index.getName());
-            } while (readIfMore(true));
+            } while (readIfMore());
         }
         return IndexHints.createUseIndexHints(indexNames);
     }
 
-    private String readFromAlias(String alias, List<String> excludeIdentifiers) {
-        if (readIf("AS")) {
-            alias = readAliasIdentifier();
-        } else if (currentTokenType == IDENTIFIER
-                && (excludeIdentifiers == null || !isTokenInList(excludeIdentifiers))) {
+    private String readFromAlias(String alias) {
+        if (readIf("AS") || currentTokenType == IDENTIFIER) {
             alias = readAliasIdentifier();
         }
         return alias;
-    }
-
-    private String readFromAlias(String alias) {
-        // left and right are not keywords (because they are functions as
-        // well)
-        List<String> excludeIdentifiers = Arrays.asList("LEFT", "RIGHT");
-        return readFromAlias(alias, excludeIdentifiers);
     }
 
     private ArrayList<String> readDerivedColumnNames() {
@@ -2103,7 +2097,7 @@ public class Parser {
             ArrayList<String> derivedColumnNames = new ArrayList<>();
             do {
                 derivedColumnNames.add(readAliasIdentifier());
-            } while (readIfMore(true));
+            } while (readIfMore());
             return derivedColumnNames;
         }
         return null;
@@ -2114,7 +2108,7 @@ public class Parser {
             read(OPEN_PAREN);
             do {
                 discardTableHint();
-            } while (readIfMore(true));
+            } while (readIfMore());
         }
     }
 
@@ -2123,7 +2117,7 @@ public class Parser {
             if (readIf(OPEN_PAREN)) {
                 do {
                     readExpression();
-                } while (readIfMore(true));
+                } while (readIfMore());
             } else {
                 read(EQUAL);
                 readExpression();
@@ -2386,10 +2380,10 @@ public class Parser {
     }
 
     private TableFilter readJoin(TableFilter top) {
-        TableFilter last = top;
-        while (true) {
-            TableFilter join;
-            if (readIf("RIGHT")) {
+        for (TableFilter last = top, join;; last = join) {
+            switch (currentTokenType) {
+            case RIGHT: {
+                read();
                 readIf("OUTER");
                 read(JOIN);
                 // the right hand side is the 'inner' table usually
@@ -2398,31 +2392,47 @@ public class Parser {
                 Expression on = readJoinSpecification(top, join, true);
                 addJoin(join, top, true, on);
                 top = join;
-            } else if (readIf("LEFT")) {
+                break;
+            }
+            case LEFT: {
+                read();
                 readIf("OUTER");
                 read(JOIN);
                 join = readTableFilter();
                 join = readJoin(join);
                 Expression on = readJoinSpecification(top, join, false);
                 addJoin(top, join, true, on);
-            } else if (readIf(FULL)) {
+                break;
+            }
+            case FULL:
+                read();
                 throw getSyntaxError();
-            } else if (readIf(INNER)) {
+            case INNER: {
+                read();
                 read(JOIN);
                 join = readTableFilter();
                 top = readJoin(top);
                 Expression on = readJoinSpecification(top, join, false);
                 addJoin(top, join, false, on);
-            } else if (readIf(JOIN)) {
+                break;
+            }
+            case JOIN: {
+                read();
                 join = readTableFilter();
                 top = readJoin(top);
                 Expression on = readJoinSpecification(top, join, false);
                 addJoin(top, join, false, on);
-            } else if (readIf(CROSS)) {
+                break;
+            }
+            case CROSS: {
+                read();
                 read(JOIN);
                 join = readTableFilter();
                 addJoin(top, join, false, null);
-            } else if (readIf(NATURAL)) {
+                break;
+            }
+            case NATURAL: {
+                read();
                 read(JOIN);
                 join = readTableFilter();
                 Expression on = null;
@@ -2433,12 +2443,16 @@ public class Parser {
                     }
                 }
                 addJoin(top, join, false, on);
-            } else {
                 break;
             }
-            last = join;
+            default:
+                if (expectedList != null) {
+                    // FULL is intentionally excluded
+                    addMultipleExpected(RIGHT, LEFT, INNER, JOIN, CROSS, NATURAL);
+                }
+                return top;
+            }
         }
-        return top;
     }
 
     private Expression readJoinSpecification(TableFilter filter1, TableFilter filter2, boolean rightJoin) {
@@ -2451,7 +2465,7 @@ public class Parser {
                 String columnName = readColumnIdentifier();
                 on = addJoinColumn(on, filter1, filter2, filter1.getColumn(columnName, false),
                         filter2.getColumn(columnName, false), rightJoin);
-            } while (readIfMore(true));
+            } while (readIfMore());
         }
         return on;
     }
@@ -2512,7 +2526,7 @@ public class Parser {
         if (readIf(OPEN_PAREN)) {
             for (int i = 0;; i++) {
                 command.setExpression(i, readExpression());
-                if (!readIfMore(true)) {
+                if (!readIfMore()) {
                     break;
                 }
             }
@@ -2880,7 +2894,7 @@ public class Parser {
                 ArrayList<Expression> distinctExpressions = Utils.newSmallArrayList();
                 do {
                     distinctExpressions.add(readExpression());
-                } while (readIfMore(true));
+                } while (readIfMore());
                 command.setDistinct(distinctExpressions.toArray(new Expression[0]));
             } else {
                 command.setDistinct();
@@ -3228,7 +3242,7 @@ public class Parser {
         ArrayList<TypeInfo> typeList = Utils.newSmallArrayList();
         do {
             typeList.add(parseColumnWithType(null, false).getType());
-        } while (readIfMore(true));
+        } while (readIfMore());
         return new TypePredicate(left, not, typeList.toArray(new TypeInfo[0]));
     }
 
@@ -3240,7 +3254,7 @@ public class Parser {
         ArrayList<Expression> v;
         if (isQuery()) {
             Query query = parseSelect();
-            if (!readIfMore(true)) {
+            if (!readIfMore()) {
                 return new ConditionInQuery(database, left, query, false, Comparison.EQUAL);
             }
             v = Utils.newSmallArrayList();
@@ -3250,7 +3264,7 @@ public class Parser {
         }
         do {
             v.add(readExpression());
-        } while (readIfMore(true));
+        } while (readIfMore());
         return new ConditionIn(database, left, v);
     }
 
@@ -3412,7 +3426,7 @@ public class Parser {
             ArrayList<Expression> expressions = Utils.newSmallArrayList();
             do {
                 expressions.add(readExpression());
-            } while (readIfMore(true));
+            } while (readIfMore());
             r = readWithinGroup(aggregateType, expressions.toArray(new Expression[0]), false, true);
             break;
         }
@@ -3549,7 +3563,7 @@ public class Parser {
         if (!readIf(CLOSE_PAREN)) {
             do {
                 argList.add(readExpression());
-            } while (readIfMore(true));
+            } while (readIfMore());
         }
         return new JavaFunction(functionAlias, argList.toArray(new Expression[0]));
     }
@@ -3559,7 +3573,7 @@ public class Parser {
         ArrayList<Expression> params = Utils.newSmallArrayList();
         do {
             params.add(readExpression());
-        } while (readIfMore(true));
+        } while (readIfMore());
         Expression[] list = params.toArray(new Expression[0]);
         JavaAggregate agg = new JavaAggregate(aggregate, list, currentSelect, distinct);
         readFilterAndOver(agg);
@@ -3884,7 +3898,7 @@ public class Parser {
                 columns.add(column);
                 read(EQUAL);
                 function.addParameter(readExpression());
-            } while (readIfMore(true));
+            } while (readIfMore());
             TableFunction tf = (TableFunction) function;
             tf.setColumns(columns);
             break;
@@ -3896,7 +3910,7 @@ public class Parser {
                 do {
                     function.addParameter(readExpression());
                     columns.add(new Column("C" + ++i, Value.NULL));
-                } while (readIfMore(true));
+                } while (readIfMore());
             }
             if (readIf(WITH)) {
                 read("ORDINALITY");
@@ -3938,7 +3952,7 @@ public class Parser {
             if (!readIf(CLOSE_PAREN)) {
                 do {
                     function.addParameter(readExpression());
-                } while (readIfMore(true));
+                } while (readIfMore());
             }
         }
         function.doneWithParameters();
@@ -4151,7 +4165,7 @@ public class Parser {
                     }
                 }
                 exceptColumns.add(new ExpressionColumn(database, s, t, name, false));
-            } while (readIfMore(true));
+            } while (readIfMore());
             wildcard.setExceptColumns(exceptColumns);
         }
         return wildcard;
@@ -4321,12 +4335,12 @@ public class Parser {
                 r = ValueExpression.get(ValueRow.getEmpty());
             } else {
                 r = readExpression();
-                if (readIfMore(true)) {
+                if (readIfMore()) {
                     ArrayList<Expression> list = Utils.newSmallArrayList();
                     list.add(r);
                     do {
                         list.add(readExpression());
-                    } while (readIfMore(true));
+                    } while (readIfMore());
                     r = new ExpressionList(list.toArray(new Expression[0]), false);
                 }
             }
@@ -4358,7 +4372,7 @@ public class Parser {
                 ArrayList<Expression> list = Utils.newSmallArrayList();
                 do {
                     list.add(readExpression());
-                } while (readIfMore(true));
+                } while (readIfMore());
                 r = new ExpressionList(list.toArray(new Expression[0]), false);
             }
             break;
@@ -4434,6 +4448,10 @@ public class Parser {
             read();
             r = readKeywordFunction(Function.USER);
             break;
+        case LEFT:
+            read();
+            r = readKeywordFunction(Function.LEFT);
+            break;
         case LOCALTIME:
             read();
             r = readKeywordFunction(Function.LOCALTIME);
@@ -4441,6 +4459,10 @@ public class Parser {
         case LOCALTIMESTAMP:
             read();
             r = readKeywordFunction(Function.LOCALTIMESTAMP);
+            break;
+        case RIGHT:
+            read();
+            r = readKeywordFunction(Function.RIGHT);
             break;
         default:
             throw getSyntaxError();
@@ -6020,7 +6042,7 @@ public class Parser {
                     ArrayList<String> enumeratorList = new ArrayList<>();
                     String enumerator0 = readString();
                     enumeratorList.add(enumerator0);
-                    while (readIfMore(true)) {
+                    while (readIfMore()) {
                         String enumeratorN = readString();
                         enumeratorList.add(enumeratorN);
                     }
@@ -6392,7 +6414,7 @@ public class Parser {
                 }
                 row.add(expr);
                 i++;
-            } while (multiColumn && readIfMore(true));
+            } while (multiColumn && readIfMore());
             rows.add(row);
         } while (readIf(COMMA));
         int columnCount = columns.size();
@@ -8016,7 +8038,7 @@ public class Parser {
             command.setIfNotExists(false);
             do {
                 parseTableColumnDefinition(command, schema, tableName, false);
-            } while (readIfMore(true));
+            } while (readIfMore());
         } else {
             boolean ifNotExists = readIfNotExists();
             command.setIfNotExists(ifNotExists);
@@ -8267,7 +8289,7 @@ public class Parser {
             if (!readIf(CLOSE_PAREN)) {
                 do {
                     parseTableColumnDefinition(command, schema, tableName, true);
-                } while (readIfMore(false));
+                } while (readIfMore());
             }
         }
         if (database.getMode().getEnum() == ModeEnum.MySQL) {
@@ -8669,13 +8691,13 @@ public class Parser {
                 }
                 list.add(currentToken);
                 read();
-            } while (readIfMore(true));
+            } while (readIfMore());
             return list.toArray(new String[0]);
         } else if (currentTokenType == VALUE) {
             ArrayList<Integer> list = Utils.newSmallArrayList();
             do {
                 list.add(readInt());
-            } while (readIfMore(true));
+            } while (readIfMore());
             int count = list.size();
             int[] array = new int[count];
             for (int i = 0; i < count; i++) {

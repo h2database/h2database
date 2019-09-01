@@ -41,9 +41,10 @@ public class TestIgnoreCatalogs extends TestDb {
     }
 
     public void doesNotAcceptEmptySchemaWhenNotMSSQL() throws SQLException {
-        try (Connection conn = getConnection("ignoreCatalogs;IGNORE_CATALOGS=TRUE;init=drop all objects\\;"
-                                             + "create schema dbo\\;set schema dbo\\;")) {
+        try (Connection conn = getConnection("ignoreCatalogs;IGNORE_CATALOGS=TRUE")) {
             try (Statement stat = conn.createStatement()) {
+                prepareDbAndSetDefaultSchema(stat);
+                stat.execute("set schema dbo");
                 stat.execute("create table catalog1.dbo.test(id int primary key, name varchar(255))");
                 assertThrows(ErrorCode.SYNTAX_ERROR_2, stat, "comment on table catalog1..test is 'table comment3'");
                 assertThrows(ErrorCode.SYNTAX_ERROR_2, stat, "create table catalog1..test2(id int primary key, "
@@ -60,10 +61,11 @@ public class TestIgnoreCatalogs extends TestDb {
         }
     }
 
+
     public void canCommentOn() throws Exception {
-        try (Connection conn = getConnection("ignoreCatalogs;MODE=MSSQLSERVER;IGNORE_CATALOGS=TRUE;"
-                                             + "init=drop all objects\\;create schema dbo\\;set schema dbo\\;")) {
+        try (Connection conn = getConnection("ignoreCatalogs;MODE=MSSQLSERVER;IGNORE_CATALOGS=TRUE;")) {
             try (Statement stat = conn.createStatement()) {
+                prepareDbAndSetDefaultSchema(stat);
                 stat.execute("create table catalog1.dbo.test(id int primary key, name varchar(255))");
                 stat.execute("comment on table catalog1.dbo.test is 'table comment1'");
                 stat.execute("comment on table dbo.test is 'table comment2'");
@@ -86,9 +88,9 @@ public class TestIgnoreCatalogs extends TestDb {
     }
 
     public void canUseDefaultSchema() throws Exception {
-        try (Connection conn = getConnection("ignoreCatalogs;MODE=MSSQLSERVER;IGNORE_CATALOGS=TRUE;"
-                                             + "init=drop all objects\\;create schema dbo\\;set schema dbo\\;")) {
+        try (Connection conn = getConnection("ignoreCatalogs;MODE=MSSQLSERVER;IGNORE_CATALOGS=TRUE;")) {
             try (Statement stat = conn.createStatement()) {
+                prepareDbAndSetDefaultSchema(stat);
                 stat.execute("create table catalog1..test(id int primary key, name varchar(255))");
 
                 stat.execute("create table test2(id int primary key, name varchar(255))");
@@ -104,9 +106,9 @@ public class TestIgnoreCatalogs extends TestDb {
     }
 
     public void canUseSettingInUrl() throws Exception {
-        try (Connection conn = getConnection("ignoreCatalogs;MODE=MSSQLSERVER;IGNORE_CATALOGS=TRUE;"
-                                             + "init=drop all objects\\;create schema dbo\\;")) {
+        try (Connection conn = getConnection("ignoreCatalogs;MODE=MSSQLSERVER;IGNORE_CATALOGS=TRUE;")) {
             try (Statement stat = conn.createStatement()) {
+                prepareDb(stat);
                 stat.execute("create table catalog1.dbo.test(id int primary key, name varchar(255))");
                 // expect table already exists
                 assertThrows(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, stat,
@@ -120,9 +122,9 @@ public class TestIgnoreCatalogs extends TestDb {
     }
 
     public void canUseSetterSyntax() throws Exception {
-        try (Connection conn = getConnection("ignoreCatalogs;MODE=MSSQLSERVER;init=drop all objects\\;"
-                                             + "create schema dbo\\;")) {
+        try (Connection conn = getConnection("ignoreCatalogs;MODE=MSSQLSERVER;")) {
             try (Statement stat = conn.createStatement()) {
+                prepareDb(stat);
                 stat.execute("set IGNORE_CATALOGS=TRUE");
                 stat.execute("create table catalog1.dbo.test(id int primary key, name varchar(255))");
                 // expect table already exists
@@ -136,9 +138,9 @@ public class TestIgnoreCatalogs extends TestDb {
     }
 
     public void canCatalogNameEqualSchemaName() throws Exception {
-        try (Connection conn = getConnection("ignoreCatalogs;MODE=MSSQLSERVER;"
-                                             + "init=drop all objects\\;create schema dbo\\;")) {
+        try (Connection conn = getConnection("ignoreCatalogs;MODE=MSSQLSERVER;")) {
             try (Statement stat = conn.createStatement()) {
+                prepareDb(stat);
                 stat.execute("set IGNORE_CATALOGS=TRUE");
                 stat.execute("create table dbo.dbo.test(id int primary key, name varchar(255))");
                 // expect object already exists
@@ -152,9 +154,9 @@ public class TestIgnoreCatalogs extends TestDb {
     }
 
     public void canYetIdentifyWrongCatalogName() throws Exception {
-        try (Connection conn = getConnection("ignoreCatalogs;MODE=MSSQLSERVER;init=drop all objects\\;"
-                                             + "create schema dbo\\;")) {
+        try (Connection conn = getConnection("ignoreCatalogs;MODE=MSSQLSERVER;")) {
             try (Statement stat = conn.createStatement()) {
+                prepareDb(stat);
                 // works, since catalog name equals databasename
                 stat.execute("create table ignoreCatalogs.dbo.test(id int primary key, name varchar(255))");
                 // schema testx not found error
@@ -167,9 +169,9 @@ public class TestIgnoreCatalogs extends TestDb {
     }
 
     public void canUseCatalogAtIndexName() throws Exception {
-        try (Connection conn = getConnection("ignoreCatalogs;MODE=MSSQLSERVER;"
-                                             + "init=drop all objects\\;create schema dbo\\;")) {
+        try (Connection conn = getConnection("ignoreCatalogs;MODE=MSSQLSERVER;")) {
             try (Statement stat = conn.createStatement()) {
+                prepareDb(stat);
                 stat.execute("set IGNORE_CATALOGS=TRUE");
                 stat.execute("create table dbo.dbo.test(id int primary key, name varchar(255))");
                 stat.execute("create index i on dbo.dbo.test(id,name)");
@@ -187,9 +189,9 @@ public class TestIgnoreCatalogs extends TestDb {
 
 
     public void canAllCombined() throws SQLException {
-        try (Connection conn = getConnection("ignoreCatalogs;MODE=MSSQLSERVER;IGNORE_CATALOGS=TRUE;"
-                                             + "init=drop all objects\\;create schema dbo\\;set schema dbo\\;")) {
+        try (Connection conn = getConnection("ignoreCatalogs;MODE=MSSQLSERVER;IGNORE_CATALOGS=TRUE;")) {
             try (Statement stat = conn.createStatement()) {
+                prepareDbAndSetDefaultSchema(stat);
                 stat.execute("create table dbo.test(id int primary key, name varchar(255))");
                 stat.execute("create table catalog1.dbo.test2(id int primary key, name varchar(255))");
                 stat.execute("insert into dbo.test values(1, 'Hello')");
@@ -224,4 +226,12 @@ public class TestIgnoreCatalogs extends TestDb {
             deleteDb("ignoreCatalogs");
         }
     }
-}
+
+    private void prepareDb(final Statement stat) throws SQLException {
+        stat.execute("drop all objects");
+        stat.execute("create schema dbo");
+    }
+    private void prepareDbAndSetDefaultSchema(final Statement stat) throws SQLException {
+        prepareDb(stat);
+        stat.execute("set schema dbo");
+    }}

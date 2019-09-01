@@ -252,6 +252,12 @@ public class Mode {
     public boolean decimalSequences;
 
     /**
+     * if {@code true} constructs like 'create table catalog..tablename' are possible if
+     * the default-schemaname should be used.
+     */
+    public boolean allowEmptySchemaValuesAsDefaultSchema;
+
+    /**
      * An optional Set of hidden/disallowed column types.
      * Certain DBMSs don't support all column types provided by H2, such as
      * "NUMBER" when using PostgreSQL mode.
@@ -331,6 +337,7 @@ public class Mode {
         dt.sqlType = Types.NUMERIC;
         dt.name = "SMALLMONEY";
         mode.typeByNameMap.put("SMALLMONEY", dt);
+        mode.allowEmptySchemaValuesAsDefaultSchema = true;
         add(mode);
 
         mode = new Mode(ModeEnum.MySQL);

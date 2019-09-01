@@ -6,6 +6,7 @@
 package org.h2.engine;
 
 import java.util.HashMap;
+
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.util.Utils;
@@ -333,6 +334,14 @@ public class DbSettings extends SettingsBase {
      * Compress data when storing.
      */
     public final boolean compressData = get("COMPRESS", false);
+
+    /**
+     * Database setting <code>IGNORE_CATALOGS</code>
+     * (default: false).<br />
+     * If set, all catalog names in identifiers are silently accepted
+     * without comparing them with the short name of the database.
+     */
+    public final boolean ignoreCatalogs = get("IGNORE_CATALOGS", false);
 
     private DbSettings(HashMap<String, String> s) {
         super(s);

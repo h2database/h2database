@@ -6,6 +6,7 @@
 package org.h2.command.dml;
 
 import java.text.Collator;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
@@ -639,6 +640,15 @@ public class Set extends Prepared {
                 database.setResultFactory(localResultFactory);
             } catch (Exception e) {
                 throw DbException.convert(e);
+            }
+            break;
+        }
+        case SetTypes.IGNORE_CATALOGS: {
+            session.getUser().checkAdmin();
+            int value = getIntValue();
+            synchronized (database) {
+                database.setIgnoreCatalogs(value == 1);
+                addOrUpdateSetting(name, null, value);
             }
             break;
         }

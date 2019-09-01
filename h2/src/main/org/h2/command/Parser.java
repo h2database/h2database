@@ -225,6 +225,7 @@ import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.table.Column;
 import org.h2.table.DataChangeDeltaTable;
+import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.FunctionTable;
 import org.h2.table.IndexColumn;
 import org.h2.table.IndexHints;
@@ -233,7 +234,6 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableFilter.TableFilterVisitor;
 import org.h2.table.TableView;
-import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.util.IntervalUtils;
 import org.h2.util.ParserUtil;
 import org.h2.util.StringUtils;
@@ -2197,18 +2197,25 @@ public class Parser {
             // it would not read schema.table.column correctly
             // if the db name is equal to the schema name
             ArrayList<String> list = Utils.newSmallArrayList();
+            boolean afterFirstLoop = false;
             do {
+                if (afterFirstLoop && database.getMode().allowEmptySchemaValuesAsDefaultSchema && readIf(DOT)) {
+                    list.add(null);
+                }
                 list.add(readUniqueIdentifier());
+                afterFirstLoop = true;
             } while (readIf(DOT));
             schemaName = session.getCurrentSchemaName();
             if (list.size() == 4) {
-                if (!equalsToken(database.getShortName(), list.remove(0))) {
+                if (!equalsToken(database.getShortName(), list.remove(0)) && !database.getIgnoreCatalogs()) {
                     throw DbException.getSyntaxError(sqlCommand, parseIndex,
                             "database name");
                 }
             }
             if (list.size() == 3) {
-                schemaName = list.remove(0);
+                String tmpSchemaName = list.remove(0);
+                if (tmpSchemaName != null)
+                    schemaName = tmpSchemaName;
             }
             if (list.size() != 2) {
                 throw DbException.getSyntaxError(sqlCommand, parseIndex,
@@ -4869,12 +4876,19 @@ public class Parser {
 
     private String readIdentifierWithSchema2(String s) {
         schemaName = s;
-        s = readColumnIdentifier();
-        if (currentTokenType == DOT) {
-            if (equalsToken(schemaName, database.getShortName())) {
-                read();
-                schemaName = s;
+        if (database.getMode().allowEmptySchemaValuesAsDefaultSchema && readIf(DOT)) {
+            if (equalsToken(schemaName, database.getShortName()) || database.getIgnoreCatalogs()) {
+                schemaName = session.getCurrentSchemaName();
                 s = readColumnIdentifier();
+            }
+        } else {
+            s = readColumnIdentifier();
+            if (currentTokenType == DOT) {
+                if (equalsToken(schemaName, database.getShortName()) || database.getIgnoreCatalogs()) {
+                    read();
+                    schemaName = s;
+                    s = readColumnIdentifier();
+                }
             }
         }
         return s;
@@ -7300,6 +7314,13 @@ public class Parser {
         } else if (readIf("JAVA_OBJECT_SERIALIZER")) {
             readIfEqualOrTo();
             return parseSetJavaObjectSerializer();
+        } else if (readIf("IGNORE_CATALOGS")) {
+            readIfEqualOrTo();
+            // Simulate multiple catalog compatibility by just ignoring (IGNORE_CATALOGS=TRUE in the database URL)
+            boolean value = readBooleanSetting();
+            Set command = new Set(session, SetTypes.IGNORE_CATALOGS);
+            command.setInt(value ? 1 : 0);
+            return command;
         } else {
             if (isToken("LOGSIZE")) {
                 // HSQLDB compatibility
@@ -7890,7 +7911,7 @@ public class Parser {
                 throw DbException.get(ErrorCode.UNKNOWN_MODE_1,
                         "Internal Error - unhandled case: " + nullConstraint.name());
             }
-            if(hasOpeningBracket) {
+            if (hasOpeningBracket) {
                 read(CLOSE_PAREN);
             }
             return command;

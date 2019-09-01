@@ -84,9 +84,9 @@ import org.h2.util.SourceCompiler;
 import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Utils;
+import org.h2.value.CaseInsensitiveConcurrentMap;
 import org.h2.value.CaseInsensitiveMap;
 import org.h2.value.CompareMode;
-import org.h2.value.CaseInsensitiveConcurrentMap;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 
@@ -237,6 +237,7 @@ public class Database implements DataHandler {
     private QueryStatisticsData queryStatisticsData;
     private RowFactory rowFactory = RowFactory.DEFAULT;
     private LocalResultFactory resultFactory = LocalResultFactory.DEFAULT;
+    private boolean ignoreCatalogs;
 
     private Authenticator authenticator;
 
@@ -315,6 +316,8 @@ public class Database implements DataHandler {
                 TraceSystem.DEFAULT_TRACE_LEVEL_SYSTEM_OUT);
         this.cacheType = StringUtils.toUpperEnglish(
                 ci.removeProperty("CACHE_TYPE", Constants.CACHE_TYPE_DEFAULT));
+        this.ignoreCatalogs = ci.getProperty("IGNORE_CATALOGS",
+                dbSettings.ignoreCatalogs);
         openDatabase(traceLevelFile, traceLevelSystemOut, closeAtVmShutdown, ci);
     }
 
@@ -2513,6 +2516,15 @@ public class Database implements DataHandler {
         }
         return ignoreCase;
     }
+
+    public void setIgnoreCatalogs(boolean b) {
+        ignoreCatalogs = b;
+    }
+
+    public boolean getIgnoreCatalogs() {
+        return ignoreCatalogs;
+    }
+
 
     public synchronized void setDeleteFilesOnDisconnect(boolean b) {
         this.deleteFilesOnDisconnect = b;

@@ -330,7 +330,7 @@ public class FilePathDisk extends FilePath {
                 }
                 return in;
             }
-            // otherwise an URL is assumed
+            // otherwise a URL is assumed
             URL url = new URL(name);
             return url.openStream();
         }

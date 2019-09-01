@@ -416,7 +416,7 @@ public class StringUtils {
     }
 
     /**
-     * Encode the string as an URL.
+     * Encode the string as a URL.
      *
      * @param s the string to encode
      * @return the encoded string

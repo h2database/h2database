@@ -29,7 +29,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
 /**
- * An unique index based on an in-memory hash map.
+ * A unique index based on an in-memory hash map.
  */
 public class HashIndex extends BaseIndex {
 

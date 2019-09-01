@@ -24,7 +24,7 @@ public class WebClient {
     private String contentType;
 
     /**
-     * Open an URL and get the HTML data.
+     * Open a URL and get the HTML data.
      *
      * @param url the HTTP URL
      * @return the HTML as a string

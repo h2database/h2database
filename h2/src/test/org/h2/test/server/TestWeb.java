@@ -617,7 +617,7 @@ public class TestWeb extends TestDb {
     }
 
     /**
-     * An HTTP servlet request for testing.
+     * A HTTP servlet request for testing.
      */
     static class TestHttpServletRequest implements HttpServletRequest {
 
@@ -981,7 +981,7 @@ public class TestWeb extends TestDb {
     }
 
     /**
-     * An HTTP servlet response for testing.
+     * A HTTP servlet response for testing.
      */
     static class TestHttpServletResponse implements HttpServletResponse {
 

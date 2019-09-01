@@ -10262,7 +10262,7 @@ Support OUTER UNION
 Support parameterized views (similar to CSVREAD, but using just SQL for the definition) 
 
 @roadmap_1146_li
-A way (JDBC driver) to map a URL (jdbc:h2map:c1) to a connection object
+A way (JDBC driver) to map an URL (jdbc:h2map:c1) to a connection object
 
 @roadmap_1147_li
 Support dynamic linked schema (automatically adding/updating/removing tables) 

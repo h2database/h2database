@@ -2197,11 +2197,13 @@ public class Parser {
             // it would not read schema.table.column correctly
             // if the db name is equal to the schema name
             ArrayList<String> list = Utils.newSmallArrayList();
+            boolean afterFirstLoop = false;
             do {
-                if (database.getMode().allowEmptySchemaValuesAsDefaultSchema && readIf(DOT)) {
+                if (afterFirstLoop && database.getMode().allowEmptySchemaValuesAsDefaultSchema && readIf(DOT)) {
                     list.add(null);
                 }
                 list.add(readUniqueIdentifier());
+                afterFirstLoop = true;
             } while (readIf(DOT));
             schemaName = session.getCurrentSchemaName();
             if (list.size() == 4) {

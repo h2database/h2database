@@ -7316,7 +7316,6 @@ public class Parser {
             return parseSetJavaObjectSerializer();
         } else if (readIf("IGNORE_CATALOGS")) {
             readIfEqualOrTo();
-            // Simulate multiple catalog compatibility by just ignoring (IGNORE_CATALOGS=TRUE in the database URL)
             boolean value = readBooleanSetting();
             Set command = new Set(session, SetTypes.IGNORE_CATALOGS);
             command.setInt(value ? 1 : 0);

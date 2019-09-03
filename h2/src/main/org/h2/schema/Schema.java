@@ -153,18 +153,20 @@ public class Schema extends DbObjectBase {
         while (!tablesAndViews.isEmpty()) {
             boolean newModified = false;
             for (Table obj : tablesAndViews.values()) {
-                // Database.removeSchemaObject() removes the object from
-                // the map too, but it is safe for ConcurrentHashMap.
-                Table dependentTable = database.getDependentTable(obj, obj);
-                if (dependentTable == null) {
-                    database.removeSchemaObject(session, obj);
-                    newModified = true;
-                } else if (dependentTable.getSchema() != this) {
-                    throw DbException.get(ErrorCode.CANNOT_DROP_2, obj.getSQL(false), dependentTable.getSQL(false));
-                } else if (!modified) {
-                    dependentTable.removeColumnExpressionsDependencies(session);
-                    dependentTable.setModified();
-                    database.updateMeta(session, dependentTable);
+                if (obj.getName() != null) {
+                    // Database.removeSchemaObject() removes the object from
+                    // the map too, but it is safe for ConcurrentHashMap.
+                    Table dependentTable = database.getDependentTable(obj, obj);
+                    if (dependentTable == null) {
+                        database.removeSchemaObject(session, obj);
+                        newModified = true;
+                    } else if (dependentTable.getSchema() != this) {
+                        throw DbException.get(ErrorCode.CANNOT_DROP_2, obj.getSQL(false), dependentTable.getSQL(false));
+                    } else if (!modified) {
+                        dependentTable.removeColumnExpressionsDependencies(session);
+                        dependentTable.setModified();
+                        database.updateMeta(session, dependentTable);
+                    }
                 }
             }
             modified = newModified;

@@ -149,14 +149,25 @@ public class Schema extends DbObjectBase {
         removeChildrenFromMap(session, constraints);
         // There can be dependencies between tables e.g. using computed columns,
         // so we might need to loop over them multiple times.
+        boolean modified = true;
         while (!tablesAndViews.isEmpty()) {
+            boolean newModified = false;
             for (Table obj : tablesAndViews.values()) {
                 // Database.removeSchemaObject() removes the object from
                 // the map too, but it is safe for ConcurrentHashMap.
-                if (database.getDependentTable(obj, obj) == null) {
+                Table dependentTable = database.getDependentTable(obj, obj);
+                if (dependentTable == null) {
                     database.removeSchemaObject(session, obj);
+                    newModified = true;
+                } else if (dependentTable.getSchema() != this) {
+                    throw DbException.get(ErrorCode.CANNOT_DROP_2, obj.getSQL(false), dependentTable.getSQL(false));
+                } else if (!modified) {
+                    dependentTable.removeColumnExpressionsDependencies(session);
+                    dependentTable.setModified();
+                    database.updateMeta(session, dependentTable);
                 }
             }
+            modified = newModified;
         }
         removeChildrenFromMap(session, indexes);
         removeChildrenFromMap(session, sequences);

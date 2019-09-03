@@ -757,6 +757,9 @@ public class Column {
         if (defaultExpression != null && !defaultExpression.isEverything(visitor)) {
             return false;
         }
+        if (onUpdateExpression != null && !onUpdateExpression.isEverything(visitor)) {
+            return false;
+        }
         if (checkConstraint != null && !checkConstraint.isEverything(visitor)) {
             return false;
         }

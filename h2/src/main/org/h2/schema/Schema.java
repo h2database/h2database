@@ -161,7 +161,8 @@ public class Schema extends DbObjectBase {
                         database.removeSchemaObject(session, obj);
                         newModified = true;
                     } else if (dependentTable.getSchema() != this) {
-                        throw DbException.get(ErrorCode.CANNOT_DROP_2, obj.getSQL(false), dependentTable.getSQL(false));
+                        throw DbException.get(ErrorCode.CANNOT_DROP_2, //
+                                obj.getSQL(false), dependentTable.getSQL(false));
                     } else if (!modified) {
                         dependentTable.removeColumnExpressionsDependencies(session);
                         dependentTable.setModified();

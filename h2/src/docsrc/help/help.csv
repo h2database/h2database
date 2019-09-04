@@ -149,6 +149,18 @@ If the called function returns an array, then each element in this array is retu
 CALL 15*25
 "
 
+"Commands (DML)","EXECUTE IMMEDIATE","
+EXECUTE IMMEDIATE sqlString
+","
+Dynamically prepares and executes the SQL command specified as a string. Query commands may not be used.
+","
+EXECUTE IMMEDIATE 'ALTER TABLE TEST DROP CONSTRAINT ' ||
+    (SELECT CONSTRAINT_NAME
+        FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+        WHERE TABLE_SCHEMA = 'PUBLIC' AND TABLE_NAME = 'TEST'
+            AND CONSTRAINT_TYPE = 'UNIQUE');
+"
+
 "Commands (DML)","EXPLAIN","
 EXPLAIN { [ PLAN FOR ] | ANALYZE }
 { query | insert | update | delete | mergeInto | mergeUsing }

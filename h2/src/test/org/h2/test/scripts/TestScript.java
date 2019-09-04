@@ -163,8 +163,8 @@ public class TestScript extends TestDb {
                 "truncateTable" }) {
             testScript("ddl/" + s + ".sql");
         }
-        for (String s : new String[] { "delete", "error_reporting", "insert", "insertIgnore", "merge", "mergeUsing",
-                "replace", "script", "select", "show", "table", "update", "values", "with" }) {
+        for (String s : new String[] { "delete", "error_reporting", "execute_immediate", "insert", "insertIgnore",
+                "merge", "mergeUsing", "replace", "script", "select", "show", "table", "update", "values", "with" }) {
             testScript("dml/" + s + ".sql");
         }
         for (String s : new String[] { "any", "array-agg", "avg", "bit-and", "bit-or", "count", "envelope",
@@ -189,7 +189,7 @@ public class TestScript extends TestDb {
         for (String s : new String[] { "ascii", "bit-length", "char", "concat",
                 "concat-ws", "difference", "hextoraw", "insert", "instr",
                 "left", "length", "locate", "lower", "lpad", "ltrim",
-                "octet-length", "position", "rawtohex", "regexp-like",
+                "octet-length", "position", "quote_ident", "rawtohex", "regexp-like",
                 "regex-replace", "repeat", "replace", "right", "rpad", "rtrim",
                 "soundex", "space", "stringdecode", "stringencode",
                 "stringtoutf8", "substring", "to-char", "translate", "trim",

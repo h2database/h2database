@@ -140,6 +140,7 @@ import org.h2.command.dml.Call;
 import org.h2.command.dml.CommandWithValues;
 import org.h2.command.dml.DataChangeStatement;
 import org.h2.command.dml.Delete;
+import org.h2.command.dml.ExecuteImmediate;
 import org.h2.command.dml.ExecuteProcedure;
 import org.h2.command.dml.Explain;
 import org.h2.command.dml.Insert;
@@ -2515,6 +2516,9 @@ public class Parser {
     }
 
     private Prepared parseExecutePostgre() {
+        if (readIf("IMMEDIATE")) {
+            return new ExecuteImmediate(session, readExpression());
+        }
         ExecuteProcedure command = new ExecuteProcedure(session);
         String procedureName = readAliasIdentifier();
         Procedure p = session.getProcedure(procedureName);

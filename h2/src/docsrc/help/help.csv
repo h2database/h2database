@@ -10,7 +10,7 @@ SELECT [ TOP term [ PERCENT ] [ WITH TIES ] ]
 selectExpression [,...]
 [ FROM tableExpression [,...] ]
 [ WHERE expression ]
-[ GROUP BY expression [,...] ] [ HAVING expression ]
+[ GROUP BY groupingElement [,...] ] [ HAVING expression ]
 [ WINDOW { { windowName AS windowSpecification } [,...] } ]
 [ QUALIFY expression ]
 [ { UNION [ ALL ] | EXCEPT | MINUS | INTERSECT } query ]
@@ -2730,6 +2730,16 @@ term [ { { * | / | % } term } [...] ]
 A value or a numeric factor.
 ","
 ID * 10
+"
+
+"Other Grammar","Grouping element","
+expression | (expression [, ...]) | ()
+","
+A grouping element of GROUP BY clause.
+","
+A
+(B, C)
+()
 "
 
 "Other Grammar","Hex","

@@ -803,3 +803,110 @@ SELECT DISTINCT DATA FROM TEST X ORDER BY (CASE WHEN EXISTS(SELECT * FROM TEST T
 
 DROP TABLE TEST;
 > ok
+
+-- Additional GROUP BY tests
+
+CREATE TABLE TEST(A INT, B INT, C INT) AS (VALUES
+    (NULL, NULL, NULL), (NULL, NULL, 1), (NULL, NULL, 2),
+    (NULL, 1, NULL), (NULL, 1, 1), (NULL, 1, 2),
+    (NULL, 2, NULL), (NULL, 2, 1), (NULL, 2, 2),
+    (1, NULL, NULL), (1, NULL, 1), (1, NULL, 2),
+    (1, 1, NULL), (1, 1, 1), (1, 1, 2),
+    (1, 2, NULL), (1, 2, 1), (1, 2, 2),
+    (2, NULL, NULL), (2, NULL, 1), (2, NULL, 2),
+    (2, 1, NULL), (2, 1, 1), (2, 1, 2),
+    (2, 2, NULL), (2, 2, 1), (2, 2, 2));
+> ok
+
+SELECT SUM(A), B, C FROM TEST GROUP BY B, C;
+> SUM(A) B    C
+> ------ ---- ----
+> 3      1    1
+> 3      1    2
+> 3      1    null
+> 3      2    1
+> 3      2    2
+> 3      2    null
+> 3      null 1
+> 3      null 2
+> 3      null null
+> rows: 9
+
+EXPLAIN SELECT SUM(A), B, C FROM TEST GROUP BY B, C;
+>> SELECT SUM("A"), "B", "C" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ GROUP BY "B", "C"
+
+SELECT SUM(A), B, C FROM TEST GROUP BY (B), C, ();
+> SUM(A) B    C
+> ------ ---- ----
+> 3      1    1
+> 3      1    2
+> 3      1    null
+> 3      2    1
+> 3      2    2
+> 3      2    null
+> 3      null 1
+> 3      null 2
+> 3      null null
+> rows: 9
+
+EXPLAIN SELECT SUM(A), B, C FROM TEST GROUP BY (B), C, ();
+>> SELECT SUM("A"), "B", "C" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ GROUP BY "B", "C"
+
+SELECT SUM(A), B, C FROM TEST GROUP BY (B, C);
+> SUM(A) B    C
+> ------ ---- ----
+> 3      1    1
+> 3      1    2
+> 3      1    null
+> 3      2    1
+> 3      2    2
+> 3      2    null
+> 3      null 1
+> 3      null 2
+> 3      null null
+> rows: 9
+
+EXPLAIN SELECT SUM(A), B, C FROM TEST GROUP BY (B, C);
+>> SELECT SUM("A"), "B", "C" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ GROUP BY "B", "C"
+
+SELECT COUNT(*) FROM TEST;
+>> 27
+
+EXPLAIN SELECT COUNT(*) FROM TEST;
+>> SELECT COUNT(*) FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ /* direct lookup */
+
+SELECT COUNT(*) FROM TEST GROUP BY ();
+>> 27
+
+EXPLAIN SELECT COUNT(*) FROM TEST GROUP BY ();
+>> SELECT COUNT(*) FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ /* direct lookup */
+
+SELECT COUNT(*) FROM TEST WHERE FALSE;
+>> 0
+
+EXPLAIN SELECT COUNT(*) FROM TEST WHERE FALSE;
+>> SELECT COUNT(*) FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan: FALSE */ WHERE FALSE
+
+SELECT COUNT(*) FROM TEST WHERE FALSE GROUP BY ();
+>> 0
+
+EXPLAIN SELECT COUNT(*) FROM TEST WHERE FALSE GROUP BY ();
+>> SELECT COUNT(*) FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan: FALSE */ WHERE FALSE
+
+SELECT COUNT(*) FROM TEST WHERE FALSE GROUP BY (), ();
+>> 0
+
+EXPLAIN SELECT COUNT(*) FROM TEST WHERE FALSE GROUP BY (), ();
+>> SELECT COUNT(*) FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan: FALSE */ WHERE FALSE
+
+SELECT 1 FROM TEST GROUP BY ();
+>> 1
+
+EXPLAIN SELECT 1 FROM TEST GROUP BY ();
+>> SELECT 1 FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ GROUP BY () /* direct lookup */
+
+EXPLAIN SELECT FALSE AND MAX(A) > 0 FROM TEST;
+>> SELECT FALSE FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ GROUP BY () /* direct lookup */
+
+DROP TABLE TEST;
+> ok

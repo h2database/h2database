@@ -2980,10 +2980,19 @@ public class Parser {
             command.setGroupQuery();
             ArrayList<Expression> list = Utils.newSmallArrayList();
             do {
-                Expression expr = readExpression();
-                list.add(expr);
+                if (readIf(OPEN_PAREN)) {
+                    if (!readIf(CLOSE_PAREN)) {
+                        do {
+                            list.add(readExpression());
+                        } while (readIfMore());
+                    }
+                } else {
+                    list.add(readExpression());
+                }
             } while (readIf(COMMA));
-            command.setGroupBy(list);
+            if (!list.isEmpty()) {
+                command.setGroupBy(list);
+            }
         }
         currentSelect = command;
         if (readIf(HAVING)) {

@@ -1504,6 +1504,13 @@ public class Select extends Query {
                     }
                     group.get(i).getUnenclosedSQL(builder, alwaysQuote);
                 }
+            } else emptyGroupingSet: if (isGroupQuery && having == null && havingIndex < 0) {
+                for (int i = 0; i < visibleColumnCount; i++) {
+                    if (containsAggregate(exprList[i])) {
+                        break emptyGroupingSet;
+                    }
+                }
+                builder.append("\nGROUP BY ()");
             }
             getFilterSQL(builder, "\nHAVING ", exprList, having, havingIndex);
             getFilterSQL(builder, "\nQUALIFY ", exprList, qualify, qualifyIndex);
@@ -1543,6 +1550,20 @@ public class Select extends Query {
             builder.append(sql);
             exprList[conditionIndex].getUnenclosedSQL(builder, true);
         }
+    }
+
+    private static boolean containsAggregate(Expression expression) {
+        if (expression instanceof DataAnalysisOperation) {
+            if (((DataAnalysisOperation) expression).isAggregate()) {
+                return true;
+            }
+        }
+        for (int i = 0, l = expression.getSubexpressionCount(); i < l; i++) {
+            if (containsAggregate(expression.getSubexpression(i))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void setHaving(Expression having) {

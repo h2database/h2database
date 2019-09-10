@@ -1555,6 +1555,17 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertThrows(ErrorCode.INVALID_TO_CHAR_FORMAT, stat,
                 "SELECT TO_CHAR(X, 'A') FROM T");
 
+        assertResult("01-1 2000-01 1999-52", stat, "SELECT TO_CHAR(DATE '2000-01-01', 'MM-W YYYY-WW IYYY-IW')");
+        assertResult("01-1 2000-01 1999-52", stat, "SELECT TO_CHAR(DATE '2000-01-02', 'MM-W YYYY-WW IYYY-IW')");
+        assertResult("01-1 2000-01 2000-01", stat, "SELECT TO_CHAR(DATE '2000-01-03', 'MM-W YYYY-WW IYYY-IW')");
+        assertResult("01-1 2000-01 2000-01", stat, "SELECT TO_CHAR(DATE '2000-01-04', 'MM-W YYYY-WW IYYY-IW')");
+        assertResult("01-1 2000-01 2000-01", stat, "SELECT TO_CHAR(DATE '2000-01-05', 'MM-W YYYY-WW IYYY-IW')");
+        assertResult("01-1 2000-01 2000-01", stat, "SELECT TO_CHAR(DATE '2000-01-06', 'MM-W YYYY-WW IYYY-IW')");
+        assertResult("01-1 2000-01 2000-01", stat, "SELECT TO_CHAR(DATE '2000-01-07', 'MM-W YYYY-WW IYYY-IW')");
+        assertResult("01-2 2000-02 2000-01", stat, "SELECT TO_CHAR(DATE '2000-01-08', 'MM-W YYYY-WW IYYY-IW')");
+        assertResult("02-1 2000-05 2000-05", stat, "SELECT TO_CHAR(DATE '2000-02-01', 'MM-W YYYY-WW IYYY-IW')");
+        assertResult("12-5 2000-53 2000-52", stat, "SELECT TO_CHAR(DATE '2000-12-31', 'MM-W YYYY-WW IYYY-IW')");
+
         // check a bug we had when the month or day of the month is 1 digit
         stat.executeUpdate("TRUNCATE TABLE T");
         stat.executeUpdate("INSERT INTO T VALUES (TIMESTAMP '1985-01-01 08:12:34.560')");

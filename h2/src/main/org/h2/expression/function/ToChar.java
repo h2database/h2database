@@ -819,12 +819,14 @@ public class ToChar {
 
                 // Week
 
-            } else if (containsAt(format, i, "IW", "WW") != null) {
-                output.append(DateTimeUtils.getWeekOfYear(dateValue, 0, 1));
+            } else if (containsAt(format, i, "WW") != null) {
+                StringUtils.appendZeroPadded(output, 2, (DateTimeUtils.getDayOfYear(dateValue) - 1) / 7 + 1);
+                i += 2;
+            } else if (containsAt(format, i, "IW") != null) {
+                StringUtils.appendZeroPadded(output, 2, DateTimeUtils.getIsoWeekOfYear(dateValue));
                 i += 2;
             } else if (containsAt(format, i, "W") != null) {
-                int w = 1 + dayOfMonth / 7;
-                output.append(w);
+                output.append((dayOfMonth - 1) / 7 + 1);
                 i += 1;
 
                 // Year

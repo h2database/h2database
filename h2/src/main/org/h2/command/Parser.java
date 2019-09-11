@@ -7403,7 +7403,7 @@ public class Parser {
     private Prepared parseUse() {
         readIfEqualOrTo();
         Set command = new Set(session, SetTypes.SCHEMA);
-        command.setString(readAliasIdentifier());
+        command.setExpression(ValueExpression.get(ValueString.get(readAliasIdentifier())));
         return command;
     }
 

@@ -5547,7 +5547,7 @@ public class Parser {
         types[len] = CHAR_END;
         characterTypes = types;
         if (changed) {
-            sqlCommand = new String(command);
+            sqlCommand = new String(command, 0, len);
         }
         parseIndex = 0;
     }

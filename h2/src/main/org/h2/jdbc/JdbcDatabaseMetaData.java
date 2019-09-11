@@ -84,7 +84,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public String getDatabaseProductVersion() {
         debugCodeCall("getDatabaseProductVersion");
-        return Constants.getFullVersion();
+        return Constants.FULL_VERSION;
     }
 
     /**
@@ -107,7 +107,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public String getDriverVersion() {
         debugCodeCall("getDriverVersion");
-        return Constants.getFullVersion();
+        return Constants.FULL_VERSION;
     }
 
     private boolean hasSynonyms() {

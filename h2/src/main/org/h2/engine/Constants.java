@@ -550,44 +550,37 @@ public class Constants {
      */
     public static final String PG_VERSION = "8.2.23";
 
-    private Constants() {
-        // utility class
-    }
+    /**
+     * The version of this product, consisting of major version, minor
+     * version, and build id.
+     */
+    public static final String VERSION;
 
     /**
-     * Get the version of this product, consisting of major version, minor
-     * version, and build id.
-     *
-     * @return the version number
+     * The last stable version name.
      */
-    public static String getVersion() {
-        String version = VERSION_MAJOR + "." + VERSION_MINOR + "." + BUILD_ID;
+    public static final String VERSION_STABLE = "1.4." + BUILD_ID_STABLE;
+
+    /**
+     * The complete version number of this database, consisting of
+     * the major version, the minor version, the build id, and the build date.
+     */
+    public static String FULL_VERSION;
+
+    static {
+        String version = VERSION_MAJOR + "." + VERSION_MINOR + '.' + BUILD_ID;
         if (BUILD_VENDOR_AND_VERSION != null) {
-            version += "_" + BUILD_VENDOR_AND_VERSION;
+            version += '_' + BUILD_VENDOR_AND_VERSION;
         }
         if (BUILD_SNAPSHOT) {
             version += "-SNAPSHOT";
         }
-        return version;
+        VERSION = version;
+        FULL_VERSION = version + (" (" + BUILD_DATE + ')');
     }
 
-    /**
-     * Get the last stable version name.
-     *
-     * @return the version number
-     */
-    public static Object getVersionStable() {
-        return "1.4." + BUILD_ID_STABLE;
-    }
-
-    /**
-     * Get the complete version number of this database, consisting of
-     * the major version, the minor version, the build id, and the build date.
-     *
-     * @return the complete version
-     */
-    public static String getFullVersion() {
-        return getVersion() + " (" + BUILD_DATE + ")";
+    private Constants() {
+        // utility class
     }
 
 }

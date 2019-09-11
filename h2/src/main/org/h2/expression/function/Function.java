@@ -1550,7 +1550,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case H2VERSION:
-            result = ValueString.get(Constants.getVersion(),
+            result = ValueString.get(Constants.VERSION,
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case DATEADD:

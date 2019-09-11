@@ -422,7 +422,7 @@ public class Build extends BuildBase {
     }
 
     private static String getVersion() {
-        return getStaticValue("org.h2.engine.Constants", "getVersion");
+        return getStaticField("org.h2.engine.Constants", "VERSION");
     }
 
     private static String getJarSuffix() {

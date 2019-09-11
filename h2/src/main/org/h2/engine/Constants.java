@@ -565,7 +565,7 @@ public class Constants {
      * The complete version number of this database, consisting of
      * the major version, the minor version, the build id, and the build date.
      */
-    public static String FULL_VERSION;
+    public static final String FULL_VERSION;
 
     static {
         String version = VERSION_MAJOR + "." + VERSION_MINOR + '.' + BUILD_ID;

@@ -5147,12 +5147,12 @@ Returns the name of the default schema for this session.
 CALL CURRENT_SCHEMA
 "
 
-"Functions (System)","DATABASE","
-DATABASE()
+"Functions (System)","CURRENT_CATALOG","
+CURRENT_CATALOG | DATABASE()
 ","
 Returns the name of the database.
 ","
-CALL DATABASE();
+CALL CURRENT_CATALOG
 "
 
 "Functions (System)","DATABASE_PATH","

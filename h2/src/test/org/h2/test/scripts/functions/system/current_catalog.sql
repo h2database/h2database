@@ -3,5 +3,8 @@
 -- Initial Developer: H2 Group
 --
 
-select right(database(), 6);
+CALL CURRENT_CATALOG;
+>> SCRIPT
+
+CALL DATABASE();
 >> SCRIPT

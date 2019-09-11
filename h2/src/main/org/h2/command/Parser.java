@@ -14,6 +14,7 @@ import static org.h2.util.ParserUtil.CASE;
 import static org.h2.util.ParserUtil.CHECK;
 import static org.h2.util.ParserUtil.CONSTRAINT;
 import static org.h2.util.ParserUtil.CROSS;
+import static org.h2.util.ParserUtil.CURRENT_CATALOG;
 import static org.h2.util.ParserUtil.CURRENT_DATE;
 import static org.h2.util.ParserUtil.CURRENT_SCHEMA;
 import static org.h2.util.ParserUtil.CURRENT_TIME;
@@ -461,6 +462,8 @@ public class Parser {
             "CONSTRAINT",
             // CROSS
             "CROSS",
+            // CURRENT_CATALOG
+            "CURRENT_CATALOG",
             // CURRENT_DATE
             "CURRENT_DATE",
             // CURRENT_SCHEMA
@@ -4440,6 +4443,10 @@ public class Parser {
         case CASE:
             read();
             r = readCase();
+            break;
+        case CURRENT_CATALOG:
+            read();
+            r = readKeywordFunction(Function.CURRENT_CATALOG);
             break;
         case CURRENT_DATE:
             read();

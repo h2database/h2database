@@ -461,7 +461,8 @@ public class TestMetaData extends TestDb {
 
         assertEquals("schema", meta.getSchemaTerm());
         assertEquals("\\", meta.getSearchStringEscape());
-        assertEquals("CURRENT_SCHEMA," //
+        assertEquals("CURRENT_CATALOG," //
+                + "CURRENT_SCHEMA," //
                 + "GROUPS," //
                 + "IF,ILIKE,INTERSECTS," //
                 + "LIMIT," //

@@ -1961,7 +1961,7 @@ A literal value of any data type, or null.
 "
 
 "Literals","Array","
-ARRAY '[' [ expression, [,...] ] ']'
+ARRAY '[' [ expression [,...] ] ']'
 ","
 An array of values.
 ","
@@ -2556,7 +2556,7 @@ compare { { { ALL | ANY | SOME } ( query ) } | operand }
     | IS [ NOT ] NULL
     | IS [ NOT ] [ DISTINCT FROM ] operand
     | IS [ NOT ] { TRUE | FALSE | UNKNOWN }
-    | IS [ NOT ] OF (dataType [, dataType])
+    | IS [ NOT ] OF (dataType [,...])
     | IS [ NOT ] JSON [ VALUE | ARRAY | OBJECT | SCALAR ]
         [ [ WITH | WITHOUT ] UNIQUE [ KEYS ] ]
     | BETWEEN operand AND operand

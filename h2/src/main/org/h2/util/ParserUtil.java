@@ -48,9 +48,14 @@ public class ParserUtil {
     public static final int CROSS = CONSTRAINT + 1;
 
     /**
+     * The token "CURRENT_CATALOG".
+     */
+    public static final int CURRENT_CATALOG = CROSS + 1;
+
+    /**
      * The token "CURRENT_DATE".
      */
-    public static final int CURRENT_DATE = CROSS + 1;
+    public static final int CURRENT_DATE = CURRENT_CATALOG + 1;
 
     /**
      * The token "CURRENT_SCHEMA".
@@ -451,6 +456,8 @@ public class ParserUtil {
                 return CONSTRAINT;
             } else if (eq("CROSS", s, ignoreCase, start, end)) {
                 return CROSS;
+            } else if (eq("CURRENT_CATALOG", s, ignoreCase, start, end)) {
+                return CURRENT_CATALOG;
             } else if (eq("CURRENT_DATE", s, ignoreCase, start, end)) {
                 return CURRENT_DATE;
             } else if (eq("CURRENT_SCHEMA", s, ignoreCase, start, end)) {

@@ -385,7 +385,7 @@ public class PgServer implements Service {
      */
     public static String getVersion() {
         return "PostgreSQL " + Constants.PG_VERSION + " server protocol using H2 " +
-                Constants.getFullVersion();
+                Constants.FULL_VERSION;
     }
 
     /**

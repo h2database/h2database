@@ -1108,7 +1108,7 @@ public class MetaTable extends Table {
             add(rows, "info.BUILD_ID", "" + Constants.BUILD_ID);
             add(rows, "info.VERSION_MAJOR", "" + Constants.VERSION_MAJOR);
             add(rows, "info.VERSION_MINOR", "" + Constants.VERSION_MINOR);
-            add(rows, "info.VERSION", Constants.getFullVersion());
+            add(rows, "info.VERSION", Constants.FULL_VERSION);
             if (admin) {
                 String[] settings = {
                         "java.runtime.version", "java.vm.name",

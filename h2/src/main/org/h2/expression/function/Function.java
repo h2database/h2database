@@ -136,7 +136,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             TIMEZONE_HOUR = 130, TIMEZONE_MINUTE = 131, DECADE = 132, CENTURY = 133,
             MILLENNIUM = 134, DOW = 135;
 
-    public static final int DATABASE = 150, USER = 151, CURRENT_USER = 152,
+    public static final int CURRENT_CATALOG = 150, USER = 151, CURRENT_USER = 152,
             IDENTITY = 153, SCOPE_IDENTITY = 154, AUTOCOMMIT = 155,
             READONLY = 156, DATABASE_PATH = 157, LOCK_TIMEOUT = 158,
             DISK_SPACE_USED = 159, SIGNAL = 160, ESTIMATED_ENVELOPE = 161;
@@ -402,8 +402,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 1, Value.INT);
         addFunction("DATE_TRUNC", DATE_TRUNC, 2, Value.NULL);
         // system
-        addFunctionNotDeterministic("DATABASE", DATABASE,
-                0, Value.STRING);
+        addFunctionNotDeterministic("CURRENT_CATALOG", CURRENT_CATALOG, 0, Value.STRING, false);
+        addFunctionNotDeterministic("DATABASE", CURRENT_CATALOG, 0, Value.STRING);
         addFunctionNotDeterministic("USER", USER,
                 0, Value.STRING);
         addFunctionNotDeterministic("CURRENT_USER", CURRENT_USER,
@@ -960,9 +960,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                     database.getMode().treatEmptyStringsAsNull);
             break;
         }
-        case DATABASE:
-            result = ValueString.get(database.getShortName(),
-                    database.getMode().treatEmptyStringsAsNull);
+        case CURRENT_CATALOG:
+            result = ValueString.get(database.getShortName(), database.getMode().treatEmptyStringsAsNull);
             break;
         case USER:
         case CURRENT_USER:
@@ -1550,7 +1549,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case H2VERSION:
-            result = ValueString.get(Constants.getVersion(),
+            result = ValueString.get(Constants.VERSION,
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case DATEADD:

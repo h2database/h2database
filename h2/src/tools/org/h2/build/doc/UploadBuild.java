@@ -164,7 +164,7 @@ public class UploadBuild {
                 new ByteArrayInputStream(content.getBytes()));
         ftp.store("/httpdocs/html/testOutput.html",
                 new ByteArrayInputStream(testOutput.getBytes()));
-        String jarFileName = "bin/h2-" + Constants.getVersion() + ".jar";
+        String jarFileName = "bin/h2-" + Constants.VERSION + ".jar";
         if (FileUtils.exists(jarFileName)) {
             ftp.store("/httpdocs/automated/h2-latest.jar",
                     new FileInputStream(jarFileName));

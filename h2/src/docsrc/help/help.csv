@@ -1352,6 +1352,17 @@ This command commits an open transaction in this connection.
 SET BUILTIN_ALIAS_OVERRIDE TRUE
 "
 
+"Commands (Other)","SET CATALOG","
+SET CATALOG { catalogString | catalogName }
+","
+This command has no effect if the specified name matches the name of the database, otherwise it throws an exception.
+
+This command does not commit a transaction.
+","
+SET CATALOG 'DB'
+SET CATALOG DB_NAME
+"
+
 "Commands (Other)","SET COLLATION","
 SET [ DATABASE ] COLLATION
 { OFF | collationName
@@ -1823,7 +1834,7 @@ SET SALT '00' HASH '1122'
 "
 
 "Commands (Other)","SET SCHEMA","
-SET SCHEMA schemaName
+SET SCHEMA { schemaString | schemaName }
 ","
 Changes the default schema of the current connection. The default schema is used
 in statements where no schema is set explicitly. The default schema for new
@@ -1832,6 +1843,7 @@ connections is PUBLIC.
 This command does not commit a transaction, and rollback does not affect it.
 This setting can be appended to the database URL: ""jdbc:h2:./test;SCHEMA=ABC""
 ","
+SET SCHEMA 'PUBLIC'
 SET SCHEMA INFORMATION_SCHEMA
 "
 
@@ -1949,7 +1961,7 @@ A literal value of any data type, or null.
 "
 
 "Literals","Array","
-ARRAY '[' [ expression, [,...] ] ']'
+ARRAY '[' [ expression [,...] ] ']'
 ","
 An array of values.
 ","
@@ -2544,7 +2556,7 @@ compare { { { ALL | ANY | SOME } ( query ) } | operand }
     | IS [ NOT ] NULL
     | IS [ NOT ] [ DISTINCT FROM ] operand
     | IS [ NOT ] { TRUE | FALSE | UNKNOWN }
-    | IS [ NOT ] OF (dataType [, dataType])
+    | IS [ NOT ] OF (dataType [,...])
     | IS [ NOT ] JSON [ VALUE | ARRAY | OBJECT | SCALAR ]
         [ [ WITH | WITHOUT ] UNIQUE [ KEYS ] ]
     | BETWEEN operand AND operand
@@ -2827,7 +2839,18 @@ WHEN NOT MATCHED THEN INSERT (ID, NAME) VALUES (S.ID, S.NAME)
 "Other Grammar","Name","
 { { A-Z|_ } [ { A-Z|_|0-9 } [...] ] } | quotedName
 ","
-Names are not case sensitive. There is no maximum name length.
+With default settings unquoted names are converted to upper case. There is no maximum name length.
+
+Identifiers in H2 are case sensitive by default.
+Because unquoted names are converted to upper case, they can be written in any case anyway.
+When both quoted and unquoted names are used for the same identifier the quoted names must be written in upper case.
+Identifiers with lowercase characters can be written only as a quoted name, they aren't accessible with unquoted names.
+
+If DATABASE_TO_UPPER setting is set to FALSE the unquoted names aren't converted to upper case.
+
+If DATABASE_TO_LOWER setting is set to TRUE the unquoted names are converted to lower case instead.
+
+If CASE_INSENSITIVE_IDENTIFIERS setting is set to TRUE all identifiers are case insensitive.
 ","
 TEST
 "
@@ -2869,9 +2892,10 @@ VALUES (1, 2), (3, 4);
 "Other Grammar","Quoted Name","
 ""anythingExceptDoubleQuote""
 ","
-Quoted names are case sensitive, and can contain spaces. There is no maximum
+Case of characters in quoted names is preserved as is. Such names can contain spaces. There is no maximum
 name length. Two double quotes can be used to create a single double quote
 inside an identifier.
+With default settings identifiers in H2 are case sensitive.
 ","
 ""FirstName""
 "
@@ -5147,12 +5171,12 @@ Returns the name of the default schema for this session.
 CALL CURRENT_SCHEMA
 "
 
-"Functions (System)","DATABASE","
-DATABASE()
+"Functions (System)","CURRENT_CATALOG","
+CURRENT_CATALOG | DATABASE()
 ","
 Returns the name of the database.
 ","
-CALL DATABASE();
+CALL CURRENT_CATALOG
 "
 
 "Functions (System)","DATABASE_PATH","

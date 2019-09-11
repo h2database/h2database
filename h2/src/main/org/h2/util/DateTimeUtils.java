@@ -816,7 +816,16 @@ public class DateTimeUtils {
      * @return number of day in year
      */
     public static int getDayOfYear(long dateValue) {
-        return (int) (absoluteDayFromDateValue(dateValue) - absoluteDayFromYear(yearFromDateValue(dateValue))) + 1;
+        int m = monthFromDateValue(dateValue);
+        int a = (367 * m - 362) / 12 + dayFromDateValue(dateValue);
+        if (m > 2) {
+            a--;
+            long y = yearFromDateValue(dateValue);
+            if ((y & 3) != 0 || (y % 100 == 0 && y % 400 != 0)) {
+                a--;
+            }
+        }
+        return a;
     }
 
     /**
@@ -1270,8 +1279,7 @@ public class DateTimeUtils {
         long y = yearFromDateValue(dateValue);
         int m = monthFromDateValue(dateValue);
         int d = dayFromDateValue(dateValue);
-        long a = absoluteDayFromYear(y);
-        a += ((367 * m - 362) / 12) + d - 1;
+        long a = absoluteDayFromYear(y) + (367 * m - 362) / 12 + d - 1;
         if (m > 2) {
             a--;
             if ((y & 3) != 0 || (y % 100 == 0 && y % 400 != 0)) {

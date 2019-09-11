@@ -84,7 +84,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public String getDatabaseProductVersion() {
         debugCodeCall("getDatabaseProductVersion");
-        return Constants.getFullVersion();
+        return Constants.FULL_VERSION;
     }
 
     /**
@@ -107,7 +107,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public String getDriverVersion() {
         debugCodeCall("getDriverVersion");
-        return Constants.getFullVersion();
+        return Constants.FULL_VERSION;
     }
 
     private boolean hasSynonyms() {
@@ -1541,7 +1541,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * table/column/index name, in addition to the SQL:2003 keywords. The list
      * returned is:
      * <pre>
-     * CURRENT_SCHEMA,
+     * CURRENT_CATALOG,CURRENT_SCHEMA,
      * GROUPS,
      * IF,ILIKE,INTERSECTS,
      * LIMIT,
@@ -1556,7 +1556,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * <pre>
      * ALL, AND, ARRAY, AS,
      * BETWEEN, BOTH
-     * CASE, CHECK, CONSTRAINT, CROSS, CURRENT_DATE, CURRENT_SCHEMA,
+     * CASE, CHECK, CONSTRAINT, CROSS, CURRENT_CATALOG, CURRENT_DATE, CURRENT_SCHEMA,
      * CURRENT_TIME, CURRENT_TIMESTAMP, CURRENT_USER,
      * DISTINCT,
      * EXCEPT, EXISTS,
@@ -1584,7 +1584,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public String getSQLKeywords() {
         debugCodeCall("getSQLKeywords");
-        return "CURRENT_SCHEMA," //
+        return "CURRENT_CATALOG," //
+                + "CURRENT_SCHEMA," //
                 + "GROUPS," //
                 + "IF,ILIKE,INTERSECTS," //
                 + "LIMIT," //

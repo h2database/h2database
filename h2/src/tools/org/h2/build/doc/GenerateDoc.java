@@ -64,9 +64,9 @@ public class GenerateDoc {
         new RailroadImages().run(outDir + "/images");
         bnf = Bnf.getInstance(null);
         bnf.linkStatements();
-        session.put("version", Constants.getVersion());
+        session.put("version", Constants.VERSION);
         session.put("versionDate", Constants.BUILD_DATE);
-        session.put("stableVersion", Constants.getVersionStable());
+        session.put("stableVersion", Constants.VERSION_STABLE);
         session.put("stableVersionDate", Constants.BUILD_DATE_STABLE);
         // String help = "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION";
         String help = "SELECT ROWNUM ID, * FROM CSVREAD('" +

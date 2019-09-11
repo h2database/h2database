@@ -1129,7 +1129,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
      */
     public static void printSystemInfo() {
         Properties prop = System.getProperties();
-        System.out.println("H2 " + Constants.getFullVersion() +
+        System.out.println("H2 " + Constants.FULL_VERSION +
                 " @ " + new java.sql.Timestamp(System.currentTimeMillis()).toString());
         System.out.println("Java " +
                 prop.getProperty("java.runtime.version") + ", " +

@@ -136,7 +136,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         ResultSet rs = stat.executeQuery(query);
         assertTrue(rs.next());
         String version = rs.getString(1);
-        assertEquals(Constants.getVersion(), version);
+        assertEquals(Constants.VERSION, version);
         assertFalse(rs.next());
         rs.close();
         stat.close();

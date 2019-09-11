@@ -469,7 +469,7 @@ public class Set extends Prepared {
             break;
         }
         case SetTypes.SCHEMA: {
-            Schema schema = database.getSchema(stringValue);
+            Schema schema = database.getSchema(expression.optimize(session).getValue(session).getString());
             session.setCurrentSchema(schema);
             break;
         }

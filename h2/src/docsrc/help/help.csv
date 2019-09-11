@@ -1823,7 +1823,7 @@ SET SALT '00' HASH '1122'
 "
 
 "Commands (Other)","SET SCHEMA","
-SET SCHEMA schemaName
+SET SCHEMA { schemaString | schemaName }
 ","
 Changes the default schema of the current connection. The default schema is used
 in statements where no schema is set explicitly. The default schema for new
@@ -1832,6 +1832,7 @@ connections is PUBLIC.
 This command does not commit a transaction, and rollback does not affect it.
 This setting can be appended to the database URL: ""jdbc:h2:./test;SCHEMA=ABC""
 ","
+SET SCHEMA 'PUBLIC'
 SET SCHEMA INFORMATION_SCHEMA
 "
 

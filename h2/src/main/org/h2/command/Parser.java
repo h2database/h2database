@@ -7331,7 +7331,7 @@ public class Parser {
         } else if (readIf("SCHEMA")) {
             readIfEqualOrTo();
             Set command = new Set(session, SetTypes.SCHEMA);
-            command.setString(readAliasIdentifier());
+            command.setExpression(readExpressionOrIdentifier());
             return command;
         } else if (readIf("DATESTYLE")) {
             // PostgreSQL compatibility
@@ -7386,6 +7386,13 @@ public class Parser {
             command.setExpression(readExpression());
             return command;
         }
+    }
+
+    private Expression readExpressionOrIdentifier() {
+        if (currentTokenType == IDENTIFIER) {
+            return ValueExpression.get(ValueString.get(readAliasIdentifier()));
+        }
+        return readExpression();
     }
 
     private Prepared parseUse() {

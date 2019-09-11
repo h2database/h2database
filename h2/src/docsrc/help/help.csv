@@ -1352,6 +1352,17 @@ This command commits an open transaction in this connection.
 SET BUILTIN_ALIAS_OVERRIDE TRUE
 "
 
+"Commands (Other)","SET CATALOG","
+SET CATALOG { catalogString | catalogName }
+","
+This command has no effect if the specified name matches the name of the database, otherwise it throws an exception.
+
+This command does not commit a transaction.
+","
+SET CATALOG 'DB'
+SET CATALOG DB_NAME
+"
+
 "Commands (Other)","SET COLLATION","
 SET [ DATABASE ] COLLATION
 { OFF | collationName

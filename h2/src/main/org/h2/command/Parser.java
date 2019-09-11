@@ -7333,6 +7333,11 @@ public class Parser {
             Set command = new Set(session, SetTypes.SCHEMA);
             command.setExpression(readExpressionOrIdentifier());
             return command;
+        } else if (readIf("CATALOG")) {
+            readIfEqualOrTo();
+            Set command = new Set(session, SetTypes.CATALOG);
+            command.setExpression(readExpressionOrIdentifier());
+            return command;
         } else if (readIf("DATESTYLE")) {
             // PostgreSQL compatibility
             readIfEqualOrTo();

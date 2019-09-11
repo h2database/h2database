@@ -64,6 +64,7 @@ public class Set extends Prepared {
         case SetTypes.THROTTLE:
         case SetTypes.SCHEMA:
         case SetTypes.SCHEMA_SEARCH_PATH:
+        case SetTypes.CATALOG:
         case SetTypes.RETENTION_TIME:
         case SetTypes.LAZY_QUERY_EXECUTION:
             return true;
@@ -475,6 +476,15 @@ public class Set extends Prepared {
         }
         case SetTypes.SCHEMA_SEARCH_PATH: {
             session.setSchemaSearchPath(stringValueList);
+            break;
+        }
+        case SetTypes.CATALOG: {
+            String shortName = database.getShortName();
+            String value = expression.optimize(session).getValue(session).getString();
+            if (value == null || !database.equalsIdentifiers(shortName, value)
+                    && !database.equalsIdentifiers(shortName, value.trim())) {
+                throw DbException.get(ErrorCode.DATABASE_NOT_FOUND_1, stringValue);
+            }
             break;
         }
         case SetTypes.TRACE_LEVEL_FILE:

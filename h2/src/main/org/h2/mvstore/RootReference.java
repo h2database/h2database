@@ -130,6 +130,12 @@ public final class RootReference
         return null;
     }
 
+    /**
+     * Try to lock.
+     * 
+     * @param attemptCounter the number of attempts so far
+     * @return the new, locked, root reference, or null if not successful
+     */
     RootReference tryLock(int attemptCounter) {
         if (holdCount == 0 || ownerId == Thread.currentThread().getId()) {
             RootReference lockedRootReference = new RootReference(this, attemptCounter);
@@ -140,6 +146,13 @@ public final class RootReference
         return null;
     }
 
+    /**
+     * Try to unlock, and if successful update the version
+     * 
+     * @param version the version
+     * @param attempt the number of attempts so far
+     * @return the new, unlocked and updated, root reference, or null if not successful
+     */
     RootReference tryUnlockAndUpdateVersion(long version, int attempt) {
         if (holdCount == 0 || ownerId == Thread.currentThread().getId()) {
             RootReference updatedRootReference = new RootReference(this, version, attempt);
@@ -150,6 +163,14 @@ public final class RootReference
         return null;
     }
 
+    /**
+     * Update the page, possibly keeping it locked.
+     * 
+     * @param page the page
+     * @param keepLocked whether to keep it locked
+     * @param attempt the number of attempts so far
+     * @return the new root reference, or null if not successful
+     */
     RootReference updatePageAndLockedStatus(Page page, boolean keepLocked, int appendCounter) {
         assert isLockedByCurrentThread() : this;
         RootReference updatedRootReference = new RootReference(this, page, keepLocked, appendCounter);
@@ -159,6 +180,11 @@ public final class RootReference
         return null;
     }
 
+    /**
+     * Removed old versions that are not longer used.
+     * 
+     * @param oldestVersionToKeep the oldest version that needs to be retained
+     */
     void removeUnusedOldVersions(long oldestVersionToKeep) {
         // We need to keep at least one previous version (if any) here,
         // because in order to retain whole history of some version

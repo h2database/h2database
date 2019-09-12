@@ -14,11 +14,17 @@ import java.util.Map.Entry;
  */
 public class JSONObject extends JSONValue {
 
-    ArrayList<SimpleImmutableEntry<String, JSONValue>> members = new ArrayList<>();
+    private final ArrayList<SimpleImmutableEntry<String, JSONValue>> members = new ArrayList<>();
 
     JSONObject() {
     }
 
+    /**
+     * Add a key-value pair.
+     * 
+     * @param name the key
+     * @param value the value
+     */
     void addMember(String name, JSONValue value) {
         members.add(new SimpleImmutableEntry<>(name, value));
     }

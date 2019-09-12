@@ -17,6 +17,11 @@ public class JSONArray extends JSONValue {
     JSONArray() {
     }
 
+    /**
+     * Add a value to the array.
+     * 
+     * @param value the value to add
+     */
     void addElement(JSONValue value) {
         elements.add(value);
     }

@@ -1304,7 +1304,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 p = replacePage(pos, p, unsavedMemoryHolder);
                 rootReference = rootReference.updatePageAndLockedStatus(p, preLocked || isPersistent(),
                         remainingBuffer);
-                if (rootReference != null) {    // should always be the case, except for spurious failure?
+                if (rootReference != null) {    
+                    // should always be the case, except for spurious failure?
                     locked = preLocked || isPersistent();
                     if (isPersistent() && tip != null) {
                         store.registerUnsavedMemory(unsavedMemoryHolder.value + tip.processRemovalInfo(version));

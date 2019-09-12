@@ -14,10 +14,19 @@ import org.h2.util.ByteStack;
  */
 public final class JSONStringTarget extends JSONTarget<String> {
 
+    /**
+     * The hex characters.
+     */
     static final char[] HEX = "0123456789abcdef".toCharArray();
 
+    /**
+     * A JSON object.
+     */
     static final byte OBJECT = 1;
 
+    /**
+     * A JSON array.
+     */
     static final byte ARRAY = 2;
 
     /**

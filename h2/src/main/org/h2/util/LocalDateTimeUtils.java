@@ -621,7 +621,7 @@ public class LocalDateTimeUtils {
         return offsetDateTimeToValue(zonedDateTime, true);
     }
 
-    public static ValueTimestampTimeZone offsetDateTimeToValue(Object dateTime, boolean zoned) {
+    private static ValueTimestampTimeZone offsetDateTimeToValue(Object dateTime, boolean zoned) {
         try {
             Object localDateTime, zoneOffset;
             if (zoned) {

@@ -243,6 +243,7 @@ public class FreeSpaceBitSet {
 
     /**
      * Calculates relative "priority" for chunk to be moved.
+     * 
      * @param block where chunk starts
      * @return priority, bigger number indicate that chunk need to be moved sooner
      */

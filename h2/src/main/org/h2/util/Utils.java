@@ -286,6 +286,9 @@ public class Utils {
         return (totalGCCount + (poolCount >> 1)) / poolCount;
     }
 
+    /**
+     * Run Java memory garbage collection.
+     */
     public static synchronized void collectGarbage() {
         Runtime runtime = Runtime.getRuntime();
         long garbageCollectionCount = getGarbageCollectionCount();

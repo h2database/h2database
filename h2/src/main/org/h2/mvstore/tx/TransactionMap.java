@@ -93,42 +93,25 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      * @return the size
      */
     public long sizeAsLong() {
-        TransactionStore store = transaction.store;
-
-        // The purpose of the following loop is to get a coherent picture
-        // of a state of three independent volatile / atomic variables,
-        // which they had at some recent moment in time.
-        // In order to get such a "snapshot", we wait for a moment of silence,
-        // when none of the variables concurrently changes it's value.
+        // getting coherent picture of the map, committing transactions, and undo logs
+        // either from values stored in transaction (never loops in that case),
+        // or current values from the transaction store (loops until moment of silence)
         BitSet committingTransactions;
         RootReference mapRootReference;
         RootReference[] undoLogRootReferences;
-        long undoLogSize;
         do {
-            committingTransactions = store.committingTransactions.get();
-            mapRootReference = map.flushAndGetRoot();
-            BitSet opentransactions = store.openTransactions.get();
-            undoLogRootReferences = new RootReference[opentransactions.length()];
-            undoLogSize = 0;
-            for (int i = opentransactions.nextSetBit(0); i >= 0; i = opentransactions.nextSetBit(i+1)) {
-                MVMap<Long, Object[]> undoLog = store.undoLogs[i];
-                if (undoLog != null) {
-                    RootReference rootReference = undoLog.flushAndGetRoot();
-                    undoLogRootReferences[i] = rootReference;
-                    undoLogSize += rootReference.getTotalCount();
-                }
-            }
-        } while(committingTransactions != store.committingTransactions.get() ||
-                mapRootReference != map.getRoot());
-        // Now we have a snapshot, where mapRootReference points to state of the map,
-        // undoLogRootReference captures the state of undo log
-        // and committingTransactions mask tells us which of seemingly uncommitted changes
-        // should be considered as committed.
-        // Subsequent processing uses this snapshot info only.
+            committingTransactions = getCommittingTransactions();
+            mapRootReference = getRootReference();
+            undoLogRootReferences = getTransaction().getUndoLogRootReferences();
+        } while(committingTransactions != getCommittingTransactions() ||
+                mapRootReference != getRootReference());
+
+        long undoLogsTotalSize = TransactionStore.calculateUndoLogsTotalSize(undoLogRootReferences);
+
         Page mapRootPage = mapRootReference.root;
         long size = mapRootReference.getTotalCount();
         // if we are looking at the map without any uncommitted values
-        if (undoLogSize == 0) {
+        if (undoLogsTotalSize == 0) {
             return size;
         }
 
@@ -136,7 +119,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         // which are committed but not closed yet,
         // and entries about additions to the map by other uncommitted transactions were counted,
         // but they should not contribute into total count.
-        if (2 * undoLogSize > size) {
+        if (2 * undoLogsTotalSize > size) {
             // the undo log is larger than half of the map - scan the entries of the map directly
             Cursor<K, VersionedValue> cursor = new Cursor<>(mapRootPage, null);
             while(cursor.hasNext()) {
@@ -383,8 +366,12 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      * @throws ClassCastException if type of the specified key is not compatible with this map
      */
     @Override
-    @SuppressWarnings("unchecked")
     public V get(Object key) {
+        return getImmediate(key);
+    }
+
+    @SuppressWarnings("unchecked")
+    public V getFromSnapshot(Object key) {
         RootReference rootReference = getRootReference();
         VersionedValue data = map.get(rootReference.root, key);
         if (data == null) {
@@ -405,7 +392,8 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         }
     }
 
-    public V getImmetiate(Object key) {
+    @SuppressWarnings("unchecked")
+    public V getImmediate(Object key) {
         VersionedValue data = map.get(key);
         if (data == null) {
             // doesn't exist or deleted by a committed transaction
@@ -426,16 +414,11 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
     }
 
     private BitSet getCommittingTransactions() {
-        BitSet committingTransactions = transaction.getCommittingTransactions();
-        assert committingTransactions != null;
-        return committingTransactions;
+        return transaction.getCommittingTransactions();
     }
 
     private RootReference getRootReference() {
-        int mapId = map.getId();
-        RootReference rootReference = transaction.getMapRoot(mapId);
-        assert rootReference != null : mapId;
-        return rootReference;
+        return transaction.getMapRoot(map.getId());
     }
 
     /**
@@ -447,7 +430,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      */
     @Override
     public boolean containsKey(Object key) {
-        return get(key) != null;
+        return getImmediate(key) != null;
     }
 
     /**
@@ -523,9 +506,10 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      * @return the last key, or null if empty
      */
     public K lastKey() {
-        K k = map.lastKey();
-        while (k != null && get(k) == null) {
-            k = map.lowerKey(k);
+        RootReference rootReference = getRootReference();
+        K k = map.lastKey(rootReference.root);
+        while (k != null && getFromSnapshot(k) == null) {
+            k = map.lowerKey(rootReference.root, k);
         }
         return k;
     }
@@ -538,9 +522,10 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      * @return the result
      */
     public K higherKey(K key) {
+        RootReference rootReference = getRootReference();
         do {
-            key = map.higherKey(key);
-        } while (key != null && get(key) == null);
+            key = map.higherKey(rootReference.root, key);
+        } while (key != null && getFromSnapshot(key) == null);
         return key;
     }
 
@@ -564,10 +549,11 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      * @return the result
      */
     public K floorKey(K key) {
-        key = map.floorKey(key);
-        while (key != null && get(key) == null) {
+        RootReference rootReference = getRootReference();
+        key = map.floorKey(rootReference.root, key);
+        while (key != null && getFromSnapshot(key) == null) {
             // Use lowerKey() for the next attempts, otherwise we'll get an infinite loop
-            key = map.lowerKey(key);
+            key = map.lowerKey(rootReference.root, key);
         }
         return key;
     }
@@ -580,9 +566,10 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      * @return the result
      */
     public K lowerKey(K key) {
+        RootReference rootReference = getRootReference();
         do {
-            key = map.lowerKey(key);
-        } while (key != null && get(key) == null);
+            key = map.lowerKey(rootReference.root, key);
+        } while (key != null && getFromSnapshot(key) == null);
         return key;
     }
 

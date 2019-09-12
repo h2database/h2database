@@ -166,9 +166,10 @@ public class Transaction {
      */
     private volatile boolean notificationRequested;
 
-    final Map<Integer, RootReference> mapRoots = new HashMap<>();
+    private BitSet committingTransactions;
+    private final Map<Integer, RootReference> mapRoots = new HashMap<>();
+    private RootReference[] undoLogRootReferences;
 
-    BitSet committingTransactions;
 
 
     Transaction(TransactionStore store, int transactionId, long sequenceNum, int status,
@@ -196,19 +197,26 @@ public class Transaction {
         return getStatus(statusAndLogId.get());
     }
 
-    public BitSet getCommittingTransactions() {
+    BitSet getCommittingTransactions() {
         if (committingTransactions == null) {
             return store.committingTransactions.get();
         }
         return committingTransactions;
     }
 
-    public RootReference getMapRoot(int mapId) {
+    RootReference getMapRoot(int mapId) {
         RootReference rootReference = mapRoots.get(mapId);
         if (rootReference == null) {
-            rootReference = store.openMap(mapId).getRoot();
+            rootReference = store.openMap(mapId).flushAndGetRoot();
         }
         return rootReference;
+    }
+
+    RootReference[] getUndoLogRootReferences() {
+        if (undoLogRootReferences == null) {
+            return store.collectUndoLogRootReferences();
+        }
+        return undoLogRootReferences;
     }
 
     /**
@@ -326,11 +334,13 @@ public class Transaction {
                     RootReference rootReference = map.flushAndGetRoot();
                     mapRoots.put(map.getId(), rootReference);
                 }
+                undoLogRootReferences = store.collectUndoLogRootReferences();
             } while (committingTransactions != store.committingTransactions.get());
-            // Now we have a snapshot, where each map RootReference point to state of the map
+            // Now we have a snapshot, where each map RootReference point to state of the map,
+            // undoLogRootReferences captures the state of undo logs
             // and committingTransactions mask tells us which of seemingly uncommitted changes
             // should be considered as committed.
-            // Subsequent map traversals should use this snapshot info only.
+            // Subsequent processing uses this snapshot info only.
         }
     }
 
@@ -352,6 +362,7 @@ public class Transaction {
     public void markStatementEnd() {
         mapRoots.clear();
         committingTransactions = null;
+        undoLogRootReferences = null;
         MVStore.TxCounter counter = txCounter;
         if(counter != null) {
             txCounter = null;

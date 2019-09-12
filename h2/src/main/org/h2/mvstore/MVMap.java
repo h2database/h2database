@@ -160,6 +160,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return getFirstLast(true);
     }
 
+    public final K firstKey(Page p) {
+        return getFirstLast(p, true);
+    }
+
     /**
      * Get the last key, or null if the map is empty.
      *
@@ -167,6 +171,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     public final K lastKey() {
         return getFirstLast(false);
+    }
+
+    public final K lastKey(Page p) {
+        return getFirstLast(p, false);
     }
 
     /**
@@ -279,9 +287,13 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param first whether to retrieve the first key
      * @return the key, or null if the map is empty
      */
-    @SuppressWarnings("unchecked")
     private K getFirstLast(boolean first) {
         Page p = getRootPage();
+        return getFirstLast(p, first);
+    }
+
+    @SuppressWarnings("unchecked")
+    private K getFirstLast(Page p, boolean first) {
         if (p.getTotalCount() == 0) {
             return null;
         }
@@ -304,6 +316,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return getMinMax(key, false, true);
     }
 
+    public final K higherKey(Page p, K key) {
+        return getMinMax(p, key, false, true);
+    }
+
     /**
      * Get the smallest key that is larger or equal to this key.
      *
@@ -312,6 +328,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     public final K ceilingKey(K key) {
         return getMinMax(key, false, false);
+    }
+
+    public final K ceilingKey(Page p, K key) {
+        return getMinMax(p, key, false, false);
     }
 
     /**
@@ -324,6 +344,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return getMinMax(key, true, false);
     }
 
+    public final K floorKey(Page p, K key) {
+        return getMinMax(p, key, true, false);
+    }
+
     /**
      * Get the largest key that is smaller than the given key, or null if no
      * such key exists.
@@ -333,6 +357,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     public final K lowerKey(K key) {
         return getMinMax(key, true, true);
+    }
+
+    public final K lowerKey(Page p, K key) {
+        return getMinMax(p, key, true, true);
     }
 
     /**

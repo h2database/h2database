@@ -16,6 +16,7 @@ import org.h2.mvstore.Cursor;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
+import org.h2.mvstore.RootReference;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
@@ -603,6 +604,29 @@ public class TransactionStore {
                 }
             }
         }
+    }
+
+    RootReference[] collectUndoLogRootReferences() {
+        BitSet opentransactions = openTransactions.get();
+        RootReference[] undoLogRootReferences = new RootReference[opentransactions.length()];
+        for (int i = opentransactions.nextSetBit(0); i >= 0; i = opentransactions.nextSetBit(i+1)) {
+            MVMap<Long, Object[]> undoLog = undoLogs[i];
+            if (undoLog != null) {
+                RootReference rootReference = undoLog.flushAndGetRoot();
+                undoLogRootReferences[i] = rootReference;
+            }
+        }
+        return undoLogRootReferences;
+    }
+
+    static long calculateUndoLogsTotalSize(RootReference[] undoLogRootReferences) {
+        long undoLogsTotalSize = 0;
+        for (RootReference rootReference : undoLogRootReferences) {
+            if (rootReference != null) {
+                undoLogsTotalSize += rootReference.getTotalCount();
+            }
+        }
+        return undoLogsTotalSize;
     }
 
     private boolean isUndoEmpty() {

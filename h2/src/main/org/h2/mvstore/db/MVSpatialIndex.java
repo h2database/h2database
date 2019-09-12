@@ -163,7 +163,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
                         continue;
                     }
                     map.remove(key);
-                    if (map.get(k) != null) {
+                    if (map.getImmediate(k) != null) {
                         // committed
                         throw getDuplicateKeyException(k.toString());
                     }

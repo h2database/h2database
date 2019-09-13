@@ -186,6 +186,7 @@ import org.h2.expression.Parameter;
 import org.h2.expression.Rownum;
 import org.h2.expression.SequenceValue;
 import org.h2.expression.Subquery;
+import org.h2.expression.TimeZoneOperation;
 import org.h2.expression.TypedValueExpression;
 import org.h2.expression.UnaryOperation;
 import org.h2.expression.ValueExpression;
@@ -4512,7 +4513,19 @@ public class Parser {
         }
         for (;;) {
             int index = lastParseIndex;
-            if (readIf("FORMAT")) {
+            if (readIf("AT")) {
+                if (readIf("TIME")) {
+                    read("ZONE");
+                    r = new TimeZoneOperation(r, readExpression());
+                    continue;
+                } else if (readIf("LOCAL")) {
+                    r = new TimeZoneOperation(r);
+                    continue;
+                } else {
+                    parseIndex = index;
+                    read();
+                }
+            } else if (readIf("FORMAT")) {
                 if (readIf("JSON")) {
                     r = new Format(r, FormatEnum.JSON);
                     continue;

@@ -384,7 +384,7 @@ public class FileStore {
      * @param live
      *            amount of memory (bytes) from vacated block, which would be
      *            written into a new chunk
-     * @param vacatedBlocks
+     * @param total
      *            number of blocks vacated
      * @return prospective fill rate (0 - 100)
      */

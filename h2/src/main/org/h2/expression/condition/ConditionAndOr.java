@@ -188,6 +188,16 @@ public class ConditionAndOr extends Condition {
         return optimizeConstant(session, this, andOrType, left, right);
     }
 
+    /**
+     * Optimize the expression if at least one part is constant.
+     *
+     * @param session the session
+     * @param condition the condition
+     * @param andOrType the type
+     * @param left the left part of the condition
+     * @param right the right part of the condition
+     * @return the optimized expression
+     */
     static Expression optimizeConstant(Session session, Expression condition, int andOrType, Expression left,
             Expression right) {
         Value l = left.isConstant() ? left.getValue(session) : null;

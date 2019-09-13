@@ -18,6 +18,9 @@ import org.h2.util.StringUtils;
  */
 abstract class PredicateWithSubquery extends Condition {
 
+    /**
+     * The subquery.
+     */
     final Query query;
 
     PredicateWithSubquery(Query query) {

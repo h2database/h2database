@@ -29,19 +29,6 @@ import org.h2.util.Utils;
  */
 public class DropTable extends DefineCommand {
 
-    private static final class SchemaAndTable {
-
-        final Schema schema;
-
-        final String tableName;
-
-        SchemaAndTable(Schema schema, String tableName) {
-            this.schema = schema;
-            this.tableName = tableName;
-        }
-
-    }
-
     private boolean ifExists;
     private ConstraintActionType dropAction;
 
@@ -58,6 +45,12 @@ public class DropTable extends DefineCommand {
         ifExists = b;
     }
 
+    /**
+     * Add a table to drop.
+     *
+     * @param schema the schema
+     * @param tableName the table name
+     */
     public void addTable(Schema schema, String tableName) {
         tables.add(new SchemaAndTable(schema, tableName));
     }
@@ -141,6 +134,19 @@ public class DropTable extends DefineCommand {
     @Override
     public int getType() {
         return CommandInterface.DROP_TABLE;
+    }
+
+    private static final class SchemaAndTable {
+
+        final Schema schema;
+
+        final String tableName;
+
+        SchemaAndTable(Schema schema, String tableName) {
+            this.schema = schema;
+            this.tableName = tableName;
+        }
+
     }
 
 }

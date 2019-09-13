@@ -120,9 +120,16 @@ public final class RootReference
         this.appendCounter = 0;
     }
 
-    RootReference updateRootPage(Page page, long attemptCounter) {
+    /**
+     * Try to unlock.
+     *
+     * @param newRootPage the new root page
+     * @param attemptCounter the number of attempts so far
+     * @return the new, unlocked, root reference, or null if not successful
+     */
+    RootReference updateRootPage(Page newRootPage, long attemptCounter) {
         if (holdCount == 0) {
-            RootReference updatedRootReference = new RootReference(this, page, attemptCounter);
+            RootReference updatedRootReference = new RootReference(this, newRootPage, attemptCounter);
             if (root.map.compareAndSetRoot(this, updatedRootReference)) {
                 return updatedRootReference;
             }

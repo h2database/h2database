@@ -1010,7 +1010,6 @@ public class MVStore implements AutoCloseable
      * @return the chunk, or null if not successful
      */
     private Chunk readChunkFooter(long block) {
-
         // the following can fail for various reasons
         try {
             // read the chunk footer of the last block of the file
@@ -1072,6 +1071,13 @@ public class MVStore implements AutoCloseable
         closeStore(true, 0);
     }
 
+    /**
+     * Close the file and the store. Unsaved changes are written to disk first,
+     * and compaction (up to a specified number of milliseconds) is attempted.
+     *
+     * @param allowedCompactionTime the allowed time for compaction (in
+     *            milliseconds)
+     */
     public void close(long allowedCompactionTime) {
         closeStore(true, allowedCompactionTime);
     }
@@ -3107,6 +3113,7 @@ public class MVStore implements AutoCloseable
      * which are still operating on this version.
      */
     public static final class TxCounter {
+
         /**
          * Version of a store, this TxCounter is related to
          */
@@ -3129,10 +3136,20 @@ public class MVStore implements AutoCloseable
             return counter;
         }
 
+        /**
+         * Increment and get the counter value.
+         *
+         * @return the new value
+         */
         int incrementAndGet() {
             return counterUpdater.incrementAndGet(this);
         }
 
+        /**
+         * Decrement and get the counter values.
+         *
+         * @return the new value
+         */
         int decrementAndGet() {
             return counterUpdater.decrementAndGet(this);
         }

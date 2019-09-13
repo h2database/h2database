@@ -44,6 +44,9 @@ public class ValueExpression extends Expression {
      */
     private static final Object FALSE = new ValueExpression(ValueBoolean.FALSE);
 
+    /**
+     * The value.
+     */
     final Value value;
 
     ValueExpression(Value value) {

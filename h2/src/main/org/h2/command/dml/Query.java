@@ -893,6 +893,12 @@ public abstract class Query extends Prepared {
         return result;
     }
 
+    /**
+     * Convert a result into a distinct result, using the current columns.
+     *
+     * @param result the source
+     * @return the distinct result
+     */
     LocalResult convertToDistinct(ResultInterface result) {
         LocalResult distinctResult = session.getDatabase().getResultFactory().create(session,
             expressionArray, visibleColumnCount, resultColumnCount);

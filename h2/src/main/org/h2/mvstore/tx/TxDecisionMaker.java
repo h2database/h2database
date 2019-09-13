@@ -117,11 +117,13 @@ class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
 
     @SuppressWarnings("unchecked")
     @Override
+    // always return value (ignores existingValue)
     public final VersionedValue selectValue(VersionedValue existingValue, VersionedValue providedValue) {
         return VersionedValueUncommitted.getInstance(undoKey, getNewValue(existingValue), lastCommittedValue);
     }
 
-    Object getNewValue(VersionedValue existingValue) {
+    // always return value (ignores existingValue)
+    private Object getNewValue(VersionedValue existingValue) {
         return value;
     }
 

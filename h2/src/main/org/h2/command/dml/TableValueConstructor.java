@@ -32,73 +32,41 @@ import org.h2.value.Value;
  */
 public class TableValueConstructor extends Query {
 
-    private final class TableValueColumnResolver implements ColumnResolver {
+    private final ArrayList<ArrayList<Expression>> rows;
 
-        Value[] currentRow;
+    /**
+     * The table.
+     */
+    final TableValueConstructorTable table;
 
-        TableValueColumnResolver() {
+    private final TableValueColumnResolver columnResolver;
+
+    private boolean isPrepared, checkInit;
+
+    private double cost;
+
+    /**
+     * Creates new instance of table value constructor.
+     *
+     * @param session
+     *            the session
+     * @param columns
+     *            the columns
+     * @param rows
+     *            the rows
+     */
+    public TableValueConstructor(Session session, Column[] columns, ArrayList<ArrayList<Expression>> rows) {
+        super(session);
+        this.rows = rows;
+        Database database = session.getDatabase();
+        int columnCount = columns.length;
+        ArrayList<Expression> expressions = new ArrayList<>(columnCount);
+        for (int i = 0; i < columnCount; i++) {
+            expressions.add(new ExpressionColumn(database, null, null, columns[i].getName(), false));
         }
-
-        @Override
-        public String getTableAlias() {
-            return null;
-        }
-
-        @Override
-        public Column[] getColumns() {
-            return table.getColumns();
-        }
-
-        @Override
-        public Column findColumn(String name) {
-            return table.findColumn(name);
-        }
-
-        @Override
-        public String getColumnName(Column column) {
-            return column.getName();
-        }
-
-        @Override
-        public boolean hasDerivedColumnList() {
-            return false;
-        }
-
-        @Override
-        public Column[] getSystemColumns() {
-            return null;
-        }
-
-        @Override
-        public Column getRowIdColumn() {
-            return null;
-        }
-
-        @Override
-        public String getSchemaName() {
-            return null;
-        }
-
-        @Override
-        public Value getValue(Column column) {
-            return currentRow[column.getColumnId()];
-        }
-
-        @Override
-        public TableFilter getTableFilter() {
-            return null;
-        }
-
-        @Override
-        public Select getSelect() {
-            return null;
-        }
-
-        @Override
-        public Expression optimize(ExpressionColumn expressionColumn, Column column) {
-            return expressions.get(column.getColumnId());
-        }
-
+        this.expressions = expressions;
+        table = new TableValueConstructorTable(session.getDatabase().getMainSchema(), session, columns, rows);
+        columnResolver = new TableValueColumnResolver();
     }
 
     /**
@@ -148,40 +116,6 @@ public class TableValueConstructor extends Query {
             Expression.writeExpressions(builder, rows.get(i), alwaysQuote);
             builder.append(')');
         }
-    }
-
-    private final ArrayList<ArrayList<Expression>> rows;
-
-    final TableValueConstructorTable table;
-
-    private final TableValueColumnResolver columnResolver;
-
-    private boolean isPrepared, checkInit;
-
-    private double cost;
-
-    /**
-     * Creates new instance of table value constructor.
-     *
-     * @param session
-     *            the session
-     * @param columns
-     *            the columns
-     * @param rows
-     *            the rows
-     */
-    public TableValueConstructor(Session session, Column[] columns, ArrayList<ArrayList<Expression>> rows) {
-        super(session);
-        this.rows = rows;
-        Database database = session.getDatabase();
-        int columnCount = columns.length;
-        ArrayList<Expression> expressions = new ArrayList<>(columnCount);
-        for (int i = 0; i < columnCount; i++) {
-            expressions.add(new ExpressionColumn(database, null, null, columns[i].getName(), false));
-        }
-        this.expressions = expressions;
-        table = new TableValueConstructorTable(session.getDatabase().getMainSchema(), session, columns, rows);
-        columnResolver = new TableValueColumnResolver();
     }
 
     @Override
@@ -365,6 +299,75 @@ public class TableValueConstructor extends Query {
             return table;
         }
         return super.toTable(alias, parameters, forCreateView, topQuery);
+    }
+
+    private final class TableValueColumnResolver implements ColumnResolver {
+
+        Value[] currentRow;
+
+        TableValueColumnResolver() {
+        }
+
+        @Override
+        public String getTableAlias() {
+            return null;
+        }
+
+        @Override
+        public Column[] getColumns() {
+            return table.getColumns();
+        }
+
+        @Override
+        public Column findColumn(String name) {
+            return table.findColumn(name);
+        }
+
+        @Override
+        public String getColumnName(Column column) {
+            return column.getName();
+        }
+
+        @Override
+        public boolean hasDerivedColumnList() {
+            return false;
+        }
+
+        @Override
+        public Column[] getSystemColumns() {
+            return null;
+        }
+
+        @Override
+        public Column getRowIdColumn() {
+            return null;
+        }
+
+        @Override
+        public String getSchemaName() {
+            return null;
+        }
+
+        @Override
+        public Value getValue(Column column) {
+            return currentRow[column.getColumnId()];
+        }
+
+        @Override
+        public TableFilter getTableFilter() {
+            return null;
+        }
+
+        @Override
+        public Select getSelect() {
+            return null;
+        }
+
+        @Override
+        public Expression optimize(ExpressionColumn expressionColumn, Column column) {
+            return expressions.get(column.getColumnId());
+        }
+
     }
 
 }

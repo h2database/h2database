@@ -104,7 +104,7 @@ public abstract class JSONTextSource {
 
     /**
      * Skip all whitespace characters, and get the next character.
-     * 
+     *
      * @return the character code
      */
     abstract int nextCharAfterWhitespace();
@@ -112,28 +112,28 @@ public abstract class JSONTextSource {
     /**
      * Read the specified keyword, or (it there is no match), throw an
      * IllegalArgumentException.
-     * 
+     *
      * @param keyword the expected keyword
      */
     abstract void readKeyword1(String keyword);
 
     /**
      * Parse a number.
-     * 
+     *
      * @param positive whether it needs to be positive
      */
     abstract void parseNumber(boolean positive);
 
     /**
      * Read the next character.
-     * 
+     *
      * @return the character code
      */
     abstract int nextChar();
 
     /**
      * Read 4 hex characters (0-9, a-f, A-F), and return the Unicode character.
-     * 
+     *
      * @return the character
      */
     abstract char readHex();

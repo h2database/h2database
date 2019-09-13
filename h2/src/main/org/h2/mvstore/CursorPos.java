@@ -62,7 +62,7 @@ public class CursorPos
 
     /**
      * Calculate the memory used by changes that are not yet stored.
-     * 
+     *
      * @param version the version
      * @return the amount of memory
      */

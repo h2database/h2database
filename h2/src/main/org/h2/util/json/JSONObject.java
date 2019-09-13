@@ -21,7 +21,7 @@ public class JSONObject extends JSONValue {
 
     /**
      * Add a key-value pair.
-     * 
+     *
      * @param name the key
      * @param value the value
      */

@@ -45,21 +45,21 @@ public abstract class JSONTarget<R> {
 
     /**
      * Parse "null".
-     * 
+     *
      * {@code null} value.
      */
     public abstract void valueNull();
 
     /**
      * Parse "false".
-     * 
+     *
      * {@code false} value.
      */
     public abstract void valueFalse();
 
     /**
      * Parse "true".
-     * 
+     *
      * {@code true} value.
      */
     public abstract void valueTrue();

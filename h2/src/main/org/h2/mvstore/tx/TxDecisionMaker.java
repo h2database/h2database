@@ -123,7 +123,7 @@ class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
     }
 
     // always return value (ignores existingValue)
-    private Object getNewValue(VersionedValue existingValue) {
+    Object getNewValue(VersionedValue existingValue) {
         return value;
     }
 

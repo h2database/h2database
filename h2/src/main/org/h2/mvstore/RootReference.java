@@ -139,7 +139,7 @@ public final class RootReference
 
     /**
      * Try to lock.
-     * 
+     *
      * @param attemptCounter the number of attempts so far
      * @return the new, locked, root reference, or null if not successful
      */
@@ -155,7 +155,7 @@ public final class RootReference
 
     /**
      * Try to unlock, and if successful update the version
-     * 
+     *
      * @param version the version
      * @param attempt the number of attempts so far
      * @return the new, unlocked and updated, root reference, or null if not successful
@@ -172,7 +172,7 @@ public final class RootReference
 
     /**
      * Update the page, possibly keeping it locked.
-     * 
+     *
      * @param page the page
      * @param keepLocked whether to keep it locked
      * @param attempt the number of attempts so far
@@ -189,7 +189,7 @@ public final class RootReference
 
     /**
      * Removed old versions that are not longer used.
-     * 
+     *
      * @param oldestVersionToKeep the oldest version that needs to be retained
      */
     void removeUnusedOldVersions(long oldestVersionToKeep) {

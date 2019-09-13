@@ -380,7 +380,7 @@ public class FileStore {
      * Calculates a prospective fill rate, which store would have after rewrite
      * of sparsely populated chunk(s) and evacuation of still live data into a
      * new chunk.
-     * 
+     *
      * @param live
      *            amount of memory (bytes) from vacated block, which would be
      *            written into a new chunk
@@ -402,7 +402,7 @@ public class FileStore {
 
     /**
      * Calculates relative "priority" for chunk to be moved.
-     * 
+     *
      * @param block where chunk starts
      * @return priority, bigger number indicate that chunk need to be moved sooner
      */

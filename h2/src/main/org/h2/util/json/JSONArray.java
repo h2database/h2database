@@ -19,7 +19,7 @@ public class JSONArray extends JSONValue {
 
     /**
      * Add a value to the array.
-     * 
+     *
      * @param value the value to add
      */
     void addElement(JSONValue value) {

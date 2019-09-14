@@ -44,6 +44,12 @@ import org.h2.value.ValueTimestampTimeZone;
  */
 public class LocalDateTimeUtils {
 
+    private static final long MIN_DATE_VALUE =
+            (-999_999_999L << DateTimeUtils.SHIFT_YEAR) + (1 << DateTimeUtils.SHIFT_MONTH) + 1;
+
+    private static final long MAX_DATE_VALUE =
+            (999_999_999L << DateTimeUtils.SHIFT_YEAR) + (12 << DateTimeUtils.SHIFT_MONTH) + 31;
+
     /**
      * {@code Class<java.time.LocalDate>} or {@code null}.
      */
@@ -355,8 +361,14 @@ public class LocalDateTimeUtils {
      * @return the LocalDate
      */
     public static Object valueToLocalDate(Value value) {
+        long dateValue = ((ValueDate) value.convertTo(Value.DATE)).getDateValue();
+        if (dateValue > MAX_DATE_VALUE) {
+            dateValue = MAX_DATE_VALUE;
+        } else if (dateValue < MIN_DATE_VALUE) {
+            dateValue = MIN_DATE_VALUE;
+        }
         try {
-            return localDateFromDateValue(((ValueDate) value.convertTo(Value.DATE)).getDateValue());
+            return localDateFromDateValue(dateValue);
         } catch (IllegalAccessException e) {
             throw DbException.convert(e);
         } catch (InvocationTargetException e) {
@@ -672,6 +684,13 @@ public class LocalDateTimeUtils {
 
     private static Object localDateTimeFromDateNanos(long dateValue, long timeNanos)
                     throws IllegalAccessException, InvocationTargetException {
+        if (dateValue > MAX_DATE_VALUE) {
+            dateValue = MAX_DATE_VALUE;
+            timeNanos = DateTimeUtils.NANOS_PER_DAY - 1;
+        } else if (dateValue < MIN_DATE_VALUE) {
+            dateValue = MIN_DATE_VALUE;
+            timeNanos = 0;
+        }
         Object localDate = localDateFromDateValue(dateValue);
         Object localDateTime = LOCAL_DATE_AT_START_OF_DAY.invoke(localDate);
         return LOCAL_DATE_TIME_PLUS_NANOS.invoke(localDateTime, timeNanos);

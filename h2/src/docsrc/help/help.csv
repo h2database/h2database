@@ -1720,7 +1720,7 @@ This setting is not persistent, however the value is kept until the virtual mach
 
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.
-This setting can be appended to the database URL: ""jdbc:h2:./test;MULTI_THREADED=1""
+This setting can be appended to the database URL: ""jdbc:h2:./test;MV_STORE=FALSE;MULTI_THREADED=1""
 ","
 SET MULTI_THREADED 1
 "
@@ -5045,7 +5045,8 @@ AUTOCOMMIT()
 CANCEL_SESSION(sessionInt)
 ","
 Cancels the currently executing statement of another session.
-The method only works if the multithreaded kernel is enabled (see SET MULTI_THREADED).
+The method only works if the multithreaded kernel is enabled
+(it is enabled by default with MVStore engine only, see SET MULTI_THREADED).
 Returns true if the statement was canceled, false if the session is closed or no statement is currently executing.
 
 Admin rights are required to execute this command.

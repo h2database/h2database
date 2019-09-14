@@ -94,24 +94,6 @@ public class TestDate extends TestBase {
         assertFalse(d2.equals(d1));
         assertEquals(-1, d1.compareTo(d2, null, null));
         assertEquals(1, d2.compareTo(d1, null, null));
-
-        // can't convert using java.util.Date
-        assertEquals(
-                Integer.MAX_VALUE + "-12-31 00:00:00",
-                ValueDate.parse(Integer.MAX_VALUE + "-12-31").
-                convertTo(Value.TIMESTAMP).getString());
-        assertEquals(
-                Integer.MIN_VALUE + "-12-31 00:00:00",
-                ValueDate.parse(Integer.MIN_VALUE + "-12-31").
-                convertTo(Value.TIMESTAMP).getString());
-        assertEquals(
-                "00:00:00",
-                ValueDate.parse(Integer.MAX_VALUE + "-12-31").
-                convertTo(Value.TIME).getString());
-        assertEquals(
-                "00:00:00",
-                ValueDate.parse(Integer.MIN_VALUE + "-12-31").
-                convertTo(Value.TIME).getString());
     }
 
     private void testValueTime() {
@@ -195,17 +177,6 @@ public class TestDate extends TestBase {
                 "9999-12-31 23:59:59",
                 ValueTimestamp.parse(
                 "9999-12-31 23:59:59").getString());
-
-        assertEquals(
-                Integer.MAX_VALUE +
-                "-12-31 01:02:03.04050607",
-                ValueTimestamp.parse(Integer.MAX_VALUE +
-                "-12-31 01:02:03.0405060708").getString());
-        assertEquals(
-                Integer.MIN_VALUE +
-                "-12-31 01:02:03.04050607",
-                ValueTimestamp.parse(Integer.MIN_VALUE +
-                "-12-31 01:02:03.0405060708").getString());
 
         ValueTimestamp t1 = ValueTimestamp.parse("2001-01-01 01:01:01.111");
         assertEquals("2001-01-01 01:01:01.111", t1.getTimestamp().toString());

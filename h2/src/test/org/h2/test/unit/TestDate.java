@@ -64,10 +64,6 @@ public class TestDate extends TestBase {
                 ValueDate.parse("9999-12-31").getString());
         assertEquals("-9999-12-31",
                 ValueDate.parse("-9999-12-31").getString());
-        assertEquals(Integer.MAX_VALUE + "-12-31",
-                ValueDate.parse(Integer.MAX_VALUE + "-12-31").getString());
-        assertEquals(Integer.MIN_VALUE + "-12-31",
-                ValueDate.parse(Integer.MIN_VALUE + "-12-31").getString());
         ValueDate d1 = ValueDate.parse("2001-01-01");
         assertEquals("2001-01-01", d1.getDate().toString());
         assertEquals("DATE '2001-01-01'", d1.getSQL());

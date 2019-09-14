@@ -22,6 +22,7 @@ import org.h2.store.FileStore;
 import org.h2.store.LobStorageFrontend;
 import org.h2.test.TestBase;
 import org.h2.test.utils.MemoryFootprint;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Utils;
@@ -58,6 +59,10 @@ import org.h2.value.ValueUuid;
  * they occupy, and this tests if this estimation is correct.
  */
 public class TestValueMemory extends TestBase implements DataHandler {
+
+    private static final long MIN_ABSOLUTE_DAY = DateTimeUtils.absoluteDayFromDateValue(DateTimeUtils.MIN_DATE_VALUE);
+
+    private static final long MAX_ABSOLUTE_DAY = DateTimeUtils.absoluteDayFromDateValue(DateTimeUtils.MAX_DATE_VALUE);
 
     private final Random random = new Random(1);
     private final SmallLRUCache<String, String[]> lobFileListCache = SmallLRUCache
@@ -180,19 +185,14 @@ public class TestValueMemory extends TestBase implements DataHandler {
         case Value.FLOAT:
             return ValueFloat.get(random.nextFloat());
         case Value.TIME:
-            return ValueTime.get(new java.sql.Time(random.nextLong()));
+            return ValueTime.fromNanos(randomTimeNanos());
         case Value.DATE:
-            return ValueDate.get(new java.sql.Date(random.nextLong()));
+            return ValueDate.fromDateValue(randomDateValue());
         case Value.TIMESTAMP:
-            return ValueTimestamp.fromMillis(random.nextLong());
+            return ValueTimestamp.fromDateValueAndNanos(randomDateValue(), randomTimeNanos());
         case Value.TIMESTAMP_TZ:
-            // clamp to max legal value
-            long nanos = Math.max(Math.min(random.nextLong(),
-                    24L * 60 * 60 * 1000 * 1000 * 1000 - 1), 0);
-            int timeZoneOffsetMins = (int) (random.nextFloat() * (24 * 60))
-                    - (12 * 60);
             return ValueTimestampTimeZone.fromDateValueAndNanos(
-                    random.nextLong(), nanos, (short) timeZoneOffsetMins);
+                    randomDateValue(), randomTimeNanos(), randomZoneOffset());
         case Value.BYTES:
             return ValueBytes.get(randomBytes(random.nextInt(1000)));
         case Value.STRING:
@@ -247,6 +247,19 @@ public class TestValueMemory extends TestBase implements DataHandler {
         default:
             throw new AssertionError("type=" + type);
         }
+    }
+
+    private long randomDateValue() {
+        return DateTimeUtils.dateValueFromAbsoluteDay(
+                (random.nextLong() & Long.MAX_VALUE) % (MAX_ABSOLUTE_DAY - MIN_ABSOLUTE_DAY + 1) + MIN_ABSOLUTE_DAY);
+    }
+
+    private long randomTimeNanos() {
+        return (random.nextLong() & Long.MAX_VALUE) % DateTimeUtils.NANOS_PER_DAY;
+    }
+
+    private short randomZoneOffset() {
+        return (short) (random.nextInt() % (18 * 60));
     }
 
     private Value[] createArray() throws SQLException {

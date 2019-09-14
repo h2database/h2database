@@ -185,42 +185,34 @@ public class ValueInterval extends Value {
         if (targetScale < 0) {
             throw DbException.getInvalidValueException("scale", targetScale);
         }
-        IntervalQualifier qualifier = getQualifier();
-        if (!qualifier.hasSeconds()) {
-            return this;
-        }
-        long r = DateTimeUtils.convertScale(remaining, targetScale);
-        if (r == remaining) {
+        long range;
+        switch (valueType) {
+        case INTERVAL_SECOND:
+            range = NANOS_PER_SECOND;
+            break;
+        case INTERVAL_DAY_TO_SECOND:
+            range = NANOS_PER_DAY;
+            break;
+        case INTERVAL_HOUR_TO_SECOND:
+            range = NANOS_PER_HOUR;
+            break;
+        case INTERVAL_MINUTE_TO_SECOND:
+            range = NANOS_PER_MINUTE;
+            break;
+        default:
             return this;
         }
         long l = leading;
-        switch (valueType) {
-        case INTERVAL_SECOND:
-            if (r >= NANOS_PER_SECOND) {
-                l++;
-                r -= NANOS_PER_SECOND;
-            }
-            break;
-        case INTERVAL_DAY_TO_SECOND:
-            if (r >= NANOS_PER_DAY) {
-                l++;
-                r -= NANOS_PER_DAY;
-            }
-            break;
-        case INTERVAL_HOUR_TO_SECOND:
-            if (r >= NANOS_PER_HOUR) {
-                l++;
-                r -= NANOS_PER_HOUR;
-            }
-            break;
-        case INTERVAL_MINUTE_TO_SECOND:
-            if (r >= NANOS_PER_MINUTE) {
-                l++;
-                r -= NANOS_PER_MINUTE;
-            }
-            break;
+        long r = DateTimeUtils.convertScale(remaining, targetScale,
+                l == 999_999_999_999_999_999L ? range : Long.MAX_VALUE);
+        if (r == remaining) {
+            return this;
         }
-        return from(qualifier, negative, l, r);
+        if (r >= range) {
+            l++;
+            r -= range;
+        }
+        return from(getQualifier(), negative, l, r);
     }
 
     @Override

@@ -3324,7 +3324,7 @@ Mapped to ""java.sql.Time"". When converted to a ""java.sql.Date"", the date is 
 ""java.time.LocalTime"" is also supported and recommended on Java 8 and later versions.
 Use ""java.time.LocalTime"" or ""String"" instead of ""java.sql.Time"" when non-zero precision is needed.
 Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up;
-if result of rounding is higher than maximum supported value 23:59:59.999999999 it is saturated to 23:59:59.999999999.
+if result of rounding is higher than maximum supported value 23:59:59.999999999 the value is rounded down instead.
 ","
 TIME
 TIME(9)

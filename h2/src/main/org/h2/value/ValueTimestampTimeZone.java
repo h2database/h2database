@@ -52,6 +52,9 @@ public class ValueTimestampTimeZone extends Value {
 
     private ValueTimestampTimeZone(long dateValue, long timeNanos,
             short timeZoneOffsetMins) {
+        if (dateValue < DateTimeUtils.MIN_DATE_VALUE || dateValue > DateTimeUtils.MAX_DATE_VALUE) {
+            throw new IllegalArgumentException("dateValue out of range " + dateValue);
+        }
         if (timeNanos < 0 || timeNanos >= DateTimeUtils.NANOS_PER_DAY) {
             throw new IllegalArgumentException(
                     "timeNanos out of range " + timeNanos);
@@ -192,12 +195,13 @@ public class ValueTimestampTimeZone extends Value {
         if (targetScale < 0) {
             throw DbException.getInvalidValueException("scale", targetScale);
         }
+        long dv = dateValue;
         long n = timeNanos;
-        long n2 = DateTimeUtils.convertScale(n, targetScale);
+        long n2 = DateTimeUtils.convertScale(n, targetScale,
+                dv == DateTimeUtils.MAX_DATE_VALUE ? DateTimeUtils.NANOS_PER_DAY : Long.MAX_VALUE);
         if (n2 == n) {
             return this;
         }
-        long dv = dateValue;
         if (n2 >= DateTimeUtils.NANOS_PER_DAY) {
             n2 -= DateTimeUtils.NANOS_PER_DAY;
             dv = DateTimeUtils.incrementDateValue(dv);

@@ -10,7 +10,6 @@ package org.h2.util;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
-import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import org.h2.api.ErrorCode;
@@ -36,9 +35,6 @@ import org.h2.value.ValueTimestampTimeZone;
  * Direct conversion is simpler, faster, and it does not inherit limitations
  * and issues from java.sql classes and conversion methods provided by JDK.</p>
  *
- * <p>The only one exclusion is a conversion between {@link Timestamp} and
- * Instant.</p>
- *
  * <p>Once the driver requires Java 8 and Android API 26 all the reflection
  * can be removed.</p>
  */
@@ -49,6 +45,10 @@ public class LocalDateTimeUtils {
 
     private static final long MAX_DATE_VALUE =
             (999_999_999L << DateTimeUtils.SHIFT_YEAR) + (12 << DateTimeUtils.SHIFT_MONTH) + 31;
+
+    private static final long MIN_INSTANT_SECOND = -31_557_014_167_219_200L;
+
+    private static final long MAX_INSTANT_SECOND = 31_556_889_864_403_199L;
 
     /**
      * {@code Class<java.time.LocalDate>} or {@code null}.
@@ -136,9 +136,9 @@ public class LocalDateTimeUtils {
      */
     private static final Method INSTANT_GET_NANO;
     /**
-     * {@code java.sql.Timestamp.toInstant()} or {@code null}.
+     * {@code java.time.Instant#ofEpochSecond(long, long)} or {@code null}.
      */
-    private static final Method TIMESTAMP_TO_INSTANT;
+    private static final Method INSTANT_OF_EPOCH_SECOND;
 
     /**
      * {@code java.time.LocalDateTime#plusNanos(long)} or {@code null}.
@@ -258,7 +258,7 @@ public class LocalDateTimeUtils {
 
             INSTANT_GET_EPOCH_SECOND = getMethod(INSTANT, "getEpochSecond");
             INSTANT_GET_NANO = getMethod(INSTANT, "getNano");
-            TIMESTAMP_TO_INSTANT = getMethod(Timestamp.class, "toInstant");
+            INSTANT_OF_EPOCH_SECOND = getMethod(INSTANT, "ofEpochSecond", long.class, long.class);
 
             LOCAL_DATE_TIME_PLUS_NANOS = getMethod(LOCAL_DATE_TIME, "plusNanos", long.class);
             LOCAL_DATE_TIME_TO_LOCAL_DATE = getMethod(LOCAL_DATE_TIME, "toLocalDate");
@@ -295,7 +295,7 @@ public class LocalDateTimeUtils {
             LOCAL_DATE_AT_START_OF_DAY = null;
             INSTANT_GET_EPOCH_SECOND = null;
             INSTANT_GET_NANO = null;
-            TIMESTAMP_TO_INSTANT = null;
+            INSTANT_OF_EPOCH_SECOND = null;
             LOCAL_DATE_TIME_PLUS_NANOS = null;
             LOCAL_DATE_TIME_TO_LOCAL_DATE = null;
             LOCAL_DATE_TIME_TO_LOCAL_TIME = null;
@@ -425,8 +425,22 @@ public class LocalDateTimeUtils {
      * @return the Instant
      */
     public static Object valueToInstant(Value value) {
+        ValueTimestampTimeZone valueTimestampTimeZone = (ValueTimestampTimeZone) value.convertTo(Value.TIMESTAMP_TZ);
+        long timeNanos = valueTimestampTimeZone.getTimeNanos();
+        long epochSecond = DateTimeUtils.absoluteDayFromDateValue( //
+                valueTimestampTimeZone.getDateValue()) * DateTimeUtils.SECONDS_PER_DAY //
+                + timeNanos / DateTimeUtils.NANOS_PER_SECOND //
+                - valueTimestampTimeZone.getTimeZoneOffsetMins() * 60;
+        timeNanos %= DateTimeUtils.NANOS_PER_SECOND;
+        if (epochSecond > MAX_INSTANT_SECOND) {
+            epochSecond = MAX_INSTANT_SECOND;
+            timeNanos = DateTimeUtils.NANOS_PER_SECOND - 1;
+        } else if (epochSecond < MIN_INSTANT_SECOND) {
+            epochSecond = MIN_INSTANT_SECOND;
+            timeNanos = 0;
+        }
         try {
-            return TIMESTAMP_TO_INSTANT.invoke(value.getTimestamp());
+            return INSTANT_OF_EPOCH_SECOND.invoke(null, epochSecond, timeNanos);
         } catch (IllegalAccessException e) {
             throw DbException.convert(e);
         } catch (InvocationTargetException e) {

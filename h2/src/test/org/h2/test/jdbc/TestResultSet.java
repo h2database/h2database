@@ -1458,6 +1458,16 @@ public class TestResultSet extends TestDb {
         assertEquals("-999999999-01-01T00:00+18:00", rs.getObject(3, LocalDateTimeUtils.OFFSET_DATE_TIME).toString());
         assertEquals("+999999999-12-31T23:59:59.999999999-18:00",
                 rs.getObject(4, LocalDateTimeUtils.OFFSET_DATE_TIME).toString());
+        assertEquals("-999999999-01-01T00:00Z", rs.getObject(1, LocalDateTimeUtils.ZONED_DATE_TIME).toString());
+        assertEquals("+999999999-12-31T23:59:59.999999999Z",
+                rs.getObject(2, LocalDateTimeUtils.ZONED_DATE_TIME).toString());
+        assertEquals("-999999999-01-01T00:00+18:00", rs.getObject(3, LocalDateTimeUtils.ZONED_DATE_TIME).toString());
+        assertEquals("+999999999-12-31T23:59:59.999999999-18:00",
+                rs.getObject(4, LocalDateTimeUtils.ZONED_DATE_TIME).toString());
+        assertEquals("-1000000000-01-01T00:00:00Z", rs.getObject(1, LocalDateTimeUtils.INSTANT).toString());
+        assertEquals("+1000000000-12-31T23:59:59.999999999Z", rs.getObject(2, LocalDateTimeUtils.INSTANT).toString());
+        assertEquals("-1000000000-01-01T00:00:00Z", rs.getObject(3, LocalDateTimeUtils.INSTANT).toString());
+        assertEquals("+1000000000-12-31T23:59:59.999999999Z", rs.getObject(4, LocalDateTimeUtils.INSTANT).toString());
     }
 
     private void testDatetimeWithCalendar() throws SQLException {

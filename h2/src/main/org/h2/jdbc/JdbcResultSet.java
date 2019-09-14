@@ -3877,89 +3877,90 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         }
     }
 
+    @SuppressWarnings("unchecked")
     private <T> T extractObjectOfType(Class<T> type, Value value) throws SQLException {
         if (value == ValueNull.INSTANCE) {
             return null;
         }
         if (type == BigDecimal.class) {
-            return type.cast(value.getBigDecimal());
+            return (T) value.getBigDecimal();
         } else if (type == BigInteger.class) {
-            return type.cast(value.getBigDecimal().toBigInteger());
+            return (T) value.getBigDecimal().toBigInteger();
         } else if (type == String.class) {
-            return type.cast(value.getString());
+            return (T) value.getString();
         } else if (type == Boolean.class) {
-            return type.cast(value.getBoolean());
+            return (T) (Boolean) value.getBoolean();
         } else if (type == Byte.class) {
-            return type.cast(value.getByte());
+            return (T) (Byte) value.getByte();
         } else if (type == Short.class) {
-            return type.cast(value.getShort());
+            return (T) (Short) value.getShort();
         } else if (type == Integer.class) {
-            return type.cast(value.getInt());
+            return (T) (Integer) value.getInt();
         } else if (type == Long.class) {
-            return type.cast(value.getLong());
+            return (T) (Long) value.getLong();
         } else if (type == Float.class) {
-            return type.cast(value.getFloat());
+            return (T) (Float) value.getFloat();
         } else if (type == Double.class) {
-            return type.cast(value.getDouble());
+            return (T) (Double) value.getDouble();
         } else if (type == Date.class) {
-            return type.cast(value.getDate());
+            return (T) value.getDate();
         } else if (type == Time.class) {
-            return type.cast(value.getTime());
+            return (T) value.getTime();
         } else if (type == Timestamp.class) {
-            return type.cast(value.getTimestamp());
+            return (T) value.getTimestamp();
         } else if (type == java.util.Date.class) {
-            return type.cast(new java.util.Date(value.getTimestamp().getTime()));
+            return (T) new java.util.Date(value.getTimestamp().getTime());
         } else if (type == Calendar.class) {
             Calendar calendar = DateTimeUtils.createGregorianCalendar();
             calendar.setTime(value.getTimestamp());
-            return type.cast(calendar);
+            return (T) calendar;
         } else if (type == UUID.class) {
-            return type.cast(value.getObject());
+            return (T) value.getObject();
         } else if (type == byte[].class) {
-            return type.cast(value.getBytes());
+            return (T) value.getBytes();
         } else if (type == java.sql.Array.class) {
             int id = getNextId(TraceObject.ARRAY);
-            return type.cast(new JdbcArray(conn, value, id));
+            return (T) new JdbcArray(conn, value, id);
         } else if (type == Blob.class) {
             int id = getNextId(TraceObject.BLOB);
-            return type.cast(new JdbcBlob(conn, value, JdbcLob.State.WITH_VALUE, id));
+            return (T) new JdbcBlob(conn, value, JdbcLob.State.WITH_VALUE, id);
         } else if (type == Clob.class) {
             int id = getNextId(TraceObject.CLOB);
-            return type.cast(new JdbcClob(conn, value, JdbcLob.State.WITH_VALUE, id));
+            return (T) new JdbcClob(conn, value, JdbcLob.State.WITH_VALUE, id);
         } else if (type == SQLXML.class) {
             int id = getNextId(TraceObject.SQLXML);
-            return type.cast(new JdbcSQLXML(conn, value, JdbcLob.State.WITH_VALUE, id));
+            return (T) new JdbcSQLXML(conn, value, JdbcLob.State.WITH_VALUE, id);
         } else if (type == ResultSet.class) {
             int id = getNextId(TraceObject.RESULT_SET);
-            return type.cast(new JdbcResultSet(conn, null, null,
-                    ((ValueResultSet) value.convertTo(Value.RESULT_SET)).getResult(), id, false, true, false));
+            return (T) new JdbcResultSet(conn, null, null,
+                    ((ValueResultSet) value.convertTo(Value.RESULT_SET)).getResult(), id, false, true, false);
         } else if (type == TimestampWithTimeZone.class) {
             ValueTimestampTimeZone v = (ValueTimestampTimeZone) value.convertTo(Value.TIMESTAMP_TZ);
-            return type.cast(new TimestampWithTimeZone(v.getDateValue(), v.getTimeNanos(), v.getTimeZoneOffsetMins()));
+            return (T) new TimestampWithTimeZone(v.getDateValue(), v.getTimeNanos(), v.getTimeZoneOffsetMins());
         } else if (type == Interval.class) {
             if (!(value instanceof ValueInterval)) {
                 value = value.convertTo(Value.INTERVAL_DAY_TO_SECOND);
             }
             ValueInterval v = (ValueInterval) value;
-            return type.cast(new Interval(v.getQualifier(), false, v.getLeading(), v.getRemaining()));
+            return (T) new Interval(v.getQualifier(), false, v.getLeading(), v.getRemaining());
         } else if (DataType.isGeometryClass(type)) {
-            return type.cast(value.convertTo(Value.GEOMETRY).getObject());
+            return (T) value.convertTo(Value.GEOMETRY).getObject();
         } else if (type == LocalDateTimeUtils.LOCAL_DATE) {
-            return type.cast(LocalDateTimeUtils.valueToLocalDate(value));
+            return (T) LocalDateTimeUtils.valueToLocalDate(value);
         } else if (type == LocalDateTimeUtils.LOCAL_TIME) {
-            return type.cast(LocalDateTimeUtils.valueToLocalTime(value));
+            return (T) LocalDateTimeUtils.valueToLocalTime(value);
         } else if (type == LocalDateTimeUtils.LOCAL_DATE_TIME) {
-            return type.cast(LocalDateTimeUtils.valueToLocalDateTime(value));
+            return (T) LocalDateTimeUtils.valueToLocalDateTime(value);
         } else if (type == LocalDateTimeUtils.INSTANT) {
-            return type.cast(LocalDateTimeUtils.valueToInstant(value));
+            return (T) LocalDateTimeUtils.valueToInstant(value);
         } else if (type == LocalDateTimeUtils.OFFSET_DATE_TIME) {
-            return type.cast(LocalDateTimeUtils.valueToOffsetDateTime(value));
+            return (T) LocalDateTimeUtils.valueToOffsetDateTime(value);
         } else if (type == LocalDateTimeUtils.ZONED_DATE_TIME) {
-            return type.cast(LocalDateTimeUtils.valueToZonedDateTime(value));
+            return (T) LocalDateTimeUtils.valueToZonedDateTime(value);
         } else if (type == LocalDateTimeUtils.PERIOD) {
-            return type.cast(LocalDateTimeUtils.valueToPeriod(value));
+            return (T) LocalDateTimeUtils.valueToPeriod(value);
         } else if (type == LocalDateTimeUtils.DURATION) {
-            return type.cast(LocalDateTimeUtils.valueToDuration(value));
+            return (T) LocalDateTimeUtils.valueToDuration(value);
         } else {
             throw unsupported(type.getName());
         }

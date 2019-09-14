@@ -279,6 +279,7 @@ public class TestTools extends TestDb {
         rs.addRow(BigInteger.ONE, null, true, null, BigDecimal.ONE, 1d, null, null, null, null, null);
         rs.addRow(BigInteger.ZERO, null, false, null, BigDecimal.ZERO, 0d, null, null, null, null, null);
         rs.addRow(null, null, null, null, null, null, null, null, null, null, null);
+        rs.addRow(null, null, true, null, null, null, null, null, null, null, null);
 
         rs.next();
 
@@ -396,6 +397,12 @@ public class TestTools extends TestDb {
         assertNull(rs.getBinaryStream(12));
         assertTrue(rs.wasNull());
 
+        assertTrue(rs.next());
+        assertTrue(rs.getBoolean(3));
+        assertFalse(rs.wasNull());
+        assertNull(rs.getObject(6, Float.class));
+        assertTrue(rs.wasNull());
+
         // all updateX methods
         for (Method m: rs.getClass().getMethods()) {
             if (m.getName().startsWith("update")) {
@@ -490,6 +497,7 @@ public class TestTools extends TestDb {
         assertTrue(rs.next());
         assertFalse(rs.isClosed());
         assertEquals(1, rs.getRow());
+        assertTrue(rs.next());
         assertTrue(rs.next());
         assertTrue(rs.next());
         assertTrue(rs.next());

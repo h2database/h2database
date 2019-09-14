@@ -64,8 +64,15 @@ public class DateTimeUtils {
      */
     public static final long NANOS_PER_DAY = MILLIS_PER_DAY * 1_000_000;
 
-    private static final int SHIFT_YEAR = 9;
-    private static final int SHIFT_MONTH = 5;
+    /**
+     * The offset of year bits in date values.
+     */
+    static final int SHIFT_YEAR = 9;
+
+    /**
+     * The offset of month bits in date values.
+     */
+    static final int SHIFT_MONTH = 5;
 
     /**
      * Gregorian change date for a {@link GregorianCalendar} that represents a
@@ -77,6 +84,16 @@ public class DateTimeUtils {
      * Date value for 1970-01-01.
      */
     public static final int EPOCH_DATE_VALUE = (1970 << SHIFT_YEAR) + (1 << SHIFT_MONTH) + 1;
+
+    /**
+     * Minimum possible date value.
+     */
+    public static final long MIN_DATE_VALUE = (-1_000_000_000L << SHIFT_YEAR) + (1 << SHIFT_MONTH) + 1;
+
+    /**
+     * Maximum possible date value.
+     */
+    public static final long MAX_DATE_VALUE = (1_000_000_000L << SHIFT_YEAR) + (12 << SHIFT_MONTH) + 31;
 
     private static final int[] NORMAL_DAYS_PER_MONTH = { 0, 31, 28, 31, 30, 31,
             30, 31, 31, 30, 31, 30, 31 };
@@ -1512,9 +1529,10 @@ public class DateTimeUtils {
      *
      * @param nanosOfDay nanoseconds of day
      * @param scale fractional seconds precision
+     * @param range the allowed range of values (0..range-1)
      * @return scaled value
      */
-    public static long convertScale(long nanosOfDay, int scale) {
+    public static long convertScale(long nanosOfDay, int scale, long range) {
         if (scale >= 9) {
             return nanosOfDay;
         }
@@ -1523,7 +1541,11 @@ public class DateTimeUtils {
         if (mod >= m >>> 1) {
             nanosOfDay += m;
         }
-        return nanosOfDay - mod;
+        long r = nanosOfDay - mod;
+        if (r >= range) {
+            r = range - m;
+        }
+        return r;
     }
 
 }

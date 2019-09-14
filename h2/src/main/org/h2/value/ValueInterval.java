@@ -13,6 +13,7 @@ import static org.h2.util.DateTimeUtils.NANOS_PER_SECOND;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import org.h2.api.ErrorCode;
 import org.h2.api.Interval;
 import org.h2.api.IntervalQualifier;
 import org.h2.message.DbException;
@@ -178,6 +179,18 @@ public class ValueInterval extends Value {
     }
 
     @Override
+    public boolean checkPrecision(long prec) {
+        if (prec < 18) {
+            for (long l = leading, p = 1, precision = 0; l >= p; p *= 10) {
+                if (++precision > prec) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    @Override
     public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
         if (targetScale >= MAXIMUM_SCALE) {
             return this;
@@ -213,6 +226,14 @@ public class ValueInterval extends Value {
             r -= range;
         }
         return from(getQualifier(), negative, l, r);
+    }
+
+    @Override
+    public Value convertPrecision(long precision) {
+        if (checkPrecision(precision)) {
+            return this;
+        }
+        throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, getSQL());
     }
 
     @Override

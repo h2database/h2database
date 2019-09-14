@@ -1434,40 +1434,45 @@ public class TestResultSet extends TestDb {
 
         stat.execute("DROP TABLE TEST");
 
-        rs = stat.executeQuery(
-                "SELECT DATE '-1000000000-01-01', " + "DATE '1000000000-12-31'");
-        rs.next();
-        assertEquals("-999999999-01-01", rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE).toString());
-        assertEquals("+999999999-12-31", rs.getObject(2, LocalDateTimeUtils.LOCAL_DATE).toString());
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            rs = stat.executeQuery("SELECT DATE '-1000000000-01-01', " + "DATE '1000000000-12-31'");
+            rs.next();
+            assertEquals("-999999999-01-01", rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE).toString());
+            assertEquals("+999999999-12-31", rs.getObject(2, LocalDateTimeUtils.LOCAL_DATE).toString());
 
-        rs = stat.executeQuery(
-                "SELECT TIMESTAMP '-1000000000-01-01 00:00:00', " + "TIMESTAMP '1000000000-12-31 23:59:59.999999999'");
-        rs.next();
-        assertEquals("-999999999-01-01T00:00", rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE_TIME).toString());
-        assertEquals("+999999999-12-31T23:59:59.999999999",
-                rs.getObject(2, LocalDateTimeUtils.LOCAL_DATE_TIME).toString());
+            rs = stat.executeQuery("SELECT TIMESTAMP '-1000000000-01-01 00:00:00', "
+                    + "TIMESTAMP '1000000000-12-31 23:59:59.999999999'");
+            rs.next();
+            assertEquals("-999999999-01-01T00:00", rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE_TIME).toString());
+            assertEquals("+999999999-12-31T23:59:59.999999999",
+                    rs.getObject(2, LocalDateTimeUtils.LOCAL_DATE_TIME).toString());
 
-        rs = stat.executeQuery("SELECT TIMESTAMP WITH TIME ZONE '-1000000000-01-01 00:00:00Z', "
-                + "TIMESTAMP WITH TIME ZONE '1000000000-12-31 23:59:59.999999999Z', "
-                + "TIMESTAMP WITH TIME ZONE '-1000000000-01-01 00:00:00+18', "
-                + "TIMESTAMP WITH TIME ZONE '1000000000-12-31 23:59:59.999999999-18'");
-        rs.next();
-        assertEquals("-999999999-01-01T00:00Z", rs.getObject(1, LocalDateTimeUtils.OFFSET_DATE_TIME).toString());
-        assertEquals("+999999999-12-31T23:59:59.999999999Z",
-                rs.getObject(2, LocalDateTimeUtils.OFFSET_DATE_TIME).toString());
-        assertEquals("-999999999-01-01T00:00+18:00", rs.getObject(3, LocalDateTimeUtils.OFFSET_DATE_TIME).toString());
-        assertEquals("+999999999-12-31T23:59:59.999999999-18:00",
-                rs.getObject(4, LocalDateTimeUtils.OFFSET_DATE_TIME).toString());
-        assertEquals("-999999999-01-01T00:00Z", rs.getObject(1, LocalDateTimeUtils.ZONED_DATE_TIME).toString());
-        assertEquals("+999999999-12-31T23:59:59.999999999Z",
-                rs.getObject(2, LocalDateTimeUtils.ZONED_DATE_TIME).toString());
-        assertEquals("-999999999-01-01T00:00+18:00", rs.getObject(3, LocalDateTimeUtils.ZONED_DATE_TIME).toString());
-        assertEquals("+999999999-12-31T23:59:59.999999999-18:00",
-                rs.getObject(4, LocalDateTimeUtils.ZONED_DATE_TIME).toString());
-        assertEquals("-1000000000-01-01T00:00:00Z", rs.getObject(1, LocalDateTimeUtils.INSTANT).toString());
-        assertEquals("+1000000000-12-31T23:59:59.999999999Z", rs.getObject(2, LocalDateTimeUtils.INSTANT).toString());
-        assertEquals("-1000000000-01-01T00:00:00Z", rs.getObject(3, LocalDateTimeUtils.INSTANT).toString());
-        assertEquals("+1000000000-12-31T23:59:59.999999999Z", rs.getObject(4, LocalDateTimeUtils.INSTANT).toString());
+            rs = stat.executeQuery("SELECT TIMESTAMP WITH TIME ZONE '-1000000000-01-01 00:00:00Z', "
+                    + "TIMESTAMP WITH TIME ZONE '1000000000-12-31 23:59:59.999999999Z', "
+                    + "TIMESTAMP WITH TIME ZONE '-1000000000-01-01 00:00:00+18', "
+                    + "TIMESTAMP WITH TIME ZONE '1000000000-12-31 23:59:59.999999999-18'");
+            rs.next();
+            assertEquals("-999999999-01-01T00:00Z", rs.getObject(1, LocalDateTimeUtils.OFFSET_DATE_TIME).toString());
+            assertEquals("+999999999-12-31T23:59:59.999999999Z",
+                    rs.getObject(2, LocalDateTimeUtils.OFFSET_DATE_TIME).toString());
+            assertEquals("-999999999-01-01T00:00+18:00",
+                    rs.getObject(3, LocalDateTimeUtils.OFFSET_DATE_TIME).toString());
+            assertEquals("+999999999-12-31T23:59:59.999999999-18:00",
+                    rs.getObject(4, LocalDateTimeUtils.OFFSET_DATE_TIME).toString());
+            assertEquals("-999999999-01-01T00:00Z", rs.getObject(1, LocalDateTimeUtils.ZONED_DATE_TIME).toString());
+            assertEquals("+999999999-12-31T23:59:59.999999999Z",
+                    rs.getObject(2, LocalDateTimeUtils.ZONED_DATE_TIME).toString());
+            assertEquals("-999999999-01-01T00:00+18:00",
+                    rs.getObject(3, LocalDateTimeUtils.ZONED_DATE_TIME).toString());
+            assertEquals("+999999999-12-31T23:59:59.999999999-18:00",
+                    rs.getObject(4, LocalDateTimeUtils.ZONED_DATE_TIME).toString());
+            assertEquals("-1000000000-01-01T00:00:00Z", rs.getObject(1, LocalDateTimeUtils.INSTANT).toString());
+            assertEquals("+1000000000-12-31T23:59:59.999999999Z",
+                    rs.getObject(2, LocalDateTimeUtils.INSTANT).toString());
+            assertEquals("-1000000000-01-01T00:00:00Z", rs.getObject(3, LocalDateTimeUtils.INSTANT).toString());
+            assertEquals("+1000000000-12-31T23:59:59.999999999Z",
+                    rs.getObject(4, LocalDateTimeUtils.INSTANT).toString());
+        }
     }
 
     private void testDatetimeWithCalendar() throws SQLException {

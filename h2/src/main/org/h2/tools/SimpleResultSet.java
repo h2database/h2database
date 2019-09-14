@@ -842,10 +842,9 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
      */
     @Override
     public <T> T getObject(int columnIndex, Class<T> type) throws SQLException {
-        if (wasNull()) {
+        if (get(columnIndex) == null) {
             return null;
         }
-
         if (type == BigDecimal.class) {
             return type.cast(getBigDecimal(columnIndex));
         } else if (type == BigInteger.class) {

@@ -1263,8 +1263,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             batchIdentities = new MergedResult();
             int size = batchParameters.size();
             int[] result = new int[size];
-            boolean error = false;
-            SQLException next = null;
+            SQLException first = null;
+            SQLException last = null;
             checkClosedForWrite();
             try {
                 for (int i = 0; i < size; i++) {
@@ -1283,19 +1283,17 @@ public class JdbcPreparedStatement extends JdbcStatement implements
                         batchIdentities.add(((JdbcResultSet) rs).result);
                     } catch (Exception re) {
                         SQLException e = logAndConvert(re);
-                        if (next == null) {
-                            next = e;
+                        if (last == null) {
+                            first = last = e;
                         } else {
-                            e.setNextException(next);
-                            next = e;
+                            last.setNextException(e);
                         }
                         result[i] = Statement.EXECUTE_FAILED;
-                        error = true;
                     }
                 }
                 batchParameters = null;
-                if (error) {
-                    throw new JdbcBatchUpdateException(next, result);
+                if (first != null) {
+                    throw new JdbcBatchUpdateException(first, result);
                 }
                 return result;
             } finally {

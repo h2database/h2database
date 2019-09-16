@@ -1424,15 +1424,45 @@ public class Database implements DataHandler, CastDataProvider {
         }
     }
 
-    private synchronized void closeAllSessionsException(Session except) {
+    private synchronized void closeAllSessionsExcept(Session except) {
         Session[] all = userSessions.toArray(EMPTY_SESSION_ARRAY);
         for (Session s : all) {
             if (s != except) {
-                try {
-                    // this will rollback outstanding transaction
-                    s.close();
-                } catch (Throwable e) {
-                    trace.error(e, "disconnecting session #{0}", s.getId());
+                // indicate that session need to be closed ASAP
+                s.suspend();
+            }
+        }
+
+        int timeout = 2 * getLockTimeout();
+        long start = System.currentTimeMillis();
+        boolean done = false;
+        while (!done) {
+            long sleep = timeout / 20;
+            try {
+                // although nobody going to notify us
+                // it is vital to give up lock on a database
+                wait(sleep);
+            } catch (InterruptedException e1) {
+                // ignore
+            }
+            if (System.currentTimeMillis() - start > timeout) {
+                for (Session s : all) {
+                    if (s != except && !s.isClosed()) {
+                        try {
+                            // this will rollback outstanding transaction
+                            s.close();
+                        } catch (Throwable e) {
+                            trace.error(e, "disconnecting session #{0}", s.getId());
+                        }
+                    }
+                }
+                break;
+            }
+            done = true;
+            for (Session s : all) {
+                if (s != except && !s.isClosed()) {
+                    done = false;
+                    break;
                 }
             }
         }
@@ -1484,7 +1514,7 @@ public class Database implements DataHandler, CastDataProvider {
                         return;
                     }
                     trace.info("closing {0} from shutdown hook", databaseName);
-                    closeAllSessionsException(null);
+                    closeAllSessionsExcept(null);
                 }
                 trace.info("closing {0}", databaseName);
                 if (eventListener != null) {
@@ -2700,7 +2730,7 @@ public class Database implements DataHandler, CastDataProvider {
             return false;
         }
         if (closeOthers) {
-            closeAllSessionsException(session);
+            closeAllSessionsExcept(session);
         }
         return true;
     }

@@ -88,7 +88,6 @@ import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
 import org.h2.value.ValueString;
-import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueUuid;
@@ -907,32 +906,21 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             result = ValueString.get(StringUtils.xmlStartDoc(),
                     database.getMode().treatEmptyStringsAsNull);
             break;
-        case CURRENT_DATE: {
-            result = (database.getMode().dateTimeValueWithinTransaction ? session.getTransactionStart()
-                    : session.getCurrentCommandStart()).convertTo(Value.DATE);
+        case CURRENT_DATE:
+            result = session.currentTimestamp().convertTo(Value.DATE);
             break;
-        }
         case CURRENT_TIME:
-        case LOCALTIME: {
-            ValueTime vt = (ValueTime) (database.getMode().dateTimeValueWithinTransaction
-                    ? session.getTransactionStart()
-                    : session.getCurrentCommandStart()).convertTo(Value.TIME);
-            result = vt.convertScale(false, v0 == null ? 0 : v0.getInt());
+        case LOCALTIME:
+            result = session.currentTimestamp().convertTo(Value.TIME) //
+                    .convertScale(false, v0 == null ? 0 : v0.getInt());
             break;
-        }
-        case CURRENT_TIMESTAMP: {
-            ValueTimestampTimeZone vt = database.getMode().dateTimeValueWithinTransaction
-                    ? session.getTransactionStart()
-                    : session.getCurrentCommandStart();
-            result = vt.convertScale(false, v0 == null ? 6 : v0.getInt());
+        case CURRENT_TIMESTAMP:
+            result = session.currentTimestamp().convertScale(false, v0 == null ? 6 : v0.getInt());
             break;
-        }
-        case LOCALTIMESTAMP: {
-            Value vt = (database.getMode().dateTimeValueWithinTransaction ? session.getTransactionStart()
-                    : session.getCurrentCommandStart()).convertTo(Value.TIMESTAMP);
-            result = vt.convertScale(false, v0 == null ? 6 : v0.getInt());
+        case LOCALTIMESTAMP:
+            result = session.currentTimestamp().convertTo(Value.TIMESTAMP) //
+                    .convertScale(false, v0 == null ? 6 : v0.getInt());
             break;
-        }
         case DAY_NAME: {
             int dayOfWeek = DateTimeUtils.getSundayDayOfWeek(DateTimeUtils.dateAndTimeFromValue(v0)[0]);
             result = ValueString.get(DateTimeFunctions.getMonthsAndWeeks(1)[dayOfWeek],
@@ -998,7 +986,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         case CAST:
         case CONVERT:
-            result = type.cast(v0, database.getMode(), true, null);
+            result = type.cast(v0, session, false, true, null);
             break;
         case MEMORY_FREE:
             session.getUser().checkAdmin();
@@ -1023,7 +1011,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             if (v0 == ValueNull.INSTANCE) {
                 result = getNullOrValue(session, args, values, 1);
             }
-            result = result.convertTo(type, database.getMode(), null);
+            result = result.convertTo(type, session, false, null);
             break;
         }
         case CASEWHEN: {
@@ -1033,7 +1021,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             } else {
                 v = getNullOrValue(session, args, values, 1);
             }
-            result = v.convertTo(type, database.getMode(), null);
+            result = v.convertTo(type, session, false, null);
             break;
         }
         case DECODE: {
@@ -1050,7 +1038,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             }
             Value v = index < 0 ? ValueNull.INSTANCE :
                     getNullOrValue(session, args, values, index);
-            result = v.convertTo(type, database.getMode(), null);
+            result = v.convertTo(type, session, false, null);
             break;
         }
         case NVL2: {
@@ -1060,7 +1048,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             } else {
                 v = getNullOrValue(session, args, values, 1);
             }
-            result = v.convertTo(type, database.getMode(), null);
+            result = v.convertTo(type, session, false, null);
             break;
         }
         case COALESCE: {
@@ -1068,7 +1056,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             for (int i = 0; i < args.length; i++) {
                 Value v = getNullOrValue(session, args, values, i);
                 if (v != ValueNull.INSTANCE) {
-                    result = v.convertTo(type, database.getMode(), null);
+                    result = v.convertTo(type, session, false, null);
                     break;
                 }
             }
@@ -1080,7 +1068,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             for (int i = 0; i < args.length; i++) {
                 Value v = getNullOrValue(session, args, values, i);
                 if (v != ValueNull.INSTANCE) {
-                    v = v.convertTo(type, database.getMode(), null);
+                    v = v.convertTo(type, session, true, null);
                     if (result == ValueNull.INSTANCE) {
                         result = v;
                     } else {
@@ -1131,7 +1119,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 then = args[args.length - 1];
             }
             Value v = then == null ? ValueNull.INSTANCE : then.getValue(session);
-            result = v.convertTo(type, database.getMode(), null);
+            result = v.convertTo(type, session, false, null);
             break;
         }
         case ARRAY_GET: {

@@ -5,7 +5,7 @@
  */
 package org.h2.expression;
 
-import org.h2.engine.Mode;
+import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.IntervalOperation.IntervalOpType;
 import org.h2.expression.function.Function;
@@ -90,11 +90,11 @@ public class BinaryOperation extends Expression {
 
     @Override
     public Value getValue(Session session) {
-        Mode mode = session.getDatabase().getMode();
-        Value l = left.getValue(session).convertTo(type, mode, null);
+        Database database = session.getDatabase();
+        Value l = left.getValue(session).convertTo(type, database, true, null);
         Value r = right.getValue(session);
         if (convertRight) {
-            r = r.convertTo(type, mode, null);
+            r = r.convertTo(type, database, true, null);
         }
         switch (opType) {
         case PLUS:

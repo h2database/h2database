@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 import org.h2.api.ErrorCode;
+import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 
 /**
@@ -117,7 +118,7 @@ public class ValueDouble extends Value {
     }
 
     @Override
-    public int compareTypeSafe(Value o, CompareMode mode) {
+    public int compareTypeSafe(Value o, CompareMode mode, CastDataProvider provider) {
         return Double.compare(value, ((ValueDouble) o).value);
     }
 
@@ -189,7 +190,7 @@ public class ValueDouble extends Value {
         if (!(other instanceof ValueDouble)) {
             return false;
         }
-        return compareTypeSafe((ValueDouble) other, null) == 0;
+        return compareTypeSafe((ValueDouble) other, null, null) == 0;
     }
 
 }

@@ -15,6 +15,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
+import org.h2.engine.CastDataProvider;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
 import org.h2.message.DbException;
@@ -108,21 +109,23 @@ public class ValueDataType implements DataType {
     private static final int JSON = 134;
 
     final DataHandler handler;
+    final CastDataProvider provider;
     final CompareMode compareMode;
     protected final Mode mode;
     final int[] sortTypes;
     SpatialDataType spatialType;
 
     public ValueDataType() {
-        this(CompareMode.getInstance(null, 0), null, null, null);
+        this(null, CompareMode.getInstance(null, 0), null, null, null);
     }
 
     public ValueDataType(Database database, int[] sortTypes) {
-        this(database.getCompareMode(), database.getMode(), database, sortTypes);
+        this(database, database.getCompareMode(), database.getMode(), database, sortTypes);
     }
 
-    private ValueDataType(CompareMode compareMode, Mode mode, DataHandler handler,
+    private ValueDataType(CastDataProvider provider, CompareMode compareMode, Mode mode, DataHandler handler,
             int[] sortTypes) {
+        this.provider = provider;
         this.compareMode = compareMode;
         this.mode = mode;
         this.handler = handler;
@@ -179,7 +182,7 @@ public class ValueDataType implements DataType {
             return SortOrder.compareNull(aNull, sortType);
         }
 
-        int comp = a.compareTo(b, mode, compareMode);
+        int comp = a.compareTo(b, provider, compareMode);
 
         if ((sortType & SortOrder.DESCENDING) != 0) {
             comp = -comp;

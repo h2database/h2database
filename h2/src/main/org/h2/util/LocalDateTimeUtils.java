@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
+import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -401,10 +402,11 @@ public class LocalDateTimeUtils {
      * <p>This method should only called from Java 8 or later.</p>
      *
      * @param value the value to convert
+     * @param provider the cast information provider
      * @return the LocalDateTime
      */
-    public static Object valueToLocalDateTime(Value value) {
-        ValueTimestamp valueTimestamp = (ValueTimestamp) value.convertTo(Value.TIMESTAMP);
+    public static Object valueToLocalDateTime(Value value, CastDataProvider provider) {
+        ValueTimestamp valueTimestamp = (ValueTimestamp) value.convertTo(Value.TIMESTAMP, provider, false);
         long dateValue = valueTimestamp.getDateValue();
         long timeNanos = valueTimestamp.getTimeNanos();
         try {
@@ -422,10 +424,12 @@ public class LocalDateTimeUtils {
      * <p>This method should only called from Java 8 or later.</p>
      *
      * @param value the value to convert
+     * @param provider the cast information provider
      * @return the Instant
      */
-    public static Object valueToInstant(Value value) {
-        ValueTimestampTimeZone valueTimestampTimeZone = (ValueTimestampTimeZone) value.convertTo(Value.TIMESTAMP_TZ);
+    public static Object valueToInstant(Value value, CastDataProvider provider) {
+        ValueTimestampTimeZone valueTimestampTimeZone =
+                (ValueTimestampTimeZone) value.convertTo(Value.TIMESTAMP_TZ, provider, false);
         long timeNanos = valueTimestampTimeZone.getTimeNanos();
         long epochSecond = DateTimeUtils.absoluteDayFromDateValue( //
                 valueTimestampTimeZone.getDateValue()) * DateTimeUtils.SECONDS_PER_DAY //
@@ -454,10 +458,11 @@ public class LocalDateTimeUtils {
      * <p>This method should only called from Java 8 or later.</p>
      *
      * @param value the value to convert
+     * @param provider the cast information provider
      * @return the OffsetDateTime
      */
-    public static Object valueToOffsetDateTime(Value value) {
-        return valueToOffsetDateTime(value, false);
+    public static Object valueToOffsetDateTime(Value value, CastDataProvider provider) {
+        return valueToOffsetDateTime(value, provider, false);
     }
 
     /**
@@ -466,14 +471,16 @@ public class LocalDateTimeUtils {
      * <p>This method should only called from Java 8 or later.</p>
      *
      * @param value the value to convert
+     * @param provider the cast information provider
      * @return the ZonedDateTime
      */
-    public static Object valueToZonedDateTime(Value value) {
-        return valueToOffsetDateTime(value, true);
+    public static Object valueToZonedDateTime(Value value, CastDataProvider provider) {
+        return valueToOffsetDateTime(value, provider, true);
     }
 
-    private static Object valueToOffsetDateTime(Value value, boolean zoned) {
-        ValueTimestampTimeZone valueTimestampTimeZone = (ValueTimestampTimeZone) value.convertTo(Value.TIMESTAMP_TZ);
+    private static Object valueToOffsetDateTime(Value value, CastDataProvider provider, boolean zoned) {
+        ValueTimestampTimeZone valueTimestampTimeZone =
+                (ValueTimestampTimeZone) value.convertTo(Value.TIMESTAMP_TZ, provider, false);
         long dateValue = valueTimestampTimeZone.getDateValue();
         long timeNanos = valueTimestampTimeZone.getTimeNanos();
         try {

@@ -13,7 +13,6 @@ import java.util.Arrays;
 import org.h2.api.IntervalQualifier;
 import org.h2.command.dml.SelectOrderBy;
 import org.h2.engine.Database;
-import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
 import org.h2.expression.Expression;
@@ -137,7 +136,7 @@ final class Percentile {
         if (!interpolate) {
             return v.convertTo(dataType);
         }
-        return interpolate(v, array[rowIdx2], factor, dataType, database.getMode(), compareMode);
+        return interpolate(v, array[rowIdx2], factor, dataType, database, compareMode);
     }
 
     /**
@@ -245,14 +244,14 @@ final class Percentile {
                 v = v2;
                 v2 = t;
             }
-            return interpolate(v, v2, factor, dataType, database.getMode(), database.getCompareMode());
+            return interpolate(v, v2, factor, dataType, database, database.getCompareMode());
         }
         return v.convertTo(dataType);
     }
 
-    private static Value interpolate(Value v0, Value v1, BigDecimal factor, int dataType, Mode databaseMode,
+    private static Value interpolate(Value v0, Value v1, BigDecimal factor, int dataType, Database database,
             CompareMode compareMode) {
-        if (v0.compareTo(v1, databaseMode, compareMode) == 0) {
+        if (v0.compareTo(v1, database, compareMode) == 0) {
             return v0.convertTo(dataType);
         }
         switch (dataType) {

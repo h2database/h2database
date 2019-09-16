@@ -10,7 +10,6 @@ import java.util.HashSet;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
-import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -84,11 +83,10 @@ public class TableValueConstructor extends Query {
     public static void getVisibleResult(Session session, ResultTarget result, Column[] columns,
             ArrayList<ArrayList<Expression>> rows) {
         int count = columns.length;
-        Mode mode = session.getDatabase().getMode();
         for (ArrayList<Expression> row : rows) {
             Value[] values = new Value[count];
             for (int i = 0; i < count; i++) {
-                values[i] = row.get(i).getValue(session).convertTo(columns[i].getType(), mode, null);
+                values[i] = row.get(i).getValue(session).convertTo(columns[i].getType(), session, false, null);
             }
             result.addRow(values);
         }
@@ -146,11 +144,10 @@ public class TableValueConstructor extends Query {
         if (visibleColumnCount == resultColumnCount) {
             getVisibleResult(session, result, columns, rows);
         } else {
-            Mode mode = session.getDatabase().getMode();
             for (ArrayList<Expression> row : rows) {
                 Value[] values = new Value[resultColumnCount];
                 for (int i = 0; i < visibleColumnCount; i++) {
-                    values[i] = row.get(i).getValue(session).convertTo(columns[i].getType(), mode, null);
+                    values[i] = row.get(i).getValue(session).convertTo(columns[i].getType(), session, false, null);
                 }
                 columnResolver.currentRow = values;
                 for (int i = visibleColumnCount; i < resultColumnCount; i++) {

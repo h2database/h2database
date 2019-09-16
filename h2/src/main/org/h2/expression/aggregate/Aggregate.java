@@ -18,7 +18,6 @@ import org.h2.api.ErrorCode;
 import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectOrderBy;
 import org.h2.engine.Database;
-import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -626,7 +625,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         return ValueString.get(builder.toString());
     }
 
-    private Value getHistogram(Session session, AggregateData data) {
+    private Value getHistogram(final Session session, AggregateData data) {
         TreeMap<Value, LongDataCounter> distinctValues = ((AggregateDataDistinctWithCounts) data).getValues();
         if (distinctValues == null) {
             return ValueArray.getEmpty();
@@ -639,14 +638,13 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             i++;
         }
         Database db = session.getDatabase();
-        final Mode mode = db.getMode();
         final CompareMode compareMode = db.getCompareMode();
         Arrays.sort(values, new Comparator<ValueArray>() {
             @Override
             public int compare(ValueArray v1, ValueArray v2) {
                 Value a1 = v1.getList()[0];
                 Value a2 = v2.getList()[0];
-                return a1.compareTo(a2, mode, compareMode);
+                return a1.compareTo(a2, session, compareMode);
             }
         });
         return ValueArray.get(values);

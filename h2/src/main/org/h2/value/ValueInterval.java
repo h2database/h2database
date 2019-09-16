@@ -16,6 +16,7 @@ import java.sql.SQLException;
 import org.h2.api.ErrorCode;
 import org.h2.api.Interval;
 import org.h2.api.IntervalQualifier;
+import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IntervalUtils;
@@ -315,7 +316,7 @@ public class ValueInterval extends Value {
     }
 
     @Override
-    public int compareTypeSafe(Value v, CompareMode mode) {
+    public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
         ValueInterval other = (ValueInterval) v;
         if (negative != other.negative) {
             return negative ? -1 : 1;

@@ -35,6 +35,7 @@ import java.util.regex.Pattern;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
+import org.h2.engine.CastDataProvider;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.Mode;
@@ -46,6 +47,7 @@ import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 import org.h2.util.CloseWatcher;
+import org.h2.util.CurrentTimestamp;
 import org.h2.util.JdbcUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
@@ -55,6 +57,7 @@ import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
 import org.h2.value.ValueString;
+import org.h2.value.ValueTimestampTimeZone;
 
 /**
  * <p>
@@ -66,7 +69,8 @@ import org.h2.value.ValueString;
  * used in one thread at any time.
  * </p>
  */
-public class JdbcConnection extends TraceObject implements Connection, JdbcConnectionBackwardsCompat {
+public class JdbcConnection extends TraceObject implements Connection, JdbcConnectionBackwardsCompat,
+        CastDataProvider {
 
     /**
      * Database settings.
@@ -2140,8 +2144,13 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
         trace.setLevel(level);
     }
 
-    Mode getMode() throws SQLException {
-        return getSettings().mode;
+    @Override
+    public Mode getMode() {
+        try {
+            return getSettings().mode;
+        } catch (SQLException e) {
+            throw DbException.convert(e);
+        }
     }
 
     /**
@@ -2193,9 +2202,18 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
     /**
      * INTERNAL
      */
-    public boolean isRegularMode() throws SQLException {
+    public boolean isRegularMode() {
         // Clear cached settings if any (required by tests)
         settings = null;
         return getMode().getEnum() == ModeEnum.REGULAR;
     }
+
+    @Override
+    public ValueTimestampTimeZone currentTimestamp() {
+        if (session instanceof CastDataProvider) {
+            return ((CastDataProvider) session).currentTimestamp();
+        }
+        return CurrentTimestamp.get();
+    }
+
 }

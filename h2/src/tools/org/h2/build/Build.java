@@ -559,7 +559,7 @@ public class Build extends BuildBase {
     @Description(summary = "Create h2client.jar with only the remote JDBC implementation.")
     public void jarClient() {
         compile(true, true, false);
-        addVersions(false, false);
+        addVersions(true, false);
         manifest("src/installer/client/MANIFEST.MF");
         FileList files = files("temp").
             exclude("temp/org/h2/build/*").

@@ -149,7 +149,7 @@ public class IndexCondition {
         TreeSet<Value> valueSet = new TreeSet<>(session.getDatabase().getCompareMode());
         for (Expression e : expressionList) {
             Value v = e.getValue(session);
-            v = column.convert(v);
+            v = column.convert(v, true);
             valueSet.add(v);
         }
         Value[] array = valueSet.toArray(new Value[valueSet.size()]);

@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
 
+import org.h2.engine.CastDataProvider;
 import org.h2.engine.SysProperties;
 import org.h2.util.MathUtils;
 
@@ -84,7 +85,7 @@ public class ValueArray extends ValueCollectionBase {
     }
 
     @Override
-    public int compareTypeSafe(Value o, CompareMode mode) {
+    public int compareTypeSafe(Value o, CompareMode mode, CastDataProvider provider) {
         ValueArray v = (ValueArray) o;
         if (values == v.values) {
             return 0;
@@ -95,7 +96,7 @@ public class ValueArray extends ValueCollectionBase {
         for (int i = 0; i < len; i++) {
             Value v1 = values[i];
             Value v2 = v.values[i];
-            int comp = v1.compareTo(v2, /* TODO */ null, mode);
+            int comp = v1.compareTo(v2, provider, mode);
             if (comp != 0) {
                 return comp;
             }

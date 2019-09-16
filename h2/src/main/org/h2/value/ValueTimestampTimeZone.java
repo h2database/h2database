@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import org.h2.api.ErrorCode;
 import org.h2.api.TimestampWithTimeZone;
+import org.h2.engine.CastDataProvider;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
@@ -210,7 +211,7 @@ public class ValueTimestampTimeZone extends Value {
     }
 
     @Override
-    public int compareTypeSafe(Value o, CompareMode mode) {
+    public int compareTypeSafe(Value o, CompareMode mode, CastDataProvider provider) {
         ValueTimestampTimeZone t = (ValueTimestampTimeZone) o;
         // Maximum time zone offset is +/-18 hours so difference in days between local
         // and UTC cannot be more than one day
@@ -260,7 +261,7 @@ public class ValueTimestampTimeZone extends Value {
     @Override
     public Object getObject() {
         if (SysProperties.RETURN_OFFSET_DATE_TIME && LocalDateTimeUtils.isJava8DateApiPresent()) {
-            return LocalDateTimeUtils.valueToOffsetDateTime(this);
+            return LocalDateTimeUtils.valueToOffsetDateTime(this, null);
         }
         return new TimestampWithTimeZone(dateValue, timeNanos, timeZoneOffsetMins);
     }
@@ -269,7 +270,7 @@ public class ValueTimestampTimeZone extends Value {
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             try {
-                prep.setObject(parameterIndex, LocalDateTimeUtils.valueToOffsetDateTime(this),
+                prep.setObject(parameterIndex, LocalDateTimeUtils.valueToOffsetDateTime(this, null),
                         // TODO use Types.TIMESTAMP_WITH_TIMEZONE on Java 8
                         2014);
                 return;

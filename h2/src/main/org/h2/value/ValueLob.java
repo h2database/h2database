@@ -12,8 +12,9 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+
+import org.h2.engine.CastDataProvider;
 import org.h2.engine.Constants;
-import org.h2.engine.Mode;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.store.DataHandler;
@@ -366,22 +367,24 @@ public class ValueLob extends Value {
      * Convert a lob to another data type. The data is fully read in memory
      * except when converting to BLOB or CLOB.
      *
-     * @param t the new type
-     * @param mode the database mode
-     * @param column the column (if any), used for to improve the error message if conversion fails
+     * @param targetType the new type
      * @param extTypeInfo the extended data type information, or null
+     * @param provider the cast information provider
+     * @param forComparison if {@code true}, perform cast for comparison operation
+     * @param column the column (if any), used for to improve the error message if conversion fails
      * @return the converted value
      */
     @Override
-    protected Value convertTo(int t, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
-        if (t == valueType) {
+    protected Value convertTo(int targetType, ExtTypeInfo extTypeInfo, CastDataProvider provider,
+            boolean forComparison, Object column) {
+        if (targetType == valueType) {
             return this;
-        } else if (t == Value.CLOB) {
+        } else if (targetType == Value.CLOB) {
             return ValueLobDb.createTempClob(getReader(), -1, handler);
-        } else if (t == Value.BLOB) {
+        } else if (targetType == Value.BLOB) {
             return ValueLobDb.createTempBlob(getInputStream(), -1, handler);
         }
-        return super.convertTo(t, mode, column, null);
+        return super.convertTo(targetType, null, provider, forComparison, column);
     }
 
     @Override
@@ -516,7 +519,7 @@ public class ValueLob extends Value {
     }
 
     @Override
-    public int compareTypeSafe(Value v, CompareMode mode) {
+    public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
         return compare(this, v);
     }
 
@@ -608,7 +611,7 @@ public class ValueLob extends Value {
     public boolean equals(Object other) {
         if (other instanceof ValueLob) {
             ValueLob o = (ValueLob) other;
-            return valueType == o.valueType && compareTypeSafe(o, null) == 0;
+            return valueType == o.valueType && compareTypeSafe(o, null, null) == 0;
         }
         return false;
     }

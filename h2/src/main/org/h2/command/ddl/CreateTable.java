@@ -144,6 +144,7 @@ public class CreateTable extends CommandWithColumns {
                     insert.prepare();
                     insert.update();
                 } finally {
+                    session.endStatement();
                     session.setUndoLogEnabled(old);
                 }
             }

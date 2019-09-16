@@ -606,7 +606,6 @@ public class ConstraintReferential extends Constraint {
             // don't check at startup
             return;
         }
-        session.startStatementWithinTransaction(null);
         StringBuilder builder = new StringBuilder("SELECT 1 FROM (SELECT ");
         IndexColumn.writeColumns(builder, columns, true);
         builder.append(" FROM ");
@@ -625,10 +624,16 @@ public class ConstraintReferential extends Constraint {
             refColumns[i].getSQL(builder, true);
         }
         builder.append(')');
-        ResultInterface r = session.prepare(builder.toString()).query(1);
-        if (r.next()) {
-            throw DbException.get(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1,
-                    getShortDescription(null, null));
+
+        session.startStatementWithinTransaction(null);
+        try {
+            ResultInterface r = session.prepare(builder.toString()).query(1);
+            if (r.next()) {
+                throw DbException.get(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1,
+                        getShortDescription(null, null));
+            }
+        } finally {
+            session.endStatement();
         }
     }
 

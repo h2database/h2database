@@ -1775,6 +1775,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             transaction.markStatementStart(command);
         }
         startStatement = -1;
+        if (command != null) {
+            setCurrentCommand(command);
+        }
     }
 
     /**
@@ -1782,6 +1785,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      * set, and deletes all temporary files held by the result sets.
      */
     public void endStatement() {
+        setCurrentCommand(null);
         if(transaction != null) {
             transaction.markStatementEnd();
         }

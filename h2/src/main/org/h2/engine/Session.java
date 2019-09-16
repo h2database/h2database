@@ -1001,7 +1001,8 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             DbException.throwInternalError();
         }
         if (!locks.isEmpty()) {
-            for (Table t : locks) {
+            Table[] array = locks.toArray(new Table[0]);
+            for (Table t : array) {
                 t.unlock(this);
             }
             locks.clear();

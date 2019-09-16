@@ -468,10 +468,11 @@ public class Transaction {
         assert store.openTransactions.get().get(transactionId);
         Throwable ex = null;
         boolean hasChanges = false;
+        int previousStatus = STATUS_OPEN;
         try {
             long state = setStatus(STATUS_COMMITTED);
             hasChanges = hasChanges(state);
-            int previousStatus = getStatus(state);
+            previousStatus = getStatus(state);
             if (hasChanges) {
                 store.commit(this, previousStatus == STATUS_COMMITTED);
             }
@@ -479,13 +480,15 @@ public class Transaction {
             ex = e;
             throw e;
         } finally {
-            try {
-                store.endTransaction(this, hasChanges);
-            } catch (Throwable e) {
-                if (ex == null) {
-                    throw e;
-                } else {
-                    ex.addSuppressed(e);
+            if (isActive(previousStatus)) {
+                try {
+                    store.endTransaction(this, hasChanges);
+                } catch (Throwable e) {
+                    if (ex == null) {
+                        throw e;
+                    } else {
+                        ex.addSuppressed(e);
+                    }
                 }
             }
         }
@@ -527,22 +530,23 @@ public class Transaction {
      */
     public void rollback() {
         Throwable ex = null;
+        int status = STATUS_OPEN;
         try {
             long lastState = setStatus(STATUS_ROLLED_BACK);
+            status = getStatus(lastState);
             long logId = getLogId(lastState);
             if (logId > 0) {
                 store.rollbackTo(this, logId, 0);
             }
         } catch (Throwable e) {
-            int status = getStatus();
-            if (status != STATUS_CLOSED && status != STATUS_COMMITTED) {
+            status = getStatus();
+            if (isActive(status)) {
                 ex = e;
                 throw e;
             }
         } finally {
             try {
-                int status = getStatus();
-                if (status != STATUS_CLOSED && status != STATUS_COMMITTED) {
+                if (isActive(status)) {
                     store.endTransaction(this, true);
                 }
             } catch (Throwable e) {
@@ -553,6 +557,12 @@ public class Transaction {
                 }
             }
         }
+    }
+
+    private boolean isActive(int status) {
+        return status != STATUS_CLOSED
+            && status != STATUS_COMMITTED
+            && status != STATUS_ROLLED_BACK;
     }
 
     /**

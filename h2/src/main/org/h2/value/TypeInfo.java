@@ -8,7 +8,7 @@ package org.h2.value;
 import org.h2.api.CustomDataTypesHandler;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
-import org.h2.engine.Mode;
+import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
@@ -482,8 +482,10 @@ public class TypeInfo {
      *
      * @param value
      *            value to cast
-     * @param mode
-     *            database mode
+     * @param provider
+     *            the cast information provider
+     * @param forComparison
+     *            if {@code true}, perform cast for comparison operation
      * @param convertPrecision
      *            if {@code true}, value is truncated to the precision of data
      *            type when possible, if {@code false} an exception in thrown
@@ -494,8 +496,10 @@ public class TypeInfo {
      * @throws DbException
      *             if value cannot be casted to this data type
      */
-    public Value cast(Value value, Mode mode, boolean convertPrecision, Object column) {
-        value = value.convertTo(this, mode, column).convertScale(mode.convertOnlyToSmallerScale, scale);
+    public Value cast(Value value, CastDataProvider provider, boolean forComparison,
+            boolean convertPrecision, Object column) {
+        value = value.convertTo(this, provider, forComparison, column) //
+                .convertScale(provider.getMode().convertOnlyToSmallerScale, scale);
         if (convertPrecision) {
             value = value.convertPrecision(precision);
         } else if (!value.checkPrecision(precision)) {

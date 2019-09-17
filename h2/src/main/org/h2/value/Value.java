@@ -20,7 +20,7 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
-import org.h2.engine.Mode;
+import org.h2.engine.CastDataProvider;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
@@ -708,7 +708,7 @@ public abstract class Value extends VersionedValue {
      * @return the converted value
      */
     public final Value convertTo(int targetType) {
-        return convertTo(targetType, null, null, null);
+        return convertTo(targetType, null, null, false, null);
     }
 
     /**
@@ -717,42 +717,47 @@ public abstract class Value extends VersionedValue {
      * @return value represented as ENUM
      */
     private Value convertToEnum(ExtTypeInfo enumerators) {
-        return convertTo(ENUM, null, null, enumerators);
+        return convertTo(ENUM, enumerators, null, false, null);
     }
 
     /**
      * Convert a value to the specified type.
      *
      * @param targetType the type of the returned value
-     * @param mode the mode
+     * @param provider the cast information provider
+     * @param forComparison if {@code true}, perform cast for comparison operation
      * @return the converted value
      */
-    public final Value convertTo(int targetType, Mode mode) {
-        return convertTo(targetType, mode, null, null);
+    public final Value convertTo(int targetType, CastDataProvider provider, boolean forComparison) {
+        return convertTo(targetType, null, provider, forComparison, null);
     }
 
     /**
      * Convert a value to the specified type.
      *
      * @param targetType the type of the returned value
-     * @param mode the conversion mode
+     * @param provider the cast information provider
+     * @param forComparison if {@code true}, perform cast for comparison operation
      * @param column the column (if any), used for to improve the error message if conversion fails
      * @return the converted value
      */
-    public final Value convertTo(TypeInfo targetType, Mode mode, Object column) {
-        return convertTo(targetType.getValueType(), mode, column, targetType.getExtTypeInfo());
+    public final Value convertTo(TypeInfo targetType, CastDataProvider provider, boolean forComparison,
+            Object column) {
+        return convertTo(targetType.getValueType(), targetType.getExtTypeInfo(), provider, forComparison, column);
     }
 
     /**
      * Convert a value to the specified type.
      *
      * @param targetType the type of the returned value
-     * @param mode the conversion mode
-     * @param column the column (if any), used for to improve the error message if conversion fails
      * @param extTypeInfo the extended data type information, or null
+     * @param provider the cast information provider
+     * @param forComparison if {@code true}, perform cast for comparison operation
+     * @param column the column (if any), used for to improve the error message if conversion fails
      * @return the converted value
      */
-    protected Value convertTo(int targetType, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
+    protected Value convertTo(int targetType, ExtTypeInfo extTypeInfo, CastDataProvider provider,
+            boolean forComparison, Object column) {
         // converting NULL is done in ValueNull
         // converting BLOB to CLOB and vice versa is done in ValueLob
         if (getValueType() == targetType) {
@@ -786,17 +791,17 @@ public abstract class Value extends VersionedValue {
             case TIME:
                 return convertToTime();
             case TIMESTAMP:
-                return convertToTimestamp(mode);
+                return convertToTimestamp(provider, forComparison);
             case TIMESTAMP_TZ:
-                return convertToTimestampTimeZone();
+                return convertToTimestampTimeZone(provider, forComparison);
             case BYTES:
-                return convertToBytes(mode);
+                return convertToBytes(provider);
             case STRING:
-                return convertToString(mode);
+                return ValueString.get(convertToString(provider));
             case STRING_IGNORECASE:
-                return convertToStringIgnoreCase(mode);
+                return ValueStringIgnoreCase.get(convertToString(provider));
             case STRING_FIXED:
-                return convertToStringFixed(mode);
+                return ValueStringFixed.get(convertToString(provider));
             case JAVA_OBJECT:
                 return convertToJavaObject();
             case ENUM:
@@ -1082,10 +1087,13 @@ public abstract class Value extends VersionedValue {
         return ValueTime.parse(getString().trim());
     }
 
-    private ValueTimestamp convertToTimestamp(Mode mode) {
+    private ValueTimestamp convertToTimestamp(CastDataProvider provider, boolean forComparison) {
         switch (getValueType()) {
         case TIME:
-            return DateTimeUtils.normalizeTimestamp(0, ((ValueTime) this).getNanos());
+            return ValueTimestamp.fromDateValueAndNanos(forComparison
+                    ? DateTimeUtils.EPOCH_DATE_VALUE
+                    : provider.currentTimestamp().getDateValue(),
+                    ((ValueTime) this).getNanos());
         case DATE:
             return ValueTimestamp.fromDateValueAndNanos(((ValueDate) this).getDateValue(), 0);
         case TIMESTAMP_TZ: {
@@ -1097,15 +1105,16 @@ public abstract class Value extends VersionedValue {
         case ENUM:
             throw getDataConversionError(TIMESTAMP);
         }
-        return ValueTimestamp.parse(getString().trim(), mode);
+        return ValueTimestamp.parse(getString().trim(), provider);
     }
 
-    private ValueTimestampTimeZone convertToTimestampTimeZone() {
+    private ValueTimestampTimeZone convertToTimestampTimeZone(CastDataProvider provider, boolean forComparison) {
         switch (getValueType()) {
-        case TIME: {
-            ValueTimestamp ts = DateTimeUtils.normalizeTimestamp(0, ((ValueTime) this).getNanos());
-            return DateTimeUtils.timestampTimeZoneFromLocalDateValueAndNanos(ts.getDateValue(), ts.getTimeNanos());
-        }
+        case TIME:
+            return DateTimeUtils.timestampTimeZoneFromLocalDateValueAndNanos(forComparison
+                    ? DateTimeUtils.EPOCH_DATE_VALUE
+                    : provider.currentTimestamp().getDateValue(),
+                    ((ValueTime) this).getNanos());
         case DATE:
             return DateTimeUtils.timestampTimeZoneFromLocalDateValueAndNanos(((ValueDate) this).getDateValue(), 0);
         case TIMESTAMP: {
@@ -1118,7 +1127,7 @@ public abstract class Value extends VersionedValue {
         return ValueTimestampTimeZone.parse(getString().trim());
     }
 
-    private ValueBytes convertToBytes(Mode mode) {
+    private ValueBytes convertToBytes(CastDataProvider provider) {
         switch (getValueType()) {
         case JAVA_OBJECT:
         case BLOB:
@@ -1148,42 +1157,19 @@ public abstract class Value extends VersionedValue {
             throw getDataConversionError(BYTES);
         }
         String s = getString();
-        return ValueBytes.getNoCopy(mode != null && mode.charToBinaryInUtf8 ? s.getBytes(StandardCharsets.UTF_8)
-                : StringUtils.convertHexToBytes(s.trim()));
+        return ValueBytes.getNoCopy(provider != null && provider.getMode().charToBinaryInUtf8
+                ? s.getBytes(StandardCharsets.UTF_8)
+                        : StringUtils.convertHexToBytes(s.trim()));
     }
 
-    private ValueString convertToString(Mode mode) {
+    private String convertToString(CastDataProvider provider) {
         String s;
-        if (getValueType() == BYTES && mode != null && mode.charToBinaryInUtf8) {
-            // Bugfix - Can't use the locale encoding when enabling
-            // charToBinaryInUtf8 in mode.
-            // The following two target types also are the same issue.
-            // @since 2018-07-19 little-pan
+        if (getValueType() == BYTES && provider != null && provider.getMode().charToBinaryInUtf8) {
             s = new String(getBytesNoCopy(), StandardCharsets.UTF_8);
         } else {
             s = getString();
         }
-        return (ValueString) ValueString.get(s);
-    }
-
-    private ValueString convertToStringIgnoreCase(Mode mode) {
-        String s;
-        if (getValueType() == BYTES && mode != null && mode.charToBinaryInUtf8) {
-            s = new String(getBytesNoCopy(), StandardCharsets.UTF_8);
-        } else {
-            s = getString();
-        }
-        return ValueStringIgnoreCase.get(s);
-    }
-
-    private ValueString convertToStringFixed(Mode mode) {
-        String s;
-        if (getValueType() == BYTES && mode != null && mode.charToBinaryInUtf8) {
-            s = new String(getBytesNoCopy(), StandardCharsets.UTF_8);
-        } else {
-            s = getString();
-        }
-        return ValueStringFixed.get(s);
+        return s;
     }
 
     private ValueJavaObject convertToJavaObject() {
@@ -1449,22 +1435,23 @@ public abstract class Value extends VersionedValue {
      *
      * @param v the other value
      * @param mode the compare mode
+     * @param provider the cast information provider
      * @return 0 if both values are equal, -1 if the other value is smaller, and
      *         1 otherwise
      */
-    public abstract int compareTypeSafe(Value v, CompareMode mode);
+    public abstract int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider);
 
     /**
      * Compare this value against another value using the specified compare
      * mode.
      *
      * @param v the other value
-     * @param databaseMode the database mode
+     * @param provider the cast information provider
      * @param compareMode the compare mode
      * @return 0 if both values are equal, -1 if this value is smaller, and
      *         1 otherwise
      */
-    public final int compareTo(Value v, Mode databaseMode, CompareMode compareMode) {
+    public final int compareTo(Value v, CastDataProvider provider, CompareMode compareMode) {
         if (this == v) {
             return 0;
         }
@@ -1483,11 +1470,11 @@ public abstract class Value extends VersionedValue {
                 l = l.convertToEnum(enumerators);
                 v = v.convertToEnum(enumerators);
             } else {
-                l = l.convertTo(dataType, databaseMode);
-                v = v.convertTo(dataType, databaseMode);
+                l = l.convertTo(dataType, provider, true);
+                v = v.convertTo(dataType, provider, true);
             }
         }
-        return l.compareTypeSafe(v, compareMode);
+        return l.compareTypeSafe(v, compareMode, provider);
     }
 
     /**
@@ -1496,13 +1483,14 @@ public abstract class Value extends VersionedValue {
      *
      * @param v the other value
      * @param forEquality perform only check for equality
-     * @param databaseMode the database mode
+     * @param provider the cast information provider
      * @param compareMode the compare mode
      * @return 0 if both values are equal, -1 if this value is smaller, 1
      *         if other value is larger, {@link Integer#MIN_VALUE} if order is
      *         not defined due to NULL comparison
      */
-    public int compareWithNull(Value v, boolean forEquality, Mode databaseMode, CompareMode compareMode) {
+    public int compareWithNull(Value v, boolean forEquality, CastDataProvider provider,
+            CompareMode compareMode) {
         if (this == ValueNull.INSTANCE || v == ValueNull.INSTANCE) {
             return Integer.MIN_VALUE;
         }
@@ -1516,11 +1504,11 @@ public abstract class Value extends VersionedValue {
                 l = l.convertToEnum(enumerators);
                 v = v.convertToEnum(enumerators);
             } else {
-                l = l.convertTo(dataType, databaseMode);
-                v = v.convertTo(dataType, databaseMode);
+                l = l.convertTo(dataType, provider, true);
+                v = v.convertTo(dataType, provider, true);
             }
         }
-        return l.compareTypeSafe(v, compareMode);
+        return l.compareTypeSafe(v, compareMode, provider);
     }
 
     /**

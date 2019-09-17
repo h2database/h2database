@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Types;
 import org.h2.api.ErrorCode;
+import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.LocalDateTimeUtils;
@@ -165,7 +166,7 @@ public class ValueTime extends Value {
     }
 
     @Override
-    public int compareTypeSafe(Value o, CompareMode mode) {
+    public int compareTypeSafe(Value o, CompareMode mode, CastDataProvider provider) {
         return Long.compare(nanos, ((ValueTime) o).nanos);
     }
 

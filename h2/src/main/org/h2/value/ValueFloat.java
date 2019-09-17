@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 import org.h2.api.ErrorCode;
+import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 
 /**
@@ -117,7 +118,7 @@ public class ValueFloat extends Value {
     }
 
     @Override
-    public int compareTypeSafe(Value o, CompareMode mode) {
+    public int compareTypeSafe(Value o, CompareMode mode, CastDataProvider provider) {
         return Float.compare(value, ((ValueFloat) o).value);
     }
 
@@ -194,7 +195,7 @@ public class ValueFloat extends Value {
         if (!(other instanceof ValueFloat)) {
             return false;
         }
-        return compareTypeSafe((ValueFloat) other, null) == 0;
+        return compareTypeSafe((ValueFloat) other, null, null) == 0;
     }
 
 }

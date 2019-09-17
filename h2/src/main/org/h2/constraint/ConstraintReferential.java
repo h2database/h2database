@@ -313,7 +313,7 @@ public class ConstraintReferential extends Constraint {
             Value v = newRow.getValue(idx);
             Column refCol = refColumns[i].column;
             int refIdx = refCol.getColumnId();
-            check.setValue(refIdx, refCol.convert(v));
+            check.setValue(refIdx, refCol.convert(v, true));
         }
         if (!existsRow(session, refIndex, check, null)) {
             throw DbException.get(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1,
@@ -361,7 +361,7 @@ public class ConstraintReferential extends Constraint {
             Column refCol = refColumns[i].column;
             int refIdx = refCol.getColumnId();
             Column col = columns[i].column;
-            Value v = col.convert(oldRow.getValue(refIdx));
+            Value v = col.convert(oldRow.getValue(refIdx), true);
             if (v == ValueNull.INSTANCE) {
                 return;
             }

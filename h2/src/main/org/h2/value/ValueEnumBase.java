@@ -8,6 +8,7 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import org.h2.engine.CastDataProvider;
 import org.h2.util.StringUtils;
 
 /**
@@ -33,7 +34,7 @@ public class ValueEnumBase extends Value {
     }
 
     @Override
-    public int compareTypeSafe(Value v, CompareMode mode) {
+    public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
         return Integer.compare(getInt(), v.getInt());
     }
 

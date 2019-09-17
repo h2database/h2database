@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
 
+import org.h2.engine.CastDataProvider;
 import org.h2.engine.SysProperties;
 import org.h2.util.Bits;
 import org.h2.util.MathUtils;
@@ -110,7 +111,7 @@ public class ValueBytes extends Value {
     }
 
     @Override
-    public int compareTypeSafe(Value v, CompareMode mode) {
+    public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
         byte[] v2 = ((ValueBytes) v).value;
         if (mode.isBinaryUnsigned()) {
             return Bits.compareNotNullUnsigned(value, v2);

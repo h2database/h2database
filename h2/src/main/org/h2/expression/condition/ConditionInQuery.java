@@ -85,7 +85,7 @@ public class ConditionInQuery extends PredicateWithSubquery {
                 }
                 l = leftList[0];
             }
-            l = l.convertTo(colType, database.getMode(), null);
+            l = l.convertTo(colType, database, true, null);
             if (rows.containsDistinct(new Value[] { l })) {
                 return ValueBoolean.TRUE;
             }

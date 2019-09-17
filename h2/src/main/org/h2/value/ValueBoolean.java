@@ -8,6 +8,8 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import org.h2.engine.CastDataProvider;
+
 /**
  * Implementation of the BOOLEAN data type.
  */
@@ -77,7 +79,7 @@ public class ValueBoolean extends Value {
     }
 
     @Override
-    public int compareTypeSafe(Value o, CompareMode mode) {
+    public int compareTypeSafe(Value o, CompareMode mode, CastDataProvider provider) {
         return Boolean.compare(value, ((ValueBoolean) o).value);
     }
 

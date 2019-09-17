@@ -4652,7 +4652,7 @@ public class Parser {
                     if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING) {
                         String timestamp = currentValue.getString();
                         read();
-                        return ValueExpression.get(ValueTimestamp.parse(timestamp, database.getMode()));
+                        return ValueExpression.get(ValueTimestamp.parse(timestamp, database));
                     } else if (without) {
                         throw getSyntaxError();
                     }
@@ -4667,7 +4667,7 @@ public class Parser {
                 } else if (equalsToken("TS", name)) {
                     String timestamp = currentValue.getString();
                     read();
-                    return ValueExpression.get(ValueTimestamp.parse(timestamp, database.getMode()));
+                    return ValueExpression.get(ValueTimestamp.parse(timestamp, database));
                 }
             }
             break;
@@ -5192,7 +5192,7 @@ public class Parser {
             }
             currentToken = "'";
             checkLiterals(true);
-            currentValue = ValueString.get(result, database.getMode().treatEmptyStringsAsNull);
+            currentValue = ValueString.get(result, database);
             parseIndex = i;
             currentTokenType = VALUE;
             return;
@@ -5205,7 +5205,7 @@ public class Parser {
             String result = sqlCommand.substring(begin, i);
             currentToken = "'";
             checkLiterals(true);
-            currentValue = ValueString.get(result, database.getMode().treatEmptyStringsAsNull);
+            currentValue = ValueString.get(result, database);
             parseIndex = i;
             currentTokenType = VALUE;
             return;

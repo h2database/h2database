@@ -235,7 +235,7 @@ public class FunctionsMySQL extends FunctionsBase {
                 break;
             default:
                 try {
-                    v0 = v0.convertTo(Value.TIMESTAMP);
+                    v0 = v0.convertTo(Value.TIMESTAMP, session, false);
                 } catch (DbException ex) {
                     v0 = ValueNull.INSTANCE;
                 }

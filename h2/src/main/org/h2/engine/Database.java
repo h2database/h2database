@@ -75,6 +75,7 @@ import org.h2.table.TableType;
 import org.h2.table.TableView;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
+import org.h2.util.CurrentTimestamp;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
@@ -89,6 +90,7 @@ import org.h2.value.CaseInsensitiveMap;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
+import org.h2.value.ValueTimestampTimeZone;
 
 /**
  * There is one database object per open database.
@@ -98,7 +100,7 @@ import org.h2.value.ValueInt;
  *
  * @since 2004-04-15 22:49
  */
-public class Database implements DataHandler {
+public class Database implements DataHandler, CastDataProvider {
 
     private static int initialPowerOffCount;
 
@@ -416,7 +418,7 @@ public class Database implements DataHandler {
      */
     public boolean areEqual(Value a, Value b) {
         // can not use equals because ValueDecimal 0.0 is not equal to 0.00.
-        return a.compareTo(b, mode, compareMode) == 0;
+        return a.compareTo(b, this, compareMode) == 0;
     }
 
     /**
@@ -429,7 +431,7 @@ public class Database implements DataHandler {
      *         1 otherwise
      */
     public int compare(Value a, Value b) {
-        return a.compareTo(b, mode, compareMode);
+        return a.compareTo(b, this, compareMode);
     }
 
     /**
@@ -444,7 +446,7 @@ public class Database implements DataHandler {
      *         is not defined due to NULL comparison
      */
     public int compareWithNull(Value a, Value b, boolean forEquality) {
-        return a.compareWithNull(b, forEquality, mode, compareMode);
+        return a.compareWithNull(b, forEquality, this, compareMode);
     }
 
     /**
@@ -457,7 +459,7 @@ public class Database implements DataHandler {
      *         1 otherwise
      */
     public int compareTypeSafe(Value a, Value b) {
-        return a.compareTypeSafe(b, compareMode);
+        return a.compareTypeSafe(b, compareMode, this);
     }
 
     public long getModificationDataId() {
@@ -2648,6 +2650,7 @@ public class Database implements DataHandler {
         this.mode = mode;
     }
 
+    @Override
     public Mode getMode() {
         return mode;
     }
@@ -3242,4 +3245,14 @@ public class Database implements DataHandler {
         }
         this.authenticator=authenticator;
     }
+
+    @Override
+    public ValueTimestampTimeZone currentTimestamp() {
+        /*
+         * This method shouldn't be used in this class, but return a value for
+         * safety.
+         */
+        return CurrentTimestamp.get();
+    }
+
 }

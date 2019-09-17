@@ -6,8 +6,8 @@
 package org.h2.value;
 
 import org.h2.api.ErrorCode;
+import org.h2.engine.CastDataProvider;
 import org.h2.engine.Constants;
-import org.h2.engine.Mode;
 import org.h2.message.DbException;
 
 /**
@@ -55,7 +55,7 @@ public abstract class ValueCollectionBase extends Value {
     }
 
     @Override
-    public int compareWithNull(Value v, boolean forEquality, Mode databaseMode, CompareMode compareMode) {
+    public int compareWithNull(Value v, boolean forEquality, CastDataProvider provider, CompareMode compareMode) {
         if (v == ValueNull.INSTANCE) {
             return Integer.MIN_VALUE;
         }
@@ -81,7 +81,7 @@ public abstract class ValueCollectionBase extends Value {
             for (int i = 0; i < leftLength; i++) {
                 Value v1 = leftArray[i];
                 Value v2 = rightArray[i];
-                int comp = v1.compareWithNull(v2, forEquality, databaseMode, compareMode);
+                int comp = v1.compareWithNull(v2, forEquality, provider, compareMode);
                 if (comp != 0) {
                     if (comp != Integer.MIN_VALUE) {
                         return comp;
@@ -95,7 +95,7 @@ public abstract class ValueCollectionBase extends Value {
         for (int i = 0; i < len; i++) {
             Value v1 = leftArray[i];
             Value v2 = rightArray[i];
-            int comp = v1.compareWithNull(v2, forEquality, databaseMode, compareMode);
+            int comp = v1.compareWithNull(v2, forEquality, provider, compareMode);
             if (comp != 0) {
                 return comp;
             }

@@ -10,6 +10,8 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.Arrays;
+
+import org.h2.engine.CastDataProvider;
 import org.h2.engine.SessionInterface;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
@@ -134,7 +136,7 @@ public class ValueResultSet extends Value {
     }
 
     @Override
-    public int compareTypeSafe(Value v, CompareMode mode) {
+    public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
         return this == v ? 0 : getString().compareTo(v.getString());
     }
 

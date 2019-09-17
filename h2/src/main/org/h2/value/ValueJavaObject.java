@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 
+import org.h2.engine.CastDataProvider;
 import org.h2.engine.SysProperties;
 import org.h2.store.DataHandler;
 import org.h2.util.Bits;
@@ -105,7 +106,7 @@ public class ValueJavaObject extends ValueBytes {
         }
 
         @Override
-        public int compareTypeSafe(Value v, CompareMode mode) {
+        public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
             Object o1 = getObject();
             Object o2 = v.getObject();
 

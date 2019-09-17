@@ -323,13 +323,13 @@ public class TestValue extends TestDb {
             Value v = useFloat ? (Value) ValueFloat.get((float) d[i])
                     : (Value) ValueDouble.get(d[i]);
             values[i] = v;
-            assertTrue(values[i].compareTypeSafe(values[i], null) == 0);
+            assertTrue(values[i].compareTypeSafe(values[i], null, null) == 0);
             assertTrue(v.equals(v));
             assertEquals(Integer.compare(i, 2), v.getSignum());
         }
         for (int i = 0; i < d.length - 1; i++) {
-            assertTrue(values[i].compareTypeSafe(values[i+1], null) < 0);
-            assertTrue(values[i + 1].compareTypeSafe(values[i], null) > 0);
+            assertTrue(values[i].compareTypeSafe(values[i+1], null, null) < 0);
+            assertTrue(values[i + 1].compareTypeSafe(values[i], null, null) > 0);
             assertFalse(values[i].equals(values[i+1]));
         }
     }
@@ -473,7 +473,7 @@ public class TestValue extends TestDb {
         }
         Value lob1 = createLob(dh, type, bytes1);
         Value lob2 = createLob(dh, type, bytes2);
-        return lob1.compareTypeSafe(lob2, null);
+        return lob1.compareTypeSafe(lob2, null, null);
     }
 
     private static Value createLob(DataHandler dh, int type, byte[] bytes) {

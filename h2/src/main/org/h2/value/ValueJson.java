@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 
 import org.h2.api.ErrorCode;
+import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 import org.h2.util.Bits;
 import org.h2.util.StringUtils;
@@ -139,7 +140,7 @@ public class ValueJson extends Value {
     }
 
     @Override
-    public int compareTypeSafe(Value v, CompareMode mode) {
+    public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
         return Bits.compareNotNullUnsigned(value, ((ValueJson) v).value);
     }
 

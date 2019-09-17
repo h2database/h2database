@@ -13,7 +13,6 @@ import java.util.Queue;
 import org.h2.api.ErrorCode;
 import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Database;
-import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
@@ -109,27 +108,26 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
         }
 
         public static final class Comparator implements java.util.Comparator<Source> {
-            private final Mode databaseMode;
+            private final Database database;
             private final CompareMode compareMode;
 
-            public Comparator(Mode databaseMode, CompareMode compareMode) {
-                this.databaseMode = databaseMode;
+            public Comparator(Database database, CompareMode compareMode) {
+                this.database = database;
                 this.compareMode = compareMode;
             }
 
             @Override
             public int compare(Source one, Source two) {
-                return one.currentRowData.compareTo(two.currentRowData, databaseMode, compareMode);
+                return one.currentRowData.compareTo(two.currentRowData, database, compareMode);
             }
         }
     }
 
     @Override
     public void addBufferedRows(List<String> bufferNames) {
-        CompareMode compareMode = database.getCompareMode();
         int buffersCount = bufferNames.size();
         Queue<Source> queue = new PriorityQueue<>(buffersCount,
-                new Source.Comparator(database.getMode(), compareMode));
+                new Source.Comparator(database, database.getCompareMode()));
         for (String bufferName : bufferNames) {
             Iterator<ValueArray> iter = openMap(bufferName).keyIterator(null);
             if (iter.hasNext()) {
@@ -290,7 +288,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
             int idx = c.getColumnId();
             Value v = r.getValue(idx);
             if (v != null) {
-                array[i] = v.convertTo(c.getType(), database.getMode(), null);
+                array[i] = v.convertTo(c.getType(), database, true, null);
             }
         }
         array[keyColumns - 1] = key != null ? key : ValueLong.get(r.getKey());

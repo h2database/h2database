@@ -13,7 +13,8 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
-import org.h2.engine.Mode;
+
+import org.h2.engine.CastDataProvider;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueNull;
@@ -279,13 +280,14 @@ public class DateTimeUtils {
      *
      * @param value the timestamp (might be ValueNull)
      * @param calendar the calendar
+     * @param provider the cast information provider
      * @return the timestamp using the correct time zone
      */
-    public static Timestamp convertTimestamp(Value value, Calendar calendar) {
+    public static Timestamp convertTimestamp(Value value, Calendar calendar, CastDataProvider provider) {
         if (value == ValueNull.INSTANCE) {
             return null;
         }
-        ValueTimestamp ts = (ValueTimestamp) value.convertTo(Value.TIMESTAMP);
+        ValueTimestamp ts = (ValueTimestamp) value.convertTo(Value.TIMESTAMP, provider, false);
         Calendar cal = (Calendar) calendar.clone();
         cal.clear();
         cal.setLenient(true);
@@ -522,19 +524,19 @@ public class DateTimeUtils {
      *
      * @param s
      *            string to parse
-     * @param mode
-     *            database mode, or {@code null}
+     * @param provider
+     *            the cast information provider, or {@code null}
      * @param withTimeZone
      *            if {@code true} return {@link ValueTimestampTimeZone} instead of
      *            {@link ValueTimestamp}
      * @return parsed timestamp
      */
-    public static Value parseTimestamp(String s, Mode mode, boolean withTimeZone) {
+    public static Value parseTimestamp(String s, CastDataProvider provider, boolean withTimeZone) {
         int dateEnd = s.indexOf(' ');
         if (dateEnd < 0) {
             // ISO 8601 compatibility
             dateEnd = s.indexOf('T');
-            if (dateEnd < 0 && mode != null && mode.allowDB2TimestampFormat) {
+            if (dateEnd < 0 && provider != null && provider.getMode().allowDB2TimestampFormat) {
                 // DB2 also allows dash between date and time
                 dateEnd = findNthIndexOf(s, '-', 3);
             }

@@ -14,8 +14,9 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+
+import org.h2.engine.CastDataProvider;
 import org.h2.engine.Constants;
-import org.h2.engine.Mode;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.store.DataHandler;
@@ -204,32 +205,34 @@ public class ValueLobDb extends Value {
      * Convert a lob to another data type. The data is fully read in memory
      * except when converting to BLOB or CLOB.
      *
-     * @param t the new type
-     * @param mode the mode
-     * @param column the column (if any), used for to improve the error message if conversion fails
+     * @param targetType the new type
      * @param extTypeInfo the extended data type information, or null
+     * @param provider the cast information provider
+     * @param forComparison if {@code true}, perform cast for comparison operation
+     * @param column the column (if any), used for to improve the error message if conversion fails
      * @return the converted value
      */
     @Override
-    protected Value convertTo(int t, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
-        if (t == valueType) {
+    protected Value convertTo(int targetType, ExtTypeInfo extTypeInfo, CastDataProvider provider,
+            boolean forComparison, Object column) {
+        if (targetType == valueType) {
             return this;
-        } else if (t == Value.CLOB) {
+        } else if (targetType == Value.CLOB) {
             if (handler != null) {
                 return handler.getLobStorage().
                         createClob(getReader(), -1);
             } else if (small != null) {
-                return ValueLobDb.createSmallLob(t, small);
+                return ValueLobDb.createSmallLob(targetType, small);
             }
-        } else if (t == Value.BLOB) {
+        } else if (targetType == Value.BLOB) {
             if (handler != null) {
                 return handler.getLobStorage().
                         createBlob(getInputStream(), -1);
             } else if (small != null) {
-                return ValueLobDb.createSmallLob(t, small);
+                return ValueLobDb.createSmallLob(targetType, small);
             }
         }
-        return super.convertTo(t, mode, column, null);
+        return super.convertTo(targetType, null, provider, forComparison, column);
     }
 
     @Override
@@ -379,7 +382,7 @@ public class ValueLobDb extends Value {
     }
 
     @Override
-    public int compareTypeSafe(Value v, CompareMode mode) {
+    public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
         if (v instanceof ValueLobDb) {
             ValueLobDb v2 = (ValueLobDb) v;
             if (v == this) {
@@ -509,7 +512,7 @@ public class ValueLobDb extends Value {
         ValueLobDb otherLob = (ValueLobDb) other;
         if (hashCode() != otherLob.hashCode())
             return false;
-        return compareTypeSafe((Value) other, null) == 0;
+        return compareTypeSafe((Value) other, null, null) == 0;
     }
 
     @Override

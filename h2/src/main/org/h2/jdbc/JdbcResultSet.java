@@ -33,7 +33,6 @@ import org.h2.api.ErrorCode;
 import org.h2.api.Interval;
 import org.h2.api.TimestampWithTimeZone;
 import org.h2.command.CommandInterface;
-import org.h2.engine.Mode;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
@@ -981,7 +980,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
                 debugCode("getTimestamp(" + columnIndex + ", calendar)");
             }
             Value value = get(columnIndex);
-            return DateTimeUtils.convertTimestamp(value, calendar);
+            return DateTimeUtils.convertTimestamp(value, calendar, conn);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1006,7 +1005,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
                         ", calendar)");
             }
             Value value = get(columnLabel);
-            return DateTimeUtils.convertTimestamp(value, calendar);
+            return DateTimeUtils.convertTimestamp(value, calendar, conn);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1070,7 +1069,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     public byte[] getBytes(int columnIndex) throws SQLException {
         try {
             debugCodeCall("getBytes", columnIndex);
-            return get(columnIndex).convertTo(Value.BYTES, conn.getMode()).getBytes();
+            return get(columnIndex).convertTo(Value.BYTES, conn, false).getBytes();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1088,7 +1087,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     public byte[] getBytes(String columnLabel) throws SQLException {
         try {
             debugCodeCall("getBytes", columnLabel);
-            return get(columnLabel).convertTo(Value.BYTES, conn.getMode()).getBytes();
+            return get(columnLabel).convertTo(Value.BYTES, conn, false).getBytes();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -3950,13 +3949,13 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         } else if (type == LocalDateTimeUtils.LOCAL_TIME) {
             return (T) LocalDateTimeUtils.valueToLocalTime(value);
         } else if (type == LocalDateTimeUtils.LOCAL_DATE_TIME) {
-            return (T) LocalDateTimeUtils.valueToLocalDateTime(value);
+            return (T) LocalDateTimeUtils.valueToLocalDateTime(value, conn);
         } else if (type == LocalDateTimeUtils.INSTANT) {
-            return (T) LocalDateTimeUtils.valueToInstant(value);
+            return (T) LocalDateTimeUtils.valueToInstant(value, conn);
         } else if (type == LocalDateTimeUtils.OFFSET_DATE_TIME) {
-            return (T) LocalDateTimeUtils.valueToOffsetDateTime(value);
+            return (T) LocalDateTimeUtils.valueToOffsetDateTime(value, conn);
         } else if (type == LocalDateTimeUtils.ZONED_DATE_TIME) {
-            return (T) LocalDateTimeUtils.valueToZonedDateTime(value);
+            return (T) LocalDateTimeUtils.valueToZonedDateTime(value, conn);
         } else if (type == LocalDateTimeUtils.PERIOD) {
             return (T) LocalDateTimeUtils.valueToPeriod(value);
         } else if (type == LocalDateTimeUtils.DURATION) {
@@ -3977,10 +3976,9 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     private void patchCurrentRow(Value[] row) throws SQLException {
         boolean changed = false;
         Value[] current = result.currentRow();
-        Mode databaseMode = conn.getMode();
         CompareMode compareMode = conn.getCompareMode();
         for (int i = 0; i < row.length; i++) {
-            if (row[i].compareTo(current[i], databaseMode, compareMode) != 0) {
+            if (row[i].compareTo(current[i], conn, compareMode) != 0) {
                 changed = true;
                 break;
             }

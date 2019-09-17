@@ -218,7 +218,7 @@ public class Comparison extends Condition {
                     // once.
                     if (constValueType != resType.getValueType()) {
                         Column column = ((ExpressionColumn) left).getColumn();
-                        right = ValueExpression.get(r.convertTo(resType, session.getDatabase().getMode(), column));
+                        right = ValueExpression.get(r.convertTo(resType, database, true, column));
                     }
                 }
             } else if (right instanceof Parameter) {

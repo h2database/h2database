@@ -1262,7 +1262,7 @@ public abstract class Table extends SchemaObjectBase {
      *         1 otherwise
      */
     public int compareValues(Value a, Value b) {
-        return a.compareTo(b, database.getMode(), compareMode);
+        return a.compareTo(b, database, compareMode);
     }
 
     public CompareMode getCompareMode() {
@@ -1285,7 +1285,7 @@ public abstract class Table extends SchemaObjectBase {
         } else {
             v = expression.getValue(session);
         }
-        return column.convert(v);
+        return column.convert(v, false);
     }
 
     /**

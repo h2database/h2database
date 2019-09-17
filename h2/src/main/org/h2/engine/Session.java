@@ -37,7 +37,6 @@ import org.h2.mvstore.db.MVTable;
 import org.h2.mvstore.db.MVTableEngine;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionStore;
-import org.h2.value.VersionedValue;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SortOrder;
@@ -61,13 +60,14 @@ import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTimestampTimeZone;
+import org.h2.value.VersionedValue;
 
 /**
  * A session represents an embedded database connection. When using the server
  * mode, this object resides on the server side and communicates with a
  * SessionRemote object on the client side.
  */
-public class Session extends SessionWithState implements TransactionStore.RollbackListener {
+public class Session extends SessionWithState implements TransactionStore.RollbackListener, CastDataProvider {
 
     public enum State { INIT, RUNNING, BLOCKED, SLEEP, CLOSED }
 
@@ -1932,6 +1932,16 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     @Override
     public void setNetworkConnectionInfo(NetworkConnectionInfo networkConnectionInfo) {
         this.networkConnectionInfo = networkConnectionInfo;
+    }
+
+    @Override
+    public ValueTimestampTimeZone currentTimestamp() {
+        return database.getMode().dateTimeValueWithinTransaction ? getTransactionStart() : getCurrentCommandStart();
+    }
+
+    @Override
+    public Mode getMode() {
+        return database.getMode();
     }
 
 }

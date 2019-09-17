@@ -125,7 +125,7 @@ public class TableFunction extends Function {
                         Column c = columns[j];
                         v = l[row];
                         if (!unnest) {
-                            v = c.getType().cast(v, db.getMode(), true, c);
+                            v = c.getType().cast(v, session, false, true, c);
                         }
                     }
                     r[j] = v;

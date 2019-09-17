@@ -15,7 +15,7 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 
-import org.h2.engine.Mode;
+import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 
 /**
@@ -139,12 +139,13 @@ public class ValueNull extends Value {
     }
 
     @Override
-    protected Value convertTo(int type, Mode mode, Object column, ExtTypeInfo extTypeInfo) {
+    protected Value convertTo(int targetType, ExtTypeInfo extTypeInfo, CastDataProvider provider,
+            boolean forComparison, Object column) {
         return this;
     }
 
     @Override
-    public int compareTypeSafe(Value v, CompareMode mode) {
+    public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
         throw DbException.throwInternalError("compare null");
     }
 

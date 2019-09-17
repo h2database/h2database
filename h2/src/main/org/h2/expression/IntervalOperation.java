@@ -199,8 +199,8 @@ public class IntervalOperation extends Expression {
             } else {
                 BigInteger diff = nanosFromValue(l).subtract(nanosFromValue(r));
                 if (lType == Value.TIMESTAMP_TZ || rType == Value.TIMESTAMP_TZ) {
-                    l = l.convertTo(Value.TIMESTAMP_TZ);
-                    r = r.convertTo(Value.TIMESTAMP_TZ);
+                    l = l.convertTo(Value.TIMESTAMP_TZ, session, false);
+                    r = r.convertTo(Value.TIMESTAMP_TZ, session, false);
                     diff = diff.add(BigInteger.valueOf((((ValueTimestampTimeZone) r).getTimeZoneOffsetMins()
                             - ((ValueTimestampTimeZone) l).getTimeZoneOffsetMins()) * NANOS_PER_MINUTE));
                 }

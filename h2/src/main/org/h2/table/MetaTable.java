@@ -2287,7 +2287,7 @@ public class MetaTable extends Table {
         for (int i = 0; i < stringsOrValues.length; i++) {
             Object s = stringsOrValues[i];
             Value v = s == null ? ValueNull.INSTANCE : s instanceof String ? ValueString.get((String) s) : (Value) s;
-            values[i] = columns[i].convert(v);
+            values[i] = columns[i].convert(v, false);
         }
         Row row = database.createRow(values, 1);
         row.setKey(rows.size());

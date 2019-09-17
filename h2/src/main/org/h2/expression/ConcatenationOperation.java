@@ -7,7 +7,6 @@ package org.h2.expression;
 
 import java.util.Arrays;
 
-import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
@@ -43,9 +42,8 @@ public class ConcatenationOperation extends Expression {
 
     @Override
     public Value getValue(Session session) {
-        Mode mode = session.getDatabase().getMode();
-        Value l = left.getValue(session).convertTo(type, mode, null);
-        Value r = right.getValue(session).convertTo(type, mode, null);
+        Value l = left.getValue(session).convertTo(type, session, false, null);
+        Value r = right.getValue(session).convertTo(type, session, false, null);
         switch (type.getValueType()) {
         case Value.ARRAY: {
             if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
@@ -69,12 +67,12 @@ public class ConcatenationOperation extends Expression {
         }
         default: {
             if (l == ValueNull.INSTANCE) {
-                if (mode.nullConcatIsNull) {
+                if (session.getDatabase().getMode().nullConcatIsNull) {
                     return ValueNull.INSTANCE;
                 }
                 return r;
             } else if (r == ValueNull.INSTANCE) {
-                if (mode.nullConcatIsNull) {
+                if (session.getDatabase().getMode().nullConcatIsNull) {
                     return ValueNull.INSTANCE;
                 }
                 return l;

@@ -5,6 +5,7 @@
  */
 package org.h2.value;
 
+import org.h2.engine.CastDataProvider;
 import org.h2.engine.SysProperties;
 import org.h2.util.StringUtils;
 
@@ -27,7 +28,7 @@ public class ValueStringIgnoreCase extends ValueString {
     }
 
     @Override
-    public int compareTypeSafe(Value o, CompareMode mode) {
+    public int compareTypeSafe(Value o, CompareMode mode, CastDataProvider provider) {
         return mode.compareString(value, ((ValueStringIgnoreCase) o).value, true);
     }
 

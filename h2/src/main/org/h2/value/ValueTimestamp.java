@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 import org.h2.api.ErrorCode;
+import org.h2.engine.CastDataProvider;
 import org.h2.engine.Mode;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
@@ -135,12 +136,12 @@ public class ValueTimestamp extends Value {
      * and an optional timezone part.
      *
      * @param s the string to parse
-     * @param mode the database {@link Mode}
+     * @param provider the cast information provider, or {@code null}
      * @return the date
      */
-    public static ValueTimestamp parse(String s, Mode mode) {
+    public static ValueTimestamp parse(String s, CastDataProvider provider) {
         try {
-            return (ValueTimestamp) DateTimeUtils.parseTimestamp(s, mode, false);
+            return (ValueTimestamp) DateTimeUtils.parseTimestamp(s, provider, false);
         } catch (Exception e) {
             throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2,
                     e, "TIMESTAMP", s);
@@ -233,7 +234,7 @@ public class ValueTimestamp extends Value {
     }
 
     @Override
-    public int compareTypeSafe(Value o, CompareMode mode) {
+    public int compareTypeSafe(Value o, CompareMode mode, CastDataProvider provider) {
         ValueTimestamp t = (ValueTimestamp) o;
         int c = Long.compare(dateValue, t.dateValue);
         if (c != 0) {
@@ -267,7 +268,7 @@ public class ValueTimestamp extends Value {
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             try {
-                prep.setObject(parameterIndex, LocalDateTimeUtils.valueToLocalDateTime(this), Types.TIMESTAMP);
+                prep.setObject(parameterIndex, LocalDateTimeUtils.valueToLocalDateTime(this, null), Types.TIMESTAMP);
                 return;
             } catch (SQLException ignore) {
                 // Nothing to do

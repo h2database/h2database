@@ -51,7 +51,7 @@ public class TimeZoneOperation extends Expression {
 
     @Override
     public Value getValue(Session session) {
-        Value a = arg.getValue(session).convertTo(type, session.getDatabase().getMode(), null);
+        Value a = arg.getValue(session).convertTo(type, session, false, null);
         if (a.getValueType() == Value.TIMESTAMP_TZ && timeZone != null) {
             Value b = timeZone.getValue(session);
             if (b != ValueNull.INSTANCE) {

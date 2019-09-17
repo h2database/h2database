@@ -15,9 +15,12 @@ import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
 import org.h2.api.ErrorCode;
+import org.h2.engine.CastDataProvider;
+import org.h2.engine.Mode;
 import org.h2.message.DbException;
 import org.h2.test.TestBase;
 import org.h2.test.utils.AssertThrows;
+import org.h2.util.CurrentTimestamp;
 import org.h2.util.DateTimeUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -25,6 +28,7 @@ import org.h2.value.ValueDate;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
+import org.h2.value.ValueTimestampTimeZone;
 
 /**
  * Tests the date parsing. The problem is that some dates are not allowed
@@ -33,6 +37,20 @@ import org.h2.value.ValueTimestamp;
  * Non-lenient parsing would not work in this case.
  */
 public class TestDate extends TestBase {
+
+    static class SimpleCastDataProvider implements CastDataProvider {
+        private final ValueTimestampTimeZone currentTimestamp = CurrentTimestamp.get();
+
+        @Override
+        public Mode getMode() {
+            return Mode.getRegular();
+        }
+
+        @Override
+        public ValueTimestampTimeZone currentTimestamp() {
+            return currentTimestamp;
+        }
+    }
 
     /**
      * Run just this test.
@@ -239,18 +257,19 @@ public class TestDate extends TestBase {
         assertFalse(ValueTimestamp.parse("2001-01-01").
                 equals(ValueDate.parse("2001-01-01")));
 
+        SimpleCastDataProvider provider = new SimpleCastDataProvider();
         assertEquals("2001-01-01 01:01:01",
                 ValueTimestamp.parse("2001-01-01").add(
-                ValueTime.parse("01:01:01")).getString());
+                ValueTime.parse("01:01:01").convertTo(Value.TIMESTAMP, provider, true)).getString());
         assertEquals("1010-10-10 00:00:00",
                 ValueTimestamp.parse("1010-10-10 10:10:10").subtract(
-                ValueTime.parse("10:10:10")).getString());
+                ValueTime.parse("10:10:10").convertTo(Value.TIMESTAMP, provider, true)).getString());
         assertEquals("-2001-01-01 01:01:01",
                 ValueTimestamp.parse("-2001-01-01").add(
-                ValueTime.parse("01:01:01")).getString());
+                ValueTime.parse("01:01:01").convertTo(Value.TIMESTAMP, provider, true)).getString());
         assertEquals("-1010-10-10 00:00:00",
                 ValueTimestamp.parse("-1010-10-10 10:10:10").subtract(
-                ValueTime.parse("10:10:10")).getString());
+                ValueTime.parse("10:10:10").convertTo(Value.TIMESTAMP, provider, true)).getString());
 
         assertEquals(0, DateTimeUtils.absoluteDayFromDateValue(
                 ValueTimestamp.parse("1970-01-01").getDateValue()));

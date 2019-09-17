@@ -43,7 +43,6 @@ public class TestCompatibilityOracle extends TestDb {
         testDecimalScale();
         testPoundSymbolInColumnName();
         testToDate();
-        testForbidEmptyInClause();
         testSpecialTypes();
         testDate();
         testSequenceNextval();
@@ -237,22 +236,6 @@ public class TestCompatibilityOracle extends TestDb {
                 "SELECT TEST_VAL FROM DATE_TABLE WHERE ID=2");
 
         conn.close();
-    }
-
-    private void testForbidEmptyInClause() throws SQLException {
-        deleteDb("oracle");
-        Connection conn = getConnection("oracle;MODE=Oracle");
-        Statement stat = conn.createStatement();
-
-        stat.execute("CREATE TABLE A (ID NUMBER, X VARCHAR2(1))");
-        try {
-            stat.executeQuery("SELECT * FROM A WHERE ID IN ()");
-            fail();
-        } catch (SQLException e) {
-            // expected
-        } finally {
-            conn.close();
-        }
     }
 
     private void testDate() throws SQLException {

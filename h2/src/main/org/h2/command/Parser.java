@@ -3258,7 +3258,7 @@ public class Parser {
 
     private Expression readInPredicate(Expression left) {
         read(OPEN_PAREN);
-        if (!database.getMode().prohibitEmptyInPredicate && readIf(CLOSE_PAREN)) {
+        if (database.getMode().allowEmptyInPredicate && readIf(CLOSE_PAREN)) {
             return ValueExpression.getBoolean(false);
         }
         ArrayList<Expression> v;

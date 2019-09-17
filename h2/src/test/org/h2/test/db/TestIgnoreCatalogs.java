@@ -78,6 +78,7 @@ public class TestIgnoreCatalogs extends TestDb {
                 assertThrows(ErrorCode.SYNTAX_ERROR_2, stat, "comment on column catalog1...test.id is 'id comment1'");
                 assertThrows(ErrorCode.SYNTAX_ERROR_2, stat, "comment on column catalog1..test..id is 'id comment1'");
                 assertThrows(ErrorCode.SYNTAX_ERROR_2, stat, "comment on column ..test..id is 'id comment1'");
+                assertThrows(ErrorCode.SYNTAX_ERROR_2, stat, "comment on column test..id is 'id comment1'");
                 assertThrows(ErrorCode.SYNTAX_ERROR_2, stat, "comment on column .PUBLIC.TEST.ID 'id comment1'");
                 assertThrows(ErrorCode.SYNTAX_ERROR_2, stat, "comment on column .TEST.ID 'id comment1'");
             }
@@ -161,6 +162,7 @@ public class TestIgnoreCatalogs extends TestDb {
                 // schema test_x not found error
                 assertThrows(ErrorCode.SCHEMA_NOT_FOUND_1, stat,
                         "create table test_x.dbo.test(id int primary key, name varchar(255))");
+                assertThrows(ErrorCode.DATABASE_NOT_FOUND_1, stat, "comment on column db..test.id is 'id'");
             }
         } finally {
             deleteDb("ignoreCatalogs");

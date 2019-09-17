@@ -2193,36 +2193,29 @@ public class Parser {
         String objectName;
         if (column) {
             // can't use readIdentifierWithSchema() because
-            // it would not read schema.table.column correctly
-            // if the db name is equal to the schema name
-            ArrayList<String> list = Utils.newSmallArrayList();
-            boolean afterFirstLoop = false;
-            do {
-                if (afterFirstLoop && database.getMode().allowEmptySchemaValuesAsDefaultSchema && readIf(DOT)) {
-                    list.add(null);
+            // it would not read [catalog.]schema.table.column correctly
+            objectName = readColumnIdentifier();
+            String tmpSchemaName = null;
+            read(DOT);
+            boolean allowEmpty = database.getMode().allowEmptySchemaValuesAsDefaultSchema;
+            String columnName = allowEmpty && currentTokenType == DOT ? null : readColumnIdentifier();
+            if (readIf(DOT)) {
+                tmpSchemaName = objectName;
+                objectName = columnName;
+                columnName = allowEmpty && currentTokenType == DOT ? null : readColumnIdentifier();
+                if (readIf(DOT)) {
+                    checkDatabaseName(tmpSchemaName);
+                    tmpSchemaName = objectName;
+                    objectName = columnName;
+                    columnName = readColumnIdentifier();
                 }
-                list.add(readUniqueIdentifier());
-                afterFirstLoop = true;
-            } while (readIf(DOT));
-            schemaName = session.getCurrentSchemaName();
-            if (list.size() == 4) {
-                if (!equalsToken(database.getShortName(), list.remove(0)) && !database.getIgnoreCatalogs()) {
-                    throw DbException.getSyntaxError(sqlCommand, parseIndex,
-                            "database name");
-                }
             }
-            if (list.size() == 3) {
-                String tmpSchemaName = list.remove(0);
-                if (tmpSchemaName != null)
-                    schemaName = tmpSchemaName;
+            if (columnName == null || objectName == null) {
+                throw DbException.getSyntaxError(sqlCommand, lastParseIndex, "table.column");
             }
-            if (list.size() != 2) {
-                throw DbException.getSyntaxError(sqlCommand, parseIndex,
-                        "table.column");
-            }
-            objectName = list.get(0);
+            schemaName = tmpSchemaName != null ? tmpSchemaName : session.getCurrentSchemaName();
             command.setColumn(true);
-            command.setColumnName(list.get(1));
+            command.setColumnName(columnName);
         } else {
             objectName = readIdentifierWithSchema();
         }
@@ -4223,7 +4216,7 @@ public class Parser {
     }
 
     private void checkDatabaseName(String databaseName) {
-        if (!equalsToken(database.getShortName(), databaseName)) {
+        if (!database.getIgnoreCatalogs() && !equalsToken(database.getShortName(), databaseName)) {
             throw DbException.get(ErrorCode.DATABASE_NOT_FOUND_1, databaseName);
         }
     }

@@ -289,3 +289,63 @@ SELECT * FROM SYSTEM_RANGE(1, 10) WHERE X IN ((SELECT 1), (SELECT 2));
 
 EXPLAIN SELECT * FROM SYSTEM_RANGE(1, 10) WHERE X IN ((SELECT 1), (SELECT 2));
 >> SELECT "SYSTEM_RANGE"."X" FROM SYSTEM_RANGE(1, 10) /* range index: X IN((SELECT 1 FROM SYSTEM_RANGE(1, 1) /++ range index ++/), (SELECT 2 FROM SYSTEM_RANGE(1, 1) /++ range index ++/)) */ WHERE "X" IN((SELECT 1 FROM SYSTEM_RANGE(1, 1) /* range index */), (SELECT 2 FROM SYSTEM_RANGE(1, 1) /* range index */))
+
+-- Tests for IN predicate with an empty list
+
+SELECT 1 WHERE 1 IN ();
+> 1
+> -
+> rows: 0
+
+SET MODE DB2;
+> ok
+
+SELECT 1 WHERE 1 IN ();
+> exception SYNTAX_ERROR_2
+
+SET MODE Derby;
+> ok
+
+SELECT 1 WHERE 1 IN ();
+> exception SYNTAX_ERROR_2
+
+SET MODE MSSQLServer;
+> ok
+
+SELECT 1 WHERE 1 IN ();
+> exception SYNTAX_ERROR_2
+
+SET MODE HSQLDB;
+> ok
+
+SELECT 1 WHERE 1 IN ();
+> exception SYNTAX_ERROR_2
+
+SET MODE MySQL;
+> ok
+
+SELECT 1 WHERE 1 IN ();
+> exception SYNTAX_ERROR_2
+
+SET MODE Oracle;
+> ok
+
+SELECT 1 WHERE 1 IN ();
+> exception SYNTAX_ERROR_2
+
+SET MODE PostgreSQL;
+> ok
+
+SELECT 1 WHERE 1 IN ();
+> exception SYNTAX_ERROR_2
+
+SET MODE Ignite;
+> ok
+
+SELECT 1 WHERE 1 IN ();
+> 1
+> -
+> rows: 0
+
+SET MODE Regular;
+> ok

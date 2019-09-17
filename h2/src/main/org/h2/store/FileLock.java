@@ -201,7 +201,7 @@ public class FileLock implements Runnable {
     /**
      * Aggressively read last modified time, to work-around remote filesystems.
      *
-     * @param filename file name to check
+     * @param fileName file name to check
      * @return last modified date/time in milliseconds UTC
      */
     private static long aggressiveLastModified(String fileName) {

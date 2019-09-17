@@ -100,7 +100,7 @@ public class DateTimeUtils {
             30, 31, 31, 30, 31, 30, 31 };
 
     /**
-     * Multipliers for {@link #convertScale(long, int)}.
+     * Multipliers for {@link #convertScale(long, int, long)}.
      */
     private static final int[] CONVERT_SCALE_TABLE = { 1_000_000_000, 100_000_000,
             10_000_000, 1_000_000, 100_000, 10_000, 1_000, 100, 10 };

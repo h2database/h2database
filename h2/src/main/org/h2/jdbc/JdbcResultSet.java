@@ -3973,7 +3973,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         return getTraceObjectName() + ": " + result;
     }
 
-    private void patchCurrentRow(Value[] row) throws SQLException {
+    private void patchCurrentRow(Value[] row) {
         boolean changed = false;
         Value[] current = result.currentRow();
         CompareMode compareMode = conn.getCompareMode();

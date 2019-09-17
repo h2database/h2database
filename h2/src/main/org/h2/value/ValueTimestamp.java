@@ -11,7 +11,6 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
-import org.h2.engine.Mode;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.LocalDateTimeUtils;
@@ -131,7 +130,7 @@ public class ValueTimestamp extends Value {
     }
 
     /**
-     * Parse a string to a ValueTimestamp, using the given {@link Mode}.
+     * Parse a string to a ValueTimestamp, using the given {@link CastDataProvider}.
      * This method supports the format +/-year-month-day[ -]hour[:.]minute[:.]seconds.fractional
      * and an optional timezone part.
      *

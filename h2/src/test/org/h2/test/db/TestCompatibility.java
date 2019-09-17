@@ -766,7 +766,7 @@ public class TestCompatibility extends TestDb {
         }
     }
 
-    private void testUnknownURL() throws SQLException {
+    private void testUnknownURL() {
         try {
             getConnection("compatibility;MODE=Unknown").close();
             deleteDb("compatibility");

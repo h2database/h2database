@@ -2650,6 +2650,7 @@ public class Database implements DataHandler, CastDataProvider {
         this.mode = mode;
     }
 
+    @Override
     public Mode getMode() {
         return mode;
     }

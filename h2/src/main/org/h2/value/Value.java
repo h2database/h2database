@@ -797,11 +797,11 @@ public abstract class Value extends VersionedValue {
             case BYTES:
                 return convertToBytes(provider);
             case STRING:
-                return convertToString(provider);
+                return ValueString.get(convertToString(provider));
             case STRING_IGNORECASE:
-                return convertToStringIgnoreCase(provider);
+                return ValueStringIgnoreCase.get(convertToString(provider));
             case STRING_FIXED:
-                return convertToStringFixed(provider);
+                return ValueStringFixed.get(convertToString(provider));
             case JAVA_OBJECT:
                 return convertToJavaObject();
             case ENUM:
@@ -1105,7 +1105,7 @@ public abstract class Value extends VersionedValue {
         case ENUM:
             throw getDataConversionError(TIMESTAMP);
         }
-        return ValueTimestamp.parse(getString().trim(), provider != null ? provider.getMode() : null);
+        return ValueTimestamp.parse(getString().trim(), provider);
     }
 
     private ValueTimestampTimeZone convertToTimestampTimeZone(CastDataProvider provider, boolean forComparison) {
@@ -1162,34 +1162,14 @@ public abstract class Value extends VersionedValue {
                         : StringUtils.convertHexToBytes(s.trim()));
     }
 
-    private ValueString convertToString(CastDataProvider provider) {
+    private String convertToString(CastDataProvider provider) {
         String s;
         if (getValueType() == BYTES && provider != null && provider.getMode().charToBinaryInUtf8) {
             s = new String(getBytesNoCopy(), StandardCharsets.UTF_8);
         } else {
             s = getString();
         }
-        return (ValueString) ValueString.get(s);
-    }
-
-    private ValueString convertToStringIgnoreCase(CastDataProvider provider) {
-        String s;
-        if (getValueType() == BYTES && provider != null && provider.getMode().charToBinaryInUtf8) {
-            s = new String(getBytesNoCopy(), StandardCharsets.UTF_8);
-        } else {
-            s = getString();
-        }
-        return ValueStringIgnoreCase.get(s);
-    }
-
-    private ValueString convertToStringFixed(CastDataProvider provider) {
-        String s;
-        if (getValueType() == BYTES && provider != null && provider.getMode().charToBinaryInUtf8) {
-            s = new String(getBytesNoCopy(), StandardCharsets.UTF_8);
-        } else {
-            s = getString();
-        }
-        return ValueStringFixed.get(s);
+        return s;
     }
 
     private ValueJavaObject convertToJavaObject() {

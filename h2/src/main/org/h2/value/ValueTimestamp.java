@@ -136,12 +136,12 @@ public class ValueTimestamp extends Value {
      * and an optional timezone part.
      *
      * @param s the string to parse
-     * @param mode the database {@link Mode}
+     * @param provider the cast information provider, or {@code null}
      * @return the date
      */
-    public static ValueTimestamp parse(String s, Mode mode) {
+    public static ValueTimestamp parse(String s, CastDataProvider provider) {
         try {
-            return (ValueTimestamp) DateTimeUtils.parseTimestamp(s, mode, false);
+            return (ValueTimestamp) DateTimeUtils.parseTimestamp(s, provider, false);
         } catch (Exception e) {
             throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2,
                     e, "TIMESTAMP", s);

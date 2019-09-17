@@ -87,8 +87,8 @@ public class TestBigDb extends TestDb {
                 + "STATUS_CODE CHAR(3) DEFAULT SECURE_RAND(1),"
                 + "INTRA_STAT_CODE CHAR(12) DEFAULT SECURE_RAND(6),"
                 + "PRD_TITLE CHAR(50) DEFAULT SECURE_RAND(25),"
-                + "VALID_FROM DATE DEFAULT NOW(),"
-                + "MOD_DATUM DATE DEFAULT NOW())");
+                + "VALID_FROM DATE DEFAULT CURRENT_DATE,"
+                + "MOD_DATUM DATE DEFAULT CURRENT_DATE)");
         int len = getSize(10, 50000);
         try {
             PreparedStatement prep = conn.prepareStatement(

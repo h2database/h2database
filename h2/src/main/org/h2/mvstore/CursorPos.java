@@ -60,6 +60,12 @@ public class CursorPos
         return new CursorPos(page, page.binarySearch(key), cursorPos);
     }
 
+    /**
+     * Calculate the memory used by changes that are not yet stored.
+     *
+     * @param version the version
+     * @return the amount of memory
+     */
     int processRemovalInfo(long version) {
         int unsavedMemory = 0;
         for (CursorPos head = this; head != null; head = head.parent) {

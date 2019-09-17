@@ -121,7 +121,7 @@ public class FileShell extends Tool {
 
     private void promptLoop() {
         println("");
-        println("Welcome to H2 File Shell " + Constants.getFullVersion());
+        println("Welcome to H2 File Shell " + Constants.FULL_VERSION);
         println("Exit with Ctrl+C");
         showHelp();
         if (reader == null) {

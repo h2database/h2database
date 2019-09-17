@@ -6,6 +6,7 @@
 package org.h2.command.dml;
 
 import java.text.Collator;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
@@ -63,6 +64,7 @@ public class Set extends Prepared {
         case SetTypes.THROTTLE:
         case SetTypes.SCHEMA:
         case SetTypes.SCHEMA_SEARCH_PATH:
+        case SetTypes.CATALOG:
         case SetTypes.RETENTION_TIME:
         case SetTypes.LAZY_QUERY_EXECUTION:
             return true;
@@ -468,12 +470,21 @@ public class Set extends Prepared {
             break;
         }
         case SetTypes.SCHEMA: {
-            Schema schema = database.getSchema(stringValue);
+            Schema schema = database.getSchema(expression.optimize(session).getValue(session).getString());
             session.setCurrentSchema(schema);
             break;
         }
         case SetTypes.SCHEMA_SEARCH_PATH: {
             session.setSchemaSearchPath(stringValueList);
+            break;
+        }
+        case SetTypes.CATALOG: {
+            String shortName = database.getShortName();
+            String value = expression.optimize(session).getValue(session).getString();
+            if (value == null || !database.equalsIdentifiers(shortName, value)
+                    && !database.equalsIdentifiers(shortName, value.trim())) {
+                throw DbException.get(ErrorCode.DATABASE_NOT_FOUND_1, stringValue);
+            }
             break;
         }
         case SetTypes.TRACE_LEVEL_FILE:
@@ -639,6 +650,15 @@ public class Set extends Prepared {
                 database.setResultFactory(localResultFactory);
             } catch (Exception e) {
                 throw DbException.convert(e);
+            }
+            break;
+        }
+        case SetTypes.IGNORE_CATALOGS: {
+            session.getUser().checkAdmin();
+            int value = getIntValue();
+            synchronized (database) {
+                database.setIgnoreCatalogs(value == 1);
+                addOrUpdateSetting(name, null, value);
             }
             break;
         }

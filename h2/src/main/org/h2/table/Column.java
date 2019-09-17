@@ -460,7 +460,7 @@ public class Column {
         seq.setTemporary(temporary);
         session.getDatabase().addSchemaObject(session, seq);
         setAutoIncrementOptions(null);
-        SequenceValue seqValue = new SequenceValue(seq);
+        SequenceValue seqValue = new SequenceValue(seq, false);
         setDefaultExpression(session, seqValue);
         setSequence(seq);
     }
@@ -755,6 +755,9 @@ public class Column {
             }
         }
         if (defaultExpression != null && !defaultExpression.isEverything(visitor)) {
+            return false;
+        }
+        if (onUpdateExpression != null && !onUpdateExpression.isEverything(visitor)) {
             return false;
         }
         if (checkConstraint != null && !checkConstraint.isEverything(visitor)) {

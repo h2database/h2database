@@ -3,5 +3,14 @@
 -- Initial Developer: H2 Group
 --
 
-select right(database(), 6);
->> SCRIPT
+SELECT QUOTE_IDENT(NULL);
+>> null
+
+SELECT QUOTE_IDENT('');
+>> ""
+
+SELECT QUOTE_IDENT('a');
+>> "a"
+
+SELECT QUOTE_IDENT('"a""A"');
+>> """a""""A"""

@@ -336,7 +336,6 @@ public class Build extends BuildBase {
         java("org.h2.build.code.CheckTextFiles", null);
         java("org.h2.build.doc.GenerateDoc", null);
         java("org.h2.build.doc.GenerateHelp", null);
-        java("org.h2.build.i18n.PrepareTranslation", null);
         java("org.h2.build.indexer.Indexer", null);
         java("org.h2.build.doc.MergeDocs", null);
         java("org.h2.build.doc.WebSite", null);
@@ -423,7 +422,7 @@ public class Build extends BuildBase {
     }
 
     private static String getVersion() {
-        return getStaticValue("org.h2.engine.Constants", "getVersion");
+        return getStaticField("org.h2.engine.Constants", "VERSION");
     }
 
     private static String getJarSuffix() {
@@ -515,10 +514,13 @@ public class Build extends BuildBase {
      *
      * @param includeCurrentTimestamp include CurrentTimestamp implementation
      */
-    private void addVersions(boolean includeCurrentTimestamp) {
+    private void addVersions(boolean includeCurrentTimestamp, boolean addNetUtils) {
         copy("temp/META-INF/versions/9", files("src/java9/precompiled"), "src/java9/precompiled");
         if (!includeCurrentTimestamp) {
             delete(files("temp/META-INF/versions/9/org/h2/util/CurrentTimestamp.class"));
+        }
+        if (addNetUtils) {
+            copy("temp/META-INF/versions/10", files("src/java10/precompiled"), "src/java10/precompiled");
         }
     }
 
@@ -528,7 +530,7 @@ public class Build extends BuildBase {
     @Description(summary = "Create the regular h2.jar file.")
     public void jar() {
         compile();
-        addVersions(true);
+        addVersions(true, true);
         manifest("src/main/META-INF/MANIFEST.MF");
         FileList files = files("temp").
             exclude("temp/org/h2/build/*").
@@ -557,7 +559,7 @@ public class Build extends BuildBase {
     @Description(summary = "Create h2client.jar with only the remote JDBC implementation.")
     public void jarClient() {
         compile(true, true, false);
-        addVersions(false);
+        addVersions(false, false);
         manifest("src/installer/client/MANIFEST.MF");
         FileList files = files("temp").
             exclude("temp/org/h2/build/*").
@@ -584,7 +586,7 @@ public class Build extends BuildBase {
     @Description(summary = "Create h2mvstore.jar containing only the MVStore.")
     public void jarMVStore() {
         compileMVStore(true);
-        addVersions(false);
+        addVersions(false, false);
         manifest("src/installer/mvstore/MANIFEST.MF");
         FileList files = files("temp");
         files.exclude("*.DS_Store");
@@ -599,7 +601,7 @@ public class Build extends BuildBase {
     @Description(summary = "Create h2small.jar containing only the embedded database.")
     public void jarSmall() {
         compile(false, false, true);
-        addVersions(true);
+        addVersions(true, false);
         manifest("src/installer/small/MANIFEST.MF");
         FileList files = files("temp").
             exclude("temp/org/h2/build/*").
@@ -974,6 +976,9 @@ public class Build extends BuildBase {
         int version = getJavaVersion();
         if (version >= 9) {
             cp = "src/java9/precompiled" + File.pathSeparator + cp;
+            if (version >= 10) {
+                cp = "src/java10/precompiled" + File.pathSeparator + cp;
+            }
         }
         int ret;
         if (travis) {

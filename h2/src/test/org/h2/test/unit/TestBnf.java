@@ -48,7 +48,7 @@ public class TestBnf extends TestDb {
     private void testModes(Connection conn) throws Exception {
         DbContents dbContents;
         dbContents = new DbContents();
-        dbContents.readContents("jdbc:h2:test", conn);
+        dbContents.readContents("jdbc:h2:./test", conn);
         assertTrue(dbContents.isH2());
         dbContents = new DbContents();
         dbContents.readContents("jdbc:derby:test", conn);
@@ -88,7 +88,7 @@ public class TestBnf extends TestDb {
                 "CREATE TABLE " +
                 "TABLE_WITH_STRING_FIELD (STRING_FIELD VARCHAR(50), INT_FIELD integer)");
         DbContents dbContents = new DbContents();
-        dbContents.readContents("jdbc:h2:test", conn);
+        dbContents.readContents("jdbc:h2:./test", conn);
         assertTrue(dbContents.isH2());
         assertFalse(dbContents.isDerby());
         assertFalse(dbContents.isFirebird());

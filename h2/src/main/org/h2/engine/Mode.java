@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.regex.Pattern;
+
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -229,14 +230,32 @@ public class Mode {
     public boolean allowUnrelatedOrderByExpressionsInDistinctQueries;
 
     /**
-     * if {@code true} some additional non-standard ALTER TABLE commands are allowed.
+     * If {@code true} some additional non-standard ALTER TABLE commands are allowed.
      */
     public boolean alterTableExtensionsMySQL;
 
     /**
-     * if {@code true} non-standard ALTER TABLE MODIFY COLUMN is allowed.
+     * If {@code true} non-standard ALTER TABLE MODIFY COLUMN is allowed.
      */
     public boolean alterTableModifyColumn;
+
+    /**
+     * If {@code true} TRUNCATE TABLE uses RESTART IDENTITY by default.
+     */
+    public boolean truncateTableRestartIdentity;
+
+    /**
+     * If {@code true} NEXT VALUE FOR SEQUENCE, CURRENT VALUE FOR SEQUENCE,
+     * SEQUENCE.NEXTVAL, and SEQUENCE.CURRVAL return values with DECIMAL/NUMERIC
+     * data type instead of BIGINT.
+     */
+    public boolean decimalSequences;
+
+    /**
+     * If {@code true} constructs like 'CREATE TABLE CATALOG..TABLE_NAME' are allowed,
+     * the default schema is used.
+     */
+    public boolean allowEmptySchemaValuesAsDefaultSchema;
 
     /**
      * An optional Set of hidden/disallowed column types.
@@ -307,6 +326,7 @@ public class Mode {
         // https://msdn.microsoft.com/en-Us/library/dd571296%28v=sql.110%29.aspx
         mode.supportedClientInfoPropertiesRegEx = null;
         mode.zeroExLiteralsAreBinaryStrings = true;
+        mode.truncateTableRestartIdentity = true;
         DataType dt = DataType.createNumeric(19, 4, false);
         dt.type = Value.DECIMAL;
         dt.sqlType = Types.NUMERIC;
@@ -317,6 +337,7 @@ public class Mode {
         dt.sqlType = Types.NUMERIC;
         dt.name = "SMALLMONEY";
         mode.typeByNameMap.put("SMALLMONEY", dt);
+        mode.allowEmptySchemaValuesAsDefaultSchema = true;
         add(mode);
 
         mode = new Mode(ModeEnum.MySQL);
@@ -338,6 +359,7 @@ public class Mode {
         mode.allowUnrelatedOrderByExpressionsInDistinctQueries = true;
         mode.alterTableExtensionsMySQL = true;
         mode.alterTableModifyColumn = true;
+        mode.truncateTableRestartIdentity = true;
         add(mode);
 
         mode = new Mode(ModeEnum.Oracle);
@@ -353,6 +375,7 @@ public class Mode {
                 Pattern.compile(".*\\..*");
         mode.prohibitEmptyInPredicate = true;
         mode.alterTableModifyColumn = true;
+        mode.decimalSequences = true;
         dt = DataType.createDate(/* 2001-01-01 23:59:59 */ 19, 19, "DATE", false, 0, 0);
         dt.type = Value.TIMESTAMP;
         dt.sqlType = Types.TIMESTAMP;

@@ -142,7 +142,7 @@ public class TestRecursiveQueries extends TestDb {
         assertResultSetOrdered(rs, new String[][]{{"100"}, {"103"}});
 
         rs = stat.executeQuery("with recursive t(i, s, d) as "
-                + "(select 1, '.', now() union all"
+                + "(select 1, '.', localtimestamp union all"
                 + " select i+1, s||'.', d from t where i<3)"
                 + " select * from t");
         assertResultSetMeta(rs, 3, new String[]{ "I", "S", "D" },

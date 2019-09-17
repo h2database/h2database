@@ -608,7 +608,7 @@ public class TestTableEngines extends TestDb {
                 + "/++ batched:fake PUBLIC.U_IDX_A: A IS NOT DISTINCT FROM ?1 ++/ "
                 + "/++ WHERE U.A IS NOT DISTINCT FROM ?1 ++/ INNER JOIN PUBLIC.T "
                 + "/++ batched:test PUBLIC.T_IDX_B: B = U.B ++/ "
-                + "ON 1=1 WHERE (U.A IS NOT DISTINCT FROM ?1) AND (U.B = T.B): A = T.A */ "
+                + "ON 1=1 WHERE (U.B = T.B) _LOCAL_AND_GLOBAL_ (U.A IS NOT DISTINCT FROM ?1): A = T.A */ "
                 + "ON 1=1 WHERE \"Z\".\"A\" = \"T\".\"A\"");
         checkPlan(stat, "SELECT 1 FROM \"PUBLIC\".\"T\" /* PUBLIC.T_IDX_A */ "
                 + "INNER JOIN ( SELECT \"A\" FROM \"PUBLIC\".\"U\" ) \"Z\" /* SELECT A FROM PUBLIC.U "

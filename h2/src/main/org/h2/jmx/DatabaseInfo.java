@@ -224,7 +224,7 @@ public class DatabaseInfo implements DatabaseInfoMBean {
 
     @Override
     public String getVersion() {
-        return Constants.getFullVersion();
+        return Constants.FULL_VERSION;
     }
 
     @Override

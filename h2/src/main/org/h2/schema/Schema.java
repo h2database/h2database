@@ -145,50 +145,37 @@ public class Schema extends DbObjectBase {
 
     @Override
     public void removeChildrenAndResources(Session session) {
-        while (triggers != null && triggers.size() > 0) {
-            TriggerObject obj = (TriggerObject) triggers.values().toArray()[0];
-            database.removeSchemaObject(session, obj);
-        }
-        while (constraints != null && constraints.size() > 0) {
-            Constraint obj = (Constraint) constraints.values().toArray()[0];
-            database.removeSchemaObject(session, obj);
-        }
+        removeChildrenFromMap(session, triggers);
+        removeChildrenFromMap(session, constraints);
         // There can be dependencies between tables e.g. using computed columns,
         // so we might need to loop over them multiple times.
-        boolean runLoopAgain = false;
-        do {
-            runLoopAgain = false;
-            if (tablesAndViews != null) {
-                // Loop over a copy because the map is modified underneath us.
-                for (Table obj : new ArrayList<>(tablesAndViews.values())) {
-                    // Check for null because multiple tables might be deleted
-                    // in one go underneath us.
-                    if (obj.getName() != null) {
-                        if (database.getDependentTable(obj, obj) == null) {
-                            database.removeSchemaObject(session, obj);
-                        } else {
-                            runLoopAgain = true;
-                        }
+        boolean modified = true;
+        while (!tablesAndViews.isEmpty()) {
+            boolean newModified = false;
+            for (Table obj : tablesAndViews.values()) {
+                if (obj.getName() != null) {
+                    // Database.removeSchemaObject() removes the object from
+                    // the map too, but it is safe for ConcurrentHashMap.
+                    Table dependentTable = database.getDependentTable(obj, obj);
+                    if (dependentTable == null) {
+                        database.removeSchemaObject(session, obj);
+                        newModified = true;
+                    } else if (dependentTable.getSchema() != this) {
+                        throw DbException.get(ErrorCode.CANNOT_DROP_2, //
+                                obj.getSQL(false), dependentTable.getSQL(false));
+                    } else if (!modified) {
+                        dependentTable.removeColumnExpressionsDependencies(session);
+                        dependentTable.setModified();
+                        database.updateMeta(session, dependentTable);
                     }
                 }
             }
-        } while (runLoopAgain);
-        while (indexes != null && indexes.size() > 0) {
-            Index obj = (Index) indexes.values().toArray()[0];
-            database.removeSchemaObject(session, obj);
+            modified = newModified;
         }
-        while (sequences != null && sequences.size() > 0) {
-            Sequence obj = (Sequence) sequences.values().toArray()[0];
-            database.removeSchemaObject(session, obj);
-        }
-        while (constants != null && constants.size() > 0) {
-            Constant obj = (Constant) constants.values().toArray()[0];
-            database.removeSchemaObject(session, obj);
-        }
-        while (functions != null && functions.size() > 0) {
-            FunctionAlias obj = (FunctionAlias) functions.values().toArray()[0];
-            database.removeSchemaObject(session, obj);
-        }
+        removeChildrenFromMap(session, indexes);
+        removeChildrenFromMap(session, sequences);
+        removeChildrenFromMap(session, constants);
+        removeChildrenFromMap(session, functions);
         for (Right right : database.getAllRights()) {
             if (right.getGrantedObject() == this) {
                 database.removeDatabaseObject(session, right);
@@ -197,6 +184,16 @@ public class Schema extends DbObjectBase {
         database.removeMeta(session, getId());
         owner = null;
         invalidate();
+    }
+
+    private void removeChildrenFromMap(Session session, ConcurrentHashMap<String, ? extends SchemaObject> map) {
+        if (!map.isEmpty()) {
+            for (SchemaObject obj : map.values()) {
+                // Database.removeSchemaObject() removes the object from
+                // the map too, but it is safe for ConcurrentHashMap.
+                database.removeSchemaObject(session, obj);
+            }
+        }
     }
 
     @Override

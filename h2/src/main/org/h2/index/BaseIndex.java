@@ -105,6 +105,12 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         return e;
     }
 
+    /**
+     * Get "PRIMARY KEY ON <table> [(column)]".
+     *
+     * @param mainIndexColumn the column index
+     * @return the message
+     */
     protected StringBuilder getDuplicatePrimaryKeyMessage(int mainIndexColumn) {
         StringBuilder builder = new StringBuilder("PRIMARY KEY ON ");
         table.getSQL(builder, false);

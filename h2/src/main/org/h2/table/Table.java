@@ -1209,6 +1209,20 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     /**
+     * Removes dependencies of column expressions, used for tables with circular
+     * dependencies.
+     *
+     * @param session the session
+     */
+    public void removeColumnExpressionsDependencies(Session session) {
+        for (Column column : columns) {
+            column.setDefaultExpression(session, null);
+            column.setOnUpdateExpression(session, null);
+            column.removeCheckConstraint();
+        }
+    }
+
+    /**
      * Check if a deadlock occurred. This method is called recursively. There is
      * a circle if the session to be tested has already being visited. If this
      * session is part of the circle (if it is the clash session), the method

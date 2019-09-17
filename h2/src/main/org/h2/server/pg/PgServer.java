@@ -25,6 +25,7 @@ import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.server.Service;
 import org.h2.util.NetUtils;
+import org.h2.util.NetUtils2;
 import org.h2.util.Tool;
 
 /**
@@ -194,6 +195,7 @@ public class PgServer implements Service {
                     trace("Connection not allowed");
                     s.close();
                 } else {
+                    NetUtils2.setTcpQuickack(s, true);
                     PgServerThread c = new PgServerThread(s, this);
                     running.add(c);
                     int id = pid.incrementAndGet();
@@ -383,7 +385,7 @@ public class PgServer implements Service {
      */
     public static String getVersion() {
         return "PostgreSQL " + Constants.PG_VERSION + " server protocol using H2 " +
-                Constants.getFullVersion();
+                Constants.FULL_VERSION;
     }
 
     /**

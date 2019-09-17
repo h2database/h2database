@@ -382,6 +382,15 @@ public class FileStore {
         return freeSpace.getFillRate();
     }
 
+    /**
+     * Calculates a prospective fill rate, which store would have after rewrite
+     * of sparsely populated chunk(s) and evacuation of still live data into a
+     * new chunk.
+     *
+     * @param vacatedBlocks
+     *            number of blocks vacated
+     * @return prospective fill rate (0 - 100)
+     */
     public int getProjectedFillRate(int vacatedBlocks) {
         return freeSpace.getProjectedFillRate(vacatedBlocks);
     }
@@ -394,6 +403,12 @@ public class FileStore {
         return freeSpace.getLastFree();
     }
 
+    /**
+     * Calculates relative "priority" for chunk to be moved.
+     *
+     * @param block where chunk starts
+     * @return priority, bigger number indicate that chunk need to be moved sooner
+     */
     int getMovePriority(int block) {
         return freeSpace.getMovePriority(block);
     }

@@ -13,6 +13,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
+
 import org.h2.Driver;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FilePathRec;
@@ -42,6 +43,7 @@ import org.h2.test.db.TestFullText;
 import org.h2.test.db.TestFunctionOverload;
 import org.h2.test.db.TestFunctions;
 import org.h2.test.db.TestGeneralCommonTableQueries;
+import org.h2.test.db.TestIgnoreCatalogs;
 import org.h2.test.db.TestIndex;
 import org.h2.test.db.TestIndexHints;
 import org.h2.test.db.TestLargeBlob;
@@ -883,6 +885,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         // other unsafe
         addTest(new TestOptimizations());
         addTest(new TestOutOfMemory());
+        addTest(new TestIgnoreCatalogs());
+
 
         runAddedTests(1);
 
@@ -1125,7 +1129,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
      */
     public static void printSystemInfo() {
         Properties prop = System.getProperties();
-        System.out.println("H2 " + Constants.getFullVersion() +
+        System.out.println("H2 " + Constants.FULL_VERSION +
                 " @ " + new java.sql.Timestamp(System.currentTimeMillis()).toString());
         System.out.println("Java " +
                 prop.getProperty("java.runtime.version") + ", " +

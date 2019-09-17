@@ -91,8 +91,14 @@ public class TransactionStore {
     private final AtomicReferenceArray<Transaction> transactions =
                                                         new AtomicReferenceArray<>(MAX_OPEN_TRANSACTIONS + 1);
 
+    /**
+     * The prefix for undo log entries.
+     */
     public static final String UNDO_LOG_NAME_PREFIX = "undoLog";
-    private static final char UNDO_LOG_COMMITTED = '-'; // must come before open in lexicographical order
+
+    // must come before open in lexicographical order
+    private static final char UNDO_LOG_COMMITTED = '-';
+
     private static final char UNDO_LOG_OPEN = '.';
 
     /**
@@ -100,7 +106,9 @@ public class TransactionStore {
      */
     // TODO: introduce constructor parameter instead of a static field, driven by URL parameter
     private static final int MAX_OPEN_TRANSACTIONS = 65535;
-    private static final Object[] COMMIT_MARKER = new Object[] {-1, null, null}; // -1 - bogus map id
+
+    // -1 is a bogus map id
+    private static final Object[] COMMIT_MARKER = new Object[] {-1, null, null};
 
 
     /**

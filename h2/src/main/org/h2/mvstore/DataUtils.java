@@ -155,10 +155,30 @@ public final class DataUtils {
     public static final int PAGE_LARGE = 2 * 1024 * 1024;
 
     // The following are key prefixes used in meta map
-    public static final String META_CHUNK = "chunk."; // + hex chunk id -> serialized chunk metadata
-    public static final String META_NAME = "name.";   // + map's name -> hex map id
-    public static final String META_MAP = "map.";     // + hex map id -> serialized map metadata
-    public static final String META_ROOT = "root.";   // + hex map id -> hex root page "position"
+
+    /**
+     * The prefix for chunks ("chunk."). This, plus the chunk id (hex encoded)
+     * is the key, and the serialized chunk metadata is the value.
+     */
+    public static final String META_CHUNK = "chunk.";
+
+    /**
+     * The prefix for names ("name."). This, plus the name of the map, is the
+     * key, and the map id (hey encoded) is the value.
+     */
+    public static final String META_NAME = "name.";
+
+    /**
+     * The prefix for maps ("map."). This, plus the map id (hex encoded) is the
+     * key, and the serialized in the map metadata is the value.
+     */
+    public static final String META_MAP = "map.";
+
+    /**
+     * The prefix for root positions of maps ("root."). This, plus the map id
+     * (hex encoded) is the key, and the position (hex encoded) is the value.
+     */
+    public static final String META_ROOT = "root.";
 
     /**
      * Get the length of the variable size int.

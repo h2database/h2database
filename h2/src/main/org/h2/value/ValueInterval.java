@@ -13,6 +13,7 @@ import static org.h2.util.DateTimeUtils.NANOS_PER_SECOND;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import org.h2.api.ErrorCode;
 import org.h2.api.Interval;
 import org.h2.api.IntervalQualifier;
 import org.h2.message.DbException;
@@ -178,6 +179,18 @@ public class ValueInterval extends Value {
     }
 
     @Override
+    public boolean checkPrecision(long prec) {
+        if (prec < 18) {
+            for (long l = leading, p = 1, precision = 0; l >= p; p *= 10) {
+                if (++precision > prec) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    @Override
     public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
         if (targetScale >= MAXIMUM_SCALE) {
             return this;
@@ -185,42 +198,42 @@ public class ValueInterval extends Value {
         if (targetScale < 0) {
             throw DbException.getInvalidValueException("scale", targetScale);
         }
-        IntervalQualifier qualifier = getQualifier();
-        if (!qualifier.hasSeconds()) {
-            return this;
-        }
-        long r = DateTimeUtils.convertScale(remaining, targetScale);
-        if (r == remaining) {
+        long range;
+        switch (valueType) {
+        case INTERVAL_SECOND:
+            range = NANOS_PER_SECOND;
+            break;
+        case INTERVAL_DAY_TO_SECOND:
+            range = NANOS_PER_DAY;
+            break;
+        case INTERVAL_HOUR_TO_SECOND:
+            range = NANOS_PER_HOUR;
+            break;
+        case INTERVAL_MINUTE_TO_SECOND:
+            range = NANOS_PER_MINUTE;
+            break;
+        default:
             return this;
         }
         long l = leading;
-        switch (valueType) {
-        case INTERVAL_SECOND:
-            if (r >= NANOS_PER_SECOND) {
-                l++;
-                r -= NANOS_PER_SECOND;
-            }
-            break;
-        case INTERVAL_DAY_TO_SECOND:
-            if (r >= NANOS_PER_DAY) {
-                l++;
-                r -= NANOS_PER_DAY;
-            }
-            break;
-        case INTERVAL_HOUR_TO_SECOND:
-            if (r >= NANOS_PER_HOUR) {
-                l++;
-                r -= NANOS_PER_HOUR;
-            }
-            break;
-        case INTERVAL_MINUTE_TO_SECOND:
-            if (r >= NANOS_PER_MINUTE) {
-                l++;
-                r -= NANOS_PER_MINUTE;
-            }
-            break;
+        long r = DateTimeUtils.convertScale(remaining, targetScale,
+                l == 999_999_999_999_999_999L ? range : Long.MAX_VALUE);
+        if (r == remaining) {
+            return this;
         }
-        return from(qualifier, negative, l, r);
+        if (r >= range) {
+            l++;
+            r -= range;
+        }
+        return from(getQualifier(), negative, l, r);
+    }
+
+    @Override
+    public Value convertPrecision(long precision) {
+        if (checkPrecision(precision)) {
+            return this;
+        }
+        throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, getSQL());
     }
 
     @Override

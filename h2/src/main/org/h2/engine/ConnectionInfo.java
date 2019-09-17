@@ -612,7 +612,7 @@ public class ConnectionInfo implements Cloneable {
     }
 
     /**
-     * Generate an URL format exception.
+     * Generate a URL format exception.
      *
      * @return the exception
      */

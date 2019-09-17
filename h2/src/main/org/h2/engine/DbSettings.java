@@ -6,6 +6,7 @@
 package org.h2.engine;
 
 import java.util.HashMap;
+
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.util.Utils;
@@ -13,7 +14,7 @@ import org.h2.util.Utils;
 /**
  * This class contains various database-level settings. To override the
  * documented default value for a database, append the setting in the database
- * URL: "jdbc:h2:test;ALIAS_COLUMN_NAME=TRUE" when opening the first connection
+ * URL: "jdbc:h2:./test;ALIAS_COLUMN_NAME=TRUE" when opening the first connection
  * to the database. The settings can not be changed once the database is open.
  * <p>
  * Some settings are a last resort and temporary solution to work around a
@@ -333,6 +334,14 @@ public class DbSettings extends SettingsBase {
      * Compress data when storing.
      */
     public final boolean compressData = get("COMPRESS", false);
+
+    /**
+     * Database setting <code>IGNORE_CATALOGS</code>
+     * (default: false).<br />
+     * If set, all catalog names in identifiers are silently accepted
+     * without comparing them with the short name of the database.
+     */
+    public final boolean ignoreCatalogs = get("IGNORE_CATALOGS", false);
 
     private DbSettings(HashMap<String, String> s) {
         super(s);

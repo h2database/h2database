@@ -29,6 +29,9 @@ public class ValueDate extends Value {
     private final long dateValue;
 
     private ValueDate(long dateValue) {
+        if (dateValue < DateTimeUtils.MIN_DATE_VALUE || dateValue > DateTimeUtils.MAX_DATE_VALUE) {
+            throw new IllegalArgumentException("dateValue out of range " + dateValue);
+        }
         this.dateValue = dateValue;
     }
 

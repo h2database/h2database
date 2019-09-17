@@ -10,7 +10,7 @@ SELECT [ TOP term [ PERCENT ] [ WITH TIES ] ]
 selectExpression [,...]
 [ FROM tableExpression [,...] ]
 [ WHERE expression ]
-[ GROUP BY expression [,...] ] [ HAVING expression ]
+[ GROUP BY groupingElement [,...] ] [ HAVING expression ]
 [ WINDOW { { windowName AS windowSpecification } [,...] } ]
 [ QUALIFY expression ]
 [ { UNION [ ALL ] | EXCEPT | MINUS | INTERSECT } query ]
@@ -149,6 +149,18 @@ If the called function returns an array, then each element in this array is retu
 CALL 15*25
 "
 
+"Commands (DML)","EXECUTE IMMEDIATE","
+EXECUTE IMMEDIATE sqlString
+","
+Dynamically prepares and executes the SQL command specified as a string. Query commands may not be used.
+","
+EXECUTE IMMEDIATE 'ALTER TABLE TEST DROP CONSTRAINT ' ||
+    QUOTE_IDENT((SELECT CONSTRAINT_NAME
+        FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+        WHERE TABLE_SCHEMA = 'PUBLIC' AND TABLE_NAME = 'TEST'
+            AND CONSTRAINT_TYPE = 'UNIQUE'));
+"
+
 "Commands (DML)","EXPLAIN","
 EXPLAIN { [ PLAN FOR ] | ANALYZE }
 { query | insert | update | delete | mergeInto | mergeUsing }
@@ -216,12 +228,12 @@ statements; each statement must end with ';'. This command can be used to
 restore a database from a backup. The password must be in single quotes; it is
 case sensitive and can contain spaces.
 
-Instead of a file name, an URL may be used.
+Instead of a file name, a URL may be used.
 To read a stream from the classpath, use the prefix 'classpath:'.
 See the Pluggable File System section on the Advanced page.
 
 The compression algorithm must match the one used when creating the script.
-Instead of a file, an URL may be used.
+Instead of a file, a URL may be used.
 
 Admin rights are required to execute this command.
 ","
@@ -356,13 +368,7 @@ ALTER SCHEMA TEST RENAME TO PRODUCTION
 "
 
 "Commands (DDL)","ALTER SEQUENCE","
-ALTER SEQUENCE [ IF EXISTS ] sequenceName
-[ RESTART WITH long ]
-[ INCREMENT BY long ]
-[ MINVALUE long | NOMINVALUE | NO MINVALUE ]
-[ MAXVALUE long | NOMAXVALUE | NO MAXVALUE ]
-[ CYCLE long | NOCYCLE | NO CYCLE ]
-[ CACHE long | NOCACHE | NO CACHE ]
+ALTER SEQUENCE [ IF EXISTS ] sequenceName sequenceOptions
 ","
 Changes the parameters of a sequence.
 This command does not commit the current transaction; however the new value is used by other
@@ -739,9 +745,9 @@ be the resource name (for example ""java:comp/env/jdbc/Test"").
 Admin rights are required to execute this command.
 This command commits an open transaction in this connection.
 ","
-CREATE LINKED TABLE LINK('org.h2.Driver', 'jdbc:h2:test2',
+CREATE LINKED TABLE LINK('org.h2.Driver', 'jdbc:h2:./test2',
     'sa', 'sa', 'TEST');
-CREATE LINKED TABLE LINK('', 'jdbc:h2:test2', 'sa', 'sa',
+CREATE LINKED TABLE LINK('', 'jdbc:h2:./test2', 'sa', 'sa',
     '(SELECT * FROM TEST WHERE ID>0)');
 CREATE LINKED TABLE LINK('javax.naming.InitialContext',
     'java:comp/env/jdbc/Test', NULL, NULL,
@@ -774,17 +780,11 @@ CREATE SCHEMA TEST_SCHEMA AUTHORIZATION SA
 "
 
 "Commands (DDL)","CREATE SEQUENCE","
-CREATE SEQUENCE [ IF NOT EXISTS ] newSequenceName
-sequenceOptions
+CREATE SEQUENCE [ IF NOT EXISTS ] newSequenceName [ sequenceOptions ]
 ","
 Creates a new sequence.
 The data type of a sequence is BIGINT.
 Used values are never re-used, even when the transaction is rolled back.
-
-The cache is the number of pre-allocated numbers.
-If the system crashes without closing the database, at most this many numbers are lost.
-The default cache size is 32.
-To disable caching, use the cache size 1 or lower.
 
 This command commits an open transaction in this connection.
 ","
@@ -1253,7 +1253,7 @@ See also CREATE CONSTANT.
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.
 This setting is persistent.
-This setting can be appended to the database URL: ""jdbc:h2:test;ALLOW_LITERALS=NONE""
+This setting can be appended to the database URL: ""jdbc:h2:./test;ALLOW_LITERALS=NONE""
 ","
 SET ALLOW_LITERALS NONE
 "
@@ -1262,7 +1262,7 @@ SET ALLOW_LITERALS NONE
 SET AUTOCOMMIT { TRUE | ON | FALSE | OFF }
 ","
 Switches auto commit on or off.
-This setting can be appended to the database URL: ""jdbc:h2:test;AUTOCOMMIT=OFF"" -
+This setting can be appended to the database URL: ""jdbc:h2:./test;AUTOCOMMIT=OFF"" -
 however this will not work as expected when using a connection pool
 (the connection pool manager will re-enable autocommit when returning
 the connection to the pool, so autocommit will only be disabled the first
@@ -1288,7 +1288,7 @@ It has no effect for in-memory databases.
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.
 This setting is persistent.
-This setting can be appended to the database URL: ""jdbc:h2:test;CACHE_SIZE=8192""
+This setting can be appended to the database URL: ""jdbc:h2:./test;CACHE_SIZE=8192""
 ","
 SET CACHE_SIZE 8192
 "
@@ -1352,6 +1352,17 @@ This command commits an open transaction in this connection.
 SET BUILTIN_ALIAS_OVERRIDE TRUE
 "
 
+"Commands (Other)","SET CATALOG","
+SET CATALOG { catalogString | catalogName }
+","
+This command has no effect if the specified name matches the name of the database, otherwise it throws an exception.
+
+This command does not commit a transaction.
+","
+SET CATALOG 'DB'
+SET CATALOG DB_NAME
+"
+
 "Commands (Other)","SET COLLATION","
 SET [ DATABASE ] COLLATION
 { OFF | collationName
@@ -1374,7 +1385,7 @@ strings according to the binary representation in the given charset.
 Admin rights are required to execute this command.
 This command commits an open transaction in this connection.
 This setting is persistent.
-This setting can be appended to the database URL: ""jdbc:h2:test;COLLATION='ENGLISH'""
+This setting can be appended to the database URL: ""jdbc:h2:./test;COLLATION='ENGLISH'""
 ","
 SET COLLATION ENGLISH
 SET COLLATION CHARSET_CP500
@@ -1405,7 +1416,7 @@ used. This setting is not persistent.
 
 Admin rights are required to execute this command, except if it is set when
 opening the database (in this case it is reset just after opening the database).
-This setting can be appended to the database URL: ""jdbc:h2:test;DATABASE_EVENT_LISTENER='sample.MyListener'""
+This setting can be appended to the database URL: ""jdbc:h2:./test;DATABASE_EVENT_LISTENER='sample.MyListener'""
 ","
 SET DATABASE_EVENT_LISTENER 'sample.MyListener'
 "
@@ -1423,7 +1434,7 @@ If the application exits normally or System.exit is called, the database is clos
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.
 This setting is persistent.
-This setting can be appended to the database URL: ""jdbc:h2:test;DB_CLOSE_DELAY=-1""
+This setting can be appended to the database URL: ""jdbc:h2:./test;DB_CLOSE_DELAY=-1""
 ","
 SET DB_CLOSE_DELAY -1
 "
@@ -1489,9 +1500,21 @@ String literals and parameters are however still considered case sensitive even 
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.
 This setting is persistent.
-This setting can be appended to the database URL: ""jdbc:h2:test;IGNORECASE=TRUE""
+This setting can be appended to the database URL: ""jdbc:h2:./test;IGNORECASE=TRUE""
 ","
 SET IGNORECASE TRUE
+"
+
+"Commands (Other)","SET IGNORE_CATALOGS","
+SET IGNORE_CATALOGS { TRUE | FALSE }
+","
+If IGNORE_CATALOGS is enabled, catalog names in front of schema names will be ignored. This can be used if
+multiple catalogs used by the same connections must be simulated. Caveat: if both catalogs contain schemas of the
+same name and if those schemas contain objects of the same name, this will lead to errors, when trying to manage,
+access or change these objects.
+This setting can be appended to the database URL: ""jdbc:h2:./test;IGNORE_CATALOGS=TRUE""
+","
+SET IGNORE_CATALOGS TRUE
 "
 
 "Commands (Other)","SET JAVA_OBJECT_SERIALIZER","
@@ -1508,7 +1531,7 @@ This command can only be executed if there are no tables defined.
 Admin rights are required to execute this command.
 This command commits an open transaction in this connection.
 This setting is persistent.
-This setting can be appended to the database URL: ""jdbc:h2:test;JAVA_OBJECT_SERIALIZER='com.acme.SerializerClassName'""
+This setting can be appended to the database URL: ""jdbc:h2:./test;JAVA_OBJECT_SERIALIZER='com.acme.SerializerClassName'""
 ","
 SET JAVA_OBJECT_SERIALIZER 'com.acme.SerializerClassName'
 "
@@ -1523,7 +1546,7 @@ If true, then large results are retrieved in chunks.
 Note that not all queries support this feature, queries which do not are processed normally.
 
 This command does not commit a transaction, and rollback does not affect it.
-This setting can be appended to the database URL: ""jdbc:h2:test;LAZY_QUERY_EXECUTION=1""
+This setting can be appended to the database URL: ""jdbc:h2:./test;LAZY_QUERY_EXECUTION=1""
 ","
 SET LAZY_QUERY_EXECUTION 1
 "
@@ -1550,7 +1573,7 @@ file system, this will also protect against power failure in the majority if cas
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.
 This setting is not persistent.
-This setting can be appended to the database URL: ""jdbc:h2:test;LOG=0""
+This setting can be appended to the database URL: ""jdbc:h2:./test;LOG=0""
 ","
 SET LOG 1
 "
@@ -1576,7 +1599,7 @@ The value 3 means table level locking, but read locks are released immediately
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.
 This setting is persistent.
-This setting can be appended to the database URL: ""jdbc:h2:test;LOCK_MODE=3""
+This setting can be appended to the database URL: ""jdbc:h2:./test;LOCK_MODE=3""
 ","
 SET LOCK_MODE 1
 "
@@ -1588,7 +1611,7 @@ Sets the lock timeout (in milliseconds) for the current session. The default
 value for this setting is 1000 (one second).
 
 This command does not commit a transaction, and rollback does not affect it.
-This setting can be appended to the database URL: ""jdbc:h2:test;LOCK_TIMEOUT=10000""
+This setting can be appended to the database URL: ""jdbc:h2:./test;LOCK_TIMEOUT=10000""
 ","
 SET LOCK_TIMEOUT 1000
 "
@@ -1666,7 +1689,7 @@ operation. The default max size is 100000. 0 means no limit.
 This setting is not persistent.
 Admin rights are required to execute this command, as it affects all connections.
 It has no effect for in-memory databases.
-This setting can be appended to the database URL: ""jdbc:h2:test;MAX_OPERATION_MEMORY=10000""
+This setting can be appended to the database URL: ""jdbc:h2:./test;MAX_OPERATION_MEMORY=10000""
 ","
 SET MAX_OPERATION_MEMORY 0
 "
@@ -1680,7 +1703,7 @@ Modes in the feature section.
 This setting is not persistent.
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.
-This setting can be appended to the database URL: ""jdbc:h2:test;MODE=MYSQL""
+This setting can be appended to the database URL: ""jdbc:h2:./test;MODE=MYSQL""
 ","
 SET MODE HSQLDB
 "
@@ -1697,7 +1720,7 @@ This setting is not persistent, however the value is kept until the virtual mach
 
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.
-This setting can be appended to the database URL: ""jdbc:h2:test;MULTI_THREADED=1""
+This setting can be appended to the database URL: ""jdbc:h2:./test;MV_STORE=FALSE;MULTI_THREADED=1""
 ","
 SET MULTI_THREADED 1
 "
@@ -1711,7 +1734,7 @@ the tables was changed. This option is enabled by default.
 
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.
-This setting can be appended to the database URL: ""jdbc:h2:test;OPTIMIZE_REUSE_RESULTS=0""
+This setting can be appended to the database URL: ""jdbc:h2:./test;OPTIMIZE_REUSE_RESULTS=0""
 ","
 SET OPTIMIZE_REUSE_RESULTS 0
 "
@@ -1794,7 +1817,7 @@ depending on the operating system and hardware.
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.
 This setting is persistent.
-This setting can be appended to the database URL: ""jdbc:h2:test;RETENTION_TIME=0""
+This setting can be appended to the database URL: ""jdbc:h2:./test;RETENTION_TIME=0""
 ","
 SET RETENTION_TIME 0
 "
@@ -1811,15 +1834,16 @@ SET SALT '00' HASH '1122'
 "
 
 "Commands (Other)","SET SCHEMA","
-SET SCHEMA schemaName
+SET SCHEMA { schemaString | schemaName }
 ","
 Changes the default schema of the current connection. The default schema is used
 in statements where no schema is set explicitly. The default schema for new
 connections is PUBLIC.
 
 This command does not commit a transaction, and rollback does not affect it.
-This setting can be appended to the database URL: ""jdbc:h2:test;SCHEMA=ABC""
+This setting can be appended to the database URL: ""jdbc:h2:./test;SCHEMA=ABC""
 ","
+SET SCHEMA 'PUBLIC'
 SET SCHEMA INFORMATION_SCHEMA
 "
 
@@ -1831,7 +1855,7 @@ used in statements where no schema is set explicitly. The default schema for new
 connections is PUBLIC.
 
 This command does not commit a transaction, and rollback does not affect it.
-This setting can be appended to the database URL: ""jdbc:h2:test;SCHEMA_SEARCH_PATH=ABC,DEF""
+This setting can be appended to the database URL: ""jdbc:h2:./test;SCHEMA_SEARCH_PATH=ABC,DEF""
 ","
 SET SCHEMA_SEARCH_PATH INFORMATION_SCHEMA, PUBLIC
 "
@@ -1844,7 +1868,7 @@ milliseconds delay after each 50 ms. The default value is 0 (throttling
 disabled).
 
 This command does not commit a transaction, and rollback does not affect it.
-This setting can be appended to the database URL: ""jdbc:h2:test;THROTTLE=50""
+This setting can be appended to the database URL: ""jdbc:h2:./test;THROTTLE=50""
 ","
 SET THROTTLE 200
 "
@@ -1859,7 +1883,7 @@ To use SLF4J, append "";TRACE_LEVEL_FILE=4"" to the database URL when opening th
 This setting is not persistent.
 Admin rights are required to execute this command, as it affects all connections.
 This command does not commit a transaction, and rollback does not affect it.
-This setting can be appended to the database URL: ""jdbc:h2:test;TRACE_LEVEL_SYSTEM_OUT=3""
+This setting can be appended to the database URL: ""jdbc:h2:./test;TRACE_LEVEL_SYSTEM_OUT=3""
 ","
 SET TRACE_LEVEL_SYSTEM_OUT 3
 "
@@ -1874,7 +1898,7 @@ deleted. The default max size is 16 MB.
 This setting is persistent.
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.
-This setting can be appended to the database URL: ""jdbc:h2:test;TRACE_MAX_FILE_SIZE=3""
+This setting can be appended to the database URL: ""jdbc:h2:./test;TRACE_MAX_FILE_SIZE=3""
 ","
 SET TRACE_MAX_FILE_SIZE 10
 "
@@ -1899,7 +1923,7 @@ This setting is persistent. The default is 500 ms.
 
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.
-This setting can be appended to the database URL: ""jdbc:h2:test;WRITE_DELAY=0""
+This setting can be appended to the database URL: ""jdbc:h2:./test;WRITE_DELAY=0""
 ","
 SET WRITE_DELAY 2000
 "
@@ -1937,7 +1961,7 @@ A literal value of any data type, or null.
 "
 
 "Literals","Array","
-ARRAY '[' [ expression, [,...] ] ']'
+ARRAY '[' [ expression [,...] ] ']'
 ","
 An array of values.
 ","
@@ -2464,7 +2488,7 @@ Identity, auto-increment, or generated as identity columns are columns with a se
 The column declared as the identity columns with IDENTITY data type or with IDENTITY () clause
 is implicitly the primary key column of this table.
 AUTO_INCREMENT and GENERATED clauses do not create the primary key constraint.
-GENERATED ALWAYS is accepted by treated in the same way as GENERATED BY DEFAULT.
+GENERATED ALWAYS is accepted but treated in the same way as GENERATED BY DEFAULT.
 
 The invisible column will not be displayed as a result of SELECT * query.
 Otherwise, it works as normal column.
@@ -2532,7 +2556,7 @@ compare { { { ALL | ANY | SOME } ( query ) } | operand }
     | IS [ NOT ] NULL
     | IS [ NOT ] [ DISTINCT FROM ] operand
     | IS [ NOT ] { TRUE | FALSE | UNKNOWN }
-    | IS [ NOT ] OF (dataType [, dataType])
+    | IS [ NOT ] OF (dataType [,...])
     | IS [ NOT ] JSON [ VALUE | ARRAY | OBJECT | SCALAR ]
         [ [ WITH | WITHOUT ] UNIQUE [ KEYS ] ]
     | BETWEEN operand AND operand
@@ -2720,6 +2744,16 @@ A value or a numeric factor.
 ID * 10
 "
 
+"Other Grammar","Grouping element","
+expression | (expression [, ...]) | ()
+","
+A grouping element of GROUP BY clause.
+","
+A
+(B, C)
+()
+"
+
 "Other Grammar","Hex","
 [' ' [...]] { { digit | a-f | A-F } [' ' [...]] { digit | a-f | A-F } [' ' [...]] } [...]
 ","
@@ -2805,7 +2839,18 @@ WHEN NOT MATCHED THEN INSERT (ID, NAME) VALUES (S.ID, S.NAME)
 "Other Grammar","Name","
 { { A-Z|_ } [ { A-Z|_|0-9 } [...] ] } | quotedName
 ","
-Names are not case sensitive. There is no maximum name length.
+With default settings unquoted names are converted to upper case. There is no maximum name length.
+
+Identifiers in H2 are case sensitive by default.
+Because unquoted names are converted to upper case, they can be written in any case anyway.
+When both quoted and unquoted names are used for the same identifier the quoted names must be written in upper case.
+Identifiers with lowercase characters can be written only as a quoted name, they aren't accessible with unquoted names.
+
+If DATABASE_TO_UPPER setting is set to FALSE the unquoted names aren't converted to upper case.
+
+If DATABASE_TO_LOWER setting is set to TRUE the unquoted names are converted to lower case instead.
+
+If CASE_INSENSITIVE_IDENTIFIERS setting is set to TRUE all identifiers are case insensitive.
 ","
 TEST
 "
@@ -2847,9 +2892,10 @@ VALUES (1, 2), (3, 4);
 "Other Grammar","Quoted Name","
 ""anythingExceptDoubleQuote""
 ","
-Quoted names are case sensitive, and can contain spaces. There is no maximum
+Case of characters in quoted names is preserved as is. Such names can contain spaces. There is no maximum
 name length. Two double quotes can be used to create a single double quote
 inside an identifier.
+With default settings identifiers in H2 are case sensitive.
 ","
 ""FirstName""
 "
@@ -2911,17 +2957,58 @@ An expression in a SELECT statement.
 ID AS VALUE
 "
 
+"Other Grammar","Sequence value expression","
+{ NEXT | CURRENT } VALUE FOR [schemaName.]sequenceName
+","
+The next or current value of a sequence.
+
+When the next value is requested the sequence is incremented and the last identity in the current session is updated.
+Used values are never re-used, even when the transaction is rolled back.
+","
+NEXT VALUE FOR SEQ1
+CURRENT VALUE FOR SCHEMA2.SEQ2
+"
+
 "Other Grammar","Sequence options","
-[ START WITH long ]
-[ INCREMENT BY long ]
-[ MINVALUE long | NOMINVALUE | NO MINVALUE ]
-[ MAXVALUE long | NOMAXVALUE | NO MAXVALUE ]
-[ CYCLE long | NOCYCLE | NO CYCLE ]
-[ CACHE long | NOCACHE | NO CACHE ]
+sequenceOption [...]
 ","
 Options of a sequence.
 ","
 START WITH 1
+START WITH 10 INCREMENT BY 10
+"
+
+"Other Grammar","Sequence option","
+{ START | RESTART } WITH long
+    | INCREMENT BY long
+    | MINVALUE long | NO MINVALUE | NOMINVALUE
+    | MAXVALUE long | NO MAXVALUE | NOMAXVALUE
+    | CYCLE | NO CYCLE | NOCYCLE
+    | CACHE long | NO CACHE | NOCACHE
+","
+Option of a sequence.
+
+START WITH and RESTART WITH are used to set the first generated value of the sequence.
+START WITH may only be used in CREATE SEQUENCE command and it column definition,
+RESTART WITH may only be used in ALTER SEQUENCE command.
+The default is MINVALUE for incrementing sequences and MAXVALUE for decrementing sequences.
+
+INCREMENT BY specifies the step of the sequence, may be positive or negative, but may not be zero.
+The default is 1.
+
+MINVALUE and MAXVALUE specify the bounds of the sequence.
+
+Sequences with CYCLE option start the generation again from
+MINVALUE (incrementing sequences) or MAXVALUE (decrementing sequences) instead of exhausting with an error.
+
+The CACHE option sets the number of pre-allocated numbers.
+If the system crashes without closing the database, at most this many numbers are lost.
+The default cache size is 32.
+NO CACHE option or the cache size 1 or lower disable the cache.
+","
+START WITH 10000
+CYCLE
+NO CACHE
 "
 
 "Other Grammar","Set clause list","
@@ -3080,21 +3167,35 @@ CURRENT ROW
 "
 
 "Other Grammar","Term","
-value
+{ value
     | column
     | ?[ int ]
-    | NEXT VALUE FOR sequenceName
+    | sequenceValueExpression
     | function
     | { - | + } term
     | ( expression )
     | query
     | case
     | caseWhen
-    | userDefinedFunctionName
+    | userDefinedFunctionName }
+[ timeZone ]
 ","
 A value. Parameters can be indexed, for example ""?1"" meaning the first parameter.
 ","
 'Hello'
+"
+
+"Other Grammar","Time zone","
+AT { TIME ZONE { intervalHourToMinute | string } | LOCAL }
+","
+A time zone. Converts the timestamp with or without time zone into timestamp with time zone at specified time zone.
+","
+AT LOCAL
+AT TIME ZONE '2'
+AT TIME ZONE '-6:00'
+AT TIME ZONE INTERVAL '10:00' HOUR TO MINUTE
+AT TIME ZONE 'UTC'
+AT TIME ZONE 'Europe/London'
 "
 
 "Other Grammar","Column","
@@ -3223,7 +3324,7 @@ Mapped to ""java.sql.Time"". When converted to a ""java.sql.Date"", the date is 
 ""java.time.LocalTime"" is also supported and recommended on Java 8 and later versions.
 Use ""java.time.LocalTime"" or ""String"" instead of ""java.sql.Time"" when non-zero precision is needed.
 Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up;
-if result of rounding is higher than maximum supported value 23:59:59.999999999 it is saturated to 23:59:59.999999999.
+if result of rounding is higher than maximum supported value 23:59:59.999999999 the value is rounded down instead.
 ","
 TIME
 TIME(9)
@@ -4528,6 +4629,16 @@ Decodes a byte array in the UTF8 format to a string.
 CALL UTF8TOSTRING(STRINGTOUTF8('This is a test'))
 "
 
+"Functions (String)","QUOTE_IDENT","
+QUOTE_IDENT(string)
+","
+Quotes the specified identifier.
+Identifier is surrounded by double quotes.
+If identifier contains double quotes they are repeated twice.
+","
+QUOTE_IDENT('Column 1')
+"
+
 "Functions (String)","XMLATTR","
 XMLATTR(nameString, valueString)
 ","
@@ -4606,7 +4717,7 @@ CALL TRANSLATE('Hello world', 'eo', 'EO')
 "
 
 "Functions (Time and Date)","CURRENT_DATE","
-{ CURRENT_DATE | CURDATE() | SYSDATE | TODAY }
+CURRENT_DATE | CURDATE() | SYSDATE | TODAY
 ","
 Returns the current date.
 These methods always return the same value within a transaction (default)
@@ -4648,7 +4759,7 @@ CURRENT_TIMESTAMP(9)
 "
 
 "Functions (Time and Date)","LOCALTIME","
-{ LOCALTIME [ (int) ] | CURTIME([ int ]) }
+LOCALTIME [ (int) ] | CURTIME([ int ])
 ","
 Returns the current time.
 If fractional seconds precision is specified it should be from 0 to 9, 0 is default.
@@ -4663,7 +4774,7 @@ LOCALTIME(9)
 "
 
 "Functions (Time and Date)","LOCALTIMESTAMP","
-{ LOCALTIMESTAMP [ (int) ] | NOW( [ int ] ) }
+LOCALTIMESTAMP [ (int) ] | NOW( [ int ] )
 ","
 Returns the current timestamp without time zone.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
@@ -4934,7 +5045,8 @@ AUTOCOMMIT()
 CANCEL_SESSION(sessionInt)
 ","
 Cancels the currently executing statement of another session.
-The method only works if the multithreaded kernel is enabled (see SET MULTI_THREADED).
+The method only works if the multithreaded kernel is enabled
+(it is enabled by default with MVStore engine only, see SET MULTI_THREADED).
 Returns true if the statement was canceled, false if the session is closed or no statement is currently executing.
 
 Admin rights are required to execute this command.
@@ -4987,12 +5099,15 @@ CONVERT(NAME, INT)
 "
 
 "Functions (System)","CURRVAL","
-CURRVAL( [ schemaName, ] sequenceString )
+CURRVAL( [ schemaNameString, ] sequenceString )
 ","
 Returns the current (last) value of the sequence, independent of the session.
 If the sequence was just created, the method returns (start - interval).
+This method exists only for compatibility, when it isn't required use
+[CURRENT VALUE FOR sequenceName](https://h2database.com/html/grammar.html#sequence_value_expression)
+instead.
 If the schema name is not set, the current schema is used.
-If the schema name is not set, the sequence name is converted to uppercase (for compatibility).
+When sequence is not found, the uppercase name is also checked.
 This method returns a long.
 ","
 CURRVAL('TEST_SEQ')
@@ -5008,19 +5123,21 @@ If the column names are specified (a list of column names separated with the
 fieldSeparator), those are used, otherwise (or if they are set to NULL) the first line of
 the file is interpreted as the column names.
 In that case, column names that contain no special characters (only letters, '_',
-and digits; similar to the rule for Java identifiers) are considered case insensitive.
-Other column names are case sensitive, that means you need to use quoted identifiers
-(see below).
+and digits; similar to the rule for Java identifiers) are processed is the same way as unquoted identifiers
+and therefore case of characters may be changed.
+Other column names are processed as quoted identifiers and case of characters is preserved.
+To preserve the case of column names unconditionally use
+[caseSensitiveColumnNames](https://h2database.com/html/grammar.html#csv_options) option.
 
 The default charset is the default value for this system, and the default field separator
 is a comma. Missing unquoted values as well as data that matches nullString is
-parsed as NULL. All columns of type VARCHAR.
+parsed as NULL. All columns are of type VARCHAR.
 
 The BOM (the byte-order-mark) character 0xfeff at the beginning of the file is ignored.
 
 This function can be used like a table: ""SELECT * FROM CSVREAD(...)"".
 
-Instead of a file, an URL may be used, for example
+Instead of a file, a URL may be used, for example
 ""jar:file:///c:/temp/example.zip!/org/example/nested.csv"".
 To read a stream from the classpath, use the prefix ""classpath:"".
 To read from HTTP, use the prefix ""http:"" (as in a browser).
@@ -5071,12 +5188,12 @@ Returns the name of the default schema for this session.
 CALL CURRENT_SCHEMA
 "
 
-"Functions (System)","DATABASE","
-DATABASE()
+"Functions (System)","CURRENT_CATALOG","
+CURRENT_CATALOG | DATABASE()
 ","
 Returns the name of the database.
 ","
-CALL DATABASE();
+CALL CURRENT_CATALOG
 "
 
 "Functions (System)","DATABASE_PATH","
@@ -5223,7 +5340,7 @@ The driver name may be empty if the driver is already loaded.
 The list of tables linked is returned in the form of a result set.
 Admin rights are required to execute this command.
 ","
-CALL LINK_SCHEMA('TEST2', '', 'jdbc:h2:test2', 'sa', 'sa', 'PUBLIC');
+CALL LINK_SCHEMA('TEST2', '', 'jdbc:h2:./test2', 'sa', 'sa', 'PUBLIC');
 "
 
 "Functions (System)","MEMORY_FREE","
@@ -5249,11 +5366,15 @@ MEMORY_USED()
 "
 
 "Functions (System)","NEXTVAL","
-NEXTVAL ( [ schemaName, ] sequenceString )
+NEXTVAL ( [ schemaNameString, ] sequenceString )
 ","
 Returns the next value of the sequence.
 Used values are never re-used, even when the transaction is rolled back.
-If the schema name is not set, the current schema is used, and the sequence name is converted to uppercase (for compatibility).
+This method exists only for compatibility, it's recommended to use the standard
+[NEXT VALUE FOR sequenceName](https://h2database.com/html/grammar.html#sequence_value_expression)
+instead.
+If the schema name is not set, the current schema is used.
+When sequence is not found, the uppercase name is also checked.
 This method returns a long.
 ","
 NEXTVAL('TEST_SEQ')

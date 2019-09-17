@@ -196,7 +196,7 @@ public class Shell extends Tool implements Runnable {
 
     private void promptLoop() {
         println("");
-        println("Welcome to H2 Shell " + Constants.getFullVersion());
+        println("Welcome to H2 Shell " + Constants.FULL_VERSION);
         println("Exit with Ctrl+C");
         if (conn != null) {
             showHelp();

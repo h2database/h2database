@@ -38,7 +38,6 @@ import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ExpressionWithFlags;
 import org.h2.expression.Format;
-import org.h2.expression.SequenceValue;
 import org.h2.expression.Subquery;
 import org.h2.expression.TypedValueExpression;
 import org.h2.expression.ValueExpression;
@@ -118,7 +117,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             STRINGDECODE = 80, STRINGTOUTF8 = 81, UTF8TOSTRING = 82,
             XMLATTR = 83, XMLNODE = 84, XMLCOMMENT = 85, XMLCDATA = 86,
             XMLSTARTDOC = 87, XMLTEXT = 88, REGEXP_REPLACE = 89, RPAD = 90,
-            LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93, TRANSLATE = 94, /* 95 */
+            LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93, TRANSLATE = 94, QUOTE_IDENT = 95,
             TO_DATE = 96, TO_TIMESTAMP = 97, ADD_MONTHS = 98, TO_TIMESTAMP_TZ = 99;
 
     public static final int CURRENT_DATE = 100, CURRENT_TIME = 101, LOCALTIME = 102,
@@ -137,7 +136,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             TIMEZONE_HOUR = 130, TIMEZONE_MINUTE = 131, DECADE = 132, CENTURY = 133,
             MILLENNIUM = 134, DOW = 135;
 
-    public static final int DATABASE = 150, USER = 151, CURRENT_USER = 152,
+    public static final int CURRENT_CATALOG = 150, USER = 151, CURRENT_USER = 152,
             IDENTITY = 153, SCOPE_IDENTITY = 154, AUTOCOMMIT = 155,
             READONLY = 156, DATABASE_PATH = 157, LOCK_TIMEOUT = 158,
             DISK_SPACE_USED = 159, SIGNAL = 160, ESTIMATED_ENVELOPE = 161;
@@ -326,6 +325,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunction("LPAD", LPAD, VAR_ARGS, Value.STRING);
         addFunction("TO_CHAR", TO_CHAR, VAR_ARGS, Value.STRING);
         addFunction("TRANSLATE", TRANSLATE, 3, Value.STRING);
+        addFunction("QUOTE_IDENT", QUOTE_IDENT, 1, Value.STRING);
         addFunction("REGEXP_LIKE", REGEXP_LIKE, VAR_ARGS, Value.BOOLEAN);
 
         // date
@@ -402,8 +402,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 1, Value.INT);
         addFunction("DATE_TRUNC", DATE_TRUNC, 2, Value.NULL);
         // system
-        addFunctionNotDeterministic("DATABASE", DATABASE,
-                0, Value.STRING);
+        addFunctionNotDeterministic("CURRENT_CATALOG", CURRENT_CATALOG, 0, Value.STRING, false);
+        addFunctionNotDeterministic("DATABASE", CURRENT_CATALOG, 0, Value.STRING);
         addFunctionNotDeterministic("USER", USER,
                 0, Value.STRING);
         addFunctionNotDeterministic("CURRENT_USER", CURRENT_USER,
@@ -960,9 +960,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                     database.getMode().treatEmptyStringsAsNull);
             break;
         }
-        case DATABASE:
-            result = ValueString.get(database.getShortName(),
-                    database.getMode().treatEmptyStringsAsNull);
+        case CURRENT_CATALOG:
+            result = ValueString.get(database.getShortName(), database.getMode().treatEmptyStringsAsNull);
             break;
         case USER:
         case CURRENT_USER:
@@ -1545,8 +1544,12 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             result = ValueString.get(translate(v0.getString(), matching, replacement), mode.treatEmptyStringsAsNull);
             break;
         }
+        case QUOTE_IDENT:
+            result = ValueString.get(StringUtils.quoteIdentifier(v0.getString()),
+                    database.getMode().treatEmptyStringsAsNull);
+            break;
         case H2VERSION:
-            result = ValueString.get(Constants.getVersion(),
+            result = ValueString.get(Constants.VERSION,
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case DATEADD:
@@ -1599,8 +1602,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             // system
         case NEXTVAL: {
             Sequence sequence = getSequence(session, v0, v1);
-            SequenceValue value = new SequenceValue(sequence);
-            result = value.getValue(session);
+            result = ValueLong.get(sequence.getNext(session));
+            session.setLastIdentity(result);
             break;
         }
         case CURRVAL: {

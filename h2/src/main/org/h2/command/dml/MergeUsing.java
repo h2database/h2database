@@ -39,240 +39,8 @@ import org.h2.value.Value;
  */
 public class MergeUsing extends Prepared implements DataChangeStatement {
 
-    /**
-     * Abstract WHEN command of the MERGE statement.
-     */
-    public static abstract class When {
-
-        /**
-         * The parent MERGE statement.
-         */
-        final MergeUsing mergeUsing;
-
-        /**
-         * AND condition of the command.
-         */
-        Expression andCondition;
-
-        When(MergeUsing mergeUsing) {
-            this.mergeUsing = mergeUsing;
-        }
-
-        /**
-         * Sets the specified AND condition.
-         *
-         * @param andCondition AND condition to set
-         */
-        public void setAndCondition(Expression andCondition) {
-            this.andCondition = andCondition;
-        }
-
-        /**
-         * Reset updated keys if needs.
-         */
-        void reset() {
-            // Nothing to do
-        }
-
-        abstract void setDeltaChangeCollector(ResultTarget deltaChangeCollector, //
-                ResultOption deltaChangeCollectionMode);
-
-        /**
-         * Merges rows.
-         *
-         * @return count of updated rows.
-         */
-        abstract int merge();
-
-        /**
-         * Prepares WHEN command.
-         */
-        void prepare() {
-            if (andCondition != null) {
-                andCondition.mapColumns(mergeUsing.sourceTableFilter, 2, Expression.MAP_INITIAL);
-                andCondition.mapColumns(mergeUsing.targetTableFilter, 1, Expression.MAP_INITIAL);
-            }
-        }
-
-        /**
-         * Evaluates trigger mask (UPDATE, INSERT, DELETE).
-         *
-         * @return the trigger mask.
-         */
-        abstract int evaluateTriggerMasks();
-
-        /**
-         * Checks user's INSERT, UPDATE, DELETE permission in appropriate cases.
-         */
-        abstract void checkRights();
-
-    }
-
-    public static final class WhenMatched extends When {
-
-        Update updateCommand;
-
-        Delete deleteCommand;
-
-        private final HashSet<Long> updatedKeys = new HashSet<>();
-
-        public WhenMatched(MergeUsing mergeUsing) {
-            super(mergeUsing);
-        }
-
-        public Prepared getUpdateCommand() {
-            return updateCommand;
-        }
-
-        public void setUpdateCommand(Update updateCommand) {
-            this.updateCommand = updateCommand;
-        }
-
-        public Prepared getDeleteCommand() {
-            return deleteCommand;
-        }
-
-        public void setDeleteCommand(Delete deleteCommand) {
-            this.deleteCommand = deleteCommand;
-        }
-
-        @Override
-        void reset() {
-            updatedKeys.clear();
-        }
-
-        @Override
-        void setDeltaChangeCollector(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
-            if (updateCommand != null) {
-                updateCommand.setDeltaChangeCollector(deltaChangeCollector, deltaChangeCollectionMode);
-            }
-            if (deleteCommand != null) {
-                deleteCommand.setDeltaChangeCollector(deltaChangeCollector, deltaChangeCollectionMode);
-            }
-        }
-
-        @Override
-        int merge() {
-            int countUpdatedRows = 0;
-            if (updateCommand != null) {
-                countUpdatedRows += updateCommand.update();
-            }
-            // under oracle rules these updates & delete combinations are
-            // allowed together
-            if (deleteCommand != null) {
-                countUpdatedRows += deleteCommand.update();
-                updatedKeys.clear();
-            }
-            return countUpdatedRows;
-        }
-
-        @Override
-        void prepare() {
-            super.prepare();
-            if (updateCommand != null) {
-                updateCommand.setSourceTableFilter(mergeUsing.sourceTableFilter);
-                updateCommand.setCondition(appendCondition(updateCommand, mergeUsing.onCondition));
-                if (andCondition != null) {
-                    updateCommand.setCondition(appendCondition(updateCommand, andCondition));
-                }
-                updateCommand.prepare();
-            }
-            if (deleteCommand != null) {
-                deleteCommand.setSourceTableFilter(mergeUsing.sourceTableFilter);
-                deleteCommand.setCondition(appendCondition(deleteCommand, mergeUsing.onCondition));
-                if (andCondition != null) {
-                    deleteCommand.setCondition(appendCondition(deleteCommand, andCondition));
-                }
-                deleteCommand.prepare();
-                if (updateCommand != null) {
-                    updateCommand.setUpdatedKeysCollector(updatedKeys);
-                    deleteCommand.setKeysFilter(updatedKeys);
-                }
-            }
-        }
-
-        @Override
-        int evaluateTriggerMasks() {
-            int masks = 0;
-            if (updateCommand != null) {
-                masks |= Trigger.UPDATE;
-            }
-            if (deleteCommand != null) {
-                masks |= Trigger.DELETE;
-            }
-            return masks;
-        }
-
-        @Override
-        void checkRights() {
-            User user = mergeUsing.getSession().getUser();
-            if (updateCommand != null) {
-                user.checkRight(mergeUsing.targetTable, Right.UPDATE);
-            }
-            if (deleteCommand != null) {
-                user.checkRight(mergeUsing.targetTable, Right.DELETE);
-            }
-        }
-
-        private static Expression appendCondition(Update updateCommand, Expression condition) {
-            Expression c = updateCommand.getCondition();
-            return c == null ? condition : new ConditionAndOr(ConditionAndOr.AND, c, condition);
-        }
-
-        private static Expression appendCondition(Delete deleteCommand, Expression condition) {
-            Expression c = deleteCommand.getCondition();
-            return c == null ? condition : new ConditionAndOr(ConditionAndOr.AND, c, condition);
-        }
-
-    }
-
-    public static final class WhenNotMatched extends When {
-
-        private Insert insertCommand;
-
-        public WhenNotMatched(MergeUsing mergeUsing) {
-            super(mergeUsing);
-        }
-
-        public Insert getInsertCommand() {
-            return insertCommand;
-        }
-
-        public void setInsertCommand(Insert insertCommand) {
-            this.insertCommand = insertCommand;
-        }
-
-        @Override
-        void setDeltaChangeCollector(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
-            insertCommand.setDeltaChangeCollector(deltaChangeCollector, deltaChangeCollectionMode);
-        }
-
-        @Override
-        int merge() {
-            return andCondition == null || andCondition.getBooleanValue(mergeUsing.getSession()) ?
-                    insertCommand.update() : 0;
-        }
-
-        @Override
-        void prepare() {
-            super.prepare();
-            insertCommand.setSourceTableFilter(mergeUsing.sourceTableFilter);
-            insertCommand.prepare();
-        }
-
-        @Override
-        int evaluateTriggerMasks() {
-            return Trigger.INSERT;
-        }
-
-        @Override
-        void checkRights() {
-            mergeUsing.getSession().getUser().checkRight(mergeUsing.targetTable, Right.INSERT);
-        }
-
-    }
-
     // Merge fields
+
     /**
      * Target table.
      */
@@ -286,6 +54,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
     private Query query;
 
     // MergeUsing fields
+
     /**
      * Source table filter.
      */
@@ -295,17 +64,18 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
      * ON condition expression.
      */
     Expression onCondition;
+
     private ArrayList<When> when = Utils.newSmallArrayList();
     private String queryAlias;
     private int countUpdatedRows;
     private Select targetMatchQuery;
+
     /**
      * Contains mappings between _ROWID_ and ROW_NUMBER for processed rows. Row
      * identities are remembered to prevent duplicate updates of the same row.
      */
     private final HashMap<Value, Integer> targetRowidsRemembered = new HashMap<>();
     private int sourceQueryRowNumber;
-
 
     public MergeUsing(Session session, TableFilter targetTableFilter) {
         super(session);
@@ -553,6 +323,11 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         return "MERGE";
     }
 
+    /**
+     * Whether any of the "when" parts contain both an update and a delete part.
+     *
+     * @return the if one part does
+     */
     public boolean hasCombinedMatchedClause() {
         for (When w : when) {
             if (w instanceof WhenMatched) {
@@ -563,6 +338,251 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
             }
         }
         return false;
+    }
+
+    /**
+     * Abstract WHEN command of the MERGE statement.
+     */
+    public static abstract class When {
+
+        /**
+         * The parent MERGE statement.
+         */
+        final MergeUsing mergeUsing;
+
+        /**
+         * AND condition of the command.
+         */
+        Expression andCondition;
+
+        When(MergeUsing mergeUsing) {
+            this.mergeUsing = mergeUsing;
+        }
+
+        /**
+         * Sets the specified AND condition.
+         *
+         * @param andCondition AND condition to set
+         */
+        public void setAndCondition(Expression andCondition) {
+            this.andCondition = andCondition;
+        }
+
+        /**
+         * Reset updated keys if needs.
+         */
+        void reset() {
+            // Nothing to do
+        }
+
+        /**
+         * Where changes should be processed.
+         *
+         * @param deltaChangeCollector the collector
+         * @param deltaChangeCollectionMode the mode
+         */
+        abstract void setDeltaChangeCollector(ResultTarget deltaChangeCollector,
+                ResultOption deltaChangeCollectionMode);
+
+        /**
+         * Merges rows.
+         *
+         * @return count of updated rows.
+         */
+        abstract int merge();
+
+        /**
+         * Prepares WHEN command.
+         */
+        void prepare() {
+            if (andCondition != null) {
+                andCondition.mapColumns(mergeUsing.sourceTableFilter, 2, Expression.MAP_INITIAL);
+                andCondition.mapColumns(mergeUsing.targetTableFilter, 1, Expression.MAP_INITIAL);
+            }
+        }
+
+        /**
+         * Evaluates trigger mask (UPDATE, INSERT, DELETE).
+         *
+         * @return the trigger mask.
+         */
+        abstract int evaluateTriggerMasks();
+
+        /**
+         * Checks user's INSERT, UPDATE, DELETE permission in appropriate cases.
+         */
+        abstract void checkRights();
+
+    }
+
+    public static final class WhenMatched extends When {
+
+        /**
+         * The update command.
+         */
+        Update updateCommand;
+
+        /**
+         * The delete command.
+         */
+        Delete deleteCommand;
+
+        private final HashSet<Long> updatedKeys = new HashSet<>();
+
+        public WhenMatched(MergeUsing mergeUsing) {
+            super(mergeUsing);
+        }
+
+        public Prepared getUpdateCommand() {
+            return updateCommand;
+        }
+
+        public void setUpdateCommand(Update updateCommand) {
+            this.updateCommand = updateCommand;
+        }
+
+        public Prepared getDeleteCommand() {
+            return deleteCommand;
+        }
+
+        public void setDeleteCommand(Delete deleteCommand) {
+            this.deleteCommand = deleteCommand;
+        }
+
+        @Override
+        void reset() {
+            updatedKeys.clear();
+        }
+
+        @Override
+        void setDeltaChangeCollector(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+            if (updateCommand != null) {
+                updateCommand.setDeltaChangeCollector(deltaChangeCollector, deltaChangeCollectionMode);
+            }
+            if (deleteCommand != null) {
+                deleteCommand.setDeltaChangeCollector(deltaChangeCollector, deltaChangeCollectionMode);
+            }
+        }
+
+        @Override
+        int merge() {
+            int countUpdatedRows = 0;
+            if (updateCommand != null) {
+                countUpdatedRows += updateCommand.update();
+            }
+            // under oracle rules these updates & delete combinations are
+            // allowed together
+            if (deleteCommand != null) {
+                countUpdatedRows += deleteCommand.update();
+                updatedKeys.clear();
+            }
+            return countUpdatedRows;
+        }
+
+        @Override
+        void prepare() {
+            super.prepare();
+            if (updateCommand != null) {
+                updateCommand.setSourceTableFilter(mergeUsing.sourceTableFilter);
+                updateCommand.setCondition(appendCondition(updateCommand, mergeUsing.onCondition));
+                if (andCondition != null) {
+                    updateCommand.setCondition(appendCondition(updateCommand, andCondition));
+                }
+                updateCommand.prepare();
+            }
+            if (deleteCommand != null) {
+                deleteCommand.setSourceTableFilter(mergeUsing.sourceTableFilter);
+                deleteCommand.setCondition(appendCondition(deleteCommand, mergeUsing.onCondition));
+                if (andCondition != null) {
+                    deleteCommand.setCondition(appendCondition(deleteCommand, andCondition));
+                }
+                deleteCommand.prepare();
+                if (updateCommand != null) {
+                    updateCommand.setUpdatedKeysCollector(updatedKeys);
+                    deleteCommand.setKeysFilter(updatedKeys);
+                }
+            }
+        }
+
+        @Override
+        int evaluateTriggerMasks() {
+            int masks = 0;
+            if (updateCommand != null) {
+                masks |= Trigger.UPDATE;
+            }
+            if (deleteCommand != null) {
+                masks |= Trigger.DELETE;
+            }
+            return masks;
+        }
+
+        @Override
+        void checkRights() {
+            User user = mergeUsing.getSession().getUser();
+            if (updateCommand != null) {
+                user.checkRight(mergeUsing.targetTable, Right.UPDATE);
+            }
+            if (deleteCommand != null) {
+                user.checkRight(mergeUsing.targetTable, Right.DELETE);
+            }
+        }
+
+        private static Expression appendCondition(Update updateCommand, Expression condition) {
+            Expression c = updateCommand.getCondition();
+            return c == null ? condition : new ConditionAndOr(ConditionAndOr.AND, c, condition);
+        }
+
+        private static Expression appendCondition(Delete deleteCommand, Expression condition) {
+            Expression c = deleteCommand.getCondition();
+            return c == null ? condition : new ConditionAndOr(ConditionAndOr.AND, c, condition);
+        }
+
+    }
+
+    public static final class WhenNotMatched extends When {
+
+        private Insert insertCommand;
+
+        public WhenNotMatched(MergeUsing mergeUsing) {
+            super(mergeUsing);
+        }
+
+        public Insert getInsertCommand() {
+            return insertCommand;
+        }
+
+        public void setInsertCommand(Insert insertCommand) {
+            this.insertCommand = insertCommand;
+        }
+
+        @Override
+        void setDeltaChangeCollector(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+            insertCommand.setDeltaChangeCollector(deltaChangeCollector, deltaChangeCollectionMode);
+        }
+
+        @Override
+        int merge() {
+            return andCondition == null || andCondition.getBooleanValue(mergeUsing.getSession()) ?
+                    insertCommand.update() : 0;
+        }
+
+        @Override
+        void prepare() {
+            super.prepare();
+            insertCommand.setSourceTableFilter(mergeUsing.sourceTableFilter);
+            insertCommand.prepare();
+        }
+
+        @Override
+        int evaluateTriggerMasks() {
+            return Trigger.INSERT;
+        }
+
+        @Override
+        void checkRights() {
+            mergeUsing.getSession().getUser().checkRight(mergeUsing.targetTable, Right.INSERT);
+        }
+
     }
 
 }

@@ -29,7 +29,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 <ul><li>Replace file password hash with file encryption key; validate encryption key when connecting.
 </li><li>Remove "set binary collation" feature.
 </li><li>Remove the encryption algorithm XTEA.
-</li><li>Disallow referencing other tables in a table (via constraints for example).
 </li><li>Remove PageStore features like compress_lob.
 </li></ul>
 
@@ -82,7 +81,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Web server classloader: override findResource / getResourceFrom.
 </li><li>Cost for embedded temporary view is calculated wrong, if result is constant.
 </li><li>Count index range query (count(*) where id between 10 and 20).
-</li><li>Performance: update in-place.
 </li><li>Clustering: when a database is back alive, automatically synchronize with the master (requires readable transaction log).
 </li><li>Database file name suffix: a way to use no or a different suffix (for example using a slash).
 </li><li>Eclipse plugin.
@@ -161,7 +159,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Release locks (shared or exclusive) on demand
 </li><li>Support OUTER UNION
 </li><li>Support parameterized views (similar to CSVREAD, but using just SQL for the definition)
-</li><li>A way (JDBC driver) to map an URL (jdbc:h2map:c1) to a connection object
+</li><li>A way (JDBC driver) to map a URL (jdbc:h2map:c1) to a connection object
 </li><li>Support dynamic linked schema (automatically adding/updating/removing tables)
 </li><li>Clustering: adding a node should be very fast and without interrupting clients (very short lock)
 </li><li>Compatibility: # is the start of a single line comment (MySQL) but date quote (Access). Mode specific
@@ -185,7 +183,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>HSQLDB compatibility: automatically convert to the next 'higher' data type.
     Example: cast(2000000000 as int) + cast(2000000000 as int);
     (HSQLDB: long; PostgreSQL: integer out of range)
-</li><li>Provide an Java SQL builder with standard and H2 syntax
 </li><li>Trace: write OS, file system, JVM,... when opening the database
 </li><li>Support indexes for views (probably requires materialized views)
 </li><li>Document SET SEARCH_PATH, BEGIN, EXECUTE, parameters
@@ -307,7 +304,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Sybase/DB2/Oracle compatibility: support out parameters in stored procedures - See http://code.google.com/p/h2database/issues/detail?id=83
 </li><li>Combine Server and Console tool (only keep Server).
 </li><li>Store the Lucene index in the database itself.
-</li><li>MVCC: compare concurrent update behavior with PostgreSQL and Oracle.
 </li><li>HSQLDB compatibility: CREATE FUNCTION (maybe using a Function interface).
 </li><li>HSQLDB compatibility: support CALL "java.lang.Math.sqrt"(2.0)
 </li><li>Support comma as the decimal separator in the CSV tool.
@@ -465,12 +461,10 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Compatibility for ARRAY data type (Oracle: VARRAY(n) of VARCHAR(m); HSQLDB: VARCHAR(n) ARRAY; Postgres: VARCHAR(n)[]).
 </li><li>PostgreSQL compatible array literal syntax: ARRAY[['a', 'b'], ['c', 'd']]
 </li><li>PostgreSQL compatibility: UPDATE with FROM.
-</li><li>Issue 297: Oracle compatibility for "at time zone".
 </li><li>IBM DB2 compatibility: IDENTITY_VAL_LOCAL().
 </li><li>Support SQL/XML data type.
 </li><li>Support concurrent opening of databases.
 </li><li>Improved error message and diagnostics in case of network configuration problems.
-</li><li>TRUNCATE should reset the identity columns by default in MySQL and MS SQL Server compatibility modes (and possibly other).
 </li><li>Adding a primary key should make the columns 'not null' unless if there is a row with null
     (compatibility with MySQL, PostgreSQL, HSQLDB; not Derby).
 </li><li>ARRAY data type: support Integer[] and so on in Java functions (currently only Object[] is supported).

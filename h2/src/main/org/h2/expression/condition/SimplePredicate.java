@@ -17,7 +17,11 @@ import org.h2.table.TableFilter;
  */
 public abstract class SimplePredicate extends Condition {
 
+    /**
+     * The left hand side of the expression.
+     */
     Expression left;
+
     final boolean not;
 
     SimplePredicate(Expression left, boolean not) {

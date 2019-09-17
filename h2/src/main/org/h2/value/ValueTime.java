@@ -157,12 +157,9 @@ public class ValueTime extends Value {
             throw DbException.getInvalidValueException("scale", targetScale);
         }
         long n = nanos;
-        long n2 = DateTimeUtils.convertScale(n, targetScale);
+        long n2 = DateTimeUtils.convertScale(n, targetScale, DateTimeUtils.NANOS_PER_DAY);
         if (n2 == n) {
             return this;
-        }
-        if (n2 >= DateTimeUtils.NANOS_PER_DAY) {
-            n2 = DateTimeUtils.NANOS_PER_DAY - 1;
         }
         return fromNanos(n2);
     }

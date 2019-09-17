@@ -415,6 +415,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         clearIt();
     }
 
+    /**
+     * Remove all entries and return the root reference.
+     *
+     * @return the new root reference
+     */
     RootReference clearIt() {
         Page emptyRootPage = createEmptyLeaf();
         int attempt = 0;
@@ -842,6 +847,13 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         root.set(new RootReference(rootPage, version));
     }
 
+    /**
+     * Compare and set the root reference.
+     *
+     * @param expectedRootReference the old (expected)
+     * @param updatedRootReference the new
+     * @return whether updating worked
+     */
     final boolean compareAndSetRoot(RootReference expectedRootReference, RootReference updatedRootReference) {
         return root.compareAndSet(expectedRootReference, updatedRootReference);
     }
@@ -1304,7 +1316,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 p = replacePage(pos, p, unsavedMemoryHolder);
                 rootReference = rootReference.updatePageAndLockedStatus(p, preLocked || isPersistent(),
                         remainingBuffer);
-                if (rootReference != null) {    // should always be the case, except for spurious failure?
+                if (rootReference != null) {
+                    // should always be the case, except for spurious failure?
                     locked = preLocked || isPersistent();
                     if (isPersistent() && tip != null) {
                         store.registerUnsavedMemory(unsavedMemoryHolder.value + tip.processRemovalInfo(version));
@@ -1843,6 +1856,13 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
     }
 
+    /**
+     * Try to lock the root.
+     *
+     * @param rootReference the old root reference
+     * @param attempt the number of attempts so far
+     * @return the new root reference
+     */
     protected RootReference tryLock(RootReference rootReference, int attempt) {
         RootReference lockedRootReference = rootReference.tryLock(attempt);
         if (lockedRootReference != null) {
@@ -1883,10 +1903,21 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return null;
     }
 
+    /**
+     * Unlock the root page, the new root being null.
+     *
+     * @return the new root reference (never null)
+     */
     private RootReference unlockRoot() {
         return unlockRoot(null, -1);
     }
 
+    /**
+     * Unlock the root page.
+     *
+     * @param newRootPage the new root
+     * @return the new root reference (never null)
+     */
     protected RootReference unlockRoot(Page newRootPage) {
         return unlockRoot(newRootPage, -1);
     }

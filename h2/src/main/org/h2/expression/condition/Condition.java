@@ -16,6 +16,13 @@ import org.h2.value.Value;
  */
 abstract class Condition extends Expression {
 
+    /**
+     * Add a cast around the expression (if necessary) so that the type is boolean.
+     *
+     * @param session the session
+     * @param expression the expression
+     * @return the new expression
+     */
     static Expression castToBoolean(Session session, Expression expression) {
         if (expression.getType().getValueType() == Value.BOOLEAN) {
             return expression;

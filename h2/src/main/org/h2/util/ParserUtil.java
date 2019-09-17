@@ -48,9 +48,14 @@ public class ParserUtil {
     public static final int CROSS = CONSTRAINT + 1;
 
     /**
+     * The token "CURRENT_CATALOG".
+     */
+    public static final int CURRENT_CATALOG = CROSS + 1;
+
+    /**
      * The token "CURRENT_DATE".
      */
-    public static final int CURRENT_DATE = CROSS + 1;
+    public static final int CURRENT_DATE = CURRENT_CATALOG + 1;
 
     /**
      * The token "CURRENT_SCHEMA".
@@ -163,9 +168,14 @@ public class ParserUtil {
     public static final int JOIN = IS + 1;
 
     /**
+     * The token "LEFT".
+     */
+    public static final int LEFT = JOIN + 1;
+
+    /**
      * The token "LIKE".
      */
-    public static final int LIKE = JOIN + 1;
+    public static final int LIKE = LEFT + 1;
 
     /**
      * The token "LIMIT".
@@ -228,9 +238,14 @@ public class ParserUtil {
     public static final int QUALIFY = PRIMARY + 1;
 
     /**
+     * The token "RIGHT".
+     */
+    public static final int RIGHT = QUALIFY + 1;
+
+    /**
      * The token "ROW".
      */
-    public static final int ROW = QUALIFY + 1;
+    public static final int ROW = RIGHT + 1;
 
     /**
      * The token "_ROWID_".
@@ -441,6 +456,8 @@ public class ParserUtil {
                 return CONSTRAINT;
             } else if (eq("CROSS", s, ignoreCase, start, end)) {
                 return CROSS;
+            } else if (eq("CURRENT_CATALOG", s, ignoreCase, start, end)) {
+                return CURRENT_CATALOG;
             } else if (eq("CURRENT_DATE", s, ignoreCase, start, end)) {
                 return CURRENT_DATE;
             } else if (eq("CURRENT_SCHEMA", s, ignoreCase, start, end)) {
@@ -526,7 +543,9 @@ public class ParserUtil {
             }
             return IDENTIFIER;
         case 'L':
-            if (eq("LIMIT", s, ignoreCase, start, end)) {
+            if (eq("LEFT", s, ignoreCase, start, end)) {
+                return LEFT;
+            } else if (eq("LIMIT", s, ignoreCase, start, end)) {
                 return LIMIT;
             } else if (eq("LIKE", s, ignoreCase, start, end)) {
                 return LIKE;
@@ -536,7 +555,7 @@ public class ParserUtil {
                 return LOCALTIMESTAMP;
             }
             if (additionalKeywords) {
-                if (eq("LEADING", s, ignoreCase, start, end) || eq("LEFT", s, ignoreCase, start, end)) {
+                if (eq("LEADING", s, ignoreCase, start, end)) {
                     return KEYWORD;
                 }
             }
@@ -585,14 +604,16 @@ public class ParserUtil {
             }
             return IDENTIFIER;
         case 'R':
-            if (eq("ROW", s, ignoreCase, start, end)) {
+            if (eq("RIGHT", s, ignoreCase, start, end)) {
+                return RIGHT;
+            } else if (eq("ROW", s, ignoreCase, start, end)) {
                 return ROW;
             } else if (eq("ROWNUM", s, ignoreCase, start, end)) {
                 return ROWNUM;
             }
             if (additionalKeywords) {
                 if (eq("RANGE", s, ignoreCase, start, end) || eq("REGEXP", s, ignoreCase, start, end)
-                        || eq("ROWS", s, ignoreCase, start, end) || eq("RIGHT", s, ignoreCase, start, end)) {
+                        || eq("ROWS", s, ignoreCase, start, end)) {
                     return KEYWORD;
                 }
             }

@@ -946,6 +946,7 @@ or the SQL statement <code>SET MODE MSSQLServer</code>.
 </li><li>Table hints are discarded. Example: <code>SELECT * FROM table WITH (NOLOCK)</code>.
 </li><li>Datetime value functions return the same value within a command.
 </li><li>0x literals are parsed as binary string literals.
+</li><li>TRUNCATE TABLE restarts next values of generated columns.
 </li></ul>
 
 <h3>MySQL Compatibility Mode</h3>
@@ -972,6 +973,7 @@ Do not change value of DATABASE_TO_LOWER after creation of database.
 </li><li>0x literals are parsed as binary string literals.
 </li><li>Unrelated expressions in ORDER BY clause of DISTINCT queries are allowed.
 </li><li>Some MySQL-specific ALTER TABLE commands are partially supported.
+</li><li>TRUNCATE TABLE restarts next values of generated columns.
 </li></ul>
 <p>
 Text comparison in MySQL is case insensitive by default, while in H2 it is case sensitive (as in most other databases).
@@ -1000,6 +1002,7 @@ or the SQL statement <code>SET MODE Oracle</code>.
 </li><li>DATE data type is treated like TIMESTAMP(0) data type.
 </li><li>Datetime value functions return the same value within a command.
 </li><li>ALTER TABLE MODIFY COLUMN command is partially supported.
+</li><li>SEQUENCE.NEXTVAL and SEQUENCE.CURRVAL return values with DECIMAL/NUMERIC data type.
 </li></ul>
 
 <h3>PostgreSQL Compatibility Mode</h3>
@@ -1286,7 +1289,11 @@ The formula is evaluated when the row is inserted, and re-evaluated every time t
 One use case is to automatically update the last-modification time:
 </p>
 <pre>
-CREATE TABLE TEST(ID INT, NAME VARCHAR, LAST_MOD TIMESTAMP AS NOW());
+CREATE TABLE TEST(
+    ID INT,
+    NAME VARCHAR,
+    LAST_MOD TIMESTAMP WITH TIME ZONE AS CURRENT_TIMESTAMP
+);
 </pre>
 <p>
 Function indexes are not directly supported by this database, but they can be emulated

@@ -297,7 +297,7 @@ public class OsgiDataSourceFactory implements DataSourceFactory {
                 "H2 JDBC Driver");
         properties.put(
                 DataSourceFactory.OSGI_JDBC_DRIVER_VERSION,
-                Constants.getFullVersion());
+                Constants.FULL_VERSION);
         bundleContext.registerService(
                 DataSourceFactory.class.getName(),
                 new OsgiDataSourceFactory(driver), properties);

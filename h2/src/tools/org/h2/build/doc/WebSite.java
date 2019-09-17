@@ -124,11 +124,11 @@ public class WebSite {
                 return;
             }
             if (web) {
-                if (name.endsWith("main.html") || name.endsWith("main_ja.html")) {
+                if (name.endsWith("main.html")) {
                     return;
                 }
             } else {
-                if (name.endsWith("mainWeb.html") || name.endsWith("mainWeb_ja.html")) {
+                if (name.endsWith("mainWeb.html")) {
                     return;
                 }
             }
@@ -158,8 +158,6 @@ public class WebSite {
             if (web) {
                 if (name.endsWith("mainWeb.html")) {
                     target.renameTo(new File(target.getParentFile(), "main.html"));
-                } else if (name.endsWith("mainWeb_ja.html")) {
-                    target.renameTo(new File(target.getParentFile(), "main_ja.html"));
                 }
             }
         }

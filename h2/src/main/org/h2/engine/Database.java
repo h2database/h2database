@@ -2315,6 +2315,10 @@ public class Database implements DataHandler, CastDataProvider {
         session.setAllCommitted();
     }
 
+    /**
+     * If there is a background store thread, and if there wasn an exception in
+     * that thread, throw it now.
+     */
     void throwLastBackgroundException() {
         if (store == null || !store.getMvStore().isBackgroundThread()) {
             DbException b = backgroundException.getAndSet(null);

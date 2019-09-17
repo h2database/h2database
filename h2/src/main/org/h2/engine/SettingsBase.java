@@ -43,6 +43,12 @@ public class SettingsBase {
         }
     }
 
+    /**
+     * Set an entry in the key-value pair.
+     *
+     * @param key the key
+     * @param value the value
+     */
     void set(String key, boolean value) {
         settings.put(key, Boolean.toString(value));
     }

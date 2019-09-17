@@ -40,7 +40,7 @@ public class TestIgnoreCatalogs extends TestDb {
         doesNotAcceptEmptySchemaWhenNotMSSQL();
     }
 
-    public void doesNotAcceptEmptySchemaWhenNotMSSQL() throws SQLException {
+    private void doesNotAcceptEmptySchemaWhenNotMSSQL() throws SQLException {
         try (Connection conn = getConnection("ignoreCatalogs;IGNORE_CATALOGS=TRUE")) {
             try (Statement stat = conn.createStatement()) {
                 prepareDbAndSetDefaultSchema(stat);
@@ -61,8 +61,7 @@ public class TestIgnoreCatalogs extends TestDb {
         }
     }
 
-
-    public void canCommentOn() throws Exception {
+    private void canCommentOn() throws Exception {
         try (Connection conn = getConnection("ignoreCatalogs;MODE=MSSQLSERVER;IGNORE_CATALOGS=TRUE;")) {
             try (Statement stat = conn.createStatement()) {
                 prepareDbAndSetDefaultSchema(stat);
@@ -87,7 +86,7 @@ public class TestIgnoreCatalogs extends TestDb {
         }
     }
 
-    public void canUseDefaultSchema() throws Exception {
+    private void canUseDefaultSchema() throws Exception {
         try (Connection conn = getConnection("ignoreCatalogs;MODE=MSSQLSERVER;IGNORE_CATALOGS=TRUE;")) {
             try (Statement stat = conn.createStatement()) {
                 prepareDbAndSetDefaultSchema(stat);
@@ -105,7 +104,7 @@ public class TestIgnoreCatalogs extends TestDb {
         }
     }
 
-    public void canUseSettingInUrl() throws Exception {
+    private void canUseSettingInUrl() throws Exception {
         try (Connection conn = getConnection("ignoreCatalogs;MODE=MSSQLSERVER;IGNORE_CATALOGS=TRUE;")) {
             try (Statement stat = conn.createStatement()) {
                 prepareDb(stat);
@@ -121,7 +120,7 @@ public class TestIgnoreCatalogs extends TestDb {
 
     }
 
-    public void canUseSetterSyntax() throws Exception {
+    private void canUseSetterSyntax() throws Exception {
         try (Connection conn = getConnection("ignoreCatalogs;MODE=MSSQLSERVER;")) {
             try (Statement stat = conn.createStatement()) {
                 prepareDb(stat);
@@ -137,7 +136,7 @@ public class TestIgnoreCatalogs extends TestDb {
         }
     }
 
-    public void canCatalogNameEqualSchemaName() throws Exception {
+    private void canCatalogNameEqualSchemaName() throws Exception {
         try (Connection conn = getConnection("ignoreCatalogs;MODE=MSSQLSERVER;")) {
             try (Statement stat = conn.createStatement()) {
                 prepareDb(stat);
@@ -153,7 +152,7 @@ public class TestIgnoreCatalogs extends TestDb {
         }
     }
 
-    public void canYetIdentifyWrongCatalogName() throws Exception {
+    private void canYetIdentifyWrongCatalogName() throws Exception {
         try (Connection conn = getConnection("ignoreCatalogs;MODE=MSSQLSERVER;")) {
             try (Statement stat = conn.createStatement()) {
                 prepareDb(stat);
@@ -168,7 +167,7 @@ public class TestIgnoreCatalogs extends TestDb {
         }
     }
 
-    public void canUseCatalogAtIndexName() throws Exception {
+    private void canUseCatalogAtIndexName() throws Exception {
         try (Connection conn = getConnection("ignoreCatalogs;MODE=MSSQLSERVER;")) {
             try (Statement stat = conn.createStatement()) {
                 prepareDb(stat);
@@ -187,8 +186,7 @@ public class TestIgnoreCatalogs extends TestDb {
         }
     }
 
-
-    public void canAllCombined() throws SQLException {
+    private void canAllCombined() throws SQLException {
         try (Connection conn = getConnection("ignoreCatalogs;MODE=MSSQLSERVER;IGNORE_CATALOGS=TRUE;")) {
             try (Statement stat = conn.createStatement()) {
                 prepareDbAndSetDefaultSchema(stat);

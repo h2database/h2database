@@ -52,7 +52,7 @@ public class TestConcurrentUpdate extends TestDb {
         testConcurrentShutdown();
     }
 
-    public void testConcurrent() throws Exception {
+    private void testConcurrent() throws Exception {
         deleteDb("concurrent");
         final String url = getURL("concurrent;LOCK_TIMEOUT=2000", true);
         try (Connection conn = getConnection(url)) {

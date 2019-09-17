@@ -22,6 +22,9 @@ public abstract class SimplePredicate extends Condition {
      */
     Expression left;
 
+    /**
+     * Whether it is a "not" condition (e.g. "is not like").
+     */
     final boolean not;
 
     SimplePredicate(Expression left, boolean not) {

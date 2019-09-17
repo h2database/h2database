@@ -122,7 +122,13 @@ class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
         return VersionedValueUncommitted.getInstance(undoKey, getNewValue(existingValue), lastCommittedValue);
     }
 
-    // always return value (ignores existingValue)
+    /**
+     * Get the new value.
+     * This implementation always return the current value (ignores the parameter).
+     *
+     * @param existingValue the parameter value
+     * @return the current value.
+     */
     Object getNewValue(VersionedValue existingValue) {
         return value;
     }
@@ -276,8 +282,8 @@ class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
     }
 
 
-    public static final class LockDecisionMaker extends TxDecisionMaker
-    {
+    public static final class LockDecisionMaker extends TxDecisionMaker {
+
         LockDecisionMaker(int mapId, Object key, Transaction transaction) {
             super(mapId, key, null, transaction);
         }

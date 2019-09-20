@@ -13,6 +13,7 @@ import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
+import org.h2.engine.DbObject;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.User;
@@ -340,10 +341,21 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         return false;
     }
 
+    @Override
+    public void collectDependecies(HashSet<DbObject> dependencies) {
+        for (When w : when) {
+            w.collectDependecies(dependencies);
+        }
+        if (query != null) {
+            query.collectDependecies(dependencies);
+        }
+        targetMatchQuery.collectDependecies(dependencies);
+    }
+
     /**
      * Abstract WHEN command of the MERGE statement.
      */
-    public static abstract class When {
+    public abstract static class When {
 
         /**
          * The parent MERGE statement.
@@ -413,6 +425,12 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
          */
         abstract void checkRights();
 
+        /**
+         * Find and collect all DbObjects, this When object depends on.
+         *
+         * @param dependencies collection of dependecies to populate
+         */
+        abstract void collectDependecies(HashSet<DbObject> dependencies);
     }
 
     public static final class WhenMatched extends When {
@@ -527,6 +545,16 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
             }
         }
 
+        @Override
+        void collectDependecies(HashSet<DbObject> dependencies) {
+            if (updateCommand != null) {
+                updateCommand.collectDependecies(dependencies);
+            }
+            if (deleteCommand != null) {
+                deleteCommand.collectDependecies(dependencies);
+            }
+        }
+
         private static Expression appendCondition(Update updateCommand, Expression condition) {
             Expression c = updateCommand.getCondition();
             return c == null ? condition : new ConditionAndOr(ConditionAndOr.AND, c, condition);
@@ -583,6 +611,9 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
             mergeUsing.getSession().getUser().checkRight(mergeUsing.targetTable, Right.INSERT);
         }
 
+        @Override
+        void collectDependecies(HashSet<DbObject> dependencies) {
+            insertCommand.collectDependecies(dependencies);
+        }
     }
-
 }

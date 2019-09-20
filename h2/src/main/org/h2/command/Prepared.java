@@ -476,5 +476,10 @@ public abstract class Prepared {
         return session;
     }
 
+    /**
+     * Find and collect all DbObjects, this Prepared depends on.
+     *
+     * @param dependencies collection of dependecies to populate
+     */
     public void collectDependecies(HashSet<DbObject> dependencies) {}
 }

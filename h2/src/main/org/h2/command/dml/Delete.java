@@ -107,7 +107,9 @@ public class Delete extends Prepared implements DataChangeStatement {
             int count = 0;
             while (limitRows != 0 && targetTableFilter.next()) {
                 setCurrentRowNumber(rows.size() + 1);
-                if (condition == null || condition.getBooleanValue(session)) {
+                if (condition == null || condition.getBooleanValue(session)
+                        // the following is to support Oracle-style MERGE
+                        || (keysFilter != null && table.isMVStore())) {
                     Row row = targetTableFilter.get();
                     if (keysFilter == null || keysFilter.contains(row.getKey())) {
                         if (table.isMVStore()) {

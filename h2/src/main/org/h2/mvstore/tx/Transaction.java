@@ -319,8 +319,6 @@ public class Transaction {
                     for (Index index : table.getIndexes()) {
                         collectDependensies(maps, index);
                     }
-                } else {
-                    collectDependensies(maps, dependency);
                 }
             }
 
@@ -345,11 +343,7 @@ public class Transaction {
     }
 
     private void collectDependensies(Set<MVMap> maps, DbObject dependency) {
-        if (dependency instanceof MVPrimaryIndex) {
-            MVPrimaryIndex primaryIndex = (MVPrimaryIndex) dependency;
-            MVMap map = primaryIndex.getMVMap();
-            maps.add(map);
-        } else if (dependency instanceof MVIndex) {
+        if (dependency instanceof MVIndex) {
             MVIndex index = (MVIndex) dependency;
             MVMap map = index.getMVMap();
             maps.add(map);

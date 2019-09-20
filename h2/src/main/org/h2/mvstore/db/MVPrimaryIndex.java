@@ -37,7 +37,7 @@ import org.h2.value.ValueNull;
 /**
  * A table stored in a MVStore.
  */
-public class MVPrimaryIndex extends BaseIndex {
+public class MVPrimaryIndex extends BaseIndex implements MVIndex {
 
     private final MVTable mvTable;
     private final String mapName;
@@ -361,6 +361,16 @@ public class MVPrimaryIndex extends BaseIndex {
     @Override
     public void checkRename() {
         // ok
+    }
+
+    @Override
+    public void addRowsToBuffer(List<Row> rows, String bufferName) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void addBufferedRows(List<String> bufferNames) {
+        throw new UnsupportedOperationException();
     }
 
     /**

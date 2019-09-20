@@ -769,27 +769,25 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
                 }
                 int size = batchCommands.size();
                 int[] result = new int[size];
-                boolean error = false;
-                SQLException next = null;
+                SQLException first = null;
+                SQLException last = null;
                 for (int i = 0; i < size; i++) {
                     String sql = batchCommands.get(i);
                     try {
                         result[i] = executeUpdateInternal(sql, null);
                     } catch (Exception re) {
                         SQLException e = logAndConvert(re);
-                        if (next == null) {
-                            next = e;
+                        if (last == null) {
+                            first = last = e;
                         } else {
-                            e.setNextException(next);
-                            next = e;
+                            last.setNextException(e);
                         }
                         result[i] = Statement.EXECUTE_FAILED;
-                        error = true;
                     }
                 }
                 batchCommands = null;
-                if (error) {
-                    throw new JdbcBatchUpdateException(next, result);
+                if (first != null) {
+                    throw new JdbcBatchUpdateException(first, result);
                 }
                 return result;
             } finally {

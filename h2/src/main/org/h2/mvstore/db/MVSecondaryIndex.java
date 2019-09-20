@@ -214,7 +214,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
             Value rowKey = array[array.length - 1];
             long rowId = rowKey.getLong();
             if (newKey != rowId) {
-                if (map.get(rowData) != null) {
+                if (map.getImmediate(rowData) != null) {
                     // committed
                     throw getDuplicateKeyException(rowKey.toString());
                 }
@@ -429,6 +429,11 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
         }
         Transaction t = session.getTransaction();
         return dataMap.getInstance(t);
+    }
+
+    @Override
+    public MVMap getMVMap() {
+        return dataMap.map;
     }
 
     /**

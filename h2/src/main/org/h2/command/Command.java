@@ -7,11 +7,13 @@ package org.h2.command;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
+import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.expression.ParameterInterface;
 import org.h2.message.DbException;
@@ -154,7 +156,6 @@ public abstract class Command implements CommandInterface {
 
     @Override
     public void stop() {
-        session.setCurrentCommand(null);
         if (!isTransactional()) {
             session.commit(true);
         } else if (session.getAutoCommit()) {
@@ -162,7 +163,6 @@ public abstract class Command implements CommandInterface {
         } else {
             session.unlockReadLocks();
         }
-        session.endStatement();
         if (trace.isInfoEnabled() && startTimeNanos > 0) {
             long timeMillis = (System.nanoTime() - startTimeNanos) / 1000 / 1000;
             if (timeMillis > Constants.SLOW_QUERY_LIMIT_MS) {
@@ -195,8 +195,7 @@ public abstract class Command implements CommandInterface {
         }
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (sync) {
-            session.startStatementWithinTransaction();
-            session.setCurrentCommand(this);
+            session.startStatementWithinTransaction(this);
             try {
                 while (true) {
                     database.checkPowerOff();
@@ -233,6 +232,7 @@ public abstract class Command implements CommandInterface {
                 database.checkPowerOff();
                 throw e;
             } finally {
+                session.endStatement();
                 if (callStop) {
                     stop();
                 }
@@ -259,8 +259,7 @@ public abstract class Command implements CommandInterface {
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (sync) {
             Session.Savepoint rollback = session.setSavepoint();
-            session.startStatementWithinTransaction();
-            session.setCurrentCommand(this);
+            session.startStatementWithinTransaction(this);
             DbException ex = null;
             try {
                 while (true) {
@@ -300,6 +299,7 @@ public abstract class Command implements CommandInterface {
                 throw e;
             } finally {
                 try {
+                    session.endStatement();
                     if (callStop) {
                         stop();
                     }
@@ -397,4 +397,6 @@ public abstract class Command implements CommandInterface {
     public void setCanReuse(boolean canReuse) {
         this.canReuse = canReuse;
     }
+
+    public abstract Set<DbObject> getDependencies();
 }

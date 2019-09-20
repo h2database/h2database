@@ -13,6 +13,7 @@ import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.engine.Database;
+import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.expression.Alias;
 import org.h2.expression.Expression;
@@ -928,4 +929,9 @@ public abstract class Query extends Prepared {
                 session.getUser(), alias, this, topQuery);
     }
 
+    @Override
+    public void collectDependecies(HashSet<DbObject> dependencies) {
+        ExpressionVisitor visitor = ExpressionVisitor.getDependenciesVisitor(dependencies);
+        isEverything(visitor);
+    }
 }

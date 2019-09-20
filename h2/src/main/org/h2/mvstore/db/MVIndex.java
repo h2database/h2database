@@ -8,6 +8,7 @@ package org.h2.mvstore.db;
 import java.util.List;
 
 import org.h2.index.Index;
+import org.h2.mvstore.MVMap;
 import org.h2.result.Row;
 
 /**
@@ -32,4 +33,5 @@ public interface MVIndex extends Index {
      */
     void addBufferedRows(List<String> bufferNames);
 
+    MVMap getMVMap();
 }

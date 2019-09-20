@@ -69,7 +69,7 @@ import org.h2.value.VersionedValue;
  */
 public class Session extends SessionWithState implements TransactionStore.RollbackListener, CastDataProvider {
 
-    public enum State { INIT, RUNNING, BLOCKED, SLEEP, CLOSED }
+    public enum State { INIT, RUNNING, BLOCKED, SLEEP, THROTTLED, SUSPENDED, CLOSED }
 
     /**
      * This special log position means that the log entry has been written.
@@ -885,6 +885,13 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         cancelAtNs = System.nanoTime();
     }
 
+    void suspend() {
+        cancel();
+        if (transitionToState(State.SUSPENDED, false) == State.SLEEP) {
+            close();
+        }
+    }
+
     @Override
     public void close() {
         // this is the only operation that can be invoked concurrently
@@ -994,8 +1001,11 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             DbException.throwInternalError();
         }
         if (!locks.isEmpty()) {
-            for (Table t : locks) {
-                t.unlock(this);
+            Table[] array = locks.toArray(new Table[0]);
+            for (Table t : array) {
+                if (t != null) {
+                    t.unlock(this);
+                }
             }
             locks.clear();
         }
@@ -1210,6 +1220,12 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         return state.get() == State.CLOSED;
     }
 
+    public boolean isOpen() {
+        State current = state.get();
+        checkSuspended(current);
+        return current != State.CLOSED;
+    }
+
     public void setThrottle(int throttle) {
         this.throttleNs = TimeUnit.MILLISECONDS.toNanos(throttle);
     }
@@ -1228,17 +1244,13 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         if (lastThrottle + TimeUnit.MILLISECONDS.toNanos(Constants.THROTTLE_DELAY) > time) {
             return;
         }
-        State prevState = this.state.get();
-        if (prevState != State.CLOSED) {
-            lastThrottle = time + throttleNs;
-            try {
-                state.compareAndSet(prevState, State.SLEEP);
-                Thread.sleep(TimeUnit.NANOSECONDS.toMillis(throttleNs));
-            } catch (Exception e) {
-                // ignore InterruptedException
-            } finally {
-                state.compareAndSet(State.SLEEP, prevState);
-            }
+        lastThrottle = time + throttleNs;
+        State prevState = transitionToState(State.THROTTLED, false);
+        try {
+            Thread.sleep(TimeUnit.NANOSECONDS.toMillis(throttleNs));
+        } catch (InterruptedException ignore) {
+        } finally {
+            transitionToState(prevState, false);
         }
     }
 
@@ -1248,21 +1260,37 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      *
      * @param command the command
      */
-    public void setCurrentCommand(Command command) {
-        currentCommand = command;
-        if (command != null) {
-            if (queryTimeout > 0) {
-                currentCommandStart = CurrentTimestamp.get();
-                long now = System.nanoTime();
-                cancelAtNs = now + TimeUnit.MILLISECONDS.toNanos(queryTimeout);
-            } else {
-                currentCommandStart = null;
+    private void setCurrentCommand(Command command) {
+        State targetState = command == null ? State.SLEEP : State.RUNNING;
+        transitionToState(targetState, true);
+        if (isOpen()) {
+            currentCommand = command;
+            if (command != null) {
+                if (queryTimeout > 0) {
+                    currentCommandStart = CurrentTimestamp.get();
+                    long now = System.nanoTime();
+                    cancelAtNs = now + TimeUnit.MILLISECONDS.toNanos(queryTimeout);
+                } else {
+                    currentCommandStart = null;
+                }
             }
         }
-        State currentState = state.get();
-        if(currentState != State.CLOSED) {
-            state.compareAndSet(currentState, command == null ? State.SLEEP : State.RUNNING);
+    }
+
+    private State transitionToState(State targetState, boolean checkSuspended) {
+        State currentState;
+        while((currentState = state.get()) != State.CLOSED &&
+                (!checkSuspended || checkSuspended(currentState)) &&
+                !state.compareAndSet(currentState, targetState)) {/**/}
+        return currentState;
+    }
+
+    private boolean checkSuspended(State currentState) {
+        if (currentState == State.SUSPENDED) {
+            close();
+            throw DbException.get(ErrorCode.DATABASE_IS_IN_EXCLUSIVE_MODE);
         }
+        return true;
     }
 
     /**
@@ -1447,7 +1475,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     @Override
     public String toString() {
-        return "#" + serialId + " (user: " + (user == null ? "<null>" : user.getName()) + ")";
+        return "#" + serialId + " (user: " + (user == null ? "<null>" : user.getName()) + ", " + state.get() + ")";
     }
 
     public void setUndoLogEnabled(boolean b) {
@@ -1524,12 +1552,13 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      * method returns as soon as the exclusive mode has been disabled.
      */
     public void waitIfExclusiveModeEnabled() {
+        transitionToState(State.RUNNING, true);
         // Even in exclusive mode, we have to let the LOB session proceed, or we
         // will get deadlocks.
         if (database.getLobSession() == this) {
             return;
         }
-        while (!isClosed()) {
+        while (isOpen()) {
             Session exclusive = database.getExclusiveSession();
             if (exclusive == null || exclusive == this) {
                 break;
@@ -1741,13 +1770,17 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     /**
      * Start a new statement within a transaction.
+     * @param command about to be started
      */
-    public void startStatementWithinTransaction() {
+    public void startStatementWithinTransaction(Command command) {
         Transaction transaction = getTransaction();
         if(transaction != null) {
-            transaction.markStatementStart();
+            transaction.markStatementStart(command);
         }
         startStatement = -1;
+        if (command != null) {
+            setCurrentCommand(command);
+        }
     }
 
     /**
@@ -1755,6 +1788,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      * set, and deletes all temporary files held by the result sets.
      */
     public void endStatement() {
+        setCurrentCommand(null);
         if(transaction != null) {
             transaction.markStatementEnd();
         }

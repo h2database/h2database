@@ -12,6 +12,7 @@ import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
+import org.h2.mvstore.MVMap;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
@@ -47,6 +48,11 @@ public class MVDelegateIndex extends BaseIndex implements MVIndex {
     @Override
     public void addBufferedRows(List<String> bufferNames) {
         throw DbException.throwInternalError();
+    }
+
+    @Override
+    public MVMap getMVMap() {
+        return mainIndex.getMVMap();
     }
 
     @Override

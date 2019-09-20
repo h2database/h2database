@@ -78,13 +78,13 @@ public class TestBatchUpdates extends TestDb {
         try {
             stat.executeBatch();
         } catch (SQLException e) {
-            assertContains(e.toString(), "TEST_Y");
-            e = e.getNextException();
-            assertNotNull(e);
-            assertContains(e.toString(), "TEST_Y");
+            assertContains(e.toString(), "TEST_X");
             e = e.getNextException();
             assertNotNull(e);
             assertContains(e.toString(), "TEST_X");
+            e = e.getNextException();
+            assertNotNull(e);
+            assertContains(e.toString(), "TEST_Y");
             e = e.getNextException();
             assertNull(e);
         }
@@ -97,13 +97,13 @@ public class TestBatchUpdates extends TestDb {
         try {
             prep.executeBatch();
         } catch (SQLException e) {
-            assertContains(e.toString(), "TEST_Y");
-            e = e.getNextException();
-            assertNotNull(e);
-            assertContains(e.toString(), "TEST_Y");
+            assertContains(e.toString(), "TEST_X");
             e = e.getNextException();
             assertNotNull(e);
             assertContains(e.toString(), "TEST_X");
+            e = e.getNextException();
+            assertNotNull(e);
+            assertContains(e.toString(), "TEST_Y");
             e = e.getNextException();
             assertNull(e);
         }

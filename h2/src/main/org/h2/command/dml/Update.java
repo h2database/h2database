@@ -14,9 +14,11 @@ import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
+import org.h2.engine.DbObject;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
+import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
@@ -330,5 +332,19 @@ public class Update extends Prepared implements DataChangeStatement {
      */
     public void setUpdateToCurrentValuesReturnsZero(boolean updateToCurrentValuesReturnsZero) {
         this.updateToCurrentValuesReturnsZero = updateToCurrentValuesReturnsZero;
+    }
+
+    @Override
+    public void collectDependecies(HashSet<DbObject> dependencies) {
+        ExpressionVisitor visitor = ExpressionVisitor.getDependenciesVisitor(dependencies);
+        if (condition != null) {
+            condition.isEverything(visitor);
+        }
+        if (sourceTableFilter != null) {
+            Select select = sourceTableFilter.getSelect();
+            if (select != null) {
+                select.isEverything(visitor);
+            }
+        }
     }
 }

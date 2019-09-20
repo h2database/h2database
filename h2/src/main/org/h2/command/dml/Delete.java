@@ -10,10 +10,12 @@ import java.util.HashSet;
 import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
+import org.h2.engine.DbObject;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
 import org.h2.expression.Expression;
+import org.h2.expression.ExpressionVisitor;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
 import org.h2.result.Row;
@@ -105,7 +107,9 @@ public class Delete extends Prepared implements DataChangeStatement {
             int count = 0;
             while (limitRows != 0 && targetTableFilter.next()) {
                 setCurrentRowNumber(rows.size() + 1);
-                if (condition == null || condition.getBooleanValue(session)) {
+                if (condition == null || condition.getBooleanValue(session)
+                        // the following is to support Oracle-style MERGE
+                        || (keysFilter != null && table.isMVStore())) {
                     Row row = targetTableFilter.get();
                     if (keysFilter == null || keysFilter.contains(row.getKey())) {
                         if (table.isMVStore()) {
@@ -233,4 +237,17 @@ public class Delete extends Prepared implements DataChangeStatement {
         return sourceTableFilter;
     }
 
+    @Override
+    public void collectDependecies(HashSet<DbObject> dependencies) {
+        ExpressionVisitor visitor = ExpressionVisitor.getDependenciesVisitor(dependencies);
+        if (condition != null) {
+            condition.isEverything(visitor);
+        }
+        if (sourceTableFilter != null) {
+            Select select = sourceTableFilter.getSelect();
+            if (select != null) {
+                select.isEverything(visitor);
+            }
+        }
+    }
 }

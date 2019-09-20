@@ -1605,7 +1605,7 @@ public class Parser {
         }
         Merge command = new Merge(session, false);
         currentPrepared = command;
-        command.setTableFilter(targetTableFilter);
+        command.setTable(targetTableFilter.getTable());
         Table table = command.getTable();
         if (readIf(OPEN_PAREN)) {
             if (isQuery()) {

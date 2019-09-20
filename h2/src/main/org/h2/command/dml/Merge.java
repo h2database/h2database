@@ -40,7 +40,6 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
     private boolean isReplace;
 
     private Table table;
-    private TableFilter tableFilter;
     private Column[] columns;
     private Column[] keys;
     private Query query;
@@ -338,15 +337,6 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
     @Override
     public boolean isCacheable() {
         return true;
-    }
-
-    public TableFilter getTableFilter() {
-        return tableFilter;
-    }
-
-    public void setTableFilter(TableFilter tableFilter) {
-        this.tableFilter = tableFilter;
-        setTable(tableFilter.getTable());
     }
 
     @Override

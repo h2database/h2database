@@ -83,7 +83,7 @@ public class TestDate extends TestBase {
         assertEquals("-9999-12-31",
                 ValueDate.parse("-9999-12-31").getString());
         ValueDate d1 = ValueDate.parse("2001-01-01");
-        assertEquals("2001-01-01", d1.getDate().toString());
+        assertEquals("2001-01-01", d1.getDate(null).toString());
         assertEquals("DATE '2001-01-01'", d1.getSQL());
         assertEquals("DATE '2001-01-01'", d1.toString());
         assertEquals(Value.DATE, d1.getValueType());
@@ -128,8 +128,8 @@ public class TestDate extends TestBase {
             assertEquals(ErrorCode.INVALID_DATETIME_CONSTANT_2, ex.getErrorCode());
         }
         ValueTime t1 = ValueTime.parse("11:11:11");
-        assertEquals("11:11:11", t1.getTime().toString());
-        assertEquals("1970-01-01", t1.getDate().toString());
+        assertEquals("11:11:11", t1.getTime(null).toString());
+        assertEquals("1970-01-01", t1.getDate(null).toString());
         assertEquals("TIME '11:11:11'", t1.getSQL());
         assertEquals("TIME '11:11:11'", t1.toString());
         assertEquals("05:35:35.5", t1.multiply(ValueDouble.get(0.5)).getString());
@@ -193,9 +193,9 @@ public class TestDate extends TestBase {
                 "9999-12-31 23:59:59").getString());
 
         ValueTimestamp t1 = ValueTimestamp.parse("2001-01-01 01:01:01.111");
-        assertEquals("2001-01-01 01:01:01.111", t1.getTimestamp().toString());
-        assertEquals("2001-01-01", t1.getDate().toString());
-        assertEquals("01:01:01", t1.getTime().toString());
+        assertEquals("2001-01-01 01:01:01.111", t1.getTimestamp(null).toString());
+        assertEquals("2001-01-01", t1.getDate(null).toString());
+        assertEquals("01:01:01", t1.getTime(null).toString());
         assertEquals("TIMESTAMP '2001-01-01 01:01:01.111'", t1.getSQL());
         assertEquals("TIMESTAMP '2001-01-01 01:01:01.111'", t1.toString());
         assertEquals(Value.TIMESTAMP, t1.getValueType());
@@ -276,13 +276,13 @@ public class TestDate extends TestBase {
         assertEquals(0, ValueTimestamp.parse(
                 "1970-01-01").getTimeNanos());
         assertEquals(0, ValueTimestamp.parse(
-                "1970-01-01 00:00:00.000 UTC").getTimestamp().getTime());
+                "1970-01-01 00:00:00.000 UTC").getTimestamp(null).getTime());
         assertEquals(0, ValueTimestamp.parse(
-                "+1970-01-01T00:00:00.000Z").getTimestamp().getTime());
+                "+1970-01-01T00:00:00.000Z").getTimestamp(null).getTime());
         assertEquals(0, ValueTimestamp.parse(
-                "1970-01-01T00:00:00.000+00:00").getTimestamp().getTime());
+                "1970-01-01T00:00:00.000+00:00").getTimestamp(null).getTime());
         assertEquals(0, ValueTimestamp.parse(
-                "1970-01-01T00:00:00.000-00:00").getTimestamp().getTime());
+                "1970-01-01T00:00:00.000-00:00").getTimestamp(null).getTime());
         new AssertThrows(ErrorCode.INVALID_DATETIME_CONSTANT_2) {
             @Override
             public void test() {
@@ -443,9 +443,9 @@ public class TestDate extends TestBase {
         assertEquals("19999-08-07", d2.getString());
         assertEquals("13:14:15.16", t2.getString());
         ValueTimestamp ts1a = DateTimeUtils.convertTimestamp(
-                ts1.getTimestamp(), DateTimeUtils.createGregorianCalendar());
+                ts1.getTimestamp(null), DateTimeUtils.createGregorianCalendar());
         ValueTimestamp ts2a = DateTimeUtils.convertTimestamp(
-                ts2.getTimestamp(), DateTimeUtils.createGregorianCalendar());
+                ts2.getTimestamp(null), DateTimeUtils.createGregorianCalendar());
         assertEquals("-999-08-07 13:14:15.16", ts1a.getString());
         assertEquals("19999-08-07 13:14:15.16", ts2a.getString());
 

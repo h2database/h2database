@@ -18,6 +18,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.CastDataProvider;
@@ -553,16 +554,16 @@ public abstract class Value extends VersionedValue {
         return ((ValueBoolean) convertTo(Value.BOOLEAN)).getBoolean();
     }
 
-    public Date getDate() {
-        return ((ValueDate) convertTo(Value.DATE)).getDate();
+    public Date getDate(TimeZone timeZone) {
+        return ((ValueDate) convertTo(Value.DATE)).getDate(timeZone);
     }
 
-    public Time getTime() {
-        return ((ValueTime) convertTo(Value.TIME)).getTime();
+    public Time getTime(TimeZone timeZone) {
+        return ((ValueTime) convertTo(Value.TIME)).getTime(timeZone);
     }
 
-    public Timestamp getTimestamp() {
-        return ((ValueTimestamp) convertTo(Value.TIMESTAMP)).getTimestamp();
+    public Timestamp getTimestamp(TimeZone timeZone) {
+        return ((ValueTimestamp) convertTo(Value.TIMESTAMP)).getTimestamp(timeZone);
     }
 
     public byte[] getBytes() {

@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.TimeZone;
 
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
@@ -74,17 +75,17 @@ public class ValueNull extends Value {
     }
 
     @Override
-    public Date getDate() {
+    public Date getDate(TimeZone timeZone) {
         return null;
     }
 
     @Override
-    public Time getTime() {
+    public Time getTime(TimeZone timeZone) {
         return null;
     }
 
     @Override
-    public Timestamp getTimestamp() {
+    public Timestamp getTimestamp(TimeZone timeZone) {
         return null;
     }
 

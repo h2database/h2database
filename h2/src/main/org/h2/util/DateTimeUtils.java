@@ -17,7 +17,6 @@ import java.util.TimeZone;
 import org.h2.engine.CastDataProvider;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
-import org.h2.value.ValueNull;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
@@ -224,89 +223,6 @@ public class DateTimeUtils {
         GregorianCalendar c = new GregorianCalendar(tz);
         c.setGregorianChange(PROLEPTIC_GREGORIAN_CHANGE);
         return c;
-    }
-
-    /**
-     * Convert the date to the specified time zone.
-     *
-     * @param value the date (might be ValueNull)
-     * @param calendar the calendar
-     * @return the date using the correct time zone
-     */
-    public static Date convertDate(Value value, Calendar calendar) {
-        if (value == ValueNull.INSTANCE) {
-            return null;
-        }
-        ValueDate d = (ValueDate) value.convertTo(Value.DATE);
-        Calendar cal = (Calendar) calendar.clone();
-        cal.clear();
-        cal.setLenient(true);
-        long dateValue = d.getDateValue();
-        long ms = convertToMillis(cal, yearFromDateValue(dateValue),
-                monthFromDateValue(dateValue), dayFromDateValue(dateValue), 0,
-                0, 0, 0);
-        return new Date(ms);
-    }
-
-    /**
-     * Convert the time to the specified time zone.
-     *
-     * @param value the time (might be ValueNull)
-     * @param calendar the calendar
-     * @return the time using the correct time zone
-     */
-    public static Time convertTime(Value value, Calendar calendar) {
-        if (value == ValueNull.INSTANCE) {
-            return null;
-        }
-        ValueTime t = (ValueTime) value.convertTo(Value.TIME);
-        Calendar cal = (Calendar) calendar.clone();
-        cal.clear();
-        cal.setLenient(true);
-        long nanos = t.getNanos();
-        long millis = nanos / 1_000_000;
-        nanos -= millis * 1_000_000;
-        long s = millis / 1_000;
-        millis -= s * 1_000;
-        long m = s / 60;
-        s -= m * 60;
-        long h = m / 60;
-        m -= h * 60;
-        return new Time(convertToMillis(cal, 1970, 1, 1, (int) h, (int) m, (int) s, (int) millis));
-    }
-
-    /**
-     * Convert the timestamp to the specified time zone.
-     *
-     * @param value the timestamp (might be ValueNull)
-     * @param calendar the calendar
-     * @param provider the cast information provider
-     * @return the timestamp using the correct time zone
-     */
-    public static Timestamp convertTimestamp(Value value, Calendar calendar, CastDataProvider provider) {
-        if (value == ValueNull.INSTANCE) {
-            return null;
-        }
-        ValueTimestamp ts = (ValueTimestamp) value.convertTo(Value.TIMESTAMP, provider, false);
-        Calendar cal = (Calendar) calendar.clone();
-        cal.clear();
-        cal.setLenient(true);
-        long dateValue = ts.getDateValue();
-        long nanos = ts.getTimeNanos();
-        long millis = nanos / 1_000_000;
-        nanos -= millis * 1_000_000;
-        long s = millis / 1_000;
-        millis -= s * 1_000;
-        long m = s / 60;
-        s -= m * 60;
-        long h = m / 60;
-        m -= h * 60;
-        long ms = convertToMillis(cal, yearFromDateValue(dateValue),
-                monthFromDateValue(dateValue), dayFromDateValue(dateValue),
-                (int) h, (int) m, (int) s, (int) millis);
-        Timestamp x = new Timestamp(ms);
-        x.setNanos((int) (nanos + millis * 1_000_000));
-        return x;
     }
 
     /**
@@ -986,17 +902,15 @@ public class DateTimeUtils {
     }
 
     /**
-     * Convert an encoded date value to a java.util.Date, using the default
-     * timezone.
+     * Convert an encoded date value to a java.sql.Date.
      *
+     * @param timeZone the time zone, or {@code null} for default
      * @param dateValue the date value
      * @return the date
      */
-    public static Date convertDateValueToDate(long dateValue) {
-        long millis = getMillis(null, yearFromDateValue(dateValue),
-                monthFromDateValue(dateValue), dayFromDateValue(dateValue), 0,
-                0, 0, 0);
-        return new Date(millis);
+    public static Date convertDateValueToDate(TimeZone timeZone, long dateValue) {
+        return new Date(getMillis(timeZone, yearFromDateValue(dateValue), monthFromDateValue(dateValue),
+                dayFromDateValue(dateValue), 0, 0, 0, 0));
     }
 
     /**
@@ -1019,16 +933,15 @@ public class DateTimeUtils {
     }
 
     /**
-     * Convert an encoded date value / time value to a timestamp, using the
-     * default timezone.
+     * Convert an encoded date value / time value to a timestamp.
      *
+     * @param timeZone the time zone, or {@code null} for default
      * @param dateValue the date value
      * @param timeNanos the nanoseconds since midnight
      * @return the timestamp
      */
-    public static Timestamp convertDateValueToTimestamp(long dateValue,
-            long timeNanos) {
-        Timestamp ts = new Timestamp(convertDateTimeValueToMillis(null, dateValue, timeNanos / 1_000_000));
+    public static Timestamp convertDateValueToTimestamp(TimeZone timeZone, long dateValue, long timeNanos) {
+        Timestamp ts = new Timestamp(convertDateTimeValueToMillis(timeZone, dateValue, timeNanos / 1_000_000));
         // This method expects the complete nanoseconds value including milliseconds
         ts.setNanos((int) (timeNanos % NANOS_PER_SECOND));
         return ts;
@@ -1050,12 +963,13 @@ public class DateTimeUtils {
     }
 
     /**
-     * Convert a time value to a time, using the default timezone.
+     * Convert a time value to a time.
      *
+     * @param timeZone the time zone, or {@code null} for default
      * @param nanosSinceMidnight the nanoseconds since midnight
      * @return the time
      */
-    public static Time convertNanoToTime(long nanosSinceMidnight) {
+    public static Time convertNanoToTime(TimeZone timeZone, long nanosSinceMidnight) {
         long millis = nanosSinceMidnight / 1_000_000;
         long s = millis / 1_000;
         millis -= s * 1_000;
@@ -1063,8 +977,7 @@ public class DateTimeUtils {
         s -= m * 60;
         long h = m / 60;
         m -= h * 60;
-        long ms = getMillis(null, 1970, 1, 1, (int) (h % 24), (int) m, (int) s,
-                (int) millis);
+        long ms = getMillis(timeZone, 1970, 1, 1, (int) h, (int) m, (int) s, (int) millis);
         return new Time(ms);
     }
 

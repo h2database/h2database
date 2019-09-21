@@ -383,7 +383,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     public Date getDate(int columnIndex) throws SQLException {
         try {
             debugCodeCall("getDate", columnIndex);
-            return get(columnIndex).getDate();
+            return get(columnIndex).getDate(null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -401,7 +401,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     public Time getTime(int columnIndex) throws SQLException {
         try {
             debugCodeCall("getTime", columnIndex);
-            return get(columnIndex).getTime();
+            return get(columnIndex).getTime(null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -419,7 +419,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     public Timestamp getTimestamp(int columnIndex) throws SQLException {
         try {
             debugCodeCall("getTimestamp", columnIndex);
-            return get(columnIndex).getTimestamp();
+            return get(columnIndex).getTimestamp(null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -455,7 +455,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     public Date getDate(String columnLabel) throws SQLException {
         try {
             debugCodeCall("getDate", columnLabel);
-            return get(columnLabel).getDate();
+            return get(columnLabel).getDate(null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -473,7 +473,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     public Time getTime(String columnLabel) throws SQLException {
         try {
             debugCodeCall("getTime", columnLabel);
-            return get(columnLabel).getTime();
+            return get(columnLabel).getTime(null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -491,7 +491,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     public Timestamp getTimestamp(String columnLabel) throws SQLException {
         try {
             debugCodeCall("getTimestamp", columnLabel);
-            return get(columnLabel).getTimestamp();
+            return get(columnLabel).getTimestamp(null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -884,7 +884,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             if (isDebugEnabled()) {
                 debugCode("getDate(" + columnIndex + ", calendar)");
             }
-            return DateTimeUtils.convertDate(get(columnIndex), calendar);
+            return get(columnIndex).getDate(calendar != null ? calendar.getTimeZone() : null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -901,15 +901,12 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
      *             closed
      */
     @Override
-    public Date getDate(String columnLabel, Calendar calendar)
-            throws SQLException {
+    public Date getDate(String columnLabel, Calendar calendar) throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getDate(" +
-                        StringUtils.quoteJavaString(columnLabel) +
-                        ", calendar)");
+                debugCode("getDate(" + StringUtils.quoteJavaString(columnLabel) + ", calendar)");
             }
-            return DateTimeUtils.convertDate(get(columnLabel), calendar);
+            return get(columnLabel).getDate(calendar != null ? calendar.getTimeZone() : null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -931,7 +928,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             if (isDebugEnabled()) {
                 debugCode("getTime(" + columnIndex + ", calendar)");
             }
-            return DateTimeUtils.convertTime(get(columnIndex), calendar);
+            return get(columnIndex).getTime(calendar != null ? calendar.getTimeZone() : null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -948,15 +945,12 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
      *             closed
      */
     @Override
-    public Time getTime(String columnLabel, Calendar calendar)
-            throws SQLException {
+    public Time getTime(String columnLabel, Calendar calendar) throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getTime(" +
-                        StringUtils.quoteJavaString(columnLabel) +
-                        ", calendar)");
+                debugCode("getTime(" + StringUtils.quoteJavaString(columnLabel) + ", calendar)");
             }
-            return DateTimeUtils.convertTime(get(columnLabel), calendar);
+            return get(columnLabel).getTime(calendar != null ? calendar.getTimeZone() : null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -973,14 +967,12 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
      *             closed
      */
     @Override
-    public Timestamp getTimestamp(int columnIndex, Calendar calendar)
-            throws SQLException {
+    public Timestamp getTimestamp(int columnIndex, Calendar calendar) throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("getTimestamp(" + columnIndex + ", calendar)");
             }
-            Value value = get(columnIndex);
-            return DateTimeUtils.convertTimestamp(value, calendar, conn);
+            return get(columnIndex).getTimestamp(calendar != null ? calendar.getTimeZone() : null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -996,16 +988,12 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
      *             closed
      */
     @Override
-    public Timestamp getTimestamp(String columnLabel, Calendar calendar)
-            throws SQLException {
+    public Timestamp getTimestamp(String columnLabel, Calendar calendar) throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getTimestamp(" +
-                        StringUtils.quoteJavaString(columnLabel) +
-                        ", calendar)");
+                debugCode("getTimestamp(" + StringUtils.quoteJavaString(columnLabel) + ", calendar)");
             }
-            Value value = get(columnLabel);
-            return DateTimeUtils.convertTimestamp(value, calendar, conn);
+            return get(columnLabel).getTimestamp(calendar != null ? calendar.getTimeZone() : null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -3284,13 +3272,11 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     }
 
     private Value get(String columnLabel) {
-        int columnIndex = getColumnIndex(columnLabel);
-        return get(columnIndex);
+        return get(getColumnIndex(columnLabel));
     }
 
     private void update(String columnLabel, Value v) {
-        int columnIndex = getColumnIndex(columnLabel);
-        update(columnIndex, v);
+        update(getColumnIndex(columnLabel), v);
     }
 
     private void update(int columnIndex, Value v) {
@@ -3902,16 +3888,16 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         } else if (type == Double.class) {
             return (T) (Double) value.getDouble();
         } else if (type == Date.class) {
-            return (T) value.getDate();
+            return (T) value.getDate(null);
         } else if (type == Time.class) {
-            return (T) value.getTime();
+            return (T) value.getTime(null);
         } else if (type == Timestamp.class) {
-            return (T) value.getTimestamp();
+            return (T) value.getTimestamp(null);
         } else if (type == java.util.Date.class) {
-            return (T) new java.util.Date(value.getTimestamp().getTime());
+            return (T) new java.util.Date(value.getTimestamp(null).getTime());
         } else if (type == Calendar.class) {
             Calendar calendar = DateTimeUtils.createGregorianCalendar();
-            calendar.setTime(value.getTimestamp());
+            calendar.setTime(value.getTimestamp(calendar.getTimeZone()));
             return (T) calendar;
         } else if (type == UUID.class) {
             return (T) value.getObject();

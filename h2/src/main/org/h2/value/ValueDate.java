@@ -9,6 +9,7 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.TimeZone;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
@@ -88,8 +89,8 @@ public class ValueDate extends Value {
     }
 
     @Override
-    public Date getDate() {
-        return DateTimeUtils.convertDateValueToDate(dateValue);
+    public Date getDate(TimeZone timeZone) {
+        return DateTimeUtils.convertDateValueToDate(timeZone, dateValue);
     }
 
     @Override
@@ -137,7 +138,7 @@ public class ValueDate extends Value {
 
     @Override
     public Object getObject() {
-        return getDate();
+        return getDate(null);
     }
 
     @Override
@@ -150,7 +151,7 @@ public class ValueDate extends Value {
                 // Nothing to do
             }
         }
-        prep.setDate(parameterIndex, getDate());
+        prep.setDate(parameterIndex, getDate(null));
     }
 
 }

@@ -338,22 +338,22 @@ public class TestValue extends TestDb {
         ValueTimestamp valueTs = ValueTimestamp.parse("2000-01-15 10:20:30.333222111");
         Timestamp ts = Timestamp.valueOf("2000-01-15 10:20:30.333222111");
         assertEquals(ts.toString(), valueTs.getString());
-        assertEquals(ts, valueTs.getTimestamp());
+        assertEquals(ts, valueTs.getTimestamp(null));
         Calendar c = Calendar.getInstance(TimeZone.getTimeZone("Europe/Berlin"));
         c.set(2018, 02, 25, 1, 59, 00);
         c.set(Calendar.MILLISECOND, 123);
         long expected = c.getTimeInMillis();
-        ts = ValueTimestamp.parse("2018-03-25 01:59:00.123123123 Europe/Berlin").getTimestamp();
+        ts = ValueTimestamp.parse("2018-03-25 01:59:00.123123123 Europe/Berlin").getTimestamp(null);
         assertEquals(expected, ts.getTime());
         assertEquals(123123123, ts.getNanos());
-        ts = ValueTimestamp.parse("2018-03-25 01:59:00.123123123+01").getTimestamp();
+        ts = ValueTimestamp.parse("2018-03-25 01:59:00.123123123+01").getTimestamp(null);
         assertEquals(expected, ts.getTime());
         assertEquals(123123123, ts.getNanos());
         expected += 60000; // 1 minute
-        ts = ValueTimestamp.parse("2018-03-25 03:00:00.123123123 Europe/Berlin").getTimestamp();
+        ts = ValueTimestamp.parse("2018-03-25 03:00:00.123123123 Europe/Berlin").getTimestamp(null);
         assertEquals(expected, ts.getTime());
         assertEquals(123123123, ts.getNanos());
-        ts = ValueTimestamp.parse("2018-03-25 03:00:00.123123123+02").getTimestamp();
+        ts = ValueTimestamp.parse("2018-03-25 03:00:00.123123123+02").getTimestamp(null);
         assertEquals(expected, ts.getTime());
         assertEquals(123123123, ts.getNanos());
     }

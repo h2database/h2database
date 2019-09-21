@@ -222,7 +222,7 @@ public class FunctionsMySQL extends FunctionsBase {
         Value result;
         switch (info.type) {
         case UNIX_TIMESTAMP:
-            result = ValueInt.get(v0 == null ? unixTimestamp() : unixTimestamp(v0.getTimestamp()));
+            result = ValueInt.get(v0 == null ? unixTimestamp() : unixTimestamp(v0.getTimestamp(null)));
             break;
         case FROM_UNIXTIME:
             result = ValueString.get(

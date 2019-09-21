@@ -8,6 +8,7 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.api.TimestampWithTimeZone;
 import org.h2.engine.CastDataProvider;
@@ -148,7 +149,7 @@ public class ValueTimestampTimeZone extends Value {
     }
 
     @Override
-    public Timestamp getTimestamp() {
+    public Timestamp getTimestamp(TimeZone timeZone) {
         return DateTimeUtils.convertTimestampTimeZoneToTimestamp(dateValue, timeNanos, timeZoneOffsetMins);
     }
 

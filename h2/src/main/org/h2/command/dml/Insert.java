@@ -487,7 +487,7 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
     }
 
     @Override
-    public void collectDependecies(HashSet<DbObject> dependencies) {
+    public void collectDependencies(HashSet<DbObject> dependencies) {
         ExpressionVisitor visitor = ExpressionVisitor.getDependenciesVisitor(dependencies);
         if (query != null) {
             query.isEverything(visitor);

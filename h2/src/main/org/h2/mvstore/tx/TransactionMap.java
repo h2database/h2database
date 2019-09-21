@@ -413,11 +413,11 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         }
     }
 
-    private BitSet getCommittingTransactions() {
+    BitSet getCommittingTransactions() {
         return transaction.getCommittingTransactions();
     }
 
-    private RootReference getRootReference() {
+    RootReference getRootReference() {
         return transaction.getMapRoot(map.getId());
     }
 

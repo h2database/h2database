@@ -325,13 +325,13 @@ public final class DateTimeFunctions {
             if (v1 instanceof ValueTimestampTimeZone) {
                 offsetMinutes1 = ((ValueTimestampTimeZone) v1).getTimeZoneOffsetMins();
             } else {
-                offsetMinutes1 = DateTimeUtils.getTimeZoneOffsetMillis(null, dateValue1, a1[1]);
+                offsetMinutes1 = DateTimeUtils.getTimeZoneOffsetMillis(null, dateValue1, a1[1]) / 60_000;
             }
             int offsetMinutes2;
             if (v2 instanceof ValueTimestampTimeZone) {
                 offsetMinutes2 = ((ValueTimestampTimeZone) v2).getTimeZoneOffsetMins();
             } else {
-                offsetMinutes2 = DateTimeUtils.getTimeZoneOffsetMillis(null, dateValue2, a2[1]);
+                offsetMinutes2 = DateTimeUtils.getTimeZoneOffsetMillis(null, dateValue2, a2[1]) / 60_000;
             }
             if (field == TIMEZONE_HOUR) {
                 return (offsetMinutes2 / 60) - (offsetMinutes1 / 60);
@@ -728,7 +728,7 @@ public final class DateTimeFunctions {
                 if (date instanceof ValueTimestampTimeZone) {
                     offsetMinutes = ((ValueTimestampTimeZone) date).getTimeZoneOffsetMins();
                 } else {
-                    offsetMinutes = DateTimeUtils.getTimeZoneOffsetMillis(null, dateValue, timeNanos);
+                    offsetMinutes = DateTimeUtils.getTimeZoneOffsetMillis(null, dateValue, timeNanos) / 60_000;
                 }
                 if (field == TIMEZONE_HOUR) {
                     return offsetMinutes / 60;

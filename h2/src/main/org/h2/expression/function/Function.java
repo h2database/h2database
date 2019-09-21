@@ -1527,7 +1527,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                             ((ValueTimestampTimeZone) v0).getTimeZoneOffsetMins());
                 }
                 result = ValueString.get(
-                        DateTimeFunctions.formatDateTime(v0.getTimestamp(), v1.getString(), locale, tz),
+                        DateTimeFunctions.formatDateTime(v0.getTimestamp(null), v1.getString(), locale, tz),
                         database);
             }
             break;

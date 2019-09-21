@@ -34,6 +34,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
+import org.h2.value.VersionedValue;
 
 /**
  * A table stored in a MVStore.
@@ -432,7 +433,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
     }
 
     @Override
-    public MVMap getMVMap() {
+    public MVMap<Value, VersionedValue> getMVMap() {
         return dataMap.map;
     }
 

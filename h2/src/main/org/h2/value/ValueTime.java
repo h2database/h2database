@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Types;
+import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
@@ -73,12 +74,14 @@ public class ValueTime extends Value {
     /**
      * Get or create a time value for the given time.
      *
+     * @param timeZone time zone, or {@code null} for default
      * @param time the time
      * @return the value
      */
-    public static ValueTime get(Time time) {
+    public static ValueTime get(TimeZone timeZone, Time time) {
         long ms = time.getTime();
-        return fromNanos(DateTimeUtils.nanosFromLocalMillis(ms + DateTimeUtils.getTimeZoneOffset(ms)));
+        return fromNanos(DateTimeUtils.nanosFromLocalMillis(
+                ms + (timeZone == null ? DateTimeUtils.getTimeZoneOffset(ms) : timeZone.getOffset(ms))));
     }
 
     /**
@@ -115,8 +118,8 @@ public class ValueTime extends Value {
     }
 
     @Override
-    public Time getTime() {
-        return DateTimeUtils.convertNanoToTime(nanos);
+    public Time getTime(TimeZone timeZone) {
+        return DateTimeUtils.convertNanoToTime(timeZone, nanos);
     }
 
     @Override
@@ -185,7 +188,7 @@ public class ValueTime extends Value {
 
     @Override
     public Object getObject() {
-        return getTime();
+        return getTime(null);
     }
 
     @Override
@@ -198,7 +201,7 @@ public class ValueTime extends Value {
                 // Nothing to do
             }
         }
-        prep.setTime(parameterIndex, getTime());
+        prep.setTime(parameterIndex, getTime(null));
     }
 
     @Override

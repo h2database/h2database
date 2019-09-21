@@ -1797,7 +1797,7 @@ public class TestMVStore extends TestBase {
         s.close();
     }
 
-    private int getChunkCount(Map<String, String> meta) {
+    private static int getChunkCount(Map<String, String> meta) {
         int chunkCount = 0;
         for (String k : meta.keySet()) {
             if (k.startsWith(DataUtils.META_CHUNK)) {

@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
@@ -78,13 +79,14 @@ public class ValueTimestamp extends Value {
     /**
      * Get or create a timestamp value for the given timestamp.
      *
+     * @param timeZone time zone, or {@code null} for default
      * @param timestamp the timestamp
      * @return the value
      */
-    public static ValueTimestamp get(Timestamp timestamp) {
+    public static ValueTimestamp get(TimeZone timeZone, Timestamp timestamp) {
         long ms = timestamp.getTime();
         long nanos = timestamp.getNanos() % 1_000_000;
-        ms += DateTimeUtils.getTimeZoneOffset(ms);
+        ms += timeZone == null ? DateTimeUtils.getTimeZoneOffset(ms) : timeZone.getOffset(ms);
         long dateValue = DateTimeUtils.dateValueFromLocalMillis(ms);
         nanos += DateTimeUtils.nanosFromLocalMillis(ms);
         return fromDateValueAndNanos(dateValue, nanos);
@@ -167,8 +169,8 @@ public class ValueTimestamp extends Value {
     }
 
     @Override
-    public Timestamp getTimestamp() {
-        return DateTimeUtils.convertDateValueToTimestamp(dateValue, timeNanos);
+    public Timestamp getTimestamp(TimeZone timeZone) {
+        return DateTimeUtils.convertDateValueToTimestamp(timeZone, dateValue, timeNanos);
     }
 
     @Override
@@ -260,7 +262,7 @@ public class ValueTimestamp extends Value {
 
     @Override
     public Object getObject() {
-        return getTimestamp();
+        return getTimestamp(null);
     }
 
     @Override
@@ -273,7 +275,7 @@ public class ValueTimestamp extends Value {
                 // Nothing to do
             }
         }
-        prep.setTimestamp(parameterIndex, getTimestamp());
+        prep.setTimestamp(parameterIndex, getTimestamp(null));
     }
 
     @Override

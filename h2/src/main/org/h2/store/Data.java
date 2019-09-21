@@ -528,7 +528,7 @@ public class Data {
                 writeVarLong(nanos);
             } else {
                 writeByte(TIME);
-                writeVarLong(DateTimeUtils.getTimeLocalWithoutDst(v.getTime()));
+                writeVarLong(DateTimeUtils.getTimeLocalWithoutDst(v.getTime(null)));
             }
             break;
         case Value.DATE: {
@@ -538,7 +538,7 @@ public class Data {
                 writeVarLong(x);
             } else {
                 writeByte(DATE);
-                long x = DateTimeUtils.getTimeLocalWithoutDst(v.getDate());
+                long x = DateTimeUtils.getTimeLocalWithoutDst(v.getDate(null));
                 writeVarLong(x / MILLIS_PER_MINUTE);
             }
             break;
@@ -555,7 +555,7 @@ public class Data {
                 writeVarLong(millis);
                 writeVarLong(nanos);
             } else {
-                Timestamp ts = v.getTimestamp();
+                Timestamp ts = v.getTimestamp(null);
                 writeByte(TIMESTAMP);
                 writeVarLong(DateTimeUtils.getTimeLocalWithoutDst(ts));
                 writeVarInt(ts.getNanos() % 1_000_000);
@@ -1105,13 +1105,13 @@ public class Data {
                 nanos -= millis * 1_000_000;
                 return 1 + getVarLongLen(millis) + getVarLongLen(nanos);
             }
-            return 1 + getVarLongLen(DateTimeUtils.getTimeLocalWithoutDst(v.getTime()));
+            return 1 + getVarLongLen(DateTimeUtils.getTimeLocalWithoutDst(v.getTime(null)));
         case Value.DATE: {
             if (storeLocalTime) {
                 long dateValue = ((ValueDate) v).getDateValue();
                 return 1 + getVarLongLen(dateValue);
             }
-            long x = DateTimeUtils.getTimeLocalWithoutDst(v.getDate());
+            long x = DateTimeUtils.getTimeLocalWithoutDst(v.getDate(null));
             return 1 + getVarLongLen(x / MILLIS_PER_MINUTE);
         }
         case Value.TIMESTAMP: {
@@ -1124,7 +1124,7 @@ public class Data {
                 return 1 + getVarLongLen(dateValue) + getVarLongLen(millis) +
                         getVarLongLen(nanos);
             }
-            Timestamp ts = v.getTimestamp();
+            Timestamp ts = v.getTimestamp(null);
             return 1 + getVarLongLen(DateTimeUtils.getTimeLocalWithoutDst(ts)) +
                     getVarIntLen(ts.getNanos() % 1_000_000);
         }

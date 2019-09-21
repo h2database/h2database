@@ -685,7 +685,7 @@ Another (more dangerous) solution is to set <code>useDatabaseLock</code> to fals
 <p>
 There is a known issue when using the Netbeans SQL Execution Window:
 before executing a query, another query in the form <code>SELECT COUNT(*) FROM &lt;query&gt;</code> is run.
-This is a problem for queries that modify state, such as <code>SELECT SEQ.NEXTVAL</code>.
+This is a problem for queries that modify state, such as <code>SELECT NEXT VALUE FOR SEQ</code>.
 In this case, two sequence values are allocated instead of just one.
 </p>
 

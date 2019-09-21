@@ -224,7 +224,7 @@ public class TestTimeStampWithTimeZone extends TestDb {
         assertEquals(ts, tstz.convertTo(Value.TIMESTAMP));
         assertEquals(d, tstz.convertTo(Value.DATE));
         assertEquals(t, tstz.convertTo(Value.TIME));
-        assertEquals(ts.getTimestamp(), tstz.getTimestamp());
+        assertEquals(ts.getTimestamp(null), tstz.getTimestamp(null));
         if (testReverse) {
             assertEquals(0, tstz.compareTo(ts.convertTo(Value.TIMESTAMP_TZ), null, null));
             assertEquals(d.convertTo(Value.TIMESTAMP).convertTo(Value.TIMESTAMP_TZ),

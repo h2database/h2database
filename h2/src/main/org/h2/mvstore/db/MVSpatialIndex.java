@@ -399,7 +399,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     }
 
     @Override
-    public MVMap getMVMap() {
+    public MVMap<SpatialKey, VersionedValue> getMVMap() {
         return dataMap.map;
     }
 

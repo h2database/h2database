@@ -930,7 +930,7 @@ public abstract class Query extends Prepared {
     }
 
     @Override
-    public void collectDependecies(HashSet<DbObject> dependencies) {
+    public void collectDependencies(HashSet<DbObject> dependencies) {
         ExpressionVisitor visitor = ExpressionVisitor.getDependenciesVisitor(dependencies);
         isEverything(visitor);
     }

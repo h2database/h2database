@@ -5,6 +5,13 @@
  */
 package org.h2.mvstore.tx;
 
+import java.util.BitSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import org.h2.command.Command;
 import org.h2.engine.DbObject;
 import org.h2.index.Index;
@@ -13,17 +20,9 @@ import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.RootReference;
 import org.h2.mvstore.db.MVIndex;
-import org.h2.mvstore.db.MVPrimaryIndex;
 import org.h2.mvstore.db.MVTable;
 import org.h2.mvstore.type.DataType;
 import org.h2.value.VersionedValue;
-import java.util.BitSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A transaction.
@@ -312,12 +311,12 @@ public class Transaction {
         txCounter = store.store.registerVersionUsage();
         if (command != null) {
             Set<DbObject> dependencies = command.getDependencies();
-            Set<MVMap> maps = new HashSet<>();
+            Set<MVMap<?, ?>> maps = new HashSet<>();
             for (DbObject dependency : dependencies) {
                 if (dependency instanceof MVTable) {
                     MVTable table = (MVTable) dependency;
                     for (Index index : table.getIndexes()) {
-                        collectDependensies(maps, index);
+                        collectDependencies(maps, index);
                     }
                 }
             }
@@ -328,7 +327,7 @@ public class Transaction {
             do {
                 mapRoots.clear();
                 committingTransactions = store.committingTransactions.get();
-                for (MVMap map : maps) {
+                for (MVMap<?, ?> map : maps) {
                     RootReference rootReference = map.flushAndGetRoot();
                     mapRoots.put(map.getId(), rootReference);
                 }
@@ -342,10 +341,10 @@ public class Transaction {
         }
     }
 
-    private void collectDependensies(Set<MVMap> maps, DbObject dependency) {
+    private static void collectDependencies(Set<MVMap<?, ?>> maps, DbObject dependency) {
         if (dependency instanceof MVIndex) {
             MVIndex index = (MVIndex) dependency;
-            MVMap map = index.getMVMap();
+            MVMap<?, ?> map = index.getMVMap();
             maps.add(map);
         }
     }
@@ -553,7 +552,7 @@ public class Transaction {
         }
     }
 
-    private boolean isActive(int status) {
+    private static boolean isActive(int status) {
         return status != STATUS_CLOSED
             && status != STATUS_COMMITTED
             && status != STATUS_ROLLED_BACK;

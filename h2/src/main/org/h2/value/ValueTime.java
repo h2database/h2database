@@ -74,12 +74,14 @@ public class ValueTime extends Value {
     /**
      * Get or create a time value for the given time.
      *
+     * @param timeZone time zone, or {@code null} for default
      * @param time the time
      * @return the value
      */
-    public static ValueTime get(Time time) {
+    public static ValueTime get(TimeZone timeZone, Time time) {
         long ms = time.getTime();
-        return fromNanos(DateTimeUtils.nanosFromLocalMillis(ms + DateTimeUtils.getTimeZoneOffset(ms)));
+        return fromNanos(DateTimeUtils.nanosFromLocalMillis(
+                ms + (timeZone == null ? DateTimeUtils.getTimeZoneOffset(ms) : timeZone.getOffset(ms))));
     }
 
     /**

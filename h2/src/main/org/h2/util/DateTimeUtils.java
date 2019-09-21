@@ -226,51 +226,6 @@ public class DateTimeUtils {
     }
 
     /**
-     * Convert a java.util.Date using the specified calendar.
-     *
-     * @param x the date
-     * @param calendar the calendar
-     * @return the date
-     */
-    public static ValueDate convertDate(Date x, Calendar calendar) {
-        Calendar cal = (Calendar) calendar.clone();
-        cal.setTimeInMillis(x.getTime());
-        long dateValue = dateValueFromCalendar(cal);
-        return ValueDate.fromDateValue(dateValue);
-    }
-
-    /**
-     * Convert the time using the specified calendar.
-     *
-     * @param x the time
-     * @param calendar the calendar
-     * @return the time
-     */
-    public static ValueTime convertTime(Time x, Calendar calendar) {
-        Calendar cal = (Calendar) calendar.clone();
-        cal.setTimeInMillis(x.getTime());
-        long nanos = nanosFromCalendar(cal);
-        return ValueTime.fromNanos(nanos);
-    }
-
-    /**
-     * Convert the timestamp using the specified calendar.
-     *
-     * @param x the time
-     * @param calendar the calendar
-     * @return the timestamp
-     */
-    public static ValueTimestamp convertTimestamp(Timestamp x,
-            Calendar calendar) {
-        Calendar cal = (Calendar) calendar.clone();
-        cal.setTimeInMillis(x.getTime());
-        long dateValue = dateValueFromCalendar(cal);
-        long nanos = nanosFromCalendar(cal);
-        nanos += x.getNanos() % 1_000_000;
-        return ValueTimestamp.fromDateValueAndNanos(dateValue, nanos);
-    }
-
-    /**
      * Parse a date string. The format is: [+|-]year-month-day
      * or [+|-]yyyyMMdd.
      *
@@ -1071,22 +1026,6 @@ public class DateTimeUtils {
     }
 
     /**
-     * Calculate the encoded date value from a given calendar.
-     *
-     * @param cal the calendar
-     * @return the date value
-     */
-    private static long dateValueFromCalendar(Calendar cal) {
-        int year = cal.get(Calendar.YEAR);
-        if (cal.get(Calendar.ERA) == GregorianCalendar.BC) {
-            year = 1 - year;
-        }
-        int month = cal.get(Calendar.MONTH) + 1;
-        int day = cal.get(Calendar.DAY_OF_MONTH);
-        return ((long) year << SHIFT_YEAR) | (month << SHIFT_MONTH) | day;
-    }
-
-    /**
      * Convert a time in milliseconds in local time to the nanoseconds since midnight.
      *
      * @param ms the milliseconds
@@ -1099,20 +1038,6 @@ public class DateTimeUtils {
             absoluteDay--;
         }
         return (ms - absoluteDay * MILLIS_PER_DAY) * 1_000_000;
-    }
-
-    /**
-     * Convert a java.util.Calendar to nanoseconds since midnight.
-     *
-     * @param cal the calendar
-     * @return the nanoseconds
-     */
-    private static long nanosFromCalendar(Calendar cal) {
-        int h = cal.get(Calendar.HOUR_OF_DAY);
-        int m = cal.get(Calendar.MINUTE);
-        int s = cal.get(Calendar.SECOND);
-        int millis = cal.get(Calendar.MILLISECOND);
-        return ((((((h * 60L) + m) * 60) + s) * 1000) + millis) * 1000000;
     }
 
     /**

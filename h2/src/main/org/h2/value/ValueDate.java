@@ -50,12 +50,14 @@ public class ValueDate extends Value {
     /**
      * Get or create a date value for the given date.
      *
+     * @param timeZone time zone, or {@code null} for default
      * @param date the date
      * @return the value
      */
-    public static ValueDate get(Date date) {
+    public static ValueDate get(TimeZone timeZone, Date date) {
         long ms = date.getTime();
-        return fromDateValue(DateTimeUtils.dateValueFromLocalMillis(ms + DateTimeUtils.getTimeZoneOffset(ms)));
+        return fromDateValue(DateTimeUtils.dateValueFromLocalMillis(
+                ms + (timeZone == null ? DateTimeUtils.getTimeZoneOffset(ms) : timeZone.getOffset(ms))));
     }
 
     /**

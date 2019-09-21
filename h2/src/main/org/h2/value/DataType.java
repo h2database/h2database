@@ -589,7 +589,7 @@ public class DataType {
                     }
                 }
                 Date value = rs.getDate(columnIndex);
-                v = value == null ? ValueNull.INSTANCE : ValueDate.get(value);
+                v = value == null ? ValueNull.INSTANCE : ValueDate.get(null, value);
                 break;
             }
             case Value.TIME: {
@@ -603,7 +603,7 @@ public class DataType {
                     }
                 }
                 Time value = rs.getTime(columnIndex);
-                v = value == null ? ValueNull.INSTANCE : ValueTime.get(value);
+                v = value == null ? ValueNull.INSTANCE : ValueTime.get(null, value);
                 break;
             }
             case Value.TIMESTAMP: {
@@ -617,7 +617,7 @@ public class DataType {
                     }
                 }
                 Timestamp value = rs.getTimestamp(columnIndex);
-                v = value == null ? ValueNull.INSTANCE : ValueTimestamp.get(value);
+                v = value == null ? ValueNull.INSTANCE : ValueTimestamp.get(null, value);
                 break;
             }
             case Value.TIMESTAMP_TZ: {
@@ -1214,11 +1214,11 @@ public class DataType {
         } else if (x instanceof byte[]) {
             return ValueBytes.get((byte[]) x);
         } else if (x instanceof Date) {
-            return ValueDate.get((Date) x);
+            return ValueDate.get(null, (Date) x);
         } else if (x instanceof Time) {
-            return ValueTime.get((Time) x);
+            return ValueTime.get(null, (Time) x);
         } else if (x instanceof Timestamp) {
-            return ValueTimestamp.get((Timestamp) x);
+            return ValueTimestamp.get(null, (Timestamp) x);
         } else if (x instanceof java.util.Date) {
             return ValueTimestamp.fromMillis(((java.util.Date) x).getTime());
         } else if (x instanceof java.io.Reader) {

@@ -335,7 +335,7 @@ public class Update extends Prepared implements DataChangeStatement {
     }
 
     @Override
-    public void collectDependecies(HashSet<DbObject> dependencies) {
+    public void collectDependencies(HashSet<DbObject> dependencies) {
         ExpressionVisitor visitor = ExpressionVisitor.getDependenciesVisitor(dependencies);
         if (condition != null) {
             condition.isEverything(visitor);

@@ -479,7 +479,7 @@ public abstract class Prepared {
     /**
      * Find and collect all DbObjects, this Prepared depends on.
      *
-     * @param dependencies collection of dependecies to populate
+     * @param dependencies collection of dependencies to populate
      */
-    public void collectDependecies(HashSet<DbObject> dependencies) {}
+    public void collectDependencies(HashSet<DbObject> dependencies) {}
 }

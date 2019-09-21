@@ -335,7 +335,7 @@ public class CommandContainer extends Command {
     @Override
     public Set<DbObject> getDependencies() {
         HashSet<DbObject> dependencies = new HashSet<>();
-        prepared.collectDependecies(dependencies);
+        prepared.collectDependencies(dependencies);
         return dependencies;
     }
 }

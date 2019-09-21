@@ -19,7 +19,9 @@ import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableFilter;
+import org.h2.value.Value;
 import org.h2.value.ValueLong;
+import org.h2.value.VersionedValue;
 
 /**
  * An index that delegates indexing to another index.
@@ -51,7 +53,7 @@ public class MVDelegateIndex extends BaseIndex implements MVIndex {
     }
 
     @Override
-    public MVMap getMVMap() {
+    public MVMap<Value, VersionedValue> getMVMap() {
         return mainIndex.getMVMap();
     }
 

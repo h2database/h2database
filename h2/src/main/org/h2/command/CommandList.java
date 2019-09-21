@@ -120,7 +120,7 @@ class CommandList extends Command {
     public Set<DbObject> getDependencies() {
         HashSet<DbObject> dependencies = new HashSet<>();
         for (Prepared prepared : commands) {
-            prepared.collectDependecies(dependencies);
+            prepared.collectDependencies(dependencies);
         }
         return dependencies;
     }

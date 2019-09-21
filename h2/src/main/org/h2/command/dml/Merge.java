@@ -26,7 +26,6 @@ import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.Table;
-import org.h2.table.TableFilter;
 import org.h2.value.Value;
 
 /**
@@ -340,9 +339,9 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
     }
 
     @Override
-    public void collectDependecies(HashSet<DbObject> dependencies) {
+    public void collectDependencies(HashSet<DbObject> dependencies) {
         if (query != null) {
-            query.collectDependecies(dependencies);
+            query.collectDependencies(dependencies);
         }
     }
 }

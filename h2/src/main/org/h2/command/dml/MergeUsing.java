@@ -342,14 +342,14 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
     }
 
     @Override
-    public void collectDependecies(HashSet<DbObject> dependencies) {
+    public void collectDependencies(HashSet<DbObject> dependencies) {
         for (When w : when) {
-            w.collectDependecies(dependencies);
+            w.collectDependencies(dependencies);
         }
         if (query != null) {
-            query.collectDependecies(dependencies);
+            query.collectDependencies(dependencies);
         }
-        targetMatchQuery.collectDependecies(dependencies);
+        targetMatchQuery.collectDependencies(dependencies);
     }
 
     /**
@@ -428,9 +428,9 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         /**
          * Find and collect all DbObjects, this When object depends on.
          *
-         * @param dependencies collection of dependecies to populate
+         * @param dependencies collection of dependencies to populate
          */
-        abstract void collectDependecies(HashSet<DbObject> dependencies);
+        abstract void collectDependencies(HashSet<DbObject> dependencies);
     }
 
     public static final class WhenMatched extends When {
@@ -546,12 +546,12 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         }
 
         @Override
-        void collectDependecies(HashSet<DbObject> dependencies) {
+        void collectDependencies(HashSet<DbObject> dependencies) {
             if (updateCommand != null) {
-                updateCommand.collectDependecies(dependencies);
+                updateCommand.collectDependencies(dependencies);
             }
             if (deleteCommand != null) {
-                deleteCommand.collectDependecies(dependencies);
+                deleteCommand.collectDependencies(dependencies);
             }
         }
 
@@ -612,8 +612,8 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         }
 
         @Override
-        void collectDependecies(HashSet<DbObject> dependencies) {
-            insertCommand.collectDependecies(dependencies);
+        void collectDependencies(HashSet<DbObject> dependencies) {
+            insertCommand.collectDependencies(dependencies);
         }
     }
 }

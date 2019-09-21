@@ -40,7 +40,7 @@ public class TestLIRSMemoryConsumption extends TestDb {
         testMemoryConsumption();
     }
 
-    private void testMemoryConsumption() {
+    private static void testMemoryConsumption() {
         int size = 1_000_000;
         Random rng = new Random();
         CacheLongKeyLIRS.Config config = new CacheLongKeyLIRS.Config();

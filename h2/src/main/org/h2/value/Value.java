@@ -554,14 +554,32 @@ public abstract class Value extends VersionedValue {
         return ((ValueBoolean) convertTo(Value.BOOLEAN)).getBoolean();
     }
 
+    /**
+     * Get the date value converted to the specified timezone.
+     *
+     * @param timeZone the target timezone
+     * @return the date
+     */
     public Date getDate(TimeZone timeZone) {
         return ((ValueDate) convertTo(Value.DATE)).getDate(timeZone);
     }
 
+    /**
+     * Get the time value converted to the specified timezone.
+     *
+     * @param timeZone the target timezone
+     * @return the date
+     */
     public Time getTime(TimeZone timeZone) {
         return ((ValueTime) convertTo(Value.TIME)).getTime(timeZone);
     }
 
+    /**
+     * Get the timezone value converted to the specified timezone.
+     *
+     * @param timeZone the target timezone
+     * @return the date
+     */
     public Timestamp getTimestamp(TimeZone timeZone) {
         return ((ValueTimestamp) convertTo(Value.TIMESTAMP)).getTimestamp(timeZone);
     }

@@ -445,7 +445,7 @@ public class TestConcurrent extends TestMVStore {
                 int chunkCount = 0;
                 for (String k : meta.keyList()) {
                     if (k.startsWith(DataUtils.META_CHUNK)) {
-                        // dead chunks may stay around for alittle while
+                        // dead chunks may stay around for a little while
                         // discount them
                         Chunk chunk = Chunk.fromString(meta.get(k));
                         if (chunk.maxLenLive > 0) {

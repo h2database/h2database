@@ -15,11 +15,11 @@ Fix typos, add new words to dictionary.txt:
 
 Add documentation for all public methods. Make methods private if possible:
 
-    ./build.sh javadocImpl
+    ./build.sh clean compile javadocImpl
 
 Ensure lines are not overly long:
 
-    ./build.sh docs
+    ./build.sh clean compile docs
 
 ## JDBC Client Jar File Size Verification
 

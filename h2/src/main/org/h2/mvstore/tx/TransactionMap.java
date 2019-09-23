@@ -370,6 +370,12 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         return getImmediate(key);
     }
 
+    /**
+     * Get the value for the given key from a snapshot, or null if not found.
+     *
+     * @param key the key
+     * @return the value, or null if not found
+     */
     @SuppressWarnings("unchecked")
     public V getFromSnapshot(Object key) {
         RootReference rootReference = getRootReference();
@@ -392,6 +398,12 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         }
     }
 
+    /**
+     * Get the value for the given key, or null if not found.
+     *
+     * @param key the key
+     * @return the value, or null if not found
+     */
     @SuppressWarnings("unchecked")
     public V getImmediate(Object key) {
         VersionedValue data = map.get(key);

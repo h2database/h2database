@@ -304,15 +304,15 @@ final class Percentile {
                     ts1 = (ValueTimestampTimeZone) v1.convertTo(Value.TIMESTAMP_TZ);
             BigDecimal a0 = timestampToDecimal(ts0.getDateValue(), ts0.getTimeNanos());
             BigDecimal a1 = timestampToDecimal(ts1.getDateValue(), ts1.getTimeNanos());
-            BigDecimal offset = BigDecimal.valueOf(ts0.getTimeZoneOffsetMins())
+            BigDecimal offset = BigDecimal.valueOf(ts0.getTimeZoneOffsetSeconds())
                     .multiply(BigDecimal.ONE.subtract(factor))
-                    .add(BigDecimal.valueOf(ts1.getTimeZoneOffsetMins()).multiply(factor));
-            short shortOffset = offset.shortValue();
-            BigDecimal shortOffsetBD = BigDecimal.valueOf(shortOffset);
+                    .add(BigDecimal.valueOf(ts1.getTimeZoneOffsetSeconds()).multiply(factor));
+            int intOffset = offset.intValue();
+            BigDecimal intOffsetBD = BigDecimal.valueOf(intOffset);
             BigDecimal bd = interpolateDecimal(a0, a1, factor);
-            if (offset.compareTo(shortOffsetBD) != 0) {
+            if (offset.compareTo(intOffsetBD) != 0) {
                 bd = bd.add(
-                        offset.subtract(shortOffsetBD).multiply(BigDecimal.valueOf(DateTimeUtils.NANOS_PER_MINUTE)));
+                        offset.subtract(intOffsetBD).multiply(BigDecimal.valueOf(DateTimeUtils.NANOS_PER_SECOND)));
             }
             BigInteger[] dr = bd.toBigInteger().divideAndRemainder(IntervalUtils.NANOS_PER_DAY_BI);
             long absoluteDay = dr[0].longValue();
@@ -322,7 +322,7 @@ final class Percentile {
                 absoluteDay--;
             }
             return ValueTimestampTimeZone.fromDateValueAndNanos(DateTimeUtils.dateValueFromAbsoluteDay(absoluteDay),
-                    timeNanos, shortOffset);
+                    timeNanos, intOffset);
         }
         case Value.INTERVAL_YEAR:
         case Value.INTERVAL_MONTH:

@@ -14,7 +14,8 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.LocalDateTimeUtils;
+import org.h2.util.JSR310;
+import org.h2.util.JSR310Utils;
 
 /**
  * Implementation of the TIME data type.
@@ -81,7 +82,7 @@ public class ValueTime extends Value {
     public static ValueTime get(TimeZone timeZone, Time time) {
         long ms = time.getTime();
         return fromNanos(DateTimeUtils.nanosFromLocalMillis(
-                ms + (timeZone == null ? DateTimeUtils.getTimeZoneOffset(ms) : timeZone.getOffset(ms))));
+                ms + (timeZone == null ? DateTimeUtils.getTimeZoneOffsetMillis(ms) : timeZone.getOffset(ms))));
     }
 
     /**
@@ -92,7 +93,7 @@ public class ValueTime extends Value {
      * @return the value
      */
     public static ValueTime fromMillis(long ms) {
-        return fromNanos(DateTimeUtils.nanosFromLocalMillis(ms + DateTimeUtils.getTimeZoneOffset(ms)));
+        return fromNanos(DateTimeUtils.nanosFromLocalMillis(ms + DateTimeUtils.getTimeZoneOffsetMillis(ms)));
     }
 
     /**
@@ -119,7 +120,7 @@ public class ValueTime extends Value {
 
     @Override
     public Time getTime(TimeZone timeZone) {
-        return DateTimeUtils.convertNanoToTime(timeZone, nanos);
+        return new Time(DateTimeUtils.getMillis(timeZone, DateTimeUtils.EPOCH_DATE_VALUE, nanos));
     }
 
     @Override
@@ -193,9 +194,9 @@ public class ValueTime extends Value {
 
     @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+        if (JSR310.PRESENT) {
             try {
-                prep.setObject(parameterIndex, LocalDateTimeUtils.valueToLocalTime(this), Types.TIME);
+                prep.setObject(parameterIndex, JSR310Utils.valueToLocalTime(this), Types.TIME);
                 return;
             } catch (SQLException ignore) {
                 // Nothing to do

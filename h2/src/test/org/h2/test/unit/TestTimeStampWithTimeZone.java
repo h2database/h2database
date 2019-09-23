@@ -19,7 +19,8 @@ import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.LocalDateTimeUtils;
+import org.h2.util.JSR310;
+import org.h2.util.JSR310Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueTime;
@@ -52,6 +53,7 @@ public class TestTimeStampWithTimeZone extends TestDb {
         deleteDb(getTestName());
     }
 
+    @SuppressWarnings("deprecation")
     private void test1() throws SQLException {
         Connection conn = getConnection(getTestName());
         Statement stat = conn.createStatement();
@@ -70,12 +72,15 @@ public class TestTimeStampWithTimeZone extends TestDb {
         assertEquals(1970, ts.getYear());
         assertEquals(1, ts.getMonth());
         assertEquals(1, ts.getDay());
+        assertEquals(15 * 60, ts.getTimeZoneOffsetSeconds());
         assertEquals(15, ts.getTimeZoneOffsetMins());
-        TimestampWithTimeZone firstExpected = new TimestampWithTimeZone(1008673L, 43200000000000L, (short) 15);
+        TimestampWithTimeZone firstExpected = new TimestampWithTimeZone(1008673L, 43200000000000L, 15 * 60);
+        TimestampWithTimeZone firstExpected2 = new TimestampWithTimeZone(1008673L, 43200000000000L, (short) 15);
         assertEquals(firstExpected, ts);
-        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+        assertEquals(firstExpected2, ts);
+        if (JSR310.PRESENT) {
             assertEquals("1970-01-01T12:00+00:15", rs.getObject(1,
-                            LocalDateTimeUtils.OFFSET_DATE_TIME).toString());
+                            JSR310.OFFSET_DATE_TIME).toString());
         }
         rs.next();
         ts = test1_getTimestamp(rs);
@@ -84,9 +89,9 @@ public class TestTimeStampWithTimeZone extends TestDb {
         assertEquals(24, ts.getDay());
         assertEquals(1, ts.getTimeZoneOffsetMins());
         assertEquals(1L, ts.getNanosSinceMidnight());
-        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+        if (JSR310.PRESENT) {
             assertEquals("2016-09-24T00:00:00.000000001+00:01", rs.getObject(1,
-                            LocalDateTimeUtils.OFFSET_DATE_TIME).toString());
+                            JSR310.OFFSET_DATE_TIME).toString());
         }
         rs.next();
         ts = test1_getTimestamp(rs);
@@ -95,27 +100,27 @@ public class TestTimeStampWithTimeZone extends TestDb {
         assertEquals(24, ts.getDay());
         assertEquals(-1, ts.getTimeZoneOffsetMins());
         assertEquals(1L, ts.getNanosSinceMidnight());
-        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+        if (JSR310.PRESENT) {
             assertEquals("2016-09-24T00:00:00.000000001-00:01", rs.getObject(1,
-                            LocalDateTimeUtils.OFFSET_DATE_TIME).toString());
+                            JSR310.OFFSET_DATE_TIME).toString());
         }
         rs.next();
         ts = test1_getTimestamp(rs);
         assertEquals(2016, ts.getYear());
         assertEquals(1, ts.getMonth());
         assertEquals(1, ts.getDay());
-        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+        if (JSR310.PRESENT) {
             assertEquals("2016-01-01T05:00+10:00", rs.getObject(1,
-                            LocalDateTimeUtils.OFFSET_DATE_TIME).toString());
+                            JSR310.OFFSET_DATE_TIME).toString());
         }
         rs.next();
         ts = test1_getTimestamp(rs);
         assertEquals(2015, ts.getYear());
         assertEquals(12, ts.getMonth());
         assertEquals(31, ts.getDay());
-        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+        if (JSR310.PRESENT) {
             assertEquals("2015-12-31T19:00-10:00", rs.getObject(1,
-                            LocalDateTimeUtils.OFFSET_DATE_TIME).toString());
+                            JSR310.OFFSET_DATE_TIME).toString());
         }
 
         ResultSetMetaData metaData = rs.getMetaData();
@@ -126,7 +131,7 @@ public class TestTimeStampWithTimeZone extends TestDb {
         // Types.TIMESTAMP_WITH_TIMEZONE
         // once Java 1.8 is required.
         assertEquals(2014, columnType);
-        if (SysProperties.RETURN_OFFSET_DATE_TIME && LocalDateTimeUtils.isJava8DateApiPresent()) {
+        if (SysProperties.RETURN_OFFSET_DATE_TIME && JSR310.PRESENT) {
             assertEquals("java.time.OffsetDateTime", metaData.getColumnClassName(1));
         } else {
             assertEquals("org.h2.api.TimestampWithTimeZone", metaData.getColumnClassName(1));
@@ -144,10 +149,10 @@ public class TestTimeStampWithTimeZone extends TestDb {
 
     private static TimestampWithTimeZone test1_getTimestamp(ResultSet rs) throws SQLException {
         Object o = rs.getObject(1);
-        if (SysProperties.RETURN_OFFSET_DATE_TIME && LocalDateTimeUtils.isJava8DateApiPresent()) {
-            ValueTimestampTimeZone value = LocalDateTimeUtils.offsetDateTimeToValue(o);
+        if (SysProperties.RETURN_OFFSET_DATE_TIME && JSR310.PRESENT) {
+            ValueTimestampTimeZone value = JSR310Utils.offsetDateTimeToValue(o);
             return new TimestampWithTimeZone(value.getDateValue(), value.getTimeNanos(),
-                    value.getTimeZoneOffsetMins());
+                    value.getTimeZoneOffsetSeconds());
         }
         return (TimestampWithTimeZone) o;
     }

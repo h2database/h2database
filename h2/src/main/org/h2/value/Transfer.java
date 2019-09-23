@@ -396,7 +396,9 @@ public class Transfer {
             ValueTimestampTimeZone ts = (ValueTimestampTimeZone) v;
             writeLong(ts.getDateValue());
             writeLong(ts.getTimeNanos());
-            writeInt(ts.getTimeZoneOffsetMins());
+            int timeZoneOffset = ts.getTimeZoneOffsetSeconds();
+            writeInt(version >= Constants.TCP_PROTOCOL_VERSION_19 //
+                    ? timeZoneOffset : timeZoneOffset / 60);
             break;
         }
         case Value.DECIMAL:
@@ -649,7 +651,10 @@ public class Transfer {
         case TIMESTAMP:
             return ValueTimestamp.fromDateValueAndNanos(readLong(), readLong());
         case TIMESTAMP_TZ: {
-            return ValueTimestampTimeZone.fromDateValueAndNanos(readLong(), readLong(), (short) readInt());
+            long dateValue = readLong(), timeNanos = readLong();
+            int timeZoneOffset = readInt();
+            return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos,
+                    version >= Constants.TCP_PROTOCOL_VERSION_19 ? timeZoneOffset : timeZoneOffset * 60);
         }
         case DECIMAL:
             return ValueDecimal.get(new BigDecimal(readString()));

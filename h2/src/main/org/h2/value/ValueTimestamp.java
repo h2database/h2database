@@ -14,7 +14,8 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.LocalDateTimeUtils;
+import org.h2.util.JSR310;
+import org.h2.util.JSR310Utils;
 
 /**
  * Implementation of the TIMESTAMP data type.
@@ -85,11 +86,9 @@ public class ValueTimestamp extends Value {
      */
     public static ValueTimestamp get(TimeZone timeZone, Timestamp timestamp) {
         long ms = timestamp.getTime();
-        long nanos = timestamp.getNanos() % 1_000_000;
-        ms += timeZone == null ? DateTimeUtils.getTimeZoneOffset(ms) : timeZone.getOffset(ms);
-        long dateValue = DateTimeUtils.dateValueFromLocalMillis(ms);
-        nanos += DateTimeUtils.nanosFromLocalMillis(ms);
-        return fromDateValueAndNanos(dateValue, nanos);
+        return fromLocalMillis(
+                ms + (timeZone == null ? DateTimeUtils.getTimeZoneOffsetMillis(ms) : timeZone.getOffset(ms)),
+                timestamp.getNanos() % 1_000_000);
     }
 
     /**
@@ -99,24 +98,14 @@ public class ValueTimestamp extends Value {
      * @param nanos the nanoseconds
      * @return the value
      */
-    public static ValueTimestamp fromMillisNanos(long ms, int nanos) {
-        ms += DateTimeUtils.getTimeZoneOffset(ms);
+    public static ValueTimestamp fromMillis(long ms, int nanos) {
+        return fromLocalMillis(ms + DateTimeUtils.getTimeZoneOffsetMillis(ms), nanos);
+    }
+
+    private static ValueTimestamp fromLocalMillis(long ms, int nanos) {
         long dateValue = DateTimeUtils.dateValueFromLocalMillis(ms);
         long timeNanos = nanos + DateTimeUtils.nanosFromLocalMillis(ms);
         return fromDateValueAndNanos(dateValue, timeNanos);
-    }
-
-    /**
-     * Get or create a timestamp value for the given date/time in millis.
-     *
-     * @param ms the milliseconds
-     * @return the value
-     */
-    public static ValueTimestamp fromMillis(long ms) {
-        ms += DateTimeUtils.getTimeZoneOffset(ms);
-        long dateValue = DateTimeUtils.dateValueFromLocalMillis(ms);
-        long nanos = DateTimeUtils.nanosFromLocalMillis(ms);
-        return fromDateValueAndNanos(dateValue, nanos);
     }
 
     /**
@@ -170,7 +159,9 @@ public class ValueTimestamp extends Value {
 
     @Override
     public Timestamp getTimestamp(TimeZone timeZone) {
-        return DateTimeUtils.convertDateValueToTimestamp(timeZone, dateValue, timeNanos);
+        Timestamp ts = new Timestamp(DateTimeUtils.getMillis(timeZone, dateValue, timeNanos));
+        ts.setNanos((int) (timeNanos % DateTimeUtils.NANOS_PER_SECOND));
+        return ts;
     }
 
     @Override
@@ -267,9 +258,9 @@ public class ValueTimestamp extends Value {
 
     @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+        if (JSR310.PRESENT) {
             try {
-                prep.setObject(parameterIndex, LocalDateTimeUtils.valueToLocalDateTime(this, null), Types.TIMESTAMP);
+                prep.setObject(parameterIndex, JSR310Utils.valueToLocalDateTime(this, null), Types.TIMESTAMP);
                 return;
             } catch (SQLException ignore) {
                 // Nothing to do

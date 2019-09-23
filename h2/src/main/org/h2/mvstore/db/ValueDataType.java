@@ -107,6 +107,7 @@ public class ValueDataType implements DataType {
     private static final int SPATIAL_KEY_2D = 132;
     private static final int CUSTOM_DATA_TYPE = 133;
     private static final int JSON = 134;
+    private static final int TIMESTAMP_TZ_2 = 135;
 
     final DataHandler handler;
     final CastDataProvider provider;
@@ -303,11 +304,11 @@ public class ValueDataType implements DataType {
         case Value.TIME: {
             ValueTime t = (ValueTime) v;
             long nanos = t.getNanos();
-            long millis = nanos / 1000000;
-            nanos -= millis * 1000000;
+            long millis = nanos / 1_000_000;
+            nanos -= millis * 1_000_000;
             buff.put(TIME).
                 putVarLong(millis).
-                putVarLong(nanos);
+                putVarInt((int) nanos);
             break;
         }
         case Value.DATE: {
@@ -319,25 +320,34 @@ public class ValueDataType implements DataType {
             ValueTimestamp ts = (ValueTimestamp) v;
             long dateValue = ts.getDateValue();
             long nanos = ts.getTimeNanos();
-            long millis = nanos / 1000000;
-            nanos -= millis * 1000000;
+            long millis = nanos / 1_000_000;
+            nanos -= millis * 1_000_000;
             buff.put(TIMESTAMP).
                 putVarLong(dateValue).
                 putVarLong(millis).
-                putVarLong(nanos);
+                putVarInt((int) nanos);
             break;
         }
         case Value.TIMESTAMP_TZ: {
             ValueTimestampTimeZone ts = (ValueTimestampTimeZone) v;
             long dateValue = ts.getDateValue();
             long nanos = ts.getTimeNanos();
-            long millis = nanos / 1000000;
-            nanos -= millis * 1000000;
-            buff.put(TIMESTAMP_TZ).
-                putVarLong(dateValue).
-                putVarLong(millis).
-                putVarLong(nanos).
-                putVarInt(ts.getTimeZoneOffsetMins());
+            long millis = nanos / 1_000_000;
+            nanos -= millis * 1_000_000;
+            int timeZoneOffset = ts.getTimeZoneOffsetSeconds();
+            if (timeZoneOffset % 60 == 0) {
+                buff.put(TIMESTAMP_TZ).
+                    putVarLong(dateValue).
+                    putVarLong(millis).
+                    putVarInt((int) nanos).
+                    putVarInt(timeZoneOffset / 60);
+            } else {
+                buff.put((byte) TIMESTAMP_TZ_2).
+                    putVarLong(dateValue).
+                    putVarLong(millis).
+                    putVarInt((int) nanos);
+                writeTimeZone(buff, timeZoneOffset);
+            }
             break;
         }
         case Value.JAVA_OBJECT: {
@@ -531,6 +541,19 @@ public class ValueDataType implements DataType {
         buff.putVarInt(len).putStringData(s, len);
     }
 
+    private static void writeTimeZone(WriteBuffer buff, int timeZoneOffset) {
+        // Valid JSR-310 offsets are -64,800..64,800
+        // Use 1 byte for common time zones (including +8:45 etc.)
+        if (timeZoneOffset % 900 == 0) {
+            // -72..72
+            buff.put((byte) (timeZoneOffset / 900));
+        } else if (timeZoneOffset > 0) {
+            buff.put(Byte.MAX_VALUE).putVarInt(timeZoneOffset);
+        } else {
+            buff.put(Byte.MIN_VALUE).putVarInt(-timeZoneOffset);
+        }
+    }
+
     /**
      * Read a value.
      *
@@ -582,18 +605,24 @@ public class ValueDataType implements DataType {
             return ValueDate.fromDateValue(readVarLong(buff));
         }
         case TIME: {
-            long nanos = readVarLong(buff) * 1000000 + readVarLong(buff);
+            long nanos = readVarLong(buff) * 1_000_000 + readVarInt(buff);
             return ValueTime.fromNanos(nanos);
         }
         case TIMESTAMP: {
             long dateValue = readVarLong(buff);
-            long nanos = readVarLong(buff) * 1000000 + readVarLong(buff);
+            long nanos = readVarLong(buff) * 1_000_000 + readVarInt(buff);
             return ValueTimestamp.fromDateValueAndNanos(dateValue, nanos);
         }
         case TIMESTAMP_TZ: {
             long dateValue = readVarLong(buff);
-            long nanos = readVarLong(buff) * 1000000 + readVarLong(buff);
-            short tz = (short) readVarInt(buff);
+            long nanos = readVarLong(buff) * 1_000_000 + readVarInt(buff);
+            int tz = readVarInt(buff) * 60;
+            return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, nanos, tz);
+        }
+        case TIMESTAMP_TZ_2: {
+            long dateValue = readVarLong(buff);
+            long nanos = readVarLong(buff) * 1_000_000 + readVarInt(buff);
+            int tz = readTimeZone(buff);
             return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, nanos, tz);
         }
         case BYTES: {
@@ -720,6 +749,17 @@ public class ValueDataType implements DataType {
                 return ValueString.get(readString(buff, type - STRING_0_31));
             }
             throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "type: " + type);
+        }
+    }
+
+    private static int readTimeZone(ByteBuffer buff) {
+        byte b = buff.get();
+        if (b == Byte.MAX_VALUE) {
+            return readVarInt(buff);
+        } else if (b == Byte.MIN_VALUE) {
+            return -readVarInt(buff);
+        } else {
+            return b * 900;
         }
     }
 

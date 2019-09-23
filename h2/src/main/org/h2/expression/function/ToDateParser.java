@@ -8,10 +8,10 @@ package org.h2.expression.function;
 import static java.lang.String.format;
 
 import java.util.List;
-import java.util.TimeZone;
 
 import org.h2.engine.Session;
 import org.h2.util.DateTimeUtils;
+import org.h2.util.TimeZoneProvider;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
 
@@ -46,7 +46,7 @@ public class ToDateParser {
 
     private boolean isAM = true;
 
-    private TimeZone timeZone;
+    private TimeZoneProvider timeZone;
 
     private int timeZoneHour, timeZoneMinute;
 
@@ -120,17 +120,13 @@ public class ToDateParser {
 
     private ValueTimestampTimeZone getResultingValueWithTimeZone() {
         ValueTimestamp ts = getResultingValue();
-        long dateValue = ts.getDateValue();
-        short offset;
+        long dateValue = ts.getDateValue(), timeNanos = ts.getTimeNanos();
+        int offset;
         if (timeZoneHMValid) {
-            offset = (short) (timeZoneHour * 60 + ((timeZoneHour >= 0) ? timeZoneMinute : -timeZoneMinute));
+            offset = (timeZoneHour * 60 + ((timeZoneHour >= 0) ? timeZoneMinute : -timeZoneMinute)) * 60;
         } else {
-            TimeZone timeZone = this.timeZone;
-            if (timeZone == null) {
-                timeZone = TimeZone.getDefault();
-            }
-            long millis = DateTimeUtils.convertDateTimeValueToMillis(timeZone, dateValue, nanos / 1_000_000);
-            offset = (short) (timeZone.getOffset(millis) / 60_000);
+            offset = timeZone == null ? DateTimeUtils.getTimeZoneOffset(dateValue, timeNanos)
+                    : timeZone.getTimeZoneOffsetLocal(dateValue, timeNanos);
         }
         return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, ts.getTimeNanos(), offset);
     }
@@ -237,7 +233,7 @@ public class ToDateParser {
         this.hour12 = hour12;
     }
 
-    void setTimeZone(TimeZone timeZone) {
+    void setTimeZone(TimeZoneProvider timeZone) {
         timeZoneHMValid = false;
         this.timeZone = timeZone;
     }

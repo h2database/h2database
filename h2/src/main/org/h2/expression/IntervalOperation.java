@@ -7,7 +7,7 @@ package org.h2.expression;
 
 import static org.h2.util.DateTimeUtils.NANOS_PER_DAY;
 import static org.h2.util.DateTimeUtils.NANOS_PER_HOUR;
-import static org.h2.util.DateTimeUtils.NANOS_PER_MINUTE;
+import static org.h2.util.DateTimeUtils.NANOS_PER_SECOND;
 import static org.h2.util.DateTimeUtils.absoluteDayFromDateValue;
 import static org.h2.util.DateTimeUtils.dateAndTimeFromValue;
 import static org.h2.util.DateTimeUtils.dateTimeToValue;
@@ -201,8 +201,8 @@ public class IntervalOperation extends Expression {
                 if (lType == Value.TIMESTAMP_TZ || rType == Value.TIMESTAMP_TZ) {
                     l = l.convertTo(Value.TIMESTAMP_TZ, session, false);
                     r = r.convertTo(Value.TIMESTAMP_TZ, session, false);
-                    diff = diff.add(BigInteger.valueOf((((ValueTimestampTimeZone) r).getTimeZoneOffsetMins()
-                            - ((ValueTimestampTimeZone) l).getTimeZoneOffsetMins()) * NANOS_PER_MINUTE));
+                    diff = diff.add(BigInteger.valueOf((((ValueTimestampTimeZone) r).getTimeZoneOffsetSeconds()
+                            - ((ValueTimestampTimeZone) l).getTimeZoneOffsetSeconds()) * NANOS_PER_SECOND));
                 }
                 return IntervalUtils.intervalFromAbsolute(IntervalQualifier.DAY_TO_SECOND, diff);
             }

@@ -5,13 +5,12 @@
  */
 package org.h2.expression;
 
-import java.util.TimeZone;
-
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.DateTimeUtils;
+import org.h2.util.TimeZoneProvider;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -58,10 +57,10 @@ public class TimeZoneOperation extends Expression {
                 ValueTimestampTimeZone v = (ValueTimestampTimeZone) a;
                 long dateValue = v.getDateValue();
                 long timeNanos = v.getTimeNanos();
-                short offsetMins = v.getTimeZoneOffsetMins();
-                short newOffset = parseTimeZone(b, dateValue, timeNanos, offsetMins);
-                if (offsetMins != newOffset) {
-                    timeNanos += (newOffset - offsetMins) * DateTimeUtils.NANOS_PER_MINUTE;
+                int offsetSeconds = v.getTimeZoneOffsetSeconds();
+                int newOffset = parseTimeZone(b, dateValue, timeNanos, offsetSeconds);
+                if (offsetSeconds != newOffset) {
+                    timeNanos += (newOffset - offsetSeconds) * DateTimeUtils.NANOS_PER_SECOND;
                     if (timeNanos < 0) {
                         timeNanos += DateTimeUtils.NANOS_PER_DAY;
                         dateValue = DateTimeUtils.decrementDateValue(dateValue);
@@ -78,7 +77,7 @@ public class TimeZoneOperation extends Expression {
         return a;
     }
 
-    private static short parseTimeZone(Value b, long dateValue, long timeNanos, short offsetMins) {
+    private static int parseTimeZone(Value b, long dateValue, long timeNanos, int offsetSeconds) {
         int timeZoneType = b.getValueType();
         if (DataType.isStringType(timeZoneType)) {
             String s = b.getString();
@@ -87,27 +86,29 @@ public class TimeZoneOperation extends Expression {
             } else if (!s.isEmpty()) {
                 char c = s.charAt(0);
                 if (c != '+' && c != '-' && (c < '0' || c > '9')) {
-                    TimeZone timeZone = TimeZone.getTimeZone(s);
-                    if (!timeZone.getID().startsWith(s)) {
+                    TimeZoneProvider timeZone;
+                    try {
+                        timeZone = TimeZoneProvider.ofId(s);
+                    } catch (IllegalArgumentException ex) {
                         throw DbException.getInvalidValueException("time zone", b.getSQL());
                     }
-                    return (short) (timeZone.getOffset(DateTimeUtils.getMillis(dateValue, timeNanos, offsetMins))
-                            / 60_000);
+                    return timeZone
+                            .getTimeZoneOffsetUTC(DateTimeUtils.getEpochSeconds(dateValue, timeNanos, offsetSeconds));
                 }
             }
         }
         return parseInterval(b);
     }
 
-    private static short parseInterval(Value b) {
-        ValueInterval i = (ValueInterval) b.convertTo(Value.INTERVAL_HOUR_TO_MINUTE);
-        long h = i.getLeading(), m = i.getRemaining();
-        if (h > 18 || h == 18 && m != 0) {
+    private static int parseInterval(Value b) {
+        ValueInterval i = (ValueInterval) b.convertTo(Value.INTERVAL_HOUR_TO_SECOND);
+        long h = i.getLeading(), seconds = i.getRemaining();
+        if (h > 18 || h == 18 && seconds != 0 || seconds % DateTimeUtils.NANOS_PER_SECOND != 0) {
             throw DbException.getInvalidValueException("time zone", i.getSQL());
         }
-        short newOffset = (short) (h * 60 + m);
+        int newOffset = (int) (h * 3_600 + seconds / DateTimeUtils.NANOS_PER_SECOND);
         if (i.isNegative()) {
-            newOffset = (short) -newOffset;
+            newOffset = -newOffset;
         }
         return newOffset;
     }

@@ -106,6 +106,12 @@ public class Constants {
     public static final int TCP_PROTOCOL_VERSION_18 = 18;
 
     /**
+     * The TCP protocol version number 18.
+     * @since 1.4.200 (TODO)
+     */
+    public static final int TCP_PROTOCOL_VERSION_19 = 19;
+
+    /**
      * Minimum supported version of TCP protocol.
      */
     public static final int TCP_PROTOCOL_VERSION_MIN_SUPPORTED = TCP_PROTOCOL_VERSION_9;
@@ -113,7 +119,7 @@ public class Constants {
     /**
      * Maximum supported version of TCP protocol.
      */
-    public static final int TCP_PROTOCOL_VERSION_MAX_SUPPORTED = TCP_PROTOCOL_VERSION_18;
+    public static final int TCP_PROTOCOL_VERSION_MAX_SUPPORTED = TCP_PROTOCOL_VERSION_19;
 
     /**
      * The major version of this database.

@@ -121,6 +121,7 @@ public class Data {
     private static final int LOCAL_TIMESTAMP = 134;
     private static final int CUSTOM_DATA_TYPE = 135;
     private static final int JSON = 136;
+    private static final int TIMESTAMP_TZ_2 = 137;
 
     private static final long MILLIS_PER_MINUTE = 1000 * 60;
 
@@ -564,10 +565,18 @@ public class Data {
         }
         case Value.TIMESTAMP_TZ: {
             ValueTimestampTimeZone ts = (ValueTimestampTimeZone) v;
-            writeByte(TIMESTAMP_TZ);
-            writeVarLong(ts.getDateValue());
-            writeVarLong(ts.getTimeNanos());
-            writeVarInt(ts.getTimeZoneOffsetMins());
+            int timeZoneOffset = ts.getTimeZoneOffsetSeconds();
+            if (timeZoneOffset % 60 == 0) {
+                writeByte(TIMESTAMP_TZ);
+                writeVarLong(ts.getDateValue());
+                writeVarLong(ts.getTimeNanos());
+                writeVarInt(timeZoneOffset / 60);
+            } else {
+                writeByte((byte) TIMESTAMP_TZ_2);
+                writeVarLong(ts.getDateValue());
+                writeVarLong(ts.getTimeNanos());
+                writeTimeZone(timeZoneOffset);
+            }
             break;
         }
         case Value.GEOMETRY:
@@ -845,14 +854,20 @@ public class Data {
             return ValueTimestamp.fromDateValueAndNanos(dateValue, nanos);
         }
         case TIMESTAMP: {
-            return ValueTimestamp.fromMillisNanos(
+            return ValueTimestamp.fromMillis(
                     DateTimeUtils.getTimeUTCWithoutDst(readVarLong()),
                     readVarInt() % 1_000_000);
         }
         case TIMESTAMP_TZ: {
             long dateValue = readVarLong();
             long nanos = readVarLong();
-            short tz = (short) readVarInt();
+            int tz = readVarInt() * 60;
+            return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, nanos, tz);
+        }
+        case TIMESTAMP_TZ_2: {
+            long dateValue = readVarLong();
+            long nanos = readVarLong();
+            int tz = readTimeZone();
             return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, nanos, tz);
         }
         case BYTES: {
@@ -1132,9 +1147,9 @@ public class Data {
             ValueTimestampTimeZone ts = (ValueTimestampTimeZone) v;
             long dateValue = ts.getDateValue();
             long nanos = ts.getTimeNanos();
-            short tz = ts.getTimeZoneOffsetMins();
+            int tz = ts.getTimeZoneOffsetSeconds();
             return 1 + getVarLongLen(dateValue) + getVarLongLen(nanos) +
-                    getVarIntLen(tz);
+                    (tz % 60 == 0 ? getVarIntLen(tz / 60) : getTimeZoneLen(tz));
         }
         case Value.GEOMETRY:
         case Value.JAVA_OBJECT: {
@@ -1418,6 +1433,42 @@ public class Data {
             if (b >= 0) {
                 return x;
             }
+        }
+    }
+
+    private static int getTimeZoneLen(int timeZoneOffset) {
+        if (timeZoneOffset % 900 == 0) {
+            return 1;
+        } else if (timeZoneOffset > 0) {
+            return getVarIntLen(timeZoneOffset) + 1;
+        } else {
+            return getVarIntLen(-timeZoneOffset) + 1;
+        }
+    }
+
+    private void writeTimeZone(int timeZoneOffset) {
+        // Valid JSR-310 offsets are -64,800..64,800
+        // Use 1 byte for common time zones (including +8:45 etc.)
+        if (timeZoneOffset % 900 == 0) {
+            // -72..72
+            writeByte((byte) (timeZoneOffset / 900));
+        } else if (timeZoneOffset > 0) {
+            writeByte(Byte.MAX_VALUE);
+            writeVarInt(timeZoneOffset);
+        } else {
+            writeByte(Byte.MIN_VALUE);
+            writeVarInt(-timeZoneOffset);
+        }
+    }
+
+    private int readTimeZone() {
+        byte x = data[pos++];
+        if (x == Byte.MAX_VALUE) {
+            return readVarInt();
+        } else if (x == Byte.MIN_VALUE) {
+            return -readVarInt();
+        } else {
+            return x * 900;
         }
     }
 

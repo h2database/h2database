@@ -529,7 +529,7 @@ public class ToChar {
             }
             return tz.getID();
         }
-        return DateTimeUtils.timeZoneNameFromOffsetMins(((ValueTimestampTimeZone) value).getTimeZoneOffsetMins());
+        return DateTimeUtils.timeZoneNameFromOffsetSeconds(((ValueTimestampTimeZone) value).getTimeZoneOffsetSeconds());
     }
 
     /**

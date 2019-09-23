@@ -159,7 +159,7 @@ public class TestDateTimeUtils extends TestBase {
                 gc.set(year, month - 1, day, j / 2, (j & 1) * 30, 0);
                 long timeMillis = gc.getTimeInMillis();
                 ValueTimestamp ts = ValueTimestamp.get(gc.getTimeZone(), new Timestamp(timeMillis));
-                timeMillis += DateTimeUtils.getTimeZoneOffset(timeMillis);
+                timeMillis += DateTimeUtils.getTimeZoneOffsetMillis(timeMillis);
                 assertEquals(ts.getDateValue(), DateTimeUtils.dateValueFromLocalMillis(timeMillis));
                 assertEquals(ts.getTimeNanos(), DateTimeUtils.nanosFromLocalMillis(timeMillis));
             }

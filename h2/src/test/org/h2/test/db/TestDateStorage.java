@@ -57,11 +57,13 @@ public class TestDateStorage extends TestDb {
         DateTimeUtils.resetCalendar();
         TimeZone.setDefault(TimeZone.getTimeZone("PST"));
         try {
+            // 2010-03-14T02:15:00Z
             Timestamp ts1 = Timestamp.valueOf("2010-03-13 18:15:00");
             Time t1 = new Time(ts1.getTime());
             Date d1 = new Date(ts1.getTime());
             // when converted to UTC, this is 03:15, which doesn't actually
             // exist because of summer time change at that day
+            // 2010-03-14T03:15:00Z
             Timestamp ts2 = Timestamp.valueOf("2010-03-13 19:15:00");
             Time t2 = new Time(ts2.getTime());
             Date d2 = new Date(ts2.getTime());

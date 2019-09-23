@@ -85,11 +85,9 @@ public class ValueTimestamp extends Value {
      */
     public static ValueTimestamp get(TimeZone timeZone, Timestamp timestamp) {
         long ms = timestamp.getTime();
-        long nanos = timestamp.getNanos() % 1_000_000;
-        ms += timeZone == null ? DateTimeUtils.getTimeZoneOffset(ms) : timeZone.getOffset(ms);
-        long dateValue = DateTimeUtils.dateValueFromLocalMillis(ms);
-        nanos += DateTimeUtils.nanosFromLocalMillis(ms);
-        return fromDateValueAndNanos(dateValue, nanos);
+        return fromLocalMillis(
+                ms + (timeZone == null ? DateTimeUtils.getTimeZoneOffsetMillis(ms) : timeZone.getOffset(ms)),
+                timestamp.getNanos() % 1_000_000);
     }
 
     /**
@@ -99,24 +97,14 @@ public class ValueTimestamp extends Value {
      * @param nanos the nanoseconds
      * @return the value
      */
-    public static ValueTimestamp fromMillisNanos(long ms, int nanos) {
-        ms += DateTimeUtils.getTimeZoneOffset(ms);
+    public static ValueTimestamp fromMillis(long ms, int nanos) {
+        return fromLocalMillis(ms + DateTimeUtils.getTimeZoneOffsetMillis(ms), nanos);
+    }
+
+    private static ValueTimestamp fromLocalMillis(long ms, int nanos) {
         long dateValue = DateTimeUtils.dateValueFromLocalMillis(ms);
         long timeNanos = nanos + DateTimeUtils.nanosFromLocalMillis(ms);
         return fromDateValueAndNanos(dateValue, timeNanos);
-    }
-
-    /**
-     * Get or create a timestamp value for the given date/time in millis.
-     *
-     * @param ms the milliseconds
-     * @return the value
-     */
-    public static ValueTimestamp fromMillis(long ms) {
-        ms += DateTimeUtils.getTimeZoneOffset(ms);
-        long dateValue = DateTimeUtils.dateValueFromLocalMillis(ms);
-        long nanos = DateTimeUtils.nanosFromLocalMillis(ms);
-        return fromDateValueAndNanos(dateValue, nanos);
     }
 
     /**
@@ -170,7 +158,9 @@ public class ValueTimestamp extends Value {
 
     @Override
     public Timestamp getTimestamp(TimeZone timeZone) {
-        return DateTimeUtils.convertDateValueToTimestamp(timeZone, dateValue, timeNanos);
+        Timestamp ts = new Timestamp(DateTimeUtils.getMillis(timeZone, dateValue, timeNanos));
+        ts.setNanos((int) (timeNanos % DateTimeUtils.NANOS_PER_SECOND));
+        return ts;
     }
 
     @Override

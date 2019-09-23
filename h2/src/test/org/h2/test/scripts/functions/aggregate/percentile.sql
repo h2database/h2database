@@ -609,20 +609,20 @@ select median(v) from test;
 delete from test;
 > update count: 5
 
-insert into test values ('2000-01-20 20:00:00+10:15'), ('2000-01-21 20:00:00-09');
+insert into test values ('2000-01-20 20:00:00+10:15:15'), ('2000-01-21 20:00:00-09');
 > update count: 2
 
 select median(v) from test;
->> 2000-01-21 08:00:30+00:37
+>> 2000-01-21 08:00:00.5+00:37:37
 
 delete from test;
 > update count: 2
 
-insert into test values ('-2000-01-20 20:00:00+10:15'), ('-2000-01-21 20:00:00-09');
+insert into test values ('-2000-01-20 20:00:00+10:15:15'), ('-2000-01-21 20:00:00-09');
 > update count: 2
 
 select median(v) from test;
->> -2000-01-21 08:00:30+00:37
+>> -2000-01-21 08:00:00.5+00:37:37
 
 drop table test;
 > ok

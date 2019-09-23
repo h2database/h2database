@@ -11,7 +11,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.CastDataProvider;
@@ -434,7 +433,7 @@ public class LocalDateTimeUtils {
         long epochSecond = DateTimeUtils.absoluteDayFromDateValue( //
                 valueTimestampTimeZone.getDateValue()) * DateTimeUtils.SECONDS_PER_DAY //
                 + timeNanos / DateTimeUtils.NANOS_PER_SECOND //
-                - valueTimestampTimeZone.getTimeZoneOffsetMins() * 60;
+                - valueTimestampTimeZone.getTimeZoneOffsetSeconds();
         timeNanos %= DateTimeUtils.NANOS_PER_SECOND;
         if (epochSecond > MAX_INSTANT_SECOND) {
             epochSecond = MAX_INSTANT_SECOND;
@@ -486,10 +485,9 @@ public class LocalDateTimeUtils {
         try {
             Object localDateTime = localDateTimeFromDateNanos(dateValue, timeNanos);
 
-            short timeZoneOffsetMins = valueTimestampTimeZone.getTimeZoneOffsetMins();
-            int offsetSeconds = (int) TimeUnit.MINUTES.toSeconds(timeZoneOffsetMins);
+            int timeZoneOffsetSeconds = valueTimestampTimeZone.getTimeZoneOffsetSeconds();
 
-            Object offset = ZONE_OFFSET_OF_TOTAL_SECONDS.invoke(null, offsetSeconds);
+            Object offset = ZONE_OFFSET_OF_TOTAL_SECONDS.invoke(null, timeZoneOffsetSeconds);
 
             return (zoned ? ZONED_DATE_TIME_OF_LOCAL_DATE_TIME_ZONE_ID
                     : OFFSET_DATE_TIME_OF_LOCAL_DATE_TIME_ZONE_OFFSET)
@@ -626,7 +624,7 @@ public class LocalDateTimeUtils {
             }
             long timeNanos = (epochSecond - absoluteDay * 86_400) * 1_000_000_000 + nano;
             return ValueTimestampTimeZone.fromDateValueAndNanos(
-                    DateTimeUtils.dateValueFromAbsoluteDay(absoluteDay), timeNanos, (short) 0);
+                    DateTimeUtils.dateValueFromAbsoluteDay(absoluteDay), timeNanos, 0);
         } catch (IllegalAccessException e) {
             throw DbException.convert(e);
         } catch (InvocationTargetException e) {
@@ -666,8 +664,8 @@ public class LocalDateTimeUtils {
             }
             long dateValue = dateValueFromLocalDate(LOCAL_DATE_TIME_TO_LOCAL_DATE.invoke(localDateTime));
             long timeNanos = timeNanosFromLocalDateTime(localDateTime);
-            short timeZoneOffsetMins = zoneOffsetToOffsetMinute(zoneOffset);
-            return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos, timeZoneOffsetMins);
+            int timeZoneOffsetSeconds = zoneOffsetToOffsetSeconds(zoneOffset);
+            return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos, timeZoneOffsetSeconds);
         } catch (IllegalAccessException e) {
             throw DbException.convert(e);
         } catch (InvocationTargetException e) {
@@ -689,10 +687,10 @@ public class LocalDateTimeUtils {
         return (Long) LOCAL_TIME_TO_NANO.invoke(localTime);
     }
 
-    private static short zoneOffsetToOffsetMinute(Object zoneOffset)
+    private static int zoneOffsetToOffsetSeconds(Object zoneOffset)
                     throws IllegalAccessException, InvocationTargetException {
         int totalSeconds = (Integer) ZONE_OFFSET_GET_TOTAL_SECONDS.invoke(zoneOffset);
-        return (short) TimeUnit.SECONDS.toMinutes(totalSeconds);
+        return totalSeconds;
     }
 
     private static Object localDateFromDateValue(long dateValue)

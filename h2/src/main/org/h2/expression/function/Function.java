@@ -1523,8 +1523,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 String tz = v3 == null ?
                         null : v3 == ValueNull.INSTANCE ? null : v3.getString();
                 if (v0 instanceof ValueTimestampTimeZone) {
-                    tz = DateTimeUtils.timeZoneNameFromOffsetMins(
-                            ((ValueTimestampTimeZone) v0).getTimeZoneOffsetMins());
+                    tz = DateTimeUtils.timeZoneNameFromOffsetSeconds(
+                            ((ValueTimestampTimeZone) v0).getTimeZoneOffsetSeconds());
                 }
                 result = ValueString.get(
                         DateTimeFunctions.formatDateTime(v0.getTimestamp(null), v1.getString(), locale, tz),
@@ -1542,7 +1542,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                         null : v3 == ValueNull.INSTANCE ? null : v3.getString();
                 java.util.Date d = DateTimeFunctions.parseDateTime(
                         v0.getString(), v1.getString(), locale, tz);
-                result = ValueTimestamp.fromMillis(d.getTime());
+                result = ValueTimestamp.fromMillis(d.getTime(), 0);
             }
             break;
         }
@@ -1819,7 +1819,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case Value.TIMESTAMP_TZ: {
             ValueTimestampTimeZone ts = (ValueTimestampTimeZone) v0;
             result = ValueTimestampTimeZone.fromDateValueAndNanos(ts.getDateValue(), 0,
-                    ts.getTimeZoneOffsetMins());
+                    ts.getTimeZoneOffsetSeconds());
             break;
         }
         case Value.STRING:

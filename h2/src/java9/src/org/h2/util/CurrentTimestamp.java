@@ -25,11 +25,11 @@ public final class CurrentTimestamp {
          * epoch and time zone offsets with seconds because such support is not
          * required for current dates.
          */
-        int offsetSec = DateTimeUtils.getTimeZoneOffset(second * 1_000 + nano / 1_000_000) / 1000;
-        second += offsetSec;
+        int offset = DateTimeUtils.getTimeZoneOffset(second);
+        second += offset;
         return ValueTimestampTimeZone.fromDateValueAndNanos(
                 DateTimeUtils.dateValueFromAbsoluteDay(second / DateTimeUtils.SECONDS_PER_DAY),
-                second % DateTimeUtils.SECONDS_PER_DAY * 1_000_000_000 + nano, (short) (offsetSec / 60));
+                second % DateTimeUtils.SECONDS_PER_DAY * 1_000_000_000 + nano, offset);
     }
 
     private CurrentTimestamp() {

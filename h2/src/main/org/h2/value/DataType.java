@@ -1220,7 +1220,7 @@ public class DataType {
         } else if (x instanceof Timestamp) {
             return ValueTimestamp.get(null, (Timestamp) x);
         } else if (x instanceof java.util.Date) {
-            return ValueTimestamp.fromMillis(((java.util.Date) x).getTime());
+            return ValueTimestamp.fromMillis(((java.util.Date) x).getTime(), 0);
         } else if (x instanceof java.io.Reader) {
             Reader r = new BufferedReader((java.io.Reader) x);
             return session.getDataHandler().getLobStorage().

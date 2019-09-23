@@ -3186,14 +3186,17 @@ A value. Parameters can be indexed, for example ""?1"" meaning the first paramet
 "
 
 "Other Grammar","Time zone","
-AT { TIME ZONE { intervalHourToMinute | string } | LOCAL }
+AT { TIME ZONE { intervalHourToMinute | intervalHourToSecond | string } | LOCAL }
 ","
 A time zone. Converts the timestamp with or without time zone into timestamp with time zone at specified time zone.
+If a daytime interval is specified as a time zone,
+it may not have fractional seconds and must be between -18 to 18 hours inclusive.
 ","
 AT LOCAL
 AT TIME ZONE '2'
 AT TIME ZONE '-6:00'
 AT TIME ZONE INTERVAL '10:00' HOUR TO MINUTE
+AT TIME ZONE INTERVAL '10:00:00' HOUR TO SECOND
 AT TIME ZONE 'UTC'
 AT TIME ZONE 'Europe/London'
 "

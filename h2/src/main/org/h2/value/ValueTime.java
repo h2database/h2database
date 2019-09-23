@@ -81,7 +81,7 @@ public class ValueTime extends Value {
     public static ValueTime get(TimeZone timeZone, Time time) {
         long ms = time.getTime();
         return fromNanos(DateTimeUtils.nanosFromLocalMillis(
-                ms + (timeZone == null ? DateTimeUtils.getTimeZoneOffset(ms) : timeZone.getOffset(ms))));
+                ms + (timeZone == null ? DateTimeUtils.getTimeZoneOffsetMillis(ms) : timeZone.getOffset(ms))));
     }
 
     /**
@@ -92,7 +92,7 @@ public class ValueTime extends Value {
      * @return the value
      */
     public static ValueTime fromMillis(long ms) {
-        return fromNanos(DateTimeUtils.nanosFromLocalMillis(ms + DateTimeUtils.getTimeZoneOffset(ms)));
+        return fromNanos(DateTimeUtils.nanosFromLocalMillis(ms + DateTimeUtils.getTimeZoneOffsetMillis(ms)));
     }
 
     /**
@@ -119,7 +119,7 @@ public class ValueTime extends Value {
 
     @Override
     public Time getTime(TimeZone timeZone) {
-        return DateTimeUtils.convertNanoToTime(timeZone, nanos);
+        return new Time(DateTimeUtils.getMillis(timeZone, DateTimeUtils.EPOCH_DATE_VALUE, nanos));
     }
 
     @Override

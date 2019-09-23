@@ -57,7 +57,7 @@ public class ValueDate extends Value {
     public static ValueDate get(TimeZone timeZone, Date date) {
         long ms = date.getTime();
         return fromDateValue(DateTimeUtils.dateValueFromLocalMillis(
-                ms + (timeZone == null ? DateTimeUtils.getTimeZoneOffset(ms) : timeZone.getOffset(ms))));
+                ms + (timeZone == null ? DateTimeUtils.getTimeZoneOffsetMillis(ms) : timeZone.getOffset(ms))));
     }
 
     /**
@@ -68,7 +68,7 @@ public class ValueDate extends Value {
      * @return the value
      */
     public static ValueDate fromMillis(long ms) {
-        return fromDateValue(DateTimeUtils.dateValueFromLocalMillis(ms + DateTimeUtils.getTimeZoneOffset(ms)));
+        return fromDateValue(DateTimeUtils.dateValueFromLocalMillis(ms + DateTimeUtils.getTimeZoneOffsetMillis(ms)));
     }
 
     /**
@@ -92,7 +92,7 @@ public class ValueDate extends Value {
 
     @Override
     public Date getDate(TimeZone timeZone) {
-        return DateTimeUtils.convertDateValueToDate(timeZone, dateValue);
+        return new Date(DateTimeUtils.getMillis(timeZone, dateValue, 0));
     }
 
     @Override

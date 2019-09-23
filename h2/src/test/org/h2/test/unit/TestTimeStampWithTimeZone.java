@@ -52,6 +52,7 @@ public class TestTimeStampWithTimeZone extends TestDb {
         deleteDb(getTestName());
     }
 
+    @SuppressWarnings("deprecation")
     private void test1() throws SQLException {
         Connection conn = getConnection(getTestName());
         Statement stat = conn.createStatement();
@@ -70,9 +71,12 @@ public class TestTimeStampWithTimeZone extends TestDb {
         assertEquals(1970, ts.getYear());
         assertEquals(1, ts.getMonth());
         assertEquals(1, ts.getDay());
+        assertEquals(15 * 60, ts.getTimeZoneOffsetSeconds());
         assertEquals(15, ts.getTimeZoneOffsetMins());
-        TimestampWithTimeZone firstExpected = new TimestampWithTimeZone(1008673L, 43200000000000L, (short) 15);
+        TimestampWithTimeZone firstExpected = new TimestampWithTimeZone(1008673L, 43200000000000L, 15 * 60);
+        TimestampWithTimeZone firstExpected2 = new TimestampWithTimeZone(1008673L, 43200000000000L, (short) 15);
         assertEquals(firstExpected, ts);
+        assertEquals(firstExpected2, ts);
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("1970-01-01T12:00+00:15", rs.getObject(1,
                             LocalDateTimeUtils.OFFSET_DATE_TIME).toString());
@@ -147,7 +151,7 @@ public class TestTimeStampWithTimeZone extends TestDb {
         if (SysProperties.RETURN_OFFSET_DATE_TIME && LocalDateTimeUtils.isJava8DateApiPresent()) {
             ValueTimestampTimeZone value = LocalDateTimeUtils.offsetDateTimeToValue(o);
             return new TimestampWithTimeZone(value.getDateValue(), value.getTimeNanos(),
-                    value.getTimeZoneOffsetMins());
+                    value.getTimeZoneOffsetSeconds());
         }
         return (TimestampWithTimeZone) o;
     }

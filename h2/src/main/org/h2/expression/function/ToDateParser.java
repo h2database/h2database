@@ -120,17 +120,13 @@ public class ToDateParser {
 
     private ValueTimestampTimeZone getResultingValueWithTimeZone() {
         ValueTimestamp ts = getResultingValue();
-        long dateValue = ts.getDateValue();
-        short offset;
+        long dateValue = ts.getDateValue(), timeNanos = ts.getTimeNanos();
+        int offset;
         if (timeZoneHMValid) {
-            offset = (short) (timeZoneHour * 60 + ((timeZoneHour >= 0) ? timeZoneMinute : -timeZoneMinute));
+            offset = (timeZoneHour * 60 + ((timeZoneHour >= 0) ? timeZoneMinute : -timeZoneMinute)) * 60;
         } else {
-            TimeZone timeZone = this.timeZone;
-            if (timeZone == null) {
-                timeZone = TimeZone.getDefault();
-            }
-            long millis = DateTimeUtils.convertDateTimeValueToMillis(timeZone, dateValue, nanos / 1_000_000);
-            offset = (short) (timeZone.getOffset(millis) / 60_000);
+            offset = timeZone == null ? DateTimeUtils.getTimeZoneOffset(dateValue, timeNanos)
+                    : DateTimeUtils.getTimeZone(timeZone).getTimeZoneOffsetLocal(dateValue, timeNanos);
         }
         return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, ts.getTimeNanos(), offset);
     }

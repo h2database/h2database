@@ -391,8 +391,7 @@ public class TestDate extends TestBase {
     }
 
     private static void testDate(int y, int m, int day) {
-        long millis = DateTimeUtils.getMillis(
-                TimeZone.getDefault(), y, m, day, 0, 0, 0, 0);
+        long millis = DateTimeUtils.getMillis(TimeZone.getDefault(), DateTimeUtils.dateValue(y, m, day), 0);
         String st = new java.sql.Date(millis).toString();
         int y2 = Integer.parseInt(st.substring(0, 4));
         int m2 = Integer.parseInt(st.substring(5, 7));
@@ -449,7 +448,7 @@ public class TestDate extends TestBase {
         // Doesn't affect most other timezones
         long millis = 1407437460000L;
         long ms = DateTimeUtils.getTimeUTCWithoutDst(millis);
-        ms += DateTimeUtils.getTimeZoneOffset(ms);
+        ms += DateTimeUtils.getTimeZoneOffsetMillis(ms);
         long result1 = DateTimeUtils.nanosFromLocalMillis(ms);
         long result2 = DateTimeUtils.nanosFromLocalMillis(ms);
         assertEquals(result1, result2);

@@ -607,9 +607,10 @@ public class TransactionStore {
     }
 
     /**
-     * Get the root references for undo-log entries.
+     * Get the root references (snapshots) for undo-log maps.
+     * Those snapshots can potentially be used to optimize TransactionMap.size().
      *
-     * @return the array of root references
+     * @return the array of root references or null if snapshotting is not possible
      */
     RootReference[] collectUndoLogRootReferences() {
         BitSet opentransactions = openTransactions.get();
@@ -617,7 +618,12 @@ public class TransactionStore {
         for (int i = opentransactions.nextSetBit(0); i >= 0; i = opentransactions.nextSetBit(i+1)) {
             MVMap<Long, Object[]> undoLog = undoLogs[i];
             if (undoLog != null) {
-                RootReference rootReference = undoLog.flushAndGetRoot();
+                RootReference rootReference = undoLog.getRoot();
+                if (rootReference.needFlush()) {
+                    // abort attempt to collect snapshots for all undo logs
+                    // because map's append buffer can't be flushed from a non-owning thread
+                    return null;
+                }
                 undoLogRootReferences[i] = rootReference;
             }
         }

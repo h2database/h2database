@@ -106,10 +106,10 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         } while(committingTransactions != getCommittingTransactions() ||
                 mapRootReference != getRootReference());
 
-        long undoLogsTotalSize = TransactionStore.calculateUndoLogsTotalSize(undoLogRootReferences);
 
         Page mapRootPage = mapRootReference.root;
         long size = mapRootReference.getTotalCount();
+        long undoLogsTotalSize = undoLogRootReferences == null ? size : TransactionStore.calculateUndoLogsTotalSize(undoLogRootReferences);
         // if we are looking at the map without any uncommitted values
         if (undoLogsTotalSize == 0) {
             return size;

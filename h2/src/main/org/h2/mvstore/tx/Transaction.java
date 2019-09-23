@@ -218,9 +218,6 @@ public class Transaction {
     }
 
     RootReference[] getUndoLogRootReferences() {
-        if (undoLogRootReferences == null) {
-            return store.collectUndoLogRootReferences();
-        }
         return undoLogRootReferences;
     }
 

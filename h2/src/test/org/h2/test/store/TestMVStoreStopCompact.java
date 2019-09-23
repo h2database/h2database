@@ -29,14 +29,6 @@ public class TestMVStoreStopCompact extends TestBase {
     }
 
     @Override
-    public boolean isEnabled() {
-        if (!config.big) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
     public void test() throws Exception {
         for(int retentionTime = 10; retentionTime < 1000; retentionTime *= 10) {
             for(int timeout = 100; timeout <= 1000; timeout *= 10) {
@@ -68,12 +60,21 @@ public class TestMVStoreStopCompact extends TestBase {
             }
             s.setAutoCommitDelay(100);
             long oldWriteCount = s.getFileStore().getWriteCount();
-            // expect background write to stop after 5 seconds
-            Thread.sleep(5000);
-            long newWriteCount = s.getFileStore().getWriteCount();
+            long totalWrites = 0;
+            // expect background write to stop after a few seconds
+            for (int i = 0; i < 50; i++) {
+                Thread.sleep(200);
+                long newWriteCount = s.getFileStore().getWriteCount();
+                long delta = newWriteCount - oldWriteCount;
+                if (delta == 0) {
+                    break;
+                }
+                totalWrites += delta;
+                oldWriteCount = newWriteCount;
+            }
             // expect that compaction didn't cause many writes
-            assertTrue("writeCount diff: " + retentionTime + "/" + timeout + " " + (newWriteCount - oldWriteCount),
-                    newWriteCount - oldWriteCount < 130);
+            assertTrue("writeCount diff: " + retentionTime + "/" + timeout + " " + totalWrites,
+                    totalWrites < 90);
         }
     }
 }

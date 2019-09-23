@@ -342,20 +342,26 @@ public class FileStore {
      * Allocate a number of blocks and mark them as used.
      *
      * @param length the number of bytes to allocate
+     * @param reservedLow start block index of the reserved area (inclusive)
+     * @param reservedHigh end block index of the reserved area (exclusive),
+     *                     special value -1 means beginning of the infinite free area
      * @return the start position in bytes
      */
-    public long allocate(int length) {
-        return freeSpace.allocate(length);
+    long allocate(int length, long reservedLow, long reservedHigh) {
+        return freeSpace.allocate(length, reservedLow, reservedHigh);
     }
 
     /**
      * Calculate starting position of the prospective allocation.
      *
      * @param blocks the number of blocks to allocate
+     * @param reservedLow start block index of the reserved area (inclusive)
+     * @param reservedHigh end block index of the reserved area (exclusive),
+     *                     special value -1 means beginning of the infinite free area
      * @return the starting block index
      */
-    long predictAllocation(int blocks) {
-        return freeSpace.predictAllocation(blocks);
+    long predictAllocation(int blocks, long reservedLow, long reservedHigh) {
+        return freeSpace.predictAllocation(blocks, reservedLow, reservedHigh);
     }
 
     boolean isFragmented() {
@@ -381,15 +387,12 @@ public class FileStore {
      * of sparsely populated chunk(s) and evacuation of still live data into a
      * new chunk.
      *
-     * @param live
-     *            amount of memory (bytes) from vacated block, which would be
-     *            written into a new chunk
-     * @param total
+     * @param vacatedBlocks
      *            number of blocks vacated
      * @return prospective fill rate (0 - 100)
      */
-    public int getProjectedFillRate(long live, int total) {
-        return freeSpace.getProjectedFillRate(live, total);
+    public int getProjectedFillRate(int vacatedBlocks) {
+        return freeSpace.getProjectedFillRate(vacatedBlocks);
     }
 
     long getFirstFree() {
@@ -408,6 +411,10 @@ public class FileStore {
      */
     int getMovePriority(int block) {
         return freeSpace.getMovePriority(block);
+    }
+
+    long getAfterLastBlock() {
+        return freeSpace.getAfterLastBlock();
     }
 
     /**

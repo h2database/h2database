@@ -7,20 +7,14 @@ package org.h2.mvstore.tx;
 
 import java.util.BitSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
-import org.h2.command.Command;
-import org.h2.engine.DbObject;
-import org.h2.index.Index;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.RootReference;
-import org.h2.mvstore.db.MVIndex;
-import org.h2.mvstore.db.MVTable;
 import org.h2.mvstore.type.DataType;
 import org.h2.value.VersionedValue;
 
@@ -310,23 +304,12 @@ public class Transaction {
 
     /**
      * Mark an entry into a new SQL statement execution within this transaction.
-     * @param command about to be executed
+     * @param maps set of maps used by statement about to be executed
      */
-    public void markStatementStart(Command command) {
+    public void markStatementStart(Set<MVMap<?, ?>> maps) {
         markStatementEnd();
         txCounter = store.store.registerVersionUsage();
-        if (command != null) {
-            Set<DbObject> dependencies = command.getDependencies();
-            Set<MVMap<?, ?>> maps = new HashSet<>();
-            for (DbObject dependency : dependencies) {
-                if (dependency instanceof MVTable) {
-                    MVTable table = (MVTable) dependency;
-                    for (Index index : table.getIndexes()) {
-                        collectDependencies(maps, index);
-                    }
-                }
-            }
-
+        if (maps != null) {
             // The purpose of the following loop is to get a coherent picture
             // In order to get such a "snapshot", we wait for a moment of silence,
             // when no new transaction were committed / closed.
@@ -344,14 +327,6 @@ public class Transaction {
             // and committingTransactions mask tells us which of seemingly uncommitted changes
             // should be considered as committed.
             // Subsequent processing uses this snapshot info only.
-        }
-    }
-
-    private static void collectDependencies(Set<MVMap<?, ?>> maps, DbObject dependency) {
-        if (dependency instanceof MVIndex) {
-            MVIndex index = (MVIndex) dependency;
-            MVMap<?, ?> map = index.getMVMap();
-            maps.add(map);
         }
     }
 

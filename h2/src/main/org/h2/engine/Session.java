@@ -33,6 +33,7 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
 import org.h2.mvstore.MVMap;
+import org.h2.mvstore.db.MVIndex;
 import org.h2.mvstore.db.MVTable;
 import org.h2.mvstore.db.MVTableEngine;
 import org.h2.mvstore.tx.Transaction;
@@ -1778,7 +1779,24 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     public void startStatementWithinTransaction(Command command) {
         Transaction transaction = getTransaction();
         if(transaction != null) {
-            transaction.markStatementStart(command);
+            Set<MVMap<?, ?>> maps = null;
+            if (command != null) {
+                maps = new HashSet<>();
+                Set<DbObject> dependencies = command.getDependencies();
+                for (DbObject dependency : dependencies) {
+                    if (dependency instanceof MVTable) {
+                        MVTable table = (MVTable) dependency;
+                        for (Index index : table.getIndexes()) {
+                            if (index instanceof MVIndex) {
+                                MVIndex index1 = (MVIndex) index;
+                                MVMap<?, ?> map = index1.getMVMap();
+                                maps.add(map);
+                            }
+                        }
+                    }
+                }
+            }
+            transaction.markStatementStart(maps);
         }
         startStatement = -1;
         if (command != null) {

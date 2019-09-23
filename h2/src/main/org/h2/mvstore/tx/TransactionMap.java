@@ -127,17 +127,13 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
                 VersionedValue currentValue = cursor.getValue();
                 assert currentValue != null;
                 long operationId = currentValue.getOperationId();
-                if (operationId != 0) {  // skip committed entries
-                    int txId = TransactionStore.getTransactionId(operationId);
-                    boolean isVisible = txId == transaction.transactionId ||
-                                            committingTransactions.get(txId);
-                    Object v = isVisible ? currentValue.getCurrentValue() : currentValue.getCommittedValue();
-                    if (v == null) {
-                        --size;
-                    }
+                if (operationId != 0 &&         // skip committed entries
+                        isIrrelevant(operationId, currentValue, committingTransactions)) {
+                    --size;
                 }
             }
         } else {
+            assert undoLogRootReferences != null;
             // The undo logs are much smaller than the map - scan all undo logs,
             // and then lookup relevant map entry.
             for (RootReference undoLogRootReference : undoLogRootReferences) {
@@ -145,7 +141,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
                     Cursor<Long, Object[]> cursor = new Cursor<>(undoLogRootReference.root, null);
                     while (cursor.hasNext()) {
                         cursor.next();
-                        Object op[] = cursor.getValue();
+                        Object[] op = cursor.getValue();
                         if ((int) op[0] == map.getId()) {
                             VersionedValue currentValue = map.get(mapRootPage, op[1]);
                             // If map entry is not there, then we never counted
@@ -158,15 +154,10 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
                                 // only the last undo entry for any given map
                                 // key should be considered
                                 long operationId = cursor.getKey();
-                                if (currentValue.getOperationId() == operationId) {
-                                    int txId = TransactionStore.getTransactionId(operationId);
-                                    boolean isVisible = txId == transaction.transactionId ||
-                                            committingTransactions.get(txId);
-                                    Object v = isVisible ? currentValue.getCurrentValue()
-                                            : currentValue.getCommittedValue();
-                                    if (v == null) {
-                                        --size;
-                                    }
+                                assert operationId != 0;
+                                if (currentValue.getOperationId() == operationId &&
+                                        isIrrelevant(operationId, currentValue, committingTransactions)) {
+                                    --size;
                                 }
                             }
                         }
@@ -176,6 +167,14 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         }
         return size;
     }
+
+    private boolean isIrrelevant(long operationId, VersionedValue currentValue, BitSet committingTransactions) {
+        int txId = TransactionStore.getTransactionId(operationId);
+        boolean isVisible = txId == transaction.transactionId || committingTransactions.get(txId);
+        Object v = isVisible ? currentValue.getCurrentValue() : currentValue.getCommittedValue();
+        return v == null;
+    }
+
 
     /**
      * Remove an entry.

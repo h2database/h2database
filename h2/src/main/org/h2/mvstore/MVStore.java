@@ -1853,8 +1853,8 @@ public class MVStore implements AutoCloseable
             // now we can re-use previously reserved area [leftmostBlock, originalBlockCount),
             // but need to reserve [originalBlockCount, postEvacuationBlockCount)
             for (Chunk c : move) {
-                if (c.block >= originalBlockCount) {
-                    moveChunk(c, originalBlockCount, postEvacuationBlockCount);
+                if (c.block >= originalBlockCount &&
+                        moveChunk(c, originalBlockCount, postEvacuationBlockCount)) {
                     assert c.block < originalBlockCount;
                     movedToEOF = true;
                 }
@@ -1921,6 +1921,7 @@ public class MVStore implements AutoCloseable
         buff.put(readBuff);
         long pos = fileStore.allocate(length, reservedAreaLow, reservedAreaHigh);
         long block = pos / BLOCK_SIZE;
+        // in the absence of a reserved area,
         // block should always move closer to the beginning of the file
         assert reservedAreaHigh > 0 || block <= chunk.block : block + " " + chunk;
         buff.position(0);

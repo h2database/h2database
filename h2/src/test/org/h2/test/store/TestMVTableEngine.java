@@ -520,6 +520,8 @@ public class TestMVTableEngine extends TestDb {
                 rs.next();
                 assertEquals(10000, rs.getInt(1));
 
+                stat2.execute("set cache_size 1024");  // causes cache to be cleared, so reads will occur
+
                 stat.execute("insert into test2 select x from system_range(1, 11000)");
                 rs = stat2.executeQuery("explain analyze select count(*) from test");
                 rs.next();

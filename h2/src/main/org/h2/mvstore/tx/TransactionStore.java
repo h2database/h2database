@@ -606,6 +606,11 @@ public class TransactionStore {
         }
     }
 
+    /**
+     * Get the root references for undo-log entries.
+     *
+     * @return the array of root references
+     */
     RootReference[] collectUndoLogRootReferences() {
         BitSet opentransactions = openTransactions.get();
         RootReference[] undoLogRootReferences = new RootReference[opentransactions.length()];
@@ -619,6 +624,12 @@ public class TransactionStore {
         return undoLogRootReferences;
     }
 
+    /**
+     * Calculate the size for undo log entries.
+     *
+     * @param undoLogRootReferences the root references
+     * @return the number of key-value pairs
+     */
     static long calculateUndoLogsTotalSize(RootReference[] undoLogRootReferences) {
         long undoLogsTotalSize = 0;
         for (RootReference rootReference : undoLogRootReferences) {

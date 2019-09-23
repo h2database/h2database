@@ -160,6 +160,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return getFirstLast(true);
     }
 
+    /**
+     * Get the first key of this page.
+     *
+     * @param p the page
+     * @return the key, or null
+     */
     public final K firstKey(Page p) {
         return getFirstLast(p, true);
     }
@@ -173,6 +179,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return getFirstLast(false);
     }
 
+    /**
+     * Get the last key of this page.
+     *
+     * @param p the page
+     * @return the key, or null
+     */
     public final K lastKey(Page p) {
         return getFirstLast(p, false);
     }
@@ -316,6 +328,14 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return getMinMax(key, false, true);
     }
 
+    /**
+     * Get the smallest key that is larger than the given key, for the given
+     * root page, or null if no such key exists.
+     *
+     * @param page the root page
+     * @param key the key
+     * @return the result
+     */
     public final K higherKey(Page p, K key) {
         return getMinMax(p, key, false, true);
     }
@@ -330,6 +350,13 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return getMinMax(key, false, false);
     }
 
+    /**
+     * Get the smallest key that is larger or equal to this key, for the given root page.
+     *
+     * @param page the root page
+     * @param key the key
+     * @return the result
+     */
     public final K ceilingKey(Page p, K key) {
         return getMinMax(p, key, false, false);
     }
@@ -344,6 +371,13 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return getMinMax(key, true, false);
     }
 
+    /**
+     * Get the largest key that is smaller or equal to this key, for the given root page.
+     *
+     * @param page the root page
+     * @param key the key
+     * @return the result
+     */
     public final K floorKey(Page p, K key) {
         return getMinMax(p, key, true, false);
     }
@@ -359,6 +393,14 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return getMinMax(key, true, true);
     }
 
+    /**
+     * Get the largest key that is smaller than the given key, for the given
+     * root page, or null if no such key exists.
+     *
+     * @param page the root page
+     * @param key the key
+     * @return the result
+     */
     public final K lowerKey(Page p, K key) {
         return getMinMax(p, key, true, true);
     }

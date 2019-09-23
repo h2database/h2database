@@ -885,6 +885,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         cancelAtNs = System.nanoTime();
     }
 
+    /**
+     * Cancel the transaction and close the session if needed.
+     */
     void suspend() {
         cancel();
         if (transitionToState(State.SUSPENDED, false) == State.SLEEP) {

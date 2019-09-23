@@ -853,8 +853,9 @@ public class MVStore implements AutoCloseable
         if (!assumeCleanShutdown) {
             boolean quickRecovery = false;
             if (!recoveryMode) {
-                // now we know, that previous shutdown did not go well and file is possibly corrupted
-                // but there is still hope for a quick recovery
+                // now we know, that previous shutdown did not go well and file
+                // is possibly corrupted but there is still hope for a quick
+                // recovery
 
                 // this collection will hold potential candidates for lastChunk to fall back to,
                 // in order from the most to least likely
@@ -864,7 +865,8 @@ public class MVStore implements AutoCloseable
                 for (Chunk chunk : lastChunkCandidates) {
                     validChunksById.put(chunk.id, chunk);
                 }
-                quickRecovery = findLastChunkWithCompleteValidChunkSet(lastChunkCandidates, validChunksByLocation, validChunksById);
+                quickRecovery = findLastChunkWithCompleteValidChunkSet(lastChunkCandidates, validChunksByLocation,
+                        validChunksById);
             }
 
             if (!quickRecovery) {
@@ -996,8 +998,10 @@ public class MVStore implements AutoCloseable
 
     /**
      * Discover a valid chunk, searching file backwards from the given block
-     * @param block to start search from (found chunk footer should be no further than blok-1)
-     * @return valid Chunk or null if none found
+     *
+     * @param block to start search from (found chunk footer should be no
+     *            further than block-1)
+     * @return valid chunk or null if none found
      */
     private Chunk discoverChunk(long block) {
         long candidateLocation = Long.MAX_VALUE;
@@ -1829,15 +1833,15 @@ public class MVStore implements AutoCloseable
             Iterator<Chunk> iterator = move.iterator();
             assert iterator.hasNext();
             long leftmostBlock = iterator.next().block;
-            long originalBlokCount = getAfterLastBlock();
+            long originalBlockCount = getAfterLastBlock();
             // we need to ensure that chunks moved within the following loop
             // do not overlap with space just released by chunks moved before them,
-            // hence the need to reserve this area [leftmostBlock, originalBlokCount)
+            // hence the need to reserve this area [leftmostBlock, originalBlockCount)
             for (Chunk chunk : move) {
-                moveChunk(chunk, leftmostBlock, originalBlokCount);
+                moveChunk(chunk, leftmostBlock, originalBlockCount);
             }
             // update the metadata (hopefully within the file)
-            store(leftmostBlock, originalBlokCount);
+            store(leftmostBlock, originalBlockCount);
             sync();
 
             Chunk chunkToMove = lastChunk;
@@ -1846,26 +1850,28 @@ public class MVStore implements AutoCloseable
             boolean chunkToMoveIsAlreadyInside = chunkToMove.block < leftmostBlock;
             boolean movedToEOF = !chunkToMoveIsAlreadyInside;
             // move all chunks, which previously did not fit before reserved area
-            // now we can re-use previously reserved area [leftmostBlock, originalBlokCount),
-            // but need to reserve [originalBlokCount, postEvacuationBlockCount)
+            // now we can re-use previously reserved area [leftmostBlock, originalBlockCount),
+            // but need to reserve [originalBlockCount, postEvacuationBlockCount)
             for (Chunk c : move) {
-                if (c.block >= originalBlokCount) {
-                    moveChunk(c, originalBlokCount, postEvacuationBlockCount);
-                    assert c.block < originalBlokCount;
+                if (c.block >= originalBlockCount) {
+                    moveChunk(c, originalBlockCount, postEvacuationBlockCount);
+                    assert c.block < originalBlockCount;
                     movedToEOF = true;
                 }
             }
             assert postEvacuationBlockCount >= getAfterLastBlock();
 
             if (movedToEOF) {
-                boolean moved = moveChunkInside(chunkToMove, originalBlokCount);
+                boolean moved = moveChunkInside(chunkToMove, originalBlockCount);
 
                 // store a new chunk with updated metadata (hopefully within a file)
-                store(originalBlokCount, postEvacuationBlockCount);
+                store(originalBlockCount, postEvacuationBlockCount);
                 sync();
-                // if chunkToMove did not fit within originalBlockCount (move is false), and since now
-                // previously reserved area [originalBlokCount, postEvacuationBlockCount) also can be used,
-                // lets try to move that chunk into this area, closer to BOF
+                // if chunkToMove did not fit within originalBlockCount (move is
+                // false), and since now previously reserved area
+                // [originalBlockCount, postEvacuationBlockCount) also can be
+                // used, lets try to move that chunk into this area, closer to
+                // the beginning of the file
                 long lastBoundary = moved || chunkToMoveIsAlreadyInside ?
                                         postEvacuationBlockCount : chunkToMove.block;
                 moved = !moved && moveChunkInside(chunkToMove, lastBoundary);
@@ -1888,9 +1894,9 @@ public class MVStore implements AutoCloseable
     }
 
     /**
-     * Move specified chunk into free area of the file.
-     * "Reserved" area specifies file interval to be avoided,
-     * when unallocated space will be chosen for a new chunk's location.
+     * Move specified chunk into free area of the file. "Reserved" area
+     * specifies file interval to be avoided, when un-allocated space will be
+     * chosen for a new chunk's location.
      *
      * @param chunk to move
      * @param reservedAreaLow low boundary of reserved area, inclusive
@@ -1915,7 +1921,8 @@ public class MVStore implements AutoCloseable
         buff.put(readBuff);
         long pos = fileStore.allocate(length, reservedAreaLow, reservedAreaHigh);
         long block = pos / BLOCK_SIZE;
-        assert reservedAreaHigh > 0 || block <= chunk.block : block + " " + chunk; // block should always move closer to the beginning of the file
+        // block should always move closer to the beginning of the file
+        assert reservedAreaHigh > 0 || block <= chunk.block : block + " " + chunk;
         buff.position(0);
         // can not set chunk's new block/len until it's fully written at new location,
         // because concurrent reader can pick it up prematurely,
@@ -2060,8 +2067,8 @@ public class MVStore implements AutoCloseable
                 maxLengthLiveSum += c.maxLenLive;
             }
         }
-        int addidionalBlocks  = (int) (vacatedBlocks * maxLengthLiveSum / maxLengthSum);
-        int fillRate = fileStore.getProjectedFillRate(vacatedBlocks - addidionalBlocks);
+        int additionalBlocks  = (int) (vacatedBlocks * maxLengthLiveSum / maxLengthSum);
+        int fillRate = fileStore.getProjectedFillRate(vacatedBlocks - additionalBlocks);
         return fillRate;
     }
 

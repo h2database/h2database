@@ -203,6 +203,12 @@ public class Transaction {
         return committingTransactions;
     }
 
+    /**
+     * Get the root reference for the given map id.
+     *
+     * @param mapId the map id
+     * @return the root reference
+     */
     RootReference getMapRoot(int mapId) {
         RootReference rootReference = mapRoots.get(mapId);
         if (rootReference == null) {

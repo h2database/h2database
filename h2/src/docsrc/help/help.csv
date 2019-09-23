@@ -3189,7 +3189,7 @@ A value. Parameters can be indexed, for example ""?1"" meaning the first paramet
 AT { TIME ZONE { intervalHourToMinute | intervalHourToSecond | string } | LOCAL }
 ","
 A time zone. Converts the timestamp with or without time zone into timestamp with time zone at specified time zone.
-If a daytime interval is specified as a time zone,
+If a day-time interval is specified as a time zone,
 it may not have fractional seconds and must be between -18 to 18 hours inclusive.
 ","
 AT LOCAL

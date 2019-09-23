@@ -557,7 +557,8 @@ public final class DateTimeFunctions {
             // Case we create a timestamp with timezone with the dateValue and
             // timeNanos computed.
             ValueTimestampTimeZone vTmp = (ValueTimestampTimeZone) valueDate;
-            result = ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos, vTmp.getTimeZoneOffsetSeconds());
+            result = ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos,
+                    vTmp.getTimeZoneOffsetSeconds());
 
         } else {
 

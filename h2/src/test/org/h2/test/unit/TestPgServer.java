@@ -496,14 +496,14 @@ public class TestPgServer extends TestDb {
                 props.setProperty("password", "sa");
                 // force binary
                 props.setProperty("prepareThreshold", "-1");
-    
+
                 Connection conn = DriverManager.getConnection(
                         "jdbc:postgresql://localhost:5535/pgserver", props);
                 Statement stat = conn.createStatement();
-    
+
                 stat.execute(
                         "create table test(x1 date, x2 time, x3 timestamp)");
-    
+
                 Date[] dates = { null, Date.valueOf("2017-02-20"),
                         Date.valueOf("1970-01-01"), Date.valueOf("1969-12-31"),
                         Date.valueOf("1940-01-10"), Date.valueOf("1950-11-10"),
@@ -517,7 +517,7 @@ public class TestPgServer extends TestDb {
                         Timestamp.valueOf("1940-01-10 00:10:59"), Timestamp.valueOf("1950-11-10 08:30:42.12"),
                         Timestamp.valueOf("1500-01-01 10:00:10")};
                 int count = dates.length;
-    
+
                 PreparedStatement ps = conn.prepareStatement(
                         "insert into test values (?,?,?)");
                     for (int i = 0; i < count; i++) {
@@ -526,7 +526,7 @@ public class TestPgServer extends TestDb {
                     ps.setTimestamp(3, timestamps[i]);
                     ps.execute();
                 }
-    
+
                 ResultSet rs = stat.executeQuery("select * from test");
                 for (int i = 0; i < count; i++) {
                     assertTrue(rs.next());
@@ -535,7 +535,7 @@ public class TestPgServer extends TestDb {
                     assertEquals(timestamps[i], rs.getTimestamp(3));
                 }
                 assertFalse(rs.next());
-    
+
                 conn.close();
             } finally {
                 server.stop();

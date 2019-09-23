@@ -819,4 +819,4 @@ housekeeping trail breadcrumb bets seasoned rewritable rpi eliminating projected
 sparsely shifting vacated evacuation bullet allocations projected evacuatable pin capable rewritable deficiency
 successfull deduplication entrant mvmap sporadic irrelevant interrupts
 sit sitting sooner hdr considering encounter compete quickack decrementing exhausting caveat aschoerk circular ident
-scr ffffl suspend asap
+scr ffffl suspend asap ldt lmt movement

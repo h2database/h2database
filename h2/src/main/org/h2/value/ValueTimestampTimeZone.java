@@ -15,7 +15,8 @@ import org.h2.engine.CastDataProvider;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.LocalDateTimeUtils;
+import org.h2.util.JSR310;
+import org.h2.util.JSR310Utils;
 
 /**
  * Implementation of the TIMESTAMP WITH TIME ZONE data type.
@@ -263,17 +264,17 @@ public class ValueTimestampTimeZone extends Value {
 
     @Override
     public Object getObject() {
-        if (SysProperties.RETURN_OFFSET_DATE_TIME && LocalDateTimeUtils.isJava8DateApiPresent()) {
-            return LocalDateTimeUtils.valueToOffsetDateTime(this, null);
+        if (SysProperties.RETURN_OFFSET_DATE_TIME && JSR310.PRESENT) {
+            return JSR310Utils.valueToOffsetDateTime(this, null);
         }
         return new TimestampWithTimeZone(dateValue, timeNanos, timeZoneOffsetSeconds);
     }
 
     @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+        if (JSR310.PRESENT) {
             try {
-                prep.setObject(parameterIndex, LocalDateTimeUtils.valueToOffsetDateTime(this, null),
+                prep.setObject(parameterIndex, JSR310Utils.valueToOffsetDateTime(this, null),
                         // TODO use Types.TIMESTAMP_WITH_TIMEZONE on Java 8
                         2014);
                 return;

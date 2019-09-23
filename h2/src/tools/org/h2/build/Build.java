@@ -236,7 +236,8 @@ public class Build extends BuildBase {
     private void compileMVStore(boolean debugInfo) {
         clean();
         mkdir("temp");
-        String classpath = "temp";
+        String classpath = "temp" +
+                File.pathSeparator + "src/java8/precompiled";
         FileList files;
         files = files("src/main/org/h2/mvstore").
                 exclude("src/main/org/h2/mvstore/db/*");
@@ -261,6 +262,7 @@ public class Build extends BuildBase {
         mkdir("temp");
         download();
         String classpath = "temp" +
+                File.pathSeparator + "src/java8/precompiled" +
                 File.pathSeparator + "ext/servlet-api-3.1.0.jar" +
                 File.pathSeparator + "ext/lucene-core-5.5.5.jar" +
                 File.pathSeparator + "ext/lucene-analyzers-common-5.5.5.jar" +
@@ -295,6 +297,8 @@ public class Build extends BuildBase {
 
         files = files("src/main/META-INF/services");
         copy("temp", files, "src/main");
+        files = files("src/main/META-INF/services");
+        copy("temp", files("src/java8/precompiled"), "src/java8/precompiled");
 
         if (!clientOnly) {
             files = files("src/test");

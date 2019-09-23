@@ -40,7 +40,8 @@ import org.h2.result.ResultInterface;
 import org.h2.result.UpdatableRow;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
-import org.h2.util.LocalDateTimeUtils;
+import org.h2.util.JSR310;
+import org.h2.util.JSR310Utils;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
@@ -3919,22 +3920,22 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             return (T) new Interval(v.getQualifier(), false, v.getLeading(), v.getRemaining());
         } else if (DataType.isGeometryClass(type)) {
             return (T) value.convertTo(Value.GEOMETRY).getObject();
-        } else if (type == LocalDateTimeUtils.LOCAL_DATE) {
-            return (T) LocalDateTimeUtils.valueToLocalDate(value);
-        } else if (type == LocalDateTimeUtils.LOCAL_TIME) {
-            return (T) LocalDateTimeUtils.valueToLocalTime(value);
-        } else if (type == LocalDateTimeUtils.LOCAL_DATE_TIME) {
-            return (T) LocalDateTimeUtils.valueToLocalDateTime(value, conn);
-        } else if (type == LocalDateTimeUtils.INSTANT) {
-            return (T) LocalDateTimeUtils.valueToInstant(value, conn);
-        } else if (type == LocalDateTimeUtils.OFFSET_DATE_TIME) {
-            return (T) LocalDateTimeUtils.valueToOffsetDateTime(value, conn);
-        } else if (type == LocalDateTimeUtils.ZONED_DATE_TIME) {
-            return (T) LocalDateTimeUtils.valueToZonedDateTime(value, conn);
-        } else if (type == LocalDateTimeUtils.PERIOD) {
-            return (T) LocalDateTimeUtils.valueToPeriod(value);
-        } else if (type == LocalDateTimeUtils.DURATION) {
-            return (T) LocalDateTimeUtils.valueToDuration(value);
+        } else if (type == JSR310.LOCAL_DATE) {
+            return (T) JSR310Utils.valueToLocalDate(value);
+        } else if (type == JSR310.LOCAL_TIME) {
+            return (T) JSR310Utils.valueToLocalTime(value);
+        } else if (type == JSR310.LOCAL_DATE_TIME) {
+            return (T) JSR310Utils.valueToLocalDateTime(value, conn);
+        } else if (type == JSR310.INSTANT) {
+            return (T) JSR310Utils.valueToInstant(value, conn);
+        } else if (type == JSR310.OFFSET_DATE_TIME) {
+            return (T) JSR310Utils.valueToOffsetDateTime(value, conn);
+        } else if (type == JSR310.ZONED_DATE_TIME) {
+            return (T) JSR310Utils.valueToZonedDateTime(value, conn);
+        } else if (type == JSR310.PERIOD) {
+            return (T) JSR310Utils.valueToPeriod(value);
+        } else if (type == JSR310.DURATION) {
+            return (T) JSR310Utils.valueToDuration(value);
         } else {
             throw unsupported(type.getName());
         }

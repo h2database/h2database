@@ -22,6 +22,7 @@ import org.h2.test.TestBase;
 import org.h2.test.utils.AssertThrows;
 import org.h2.util.CurrentTimestamp;
 import org.h2.util.DateTimeUtils;
+import org.h2.util.JSR310;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
@@ -426,23 +427,39 @@ public class TestDate extends TestBase {
     }
 
     private void testDateTimeUtils() {
-        ValueTimestamp ts1 = ValueTimestamp.parse("-999-08-07 13:14:15.16");
-        ValueTimestamp ts2 = ValueTimestamp.parse("19999-08-07 13:14:15.16");
-        ValueTime t1 = (ValueTime) ts1.convertTo(Value.TIME);
-        ValueTime t2 = (ValueTime) ts2.convertTo(Value.TIME);
-        ValueDate d1 = (ValueDate) ts1.convertTo(Value.DATE);
-        ValueDate d2 = (ValueDate) ts2.convertTo(Value.DATE);
-        assertEquals("-999-08-07 13:14:15.16", ts1.getString());
-        assertEquals("-999-08-07", d1.getString());
-        assertEquals("13:14:15.16", t1.getString());
-        assertEquals("19999-08-07 13:14:15.16", ts2.getString());
-        assertEquals("19999-08-07", d2.getString());
-        assertEquals("13:14:15.16", t2.getString());
-        TimeZone timeZone = DateTimeUtils.createGregorianCalendar().getTimeZone();
-        ValueTimestamp ts1a = ValueTimestamp.get(timeZone, ts1.getTimestamp(null));
-        ValueTimestamp ts2a = ValueTimestamp.get(timeZone, ts2.getTimestamp(null));
-        assertEquals("-999-08-07 13:14:15.16", ts1a.getString());
-        assertEquals("19999-08-07 13:14:15.16", ts2a.getString());
+        TimeZone old = TimeZone.getDefault();
+        if (JSR310.PRESENT) {
+            /*
+             * java.util.TimeZone doesn't support LMT, so perform this test with
+             * fixed time zone offset
+             */
+            TimeZone.setDefault(TimeZone.getTimeZone("GMT+01"));
+            DateTimeUtils.resetCalendar();
+        }
+        try {
+            ValueTimestamp ts1 = ValueTimestamp.parse("-999-08-07 13:14:15.16");
+            ValueTimestamp ts2 = ValueTimestamp.parse("19999-08-07 13:14:15.16");
+            ValueTime t1 = (ValueTime) ts1.convertTo(Value.TIME);
+            ValueTime t2 = (ValueTime) ts2.convertTo(Value.TIME);
+            ValueDate d1 = (ValueDate) ts1.convertTo(Value.DATE);
+            ValueDate d2 = (ValueDate) ts2.convertTo(Value.DATE);
+            assertEquals("-999-08-07 13:14:15.16", ts1.getString());
+            assertEquals("-999-08-07", d1.getString());
+            assertEquals("13:14:15.16", t1.getString());
+            assertEquals("19999-08-07 13:14:15.16", ts2.getString());
+            assertEquals("19999-08-07", d2.getString());
+            assertEquals("13:14:15.16", t2.getString());
+            TimeZone timeZone = DateTimeUtils.createGregorianCalendar().getTimeZone();
+            ValueTimestamp ts1a = ValueTimestamp.get(timeZone, ts1.getTimestamp(null));
+            ValueTimestamp ts2a = ValueTimestamp.get(timeZone, ts2.getTimestamp(null));
+            assertEquals("-999-08-07 13:14:15.16", ts1a.getString());
+            assertEquals("19999-08-07 13:14:15.16", ts2a.getString());
+        } finally {
+            if (JSR310.PRESENT) {
+                TimeZone.setDefault(old);
+                DateTimeUtils.resetCalendar();
+            }
+        }
 
         // test for bug on Java 1.8.0_60 in "Europe/Moscow" timezone.
         // Doesn't affect most other timezones

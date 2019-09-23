@@ -56,14 +56,53 @@ public abstract class TimeZoneProvider {
 
     }
 
-    private static final class WithTimeZone extends TimeZoneProvider {
+    /**
+     * Abstract time zone provider with time zone.
+     */
+    static abstract class WithTimeZone extends TimeZoneProvider {
 
         /**
          * Number of seconds in 400 years.
          */
-        private static final long SECONDS_PER_PERIOD = 146_097L * 86_400;
+        static final long SECONDS_PER_PERIOD = 146_097L * 86_400;
 
-        private static final long SECONDS_PER_YEAR = SECONDS_PER_PERIOD / 400;
+        static final long SECONDS_PER_YEAR = SECONDS_PER_PERIOD / 400;
+
+        WithTimeZone() {
+        }
+
+        @Override
+        public final int getTimeZoneOffsetLocal(long dateValue, long timeNanos) {
+            int second = (int) (timeNanos / DateTimeUtils.NANOS_PER_SECOND);
+            int minute = second / 60;
+            second -= minute * 60;
+            int hour = minute / 60;
+            minute -= hour * 60;
+            int year = DateTimeUtils.yearFromDateValue(dateValue);
+            int month = DateTimeUtils.monthFromDateValue(dateValue);
+            int day = DateTimeUtils.dayFromDateValue(dateValue);
+            return getTimeZoneOffsetLocal(year, month, day, hour, minute, second);
+        }
+
+        abstract int getTimeZoneOffsetLocal(int year, int month, int day, int hour, int minute, int second);
+
+        @Override
+        public final long getEpochSecondsFromLocal(long dateValue, long timeNanos) {
+            int year = DateTimeUtils.yearFromDateValue(dateValue), month = DateTimeUtils.monthFromDateValue(dateValue),
+                    day = DateTimeUtils.dayFromDateValue(dateValue);
+            int second = (int) (timeNanos / DateTimeUtils.NANOS_PER_SECOND);
+            int minute = second / 60;
+            second -= minute * 60;
+            int hour = minute / 60;
+            minute -= hour * 60;
+            return getEpochSecondsFromLocal(year, month, day, hour, minute, second);
+        }
+
+        abstract long getEpochSecondsFromLocal(int year, int month, int day, int hour, int minute, int second);
+
+    }
+
+    private static final class WithTimeZone7 extends WithTimeZone {
 
         private static final long EPOCH_SECONDS_HIGH = 730_000 * SECONDS_PER_PERIOD;
 
@@ -73,7 +112,7 @@ public abstract class TimeZoneProvider {
 
         private final TimeZone timeZone;
 
-        WithTimeZone(TimeZone timeZone) {
+        WithTimeZone7(TimeZone timeZone) {
             this.timeZone = timeZone;
         }
 
@@ -83,15 +122,7 @@ public abstract class TimeZoneProvider {
         }
 
         @Override
-        public int getTimeZoneOffsetLocal(long dateValue, long timeNanos) {
-            int second = (int) (timeNanos / DateTimeUtils.NANOS_PER_SECOND);
-            int minute = second / 60;
-            second -= minute * 60;
-            int hour = minute / 60;
-            minute -= hour * 60;
-            int year = DateTimeUtils.yearFromDateValue(dateValue);
-            int month = DateTimeUtils.monthFromDateValue(dateValue);
-            int day = DateTimeUtils.dayFromDateValue(dateValue);
+        int getTimeZoneOffsetLocal(int year, int month, int day, int hour, int minute, int second) {
             year = yearForCalendar(year);
             GregorianCalendar c = cachedCalendar.getAndSet(null);
             if (c == null) {
@@ -112,14 +143,7 @@ public abstract class TimeZoneProvider {
         }
 
         @Override
-        public long getEpochSecondsFromLocal(long dateValue, long timeNanos) {
-            int year = DateTimeUtils.yearFromDateValue(dateValue), month = DateTimeUtils.monthFromDateValue(dateValue),
-                    day = DateTimeUtils.dayFromDateValue(dateValue);
-            int seconds = (int) (timeNanos / DateTimeUtils.NANOS_PER_SECOND);
-            int minute = seconds / 60;
-            seconds -= minute * 60;
-            int hour = minute / 60;
-            minute -= hour * 60;
+        long getEpochSecondsFromLocal(int year, int month, int day, int hour, int minute, int second) {
             int yearForCalendar = yearForCalendar(year);
             GregorianCalendar c = cachedCalendar.getAndSet(null);
             if (c == null) {
@@ -132,11 +156,11 @@ public abstract class TimeZoneProvider {
             c.set(Calendar.DAY_OF_MONTH, day);
             c.set(Calendar.HOUR_OF_DAY, hour);
             c.set(Calendar.MINUTE, minute);
-            c.set(Calendar.SECOND, seconds);
+            c.set(Calendar.SECOND, second);
             c.set(Calendar.MILLISECOND, 0);
             long epoch = c.getTimeInMillis();
             cachedCalendar.compareAndSet(null, c);
-            return epoch / 1_000 + (yearForCalendar - year) * SECONDS_PER_YEAR;
+            return epoch / 1_000 + (year - yearForCalendar) * SECONDS_PER_YEAR;
         }
 
         @Override
@@ -198,10 +222,13 @@ public abstract class TimeZoneProvider {
 
     }
 
+
     /**
      * The UTC time zone provider.
      */
     public static final TimeZoneProvider UTC = new Simple((short) 0);
+
+    public static TimeZoneProvider[] CACHE;
 
     /**
      * Returns the time zone provider with the specified offset.
@@ -305,11 +332,31 @@ public abstract class TimeZoneProvider {
                 throw new IllegalArgumentException(id);
             }
         }
+        int hash = id.hashCode() & 0x1f;
+        TimeZoneProvider[] cache = CACHE;
+        if (cache != null) {
+            TimeZoneProvider provider = cache[hash];
+            if (provider != null && provider.getId().equals(id)) {
+                return provider;
+            }
+        }
+        TimeZoneProvider provider = ofId(id, index, length);
+        if (cache == null) {
+            CACHE = cache = new TimeZoneProvider[32];
+        }
+        cache[hash] = provider;
+        return provider;
+    }
+
+    private static TimeZoneProvider ofId(String id, int index, int length) {
+        if (JSR310.PRESENT) {
+            return JSR310Utils.getTimeZoneProvider(id);
+        }
         TimeZone tz = TimeZone.getTimeZone(id);
         if (!tz.getID().startsWith(id)) {
             throw new IllegalArgumentException(id + " (" + tz.getID() + "?)");
         }
-        return new WithTimeZone(TimeZone.getTimeZone(id));
+        return new WithTimeZone7(TimeZone.getTimeZone(id));
     }
 
     /**
@@ -318,7 +365,10 @@ public abstract class TimeZoneProvider {
      * @return the time zone provider for the system default time zone
      */
     public static TimeZoneProvider getDefault() {
-        return new WithTimeZone(TimeZone.getDefault());
+        if (JSR310.PRESENT) {
+            return JSR310Utils.getDefaultTimeZoneProvider();
+        }
+        return new WithTimeZone7(TimeZone.getDefault());
     }
 
     /**

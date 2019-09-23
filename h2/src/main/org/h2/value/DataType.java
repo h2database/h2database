@@ -38,8 +38,9 @@ import org.h2.jdbc.JdbcClob;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.jdbc.JdbcLob;
 import org.h2.message.DbException;
+import org.h2.util.JSR310;
+import org.h2.util.JSR310Utils;
 import org.h2.util.JdbcUtils;
-import org.h2.util.LocalDateTimeUtils;
 import org.h2.util.Utils;
 
 /**
@@ -579,10 +580,10 @@ public class DataType {
                 break;
             }
             case Value.DATE: {
-                if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+                if (JSR310.PRESENT) {
                     try {
-                        Object value = rs.getObject(columnIndex, LocalDateTimeUtils.LOCAL_DATE);
-                        v = value == null ? ValueNull.INSTANCE : LocalDateTimeUtils.localDateToDateValue(value);
+                        Object value = rs.getObject(columnIndex, JSR310.LOCAL_DATE);
+                        v = value == null ? ValueNull.INSTANCE : JSR310Utils.localDateToDateValue(value);
                         break;
                     } catch (SQLException ignore) {
                         // Nothing to do
@@ -593,10 +594,10 @@ public class DataType {
                 break;
             }
             case Value.TIME: {
-                if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+                if (JSR310.PRESENT) {
                     try {
-                        Object value = rs.getObject(columnIndex, LocalDateTimeUtils.LOCAL_TIME);
-                        v = value == null ? ValueNull.INSTANCE : LocalDateTimeUtils.localTimeToTimeValue(value);
+                        Object value = rs.getObject(columnIndex, JSR310.LOCAL_TIME);
+                        v = value == null ? ValueNull.INSTANCE : JSR310Utils.localTimeToTimeValue(value);
                         break;
                     } catch (SQLException ignore) {
                         // Nothing to do
@@ -607,10 +608,10 @@ public class DataType {
                 break;
             }
             case Value.TIMESTAMP: {
-                if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+                if (JSR310.PRESENT) {
                     try {
-                        Object value = rs.getObject(columnIndex, LocalDateTimeUtils.LOCAL_DATE_TIME);
-                        v = value == null ? ValueNull.INSTANCE : LocalDateTimeUtils.localDateTimeToValue(value);
+                        Object value = rs.getObject(columnIndex, JSR310.LOCAL_DATE_TIME);
+                        v = value == null ? ValueNull.INSTANCE : JSR310Utils.localDateTimeToValue(value);
                         break;
                     } catch (SQLException ignore) {
                         // Nothing to do
@@ -621,10 +622,10 @@ public class DataType {
                 break;
             }
             case Value.TIMESTAMP_TZ: {
-                if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+                if (JSR310.PRESENT) {
                     try {
-                        Object value = rs.getObject(columnIndex, LocalDateTimeUtils.OFFSET_DATE_TIME);
-                        v = value == null ? ValueNull.INSTANCE : LocalDateTimeUtils.offsetDateTimeToValue(value);
+                        Object value = rs.getObject(columnIndex, JSR310.OFFSET_DATE_TIME);
+                        v = value == null ? ValueNull.INSTANCE : JSR310Utils.offsetDateTimeToValue(value);
                         break;
                     } catch (SQLException ignore) {
                         // Nothing to do
@@ -633,9 +634,9 @@ public class DataType {
                 Object obj = rs.getObject(columnIndex);
                 if (obj == null) {
                     v = ValueNull.INSTANCE;
-                } else if (LocalDateTimeUtils.isJava8DateApiPresent()
-                        && LocalDateTimeUtils.ZONED_DATE_TIME.isInstance(obj)) {
-                    v = LocalDateTimeUtils.zonedDateTimeToValue(obj);
+                } else if (JSR310.PRESENT
+                        && JSR310.ZONED_DATE_TIME.isInstance(obj)) {
+                    v = JSR310Utils.zonedDateTimeToValue(obj);
                 } else if (obj instanceof TimestampWithTimeZone) {
                     v = ValueTimestampTimeZone.get((TimestampWithTimeZone) obj);
                 } else {
@@ -870,9 +871,9 @@ public class DataType {
             // "java.sql.Timestamp";
             return Timestamp.class.getName();
         case Value.TIMESTAMP_TZ:
-            if (SysProperties.RETURN_OFFSET_DATE_TIME && LocalDateTimeUtils.isJava8DateApiPresent()) {
+            if (SysProperties.RETURN_OFFSET_DATE_TIME && JSR310.PRESENT) {
                 // "java.time.OffsetDateTime";
-                return LocalDateTimeUtils.OFFSET_DATE_TIME.getName();
+                return JSR310.OFFSET_DATE_TIME.getName();
             }
             // "org.h2.api.TimestampWithTimeZone";
             return TimestampWithTimeZone.class.getName();
@@ -1148,13 +1149,13 @@ public class DataType {
             return Value.ARRAY;
         } else if (isGeometryClass(x)) {
             return Value.GEOMETRY;
-        } else if (LocalDateTimeUtils.LOCAL_DATE == x) {
+        } else if (JSR310.LOCAL_DATE == x) {
             return Value.DATE;
-        } else if (LocalDateTimeUtils.LOCAL_TIME == x) {
+        } else if (JSR310.LOCAL_TIME == x) {
             return Value.TIME;
-        } else if (LocalDateTimeUtils.LOCAL_DATE_TIME == x) {
+        } else if (JSR310.LOCAL_DATE_TIME == x) {
             return Value.TIMESTAMP;
-        } else if (LocalDateTimeUtils.OFFSET_DATE_TIME == x || LocalDateTimeUtils.INSTANT == x) {
+        } else if (JSR310.OFFSET_DATE_TIME == x || JSR310.INSTANT == x) {
             return Value.TIMESTAMP_TZ;
         } else {
             if (JdbcUtils.customDataTypesHandler != null) {
@@ -1281,27 +1282,27 @@ public class DataType {
             return ValueStringFixed.get(((Character) x).toString());
         } else if (isGeometry(x)) {
             return ValueGeometry.getFromGeometry(x);
-        } else if (clazz == LocalDateTimeUtils.LOCAL_DATE) {
-            return LocalDateTimeUtils.localDateToDateValue(x);
-        } else if (clazz == LocalDateTimeUtils.LOCAL_TIME) {
-            return LocalDateTimeUtils.localTimeToTimeValue(x);
-        } else if (clazz == LocalDateTimeUtils.LOCAL_DATE_TIME) {
-            return LocalDateTimeUtils.localDateTimeToValue(x);
-        } else if (clazz == LocalDateTimeUtils.INSTANT) {
-            return LocalDateTimeUtils.instantToValue(x);
-        } else if (clazz == LocalDateTimeUtils.OFFSET_DATE_TIME) {
-            return LocalDateTimeUtils.offsetDateTimeToValue(x);
-        } else if (clazz == LocalDateTimeUtils.ZONED_DATE_TIME) {
-            return LocalDateTimeUtils.zonedDateTimeToValue(x);
+        } else if (clazz == JSR310.LOCAL_DATE) {
+            return JSR310Utils.localDateToDateValue(x);
+        } else if (clazz == JSR310.LOCAL_TIME) {
+            return JSR310Utils.localTimeToTimeValue(x);
+        } else if (clazz == JSR310.LOCAL_DATE_TIME) {
+            return JSR310Utils.localDateTimeToValue(x);
+        } else if (clazz == JSR310.INSTANT) {
+            return JSR310Utils.instantToValue(x);
+        } else if (clazz == JSR310.OFFSET_DATE_TIME) {
+            return JSR310Utils.offsetDateTimeToValue(x);
+        } else if (clazz == JSR310.ZONED_DATE_TIME) {
+            return JSR310Utils.zonedDateTimeToValue(x);
         } else if (x instanceof TimestampWithTimeZone) {
             return ValueTimestampTimeZone.get((TimestampWithTimeZone) x);
         } else if (x instanceof Interval) {
             Interval i = (Interval) x;
             return ValueInterval.from(i.getQualifier(), i.isNegative(), i.getLeading(), i.getRemaining());
-        } else if (clazz == LocalDateTimeUtils.PERIOD) {
-            return LocalDateTimeUtils.periodToValue(x);
-        } else if (clazz == LocalDateTimeUtils.DURATION) {
-            return LocalDateTimeUtils.durationToValue(x);
+        } else if (clazz == JSR310.PERIOD) {
+            return JSR310Utils.periodToValue(x);
+        } else if (clazz == JSR310.DURATION) {
+            return JSR310Utils.durationToValue(x);
         } else {
             if (JdbcUtils.customDataTypesHandler != null) {
                 return JdbcUtils.customDataTypesHandler.getValue(type, x,

@@ -14,7 +14,8 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.LocalDateTimeUtils;
+import org.h2.util.JSR310;
+import org.h2.util.JSR310Utils;
 
 /**
  * Implementation of the TIME data type.
@@ -193,9 +194,9 @@ public class ValueTime extends Value {
 
     @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+        if (JSR310.PRESENT) {
             try {
-                prep.setObject(parameterIndex, LocalDateTimeUtils.valueToLocalTime(this), Types.TIME);
+                prep.setObject(parameterIndex, JSR310Utils.valueToLocalTime(this), Types.TIME);
                 return;
             } catch (SQLException ignore) {
                 // Nothing to do

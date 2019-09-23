@@ -27,7 +27,7 @@ import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.LocalDateTimeUtils;
+import org.h2.util.JSR310;
 
 /**
  * Updatable result set tests.
@@ -317,7 +317,7 @@ public class TestUpdatableResultSet extends TestDb {
         assertEquals("java.sql.Date", meta.getColumnClassName(++c));
         assertEquals("java.sql.Time", meta.getColumnClassName(++c));
         assertEquals("java.sql.Timestamp", meta.getColumnClassName(++c));
-        assertEquals(SysProperties.RETURN_OFFSET_DATE_TIME && LocalDateTimeUtils.isJava8DateApiPresent() //
+        assertEquals(SysProperties.RETURN_OFFSET_DATE_TIME && JSR310.PRESENT //
                 ? "java.time.OffsetDateTime" : "org.h2.api.TimestampWithTimeZone", //
                 meta.getColumnClassName(++c));
         assertEquals("java.lang.Double", meta.getColumnClassName(++c));
@@ -370,7 +370,7 @@ public class TestUpdatableResultSet extends TestDb {
         rs.updateTimestamp("TS",
                 Timestamp.valueOf("2005-09-21 21:47:09.567890123"));
         rs.updateObject("TSTZ",
-                new TimestampWithTimeZone(DateTimeUtils.dateValue(2005, 9, 21), 81_189_123_456_789L, (short) 60));
+                new TimestampWithTimeZone(DateTimeUtils.dateValue(2005, 9, 21), 81_189_123_456_789L, 60 * 60));
         rs.updateDouble("DB", 1.725);
         rs.updateFloat("R", 2.5f);
         rs.updateLong("L", Long.MAX_VALUE);
@@ -517,7 +517,7 @@ public class TestUpdatableResultSet extends TestDb {
         assertEquals("2005-09-21", rs.getDate(++c).toString());
         assertEquals("21:46:28", rs.getTime(++c).toString());
         assertEquals("2005-09-21 21:47:09.567890123", rs.getTimestamp(++c).toString());
-        assertEquals(SysProperties.RETURN_OFFSET_DATE_TIME && LocalDateTimeUtils.isJava8DateApiPresent() //
+        assertEquals(SysProperties.RETURN_OFFSET_DATE_TIME && JSR310.PRESENT //
                 ? "2005-09-21T22:33:09.123456789+01:00" : "2005-09-21 22:33:09.123456789+01", //
                 rs.getObject(++c).toString());
         assertTrue(rs.getDouble(++c) == 1.725);
@@ -538,7 +538,7 @@ public class TestUpdatableResultSet extends TestDb {
         rs.updateTime(++c, Time.valueOf("21:46:29"));
         rs.updateTimestamp(++c, Timestamp.valueOf("2005-09-21 21:47:10.111222333"));
         rs.updateObject(++c, new TimestampWithTimeZone(DateTimeUtils.dateValue(2005, 9, 22), 10_111_222_333L,
-                (short) 120));
+                2 * 60 * 60));
         rs.updateDouble(++c, 2.25);
         rs.updateFloat(++c, 3.5f);
         rs.updateLong(++c, Long.MAX_VALUE - 1);
@@ -568,7 +568,7 @@ public class TestUpdatableResultSet extends TestDb {
         assertEquals("2005-09-22", rs.getDate(++c).toString());
         assertEquals("21:46:29", rs.getTime(++c).toString());
         assertEquals("2005-09-21 21:47:10.111222333", rs.getTimestamp(++c).toString());
-        assertEquals(SysProperties.RETURN_OFFSET_DATE_TIME && LocalDateTimeUtils.isJava8DateApiPresent() //
+        assertEquals(SysProperties.RETURN_OFFSET_DATE_TIME && JSR310.PRESENT //
                 ? "2005-09-22T00:00:10.111222333+02:00" : "2005-09-22 00:00:10.111222333+02", //
                 rs.getObject(++c).toString());
         assertTrue(rs.getDouble(++c) == 2.25);

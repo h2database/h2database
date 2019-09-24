@@ -237,6 +237,10 @@ public final class RootReference
         return appendCounter & 0xff;
     }
 
+    public boolean needFlush() {
+        return appendCounter != 0;
+    }
+
     public long getTotalCount() {
         return root.getTotalCount() + getAppendCounter();
     }

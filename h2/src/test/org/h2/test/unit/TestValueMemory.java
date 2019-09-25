@@ -50,6 +50,7 @@ import org.h2.value.ValueString;
 import org.h2.value.ValueStringFixed;
 import org.h2.value.ValueStringIgnoreCase;
 import org.h2.value.ValueTime;
+import org.h2.value.ValueTimeTimeZone;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueUuid;
@@ -186,6 +187,8 @@ public class TestValueMemory extends TestBase implements DataHandler {
             return ValueFloat.get(random.nextFloat());
         case Value.TIME:
             return ValueTime.fromNanos(randomTimeNanos());
+        case Value.TIME_TZ:
+            return ValueTimeTimeZone.fromNanos(randomTimeNanos(), randomZoneOffset());
         case Value.DATE:
             return ValueDate.fromDateValue(randomDateValue());
         case Value.TIMESTAMP:

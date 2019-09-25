@@ -27,6 +27,7 @@ import org.h2.result.ResultInterface;
 import org.h2.result.SimpleResult;
 import org.h2.result.SortOrder;
 import org.h2.store.DataHandler;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
@@ -56,6 +57,7 @@ import org.h2.value.ValueString;
 import org.h2.value.ValueStringFixed;
 import org.h2.value.ValueStringIgnoreCase;
 import org.h2.value.ValueTime;
+import org.h2.value.ValueTimeTimeZone;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueUuid;
@@ -108,6 +110,7 @@ public class ValueDataType implements DataType {
     private static final int CUSTOM_DATA_TYPE = 133;
     private static final int JSON = 134;
     private static final int TIMESTAMP_TZ_2 = 135;
+    private static final int TIME_TZ = 136;
 
     final DataHandler handler;
     final CastDataProvider provider;
@@ -309,6 +312,15 @@ public class ValueDataType implements DataType {
             buff.put(TIME).
                 putVarLong(millis).
                 putVarInt((int) nanos);
+            break;
+        }
+        case Value.TIME_TZ: {
+            ValueTimeTimeZone t = (ValueTimeTimeZone) v;
+            long nanosOfDay = t.getNanos();
+            buff.put((byte) TIME_TZ).
+                putVarInt((int) (nanosOfDay / DateTimeUtils.NANOS_PER_SECOND)).
+                putVarInt((int) (nanosOfDay % DateTimeUtils.NANOS_PER_SECOND));
+            writeTimeZone(buff, t.getTimeZoneOffsetSeconds());
             break;
         }
         case Value.DATE: {
@@ -608,6 +620,9 @@ public class ValueDataType implements DataType {
             long nanos = readVarLong(buff) * 1_000_000 + readVarInt(buff);
             return ValueTime.fromNanos(nanos);
         }
+        case TIME_TZ:
+            return ValueTimeTimeZone.fromNanos(readVarInt(buff) * DateTimeUtils.NANOS_PER_SECOND + readVarInt(buff),
+                    readTimeZone(buff));
         case TIMESTAMP: {
             long dateValue = readVarLong(buff);
             long nanos = readVarLong(buff) * 1_000_000 + readVarInt(buff);

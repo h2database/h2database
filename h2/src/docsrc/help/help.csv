@@ -1953,7 +1953,7 @@ SHUTDOWN COMPACT
 
 "Literals","Value","
 string | dollarQuotedString | numeric | dateAndTime | boolean | bytes
-    | interval | array | null
+    | interval | array | json | null
 ","
 A literal value of any data type, or null.
 ","
@@ -1999,7 +1999,7 @@ DATE '2004-12-31'
 "
 
 "Literals","Date and time","
-date | time | timestamp | timestampWithTimeZone
+date | time | timeWithTimeZone | timestamp | timestampWithTimeZone
 ","
 A literal value of any date-time data type.
 ","
@@ -2113,6 +2113,17 @@ A time literal. A value is between 0:00:00 and 23:59:59.999999999
 and has nanosecond resolution.
 ","
 TIME '23:59:59'
+"
+
+"Literals","Time with time zone","
+TIME WITH TIME ZONE 'hh:mm:ss[.nnnnnnnnn]{Z | { - | + } timeZoneOffsetString}'
+","
+A time with time zone literal. A value is between 0:00:00 and 23:59:59.999999999
+and has nanosecond resolution.
+","
+TIME WITH TIME ZONE '23:59:59+01'
+TIME WITH TIME ZONE '10:15:30.334-03:30'
+TIME WITH TIME ZONE '0:00:00Z'
 "
 
 "Literals","Timestamp","
@@ -3333,6 +3344,23 @@ comparison operations with values of these data types use the 1970-01-01 instead
 ","
 TIME
 TIME(9)
+"
+
+"Data Types","TIME WITH TIME ZONE Type","
+TIME [ ( precisionInt ) ] WITH TIME ZONE
+","
+The time with time zone data type.
+If fractional seconds precision is specified it should be from 0 to 9, 0 is default.
+
+See also [time](https://h2database.com/html/grammar.html#time_with_time_zone) literal grammar.
+Mapped to ""java.time.OffsetTime"" on Java 8 and later versions.
+Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up;
+if result of rounding is higher than maximum supported value 23:59:59.999999999 the value is rounded down instead.
+The CAST operation to TIMESTAMP and TIMESTAMP WITH TIME ZONE data types uses the CURRENT_DATE for date fields,
+comparison operations with values of these data types use the 1970-01-01 instead.
+","
+TIME WITH TIME ZONE
+TIME(9) WITH TIME ZONE
 "
 
 "Data Types","DATE Type","
@@ -4742,8 +4770,7 @@ CURRENT_DATE
 "Functions (Time and Date)","CURRENT_TIME","
 CURRENT_TIME [ (int) ]
 ","
-Returns the current time.
-The returned value does not have time zone information, because TIME WITH TIME ZONE data type is not supported in H2.
+Returns the current time with time zone.
 If fractional seconds precision is specified it should be from 0 to 9, 0 is default.
 The specified value can be used only to limit precision of a result.
 The actual maximum available precision depends on operating system and JVM and can be 3 (milliseconds) or higher.

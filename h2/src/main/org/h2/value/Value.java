@@ -254,9 +254,14 @@ public abstract class Value extends VersionedValue {
     public static final int JSON = 40;
 
     /**
+     * The value type for TIME WITH TIME ZONE values.
+     */
+    public static final int TIME_TZ = 41;
+
+    /**
      * The number of value types.
      */
-    public static final int TYPE_COUNT = JSON + 1;
+    public static final int TYPE_COUNT = TIME_TZ + 1;
 
     private static SoftReference<Value[]> softCache;
 
@@ -430,6 +435,8 @@ public abstract class Value extends VersionedValue {
             return 29_900;
         case TIME:
             return 30_000;
+        case TIME_TZ:
+            return 30_500;
         case DATE:
             return 31_000;
         case TIMESTAMP:
@@ -808,7 +815,9 @@ public abstract class Value extends VersionedValue {
             case DATE:
                 return convertToDate();
             case TIME:
-                return convertToTime();
+                return convertToTime(provider, forComparison);
+            case TIME_TZ:
+                return convertToTimeTimeZone(provider, forComparison);
             case TIMESTAMP:
                 return convertToTimestamp(provider, forComparison);
             case TIMESTAMP_TZ:
@@ -1077,14 +1086,17 @@ public abstract class Value extends VersionedValue {
                     .dateValueFromLocalSeconds(epochSeconds + DateTimeUtils.getTimeZoneOffset(epochSeconds)));
         }
         case TIME:
+        case TIME_TZ:
         case ENUM:
             throw getDataConversionError(DATE);
         }
         return ValueDate.parse(getString().trim());
     }
 
-    private ValueTime convertToTime() {
+    private ValueTime convertToTime(CastDataProvider provider, boolean forComparison) {
         switch (getValueType()) {
+        case TIME_TZ:
+            return ValueTime.fromNanos(getLocalTimeNanos(provider, forComparison));
         case TIMESTAMP:
             return ValueTime.fromNanos(((ValueTimestamp) this).getTimeNanos());
         case TIMESTAMP_TZ: {
@@ -1103,6 +1115,31 @@ public abstract class Value extends VersionedValue {
         return ValueTime.parse(getString().trim());
     }
 
+    private ValueTimeTimeZone convertToTimeTimeZone(CastDataProvider provider, boolean forComparison) {
+        switch (getValueType()) {
+        case TIME: {
+            ValueTime ts = (ValueTime) this;
+            int localOffset = forComparison ? DateTimeUtils.getTimeZoneOffset(0L)
+                    : provider.currentTimestamp().getTimeZoneOffsetSeconds();
+            return ValueTimeTimeZone.fromNanos(ts.getNanos(), localOffset);
+        }
+        case TIMESTAMP: {
+            ValueTimestamp ts = (ValueTimestamp) this;
+            long timeNanos = ts.getTimeNanos();
+            return ValueTimeTimeZone.fromNanos(timeNanos,
+                    DateTimeUtils.getTimeZoneOffset(ts.getDateValue(), timeNanos));
+        }
+        case TIMESTAMP_TZ: {
+            ValueTimestampTimeZone ts = (ValueTimestampTimeZone) this;
+            return ValueTimeTimeZone.fromNanos(ts.getTimeNanos(), ts.getTimeZoneOffsetSeconds());
+        }
+        case DATE:
+        case ENUM:
+            throw getDataConversionError(TIME_TZ);
+        }
+        return ValueTimeTimeZone.parse(getString().trim());
+    }
+
     private ValueTimestamp convertToTimestamp(CastDataProvider provider, boolean forComparison) {
         switch (getValueType()) {
         case TIME:
@@ -1110,6 +1147,11 @@ public abstract class Value extends VersionedValue {
                     ? DateTimeUtils.EPOCH_DATE_VALUE
                     : provider.currentTimestamp().getDateValue(),
                     ((ValueTime) this).getNanos());
+        case TIME_TZ:
+            return ValueTimestamp.fromDateValueAndNanos(forComparison
+                    ? DateTimeUtils.EPOCH_DATE_VALUE
+                    : provider.currentTimestamp().getDateValue(),
+                    getLocalTimeNanos(provider, forComparison));
         case DATE:
             return ValueTimestamp.fromDateValueAndNanos(((ValueDate) this).getDateValue(), 0);
         case TIMESTAMP_TZ: {
@@ -1127,6 +1169,14 @@ public abstract class Value extends VersionedValue {
         return ValueTimestamp.parse(getString().trim(), provider);
     }
 
+    private long getLocalTimeNanos(CastDataProvider provider, boolean forComparison) {
+        ValueTimeTimeZone ts = (ValueTimeTimeZone) this;
+        int localOffset = forComparison ? DateTimeUtils.getTimeZoneOffset(0L)
+                : provider.currentTimestamp().getTimeZoneOffsetSeconds();
+        return DateTimeUtils.normalizeNanosOfDay(ts.getNanos() +
+                (ts.getTimeZoneOffsetSeconds() - localOffset) * DateTimeUtils.NANOS_PER_DAY);
+    }
+
     private ValueTimestampTimeZone convertToTimestampTimeZone(CastDataProvider provider, boolean forComparison) {
         switch (getValueType()) {
         case TIME:
@@ -1134,6 +1184,13 @@ public abstract class Value extends VersionedValue {
                     ? DateTimeUtils.EPOCH_DATE_VALUE
                     : provider.currentTimestamp().getDateValue(),
                     ((ValueTime) this).getNanos());
+        case TIME_TZ: {
+            ValueTimeTimeZone t = (ValueTimeTimeZone) this;
+            return ValueTimestampTimeZone.fromDateValueAndNanos(forComparison
+                    ? DateTimeUtils.EPOCH_DATE_VALUE
+                    : provider.currentTimestamp().getDateValue(),
+                    t.getNanos(), t.getTimeZoneOffsetSeconds());
+        }
         case DATE:
             return DateTimeUtils.timestampTimeZoneFromLocalDateValueAndNanos(((ValueDate) this).getDateValue(), 0);
         case TIMESTAMP: {

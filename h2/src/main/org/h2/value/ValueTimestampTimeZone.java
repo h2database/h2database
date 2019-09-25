@@ -69,7 +69,7 @@ public class ValueTimestampTimeZone extends Value {
         if (timeZoneOffsetSeconds < (-18 * 60 * 60)
                 || timeZoneOffsetSeconds > (18 * 60 * 60)) {
             throw new IllegalArgumentException(
-                    "timeZoneOffsetMins out of range " + timeZoneOffsetSeconds);
+                    "timeZoneOffsetSeconds out of range " + timeZoneOffsetSeconds);
         }
         this.dateValue = dateValue;
         this.timeNanos = timeNanos;

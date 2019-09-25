@@ -264,6 +264,7 @@ import org.h2.value.ValueNull;
 import org.h2.value.ValueRow;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
+import org.h2.value.ValueTimeTimeZone;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
 
@@ -4614,17 +4615,28 @@ public class Parser {
             break;
         case 'T':
             if (equalsToken("TIME", name)) {
-                boolean without = readIf("WITHOUT");
-                if (without) {
+                if (readIf(WITH)) {
                     read("TIME");
                     read("ZONE");
-                }
-                if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING) {
+                    if (currentTokenType != VALUE || currentValue.getValueType() != Value.STRING) {
+                        throw getSyntaxError();
+                    }
                     String time = currentValue.getString();
                     read();
-                    return ValueExpression.get(ValueTime.parse(time));
-                } else if (without) {
-                    throw getSyntaxError();
+                    return ValueExpression.get(ValueTimeTimeZone.parse(time));
+                } else {
+                    boolean without = readIf("WITHOUT");
+                    if (without) {
+                        read("TIME");
+                        read("ZONE");
+                    }
+                    if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING) {
+                        String time = currentValue.getString();
+                        read();
+                        return ValueExpression.get(ValueTime.parse(time));
+                    } else if (without) {
+                        throw getSyntaxError();
+                    }
                 }
             } else if (equalsToken("TIMESTAMP", name)) {
                 if (readIf(WITH)) {
@@ -4765,7 +4777,7 @@ public class Parser {
             return readKeywordFunction(Function.LOCALTIMESTAMP);
         } else if (readIf("TIME")) {
             // Time with fractional seconds is not supported by DB2
-            return readFunctionWithoutParameters(Function.CURRENT_TIME);
+            return readFunctionWithoutParameters(Function.LOCALTIME);
         } else if (readIf("DATE")) {
             return readFunctionWithoutParameters(Function.CURRENT_DATE);
         }
@@ -5820,7 +5832,11 @@ public class Parser {
                 }
                 read(CLOSE_PAREN);
             }
-            if (readIf("WITHOUT")) {
+            if (readIf(WITH)) {
+                read("TIME");
+                read("ZONE");
+                original = "TIME WITH TIME ZONE";
+            } else if (readIf("WITHOUT")) {
                 read("TIME");
                 read("ZONE");
                 original = "TIME WITHOUT TIME ZONE";
@@ -5971,7 +5987,7 @@ public class Parser {
         precision = precision == -1 ? dataType.defaultPrecision : precision;
         scale = scale == -1 ? dataType.defaultScale : scale;
         if (dataType.supportsPrecision || dataType.supportsScale) {
-            if (t == Value.TIME || t == Value.TIMESTAMP || t == Value.TIMESTAMP_TZ) {
+            if (t == Value.TIME || t == Value.TIMESTAMP || t == Value.TIMESTAMP_TZ || t == Value.TIME_TZ) {
                 if (originalScale >= 0) {
                     scale = originalScale;
                     switch (t) {
@@ -5981,6 +5997,9 @@ public class Parser {
                         } else {
                             original = original + '(' + originalScale + ')';
                         }
+                        break;
+                    case Value.TIME_TZ:
+                        original = "TIME(" + originalScale + ") WITH TIME ZONE";
                         break;
                     case Value.TIMESTAMP:
                         if (original.equals("TIMESTAMP WITHOUT TIME ZONE")) {

@@ -41,6 +41,11 @@ public class JSR310 {
     public static final Class<?> ZONED_DATE_TIME;
 
     /**
+     * {@code Class<java.time.OffsetTime>} or {@code null}.
+     */
+    public static final Class<?> OFFSET_TIME;
+
+    /**
      * {@code Class<java.time.Period>} or {@code null}.
      */
     public static final Class<?> PERIOD;
@@ -58,7 +63,7 @@ public class JSR310 {
     static {
         boolean present = false;
         Class<?> localDate = null, localTime = null, localDateTime = null, instant = null, offsetDateTime = null,
-                zonedDateTime = null, period = null, duration = null;
+                zonedDateTime = null, offsetTime = null, period = null, duration = null;
         try {
             localDate = Class.forName("java.time.LocalDate");
             localTime = Class.forName("java.time.LocalTime");
@@ -66,6 +71,7 @@ public class JSR310 {
             instant = Class.forName("java.time.Instant");
             offsetDateTime = Class.forName("java.time.OffsetDateTime");
             zonedDateTime = Class.forName("java.time.ZonedDateTime");
+            offsetTime = Class.forName("java.time.OffsetTime");
             period = Class.forName("java.time.Period");
             duration = Class.forName("java.time.Duration");
             present = true;
@@ -78,6 +84,7 @@ public class JSR310 {
         INSTANT = instant;
         OFFSET_DATE_TIME = offsetDateTime;
         ZONED_DATE_TIME = zonedDateTime;
+        OFFSET_TIME = offsetTime;
         PERIOD = period;
         DURATION = duration;
         PRESENT = present;

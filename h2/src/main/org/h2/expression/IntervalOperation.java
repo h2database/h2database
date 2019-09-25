@@ -24,6 +24,7 @@ import org.h2.expression.function.DateTimeFunctions;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.IntervalUtils;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
@@ -33,6 +34,7 @@ import org.h2.value.ValueDecimal;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueTime;
+import org.h2.value.ValueTimeTimeZone;
 import org.h2.value.ValueTimestampTimeZone;
 
 /**
@@ -112,7 +114,7 @@ public class IntervalOperation extends Expression {
             type = left.getType();
             break;
         case DATETIME_MINUS_DATETIME:
-            if (l == Value.TIME && r == Value.TIME) {
+            if ((l == Value.TIME || l == Value.TIME_TZ) && (r == Value.TIME || r == Value.TIME_TZ)) {
                 type = TypeInfo.TYPE_INTERVAL_HOUR_TO_SECOND;
             } else if (l == Value.DATE && r == Value.DATE) {
                 type = TypeInfo.TYPE_INTERVAL_DAY;
@@ -180,8 +182,17 @@ public class IntervalOperation extends Expression {
                             .toBigInteger());
         }
         case DATETIME_MINUS_DATETIME:
-            if (lType == Value.TIME && rType == Value.TIME) {
-                long diff = ((ValueTime) l).getNanos() - ((ValueTime) r).getNanos();
+            if ((lType == Value.TIME || lType == Value.TIME_TZ) && (rType == Value.TIME || rType == Value.TIME_TZ)) {
+                long diff;
+                if (lType == Value.TIME && rType == Value.TIME) {
+                    diff = ((ValueTime) l).getNanos() - ((ValueTime) r).getNanos();
+                } else {
+                    ValueTimeTimeZone left = (ValueTimeTimeZone) l.convertTo(Value.TIME_TZ, session, false),
+                            right = (ValueTimeTimeZone) r.convertTo(Value.TIME_TZ, session, false);
+                    diff = left.getNanos() - right.getNanos()
+                            + (right.getTimeZoneOffsetSeconds() - left.getTimeZoneOffsetSeconds())
+                            * DateTimeUtils.NANOS_PER_SECOND;
+                }
                 boolean negative = diff < 0;
                 if (negative) {
                     diff = -diff;
@@ -212,17 +223,17 @@ public class IntervalOperation extends Expression {
 
     private Value getDateTimeWithInterval(Value l, Value r, int lType, int rType) {
         switch (lType) {
-        case Value.TIME: {
+        case Value.TIME:
             if (DataType.isYearMonthIntervalType(rType)) {
                 throw DbException.throwInternalError("type=" + rType);
             }
-            BigInteger a1 = BigInteger.valueOf(((ValueTime) l).getNanos());
-            BigInteger a2 = IntervalUtils.intervalToAbsolute((ValueInterval) r);
-            BigInteger n = opType == IntervalOpType.DATETIME_PLUS_INTERVAL ? a1.add(a2) : a1.subtract(a2);
-            if (n.signum() < 0 || n.compareTo(NANOS_PER_DAY_BI) >= 0) {
-                throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, n.toString());
+            return ValueTime.fromNanos(getTimeWithInterval(r, ((ValueTime) l).getNanos()));
+        case Value.TIME_TZ: {
+            if (DataType.isYearMonthIntervalType(rType)) {
+                throw DbException.throwInternalError("type=" + rType);
             }
-            return ValueTime.fromNanos(n.longValue());
+            ValueTimeTimeZone t = (ValueTimeTimeZone) l;
+            return ValueTimeTimeZone.fromNanos(getTimeWithInterval(r, t.getNanos()), t.getTimeZoneOffsetSeconds());
         }
         case Value.DATE:
         case Value.TIMESTAMP:
@@ -264,6 +275,17 @@ public class IntervalOperation extends Expression {
             }
         }
         throw DbException.throwInternalError("type=" + opType);
+    }
+
+    private long getTimeWithInterval(Value r, long nanos) {
+        BigInteger a1 = BigInteger.valueOf(nanos);
+        BigInteger a2 = IntervalUtils.intervalToAbsolute((ValueInterval) r);
+        BigInteger n = opType == IntervalOpType.DATETIME_PLUS_INTERVAL ? a1.add(a2) : a1.subtract(a2);
+        if (n.signum() < 0 || n.compareTo(NANOS_PER_DAY_BI) >= 0) {
+            throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, n.toString());
+        }
+        nanos = n.longValue();
+        return nanos;
     }
 
     @Override

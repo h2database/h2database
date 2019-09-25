@@ -16,6 +16,7 @@ import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueTimeTimeZone;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
 
@@ -51,24 +52,45 @@ public class TimeZoneOperation extends Expression {
     @Override
     public Value getValue(Session session) {
         Value a = arg.getValue(session).convertTo(type, session, false, null);
-        if (a.getValueType() == Value.TIMESTAMP_TZ && timeZone != null) {
+        int valueType = a.getValueType();
+        if ((valueType == Value.TIMESTAMP_TZ || valueType == Value.TIME_TZ) && timeZone != null) {
             Value b = timeZone.getValue(session);
             if (b != ValueNull.INSTANCE) {
-                ValueTimestampTimeZone v = (ValueTimestampTimeZone) a;
-                long dateValue = v.getDateValue();
-                long timeNanos = v.getTimeNanos();
-                int offsetSeconds = v.getTimeZoneOffsetSeconds();
-                int newOffset = parseTimeZone(b, dateValue, timeNanos, offsetSeconds);
-                if (offsetSeconds != newOffset) {
-                    timeNanos += (newOffset - offsetSeconds) * DateTimeUtils.NANOS_PER_SECOND;
-                    if (timeNanos < 0) {
-                        timeNanos += DateTimeUtils.NANOS_PER_DAY;
-                        dateValue = DateTimeUtils.decrementDateValue(dateValue);
-                    } else if (timeNanos >= DateTimeUtils.NANOS_PER_DAY) {
-                        timeNanos -= DateTimeUtils.NANOS_PER_DAY;
-                        dateValue = DateTimeUtils.incrementDateValue(dateValue);
+                if (valueType == Value.TIMESTAMP_TZ) {
+                    ValueTimestampTimeZone v = (ValueTimestampTimeZone) a;
+                    long dateValue = v.getDateValue();
+                    long timeNanos = v.getTimeNanos();
+                    int offsetSeconds = v.getTimeZoneOffsetSeconds();
+                    int newOffset = parseTimeZone(b, dateValue, timeNanos, offsetSeconds, true);
+                    if (offsetSeconds != newOffset) {
+                        timeNanos += (newOffset - offsetSeconds) * DateTimeUtils.NANOS_PER_SECOND;
+                        // Value can be 18+18 hours before or after the limit
+                        if (timeNanos < 0) {
+                            timeNanos += DateTimeUtils.NANOS_PER_DAY;
+                            dateValue = DateTimeUtils.decrementDateValue(dateValue);
+                            if (timeNanos < 0) {
+                                timeNanos += DateTimeUtils.NANOS_PER_DAY;
+                                dateValue = DateTimeUtils.decrementDateValue(dateValue);
+                            }
+                        } else if (timeNanos >= DateTimeUtils.NANOS_PER_DAY) {
+                            timeNanos -= DateTimeUtils.NANOS_PER_DAY;
+                            dateValue = DateTimeUtils.incrementDateValue(dateValue);
+                            if (timeNanos >= DateTimeUtils.NANOS_PER_DAY) {
+                                timeNanos -= DateTimeUtils.NANOS_PER_DAY;
+                                dateValue = DateTimeUtils.incrementDateValue(dateValue);
+                            }
+                        }
+                        a = ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos, newOffset);
                     }
-                    a = ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos, newOffset);
+                } else {
+                    ValueTimeTimeZone v = (ValueTimeTimeZone) a;
+                    long timeNanos = v.getNanos();
+                    int offsetSeconds = v.getTimeZoneOffsetSeconds();
+                    int newOffset = parseTimeZone(b, DateTimeUtils.EPOCH_DATE_VALUE, timeNanos, offsetSeconds, false);
+                    if (offsetSeconds != newOffset) {
+                        timeNanos += (newOffset - offsetSeconds) * DateTimeUtils.NANOS_PER_SECOND;
+                        a = ValueTimeTimeZone.fromNanos(DateTimeUtils.normalizeNanosOfDay(timeNanos), newOffset);
+                    }
                 }
             } else {
                 a = ValueNull.INSTANCE;
@@ -77,7 +99,8 @@ public class TimeZoneOperation extends Expression {
         return a;
     }
 
-    private static int parseTimeZone(Value b, long dateValue, long timeNanos, int offsetSeconds) {
+    private static int parseTimeZone(Value b, long dateValue, long timeNanos, int offsetSeconds,
+            boolean allowTimeZoneName) {
         int timeZoneType = b.getValueType();
         if (DataType.isStringType(timeZoneType)) {
             String s = b.getString();
@@ -90,6 +113,9 @@ public class TimeZoneOperation extends Expression {
                     try {
                         timeZone = TimeZoneProvider.ofId(s);
                     } catch (IllegalArgumentException ex) {
+                        throw DbException.getInvalidValueException("time zone", b.getSQL());
+                    }
+                    if (!allowTimeZoneName && !timeZone.hasFixedOffset()) {
                         throw DbException.getInvalidValueException("time zone", b.getSQL());
                     }
                     return timeZone
@@ -135,8 +161,8 @@ public class TimeZoneOperation extends Expression {
             scale = type.getScale();
             break;
         case Value.TIME:
-            // H2 doesn't have TIME WITH TIME ZONE
-            valueType = Value.TIME;
+        case Value.TIME_TZ:
+            valueType = Value.TIME_TZ;
             scale = type.getScale();
             break;
         default:

@@ -163,6 +163,11 @@ public class TypeInfo {
      */
     public static final TypeInfo TYPE_JSON;
 
+    /**
+     * TIME WITH TIME ZONE type with maximum parameters.
+     */
+    public static final TypeInfo TYPE_TIME_TZ;
+
     private static final TypeInfo[] TYPE_INFOS_BY_VALUE_TYPE;
 
     private final int valueType;
@@ -233,6 +238,8 @@ public class TypeInfo {
         TYPE_INTERVAL_HOUR_TO_SECOND = infos[Value.INTERVAL_HOUR_TO_SECOND];
         infos[Value.ROW] = TYPE_ROW = new TypeInfo(Value.ROW, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
         infos[Value.JSON] = TYPE_JSON = new TypeInfo(Value.JSON, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
+        infos[Value.TIME_TZ] = TYPE_TIME_TZ = new TypeInfo(Value.TIME_TZ, ValueTimeTimeZone.MAXIMUM_PRECISION,
+                ValueTime.MAXIMUM_SCALE, ValueTimeTimeZone.MAXIMUM_PRECISION, null);
         TYPE_INFOS_BY_VALUE_TYPE = infos;
     }
 
@@ -316,6 +323,13 @@ public class TypeInfo {
             }
             int d = scale == 0 ? 8 : 9 + scale;
             return new TypeInfo(Value.TIME, d, scale, d, null);
+        }
+        case Value.TIME_TZ: {
+            if (scale < 0 || scale >= ValueTime.MAXIMUM_SCALE) {
+                return TYPE_TIME_TZ;
+            }
+            int d = scale == 0 ? 14 : 15 + scale;
+            return new TypeInfo(Value.TIME_TZ, d, scale, d, null);
         }
         case Value.TIMESTAMP: {
             if (scale < 0 || scale >= ValueTimestamp.MAXIMUM_SCALE) {

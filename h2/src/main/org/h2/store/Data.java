@@ -54,6 +54,7 @@ import org.h2.value.ValueString;
 import org.h2.value.ValueStringFixed;
 import org.h2.value.ValueStringIgnoreCase;
 import org.h2.value.ValueTime;
+import org.h2.value.ValueTimeTimeZone;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueUuid;
@@ -122,6 +123,7 @@ public class Data {
     private static final int CUSTOM_DATA_TYPE = 135;
     private static final int JSON = 136;
     private static final int TIMESTAMP_TZ_2 = 137;
+    private static final int TIME_TZ = 138;
 
     private static final long MILLIS_PER_MINUTE = 1000 * 60;
 
@@ -532,6 +534,15 @@ public class Data {
                 writeVarLong(DateTimeUtils.getTimeLocalWithoutDst(v.getTime(null)));
             }
             break;
+        case Value.TIME_TZ: {
+            writeByte((byte) TIME_TZ);
+            ValueTimeTimeZone ts = (ValueTimeTimeZone) v;
+            long nanosOfDay = ts.getNanos();
+            writeVarInt((int) (nanosOfDay / DateTimeUtils.NANOS_PER_SECOND));
+            writeVarInt((int) (nanosOfDay % DateTimeUtils.NANOS_PER_SECOND));
+            writeTimeZone(ts.getTimeZoneOffsetSeconds());
+            break;
+        }
         case Value.DATE: {
             if (storeLocalTime) {
                 writeByte((byte) LOCAL_DATE);
@@ -848,6 +859,9 @@ public class Data {
             // need to normalize the year, month and day
             return ValueTime.fromMillis(
                     DateTimeUtils.getTimeUTCWithoutDst(readVarLong()));
+        case TIME_TZ:
+            return ValueTimeTimeZone.fromNanos(readVarInt() * DateTimeUtils.NANOS_PER_SECOND + readVarInt(),
+                    readTimeZone());
         case LOCAL_TIMESTAMP: {
             long dateValue = readVarLong();
             long nanos = readVarLong() * 1_000_000 + readVarLong();
@@ -1121,6 +1135,13 @@ public class Data {
                 return 1 + getVarLongLen(millis) + getVarLongLen(nanos);
             }
             return 1 + getVarLongLen(DateTimeUtils.getTimeLocalWithoutDst(v.getTime(null)));
+        case Value.TIME_TZ: {
+            ValueTimeTimeZone ts = (ValueTimeTimeZone) v;
+            long nanosOfDay = ts.getNanos();
+            int tz = ts.getTimeZoneOffsetSeconds();
+            return 1 + getVarIntLen((int) (nanosOfDay / DateTimeUtils.NANOS_PER_SECOND))
+                    + getVarIntLen((int) (nanosOfDay % DateTimeUtils.NANOS_PER_SECOND)) + getTimeZoneLen(tz);
+        }
         case Value.DATE: {
             if (storeLocalTime) {
                 long dateValue = ((ValueDate) v).getDateValue();

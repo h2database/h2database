@@ -34,6 +34,7 @@ import org.h2.value.ValueDecimal;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueTime;
+import org.h2.value.ValueTimeTimeZone;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
 
@@ -275,6 +276,31 @@ final class Percentile {
             BigDecimal n0 = BigDecimal.valueOf(t0.getNanos());
             BigDecimal n1 = BigDecimal.valueOf(t1.getNanos());
             return ValueTime.fromNanos(interpolateDecimal(n0, n1, factor).longValue());
+        }
+        case Value.TIME_TZ: {
+            ValueTimeTimeZone t0 = (ValueTimeTimeZone) v0.convertTo(Value.TIME_TZ),
+                    t1 = (ValueTimeTimeZone) v1.convertTo(Value.TIME_TZ);
+            BigDecimal n0 = BigDecimal.valueOf(t0.getNanos());
+            BigDecimal n1 = BigDecimal.valueOf(t1.getNanos());
+            BigDecimal offset = BigDecimal.valueOf(t0.getTimeZoneOffsetSeconds())
+                    .multiply(BigDecimal.ONE.subtract(factor))
+                    .add(BigDecimal.valueOf(t1.getTimeZoneOffsetSeconds()).multiply(factor));
+            int intOffset = offset.intValue();
+            BigDecimal intOffsetBD = BigDecimal.valueOf(intOffset);
+            BigDecimal bd = interpolateDecimal(n0, n1, factor);
+            if (offset.compareTo(intOffsetBD) != 0) {
+                bd = bd.add(
+                        offset.subtract(intOffsetBD).multiply(BigDecimal.valueOf(DateTimeUtils.NANOS_PER_SECOND)));
+            }
+            long timeNanos = bd.longValue();
+            if (timeNanos < 0L) {
+                timeNanos += DateTimeUtils.NANOS_PER_SECOND;
+                intOffset++;
+            } else if (timeNanos >= DateTimeUtils.NANOS_PER_DAY) {
+                timeNanos -= DateTimeUtils.NANOS_PER_SECOND;
+                intOffset--;
+            }
+            return ValueTimeTimeZone.fromNanos(timeNanos, intOffset);
         }
         case Value.DATE: {
             ValueDate d0 = (ValueDate) v0.convertTo(Value.DATE), d1 = (ValueDate) v1.convertTo(Value.DATE);

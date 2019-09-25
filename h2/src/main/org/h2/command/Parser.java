@@ -4608,7 +4608,7 @@ public class Parser {
             if (equalsToken("SYSDATE", name)) {
                 return readFunctionWithoutParameters(Function.CURRENT_TIMESTAMP);
             } else if (equalsToken("SYSTIME", name)) {
-                return readFunctionWithoutParameters(Function.CURRENT_TIME);
+                return readFunctionWithoutParameters(Function.LOCALTIME);
             } else if (equalsToken("SYSTIMESTAMP", name)) {
                 return readFunctionWithoutParameters(Function.CURRENT_TIMESTAMP);
             }

@@ -278,7 +278,8 @@ public class BinaryOperation extends Expression {
                         right).optimize(session);
             }
             case Value.TIME:
-                if (r == Value.TIME || r == Value.TIMESTAMP_TZ) {
+            case Value.TIME_TZ:
+                if (r == Value.TIME || r == Value.TIME_TZ || r == Value.TIMESTAMP_TZ) {
                     type = TypeInfo.getTypeInfo(r);
                     return this;
                 } else { // DATE, TIMESTAMP
@@ -311,6 +312,7 @@ public class BinaryOperation extends Expression {
                                 left).optimize(session);
                 }
                 case Value.TIME:
+                case Value.TIME_TZ:
                     type = TypeInfo.TYPE_TIMESTAMP;
                     return this;
                 case Value.DATE:
@@ -320,7 +322,8 @@ public class BinaryOperation extends Expression {
                 }
                 break;
             case Value.TIME:
-                if (r == Value.TIME) {
+            case Value.TIME_TZ:
+                if (r == Value.TIME || r == Value.TIME_TZ) {
                     return new IntervalOperation(IntervalOpType.DATETIME_MINUS_DATETIME, left, right);
                 }
                 break;

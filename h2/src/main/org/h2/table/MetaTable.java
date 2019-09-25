@@ -861,6 +861,7 @@ public class MetaTable extends Table {
                     int type = dataType.type;
                     switch (type) {
                     case Value.TIME:
+                    case Value.TIME_TZ:
                     case Value.DATE:
                     case Value.TIMESTAMP:
                     case Value.TIMESTAMP_TZ:

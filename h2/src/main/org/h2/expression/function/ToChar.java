@@ -21,6 +21,7 @@ import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
+import org.h2.value.ValueTimeTimeZone;
 import org.h2.value.ValueTimestampTimeZone;
 
 /**
@@ -521,7 +522,13 @@ public class ToChar {
      * @return time zone display name or ID
      */
     private static String getTimeZone(Value value, boolean tzd) {
-        if (!(value instanceof ValueTimestampTimeZone)) {
+        if (value instanceof ValueTimestampTimeZone) {
+            return DateTimeUtils.timeZoneNameFromOffsetSeconds(((ValueTimestampTimeZone) value)
+                    .getTimeZoneOffsetSeconds());
+        } else if (value instanceof ValueTimeTimeZone) {
+            return DateTimeUtils.timeZoneNameFromOffsetSeconds(((ValueTimeTimeZone) value)
+                    .getTimeZoneOffsetSeconds());
+        } else {
             TimeZone tz = TimeZone.getDefault();
             if (tzd) {
                 boolean daylight = tz.inDaylightTime(value.getTimestamp(null));
@@ -529,8 +536,6 @@ public class ToChar {
             }
             return tz.getID();
         }
-        return DateTimeUtils.timeZoneNameFromOffsetSeconds(((ValueTimestampTimeZone) value)
-                .getTimeZoneOffsetSeconds());
     }
 
     /**

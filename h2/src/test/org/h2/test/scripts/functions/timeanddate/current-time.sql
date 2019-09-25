@@ -3,6 +3,15 @@
 -- Initial Developer: H2 Group
 --
 
+SELECT CAST(CURRENT_TIME AS TIME(9)) = LOCALTIME;
+>> TRUE
+
+SELECT CAST(CURRENT_TIME(0) AS TIME(9)) = LOCALTIME(0);
+>> TRUE
+
+SELECT CAST(CURRENT_TIME(9) AS TIME(9)) = LOCALTIME(9);
+>> TRUE
+
 select length(curtime())>=8 c1, length(current_time())>=8 c2, substring(curtime(), 3, 1) c3;
 > C1   C2   C3
 > ---- ---- --

@@ -1953,7 +1953,7 @@ SHUTDOWN COMPACT
 
 "Literals","Value","
 string | dollarQuotedString | numeric | dateAndTime | boolean | bytes
-    | interval | array | null
+    | interval | array | json | null
 ","
 A literal value of any data type, or null.
 ","
@@ -1999,7 +1999,7 @@ DATE '2004-12-31'
 "
 
 "Literals","Date and time","
-date | time | timestamp | timestampWithTimeZone
+date | time | timeWithTimeZone | timestamp | timestampWithTimeZone
 ","
 A literal value of any date-time data type.
 ","
@@ -2113,6 +2113,17 @@ A time literal. A value is between 0:00:00 and 23:59:59.999999999
 and has nanosecond resolution.
 ","
 TIME '23:59:59'
+"
+
+"Literals","Time with time zone","
+TIME WITH TIME ZONE 'hh:mm:ss[.nnnnnnnnn]{Z | { - | + } timeZoneOffsetString}'
+","
+A time with time zone literal. A value is between 0:00:00 and 23:59:59.999999999
+and has nanosecond resolution.
+","
+TIME WITH TIME ZONE '23:59:59+01'
+TIME WITH TIME ZONE '10:15:30.334-03:30'
+TIME WITH TIME ZONE '0:00:00Z'
 "
 
 "Literals","Timestamp","
@@ -3335,6 +3346,23 @@ TIME
 TIME(9)
 "
 
+"Data Types","TIME WITH TIME ZONE Type","
+TIME [ ( precisionInt ) ] WITH TIME ZONE
+","
+The time with time zone data type.
+If fractional seconds precision is specified it should be from 0 to 9, 0 is default.
+
+See also [time with time zone](https://h2database.com/html/grammar.html#time_with_time_zone) literal grammar.
+Mapped to ""java.time.OffsetTime"" on Java 8 and later versions.
+Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up;
+if result of rounding is higher than maximum supported value 23:59:59.999999999 the value is rounded down instead.
+The CAST operation to TIMESTAMP and TIMESTAMP WITH TIME ZONE data types uses the CURRENT_DATE for date fields,
+comparison operations with values of these data types use the 1970-01-01 instead.
+","
+TIME WITH TIME ZONE
+TIME(9) WITH TIME ZONE
+"
+
 "Data Types","DATE Type","
 DATE
 ","
@@ -3342,12 +3370,16 @@ The date data type. The proleptic Gregorian calendar is used.
 
 See also [date](https://h2database.com/html/grammar.html#date) literal grammar.
 Mapped to ""java.sql.Date"", with the time set to ""00:00:00""
-(or to the next possible time if midnight doesn't exist for the given date and timezone due to a daylight saving change).
-If you deal with old dates note that ""java.sql.Date"" uses a mixed Julian/Gregorian calendar,
+(or to the next possible time if midnight doesn't exist for the given date and time zone due to a daylight saving change).
+""java.time.LocalDate"" is also supported and recommended on Java 8 and later versions.
+
+If your time zone had LMT (local mean time) in the past and you use such old dates
+(depends on the time zone, usually 100 or more years ago),
+don't use ""java.sql.Date"" to read and write them.
+
+If you deal with very old dates (before 1582-10-15) note that ""java.sql.Date"" uses a mixed Julian/Gregorian calendar,
 ""java.util.GregorianCalendar"" can be configured to proleptic Gregorian with
 ""setGregorianChange(new java.util.Date(Long.MIN_VALUE))"" and used to read or write fields of dates.
-
-""java.time.LocalDate"" is also supported and recommended on Java 8 and later versions.
 ","
 DATE
 "
@@ -3357,17 +3389,24 @@ DATE
     | DATETIME [ ( precisionInt ) ] | SMALLDATETIME }
 ","
 The timestamp data type. The proleptic Gregorian calendar is used.
-Stored internally as a BCD-encoded date, and nanoseconds since midnight.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
 Fractional seconds precision of SMALLDATETIME is always 0 and cannot be specified.
 
+This data type holds the local date and time without time zone information.
+It cannot distinguish timestamps near transitions from DST to normal time.
+For absolute timestamps use the [TIMESTAMP WITH TIME ZONE](https://h2database.com/html/datatypes.html#timestamp_with_time_zone_type) data type instead.
+
 See also [timestamp](https://h2database.com/html/grammar.html#timestamp) literal grammar.
 Mapped to ""java.sql.Timestamp"" (""java.util.Date"" may be used too).
-If you deal with old dates note that ""java.sql.Timestamp"" uses a mixed Julian/Gregorian calendar,
-""java.util.GregorianCalendar"" can be configured to proleptic Gregorian with
-""setGregorianChange(new java.util.Date(Long.MIN_VALUE))"" and used to read or write fields of timestamps.
-
 ""java.time.LocalDateTime"" is also supported and recommended on Java 8 and later versions.
+
+If your time zone had LMT (local mean time) in the past and you use such old dates
+(depends on the time zone, usually 100 or more years ago),
+don't use ""java.sql.Timestamp"" and ""java.util.Date"" to read and write them.
+
+If you deal with very old dates (before 1582-10-15) note that ""java.sql.Timestamp"" and ""java.util.Date""
+use a mixed Julian/Gregorian calendar, ""java.util.GregorianCalendar"" can be configured to proleptic Gregorian with
+""setGregorianChange(new java.util.Date(Long.MIN_VALUE))"" and used to read or write fields of timestamps.
 
 Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up.
 ","
@@ -3379,7 +3418,6 @@ TIMESTAMP(9)
 TIMESTAMP [ ( precisionInt ) ] WITH TIME ZONE
 ","
 The timestamp with time zone data type. The proleptic Gregorian calendar is used.
-Stored internally as a BCD-encoded date, nanoseconds since midnight, and time zone offset in minutes.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
 
 See also [timestamp with time zone](https://h2database.com/html/grammar.html#timestamp_with_time_zone) literal grammar.
@@ -4734,8 +4772,7 @@ CURRENT_DATE
 "Functions (Time and Date)","CURRENT_TIME","
 CURRENT_TIME [ (int) ]
 ","
-Returns the current time.
-The returned value does not have time zone information, because TIME WITH TIME ZONE data type is not supported in H2.
+Returns the current time with time zone.
 If fractional seconds precision is specified it should be from 0 to 9, 0 is default.
 The specified value can be used only to limit precision of a result.
 The actual maximum available precision depends on operating system and JVM and can be 3 (milliseconds) or higher.

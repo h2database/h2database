@@ -12,10 +12,13 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
+import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
+import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueTime;
+import org.h2.value.ValueTimeTimeZone;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
 
@@ -397,8 +400,7 @@ public class DateTimeUtils {
                     if (offsetEnd < 0) {
                         offsetEnd = s.length();
                     }
-                    String tzName = s.substring(timeZoneStart, offsetEnd);
-                    tz = TimeZoneProvider.ofId(tzName);
+                    tz = TimeZoneProvider.ofId(s.substring(timeZoneStart, offsetEnd));
                     if (s.charAt(timeZoneStart - 1) == ' ') {
                         timeZoneStart--;
                     }
@@ -406,8 +408,7 @@ public class DateTimeUtils {
                 } else {
                     timeZoneStart = s.indexOf(' ', dateEnd + 1);
                     if (timeZoneStart > 0) {
-                        String tzName = s.substring(timeZoneStart + 1);
-                        tz = TimeZoneProvider.ofId(tzName);
+                        tz = TimeZoneProvider.ofId(s.substring(timeZoneStart + 1));
                         timeEnd = timeZoneStart;
                     }
                 }
@@ -431,6 +432,48 @@ public class DateTimeUtils {
             return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, nanos, tzSeconds);
         }
         return ValueTimestamp.fromDateValueAndNanos(dateValue, nanos);
+    }
+
+    /**
+     * Parses TIME WITH TIME ZONE value from the specified string.
+     *
+     * @param s
+     *            string to parse
+     * @param provider
+     *            the cast information provider, or {@code null}
+     * @return parsed time with time zone
+     */
+    public static ValueTimeTimeZone parseTimeWithTimeZone(String s, CastDataProvider provider) {
+        int timeEnd;
+        TimeZoneProvider tz;
+        if (s.endsWith("Z")) {
+            tz = TimeZoneProvider.UTC;
+            timeEnd = s.length() - 1;
+        } else {
+            int timeZoneStart = s.indexOf('+', 1);
+            if (timeZoneStart < 0) {
+                timeZoneStart = s.indexOf('-', 1);
+            }
+            if (timeZoneStart >= 0) {
+                tz = TimeZoneProvider.ofId(s.substring(timeZoneStart));
+                if (s.charAt(timeZoneStart - 1) == ' ') {
+                    timeZoneStart--;
+                }
+                timeEnd = timeZoneStart;
+            } else {
+                timeZoneStart = s.indexOf(' ', 1);
+                if (timeZoneStart > 0) {
+                    tz = TimeZoneProvider.ofId(s.substring(timeZoneStart + 1));
+                    timeEnd = timeZoneStart;
+                } else {
+                    throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2, "TIME WITH TIME ZONE", s);
+                }
+            }
+            if (!tz.hasFixedOffset()) {
+                throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2, "TIME WITH TIME ZONE", s);
+            }
+        }
+        return ValueTimeTimeZone.fromNanos(parseTimeNanos(s, 0, timeEnd), tz.getTimeZoneOffsetUTC(0L));
     }
 
     /**
@@ -521,6 +564,8 @@ public class DateTimeUtils {
             ValueTimestampTimeZone v = (ValueTimestampTimeZone) value;
             dateValue = v.getDateValue();
             timeNanos = v.getTimeNanos();
+        } else if (value instanceof ValueTimeTimeZone) {
+            timeNanos = ((ValueTimeTimeZone) value).getNanos();
         } else {
             ValueTimestamp v = (ValueTimestamp) value.convertTo(Value.TIMESTAMP);
             dateValue = v.getDateValue();
@@ -531,8 +576,8 @@ public class DateTimeUtils {
 
     /**
      * Creates a new date-time value with the same type as original value. If
-     * original value is a ValueTimestampTimeZone, returned value will have the same
-     * time zone offset as original value.
+     * original value is a ValueTimestampTimeZone or ValueTimeTimeZone, returned
+     * value will have the same time zone offset as original value.
      *
      * @param original
      *            original value
@@ -554,10 +599,18 @@ public class DateTimeUtils {
                 if (original instanceof ValueTime) {
                     return ValueTime.fromNanos(timeNanos);
                 }
+                if (original instanceof ValueTimeTimeZone) {
+                    return ValueTimeTimeZone.fromNanos(timeNanos,
+                            ((ValueTimeTimeZone) original).getTimeZoneOffsetSeconds());
+                }
             }
             if (original instanceof ValueTimestampTimeZone) {
                 return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos,
                         ((ValueTimestampTimeZone) original).getTimeZoneOffsetSeconds());
+            }
+            if (original instanceof ValueTimeTimeZone) {
+                return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos,
+                        ((ValueTimeTimeZone) original).getTimeZoneOffsetSeconds());
             }
         }
         return ValueTimestamp.fromDateValueAndNanos(dateValue, timeNanos);
@@ -901,6 +954,25 @@ public class DateTimeUtils {
             absoluteDay--;
         }
         return (ms - absoluteDay * MILLIS_PER_DAY) * 1_000_000;
+    }
+
+    /**
+     * Calculate the normalized nanos of day.
+     *
+     * @param nanos the nanoseconds (may be negative or larger than one day)
+     * @return the nanos of day within a day
+     */
+    public static long normalizeNanosOfDay(long nanos) {
+        if (nanos > NANOS_PER_DAY || nanos < 0) {
+            long d;
+            if (nanos > NANOS_PER_DAY) {
+                d = nanos / NANOS_PER_DAY;
+            } else {
+                d = (nanos - NANOS_PER_DAY + 1) / NANOS_PER_DAY;
+            }
+            nanos -= d * NANOS_PER_DAY;
+        }
+        return nanos;
     }
 
     /**

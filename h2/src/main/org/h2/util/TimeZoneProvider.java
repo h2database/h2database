@@ -50,6 +50,11 @@ public abstract class TimeZoneProvider {
         }
 
         @Override
+        public boolean hasFixedOffset() {
+            return true;
+        }
+
+        @Override
         public String toString() {
             return "TimeZoneProvider " + getId();
         }
@@ -221,7 +226,6 @@ public abstract class TimeZoneProvider {
         }
 
     }
-
 
     /**
      * The UTC time zone provider.
@@ -410,6 +414,15 @@ public abstract class TimeZoneProvider {
      * @return the ID of the time zone
      */
     public abstract String getId();
+
+    /**
+     * Returns whether this is a simple time zone provider with a fixed offset from UTC.
+     *
+     * @return whether this is a simple time zone provider with a fixed offset from UTC
+     */
+    public boolean hasFixedOffset() {
+        return false;
+    }
 
     TimeZoneProvider() {
     }

@@ -60,6 +60,11 @@ public class TestPreparedStatement extends TestDb {
     private static final Method LOCAL_TIME_PARSE;
 
     /**
+     * {@code java.time.OffsetTime#parse(CharSequence)} or {@code null}.
+     */
+    private static final Method OFFSET_TIME_PARSE;
+
+    /**
      * {@code java.time.LocalDateTime#parse(CharSequence)} or {@code null}.
      */
     private static final Method LOCAL_DATE_TIME_PARSE;
@@ -79,6 +84,7 @@ public class TestPreparedStatement extends TestDb {
             try {
                 LOCAL_DATE_PARSE = JSR310.LOCAL_DATE.getMethod("parse", CharSequence.class);
                 LOCAL_TIME_PARSE = JSR310.LOCAL_TIME.getMethod("parse", CharSequence.class);
+                OFFSET_TIME_PARSE = JSR310.OFFSET_TIME.getMethod("parse", CharSequence.class);
                 LOCAL_DATE_TIME_PARSE = JSR310.LOCAL_DATE_TIME.getMethod("parse", CharSequence.class);
                 OFFSET_DATE_TIME_PARSE = JSR310.OFFSET_DATE_TIME.getMethod("parse", CharSequence.class);
                 ZONED_DATE_TIME_PARSE = JSR310.ZONED_DATE_TIME.getMethod("parse", CharSequence.class);
@@ -88,6 +94,7 @@ public class TestPreparedStatement extends TestDb {
         } else {
             LOCAL_DATE_PARSE = null;
             LOCAL_TIME_PARSE = null;
+            OFFSET_TIME_PARSE = null;
             LOCAL_DATE_TIME_PARSE = null;
             OFFSET_DATE_TIME_PARSE = null;
             ZONED_DATE_TIME_PARSE = null;
@@ -126,6 +133,20 @@ public class TestPreparedStatement extends TestDb {
     public static Object parseLocalTime(CharSequence text) {
         try {
             return LOCAL_TIME_PARSE.invoke(null, text);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new IllegalArgumentException("error when parsing text '" + text + "'", e);
+        }
+    }
+
+    /**
+     * Parses an ISO date string into a java.time.OffsetDateTime.
+     *
+     * @param text the ISO date string
+     * @return the java.time.OffsetDateTime instance
+     */
+    public static Object parseOffsetTime(CharSequence text) {
+        try {
+            return OFFSET_TIME_PARSE.invoke(null, text);
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new IllegalArgumentException("error when parsing text '" + text + "'", e);
         }
@@ -202,6 +223,7 @@ public class TestPreparedStatement extends TestDb {
         testDate(conn);
         testDate8(conn);
         testTime8(conn);
+        testOffsetTime8(conn);
         testDateTime8(conn);
         testOffsetDateTime8(conn);
         testZonedDateTime8(conn);
@@ -851,6 +873,29 @@ public class TestPreparedStatement extends TestDb {
         rs.close();
     }
 
+    private void testOffsetTime8(Connection conn) throws SQLException {
+        if (!JSR310.PRESENT) {
+            return;
+        }
+        PreparedStatement prep = conn.prepareStatement("SELECT ?");
+        Object offsetTime = parseOffsetTime("04:05:06+02:30");
+        prep.setObject(1, offsetTime);
+        ResultSet rs = prep.executeQuery();
+        rs.next();
+        Object offsetTime2 = rs.getObject(1, JSR310.OFFSET_TIME);
+        assertEquals(offsetTime, offsetTime2);
+        assertFalse(rs.next());
+        rs.close();
+
+        prep.setObject(1, offsetTime, 2013); // Types.TIME_WITH_TIMEZONE
+        rs = prep.executeQuery();
+        rs.next();
+        offsetTime2 = rs.getObject(1, JSR310.OFFSET_TIME);
+        assertEquals(offsetTime, offsetTime2);
+        assertFalse(rs.next());
+        rs.close();
+    }
+
     private void testDateTime8(Connection conn) throws SQLException {
         if (!JSR310.PRESENT) {
             return;
@@ -884,6 +929,8 @@ public class TestPreparedStatement extends TestDb {
         rs.next();
         offsetDateTime2 = rs.getObject(1, JSR310.OFFSET_DATE_TIME);
         assertEquals(offsetDateTime, offsetDateTime2);
+        // Check default mapping
+        offsetDateTime2 = rs.getObject(1);
         assertFalse(rs.next());
         rs.close();
     }

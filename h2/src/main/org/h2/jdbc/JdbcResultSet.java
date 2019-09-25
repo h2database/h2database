@@ -3928,6 +3928,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             return (T) JSR310Utils.valueToLocalDateTime(value, conn);
         } else if (type == JSR310.INSTANT) {
             return (T) JSR310Utils.valueToInstant(value, conn);
+        } else if (type == JSR310.OFFSET_TIME) {
+            return (T) JSR310Utils.valueToOffsetTime(value, conn);
         } else if (type == JSR310.OFFSET_DATE_TIME) {
             return (T) JSR310Utils.valueToOffsetDateTime(value, conn);
         } else if (type == JSR310.ZONED_DATE_TIME) {

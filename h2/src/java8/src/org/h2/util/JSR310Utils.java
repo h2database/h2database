@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.time.OffsetTime;
 import java.time.Period;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -26,6 +27,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueTime;
+import org.h2.value.ValueTimeTimeZone;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
 
@@ -260,6 +262,23 @@ public class JSR310Utils {
     }
 
     /**
+     * Converts a value to a OffsetTime.
+     *
+     * This method should only be called from Java 8 or later version.
+     *
+     * @param value
+     *            the value to convert
+     * @param provider
+     *            the cast information provider
+     * @return the OffsetTime
+     */
+    public static Object valueToOffsetTime(Value value, CastDataProvider provider) {
+        ValueTimeTimeZone valueTimeTimeZone = (ValueTimeTimeZone) value.convertTo(Value.TIME_TZ, provider, false);
+        return OffsetTime.of(LocalTime.ofNanoOfDay(valueTimeTimeZone.getNanos()),
+                ZoneOffset.ofTotalSeconds(valueTimeTimeZone.getTimeZoneOffsetSeconds()));
+    }
+
+    /**
      * Converts a value to a Period.
      *
      * This method should only be called from Java 8 or later version.
@@ -313,7 +332,7 @@ public class JSR310Utils {
      *            the LocalDate to convert, not {@code null}
      * @return the value
      */
-    public static Value localDateToDateValue(Object localDate) {
+    public static Value localDateToValue(Object localDate) {
         LocalDate ld = (LocalDate) localDate;
         return ValueDate.fromDateValue(DateTimeUtils.dateValue(ld.getYear(), ld.getMonthValue(), ld.getDayOfMonth()));
     }
@@ -325,7 +344,7 @@ public class JSR310Utils {
      *            the LocalTime to convert, not {@code null}
      * @return the value
      */
-    public static Value localTimeToTimeValue(Object localTime) {
+    public static Value localTimeToValue(Object localTime) {
         return ValueTime.fromNanos(((LocalTime) localTime).toNanoOfDay());
     }
 
@@ -398,6 +417,18 @@ public class JSR310Utils {
                 localDate.getDayOfMonth());
         return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, localDateTime.toLocalTime().toNanoOfDay(),
                 z.getOffset().getTotalSeconds());
+    }
+
+    /**
+     * Converts a OffsetTime to a Value.
+     *
+     * @param offsetTime
+     *            the OffsetTime to convert, not {@code null}
+     * @return the value
+     */
+    public static ValueTimeTimeZone offsetTimeToValue(Object offsetTime) {
+        OffsetTime o = (OffsetTime) offsetTime;
+        return ValueTimeTimeZone.fromNanos(o.toLocalTime().toNanoOfDay(), o.getOffset().getTotalSeconds());
     }
 
     private static Object localDateTimeFromDateNanos(long dateValue, long timeNanos) {

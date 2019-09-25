@@ -3342,12 +3342,16 @@ The date data type. The proleptic Gregorian calendar is used.
 
 See also [date](https://h2database.com/html/grammar.html#date) literal grammar.
 Mapped to ""java.sql.Date"", with the time set to ""00:00:00""
-(or to the next possible time if midnight doesn't exist for the given date and timezone due to a daylight saving change).
-If you deal with old dates note that ""java.sql.Date"" uses a mixed Julian/Gregorian calendar,
+(or to the next possible time if midnight doesn't exist for the given date and time zone due to a daylight saving change).
+""java.time.LocalDate"" is also supported and recommended on Java 8 and later versions.
+
+If your time zone had LMT (local mean time) in the past and you use such old dates
+(depends on the time zone, usually 100 or more years ago),
+don't use ""java.sql.Date"" to read and write them.
+
+If you deal with very old dates (before 1582-10-15) note that ""java.sql.Date"" uses a mixed Julian/Gregorian calendar,
 ""java.util.GregorianCalendar"" can be configured to proleptic Gregorian with
 ""setGregorianChange(new java.util.Date(Long.MIN_VALUE))"" and used to read or write fields of dates.
-
-""java.time.LocalDate"" is also supported and recommended on Java 8 and later versions.
 ","
 DATE
 "
@@ -3363,11 +3367,15 @@ Fractional seconds precision of SMALLDATETIME is always 0 and cannot be specifie
 
 See also [timestamp](https://h2database.com/html/grammar.html#timestamp) literal grammar.
 Mapped to ""java.sql.Timestamp"" (""java.util.Date"" may be used too).
-If you deal with old dates note that ""java.sql.Timestamp"" uses a mixed Julian/Gregorian calendar,
-""java.util.GregorianCalendar"" can be configured to proleptic Gregorian with
-""setGregorianChange(new java.util.Date(Long.MIN_VALUE))"" and used to read or write fields of timestamps.
-
 ""java.time.LocalDateTime"" is also supported and recommended on Java 8 and later versions.
+
+If your time zone had LMT (local mean time) in the past and you use such old dates
+(depends on the time zone, usually 100 or more years ago),
+don't use ""java.sql.Timestamp"" and ""java.util.Date"" to read and write them.
+
+If you deal with very old dates (before 1582-10-15) note that ""java.sql.Timestamp"" and ""java.util.Date""
+use a mixed Julian/Gregorian calendar, ""java.util.GregorianCalendar"" can be configured to proleptic Gregorian with
+""setGregorianChange(new java.util.Date(Long.MIN_VALUE))"" and used to read or write fields of timestamps.
 
 Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up.
 ","

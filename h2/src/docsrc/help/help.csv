@@ -3389,9 +3389,12 @@ DATE
     | DATETIME [ ( precisionInt ) ] | SMALLDATETIME }
 ","
 The timestamp data type. The proleptic Gregorian calendar is used.
-Stored internally as a BCD-encoded date, and nanoseconds since midnight.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
 Fractional seconds precision of SMALLDATETIME is always 0 and cannot be specified.
+
+This data type holds the local date and time without time zone information.
+It cannot distinguish timestamps near transitions from DST to normal time.
+For absolute timestamps use the [TIMESTAMP WITH TIME ZONE](https://h2database.com/html/datatypes.html#timestamp_with_time_zone_type) data type instead.
 
 See also [timestamp](https://h2database.com/html/grammar.html#timestamp) literal grammar.
 Mapped to ""java.sql.Timestamp"" (""java.util.Date"" may be used too).
@@ -3415,7 +3418,6 @@ TIMESTAMP(9)
 TIMESTAMP [ ( precisionInt ) ] WITH TIME ZONE
 ","
 The timestamp with time zone data type. The proleptic Gregorian calendar is used.
-Stored internally as a BCD-encoded date, nanoseconds since midnight, and time zone offset in minutes.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
 
 See also [timestamp with time zone](https://h2database.com/html/grammar.html#timestamp_with_time_zone) literal grammar.

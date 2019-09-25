@@ -130,7 +130,6 @@ public class TestDate extends TestBase {
         }
         ValueTime t1 = ValueTime.parse("11:11:11");
         assertEquals("11:11:11", t1.getTime(null).toString());
-        assertEquals("1970-01-01", t1.getDate(null).toString());
         assertEquals("TIME '11:11:11'", t1.getSQL());
         assertEquals("TIME '11:11:11'", t1.toString());
         assertEquals("05:35:35.5", t1.multiply(ValueDouble.get(0.5)).getString());

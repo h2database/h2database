@@ -1066,10 +1066,6 @@ public abstract class Value extends VersionedValue {
 
     private ValueDate convertToDate() {
         switch (getValueType()) {
-        case TIME:
-            // because the time has set the date to 1970-01-01,
-            // this will be the result
-            return ValueDate.fromDateValue(DateTimeUtils.EPOCH_DATE_VALUE);
         case TIMESTAMP:
             return ValueDate.fromDateValue(((ValueTimestamp) this).getDateValue());
         case TIMESTAMP_TZ: {
@@ -1080,6 +1076,7 @@ public abstract class Value extends VersionedValue {
             return ValueDate.fromDateValue(DateTimeUtils
                     .dateValueFromLocalSeconds(epochSeconds + DateTimeUtils.getTimeZoneOffset(epochSeconds)));
         }
+        case TIME:
         case ENUM:
             throw getDataConversionError(DATE);
         }
@@ -1088,10 +1085,6 @@ public abstract class Value extends VersionedValue {
 
     private ValueTime convertToTime() {
         switch (getValueType()) {
-        case DATE:
-            // need to normalize the year, month and day because a date
-            // has the time set to 0, the result will be 0
-            return ValueTime.fromNanos(0);
         case TIMESTAMP:
             return ValueTime.fromNanos(((ValueTimestamp) this).getTimeNanos());
         case TIMESTAMP_TZ: {
@@ -1103,6 +1096,7 @@ public abstract class Value extends VersionedValue {
                     DateTimeUtils.nanosFromLocalSeconds(epochSeconds + DateTimeUtils.getTimeZoneOffset(epochSeconds))
                             + timeNanos % DateTimeUtils.NANOS_PER_SECOND);
         }
+        case DATE:
         case ENUM:
             throw getDataConversionError(TIME);
         }

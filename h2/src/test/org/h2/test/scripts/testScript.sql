@@ -5793,15 +5793,15 @@ SELECT XD+1, XD-1, XD-XD FROM TEST;
 > null                  null                   null
 > rows: 4
 
-SELECT ID, CAST(XT AS DATE) T2D, CAST(XTS AS DATE) TS2D,
-CAST(XD AS TIME) D2T, CAST(XTS AS TIME(9)) TS2T,
+SELECT ID, CAST(XTS AS DATE) TS2D,
+CAST(XTS AS TIME(9)) TS2T,
 CAST(XD AS TIMESTAMP) D2TS FROM TEST;
-> ID   T2D        TS2D       D2T      TS2T               D2TS
-> ---- ---------- ---------- -------- ------------------ -------------------
-> 0    1970-01-01 0002-03-04 00:00:00 00:00:00           0001-02-03 00:00:00
-> 1    1970-01-01 0007-08-09 00:00:00 00:01:02           0004-05-06 00:00:00
-> 2    1970-01-01 1999-12-31 00:00:00 23:59:59.123456789 1999-12-31 00:00:00
-> null null       null       null     null               null
+> ID   TS2D       TS2T               D2TS
+> ---- ---------- ------------------ -------------------
+> 0    0002-03-04 00:00:00           0001-02-03 00:00:00
+> 1    0007-08-09 00:01:02           0004-05-06 00:00:00
+> 2    1999-12-31 23:59:59.123456789 1999-12-31 00:00:00
+> null null       null               null
 > rows: 4
 
 SCRIPT SIMPLE NOPASSWORDS NOSETTINGS;

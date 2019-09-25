@@ -3352,7 +3352,7 @@ TIME [ ( precisionInt ) ] WITH TIME ZONE
 The time with time zone data type.
 If fractional seconds precision is specified it should be from 0 to 9, 0 is default.
 
-See also [time](https://h2database.com/html/grammar.html#time_with_time_zone) literal grammar.
+See also [time with time zone](https://h2database.com/html/grammar.html#time_with_time_zone) literal grammar.
 Mapped to ""java.time.OffsetTime"" on Java 8 and later versions.
 Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up;
 if result of rounding is higher than maximum supported value 23:59:59.999999999 the value is rounded down instead.

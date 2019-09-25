@@ -70,6 +70,7 @@ public class Transfer {
     private static final int INTERVAL = 26;
     private static final int ROW = 27;
     private static final int JSON = 28;
+    private static final int TIME_TZ = 29;
 
     private Socket socket;
     private DataInputStream in;
@@ -380,6 +381,13 @@ public class Transfer {
             writeInt(TIME);
             writeLong(((ValueTime) v).getNanos());
             break;
+        case Value.TIME_TZ: {
+            writeInt(TIME_TZ);
+            ValueTimeTimeZone t = (ValueTimeTimeZone) v;
+            writeLong(t.getNanos());
+            writeInt(t.getTimeZoneOffsetSeconds());
+            break;
+        }
         case Value.DATE:
             writeInt(DATE);
             writeLong(((ValueDate) v).getDateValue());
@@ -648,6 +656,8 @@ public class Transfer {
             return ValueDate.fromDateValue(readLong());
         case TIME:
             return ValueTime.fromNanos(readLong());
+        case TIME_TZ:
+            return ValueTimeTimeZone.fromNanos(readLong(), readInt());
         case TIMESTAMP:
             return ValueTimestamp.fromDateValueAndNanos(readLong(), readLong());
         case TIMESTAMP_TZ: {

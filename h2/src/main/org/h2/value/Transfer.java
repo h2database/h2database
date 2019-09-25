@@ -16,6 +16,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
+import org.h2.engine.CastDataProvider;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.message.DbException;
@@ -25,6 +26,8 @@ import org.h2.security.SHA256;
 import org.h2.store.Data;
 import org.h2.store.DataReader;
 import org.h2.util.Bits;
+import org.h2.util.CurrentTimestamp;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
@@ -382,10 +385,19 @@ public class Transfer {
             writeLong(((ValueTime) v).getNanos());
             break;
         case Value.TIME_TZ: {
-            writeInt(TIME_TZ);
             ValueTimeTimeZone t = (ValueTimeTimeZone) v;
-            writeLong(t.getNanos());
-            writeInt(t.getTimeZoneOffsetSeconds());
+            if (version >= Constants.TCP_PROTOCOL_VERSION_19) {
+                writeInt(TIME_TZ);
+                writeLong(t.getNanos());
+                writeInt(t.getTimeZoneOffsetSeconds());
+            } else {
+                writeInt(TIME);
+                ValueTimestampTimeZone current = session instanceof CastDataProvider
+                        ? ((CastDataProvider) session).currentTimestamp() : CurrentTimestamp.get();
+                writeLong(DateTimeUtils.normalizeNanosOfDay(t.getNanos() +
+                        (t.getTimeZoneOffsetSeconds() - current.getTimeZoneOffsetSeconds())
+                        * DateTimeUtils.NANOS_PER_DAY));
+            }
             break;
         }
         case Value.DATE:

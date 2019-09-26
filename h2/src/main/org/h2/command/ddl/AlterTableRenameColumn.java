@@ -25,6 +25,7 @@ import org.h2.table.Table;
 public class AlterTableRenameColumn extends SchemaCommand {
 
     private boolean ifTableExists;
+    private boolean ifExists;
     private String tableName;
     private String oldName;
     private String newName;
@@ -35,6 +36,10 @@ public class AlterTableRenameColumn extends SchemaCommand {
 
     public void setIfTableExists(boolean b) {
         this.ifTableExists = b;
+    }
+
+    public void setIfExists(boolean b) {
+        this.ifExists = b;
     }
 
     public void setTableName(String tableName) {
@@ -60,7 +65,10 @@ public class AlterTableRenameColumn extends SchemaCommand {
             }
             throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
         }
-        Column column = table.getColumn(oldName);
+        Column column = table.getColumn(oldName, ifExists);
+        if (column == null) {
+            return 0;
+        }
         session.getUser().checkRight(table, Right.ALL);
         table.checkSupportAlter();
 

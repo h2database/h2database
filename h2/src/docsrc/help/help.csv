@@ -4764,7 +4764,8 @@ CALL TRANSLATE('Hello world', 'eo', 'EO')
 CURRENT_DATE | CURDATE() | SYSDATE | TODAY
 ","
 Returns the current date.
-These methods always return the same value within a transaction (default)
+
+These functions always return the same value within a transaction (default)
 or within a command depending on database mode.
 ","
 CURRENT_DATE
@@ -4778,7 +4779,8 @@ If fractional seconds precision is specified it should be from 0 to 9, 0 is defa
 The specified value can be used only to limit precision of a result.
 The actual maximum available precision depends on operating system and JVM and can be 3 (milliseconds) or higher.
 Higher precision is not available before Java 9.
-These methods always return the same value within a transaction (default)
+
+This function always returns the same value within a transaction (default)
 or within a command depending on database mode.
 ","
 CURRENT_TIME
@@ -4794,7 +4796,8 @@ If fractional seconds precision is specified it should be from 0 to 9, 6 is defa
 The specified value can be used only to limit precision of a result.
 The actual maximum available precision depends on operating system and JVM and can be 3 (milliseconds) or higher.
 Higher precision is not available before Java 9.
-This method always returns the same value within a transaction (default)
+
+This function always returns the same value within a transaction (default)
 or within a command depending on database mode.
 ","
 CURRENT_TIMESTAMP
@@ -4804,12 +4807,13 @@ CURRENT_TIMESTAMP(9)
 "Functions (Time and Date)","LOCALTIME","
 LOCALTIME [ (int) ] | CURTIME([ int ])
 ","
-Returns the current time.
+Returns the current time without time zone.
 If fractional seconds precision is specified it should be from 0 to 9, 0 is default.
 The specified value can be used only to limit precision of a result.
 The actual maximum available precision depends on operating system and JVM and can be 3 (milliseconds) or higher.
 Higher precision is not available before Java 9.
-These methods always return the same value within a transaction (default)
+
+These functions always return the same value within a transaction (default)
 or within a command depending on database mode.
 ","
 LOCALTIME
@@ -4824,7 +4828,14 @@ If fractional seconds precision is specified it should be from 0 to 9, 6 is defa
 The specified value can be used only to limit precision of a result.
 The actual maximum available precision depends on operating system and JVM and can be 3 (milliseconds) or higher.
 Higher precision is not available before Java 9.
-These methods always return the same value within a transaction (default)
+
+The returned value has date and time without time zone information.
+If time zone has DST transitions the returned values are ambiguous during transition from DST to normal time.
+For absolute timestamps use the [CURRENT_TIMESTAMP](https://h2database.com/html/functions.html#current_timestamp)
+function and [TIMESTAMP WITH TIME ZONE](https://h2database.com/html/datatypes.html#timestamp_with_time_zone_type)
+data type.
+
+These functions always return the same value within a transaction (default)
 or within a command depending on database mode.
 ","
 LOCALTIMESTAMP

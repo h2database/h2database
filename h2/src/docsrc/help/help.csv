@@ -412,7 +412,8 @@ ALTER TABLE TEST RENAME CONSTRAINT FOO TO BAR
 "
 
 "Commands (DDL)","ALTER TABLE ALTER COLUMN","
-ALTER TABLE [ IF EXISTS ] tableName ALTER COLUMN columnName
+ALTER TABLE [ IF EXISTS ] tableName
+ALTER COLUMN [ IF EXISTS ] columnName
 { { columnDefinition }
     | { RENAME TO name }
     | { RESTART WITH long }

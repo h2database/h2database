@@ -330,17 +330,7 @@ public class Select extends Query {
      * @return the row
      */
     Value[] createGroupSortedRow(Value[] keyValues, int columnCount) {
-        Value[] row = new Value[columnCount];
-        for (int j = 0; groupIndex != null && j < groupIndex.length; j++) {
-            row[groupIndex[j]] = keyValues[j];
-        }
-        for (int j = 0; j < columnCount; j++) {
-            if (groupByExpression != null && groupByExpression[j]) {
-                continue;
-            }
-            Expression expr = expressions.get(j);
-            row[j] = expr.getValue(session);
-        }
+        Value[] row = constructGroupResultRow(keyValues, columnCount);
         if (isHavingNullOrFalse(row)) {
             return null;
         }
@@ -560,25 +550,7 @@ public class Select extends Query {
     private void processGroupResult(int columnCount, LocalResult result, long offset, boolean quickOffset,
             boolean withHaving) {
         for (ValueRow currentGroupsKey; (currentGroupsKey = groupData.next()) != null;) {
-            Value[] keyValues = currentGroupsKey.getList();
-            Value[] row = new Value[columnCount];
-            for (int j = 0; groupIndex != null && j < groupIndex.length; j++) {
-                row[groupIndex[j]] = keyValues[j];
-            }
-            for (int j = 0; j < columnCount; j++) {
-                if (groupByExpression != null && groupByExpression[j]) {
-                    continue;
-                }
-                if (groupByCopies != null) {
-                    int original = groupByCopies[j];
-                    if (original >= 0) {
-                        row[j] = row[original];
-                        continue;
-                    }
-                }
-                Expression expr = expressions.get(j);
-                row[j] = expr.getValue(session);
-            }
+            Value[] row = constructGroupResultRow(currentGroupsKey.getList(), columnCount);
             if (withHaving && isHavingNullOrFalse(row)) {
                 continue;
             }
@@ -591,6 +563,29 @@ public class Select extends Query {
             }
             result.addRow(rowForResult(row, columnCount));
         }
+    }
+
+    private Value[] constructGroupResultRow(Value[] keyValues, int columnCount) {
+        Value[] row = new Value[columnCount];
+        if (groupIndex != null) {
+            for (int i = 0, l = groupIndex.length; i < l; i++) {
+                row[groupIndex[i]] = keyValues[i];
+            }
+        }
+        for (int i = 0; i < columnCount; i++) {
+            if (groupByExpression != null && groupByExpression[i]) {
+                continue;
+            }
+            if (groupByCopies != null) {
+                int original = groupByCopies[i];
+                if (original >= 0) {
+                    row[i] = row[original];
+                    continue;
+                }
+            }
+            row[i] = expressions.get(i).getValue(session);
+        }
+        return row;
     }
 
     /**

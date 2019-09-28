@@ -26,6 +26,7 @@ import static org.h2.expression.function.Function.QUARTER;
 import static org.h2.expression.function.Function.SECOND;
 import static org.h2.expression.function.Function.TIMEZONE_HOUR;
 import static org.h2.expression.function.Function.TIMEZONE_MINUTE;
+import static org.h2.expression.function.Function.TIMEZONE_SECOND;
 import static org.h2.expression.function.Function.WEEK;
 import static org.h2.expression.function.Function.YEAR;
 import static org.h2.util.DateTimeUtils.MILLIS_PER_DAY;
@@ -132,6 +133,7 @@ public final class DateTimeFunctions {
         DATE_PART.put("NS", NANOSECOND);
         DATE_PART.put("TIMEZONE_HOUR", TIMEZONE_HOUR);
         DATE_PART.put("TIMEZONE_MINUTE", TIMEZONE_MINUTE);
+        DATE_PART.put("TIMEZONE_SECOND", TIMEZONE_SECOND);
         DATE_PART.put("DECADE", DECADE);
         DATE_PART.put("CENTURY", CENTURY);
         DATE_PART.put("MILLENNIUM", MILLENNIUM);
@@ -216,8 +218,10 @@ public final class DateTimeFunctions {
         case TIMEZONE_HOUR:
             count *= 60;
             //$FALL-THROUGH$
-        case TIMEZONE_MINUTE: {
+        case TIMEZONE_MINUTE:
             count *= 60;
+            //$FALL-THROUGH$
+        case TIMEZONE_SECOND: {
             if (v instanceof ValueTimestampTimeZone) {
                 count += ((ValueTimestampTimeZone) v).getTimeZoneOffsetSeconds();
                 return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos, (int) count);
@@ -326,7 +330,8 @@ public final class DateTimeFunctions {
         case YEAR:
             return DateTimeUtils.yearFromDateValue(dateValue2) - DateTimeUtils.yearFromDateValue(dateValue1);
         case TIMEZONE_HOUR:
-        case TIMEZONE_MINUTE: {
+        case TIMEZONE_MINUTE:
+        case TIMEZONE_SECOND: {
             int offsetSeconds1;
             if (v1 instanceof ValueTimestampTimeZone) {
                 offsetSeconds1 = ((ValueTimestampTimeZone) v1).getTimeZoneOffsetSeconds();
@@ -345,8 +350,10 @@ public final class DateTimeFunctions {
             }
             if (field == TIMEZONE_HOUR) {
                 return (offsetSeconds2 / 3_600) - (offsetSeconds1 / 3_600);
-            } else {
+            } else if (field == TIMEZONE_MINUTE) {
                 return (offsetSeconds2 / 60) - (offsetSeconds1 / 60);
+            } else {
+                return offsetSeconds2 - offsetSeconds1;
             }
         }
         default:
@@ -704,7 +711,8 @@ public final class DateTimeFunctions {
             case ISO_DAY_OF_WEEK:
                 return DateTimeUtils.getIsoDayOfWeek(dateValue);
             case TIMEZONE_HOUR:
-            case TIMEZONE_MINUTE: {
+            case TIMEZONE_MINUTE:
+            case TIMEZONE_SECOND: {
                 int offsetSeconds;
                 if (date instanceof ValueTimestampTimeZone) {
                     offsetSeconds = ((ValueTimestampTimeZone) date).getTimeZoneOffsetSeconds();
@@ -715,8 +723,11 @@ public final class DateTimeFunctions {
                 }
                 if (field == TIMEZONE_HOUR) {
                     return offsetSeconds / 3_600;
+                } else if (field == TIMEZONE_MINUTE) {
+                    return offsetSeconds % 3_600 / 60;
+                } else {
+                    return offsetSeconds % 60;
                 }
-                return offsetSeconds % 3_600 / 60;
             }
             }
         }

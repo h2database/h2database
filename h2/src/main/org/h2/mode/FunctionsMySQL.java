@@ -18,13 +18,16 @@ import org.h2.expression.ValueExpression;
 import org.h2.expression.function.Function;
 import org.h2.expression.function.FunctionInfo;
 import org.h2.message.DbException;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
+import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
-import org.h2.value.ValueLong;
+import org.h2.value.ValueTimestamp;
+import org.h2.value.ValueTimestampTimeZone;
 
 /**
  * This class implements some MySQL-specific functions.
@@ -89,26 +92,26 @@ public class FunctionsMySQL extends FunctionsBase {
     };
 
     /**
-     * Get the seconds since 1970-01-01 00:00:00 UTC.
-     * See
-     * http://dev.mysql.com/doc/refman/5.1/en/date-and-time-functions.html#function_unix-timestamp
-     *
-     * @return the current timestamp in seconds (not milliseconds).
-     */
-    public static int unixTimestamp() {
-        return (int) (System.currentTimeMillis() / 1000L);
-    }
-
-    /**
      * Get the seconds since 1970-01-01 00:00:00 UTC of the given timestamp.
      * See
-     * http://dev.mysql.com/doc/refman/5.1/en/date-and-time-functions.html#function_unix-timestamp
+     * https://dev.mysql.com/doc/refman/8.0/en/date-and-time-functions.html#function_unix-timestamp
      *
-     * @param timestamp the timestamp
-     * @return the current timestamp in seconds (not milliseconds).
+     * @param value the timestamp
+     * @return the timestamp in seconds since EPOCH
      */
-    public static int unixTimestamp(java.sql.Timestamp timestamp) {
-        return (int) (timestamp.getTime() / 1000L);
+    public static int unixTimestamp(Value value) {
+        long seconds;
+        if (value instanceof ValueTimestampTimeZone) {
+            ValueTimestampTimeZone t = (ValueTimestampTimeZone) value;
+            long timeNanos = t.getTimeNanos();
+            seconds = DateTimeUtils.absoluteDayFromDateValue(t.getDateValue()) * DateTimeUtils.SECONDS_PER_DAY
+                    + timeNanos / DateTimeUtils.NANOS_PER_SECOND - t.getTimeZoneOffsetSeconds();
+        } else {
+            ValueTimestamp t = (ValueTimestamp) value.convertTo(Value.TIMESTAMP);
+            long timeNanos = t.getTimeNanos();
+            seconds = DateTimeUtils.getTimeZone().getEpochSecondsFromLocal(t.getDateValue(), timeNanos);
+        }
+        return (int) seconds;
     }
 
     /**
@@ -121,7 +124,7 @@ public class FunctionsMySQL extends FunctionsBase {
     public static String fromUnixTime(int seconds) {
         SimpleDateFormat formatter = new SimpleDateFormat(DATE_TIME_FORMAT,
                 Locale.ENGLISH);
-        return formatter.format(new Date(seconds * 1000L));
+        return formatter.format(new Date(seconds * 1_000L));
     }
 
     /**
@@ -135,7 +138,7 @@ public class FunctionsMySQL extends FunctionsBase {
     public static String fromUnixTime(int seconds, String format) {
         format = convertToSimpleDateFormat(format);
         SimpleDateFormat formatter = new SimpleDateFormat(format, Locale.ENGLISH);
-        return formatter.format(new Date(seconds * 1000L));
+        return formatter.format(new Date(seconds * 1_000L));
     }
 
     private static String convertToSimpleDateFormat(String format) {
@@ -170,7 +173,7 @@ public class FunctionsMySQL extends FunctionsBase {
         switch (info.type) {
         case UNIX_TIMESTAMP:
             min = 0;
-            max = 2;
+            max = 1;
             break;
         case FROM_UNIXTIME:
             min = 1;
@@ -222,7 +225,7 @@ public class FunctionsMySQL extends FunctionsBase {
         Value result;
         switch (info.type) {
         case UNIX_TIMESTAMP:
-            result = ValueInt.get(v0 == null ? unixTimestamp() : unixTimestamp(v0.getTimestamp(null)));
+            result = ValueInt.get(unixTimestamp(v0 == null ? session.currentTimestamp() : v0));
             break;
         case FROM_UNIXTIME:
             result = ValueString.get(

@@ -120,6 +120,11 @@ public class ValueTimeTimeZone extends Value {
     }
 
     @Override
+    public int getMemory() {
+        return 32;
+    }
+
+    @Override
     public String getString() {
         StringBuilder builder = new StringBuilder(MAXIMUM_PRECISION);
         DateTimeUtils.appendTime(builder, nanos);

@@ -134,11 +134,6 @@ public class ValueTime extends Value {
     }
 
     @Override
-    public int getMemory() {
-        return 32;
-    }
-
-    @Override
     public String getString() {
         StringBuilder buff = new StringBuilder(MAXIMUM_PRECISION);
         DateTimeUtils.appendTime(buff, nanos);

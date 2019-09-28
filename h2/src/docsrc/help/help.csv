@@ -5477,7 +5477,8 @@ This method returns a long value.
 It is supported for SELECT statements, as well as for DELETE and UPDATE.
 The first row has the row number 1, and is calculated before ordering and grouping the result set,
 but after evaluating index conditions (even when the index conditions are specified in an outer query).
-Use the ROW_NUMBER() OVER () function to get row numbers after grouping or in specified order.
+Use the [ROW_NUMBER() OVER ()](https://h2database.com/html/functions-window.html#row_number)
+function to get row numbers after grouping or in specified order.
 ","
 SELECT ROWNUM(), * FROM TEST;
 SELECT ROWNUM(), * FROM (SELECT * FROM TEST ORDER BY NAME);

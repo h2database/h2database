@@ -6,6 +6,7 @@
 package org.h2.util;
 
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicReference;
@@ -47,6 +48,11 @@ public abstract class TimeZoneProvider {
                 this.id = DateTimeUtils.timeZoneNameFromOffsetSeconds(offset);
             }
             return id;
+        }
+
+        @Override
+        public String getShortId(long epochSeconds) {
+            return getId();
         }
 
         @Override
@@ -123,7 +129,7 @@ public abstract class TimeZoneProvider {
 
         @Override
         public int getTimeZoneOffsetUTC(long epochSeconds) {
-            return timeZone.getOffset(epochSecondsForCalendar(epochSeconds) * 1000) / 1_000;
+            return timeZone.getOffset(epochSecondsForCalendar(epochSeconds) * 1_000) / 1_000;
         }
 
         @Override
@@ -171,6 +177,12 @@ public abstract class TimeZoneProvider {
         @Override
         public String getId() {
             return timeZone.getID();
+        }
+
+        @Override
+        public String getShortId(long epochSeconds) {
+            return timeZone.getDisplayName(
+                    timeZone.inDaylightTime(new Date(epochSecondsForCalendar(epochSeconds) * 1_000)), TimeZone.SHORT);
         }
 
         /**
@@ -416,9 +428,21 @@ public abstract class TimeZoneProvider {
     public abstract String getId();
 
     /**
-     * Returns whether this is a simple time zone provider with a fixed offset from UTC.
+     * Get the standard time name or daylight saving time name of the time zone.
      *
-     * @return whether this is a simple time zone provider with a fixed offset from UTC
+     * @param epochSeconds
+     *            seconds since EPOCH
+     * @return the standard time name or daylight saving time name of the time
+     *         zone
+     */
+    public abstract String getShortId(long epochSeconds);
+
+    /**
+     * Returns whether this is a simple time zone provider with a fixed offset
+     * from UTC.
+     *
+     * @return whether this is a simple time zone provider with a fixed offset
+     *         from UTC
      */
     public boolean hasFixedOffset() {
         return false;

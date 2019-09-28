@@ -17,6 +17,8 @@ import java.time.Period;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
@@ -41,6 +43,8 @@ public class JSR310Utils {
         private static final long EPOCH_SECONDS_HIGH = 31556889864403199L;
 
         private static final long EPOCH_SECONDS_LOW = -31557014167219200L;
+
+        private static volatile DateTimeFormatter TIME_ZONE_FORMATTER;
 
         private final ZoneId zoneId;
 
@@ -71,6 +75,15 @@ public class JSR310Utils {
         @Override
         public String getId() {
             return zoneId.getId();
+        }
+
+        @Override
+        public String getShortId(long epochSeconds) {
+            DateTimeFormatter timeZoneFormatter = TIME_ZONE_FORMATTER;
+            if (timeZoneFormatter == null) {
+                TIME_ZONE_FORMATTER = timeZoneFormatter = DateTimeFormatter.ofPattern("z", Locale.ENGLISH);
+            }
+            return ZonedDateTime.ofInstant(Instant.ofEpochSecond(epochSeconds), zoneId).format(timeZoneFormatter);
         }
 
         /**

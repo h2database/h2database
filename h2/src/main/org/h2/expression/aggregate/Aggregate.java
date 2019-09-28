@@ -726,7 +726,15 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             type = TypeInfo.TYPE_STRING;
             break;
         case COUNT_ALL:
+            type = TypeInfo.TYPE_LONG;
+            break;
         case COUNT:
+            if (!distinct && args[0].isConstant()) {
+                Aggregate aggregate = new Aggregate(AggregateType.COUNT_ALL, new Expression[0], select, false);
+                aggregate.setFilterCondition(filterCondition);
+                aggregate.setOverCondition(over);
+                return aggregate.optimize(session);
+            }
             type = TypeInfo.TYPE_LONG;
             break;
         case SELECTIVITY:

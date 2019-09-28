@@ -24,6 +24,7 @@ import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ExpressionWithFlags;
 import org.h2.expression.Subquery;
+import org.h2.expression.ValueExpression;
 import org.h2.expression.analysis.Window;
 import org.h2.expression.function.Function;
 import org.h2.index.Cursor;
@@ -729,11 +730,16 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             type = TypeInfo.TYPE_LONG;
             break;
         case COUNT:
-            if (!distinct && args[0].isConstant()) {
-                Aggregate aggregate = new Aggregate(AggregateType.COUNT_ALL, new Expression[0], select, false);
-                aggregate.setFilterCondition(filterCondition);
-                aggregate.setOverCondition(over);
-                return aggregate.optimize(session);
+            if (args[0].isConstant()) {
+                if (args[0].getValue(session) == ValueNull.INSTANCE) {
+                    return ValueExpression.get(ValueLong.get(0L));
+                }
+                if (!distinct) {
+                    Aggregate aggregate = new Aggregate(AggregateType.COUNT_ALL, new Expression[0], select, false);
+                    aggregate.setFilterCondition(filterCondition);
+                    aggregate.setOverCondition(over);
+                    return aggregate.optimize(session);
+                }
             }
             type = TypeInfo.TYPE_LONG;
             break;

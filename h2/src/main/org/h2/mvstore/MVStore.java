@@ -866,7 +866,7 @@ public class MVStore implements AutoCloseable
                     validChunksById.put(chunk.id, chunk);
                 }
                 quickRecovery = findLastChunkWithCompleteValidChunkSet(lastChunkCandidates, validChunksByLocation,
-                        validChunksById);
+                        validChunksById, false);
             }
 
             if (!quickRecovery) {
@@ -887,7 +887,8 @@ public class MVStore implements AutoCloseable
                 for (Chunk chunk : lastChunkCandidates) {
                     validChunksById.put(chunk.id, chunk);
                 }
-                findLastChunkWithCompleteValidChunkSet(lastChunkCandidates, validChunksByLocation, validChunksById);
+                findLastChunkWithCompleteValidChunkSet(lastChunkCandidates, validChunksByLocation,
+                        validChunksById, true);
             }
         }
 
@@ -911,8 +912,9 @@ public class MVStore implements AutoCloseable
     }
 
     private boolean findLastChunkWithCompleteValidChunkSet(Chunk[] lastChunkCandidates,
-                                                            Map<Long, Chunk> validChunksByLocation,
-                                                            Map<Integer, Chunk> validChunksById) {
+                                                           Map<Long, Chunk> validChunksByLocation,
+                                                           Map<Integer, Chunk> validChunksById,
+                                                           boolean afterFullScan) {
         // Try candidates for "last chunk" in order from newest to oldest
         // until suitable is found. Suitable one should have meta map
         // where all chunk references point to valid locations.
@@ -933,40 +935,36 @@ public class MVStore implements AutoCloseable
                         c = test;
                     }
                     assert chunks.get(c.id) == c;
-                    if ((test = validChunksByLocation.get(c.block)) != null && test.id == c.id) {
-                        continue;
-                    } else if ((test = validChunksById.get(c.id)) != null) {
-                        // We do not have a valid chunk at that location,
-                        // but there is a copy of same chunk from original
-                        // location.
-                        // Chunk header at original location does not have
-                        // any dynamic (occupancy) metadata, so it can't be
-                        // used here as is, re-point our chunk to original
-                        // location instead.
-                        c.block = test.block;
-                        continue;
-                    }
-
-                    if (!c.isLive()) {
-                        // we can just remove entry from meta, referencing to this chunk,
-                        // but store maybe R/O, and it's not properly started yet,
-                        // so lets make this chunk "dead" and taking no space,
-                        // and it will be automatically removed later.
-                        c.block = Long.MAX_VALUE;
-                        c.len = Integer.MAX_VALUE;
-                        if (c.unused == 0) {
-                            c.unused = creationTime;
+                    if ((test = validChunksByLocation.get(c.block)) == null || test.id != c.id) {
+                        if ((test = validChunksById.get(c.id)) != null) {
+                            // We do not have a valid chunk at that location,
+                            // but there is a copy of same chunk from original
+                            // location.
+                            // Chunk header at original location does not have
+                            // any dynamic (occupancy) metadata, so it can't be
+                            // used here as is, re-point our chunk to original
+                            // location instead.
+                            c.block = test.block;
+                        } else if (!c.isLive()) {
+                            // we can just remove entry from meta, referencing to this chunk,
+                            // but store maybe R/O, and it's not properly started yet,
+                            // so lets make this chunk "dead" and taking no space,
+                            // and it will be automatically removed later.
+                            c.block = Long.MAX_VALUE;
+                            c.len = Integer.MAX_VALUE;
+                            if (c.unused == 0) {
+                                c.unused = creationTime;
+                            }
+                            if (c.unusedAtVersion == 0) {
+                                c.unusedAtVersion = INITIAL_VERSION;
+                            }
+                        } else if (afterFullScan || readChunkHeaderAndFooter(c.block, c.id) == null) {
+                            // chunk reference is invalid
+                            // this "last chunk" candidate is not suitable
+                            verified = false;
+                            break;
                         }
-                        if (c.unusedAtVersion == 0) {
-                            c.unusedAtVersion = INITIAL_VERSION;
-                        }
-                        continue;
                     }
-
-                    // chunk reference is invalid
-                    // this "last chunk" candidate is not suitable
-                    verified = false;
-                    break;
                 }
             } catch(Exception ignored) {
                 verified = false;

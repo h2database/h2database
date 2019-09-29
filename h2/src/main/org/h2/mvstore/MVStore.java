@@ -912,9 +912,9 @@ public class MVStore implements AutoCloseable
     }
 
     private boolean findLastChunkWithCompleteValidChunkSet(Chunk[] lastChunkCandidates,
-                                                           Map<Long, Chunk> validChunksByLocation,
-                                                           Map<Integer, Chunk> validChunksById,
-                                                           boolean afterFullScan) {
+            Map<Long, Chunk> validChunksByLocation,
+            Map<Integer, Chunk> validChunksById,
+            boolean afterFullScan) {
         // Try candidates for "last chunk" in order from newest to oldest
         // until suitable is found. Suitable one should have meta map
         // where all chunk references point to valid locations.

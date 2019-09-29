@@ -42,6 +42,7 @@ import org.h2.api.IntervalQualifier;
 import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
+import org.h2.test.unit.TestDateTimeUtils;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JSR310;
@@ -1498,7 +1499,7 @@ public class TestResultSet extends TestDb {
             if (rawOffsetDiff != 0 && rawOffsetDiff != 1000 * 60 * 60 * 24) {
                 if (regular.getTimeZone().getOffset(testTime) !=
                         zone.getOffset(testTime)) {
-                    other = DateTimeUtils.createGregorianCalendar(zone);
+                    other = TestDateTimeUtils.createGregorianCalendar(zone);
                     break;
                 }
             }

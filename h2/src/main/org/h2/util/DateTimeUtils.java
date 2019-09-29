@@ -78,7 +78,7 @@ public class DateTimeUtils {
      * Gregorian change date for a {@link GregorianCalendar} that represents a
      * proleptic Gregorian calendar.
      */
-    private static final Date PROLEPTIC_GREGORIAN_CHANGE = new Date(Long.MIN_VALUE);
+    public static final Date PROLEPTIC_GREGORIAN_CHANGE = new Date(Long.MIN_VALUE);
 
     /**
      * Date value for 1970-01-01.
@@ -142,22 +142,6 @@ public class DateTimeUtils {
      */
     public static GregorianCalendar createGregorianCalendar() {
         GregorianCalendar c = new GregorianCalendar();
-        c.setGregorianChange(PROLEPTIC_GREGORIAN_CHANGE);
-        return c;
-    }
-
-    /**
-     * Creates a Gregorian calendar for the given timezone using the default
-     * locale. Dates in H2 are represented in a Gregorian calendar. So this
-     * method should be used instead of Calendar.getInstance() to ensure that
-     * the Gregorian calendar is used for all date processing instead of a
-     * default locale calendar that can be non-Gregorian in some locales.
-     *
-     * @param tz timezone for the calendar, is never null
-     * @return a new calendar instance.
-     */
-    public static GregorianCalendar createGregorianCalendar(TimeZone tz) {
-        GregorianCalendar c = new GregorianCalendar(tz);
         c.setGregorianChange(PROLEPTIC_GREGORIAN_CHANGE);
         return c;
     }

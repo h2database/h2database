@@ -67,6 +67,7 @@ public class TestDateTimeUtils extends TestBase {
         testUTC2Value(false);
         testConvertScale();
         testParseInterval();
+        testGetTimeZoneOffset();
     }
 
     private void testParseTimeNanosDB2Format() {
@@ -302,6 +303,25 @@ public class TestDateTimeUtils extends TestBase {
         }
         b.append(full).append("' ").append(qualifier);
         assertEquals(b.toString(), expected.getString());
+    }
+
+    private void testGetTimeZoneOffset() {
+        TimeZone old = TimeZone.getDefault();
+        TimeZone timeZone = TimeZone.getTimeZone("Europe/Paris");
+        TimeZone.setDefault(timeZone);
+        DateTimeUtils.resetCalendar();
+        try {
+            long n = -1111971600;
+            assertEquals(3_600, DateTimeUtils.getTimeZoneOffset(n - 1));
+            assertEquals(3_600_000, DateTimeUtils.getTimeZoneOffsetMillis(n * 1_000 - 1));
+            assertEquals(0, DateTimeUtils.getTimeZoneOffset(n));
+            assertEquals(0, DateTimeUtils.getTimeZoneOffsetMillis(n * 1_000));
+            assertEquals(0, DateTimeUtils.getTimeZoneOffset(n + 1));
+            assertEquals(0, DateTimeUtils.getTimeZoneOffsetMillis(n * 1_000 + 1));
+        } finally {
+            TimeZone.setDefault(old);
+            DateTimeUtils.resetCalendar();
+        }
     }
 
 }

@@ -447,7 +447,12 @@ public class DateTimeUtils {
      * @return local time zone offset
      */
     public static int getTimeZoneOffsetMillis(long ms) {
-        return getTimeZoneOffset(ms / 1000) * 1_000;
+        long seconds = ms / 1_000;
+        // Round toward negative infinity
+        if (ms < 0 && (seconds * 1_000 != ms)) {
+            seconds--;
+        }
+        return getTimeZoneOffset(seconds) * 1_000;
     }
 
     /**

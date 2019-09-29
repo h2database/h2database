@@ -300,18 +300,6 @@ public class DateTimeUtils {
     }
 
     /**
-     * See:
-     * https://stackoverflow.com/questions/3976616/how-to-find-nth-occurrence-of-character-in-a-string#answer-3976656
-     */
-    private static int findNthIndexOf(String str, char chr, int n) {
-        int pos = str.indexOf(chr);
-        while (--n > 0 && pos != -1) {
-            pos = str.indexOf(chr, pos + 1);
-        }
-        return pos;
-    }
-
-    /**
      * Parses timestamp value from the specified string.
      *
      * @param s
@@ -330,7 +318,7 @@ public class DateTimeUtils {
             dateEnd = s.indexOf('T');
             if (dateEnd < 0 && provider != null && provider.getMode().allowDB2TimestampFormat) {
                 // DB2 also allows dash between date and time
-                dateEnd = findNthIndexOf(s, '-', 3);
+                dateEnd = s.indexOf('-', s.indexOf('-', s.indexOf('-') + 1) + 1);
             }
         }
         int timeStart;

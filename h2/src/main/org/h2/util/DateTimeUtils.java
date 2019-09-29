@@ -132,16 +132,6 @@ public class DateTimeUtils {
     }
 
     /**
-     * Get a time zone provider for the given time zone.
-     *
-     * @param tz the time zone
-     * @return a time zone provider for the given time zone
-     */
-    public static TimeZoneProvider getTimeZone(TimeZone tz) {
-        return TimeZoneProvider.ofId(tz.getID());
-    }
-
-    /**
      * Creates a Gregorian calendar for the default timezone using the default
      * locale. Dates in H2 are represented in a Gregorian calendar. So this
      * method should be used instead of Calendar.getInstance() to ensure that
@@ -526,7 +516,7 @@ public class DateTimeUtils {
      * @return the number of milliseconds (UTC)
      */
     public static long getMillis(TimeZone tz, long dateValue, long timeNanos) {
-        TimeZoneProvider c = tz == null ? getTimeZone() : getTimeZone(tz);
+        TimeZoneProvider c = tz == null ? getTimeZone() : TimeZoneProvider.ofId(tz.getID());
         return c.getEpochSecondsFromLocal(dateValue, timeNanos) * 1_000 + timeNanos / 1_000_000 % 1_000;
     }
 

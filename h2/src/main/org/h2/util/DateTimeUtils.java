@@ -904,29 +904,6 @@ public class DateTimeUtils {
     }
 
     /**
-     * Calculate the normalized timestamp.
-     *
-     * @param absoluteDay the absolute day
-     * @param nanos the nanoseconds (may be negative or larger than one day)
-     * @return the timestamp
-     */
-    public static ValueTimestamp normalizeTimestamp(long absoluteDay,
-            long nanos) {
-        if (nanos > NANOS_PER_DAY || nanos < 0) {
-            long d;
-            if (nanos > NANOS_PER_DAY) {
-                d = nanos / NANOS_PER_DAY;
-            } else {
-                d = (nanos - NANOS_PER_DAY + 1) / NANOS_PER_DAY;
-            }
-            nanos -= d * NANOS_PER_DAY;
-            absoluteDay += d;
-        }
-        return ValueTimestamp.fromDateValueAndNanos(
-                dateValueFromAbsoluteDay(absoluteDay), nanos);
-    }
-
-    /**
      * Converts local date value and nanoseconds to timestamp with time zone.
      *
      * @param dateValue

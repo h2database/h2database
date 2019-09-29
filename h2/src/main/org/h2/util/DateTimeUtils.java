@@ -861,12 +861,11 @@ public class DateTimeUtils {
      * @return the nanoseconds
      */
     public static long nanosFromLocalSeconds(long localSeconds) {
-        long absoluteDay = localSeconds / SECONDS_PER_DAY;
-        // Round toward negative infinity
-        if (localSeconds < 0 && (absoluteDay * SECONDS_PER_DAY != localSeconds)) {
-            absoluteDay--;
+        localSeconds %= SECONDS_PER_DAY;
+        if (localSeconds < 0) {
+            localSeconds += SECONDS_PER_DAY;
         }
-        return (localSeconds - absoluteDay * SECONDS_PER_DAY) * NANOS_PER_SECOND;
+        return localSeconds * NANOS_PER_SECOND;
     }
 
     /**
@@ -876,12 +875,11 @@ public class DateTimeUtils {
      * @return the nanoseconds
      */
     public static long nanosFromLocalMillis(long ms) {
-        long absoluteDay = ms / MILLIS_PER_DAY;
-        // Round toward negative infinity
-        if (ms < 0 && (absoluteDay * MILLIS_PER_DAY != ms)) {
-            absoluteDay--;
+        ms %= MILLIS_PER_DAY;
+        if (ms < 0) {
+            ms += MILLIS_PER_DAY;
         }
-        return (ms - absoluteDay * MILLIS_PER_DAY) * 1_000_000;
+        return ms * 1_000_000;
     }
 
     /**
@@ -891,14 +889,9 @@ public class DateTimeUtils {
      * @return the nanos of day within a day
      */
     public static long normalizeNanosOfDay(long nanos) {
-        if (nanos > NANOS_PER_DAY || nanos < 0) {
-            long d;
-            if (nanos > NANOS_PER_DAY) {
-                d = nanos / NANOS_PER_DAY;
-            } else {
-                d = (nanos - NANOS_PER_DAY + 1) / NANOS_PER_DAY;
-            }
-            nanos -= d * NANOS_PER_DAY;
+        nanos %= NANOS_PER_DAY;
+        if (nanos < 0) {
+            nanos += NANOS_PER_DAY;
         }
         return nanos;
     }

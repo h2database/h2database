@@ -8,7 +8,6 @@
 package org.h2.util;
 
 import java.sql.Date;
-import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
@@ -107,16 +106,6 @@ public class DateTimeUtils {
 
     private static volatile TimeZoneProvider LOCAL;
 
-    /**
-     * Raw offset doesn't change during DST transitions, but changes during
-     * other transitions that some time zones have. H2 1.4.193 and later
-     * versions use zone offset that is valid for startup time for performance
-     * reasons. This code is now used only by old PageStore engine and its
-     * datetime storage code has issues with all time zone transitions, so this
-     * buggy logic is preserved as is too.
-     */
-    private static int zoneOffsetMillis = createGregorianCalendar().get(Calendar.ZONE_OFFSET);
-
     private DateTimeUtils() {
         // utility class
     }
@@ -127,7 +116,6 @@ public class DateTimeUtils {
      */
     public static void resetCalendar() {
         LOCAL = null;
-        zoneOffsetMillis = createGregorianCalendar().get(Calendar.ZONE_OFFSET);
     }
 
     /**
@@ -614,28 +602,6 @@ public class DateTimeUtils {
             }
         }
         return ValueTimestamp.fromDateValueAndNanos(dateValue, timeNanos);
-    }
-
-    /**
-     * Get the number of milliseconds since 1970-01-01 in the local timezone,
-     * but without daylight saving time into account.
-     *
-     * @param d the date
-     * @return the milliseconds
-     */
-    public static long getTimeLocalWithoutDst(java.util.Date d) {
-        return d.getTime() + zoneOffsetMillis;
-    }
-
-    /**
-     * Convert the number of milliseconds since 1970-01-01 in the local timezone
-     * to UTC, but without daylight saving time into account.
-     *
-     * @param millis the number of milliseconds in the local timezone
-     * @return the number of milliseconds in UTC
-     */
-    public static long getTimeUTCWithoutDst(long millis) {
-        return millis - zoneOffsetMillis;
     }
 
     /**

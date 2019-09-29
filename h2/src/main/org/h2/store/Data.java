@@ -857,12 +857,17 @@ public class Data {
         case LOCAL_DATE:
             return ValueDate.fromDateValue(readVarLong());
         case DATE: {
-            return ValueDate.fromMillis(readVarLong() * MILLIS_PER_MINUTE - zoneOffsetMillis);
+            long ms = readVarLong() * MILLIS_PER_MINUTE - zoneOffsetMillis;
+            return ValueDate.fromDateValue(DateTimeUtils.dateValueFromLocalMillis(
+                    ms + DateTimeUtils.getTimeZoneOffsetMillis(ms)));
         }
         case LOCAL_TIME:
             return ValueTime.fromNanos(readVarLong() * 1_000_000 + readVarInt());
-        case TIME:
-            return ValueTime.fromMillis(readVarLong() - zoneOffsetMillis);
+        case TIME: {
+            long ms = readVarLong() - zoneOffsetMillis;
+            return ValueTime.fromNanos(DateTimeUtils.nanosFromLocalMillis(
+                    ms + DateTimeUtils.getTimeZoneOffsetMillis(ms)));
+        }
         case TIME_TZ:
             return ValueTimeTimeZone.fromNanos(readVarInt() * DateTimeUtils.NANOS_PER_SECOND + readVarInt(),
                     readTimeZone());

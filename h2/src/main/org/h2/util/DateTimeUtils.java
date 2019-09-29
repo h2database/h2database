@@ -8,7 +8,6 @@
 package org.h2.util;
 
 import java.sql.Date;
-import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
@@ -79,7 +78,7 @@ public class DateTimeUtils {
      * Gregorian change date for a {@link GregorianCalendar} that represents a
      * proleptic Gregorian calendar.
      */
-    private static final Date PROLEPTIC_GREGORIAN_CHANGE = new Date(Long.MIN_VALUE);
+    public static final Date PROLEPTIC_GREGORIAN_CHANGE = new Date(Long.MIN_VALUE);
 
     /**
      * Date value for 1970-01-01.
@@ -107,16 +106,6 @@ public class DateTimeUtils {
 
     private static volatile TimeZoneProvider LOCAL;
 
-    /**
-     * Raw offset doesn't change during DST transitions, but changes during
-     * other transitions that some time zones have. H2 1.4.193 and later
-     * versions use zone offset that is valid for startup time for performance
-     * reasons. This code is now used only by old PageStore engine and its
-     * datetime storage code has issues with all time zone transitions, so this
-     * buggy logic is preserved as is too.
-     */
-    private static int zoneOffsetMillis = createGregorianCalendar().get(Calendar.ZONE_OFFSET);
-
     private DateTimeUtils() {
         // utility class
     }
@@ -127,7 +116,6 @@ public class DateTimeUtils {
      */
     public static void resetCalendar() {
         LOCAL = null;
-        zoneOffsetMillis = createGregorianCalendar().get(Calendar.ZONE_OFFSET);
     }
 
     /**
@@ -141,47 +129,6 @@ public class DateTimeUtils {
             LOCAL = local = TimeZoneProvider.getDefault();
         }
         return local;
-    }
-
-    /**
-     * Get a time zone provider for the given time zone.
-     *
-     * @param tz the time zone
-     * @return a time zone provider for the given time zone
-     */
-    public static TimeZoneProvider getTimeZone(TimeZone tz) {
-        return TimeZoneProvider.ofId(tz.getID());
-    }
-
-    /**
-     * Creates a Gregorian calendar for the default timezone using the default
-     * locale. Dates in H2 are represented in a Gregorian calendar. So this
-     * method should be used instead of Calendar.getInstance() to ensure that
-     * the Gregorian calendar is used for all date processing instead of a
-     * default locale calendar that can be non-Gregorian in some locales.
-     *
-     * @return a new calendar instance.
-     */
-    public static GregorianCalendar createGregorianCalendar() {
-        GregorianCalendar c = new GregorianCalendar();
-        c.setGregorianChange(PROLEPTIC_GREGORIAN_CHANGE);
-        return c;
-    }
-
-    /**
-     * Creates a Gregorian calendar for the given timezone using the default
-     * locale. Dates in H2 are represented in a Gregorian calendar. So this
-     * method should be used instead of Calendar.getInstance() to ensure that
-     * the Gregorian calendar is used for all date processing instead of a
-     * default locale calendar that can be non-Gregorian in some locales.
-     *
-     * @param tz timezone for the calendar, is never null
-     * @return a new calendar instance.
-     */
-    public static GregorianCalendar createGregorianCalendar(TimeZone tz) {
-        GregorianCalendar c = new GregorianCalendar(tz);
-        c.setGregorianChange(PROLEPTIC_GREGORIAN_CHANGE);
-        return c;
     }
 
     /**
@@ -338,18 +285,6 @@ public class DateTimeUtils {
     }
 
     /**
-     * See:
-     * https://stackoverflow.com/questions/3976616/how-to-find-nth-occurrence-of-character-in-a-string#answer-3976656
-     */
-    private static int findNthIndexOf(String str, char chr, int n) {
-        int pos = str.indexOf(chr);
-        while (--n > 0 && pos != -1) {
-            pos = str.indexOf(chr, pos + 1);
-        }
-        return pos;
-    }
-
-    /**
      * Parses timestamp value from the specified string.
      *
      * @param s
@@ -368,7 +303,7 @@ public class DateTimeUtils {
             dateEnd = s.indexOf('T');
             if (dateEnd < 0 && provider != null && provider.getMode().allowDB2TimestampFormat) {
                 // DB2 also allows dash between date and time
-                dateEnd = findNthIndexOf(s, '-', 3);
+                dateEnd = s.indexOf('-', s.indexOf('-', s.indexOf('-') + 1) + 1);
             }
         }
         int timeStart;
@@ -497,7 +432,12 @@ public class DateTimeUtils {
      * @return local time zone offset
      */
     public static int getTimeZoneOffsetMillis(long ms) {
-        return getTimeZoneOffset(ms / 1000) * 1_000;
+        long seconds = ms / 1_000;
+        // Round toward negative infinity
+        if (ms < 0 && (seconds * 1_000 != ms)) {
+            seconds--;
+        }
+        return getTimeZoneOffset(seconds) * 1_000;
     }
 
     /**
@@ -538,7 +478,7 @@ public class DateTimeUtils {
      * @return the number of milliseconds (UTC)
      */
     public static long getMillis(TimeZone tz, long dateValue, long timeNanos) {
-        TimeZoneProvider c = tz == null ? getTimeZone() : getTimeZone(tz);
+        TimeZoneProvider c = tz == null ? getTimeZone() : TimeZoneProvider.ofId(tz.getID());
         return c.getEpochSecondsFromLocal(dateValue, timeNanos) * 1_000 + timeNanos / 1_000_000 % 1_000;
     }
 
@@ -614,28 +554,6 @@ public class DateTimeUtils {
             }
         }
         return ValueTimestamp.fromDateValueAndNanos(dateValue, timeNanos);
-    }
-
-    /**
-     * Get the number of milliseconds since 1970-01-01 in the local timezone,
-     * but without daylight saving time into account.
-     *
-     * @param d the date
-     * @return the milliseconds
-     */
-    public static long getTimeLocalWithoutDst(java.util.Date d) {
-        return d.getTime() + zoneOffsetMillis;
-    }
-
-    /**
-     * Convert the number of milliseconds since 1970-01-01 in the local timezone
-     * to UTC, but without daylight saving time into account.
-     *
-     * @param millis the number of milliseconds in the local timezone
-     * @return the number of milliseconds in UTC
-     */
-    public static long getTimeUTCWithoutDst(long millis) {
-        return millis - zoneOffsetMillis;
     }
 
     /**
@@ -933,12 +851,11 @@ public class DateTimeUtils {
      * @return the nanoseconds
      */
     public static long nanosFromLocalSeconds(long localSeconds) {
-        long absoluteDay = localSeconds / SECONDS_PER_DAY;
-        // Round toward negative infinity
-        if (localSeconds < 0 && (absoluteDay * SECONDS_PER_DAY != localSeconds)) {
-            absoluteDay--;
+        localSeconds %= SECONDS_PER_DAY;
+        if (localSeconds < 0) {
+            localSeconds += SECONDS_PER_DAY;
         }
-        return (localSeconds - absoluteDay * SECONDS_PER_DAY) * NANOS_PER_SECOND;
+        return localSeconds * NANOS_PER_SECOND;
     }
 
     /**
@@ -948,12 +865,11 @@ public class DateTimeUtils {
      * @return the nanoseconds
      */
     public static long nanosFromLocalMillis(long ms) {
-        long absoluteDay = ms / MILLIS_PER_DAY;
-        // Round toward negative infinity
-        if (ms < 0 && (absoluteDay * MILLIS_PER_DAY != ms)) {
-            absoluteDay--;
+        ms %= MILLIS_PER_DAY;
+        if (ms < 0) {
+            ms += MILLIS_PER_DAY;
         }
-        return (ms - absoluteDay * MILLIS_PER_DAY) * 1_000_000;
+        return ms * 1_000_000;
     }
 
     /**
@@ -963,39 +879,11 @@ public class DateTimeUtils {
      * @return the nanos of day within a day
      */
     public static long normalizeNanosOfDay(long nanos) {
-        if (nanos > NANOS_PER_DAY || nanos < 0) {
-            long d;
-            if (nanos > NANOS_PER_DAY) {
-                d = nanos / NANOS_PER_DAY;
-            } else {
-                d = (nanos - NANOS_PER_DAY + 1) / NANOS_PER_DAY;
-            }
-            nanos -= d * NANOS_PER_DAY;
+        nanos %= NANOS_PER_DAY;
+        if (nanos < 0) {
+            nanos += NANOS_PER_DAY;
         }
         return nanos;
-    }
-
-    /**
-     * Calculate the normalized timestamp.
-     *
-     * @param absoluteDay the absolute day
-     * @param nanos the nanoseconds (may be negative or larger than one day)
-     * @return the timestamp
-     */
-    public static ValueTimestamp normalizeTimestamp(long absoluteDay,
-            long nanos) {
-        if (nanos > NANOS_PER_DAY || nanos < 0) {
-            long d;
-            if (nanos > NANOS_PER_DAY) {
-                d = nanos / NANOS_PER_DAY;
-            } else {
-                d = (nanos - NANOS_PER_DAY + 1) / NANOS_PER_DAY;
-            }
-            nanos -= d * NANOS_PER_DAY;
-            absoluteDay += d;
-        }
-        return ValueTimestamp.fromDateValueAndNanos(
-                dateValueFromAbsoluteDay(absoluteDay), nanos);
     }
 
     /**

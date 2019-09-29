@@ -272,17 +272,27 @@ public class ValueTimestamp extends Value {
     @Override
     public Value add(Value v) {
         ValueTimestamp t = (ValueTimestamp) v.convertTo(Value.TIMESTAMP);
-        long d1 = DateTimeUtils.absoluteDayFromDateValue(dateValue);
-        long d2 = DateTimeUtils.absoluteDayFromDateValue(t.dateValue);
-        return DateTimeUtils.normalizeTimestamp(d1 + d2, timeNanos + t.timeNanos);
+        long absoluteDay = DateTimeUtils.absoluteDayFromDateValue(dateValue)
+                + DateTimeUtils.absoluteDayFromDateValue(t.dateValue);
+        long nanos = timeNanos + t.timeNanos;
+        if (nanos >= DateTimeUtils.NANOS_PER_DAY) {
+            nanos -= DateTimeUtils.NANOS_PER_DAY;
+            absoluteDay++;
+        }
+        return ValueTimestamp.fromDateValueAndNanos(DateTimeUtils.dateValueFromAbsoluteDay(absoluteDay), nanos);
     }
 
     @Override
     public Value subtract(Value v) {
         ValueTimestamp t = (ValueTimestamp) v.convertTo(Value.TIMESTAMP);
-        long d1 = DateTimeUtils.absoluteDayFromDateValue(dateValue);
-        long d2 = DateTimeUtils.absoluteDayFromDateValue(t.dateValue);
-        return DateTimeUtils.normalizeTimestamp(d1 - d2, timeNanos - t.timeNanos);
+        long absoluteDay = DateTimeUtils.absoluteDayFromDateValue(dateValue)
+                - DateTimeUtils.absoluteDayFromDateValue(t.dateValue);
+        long nanos = timeNanos - t.timeNanos;
+        if (nanos < 0) {
+            nanos += DateTimeUtils.NANOS_PER_DAY;
+            absoluteDay--;
+        }
+        return ValueTimestamp.fromDateValueAndNanos(DateTimeUtils.dateValueFromAbsoluteDay(absoluteDay), nanos);
     }
 
 }

@@ -699,7 +699,7 @@ public final class DateTimeFunctions {
                 return dow;
             }
             case WEEK:
-                GregorianCalendar gc = DateTimeUtils.createGregorianCalendar();
+                GregorianCalendar gc = new GregorianCalendar();
                 return DateTimeUtils.getWeekOfYear(dateValue, gc.getFirstDayOfWeek() - 1,
                         gc.getMinimalDaysInFirstWeek());
             case QUARTER:

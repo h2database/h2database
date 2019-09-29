@@ -137,7 +137,7 @@ public abstract class TimeZoneProvider {
             year = yearForCalendar(year);
             GregorianCalendar c = cachedCalendar.getAndSet(null);
             if (c == null) {
-                c = DateTimeUtils.createGregorianCalendar(timeZone);
+                c = createCalendar();
             }
             c.clear();
             c.set(Calendar.ERA, GregorianCalendar.AD);
@@ -158,7 +158,7 @@ public abstract class TimeZoneProvider {
             int yearForCalendar = yearForCalendar(year);
             GregorianCalendar c = cachedCalendar.getAndSet(null);
             if (c == null) {
-                c = DateTimeUtils.createGregorianCalendar(timeZone);
+                c = createCalendar();
             }
             c.clear();
             c.set(Calendar.ERA, GregorianCalendar.AD);
@@ -172,6 +172,12 @@ public abstract class TimeZoneProvider {
             long epoch = c.getTimeInMillis();
             cachedCalendar.compareAndSet(null, c);
             return epoch / 1_000 + (year - yearForCalendar) * SECONDS_PER_YEAR;
+        }
+
+        private GregorianCalendar createCalendar() {
+            GregorianCalendar c = new GregorianCalendar(timeZone);
+            c.setGregorianChange(DateTimeUtils.PROLEPTIC_GREGORIAN_CHANGE);
+            return c;
         }
 
         @Override

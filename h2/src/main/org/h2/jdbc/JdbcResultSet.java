@@ -26,6 +26,7 @@ import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -3886,7 +3887,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         } else if (type == java.util.Date.class) {
             return (T) new java.util.Date(value.getTimestamp(null).getTime());
         } else if (type == Calendar.class) {
-            Calendar calendar = DateTimeUtils.createGregorianCalendar();
+            GregorianCalendar calendar = new GregorianCalendar();
+            calendar.setGregorianChange(DateTimeUtils.PROLEPTIC_GREGORIAN_CHANGE);
             calendar.setTime(value.getTimestamp(calendar.getTimeZone()));
             return (T) calendar;
         } else if (type == UUID.class) {

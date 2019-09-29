@@ -36,6 +36,7 @@ import org.h2.api.IntervalQualifier;
 import org.h2.api.Trigger;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
+import org.h2.store.Data;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.util.DateTimeUtils;
@@ -827,6 +828,7 @@ public class TestPreparedStatement extends TestDb {
         TimeZone old = TimeZone.getDefault();
         TimeZone.setDefault(TimeZone.getTimeZone("GMT+01"));
         DateTimeUtils.resetCalendar();
+        Data.resetCalendar();
         try {
             localDate = parseLocalDate("1582-10-05");
             prep.setObject(1, localDate);
@@ -849,6 +851,7 @@ public class TestPreparedStatement extends TestDb {
         } finally {
             TimeZone.setDefault(old);
             DateTimeUtils.resetCalendar();
+            Data.resetCalendar();
         }
     }
 

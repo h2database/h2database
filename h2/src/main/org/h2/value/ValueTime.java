@@ -86,17 +86,6 @@ public class ValueTime extends Value {
     }
 
     /**
-     * Calculate the time value from a given time in
-     * milliseconds in UTC.
-     *
-     * @param ms the milliseconds
-     * @return the value
-     */
-    public static ValueTime fromMillis(long ms) {
-        return fromNanos(DateTimeUtils.nanosFromLocalMillis(ms + DateTimeUtils.getTimeZoneOffsetMillis(ms)));
-    }
-
-    /**
      * Parse a string to a ValueTime.
      *
      * @param s the string to parse

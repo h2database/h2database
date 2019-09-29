@@ -12,7 +12,7 @@ import org.h2.value.ValueTimestampTimeZone;
 /**
  * How we expose "TIMESTAMP WITH TIME ZONE" in our ResultSets.
  */
-public class TimestampWithTimeZone implements Serializable, Cloneable {
+public final class TimestampWithTimeZone implements Serializable, Cloneable {
 
     /**
      * The serial version UID.

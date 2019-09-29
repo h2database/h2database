@@ -56,7 +56,6 @@ import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.test.ap.TestAnnotationProcessor;
 import org.h2.tools.SimpleResultSet;
-import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
@@ -1210,7 +1209,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
     }
 
     private void testToDate(Session session) {
-        GregorianCalendar calendar = DateTimeUtils.createGregorianCalendar();
+        GregorianCalendar calendar = new GregorianCalendar();
         int year = calendar.get(Calendar.YEAR);
         int month = calendar.get(Calendar.MONTH) + 1;
         // Default date in Oracle is the first day of the current month

@@ -132,21 +132,6 @@ public class DateTimeUtils {
     }
 
     /**
-     * Creates a Gregorian calendar for the default timezone using the default
-     * locale. Dates in H2 are represented in a Gregorian calendar. So this
-     * method should be used instead of Calendar.getInstance() to ensure that
-     * the Gregorian calendar is used for all date processing instead of a
-     * default locale calendar that can be non-Gregorian in some locales.
-     *
-     * @return a new calendar instance.
-     */
-    public static GregorianCalendar createGregorianCalendar() {
-        GregorianCalendar c = new GregorianCalendar();
-        c.setGregorianChange(PROLEPTIC_GREGORIAN_CHANGE);
-        return c;
-    }
-
-    /**
      * Parse a date string. The format is: [+|-]year-month-day
      * or [+|-]yyyyMMdd.
      *

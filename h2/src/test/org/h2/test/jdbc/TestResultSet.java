@@ -34,6 +34,7 @@ import java.sql.Types;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
 import org.h2.api.ErrorCode;
@@ -42,8 +43,6 @@ import org.h2.api.IntervalQualifier;
 import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
-import org.h2.test.unit.TestDateTimeUtils;
-import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JSR310;
 import org.h2.util.MathUtils;
@@ -1486,8 +1485,8 @@ public class TestResultSet extends TestDb {
                 "D DATE, T TIME, TS TIMESTAMP(9))");
         PreparedStatement prep = conn.prepareStatement(
                 "INSERT INTO TEST VALUES(?, ?, ?, ?)");
-        Calendar regular = DateTimeUtils.createGregorianCalendar();
-        Calendar other = null;
+        GregorianCalendar regular = new GregorianCalendar();
+        GregorianCalendar other = null;
         // search a locale that has a _different_ raw offset
         long testTime = java.sql.Date.valueOf("2001-02-03").getTime();
         for (String s : TimeZone.getAvailableIDs()) {
@@ -1499,7 +1498,7 @@ public class TestResultSet extends TestDb {
             if (rawOffsetDiff != 0 && rawOffsetDiff != 1000 * 60 * 60 * 24) {
                 if (regular.getTimeZone().getOffset(testTime) !=
                         zone.getOffset(testTime)) {
-                    other = TestDateTimeUtils.createGregorianCalendar(zone);
+                    other = new GregorianCalendar(zone);
                     break;
                 }
             }

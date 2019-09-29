@@ -25,11 +25,8 @@ import org.h2.value.ValueTimestamp;
 public class TestDateTimeUtils extends TestBase {
 
     /**
-     * Creates a Gregorian calendar for the given timezone using the default
-     * locale. Dates in H2 are represented in a Gregorian calendar. So this
-     * method should be used instead of Calendar.getInstance() to ensure that
-     * the Gregorian calendar is used for all date processing instead of a
-     * default locale calendar that can be non-Gregorian in some locales.
+     * Creates a proleptic Gregorian calendar for the given timezone using the
+     * default locale.
      *
      * @param tz timezone for the calendar, is never null
      * @return a new calendar instance.

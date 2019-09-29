@@ -16,6 +16,7 @@ import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.GregorianCalendar;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
@@ -135,7 +136,7 @@ public class Data {
      * reasons. Datetime storage code of PageStore has issues with all time zone
      * transitions, so this buggy logic is preserved as is too.
      */
-    private static int zoneOffsetMillis = DateTimeUtils.createGregorianCalendar().get(Calendar.ZONE_OFFSET);
+    private static int zoneOffsetMillis = new GregorianCalendar().get(Calendar.ZONE_OFFSET);
 
     /**
      * The data itself.
@@ -1557,7 +1558,7 @@ public class Data {
      * changing the default timezone.
      */
     public static void resetCalendar() {
-        zoneOffsetMillis = DateTimeUtils.createGregorianCalendar().get(Calendar.ZONE_OFFSET);
+        zoneOffsetMillis = new GregorianCalendar().get(Calendar.ZONE_OFFSET);
     }
 
 }

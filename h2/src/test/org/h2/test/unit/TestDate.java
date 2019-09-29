@@ -335,7 +335,7 @@ public class TestDate extends TestBase {
                         assertFalse(valid);
                     } else if (d < 1 || d > 31) {
                         assertFalse(valid);
-                    } else if (y != 1582 && d >= 1 && d <= 27) {
+                    } else if (d <= 27) {
                         assertTrue(valid);
                     } else {
                         if (y <= 0) {
@@ -448,7 +448,7 @@ public class TestDate extends TestBase {
             assertEquals("19999-08-07 13:14:15.16", ts2.getString());
             assertEquals("19999-08-07", d2.getString());
             assertEquals("13:14:15.16", t2.getString());
-            TimeZone timeZone = DateTimeUtils.createGregorianCalendar().getTimeZone();
+            TimeZone timeZone = TimeZone.getDefault();
             ValueTimestamp ts1a = ValueTimestamp.get(timeZone, ts1.getTimestamp(null));
             ValueTimestamp ts2a = ValueTimestamp.get(timeZone, ts2.getTimestamp(null));
             assertEquals("-999-08-07 13:14:15.16", ts1a.getString());

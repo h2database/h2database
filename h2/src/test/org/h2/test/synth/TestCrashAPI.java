@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Comparator;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,7 +46,6 @@ import org.h2.test.synth.sql.RandomGen;
 import org.h2.tools.Backup;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Restore;
-import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
 
 /**
@@ -503,7 +503,7 @@ public class TestCrashAPI extends TestDb implements Runnable {
             // TODO should use generated savepoints
             return null;
         } else if (type == Calendar.class) {
-            return DateTimeUtils.createGregorianCalendar();
+            return new GregorianCalendar();
         } else if (type == java.net.URL.class) {
             return null;
         } else if (type == java.math.BigDecimal.class) {

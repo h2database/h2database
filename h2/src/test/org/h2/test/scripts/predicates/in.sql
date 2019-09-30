@@ -288,7 +288,7 @@ SELECT * FROM SYSTEM_RANGE(1, 10) WHERE X IN ((SELECT 1), (SELECT 2));
 > rows: 2
 
 EXPLAIN SELECT * FROM SYSTEM_RANGE(1, 10) WHERE X IN ((SELECT 1), (SELECT 2));
->> SELECT "SYSTEM_RANGE"."X" FROM SYSTEM_RANGE(1, 10) /* range index: X IN((SELECT 1 FROM SYSTEM_RANGE(1, 1) /++ range index ++/), (SELECT 2 FROM SYSTEM_RANGE(1, 1) /++ range index ++/)) */ WHERE "X" IN((SELECT 1 FROM SYSTEM_RANGE(1, 1) /* range index */), (SELECT 2 FROM SYSTEM_RANGE(1, 1) /* range index */))
+>> SELECT "SYSTEM_RANGE"."X" FROM SYSTEM_RANGE(1, 10) /* range index: X IN((SELECT 1), (SELECT 2)) */ WHERE "X" IN((SELECT 1), (SELECT 2))
 
 -- Tests for IN predicate with an empty list
 

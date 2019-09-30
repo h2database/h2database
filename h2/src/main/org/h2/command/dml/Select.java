@@ -1454,30 +1454,20 @@ public class Select extends Query {
                     builder.append(',');
                 }
                 builder.append('\n');
-                StringUtils.indent(builder, exprList[i].getSQL( alwaysQuote), 4, false);
+                StringUtils.indent(builder, exprList[i].getSQL(alwaysQuote), 4, false);
             }
-            builder.append("\nFROM ");
             TableFilter filter = topTableFilter;
-            if (filter != null) {
-                int i = 0;
-                do {
-                    if (i > 0) {
-                        builder.append('\n');
+            if (filter == null) {
+                int count = topFilters.size();
+                if (count != 1 || !topFilters.get(0).isNoFromClauseFilter()) {
+                    builder.append("\nFROM ");
+                    boolean isJoin = false;
+                    for (int i = 0; i < count; i++) {
+                        isJoin = getPlanFromFilter(builder, alwaysQuote, topFilters.get(i), isJoin);
                     }
-                    filter.getPlanSQL(builder, i++ > 0, alwaysQuote);
-                    filter = filter.getJoin();
-                } while (filter != null);
-            } else {
-                int i = 0;
-                for (TableFilter f : topFilters) {
-                    do {
-                        if (i > 0) {
-                            builder.append('\n');
-                        }
-                        f.getPlanSQL(builder, i++ > 0, alwaysQuote);
-                        f = f.getJoin();
-                    } while (f != null);
                 }
+            } else if (!filter.isNoFromClauseFilter()) {
+                getPlanFromFilter(builder.append("\nFROM "), alwaysQuote, filter, false);
             }
             if (condition != null) {
                 builder.append("\nWHERE ");
@@ -1534,6 +1524,18 @@ public class Select extends Query {
         }
         // builder.append("\n/* cost: " + cost + " */");
         return builder.toString();
+    }
+
+    private static boolean getPlanFromFilter(StringBuilder builder, boolean alwaysQuote, TableFilter f,
+            boolean isJoin) {
+        do {
+            if (isJoin) {
+                builder.append('\n');
+            }
+            f.getPlanSQL(builder, isJoin, alwaysQuote);
+            isJoin = true;
+        } while ((f = f.getJoin()) != null);
+        return isJoin;
     }
 
     private static void getFilterSQL(StringBuilder builder, String sql, Expression[] exprList, Expression condition,

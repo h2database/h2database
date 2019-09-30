@@ -291,7 +291,7 @@ select * from dual where cast('xx' as varchar_ignorecase(1)) = 'X' and cast('x x
 > rows: 1
 
 explain select -cast(0 as real), -cast(0 as double);
->> SELECT 0.0, 0.0 FROM SYSTEM_RANGE(1, 1) /* range index */
+>> SELECT 0.0, 0.0
 
 select (1) one;
 > ONE
@@ -395,7 +395,7 @@ drop table test;
 > ok
 
 explain analyze select 1;
->> SELECT 1 FROM SYSTEM_RANGE(1, 1) /* range index */ /* scanCount: 2 */
+>> SELECT 1
 
 create table test(id int);
 > ok
@@ -2851,14 +2851,14 @@ drop table test;
 > ok
 
 call select 1.0/3.0*3.0, 100.0/2.0, -25.0/100.0, 0.0/3.0, 6.9/2.0, 0.72179425150347250912311550800000 / 5314251955.21;
-> SELECT 0.999999999999999999999999990, 5E+1, -0.25, 0, 3.45, 1.35822361752313607260107721120531135706133161972E-10 FROM SYSTEM_RANGE(1, 1) /* range index */ /* scanCount: 2 */
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT 0.999999999999999999999999990, 5E+1, -0.25, 0, 3.45, 1.35822361752313607260107721120531135706133161972E-10
+> -----------------------------------------------------------------------------------------------------------------
 > ROW (0.999999999999999999999999990, 5E+1, -0.25, 0, 3.45, 1.35822361752313607260107721120531135706133161972E-10)
 > rows: 1
 
 call (select x from dual where x is null);
-> SELECT X FROM SYSTEM_RANGE(1, 1) /* range index: X IS NULL */ /* scanCount: 1 */ WHERE X IS NULL
-> ------------------------------------------------------------------------------------------------
+> SELECT X FROM DUAL /* dual index: X IS NULL */ /* scanCount: 2 */ WHERE X IS NULL
+> ---------------------------------------------------------------------------------
 > null
 > rows: 1
 

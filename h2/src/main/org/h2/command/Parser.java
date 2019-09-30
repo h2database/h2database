@@ -231,6 +231,7 @@ import org.h2.schema.Sequence;
 import org.h2.table.Column;
 import org.h2.table.DataChangeDeltaTable;
 import org.h2.table.DataChangeDeltaTable.ResultOption;
+import org.h2.table.DualTable;
 import org.h2.table.FunctionTable;
 import org.h2.table.IndexColumn;
 import org.h2.table.IndexHints;
@@ -1957,11 +1958,10 @@ public class Parser {
                     if (readIf(COMMA)) {
                         Expression step = readExpression();
                         read(CLOSE_PAREN);
-                        table = new RangeTable(mainSchema, min, max, step,
-                                false);
+                        table = new RangeTable(mainSchema, min, max, step);
                     } else {
                         read(CLOSE_PAREN);
-                        table = new RangeTable(mainSchema, min, max, false);
+                        table = new RangeTable(mainSchema, min, max);
                     }
                 } else {
                     table = readTableFunction(tableName, schema, mainSchema);
@@ -2956,12 +2956,9 @@ public class Parser {
         } else {
             parseSelectSimpleSelectPart(command);
             if (!readIf(FROM)) {
-                // select without FROM: convert to SELECT ... FROM
-                // SYSTEM_RANGE(1,1)
-                Table dual = getDualTable(false);
-                TableFilter filter = new TableFilter(session, dual, null,
-                        rightsChecked, currentSelect, 0,
-                        null);
+                // select without FROM
+                TableFilter filter = new TableFilter(session, getDualTable(true), null, rightsChecked, currentSelect,
+                        0, null);
                 command.addTableFilter(filter, true);
             } else {
                 parseSelectSimpleFromPart(command);
@@ -3020,9 +3017,7 @@ public class Parser {
     }
 
     private Table getDualTable(boolean noColumns) {
-        Schema main = database.getMainSchema();
-        Expression one = ValueExpression.get(ValueLong.get(1));
-        return new RangeTable(main, one, one, noColumns);
+        return new DualTable(database.getMainSchema(), noColumns);
     }
 
     private void setSQL(Prepared command, String start, int startIndex) {

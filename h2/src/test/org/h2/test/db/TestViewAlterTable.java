@@ -72,7 +72,7 @@ public class TestViewAlterTable extends TestDb {
     private void testAlterTableDropColumnInView() throws SQLException {
         // simple
         stat.execute("create table test(id identity, name varchar) " +
-                "as select x, 'Hello'");
+                "as select x, 'Hello' from dual");
         stat.execute("create view test_view as select * from test");
         assertThrows(ErrorCode.COLUMN_IS_REFERENCED_1, stat).
                 execute("alter table test drop name");
@@ -203,7 +203,7 @@ public class TestViewAlterTable extends TestDb {
     private void testAlterTableDropColumnInViewWithDoubleQuotes() throws SQLException{
         // simple
         stat.execute("create table \"test\"(id identity, name varchar) " +
-                "as select x, 'Hello'");
+                "as select x, 'Hello' from dual");
         stat.execute("create view test_view as select * from \"test\"");
         assertThrows(ErrorCode.COLUMN_IS_REFERENCED_1, stat).
                 execute("alter table \"test\" drop name");

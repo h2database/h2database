@@ -924,3 +924,67 @@ SELECT A AS A1, A AS A2 FROM TEST GROUP BY A;
 
 DROP TABLE TEST;
 > ok
+
+-- Tests for SELECT without columns
+
+EXPLAIN SELECT *;
+>> SELECT
+
+SELECT;
+>
+>
+>
+> rows: 1
+
+SELECT FROM DUAL;
+>
+>
+>
+> rows: 1
+
+SELECT * FROM DUAL JOIN (SELECT * FROM DUAL) ON 1 = 1;
+>
+>
+>
+> rows: 1
+
+EXPLAIN SELECT * FROM DUAL JOIN (SELECT * FROM DUAL) ON 1 = 1;
+>> SELECT FROM DUAL /* dual index */ INNER JOIN ( SELECT ) "_51" /* SELECT */ ON 1=1 WHERE TRUE
+
+SELECT WHERE FALSE;
+>
+>
+> rows: 0
+
+SELECT GROUP BY ();
+>
+>
+>
+> rows: 1
+
+SELECT HAVING FALSE;
+>
+>
+> rows: 0
+
+SELECT QUALIFY FALSE;
+>
+>
+> rows: 0
+
+SELECT ORDER BY (SELECT 1);
+>
+>
+>
+> rows (ordered): 1
+
+SELECT OFFSET 0 ROWS;
+>
+>
+>
+> rows: 1
+
+SELECT FETCH FIRST 0 ROWS ONLY;
+>
+>
+> rows: 0

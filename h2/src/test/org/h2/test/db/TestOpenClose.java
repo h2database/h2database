@@ -155,7 +155,7 @@ public class TestOpenClose extends TestDb {
         conn.close();
         conn = DriverManager.getConnection(url, user, password);
         stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("SELECT * FROM DUAL");
+        ResultSet rs = stat.executeQuery("SELECT * FROM SYSTEM_RANGE(1, 1)");
         if (rs.next()) {
             rs.getString(1);
         }

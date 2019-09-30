@@ -5,10 +5,7 @@
 select 1000L / 10;
 >> 100
 
-select * from (select x as y from dual order by y);
->> 1
-
-select a.x from dual a, dual b order by x;
+select * from (select 1 as y from dual order by y);
 >> 1
 
 select 1 from(select 2 from(select 1) a right join dual b) c;
@@ -322,9 +319,6 @@ delete from test2;
 drop table test2;
 > ok
 
-SELECT X FROM dual GROUP BY X HAVING X=AVG(X);
->> 1
-
 create view test_view(id) as select * from dual;
 > ok
 
@@ -511,9 +505,6 @@ ALTER TABLE TEST DROP B;
 DROP TABLE TEST;
 > ok
 
-select count(d.*) from dual d group by d.x;
->> 1
-
 create table test(id int);
 > ok
 
@@ -536,12 +527,6 @@ drop table test;
 
 select replace(lpad('string', 10), ' ', '*');
 >> ****string
-
-select count(*) from (select * from dual union select * from dual) where x = 0;
->> 0
-
-select count(*) from (select * from (select * from dual union select * from dual)) where x = 0;
->> 0
 
 select instr('abcisj','s', -1) from dual;
 >> 5
@@ -578,35 +563,6 @@ SELECT NAME FROM TEST WHERE NAME REGEXP 'WorldW';
 
 drop table test;
 > ok
-
-select * from (select x from (select x from dual)) where 1=x;
->> 1
-
-CREATE VIEW TEST_VIEW AS SELECT X FROM (SELECT X FROM DUAL);
-> ok
-
-SELECT * FROM TEST_VIEW;
->> 1
-
-SELECT * FROM TEST_VIEW;
->> 1
-
-DROP VIEW TEST_VIEW;
-> ok
-
-SELECT X FROM (SELECT X, X AS "XY" FROM DUAL) WHERE X=1;
->> 1
-
-SELECT X FROM (SELECT X, X AS "X Y" FROM DUAL) WHERE X=1;
->> 1
-
-SELECT X FROM (SELECT X, X AS "X Y" FROM DUAL AS "D Z") WHERE X=1;
->> 1
-
-select * from (select x from dual union select convert(x, int) from dual) where x=0;
-> X
-> -
-> rows: 0
 
 create table test(id int);
 > ok
@@ -687,7 +643,10 @@ drop table test;
 > ok
 
 select * from dual where 'a_z' like '%=_%' escape '=';
->> 1
+>
+>
+>
+> rows: 1
 
 create table test as select 1 from dual union all select 2 from dual;
 > ok

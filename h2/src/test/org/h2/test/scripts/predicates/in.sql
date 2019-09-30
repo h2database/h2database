@@ -22,12 +22,12 @@ select x, x in(2, 3) i from system_range(1, 2) group by x;
 > 2 TRUE
 > rows: 2
 
-select * from dual where x = x + 1 or x in(2, 0);
+select * from system_range(1, 1) where x = x + 1 or x in(2, 0);
 > X
 > -
 > rows: 0
 
-select * from dual where cast('a' || x as varchar_ignorecase) in ('A1', 'B1');
+select * from system_range(1, 1) where cast('a' || x as varchar_ignorecase) in ('A1', 'B1');
 > X
 > -
 > 1
@@ -53,7 +53,7 @@ select * from (select rownum r from test) where r = 1 or r = 2;
 drop table test;
 > ok
 
-select * from dual where x in (select x from dual group by x order by max(x));
+select x from system_range(1, 1) where x in (select x from system_range(1, 1) group by x order by max(x));
 > X
 > -
 > 1
@@ -288,7 +288,7 @@ SELECT * FROM SYSTEM_RANGE(1, 10) WHERE X IN ((SELECT 1), (SELECT 2));
 > rows: 2
 
 EXPLAIN SELECT * FROM SYSTEM_RANGE(1, 10) WHERE X IN ((SELECT 1), (SELECT 2));
->> SELECT "SYSTEM_RANGE"."X" FROM SYSTEM_RANGE(1, 10) /* range index: X IN((SELECT 1 FROM SYSTEM_RANGE(1, 1) /++ range index ++/), (SELECT 2 FROM SYSTEM_RANGE(1, 1) /++ range index ++/)) */ WHERE "X" IN((SELECT 1 FROM SYSTEM_RANGE(1, 1) /* range index */), (SELECT 2 FROM SYSTEM_RANGE(1, 1) /* range index */))
+>> SELECT "SYSTEM_RANGE"."X" FROM SYSTEM_RANGE(1, 10) /* range index: X IN((SELECT 1), (SELECT 2)) */ WHERE "X" IN((SELECT 1), (SELECT 2))
 
 -- Tests for IN predicate with an empty list
 

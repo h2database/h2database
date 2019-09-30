@@ -231,6 +231,7 @@ import org.h2.schema.Sequence;
 import org.h2.table.Column;
 import org.h2.table.DataChangeDeltaTable;
 import org.h2.table.DataChangeDeltaTable.ResultOption;
+import org.h2.table.DualTable;
 import org.h2.table.FunctionTable;
 import org.h2.table.IndexColumn;
 import org.h2.table.IndexHints;
@@ -1933,7 +1934,7 @@ public class Parser {
                 schema = findSchema(schemaName);
                 if (schema == null) {
                     if (isDualTable(tableName)) {
-                        table = getDualTable(false);
+                        table = new DualTable(database);
                         break label;
                     }
                     throw DbException.get(ErrorCode.SCHEMA_NOT_FOUND_1, schemaName);
@@ -1957,11 +1958,10 @@ public class Parser {
                     if (readIf(COMMA)) {
                         Expression step = readExpression();
                         read(CLOSE_PAREN);
-                        table = new RangeTable(mainSchema, min, max, step,
-                                false);
+                        table = new RangeTable(mainSchema, min, max, step);
                     } else {
                         read(CLOSE_PAREN);
-                        table = new RangeTable(mainSchema, min, max, false);
+                        table = new RangeTable(mainSchema, min, max);
                     }
                 } else {
                     table = readTableFunction(tableName, schema, mainSchema);
@@ -2504,7 +2504,7 @@ public class Parser {
     private void addJoin(TableFilter top, TableFilter join, boolean outer, Expression on) {
         if (join.getJoin() != null) {
             String joinTable = Constants.PREFIX_JOIN + parseIndex;
-            TableFilter n = new TableFilter(session, getDualTable(true),
+            TableFilter n = new TableFilter(session, new DualTable(database),
                     joinTable, rightsChecked, currentSelect, join.getOrderInFrom(),
                     null);
             n.setNestedJoin(join);
@@ -2909,14 +2909,28 @@ public class Parser {
             if (readIf(ASTERISK)) {
                 expressions.add(parseWildcard(null, null));
             } else {
-                Expression expr = readExpression();
-                if (readIf("AS") || currentTokenType == IDENTIFIER) {
-                    String alias = readAliasIdentifier();
-                    boolean aliasColumnName = database.getSettings().aliasColumnName;
-                    aliasColumnName |= database.getMode().aliasColumnName;
-                    expr = new Alias(expr, alias, aliasColumnName);
+                switch (currentTokenType) {
+                case FROM:
+                case WHERE:
+                case GROUP:
+                case HAVING:
+                case QUALIFY:
+                case ORDER:
+                case OFFSET:
+                case FETCH:
+                case SEMICOLON:
+                case END:
+                    break;
+                default:
+                    Expression expr = readExpression();
+                    if (readIf("AS") || currentTokenType == IDENTIFIER) {
+                        String alias = readAliasIdentifier();
+                        boolean aliasColumnName = database.getSettings().aliasColumnName;
+                        aliasColumnName |= database.getMode().aliasColumnName;
+                        expr = new Alias(expr, alias, aliasColumnName);
+                    }
+                    expressions.add(expr);
                 }
-                expressions.add(expr);
             }
         } while (readIf(COMMA));
         command.setExpressions(expressions);
@@ -2956,12 +2970,9 @@ public class Parser {
         } else {
             parseSelectSimpleSelectPart(command);
             if (!readIf(FROM)) {
-                // select without FROM: convert to SELECT ... FROM
-                // SYSTEM_RANGE(1,1)
-                Table dual = getDualTable(false);
-                TableFilter filter = new TableFilter(session, dual, null,
-                        rightsChecked, currentSelect, 0,
-                        null);
+                // select without FROM
+                TableFilter filter = new TableFilter(session, new DualTable(database), null, rightsChecked,
+                        currentSelect, 0, null);
                 command.addTableFilter(filter, true);
             } else {
                 parseSelectSimpleFromPart(command);
@@ -3017,12 +3028,6 @@ public class Parser {
         currentPrepared = oldPrepared;
         setSQL(command, "SELECT", start);
         return command;
-    }
-
-    private Table getDualTable(boolean noColumns) {
-        Schema main = database.getMainSchema();
-        Expression one = ValueExpression.get(ValueLong.get(1));
-        return new RangeTable(main, one, one, noColumns);
     }
 
     private void setSQL(Prepared command, String start, int startIndex) {
@@ -7600,7 +7605,7 @@ public class Parser {
             }
         }
         if (isDualTable(tableName)) {
-            return getDualTable(false);
+            return new DualTable(database);
         }
         throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
     }

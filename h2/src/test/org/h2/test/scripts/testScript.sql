@@ -3,12 +3,6 @@
 -- Initial Developer: H2 Group
 --
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
-select * from dual join(select x from dual) on 1=1;
-> X X
-> - -
-> 1 1
-> rows: 1
-
 select 0 as x from system_range(1, 2) d group by d.x;
 > X
 > -
@@ -285,13 +279,13 @@ create table test(d decimal(1, 2));
 > exception INVALID_VALUE_SCALE_PRECISION
 
 select * from dual where cast('xx' as varchar_ignorecase(1)) = 'X' and cast('x x ' as char(2)) = 'x';
-> X
-> -
-> 1
+>
+>
+>
 > rows: 1
 
 explain select -cast(0 as real), -cast(0 as double);
->> SELECT 0.0, 0.0 FROM SYSTEM_RANGE(1, 1) /* range index */
+>> SELECT 0.0, 0.0
 
 select (1) one;
 > ONE
@@ -395,7 +389,7 @@ drop table test;
 > ok
 
 explain analyze select 1;
->> SELECT 1 FROM SYSTEM_RANGE(1, 1) /* range index */ /* scanCount: 2 */
+>> SELECT 1
 
 create table test(id int);
 > ok
@@ -488,7 +482,7 @@ select count(*) from (select 1 union (select 2 intersect select 2)) x;
 create table test(id varchar(1) primary key) as select 'X';
 > ok
 
-select count(*) from (select 1 from dual where x in ((select 1 union select 1))) a;
+select count(*) from (select 1 from dual where 1 in ((select 1 union select 1))) a;
 > COUNT(*)
 > --------
 > 1
@@ -961,12 +955,6 @@ select d, year(d), extract(year from d), cast(d as timestamp) from p;
 drop table p;
 > ok
 
-(SELECT X FROM DUAL ORDER BY X+2) UNION SELECT X FROM DUAL;
-> X
-> -
-> 1
-> rows: 1
-
 create table test(a int, b int default 1);
 > ok
 
@@ -1230,14 +1218,6 @@ having count(*) < 1000 order by dir_num asc;
 
 drop table multi_pages, b_holding;
 > ok
-
-select * from dual where x = 1000000000000000000000;
-> X
-> -
-> rows: 0
-
-select * from dual where x = 'Hello';
-> exception DATA_CONVERSION_ERROR_1
 
 create table test(id smallint primary key);
 > ok
@@ -2851,15 +2831,9 @@ drop table test;
 > ok
 
 call select 1.0/3.0*3.0, 100.0/2.0, -25.0/100.0, 0.0/3.0, 6.9/2.0, 0.72179425150347250912311550800000 / 5314251955.21;
-> SELECT 0.999999999999999999999999990, 5E+1, -0.25, 0, 3.45, 1.35822361752313607260107721120531135706133161972E-10 FROM SYSTEM_RANGE(1, 1) /* range index */ /* scanCount: 2 */
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT 0.999999999999999999999999990, 5E+1, -0.25, 0, 3.45, 1.35822361752313607260107721120531135706133161972E-10
+> -----------------------------------------------------------------------------------------------------------------
 > ROW (0.999999999999999999999999990, 5E+1, -0.25, 0, 3.45, 1.35822361752313607260107721120531135706133161972E-10)
-> rows: 1
-
-call (select x from dual where x is null);
-> SELECT X FROM SYSTEM_RANGE(1, 1) /* range index: X IS NULL */ /* scanCount: 1 */ WHERE X IS NULL
-> ------------------------------------------------------------------------------------------------
-> null
 > rows: 1
 
 create sequence test_seq;
@@ -3542,13 +3516,6 @@ DROP TABLE IF EXISTS CHILD;
 
 DROP TABLE IF EXISTS PARENT;
 > ok
-
-(SELECT * FROM DUAL) UNION ALL (SELECT * FROM DUAL);
-> X
-> -
-> 1
-> 1
-> rows: 2
 
 DECLARE GLOBAL TEMPORARY TABLE TEST(ID INT PRIMARY KEY);
 > ok

@@ -78,12 +78,12 @@ public class TestCsv extends TestDb {
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
         stat.execute("call csvwrite('" + getBaseDir() +
-                "/test.tsv', 'select x from dual', 'writeColumnHeader=false')");
+                "/test.tsv', 'select x from system_range(1, 1)', 'writeColumnHeader=false')");
         String x = IOUtils.readStringAndClose(IOUtils.getReader(
                 FileUtils.newInputStream(getBaseDir() + "/test.tsv")), -1);
         assertEquals("\"1\"", x.trim());
         stat.execute("call csvwrite('" + getBaseDir() +
-                "/test.tsv', 'select x from dual', 'writeColumnHeader=true')");
+                "/test.tsv', 'select x from system_range(1, 1)', 'writeColumnHeader=true')");
         x = IOUtils.readStringAndClose(IOUtils.getReader(
                 FileUtils.newInputStream(getBaseDir() + "/test.tsv")), -1);
         x = x.trim();

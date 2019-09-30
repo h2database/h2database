@@ -1342,6 +1342,17 @@ public class TableFilter implements ColumnResolver {
     }
 
     /**
+     * Returns whether this is a table filter with implicit DUAL table for a
+     * SELECT without a FROM clause.
+     *
+     * @return whether this is a table filter with implicit DUAL table
+     */
+    public boolean isNoFromClauseFilter() {
+        return table instanceof DualTable && join == null && nestedJoin == null
+                && joinCondition == null && filterCondition == null;
+    }
+
+    /**
      * A visitor for table filters.
      */
     public interface TableFilterVisitor {

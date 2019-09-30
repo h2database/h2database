@@ -13,6 +13,7 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.schema.Schema;
 import org.h2.security.SHA256;
+import org.h2.table.DualTable;
 import org.h2.table.MetaTable;
 import org.h2.table.RangeTable;
 import org.h2.table.Table;
@@ -120,7 +121,7 @@ public class User extends RightOwner {
         if (publicRole.isRightGrantedRecursive(table, rightMask)) {
             return true;
         }
-        if (table instanceof MetaTable || table instanceof RangeTable) {
+        if (table instanceof MetaTable || table instanceof DualTable || table instanceof RangeTable) {
             // everybody has access to the metadata information
             return true;
         }

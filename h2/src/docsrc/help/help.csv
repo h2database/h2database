@@ -2732,10 +2732,10 @@ SELECT ID FROM FINAL TABLE (INSERT INTO TEST (A, B) VALUES (1, 2))
 
 "Other Grammar","Data Type","
 intType | booleanType | tinyintType | smallintType | bigintType | identityType
-    | decimalType | doubleType | realType | dateType | timeType | timestampType
-    | timestampWithTimeZoneType | binaryType | otherType | varcharType
-    | varcharIgnorecaseType | charType | blobType | clobType | uuidType
-    | arrayType | enumType | intervalType
+    | decimalType | doubleType | realType | dateType | timeType
+    | timeWithTimeZoneType | timestampType | timestampWithTimeZoneType
+    | binaryType | otherType | varcharType | varcharIgnorecaseType | charType
+    | blobType | clobType | uuidType | arrayType | enumType | intervalType
 ","
 A data type definition.
 ","

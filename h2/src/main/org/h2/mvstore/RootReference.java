@@ -237,6 +237,11 @@ public final class RootReference
         return appendCounter & 0xff;
     }
 
+    /**
+     * Whether flushing is needed.
+     *
+     * @return true if yes
+     */
     public boolean needFlush() {
         return appendCounter != 0;
     }

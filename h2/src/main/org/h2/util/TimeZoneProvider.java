@@ -75,8 +75,11 @@ public abstract class TimeZoneProvider {
         /**
          * Number of seconds in 400 years.
          */
-        static final long SECONDS_PER_PERIOD = 146_097L * 86_400;
+        static final long SECONDS_PER_PERIOD = 146_097L * 60 * 60 * 24;
 
+        /**
+         * Number of seconds per year.
+         */
         static final long SECONDS_PER_YEAR = SECONDS_PER_PERIOD / 400;
 
         WithTimeZone() {

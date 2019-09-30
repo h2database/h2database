@@ -369,13 +369,13 @@ public class TestResultSet extends TestDb {
     }
 
     private void testSubstringDataType() throws SQLException {
-        ResultSet rs = stat.executeQuery("select substr(x, 1, 1) from dual");
+        ResultSet rs = stat.executeQuery("select substr(x, 1, 1) from system_range(1, 1)");
         rs.next();
         assertEquals(Types.VARCHAR, rs.getMetaData().getColumnType(1));
     }
 
     private void testColumnLabelColumnName() throws SQLException {
-        ResultSet rs = stat.executeQuery("select x as y from dual");
+        ResultSet rs = stat.executeQuery("select x as y from system_range(1, 1)");
         rs.next();
         rs.getString("x");
         rs.getString("y");

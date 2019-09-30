@@ -18,13 +18,13 @@ import org.h2.table.TableFilter;
  */
 public class DualIndex extends VirtualTableIndex {
 
-    public DualIndex(DualTable table, IndexColumn[] columns) {
-        super(table, "DUAL_INDEX", columns);
+    public DualIndex(DualTable table) {
+        super(table, "DUAL_INDEX", new IndexColumn[0]);
     }
 
     @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
-        return new DualCursor(session, indexColumns.length == 0);
+        return new DualCursor(session);
     }
 
     @Override
@@ -45,7 +45,7 @@ public class DualIndex extends VirtualTableIndex {
 
     @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
-        return new DualCursor(session, indexColumns.length == 0);
+        return new DualCursor(session);
     }
 
     @Override

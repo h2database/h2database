@@ -6,10 +6,8 @@
 call select 1 from dual where regexp_like('x', 'x', '\');
 > exception INVALID_VALUE_2
 
-select x from dual where REGEXP_LIKE('A', '[a-z]', 'i');
->> 1
+CALL REGEXP_LIKE('A', '[a-z]', 'i');
+>> TRUE
 
-select x from dual where REGEXP_LIKE('A', '[a-z]', 'c');
-> X
-> -
-> rows: 0
+CALL REGEXP_LIKE('A', '[a-z]', 'c');
+>> FALSE

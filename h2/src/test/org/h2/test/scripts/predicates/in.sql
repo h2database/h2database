@@ -22,12 +22,12 @@ select x, x in(2, 3) i from system_range(1, 2) group by x;
 > 2 TRUE
 > rows: 2
 
-select * from dual where x = x + 1 or x in(2, 0);
+select * from system_range(1, 1) where x = x + 1 or x in(2, 0);
 > X
 > -
 > rows: 0
 
-select * from dual where cast('a' || x as varchar_ignorecase) in ('A1', 'B1');
+select * from system_range(1, 1) where cast('a' || x as varchar_ignorecase) in ('A1', 'B1');
 > X
 > -
 > 1
@@ -53,7 +53,7 @@ select * from (select rownum r from test) where r = 1 or r = 2;
 drop table test;
 > ok
 
-select * from dual where x in (select x from dual group by x order by max(x));
+select x from system_range(1, 1) where x in (select x from system_range(1, 1) group by x order by max(x));
 > X
 > -
 > 1

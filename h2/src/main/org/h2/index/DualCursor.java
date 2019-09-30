@@ -10,7 +10,6 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.value.Value;
-import org.h2.value.ValueLong;
 
 /**
  * The cursor implementation for the DUAL index.
@@ -19,13 +18,10 @@ class DualCursor implements Cursor {
 
     private final Session session;
 
-    private boolean noColumns;
-
     private Row currentRow;
 
-    DualCursor(Session session, boolean noColumns) {
+    DualCursor(Session session) {
         this.session = session;
-        this.noColumns = noColumns;
     }
 
     @Override
@@ -41,7 +37,7 @@ class DualCursor implements Cursor {
     @Override
     public boolean next() {
         if (currentRow == null) {
-            currentRow = session.createRow(noColumns ? new Value[0] : new Value[] { ValueLong.get(1L) }, 1);
+            currentRow = session.createRow(new Value[0], 1);
             return true;
         } else {
             return false;

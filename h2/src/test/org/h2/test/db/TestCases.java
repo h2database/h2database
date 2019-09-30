@@ -314,9 +314,9 @@ public class TestCases extends TestDb {
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key)");
         stat.execute("insert into test values(1), (2)");
-        stat.execute("select * from dual where x not in " +
+        stat.execute("select * from system_range(1, 1) where x not in " +
                 "(select id from test order by id)");
-        stat.execute("select * from dual where x not in " +
+        stat.execute("select * from system_range(1, 1) where x not in " +
                 "(select id from test union select id from test)");
         stat.execute("(select id from test order by id) " +
                 "intersect (select id from test order by id)");

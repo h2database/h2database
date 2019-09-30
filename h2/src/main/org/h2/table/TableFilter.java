@@ -1348,7 +1348,7 @@ public class TableFilter implements ColumnResolver {
      * @return whether this is a table filter with implicit DUAL table
      */
     public boolean isNoFromClauseFilter() {
-        return table instanceof DualTable && table.columns.length == 0 && join == null && nestedJoin == null
+        return table instanceof DualTable && join == null && nestedJoin == null
                 && joinCondition == null && filterCondition == null;
     }
 

@@ -4,7 +4,10 @@
 --
 
 SELECT * FROM DUAL;
->> 1
+>
+>
+>
+> rows: 1
 
 CREATE TABLE DUAL(A INT);
 > ok
@@ -16,7 +19,10 @@ SELECT A FROM DUAL;
 >> 2
 
 SELECT * FROM SYS.DUAL;
->> 1
+>
+>
+>
+> rows: 1
 
 DROP TABLE DUAL;
 > ok
@@ -25,7 +31,10 @@ SET MODE DB2;
 > ok
 
 SELECT * FROM SYSDUMMY1;
->> 1
+>
+>
+>
+> rows: 1
 
 CREATE TABLE SYSDUMMY1(A INT);
 > ok
@@ -37,7 +46,10 @@ SELECT A FROM SYSDUMMY1;
 >> 2
 
 SELECT * FROM SYSIBM.SYSDUMMY1;
->> 1
+>
+>
+>
+> rows: 1
 
 DROP TABLE SYSDUMMY1;
 > ok

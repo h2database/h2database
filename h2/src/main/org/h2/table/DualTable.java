@@ -5,11 +5,10 @@
  */
 package org.h2.table;
 
+import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.DualIndex;
 import org.h2.index.Index;
-import org.h2.schema.Schema;
-import org.h2.value.Value;
 
 /**
  * The DUAL table for selects without a FROM clause.
@@ -24,14 +23,12 @@ public class DualTable extends VirtualTable {
     /**
      * Create a new range with the given start and end expressions.
      *
-     * @param schema
-     *            the schema (always the main schema)
-     * @param noColumns
-     *            whether this table has no columns
+     * @param database
+     *            the database
      */
-    public DualTable(Schema schema, boolean noColumns) {
-        super(schema, 0, NAME);
-        setColumns(noColumns ? new Column[0] : new Column[] { new Column("X", Value.LONG) });
+    public DualTable(Database database) {
+        super(database.getMainSchema(), 0, NAME);
+        setColumns(new Column[0]);
     }
 
     @Override
@@ -56,7 +53,7 @@ public class DualTable extends VirtualTable {
 
     @Override
     public Index getScanIndex(Session session) {
-        return new DualIndex(this, IndexColumn.wrap(columns));
+        return new DualIndex(this);
     }
 
     @Override

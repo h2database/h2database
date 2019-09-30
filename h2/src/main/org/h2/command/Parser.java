@@ -1934,7 +1934,7 @@ public class Parser {
                 schema = findSchema(schemaName);
                 if (schema == null) {
                     if (isDualTable(tableName)) {
-                        table = getDualTable(false);
+                        table = new DualTable(database);
                         break label;
                     }
                     throw DbException.get(ErrorCode.SCHEMA_NOT_FOUND_1, schemaName);
@@ -2504,7 +2504,7 @@ public class Parser {
     private void addJoin(TableFilter top, TableFilter join, boolean outer, Expression on) {
         if (join.getJoin() != null) {
             String joinTable = Constants.PREFIX_JOIN + parseIndex;
-            TableFilter n = new TableFilter(session, getDualTable(true),
+            TableFilter n = new TableFilter(session, new DualTable(database),
                     joinTable, rightsChecked, currentSelect, join.getOrderInFrom(),
                     null);
             n.setNestedJoin(join);
@@ -2971,8 +2971,8 @@ public class Parser {
             parseSelectSimpleSelectPart(command);
             if (!readIf(FROM)) {
                 // select without FROM
-                TableFilter filter = new TableFilter(session, getDualTable(true), null, rightsChecked, currentSelect,
-                        0, null);
+                TableFilter filter = new TableFilter(session, new DualTable(database), null, rightsChecked,
+                        currentSelect, 0, null);
                 command.addTableFilter(filter, true);
             } else {
                 parseSelectSimpleFromPart(command);
@@ -3028,10 +3028,6 @@ public class Parser {
         currentPrepared = oldPrepared;
         setSQL(command, "SELECT", start);
         return command;
-    }
-
-    private Table getDualTable(boolean noColumns) {
-        return new DualTable(database.getMainSchema(), noColumns);
     }
 
     private void setSQL(Prepared command, String start, int startIndex) {
@@ -7609,7 +7605,7 @@ public class Parser {
             }
         }
         if (isDualTable(tableName)) {
-            return getDualTable(false);
+            return new DualTable(database);
         }
         throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
     }

@@ -2909,14 +2909,28 @@ public class Parser {
             if (readIf(ASTERISK)) {
                 expressions.add(parseWildcard(null, null));
             } else {
-                Expression expr = readExpression();
-                if (readIf("AS") || currentTokenType == IDENTIFIER) {
-                    String alias = readAliasIdentifier();
-                    boolean aliasColumnName = database.getSettings().aliasColumnName;
-                    aliasColumnName |= database.getMode().aliasColumnName;
-                    expr = new Alias(expr, alias, aliasColumnName);
+                switch (currentTokenType) {
+                case FROM:
+                case WHERE:
+                case GROUP:
+                case HAVING:
+                case QUALIFY:
+                case ORDER:
+                case OFFSET:
+                case FETCH:
+                case SEMICOLON:
+                case END:
+                    break;
+                default:
+                    Expression expr = readExpression();
+                    if (readIf("AS") || currentTokenType == IDENTIFIER) {
+                        String alias = readAliasIdentifier();
+                        boolean aliasColumnName = database.getSettings().aliasColumnName;
+                        aliasColumnName |= database.getMode().aliasColumnName;
+                        expr = new Alias(expr, alias, aliasColumnName);
+                    }
+                    expressions.add(expr);
                 }
-                expressions.add(expr);
             }
         } while (readIf(COMMA));
         command.setExpressions(expressions);

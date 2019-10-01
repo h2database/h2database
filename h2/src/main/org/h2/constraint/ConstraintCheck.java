@@ -95,10 +95,13 @@ public class ConstraintCheck extends Constraint {
         if (newRow == null) {
             return;
         }
-        filter.set(newRow);
         boolean b;
         try {
-            Value v = expr.getValue(session);
+            Value v;
+            synchronized (this) {
+                filter.set(newRow);
+                v = expr.getValue(session);
+            }
             // Both TRUE and NULL are ok
             b = v == ValueNull.INSTANCE || v.getBoolean();
         } catch (DbException ex) {

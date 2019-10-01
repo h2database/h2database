@@ -21,6 +21,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.h2.api.ErrorCode;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
@@ -78,6 +79,7 @@ public class TestMultiThread extends TestDb implements Runnable {
         testConcurrentInsert();
         testConcurrentUpdate();
         testConcurrentUpdate2();
+        testCheckConstraint();
     }
 
     private void testConcurrentSchemaChange() throws Exception {
@@ -551,4 +553,57 @@ public class TestMultiThread extends TestDb implements Runnable {
             deleteDb("concurrentUpdate2");
         }
     }
+
+    private void testCheckConstraint() throws Exception {
+        deleteDb("checkConstraint");
+        try (Connection c = getConnection("checkConstraint")) {
+            Statement s = c.createStatement();
+            s.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, A INT, B INT)");
+            PreparedStatement ps = c.prepareStatement("INSERT INTO TEST VALUES (?, ?, ?)");
+            s.execute("ALTER TABLE TEST ADD CONSTRAINT CHECK_A_B CHECK A = B");
+            final int numRows = 10;
+            for (int i = 0; i < numRows; i++) {
+                ps.setInt(1, i);
+                ps.setInt(2, 0);
+                ps.setInt(3, 0);
+                ps.executeUpdate();
+            }
+            int numThreads = 4;
+            Thread[] threads = new Thread[numThreads];
+            final AtomicBoolean error = new AtomicBoolean();
+            for (int i = 0; i < numThreads; i++) {
+                threads[i] = new Thread() {
+                    @Override
+                    public void run() {
+                        try (Connection c = getConnection("checkConstraint")) {
+                            PreparedStatement ps = c.prepareStatement("UPDATE TEST SET A = ?, B = ? WHERE ID = ?");
+                            Random r = new Random();
+                            for (int i = 0; i < 1_000; i++) {
+                                int v = r.nextInt(1_000);
+                                ps.setInt(1, v);
+                                ps.setInt(2, v);
+                                ps.setInt(3, r.nextInt(numRows));
+                                ps.executeUpdate();
+                            }
+                        } catch (SQLException e) {
+                            error.set(true);
+                            synchronized (TestMultiThread.this) {
+                                logError("Error in CHECK constraint", e);
+                            }
+                        }
+                    }
+                };
+            }
+            for (int i = 0; i < numThreads; i++) {
+                threads[i].start();
+            }
+            for (int i = 0; i < numThreads; i++) {
+                threads[i].join();
+            }
+            assertFalse(error.get());
+        } finally {
+            deleteDb("checkConstraint");
+        }
+    }
+
 }

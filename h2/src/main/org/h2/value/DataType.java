@@ -341,9 +341,8 @@ public class DataType {
         for (int i = Value.INTERVAL_YEAR; i <= Value.INTERVAL_MINUTE_TO_SECOND; i++) {
             addInterval(i);
         }
-        // Maybe another suffix is needed
         add(Value.JSON, Types.OTHER,
-                createString(true, "'", "' FORMAT JSON"),
+                createString(true, "JSON '", "'"),
                 new String[]{"JSON"}
         );
         // Row value doesn't have a type name

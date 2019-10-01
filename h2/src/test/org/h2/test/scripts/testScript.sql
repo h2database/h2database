@@ -1939,11 +1939,11 @@ create sequence "TestSchema"."TestSeq";
 create sequence "TestSchema"."ABC";
 > ok
 
-select currval('main_seq'), currval('TestSchema', 'TestSeq'), nextval('TestSchema', 'ABC');
-> CURRVAL('main_seq') CURRVAL('TestSchema', 'TestSeq') NEXTVAL('TestSchema', 'ABC')
-> ------------------- -------------------------------- ----------------------------
-> 0                   0                                1
-> rows: 1
+select currval('main_seq'), currval('TestSchema', 'TestSeq');
+> exception CURRENT_SEQUENCE_VALUE_IS_NOT_DEFINED_IN_SESSION_1
+
+select nextval('TestSchema', 'ABC');
+>> 1
 
 set autocommit off;
 > ok

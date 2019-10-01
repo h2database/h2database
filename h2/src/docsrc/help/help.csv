@@ -2984,8 +2984,15 @@ ID AS VALUE
 ","
 The next or current value of a sequence.
 
-When the next value is requested the sequence is incremented and the last identity in the current session is updated.
+When the next value is requested the sequence is incremented and the current value of the sequence
+and the last identity in the current session are updated with the generated value.
 Used values are never re-used, even when the transaction is rolled back.
+
+Current value may only be requested after generation of the sequence value in the current session.
+It returns the latest generated value for the current session.
+
+If a single command contains next and current value expressions for the same sequence there is no guarantee that
+the next value expression will be evaluated before the evaluation of current value expression.
 ","
 NEXT VALUE FOR SEQ1
 CURRENT VALUE FOR SCHEMA2.SEQ2
@@ -5165,8 +5172,8 @@ CONVERT(NAME, INT)
 "Functions (System)","CURRVAL","
 CURRVAL( [ schemaNameString, ] sequenceString )
 ","
-Returns the current (last) value of the sequence, independent of the session.
-If the sequence was just created, the method returns (start - interval).
+Returns the latest generated value of the sequence for the current session.
+Current value may only be requested after generation of the sequence value in the current session.
 This method exists only for compatibility, when it isn't required use
 [CURRENT VALUE FOR sequenceName](https://h2database.com/html/grammar.html#sequence_value_expression)
 instead.
@@ -5432,7 +5439,8 @@ MEMORY_USED()
 "Functions (System)","NEXTVAL","
 NEXTVAL ( [ schemaNameString, ] sequenceString )
 ","
-Returns the next value of the sequence.
+Increments the sequence and returns its value.
+The current value of the sequence and the last identity in the current session are updated with the generated value.
 Used values are never re-used, even when the transaction is rolled back.
 This method exists only for compatibility, it's recommended to use the standard
 [NEXT VALUE FOR sequenceName](https://h2database.com/html/grammar.html#sequence_value_expression)

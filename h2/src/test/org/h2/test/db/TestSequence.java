@@ -35,6 +35,7 @@ public class TestSequence extends TestDb {
     @Override
     public void test() throws Exception {
         testConcurrentCreate();
+        testConcurrentNextAndCurrentValue();
         testSchemaSearchPath();
         testAlterSequenceColumn();
         testAlterSequence();
@@ -95,6 +96,66 @@ public class TestSequence extends TestDb {
             Thread.sleep(1000);
             for (Task t : tasks) {
                 t.get();
+            }
+        } finally {
+            for (Task t : tasks) {
+                t.join();
+            }
+            conn.close();
+        }
+    }
+
+    private void testConcurrentNextAndCurrentValue() throws Exception {
+        deleteDb("sequence");
+        final String url = getURL("sequence;MULTI_THREADED=TRUE", true);
+        Connection conn = getConnection(url);
+        Task[] tasks = new Task[2];
+        try {
+            Statement stat = conn.createStatement();
+            stat.execute("CREATE SEQUENCE SEQ1");
+            stat.execute("CREATE SEQUENCE SEQ2");
+            for (int i = 0; i < tasks.length; i++) {
+                tasks[i] = new Task() {
+                    @Override
+                    public void call() throws Exception {
+                        try (Connection conn = getConnection(url)) {
+                            PreparedStatement next1 = conn.prepareStatement("CALL NEXT VALUE FOR SEQ1");
+                            PreparedStatement next2 = conn.prepareStatement("CALL NEXT VALUE FOR SEQ2");
+                            PreparedStatement current1 = conn.prepareStatement("CALL CURRENT VALUE FOR SEQ1");
+                            PreparedStatement current2 = conn.prepareStatement("CALL CURRENT VALUE FOR SEQ2");
+                            while (!stop) {
+                                long v1, v2;
+                                try (ResultSet rs = next1.executeQuery()) {
+                                    rs.next();
+                                    v1 = rs.getLong(1);
+                                }
+                                try (ResultSet rs = next2.executeQuery()) {
+                                    rs.next();
+                                    v2 = rs.getLong(1);
+                                }
+                                try (ResultSet rs = current1.executeQuery()) {
+                                    rs.next();
+                                    if (v1 != rs.getLong(1)) {
+                                        throw new RuntimeException("Unexpected CURRENT VALUE FOR SEQ1");
+                                    }
+                                }
+                                try (ResultSet rs = current2.executeQuery()) {
+                                    rs.next();
+                                    if (v2 != rs.getLong(1)) {
+                                        throw new RuntimeException("Unexpected CURRENT VALUE FOR SEQ2");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }.execute();
+            }
+            Thread.sleep(1000);
+            for (Task t : tasks) {
+                Exception e = t.getException();
+                if (e != null) {
+                    throw new AssertionError(e.getMessage());
+                }
             }
         } finally {
             for (Task t : tasks) {

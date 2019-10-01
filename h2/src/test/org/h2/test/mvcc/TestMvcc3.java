@@ -36,7 +36,6 @@ public class TestMvcc3 extends TestDb {
         testConcurrentUpdate();
         testInsertUpdateRollback();
         testCreateTableAsSelect();
-        testSequence();
         testDisableAutoCommit();
         testRollback();
         deleteDb("mvcc3");
@@ -231,32 +230,6 @@ public class TestMvcc3 extends TestDb {
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         rs.next();
         assertEquals(0, rs.getInt(1));
-        rs.next();
-        assertEquals(1, rs.getInt(1));
-        conn.close();
-    }
-
-    private void testSequence() throws SQLException {
-        if (config.memory) {
-            return;
-        }
-
-        deleteDb("mvcc3");
-        Connection conn;
-        ResultSet rs;
-
-        conn = getConnection("mvcc3");
-        conn.createStatement().execute("create sequence abc");
-        conn.close();
-
-        conn = getConnection("mvcc3");
-        rs = conn.createStatement().executeQuery("call abc.nextval");
-        rs.next();
-        assertEquals(1, rs.getInt(1));
-        conn.close();
-
-        conn = getConnection("mvcc3");
-        rs = conn.createStatement().executeQuery("call abc.currval");
         rs.next();
         assertEquals(1, rs.getInt(1));
         conn.close();

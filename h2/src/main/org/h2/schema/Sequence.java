@@ -5,6 +5,7 @@
  */
 package org.h2.schema;
 
+import java.math.BigDecimal;
 import org.h2.api.ErrorCode;
 import org.h2.command.ddl.SequenceOptions;
 import org.h2.engine.DbObject;
@@ -12,6 +13,9 @@ import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.table.Table;
+import org.h2.value.Value;
+import org.h2.value.ValueDecimal;
+import org.h2.value.ValueLong;
 
 /**
  * A sequence is created using the statement
@@ -234,9 +238,9 @@ public class Sequence extends SchemaObjectBase {
      * @param session the session
      * @return the next value
      */
-    public long getNext(Session session) {
+    public Value getNext(Session session) {
         boolean needsFlush = false;
-        long result;
+        long resultAsLong;
         synchronized (this) {
             if ((increment > 0 && value >= valueWithMargin) ||
                     (increment < 0 && value <= valueWithMargin)) {
@@ -253,11 +257,20 @@ public class Sequence extends SchemaObjectBase {
                     throw DbException.get(ErrorCode.SEQUENCE_EXHAUSTED, getName());
                 }
             }
-            result = value;
+            resultAsLong = value;
             value += increment;
         }
         if (needsFlush) {
             flush(session);
+        }
+        Value result;
+        if (database.getMode().decimalSequences) {
+            result = ValueDecimal.get(BigDecimal.valueOf(resultAsLong));
+        } else {
+            result = ValueLong.get(resultAsLong);
+        }
+        if (session != null) {
+            session.setCurrentValueFor(this, result);
         }
         return result;
     }

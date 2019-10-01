@@ -501,6 +501,7 @@ public class DbException extends RuntimeException {
         case METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT:
         case ACCESS_DENIED_TO_CLASS_1:
         case RESULT_SET_READONLY:
+        case CURRENT_SEQUENCE_VALUE_IS_NOT_DEFINED_IN_SESSION_1:
             return new JdbcSQLNonTransientException(message, sql, state, errorCode, cause, stackTrace);
         case FEATURE_NOT_SUPPORTED_1:
             return new JdbcSQLFeatureNotSupportedException(message, sql, state, errorCode, cause, stackTrace);

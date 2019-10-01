@@ -16,6 +16,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import org.h2.api.ErrorCode;
@@ -42,6 +43,7 @@ import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
+import org.h2.schema.Sequence;
 import org.h2.store.DataHandler;
 import org.h2.store.InDoubtTransaction;
 import org.h2.store.LobStorageFrontend;
@@ -97,9 +99,12 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private boolean autoCommit = true;
     private Random random;
     private int lockTimeout;
+
+    private WeakHashMap<Sequence, Value> currentValueFor;
     private Value lastIdentity = ValueLong.get(0);
     private Value lastScopeIdentity = ValueLong.get(0);
     private Value lastTriggerIdentity;
+
     private int firstUncommittedLog = Session.LOG_WRITTEN;
     private int firstUncommittedPos = Session.LOG_WRITTEN;
     private HashMap<String, Savepoint> savepoints;
@@ -1071,6 +1076,44 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         }
         trace = database.getTraceSystem().getTrace(traceModuleName);
         return trace;
+    }
+
+    /**
+     * Sets the current value of the sequence and last identity value for this
+     * session.
+     *
+     * @param sequence
+     *            the sequence
+     * @param value
+     *            the current value of the sequence
+     */
+    public void setCurrentValueFor(Sequence sequence, Value value) {
+        WeakHashMap<Sequence, Value> currentValueFor = this.currentValueFor;
+        if (currentValueFor == null) {
+            this.currentValueFor = currentValueFor = new WeakHashMap<>();
+        }
+        currentValueFor.put(sequence, value);
+        setLastIdentity(value);
+    }
+
+    /**
+     * Returns the current value of the sequence in this session.
+     *
+     * @param sequence
+     *            the sequence
+     * @return the current value of the sequence in this session
+     * @throws DbException
+     *             if current value is not defined
+     */
+    public Value getCurrentValueFor(Sequence sequence) {
+        WeakHashMap<Sequence, Value> currentValueFor = this.currentValueFor;
+        if (currentValueFor != null) {
+            Value value = currentValueFor.get(sequence);
+            if (value != null) {
+                return value;
+            }
+        }
+        throw DbException.get(ErrorCode.CURRENT_SEQUENCE_VALUE_IS_NOT_DEFINED_IN_SESSION_1, sequence.getSQL(false));
     }
 
     public void setLastIdentity(Value last) {

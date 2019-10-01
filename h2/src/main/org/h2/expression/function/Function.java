@@ -445,10 +445,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 2, Value.NULL);
         addFunctionWithNull("CASE", CASE,
                 VAR_ARGS, Value.NULL);
-        addFunctionNotDeterministic("NEXTVAL", NEXTVAL,
-                VAR_ARGS, Value.LONG);
-        addFunctionNotDeterministic("CURRVAL", CURRVAL,
-                VAR_ARGS, Value.LONG);
+        addFunctionNotDeterministic("NEXTVAL", NEXTVAL, VAR_ARGS, Value.NULL);
+        addFunctionNotDeterministic("CURRVAL", CURRVAL, VAR_ARGS, Value.NULL);
         addFunction("ARRAY_GET", ARRAY_GET,
                 2, Value.NULL);
         addFunctionWithNull("ARRAY_CONTAINS", ARRAY_CONTAINS, 2, Value.BOOLEAN);
@@ -1553,17 +1551,12 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             result = database.areEqual(v0, v1) ? ValueNull.INSTANCE : v0;
             break;
             // system
-        case NEXTVAL: {
-            Sequence sequence = getSequence(session, v0, v1);
-            result = ValueLong.get(sequence.getNext(session));
-            session.setLastIdentity(result);
+        case NEXTVAL:
+            result = getSequence(session, v0, v1).getNext(session);
             break;
-        }
-        case CURRVAL: {
-            Sequence sequence = getSequence(session, v0, v1);
-            result = ValueLong.get(sequence.getCurrentValue());
+        case CURRVAL:
+            result = session.getCurrentValueFor(getSequence(session, v0, v1));
             break;
-        }
         case CSVREAD: {
             String fileName = v0.getString();
             String columnList = v1 == null ? null : v1.getString();
@@ -2881,6 +2874,11 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case MONTH_NAME:
             // day and month names may be long in some languages
             typeInfo = TypeInfo.getTypeInfo(info.returnDataType, 20, 0, null);
+            break;
+        case NEXTVAL:
+        case CURRVAL:
+            typeInfo = database.getMode().decimalSequences //
+                    ? TypeInfo.getTypeInfo(Value.DECIMAL, ValueLong.PRECISION, 0, null) : TypeInfo.TYPE_LONG;
             break;
         default:
             typeInfo = TypeInfo.getTypeInfo(info.returnDataType, -1, -1, null);

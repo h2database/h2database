@@ -131,6 +131,7 @@ public class MVTable extends RegularTable {
             boolean forceLockEvenInMvcc) {
         int lockMode = database.getLockMode();
         if (lockMode == Constants.LOCK_MODE_OFF) {
+            session.registerTable(this);
             return false;
         }
         if (!forceLockEvenInMvcc) {

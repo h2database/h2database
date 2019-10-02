@@ -946,6 +946,17 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     }
 
     /**
+     * Register table as updated within current transaction.
+     *
+     * @param table the table to register
+     */
+    public void registerTable(Table table) {
+        if (!locks.contains(table)) {
+            locks.add(table);
+        }
+    }
+
+    /**
      * Add an undo log entry to this session.
      *
      * @param table the table

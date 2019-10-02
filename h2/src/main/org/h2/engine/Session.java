@@ -931,12 +931,13 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     }
 
     /**
-     * Add a lock for the given table. The object is unlocked on commit or
-     * rollback.
+     * Register table as updated within current transaction.
+     * Table is unlocked on commit or rollback.
+     * It also assumes that table will be modified by transaction.
      *
      * @param table the table that is locked
      */
-    public void addLock(Table table) {
+    public void registerTableAsLocked(Table table) {
         if (SysProperties.CHECK) {
             if (locks.contains(table)) {
                 DbException.throwInternalError(table.toString());
@@ -947,10 +948,11 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     /**
      * Register table as updated within current transaction.
+     * This is used instead of table locking when lock mode is LOCK_MODE_OFF.
      *
-     * @param table the table to register
+     * @param table to register
      */
-    public void registerTable(Table table) {
+    public void registerTableAsUpdated(Table table) {
         if (!locks.contains(table)) {
             locks.add(table);
         }

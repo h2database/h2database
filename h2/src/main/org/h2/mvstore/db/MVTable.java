@@ -131,7 +131,7 @@ public class MVTable extends RegularTable {
             boolean forceLockEvenInMvcc) {
         int lockMode = database.getLockMode();
         if (lockMode == Constants.LOCK_MODE_OFF) {
-            session.registerTable(this);
+            session.registerTableAsUpdated(this);
             return false;
         }
         if (!forceLockEvenInMvcc) {
@@ -251,7 +251,7 @@ public class MVTable extends RegularTable {
             if (exclusive) {
                 if (lockSharedSessions.isEmpty()) {
                     traceLock(session, exclusive, TraceLockEvent.TRACE_LOCK_ADDED_FOR, NO_EXTRA_INFO);
-                    session.addLock(this);
+                    session.registerTableAsLocked(this);
                     lockExclusiveSession = session;
                     if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
                         if (EXCLUSIVE_LOCKS.get() == null) {
@@ -275,7 +275,7 @@ public class MVTable extends RegularTable {
             } else {
                 if (lockSharedSessions.putIfAbsent(session, session) == null) {
                     traceLock(session, exclusive, TraceLockEvent.TRACE_LOCK_OK, NO_EXTRA_INFO);
-                    session.addLock(this);
+                    session.registerTableAsLocked(this);
                     if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
                         ArrayList<String> list = SHARED_LOCKS.get();
                         if (list == null) {

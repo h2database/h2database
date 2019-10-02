@@ -1571,7 +1571,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         /*
          * This implementation needs to be lock-free.
          */
-        if (locks.isEmpty()) {
+        if (database.getLockMode() == Constants.LOCK_MODE_OFF || locks.isEmpty()) {
             return Collections.emptySet();
         }
         /*

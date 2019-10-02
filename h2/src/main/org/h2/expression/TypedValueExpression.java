@@ -5,7 +5,6 @@
  */
 package org.h2.expression;
 
-import org.h2.table.Column;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -62,8 +61,8 @@ public class TypedValueExpression extends ValueExpression {
         if (this == UNKNOWN) {
             builder.append("UNKNOWN");
         } else {
-            value.getSQL(builder.append("CAST(")).append(" AS ").append(new Column(null, type).getCreateSQL())
-                    .append(')');
+            value.getSQL(builder.append("CAST(")).append(" AS ");
+            type.getSQL(builder).append(')');
         }
         return builder;
     }

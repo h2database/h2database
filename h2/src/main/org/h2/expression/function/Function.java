@@ -2977,15 +2977,17 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         }
         case CAST: {
-            args[0].getSQL(builder, alwaysQuote).append(" AS ").append(new Column(null, type).getCreateSQL());
+            args[0].getSQL(builder, alwaysQuote).append(" AS ");
+            type.getSQL(builder);
             break;
         }
         case CONVERT: {
             if (database.getMode().swapConvertFunctionParameters) {
-                builder.append(new Column(null, type).getCreateSQL()).append(',');
+                type.getSQL(builder).append(", ");
                 args[0].getSQL(builder, alwaysQuote);
             } else {
-                args[0].getSQL(builder, alwaysQuote).append(',').append(new Column(null, type).getCreateSQL());
+                args[0].getSQL(builder, alwaysQuote).append(", ");
+                type.getSQL(builder);
             }
             break;
         }

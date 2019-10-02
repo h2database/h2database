@@ -847,9 +847,12 @@ create sequence TEST_SCHEMA.TEST_SEQ;
 > ok
 
 select TEST_SCHEMA.TEST_SEQ.CURRVAL;
->> 0
+> exception CURRENT_SEQUENCE_VALUE_IS_NOT_DEFINED_IN_SESSION_1
 
 select TEST_SCHEMA.TEST_SEQ.nextval;
+>> 1
+
+select TEST_SCHEMA.TEST_SEQ.CURRVAL;
 >> 1
 
 drop schema TEST_SCHEMA cascade;

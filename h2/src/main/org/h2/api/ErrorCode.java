@@ -2078,8 +2078,18 @@ public class ErrorCode {
      */
     public static final int METHOD_DISABLED_ON_AUTOCOMMIT_TRUE = 90147;
 
+    /**
+     * The error with code <code>90148</code> is thrown when trying to access
+     * the current value of a sequence before execution of NEXT VALUE FOR
+     * sequenceName in the current session. Example:
+     *
+     * <pre>
+     * SELECT CURRENT VALUE FOR SEQUENCE XYZ;
+     * </pre>
+     */
+    public static final int CURRENT_SEQUENCE_VALUE_IS_NOT_DEFINED_IN_SESSION_1 = 90148;
 
-    // next is 90148
+    // next is 90149
 
     private ErrorCode() {
         // utility class

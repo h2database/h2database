@@ -7196,10 +7196,6 @@ public class Parser {
             int setting = value ? CommandInterface.SET_AUTOCOMMIT_TRUE
                     : CommandInterface.SET_AUTOCOMMIT_FALSE;
             return new TransactionCommand(session, setting);
-        } else if (readIf("MVCC")) {
-            readIfEqualOrTo();
-            readBooleanSetting();
-            return new NoOperation(session);
         } else if (readIf("EXCLUSIVE")) {
             readIfEqualOrTo();
             Set command = new Set(session, SetTypes.EXCLUSIVE);

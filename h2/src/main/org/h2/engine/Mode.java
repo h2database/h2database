@@ -77,11 +77,6 @@ public class Mode {
     public boolean indexDefinitionInCreateTable;
 
     /**
-     * Meta data calls return identifiers in lower case.
-     */
-    public boolean lowerCaseIdentifiers;
-
-    /**
      * Concatenation with NULL results in NULL. Usually, NULL is treated as an
      * empty string if only one of the operands is NULL, and NULL is only
      * returned if both operands are NULL.
@@ -342,7 +337,6 @@ public class Mode {
 
         mode = new Mode(ModeEnum.MySQL);
         mode.indexDefinitionInCreateTable = true;
-        mode.lowerCaseIdentifiers = true;
         // Next one is for MariaDB
         mode.regexpReplaceBackslashReferences = true;
         mode.onDuplicateKeyUpdate = true;

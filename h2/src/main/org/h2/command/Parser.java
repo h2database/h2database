@@ -155,6 +155,7 @@ import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectOrderBy;
 import org.h2.command.dml.SelectUnion;
 import org.h2.command.dml.Set;
+import org.h2.command.dml.SetSessionCharacteristics;
 import org.h2.command.dml.SetTypes;
 import org.h2.command.dml.TableValueConstructor;
 import org.h2.command.dml.TransactionCommand;
@@ -165,6 +166,7 @@ import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Domain;
 import org.h2.engine.FunctionAlias;
+import org.h2.engine.IsolationLevel;
 import org.h2.engine.Mode;
 import org.h2.engine.Mode.ModeEnum;
 import org.h2.engine.Procedure;
@@ -7393,6 +7395,14 @@ public class Parser {
             Set command = new Set(session, SetTypes.IGNORE_CATALOGS);
             command.setInt(value ? 1 : 0);
             return command;
+        } else if (readIf("SESSION")) {
+            read("CHARACTERISTICS");
+            read("AS");
+            read("TRANSACTION");
+            return parseSetTransactionMode();
+        } else if (readIf("TRANSACTION")) {
+            // TODO should affect only the current transaction
+            return parseSetTransactionMode();
         } else {
             if (isToken("LOGSIZE")) {
                 // HSQLDB compatibility
@@ -7417,6 +7427,27 @@ public class Parser {
             command.setExpression(readExpression());
             return command;
         }
+    }
+
+    private Prepared parseSetTransactionMode() {
+        IsolationLevel isolationLevel;
+        read("ISOLATION");
+        read("LEVEL");
+        if (readIf("READ")) {
+            if (readIf("UNCOMMITTED")) {
+                isolationLevel = IsolationLevel.READ_UNCOMMITTED;
+            } else {
+                read("COMMITTED");
+                isolationLevel = IsolationLevel.READ_COMMITTED;
+            }
+        } else if (readIf("REPEATABLE")) {
+            read("READ");
+            isolationLevel = IsolationLevel.REPEATABLE_READ;
+        } else {
+            read("SERIALIZABLE");
+            isolationLevel = IsolationLevel.SERIALIZABLE;
+        }
+        return new SetSessionCharacteristics(session, isolationLevel);
     }
 
     private Expression readExpressionOrIdentifier() {

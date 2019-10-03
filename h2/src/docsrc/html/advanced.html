@@ -232,31 +232,28 @@ See the <a href="commands.html">Commands</a> for details.
 Transaction isolation is provided for all data manipulation language (DML) statements.
 </p>
 <p>
-Please note that with default MVStore storage engine table level locking is not used.
-Instead, rows are locked for update, and read committed is used in all cases
-except for explicitly selected read uncommitted transaction isolation level.
+The default MVStore engine supports only the read committed isolation level. Dirty reads aren't possible.
+This engine uses row-level locking.
 </p>
 <p>
-This database supports the following transaction isolation levels:
+The PageStore engine supports read uncommitted, read committed, and serializable isolation levels:
 </p>
 <ul>
 <li><b>Read Committed</b><br />
     This is the default level.
     Read locks are released immediately after executing the statement, but write locks are kept until the transaction commits.
-    Higher concurrency is possible when using this level.<br />
-    To enable, execute the SQL statement <code>SET LOCK_MODE 3</code><br />
-    or append <code>;LOCK_MODE=3</code> to the database URL: <code>jdbc:h2:~/test;LOCK_MODE=3</code>
+    To enable, execute the SQL statement
+    <code>SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL READ COMMITTED</code>
 </li><li>
 <b>Serializable</b><br />
     Both read locks and write locks are kept until the transaction commits.
-    To enable, execute the SQL statement <code>SET LOCK_MODE 1</code><br />
-    or append <code>;LOCK_MODE=1</code> to the database URL: <code>jdbc:h2:~/test;LOCK_MODE=1</code>
+    To enable, execute the SQL statement
+    <code>SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE</code>
 </li><li><b>Read Uncommitted</b><br />
     This level means that transaction isolation is disabled.
     This level is not supported by PageStore engine if multi-threaded mode is enabled.
-    <br />
-    To enable, execute the SQL statement <code>SET LOCK_MODE 0</code><br />
-    or append <code>;LOCK_MODE=0</code> to the database URL: <code>jdbc:h2:~/test;LOCK_MODE=0</code>
+    To enable, execute the SQL statement
+    <code>SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL READ UNCOMMITTED</code>
 </li>
 </ul>
 <p>

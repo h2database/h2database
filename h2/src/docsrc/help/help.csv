@@ -1582,20 +1582,22 @@ SET LOG 1
 "Commands (Other)","SET LOCK_MODE","
 SET LOCK_MODE int
 ","
-Sets the lock mode. The values 0, 1, 2, and 3 are supported. The default is 3
-(READ_COMMITTED). This setting affects all connections.
+Sets the lock mode. The values 0, 1, 2, and 3 are supported. The default is 3.
+This setting affects all connections.
 
-The value 0 means no locking (should only be used for testing; also known as
-READ_UNCOMMITTED). Please note that using SET LOCK_MODE 0 while at the same time
+The value 0 means no locking (should only be used for testing).
+Please note that using SET LOCK_MODE 0 while at the same time
 using multiple connections may result in inconsistent transactions.
 
-The value 1 means table level locking (also known as SERIALIZABLE).
+The value 1 means table level locking for PageStore engine,
+for default MVStore engine it is the same as default 3.
 
-The value 2 means table level locking with garbage collection (if the
-application does not close all connections).
+The value 2 means table level locking with garbage collection
+(if the application does not close all connections) for PageStore engine,
+for default MVStore engine it is the same as default 3.
 
-The value 3 means table level locking, but read locks are released immediately
-(default; also known as READ_COMMITTED).
+The value 3 means table level locking, but read locks are released immediately for PageStore engine,
+for default MVStore engine it means row-level locking for write operations.
 
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.
@@ -1859,6 +1861,18 @@ This command does not commit a transaction, and rollback does not affect it.
 This setting can be appended to the database URL: ""jdbc:h2:./test;SCHEMA_SEARCH_PATH=ABC,DEF""
 ","
 SET SCHEMA_SEARCH_PATH INFORMATION_SCHEMA, PUBLIC
+"
+
+"Commands (Other)","SET SESSION CHARACTERISTICS","
+SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL
+{ READ UNCOMMITTED | READ COMMITTED | REPEATABLE READ | SERIALIZABLE }
+","
+Changes the transaction isolation level of the current session.
+The actual support of isolation levels depends on the database engine.
+
+This command commits an open transaction in this session.
+","
+SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE
 "
 
 "Commands (Other)","SET THROTTLE","

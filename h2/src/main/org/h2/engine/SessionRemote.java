@@ -37,6 +37,7 @@ import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
+import org.h2.value.ValueInt;
 
 /**
  * The client side part of a session when using the server mode. This object
@@ -877,6 +878,39 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     @Override
     public void setNetworkConnectionInfo(NetworkConnectionInfo networkConnectionInfo) {
         // Not supported
+    }
+
+    @Override
+    public IsolationLevel getIsolationLevel() {
+        if (getClientVersion() >= Constants.TCP_PROTOCOL_VERSION_19) {
+            try (CommandInterface command = prepareCommand(
+                    "SELECT ISOLATION_LEVEL FROM INFORMATION_SCHEMA.SESSIONS WHERE ID = SESSION_ID()", 1);
+                    ResultInterface result = command.executeQuery(1, false)) {
+                result.next();
+                return IsolationLevel.fromSql(result.currentRow()[0].getString());
+            }
+        } else {
+            try (CommandInterface command = prepareCommand("CALL LOCK_MODE()", 1);
+                    ResultInterface result = command.executeQuery(1, false)) {
+                result.next();
+                return IsolationLevel.fromLockMode(result.currentRow()[0].getInt());
+            }
+        }
+    }
+
+    @Override
+    public void setIsolationLevel(IsolationLevel isolationLevel) {
+        if (getClientVersion() >= Constants.TCP_PROTOCOL_VERSION_19) {
+            try (CommandInterface command = prepareCommand(
+                    "SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL " + isolationLevel.getSQL(), 0)) {
+                command.executeUpdate(null);
+            }
+        } else {
+            try (CommandInterface command = prepareCommand("SET LOCK_MODE ?", 0)) {
+                command.getParameters().get(0).setValue(ValueInt.get(isolationLevel.getLockMode()), false);
+                command.executeUpdate(null);
+            }
+        }
     }
 
 }

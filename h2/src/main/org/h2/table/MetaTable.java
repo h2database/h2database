@@ -517,6 +517,7 @@ public class MetaTable extends Table {
                     "CLIENT_ADDR",
                     "CLIENT_INFO",
                     "SESSION_START TIMESTAMP WITH TIME ZONE",
+                    "ISOLATION_LEVEL",
                     "STATEMENT",
                     "STATEMENT_START TIMESTAMP WITH TIME ZONE",
                     "CONTAINS_UNCOMMITTED BIT",
@@ -1874,6 +1875,8 @@ public class MetaTable extends Table {
                             networkConnectionInfo == null ? null : networkConnectionInfo.getClientInfo(),
                             // SESSION_START
                             DateTimeUtils.timestampTimeZoneFromMillis(s.getSessionStart()),
+                            // ISOLATION_LEVEL
+                            session.getIsolationLevel().getSQL(),
                             // STATEMENT
                             command == null ? null : command.toString(),
                             // STATEMENT_START

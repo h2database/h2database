@@ -38,6 +38,7 @@ import org.h2.command.CommandInterface;
 import org.h2.engine.CastDataProvider;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
+import org.h2.engine.IsolationLevel;
 import org.h2.engine.Mode;
 import org.h2.engine.Mode.ModeEnum;
 import org.h2.engine.SessionInterface;
@@ -132,7 +133,6 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
     private SessionInterface session;
     private CommandInterface commit, rollback;
     private CommandInterface getReadOnly, getGeneratedKeys;
-    private CommandInterface setLockMode, getLockMode;
     private CommandInterface setQueryTimeout, getQueryTimeout;
 
     private int savepointId;
@@ -203,7 +203,6 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
         this.catalog = clone.catalog;
         this.commit = clone.commit;
         this.getGeneratedKeys = clone.getGeneratedKeys;
-        this.getLockMode = clone.getLockMode;
         this.getQueryTimeout = clone.getQueryTimeout;
         this.getReadOnly = clone.getReadOnly;
         this.rollback = clone.rollback;
@@ -474,8 +473,6 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
         rollback = closeAndSetNull(rollback);
         getReadOnly = closeAndSetNull(getReadOnly);
         getGeneratedKeys = closeAndSetNull(getGeneratedKeys);
-        getLockMode = closeAndSetNull(getLockMode);
-        setLockMode = closeAndSetNull(setLockMode);
         getQueryTimeout = closeAndSetNull(getQueryTimeout);
         setQueryTimeout = closeAndSetNull(setQueryTimeout);
     }
@@ -758,54 +755,25 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
     /**
      * Changes the current transaction isolation level. Calling this method will
      * commit an open transaction, even if the new level is the same as the old
-     * one, except if the level is not supported. Internally, this method calls
-     * SET LOCK_MODE, which affects all connections. The following isolation
-     * levels are supported:
-     * <ul>
-     * <li>Connection.TRANSACTION_READ_UNCOMMITTED = SET LOCK_MODE 0: no locking
-     * (should only be used for testing).</li>
-     * <li>Connection.TRANSACTION_SERIALIZABLE = SET LOCK_MODE 1: table level
-     * locking.</li>
-     * <li>Connection.TRANSACTION_READ_COMMITTED = SET LOCK_MODE 3: table level
-     * locking, but read locks are released immediately (default).</li>
-     * </ul>
-     * This setting is not persistent. Please note that using
-     * TRANSACTION_READ_UNCOMMITTED while at the same time using multiple
-     * connections may result in inconsistent transactions.
+     * one.
      *
      * @param level the new transaction isolation level:
      *            Connection.TRANSACTION_READ_UNCOMMITTED,
-     *            Connection.TRANSACTION_READ_COMMITTED, or
+     *            Connection.TRANSACTION_READ_COMMITTED,
+     *            Connection.TRANSACTION_REPEATABLE_READ, or
      *            Connection.TRANSACTION_SERIALIZABLE
      * @throws SQLException if the connection is closed or the isolation level
-     *             is not supported
+     *             is not valid
      */
     @Override
     public void setTransactionIsolation(int level) throws SQLException {
         try {
             debugCodeCall("setTransactionIsolation", level);
             checkClosed();
-            int lockMode;
-            switch (level) {
-            case Connection.TRANSACTION_READ_UNCOMMITTED:
-                lockMode = Constants.LOCK_MODE_OFF;
-                break;
-            case Connection.TRANSACTION_READ_COMMITTED:
-                lockMode = Constants.LOCK_MODE_READ_COMMITTED;
-                break;
-            case Connection.TRANSACTION_REPEATABLE_READ:
-            case Connection.TRANSACTION_SERIALIZABLE:
-                lockMode = Constants.LOCK_MODE_TABLE;
-                break;
-            default:
-                throw DbException.getInvalidValueException("level", level);
-            }
             if (!getAutoCommit()) {
                 commit();
             }
-            setLockMode = prepareCommand("SET LOCK_MODE ?", setLockMode);
-            setLockMode.getParameters().get(0).setValue(ValueInt.get(lockMode), false);
-            setLockMode.executeUpdate(null);
+            session.setIsolationLevel(IsolationLevel.fromJdbc(level));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -862,7 +830,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
     /**
      * Returns the current transaction isolation level.
      *
-     * @return the isolation level.
+     * @return the isolation level
      * @throws SQLException if the connection is closed
      */
     @Override
@@ -870,27 +838,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
         try {
             debugCodeCall("getTransactionIsolation");
             checkClosed();
-            getLockMode = prepareCommand("CALL LOCK_MODE()", getLockMode);
-            ResultInterface result = getLockMode.executeQuery(0, false);
-            result.next();
-            int lockMode = result.currentRow()[0].getInt();
-            result.close();
-            int transactionIsolationLevel;
-            switch (lockMode) {
-            case Constants.LOCK_MODE_OFF:
-                transactionIsolationLevel = Connection.TRANSACTION_READ_UNCOMMITTED;
-                break;
-            case Constants.LOCK_MODE_READ_COMMITTED:
-                transactionIsolationLevel = Connection.TRANSACTION_READ_COMMITTED;
-                break;
-            case Constants.LOCK_MODE_TABLE:
-            case Constants.LOCK_MODE_TABLE_GC:
-                transactionIsolationLevel = Connection.TRANSACTION_SERIALIZABLE;
-                break;
-            default:
-                throw DbException.throwInternalError("lockMode:" + lockMode);
-            }
-            return transactionIsolationLevel;
+            return session.getIsolationLevel().getJdbc();
         } catch (Exception e) {
             throw logAndConvert(e);
         }

@@ -2042,4 +2042,24 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         return database.getMode();
     }
 
+    @Override
+    public IsolationLevel getIsolationLevel() {
+        if (database.isMVStore()) {
+            return IsolationLevel.READ_COMMITTED;
+        } else {
+            return IsolationLevel.fromLockMode(database.getLockMode());
+        }
+    }
+
+    @Override
+    public void setIsolationLevel(IsolationLevel isolationLevel) {
+        commit(false);
+        if (database.isMVStore()) {
+            // Do nothing for now
+        } else {
+            user.checkAdmin();
+            database.setLockMode(isolationLevel.getLockMode());
+        }
+    }
+
 }

@@ -170,4 +170,18 @@ public interface SessionInterface extends Closeable {
      */
     void setNetworkConnectionInfo(NetworkConnectionInfo networkConnectionInfo);
 
+    /**
+     * Returns the isolation level.
+     *
+     * @return the isolation level
+     */
+    IsolationLevel getIsolationLevel();
+
+    /**
+     * Sets the isolation level.
+     *
+     * @param isolationLevel the isolation level to set
+     */
+    void setIsolationLevel(IsolationLevel isolationLevel);
+
 }

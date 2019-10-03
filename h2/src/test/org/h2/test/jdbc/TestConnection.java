@@ -41,6 +41,7 @@ public class TestConnection extends TestDb {
         testSetUnsupportedClientInfoProperties();
         testSetInternalProperty();
         testSetInternalPropertyToInitialValue();
+        testTransactionIsolationSetAndGet();
         testSetGetSchema();
         testCommitOnAutoCommitSetRunner();
         testRollbackOnAutoCommitSetRunner();
@@ -115,6 +116,24 @@ public class TestConnection extends TestDb {
         Connection conn = getConnection("clientInfo");
         assertNull(conn.getClientInfo("UnknownProperty"));
         conn.close();
+    }
+
+    private void testTransactionIsolationSetAndGet() throws Exception {
+        deleteDb("transactionIsolation");
+        try (Connection conn = getConnection("transactionIsolation")) {
+            assertEquals(Connection.TRANSACTION_READ_COMMITTED, conn.getTransactionIsolation());
+            conn.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
+            assertEquals(config.mvStore? Connection.TRANSACTION_READ_COMMITTED
+                    : Connection.TRANSACTION_READ_UNCOMMITTED, conn.getTransactionIsolation());
+            conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
+            assertEquals(config.mvStore? Connection.TRANSACTION_READ_COMMITTED
+                    : Connection.TRANSACTION_SERIALIZABLE, conn.getTransactionIsolation());
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            assertEquals(config.mvStore? Connection.TRANSACTION_READ_COMMITTED
+                    : Connection.TRANSACTION_SERIALIZABLE, conn.getTransactionIsolation());
+        } finally {
+            deleteDb("transactionIsolation");
+        }
     }
 
     private void testCommitOnAutoCommitSetRunner() throws Exception {

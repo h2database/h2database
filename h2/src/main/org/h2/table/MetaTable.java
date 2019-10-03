@@ -517,6 +517,7 @@ public class MetaTable extends Table {
                     "CLIENT_ADDR",
                     "CLIENT_INFO",
                     "SESSION_START TIMESTAMP WITH TIME ZONE",
+                    "ISOLATION_LEVEL",
                     "STATEMENT",
                     "STATEMENT_START TIMESTAMP WITH TIME ZONE",
                     "CONTAINS_UNCOMMITTED BIT",
@@ -646,14 +647,14 @@ public class MetaTable extends Table {
 
     private Column[] createColumns(String... names) {
         Column[] cols = new Column[names.length];
+        int defaultType = database.getSettings().caseInsensitiveIdentifiers ? Value.STRING_IGNORECASE : Value.STRING;
         for (int i = 0; i < names.length; i++) {
             String nameType = names[i];
             int idx = nameType.indexOf(' ');
             int dataType;
             String name;
             if (idx < 0) {
-                dataType = database.getMode().lowerCaseIdentifiers ?
-                        Value.STRING_IGNORECASE : Value.STRING;
+                dataType = defaultType;
                 name = nameType;
             } else {
                 dataType = DataType.getTypeByName(nameType.substring(idx + 1), database.getMode()).type;
@@ -693,7 +694,7 @@ public class MetaTable extends Table {
     }
 
     private String identifier(String s) {
-        if (database.getMode().lowerCaseIdentifiers) {
+        if (database.getSettings().databaseToLower) {
             s = s == null ? null : StringUtils.toLowerEnglish(s);
         }
         return s;
@@ -723,7 +724,7 @@ public class MetaTable extends Table {
         }
         Database db = session.getDatabase();
         Value v;
-        if (database.getMode().lowerCaseIdentifiers) {
+        if (database.getSettings().caseInsensitiveIdentifiers) {
             v = ValueStringIgnoreCase.get(value);
         } else {
             v = ValueString.get(value);
@@ -1874,6 +1875,8 @@ public class MetaTable extends Table {
                             networkConnectionInfo == null ? null : networkConnectionInfo.getClientInfo(),
                             // SESSION_START
                             DateTimeUtils.timestampTimeZoneFromMillis(s.getSessionStart()),
+                            // ISOLATION_LEVEL
+                            session.getIsolationLevel().getSQL(),
                             // STATEMENT
                             command == null ? null : command.toString(),
                             // STATEMENT_START

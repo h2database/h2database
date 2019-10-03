@@ -404,7 +404,7 @@ public class PageStoreTable extends RegularTable {
             if (lockExclusiveSession == null) {
                 if (lockSharedSessions.isEmpty()) {
                     traceLock(session, exclusive, "added for");
-                    session.addLock(this);
+                    session.registerTableAsLocked(this);
                     lockExclusiveSession = session;
                     return true;
                 } else if (lockSharedSessions.size() == 1 &&
@@ -429,7 +429,7 @@ public class PageStoreTable extends RegularTable {
                 }
                 if (!lockSharedSessions.containsKey(session)) {
                     traceLock(session, exclusive, "ok");
-                    session.addLock(this);
+                    session.registerTableAsLocked(this);
                     lockSharedSessions.put(session, session);
                 }
                 return true;

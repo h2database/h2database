@@ -777,11 +777,10 @@ public class TestTransaction extends TestDb {
         Connection conn = getConnection("transaction");
         trace("default TransactionIsolation=" + conn.getTransactionIsolation());
         conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-        assertTrue(conn.getTransactionIsolation() ==
-                Connection.TRANSACTION_READ_COMMITTED);
+        assertEquals(Connection.TRANSACTION_READ_COMMITTED, conn.getTransactionIsolation());
         conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-        assertTrue(conn.getTransactionIsolation() ==
-                Connection.TRANSACTION_SERIALIZABLE);
+        assertEquals(config.mvStore ? Connection.TRANSACTION_READ_COMMITTED : Connection.TRANSACTION_SERIALIZABLE,
+                conn.getTransactionIsolation());
         Statement stat = conn.createStatement();
         assertTrue(conn.getAutoCommit());
         conn.setAutoCommit(false);

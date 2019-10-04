@@ -56,6 +56,7 @@ public class TestTransaction extends TestDb {
         testReferential();
         testSavepoint();
         testIsolation();
+        testSerializableIsolationLevel();
         deleteDb("transaction");
     }
 
@@ -779,8 +780,7 @@ public class TestTransaction extends TestDb {
         conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
         assertEquals(Connection.TRANSACTION_READ_COMMITTED, conn.getTransactionIsolation());
         conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-        assertEquals(config.mvStore ? Connection.TRANSACTION_READ_COMMITTED : Connection.TRANSACTION_SERIALIZABLE,
-                conn.getTransactionIsolation());
+        assertEquals(Connection.TRANSACTION_SERIALIZABLE, conn.getTransactionIsolation());
         Statement stat = conn.createStatement();
         assertTrue(conn.getAutoCommit());
         conn.setAutoCommit(false);
@@ -803,6 +803,54 @@ public class TestTransaction extends TestDb {
         conn.setAutoCommit(false);
         testNestedResultSets(conn);
         conn.close();
+    }
+
+    private void testSerializableIsolationLevel() throws SQLException {
+        if (!config.mvStore) {
+            return;
+        }
+        deleteDb("transaction");
+        try (Connection conn1 = getConnection("transaction"); Connection conn2 = getConnection("transaction")) {
+            Statement stat1 = conn1.createStatement();
+            Statement stat2 = conn2.createStatement();
+            stat1.execute("CREATE TABLE TEST1(ID INT PRIMARY KEY) AS VALUES 1, 2");
+            stat1.execute("CREATE TABLE TEST2(ID INT PRIMARY KEY) AS VALUES 1, 2");
+            conn2.setAutoCommit(false);
+            // Read committed
+            testSerializableIsolationLevelCheckRowsAndCount(stat2, 1, 2);
+            stat1.execute("INSERT INTO TEST1 VALUES 3");
+            testSerializableIsolationLevelCheckRowsAndCount(stat2, 1, 3);
+            testSerializableIsolationLevelCheckRowsAndCount(stat2, 2, 2);
+            stat1.execute("INSERT INTO TEST2 VALUES 3");
+            testSerializableIsolationLevelCheckRowsAndCount(stat2, 2, 3);
+            // Serializable
+            conn2.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            testSerializableIsolationLevelCheckRowsAndCount(stat2, 1, 3);
+            stat1.execute("INSERT INTO TEST1 VALUES 4");
+            testSerializableIsolationLevelCheckRowsAndCount(stat2, 1, 3);
+            testSerializableIsolationLevelCheckRowsAndCount(stat2, 2, 3);
+            stat1.execute("INSERT INTO TEST2 VALUES 4");
+            testSerializableIsolationLevelCheckRowsAndCount(stat2, 2, 3);
+            conn2.commit();
+            testSerializableIsolationLevelCheckRowsAndCount(stat2, 1, 4);
+            testSerializableIsolationLevelCheckRowsAndCount(stat2, 2, 4);
+        }
+        deleteDb("transaction");
+    }
+
+    private void testSerializableIsolationLevelCheckRowsAndCount(Statement stat, int table, int expected)
+            throws SQLException {
+        try (ResultSet rs = stat.executeQuery("SELECT COUNT(*) FROM TEST" + table)) {
+            rs.next();
+            assertEquals(expected, rs.getLong(1));
+        }
+        try (ResultSet rs = stat.executeQuery("SELECT ID FROM TEST" + table + " ORDER BY ID")) {
+            for (int i = 0; ++i <= expected;) {
+                assertTrue(rs.next());
+                assertEquals(i, rs.getInt(1));
+            }
+            assertFalse(rs.next());
+        }
     }
 
     private void testNestedResultSets(Connection conn) throws SQLException {

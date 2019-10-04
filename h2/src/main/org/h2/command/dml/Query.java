@@ -768,7 +768,7 @@ public abstract class Query extends Prepared {
     public final long getMaxDataModificationId() {
         ExpressionVisitor visitor = ExpressionVisitor.getMaxModificationIdVisitor();
         isEverything(visitor);
-        return visitor.getMaxDataModificationId();
+        return Math.max(visitor.getMaxDataModificationId(), session.getSnapshotDataModificationId());
     }
 
     /**

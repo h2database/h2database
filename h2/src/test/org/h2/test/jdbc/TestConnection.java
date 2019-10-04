@@ -126,11 +126,9 @@ public class TestConnection extends TestDb {
             assertEquals(config.mvStore? Connection.TRANSACTION_READ_COMMITTED
                     : Connection.TRANSACTION_READ_UNCOMMITTED, conn.getTransactionIsolation());
             conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
-            assertEquals(config.mvStore? Connection.TRANSACTION_READ_COMMITTED
-                    : Connection.TRANSACTION_SERIALIZABLE, conn.getTransactionIsolation());
+            assertEquals(Connection.TRANSACTION_SERIALIZABLE, conn.getTransactionIsolation());
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-            assertEquals(config.mvStore? Connection.TRANSACTION_READ_COMMITTED
-                    : Connection.TRANSACTION_SERIALIZABLE, conn.getTransactionIsolation());
+            assertEquals(Connection.TRANSACTION_SERIALIZABLE, conn.getTransactionIsolation());
         } finally {
             deleteDb("transactionIsolation");
         }

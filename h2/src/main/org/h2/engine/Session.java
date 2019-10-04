@@ -175,6 +175,22 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private long startStatement = -1;
 
     /**
+     * Isolation level. Used only with MVStore engine, with PageStore engine the
+     * value of this field shouldn't be changed or used to get the real
+     * isolation level.
+     */
+    private IsolationLevel isolationLevel = IsolationLevel.READ_COMMITTED;
+
+    /**
+     * The snapshot data modification id. If isolation level doesn't allow
+     * non-repeatable reads the session uses a snapshot versions of data. After
+     * commit or rollback these snapshots are discarded and cached results of
+     * queries may became invalid. Commit and rollback allocate a new data
+     * modification id and store it here to forbid usage of older results.
+     */
+    private long snapshotDataModificationId;
+
+    /**
      * Set of database object ids to be released at the end of transaction
      */
     private BitSet idsToRelease;
@@ -794,6 +810,19 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             database.releaseDatabaseObjectIds(idsToRelease);
             idsToRelease = null;
         }
+        if (!isolationLevel.allowNonRepeatableRead()) {
+            snapshotDataModificationId = database.getNextModificationDataId();
+        }
+    }
+
+    /**
+     * Returns the data modification id of transaction's snapshot, or 0 if
+     * isolation level doesn't use snapshots.
+     *
+     * @return the data modification id of transaction's snapshot, or 0
+     */
+    public long getSnapshotDataModificationId() {
+        return snapshotDataModificationId;
     }
 
     /**
@@ -1834,8 +1863,8 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      */
     public void startStatementWithinTransaction(Command command) {
         Transaction transaction = getTransaction();
-        if(transaction != null) {
-            Set<MVMap<?, ?>> maps = null;
+        if (transaction != null) {
+            HashSet<MVMap<?, ?>> maps = null;
             if (command != null) {
                 maps = new HashSet<>();
                 Set<DbObject> dependencies = command.getDependencies();
@@ -1852,7 +1881,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                     }
                 }
             }
-            transaction.markStatementStart(maps);
+            transaction.markStatementStart(isolationLevel, maps);
         }
         startStatement = -1;
         if (command != null) {
@@ -1866,7 +1895,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      */
     public void endStatement() {
         setCurrentCommand(null);
-        if(transaction != null) {
+        if (transaction != null) {
             transaction.markStatementEnd();
         }
         startStatement = -1;
@@ -2058,7 +2087,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     @Override
     public IsolationLevel getIsolationLevel() {
         if (database.isMVStore()) {
-            return IsolationLevel.READ_COMMITTED;
+            return isolationLevel;
         } else {
             return IsolationLevel.fromLockMode(database.getLockMode());
         }
@@ -2068,7 +2097,8 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     public void setIsolationLevel(IsolationLevel isolationLevel) {
         commit(false);
         if (database.isMVStore()) {
-            // Do nothing for now
+            this.isolationLevel = isolationLevel.allowNonRepeatableRead() //
+                    ? IsolationLevel.READ_COMMITTED : IsolationLevel.SERIALIZABLE;
         } else {
             user.checkAdmin();
             database.setLockMode(isolationLevel.getLockMode());

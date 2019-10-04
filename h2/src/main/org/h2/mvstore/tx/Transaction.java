@@ -7,10 +7,11 @@ package org.h2.mvstore.tx;
 
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import org.h2.engine.IsolationLevel;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
@@ -162,8 +163,7 @@ public class Transaction {
     private BitSet committingTransactions;
     private final Map<Integer, RootReference> mapRoots = new HashMap<>();
     private RootReference[] undoLogRootReferences;
-
-
+    private IsolationLevel isolationLevel = IsolationLevel.READ_COMMITTED;
 
     Transaction(TransactionStore store, int transactionId, long sequenceNum, int status,
                 String name, long logId, int timeoutMillis, int ownerId,
@@ -301,29 +301,58 @@ public class Transaction {
 
     /**
      * Mark an entry into a new SQL statement execution within this transaction.
-     * @param maps set of maps used by statement about to be executed
+     *
+     * @param isolationLevel
+     *            isolation level
+     * @param maps
+     *            set of maps used by statement about to be executed, may be
+     *            modified by this method
      */
-    public void markStatementStart(Set<MVMap<?, ?>> maps) {
+    public void markStatementStart(IsolationLevel isolationLevel, HashSet<MVMap<?, ?>> maps) {
         markStatementEnd();
-        txCounter = store.store.registerVersionUsage();
-        if (maps != null && !maps.isEmpty()) {
-            // The purpose of the following loop is to get a coherent picture
-            // In order to get such a "snapshot", we wait for a moment of silence,
-            // when no new transaction were committed / closed.
-            do {
-                mapRoots.clear();
-                committingTransactions = store.committingTransactions.get();
-                for (MVMap<?, ?> map : maps) {
-                    RootReference rootReference = map.flushAndGetRoot();
-                    mapRoots.put(map.getId(), rootReference);
+        this.isolationLevel = isolationLevel;
+        if (txCounter == null || isolationLevel.allowNonRepeatableRead()) {
+            txCounter = store.store.registerVersionUsage();
+            if (maps != null && !maps.isEmpty()) {
+                // The purpose of the following loop is to get a coherent picture
+                // In order to get such a "snapshot", we wait for a moment of silence,
+                // when no new transaction were committed / closed.
+                do {
+                    mapRoots.clear();
+                    committingTransactions = store.committingTransactions.get();
+                    for (MVMap<?, ?> map : maps) {
+                        RootReference rootReference = map.flushAndGetRoot();
+                        mapRoots.put(map.getId(), rootReference);
+                    }
+                    undoLogRootReferences = store.collectUndoLogRootReferences();
+                } while (committingTransactions != store.committingTransactions.get());
+                // Now we have a snapshot, where each map RootReference point to state of the map,
+                // undoLogRootReferences captures the state of undo logs
+                // and committingTransactions mask tells us which of seemingly uncommitted changes
+                // should be considered as committed.
+                // Subsequent processing uses this snapshot info only.
+            }
+        } else if (maps != null && !maps.isEmpty()) {
+            for (Iterator<MVMap<?, ?>> i = maps.iterator(); i.hasNext();) {
+                MVMap<?, ?> map = i.next();
+                if (mapRoots.containsKey(map.getId())) {
+                    i.remove();
                 }
-                undoLogRootReferences = store.collectUndoLogRootReferences();
-            } while (committingTransactions != store.committingTransactions.get());
-            // Now we have a snapshot, where each map RootReference point to state of the map,
-            // undoLogRootReferences captures the state of undo logs
-            // and committingTransactions mask tells us which of seemingly uncommitted changes
-            // should be considered as committed.
-            // Subsequent processing uses this snapshot info only.
+            }
+            if (!maps.isEmpty()) {
+                HashMap<Integer, RootReference> additionalRoots = new HashMap<>();
+                BitSet tempCommittingTransactions;
+                do {
+                    additionalRoots.clear();
+                    tempCommittingTransactions = store.committingTransactions.get();
+                    for (MVMap<?, ?> map : maps) {
+                        RootReference rootReference = map.flushAndGetRoot();
+                        additionalRoots.put(map.getId(), rootReference);
+                    }
+                    // TODO update undoLogRootReferences?
+                } while (tempCommittingTransactions != store.committingTransactions.get());
+                mapRoots.putAll(additionalRoots);
+            }
         }
     }
 
@@ -331,11 +360,23 @@ public class Transaction {
      * Mark an exit from SQL statement execution within this transaction.
      */
     public void markStatementEnd() {
+        if (isolationLevel.allowNonRepeatableRead()) {
+            releaseSnapshot();
+        }
+    }
+
+    private void markTransactionEnd() {
+        if (!isolationLevel.allowNonRepeatableRead()) {
+            releaseSnapshot();
+        }
+    }
+
+    private void releaseSnapshot() {
         mapRoots.clear();
         committingTransactions = null;
         undoLogRootReferences = null;
         MVStore.TxCounter counter = txCounter;
-        if(counter != null) {
+        if (counter != null) {
             txCounter = null;
             store.store.deregisterVersionUsage(counter);
         }
@@ -437,6 +478,7 @@ public class Transaction {
      */
     public void commit() {
         assert store.openTransactions.get().get(transactionId);
+        markTransactionEnd();
         Throwable ex = null;
         boolean hasChanges = false;
         int previousStatus = STATUS_OPEN;
@@ -500,6 +542,7 @@ public class Transaction {
      * Roll the transaction back. Afterwards, this transaction is closed.
      */
     public void rollback() {
+        markTransactionEnd();
         Throwable ex = null;
         int status = STATUS_OPEN;
         try {

@@ -26,6 +26,7 @@ import org.h2.command.Parser;
 import org.h2.command.Prepared;
 import org.h2.command.ddl.Analyze;
 import org.h2.command.dml.Query;
+import org.h2.command.dml.SetTypes;
 import org.h2.constraint.Constraint;
 import org.h2.index.Index;
 import org.h2.index.ViewIndex;
@@ -2100,8 +2101,12 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             this.isolationLevel = isolationLevel.allowNonRepeatableRead() //
                     ? IsolationLevel.READ_COMMITTED : IsolationLevel.SERIALIZABLE;
         } else {
-            user.checkAdmin();
-            database.setLockMode(isolationLevel.getLockMode());
+            int lockMode = isolationLevel.getLockMode();
+            org.h2.command.dml.Set set = new org.h2.command.dml.Set(this, SetTypes.LOCK_MODE);
+            set.setInt(lockMode);
+            synchronized (database) {
+                set.update();
+            }
         }
     }
 

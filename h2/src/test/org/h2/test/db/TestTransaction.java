@@ -806,9 +806,6 @@ public class TestTransaction extends TestDb {
     }
 
     private void testSerializableIsolationLevel() throws SQLException {
-        if (!config.mvStore) {
-            return;
-        }
         deleteDb("transaction");
         try (Connection conn1 = getConnection("transaction"); Connection conn2 = getConnection("transaction")) {
             Statement stat1 = conn1.createStatement();
@@ -826,14 +823,18 @@ public class TestTransaction extends TestDb {
             // Serializable
             conn2.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             testSerializableIsolationLevelCheckRowsAndCount(stat2, 1, 3);
-            stat1.execute("INSERT INTO TEST1 VALUES 4");
-            testSerializableIsolationLevelCheckRowsAndCount(stat2, 1, 3);
-            testSerializableIsolationLevelCheckRowsAndCount(stat2, 2, 3);
-            stat1.execute("INSERT INTO TEST2 VALUES 4");
-            testSerializableIsolationLevelCheckRowsAndCount(stat2, 2, 3);
-            conn2.commit();
-            testSerializableIsolationLevelCheckRowsAndCount(stat2, 1, 4);
-            testSerializableIsolationLevelCheckRowsAndCount(stat2, 2, 4);
+            if (config.mvStore) {
+                stat1.execute("INSERT INTO TEST1 VALUES 4");
+                testSerializableIsolationLevelCheckRowsAndCount(stat2, 1, 3);
+                testSerializableIsolationLevelCheckRowsAndCount(stat2, 2, 3);
+                stat1.execute("INSERT INTO TEST2 VALUES 4");
+                testSerializableIsolationLevelCheckRowsAndCount(stat2, 2, 3);
+                conn2.commit();
+                testSerializableIsolationLevelCheckRowsAndCount(stat2, 1, 4);
+                testSerializableIsolationLevelCheckRowsAndCount(stat2, 2, 4);
+            } else {
+                assertThrows(ErrorCode.LOCK_TIMEOUT_1, stat1).execute("INSERT INTO TEST1 VALUES 4");
+            }
         }
         deleteDb("transaction");
     }

@@ -306,7 +306,7 @@ public class Transaction {
     public void markStatementStart(Set<MVMap<?, ?>> maps) {
         markStatementEnd();
         txCounter = store.store.registerVersionUsage();
-        if (maps != null) {
+        if (maps != null && !maps.isEmpty()) {
             // The purpose of the following loop is to get a coherent picture
             // In order to get such a "snapshot", we wait for a moment of silence,
             // when no new transaction were committed / closed.

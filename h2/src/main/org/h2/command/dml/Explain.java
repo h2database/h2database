@@ -5,12 +5,14 @@
  */
 package org.h2.command.dml;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.Map.Entry;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.engine.Database;
+import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -156,4 +158,10 @@ public class Explain extends Prepared {
     public int getType() {
         return executeCommand ? CommandInterface.EXPLAIN_ANALYZE : CommandInterface.EXPLAIN;
     }
+
+    @Override
+    public void collectDependencies(HashSet<DbObject> dependencies) {
+        command.collectDependencies(dependencies);
+    }
+
 }

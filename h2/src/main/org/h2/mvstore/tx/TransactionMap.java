@@ -698,10 +698,13 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
             while (cursor.hasNext()) {
                 K key = cursor.next();
                 VersionedValue data = cursor.getValue();
-                if (data != null && (data.getCurrentValue() != null
-                        || transactionId != TransactionStore.getTransactionId(data.getOperationId()))) {
-                    current = registerCurrent(key, data);
-                    return;
+                if (data != null) {
+                    Object currentValue = data.getCurrentValue();
+                    if (currentValue != null
+                            || transactionId != TransactionStore.getTransactionId(data.getOperationId())) {
+                       registerCurrent(key, currentValue);
+                       return;
+                    }
                 }
             }
             current = null;
@@ -756,13 +759,18 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
                             // current value comes from another uncommitted transaction
                             // take committed value instead
                             Object committedValue = data.getCommittedValue();
-                            data = committedValue == null ? null : VersionedValueCommitted.getInstance(committedValue);
+                            if (committedValue == null) {
+                                continue;
+                            }
+                            registerCurrent(key, committedValue);
+                            return;
                         }
                     }
-                }
-                if (data != null && data.getCurrentValue() != null) {
-                    current = registerCurrent(key, data);
-                    return;
+                    Object currentValue = data.getCurrentValue();
+                    if (currentValue != null) {
+                        registerCurrent(key, currentValue);
+                        return;
+                    }
                 }
             }
             current = null;
@@ -781,8 +789,8 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         }
 
         @SuppressWarnings("unchecked")
-        final X registerCurrent(K key, VersionedValue data) {
-            return (X) (forEntries ? new AbstractMap.SimpleImmutableEntry<>(key, data.getCurrentValue()) : key);
+        final void registerCurrent(K key, Object value) {
+            current = (X) (forEntries ? new AbstractMap.SimpleImmutableEntry<>(key, value) : key);
         }
 
         abstract void fetchNext();

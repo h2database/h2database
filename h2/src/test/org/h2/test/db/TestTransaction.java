@@ -832,6 +832,13 @@ public class TestTransaction extends TestDb {
                 conn2.commit();
                 testSerializableIsolationLevelCheckRowsAndCount(stat2, 1, 4);
                 testSerializableIsolationLevelCheckRowsAndCount(stat2, 2, 4);
+                stat1.execute("ALTER TABLE TEST2 ADD CONSTRAINT FK FOREIGN KEY(ID) REFERENCES TEST1(ID)");
+                conn2.commit();
+                testSerializableIsolationLevelCheckRowsAndCount(stat2, 1, 4);
+                stat1.execute("INSERT INTO TEST1 VALUES 5");
+                stat1.execute("INSERT INTO TEST2 VALUES 5");
+                testSerializableIsolationLevelCheckRowsAndCount(stat2, 1, 4);
+                testSerializableIsolationLevelCheckRowsAndCount(stat2, 2, 4);
             } else {
                 assertThrows(ErrorCode.LOCK_TIMEOUT_1, stat1).execute("INSERT INTO TEST1 VALUES 4");
             }

@@ -1869,15 +1869,21 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             if (command != null) {
                 maps = new HashSet<>();
                 Set<DbObject> dependencies = command.getDependencies();
-                for (DbObject dependency : dependencies) {
-                    if (dependency instanceof MVTable) {
-                        MVTable table = (MVTable) dependency;
-                        for (Index index : table.getIndexes()) {
-                            if (index instanceof MVIndex) {
-                                MVIndex index1 = (MVIndex) index;
-                                MVMap<?, ?> map = index1.getMVMap();
-                                maps.add(map);
+                if (isolationLevel.allowNonRepeatableRead()) {
+                    for (DbObject dependency : dependencies) {
+                        if (dependency instanceof MVTable) {
+                            for (Index index : ((MVTable) dependency).getIndexes()) {
+                                if (index instanceof MVIndex) {
+                                    maps.add(((MVIndex) index).getMVMap());
+                                }
                             }
+                        }
+                    }
+                } else {
+                    HashSet<MVTable> processed = new HashSet<>();
+                    for (DbObject dependency : dependencies) {
+                        if (dependency instanceof MVTable) {
+                            addTableToDependencies((MVTable) dependency, dependencies, maps, processed);
                         }
                     }
                 }
@@ -1887,6 +1893,24 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         startStatement = -1;
         if (command != null) {
             setCurrentCommand(command);
+        }
+    }
+
+    private void addTableToDependencies(MVTable table, Set<DbObject> dependencies, HashSet<MVMap<?, ?>> maps,
+            HashSet<MVTable> processed) {
+        if (!processed.add(table)) {
+            return;
+        }
+        for (Index index : table.getIndexes()) {
+            if (index instanceof MVIndex) {
+                maps.add(((MVIndex) index).getMVMap());
+            }
+        }
+        for (Constraint constraint : table.getConstraints()) {
+            Table ref = constraint.getTable();
+            if (ref != table && ref instanceof MVTable) {
+                addTableToDependencies((MVTable) ref, dependencies, maps, processed);
+            }
         }
     }
 

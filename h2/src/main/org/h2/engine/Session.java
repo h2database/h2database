@@ -1868,22 +1868,30 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             HashSet<MVMap<?, ?>> maps = null;
             if (command != null) {
                 maps = new HashSet<>();
-                Set<DbObject> dependencies = command.getDependencies();
-                if (isolationLevel.allowNonRepeatableRead()) {
-                    for (DbObject dependency : dependencies) {
+                switch (isolationLevel) {
+                case READ_UNCOMMITTED:
+                case READ_COMMITTED:
+                    for (DbObject dependency : command.getDependencies()) {
                         if (dependency instanceof MVTable) {
-                            for (Index index : ((MVTable) dependency).getIndexes()) {
-                                if (index instanceof MVIndex) {
-                                    maps.add(((MVIndex) index).getMVMap());
-                                }
-                            }
+                            addTableToDependencies((MVTable) dependency, maps);
                         }
                     }
-                } else {
+                    break;
+                case REPEATABLE_READ: {
                     HashSet<MVTable> processed = new HashSet<>();
-                    for (DbObject dependency : dependencies) {
+                    for (DbObject dependency : command.getDependencies()) {
                         if (dependency instanceof MVTable) {
-                            addTableToDependencies((MVTable) dependency, dependencies, maps, processed);
+                            addTableToDependencies((MVTable) dependency, command.getDependencies(), maps, processed);
+                        }
+                    }
+                    break;
+                }
+                case SERIALIZABLE:
+                    if (!transaction.hasStatementDependencies()) {
+                        for (Table table : database.getAllTablesAndViews(false)) {
+                            if (table instanceof MVTable) {
+                                addTableToDependencies((MVTable) table, maps);
+                            }
                         }
                     }
                 }
@@ -1896,7 +1904,15 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         }
     }
 
-    private void addTableToDependencies(MVTable table, Set<DbObject> dependencies, HashSet<MVMap<?, ?>> maps,
+    private static void addTableToDependencies(MVTable table, HashSet<MVMap<?, ?>> maps) {
+        for (Index index : table.getIndexes()) {
+            if (index instanceof MVIndex) {
+                maps.add(((MVIndex) index).getMVMap());
+            }
+        }
+    }
+
+    private static void addTableToDependencies(MVTable table, Set<DbObject> dependencies, HashSet<MVMap<?, ?>> maps,
             HashSet<MVTable> processed) {
         if (!processed.add(table)) {
             return;
@@ -2123,7 +2139,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         commit(false);
         if (database.isMVStore()) {
             this.isolationLevel = isolationLevel.allowNonRepeatableRead() //
-                    ? IsolationLevel.READ_COMMITTED : IsolationLevel.SERIALIZABLE;
+                    ? IsolationLevel.READ_COMMITTED : isolationLevel;
         } else {
             int lockMode = isolationLevel.getLockMode();
             org.h2.command.dml.Set set = new org.h2.command.dml.Set(this, SetTypes.LOCK_MODE);

@@ -300,6 +300,15 @@ public class Transaction {
     }
 
     /**
+     * Returns whether statement dependencies are currently set.
+     *
+     * @return whether statement dependencies are currently set
+     */
+    public boolean hasStatementDependencies() {
+        return !mapRoots.isEmpty();
+    }
+
+    /**
      * Mark an entry into a new SQL statement execution within this transaction.
      *
      * @param isolationLevel

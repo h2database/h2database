@@ -174,7 +174,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
 
     private long sizeAsLongSlow() {
         long count = 0L;
-        SerializableIterator<K, Object> iterator = new SerializableIterator<>(this, null, null, false);
+        RepeatableIterator<K, Object> iterator = new RepeatableIterator<>(this, null, null, false);
         while (iterator.hasNext()) {
             iterator.next();
             count++;
@@ -622,7 +622,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
             return new UncommittedIterator<>(this, from, to, false);
         }
         return transaction.isolationLevel.allowNonRepeatableRead() ? new CommittedIterator<K, K>(this, from, to, false)
-                : new SerializableIterator<K, K>(this, from, to, false);
+                : new RepeatableIterator<K, K>(this, from, to, false);
     }
 
     /**
@@ -635,7 +635,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
     public Iterator<Map.Entry<K, V>> entryIterator(final K from, final K to) {
         return transaction.isolationLevel.allowNonRepeatableRead()
                 ? new CommittedIterator<K, Entry<K, V>>(this, from, to, true)
-                : new SerializableIterator<K, Entry<K, V>>(this, from, to, true);
+                : new RepeatableIterator<K, Entry<K, V>>(this, from, to, true);
     }
 
     /**
@@ -720,8 +720,8 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
                     Object currentValue = data.getCurrentValue();
                     if (currentValue != null
                             || transactionId != TransactionStore.getTransactionId(data.getOperationId())) {
-                       registerCurrent(key, currentValue);
-                       return;
+                        registerCurrent(key, currentValue);
+                        return;
                     }
                 }
             }
@@ -796,7 +796,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
 
     }
 
-    private static final class SerializableIterator<K, X> extends TMIterator<K, X> {
+    private static final class RepeatableIterator<K, X> extends TMIterator<K, X> {
 
         private final DataType keyType;
 
@@ -816,7 +816,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
 
         private Object uncommittedValue;
 
-        SerializableIterator(TransactionMap<K, ?> transactionMap, K from, K to, boolean forEntries) {
+        RepeatableIterator(TransactionMap<K, ?> transactionMap, K from, K to, boolean forEntries) {
             super(forEntries);
             keyType = transactionMap.map.getKeyType();
             Transaction transaction = transactionMap.getTransaction();
@@ -945,9 +945,9 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
                 VersionedValue data = uncommittedCursor.getValue();
                 if (data != null) {
                     if (transactionId == TransactionStore.getTransactionId(data.getOperationId())) {
-                       uncommittedKey = key;
-                       uncommittedValue = data.getCurrentValue();
-                       return;
+                        uncommittedKey = key;
+                        uncommittedValue = data.getCurrentValue();
+                        return;
                     }
                 }
             }

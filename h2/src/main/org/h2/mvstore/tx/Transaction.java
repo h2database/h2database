@@ -311,7 +311,8 @@ public class Transaction {
     public void markStatementStart(IsolationLevel isolationLevel, HashSet<MVMap<?, ?>> maps) {
         markStatementEnd();
         this.isolationLevel = isolationLevel;
-        if (txCounter == null || isolationLevel.allowNonRepeatableRead()) {
+        boolean allowNonRepeatableRead = isolationLevel.allowNonRepeatableRead();
+        if (txCounter == null || allowNonRepeatableRead) {
             txCounter = store.store.registerVersionUsage();
             if (maps != null && !maps.isEmpty()) {
                 // The purpose of the following loop is to get a coherent picture
@@ -324,7 +325,9 @@ public class Transaction {
                         RootReference rootReference = map.flushAndGetRoot();
                         mapRoots.put(map.getId(), rootReference);
                     }
-                    undoLogRootReferences = store.collectUndoLogRootReferences();
+                    if (allowNonRepeatableRead) {
+                        undoLogRootReferences = store.collectUndoLogRootReferences();
+                    }
                 } while (committingTransactions != store.committingTransactions.get());
                 // Now we have a snapshot, where each map RootReference point to state of the map,
                 // undoLogRootReferences captures the state of undo logs
@@ -349,7 +352,6 @@ public class Transaction {
                         RootReference rootReference = map.flushAndGetRoot();
                         additionalRoots.put(map.getId(), rootReference);
                     }
-                    // TODO update undoLogRootReferences?
                 } while (tempCommittingTransactions != store.committingTransactions.get());
                 mapRoots.putAll(additionalRoots);
             }

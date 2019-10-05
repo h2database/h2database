@@ -605,7 +605,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      * @return the iterator
      */
     public Iterator<K> keyIterator(K from, K to, boolean includeUncommitted) {
-        return new KeyIterator<>(this, from, to, includeUncommitted);
+        return new TMIterator<>(this, from, to, includeUncommitted, false);
     }
 
     /**
@@ -616,7 +616,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      * @return the iterator
      */
     public Iterator<Map.Entry<K, V>> entryIterator(final K from, final K to) {
-        return new EntryIterator<>(this, from, to);
+        return new TMIterator<>(this, from, to, false, true);
     }
 
     /**
@@ -678,40 +678,16 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         return map.getKeyType();
     }
 
-
-    private static final class KeyIterator<K> extends TMIterator<K,K> {
-
-        public KeyIterator(TransactionMap<K, ?> transactionMap, K from, K to, boolean includeUncommitted) {
-            super(transactionMap, from, to, includeUncommitted);
-        }
-
-        @Override
-        protected K registerCurrent(K key, VersionedValue data) {
-            return key;
-        }
-    }
-
-    private static final class EntryIterator<K,V> extends TMIterator<K,Map.Entry<K,V>> {
-
-        public EntryIterator(TransactionMap<K, ?> transactionMap, K from, K to) {
-            super(transactionMap, from, to, false);
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        protected Map.Entry<K, V> registerCurrent(K key, VersionedValue data) {
-            return new AbstractMap.SimpleImmutableEntry<>(key, (V) data.getCurrentValue());
-        }
-    }
-
-    private abstract static class TMIterator<K,X> implements Iterator<X> {
+    private static class TMIterator<K,X> implements Iterator<X> {
         private final int transactionId;
         private final BitSet committingTransactions;
         private final Cursor<K,VersionedValue> cursor;
         private final boolean includeAllUncommitted;
+        private final boolean forEntries;
         private X current;
 
-        TMIterator(TransactionMap<K,?> transactionMap, K from, K to, boolean includeAllUncommitted) {
+        TMIterator(TransactionMap<K,?> transactionMap, K from, K to, boolean includeAllUncommitted,
+                boolean forEntries) {
             Transaction transaction = transactionMap.getTransaction();
             this.transactionId = transaction.transactionId;
             TransactionStore store = transaction.store;
@@ -742,10 +718,14 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
             this.committingTransactions = committingTransactions;
 
             this.includeAllUncommitted = includeAllUncommitted;
+            this.forEntries = forEntries;
             fetchNext();
         }
 
-        protected abstract X registerCurrent(K key, VersionedValue data);
+        @SuppressWarnings("unchecked")
+        private X registerCurrent(K key, VersionedValue data) {
+            return (X) (forEntries ? new AbstractMap.SimpleImmutableEntry<>(key, data.getCurrentValue()) : key);
+        }
 
         private void fetchNext() {
             while (cursor.hasNext()) {
@@ -785,7 +765,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
 
         @Override
         public final X next() {
-            if(current == null) {
+            if (current == null) {
                 throw new NoSuchElementException();
             }
             X result = current;

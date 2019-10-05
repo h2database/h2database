@@ -163,7 +163,7 @@ public class Transaction {
     private BitSet committingTransactions;
     private final Map<Integer, RootReference> mapRoots = new HashMap<>();
     private RootReference[] undoLogRootReferences;
-    private IsolationLevel isolationLevel = IsolationLevel.READ_COMMITTED;
+    IsolationLevel isolationLevel = IsolationLevel.READ_COMMITTED;
 
     Transaction(TransactionStore store, int transactionId, long sequenceNum, int status,
                 String name, long logId, int timeoutMillis, int ownerId,

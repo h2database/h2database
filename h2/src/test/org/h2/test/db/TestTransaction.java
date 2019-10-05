@@ -38,6 +38,7 @@ public class TestTransaction extends TestDb {
 
     @Override
     public void test() throws Exception {
+        testSerializableIsolationLevel();
         testClosingConnectionWithSessionTempTable();
         testClosingConnectionWithLockedTable();
         testConstraintCreationRollback();
@@ -839,6 +840,30 @@ public class TestTransaction extends TestDb {
                 stat1.execute("INSERT INTO TEST2 VALUES 5");
                 testSerializableIsolationLevelCheckRowsAndCount(stat2, 1, 4);
                 testSerializableIsolationLevelCheckRowsAndCount(stat2, 2, 4);
+                conn2.commit();
+                testSerializableIsolationLevelCheckRowsAndCount(stat2, 1, 5);
+                testSerializableIsolationLevelCheckRowsAndCount(stat2, 2, 5);
+                stat2.execute("INSERT INTO TEST1 VALUES 6");
+                stat2.execute("INSERT INTO TEST2 VALUES 6");
+                stat2.execute("DELETE FROM TEST2 WHERE ID IN (1, 3)");
+                stat1.execute("INSERT INTO TEST1 VALUES 7");
+                stat1.execute("INSERT INTO TEST2 VALUES 7");
+                testSerializableIsolationLevelCheckRowsAndCount(stat2, 1, 6);
+                try (ResultSet rs = stat2.executeQuery("SELECT COUNT(*) FROM TEST2")) {
+                    rs.next();
+                    assertEquals(4, rs.getLong(1));
+                }
+                try (ResultSet rs = stat2.executeQuery("SELECT ID FROM TEST2 ORDER BY ID")) {
+                    assertTrue(rs.next());
+                    assertEquals(2, rs.getInt(1));
+                    assertTrue(rs.next());
+                    assertEquals(4, rs.getInt(1));
+                    assertTrue(rs.next());
+                    assertEquals(5, rs.getInt(1));
+                    assertTrue(rs.next());
+                    assertEquals(6, rs.getInt(1));
+                    assertFalse(rs.next());
+                }
             } else {
                 assertThrows(ErrorCode.LOCK_TIMEOUT_1, stat1).execute("INSERT INTO TEST1 VALUES 4");
             }

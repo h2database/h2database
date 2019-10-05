@@ -38,7 +38,6 @@ public class TestTransaction extends TestDb {
 
     @Override
     public void test() throws Exception {
-        testSerializableIsolationLevel();
         testClosingConnectionWithSessionTempTable();
         testClosingConnectionWithLockedTable();
         testConstraintCreationRollback();
@@ -812,14 +811,14 @@ public class TestTransaction extends TestDb {
             Statement stat1 = conn1.createStatement();
             Statement stat2 = conn2.createStatement();
             stat1.execute("CREATE TABLE TEST1(ID INT PRIMARY KEY) AS VALUES 1, 2");
-            stat1.execute("CREATE TABLE TEST2(ID INT PRIMARY KEY) AS VALUES 1, 2");
+            stat1.execute("CREATE TABLE TEST2(ID INT PRIMARY KEY, V INT) AS VALUES (1, 10), (2, 20)");
             conn2.setAutoCommit(false);
             // Read committed
             testSerializableIsolationLevelCheckRowsAndCount(stat2, 1, 2);
             stat1.execute("INSERT INTO TEST1 VALUES 3");
             testSerializableIsolationLevelCheckRowsAndCount(stat2, 1, 3);
             testSerializableIsolationLevelCheckRowsAndCount(stat2, 2, 2);
-            stat1.execute("INSERT INTO TEST2 VALUES 3");
+            stat1.execute("INSERT INTO TEST2 VALUES (3, 30)");
             testSerializableIsolationLevelCheckRowsAndCount(stat2, 2, 3);
             // Serializable
             conn2.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
@@ -828,7 +827,7 @@ public class TestTransaction extends TestDb {
                 stat1.execute("INSERT INTO TEST1 VALUES 4");
                 testSerializableIsolationLevelCheckRowsAndCount(stat2, 1, 3);
                 testSerializableIsolationLevelCheckRowsAndCount(stat2, 2, 3);
-                stat1.execute("INSERT INTO TEST2 VALUES 4");
+                stat1.execute("INSERT INTO TEST2 VALUES (4, 40)");
                 testSerializableIsolationLevelCheckRowsAndCount(stat2, 2, 3);
                 conn2.commit();
                 testSerializableIsolationLevelCheckRowsAndCount(stat2, 1, 4);
@@ -837,33 +836,55 @@ public class TestTransaction extends TestDb {
                 conn2.commit();
                 testSerializableIsolationLevelCheckRowsAndCount(stat2, 1, 4);
                 stat1.execute("INSERT INTO TEST1 VALUES 5");
-                stat1.execute("INSERT INTO TEST2 VALUES 5");
+                stat1.execute("INSERT INTO TEST2 VALUES (5, 50)");
                 testSerializableIsolationLevelCheckRowsAndCount(stat2, 1, 4);
                 testSerializableIsolationLevelCheckRowsAndCount(stat2, 2, 4);
                 conn2.commit();
                 testSerializableIsolationLevelCheckRowsAndCount(stat2, 1, 5);
                 testSerializableIsolationLevelCheckRowsAndCount(stat2, 2, 5);
                 stat2.execute("INSERT INTO TEST1 VALUES 6");
-                stat2.execute("INSERT INTO TEST2 VALUES 6");
+                stat2.execute("INSERT INTO TEST2 VALUES (6, 60)");
                 stat2.execute("DELETE FROM TEST2 WHERE ID IN (1, 3)");
+                stat2.execute("UPDATE TEST2 SET V = 45 WHERE ID = 4");
                 stat1.execute("INSERT INTO TEST1 VALUES 7");
-                stat1.execute("INSERT INTO TEST2 VALUES 7");
-                testSerializableIsolationLevelCheckRowsAndCount(stat2, 1, 6);
+                stat1.execute("INSERT INTO TEST2 VALUES (7, 70)");
+                stat2.execute("INSERT INTO TEST1 VALUES 8");
+                stat2.execute("INSERT INTO TEST2 VALUES (8, 80)");
+                stat2.execute("INSERT INTO TEST1 VALUES 9");
+                stat2.execute("INSERT INTO TEST2 VALUES (9, 90)");
+                stat2.execute("DELETE FROM TEST2 WHERE ID = 9");
+                testSerializableIsolationLevelCheckRowsAndCount2(stat2, 1, 1, 2, 3, 4, 5, 6, 8, 9);
                 try (ResultSet rs = stat2.executeQuery("SELECT COUNT(*) FROM TEST2")) {
                     rs.next();
-                    assertEquals(4, rs.getLong(1));
+                    assertEquals(5, rs.getLong(1));
                 }
-                try (ResultSet rs = stat2.executeQuery("SELECT ID FROM TEST2 ORDER BY ID")) {
+                try (ResultSet rs = stat2.executeQuery("SELECT ID, V FROM TEST2 ORDER BY ID")) {
                     assertTrue(rs.next());
                     assertEquals(2, rs.getInt(1));
+                    assertEquals(20, rs.getInt(2));
                     assertTrue(rs.next());
                     assertEquals(4, rs.getInt(1));
+                    assertEquals(45, rs.getInt(2));
                     assertTrue(rs.next());
                     assertEquals(5, rs.getInt(1));
+                    assertEquals(50, rs.getInt(2));
                     assertTrue(rs.next());
                     assertEquals(6, rs.getInt(1));
+                    assertEquals(60, rs.getInt(2));
+                    assertTrue(rs.next());
+                    assertEquals(8, rs.getInt(1));
+                    assertEquals(80, rs.getInt(2));
                     assertFalse(rs.next());
                 }
+                stat1.execute("INSERT INTO TEST1 VALUES 11");
+                stat1.execute("INSERT INTO TEST2 VALUES (11, 110)");
+                conn2.commit();
+                testSerializableIsolationLevelCheckRowsAndCount2(stat1, 2, 2, 4, 5, 6, 7, 8, 11);
+                testSerializableIsolationLevelCheckRowsAndCount2(stat2, 2, 2, 4, 5, 6, 7, 8, 11);
+                stat2.execute("INSERT INTO TEST1 VALUES 10");
+                stat2.execute("INSERT INTO TEST2 VALUES (9, 90), (10, 100)");
+                stat2.execute("DELETE FROM TEST2 WHERE ID = 9");
+                testSerializableIsolationLevelCheckRowsAndCount2(stat2, 2, 2, 4, 5, 6, 7, 8, 10, 11);
             } else {
                 assertThrows(ErrorCode.LOCK_TIMEOUT_1, stat1).execute("INSERT INTO TEST1 VALUES 4");
             }
@@ -881,6 +902,21 @@ public class TestTransaction extends TestDb {
             for (int i = 0; ++i <= expected;) {
                 assertTrue(rs.next());
                 assertEquals(i, rs.getInt(1));
+            }
+            assertFalse(rs.next());
+        }
+    }
+
+    private void testSerializableIsolationLevelCheckRowsAndCount2(Statement stat, int table, int... values)
+            throws SQLException {
+        try (ResultSet rs = stat.executeQuery("SELECT COUNT(*) FROM TEST" + table)) {
+            rs.next();
+            assertEquals(values.length, rs.getLong(1));
+        }
+        try (ResultSet rs = stat.executeQuery("SELECT ID FROM TEST" + table + " ORDER BY ID")) {
+            for (int expected : values) {
+                assertTrue(rs.next());
+                assertEquals(expected, rs.getInt(1));
             }
             assertFalse(rs.next());
         }

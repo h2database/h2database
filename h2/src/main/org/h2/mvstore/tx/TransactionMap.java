@@ -720,6 +720,15 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
                 : new CommittedIterator<K, X>(this, from, to, forEntries);
     }
 
+    /**
+     * The iterator for read uncommitted isolation level. This iterator is also
+     * used for unique indexes.
+     *
+     * @param <K>
+     *            the type of keys
+     * @param <X>
+     *            the type of elements
+     */
     private static final class UncommittedIterator<K, X> extends TMIterator<K, X> {
 
         private final int transactionId;
@@ -727,6 +736,8 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         private final BitSet committingTransactions;
 
         private final Cursor<K, VersionedValue> cursor;
+
+        private final boolean useNewSnapshot;
 
         UncommittedIterator(TransactionMap<K, ?> transactionMap, K from, K to, boolean useNewSnapshot,
                 boolean forEntries) {
@@ -737,6 +748,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
                     : transactionMap.getCurrentRootSnapshot();
             this.cursor = new Cursor<>(snapshot.root.root, from, to);
             this.committingTransactions = snapshot.committingTransactions;
+            this.useNewSnapshot = useNewSnapshot;
             fetchNext();
         }
 
@@ -751,12 +763,15 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
                         registerCurrent(key, currentValue);
                         return;
                     }
-                    long id = data.getOperationId();
-                    if (id != 0) {
-                        int tx = TransactionStore.getTransactionId(id);
-                        if (transactionId != tx && !committingTransactions.get(tx)) {
-                            registerCurrent(key, currentValue);
-                            return;
+                    if (useNewSnapshot) {
+                        // Include all uncommitted entries for unique index
+                        long id = data.getOperationId();
+                        if (id != 0) {
+                            int tx = TransactionStore.getTransactionId(id);
+                            if (transactionId != tx && !committingTransactions.get(tx)) {
+                                registerCurrent(key, currentValue);
+                                return;
+                            }
                         }
                     }
                 }

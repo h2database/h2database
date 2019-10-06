@@ -174,7 +174,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
 
     private long sizeAsLongSlow() {
         long count = 0L;
-        RepeatableIterator<K, Object> iterator = new RepeatableIterator<>(this, null, null, false);
+        TMIterator<K, ?> iterator = getRepeatableIterator(null, null, false);
         while (iterator.hasNext()) {
             iterator.next();
             count++;
@@ -622,7 +622,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
             return new UncommittedIterator<>(this, from, to, false);
         }
         return transaction.isolationLevel.allowNonRepeatableRead() ? new CommittedIterator<K, K>(this, from, to, false)
-                : new RepeatableIterator<K, K>(this, from, to, false);
+                : this.<K> getRepeatableIterator(from, to, false);
     }
 
     /**
@@ -635,7 +635,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
     public Iterator<Map.Entry<K, V>> entryIterator(final K from, final K to) {
         return transaction.isolationLevel.allowNonRepeatableRead()
                 ? new CommittedIterator<K, Entry<K, V>>(this, from, to, true)
-                : new RepeatableIterator<K, Entry<K, V>>(this, from, to, true);
+                : this.<Entry<K, V>> getRepeatableIterator(from, to, true);
     }
 
     /**
@@ -697,6 +697,11 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         return map.getKeyType();
     }
 
+    private <X> TMIterator<K, X> getRepeatableIterator(K from, K to, boolean forEntries) {
+        return transaction.hasChanges() ? new RepeatableIterator<K, X>(this, from, to, forEntries)
+                : new CommittedIterator<K, X>(this, from, to, forEntries);
+    }
+
     private static final class UncommittedIterator<K, X> extends TMIterator<K, X> {
 
         private final int transactionId;
@@ -730,6 +735,15 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
 
     }
 
+    /**
+     * The iterator for read committed isolation level. Can also be used on
+     * higher levels when the transaction doesn't have own changes.
+     *
+     * @param <K>
+     *            the type of keys
+     * @param <X>
+     *            the type of elements
+     */
     private static final class CommittedIterator<K, X> extends TMIterator<K, X> {
 
         private final int transactionId;
@@ -796,6 +810,14 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
 
     }
 
+    /**
+     * The iterator for repeatable read and serializable isolation levels.
+     *
+     * @param <K>
+     *            the type of keys
+     * @param <X>
+     *            the type of elements
+     */
     private static final class RepeatableIterator<K, X> extends TMIterator<K, X> {
 
         private final DataType keyType;

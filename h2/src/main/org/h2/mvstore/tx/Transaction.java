@@ -207,24 +207,14 @@ public class Transaction {
     Snapshot getMapRoot(int mapId) {
         Snapshot snapshot = mapRoots.get(mapId);
         if (snapshot == null) {
-            // The purpose of the following loop is to get a coherent picture
-            // of a state of two independent volatile / atomic variables,
-            // which they had at some recent moment in time.
-            // In order to get such a "snapshot", we wait for a moment of silence,
-            // when neither of the variables concurrently changes it's value.
-            BitSet committingTransactions;
-            RootReference root;
-            do {
-                committingTransactions = store.committingTransactions.get();
-                root = store.openMap(mapId).flushAndGetRoot();
-            } while (committingTransactions != store.committingTransactions.get());
-            snapshot = new Snapshot(root, committingTransactions);
+            snapshot = getNewCurrentMapRoot(mapId);
         }
         return snapshot;
     }
 
     /**
-     * Get the current root reference for the given map id.
+     * Get the current root reference from the start of the command for the
+     * given map id.
      *
      * @param mapId the map id
      * @return the root reference
@@ -232,20 +222,30 @@ public class Transaction {
     Snapshot getCurrentMapRoot(int mapId) {
         Snapshot snapshot = mapCurrentRoots.get(mapId);
         if (snapshot == null) {
-            // The purpose of the following loop is to get a coherent picture
-            // of a state of two independent volatile / atomic variables,
-            // which they had at some recent moment in time.
-            // In order to get such a "snapshot", we wait for a moment of silence,
-            // when neither of the variables concurrently changes it's value.
-            BitSet committingTransactions;
-            RootReference root;
-            do {
-                committingTransactions = store.committingTransactions.get();
-                root = store.openMap(mapId).flushAndGetRoot();
-            } while (committingTransactions != store.committingTransactions.get());
-            snapshot = new Snapshot(root, committingTransactions);
+            snapshot = getNewCurrentMapRoot(mapId);
         }
         return snapshot;
+    }
+
+    /**
+     * Get the new current root reference for the given map id.
+     *
+     * @param mapId the map id
+     * @return the root reference
+     */
+    Snapshot getNewCurrentMapRoot(int mapId) {
+        // The purpose of the following loop is to get a coherent picture
+        // of a state of two independent volatile / atomic variables,
+        // which they had at some recent moment in time.
+        // In order to get such a "snapshot", we wait for a moment of silence,
+        // when neither of the variables concurrently changes it's value.
+        BitSet committingTransactions;
+        RootReference root;
+        do {
+            committingTransactions = store.committingTransactions.get();
+            root = store.openMap(mapId).flushAndGetRoot();
+        } while (committingTransactions != store.committingTransactions.get());
+        return new Snapshot(root, committingTransactions);
     }
 
     RootReference[] getUndoLogRootReferences() {

@@ -445,6 +445,10 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         return transaction.getCurrentMapRoot(map.getId());
     }
 
+    Snapshot getNewCurrentRootSnapshot() {
+        return transaction.getNewCurrentMapRoot(map.getId());
+    }
+
     /**
      * Whether the map contains the key.
      *
@@ -618,11 +622,11 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      */
     public Iterator<K> keyIterator(K from, K to, boolean includeUncommitted) {
         if (includeUncommitted) {
-            return new UncommittedIterator<>(this, from, to, false);
+            return new UncommittedIterator<>(this, from, to, true, false);
         }
         switch (transaction.isolationLevel) {
         case READ_UNCOMMITTED:
-            return new UncommittedIterator<>(this, from, to, false);
+            return new UncommittedIterator<>(this, from, to, false, false);
         case REPEATABLE_READ:
         case SERIALIZABLE:
             return getRepeatableIterator(from, to, false);
@@ -642,7 +646,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
     public Iterator<Map.Entry<K, V>> entryIterator(final K from, final K to) {
         switch (transaction.isolationLevel) {
         case READ_UNCOMMITTED:
-            return new UncommittedIterator<>(this, from, to, true);
+            return new UncommittedIterator<>(this, from, to, false, true);
         case REPEATABLE_READ:
         case SERIALIZABLE:
             return getRepeatableIterator(from, to, true);
@@ -724,11 +728,13 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
 
         private final Cursor<K, VersionedValue> cursor;
 
-        UncommittedIterator(TransactionMap<K, ?> transactionMap, K from, K to, boolean forEntries) {
+        UncommittedIterator(TransactionMap<K, ?> transactionMap, K from, K to, boolean useNewSnapshot,
+                boolean forEntries) {
             super(forEntries);
             Transaction transaction = transactionMap.getTransaction();
             this.transactionId = transaction.transactionId;
-            Snapshot snapshot = transactionMap.getCurrentRootSnapshot();
+            Snapshot snapshot = useNewSnapshot ? transactionMap.getNewCurrentRootSnapshot()
+                    : transactionMap.getCurrentRootSnapshot();
             this.cursor = new Cursor<>(snapshot.root.root, from, to);
             this.committingTransactions = snapshot.committingTransactions;
             fetchNext();

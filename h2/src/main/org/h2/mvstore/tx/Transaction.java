@@ -160,9 +160,17 @@ public class Transaction {
      */
     private volatile boolean notificationRequested;
 
-    private BitSet committingTransactions;
-    private final Map<Integer, RootReference> mapRoots = new HashMap<>();
+    /**
+     * Map of roots at start of the command for read committed, at start of the
+     * first command for serializable, or mixed map for repeatable read.
+     */
+    private final Map<Integer, Snapshot> mapRoots = new HashMap<>();
     private RootReference[] undoLogRootReferences;
+    /**
+     * Additional map of current roots at start of the command, used only on
+     * repeatable read and serializable isolation levels.
+     */
+    private final Map<Integer, Snapshot> mapCurrentRoots = new HashMap<>();
     IsolationLevel isolationLevel = IsolationLevel.READ_COMMITTED;
 
     Transaction(TransactionStore store, int transactionId, long sequenceNum, int status,
@@ -190,25 +198,54 @@ public class Transaction {
         return getStatus(statusAndLogId.get());
     }
 
-    BitSet getCommittingTransactions() {
-        if (committingTransactions == null) {
-            return store.committingTransactions.get();
-        }
-        return committingTransactions;
-    }
-
     /**
      * Get the root reference for the given map id.
      *
      * @param mapId the map id
      * @return the root reference
      */
-    RootReference getMapRoot(int mapId) {
-        RootReference rootReference = mapRoots.get(mapId);
-        if (rootReference == null) {
-            rootReference = store.openMap(mapId).flushAndGetRoot();
+    Snapshot getMapRoot(int mapId) {
+        Snapshot snapshot = mapRoots.get(mapId);
+        if (snapshot == null) {
+            // The purpose of the following loop is to get a coherent picture
+            // of a state of two independent volatile / atomic variables,
+            // which they had at some recent moment in time.
+            // In order to get such a "snapshot", we wait for a moment of silence,
+            // when neither of the variables concurrently changes it's value.
+            BitSet committingTransactions;
+            RootReference root;
+            do {
+                committingTransactions = store.committingTransactions.get();
+                root = store.openMap(mapId).flushAndGetRoot();
+            } while (committingTransactions != store.committingTransactions.get());
+            snapshot = new Snapshot(root, committingTransactions);
         }
-        return rootReference;
+        return snapshot;
+    }
+
+    /**
+     * Get the current root reference for the given map id.
+     *
+     * @param mapId the map id
+     * @return the root reference
+     */
+    Snapshot getCurrentMapRoot(int mapId) {
+        Snapshot snapshot = mapCurrentRoots.get(mapId);
+        if (snapshot == null) {
+            // The purpose of the following loop is to get a coherent picture
+            // of a state of two independent volatile / atomic variables,
+            // which they had at some recent moment in time.
+            // In order to get such a "snapshot", we wait for a moment of silence,
+            // when neither of the variables concurrently changes it's value.
+            BitSet committingTransactions;
+            RootReference root;
+            do {
+                committingTransactions = store.committingTransactions.get();
+                root = store.openMap(mapId).flushAndGetRoot();
+            } while (committingTransactions != store.committingTransactions.get());
+            snapshot = new Snapshot(root, committingTransactions);
+        }
+        return snapshot;
     }
 
     RootReference[] getUndoLogRootReferences() {
@@ -313,57 +350,81 @@ public class Transaction {
      *
      * @param isolationLevel
      *            isolation level
-     * @param maps
+     * @param currentMaps
      *            set of maps used by statement about to be executed, may be
      *            modified by this method
+     * @param allMaps
+     *            set of all maps within transaction
      */
-    public void markStatementStart(IsolationLevel isolationLevel, HashSet<MVMap<?, ?>> maps) {
+    public void markStatementStart(IsolationLevel isolationLevel, HashSet<MVMap<?, ?>> currentMaps,
+            HashSet<MVMap<?, ?>> allMaps) {
         markStatementEnd();
         this.isolationLevel = isolationLevel;
-        boolean allowNonRepeatableRead = isolationLevel.allowNonRepeatableRead();
-        if (txCounter == null || allowNonRepeatableRead) {
-            txCounter = store.store.registerVersionUsage();
-            if (maps != null && !maps.isEmpty()) {
-                // The purpose of the following loop is to get a coherent picture
-                // In order to get such a "snapshot", we wait for a moment of silence,
-                // when no new transaction were committed / closed.
-                do {
-                    mapRoots.clear();
-                    committingTransactions = store.committingTransactions.get();
-                    for (MVMap<?, ?> map : maps) {
-                        RootReference rootReference = map.flushAndGetRoot();
-                        mapRoots.put(map.getId(), rootReference);
-                    }
-                    if (allowNonRepeatableRead) {
-                        undoLogRootReferences = store.collectUndoLogRootReferences();
-                    }
-                } while (committingTransactions != store.committingTransactions.get());
-                // Now we have a snapshot, where each map RootReference point to state of the map,
-                // undoLogRootReferences captures the state of undo logs
-                // and committingTransactions mask tells us which of seemingly uncommitted changes
-                // should be considered as committed.
-                // Subsequent processing uses this snapshot info only.
-            }
-        } else if (maps != null && !maps.isEmpty()) {
-            for (Iterator<MVMap<?, ?>> i = maps.iterator(); i.hasNext();) {
+        if (isolationLevel.allowNonRepeatableRead()) {
+            gatherMapRoots(currentMaps, true);
+        } else {
+            markStatementStartForRepeatableRead(currentMaps, allMaps);
+        }
+    }
+
+    private void markStatementStartForRepeatableRead(HashSet<MVMap<?, ?>> currentMaps, HashSet<MVMap<?, ?>> allMaps) {
+        if (txCounter == null) {
+            gatherMapRoots(allMaps, false);
+        } else if (allMaps != null && !allMaps.isEmpty()) {
+            for (Iterator<MVMap<?, ?>> i = allMaps.iterator(); i.hasNext();) {
                 MVMap<?, ?> map = i.next();
                 if (mapRoots.containsKey(map.getId())) {
                     i.remove();
                 }
             }
-            if (!maps.isEmpty()) {
-                HashMap<Integer, RootReference> additionalRoots = new HashMap<>();
-                BitSet tempCommittingTransactions;
+            if (!allMaps.isEmpty()) {
+                HashMap<Integer, Snapshot> additionalRoots = new HashMap<>();
+                BitSet committingTransactions;
                 do {
                     additionalRoots.clear();
-                    tempCommittingTransactions = store.committingTransactions.get();
-                    for (MVMap<?, ?> map : maps) {
-                        RootReference rootReference = map.flushAndGetRoot();
-                        additionalRoots.put(map.getId(), rootReference);
+                    committingTransactions = store.committingTransactions.get();
+                    for (MVMap<?, ?> map : currentMaps) {
+                        additionalRoots.put(map.getId(), //
+                                new Snapshot(map.flushAndGetRoot(), committingTransactions));
                     }
-                } while (tempCommittingTransactions != store.committingTransactions.get());
+                } while (committingTransactions != store.committingTransactions.get());
                 mapRoots.putAll(additionalRoots);
             }
+        }
+        if (currentMaps != null && !currentMaps.isEmpty()) {
+            BitSet committingTransactions;
+            do {
+                mapCurrentRoots.clear();
+                committingTransactions = store.committingTransactions.get();
+                for (MVMap<?, ?> map : currentMaps) {
+                    mapCurrentRoots.put(map.getId(), new Snapshot(map.flushAndGetRoot(), committingTransactions));
+                }
+            } while (committingTransactions != store.committingTransactions.get());
+        }
+    }
+
+    private void gatherMapRoots(HashSet<MVMap<?, ?>> maps, boolean allowNonRepeatableRead) {
+        txCounter = store.store.registerVersionUsage();
+        if (maps != null && !maps.isEmpty()) {
+            // The purpose of the following loop is to get a coherent picture
+            // In order to get such a "snapshot", we wait for a moment of silence,
+            // when no new transaction were committed / closed.
+            BitSet committingTransactions;
+            do {
+                mapRoots.clear();
+                committingTransactions = store.committingTransactions.get();
+                for (MVMap<?, ?> map : maps) {
+                    mapRoots.put(map.getId(), new Snapshot(map.flushAndGetRoot(), committingTransactions));
+                }
+                if (allowNonRepeatableRead) {
+                    undoLogRootReferences = store.collectUndoLogRootReferences();
+                }
+            } while (committingTransactions != store.committingTransactions.get());
+            // Now we have a snapshot, where each map RootReference point to state of the map,
+            // undoLogRootReferences captures the state of undo logs
+            // and committingTransactions mask tells us which of seemingly uncommitted changes
+            // should be considered as committed.
+            // Subsequent processing uses this snapshot info only.
         }
     }
 
@@ -374,6 +435,7 @@ public class Transaction {
         if (isolationLevel.allowNonRepeatableRead()) {
             releaseSnapshot();
         }
+        mapCurrentRoots.clear();
     }
 
     private void markTransactionEnd() {
@@ -384,7 +446,6 @@ public class Transaction {
 
     private void releaseSnapshot() {
         mapRoots.clear();
-        committingTransactions = null;
         undoLogRootReferences = null;
         MVStore.TxCounter counter = txCounter;
         if (counter != null) {
@@ -633,7 +694,6 @@ public class Transaction {
      */
     void closeIt() {
         mapRoots.clear();
-        committingTransactions = null;
         long lastState = setStatus(STATUS_CLOSED);
         store.store.deregisterVersionUsage(txCounter);
         if((hasChanges(lastState) || hasRollback(lastState)) && notificationRequested) {

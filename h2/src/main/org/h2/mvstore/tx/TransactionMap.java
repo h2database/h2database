@@ -99,17 +99,15 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         // getting coherent picture of the map, committing transactions, and undo logs
         // either from values stored in transaction (never loops in that case),
         // or current values from the transaction store (loops until moment of silence)
-        BitSet committingTransactions;
-        RootReference mapRootReference;
+        Snapshot snapshot;
         RootReference[] undoLogRootReferences;
         do {
-            committingTransactions = getCommittingTransactions();
-            mapRootReference = getRootReference();
+            snapshot = getRootSnapshot();
             undoLogRootReferences = getTransaction().getUndoLogRootReferences();
-        } while(committingTransactions != getCommittingTransactions() ||
-                mapRootReference != getRootReference());
+        } while (!snapshot.equals(getRootSnapshot()));
 
-
+        RootReference mapRootReference = snapshot.root;
+        BitSet committingTransactions = snapshot.committingTransactions;
         Page mapRootPage = mapRootReference.root;
         long size = mapRootReference.getTotalCount();
         long undoLogsTotalSize = undoLogRootReferences == null ? size
@@ -391,8 +389,8 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      */
     @SuppressWarnings("unchecked")
     public V getFromSnapshot(Object key) {
-        RootReference rootReference = getRootReference();
-        VersionedValue data = map.get(rootReference.root, key);
+        Snapshot snapshot = getRootSnapshot();
+        VersionedValue data = map.get(snapshot.root.root, key);
         if (data == null) {
             // doesn't exist or deleted by a committed transaction
             return null;
@@ -403,7 +401,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
             return (V)data.getCurrentValue();
         }
         int tx = TransactionStore.getTransactionId(id);
-        if (tx == transaction.transactionId || getCommittingTransactions().get(tx)) {
+        if (tx == transaction.transactionId || snapshot.committingTransactions.get(tx)) {
             // added by this transaction or another transaction which is committed by now
             return (V) data.getCurrentValue();
         } else {
@@ -438,12 +436,12 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         }
     }
 
-    BitSet getCommittingTransactions() {
-        return transaction.getCommittingTransactions();
+    Snapshot getRootSnapshot() {
+        return transaction.getMapRoot(map.getId());
     }
 
-    RootReference getRootReference() {
-        return transaction.getMapRoot(map.getId());
+    Snapshot getCurrentRootSnapshot() {
+        return transaction.getCurrentMapRoot(map.getId());
     }
 
     /**
@@ -531,7 +529,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      * @return the last key, or null if empty
      */
     public K lastKey() {
-        RootReference rootReference = getRootReference();
+        RootReference rootReference = getRootSnapshot().root;
         K k = map.lastKey(rootReference.root);
         while (k != null && getFromSnapshot(k) == null) {
             k = map.lowerKey(rootReference.root, k);
@@ -547,7 +545,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      * @return the result
      */
     public K higherKey(K key) {
-        RootReference rootReference = getRootReference();
+        RootReference rootReference = getRootSnapshot().root;
         do {
             key = map.higherKey(rootReference.root, key);
         } while (key != null && getFromSnapshot(key) == null);
@@ -574,7 +572,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      * @return the result
      */
     public K floorKey(K key) {
-        RootReference rootReference = getRootReference();
+        RootReference rootReference = getRootSnapshot().root;
         key = map.floorKey(rootReference.root, key);
         while (key != null && getFromSnapshot(key) == null) {
             // Use lowerKey() for the next attempts, otherwise we'll get an infinite loop
@@ -591,7 +589,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      * @return the result
      */
     public K lowerKey(K key) {
-        RootReference rootReference = getRootReference();
+        RootReference rootReference = getRootSnapshot().root;
         do {
             key = map.lowerKey(rootReference.root, key);
         } while (key != null && getFromSnapshot(key) == null);
@@ -706,13 +704,17 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
 
         private final int transactionId;
 
+        private final BitSet committingTransactions;
+
         private final Cursor<K, VersionedValue> cursor;
 
         UncommittedIterator(TransactionMap<K, ?> transactionMap, K from, K to, boolean forEntries) {
             super(forEntries);
             Transaction transaction = transactionMap.getTransaction();
             this.transactionId = transaction.transactionId;
-            this.cursor = new Cursor<>(transactionMap.map.flushAndGetRoot().root, from, to);
+            Snapshot snapshot = transactionMap.getCurrentRootSnapshot();
+            this.cursor = new Cursor<>(snapshot.root.root, from, to);
+            this.committingTransactions = snapshot.committingTransactions;
             fetchNext();
         }
 
@@ -723,10 +725,17 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
                 VersionedValue data = cursor.getValue();
                 if (data != null) {
                     Object currentValue = data.getCurrentValue();
-                    if (currentValue != null
-                            || transactionId != TransactionStore.getTransactionId(data.getOperationId())) {
+                    if (currentValue != null) {
                         registerCurrent(key, currentValue);
                         return;
+                    }
+                    long id = data.getOperationId();
+                    if (id != 0) {
+                        int tx = TransactionStore.getTransactionId(id);
+                        if (transactionId != tx && !committingTransactions.get(tx)) {
+                            registerCurrent(key, currentValue);
+                            return;
+                        }
                     }
                 }
             }
@@ -756,23 +765,9 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
             super(forEntries);
             Transaction transaction = transactionMap.getTransaction();
             this.transactionId = transaction.transactionId;
-            // The purpose of the following loop is to get a coherent picture
-            // of a state of two independent volatile / atomic variables,
-            // which they had at some recent moment in time.
-            // In order to get such a "snapshot", we wait for a moment of silence,
-            // when neither of the variables concurrently changes it's value.
-            BitSet committingTransactions;
-            RootReference mapRootReference;
-            do {
-                committingTransactions = transactionMap.getCommittingTransactions();
-                mapRootReference = transactionMap.getRootReference();
-            } while (committingTransactions != transactionMap.getCommittingTransactions());
-            // Now we have a snapshot, where mapRootReference points to state of the map
-            // and committingTransactions mask tells us which of seemingly uncommitted changes
-            // should be considered as committed.
-            // Subsequent map traversal uses this snapshot info only.
-            this.cursor = new Cursor<>(mapRootReference.root, from, to);
-            this.committingTransactions = committingTransactions;
+            Snapshot snapshot = transactionMap.getRootSnapshot();
+            this.cursor = new Cursor<>(snapshot.root.root, from, to);
+            this.committingTransactions = snapshot.committingTransactions;
             fetchNext();
         }
 
@@ -843,25 +838,12 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
             keyType = transactionMap.map.getKeyType();
             Transaction transaction = transactionMap.getTransaction();
             this.transactionId = transaction.transactionId;
-            // The purpose of the following loop is to get a coherent picture
-            // of a state of two independent volatile / atomic variables,
-            // which they had at some recent moment in time.
-            // In order to get such a "snapshot", we wait for a moment of silence,
-            // when neither of the variables concurrently changes it's value.
-            BitSet committingTransactions;
-            RootReference mapRootReference;
-            do {
-                committingTransactions = transactionMap.getCommittingTransactions();
-                mapRootReference = transactionMap.getRootReference();
-            } while (committingTransactions != transactionMap.getCommittingTransactions());
-            // Now we have a snapshot, where mapRootReference points to state of the map
-            // and committingTransactions mask tells us which of seemingly uncommitted changes
-            // should be considered as committed.
-            // Subsequent map traversal uses this snapshot info only.
-            this.snapshotCursor = new Cursor<>(mapRootReference.root, from, to);
-            this.snapshotCommittingTransactions = committingTransactions;
+            Snapshot snapshot = transactionMap.getRootSnapshot();
+            this.snapshotCursor = new Cursor<>(snapshot.root.root, from, to);
+            this.snapshotCommittingTransactions = snapshot.committingTransactions;
 
-            this.uncommittedCursor = new Cursor<>(transactionMap.map.flushAndGetRoot().root, from, to);
+            snapshot = transactionMap.getCurrentRootSnapshot();
+            this.uncommittedCursor = new Cursor<>(snapshot.root.root, from, to);
 
             fetchNext();
         }
@@ -966,7 +948,8 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
                 K key = uncommittedCursor.next();
                 VersionedValue data = uncommittedCursor.getValue();
                 if (data != null) {
-                    if (transactionId == TransactionStore.getTransactionId(data.getOperationId())) {
+                    long id = data.getOperationId();
+                    if (id != 0L && transactionId == TransactionStore.getTransactionId(id)) {
                         uncommittedKey = key;
                         uncommittedValue = data.getCurrentValue();
                         return;

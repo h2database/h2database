@@ -1862,41 +1862,42 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      * Start a new statement within a transaction.
      * @param command about to be started
      */
+    @SuppressWarnings("incomplete-switch")
     public void startStatementWithinTransaction(Command command) {
         Transaction transaction = getTransaction();
         if (transaction != null) {
-            HashSet<MVMap<?, ?>> maps = null;
+            HashSet<MVMap<?, ?>> currentMaps = null, allMaps = null;
             if (command != null) {
-                maps = new HashSet<>();
-                switch (isolationLevel) {
-                case READ_UNCOMMITTED:
-                case READ_COMMITTED:
-                    for (DbObject dependency : command.getDependencies()) {
-                        if (dependency instanceof MVTable) {
-                            addTableToDependencies((MVTable) dependency, maps);
-                        }
+                Set<DbObject> dependencies = command.getDependencies();
+                currentMaps = new HashSet<>();
+                for (DbObject dependency : dependencies) {
+                    if (dependency instanceof MVTable) {
+                        addTableToDependencies((MVTable) dependency, currentMaps);
                     }
-                    break;
+                }
+                switch (isolationLevel) {
                 case REPEATABLE_READ: {
+                    allMaps = new HashSet<>();
                     HashSet<MVTable> processed = new HashSet<>();
-                    for (DbObject dependency : command.getDependencies()) {
+                    for (DbObject dependency : dependencies) {
                         if (dependency instanceof MVTable) {
-                            addTableToDependencies((MVTable) dependency, command.getDependencies(), maps, processed);
+                            addTableToDependencies((MVTable) dependency, dependencies, allMaps, processed);
                         }
                     }
                     break;
                 }
                 case SERIALIZABLE:
                     if (!transaction.hasStatementDependencies()) {
+                        allMaps = new HashSet<>();
                         for (Table table : database.getAllTablesAndViews(false)) {
                             if (table instanceof MVTable) {
-                                addTableToDependencies((MVTable) table, maps);
+                                addTableToDependencies((MVTable) table, allMaps);
                             }
                         }
                     }
                 }
             }
-            transaction.markStatementStart(isolationLevel, maps);
+            transaction.markStatementStart(isolationLevel, currentMaps, allMaps);
         }
         startStatement = -1;
         if (command != null) {

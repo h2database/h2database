@@ -2139,8 +2139,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     public void setIsolationLevel(IsolationLevel isolationLevel) {
         commit(false);
         if (database.isMVStore()) {
-            this.isolationLevel = isolationLevel.allowNonRepeatableRead() //
-                    ? IsolationLevel.READ_COMMITTED : isolationLevel;
+            this.isolationLevel = isolationLevel;
         } else {
             int lockMode = isolationLevel.getLockMode();
             org.h2.command.dml.Set set = new org.h2.command.dml.Set(this, SetTypes.LOCK_MODE);

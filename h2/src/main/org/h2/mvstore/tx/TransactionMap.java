@@ -5,6 +5,7 @@
  */
 package org.h2.mvstore.tx;
 
+import org.h2.engine.IsolationLevel;
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
@@ -93,7 +94,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      * @return the size
      */
     public long sizeAsLong() {
-        if (!transaction.isolationLevel.allowNonRepeatableRead()) {
+        if (transaction.isolationLevel != IsolationLevel.READ_COMMITTED) {
             return sizeAsLongSlow();
         }
         // getting coherent picture of the map, committing transactions, and undo logs
@@ -172,7 +173,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
 
     private long sizeAsLongSlow() {
         long count = 0L;
-        TMIterator<K, ?> iterator = getRepeatableIterator(null, null, false);
+        Iterator<K> iterator = keyIterator(null, null, false);
         while (iterator.hasNext()) {
             iterator.next();
             count++;
@@ -619,8 +620,16 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         if (includeUncommitted) {
             return new UncommittedIterator<>(this, from, to, false);
         }
-        return transaction.isolationLevel.allowNonRepeatableRead() ? new CommittedIterator<K, K>(this, from, to, false)
-                : this.<K> getRepeatableIterator(from, to, false);
+        switch (transaction.isolationLevel) {
+        case READ_UNCOMMITTED:
+            return new UncommittedIterator<>(this, from, to, false);
+        case REPEATABLE_READ:
+        case SERIALIZABLE:
+            return getRepeatableIterator(from, to, false);
+        case READ_COMMITTED:
+        default:
+            return new CommittedIterator<>(this, from, to, false);
+        }
     }
 
     /**
@@ -631,9 +640,16 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      * @return the iterator
      */
     public Iterator<Map.Entry<K, V>> entryIterator(final K from, final K to) {
-        return transaction.isolationLevel.allowNonRepeatableRead()
-                ? new CommittedIterator<K, Entry<K, V>>(this, from, to, true)
-                : this.<Entry<K, V>> getRepeatableIterator(from, to, true);
+        switch (transaction.isolationLevel) {
+        case READ_UNCOMMITTED:
+            return new UncommittedIterator<>(this, from, to, true);
+        case REPEATABLE_READ:
+        case SERIALIZABLE:
+            return getRepeatableIterator(from, to, true);
+        case READ_COMMITTED:
+        default:
+            return new CommittedIterator<>(this, from, to, true);
+        }
     }
 
     /**

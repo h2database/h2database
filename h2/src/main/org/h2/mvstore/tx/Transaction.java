@@ -351,19 +351,25 @@ public class Transaction {
      * @param isolationLevel
      *            isolation level
      * @param currentMaps
-     *            set of maps used by statement about to be executed, may be
-     *            modified by this method
+     *            set of maps used by statement about to be executed
      * @param allMaps
-     *            set of all maps within transaction
+     *            set of all maps within transaction, may be modified by this
+     *            method
      */
     public void markStatementStart(IsolationLevel isolationLevel, HashSet<MVMap<?, ?>> currentMaps,
             HashSet<MVMap<?, ?>> allMaps) {
         markStatementEnd();
         this.isolationLevel = isolationLevel;
-        if (isolationLevel.allowNonRepeatableRead()) {
+        switch (isolationLevel) {
+        case READ_UNCOMMITTED:
+            gatherMapCurrentRoots(currentMaps);
+            break;
+        case READ_COMMITTED:
             gatherMapRoots(currentMaps, true);
-        } else {
+            break;
+        default:
             markStatementStartForRepeatableRead(currentMaps, allMaps);
+            break;
         }
     }
 
@@ -391,19 +397,10 @@ public class Transaction {
                 mapRoots.putAll(additionalRoots);
             }
         }
-        if (currentMaps != null && !currentMaps.isEmpty()) {
-            BitSet committingTransactions;
-            do {
-                mapCurrentRoots.clear();
-                committingTransactions = store.committingTransactions.get();
-                for (MVMap<?, ?> map : currentMaps) {
-                    mapCurrentRoots.put(map.getId(), new Snapshot(map.flushAndGetRoot(), committingTransactions));
-                }
-            } while (committingTransactions != store.committingTransactions.get());
-        }
+        gatherMapCurrentRoots(currentMaps);
     }
 
-    private void gatherMapRoots(HashSet<MVMap<?, ?>> maps, boolean allowNonRepeatableRead) {
+    private void gatherMapRoots(HashSet<MVMap<?, ?>> maps, boolean forReadCommitted) {
         txCounter = store.store.registerVersionUsage();
         if (maps != null && !maps.isEmpty()) {
             // The purpose of the following loop is to get a coherent picture
@@ -416,7 +413,7 @@ public class Transaction {
                 for (MVMap<?, ?> map : maps) {
                     mapRoots.put(map.getId(), new Snapshot(map.flushAndGetRoot(), committingTransactions));
                 }
-                if (allowNonRepeatableRead) {
+                if (forReadCommitted) {
                     undoLogRootReferences = store.collectUndoLogRootReferences();
                 }
             } while (committingTransactions != store.committingTransactions.get());
@@ -425,6 +422,19 @@ public class Transaction {
             // and committingTransactions mask tells us which of seemingly uncommitted changes
             // should be considered as committed.
             // Subsequent processing uses this snapshot info only.
+        }
+    }
+
+    private void gatherMapCurrentRoots(HashSet<MVMap<?, ?>> maps) {
+        if (maps != null && !maps.isEmpty()) {
+            BitSet committingTransactions;
+            do {
+                mapCurrentRoots.clear();
+                committingTransactions = store.committingTransactions.get();
+                for (MVMap<?, ?> map : maps) {
+                    mapCurrentRoots.put(map.getId(), new Snapshot(map.flushAndGetRoot(), committingTransactions));
+                }
+            } while (committingTransactions != store.committingTransactions.get());
         }
     }
 

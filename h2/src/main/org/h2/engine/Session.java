@@ -704,9 +704,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
         currentTransactionName = null;
         transactionStart = null;
-        boolean forRepeatabaleRead = false;
+        boolean forRepeatableRead = false;
         if (transaction != null) {
-            forRepeatabaleRead = !isolationLevel.allowNonRepeatableRead();
+            forRepeatableRead = !isolationLevel.allowNonRepeatableRead();
             try {
                 markUsedTablesAsUpdated();
                 transaction.commit();
@@ -740,7 +740,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                 commit(true);
             }
         }
-        endTransaction(forRepeatabaleRead);
+        endTransaction(forRepeatableRead);
     }
 
     private void markUsedTablesAsUpdated() {
@@ -836,7 +836,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         currentTransactionName = null;
         transactionStart = null;
         boolean needCommit = undoLog != null && undoLog.size() > 0 || transaction != null;
-        boolean forRepeatabaleRead = transaction != null && !isolationLevel.allowNonRepeatableRead();
+        boolean forRepeatableRead = transaction != null && !isolationLevel.allowNonRepeatableRead();
         if (needCommit) {
             rollbackTo(null);
         }
@@ -849,7 +849,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             autoCommit = true;
             autoCommitAtTransactionEnd = false;
         }
-        endTransaction(forRepeatabaleRead);
+        endTransaction(forRepeatableRead);
     }
 
     /**

@@ -955,25 +955,19 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
                 // If value doesn't exist or it was deleted by a committed transaction,
                 // or if value is a committed one, just return it.
                 if (data != null) {
+                    Object value = data.getCommittedValue();
                     long id = data.getOperationId();
                     if (id != 0) {
                         int tx = TransactionStore.getTransactionId(id);
-                        if (tx != transactionId && !snapshotCommittingTransactions.get(tx)) {
-                            // current value comes from another uncommitted transaction
-                            // take committed value instead
-                            Object committedValue = data.getCommittedValue();
-                            if (committedValue == null) {
-                                continue;
-                            }
-                            snapshotKey = key;
-                            snapshotValue = committedValue;
-                            return;
+                        if (tx == transactionId || snapshotCommittingTransactions.get(tx)) {
+                            // value comes from this transaction or another committed transaction
+                            // take current value instead instead of committed one
+                            value = data.getCurrentValue();
                         }
                     }
-                    Object currentValue = data.getCurrentValue();
-                    if (currentValue != null) {
+                    if (value != null) {
                         snapshotKey = key;
-                        snapshotValue = currentValue;
+                        snapshotValue = value;
                         return;
                     }
                 }

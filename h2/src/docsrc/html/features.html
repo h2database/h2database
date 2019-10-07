@@ -653,10 +653,6 @@ An application can use multiple threads that access the same database at the sam
 With default MVStore engine threads that use different connections can use the database concurrently.
 With PageStore engine requests to the same database are synchronized,
 that means that if one thread executes a long running query, the other threads need to wait.
-Concurrent database usage may be enabled for PageStore or disabled for MVStore
-with <code>MULTI_THREADED</code> setting.
-Note that multi-threaded mode for PageStore engine is not tested well and has some issues;
-it should be used with caution.
 </p>
 
 <h3>Locking, Lock-Timeout, Deadlocks</h3>

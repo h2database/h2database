@@ -8,7 +8,6 @@ package org.h2.test.db;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -58,15 +57,6 @@ public class TestMultiThread extends TestDb implements Runnable {
     }
 
     @Override
-    public boolean isEnabled() {
-        // pagestore and multithreaded was always experimental, we're not going to fix that
-        if (!config.mvStore) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
     public void test() throws Exception {
         testConcurrentSchemaChange();
         testConcurrentLobAdd();
@@ -74,7 +64,6 @@ public class TestMultiThread extends TestDb implements Runnable {
         testConcurrentAlter();
         testConcurrentAnalyze();
         testConcurrentInsertUpdateSelect();
-        testLockModeWithMultiThreaded();
         testViews();
         testConcurrentInsert();
         testConcurrentUpdate();
@@ -85,7 +74,7 @@ public class TestMultiThread extends TestDb implements Runnable {
     private void testConcurrentSchemaChange() throws Exception {
         String db = getTestName();
         deleteDb(db);
-        final String url = getURL(db + ";MULTI_THREADED=1;LOCK_TIMEOUT=10000", true);
+        final String url = getURL(db + ";LOCK_TIMEOUT=10000", true);
         try (Connection conn = getConnection(url)) {
             Task[] tasks = new Task[2];
             for (int i = 0; i < tasks.length; i++) {
@@ -116,7 +105,7 @@ public class TestMultiThread extends TestDb implements Runnable {
     private void testConcurrentLobAdd() throws Exception {
         String db = getTestName();
         deleteDb(db);
-        final String url = getURL(db + ";MULTI_THREADED=1", true);
+        final String url = getURL(db, true);
         try (Connection conn = getConnection(url)) {
             Statement stat = conn.createStatement();
             stat.execute("create table test(id identity, data clob)");
@@ -152,7 +141,7 @@ public class TestMultiThread extends TestDb implements Runnable {
         }
         String db = getTestName();
         deleteDb(db);
-        final String url = getURL(db + ";MULTI_THREADED=1", true);
+        final String url = getURL(db, true);
         final Random r = new Random();
         try (Connection conn = getConnection(url)) {
             Statement stat = conn.createStatement();
@@ -213,7 +202,7 @@ public class TestMultiThread extends TestDb implements Runnable {
             return;
         }
         deleteDb(getTestName());
-        final String url = getURL("concurrentAnalyze;MULTI_THREADED=1", true);
+        final String url = getURL("concurrentAnalyze", true);
         try (Connection conn = getConnection(url)) {
             Statement stat = conn.createStatement();
             stat.execute("create table test(id bigint primary key) " +
@@ -289,23 +278,10 @@ public class TestMultiThread extends TestDb implements Runnable {
         }
     }
 
-    private void testLockModeWithMultiThreaded() throws Exception {
-        deleteDb("lockMode");
-        final String url = getURL("lockMode;MULTI_THREADED=1", true);
-        try (Connection conn = getConnection(url)) {
-            DatabaseMetaData meta = conn.getMetaData();
-            // LOCK_MODE=0 with MULTI_THREADED=TRUE is supported only by MVStore
-            assertEquals(config.mvStore, meta.supportsTransactionIsolationLevel(
-                    Connection.TRANSACTION_READ_UNCOMMITTED));
-        }
-        deleteDb("lockMode");
-    }
-
     private void testViews() throws Exception {
-        // currently the combination of LOCK_MODE=0 and MULTI_THREADED
         // is not supported
         deleteDb("lockMode");
-        final String url = getURL("lockMode;MULTI_THREADED=1", true);
+        final String url = getURL("lockMode", true);
 
         // create some common tables and views
         ExecutorService executor = Executors.newFixedThreadPool(8);
@@ -387,7 +363,7 @@ public class TestMultiThread extends TestDb implements Runnable {
     private void testConcurrentInsert() throws Exception {
         deleteDb("lockMode");
 
-        final String url = getURL("lockMode;MULTI_THREADED=1;LOCK_TIMEOUT=10000", true);
+        final String url = getURL("lockMode;LOCK_TIMEOUT=10000", true);
         int threadCount = 25;
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
         Connection conn = getConnection(url);
@@ -439,7 +415,7 @@ public class TestMultiThread extends TestDb implements Runnable {
         deleteDb("lockMode");
 
         final int objectCount = 10000;
-        final String url = getURL("lockMode;MULTI_THREADED=1;LOCK_TIMEOUT=10000", true);
+        final String url = getURL("lockMode;LOCK_TIMEOUT=10000", true);
         int threadCount = 25;
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
         Connection conn = getConnection(url);

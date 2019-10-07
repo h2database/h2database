@@ -2031,7 +2031,6 @@ public class ErrorCode {
     /**
      * The error with code <code>90143</code> is thrown when
      * trying to fetch a row from the primary index and the row is not there.
-     * Can happen in MULTI_THREADED=1 case.
      */
     public static final int ROW_NOT_FOUND_IN_PRIMARY_INDEX = 90143;
 

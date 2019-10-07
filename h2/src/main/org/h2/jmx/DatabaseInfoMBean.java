@@ -45,6 +45,7 @@ public interface DatabaseInfoMBean {
      *
      * @return true if multi-threading is enabled, false otherwise
      */
+    @Deprecated
     boolean isMultiThreaded();
 
     /**

@@ -138,7 +138,7 @@ public class TestMultiThreaded extends TestDb {
         int size = getSize(2, 20);
         Connection[] connList = new Connection[size];
         for (int i = 0; i < size; i++) {
-            connList[i] = getConnection("multiThreaded;MULTI_THREADED=1");
+            connList[i] = getConnection("multiThreaded");
         }
         Connection conn = connList[0];
         Statement stat = conn.createStatement();

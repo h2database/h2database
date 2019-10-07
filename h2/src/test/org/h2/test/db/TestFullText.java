@@ -68,9 +68,7 @@ public class TestFullText extends TestDb {
                 testCreateDropLucene();
                 testUuidPrimaryKey(true);
                 testMultiThreaded(true);
-                if(config.mvStore || !config.multiThreaded) {
-                    testMultiThreaded(false);
-                }
+                testMultiThreaded(false);
                 testTransaction(true);
                 test(true, "VARCHAR");
                 test(true, "CLOB");

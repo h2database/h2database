@@ -1711,23 +1711,6 @@ This setting can be appended to the database URL: ""jdbc:h2:./test;MODE=MYSQL""
 SET MODE HSQLDB
 "
 
-"Commands (Other)","SET MULTI_THREADED","
-SET MULTI_THREADED { 0 | 1 }
-","
-Enabled (1) or disabled (0) multi-threading inside the database engine.
-MULTI_THREADED is enabled by default with default MVStore storage engine.
-MULTI_THREADED is disabled by default when using PageStore storage engine, enabling this with PageStore is experimental only.
-
-This is a global setting, which means it is not possible to open multiple databases with different modes at the same time in the same virtual machine.
-This setting is not persistent, however the value is kept until the virtual machine exits or it is changed.
-
-Admin rights are required to execute this command, as it affects all connections.
-This command commits an open transaction in this connection.
-This setting can be appended to the database URL: ""jdbc:h2:./test;MV_STORE=FALSE;MULTI_THREADED=1""
-","
-SET MULTI_THREADED 1
-"
-
 "Commands (Other)","SET OPTIMIZE_REUSE_RESULTS","
 SET OPTIMIZE_REUSE_RESULTS { 0 | 1 }
 ","
@@ -5130,8 +5113,7 @@ AUTOCOMMIT()
 CANCEL_SESSION(sessionInt)
 ","
 Cancels the currently executing statement of another session.
-The method only works if the multithreaded kernel is enabled
-(it is enabled by default with MVStore engine only, see SET MULTI_THREADED).
+The method only works with default MVStore engine.
 Returns true if the statement was canceled, false if the session is closed or no statement is currently executing.
 
 Admin rights are required to execute this command.

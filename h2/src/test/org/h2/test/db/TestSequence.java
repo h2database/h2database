@@ -52,7 +52,7 @@ public class TestSequence extends TestDb {
 
     private void testConcurrentCreate() throws Exception {
         deleteDb("sequence");
-        final String url = getURL("sequence;MULTI_THREADED=1;LOCK_TIMEOUT=2000", true);
+        final String url = getURL("sequence;LOCK_TIMEOUT=2000", true);
         Connection conn = getConnection(url);
         Task[] tasks = new Task[2];
         try {
@@ -107,7 +107,7 @@ public class TestSequence extends TestDb {
 
     private void testConcurrentNextAndCurrentValue() throws Exception {
         deleteDb("sequence");
-        final String url = getURL("sequence;MULTI_THREADED=TRUE", true);
+        final String url = getURL("sequence", true);
         Connection conn = getConnection(url);
         Task[] tasks = new Task[2];
         try {

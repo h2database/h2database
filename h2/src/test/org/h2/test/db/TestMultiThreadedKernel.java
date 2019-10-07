@@ -178,6 +178,6 @@ public class TestMultiThreadedKernel extends TestDb {
 
     @Override
     protected String getURL(String name, boolean admin) {
-        return super.getURL(name + ";MULTI_THREADED=1;LOCK_TIMEOUT=2000", admin);
+        return super.getURL(name + ";LOCK_TIMEOUT=2000", admin);
     }
 }

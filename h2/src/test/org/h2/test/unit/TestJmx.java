@@ -81,19 +81,12 @@ public class TestJmx extends TestDb {
         }
         assertEquals("REGULAR", mbeanServer.
                 getAttribute(name, "Mode").toString());
-        if (config.multiThreaded) {
-            assertEquals("true", mbeanServer.
-                    getAttribute(name, "MultiThreaded").toString());
-        } else {
-            assertEquals("false", mbeanServer.
-                    getAttribute(name, "MultiThreaded").toString());
-        }
         if (config.mvStore) {
-            assertEquals("true", mbeanServer.
-                    getAttribute(name, "Mvcc").toString());
+            assertEquals("true", mbeanServer.getAttribute(name, "MultiThreaded").toString());
+            assertEquals("true", mbeanServer.getAttribute(name, "Mvcc").toString());
         } else {
-            assertEquals("false", mbeanServer.
-                    getAttribute(name, "Mvcc").toString());
+            assertEquals("false", mbeanServer.getAttribute(name, "MultiThreaded").toString());
+            assertEquals("false", mbeanServer.getAttribute(name, "Mvcc").toString());
         }
         assertEquals("false", mbeanServer.
                 getAttribute(name, "ReadOnly").toString());

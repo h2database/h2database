@@ -127,7 +127,6 @@ public abstract class TestDb extends TestBase {
             // force operations to disk
             url = addOption(url, "MAX_OPERATION_MEMORY", "1");
         }
-        url = addOption(url, "MULTI_THREADED", config.multiThreaded ? "TRUE" : "FALSE");
         if (config.lazy) {
             url = addOption(url, "LAZY_QUERY_EXECUTION", "1");
         }

@@ -173,7 +173,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
 
     private long sizeAsLongSlow() {
         long count = 0L;
-        Iterator<K> iterator = keyIterator(null, null, false);
+        Iterator<K> iterator = keyIterator(null, null);
         while (iterator.hasNext()) {
             iterator.next();
             count++;
@@ -608,7 +608,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      * @return the iterator
      */
     public Iterator<K> keyIterator(K from) {
-        return keyIterator(from, null, false);
+        return keyIterator(from, null);
     }
 
     /**
@@ -616,24 +616,21 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      *
      * @param from the first key to return
      * @param to the last key to return or null if there is no limit
-     * @param includeUncommitted whether uncommitted entries should be
-     *            included
      * @return the iterator
      */
-    public Iterator<K> keyIterator(K from, K to, boolean includeUncommitted) {
-        if (includeUncommitted) {
-            return new UncommittedIterator<>(this, from, to, true, false);
-        }
-        switch (transaction.isolationLevel) {
-        case READ_UNCOMMITTED:
-            return new UncommittedIterator<>(this, from, to, false, false);
-        case REPEATABLE_READ:
-        case SERIALIZABLE:
-            return getRepeatableIterator(from, to, false);
-        case READ_COMMITTED:
-        default:
-            return new CommittedIterator<>(this, from, to, false);
-        }
+    public Iterator<K> keyIterator(K from, K to) {
+        return chooseIterator(from, to, false);
+    }
+
+    /**
+     * Iterate over keys, including keys from uncommitted entries.
+     *
+     * @param from the first key to return
+     * @param to the last key to return or null if there is no limit
+     * @return the iterator
+     */
+    public Iterator<K> keyIteratorUncommitted(K from, K to) {
+        return new UncommittedIterator<>(this, from, to, true, false);
     }
 
     /**
@@ -644,15 +641,19 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      * @return the iterator
      */
     public Iterator<Map.Entry<K, V>> entryIterator(final K from, final K to) {
+        return chooseIterator(from, to, true);
+    }
+
+    private <X> Iterator<X> chooseIterator(K from, K to, boolean forEntries) {
         switch (transaction.isolationLevel) {
-        case READ_UNCOMMITTED:
-            return new UncommittedIterator<>(this, from, to, false, true);
-        case REPEATABLE_READ:
-        case SERIALIZABLE:
-            return getRepeatableIterator(from, to, true);
-        case READ_COMMITTED:
-        default:
-            return new CommittedIterator<>(this, from, to, true);
+            case READ_UNCOMMITTED:
+                return new UncommittedIterator<>(this, from, to, false, forEntries);
+            case REPEATABLE_READ:
+            case SERIALIZABLE:
+                return getRepeatableIterator(from, to, forEntries);
+            case READ_COMMITTED:
+            default:
+                return new CommittedIterator<>(this, from, to, forEntries);
         }
     }
 

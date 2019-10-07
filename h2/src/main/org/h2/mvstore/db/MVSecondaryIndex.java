@@ -208,7 +208,8 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
     }
 
     private void checkUnique(TransactionMap<Value, Value> map, ValueArray row, long newKey) {
-        Iterator<Value> it = map.keyIterator(convertToKey(row, ValueLong.MIN), convertToKey(row, ValueLong.MAX), true);
+        Iterator<Value> it = map.keyIteratorUncommitted(convertToKey(row, ValueLong.MIN),
+                                                        convertToKey(row, ValueLong.MAX));
         while (it.hasNext()) {
             ValueArray rowData = (ValueArray)it.next();
             Value[] array = rowData.getList();
@@ -270,7 +271,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
         ValueArray min = convertToKey(first, bigger ? ValueLong.MAX : ValueLong.MIN);
         ValueArray max = convertToKey(last, ValueLong.MAX);
         TransactionMap<Value,Value> map = getMap(session);
-        return new MVStoreCursor(session, map.keyIterator(min, max, false));
+        return new MVStoreCursor(session, map.keyIterator(min, max));
     }
 
     private static ValueArray convertToKey(ValueArray r, ValueLong key) {

@@ -47,7 +47,7 @@ public class TestMvcc4 extends TestDb {
 
     private void testSelectForUpdateAndUpdateConcurrency() throws SQLException {
         deleteDb("mvcc4");
-        Connection setup = getConnection("mvcc4;MULTI_THREADED=TRUE");
+        Connection setup = getConnection("mvcc4");
         setup.setAutoCommit(false);
 
         {

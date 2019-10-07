@@ -405,7 +405,7 @@ public class Set extends Prepared {
             database.setMaxOperationMemory(value);
             break;
         }
-        case SetTypes.MODE:
+        case SetTypes.MODE: {
             Mode mode = Mode.getInstance(stringValue);
             if (mode == null) {
                 throw DbException.get(ErrorCode.UNKNOWN_MODE_1, stringValue);
@@ -414,13 +414,6 @@ public class Set extends Prepared {
                 session.getUser().checkAdmin();
                 database.setMode(mode);
                 session.getColumnNamerConfiguration().configure(mode.getEnum());
-            }
-            break;
-        case SetTypes.MULTI_THREADED: {
-            boolean v = getIntValue() == 1;
-            if (database.isMultiThreaded() != v) {
-                session.getUser().checkAdmin();
-                database.setMultiThreaded(v);
             }
             break;
         }

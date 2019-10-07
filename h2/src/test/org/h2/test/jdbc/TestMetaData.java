@@ -617,17 +617,11 @@ public class TestMetaData extends TestDb {
         assertTrue(meta.supportsSubqueriesInQuantifieds());
         assertTrue(meta.supportsTableCorrelationNames());
         assertTrue(meta.supportsTransactions());
-        assertFalse(meta.supportsTransactionIsolationLevel(
-                Connection.TRANSACTION_NONE));
-        assertTrue(meta.supportsTransactionIsolationLevel(
-                Connection.TRANSACTION_READ_COMMITTED));
-        assertEquals(config.mvStore || !config.multiThreaded,
-                meta.supportsTransactionIsolationLevel(
-                        Connection.TRANSACTION_READ_UNCOMMITTED));
-        assertTrue(meta.supportsTransactionIsolationLevel(
-                Connection.TRANSACTION_REPEATABLE_READ));
-        assertTrue(meta.supportsTransactionIsolationLevel(
-                Connection.TRANSACTION_SERIALIZABLE));
+        assertFalse(meta.supportsTransactionIsolationLevel(Connection.TRANSACTION_NONE));
+        assertTrue(meta.supportsTransactionIsolationLevel(Connection.TRANSACTION_READ_COMMITTED));
+        assertTrue(meta.supportsTransactionIsolationLevel(Connection.TRANSACTION_READ_UNCOMMITTED));
+        assertTrue(meta.supportsTransactionIsolationLevel(Connection.TRANSACTION_REPEATABLE_READ));
+        assertTrue(meta.supportsTransactionIsolationLevel(Connection.TRANSACTION_SERIALIZABLE));
         assertTrue(meta.supportsUnion());
         assertTrue(meta.supportsUnionAll());
         assertFalse(meta.updatesAreDetected(ResultSet.TYPE_FORWARD_ONLY));

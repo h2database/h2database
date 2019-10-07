@@ -1026,23 +1026,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     }
 
     /**
-     * Unlock all read locks. This is done if the transaction isolation mode is
-     * READ_COMMITTED.
-     */
-    public void unlockReadLocks() {
-        if (!database.isMVStore() && database.isMultiThreaded() &&
-                database.getLockMode() == Constants.LOCK_MODE_READ_COMMITTED) {
-            for (Iterator<Table> iter = locks.iterator(); iter.hasNext(); ) {
-                Table t = iter.next();
-                if (!t.isLockedExclusively()) {
-                    t.unlock(this);
-                    iter.remove();
-                }
-            }
-        }
-    }
-
-    /**
      * Unlock just this table.
      *
      * @param t the table to unlock

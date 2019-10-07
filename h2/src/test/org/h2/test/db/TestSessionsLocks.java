@@ -28,7 +28,7 @@ public class TestSessionsLocks extends TestDb {
 
     @Override
     public boolean isEnabled() {
-        if (!config.multiThreaded) {
+        if (!config.mvStore) {
             return false;
         }
         return true;
@@ -37,9 +37,7 @@ public class TestSessionsLocks extends TestDb {
     @Override
     public void test() throws Exception {
         testCancelStatement();
-        if (!config.mvStore) {
-            testLocks();
-        }
+        testLocks();
         deleteDb("sessionsLocks");
     }
 

@@ -47,7 +47,7 @@ public class TestMvccMultiThreaded extends TestDb {
 
     private void testConcurrentSelectForUpdate() throws Exception {
         deleteDb(getTestName());
-        Connection conn = getConnection(getTestName() + ";MULTI_THREADED=TRUE");
+        Connection conn = getConnection(getTestName());
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int not null primary key, updated int not null)");
         stat.execute("insert into test(id, updated) values(1, 100)");

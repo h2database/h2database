@@ -199,8 +199,6 @@ public class Database implements DataHandler, CastDataProvider {
     private final String accessModeData;
     private boolean referentialIntegrity = true;
     private Mode mode = Mode.getRegular();
-    /** ie. the MULTI_THREADED setting */
-    private boolean multiThreaded;
     private int maxOperationMemory =
             Constants.DEFAULT_MAX_OPERATION_MEMORY;
     private SmallLRUCache<String, String[]> lobFileListCache;
@@ -304,8 +302,6 @@ public class Database implements DataHandler, CastDataProvider {
                 ci.getProperty("LOG", PageStore.LOG_MODE_SYNC);
         this.javaObjectSerializerName =
                 ci.getProperty("JAVA_OBJECT_SERIALIZER", null);
-        this.multiThreaded =
-                ci.getProperty("MULTI_THREADED", dbSettings.mvStore);
         this.allowBuiltinAliasOverride =
                 ci.getProperty("BUILTIN_ALIAS_OVERRIDE", false);
         boolean closeAtVmShutdown =
@@ -697,9 +693,6 @@ public class Database implements DataHandler, CastDataProvider {
             }
             if (existsPage && !existsMv) {
                 dbSettings.setMvStore(false);
-                // Need to re-init this because the first time we do it we don't
-                // know if we have an mvstore or a pagestore.
-                multiThreaded = ci.getProperty("MULTI_THREADED", false);
             }
             if (readOnly) {
                 if (traceLevelFile >= TraceSystem.DEBUG) {
@@ -2492,15 +2485,6 @@ public class Database implements DataHandler, CastDataProvider {
     public void setLockMode(int lockMode) {
         switch (lockMode) {
         case Constants.LOCK_MODE_OFF:
-            if (multiThreaded && !isMVStore()) {
-                // Currently the combination of MV_STORE=FALSE, LOCK_MODE=0 and
-                // MULTI_THREADED=TRUE is not supported. Also see code in
-                // JdbcDatabaseMetaData#supportsTransactionIsolationLevel(int)
-                throw DbException.get(
-                        ErrorCode.UNSUPPORTED_SETTING_COMBINATION,
-                        "MV_STORE=FALSE & LOCK_MODE=0 & MULTI_THREADED=TRUE");
-            }
-            break;
         case Constants.LOCK_MODE_READ_COMMITTED:
         case Constants.LOCK_MODE_TABLE:
         case Constants.LOCK_MODE_TABLE_GC:
@@ -2687,23 +2671,6 @@ public class Database implements DataHandler, CastDataProvider {
     @Override
     public Mode getMode() {
         return mode;
-    }
-
-    public boolean isMultiThreaded() {
-        return multiThreaded;
-    }
-
-    public void setMultiThreaded(boolean multiThreaded) {
-        if (multiThreaded && this.multiThreaded != multiThreaded) {
-            if (lockMode == Constants.LOCK_MODE_OFF && !isMVStore()) {
-                // Currently the combination of MV_STORE=FALSE, LOCK_MODE=0 and
-                // MULTI_THREADED=TRUE is not supported.
-                throw DbException.get(
-                        ErrorCode.UNSUPPORTED_SETTING_COMBINATION,
-                        "MV_STORE=FALSE & LOCK_MODE=0 & MULTI_THREADED=TRUE");
-            }
-        }
-        this.multiThreaded = multiThreaded;
     }
 
     public void setMaxOperationMemory(int maxOperationMemory) {

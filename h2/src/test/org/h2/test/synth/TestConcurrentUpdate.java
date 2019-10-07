@@ -34,7 +34,6 @@ public class TestConcurrentUpdate extends TestDb {
     public static void main(String... a) throws Exception {
         org.h2.test.TestAll config = new org.h2.test.TestAll();
 //        config.memory = true;
-        config.multiThreaded = true;
 //        config.mvStore = false;
         System.out.println(config);
         TestBase test = createCaller().init(config);

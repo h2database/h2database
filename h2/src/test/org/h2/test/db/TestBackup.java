@@ -57,7 +57,7 @@ public class TestBackup extends TestDb {
             return;
         }
         deleteDb("backup");
-        String url = getURL("backup;MULTI_THREADED=TRUE", true);
+        String url = getURL("backup", true);
         Connection conn = getConnection(url);
         final Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key, name varchar)");

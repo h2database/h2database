@@ -160,8 +160,6 @@ public abstract class Command implements CommandInterface {
             session.commit(true);
         } else if (session.getAutoCommit()) {
             session.commit(false);
-        } else {
-            session.unlockReadLocks();
         }
         if (trace.isInfoEnabled() && startTimeNanos > 0) {
             long timeMillis = (System.nanoTime() - startTimeNanos) / 1000 / 1000;
@@ -184,7 +182,7 @@ public abstract class Command implements CommandInterface {
         startTimeNanos = 0;
         long start = 0;
         Database database = session.getDatabase();
-        Object sync = database.isMultiThreaded() || database.getStore() != null ? session : database;
+        Object sync = database.isMVStore() ? session : database;
         session.waitIfExclusiveModeEnabled();
         boolean callStop = true;
         boolean writing = !isReadOnly();
@@ -247,7 +245,7 @@ public abstract class Command implements CommandInterface {
     public ResultWithGeneratedKeys executeUpdate(Object generatedKeysRequest) {
         long start = 0;
         Database database = session.getDatabase();
-        Object sync = database.isMultiThreaded() || database.getStore() != null ? session : database;
+        Object sync = database.isMVStore() ? session : database;
         session.waitIfExclusiveModeEnabled();
         boolean callStop = true;
         boolean writing = !isReadOnly();
@@ -331,17 +329,13 @@ public abstract class Command implements CommandInterface {
         }
         // Only in PageStore mode we need to sleep here to avoid busy wait loop
         Database database = session.getDatabase();
-        if (database.getStore() == null) {
+        if (!database.isMVStore()) {
             int sleep = 1 + MathUtils.randomInt(10);
             while (true) {
                 try {
-                    if (database.isMultiThreaded()) {
-                        Thread.sleep(sleep);
-                    } else {
-                        // although nobody going to notify us
-                        // it is vital to give up lock on a database
-                        database.wait(sleep);
-                    }
+                    // although nobody going to notify us
+                    // it is vital to give up lock on a database
+                    database.wait(sleep);
                 } catch (InterruptedException e1) {
                     // ignore
                 }

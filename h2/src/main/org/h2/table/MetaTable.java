@@ -1125,7 +1125,6 @@ public class MetaTable extends Table {
             add(rows, "EXCLUSIVE", database.getExclusiveSession() == null ?
                     "FALSE" : "TRUE");
             add(rows, "MODE", database.getMode().getName());
-            add(rows, "MULTI_THREADED", database.isMultiThreaded() ? "1" : "0");
             add(rows, "QUERY_TIMEOUT", Integer.toString(session.getQueryTimeout()));
             add(rows, "RETENTION_TIME", Integer.toString(database.getRetentionTime()));
             add(rows, "LOG", Integer.toString(database.getLogMode()));

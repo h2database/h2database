@@ -541,7 +541,7 @@ public class TestLob extends TestDb {
     }
 
     Connection getDeadlock2Connection() throws SQLException {
-        return getConnection("lob;MULTI_THREADED=TRUE;LOCK_TIMEOUT=60000");
+        return getConnection("lob;LOCK_TIMEOUT=60000");
     }
 
     private void testCopyManyLobs() throws Exception {

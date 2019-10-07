@@ -32,7 +32,6 @@ public class TestTransaction extends TestDb {
      */
     public static void main(String... a) throws Exception {
         TestBase init = TestBase.createCaller().init();
-        init.config.multiThreaded = true;
         init.test();
     }
 
@@ -228,7 +227,7 @@ public class TestTransaction extends TestDb {
 
     private void testForUpdate2() throws Exception {
         // Exclude some configurations to avoid spending too much time in sleep()
-        if (config.mvStore && !config.multiThreaded || config.networked || config.cipher != null) {
+        if (config.networked || config.cipher != null) {
             return;
         }
         deleteDb("transaction");
@@ -303,7 +302,7 @@ public class TestTransaction extends TestDb {
 
     private void testForUpdate3() throws Exception {
         // Exclude some configurations to avoid spending too much time in sleep()
-        if (config.mvStore && !config.multiThreaded || config.networked || config.cipher != null) {
+        if (config.networked || config.cipher != null) {
             return;
         }
         deleteDb("transaction");

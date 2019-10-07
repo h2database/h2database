@@ -445,8 +445,8 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         return transaction.getCurrentMapRoot(map.getId());
     }
 
-    Snapshot getNewCurrentRootSnapshot() {
-        return transaction.getNewCurrentMapRoot(map.getId());
+    Snapshot createSnapshot() {
+        return transaction.createSnapshot(map.getId());
     }
 
     /**
@@ -744,7 +744,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
             super(forEntries);
             Transaction transaction = transactionMap.getTransaction();
             this.transactionId = transaction.transactionId;
-            Snapshot snapshot = useNewSnapshot ? transactionMap.getNewCurrentRootSnapshot()
+            Snapshot snapshot = useNewSnapshot ? transactionMap.createSnapshot()
                     : transactionMap.getCurrentRootSnapshot();
             this.cursor = new Cursor<>(snapshot.root.root, from, to);
             this.committingTransactions = snapshot.committingTransactions;

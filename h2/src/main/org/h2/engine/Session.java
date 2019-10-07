@@ -704,7 +704,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
         currentTransactionName = null;
         transactionStart = null;
+        boolean forRepeatabaleRead = false;
         if (transaction != null) {
+            forRepeatabaleRead = !isolationLevel.allowNonRepeatableRead();
             try {
                 markUsedTablesAsUpdated();
                 transaction.commit();
@@ -738,7 +740,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                 commit(true);
             }
         }
-        endTransaction();
+        endTransaction(forRepeatabaleRead);
     }
 
     private void markUsedTablesAsUpdated() {
@@ -794,7 +796,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         }
     }
 
-    private void endTransaction() {
+    private void endTransaction(boolean forRepeatableRead) {
         if (removeLobMap != null && removeLobMap.size() > 0) {
             if (database.getStore() == null) {
                 // need to flush the transaction log, because we can't unlink
@@ -811,7 +813,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             database.releaseDatabaseObjectIds(idsToRelease);
             idsToRelease = null;
         }
-        if (!isolationLevel.allowNonRepeatableRead()) {
+        if (forRepeatableRead) {
             snapshotDataModificationId = database.getNextModificationDataId();
         }
     }
@@ -834,6 +836,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         currentTransactionName = null;
         transactionStart = null;
         boolean needCommit = undoLog != null && undoLog.size() > 0 || transaction != null;
+        boolean forRepeatabaleRead = transaction != null && !isolationLevel.allowNonRepeatableRead();
         if (needCommit) {
             rollbackTo(null);
         }
@@ -846,7 +849,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             autoCommit = true;
             autoCommitAtTransactionEnd = false;
         }
-        endTransaction();
+        endTransaction(forRepeatabaleRead);
     }
 
     /**
@@ -1845,6 +1848,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                     throw DbException.get(ErrorCode.DATABASE_IS_CLOSED, backgroundException);
                 }
                 transaction = store.getTransactionStore().begin(this, this.lockTimeout, id);
+                transaction.setIsolationLevel(isolationLevel);
             }
             startStatement = -1;
         }
@@ -1875,13 +1879,13 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                         addTableToDependencies((MVTable) dependency, currentMaps);
                     }
                 }
-                switch (isolationLevel) {
+                switch (transaction.getIsolationLevel()) {
                 case REPEATABLE_READ: {
                     allMaps = new HashSet<>();
                     HashSet<MVTable> processed = new HashSet<>();
                     for (DbObject dependency : dependencies) {
                         if (dependency instanceof MVTable) {
-                            addTableToDependencies((MVTable) dependency, dependencies, allMaps, processed);
+                            addTableToDependencies((MVTable) dependency, allMaps, processed);
                         }
                     }
                     break;
@@ -1897,7 +1901,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                     }
                 }
             }
-            transaction.markStatementStart(isolationLevel, currentMaps, allMaps);
+            transaction.markStatementStart(currentMaps, allMaps);
         }
         startStatement = -1;
         if (command != null) {
@@ -1913,8 +1917,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         }
     }
 
-    private static void addTableToDependencies(MVTable table, Set<DbObject> dependencies, HashSet<MVMap<?, ?>> maps,
-            HashSet<MVTable> processed) {
+    private static void addTableToDependencies(MVTable table, HashSet<MVMap<?, ?>> maps, HashSet<MVTable> processed) {
         if (!processed.add(table)) {
             return;
         }
@@ -1926,7 +1929,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         for (Constraint constraint : table.getConstraints()) {
             Table ref = constraint.getTable();
             if (ref != table && ref instanceof MVTable) {
-                addTableToDependencies((MVTable) ref, dependencies, maps, processed);
+                addTableToDependencies((MVTable) ref, maps, processed);
             }
         }
     }

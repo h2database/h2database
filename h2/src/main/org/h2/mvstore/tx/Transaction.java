@@ -207,7 +207,7 @@ public class Transaction {
     Snapshot getMapRoot(int mapId) {
         Snapshot snapshot = mapRoots.get(mapId);
         if (snapshot == null) {
-            snapshot = getNewCurrentMapRoot(mapId);
+            snapshot = createSnapshot(mapId);
         }
         return snapshot;
     }
@@ -222,7 +222,7 @@ public class Transaction {
     Snapshot getCurrentMapRoot(int mapId) {
         Snapshot snapshot = mapCurrentRoots.get(mapId);
         if (snapshot == null) {
-            snapshot = getNewCurrentMapRoot(mapId);
+            snapshot = createSnapshot(mapId);
         }
         return snapshot;
     }
@@ -233,7 +233,7 @@ public class Transaction {
      * @param mapId the map id
      * @return the root reference
      */
-    Snapshot getNewCurrentMapRoot(int mapId) {
+    Snapshot createSnapshot(int mapId) {
         // The purpose of the following loop is to get a coherent picture
         // of a state of two independent volatile / atomic variables,
         // which they had at some recent moment in time.
@@ -346,20 +346,35 @@ public class Transaction {
     }
 
     /**
+     * Sets the new isolation level. May be called only after creation of the
+     * transaction.
+     *
+     * @param isolationLevel the new isolation level
+     */
+    public void setIsolationLevel(IsolationLevel isolationLevel) {
+        this.isolationLevel = isolationLevel;
+    }
+
+    /**
+     * Returns the isolation level of this transaction.
+     *
+     * @return the isolation level of this transaction
+     */
+    public IsolationLevel getIsolationLevel() {
+        return isolationLevel;
+    }
+
+    /**
      * Mark an entry into a new SQL statement execution within this transaction.
      *
-     * @param isolationLevel
-     *            isolation level
      * @param currentMaps
      *            set of maps used by statement about to be executed
      * @param allMaps
      *            set of all maps within transaction, may be modified by this
      *            method
      */
-    public void markStatementStart(IsolationLevel isolationLevel, HashSet<MVMap<?, ?>> currentMaps,
-            HashSet<MVMap<?, ?>> allMaps) {
+    public void markStatementStart(HashSet<MVMap<?, ?>> currentMaps, HashSet<MVMap<?, ?>> allMaps) {
         markStatementEnd();
-        this.isolationLevel = isolationLevel;
         switch (isolationLevel) {
         case READ_UNCOMMITTED:
             gatherMapCurrentRoots(currentMaps);

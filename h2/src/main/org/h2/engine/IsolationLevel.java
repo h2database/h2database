@@ -139,4 +139,13 @@ public enum IsolationLevel {
         return lockMode;
     }
 
+    /**
+     * Returns whether a non-repeatable read phenomena is allowed.
+     *
+     * @return whether a non-repeatable read phenomena is allowed
+     */
+    public boolean allowNonRepeatableRead() {
+        return ordinal() < REPEATABLE_READ.ordinal();
+    }
+
 }

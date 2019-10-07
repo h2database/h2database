@@ -232,46 +232,70 @@ See the <a href="commands.html">Commands</a> for details.
 Transaction isolation is provided for all data manipulation language (DML) statements.
 </p>
 <p>
-The default MVStore engine supports only the read committed isolation level. Dirty reads aren't possible.
-This engine uses row-level locking.
+The default MVStore engine supports read uncommitted, read committed, repeatable read,
+and serializable isolation levels:
 </p>
+<ul>
+<li><b>Read uncommitted</b><br />
+    Dirty reads, non-repeatable reads, and phantom reads are possible.
+    To enable, execute the SQL statement
+    <code>SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL READ UNCOMMITTED</code>
+</li>
+<li><b>Read committed</b><br />
+    This is the default level.
+    Dirty reads aren't possible; non-repeatable reads and phantom reads are possible.
+    To enable, execute the SQL statement
+    <code>SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL READ COMMITTED</code>
+</li>
+<li><b>Repeatable read</b><br />
+    Dirty reads and non-repeatable reads aren't possible, phantom reads are possible.
+    To enable, execute the SQL statement
+    <code>SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL REPEATABLE READ</code>
+</li>
+<li><b>Serializable</b><br />
+    Dirty reads, non-repeatable reads, and phantom reads aren't possible.
+    This isolation level is very expensive in databases with many tables.
+    To enable, execute the SQL statement
+    <code>SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE</code>
+</li>
+</ul>
 <p>
 The PageStore engine supports read uncommitted, read committed, and serializable isolation levels:
 </p>
 <ul>
-<li><b>Read Committed</b><br />
-    This is the default level.
-    Read locks are released immediately after executing the statement, but write locks are kept until the transaction commits.
-    To enable, execute the SQL statement
-    <code>SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL READ COMMITTED</code>
-</li><li>
-<b>Serializable</b><br />
-    Both read locks and write locks are kept until the transaction commits.
-    To enable, execute the SQL statement
-    <code>SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE</code>
-</li><li><b>Read Uncommitted</b><br />
+<li><b>Read uncommitted</b><br />
     This level means that transaction isolation is disabled.
     This level is not supported by PageStore engine if multi-threaded mode is enabled.
     To enable, execute the SQL statement
     <code>SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL READ UNCOMMITTED</code>
 </li>
+<li><b>Read committed</b><br />
+    This is the default level.
+    Read locks are released immediately after executing the statement, but write locks are kept until the transaction commits.
+    To enable, execute the SQL statement
+    <code>SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL READ COMMITTED</code>
+</li>
+<li><b>Serializable</b><br />
+    Both read locks and write locks are kept until the transaction commits.
+    To enable, execute the SQL statement
+    <code>SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE</code>
+</li>
 </ul>
-<p>
-When using the isolation level 'serializable', dirty reads, non-repeatable reads, and phantom reads are prohibited.
-</p>
+<p>If repeatable read isolation level is requested when using a PageStore engine it is replaced
+with serializable isolation level.</p>
 <ul>
-<li><b>Dirty Reads</b><br />
+<li><b>Dirty reads</b><br />
     Means a connection can read uncommitted changes made by another connection.<br />
-    Possible with: read uncommitted
-</li><li><b>Non-Repeatable Reads</b><br />
+    Possible with: read uncommitted.
+</li><li><b>Non-repeatable reads</b><br />
     A connection reads a row, another connection changes a row and commits,
     and the first connection re-reads the same row and gets the new result.<br />
-    Possible with: read uncommitted, read committed
-</li><li><b>Phantom Reads</b><br />
+    Possible with: read uncommitted, read committed.
+</li><li><b>Phantom reads</b><br />
     A connection reads a set of rows using a condition, another connection
     inserts a row that falls in this condition and commits, then the first connection
     re-reads using the same condition and gets the new row.<br />
-    Possible with: read uncommitted, read committed
+    Possible with: read uncommitted, read committed, repeatable read.
 </li>
 </ul>
 
@@ -941,7 +965,8 @@ explicitly disabled.
 <p>
 For H2, as with most other database systems, the default isolation level is 'read committed'.
 This provides better performance, but also means that transactions are not completely isolated.
-H2 supports the transaction isolation levels 'serializable', 'read committed', and 'read uncommitted'.
+H2 supports the transaction isolation levels 'read uncommitted', 'read committed', 'repeatable read',
+and 'serializable'.
 </p>
 
 <h3>Durability</h3>

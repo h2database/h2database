@@ -585,6 +585,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     public void setLockTimeout(int lockTimeout) {
         this.lockTimeout = lockTimeout;
+        if (transaction != null) {
+            transaction.setTimeoutMillis(lockTimeout);
+        }
     }
 
     @Override

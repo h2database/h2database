@@ -149,7 +149,7 @@ public class TcpServerThread implements Runnable {
                     ci.setBaseDir(baseDir);
                 }
                 if (server.getIfExists()) {
-                    ci.setProperty("IFEXISTS", "TRUE");
+                    ci.setProperty("FORBID_CREATION", "TRUE");
                 }
                 transfer.writeInt(SessionRemote.STATUS_OK);
                 transfer.writeInt(clientVersion);

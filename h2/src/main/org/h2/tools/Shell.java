@@ -370,7 +370,7 @@ public class Shell extends Tool implements Runnable {
                 conn = JdbcUtils.getConnection(driver, url + ";IFEXISTS=TRUE", user, password);
                 break;
             } catch (SQLException ex) {
-                if (ex.getErrorCode() == ErrorCode.DATABASE_NOT_FOUND_2) {
+                if (ex.getErrorCode() == ErrorCode.DATABASE_NOT_FOUND_WITH_IF_EXISTS_1) {
                     println("Type the same password again to confirm database creation.");
                     String password2 = readPassword();
                     if (password.equals(password2)) {

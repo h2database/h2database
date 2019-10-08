@@ -119,9 +119,9 @@ public class TransactionStore {
      * @param transactionId of the corresponding transaction
      * @return undo log name
      */
-    public static String getUndoLogName(int transactionId) {
-        return UNDO_LOG_NAME_PREFIX + UNDO_LOG_OPEN +
-                (transactionId > 0 ? String.valueOf(transactionId) : "");
+    private static String getUndoLogName(int transactionId) {
+        return transactionId > 0 ? UNDO_LOG_NAME_PREFIX + UNDO_LOG_OPEN + transactionId
+                : UNDO_LOG_NAME_PREFIX + UNDO_LOG_OPEN;
     }
 
     /**

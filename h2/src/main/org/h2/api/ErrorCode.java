@@ -2060,13 +2060,12 @@ public class ErrorCode {
 
     /**
      * The error with code <code>90146</code> is thrown when trying to open a
-     * database that does not exist remotely without enabling remote database
-     * creation first, or using the flag IFEXISTS=TRUE
+     * database that does not exist using the flag IFEXISTS=TRUE
      * <pre>
      * jdbc:h2:./database_that_does_not_exist
      * </pre>
      */
-    public static final int DATABASE_NOT_FOUND_2 = 90146;
+    public static final int DATABASE_NOT_FOUND_WITH_IF_EXISTS_1 = 90146;
 
     /**
      * The error with code <code>90147</code> is thrown when trying to execute a
@@ -2088,7 +2087,17 @@ public class ErrorCode {
      */
     public static final int CURRENT_SEQUENCE_VALUE_IS_NOT_DEFINED_IN_SESSION_1 = 90148;
 
-    // next is 90149
+    /**
+     * The error with code <code>90149</code> is thrown when trying to open a
+     * database that does not exist remotely without enabling remote database
+     * creation first.
+     * <pre>
+     * jdbc:h2:./database_that_does_not_exist
+     * </pre>
+     */
+    public static final int REMOTE_DATABASE_NOT_FOUND_1 = 90149;
+
+    // next is 90150
 
     private ErrorCode() {
         // utility class

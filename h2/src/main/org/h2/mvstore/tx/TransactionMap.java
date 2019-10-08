@@ -647,11 +647,11 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
     private <X> Iterator<X> chooseIterator(K from, K to, boolean forEntries) {
         switch (transaction.isolationLevel) {
             case READ_UNCOMMITTED:
-                return new UncommittedIterator<>(this, from, to, false, forEntries);
+                return new UncommittedIterator<>(this, from, to, forEntries);
             case REPEATABLE_READ:
             case SERIALIZABLE:
                 if (transaction.hasChanges()) {
-                    new RepeatableIterator<K, X>(this, from, to, forEntries);
+                    return new RepeatableIterator<>(this, from, to, forEntries);
                 }
                 //$FALL-THROUGH$
             case READ_COMMITTED:
@@ -730,16 +730,13 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      */
     private static class UncommittedIterator<K, X> extends TMIterator<K, X> {
 
-        UncommittedIterator(TransactionMap<K, ?> transactionMap, K from, K to, boolean useNewSnapshot,
-                boolean forEntries) {
-            super(transactionMap, from, to,
-                    transactionMap.getStatementSnapshot(),
-                    forEntries);
+        UncommittedIterator(TransactionMap<K, ?> transactionMap, K from, K to, boolean forEntries) {
+            super(transactionMap, from, to, transactionMap.getStatementSnapshot(), forEntries);
             fetchNext();
         }
 
         UncommittedIterator(TransactionMap<K, ?> transactionMap, K from, K to, Snapshot snapshot,
-                boolean forEntries) {
+                            boolean forEntries) {
             super(transactionMap, from, to, snapshot, forEntries);
             fetchNext();
         }

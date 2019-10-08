@@ -164,14 +164,21 @@ public class Transaction {
      * Map of roots at start of the command for read committed, at start of the
      * first command for serializable, or mixed map for repeatable read.
      */
-    private final Map<Integer, Snapshot> mapRoots = new HashMap<>();
-    private RootReference[] undoLogRootReferences;
+    private final Map<Integer, Snapshot> snapshots = new HashMap<>();
+
     /**
-     * Additional map of current roots at start of the command, used only on
+     * RootReferences for undo log snapshots
+     */
+    private RootReference[] undoLogRootReferences;
+
+    /**
+     * Additional map of snapshots at start of the command, used only on
      * repeatable read and serializable isolation levels.
      */
-    private final Map<Integer, Snapshot> mapCurrentRoots = new HashMap<>();
+    private final Map<Integer, Snapshot> commandSnapshots = new HashMap<>();
+
     IsolationLevel isolationLevel = IsolationLevel.READ_COMMITTED;
+
 
     Transaction(TransactionStore store, int transactionId, long sequenceNum, int status,
                 String name, long logId, int timeoutMillis, int ownerId,
@@ -199,13 +206,13 @@ public class Transaction {
     }
 
     /**
-     * Get the root reference for the given map id.
+     * Get the snapshot for the given map id
      *
      * @param mapId the map id
      * @return the root reference
      */
-    Snapshot getMapRoot(int mapId) {
-        Snapshot snapshot = mapRoots.get(mapId);
+    Snapshot getSnapshot(int mapId) {
+        Snapshot snapshot = snapshots.get(mapId);
         if (snapshot == null) {
             snapshot = createSnapshot(mapId);
         }
@@ -213,14 +220,14 @@ public class Transaction {
     }
 
     /**
-     * Get the current root reference from the start of the command for the
-     * given map id.
+     * Get the snapshot for the given map id
+     * as it was at the start of the current SQL statement.
      *
      * @param mapId the map id
      * @return the root reference
      */
-    Snapshot getCurrentMapRoot(int mapId) {
-        Snapshot snapshot = mapCurrentRoots.get(mapId);
+    Snapshot getStatementSnapshot(int mapId) {
+        Snapshot snapshot = commandSnapshots.get(mapId);
         if (snapshot == null) {
             snapshot = createSnapshot(mapId);
         }
@@ -342,7 +349,7 @@ public class Transaction {
      * @return whether statement dependencies are currently set
      */
     public boolean hasStatementDependencies() {
-        return !mapRoots.isEmpty();
+        return !snapshots.isEmpty();
     }
 
     /**
@@ -394,22 +401,14 @@ public class Transaction {
         } else if (allMaps != null && !allMaps.isEmpty()) {
             for (Iterator<MVMap<?, ?>> i = allMaps.iterator(); i.hasNext();) {
                 MVMap<?, ?> map = i.next();
-                if (mapRoots.containsKey(map.getId())) {
+                if (snapshots.containsKey(map.getId())) {
                     i.remove();
                 }
             }
             if (!allMaps.isEmpty()) {
                 HashMap<Integer, Snapshot> additionalRoots = new HashMap<>();
-                BitSet committingTransactions;
-                do {
-                    additionalRoots.clear();
-                    committingTransactions = store.committingTransactions.get();
-                    for (MVMap<?, ?> map : currentMaps) {
-                        additionalRoots.put(map.getId(), //
-                                new Snapshot(map.flushAndGetRoot(), committingTransactions));
-                    }
-                } while (committingTransactions != store.committingTransactions.get());
-                mapRoots.putAll(additionalRoots);
+                gatherSnapshots(currentMaps, false, additionalRoots);
+                snapshots.putAll(additionalRoots);
             }
         }
         gatherMapCurrentRoots(currentMaps);
@@ -417,16 +416,25 @@ public class Transaction {
 
     private void gatherMapRoots(HashSet<MVMap<?, ?>> maps, boolean forReadCommitted) {
         txCounter = store.store.registerVersionUsage();
+        gatherSnapshots(maps, forReadCommitted, snapshots);
+    }
+
+    private void gatherMapCurrentRoots(HashSet<MVMap<?, ?>> maps) {
+        gatherSnapshots(maps, false, commandSnapshots);
+    }
+
+    private void gatherSnapshots(HashSet<MVMap<?, ?>> maps, boolean forReadCommitted,
+                                    Map<Integer, Snapshot> snapshots) {
         if (maps != null && !maps.isEmpty()) {
             // The purpose of the following loop is to get a coherent picture
             // In order to get such a "snapshot", we wait for a moment of silence,
             // when no new transaction were committed / closed.
             BitSet committingTransactions;
             do {
-                mapRoots.clear();
+                snapshots.clear();
                 committingTransactions = store.committingTransactions.get();
                 for (MVMap<?, ?> map : maps) {
-                    mapRoots.put(map.getId(), new Snapshot(map.flushAndGetRoot(), committingTransactions));
+                    snapshots.put(map.getId(), new Snapshot(map.flushAndGetRoot(), committingTransactions));
                 }
                 if (forReadCommitted) {
                     undoLogRootReferences = store.collectUndoLogRootReferences();
@@ -440,19 +448,6 @@ public class Transaction {
         }
     }
 
-    private void gatherMapCurrentRoots(HashSet<MVMap<?, ?>> maps) {
-        if (maps != null && !maps.isEmpty()) {
-            BitSet committingTransactions;
-            do {
-                mapCurrentRoots.clear();
-                committingTransactions = store.committingTransactions.get();
-                for (MVMap<?, ?> map : maps) {
-                    mapCurrentRoots.put(map.getId(), new Snapshot(map.flushAndGetRoot(), committingTransactions));
-                }
-            } while (committingTransactions != store.committingTransactions.get());
-        }
-    }
-
     /**
      * Mark an exit from SQL statement execution within this transaction.
      */
@@ -460,7 +455,7 @@ public class Transaction {
         if (isolationLevel.allowNonRepeatableRead()) {
             releaseSnapshot();
         }
-        mapCurrentRoots.clear();
+        commandSnapshots.clear();
     }
 
     private void markTransactionEnd() {
@@ -470,7 +465,7 @@ public class Transaction {
     }
 
     private void releaseSnapshot() {
-        mapRoots.clear();
+        snapshots.clear();
         undoLogRootReferences = null;
         MVStore.TxCounter counter = txCounter;
         if (counter != null) {
@@ -727,7 +722,7 @@ public class Transaction {
      * Transition this transaction into a closed state.
      */
     void closeIt() {
-        mapRoots.clear();
+        snapshots.clear();
         long lastState = setStatus(STATUS_CLOSED);
         store.store.deregisterVersionUsage(txCounter);
         if((hasChanges(lastState) || hasRollback(lastState)) && notificationRequested) {

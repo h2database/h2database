@@ -1138,12 +1138,12 @@ public class TestTools extends TestDb {
             final int prt = tcpServerWithPassword.getPort();
             remainingServers.add(tcpServerWithPassword);
             // must not be able to create new db
-            new AssertThrows(ErrorCode.DATABASE_NOT_FOUND_2) {
+            new AssertThrows(ErrorCode.REMOTE_DATABASE_NOT_FOUND_1) {
                 @Override
                 public void test() throws SQLException {
                     getConnection("jdbc:h2:tcp://localhost:"+prt+"/test2", "sa", "");
             }};
-            new AssertThrows(ErrorCode.DATABASE_NOT_FOUND_2) {
+            new AssertThrows(ErrorCode.REMOTE_DATABASE_NOT_FOUND_1) {
                 @Override
                 public void test() throws SQLException {
                     getConnection("jdbc:h2:tcp://localhost:"+prt+"/test2;ifexists=false", "sa", "");

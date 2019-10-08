@@ -778,7 +778,7 @@ public class WebServer implements Service {
         if (databaseUrl.startsWith("jdbc:h2:")) {
             if (!allowSecureCreation || key == null || !key.equals(userKey)) {
                 if (ifExists) {
-                    databaseUrl += ";IFEXISTS=TRUE";
+                    databaseUrl += ";FORBID_CREATION=TRUE";
                 }
             }
         }

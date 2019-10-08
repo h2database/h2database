@@ -613,6 +613,20 @@ public class Database implements DataHandler, CastDataProvider {
     }
 
     /**
+     * Check if a database with the given name exists.
+     *
+     * @param name
+     *            the name of the database (including path)
+     * @param mvStore
+     *            {@code true} to check MVStore file only, {@code false} to
+     *            check PageStore file only
+     * @return true if one exists
+     */
+    static boolean exists(String name, boolean mvStore) {
+        return FileUtils.exists(name + (mvStore ? Constants.SUFFIX_MV_FILE : Constants.SUFFIX_PAGE_FILE));
+    }
+
+    /**
      * Get the trace object for the given module id.
      *
      * @param moduleId the module id

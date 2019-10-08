@@ -225,7 +225,7 @@ public class PgServerThread implements Runnable {
                     ci.setBaseDir(baseDir);
                 }
                 if (server.getIfExists()) {
-                    ci.setProperty("IFEXISTS", "TRUE");
+                    ci.setProperty("FORBID_CREATION", "TRUE");
                 }
                 ci.setNetworkConnectionInfo(new NetworkConnectionInfo( //
                         NetUtils.ipToShortForm(new StringBuilder("pg://"), //

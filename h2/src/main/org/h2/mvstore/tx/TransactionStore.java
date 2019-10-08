@@ -36,7 +36,7 @@ public class TransactionStore {
     /**
      * Default blocked transaction timeout
      */
-    private final int timeoutMillis;
+    final int timeoutMillis;
 
     /**
      * The persisted map of prepared transactions.
@@ -350,10 +350,6 @@ public class TransactionStore {
      * @return the transaction
      */
     public Transaction begin(RollbackListener listener, int timeoutMillis, int ownerId) {
-
-        if(timeoutMillis <= 0) {
-            timeoutMillis = this.timeoutMillis;
-        }
         Transaction transaction = registerTransaction(0, Transaction.STATUS_OPEN, null, 0,
                 timeoutMillis, ownerId, listener);
         return transaction;

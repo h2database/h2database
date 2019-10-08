@@ -132,7 +132,7 @@ public class Transaction {
     /**
      * How long to wait for blocking transaction to commit or rollback.
      */
-    final int timeoutMillis;
+    int timeoutMillis;
 
     /**
      * Identification of the owner of this transaction,
@@ -181,7 +181,7 @@ public class Transaction {
         this.sequenceNum = sequenceNum;
         this.statusAndLogId = new AtomicLong(composeState(status, logId, false));
         this.name = name;
-        this.timeoutMillis = timeoutMillis;
+        setTimeoutMillis(timeoutMillis);
         this.ownerId = ownerId;
         this.listener = listener;
     }
@@ -689,6 +689,15 @@ public class Transaction {
         return store.getChanges(this, getLogId(), savepointId);
     }
 
+    /**
+     * Sets the new lock timeout.
+     *
+     * @param timeoutMillis the new lock timeout in milliseconds
+     */
+    public void setTimeoutMillis(int timeoutMillis) {
+        this.timeoutMillis = timeoutMillis > 0 ? timeoutMillis : store.timeoutMillis;
+    }
+
     private long getLogId() {
         return getLogId(statusAndLogId.get());
     }
@@ -853,4 +862,5 @@ public class Transaction {
         }
         return ((long)status << LOG_ID_BITS1) | logId;
     }
+
 }

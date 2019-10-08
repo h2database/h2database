@@ -650,9 +650,10 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
                 return new UncommittedIterator<>(this, from, to, false, forEntries);
             case REPEATABLE_READ:
             case SERIALIZABLE:
-                return transaction.hasChanges() ?
-                        new RepeatableIterator<K, X>(this, from, to, forEntries) :
-                        new CommittedIterator<K, X>(this, from, to, forEntries);
+                if (transaction.hasChanges()) {
+                    new RepeatableIterator<K, X>(this, from, to, forEntries);
+                }
+                //$FALL-THROUGH$
             case READ_COMMITTED:
             default:
                 return new CommittedIterator<>(this, from, to, forEntries);
@@ -863,7 +864,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         @Override
         void fetchNext() {
             current = null;
-            while (current == null) {
+            do {
                 if (snapshotKey == null) {
                     fetchSnapshot();
                 }
@@ -879,17 +880,17 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
                 if (cmp < 0) {
                     registerCurrent(snapshotKey, snapshotValue);
                     snapshotKey = null;
-                } else {
-                    if (uncommittedValue != null) {
-                        // This entry was added / updated by this transaction, use the new value
-                        registerCurrent(uncommittedKey, uncommittedValue);
-                    }
-                    if (cmp == 0) { // This entry was updated / deleted
-                        snapshotKey = null;
-                    }
-                    uncommittedKey = null;
+                    break;
                 }
-            }
+                if (uncommittedValue != null) {
+                    // This entry was added / updated by this transaction, use the new value
+                    registerCurrent(uncommittedKey, uncommittedValue);
+                }
+                if (cmp == 0) { // This entry was updated / deleted
+                    snapshotKey = null;
+                }
+                uncommittedKey = null;
+            } while (current == null);
         }
 
         private void fetchSnapshot() {

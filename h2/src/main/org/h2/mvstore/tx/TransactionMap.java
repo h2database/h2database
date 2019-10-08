@@ -660,57 +660,6 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         }
     }
 
-    /**
-     * Iterate over keys.
-     *
-     * @param iterator the iterator to wrap
-     * @param includeUncommitted whether uncommitted entries should be
-     *            included
-     * @return the iterator
-     */
-    public Iterator<K> wrapIterator(final Iterator<K> iterator,
-            final boolean includeUncommitted) {
-        // TODO duplicate code for wrapIterator and entryIterator
-        return new Iterator<K>() {
-            private K current;
-
-            {
-                fetchNext();
-            }
-
-            private void fetchNext() {
-                while (iterator.hasNext()) {
-                    current = iterator.next();
-                    if (includeUncommitted) {
-                        return;
-                    }
-                    if (containsKey(current)) {
-                        return;
-                    }
-                }
-                current = null;
-            }
-
-            @Override
-            public boolean hasNext() {
-                return current != null;
-            }
-
-            @Override
-            public K next() {
-                K result = current;
-                fetchNext();
-                return result;
-            }
-
-            @Override
-            public void remove() {
-                throw DataUtils.newUnsupportedOperationException(
-                        "Removal is not supported");
-            }
-        };
-    }
-
     public Transaction getTransaction() {
         return transaction;
     }

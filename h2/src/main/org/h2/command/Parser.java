@@ -862,11 +862,10 @@ public class Parser {
             c = parseCall();
             break;
         case OPEN_PAREN:
-        case FROM:
         case SELECT:
         case TABLE:
         case VALUES:
-            c = parseSelect();
+            c = parseQuery();
             break;
         case WITH:
             read();
@@ -1581,7 +1580,6 @@ public class Parser {
         }
         boolean query;
         switch (currentTokenType) {
-        case FROM:
         case SELECT:
         case VALUES:
         case WITH:
@@ -1613,7 +1611,7 @@ public class Parser {
         Table table = command.getTable();
         if (readIf(OPEN_PAREN)) {
             if (isQuery()) {
-                command.setQuery(parseSelect());
+                command.setQuery(parseQuery());
                 read(CLOSE_PAREN);
                 return command;
             }
@@ -1628,7 +1626,7 @@ public class Parser {
         if (readIf(VALUES)) {
             parseValuesForCommand(command);
         } else {
-            command.setQuery(parseSelect());
+            command.setQuery(parseQuery());
         }
         return command;
     }
@@ -1638,7 +1636,7 @@ public class Parser {
         currentPrepared = command;
 
         if (isQuery()) {
-            command.setQuery(parseSelect());
+            command.setQuery(parseQuery());
             String queryAlias = readFromAlias(null);
             if (queryAlias == null) {
                 queryAlias = Constants.PREFIX_QUERY_ALIAS + parseIndex;
@@ -1799,7 +1797,7 @@ public class Parser {
         Column[] columns = null;
         if (readIf(OPEN_PAREN)) {
             if (isQuery()) {
-                command.setQuery(parseSelect());
+                command.setQuery(parseQuery());
                 read(CLOSE_PAREN);
                 return command;
             }
@@ -1831,7 +1829,7 @@ public class Parser {
             command.setColumns(columnList.toArray(new Column[0]));
             command.addRow(values.toArray(new Expression[0]));
         } else {
-            command.setQuery(parseSelect());
+            command.setQuery(parseQuery());
         }
         return null;
     }
@@ -1847,7 +1845,7 @@ public class Parser {
         command.setTable(table);
         if (readIf(OPEN_PAREN)) {
             if (isQuery()) {
-                command.setQuery(parseSelect());
+                command.setQuery(parseQuery());
                 read(CLOSE_PAREN);
                 return command;
             }
@@ -1857,7 +1855,7 @@ public class Parser {
         if (readIf(VALUES)) {
             parseValuesForCommand(command);
         } else {
-            command.setQuery(parseSelect());
+            command.setQuery(parseQuery());
         }
         return command;
     }
@@ -2592,13 +2590,12 @@ public class Parser {
             }
         }
         switch (currentTokenType) {
-        case FROM:
         case SELECT:
         case TABLE:
         case VALUES:
         case WITH:
         case OPEN_PAREN:
-            Query query = parseSelect();
+            Query query = parseQuery();
             query.setNeverLazy(true);
             command.setCommand(query);
             break;
@@ -2618,7 +2615,7 @@ public class Parser {
         return command;
     }
 
-    private Query parseSelect() {
+    private Query parseQuery() {
         int paramIndex = parameters.size();
         Query command = parseSelectUnion();
         int size = parameters.size();
@@ -2649,7 +2646,7 @@ public class Parser {
 
     private Query parseSelectUnion() {
         int start = lastParseIndex;
-        Query command = parseSelectSub();
+        Query command = parseQuerySub();
         for (;;) {
             SelectUnion.UnionType type;
             if (readIf(UNION)) {
@@ -2666,7 +2663,7 @@ public class Parser {
             } else {
                 break;
             }
-            command = new SelectUnion(session, type, command, parseSelectSub());
+            command = new SelectUnion(session, type, command, parseQuerySub());
         }
         parseEndOfQuery(command);
         setSQL(command, null, start);
@@ -2798,7 +2795,7 @@ public class Parser {
         }
     }
 
-    private Query parseSelectSub() {
+    private Query parseQuerySub() {
         if (readIf(OPEN_PAREN)) {
             Query command = parseSelectUnion();
             read(CLOSE_PAREN);
@@ -2816,10 +2813,16 @@ public class Parser {
             query.setNeverLazy(true);
             return query;
         }
-        return parseSelectSimple();
+        if (readIf(SELECT)) {
+            return parseSelect();
+        } else if (readIf(TABLE)) {
+            return parseExplicitTable();
+        }
+        read(VALUES);
+        return parseValues();
     }
 
-    private void parseSelectSimpleFromPart(Select command) {
+    private void parseSelectFromPart(Select command) {
         do {
             TableFilter filter = readTableFilter();
             parseJoinTableFilter(filter, command);
@@ -2867,7 +2870,7 @@ public class Parser {
         }
     }
 
-    private void parseSelectSimpleSelectPart(Select command) {
+    private void parseSelectExpressions(Select command) {
         Select temp = currentSelect;
         // make sure aggregate functions will not work in TOP and LIMIT
         currentSelect = null;
@@ -2916,6 +2919,7 @@ public class Parser {
                 case WHERE:
                 case GROUP:
                 case HAVING:
+                case WINDOW:
                 case QUALIFY:
                 case ORDER:
                 case OFFSET:
@@ -2938,47 +2942,21 @@ public class Parser {
         command.setExpressions(expressions);
     }
 
-    private Query parseSelectSimple() {
-        boolean fromFirst;
-        if (readIf(SELECT)) {
-            fromFirst = false;
-        } else if (readIf(FROM)) {
-            fromFirst = true;
-        } else if (readIf(TABLE)) {
-            int start = lastParseIndex;
-            Table table = readTableOrView();
-            Select command = new Select(session, currentSelect);
-            TableFilter filter = new TableFilter(session, table, null, rightsChecked,
-                    command, orderInFrom++, null);
-            command.addTableFilter(filter, true);
-            command.setExplicitTable();
-            setSQL(command, "TABLE", start);
-            return command;
-        } else if (readIf(VALUES)) {
-            return parseValues();
-        } else {
-            throw getSyntaxError();
-        }
+    private Select parseSelect() {
         Select command = new Select(session, currentSelect);
         int start = lastParseIndex;
         Select oldSelect = currentSelect;
         Prepared oldPrepared = currentPrepared;
         currentSelect = command;
         currentPrepared = command;
-        if (fromFirst) {
-            parseSelectSimpleFromPart(command);
-            read(SELECT);
-            parseSelectSimpleSelectPart(command);
+        parseSelectExpressions(command);
+        if (!readIf(FROM)) {
+            // select without FROM
+            TableFilter filter = new TableFilter(session, new DualTable(database), null, rightsChecked,
+                    currentSelect, 0, null);
+            command.addTableFilter(filter, true);
         } else {
-            parseSelectSimpleSelectPart(command);
-            if (!readIf(FROM)) {
-                // select without FROM
-                TableFilter filter = new TableFilter(session, new DualTable(database), null, rightsChecked,
-                        currentSelect, 0, null);
-                command.addTableFilter(filter, true);
-            } else {
-                parseSelectSimpleFromPart(command);
-            }
+            parseSelectFromPart(command);
         }
         if (readIf(WHERE)) {
             command.addCondition(readExpressionWithGlobalConditions());
@@ -3029,6 +3007,18 @@ public class Parser {
         currentSelect = oldSelect;
         currentPrepared = oldPrepared;
         setSQL(command, "SELECT", start);
+        return command;
+    }
+
+    private Query parseExplicitTable() {
+        int start = lastParseIndex;
+        Table table = readTableOrView();
+        Select command = new Select(session, currentSelect);
+        TableFilter filter = new TableFilter(session, table, null, rightsChecked,
+                command, orderInFrom++, null);
+        command.addTableFilter(filter, true);
+        command.setExplicitTable();
+        setSQL(command, "TABLE", start);
         return command;
     }
 
@@ -3088,7 +3078,7 @@ public class Parser {
         case EXISTS: {
             read();
             read(OPEN_PAREN);
-            Query query = parseSelect();
+            Query query = parseQuery();
             // can not reduce expression because it might be a union except
             // query with distinct
             read(CLOSE_PAREN);
@@ -3106,7 +3096,7 @@ public class Parser {
         case UNIQUE: {
             read();
             read(OPEN_PAREN);
-            Query query = parseSelect();
+            Query query = parseQuery();
             read(CLOSE_PAREN);
             return new UniquePredicate(query);
         }
@@ -3221,7 +3211,7 @@ public class Parser {
                 if (readIf(ALL)) {
                     read(OPEN_PAREN);
                     if (isQuery()) {
-                        Query query = parseSelect();
+                        Query query = parseQuery();
                         r = new ConditionInQuery(database, r, query, true, compareType);
                         read(CLOSE_PAREN);
                     } else {
@@ -3236,7 +3226,7 @@ public class Parser {
                         r = new ConditionInParameter(database, r, p);
                         read(CLOSE_PAREN);
                     } else if (isQuery()) {
-                        Query query = parseSelect();
+                        Query query = parseQuery();
                         r = new ConditionInQuery(database, r, query, false, compareType);
                         read(CLOSE_PAREN);
                     } else {
@@ -3271,7 +3261,7 @@ public class Parser {
         }
         ArrayList<Expression> v;
         if (isQuery()) {
-            Query query = parseSelect();
+            Query query = parseQuery();
             if (!readIfMore()) {
                 return new ConditionInQuery(database, left, query, false, Comparison.EQUAL);
             }
@@ -4293,9 +4283,8 @@ public class Parser {
             r = readParameter();
             break;
         case SELECT:
-        case FROM:
         case WITH:
-            r = new Subquery(parseSelect());
+            r = new Subquery(parseQuery());
             break;
         case TABLE:
             int index = lastParseIndex;
@@ -4305,7 +4294,7 @@ public class Parser {
             } else {
                 parseIndex = index;
                 read();
-                r = new Subquery(parseSelect());
+                r = new Subquery(parseQuery());
             }
             break;
         case IDENTIFIER:
@@ -4439,7 +4428,7 @@ public class Parser {
                 read();
                 r = readKeywordFunction(Function.VALUES);
             } else {
-                r = new Subquery(parseSelect());
+                r = new Subquery(parseQuery());
             }
             break;
         case CASE:
@@ -6869,7 +6858,7 @@ public class Parser {
         try {
             read("AS");
             read(OPEN_PAREN);
-            Query withQuery = parseSelect();
+            Query withQuery = parseQuery();
             if (!isTemporary) {
                 withQuery.session = session;
             }
@@ -6958,7 +6947,7 @@ public class Parser {
             Query query;
             session.setParsingCreateView(true, viewName);
             try {
-                query = parseSelect();
+                query = parseQuery();
                 query.prepare();
             } finally {
                 session.setParsingCreateView(false, viewName);
@@ -8428,7 +8417,7 @@ public class Parser {
             if (readIf("SORTED")) {
                 command.setSortedInsertMode(true);
             }
-            command.setQuery(parseSelect());
+            command.setQuery(parseQuery());
             if (readIf(WITH)) {
                 command.setWithNoData(readIf("NO"));
                 read("DATA");

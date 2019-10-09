@@ -11,6 +11,7 @@ import java.sql.ResultSetMetaData;
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.value.Transfer;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
 /**
@@ -20,9 +21,7 @@ public class ParameterRemote implements ParameterInterface {
 
     private Value value;
     private final int index;
-    private int dataType = Value.UNKNOWN;
-    private long precision;
-    private int scale;
+    private TypeInfo type = TypeInfo.TYPE_UNKNOWN;
     private int nullable = ResultSetMetaData.columnNullableUnknown;
 
     public ParameterRemote(int index) {
@@ -55,18 +54,8 @@ public class ParameterRemote implements ParameterInterface {
     }
 
     @Override
-    public int getValueType() {
-        return value == null ? dataType : value.getValueType();
-    }
-
-    @Override
-    public long getPrecision() {
-        return value == null ? precision : value.getType().getPrecision();
-    }
-
-    @Override
-    public int getScale() {
-        return value == null ? scale : value.getType().getScale();
+    public TypeInfo getType() {
+        return value == null ? type : value.getType();
     }
 
     @Override
@@ -80,9 +69,10 @@ public class ParameterRemote implements ParameterInterface {
      * @param transfer the transfer object
      */
     public void readMetaData(Transfer transfer) throws IOException {
-        dataType = transfer.readInt();
-        precision = transfer.readLong();
-        scale = transfer.readInt();
+        int valueType = transfer.readInt();
+        long precision = transfer.readLong();
+        int scale = transfer.readInt();
+        type = TypeInfo.getTypeInfo(valueType, precision, scale, null);
         nullable = transfer.readInt();
     }
 
@@ -94,9 +84,10 @@ public class ParameterRemote implements ParameterInterface {
      */
     public static void writeMetaData(Transfer transfer, ParameterInterface p)
             throws IOException {
-        transfer.writeInt(p.getValueType());
-        transfer.writeLong(p.getPrecision());
-        transfer.writeInt(p.getScale());
+        TypeInfo type = p.getType();
+        transfer.writeInt(type.getValueType());
+        transfer.writeLong(type.getPrecision());
+        transfer.writeInt(type.getScale());
         transfer.writeInt(p.getNullable());
     }
 

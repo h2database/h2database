@@ -80,8 +80,7 @@ public class JdbcParameterMetaData extends TraceObject implements
     public int getParameterType(int param) throws SQLException {
         try {
             debugCodeCall("getParameterType", param);
-            ParameterInterface p = getParameter(param);
-            int type = p.getValueType();
+            int type = getParameter(param).getType().getValueType();
             if (type == Value.UNKNOWN) {
                 type = Value.STRING;
             }
@@ -102,8 +101,7 @@ public class JdbcParameterMetaData extends TraceObject implements
     public int getPrecision(int param) throws SQLException {
         try {
             debugCodeCall("getPrecision", param);
-            ParameterInterface p = getParameter(param);
-            return MathUtils.convertLongToInt(p.getPrecision());
+            return MathUtils.convertLongToInt(getParameter(param).getType().getPrecision());
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -120,8 +118,7 @@ public class JdbcParameterMetaData extends TraceObject implements
     public int getScale(int param) throws SQLException {
         try {
             debugCodeCall("getScale", param);
-            ParameterInterface p = getParameter(param);
-            return p.getScale();
+            return getParameter(param).getType().getScale();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -173,8 +170,7 @@ public class JdbcParameterMetaData extends TraceObject implements
     public String getParameterClassName(int param) throws SQLException {
         try {
             debugCodeCall("getParameterClassName", param);
-            ParameterInterface p = getParameter(param);
-            int type = p.getValueType();
+            int type = getParameter(param).getType().getValueType();
             if (type == Value.UNKNOWN) {
                 type = Value.STRING;
             }
@@ -195,8 +191,7 @@ public class JdbcParameterMetaData extends TraceObject implements
     public String getParameterTypeName(int param) throws SQLException {
         try {
             debugCodeCall("getParameterTypeName", param);
-            ParameterInterface p = getParameter(param);
-            int type = p.getValueType();
+            int type = getParameter(param).getType().getValueType();
             if (type == Value.UNKNOWN) {
                 type = Value.STRING;
             }

@@ -438,21 +438,15 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
                     if (!session.isClosed()) {
                         try {
                             if (session.hasPendingTransaction()) {
-                                // roll back unless that would require to
-                                // re-connect (the transaction can't be rolled
-                                // back after re-connecting)
-                                if (!session.isReconnectNeeded(true)) {
-                                    try {
-                                        rollbackInternal();
-                                    } catch (DbException e) {
-                                        // ignore if the connection is broken
-                                        // right now
-                                        if (e.getErrorCode() != ErrorCode.CONNECTION_BROKEN_1) {
-                                            throw e;
-                                        }
+                                try {
+                                    rollbackInternal();
+                                } catch (DbException e) {
+                                    // ignore if the connection is broken
+                                    // right now
+                                    if (e.getErrorCode() != ErrorCode.CONNECTION_BROKEN_1) {
+                                        throw e;
                                     }
                                 }
-                                session.afterWriting();
                             }
                             closePreparedCommands();
                         } finally {
@@ -542,12 +536,8 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
                     && getAutoCommit()) {
                 throw DbException.get(ErrorCode.METHOD_DISABLED_ON_AUTOCOMMIT_TRUE, "commit()");
             }
-            try {
-                commit = prepareCommand("COMMIT", commit);
-                commit.executeUpdate(null);
-            } finally {
-                afterWriting();
-            }
+            commit = prepareCommand("COMMIT", commit);
+            commit.executeUpdate(null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -568,11 +558,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
                     && getAutoCommit()) {
                 throw DbException.get(ErrorCode.METHOD_DISABLED_ON_AUTOCOMMIT_TRUE, "rollback()");
             }
-            try {
-                rollbackInternal();
-            } finally {
-                afterWriting();
-            }
+            rollbackInternal();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1074,11 +1060,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
                 debugCode("rollback(" + sp.getTraceObjectName() + ");");
             }
             checkClosedForWrite();
-            try {
-                sp.rollback();
-            } finally {
-                afterWriting();
-            }
+            sp.rollback();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1529,22 +1511,6 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
         }
         if (session.isClosed()) {
             throw DbException.get(ErrorCode.DATABASE_CALLED_AT_SHUTDOWN);
-        }
-        if (session.isReconnectNeeded(write)) {
-            trace.debug("reconnect");
-            closePreparedCommands();
-            session = session.reconnect(write);
-            trace = session.getTrace();
-        }
-    }
-
-    /**
-     * INTERNAL. Called after executing a command that could have written
-     * something.
-     */
-    protected void afterWriting() {
-        if (session != null) {
-            session.afterWriting();
         }
     }
 

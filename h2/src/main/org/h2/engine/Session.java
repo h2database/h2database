@@ -89,7 +89,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     private final int serialId = nextSerialId++;
     private final Database database;
-    private ConnectionInfo connectionInfo;
     private final User user;
     private final int id;
 
@@ -1746,47 +1745,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     public int getModificationId() {
         return modificationId;
-    }
-
-    @Override
-    public boolean isReconnectNeeded(boolean write) {
-        while (true) {
-            boolean reconnect = database.isReconnectNeeded();
-            if (reconnect) {
-                return true;
-            }
-            if (write) {
-                if (database.beforeWriting()) {
-                    return false;
-                }
-            } else {
-                return false;
-            }
-        }
-    }
-
-    @Override
-    public void afterWriting() {
-        database.afterWriting();
-    }
-
-    @Override
-    public SessionInterface reconnect(boolean write) {
-        readSessionState();
-        close();
-        Session newSession = Engine.getInstance().createSession(connectionInfo);
-        newSession.sessionState = sessionState;
-        newSession.recreateSessionState();
-        if (write) {
-            while (!newSession.database.beforeWriting()) {
-                // wait until we are allowed to write
-            }
-        }
-        return newSession;
-    }
-
-    public void setConnectionInfo(ConnectionInfo ci) {
-        connectionInfo = ci;
     }
 
     public Value getTransactionId() {

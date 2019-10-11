@@ -91,28 +91,6 @@ public interface SessionInterface extends Closeable {
     void cancel();
 
     /**
-     * Check if the database changed and therefore reconnecting is required.
-     *
-     * @param write if the next operation may be writing
-     * @return true if reconnecting is required
-     */
-    boolean isReconnectNeeded(boolean write);
-
-    /**
-     * Close the connection and open a new connection.
-     *
-     * @param write if the next operation may be writing
-     * @return the new connection
-     */
-    SessionInterface reconnect(boolean write);
-
-    /**
-     * Called after writing has ended. It needs to be called after
-     * isReconnectNeeded(true) returned false.
-     */
-    void afterWriting();
-
-    /**
      * Check if this session is in auto-commit mode.
      *
      * @return true if the session is in auto-commit mode

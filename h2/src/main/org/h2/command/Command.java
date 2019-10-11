@@ -185,12 +185,6 @@ public abstract class Command implements CommandInterface {
         Object sync = database.isMVStore() ? session : database;
         session.waitIfExclusiveModeEnabled();
         boolean callStop = true;
-        boolean writing = !isReadOnly();
-        if (writing) {
-            while (!database.beforeWriting()) {
-                // wait
-            }
-        }
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (sync) {
             session.startStatementWithinTransaction(this);
@@ -234,9 +228,6 @@ public abstract class Command implements CommandInterface {
                 if (callStop) {
                     stop();
                 }
-                if (writing) {
-                    database.afterWriting();
-                }
             }
         }
     }
@@ -248,12 +239,6 @@ public abstract class Command implements CommandInterface {
         Object sync = database.isMVStore() ? session : database;
         session.waitIfExclusiveModeEnabled();
         boolean callStop = true;
-        boolean writing = !isReadOnly();
-        if (writing) {
-            while (!database.beforeWriting()) {
-                // wait
-            }
-        }
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (sync) {
             Session.Savepoint rollback = session.setSavepoint();
@@ -306,10 +291,6 @@ public abstract class Command implements CommandInterface {
                         throw nested;
                     } else {
                         ex.addSuppressed(nested);
-                    }
-                } finally {
-                    if (writing) {
-                        database.afterWriting();
                     }
                 }
             }

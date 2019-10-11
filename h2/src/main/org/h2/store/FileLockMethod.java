@@ -23,12 +23,6 @@ public enum FileLockMethod {
     SOCKET,
 
     /**
-     * This locking method means multiple writers are allowed, and they
-     * synchronize themselves.
-     */
-    SERIALIZED,
-
-    /**
      * Use the file system to lock the file; don't use a separate lock file.
      */
     FS

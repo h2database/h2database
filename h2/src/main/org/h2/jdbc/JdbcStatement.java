@@ -159,31 +159,27 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
 
     private int executeUpdateInternal(String sql, Object generatedKeysRequest) throws SQLException {
         checkClosedForWrite();
-        try {
-            closeOldResultSet();
-            sql = JdbcConnection.translateSQL(sql, escapeProcessing);
-            CommandInterface command = conn.prepareCommand(sql, fetchSize);
-            synchronized (session) {
-                setExecutingStatement(command);
-                try {
-                    ResultWithGeneratedKeys result = command.executeUpdate(
-                            conn.scopeGeneratedKeys() ? null : generatedKeysRequest);
-                    updateCount = result.getUpdateCount();
-                    ResultInterface gk = result.getGeneratedKeys();
-                    if (gk != null) {
-                        int id = getNextId(TraceObject.RESULT_SET);
-                        generatedKeys = new JdbcResultSet(conn, this, command, gk, id,
-                                false, true, false);
-                    }
-                } finally {
-                    setExecutingStatement(null);
+        closeOldResultSet();
+        sql = JdbcConnection.translateSQL(sql, escapeProcessing);
+        CommandInterface command = conn.prepareCommand(sql, fetchSize);
+        synchronized (session) {
+            setExecutingStatement(command);
+            try {
+                ResultWithGeneratedKeys result = command.executeUpdate(
+                        conn.scopeGeneratedKeys() ? null : generatedKeysRequest);
+                updateCount = result.getUpdateCount();
+                ResultInterface gk = result.getGeneratedKeys();
+                if (gk != null) {
+                    int id = getNextId(TraceObject.RESULT_SET);
+                    generatedKeys = new JdbcResultSet(conn, this, command, gk, id,
+                            false, true, false);
                 }
+            } finally {
+                setExecutingStatement(null);
             }
-            command.close();
-            return updateCount;
-        } finally {
-            afterWriting();
         }
+        command.close();
+        return updateCount;
     }
 
     /**
@@ -211,47 +207,43 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
     private boolean executeInternal(String sql, Object generatedKeysRequest) throws SQLException {
         int id = getNextId(TraceObject.RESULT_SET);
         checkClosedForWrite();
-        try {
-            closeOldResultSet();
-            sql = JdbcConnection.translateSQL(sql, escapeProcessing);
-            CommandInterface command = conn.prepareCommand(sql, fetchSize);
-            boolean lazy = false;
-            boolean returnsResultSet;
-            synchronized (session) {
-                setExecutingStatement(command);
-                try {
-                    if (command.isQuery()) {
-                        returnsResultSet = true;
-                        boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
-                        boolean updatable = resultSetConcurrency == ResultSet.CONCUR_UPDATABLE;
-                        ResultInterface result = command.executeQuery(maxRows, scrollable);
-                        lazy = result.isLazy();
-                        resultSet = new JdbcResultSet(conn, this, command, result, id,
-                                closedByResultSet, scrollable, updatable);
-                    } else {
-                        returnsResultSet = false;
-                        ResultWithGeneratedKeys result = command.executeUpdate(
-                                conn.scopeGeneratedKeys() ? null : generatedKeysRequest);
-                        updateCount = result.getUpdateCount();
-                        ResultInterface gk = result.getGeneratedKeys();
-                        if (gk != null) {
-                            generatedKeys = new JdbcResultSet(conn, this, command, gk, id,
-                                    false, true, false);
-                        }
-                    }
-                } finally {
-                    if (!lazy) {
-                        setExecutingStatement(null);
+        closeOldResultSet();
+        sql = JdbcConnection.translateSQL(sql, escapeProcessing);
+        CommandInterface command = conn.prepareCommand(sql, fetchSize);
+        boolean lazy = false;
+        boolean returnsResultSet;
+        synchronized (session) {
+            setExecutingStatement(command);
+            try {
+                if (command.isQuery()) {
+                    returnsResultSet = true;
+                    boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
+                    boolean updatable = resultSetConcurrency == ResultSet.CONCUR_UPDATABLE;
+                    ResultInterface result = command.executeQuery(maxRows, scrollable);
+                    lazy = result.isLazy();
+                    resultSet = new JdbcResultSet(conn, this, command, result, id,
+                            closedByResultSet, scrollable, updatable);
+                } else {
+                    returnsResultSet = false;
+                    ResultWithGeneratedKeys result = command.executeUpdate(
+                            conn.scopeGeneratedKeys() ? null : generatedKeysRequest);
+                    updateCount = result.getUpdateCount();
+                    ResultInterface gk = result.getGeneratedKeys();
+                    if (gk != null) {
+                        generatedKeys = new JdbcResultSet(conn, this, command, gk, id,
+                                false, true, false);
                     }
                 }
+            } finally {
+                if (!lazy) {
+                    setExecutingStatement(null);
+                }
             }
-            if (!lazy) {
-                command.close();
-            }
-            return returnsResultSet;
-        } finally {
-            afterWriting();
         }
+        if (!lazy) {
+            command.close();
+        }
+        return returnsResultSet;
     }
 
     /**
@@ -761,38 +753,34 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
         try {
             debugCodeCall("executeBatch");
             checkClosedForWrite();
-            try {
-                if (batchCommands == null) {
-                    // TODO batch: check what other database do if no commands
-                    // are set
-                    batchCommands = Utils.newSmallArrayList();
-                }
-                int size = batchCommands.size();
-                int[] result = new int[size];
-                SQLException first = null;
-                SQLException last = null;
-                for (int i = 0; i < size; i++) {
-                    String sql = batchCommands.get(i);
-                    try {
-                        result[i] = executeUpdateInternal(sql, null);
-                    } catch (Exception re) {
-                        SQLException e = logAndConvert(re);
-                        if (last == null) {
-                            first = last = e;
-                        } else {
-                            last.setNextException(e);
-                        }
-                        result[i] = Statement.EXECUTE_FAILED;
-                    }
-                }
-                batchCommands = null;
-                if (first != null) {
-                    throw new JdbcBatchUpdateException(first, result);
-                }
-                return result;
-            } finally {
-                afterWriting();
+            if (batchCommands == null) {
+                // TODO batch: check what other database do if no commands
+                // are set
+                batchCommands = Utils.newSmallArrayList();
             }
+            int size = batchCommands.size();
+            int[] result = new int[size];
+            SQLException first = null;
+            SQLException last = null;
+            for (int i = 0; i < size; i++) {
+                String sql = batchCommands.get(i);
+                try {
+                    result[i] = executeUpdateInternal(sql, null);
+                } catch (Exception re) {
+                    SQLException e = logAndConvert(re);
+                    if (last == null) {
+                        first = last = e;
+                    } else {
+                        last.setNextException(e);
+                    }
+                    result[i] = Statement.EXECUTE_FAILED;
+                }
+            }
+            batchCommands = null;
+            if (first != null) {
+                throw new JdbcBatchUpdateException(first, result);
+            }
+            return result;
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1228,15 +1216,6 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
             return true;
         }
         return false;
-    }
-
-    /**
-     * Called after each write operation.
-     */
-    void afterWriting() {
-        if (conn != null) {
-            conn.afterWriting();
-        }
     }
 
     /**

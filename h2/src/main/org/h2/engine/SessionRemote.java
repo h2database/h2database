@@ -727,21 +727,6 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     }
 
     @Override
-    public boolean isReconnectNeeded(boolean write) {
-        return false;
-    }
-
-    @Override
-    public SessionInterface reconnect(boolean write) {
-        return this;
-    }
-
-    @Override
-    public void afterWriting() {
-        // nothing to do
-    }
-
-    @Override
     public LobStorageInterface getLobStorage() {
         if (lobStorage == null) {
             lobStorage = new LobStorageFrontend(this);

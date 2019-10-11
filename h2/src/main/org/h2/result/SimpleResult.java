@@ -31,15 +31,6 @@ public class SimpleResult implements ResultInterface, ResultTarget {
         /** Column type. */
         final TypeInfo columnType;
 
-        Column(String alias, String columnName, int columnType, long columnPrecision, int columnScale) {
-            if (alias == null || columnName == null) {
-                throw new NullPointerException();
-            }
-            this.alias = alias;
-            this.columnName = columnName;
-            this.columnType = TypeInfo.getTypeInfo(columnType, columnPrecision, columnScale, null);
-        }
-
         Column(String alias, String columnName, TypeInfo columnType) {
             if (alias == null || columnName == null) {
                 throw new NullPointerException();
@@ -109,7 +100,7 @@ public class SimpleResult implements ResultInterface, ResultTarget {
      * @param columnScale Column's scale.
      */
     public void addColumn(String alias, String columnName, int columnType, long columnPrecision, int columnScale) {
-        addColumn(new Column(alias, columnName, columnType, columnPrecision, columnScale));
+        addColumn(alias, columnName, TypeInfo.getTypeInfo(columnType, columnPrecision, columnScale, null));
     }
 
     /**

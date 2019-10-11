@@ -39,7 +39,6 @@ public class FileLock implements Runnable {
     private static final String MAGIC = "FileLock";
     private static final String FILE = "file";
     private static final String SOCKET = "socket";
-    private static final String SERIALIZED = "serialized";
     private static final int RANDOM_BYTES = 16;
     private static final int SLEEP_GAP = 25;
     private static final int TIME_GRANULARITY = 2000;
@@ -110,9 +109,6 @@ public class FileLock implements Runnable {
             break;
         case SOCKET:
             lockSocket();
-            break;
-        case SERIALIZED:
-            lockSerialized();
             break;
         case FS:
         case NO:
@@ -311,26 +307,6 @@ public class FileLock implements Runnable {
         properties.setProperty("id", uniqueId);
     }
 
-    private void lockSerialized() {
-        method = SERIALIZED;
-        FileUtils.createDirectories(FileUtils.getParent(fileName));
-        if (FileUtils.createFile(fileName)) {
-            properties = new SortedProperties();
-            properties.setProperty("method", String.valueOf(method));
-            setUniqueId();
-            save();
-        } else {
-            while (true) {
-                try {
-                    properties = load();
-                } catch (DbException e) {
-                    // ignore
-                }
-                return;
-            }
-        }
-    }
-
     private void lockFile() {
         method = FILE;
         properties = new SortedProperties();
@@ -485,13 +461,10 @@ public class FileLock implements Runnable {
             return FileLockMethod.NO;
         } else if (method.equalsIgnoreCase("SOCKET")) {
             return FileLockMethod.SOCKET;
-        } else if (method.equalsIgnoreCase("SERIALIZED")) {
-            return FileLockMethod.SERIALIZED;
         } else if (method.equalsIgnoreCase("FS")) {
             return FileLockMethod.FS;
         } else {
-            throw DbException.get(
-                    ErrorCode.UNSUPPORTED_LOCK_METHOD_1, method);
+            throw DbException.get(ErrorCode.UNSUPPORTED_LOCK_METHOD_1, method);
         }
     }
 

@@ -189,7 +189,6 @@ import org.h2.test.unit.TestExit;
 import org.h2.test.unit.TestFile;
 import org.h2.test.unit.TestFileLock;
 import org.h2.test.unit.TestFileLockProcess;
-import org.h2.test.unit.TestFileLockSerialized;
 import org.h2.test.unit.TestFileSystem;
 import org.h2.test.unit.TestFtp;
 import org.h2.test.unit.TestGeometryUtils;
@@ -910,7 +909,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         runAddedTests();
 
         addTest(new TestCluster());
-        addTest(new TestFileLockSerialized());
         addTest(new TestFileLockProcess());
         addTest(new TestDefrag());
         addTest(new TestTools());

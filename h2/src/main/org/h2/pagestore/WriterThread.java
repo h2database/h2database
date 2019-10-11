@@ -79,12 +79,7 @@ public class WriterThread implements Runnable {
             }
             int wait = writeDelay;
             try {
-                if (database.isFileLockSerialized()) {
-                    wait = Constants.MIN_WRITE_DELAY;
-                    database.checkpointIfRequired();
-                } else {
-                    database.flush();
-                }
+                database.flush();
             } catch (Exception e) {
                 TraceSystem traceSystem = database.getTraceSystem();
                 if (traceSystem != null) {

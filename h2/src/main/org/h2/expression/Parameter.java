@@ -73,17 +73,6 @@ public class Parameter extends Expression implements ParameterInterface {
     }
 
     @Override
-    public int getValueType() {
-        if (value != null) {
-            return value.getValueType();
-        }
-        if (column != null) {
-            return column.getType().getValueType();
-        }
-        return Value.UNKNOWN;
-    }
-
-    @Override
     public void mapColumns(ColumnResolver resolver, int level, int state) {
         // can't map
     }
@@ -118,28 +107,6 @@ public class Parameter extends Expression implements ParameterInterface {
     @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         // not bound
-    }
-
-    @Override
-    public int getScale() {
-        if (value != null) {
-            return value.getType().getScale();
-        }
-        if (column != null) {
-            return column.getType().getScale();
-        }
-        return 0;
-    }
-
-    @Override
-    public long getPrecision() {
-        if (value != null) {
-            return value.getType().getPrecision();
-        }
-        if (column != null) {
-            return column.getType().getPrecision();
-        }
-        return 0;
     }
 
     @Override

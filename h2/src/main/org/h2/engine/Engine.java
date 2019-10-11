@@ -16,8 +16,6 @@ import org.h2.message.Trace;
 import org.h2.security.auth.AuthenticationException;
 import org.h2.security.auth.AuthenticationInfo;
 import org.h2.security.auth.Authenticator;
-import org.h2.store.FileLock;
-import org.h2.store.FileLockMethod;
 import org.h2.util.MathUtils;
 import org.h2.util.ParserUtil;
 import org.h2.util.ThreadDeadlockDetector;
@@ -170,23 +168,8 @@ public class Engine implements SessionFactory {
 
     private Session createSessionAndValidate(ConnectionInfo ci) {
         try {
-            ConnectionInfo backup = null;
-            String lockMethodName = ci.getProperty("FILE_LOCK", null);
-            FileLockMethod fileLockMethod = FileLock.getFileLockMethod(lockMethodName);
-            if (fileLockMethod == FileLockMethod.SERIALIZED) {
-                // In serialized mode, database instance sharing is not possible
-                ci.setProperty("OPEN_NEW", "TRUE");
-                try {
-                    backup = ci.clone();
-                } catch (CloneNotSupportedException e) {
-                    throw DbException.convert(e);
-                }
-            }
             Session session = openSession(ci);
             validateUserAndPassword(true);
-            if (backup != null) {
-                session.setConnectionInfo(backup);
-            }
             return session;
         } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.WRONG_USER_OR_PASSWORD) {

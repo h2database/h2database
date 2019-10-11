@@ -347,6 +347,25 @@ public class Transfer {
     }
 
     /**
+     * Write value type, precision, and scale.
+     *
+     * @param type data type information
+     * @return itself
+     */
+    public Transfer writeTypeInfo(TypeInfo type) throws IOException {
+        return writeInt(type.getValueType()).writeLong(type.getPrecision()).writeInt(type.getScale());
+    }
+
+    /**
+     * Read a type information.
+     *
+     * @return the type information
+     */
+    public TypeInfo readTypeInfo() throws IOException {
+        return TypeInfo.getTypeInfo(readInt(), readLong(), readInt(), null);
+    }
+
+    /**
      * Write a value.
      *
      * @param v the value
@@ -560,14 +579,13 @@ public class Transfer {
                 if (version >= Constants.TCP_PROTOCOL_VERSION_18) {
                     writeString(result.getAlias(i));
                     writeString(result.getColumnName(i));
-                    writeInt(columnType.getValueType());
-                    writeLong(columnType.getPrecision());
+                    writeTypeInfo(columnType);
                 } else {
                     writeString(result.getColumnName(i));
                     writeInt(DataType.getDataType(columnType.getValueType()).sqlType);
                     writeInt(MathUtils.convertLongToInt(columnType.getPrecision()));
+                    writeInt(columnType.getScale());
                 }
-                writeInt(columnType.getScale());
             }
             while (result.next()) {
                 writeBoolean(true);
@@ -782,7 +800,7 @@ public class Transfer {
             int columns = readInt();
             for (int i = 0; i < columns; i++) {
                 if (version >= Constants.TCP_PROTOCOL_VERSION_18) {
-                    rs.addColumn(readString(), readString(), readInt(), readLong(), readInt());
+                    rs.addColumn(readString(), readString(), readTypeInfo());
                 } else {
                     String name = readString();
                     rs.addColumn(name, name, DataType.convertSQLTypeToValueType(readInt()), readInt(), readInt());

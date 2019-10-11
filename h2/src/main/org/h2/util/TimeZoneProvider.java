@@ -16,6 +16,223 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public abstract class TimeZoneProvider {
 
+    /**
+     * The UTC time zone provider.
+     */
+    public static final TimeZoneProvider UTC = new Simple((short) 0);
+
+    /**
+     * A small cache for timezone providers.
+     */
+    public static TimeZoneProvider[] CACHE;
+
+    /**
+     * The number of cache elements (needs to be a power of 2).
+     */
+    private static final int CACHE_SIZE = 32;
+
+    /**
+     * Returns the time zone provider with the specified offset.
+     *
+     * @param offset
+     *            UTC offset in seconds
+     * @return the time zone provider with the specified offset
+     */
+    public static TimeZoneProvider ofOffset(int offset) {
+        if (offset == 0) {
+            return UTC;
+        }
+        return new Simple(offset);
+    }
+
+    /**
+     * Returns the time zone provider with the specified name.
+     *
+     * @param id
+     *            the ID of the time zone
+     * @return the time zone provider with the specified name
+     * @throws IllegalArgumentException
+     *             if time zone with specified ID isn't known
+     */
+    public static TimeZoneProvider ofId(String id) throws IllegalArgumentException {
+        int length = id.length();
+        if (length == 1 && id.charAt(0) == 'Z') {
+            return UTC;
+        }
+        int index = 0;
+        if (id.startsWith("GMT") || id.startsWith("UTC")) {
+            if (length == 3) {
+                return UTC;
+            }
+            index += 3;
+        }
+        readOffset: if (length - index >= 2) {
+            boolean negative = false;
+            char c = id.charAt(index);
+            if (c == '+') {
+                c = id.charAt(++index);
+            } else if (c == '-') {
+                negative = true;
+                c = id.charAt(++index);
+            } else {
+                break readOffset;
+            }
+            if (c >= '0' && c <= '9') {
+                int hour = c - '0';
+                if (++index < length) {
+                    c = id.charAt(index);
+                    if (c >= '0' && c <= '9') {
+                        hour = hour * 10 + c - '0';
+                        index++;
+                    }
+                }
+                if (index == length) {
+                    int offset = hour * 3_600;
+                    return ofOffset(negative ? -offset : offset);
+                }
+                if (id.charAt(index) == ':') {
+                    if (++index < length) {
+                        c = id.charAt(index);
+                        if (c >= '0' && c <= '9') {
+                            int minute = c - '0';
+                            if (++index < length) {
+                                c = id.charAt(index);
+                                if (c >= '0' && c <= '9') {
+                                    minute = minute * 10 + c - '0';
+                                    index++;
+                                }
+                            }
+                            if (index == length) {
+                                int offset = (hour * 60 + minute) * 60;
+                                return ofOffset(negative ? -offset : offset);
+                            }
+                            if (id.charAt(index) == ':') {
+                                if (++index < length) {
+                                    c = id.charAt(index);
+                                    if (c >= '0' && c <= '9') {
+                                        int second = c - '0';
+                                        if (++index < length) {
+                                            c = id.charAt(index);
+                                            if (c >= '0' && c <= '9') {
+                                                second = second * 10 + c - '0';
+                                                index++;
+                                            }
+                                        }
+                                        if (index == length) {
+                                            int offset = (hour * 60 + minute) * 60 + second;
+                                            return ofOffset(negative ? -offset : offset);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (index > 0) {
+                throw new IllegalArgumentException(id);
+            }
+        }
+        int hash = id.hashCode() & (CACHE_SIZE - 1);
+        TimeZoneProvider[] cache = CACHE;
+        if (cache != null) {
+            TimeZoneProvider provider = cache[hash];
+            if (provider != null && provider.getId().equals(id)) {
+                return provider;
+            }
+        }
+        TimeZoneProvider provider = ofId(id, index, length);
+        if (cache == null) {
+            CACHE = cache = new TimeZoneProvider[CACHE_SIZE];
+        }
+        cache[hash] = provider;
+        return provider;
+    }
+
+    private static TimeZoneProvider ofId(String id, int index, int length) {
+        if (JSR310.PRESENT) {
+            return JSR310Utils.getTimeZoneProvider(id);
+        }
+        TimeZone tz = TimeZone.getTimeZone(id);
+        if (!tz.getID().startsWith(id)) {
+            throw new IllegalArgumentException(id + " (" + tz.getID() + "?)");
+        }
+        return new WithTimeZone7(TimeZone.getTimeZone(id));
+    }
+
+    /**
+     * Returns the time zone provider for the system default time zone.
+     *
+     * @return the time zone provider for the system default time zone
+     */
+    public static TimeZoneProvider getDefault() {
+        if (JSR310.PRESENT) {
+            return JSR310Utils.getDefaultTimeZoneProvider();
+        }
+        return new WithTimeZone7(TimeZone.getDefault());
+    }
+
+    /**
+     * Calculates the time zone offset in seconds for the specified EPOCH
+     * seconds.
+     *
+     * @param epochSeconds
+     *            seconds since EPOCH
+     * @return time zone offset in minutes
+     */
+    public abstract int getTimeZoneOffsetUTC(long epochSeconds);
+
+    /**
+     * Calculates the time zone offset in seconds for the specified date value
+     * and nanoseconds since midnight in local time.
+     *
+     * @param dateValue
+     *            date value
+     * @param timeNanos
+     *            nanoseconds since midnight
+     * @return time zone offset in minutes
+     */
+    public abstract int getTimeZoneOffsetLocal(long dateValue, long timeNanos);
+
+    /**
+     * Calculates the epoch seconds from local date and time.
+     *
+     * @param dateValue
+     *            date value
+     * @param timeNanos
+     *            nanoseconds since midnight
+     * @return the epoch seconds value
+     */
+    public abstract long getEpochSecondsFromLocal(long dateValue, long timeNanos);
+
+    /**
+     * Returns the ID of the time zone.
+     *
+     * @return the ID of the time zone
+     */
+    public abstract String getId();
+
+    /**
+     * Get the standard time name or daylight saving time name of the time zone.
+     *
+     * @param epochSeconds
+     *            seconds since EPOCH
+     * @return the standard time name or daylight saving time name of the time
+     *         zone
+     */
+    public abstract String getShortId(long epochSeconds);
+
+    /**
+     * Returns whether this is a simple time zone provider with a fixed offset
+     * from UTC.
+     *
+     * @return whether this is a simple time zone provider with a fixed offset
+     *         from UTC
+     */
+    public boolean hasFixedOffset() {
+        return false;
+    }
+
     private static final class Simple extends TimeZoneProvider {
 
         private final int offset;
@@ -98,6 +315,17 @@ public abstract class TimeZoneProvider {
             return getTimeZoneOffsetLocal(year, month, day, hour, minute, second);
         }
 
+        /**
+         * Get the timezone offset.
+         *
+         * @param year the year
+         * @param month the month (1 - 12)
+         * @param day the day (1 - 31)
+         * @param hour the hour
+         * @param minute the minute
+         * @param second the second
+         * @return the offset in seconds
+         */
         abstract int getTimeZoneOffsetLocal(int year, int month, int day, int hour, int minute, int second);
 
         @Override
@@ -112,6 +340,17 @@ public abstract class TimeZoneProvider {
             return getEpochSecondsFromLocal(year, month, day, hour, minute, second);
         }
 
+        /**
+         * Get the epoch seconds.
+         *
+         * @param year the year
+         * @param month the month (1 - 12)
+         * @param day the day (1 - 31)
+         * @param hour the hour
+         * @param minute the minute
+         * @param second the second
+         * @return the epoch seconds
+         */
         abstract long getEpochSecondsFromLocal(int year, int month, int day, int hour, int minute, int second);
 
     }
@@ -246,218 +485,6 @@ public abstract class TimeZoneProvider {
             return "TimeZoneProvider " + timeZone.getID();
         }
 
-    }
-
-    /**
-     * The UTC time zone provider.
-     */
-    public static final TimeZoneProvider UTC = new Simple((short) 0);
-
-    public static TimeZoneProvider[] CACHE;
-
-    /**
-     * Returns the time zone provider with the specified offset.
-     *
-     * @param offset
-     *            UTC offset in seconds
-     * @return the time zone provider with the specified offset
-     */
-    public static TimeZoneProvider ofOffset(int offset) {
-        if (offset == 0) {
-            return UTC;
-        }
-        return new Simple(offset);
-    }
-
-    /**
-     * Returns the time zone provider with the specified name.
-     *
-     * @param id
-     *            the ID of the time zone
-     * @return the time zone provider with the specified name
-     * @throws IllegalArgumentException
-     *             if time zone with specified ID isn't known
-     */
-    public static TimeZoneProvider ofId(String id) throws IllegalArgumentException {
-        int length = id.length();
-        if (length == 1 && id.charAt(0) == 'Z') {
-            return UTC;
-        }
-        int index = 0;
-        if (id.startsWith("GMT") || id.startsWith("UTC")) {
-            if (length == 3) {
-                return UTC;
-            }
-            index += 3;
-        }
-        readOffset: if (length - index >= 2) {
-            boolean negative = false;
-            char c = id.charAt(index);
-            if (c == '+') {
-                c = id.charAt(++index);
-            } else if (c == '-') {
-                negative = true;
-                c = id.charAt(++index);
-            } else {
-                break readOffset;
-            }
-            if (c >= '0' && c <= '9') {
-                int hour = c - '0';
-                if (++index < length) {
-                    c = id.charAt(index);
-                    if (c >= '0' && c <= '9') {
-                        hour = hour * 10 + c - '0';
-                        index++;
-                    }
-                }
-                if (index == length) {
-                    int offset = hour * 3_600;
-                    return ofOffset(negative ? -offset : offset);
-                }
-                if (id.charAt(index) == ':') {
-                    if (++index < length) {
-                        c = id.charAt(index);
-                        if (c >= '0' && c <= '9') {
-                            int minute = c - '0';
-                            if (++index < length) {
-                                c = id.charAt(index);
-                                if (c >= '0' && c <= '9') {
-                                    minute = minute * 10 + c - '0';
-                                    index++;
-                                }
-                            }
-                            if (index == length) {
-                                int offset = (hour * 60 + minute) * 60;
-                                return ofOffset(negative ? -offset : offset);
-                            }
-                            if (id.charAt(index) == ':') {
-                                if (++index < length) {
-                                    c = id.charAt(index);
-                                    if (c >= '0' && c <= '9') {
-                                        int second = c - '0';
-                                        if (++index < length) {
-                                            c = id.charAt(index);
-                                            if (c >= '0' && c <= '9') {
-                                                second = second * 10 + c - '0';
-                                                index++;
-                                            }
-                                        }
-                                        if (index == length) {
-                                            int offset = (hour * 60 + minute) * 60 + second;
-                                            return ofOffset(negative ? -offset : offset);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            if (index > 0) {
-                throw new IllegalArgumentException(id);
-            }
-        }
-        int hash = id.hashCode() & 0x1f;
-        TimeZoneProvider[] cache = CACHE;
-        if (cache != null) {
-            TimeZoneProvider provider = cache[hash];
-            if (provider != null && provider.getId().equals(id)) {
-                return provider;
-            }
-        }
-        TimeZoneProvider provider = ofId(id, index, length);
-        if (cache == null) {
-            CACHE = cache = new TimeZoneProvider[32];
-        }
-        cache[hash] = provider;
-        return provider;
-    }
-
-    private static TimeZoneProvider ofId(String id, int index, int length) {
-        if (JSR310.PRESENT) {
-            return JSR310Utils.getTimeZoneProvider(id);
-        }
-        TimeZone tz = TimeZone.getTimeZone(id);
-        if (!tz.getID().startsWith(id)) {
-            throw new IllegalArgumentException(id + " (" + tz.getID() + "?)");
-        }
-        return new WithTimeZone7(TimeZone.getTimeZone(id));
-    }
-
-    /**
-     * Returns the time zone provider for the system default time zone.
-     *
-     * @return the time zone provider for the system default time zone
-     */
-    public static TimeZoneProvider getDefault() {
-        if (JSR310.PRESENT) {
-            return JSR310Utils.getDefaultTimeZoneProvider();
-        }
-        return new WithTimeZone7(TimeZone.getDefault());
-    }
-
-    /**
-     * Calculates the time zone offset in seconds for the specified EPOCH
-     * seconds.
-     *
-     * @param epochSeconds
-     *            seconds since EPOCH
-     * @return time zone offset in minutes
-     */
-    public abstract int getTimeZoneOffsetUTC(long epochSeconds);
-
-    /**
-     * Calculates the time zone offset in seconds for the specified date value
-     * and nanoseconds since midnight in local time.
-     *
-     * @param dateValue
-     *            date value
-     * @param timeNanos
-     *            nanoseconds since midnight
-     * @return time zone offset in minutes
-     */
-    public abstract int getTimeZoneOffsetLocal(long dateValue, long timeNanos);
-
-    /**
-     * Calculates the EPOCH seconds from local date and time.
-     *
-     * @param dateValue
-     *            date value
-     * @param timeNanos
-     *            nanoseconds since midnight
-     * @return the EPOCH seconds value
-     */
-    public abstract long getEpochSecondsFromLocal(long dateValue, long timeNanos);
-
-    /**
-     * Returns the ID of the time zone.
-     *
-     * @return the ID of the time zone
-     */
-    public abstract String getId();
-
-    /**
-     * Get the standard time name or daylight saving time name of the time zone.
-     *
-     * @param epochSeconds
-     *            seconds since EPOCH
-     * @return the standard time name or daylight saving time name of the time
-     *         zone
-     */
-    public abstract String getShortId(long epochSeconds);
-
-    /**
-     * Returns whether this is a simple time zone provider with a fixed offset
-     * from UTC.
-     *
-     * @return whether this is a simple time zone provider with a fixed offset
-     *         from UTC
-     */
-    public boolean hasFixedOffset() {
-        return false;
-    }
-
-    TimeZoneProvider() {
     }
 
 }

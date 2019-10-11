@@ -445,6 +445,11 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         return transaction.getStatementSnapshot(map.getId());
     }
 
+    /**
+     * Create a new snapshot for this map.
+     *
+     * @return the snapshot
+     */
     Snapshot createSnapshot() {
         return transaction.createSnapshot(map.getId());
     }

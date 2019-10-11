@@ -14,8 +14,14 @@ import org.h2.mvstore.RootReference;
  */
 final class Snapshot {
 
+    /**
+     * The root reference.
+     */
     final RootReference root;
 
+    /**
+     * The committing transactions (see also TransactionStore.committingTransactions).
+     */
     final BitSet committingTransactions;
 
     Snapshot(RootReference root, BitSet committingTransactions) {

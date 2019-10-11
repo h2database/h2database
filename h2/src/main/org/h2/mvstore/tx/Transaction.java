@@ -177,8 +177,10 @@ public class Transaction {
      */
     private final Map<Integer, Snapshot> commandSnapshots = new HashMap<>();
 
+    /**
+     * The current isolation level.
+     */
     IsolationLevel isolationLevel = IsolationLevel.READ_COMMITTED;
-
 
     Transaction(TransactionStore store, int transactionId, long sequenceNum, int status,
                 String name, long logId, int timeoutMillis, int ownerId,
@@ -220,8 +222,8 @@ public class Transaction {
     }
 
     /**
-     * Get the snapshot for the given map id
-     * as it was at the start of the current SQL statement.
+     * Get the snapshot for the given map id as it was at the start of the
+     * current SQL statement. This may create a new snapshot if needed.
      *
      * @param mapId the map id
      * @return the root reference
@@ -235,7 +237,7 @@ public class Transaction {
     }
 
     /**
-     * Get the new current root reference for the given map id.
+     * Create a snapshot for the given map id.
      *
      * @param mapId the map id
      * @return the root reference

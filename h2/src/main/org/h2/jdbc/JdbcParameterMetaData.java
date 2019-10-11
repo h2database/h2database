@@ -121,7 +121,7 @@ public class JdbcParameterMetaData extends TraceObject implements
         try {
             debugCodeCall("getScale", param);
             TypeInfo type = getParameter(param).getType();
-            return type.getValueType() == Value.UNKNOWN ? 0 : MathUtils.convertLongToInt(type.getScale());
+            return type.getValueType() == Value.UNKNOWN ? 0 : type.getScale();
         } catch (Exception e) {
             throw logAndConvert(e);
         }

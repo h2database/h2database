@@ -564,6 +564,7 @@ public class MVTable extends RegularTable {
 
     @Override
     public Row lockRow(Session session, Row row) {
+        syncLastModificationIdWithDatabase();
         return primaryIndex.lockRow(session, row);
     }
 

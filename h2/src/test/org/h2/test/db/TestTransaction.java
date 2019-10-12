@@ -56,6 +56,7 @@ public class TestTransaction extends TestDb {
         testSavepoint();
         testIsolation();
         testIsolationLevels();
+        testIsolationLevels2();
         deleteDb("transaction");
     }
 
@@ -1005,6 +1006,53 @@ public class TestTransaction extends TestDb {
     private void test(Statement stat, String sql) throws SQLException {
         trace(sql);
         stat.execute(sql);
+    }
+
+    private void testIsolationLevels2() throws SQLException {
+        if (!config.mvStore) {
+            return;
+        }
+        for (int isolationLevel : new int[] { Connection.TRANSACTION_READ_UNCOMMITTED,
+                Connection.TRANSACTION_READ_COMMITTED, Connection.TRANSACTION_REPEATABLE_READ,
+                Connection.TRANSACTION_SERIALIZABLE }) {
+            deleteDb("transaction");
+            try (Connection conn1 = getConnection("transaction"); Connection conn2 = getConnection("transaction")) {
+                conn1.setTransactionIsolation(isolationLevel);
+                conn2.setTransactionIsolation(isolationLevel);
+                conn1.setAutoCommit(false);
+                conn2.setAutoCommit(false);
+                Statement stat1 = conn1.createStatement();
+                Statement stat2 = conn2.createStatement();
+                stat1.execute("CREATE TABLE TEST(ID VARCHAR PRIMARY KEY, VALUE INT)");
+                stat1.execute("INSERT INTO TEST VALUES ('1', 1)");
+                conn1.commit();
+                try (ResultSet rs = stat1.executeQuery("SELECT * FROM TEST WHERE ID = '1'")) {
+                    rs.next();
+                    assertEquals(1, rs.getInt(2));
+                }
+                stat2.executeUpdate("UPDATE TEST SET VALUE = VALUE + 1");
+                try (ResultSet rs = stat1.executeQuery("SELECT * FROM TEST WHERE ID = '1'")) {
+                    rs.next();
+                    assertEquals(isolationLevel == Connection.TRANSACTION_READ_UNCOMMITTED ? 2 : 1, rs.getInt(2));
+                }
+                assertThrows(ErrorCode.LOCK_TIMEOUT_1, stat1)
+                        .executeQuery("SELECT * FROM TEST WHERE ID = '1' FOR UPDATE");
+                conn2.commit();
+                try (ResultSet rs = stat1.executeQuery("SELECT * FROM TEST WHERE ID = '1' FOR UPDATE")) {
+                    rs.next();
+                    assertEquals(2, rs.getInt(2));
+                }
+                try (ResultSet rs = stat1.executeQuery("SELECT * FROM TEST")) {
+                    rs.next();
+                    assertEquals(2, rs.getInt(2));
+                }
+                try (ResultSet rs = stat1.executeQuery("SELECT * FROM TEST WHERE ID = '1'")) {
+                    rs.next();
+                    assertEquals(2, rs.getInt(2));
+                }
+            }
+        }
+        deleteDb("transaction");
     }
 
 }

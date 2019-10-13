@@ -564,7 +564,11 @@ public class MVTable extends RegularTable {
 
     @Override
     public Row lockRow(Session session, Row row) {
-        return primaryIndex.lockRow(session, row);
+        Row lockedRow = primaryIndex.lockRow(session, row);
+        if (lockedRow == null || !row.hasSharedData(lockedRow)) {
+            syncLastModificationIdWithDatabase();
+        }
+        return lockedRow;
     }
 
     private void analyzeIfRequired(Session session) {

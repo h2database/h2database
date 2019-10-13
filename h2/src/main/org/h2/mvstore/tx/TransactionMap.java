@@ -390,23 +390,45 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      */
     @SuppressWarnings("unchecked")
     public V getFromSnapshot(Object key) {
-        Snapshot snapshot = getSnapshot();
-        VersionedValue data = map.get(snapshot.root.root, key);
-        if (data == null) {
-            // doesn't exist or deleted by a committed transaction
+        switch (transaction.isolationLevel) {
+        case READ_UNCOMMITTED: {
+            Snapshot snapshot = getStatementSnapshot();
+            VersionedValue data = map.get(snapshot.root.root, key);
+            if (data != null) {
+                return (V) data.getCurrentValue();
+            }
             return null;
         }
-        long id = data.getOperationId();
-        if (id == 0) {
-            // it is committed
-            return (V)data.getCurrentValue();
-        }
-        int tx = TransactionStore.getTransactionId(id);
-        if (tx == transaction.transactionId || snapshot.committingTransactions.get(tx)) {
+        case REPEATABLE_READ:
+        case SERIALIZABLE:
+            if (transaction.hasChanges()) {
+                Snapshot snapshot = getStatementSnapshot();
+                VersionedValue data = map.get(snapshot.root.root, key);
+                if (data != null) {
+                    long id = data.getOperationId();
+                    if (id != 0L && transaction.transactionId == TransactionStore.getTransactionId(id)) {
+                        return (V) data.getCurrentValue();
+                    }
+                }
+            }
+            //$FALL-THROUGH$
+        case READ_COMMITTED:
+        default:
+            Snapshot snapshot = getSnapshot();
+            VersionedValue data = map.get(snapshot.root.root, key);
+            if (data == null) {
+                // doesn't exist or deleted by a committed transaction
+                return null;
+            }
+            long id = data.getOperationId();
+            if (id != 0) {
+                int tx = TransactionStore.getTransactionId(id);
+                if (tx != transaction.transactionId && !snapshot.committingTransactions.get(tx)) {
+                    return (V) data.getCommittedValue();
+                }
+            }
             // added by this transaction or another transaction which is committed by now
             return (V) data.getCurrentValue();
-        } else {
-            return (V) data.getCommittedValue();
         }
     }
 
@@ -711,7 +733,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
             current = null;
         }
 
-        protected boolean isApplicable(VersionedValue data) {
+        boolean isApplicable(VersionedValue data) {
             return false;
         }
     }
@@ -722,7 +744,8 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
             super(transactionMap, from, to, transactionMap.createSnapshot(), false);
         }
 
-        protected boolean isApplicable(VersionedValue data) {
+        @Override
+        boolean isApplicable(VersionedValue data) {
             // Include all uncommitted entries for unique index validation
             long id = data.getOperationId();
             if (id != 0) {

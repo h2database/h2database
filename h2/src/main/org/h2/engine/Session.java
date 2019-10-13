@@ -1834,6 +1834,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                     }
                     break;
                 }
+                case SNAPSHOT:
                 case SERIALIZABLE:
                     if (!transaction.hasStatementDependencies()) {
                         allMaps = new HashSet<>();

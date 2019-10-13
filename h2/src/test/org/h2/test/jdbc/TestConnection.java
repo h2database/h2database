@@ -16,6 +16,7 @@ import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
+import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 
 /**
@@ -127,6 +128,9 @@ public class TestConnection extends TestDb {
             assertEquals(Connection.TRANSACTION_READ_UNCOMMITTED, conn.getTransactionIsolation());
             conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
             assertEquals(config.mvStore ? Connection.TRANSACTION_REPEATABLE_READ : Connection.TRANSACTION_SERIALIZABLE,
+                    conn.getTransactionIsolation());
+            conn.setTransactionIsolation(Constants.TRANSACTION_SNAPSHOT);
+            assertEquals(config.mvStore ? Constants.TRANSACTION_SNAPSHOT : Connection.TRANSACTION_SERIALIZABLE,
                     conn.getTransactionIsolation());
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             assertEquals(Connection.TRANSACTION_SERIALIZABLE, conn.getTransactionIsolation());

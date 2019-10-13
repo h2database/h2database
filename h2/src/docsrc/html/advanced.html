@@ -232,7 +232,7 @@ See the <a href="commands.html">Commands</a> for details.
 Transaction isolation is provided for all data manipulation language (DML) statements.
 </p>
 <p>
-The default MVStore engine supports read uncommitted, read committed, repeatable read,
+The default MVStore engine supports read uncommitted, read committed, repeatable read, snapshot,
 and serializable (partially, see below) isolation levels:
 </p>
 <ul>
@@ -251,6 +251,12 @@ and serializable (partially, see below) isolation levels:
     Dirty reads and non-repeatable reads aren't possible, phantom reads are possible.
     To enable, execute the SQL statement
     <code>SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL REPEATABLE READ</code>
+</li>
+<li><b>Snapshot</b><br />
+    Dirty reads, non-repeatable reads, and phantom reads aren't possible.
+    This isolation level is very expensive in databases with many tables.
+    To enable, execute the SQL statement
+    <code>SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SNAPSHOT</code>
 </li>
 <li><b>Serializable</b><br />
     Dirty reads, non-repeatable reads, and phantom reads aren't possible.

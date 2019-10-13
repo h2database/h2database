@@ -621,6 +621,7 @@ public class TestMetaData extends TestDb {
         assertTrue(meta.supportsTransactionIsolationLevel(Connection.TRANSACTION_READ_COMMITTED));
         assertTrue(meta.supportsTransactionIsolationLevel(Connection.TRANSACTION_READ_UNCOMMITTED));
         assertTrue(meta.supportsTransactionIsolationLevel(Connection.TRANSACTION_REPEATABLE_READ));
+        assertTrue(meta.supportsTransactionIsolationLevel(Constants.TRANSACTION_SNAPSHOT));
         assertTrue(meta.supportsTransactionIsolationLevel(Connection.TRANSACTION_SERIALIZABLE));
         assertTrue(meta.supportsUnion());
         assertTrue(meta.supportsUnionAll());

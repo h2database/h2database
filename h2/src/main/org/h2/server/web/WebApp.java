@@ -1439,6 +1439,8 @@ public class WebApp {
                         .append(": read_committed<br />");
                 buff.append(Connection.TRANSACTION_REPEATABLE_READ)
                         .append(": repeatable_read<br />");
+                buff.append(Constants.TRANSACTION_SNAPSHOT)
+                        .append(": snapshot<br />");
                 buff.append(Connection.TRANSACTION_SERIALIZABLE)
                         .append(": serializable");
             }

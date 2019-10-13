@@ -400,6 +400,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
             return null;
         }
         case REPEATABLE_READ:
+        case SNAPSHOT:
         case SERIALIZABLE:
             if (transaction.hasChanges()) {
                 Snapshot snapshot = getStatementSnapshot();
@@ -676,6 +677,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
             case READ_UNCOMMITTED:
                 return new UncommittedIterator<>(this, from, to, forEntries);
             case REPEATABLE_READ:
+            case SNAPSHOT:
             case SERIALIZABLE:
                 if (transaction.hasChanges()) {
                     return new RepeatableIterator<>(this, from, to, forEntries);

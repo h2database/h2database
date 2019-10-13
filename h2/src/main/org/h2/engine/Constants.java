@@ -172,6 +172,11 @@ public class Constants {
     public static final int ALLOW_LITERALS_NUMBERS = 1;
 
     /**
+     * SNAPSHOT isolation level of transaction.
+     */
+    public static final int TRANSACTION_SNAPSHOT = 6;
+
+    /**
      * Whether searching in Blob values should be supported.
      */
     public static final boolean BLOB_SEARCH = false;

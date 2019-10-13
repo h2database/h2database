@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import org.h2.api.ErrorCode;
+import org.h2.engine.Constants;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 
@@ -807,7 +808,7 @@ public class TestTransaction extends TestDb {
     }
 
     private void testIsolationLevels() throws SQLException {
-        for (int isolationLevel : new int[] { Connection.TRANSACTION_REPEATABLE_READ,
+        for (int isolationLevel : new int[] { Connection.TRANSACTION_REPEATABLE_READ, Constants.TRANSACTION_SNAPSHOT,
                 Connection.TRANSACTION_SERIALIZABLE }) {
             deleteDb("transaction");
             try (Connection conn1 = getConnection("transaction"); Connection conn2 = getConnection("transaction");
@@ -903,7 +904,7 @@ public class TestTransaction extends TestDb {
                     stat1.execute("INSERT INTO TEST2 VALUES (20, 200)");
                     try (ResultSet rs = stat2.executeQuery("SELECT COUNT(*) FROM TEST2")) {
                         rs.next();
-                        assertEquals(isolationLevel == Connection.TRANSACTION_SERIALIZABLE ? 8 : 9, rs.getLong(1));
+                        assertEquals(isolationLevel != Connection.TRANSACTION_REPEATABLE_READ ? 8 : 9, rs.getLong(1));
                     }
                 } else {
                     assertThrows(ErrorCode.LOCK_TIMEOUT_1, stat1).execute("INSERT INTO TEST1 VALUES 4");
@@ -1015,7 +1016,7 @@ public class TestTransaction extends TestDb {
         }
         for (int isolationLevel : new int[] { Connection.TRANSACTION_READ_UNCOMMITTED,
                 Connection.TRANSACTION_READ_COMMITTED, Connection.TRANSACTION_REPEATABLE_READ,
-                Connection.TRANSACTION_SERIALIZABLE }) {
+                Constants.TRANSACTION_SNAPSHOT, Connection.TRANSACTION_SERIALIZABLE }) {
             deleteDb("transaction");
             try (Connection conn1 = getConnection("transaction"); Connection conn2 = getConnection("transaction")) {
                 conn1.setTransactionIsolation(isolationLevel);
@@ -1062,7 +1063,7 @@ public class TestTransaction extends TestDb {
         }
         for (int isolationLevel : new int[] { Connection.TRANSACTION_READ_UNCOMMITTED,
                 Connection.TRANSACTION_READ_COMMITTED, Connection.TRANSACTION_REPEATABLE_READ,
-                Connection.TRANSACTION_SERIALIZABLE }) {
+                Constants.TRANSACTION_SNAPSHOT, Connection.TRANSACTION_SERIALIZABLE }) {
             deleteDb("transaction");
             try (Connection conn1 = getConnection("transaction"); Connection conn2 = getConnection("transaction")) {
                 conn1.setTransactionIsolation(isolationLevel);

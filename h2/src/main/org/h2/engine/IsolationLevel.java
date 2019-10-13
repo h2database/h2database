@@ -26,13 +26,20 @@ public enum IsolationLevel {
     READ_COMMITTED(Connection.TRANSACTION_READ_COMMITTED, Constants.LOCK_MODE_READ_COMMITTED),
 
     /**
-     * Dirty reads and non-repeatable reads aren't allowed; phantom reads ale
+     * Dirty reads and non-repeatable reads aren't allowed; phantom reads are
      * allowed.
      */
     REPEATABLE_READ(Connection.TRANSACTION_REPEATABLE_READ, Constants.LOCK_MODE_TABLE),
 
     /**
      * Dirty reads, non-repeatable reads and phantom reads are'n allowed.
+     */
+    SNAPSHOT(Constants.TRANSACTION_SNAPSHOT, Constants.LOCK_MODE_TABLE),
+
+    /**
+     * Dirty reads, non-repeatable reads and phantom reads are'n allowed.
+     * Concurrent and serial execution of transactions with this isolation level
+     * should have the same effect.
      */
     SERIALIZABLE(Connection.TRANSACTION_SERIALIZABLE, Constants.LOCK_MODE_TABLE);
 
@@ -52,6 +59,8 @@ public enum IsolationLevel {
             return IsolationLevel.READ_COMMITTED;
         case Connection.TRANSACTION_REPEATABLE_READ:
             return IsolationLevel.REPEATABLE_READ;
+        case Constants.TRANSACTION_SNAPSHOT:
+            return IsolationLevel.SNAPSHOT;
         case Connection.TRANSACTION_SERIALIZABLE:
             return IsolationLevel.SERIALIZABLE;
         default:
@@ -95,6 +104,8 @@ public enum IsolationLevel {
             return READ_COMMITTED;
         case "REPEATABLE READ":
             return REPEATABLE_READ;
+        case "SNAPSHOT":
+            return SNAPSHOT;
         case "SERIALIZABLE":
             return SERIALIZABLE;
         default:

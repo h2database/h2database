@@ -7432,6 +7432,8 @@ public class Parser {
         } else if (readIf("REPEATABLE")) {
             read("READ");
             isolationLevel = IsolationLevel.REPEATABLE_READ;
+        } else if (readIf("SNAPSHOT")) {
+            isolationLevel = IsolationLevel.SNAPSHOT;
         } else {
             read("SERIALIZABLE");
             isolationLevel = IsolationLevel.SERIALIZABLE;

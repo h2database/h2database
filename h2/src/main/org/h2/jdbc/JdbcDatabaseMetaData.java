@@ -2359,6 +2359,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
         case Connection.TRANSACTION_READ_UNCOMMITTED:
         case Connection.TRANSACTION_READ_COMMITTED:
         case Connection.TRANSACTION_REPEATABLE_READ:
+        case Constants.TRANSACTION_SNAPSHOT:
         case Connection.TRANSACTION_SERIALIZABLE:
             return true;
         default:

@@ -746,7 +746,8 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
      * @param level the new transaction isolation level:
      *            Connection.TRANSACTION_READ_UNCOMMITTED,
      *            Connection.TRANSACTION_READ_COMMITTED,
-     *            Connection.TRANSACTION_REPEATABLE_READ, or
+     *            Connection.TRANSACTION_REPEATABLE_READ,
+     *            6 (SNAPSHOT), or
      *            Connection.TRANSACTION_SERIALIZABLE
      * @throws SQLException if the connection is closed or the isolation level
      *             is not valid

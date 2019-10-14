@@ -158,16 +158,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
     }
 
     @Override
-    public Cursor find(TableFilter filter, SearchRow first, SearchRow last) {
-        return find(filter.getSession());
-    }
-
-    @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
-        return find(session);
-    }
-
-    private Cursor find(Session session) {
         return new SpatialCursor(treeMap.keySet().iterator(), table, session);
     }
 
@@ -209,23 +200,6 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
     @Override
     public boolean needRebuild() {
         return needRebuild;
-    }
-
-    @Override
-    public boolean canGetFirstOrLast() {
-        return true;
-    }
-
-    @Override
-    public Cursor findFirstOrLast(Session session, boolean first) {
-        if (closed) {
-            throw DbException.throwInternalError(toString());
-        }
-        if (!first) {
-            throw DbException.throwInternalError(
-                    "Spatial Index can only be fetch by ascending order");
-        }
-        return find(session);
     }
 
     @Override

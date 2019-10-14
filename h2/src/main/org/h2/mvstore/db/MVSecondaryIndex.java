@@ -5,7 +5,6 @@
  */
 package org.h2.mvstore.db;
 
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.PriorityQueue;
@@ -17,6 +16,7 @@ import org.h2.engine.Session;
 import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
 import org.h2.index.IndexType;
+import org.h2.index.SingleRowCursor;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
@@ -357,21 +357,16 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
     @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
         TransactionMap<Value, Value> map = getMap(session);
-        Value key = first ? map.firstKey() : map.lastKey();
-        while (true) {
+        for (Value key = first ? map.firstKey() : map.lastKey();; //
+                key = first ? map.higherKey(key) : map.lowerKey(key)) {
             if (key == null) {
-                return new MVStoreCursor(session,
-                        Collections.<Value>emptyIterator());
+                return new SingleRowCursor(null);
             }
-            if (((ValueArray) key).getList()[0] != ValueNull.INSTANCE) {
-                break;
+            Value[] values = ((ValueArray) key).getList();
+            if (values[0] != ValueNull.INSTANCE) {
+                return new SingleRowCursor(mvTable.getRow(session, values[values.length - 1].getLong()));
             }
-            key = first ? map.higherKey(key) : map.lowerKey(key);
         }
-        MVStoreCursor cursor = new MVStoreCursor(session,
-                                Collections.singletonList(key).iterator());
-        cursor.next();
-        return cursor;
     }
 
     @Override

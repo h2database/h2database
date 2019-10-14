@@ -176,18 +176,6 @@ public class LinkedIndex extends BaseIndex {
     }
 
     @Override
-    public boolean canGetFirstOrLast() {
-        return false;
-    }
-
-    @Override
-    public Cursor findFirstOrLast(Session session, boolean first) {
-        // TODO optimization: could get the first or last value (in any case;
-        // maybe not optimized)
-        throw DbException.getUnsupportedException("LINKED");
-    }
-
-    @Override
     public void remove(Session session, Row row) {
         ArrayList<Value> params = Utils.newSmallArrayList();
         StringBuilder builder = new StringBuilder("DELETE FROM ").append(targetTableName).append(" WHERE ");

@@ -196,16 +196,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     }
 
     @Override
-    public Cursor find(TableFilter filter, SearchRow first, SearchRow last) {
-        return find(filter.getSession());
-    }
-
-    @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
-        return find(session);
-    }
-
-    private Cursor find(Session session) {
         Iterator<SpatialKey> cursor = spatialMap.keyIterator(null);
         TransactionMap<SpatialKey, Value> map = getMap(session);
         Iterator<SpatialKey> it = new SpatialKeyIterator(map, cursor, false);
@@ -337,20 +328,6 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     }
 
     @Override
-    public boolean canGetFirstOrLast() {
-        return true;
-    }
-
-    @Override
-    public Cursor findFirstOrLast(Session session, boolean first) {
-        if (!first) {
-            throw DbException.throwInternalError(
-                    "Spatial Index can only be fetch in ascending order");
-        }
-        return find(session);
-    }
-
-    @Override
     public boolean needRebuild() {
         try {
             return dataMap.sizeAsLongMax() == 0;
@@ -443,15 +420,6 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
                 }
             }
             return searchRow;
-        }
-
-        /**
-         * Returns the current key.
-         *
-         * @return the current key
-         */
-        public SpatialKey getKey() {
-            return current;
         }
 
         @Override

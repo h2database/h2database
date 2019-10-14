@@ -12,6 +12,7 @@ import org.h2.result.SortOrder;
 import org.h2.table.DualTable;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableFilter;
+import org.h2.value.Value;
 
 /**
  * An index for the DUAL table.
@@ -45,7 +46,7 @@ public class DualIndex extends VirtualTableIndex {
 
     @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
-        return new DualCursor(session);
+        return new SingleRowCursor(session.createRow(new Value[0], 1));
     }
 
     @Override

@@ -13,6 +13,8 @@ import org.h2.result.SortOrder;
 import org.h2.table.IndexColumn;
 import org.h2.table.RangeTable;
 import org.h2.table.TableFilter;
+import org.h2.value.Value;
+import org.h2.value.ValueLong;
 
 /**
  * An index for the SYSTEM_RANGE table.
@@ -82,8 +84,11 @@ public class RangeIndex extends VirtualTableIndex {
 
     @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
-        long pos = first ? rangeTable.getMin(session) : rangeTable.getMax(session);
-        return new RangeCursor(session, pos, pos);
+        long min = rangeTable.getMin(session);
+        long max = rangeTable.getMax(session);
+        long step = rangeTable.getStep(session);
+        return new SingleRowCursor((step > 0 ? min <= max : min >= max)
+                ? session.createRow(new Value[]{ ValueLong.get(first ^ min >= max ? min : max) }, 1) : null);
     }
 
     @Override

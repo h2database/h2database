@@ -164,6 +164,16 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         throw DbException.throwInternalError(toString());
     }
 
+    @Override
+    public boolean canGetFirstOrLast() {
+        return false;
+    }
+
+    @Override
+    public Cursor findFirstOrLast(Session session, boolean first) {
+        throw DbException.throwInternalError(toString());
+    }
+
     /**
      * Calculate the cost for the given mask as if this index was a typical
      * b-tree range index. This is the estimated cost required to search one

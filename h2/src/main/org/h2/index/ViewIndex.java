@@ -415,16 +415,6 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         return false;
     }
 
-    @Override
-    public boolean canGetFirstOrLast() {
-        return false;
-    }
-
-    @Override
-    public Cursor findFirstOrLast(Session session, boolean first) {
-        throw DbException.getUnsupportedException("VIEW");
-    }
-
     public void setRecursive(boolean value) {
         this.recursive = value;
     }

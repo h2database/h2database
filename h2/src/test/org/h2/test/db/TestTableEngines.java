@@ -1201,11 +1201,6 @@ public class TestTableEngines extends TestDb {
                 }
 
                 @Override
-                public Cursor findFirstOrLast(Session session, boolean first) {
-                    throw DbException.getUnsupportedException("TEST");
-                }
-
-                @Override
                 public Cursor find(Session session, SearchRow first, SearchRow last) {
                     throw DbException.getUnsupportedException("TEST");
                 }
@@ -1213,11 +1208,6 @@ public class TestTableEngines extends TestDb {
                 @Override
                 public void close(Session session) {
                     // do nothing
-                }
-
-                @Override
-                public boolean canGetFirstOrLast() {
-                    return false;
                 }
 
                 @Override

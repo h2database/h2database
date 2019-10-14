@@ -48,11 +48,6 @@ public class PageDelegateIndex extends PageIndex {
     }
 
     @Override
-    public boolean canFindNext() {
-        return false;
-    }
-
-    @Override
     public boolean canGetFirstOrLast() {
         return true;
     }
@@ -82,11 +77,6 @@ public class PageDelegateIndex extends PageIndex {
         }
         cursor.next();
         return cursor;
-    }
-
-    @Override
-    public Cursor findNext(Session session, SearchRow higherThan, SearchRow last) {
-        throw DbException.throwInternalError(toString());
     }
 
     @Override

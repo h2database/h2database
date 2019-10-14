@@ -84,7 +84,6 @@ import org.h2.test.db.TestTransaction;
 import org.h2.test.db.TestTriggersConstraints;
 import org.h2.test.db.TestTwoPhaseCommit;
 import org.h2.test.db.TestUpgrade;
-import org.h2.test.db.TestUsingIndex;
 import org.h2.test.db.TestView;
 import org.h2.test.db.TestViewAlterTable;
 import org.h2.test.db.TestViewDropView;
@@ -902,7 +901,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(createTest("org.h2.test.unit.TestServlet"));
         addTest(new TestTimeStampWithTimeZone());
         addTest(new TestUpgrade());
-        addTest(new TestUsingIndex());
         addTest(new TestValue());
         addTest(new TestWeb());
 

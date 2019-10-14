@@ -212,23 +212,6 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
     }
 
     @Override
-    public boolean canGetFirstOrLast() {
-        return true;
-    }
-
-    @Override
-    public Cursor findFirstOrLast(Session session, boolean first) {
-        if (closed) {
-            throw DbException.throwInternalError(toString());
-        }
-        if (!first) {
-            throw DbException.throwInternalError(
-                    "Spatial Index can only be fetch by ascending order");
-        }
-        return find(session);
-    }
-
-    @Override
     public long getRowCount(Session session) {
         return treeMap.sizeAsLong();
     }

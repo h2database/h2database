@@ -337,20 +337,6 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     }
 
     @Override
-    public boolean canGetFirstOrLast() {
-        return true;
-    }
-
-    @Override
-    public Cursor findFirstOrLast(Session session, boolean first) {
-        if (!first) {
-            throw DbException.throwInternalError(
-                    "Spatial Index can only be fetch in ascending order");
-        }
-        return find(session);
-    }
-
-    @Override
     public boolean needRebuild() {
         try {
             return dataMap.sizeAsLongMax() == 0;
@@ -443,15 +429,6 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
                 }
             }
             return searchRow;
-        }
-
-        /**
-         * Returns the current key.
-         *
-         * @return the current key
-         */
-        public SpatialKey getKey() {
-            return current;
         }
 
         @Override

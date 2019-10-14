@@ -5,8 +5,6 @@
  */
 package org.h2.mvstore.db;
 
-import java.util.AbstractMap;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -18,6 +16,7 @@ import org.h2.engine.Session;
 import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
 import org.h2.index.IndexType;
+import org.h2.index.SingleRowCursor;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
@@ -312,17 +311,15 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex {
     @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
         TransactionMap<Value, Value> map = getMap(session);
-        ValueLong v = (ValueLong) (first ? map.firstKey() : map.lastKey());
-        if (v == null) {
-            return new MVStoreCursor(session,
-                    Collections.<Entry<Value, Value>> emptyIterator());
+        Value key = first ? map.firstKey() : map.lastKey();
+        Row row;
+        if (key != null) {
+            row = session.createRow(((ValueArray) map.getFromSnapshot(key)).getList(), 0);
+            row.setKey(key.getLong());
+        } else {
+            row = null;
         }
-        Value value = map.getFromSnapshot(v);
-        Entry<Value, Value> e = new AbstractMap.SimpleImmutableEntry<Value, Value>(v, value);
-        List<Entry<Value, Value>> list = Collections.singletonList(e);
-        MVStoreCursor c = new MVStoreCursor(session, list.iterator());
-        c.next();
-        return c;
+        return new SingleRowCursor(row);
     }
 
     @Override

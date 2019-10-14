@@ -15,22 +15,22 @@ public class Constants {
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE = "2019-03-13";
+    public static final String BUILD_DATE = "2019-10-14";
 
     /**
      * The build date of the last stable release.
      */
-    public static final String BUILD_DATE_STABLE = "2018-03-18";
+    public static final String BUILD_DATE_STABLE = "2019-03-13";
 
     /**
      * The build id is incremented for each public release.
      */
-    public static final int BUILD_ID = 199;
+    public static final int BUILD_ID = 200;
 
     /**
      * The build id of the last stable release.
      */
-    public static final int BUILD_ID_STABLE = 197;
+    public static final int BUILD_ID_STABLE = 199;
 
     /**
      * Whether this is a snapshot version.
@@ -107,7 +107,7 @@ public class Constants {
 
     /**
      * The TCP protocol version number 19.
-     * @since 1.4.200 (TODO)
+     * @since 1.4.200 (2019-10-14)
      */
     public static final int TCP_PROTOCOL_VERSION_19 = 19;
 

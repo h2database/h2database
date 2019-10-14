@@ -21,6 +21,12 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>-
+</li>
+</ul>
+
+<h2>Version 1.4.200 (2019-10-14)</h2>
+<ul>
 <li>PR #2168: Add non-standard SNAPSHOT isolation level to MVStore databases
 </li>
 <li>Issue #2165: Problem with secondary index on SERIALIZABLE isolation level
@@ -1775,42 +1781,6 @@ temporary storages
 <li>Add padding for CHAR(N) values in PostgreSQL mode
 </li>
 <li>Issue #89: Add DB2 timestamp format compatibility
-</li>
-</ul>
-
-<h2>Version 1.4.196 (2017-06-10)</h2>
-<ul>
-<li>Issue#479 Allow non-recursive CTEs (WITH statements), patch from stumc
-</li>
-<li>Fix startup issue when using "CHECK" as a column name.
-</li>
-<li>Issue #423: ANALYZE performed multiple times on one table during execution of the same statement.
-</li>
-<li>Issue #426: Support ANALYZE TABLE statement
-</li>
-<li>Issue #438: Fix slow logging via SLF4J (TRACE_LEVEL_FILE=4).
-</li>
-<li>Issue #472: Support CREATE SEQUENCE ... ORDER as a NOOP for Oracle compatibility
-</li>
-<li>Issue #479: Allow non-recursive Common Table Expressions (CTE)
-</li>
-<li>On Mac OS X, with IPv6 and no network connection, the Console tool was not working as expected.
-</li>
-</ul>
-
-<h2>Version 1.4.195 (2017-04-23)</h2>
-<ul>
-<li>Lazy query execution support.
-</li>
-<li>Added API for handling custom data types (System property "h2.customDataTypesHandler", API org.h2.api.CustomDataTypesHandler).
-</li>
-<li>Added support for invisible columns.
-</li>
-<li>Added an ENUM data type, with syntax similar to that of MySQL.
-</li>
-<li>MVStore: for object data types, the cache size memory estimation
-    was sometimes far off in a read-only scenario.
-    This could result in inefficient cache usage.
 </li>
 </ul>
 

@@ -166,16 +166,6 @@ public class NonUniqueHashIndex extends BaseIndex {
     }
 
     @Override
-    public boolean canGetFirstOrLast() {
-        return false;
-    }
-
-    @Override
-    public Cursor findFirstOrLast(Session session, boolean first) {
-        throw DbException.getUnsupportedException("HASH");
-    }
-
-    @Override
     public boolean canScan() {
         return false;
     }

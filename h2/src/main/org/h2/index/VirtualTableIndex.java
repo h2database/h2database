@@ -56,11 +56,6 @@ public abstract class VirtualTableIndex extends BaseIndex {
     }
 
     @Override
-    public Cursor findFirstOrLast(Session session, boolean first) {
-        throw DbException.getUnsupportedException("Virtual table");
-    }
-
-    @Override
     public long getRowCount(Session session) {
         return table.getRowCount(session);
     }

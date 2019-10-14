@@ -106,16 +106,6 @@ public class MetaIndex extends BaseIndex {
     }
 
     @Override
-    public boolean canGetFirstOrLast() {
-        return false;
-    }
-
-    @Override
-    public Cursor findFirstOrLast(Session session, boolean first) {
-        throw DbException.getUnsupportedException("META");
-    }
-
-    @Override
     public long getRowCount(Session session) {
         return MetaTable.ROW_COUNT_APPROXIMATION;
     }

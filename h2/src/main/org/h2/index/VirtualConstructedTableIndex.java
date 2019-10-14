@@ -54,11 +54,6 @@ public class VirtualConstructedTableIndex extends VirtualTableIndex {
     }
 
     @Override
-    public boolean canGetFirstOrLast() {
-        return false;
-    }
-
-    @Override
     public String getPlanSQL() {
         return table instanceof FunctionTable ? "function" : "table scan";
     }

@@ -196,16 +196,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     }
 
     @Override
-    public Cursor find(TableFilter filter, SearchRow first, SearchRow last) {
-        return find(filter.getSession());
-    }
-
-    @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
-        return find(session);
-    }
-
-    private Cursor find(Session session) {
         Iterator<SpatialKey> cursor = spatialMap.keyIterator(null);
         TransactionMap<SpatialKey, Value> map = getMap(session);
         Iterator<SpatialKey> it = new SpatialKeyIterator(map, cursor, false);

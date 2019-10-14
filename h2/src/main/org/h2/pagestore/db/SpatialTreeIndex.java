@@ -158,16 +158,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
     }
 
     @Override
-    public Cursor find(TableFilter filter, SearchRow first, SearchRow last) {
-        return find(filter.getSession());
-    }
-
-    @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
-        return find(session);
-    }
-
-    private Cursor find(Session session) {
         return new SpatialCursor(treeMap.keySet().iterator(), table, session);
     }
 

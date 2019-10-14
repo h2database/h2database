@@ -6316,36 +6316,33 @@ public class Parser {
             read(ON);
             String tableName = readIdentifierWithSchema();
             checkSchema(oldSchema);
+            String comment = readCommentIf();
+            if (!readIf(OPEN_PAREN)) {
+                // PostgreSQL compatibility
+                if (hash || spatial) {
+                    throw getSyntaxError();
+                }
+                read(USING);
+                if (readIf("BTREE")) {
+                    // default
+                } else if (readIf("HASH")) {
+                    hash = true;
+                } else {
+                    read("RTREE");
+                    spatial = true;
+                }
+                read(OPEN_PAREN);
+            }
             CreateIndex command = new CreateIndex(session, getSchema());
             command.setIfNotExists(ifNotExists);
             command.setPrimaryKey(primaryKey);
             command.setTableName(tableName);
             command.setUnique(unique);
-            command.setIndexName(indexName);
-            command.setComment(readCommentIf());
-            read(OPEN_PAREN);
-            command.setIndexColumns(parseIndexColumnList());
-
-            if (readIf(USING)) {
-                if (hash) {
-                    throw getSyntaxError();
-                }
-                if (spatial) {
-                    throw getSyntaxError();
-                }
-                if (readIf("BTREE")) {
-                    // default
-                } else if (readIf("RTREE")) {
-                    spatial = true;
-                } else if (readIf("HASH")) {
-                    hash = true;
-                } else {
-                    throw getSyntaxError();
-                }
-
-            }
             command.setHash(hash);
             command.setSpatial(spatial);
+            command.setIndexName(indexName);
+            command.setComment(comment);
+            command.setIndexColumns(parseIndexColumnList());
             return command;
         }
     }

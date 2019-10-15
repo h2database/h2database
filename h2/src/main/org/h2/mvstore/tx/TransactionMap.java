@@ -50,6 +50,19 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      */
     private final Transaction transaction;
 
+    /**
+     * Snapshot of this map as of beginning of transaction or
+     * first usage within transaction or
+     * beginning of the statement, depending on isolation level
+     */
+    private Snapshot snapshot;
+
+    /**
+     * Snapshot of this map as of beginning of beginning of the statement
+     */
+    private Snapshot statementSnapshot;
+
+
     TransactionMap(Transaction transaction, MVMap<K, VersionedValue> map) {
         this.transaction = transaction;
         this.map = map;
@@ -62,7 +75,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      * @return the map
      */
     public TransactionMap<K, V> getInstance(Transaction transaction) {
-        return new TransactionMap<>(transaction, map);
+        return transaction.openMap(map);
     }
 
     /**
@@ -461,11 +474,21 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
     }
 
     Snapshot getSnapshot() {
-        return transaction.getSnapshot(map.getId());
+        return snapshot == null ? createSnapshot() : snapshot;
     }
 
     Snapshot getStatementSnapshot() {
-        return transaction.getStatementSnapshot(map.getId());
+        return statementSnapshot == null ? createSnapshot() : statementSnapshot;
+    }
+
+    void setStatementSnapshot(Snapshot snapshot) {
+        statementSnapshot = snapshot;
+    }
+
+    void promoteSnapshot() {
+        if (snapshot == null) {
+            snapshot = statementSnapshot;
+        }
     }
 
     /**
@@ -709,7 +732,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
     private static class UncommittedIterator<K, X> extends TMIterator<K, X> {
 
         UncommittedIterator(TransactionMap<K, ?> transactionMap, K from, K to, boolean forEntries) {
-            super(transactionMap, from, to, transactionMap.getStatementSnapshot(), forEntries);
+            super(transactionMap, from, to, transactionMap.createSnapshot(), forEntries);
             fetchNext();
         }
 

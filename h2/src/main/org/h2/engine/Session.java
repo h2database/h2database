@@ -1814,39 +1814,38 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     public void startStatementWithinTransaction(Command command) {
         Transaction transaction = getTransaction();
         if (transaction != null) {
-            HashSet<MVMap<?, ?>> currentMaps = null, allMaps = null;
+            HashSet<MVMap<?, ?>> maps = new HashSet<>();
             if (command != null) {
                 Set<DbObject> dependencies = command.getDependencies();
-                currentMaps = new HashSet<>();
-                for (DbObject dependency : dependencies) {
-                    if (dependency instanceof MVTable) {
-                        addTableToDependencies((MVTable) dependency, currentMaps);
-                    }
-                }
                 switch (transaction.getIsolationLevel()) {
-                case REPEATABLE_READ: {
-                    allMaps = new HashSet<>();
+                case SNAPSHOT:
+                case SERIALIZABLE:
+                    if (!transaction.hasStatementDependencies()) {
+                        for (Table table : database.getAllTablesAndViews(false)) {
+                            if (table instanceof MVTable) {
+                                addTableToDependencies((MVTable)table, maps);
+                            }
+                        }
+                    }
+                    //$FALL-THROUGH$
+                case REPEATABLE_READ:
                     HashSet<MVTable> processed = new HashSet<>();
                     for (DbObject dependency : dependencies) {
                         if (dependency instanceof MVTable) {
-                            addTableToDependencies((MVTable) dependency, allMaps, processed);
+                            addTableToDependencies((MVTable)dependency, maps, processed);
+                        }
+                    }
+                    break;
+                case READ_COMMITTED:
+                    for (DbObject dependency : dependencies) {
+                        if (dependency instanceof MVTable) {
+                            addTableToDependencies((MVTable)dependency, maps);
                         }
                     }
                     break;
                 }
-                case SNAPSHOT:
-                case SERIALIZABLE:
-                    if (!transaction.hasStatementDependencies()) {
-                        allMaps = new HashSet<>();
-                        for (Table table : database.getAllTablesAndViews(false)) {
-                            if (table instanceof MVTable) {
-                                addTableToDependencies((MVTable) table, allMaps);
-                            }
-                        }
-                    }
-                }
             }
-            transaction.markStatementStart(currentMaps, allMaps);
+            transaction.markStatementStart(maps);
         }
         startStatement = -1;
         if (command != null) {
@@ -1866,11 +1865,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         if (!processed.add(table)) {
             return;
         }
-        for (Index index : table.getIndexes()) {
-            if (index instanceof MVIndex) {
-                maps.add(((MVIndex) index).getMVMap());
-            }
-        }
+        addTableToDependencies(table, maps);
         for (Constraint constraint : table.getConstraints()) {
             Table ref = constraint.getTable();
             if (ref != table && ref instanceof MVTable) {

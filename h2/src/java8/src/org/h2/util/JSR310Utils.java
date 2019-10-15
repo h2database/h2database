@@ -178,10 +178,12 @@ public class JSR310Utils {
      *
      * @param value
      *            the value to convert
+     * @param provider
+     *            the cast information provider
      * @return the LocalTime
      */
-    public static Object valueToLocalTime(Value value) {
-        return LocalTime.ofNanoOfDay(((ValueTime) value.convertTo(Value.TIME)).getNanos());
+    public static Object valueToLocalTime(Value value, CastDataProvider provider) {
+        return LocalTime.ofNanoOfDay(((ValueTime) value.convertTo(Value.TIME, provider, false)).getNanos());
     }
 
     /**

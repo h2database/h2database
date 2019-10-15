@@ -487,9 +487,11 @@ public class DateTimeUtils {
      *
      * @param value
      *            value to extract fields from
+     * @param provider
+     *            the cast information provider
      * @return array with date value and nanos of day
      */
-    public static long[] dateAndTimeFromValue(Value value) {
+    public static long[] dateAndTimeFromValue(Value value, CastDataProvider provider) {
         long dateValue = EPOCH_DATE_VALUE;
         long timeNanos = 0;
         if (value instanceof ValueTimestamp) {
@@ -507,7 +509,7 @@ public class DateTimeUtils {
         } else if (value instanceof ValueTimeTimeZone) {
             timeNanos = ((ValueTimeTimeZone) value).getNanos();
         } else {
-            ValueTimestamp v = (ValueTimestamp) value.convertTo(Value.TIMESTAMP);
+            ValueTimestamp v = (ValueTimestamp) value.convertTo(Value.TIMESTAMP, provider, false);
             dateValue = v.getDateValue();
             timeNanos = v.getTimeNanos();
         }

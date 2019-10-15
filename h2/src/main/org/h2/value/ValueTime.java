@@ -108,7 +108,7 @@ public class ValueTime extends Value {
     }
 
     @Override
-    public Time getTime(TimeZone timeZone) {
+    public Time getTime(CastDataProvider provider, TimeZone timeZone) {
         return new Time(DateTimeUtils.getMillis(timeZone, DateTimeUtils.EPOCH_DATE_VALUE, nanos));
     }
 
@@ -178,20 +178,20 @@ public class ValueTime extends Value {
 
     @Override
     public Object getObject() {
-        return getTime(null);
+        return getTime(null, null);
     }
 
     @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
         if (JSR310.PRESENT) {
             try {
-                prep.setObject(parameterIndex, JSR310Utils.valueToLocalTime(this), Types.TIME);
+                prep.setObject(parameterIndex, JSR310Utils.valueToLocalTime(this, null), Types.TIME);
                 return;
             } catch (SQLException ignore) {
                 // Nothing to do
             }
         }
-        prep.setTime(parameterIndex, getTime(null));
+        prep.setTime(parameterIndex, getTime(null, null));
     }
 
     @Override

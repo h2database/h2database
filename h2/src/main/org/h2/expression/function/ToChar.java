@@ -16,6 +16,7 @@ import java.util.Currency;
 import java.util.Locale;
 
 import org.h2.api.ErrorCode;
+import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.StringUtils;
@@ -514,6 +515,8 @@ public class ToChar {
     /**
      * Returns time zone display name or ID for the specified date-time value.
      *
+     * @param session
+     *            the session
      * @param value
      *            value
      * @param tzd
@@ -522,7 +525,7 @@ public class ToChar {
      *            region)
      * @return time zone display name or ID
      */
-    private static String getTimeZone(Value value, boolean tzd) {
+    private static String getTimeZone(Session session, Value value, boolean tzd) {
         if (value instanceof ValueTimestampTimeZone) {
             return DateTimeUtils.timeZoneNameFromOffsetSeconds(((ValueTimestampTimeZone) value)
                     .getTimeZoneOffsetSeconds());
@@ -532,7 +535,7 @@ public class ToChar {
         } else {
             TimeZoneProvider tz = DateTimeUtils.getTimeZone();
             if (tzd) {
-                ValueTimestamp v = (ValueTimestamp) value.convertTo(Value.TIMESTAMP);
+                ValueTimestamp v = (ValueTimestamp) value.convertTo(Value.TIMESTAMP, session, false);
                 return tz.getShortId(tz.getEpochSecondsFromLocal(v.getDateValue(), v.getTimeNanos()));
             }
             return tz.getId();
@@ -671,13 +674,16 @@ public class ToChar {
      * See also TO_CHAR(datetime) and datetime format models
      * in the Oracle documentation.
      *
+     * @param session the session
      * @param value the date-time value to format
      * @param format the format pattern to use (if any)
      * @param nlsParam the NLS parameter (if any)
+     *
      * @return the formatted timestamp
      */
-    public static String toCharDateTime(Value value, String format, @SuppressWarnings("unused") String nlsParam) {
-        long[] a = DateTimeUtils.dateAndTimeFromValue(value);
+    public static String toCharDateTime(Session session, Value value, String format,
+            @SuppressWarnings("unused") String nlsParam) {
+        long[] a = DateTimeUtils.dateAndTimeFromValue(value, session);
         long dateValue = a[0];
         long timeNanos = a[1];
         int year = DateTimeUtils.yearFromDateValue(dateValue);
@@ -818,10 +824,10 @@ public class ToChar {
                 // Time zone
 
             } else if (containsAt(format, i, "TZR") != null) {
-                output.append(getTimeZone(value, false));
+                output.append(getTimeZone(session, value, false));
                 i += 3;
             } else if (containsAt(format, i, "TZD") != null) {
-                output.append(getTimeZone(value, true));
+                output.append(getTimeZone(session, value, true));
                 i += 3;
 
                 // Week

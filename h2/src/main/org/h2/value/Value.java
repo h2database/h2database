@@ -574,21 +574,23 @@ public abstract class Value extends VersionedValue {
     /**
      * Get the time value converted to the specified timezone.
      *
+     * @param provider the cast information provider
      * @param timeZone the target timezone
      * @return the date
      */
-    public Time getTime(TimeZone timeZone) {
-        return ((ValueTime) convertTo(Value.TIME)).getTime(timeZone);
+    public Time getTime(CastDataProvider provider, TimeZone timeZone) {
+        return ((ValueTime) convertTo(Value.TIME, provider, false)).getTime(provider, timeZone);
     }
 
     /**
      * Get the timezone value converted to the specified timezone.
      *
+     * @param provider the cast information provider
      * @param timeZone the target timezone
      * @return the date
      */
-    public Timestamp getTimestamp(TimeZone timeZone) {
-        return ((ValueTimestamp) convertTo(Value.TIMESTAMP)).getTimestamp(timeZone);
+    public Timestamp getTimestamp(CastDataProvider provider, TimeZone timeZone) {
+        return ((ValueTimestamp) convertTo(Value.TIMESTAMP, provider, false)).getTimestamp(provider, timeZone);
     }
 
     public byte[] getBytes() {

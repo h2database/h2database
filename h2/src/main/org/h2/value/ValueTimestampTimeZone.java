@@ -149,7 +149,7 @@ public class ValueTimestampTimeZone extends Value {
     }
 
     @Override
-    public Timestamp getTimestamp(TimeZone timeZone) {
+    public Timestamp getTimestamp(CastDataProvider provider, TimeZone timeZone) {
         Timestamp ts = new Timestamp(DateTimeUtils.absoluteDayFromDateValue(dateValue) * DateTimeUtils.MILLIS_PER_DAY
                 + timeNanos / 1_000_000 - timeZoneOffsetSeconds * 1_000);
         ts.setNanos((int) (timeNanos % DateTimeUtils.NANOS_PER_SECOND));

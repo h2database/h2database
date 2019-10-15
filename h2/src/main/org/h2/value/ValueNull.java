@@ -80,12 +80,12 @@ public class ValueNull extends Value {
     }
 
     @Override
-    public Time getTime(TimeZone timeZone) {
+    public Time getTime(CastDataProvider provider, TimeZone timeZone) {
         return null;
     }
 
     @Override
-    public Timestamp getTimestamp(TimeZone timeZone) {
+    public Timestamp getTimestamp(CastDataProvider provider, TimeZone timeZone) {
         return null;
     }
 

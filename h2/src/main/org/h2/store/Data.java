@@ -542,7 +542,7 @@ public class Data {
                 writeVarInt((int) nanos);
             } else {
                 writeByte(TIME);
-                writeVarLong(v.getTime(null).getTime() + zoneOffsetMillis);
+                writeVarLong(v.getTime(null, null).getTime() + zoneOffsetMillis);
             }
             break;
         case Value.TIME_TZ: {
@@ -578,7 +578,7 @@ public class Data {
                 writeVarLong(millis);
                 writeVarInt((int) nanos);
             } else {
-                Timestamp ts = v.getTimestamp(null);
+                Timestamp ts = v.getTimestamp(null, null);
                 writeByte(TIMESTAMP);
                 writeVarLong(ts.getTime() + zoneOffsetMillis);
                 writeVarInt(ts.getNanos() % 1_000_000);
@@ -1138,7 +1138,7 @@ public class Data {
                 nanos -= millis * 1_000_000;
                 return 1 + getVarLongLen(millis) + getVarLongLen(nanos);
             }
-            return 1 + getVarLongLen(v.getTime(null).getTime() + zoneOffsetMillis);
+            return 1 + getVarLongLen(v.getTime(null, null).getTime() + zoneOffsetMillis);
         case Value.TIME_TZ: {
             ValueTimeTimeZone ts = (ValueTimeTimeZone) v;
             long nanosOfDay = ts.getNanos();
@@ -1164,7 +1164,7 @@ public class Data {
                 return 1 + getVarLongLen(dateValue) + getVarLongLen(millis) +
                         getVarLongLen(nanos);
             }
-            Timestamp ts = v.getTimestamp(null);
+            Timestamp ts = v.getTimestamp(null, null);
             return 1 + getVarLongLen(ts.getTime() + zoneOffsetMillis) + getVarIntLen(ts.getNanos() % 1_000_000);
         }
         case Value.TIMESTAMP_TZ: {

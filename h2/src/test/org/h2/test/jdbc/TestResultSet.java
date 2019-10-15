@@ -1436,6 +1436,13 @@ public class TestResultSet extends TestDb {
 
         stat.execute("DROP TABLE TEST");
 
+        rs = stat.executeQuery("SELECT LOCALTIME, CURRENT_TIME");
+        rs.next();
+        assertEquals(rs.getTime(1), rs.getTime(2));
+        rs = stat.executeQuery("SELECT LOCALTIMESTAMP, CURRENT_TIMESTAMP");
+        rs.next();
+        assertEquals(rs.getTimestamp(1), rs.getTimestamp(2));
+
         if (JSR310.PRESENT) {
             rs = stat.executeQuery("SELECT DATE '-1000000000-01-01', " + "DATE '1000000000-12-31'");
             rs.next();
@@ -1474,6 +1481,15 @@ public class TestResultSet extends TestDb {
             assertEquals("-1000000000-01-01T00:00:00Z", rs.getObject(3, JSR310.INSTANT).toString());
             assertEquals("+1000000000-12-31T23:59:59.999999999Z",
                     rs.getObject(4, JSR310.INSTANT).toString());
+
+            rs = stat.executeQuery("SELECT LOCALTIME, CURRENT_TIME");
+            rs.next();
+            assertEquals(rs.getObject(1, JSR310.LOCAL_TIME), rs.getObject(2, JSR310.LOCAL_TIME));
+            assertEquals(rs.getObject(1, JSR310.OFFSET_TIME), rs.getObject(2, JSR310.OFFSET_TIME));
+            rs = stat.executeQuery("SELECT LOCALTIMESTAMP, CURRENT_TIMESTAMP");
+            rs.next();
+            assertEquals(rs.getObject(1, JSR310.LOCAL_DATE_TIME), rs.getObject(2, JSR310.LOCAL_DATE_TIME));
+            assertEquals(rs.getObject(1, JSR310.OFFSET_DATE_TIME), rs.getObject(2, JSR310.OFFSET_DATE_TIME));
         }
     }
 

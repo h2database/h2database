@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Locale;
 
 import org.h2.api.ErrorCode;
+import org.h2.engine.CastDataProvider;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -96,10 +97,11 @@ public class FunctionsMySQL extends FunctionsBase {
      * See
      * https://dev.mysql.com/doc/refman/8.0/en/date-and-time-functions.html#function_unix-timestamp
      *
+     * @param session the session
      * @param value the timestamp
      * @return the timestamp in seconds since EPOCH
      */
-    public static int unixTimestamp(Value value) {
+    public static int unixTimestamp(Session session, Value value) {
         long seconds;
         if (value instanceof ValueTimestampTimeZone) {
             ValueTimestampTimeZone t = (ValueTimestampTimeZone) value;
@@ -107,7 +109,7 @@ public class FunctionsMySQL extends FunctionsBase {
             seconds = DateTimeUtils.absoluteDayFromDateValue(t.getDateValue()) * DateTimeUtils.SECONDS_PER_DAY
                     + timeNanos / DateTimeUtils.NANOS_PER_SECOND - t.getTimeZoneOffsetSeconds();
         } else {
-            ValueTimestamp t = (ValueTimestamp) value.convertTo(Value.TIMESTAMP);
+            ValueTimestamp t = (ValueTimestamp) value.convertTo(Value.TIMESTAMP, session, false);
             long timeNanos = t.getTimeNanos();
             seconds = DateTimeUtils.getTimeZone().getEpochSecondsFromLocal(t.getDateValue(), timeNanos);
         }
@@ -225,7 +227,7 @@ public class FunctionsMySQL extends FunctionsBase {
         Value result;
         switch (info.type) {
         case UNIX_TIMESTAMP:
-            result = ValueInt.get(unixTimestamp(v0 == null ? session.currentTimestamp() : v0));
+            result = ValueInt.get(unixTimestamp(session, v0 == null ? session.currentTimestamp() : v0));
             break;
         case FROM_UNIXTIME:
             result = ValueString.get(

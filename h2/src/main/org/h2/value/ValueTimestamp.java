@@ -158,7 +158,7 @@ public class ValueTimestamp extends Value {
     }
 
     @Override
-    public Timestamp getTimestamp(TimeZone timeZone) {
+    public Timestamp getTimestamp(CastDataProvider provider, TimeZone timeZone) {
         Timestamp ts = new Timestamp(DateTimeUtils.getMillis(timeZone, dateValue, timeNanos));
         ts.setNanos((int) (timeNanos % DateTimeUtils.NANOS_PER_SECOND));
         return ts;
@@ -253,7 +253,7 @@ public class ValueTimestamp extends Value {
 
     @Override
     public Object getObject() {
-        return getTimestamp(null);
+        return getTimestamp(null, null);
     }
 
     @Override
@@ -266,7 +266,7 @@ public class ValueTimestamp extends Value {
                 // Nothing to do
             }
         }
-        prep.setTimestamp(parameterIndex, getTimestamp(null));
+        prep.setTimestamp(parameterIndex, getTimestamp(null, null));
     }
 
     @Override

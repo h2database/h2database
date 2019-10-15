@@ -403,7 +403,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     public Time getTime(int columnIndex) throws SQLException {
         try {
             debugCodeCall("getTime", columnIndex);
-            return get(columnIndex).getTime(null);
+            return get(columnIndex).getTime(conn, null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -421,7 +421,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     public Timestamp getTimestamp(int columnIndex) throws SQLException {
         try {
             debugCodeCall("getTimestamp", columnIndex);
-            return get(columnIndex).getTimestamp(null);
+            return get(columnIndex).getTimestamp(conn, null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -475,7 +475,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     public Time getTime(String columnLabel) throws SQLException {
         try {
             debugCodeCall("getTime", columnLabel);
-            return get(columnLabel).getTime(null);
+            return get(columnLabel).getTime(conn, null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -493,7 +493,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     public Timestamp getTimestamp(String columnLabel) throws SQLException {
         try {
             debugCodeCall("getTimestamp", columnLabel);
-            return get(columnLabel).getTimestamp(null);
+            return get(columnLabel).getTimestamp(conn, null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -930,7 +930,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             if (isDebugEnabled()) {
                 debugCode("getTime(" + columnIndex + ", calendar)");
             }
-            return get(columnIndex).getTime(calendar != null ? calendar.getTimeZone() : null);
+            return get(columnIndex).getTime(conn, calendar != null ? calendar.getTimeZone() : null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -952,7 +952,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             if (isDebugEnabled()) {
                 debugCode("getTime(" + StringUtils.quoteJavaString(columnLabel) + ", calendar)");
             }
-            return get(columnLabel).getTime(calendar != null ? calendar.getTimeZone() : null);
+            return get(columnLabel).getTime(conn, calendar != null ? calendar.getTimeZone() : null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -974,7 +974,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             if (isDebugEnabled()) {
                 debugCode("getTimestamp(" + columnIndex + ", calendar)");
             }
-            return get(columnIndex).getTimestamp(calendar != null ? calendar.getTimeZone() : null);
+            return get(columnIndex).getTimestamp(conn, calendar != null ? calendar.getTimeZone() : null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -995,7 +995,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             if (isDebugEnabled()) {
                 debugCode("getTimestamp(" + StringUtils.quoteJavaString(columnLabel) + ", calendar)");
             }
-            return get(columnLabel).getTimestamp(calendar != null ? calendar.getTimeZone() : null);
+            return get(columnLabel).getTimestamp(conn, calendar != null ? calendar.getTimeZone() : null);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -3881,15 +3881,15 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         } else if (type == Date.class) {
             return (T) value.getDate(null);
         } else if (type == Time.class) {
-            return (T) value.getTime(null);
+            return (T) value.getTime(conn, null);
         } else if (type == Timestamp.class) {
-            return (T) value.getTimestamp(null);
+            return (T) value.getTimestamp(conn, null);
         } else if (type == java.util.Date.class) {
-            return (T) new java.util.Date(value.getTimestamp(null).getTime());
+            return (T) new java.util.Date(value.getTimestamp(conn, null).getTime());
         } else if (type == Calendar.class) {
             GregorianCalendar calendar = new GregorianCalendar();
             calendar.setGregorianChange(DateTimeUtils.PROLEPTIC_GREGORIAN_CHANGE);
-            calendar.setTime(value.getTimestamp(calendar.getTimeZone()));
+            calendar.setTime(value.getTimestamp(conn, calendar.getTimeZone()));
             return (T) calendar;
         } else if (type == UUID.class) {
             return (T) value.getObject();
@@ -3912,7 +3912,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             return (T) new JdbcResultSet(conn, null, null,
                     ((ValueResultSet) value.convertTo(Value.RESULT_SET)).getResult(), id, false, true, false);
         } else if (type == TimestampWithTimeZone.class) {
-            ValueTimestampTimeZone v = (ValueTimestampTimeZone) value.convertTo(Value.TIMESTAMP_TZ);
+            ValueTimestampTimeZone v = (ValueTimestampTimeZone) value.convertTo(Value.TIMESTAMP_TZ, conn, false);
             return (T) new TimestampWithTimeZone(v.getDateValue(), v.getTimeNanos(), v.getTimeZoneOffsetSeconds());
         } else if (type == Interval.class) {
             if (!(value instanceof ValueInterval)) {
@@ -3925,7 +3925,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         } else if (type == JSR310.LOCAL_DATE) {
             return (T) JSR310Utils.valueToLocalDate(value);
         } else if (type == JSR310.LOCAL_TIME) {
-            return (T) JSR310Utils.valueToLocalTime(value);
+            return (T) JSR310Utils.valueToLocalTime(value, conn);
         } else if (type == JSR310.LOCAL_DATE_TIME) {
             return (T) JSR310Utils.valueToLocalDateTime(value, conn);
         } else if (type == JSR310.INSTANT) {

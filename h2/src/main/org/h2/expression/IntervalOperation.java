@@ -88,8 +88,8 @@ public class IntervalOperation extends Expression {
     private Expression left, right;
     private TypeInfo type;
 
-    private static BigInteger nanosFromValue(Value v) {
-        long[] a = dateAndTimeFromValue(v);
+    private static BigInteger nanosFromValue(Session session, Value v) {
+        long[] a = dateAndTimeFromValue(v, session);
         return BigInteger.valueOf(absoluteDayFromDateValue(a[0])).multiply(NANOS_PER_DAY_BI)
                 .add(BigInteger.valueOf(a[1]));
     }
@@ -172,7 +172,7 @@ public class IntervalOperation extends Expression {
                     .divide(ValueDecimal.get(IntervalUtils.intervalToAbsolute((ValueInterval) r)));
         case DATETIME_PLUS_INTERVAL:
         case DATETIME_MINUS_INTERVAL:
-            return getDateTimeWithInterval(l, r, lType, rType);
+            return getDateTimeWithInterval(session, l, r, lType, rType);
         case INTERVAL_MULTIPLY_NUMERIC:
         case INTERVAL_DIVIDE_NUMERIC: {
             BigDecimal a1 = new BigDecimal(IntervalUtils.intervalToAbsolute((ValueInterval) l));
@@ -208,7 +208,7 @@ public class IntervalOperation extends Expression {
                 }
                 return ValueInterval.from(IntervalQualifier.DAY, negative, diff, 0L);
             } else {
-                BigInteger diff = nanosFromValue(l).subtract(nanosFromValue(r));
+                BigInteger diff = nanosFromValue(session, l).subtract(nanosFromValue(session, r));
                 if (lType == Value.TIMESTAMP_TZ || rType == Value.TIMESTAMP_TZ) {
                     l = l.convertTo(Value.TIMESTAMP_TZ, session, false);
                     r = r.convertTo(Value.TIMESTAMP_TZ, session, false);
@@ -221,7 +221,7 @@ public class IntervalOperation extends Expression {
         throw DbException.throwInternalError("type=" + opType);
     }
 
-    private Value getDateTimeWithInterval(Value l, Value r, int lType, int rType) {
+    private Value getDateTimeWithInterval(Session session, Value l, Value r, int lType, int rType) {
         switch (lType) {
         case Value.TIME:
             if (DataType.isYearMonthIntervalType(rType)) {
@@ -243,7 +243,7 @@ public class IntervalOperation extends Expression {
                 if (opType == IntervalOpType.DATETIME_MINUS_INTERVAL) {
                     m = -m;
                 }
-                return DateTimeFunctions.dateadd("MONTH", m, l);
+                return DateTimeFunctions.dateadd(session, "MONTH", m, l);
             } else {
                 BigInteger a2 = IntervalUtils.intervalToAbsolute((ValueInterval) r);
                 if (lType == Value.DATE) {
@@ -252,7 +252,7 @@ public class IntervalOperation extends Expression {
                     BigInteger n = opType == IntervalOpType.DATETIME_PLUS_INTERVAL ? a1.add(a2) : a1.subtract(a2);
                     return ValueDate.fromDateValue(dateValueFromAbsoluteDay(n.longValue()));
                 } else {
-                    long[] a = dateAndTimeFromValue(l);
+                    long[] a = dateAndTimeFromValue(l, session);
                     long absoluteDay = absoluteDayFromDateValue(a[0]);
                     long timeNanos = a[1];
                     BigInteger[] dr = a2.divideAndRemainder(NANOS_PER_DAY_BI);

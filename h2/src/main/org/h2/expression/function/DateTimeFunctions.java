@@ -46,8 +46,8 @@ import java.util.TimeZone;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
-import org.h2.engine.Mode;
 import org.h2.engine.Mode.ModeEnum;
+import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IntervalUtils;
@@ -142,6 +142,8 @@ public final class DateTimeFunctions {
     /**
      * DATEADD function.
      *
+     * @param session
+     *            the session
      * @param part
      *            name of date-time part
      * @param count
@@ -150,7 +152,7 @@ public final class DateTimeFunctions {
      *            value to add to
      * @return result
      */
-    public static Value dateadd(String part, long count, Value v) {
+    public static Value dateadd(Session session, String part, long count, Value v) {
         int field = getDatePart(part);
         if (field != MILLISECOND && field != MICROSECOND && field != NANOSECOND
                 && (count > Integer.MAX_VALUE || count < Integer.MIN_VALUE)) {
@@ -159,7 +161,7 @@ public final class DateTimeFunctions {
         boolean withDate = !(v instanceof ValueTime) && !(v instanceof ValueTimeTimeZone);
         boolean withTime = !(v instanceof ValueDate);
         boolean forceTimestamp = false;
-        long[] a = DateTimeUtils.dateAndTimeFromValue(v);
+        long[] a = DateTimeUtils.dateAndTimeFromValue(v, session);
         long dateValue = a[0];
         long timeNanos = a[1];
         switch (field) {
@@ -263,6 +265,8 @@ public final class DateTimeFunctions {
      * DATEDIFF(YEAR, '2004-12-31', '2005-01-01') = 1
      * </pre>
      *
+     * @param session
+     *            the session
      * @param part
      *            the part
      * @param v1
@@ -271,12 +275,12 @@ public final class DateTimeFunctions {
      *            the second date-time value
      * @return the number of crossed boundaries
      */
-    public static long datediff(String part, Value v1, Value v2) {
+    public static long datediff(Session session, String part, Value v1, Value v2) {
         int field = getDatePart(part);
-        long[] a1 = DateTimeUtils.dateAndTimeFromValue(v1);
+        long[] a1 = DateTimeUtils.dateAndTimeFromValue(v1, session);
         long dateValue1 = a1[0];
         long absolute1 = DateTimeUtils.absoluteDayFromDateValue(dateValue1);
-        long[] a2 = DateTimeUtils.dateAndTimeFromValue(v2);
+        long[] a2 = DateTimeUtils.dateAndTimeFromValue(v2, session);
         long dateValue2 = a2[0];
         long absolute2 = DateTimeUtils.absoluteDayFromDateValue(dateValue2);
         switch (field) {
@@ -364,19 +368,19 @@ public final class DateTimeFunctions {
     /**
      * Extracts specified field from the specified date-time value.
      *
+     * @param session
+     *            the session
      * @param part
      *            the date part
      * @param value
      *            the date-time value
-     * @param mode
-     *            the database mode
      * @return extracted field
      */
-    public static Value extract(String part, Value value, Mode mode) {
+    public static Value extract(Session session, String part, Value value) {
         Value result;
         int field = getDatePart(part);
         if (field != EPOCH) {
-            result = ValueInt.get(getIntDatePart(value, field, mode));
+            result = ValueInt.get(getIntDatePart(session, value, field));
         } else {
             // Case where we retrieve the EPOCH time.
             if (value instanceof ValueInterval) {
@@ -397,7 +401,7 @@ public final class DateTimeFunctions {
                 }
             }
             // First we retrieve the dateValue and his time in nanoseconds.
-            long[] a = DateTimeUtils.dateAndTimeFromValue(value);
+            long[] a = DateTimeUtils.dateAndTimeFromValue(value, session);
             long dateValue = a[0];
             long timeNanos = a[1];
             // We compute the time in nanoseconds and the total number of days.
@@ -440,15 +444,16 @@ public final class DateTimeFunctions {
     /**
      * Truncate the given date to the unit specified
      *
+     * @param session the session
      * @param datePartStr the time unit (e.g. 'DAY', 'HOUR', etc.)
      * @param valueDate the date
      * @return date truncated to 'day'
      */
-    public static Value truncateDate(String datePartStr, Value valueDate) {
+    public static Value truncateDate(Session session, String datePartStr, Value valueDate) {
         int timeUnit = getDatePart(datePartStr);
 
         // Retrieve the dateValue and the time in nanoseconds of the date.
-        long[] fieldDateAndTime = DateTimeUtils.dateAndTimeFromValue(valueDate);
+        long[] fieldDateAndTime = DateTimeUtils.dateAndTimeFromValue(valueDate, session);
         long dateValue = fieldDateAndTime[0];
         long timeNanosRetrieved = fieldDateAndTime[1];
 
@@ -616,15 +621,15 @@ public final class DateTimeFunctions {
      * Get the specified field of a date, however with years normalized to positive
      * or negative, and month starting with 1.
      *
+     * @param session
+     *            the session
      * @param date
      *            the date value
      * @param field
      *            the field type, see {@link Function} for constants
-     * @param mode
-     *            the database mode
      * @return the value
      */
-    public static int getIntDatePart(Value date, int field, Mode mode) {
+    public static int getIntDatePart(Session session, Value date, int field) {
         if (date instanceof ValueInterval) {
             ValueInterval interval = (ValueInterval) date;
             IntervalQualifier qualifier = interval.getQualifier();
@@ -665,7 +670,7 @@ public final class DateTimeFunctions {
             }
             return (int) v;
         } else {
-            long[] a = DateTimeUtils.dateAndTimeFromValue(date);
+            long[] a = DateTimeUtils.dateAndTimeFromValue(date, session);
             long dateValue = a[0];
             long timeNanos = a[1];
             switch (field) {
@@ -693,7 +698,7 @@ public final class DateTimeFunctions {
                 return DateTimeUtils.getSundayDayOfWeek(dateValue);
             case DOW: {
                 int dow = DateTimeUtils.getSundayDayOfWeek(dateValue);
-                if (mode.getEnum() == ModeEnum.PostgreSQL) {
+                if (session.getMode().getEnum() == ModeEnum.PostgreSQL) {
                     dow--;
                 }
                 return dow;

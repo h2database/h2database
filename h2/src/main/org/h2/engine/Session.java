@@ -1826,20 +1826,22 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                                 addTableToDependencies((MVTable)table, maps);
                             }
                         }
+                        break;
                     }
                     //$FALL-THROUGH$
+                case READ_COMMITTED:
+                case READ_UNCOMMITTED:
+                    for (DbObject dependency : dependencies) {
+                        if (dependency instanceof MVTable) {
+                            addTableToDependencies((MVTable)dependency, maps);
+                        }
+                    }
+                    break;
                 case REPEATABLE_READ:
                     HashSet<MVTable> processed = new HashSet<>();
                     for (DbObject dependency : dependencies) {
                         if (dependency instanceof MVTable) {
                             addTableToDependencies((MVTable)dependency, maps, processed);
-                        }
-                    }
-                    break;
-                case READ_COMMITTED:
-                    for (DbObject dependency : dependencies) {
-                        if (dependency instanceof MVTable) {
-                            addTableToDependencies((MVTable)dependency, maps);
                         }
                     }
                     break;

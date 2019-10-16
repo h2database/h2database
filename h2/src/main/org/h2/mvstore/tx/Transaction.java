@@ -341,8 +341,8 @@ public class Transaction {
     /**
      * Mark an entry into a new SQL statement execution within this transaction.
      *
-     * @param currentMaps
-     *            set of maps used by statement about to be executed
+     * @param maps
+     *            set of maps used by transaction or statement is about to be executed
      */
     @SuppressWarnings("unchecked")
     public void markStatementStart(HashSet<MVMap<?, ?>> maps) {

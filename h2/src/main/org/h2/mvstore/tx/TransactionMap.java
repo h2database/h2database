@@ -62,6 +62,11 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      */
     private Snapshot statementSnapshot;
 
+    /**
+     * Indicates whether underlying map was modified from within related transaction
+     */
+    private boolean hasChanges;
+
 
     TransactionMap(Transaction transaction, MVMap<K, VersionedValue> map) {
         this.transaction = transaction;
@@ -259,6 +264,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      */
     public void append(K key, V value) {
         map.append(key, VersionedValueUncommitted.getInstance(transaction.log(map.getId(), key, null), value, null));
+        hasChanges = true;
     }
 
     /**
@@ -318,6 +324,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
             assert decision != MVMap.Decision.REPEAT;
             blockingTransaction = decisionMaker.getBlockingTransaction();
             if (decision != MVMap.Decision.ABORT || blockingTransaction == null) {
+                hasChanges |= decision != MVMap.Decision.ABORT;
                 @SuppressWarnings("unchecked")
                 V res = result == null ? null : (V) result.getCurrentValue();
                 return res;
@@ -545,6 +552,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
     public void clear() {
         // TODO truncate transactionally?
         map.clear();
+        hasChanges = true;
     }
 
     @Override
@@ -702,7 +710,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
             case REPEATABLE_READ:
             case SNAPSHOT:
             case SERIALIZABLE:
-                if (transaction.hasChanges()) {
+                if (hasChanges) {
                     return new RepeatableIterator<>(this, from, to, forEntries);
                 }
                 //$FALL-THROUGH$

@@ -2564,7 +2564,7 @@ public class Database implements DataHandler, CastDataProvider {
      * @return true if success, false otherwise
      */
     public boolean setExclusiveSession(Session session, boolean closeOthers) {
-        if (!exclusiveSession.compareAndSet(null, session)) {
+        if (exclusiveSession.get() != session && !exclusiveSession.compareAndSet(null, session)) {
             return false;
         }
         if (closeOthers) {
@@ -2580,7 +2580,7 @@ public class Database implements DataHandler, CastDataProvider {
      * @return true if success, false otherwise
      */
     public boolean unsetExclusiveSession(Session session) {
-        return exclusiveSession.compareAndSet(session, null);
+        return exclusiveSession.get() == null || exclusiveSession.compareAndSet(session, null);
     }
 
     @Override

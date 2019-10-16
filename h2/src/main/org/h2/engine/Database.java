@@ -2561,10 +2561,12 @@ public class Database implements DataHandler, CastDataProvider {
      *
      * @param session the session
      * @param closeOthers whether other sessions are closed
-     * @return true if success, false otherwise
+     * @return true if success or if database is in exclusive mode
+     *         set by this session already, false otherwise
      */
     public boolean setExclusiveSession(Session session, boolean closeOthers) {
-        if (exclusiveSession.get() != session && !exclusiveSession.compareAndSet(null, session)) {
+        if (exclusiveSession.get() != session &&
+                !exclusiveSession.compareAndSet(null, session)) {
             return false;
         }
         if (closeOthers) {
@@ -2577,10 +2579,12 @@ public class Database implements DataHandler, CastDataProvider {
      * Stop exclusive access the database by provided session.
      *
      * @param session the session
-     * @return true if success, false otherwise
+     * @return true if success or if database is in non-exclusive mode already,
+     *         false otherwise
      */
     public boolean unsetExclusiveSession(Session session) {
-        return exclusiveSession.get() == null || exclusiveSession.compareAndSet(session, null);
+        return exclusiveSession.get() == null
+            || exclusiveSession.compareAndSet(session, null);
     }
 
     @Override

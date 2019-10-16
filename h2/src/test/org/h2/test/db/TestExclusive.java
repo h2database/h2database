@@ -6,6 +6,8 @@
 package org.h2.test.db;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -31,6 +33,11 @@ public class TestExclusive extends TestDb {
 
     @Override
     public void test() throws Exception {
+        testSetExclusiveTrueFalse();
+        testSetExclusiveGetExclusive();
+    }
+
+    private void testSetExclusiveTrueFalse() throws Exception {
         deleteDb("exclusive");
         Connection conn = getConnection("exclusive");
         Statement stat = conn.createStatement();

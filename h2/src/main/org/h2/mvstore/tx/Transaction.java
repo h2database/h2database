@@ -161,26 +161,20 @@ public class Transaction {
     private volatile boolean notificationRequested;
 
     /**
-     * Map of roots at start of the command for read committed, at start of the
-     * first command for serializable, or mixed map for repeatable read.
-     */
-    private final Map<Integer, Snapshot> snapshots = new HashMap<>();
-
-    /**
      * RootReferences for undo log snapshots
      */
     private RootReference[] undoLogRootReferences;
 
     /**
-     * Additional map of snapshots at start of the command, used only on
-     * repeatable read and serializable isolation levels.
+     * Map of transactional maps for this transaction
      */
-    private final Map<Integer, Snapshot> commandSnapshots = new HashMap<>();
+    private final Map<Integer, TransactionMap<?,?>> transactionMaps = new HashMap<>();
 
     /**
      * The current isolation level.
      */
     IsolationLevel isolationLevel = IsolationLevel.READ_COMMITTED;
+
 
     Transaction(TransactionStore store, int transactionId, long sequenceNum, int status,
                 String name, long logId, int timeoutMillis, int ownerId,
@@ -205,35 +199,6 @@ public class Transaction {
 
     public int getStatus() {
         return getStatus(statusAndLogId.get());
-    }
-
-    /**
-     * Get the snapshot for the given map id
-     *
-     * @param mapId the map id
-     * @return the root reference
-     */
-    Snapshot getSnapshot(int mapId) {
-        Snapshot snapshot = snapshots.get(mapId);
-        if (snapshot == null) {
-            snapshot = createSnapshot(mapId);
-        }
-        return snapshot;
-    }
-
-    /**
-     * Get the snapshot for the given map id as it was at the start of the
-     * current SQL statement. This may create a new snapshot if needed.
-     *
-     * @param mapId the map id
-     * @return the root reference
-     */
-    Snapshot getStatementSnapshot(int mapId) {
-        Snapshot snapshot = commandSnapshots.get(mapId);
-        if (snapshot == null) {
-            snapshot = createSnapshot(mapId);
-        }
-        return snapshot;
     }
 
     /**
@@ -351,7 +316,7 @@ public class Transaction {
      * @return whether statement dependencies are currently set
      */
     public boolean hasStatementDependencies() {
-        return !snapshots.isEmpty();
+        return !transactionMaps.isEmpty();
     }
 
     /**
@@ -376,69 +341,28 @@ public class Transaction {
     /**
      * Mark an entry into a new SQL statement execution within this transaction.
      *
-     * @param currentMaps
-     *            set of maps used by statement about to be executed
-     * @param allMaps
-     *            set of all maps within transaction, may be modified by this
-     *            method
+     * @param maps
+     *            set of maps used by transaction or statement is about to be executed
      */
-    public void markStatementStart(HashSet<MVMap<?, ?>> currentMaps, HashSet<MVMap<?, ?>> allMaps) {
+    @SuppressWarnings("unchecked")
+    public void markStatementStart(HashSet<MVMap<?, ?>> maps) {
         markStatementEnd();
-        switch (isolationLevel) {
-        case READ_UNCOMMITTED:
-            gatherMapCurrentRoots(currentMaps);
-            break;
-        case READ_COMMITTED:
-            gatherMapRoots(currentMaps, true);
-            break;
-        default:
-            markStatementStartForRepeatableRead(currentMaps, allMaps);
-            break;
-        }
-    }
-
-    private void markStatementStartForRepeatableRead(HashSet<MVMap<?, ?>> currentMaps, HashSet<MVMap<?, ?>> allMaps) {
         if (txCounter == null) {
-            gatherMapRoots(allMaps, false);
-        } else if (allMaps != null && !allMaps.isEmpty()) {
-            for (Iterator<MVMap<?, ?>> i = allMaps.iterator(); i.hasNext();) {
-                MVMap<?, ?> map = i.next();
-                if (snapshots.containsKey(map.getId())) {
-                    i.remove();
-                }
-            }
-            if (!allMaps.isEmpty()) {
-                HashMap<Integer, Snapshot> additionalRoots = new HashMap<>();
-                gatherSnapshots(currentMaps, false, additionalRoots);
-                snapshots.putAll(additionalRoots);
-            }
+            txCounter = store.store.registerVersionUsage();
         }
-        gatherMapCurrentRoots(currentMaps);
-    }
 
-    private void gatherMapRoots(HashSet<MVMap<?, ?>> maps, boolean forReadCommitted) {
-        txCounter = store.store.registerVersionUsage();
-        gatherSnapshots(maps, forReadCommitted, snapshots);
-    }
-
-    private void gatherMapCurrentRoots(HashSet<MVMap<?, ?>> maps) {
-        gatherSnapshots(maps, false, commandSnapshots);
-    }
-
-    private void gatherSnapshots(HashSet<MVMap<?, ?>> maps, boolean forReadCommitted,
-                                    Map<Integer, Snapshot> snapshots) {
         if (maps != null && !maps.isEmpty()) {
             // The purpose of the following loop is to get a coherent picture
             // In order to get such a "snapshot", we wait for a moment of silence,
             // when no new transaction were committed / closed.
             BitSet committingTransactions;
             do {
-                snapshots.clear();
                 committingTransactions = store.committingTransactions.get();
                 for (MVMap<?, ?> map : maps) {
-                    snapshots.put(map.getId(), new Snapshot(map.flushAndGetRoot(), committingTransactions));
+                    TransactionMap<?, Object> txMap = openMap((MVMap<?, VersionedValue>) map);
+                    txMap.setStatementSnapshot(new Snapshot(map.flushAndGetRoot(), committingTransactions));
                 }
-                if (forReadCommitted) {
+                if (isolationLevel == IsolationLevel.READ_COMMITTED) {
                     undoLogRootReferences = store.collectUndoLogRootReferences();
                 }
             } while (committingTransactions != store.committingTransactions.get());
@@ -447,6 +371,10 @@ public class Transaction {
             // and committingTransactions mask tells us which of seemingly uncommitted changes
             // should be considered as committed.
             // Subsequent processing uses this snapshot info only.
+            for (MVMap<?, ?> map : maps) {
+                TransactionMap<?, Object> txMap = openMap((MVMap<?, VersionedValue>) map);
+                txMap.promoteSnapshot();
+            }
         }
     }
 
@@ -457,7 +385,9 @@ public class Transaction {
         if (isolationLevel.allowNonRepeatableRead()) {
             releaseSnapshot();
         }
-        commandSnapshots.clear();
+        for (TransactionMap<?, ?> transactionMap : transactionMaps.values()) {
+            transactionMap.setStatementSnapshot(null);
+        }
     }
 
     private void markTransactionEnd() {
@@ -467,7 +397,7 @@ public class Transaction {
     }
 
     private void releaseSnapshot() {
-        snapshots.clear();
+        transactionMaps.clear();
         undoLogRootReferences = null;
         MVStore.TxCounter counter = txCounter;
         if (counter != null) {
@@ -555,7 +485,14 @@ public class Transaction {
      */
     public <K, V> TransactionMap<K, V> openMap(MVMap<K, VersionedValue> map) {
         checkNotClosed();
-        return new TransactionMap<>(this, map);
+        int id = map.getId();
+        @SuppressWarnings("unchecked")
+        TransactionMap<K,V> transactionMap = (TransactionMap<K, V>)transactionMaps.get(id);
+        if (transactionMap == null) {
+            transactionMap = new TransactionMap<>(this, map);
+            transactionMaps.put(id, transactionMap);
+        }
+        return transactionMap;
     }
 
     /**
@@ -724,7 +661,7 @@ public class Transaction {
      * Transition this transaction into a closed state.
      */
     void closeIt() {
-        snapshots.clear();
+        transactionMaps.clear();
         long lastState = setStatus(STATUS_CLOSED);
         store.store.deregisterVersionUsage(txCounter);
         if((hasChanges(lastState) || hasRollback(lastState)) && notificationRequested) {
@@ -859,5 +796,4 @@ public class Transaction {
         }
         return ((long)status << LOG_ID_BITS1) | logId;
     }
-
 }

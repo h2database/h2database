@@ -5795,64 +5795,96 @@ public class Parser {
     }
 
     private Column parseColumnWithType(String columnName, boolean forTable) {
-        String original = currentToken;
         boolean regular = false;
-        int originalScale = -1;
-        if (readIf("LONG")) {
-            if (readIf("RAW")) {
-                original = "LONG RAW";
-            }
-        } else if (readIf("DOUBLE")) {
-            if (readIf("PRECISION")) {
-                original = "DOUBLE PRECISION";
-            }
-        } else if (readIf("CHARACTER")) {
-            if (readIf("VARYING")) {
-                original = "CHARACTER VARYING";
-            } else if (readIf("LARGE")) {
-                read("OBJECT");
-                original = "CHARACTER LARGE OBJECT";
-            }
-        } else if (readIf("BINARY")) {
+        switch (currentTokenType) {
+        case IDENTIFIER:
+            break;
+        case ARRAY:
+            read();
+            return parseArrayType(columnName);
+        case INTERVAL:
+            read();
+            return readIntervalQualifier(columnName);
+        case NULL:
+            read();
+            Column column = new Column(columnName, TypeInfo.TYPE_NULL);
+            column.setOriginalSQL("NULL");
+            return column;
+        default:
+            addExpected("data type");
+            throw getSyntaxError();
+        }
+        String original = currentToken;
+        if (!identifiersToUpper) {
+            original = StringUtils.toUpperEnglish(original);
+        }
+        switch (currentToken) {
+        case "BINARY":
+            read();
             if (readIf("VARYING")) {
                 original = "BINARY VARYING";
             } else if (readIf("LARGE")) {
                 read("OBJECT");
                 original = "BINARY LARGE OBJECT";
             }
-        } else if (readIf("FLOAT")) {
-            return readFloatType(columnName);
-        } else if (readIf("TIME")) {
-            return parseTimeType(columnName);
-        } else if (readIf("TIMESTAMP")) {
-            return parseTimestampType(columnName);
-        } else if (readIf(INTERVAL)) {
-            return readIntervalQualifier(columnName);
-        } else if (readIf(ARRAY)) {
-            return parseArrayType(columnName);
-        } else if (readIf("ENUM")) {
-            return readEnumType(columnName);
-        } else if (readIf("GEOMETRY")) {
+            break;
+        case "CHARACTER":
+            read();
+            if (readIf("VARYING")) {
+                original = "CHARACTER VARYING";
+            } else if (readIf("LARGE")) {
+                read("OBJECT");
+                original = "CHARACTER LARGE OBJECT";
+            }
+            break;
+        case "DATETIME":
+        case "DATETIME2":
+             read();
+             return parseDateTimeType(columnName, original, false);
+        case "DOUBLE":
+            read();
+            if (readIf("PRECISION")) {
+                original = "DOUBLE PRECISION";
+            }
+            break;
+        case "ENUM":
+            read();
+            return parseEnumType(columnName);
+        case "FLOAT":
+            read();
+            return parseFloatType(columnName);
+        case "GEOMETRY":
+            read();
             return parseGeometryType(columnName);
-        } else {
+        case "LONG":
+            read();
+            if (readIf("RAW")) {
+                original = "LONG RAW";
+            }
+            break;
+        case "SMALLDATETIME":
+             read();
+             return parseDateTimeType(columnName, original, true);
+        case "TIME":
+            read();
+            return parseTimeType(columnName);
+        case "TIMESTAMP":
+            read();
+            return parseTimestampType(columnName);
+        default:
             regular = true;
         }
         long precision = -1;
         ExtTypeInfo extTypeInfo = null;
         int scale = -1;
-        String comment = null;
         Column templateColumn = null;
         DataType dataType;
-        if (!identifiersToUpper) {
-            original = StringUtils.toUpperEnglish(original);
-        }
         Domain domain = database.findDomain(original);
         Mode mode = database.getMode();
         if (domain != null) {
             templateColumn = domain.getColumn();
             TypeInfo type = templateColumn.getType();
             dataType = DataType.getDataType(type.getValueType());
-            comment = templateColumn.getComment();
             original = forTable ? domain.getSQL(true) : templateColumn.getOriginalSQL();
             precision = type.getPrecision();
             scale = type.getScale();
@@ -5873,44 +5905,27 @@ public class Parser {
         }
         precision = precision == -1 ? dataType.defaultPrecision : precision;
         scale = scale == -1 ? dataType.defaultScale : scale;
-        if (dataType.supportsPrecision || dataType.supportsScale) {
-            if (t == Value.TIMESTAMP) {
-                if (original.equals("DATETIME") || original.equals("DATETIME2")) {
-                    if (readIf(OPEN_PAREN)) {
-                        originalScale = readNonNegativeInt();
-                        if (originalScale > ValueTimestamp.MAXIMUM_SCALE) {
-                            throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION,
-                                    Integer.toString(originalScale));
-                        }
-                        read(CLOSE_PAREN);
-                        scale = originalScale;
-                        original = original + '(' + originalScale + ')';
-                    }
-                } else if (original.equals("SMALLDATETIME")) {
-                    scale = 0;
-                }
-            } else if (readIf(OPEN_PAREN)) {
-                if (!readIf("MAX")) {
-                    if (dataType.supportsPrecision) {
-                        precision = readPrecision();
-                        if (dataType.supportsScale) {
-                            if (readIf(COMMA)) {
-                                scale = readInt();
-                                original = original + '(' + precision + ", " + scale + ')';
-                            } else {
-                                scale = 0;
-                                original = original + '(' + precision + ')';
-                            }
+        if ((dataType.supportsPrecision || dataType.supportsScale) && readIf(OPEN_PAREN)) {
+            if (!readIf("MAX")) {
+                if (dataType.supportsPrecision) {
+                    precision = readPrecision();
+                    if (dataType.supportsScale) {
+                        if (readIf(COMMA)) {
+                            scale = readInt();
+                            original = original + '(' + precision + ", " + scale + ')';
                         } else {
+                            scale = 0;
                             original = original + '(' + precision + ')';
                         }
                     } else {
-                        scale = readInt();
-                        original = original + '(' + scale + ')';
+                        original = original + '(' + precision + ')';
                     }
+                } else {
+                    scale = readInt();
+                    original = original + '(' + scale + ')';
                 }
-                read(CLOSE_PAREN);
             }
+            read(CLOSE_PAREN);
         }
         if (mode.allNumericTypesHavePrecision && dataType.decimal) {
             if (readIf(OPEN_PAREN)) {
@@ -5941,8 +5956,8 @@ public class Parser {
                 column.setSelectivity(selectivity);
             }
             column.addCheckConstraint(session, templateColumn.getCheckConstraint(session, columnName));
+            column.setComment(templateColumn.getComment());
         }
-        column.setComment(comment);
         column.setOriginalSQL(original);
         if (forTable) {
             column.setDomain(domain);
@@ -5950,7 +5965,7 @@ public class Parser {
         return column;
     }
 
-    private Column readFloatType(String columnName) {
+    private Column parseFloatType(String columnName) {
         int type = Value.DOUBLE;
         int precision = -1;
         if (readIf(OPEN_PAREN)) {
@@ -6026,6 +6041,26 @@ public class Parser {
         }
         Column column = new Column(columnName, TypeInfo.getTypeInfo(type, -1,
                 scale < 0 ? ValueTimestamp.DEFAULT_SCALE : scale, null));
+        column.setOriginalSQL(original);
+        return column;
+    }
+
+    private Column parseDateTimeType(String columnName, String original, boolean smallDateTime) {
+        int scale;
+        if (smallDateTime) {
+            scale = 0;
+        } else {
+            scale = ValueTimestamp.DEFAULT_SCALE;
+            if (readIf(OPEN_PAREN)) {
+                scale = readNonNegativeInt();
+                if (scale > ValueTimestamp.MAXIMUM_SCALE) {
+                    throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION, Integer.toString(scale));
+                }
+                read(CLOSE_PAREN);
+                original = original + '(' + scale + ')';
+            }
+        }
+        Column column = new Column(columnName, TypeInfo.getTypeInfo(Value.TIMESTAMP, -1, scale, null));
         column.setOriginalSQL(original);
         return column;
     }
@@ -6145,7 +6180,7 @@ public class Parser {
         return column;
     }
 
-    private Column readEnumType(String columnName) {
+    private Column parseEnumType(String columnName) {
         read(OPEN_PAREN);
         ArrayList<String> enumeratorList = new ArrayList<>();
         do {

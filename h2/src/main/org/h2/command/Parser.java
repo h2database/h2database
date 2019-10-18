@@ -5823,27 +5823,7 @@ public class Parser {
         } else if (readIf("TIME")) {
             return parseTimeType(columnName);
         } else if (readIf("TIMESTAMP")) {
-            if (readIf(OPEN_PAREN)) {
-                originalScale = readNonNegativeInt();
-                // Allow non-standard TIMESTAMP(..., ...) syntax
-                if (readIf(COMMA)) {
-                    originalScale = readNonNegativeInt();
-                }
-                if (originalScale > ValueTimestamp.MAXIMUM_SCALE) {
-                    throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION,
-                            Integer.toString(originalScale));
-                }
-                read(CLOSE_PAREN);
-            }
-            if (readIf(WITH)) {
-                read("TIME");
-                read("ZONE");
-                original = "TIMESTAMP WITH TIME ZONE";
-            } else if (readIf("WITHOUT")) {
-                read("TIME");
-                read("ZONE");
-                original = "TIMESTAMP WITHOUT TIME ZONE";
-            }
+            return parseTimestampType(columnName);
         } else if (readIf(INTERVAL)) {
             return readIntervalQualifier(columnName);
         } else {
@@ -5887,25 +5867,11 @@ public class Parser {
         precision = precision == -1 ? dataType.defaultPrecision : precision;
         scale = scale == -1 ? dataType.defaultScale : scale;
         if (dataType.supportsPrecision || dataType.supportsScale) {
-            if (t == Value.TIMESTAMP || t == Value.TIMESTAMP_TZ) {
-                if (originalScale >= 0) {
-                    scale = originalScale;
-                    switch (t) {
-                    case Value.TIMESTAMP:
-                        if (original.equals("TIMESTAMP WITHOUT TIME ZONE")) {
-                            original = "TIMESTAMP(" + originalScale + ") WITHOUT TIME ZONE";
-                        } else {
-                            original = original + '(' + originalScale + ')';
-                        }
-                        break;
-                    case Value.TIMESTAMP_TZ:
-                        original = "TIMESTAMP(" + originalScale + ") WITH TIME ZONE";
-                        break;
-                    }
-                } else if (original.equals("DATETIME") || original.equals("DATETIME2")) {
+            if (t == Value.TIMESTAMP) {
+                if (original.equals("DATETIME") || original.equals("DATETIME2")) {
                     if (readIf(OPEN_PAREN)) {
                         originalScale = readNonNegativeInt();
-                        if (originalScale > ValueTime.MAXIMUM_SCALE) {
+                        if (originalScale > ValueTimestamp.MAXIMUM_SCALE) {
                             throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION,
                                     Integer.toString(originalScale));
                         }
@@ -6065,6 +6031,39 @@ public class Parser {
         }
         Column column = new Column(columnName, TypeInfo.getTypeInfo(type, -1,
                 scale < 0 ? ValueTime.DEFAULT_SCALE : scale, null));
+        column.setOriginalSQL(original);
+        return column;
+    }
+
+    private Column parseTimestampType(String columnName) {
+        int scale = -1;
+        if (readIf(OPEN_PAREN)) {
+            scale = readNonNegativeInt();
+            // Allow non-standard TIMESTAMP(..., ...) syntax
+            if (readIf(COMMA)) {
+                scale = readNonNegativeInt();
+            }
+            if (scale > ValueTimestamp.MAXIMUM_SCALE) {
+                throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION, Integer.toString(scale));
+            }
+            read(CLOSE_PAREN);
+        }
+        int type = Value.TIMESTAMP;
+        String original;
+        if (readIf(WITH)) {
+            read("TIME");
+            read("ZONE");
+            type = Value.TIMESTAMP_TZ;
+            original = scale >= 0 ? "TIMESTAMP(" + scale + ") WITH TIME ZONE" : "TIMESTAMP WITH TIME ZONE";
+        } else if (readIf("WITHOUT")) {
+            read("TIME");
+            read("ZONE");
+            original = scale >= 0 ? "TIMESTAMP(" + scale + ") WITHOUT TIME ZONE" : "TIMESTAMP WITHOUT TIME ZONE";
+        } else {
+            original = scale >= 0 ? "TIMESTAMP(" + scale + ')' : "TIMESTAMP";
+        }
+        Column column = new Column(columnName, TypeInfo.getTypeInfo(type, -1,
+                scale < 0 ? ValueTimestamp.DEFAULT_SCALE : scale, null));
         column.setOriginalSQL(original);
         return column;
     }

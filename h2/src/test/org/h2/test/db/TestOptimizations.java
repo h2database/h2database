@@ -1182,11 +1182,11 @@ public class TestOptimizations extends TestDb {
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE IF NOT EXISTS TABLE_A (" +
-                "id int(10) NOT NULL AUTO_INCREMENT, " +
+                "id int NOT NULL AUTO_INCREMENT, " +
                 "name VARCHAR(30) NOT NULL," +
                 "occupation VARCHAR(20)," +
-                "age int(10)," +
-                "salary int(10)," +
+                "age int," +
+                "salary int," +
                 "PRIMARY KEY(id))");
         stat.execute("INSERT INTO TABLE_A (name,occupation,age,salary) VALUES" +
                 "('mark', 'doctor',25,5000)," +

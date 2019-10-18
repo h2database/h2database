@@ -37,7 +37,7 @@ public class ValueTime extends Value {
     /**
      * The default scale for time.
      */
-    static final int DEFAULT_SCALE = 0;
+    public static final int DEFAULT_SCALE = 0;
 
     /**
      * The maximum scale for time.

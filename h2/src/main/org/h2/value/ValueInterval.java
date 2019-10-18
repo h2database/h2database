@@ -39,7 +39,7 @@ public class ValueInterval extends Value {
     /**
      * The default scale for intervals with seconds.
      */
-    static final int DEFAULT_SCALE = 6;
+    public static final int DEFAULT_SCALE = 6;
 
     /**
      * The maximum scale for intervals with seconds.

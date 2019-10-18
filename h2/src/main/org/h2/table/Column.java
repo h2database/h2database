@@ -139,6 +139,12 @@ public class Column {
         this.type = type;
     }
 
+    public Column(String name, TypeInfo type, String originalSQL) {
+        this.name = name;
+        this.type = type;
+        this.originalSQL = originalSQL;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == this) {

@@ -5828,6 +5828,8 @@ public class Parser {
             return readIntervalQualifier(columnName);
         } else if (readIf("ENUM")) {
             return readEnumType(columnName);
+        } else if (readIf("GEOMETRY")) {
+            return parseGeometryType(columnName);
         } else {
             regular = true;
         }
@@ -5918,34 +5920,6 @@ public class Parser {
                     dataType = DataType.getDataType(Value.FLOAT);
                 }
                 original = original + '(' + p + ')';
-            }
-        } else if (t == Value.GEOMETRY) {
-            if (extTypeInfo == null) {
-                if (readIf(OPEN_PAREN)) {
-                    int type = 0;
-                    if (currentTokenType != IDENTIFIER || currentTokenQuoted) {
-                        throw getSyntaxError();
-                    }
-                    if (!readIf("GEOMETRY")) {
-                        try {
-                            type = EWKTUtils.parseGeometryType(currentToken);
-                            read();
-                            if (type / 1_000 == 0 && currentTokenType == IDENTIFIER && !currentTokenQuoted) {
-                                type +=  EWKTUtils.parseDimensionSystem(currentToken) * 1_000;
-                                read();
-                            }
-                        } catch (IllegalArgumentException ex) {
-                            throw getSyntaxError();
-                        }
-                    }
-                    Integer srid = null;
-                    if (readIf(COMMA)) {
-                        srid = readInt();
-                    }
-                    read(CLOSE_PAREN);
-                    extTypeInfo = new ExtTypeInfoGeometry(type, srid);
-                    original += extTypeInfo.getCreateSQL();
-                }
             }
         } else if (readIf(OPEN_PAREN)) {
             // Support for MySQL: INT(11), MEDIUMINT(8) and so on.
@@ -6163,6 +6137,39 @@ public class Parser {
         ExtTypeInfoEnum extTypeInfo = new ExtTypeInfoEnum(enumeratorList.toArray(new String[0]));
         Column column = new Column(columnName, TypeInfo.getTypeInfo(Value.ENUM, -1, -1, extTypeInfo));
         column.setOriginalSQL("ENUM" + extTypeInfo.getCreateSQL());
+        return column;
+    }
+
+    private Column parseGeometryType(String columnName) {
+        ExtTypeInfoGeometry extTypeInfo;
+        if (readIf(OPEN_PAREN)) {
+            int type = 0;
+            if (currentTokenType != IDENTIFIER || currentTokenQuoted) {
+                throw getSyntaxError();
+            }
+            if (!readIf("GEOMETRY")) {
+                try {
+                    type = EWKTUtils.parseGeometryType(currentToken);
+                    read();
+                    if (type / 1_000 == 0 && currentTokenType == IDENTIFIER && !currentTokenQuoted) {
+                        type += EWKTUtils.parseDimensionSystem(currentToken) * 1_000;
+                        read();
+                    }
+                } catch (IllegalArgumentException ex) {
+                    throw getSyntaxError();
+                }
+            }
+            Integer srid = null;
+            if (readIf(COMMA)) {
+                srid = readInt();
+            }
+            read(CLOSE_PAREN);
+            extTypeInfo = new ExtTypeInfoGeometry(type, srid);
+        } else {
+            extTypeInfo = null;
+        }
+        Column column = new Column(columnName, TypeInfo.getTypeInfo(Value.GEOMETRY, -1, -1, extTypeInfo));
+        column.setOriginalSQL(extTypeInfo != null ? "GEOMETRY" + extTypeInfo.getCreateSQL() : "GEOMETRY");
         return column;
     }
 

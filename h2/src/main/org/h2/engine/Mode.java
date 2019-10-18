@@ -253,6 +253,18 @@ public class Mode {
     public boolean allowEmptySchemaValuesAsDefaultSchema;
 
     /**
+     * If {@code true} all numeric data types may have precision and 'UNSIGNED'
+     * clause.
+     */
+    public boolean allNumericTypesHavePrecision;
+
+    /**
+     * If {@code true} 'FOR BIT DATA' clauses are allowed for character string
+     * data types.
+     */
+    public boolean forBitData;
+
+    /**
      * An optional Set of hidden/disallowed column types.
      * Certain DBMSs don't support all column types provided by H2, such as
      * "NUMBER" when using PostgreSQL mode.
@@ -286,6 +298,7 @@ public class Mode {
                 Pattern.compile("ApplicationName|ClientAccountingInformation|" +
                         "ClientUser|ClientCorrelationToken");
         mode.allowDB2TimestampFormat = true;
+        mode.forBitData = true;
         add(mode);
 
         mode = new Mode(ModeEnum.Derby);
@@ -295,6 +308,7 @@ public class Mode {
         mode.isolationLevelInSelectOrInsertStatement = true;
         // Derby does not support client info properties as of version 10.12.1.1
         mode.supportedClientInfoPropertiesRegEx = null;
+        mode.forBitData = true;
         add(mode);
 
         mode = new Mode(ModeEnum.HSQLDB);
@@ -353,6 +367,7 @@ public class Mode {
         mode.alterTableExtensionsMySQL = true;
         mode.alterTableModifyColumn = true;
         mode.truncateTableRestartIdentity = true;
+        mode.allNumericTypesHavePrecision = true;
         add(mode);
 
         mode = new Mode(ModeEnum.Oracle);

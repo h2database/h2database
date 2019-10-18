@@ -5845,6 +5845,7 @@ public class Parser {
             original = StringUtils.toUpperEnglish(original);
         }
         Domain domain = database.findDomain(original);
+        Mode mode = database.getMode();
         if (domain != null) {
             templateColumn = domain.getColumn();
             TypeInfo type = templateColumn.getType();
@@ -5855,17 +5856,15 @@ public class Parser {
             scale = type.getScale();
             extTypeInfo = type.getExtTypeInfo();
         } else {
-            Mode mode = database.getMode();
             dataType = DataType.getTypeByName(original, mode);
             if (dataType == null || mode.disallowedTypes.contains(original)) {
-                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1,
-                        currentToken);
+                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, original);
             }
         }
         int t = dataType.type;
         if (database.getIgnoreCase() && t == Value.STRING && !equalsToken("VARCHAR_CASESENSITIVE", original)) {
             original = "VARCHAR_IGNORECASE";
-            dataType = DataType.getTypeByName(original, database.getMode());
+            dataType = DataType.getDataType(t = Value.STRING_IGNORECASE);
         }
         if (regular) {
             read();
@@ -5918,42 +5917,40 @@ public class Parser {
                     throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION, Integer.toString(p));
                 }
                 if (p <= 24) {
-                    dataType = DataType.getDataType(Value.FLOAT);
+                    dataType = DataType.getDataType(t = Value.FLOAT);
                 }
                 original = original + '(' + p + ')';
             }
-        } else if (readIf(OPEN_PAREN)) {
-            // Support for MySQL: INT(11), MEDIUMINT(8) and so on.
-            // Just ignore the precision.
-            readNonNegativeInt();
-            read(CLOSE_PAREN);
         }
-        if (readIf(FOR)) {
-            read("BIT");
-            read("DATA");
-            if (dataType.type == Value.STRING) {
-                dataType = DataType.getTypeByName("BINARY", database.getMode());
+        if (mode.allNumericTypesHavePrecision && dataType.decimal) {
+            if (readIf(OPEN_PAREN)) {
+                // Support for MySQL: INT(11), MEDIUMINT(8) and so on.
+                // Just ignore the precision.
+                readNonNegativeInt();
+                read(CLOSE_PAREN);
+            }
+            readIf("UNSIGNED");
+        }
+        if (mode.forBitData && DataType.isStringType(t)) {
+            if (readIf(FOR)) {
+                read("BIT");
+                read("DATA");
+                dataType = DataType.getDataType(t = Value.BYTES);
             }
         }
-        // MySQL compatibility
-        readIf("UNSIGNED");
-        int type = dataType.type;
         if (scale > precision && dataType.supportsPrecision && dataType.supportsScale) {
             throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION,
                     Integer.toString(scale), Long.toString(precision));
         }
-        Column column = new Column(columnName, TypeInfo.getTypeInfo(type, precision, scale, extTypeInfo));
+        Column column = new Column(columnName, TypeInfo.getTypeInfo(t, precision, scale, extTypeInfo));
         if (templateColumn != null) {
             column.setNullable(templateColumn.isNullable());
-            column.setDefaultExpression(session,
-                    templateColumn.getDefaultExpression());
+            column.setDefaultExpression(session, templateColumn.getDefaultExpression());
             int selectivity = templateColumn.getSelectivity();
             if (selectivity != Constants.SELECTIVITY_DEFAULT) {
                 column.setSelectivity(selectivity);
             }
-            Expression checkConstraint = templateColumn.getCheckConstraint(
-                    session, columnName);
-            column.addCheckConstraint(session, checkConstraint);
+            column.addCheckConstraint(session, templateColumn.getCheckConstraint(session, columnName));
         }
         column.setComment(comment);
         column.setOriginalSQL(original);

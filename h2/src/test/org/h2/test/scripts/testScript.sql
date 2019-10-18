@@ -871,12 +871,6 @@ drop table test;
 alter table information_schema.help rename to information_schema.help2;
 > exception FEATURE_NOT_SUPPORTED_1
 
-CREATE TABLE test (id int(25) NOT NULL auto_increment, name varchar NOT NULL, PRIMARY KEY  (id,name));
-> ok
-
-drop table test;
-> ok
-
 CREATE TABLE test (id bigserial NOT NULL primary key);
 > ok
 
@@ -7272,31 +7266,6 @@ drop table test;
 > ok
 
 --- test cases ---------------------------------------------------------------------------------------------
-create memory table word(word_id integer, name varchar);
-> ok
-
-alter table word alter column word_id integer(10) auto_increment;
-> ok
-
-insert into word(name) values('Hello');
-> update count: 1
-
-alter table word alter column word_id restart with 30872;
-> ok
-
-insert into word(name) values('World');
-> update count: 1
-
-select * from word;
-> WORD_ID NAME
-> ------- -----
-> 1       Hello
-> 30872   World
-> rows: 2
-
-drop table word;
-> ok
-
 create table test(id int, name varchar);
 > ok
 

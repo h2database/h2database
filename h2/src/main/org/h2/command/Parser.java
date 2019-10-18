@@ -5890,18 +5890,23 @@ public class Parser {
                 }
             } else if (readIf(OPEN_PAREN)) {
                 if (!readIf("MAX")) {
-                    long p = readPrecision();
-                    original += "(" + p;
-                    if (dataType.supportsScale) {
-                        if (readIf(COMMA)) {
-                            scale = readInt();
-                            original += ", " + scale;
+                    if (dataType.supportsPrecision) {
+                        precision = readPrecision();
+                        if (dataType.supportsScale) {
+                            if (readIf(COMMA)) {
+                                scale = readInt();
+                                original = original + '(' + precision + ", " + scale + ')';
+                            } else {
+                                scale = 0;
+                                original = original + '(' + precision + ')';
+                            }
                         } else {
-                            scale = 0;
+                            original = original + '(' + precision + ')';
                         }
+                    } else {
+                        scale = readInt();
+                        original = original + '(' + scale + ')';
                     }
-                    precision = p;
-                    original += ")";
                 }
                 read(CLOSE_PAREN);
             }

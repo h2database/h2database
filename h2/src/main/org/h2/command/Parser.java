@@ -5821,22 +5821,7 @@ public class Parser {
                 original = "BINARY LARGE OBJECT";
             }
         } else if (readIf("TIME")) {
-            if (readIf(OPEN_PAREN)) {
-                originalScale = readNonNegativeInt();
-                if (originalScale > ValueTime.MAXIMUM_SCALE) {
-                    throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION, Integer.toString(originalScale));
-                }
-                read(CLOSE_PAREN);
-            }
-            if (readIf(WITH)) {
-                read("TIME");
-                read("ZONE");
-                original = "TIME WITH TIME ZONE";
-            } else if (readIf("WITHOUT")) {
-                read("TIME");
-                read("ZONE");
-                original = "TIME WITHOUT TIME ZONE";
-            }
+            return parseTimeType(columnName);
         } else if (readIf("TIMESTAMP")) {
             if (readIf(OPEN_PAREN)) {
                 originalScale = readNonNegativeInt();
@@ -5902,20 +5887,10 @@ public class Parser {
         precision = precision == -1 ? dataType.defaultPrecision : precision;
         scale = scale == -1 ? dataType.defaultScale : scale;
         if (dataType.supportsPrecision || dataType.supportsScale) {
-            if (t == Value.TIME || t == Value.TIMESTAMP || t == Value.TIMESTAMP_TZ || t == Value.TIME_TZ) {
+            if (t == Value.TIMESTAMP || t == Value.TIMESTAMP_TZ) {
                 if (originalScale >= 0) {
                     scale = originalScale;
                     switch (t) {
-                    case Value.TIME:
-                        if (original.equals("TIME WITHOUT TIME ZONE")) {
-                            original = "TIME(" + originalScale + ") WITHOUT TIME ZONE";
-                        } else {
-                            original = original + '(' + originalScale + ')';
-                        }
-                        break;
-                    case Value.TIME_TZ:
-                        original = "TIME(" + originalScale + ") WITH TIME ZONE";
-                        break;
                     case Value.TIMESTAMP:
                         if (original.equals("TIMESTAMP WITHOUT TIME ZONE")) {
                             original = "TIMESTAMP(" + originalScale + ") WITHOUT TIME ZONE";
@@ -6062,6 +6037,35 @@ public class Parser {
         if (forTable) {
             column.setDomain(domain);
         }
+        return column;
+    }
+
+    private Column parseTimeType(String columnName) {
+        int scale = -1;
+        if (readIf(OPEN_PAREN)) {
+            scale = readNonNegativeInt();
+            if (scale > ValueTime.MAXIMUM_SCALE) {
+                throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION, Integer.toString(scale));
+            }
+            read(CLOSE_PAREN);
+        }
+        int type = Value.TIME;
+        String original;
+        if (readIf(WITH)) {
+            read("TIME");
+            read("ZONE");
+            type = Value.TIME_TZ;
+            original = scale >= 0 ? "TIME(" + scale + ") WITH TIME ZONE" : "TIME WITH TIME ZONE";
+        } else if (readIf("WITHOUT")) {
+            read("TIME");
+            read("ZONE");
+            original = scale >= 0 ? "TIME(" + scale + ") WITHOUT TIME ZONE" : "TIME WITHOUT TIME ZONE";
+        } else {
+            original = scale >= 0 ? "TIME(" + scale + ')' : "TIME";
+        }
+        Column column = new Column(columnName, TypeInfo.getTypeInfo(type, -1,
+                scale < 0 ? ValueTime.DEFAULT_SCALE : scale, null));
+        column.setOriginalSQL(original);
         return column;
     }
 

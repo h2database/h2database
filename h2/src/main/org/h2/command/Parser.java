@@ -5678,16 +5678,14 @@ public class Parser {
                 throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1,
                         currentToken);
             }
-            column = new Column(columnName, Value.LONG);
-            column.setOriginalSQL("IDENTITY");
+            column = new Column(columnName, TypeInfo.TYPE_LONG, "IDENTITY");
             parseAutoIncrement(column);
             // PostgreSQL compatibility
             if (!database.getMode().serialColumnIsNotPK) {
                 column.setPrimaryKey(true);
             }
         } else if (readIf("SERIAL")) {
-            column = new Column(columnName, Value.INT);
-            column.setOriginalSQL("SERIAL");
+            column = new Column(columnName, TypeInfo.TYPE_INT, "SERIAL");
             parseAutoIncrement(column);
             // PostgreSQL compatibility
             if (!database.getMode().serialColumnIsNotPK) {
@@ -5807,9 +5805,7 @@ public class Parser {
             return readIntervalQualifier(columnName);
         case NULL:
             read();
-            Column column = new Column(columnName, TypeInfo.TYPE_NULL);
-            column.setOriginalSQL("NULL");
-            return column;
+            return new Column(columnName, TypeInfo.TYPE_NULL, "NULL");
         default:
             addExpected("data type");
             throw getSyntaxError();
@@ -5947,7 +5943,7 @@ public class Parser {
             throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION,
                     Integer.toString(scale), Long.toString(precision));
         }
-        Column column = new Column(columnName, TypeInfo.getTypeInfo(t, precision, scale, extTypeInfo));
+        Column column = new Column(columnName, TypeInfo.getTypeInfo(t, precision, scale, extTypeInfo), original);
         if (templateColumn != null) {
             column.setNullable(templateColumn.isNullable());
             column.setDefaultExpression(session, templateColumn.getDefaultExpression());
@@ -5958,7 +5954,6 @@ public class Parser {
             column.addCheckConstraint(session, templateColumn.getCheckConstraint(session, columnName));
             column.setComment(templateColumn.getComment());
         }
-        column.setOriginalSQL(original);
         if (forTable) {
             column.setDomain(domain);
         }
@@ -5978,9 +5973,8 @@ public class Parser {
                 type = Value.FLOAT;
             }
         }
-        Column column = new Column(columnName, TypeInfo.getTypeInfo(type, -1, -1, null));
-        column.setOriginalSQL(precision >= 0 ? "FLOAT(" + precision + ')' : "FLOAT");
-        return column;
+        return new Column(columnName, TypeInfo.getTypeInfo(type, -1, -1, null),
+                precision >= 0 ? "FLOAT(" + precision + ')' : "FLOAT");
     }
 
     private Column parseTimeType(String columnName) {
@@ -6006,10 +6000,8 @@ public class Parser {
         } else {
             original = scale >= 0 ? "TIME(" + scale + ')' : "TIME";
         }
-        Column column = new Column(columnName, TypeInfo.getTypeInfo(type, -1,
-                scale < 0 ? ValueTime.DEFAULT_SCALE : scale, null));
-        column.setOriginalSQL(original);
-        return column;
+        return new Column(columnName, TypeInfo.getTypeInfo(type, -1, scale < 0 ? ValueTime.DEFAULT_SCALE : scale,
+                null), original);
     }
 
     private Column parseTimestampType(String columnName) {
@@ -6039,10 +6031,8 @@ public class Parser {
         } else {
             original = scale >= 0 ? "TIMESTAMP(" + scale + ')' : "TIMESTAMP";
         }
-        Column column = new Column(columnName, TypeInfo.getTypeInfo(type, -1,
-                scale < 0 ? ValueTimestamp.DEFAULT_SCALE : scale, null));
-        column.setOriginalSQL(original);
-        return column;
+        return new Column(columnName, TypeInfo.getTypeInfo(type, -1, scale < 0 ? ValueTimestamp.DEFAULT_SCALE : scale,
+                null), original);
     }
 
     private Column parseDateTimeType(String columnName, String original, boolean smallDateTime) {
@@ -6060,9 +6050,7 @@ public class Parser {
                 original = original + '(' + scale + ')';
             }
         }
-        Column column = new Column(columnName, TypeInfo.getTypeInfo(Value.TIMESTAMP, -1, scale, null));
-        column.setOriginalSQL(original);
-        return column;
+        return new Column(columnName, TypeInfo.getTypeInfo(Value.TIMESTAMP, -1, scale, null), original);
     }
 
     private Column readIntervalQualifier(String columnName) {
@@ -6162,11 +6150,9 @@ public class Parser {
                 throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION, Integer.toString(scale));
             }
         }
-        Column column = new Column(columnName, TypeInfo.getTypeInfo(qualifier.ordinal() + Value.INTERVAL_YEAR,
+        return new Column(columnName, TypeInfo.getTypeInfo(qualifier.ordinal() + Value.INTERVAL_YEAR,
                 precision < 0 ? ValueInterval.DEFAULT_PRECISION : precision,
-                scale < 0 ? ValueInterval.DEFAULT_SCALE : scale, null));
-        column.setOriginalSQL(qualifier.getTypeName(precision, scale));
-        return column;
+                scale < 0 ? ValueInterval.DEFAULT_SCALE : scale, null), qualifier.getTypeName(precision, scale));
     }
 
     private Column parseArrayType(String columnName) {
@@ -6175,9 +6161,8 @@ public class Parser {
             precision = readNonNegativeInt();
             read(CLOSE_BRACKET);
         }
-        Column column = new Column(columnName, TypeInfo.getTypeInfo(Value.ARRAY, precision, -1, null));
-        column.setOriginalSQL(precision >= 0 ? "ARRAY[" + precision + ']' : "ARRAY");
-        return column;
+        return new Column(columnName, TypeInfo.getTypeInfo(Value.ARRAY, precision, -1, null),
+                precision >= 0 ? "ARRAY[" + precision + ']' : "ARRAY");
     }
 
     private Column parseEnumType(String columnName) {
@@ -6187,9 +6172,8 @@ public class Parser {
             enumeratorList.add(readString());
         } while (readIfMore());
         ExtTypeInfoEnum extTypeInfo = new ExtTypeInfoEnum(enumeratorList.toArray(new String[0]));
-        Column column = new Column(columnName, TypeInfo.getTypeInfo(Value.ENUM, -1, -1, extTypeInfo));
-        column.setOriginalSQL("ENUM" + extTypeInfo.getCreateSQL());
-        return column;
+        return new Column(columnName, TypeInfo.getTypeInfo(Value.ENUM, -1, -1, extTypeInfo),
+                "ENUM" + extTypeInfo.getCreateSQL());
     }
 
     private Column parseGeometryType(String columnName) {
@@ -6220,9 +6204,8 @@ public class Parser {
         } else {
             extTypeInfo = null;
         }
-        Column column = new Column(columnName, TypeInfo.getTypeInfo(Value.GEOMETRY, -1, -1, extTypeInfo));
-        column.setOriginalSQL(extTypeInfo != null ? "GEOMETRY" + extTypeInfo.getCreateSQL() : "GEOMETRY");
-        return column;
+        return new Column(columnName, TypeInfo.getTypeInfo(Value.GEOMETRY, -1, -1, extTypeInfo),
+                extTypeInfo != null ? "GEOMETRY" + extTypeInfo.getCreateSQL() : "GEOMETRY");
     }
 
     private long readPrecision() {

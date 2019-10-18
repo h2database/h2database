@@ -5820,6 +5820,8 @@ public class Parser {
                 read("OBJECT");
                 original = "BINARY LARGE OBJECT";
             }
+        } else if (readIf("FLOAT")) {
+            return readFloatType(columnName);
         } else if (readIf("TIME")) {
             return parseTimeType(columnName);
         } else if (readIf("TIMESTAMP")) {
@@ -5909,18 +5911,6 @@ public class Parser {
                 }
                 read(CLOSE_PAREN);
             }
-        } else if (t == Value.DOUBLE && original.equals("FLOAT")) {
-            if (readIf(OPEN_PAREN)) {
-                int p = readNonNegativeInt();
-                read(CLOSE_PAREN);
-                if (p > 53) {
-                    throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION, Integer.toString(p));
-                }
-                if (p <= 24) {
-                    dataType = DataType.getDataType(t = Value.FLOAT);
-                }
-                original = original + '(' + p + ')';
-            }
         }
         if (mode.allNumericTypesHavePrecision && dataType.decimal) {
             if (readIf(OPEN_PAREN)) {
@@ -5957,6 +5947,24 @@ public class Parser {
         if (forTable) {
             column.setDomain(domain);
         }
+        return column;
+    }
+
+    private Column readFloatType(String columnName) {
+        int type = Value.DOUBLE;
+        int precision = -1;
+        if (readIf(OPEN_PAREN)) {
+            precision = readNonNegativeInt();
+            read(CLOSE_PAREN);
+            if (precision > 53) {
+                throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION, Integer.toString(precision));
+            }
+            if (precision <= 24) {
+                type = Value.FLOAT;
+            }
+        }
+        Column column = new Column(columnName, TypeInfo.getTypeInfo(type, -1, -1, null));
+        column.setOriginalSQL(precision >= 0 ? "FLOAT(" + precision + ')' : "FLOAT");
         return column;
     }
 

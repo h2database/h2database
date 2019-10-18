@@ -5835,8 +5835,8 @@ public class Parser {
             break;
         case "DATETIME":
         case "DATETIME2":
-             read();
-             return parseDateTimeType(columnName, original, false);
+            read();
+            return parseDateTimeType(columnName, original, false);
         case "DOUBLE":
             read();
             if (readIf("PRECISION")) {
@@ -5859,8 +5859,8 @@ public class Parser {
             }
             break;
         case "SMALLDATETIME":
-             read();
-             return parseDateTimeType(columnName, original, true);
+            read();
+            return parseDateTimeType(columnName, original, true);
         case "TIME":
             read();
             return parseTimeType(columnName);

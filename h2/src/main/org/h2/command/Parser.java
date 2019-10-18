@@ -5826,6 +5826,8 @@ public class Parser {
             return parseTimestampType(columnName);
         } else if (readIf(INTERVAL)) {
             return readIntervalQualifier(columnName);
+        } else if (readIf(ARRAY)) {
+            return parseArrayType(columnName);
         } else if (readIf("ENUM")) {
             return readEnumType(columnName);
         } else if (readIf("GEOMETRY")) {
@@ -5885,12 +5887,6 @@ public class Parser {
                     }
                 } else if (original.equals("SMALLDATETIME")) {
                     scale = 0;
-                }
-            } else if (t == Value.ARRAY) {
-                if (readIf(OPEN_BRACKET)) {
-                    precision = readNonNegativeInt();
-                    read(CLOSE_BRACKET);
-                    original = original + '[' + precision + ']';
                 }
             } else if (readIf(OPEN_PAREN)) {
                 if (!readIf("MAX")) {
@@ -6125,6 +6121,17 @@ public class Parser {
                 precision < 0 ? ValueInterval.DEFAULT_PRECISION : precision,
                 scale < 0 ? ValueInterval.DEFAULT_SCALE : scale, null));
         column.setOriginalSQL(qualifier.getTypeName(precision, scale));
+        return column;
+    }
+
+    private Column parseArrayType(String columnName) {
+        int precision = -1;
+        if (readIf(OPEN_BRACKET)) {
+            precision = readNonNegativeInt();
+            read(CLOSE_BRACKET);
+        }
+        Column column = new Column(columnName, TypeInfo.getTypeInfo(Value.ARRAY, precision, -1, null));
+        column.setOriginalSQL(precision >= 0 ? "ARRAY[" + precision + ']' : "ARRAY");
         return column;
     }
 

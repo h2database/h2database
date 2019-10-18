@@ -545,46 +545,75 @@ public class TypeInfo {
      * @return the specified string builder
      */
     public StringBuilder getSQL(StringBuilder builder) {
-        DataType dataType = DataType.getDataType(valueType);
-        if (valueType == Value.TIMESTAMP_TZ) {
-            builder.append("TIMESTAMP");
-        } else {
-            builder.append(dataType.name);
-        }
         switch (valueType) {
         case Value.DECIMAL:
+            // Can be DECIMAL or NUMERIC
+            builder.append(DataType.getDataType(valueType).name);
             builder.append('(').append(precision).append(", ").append(scale).append(')');
-            break;
-        case Value.GEOMETRY:
-            if (extTypeInfo == null) {
-                break;
-            }
-            //$FALL-THROUGH$
-        case Value.ENUM:
-            builder.append(extTypeInfo.getCreateSQL());
             break;
         case Value.BYTES:
         case Value.STRING:
         case Value.STRING_IGNORECASE:
         case Value.STRING_FIXED:
+            builder.append(DataType.getDataType(valueType).name);
             if (precision < Integer.MAX_VALUE) {
                 builder.append('(').append(precision).append(')');
             }
             break;
         case Value.TIME:
+        case Value.TIME_TZ:
+            builder.append("TIME");
+            if (scale != ValueTime.DEFAULT_SCALE) {
+                builder.append('(').append(scale).append(')');
+            }
+            if (valueType == Value.TIME_TZ) {
+                builder.append(" WITH TIME ZONE");
+            }
+            break;
         case Value.TIMESTAMP:
         case Value.TIMESTAMP_TZ:
-            if (scale != dataType.defaultScale) {
+            builder.append("TIMESTAMP");
+            if (scale != ValueTimestamp.DEFAULT_SCALE) {
                 builder.append('(').append(scale).append(')');
             }
             if (valueType == Value.TIMESTAMP_TZ) {
                 builder.append(" WITH TIME ZONE");
             }
             break;
+        case Value.INTERVAL_YEAR:
+        case Value.INTERVAL_MONTH:
+        case Value.INTERVAL_DAY:
+        case Value.INTERVAL_HOUR:
+        case Value.INTERVAL_MINUTE:
+        case Value.INTERVAL_SECOND:
+        case Value.INTERVAL_YEAR_TO_MONTH:
+        case Value.INTERVAL_DAY_TO_HOUR:
+        case Value.INTERVAL_DAY_TO_MINUTE:
+        case Value.INTERVAL_DAY_TO_SECOND:
+        case Value.INTERVAL_HOUR_TO_MINUTE:
+        case Value.INTERVAL_HOUR_TO_SECOND:
+        case Value.INTERVAL_MINUTE_TO_SECOND:
+            builder.append(IntervalQualifier.valueOf(valueType - Value.INTERVAL_YEAR).getTypeName(
+                    precision == ValueInterval.DEFAULT_PRECISION ? -1 : (int) precision,
+                    scale == ValueInterval.DEFAULT_SCALE ? -1 : scale));
+            break;
         case Value.ARRAY:
+            builder.append("ARRAY");
             if (precision < Integer.MAX_VALUE) {
                 builder.append('[').append(precision).append(']');
             }
+            break;
+        case Value.ENUM:
+            builder.append("ENUM").append(extTypeInfo.getCreateSQL());
+            break;
+        case Value.GEOMETRY:
+            builder.append("GEOMETRY");
+            if (extTypeInfo != null) {
+                builder.append(extTypeInfo.getCreateSQL());
+            }
+            break;
+        default:
+            builder.append(DataType.getDataType(valueType).name);
         }
         return builder;
     }

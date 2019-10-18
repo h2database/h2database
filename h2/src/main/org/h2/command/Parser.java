@@ -5826,6 +5826,8 @@ public class Parser {
             return parseTimestampType(columnName);
         } else if (readIf(INTERVAL)) {
             return readIntervalQualifier(columnName);
+        } else if (readIf("ENUM")) {
+            return readEnumType(columnName);
         } else {
             regular = true;
         }
@@ -5916,26 +5918,6 @@ public class Parser {
                     dataType = DataType.getDataType(Value.FLOAT);
                 }
                 original = original + '(' + p + ')';
-            }
-        } else if (t == Value.ENUM) {
-            if (extTypeInfo == null) {
-                String[] enumerators = null;
-                if (readIf(OPEN_PAREN)) {
-                    ArrayList<String> enumeratorList = new ArrayList<>();
-                    String enumerator0 = readString();
-                    enumeratorList.add(enumerator0);
-                    while (readIfMore()) {
-                        String enumeratorN = readString();
-                        enumeratorList.add(enumeratorN);
-                    }
-                    enumerators = enumeratorList.toArray(new String[0]);
-                }
-                try {
-                    extTypeInfo = new ExtTypeInfoEnum(enumerators);
-                } catch (DbException e) {
-                    throw e.addSQL(original);
-                }
-                original += extTypeInfo.getCreateSQL();
             }
         } else if (t == Value.GEOMETRY) {
             if (extTypeInfo == null) {
@@ -6169,6 +6151,18 @@ public class Parser {
                 precision < 0 ? ValueInterval.DEFAULT_PRECISION : precision,
                 scale < 0 ? ValueInterval.DEFAULT_SCALE : scale, null));
         column.setOriginalSQL(qualifier.getTypeName(precision, scale));
+        return column;
+    }
+
+    private Column readEnumType(String columnName) {
+        read(OPEN_PAREN);
+        ArrayList<String> enumeratorList = new ArrayList<>();
+        do {
+            enumeratorList.add(readString());
+        } while (readIfMore());
+        ExtTypeInfoEnum extTypeInfo = new ExtTypeInfoEnum(enumeratorList.toArray(new String[0]));
+        Column column = new Column(columnName, TypeInfo.getTypeInfo(Value.ENUM, -1, -1, extTypeInfo));
+        column.setOriginalSQL("ENUM" + extTypeInfo.getCreateSQL());
         return column;
     }
 

@@ -158,19 +158,17 @@ public final class DateTimeFunctions {
                 && (count > Integer.MAX_VALUE || count < Integer.MIN_VALUE)) {
             throw DbException.getInvalidValueException("DATEADD count", count);
         }
-        boolean withDate = !(v instanceof ValueTime) && !(v instanceof ValueTimeTimeZone);
-        boolean withTime = !(v instanceof ValueDate);
-        boolean forceTimestamp = false;
         long[] a = DateTimeUtils.dateAndTimeFromValue(v, session);
         long dateValue = a[0];
         long timeNanos = a[1];
+        int type = v.getValueType();
         switch (field) {
         case QUARTER:
             count *= 3;
             //$FALL-THROUGH$
         case YEAR:
         case MONTH: {
-            if (!withDate) {
+            if (type == Value.TIME || type == Value.TIME_TZ) {
                 throw DbException.getInvalidValueException("DATEADD time part", part);
             }
             long year = DateTimeUtils.yearFromDateValue(dateValue);
@@ -182,7 +180,7 @@ public final class DateTimeFunctions {
                 month += count;
             }
             dateValue = DateTimeUtils.dateValueFromDenormalizedDate(year, month, day);
-            return DateTimeUtils.dateTimeToValue(v, dateValue, timeNanos, forceTimestamp);
+            return DateTimeUtils.dateTimeToValue(v, dateValue, timeNanos);
         }
         case WEEK:
         case ISO_WEEK:
@@ -193,12 +191,12 @@ public final class DateTimeFunctions {
         case ISO_DAY_OF_WEEK:
         case DAY_OF_MONTH:
         case DAY_OF_YEAR:
-            if (!withDate) {
+            if (type == Value.TIME || type == Value.TIME_TZ) {
                 throw DbException.getInvalidValueException("DATEADD time part", part);
             }
             dateValue = DateTimeUtils
                     .dateValueFromAbsoluteDay(DateTimeUtils.absoluteDayFromDateValue(dateValue) + count);
-            return DateTimeUtils.dateTimeToValue(v, dateValue, timeNanos, forceTimestamp);
+            return DateTimeUtils.dateTimeToValue(v, dateValue, timeNanos);
         case HOUR:
             count *= NANOS_PER_HOUR;
             break;
@@ -224,10 +222,10 @@ public final class DateTimeFunctions {
             count *= 60;
             //$FALL-THROUGH$
         case TIMEZONE_SECOND: {
-            if (v instanceof ValueTimestampTimeZone) {
+            if (type == Value.TIMESTAMP_TZ) {
                 count += ((ValueTimestampTimeZone) v).getTimeZoneOffsetSeconds();
                 return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos, (int) count);
-            } else if (v instanceof ValueTimeTimeZone) {
+            } else if (type == Value.TIME_TZ) {
                 count += ((ValueTimeTimeZone) v).getTimeZoneOffsetSeconds();
                 return ValueTimeTimeZone.fromNanos(timeNanos, (int) count);
             } else {
@@ -237,10 +235,6 @@ public final class DateTimeFunctions {
         default:
             throw DbException.getUnsupportedException("DATEADD " + part);
         }
-        if (!withTime) {
-            // Treat date as timestamp at the start of this date
-            forceTimestamp = true;
-        }
         timeNanos += count;
         if (timeNanos >= NANOS_PER_DAY || timeNanos < 0) {
             long d;
@@ -249,12 +243,13 @@ public final class DateTimeFunctions {
             } else {
                 d = (timeNanos - NANOS_PER_DAY + 1) / NANOS_PER_DAY;
             }
+            dateValue = DateTimeUtils.dateValueFromAbsoluteDay(DateTimeUtils.absoluteDayFromDateValue(dateValue) + d);
             timeNanos -= d * NANOS_PER_DAY;
-            return DateTimeUtils.dateTimeToValue(v,
-                    DateTimeUtils.dateValueFromAbsoluteDay(DateTimeUtils.absoluteDayFromDateValue(dateValue) + d),
-                    timeNanos, forceTimestamp);
         }
-        return DateTimeUtils.dateTimeToValue(v, dateValue, timeNanos, forceTimestamp);
+        if (type == Value.DATE) {
+            return ValueTimestamp.fromDateValueAndNanos(dateValue, timeNanos);
+        }
+        return DateTimeUtils.dateTimeToValue(v, dateValue, timeNanos);
     }
 
     /**

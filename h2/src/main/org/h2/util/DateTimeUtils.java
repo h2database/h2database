@@ -527,35 +527,23 @@ public class DateTimeUtils {
      *            date value for the returned value
      * @param timeNanos
      *            nanos of day for the returned value
-     * @param forceTimestamp
-     *            if {@code true} return ValueTimestamp if original argument is
-     *            ValueDate or ValueTime
      * @return new value with specified date value and nanos of day
      */
-    public static Value dateTimeToValue(Value original, long dateValue, long timeNanos, boolean forceTimestamp) {
-        if (!(original instanceof ValueTimestamp)) {
-            if (!forceTimestamp) {
-                if (original instanceof ValueDate) {
-                    return ValueDate.fromDateValue(dateValue);
-                }
-                if (original instanceof ValueTime) {
-                    return ValueTime.fromNanos(timeNanos);
-                }
-                if (original instanceof ValueTimeTimeZone) {
-                    return ValueTimeTimeZone.fromNanos(timeNanos,
-                            ((ValueTimeTimeZone) original).getTimeZoneOffsetSeconds());
-                }
-            }
-            if (original instanceof ValueTimestampTimeZone) {
-                return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos,
-                        ((ValueTimestampTimeZone) original).getTimeZoneOffsetSeconds());
-            }
-            if (original instanceof ValueTimeTimeZone) {
-                return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos,
-                        ((ValueTimeTimeZone) original).getTimeZoneOffsetSeconds());
-            }
+    public static Value dateTimeToValue(Value original, long dateValue, long timeNanos) {
+        switch (original.getValueType()) {
+        case Value.DATE:
+            return ValueDate.fromDateValue(dateValue);
+        case Value.TIME:
+            return ValueTime.fromNanos(timeNanos);
+        case Value.TIME_TZ:
+            return ValueTimeTimeZone.fromNanos(timeNanos, ((ValueTimeTimeZone) original).getTimeZoneOffsetSeconds());
+        case Value.TIMESTAMP:
+        default:
+            return ValueTimestamp.fromDateValueAndNanos(dateValue, timeNanos);
+        case Value.TIMESTAMP_TZ:
+            return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos,
+                    ((ValueTimestampTimeZone) original).getTimeZoneOffsetSeconds());
         }
-        return ValueTimestamp.fromDateValueAndNanos(dateValue, timeNanos);
     }
 
     /**

@@ -1177,16 +1177,16 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         stmt.setObject(1, new Integer[] { 1, 2 });
         rs = stmt.executeQuery();
         rs.next();
-        assertEquals(Integer[].class.getName(), rs.getObject(1).getClass()
+        assertEquals(Object[].class.getName(), rs.getObject(1).getClass()
                 .getName());
 
         CallableStatement call = conn.prepareCall("{ ? = call array_test(?) }");
         call.setObject(2, new Integer[] { 2, 1 });
         call.registerOutParameter(1, Types.ARRAY);
         call.execute();
-        assertEquals(Integer[].class.getName(), call.getArray(1).getArray()
+        assertEquals(Object[].class.getName(), call.getArray(1).getArray()
                 .getClass().getName());
-        assertEquals(new Integer[]{2, 1}, (Integer[]) call.getObject(1));
+        assertEquals(new Object[]{2, 1}, (Object[]) call.getObject(1));
 
         stat.execute("drop alias array_test");
 

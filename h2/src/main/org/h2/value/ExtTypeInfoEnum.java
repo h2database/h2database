@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Locale;
 
 import org.h2.api.ErrorCode;
+import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 
 /**
@@ -110,7 +111,7 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
     }
 
     @Override
-    public Value cast(Value value) {
+    public Value cast(Value value, CastDataProvider provider, boolean forComparison) {
         switch (value.getValueType()) {
         case Value.ENUM:
             if (value instanceof ValueEnum && ((ValueEnum) value).getEnumerators().equals(this)) {

@@ -3598,9 +3598,11 @@ UUID
 "
 
 "Data Types","ARRAY Type","
-ARRAY [ '[' maximumCardinalityInt ']' ]
+[baseDataType] ARRAY [ '[' maximumCardinalityInt ']' ]
 ","
 An array of values.
+Base data type, if any, specifies the data type of elements.
+Array may have NULL elements.
 Maximum cardinality, if any, specifies maximum allowed number of elements in the array.
 
 See also [array](https://h2database.com/html/grammar.html#array) literal grammar.
@@ -3611,6 +3613,7 @@ and ""ResultSet.getObject(..)"" or ""ResultSet.getArray(..)"" to retrieve the va
 ","
 ARRAY
 ARRAY[10]
+INTEGER ARRAY[10]
 "
 
 "Data Types","ENUM Type","

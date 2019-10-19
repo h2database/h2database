@@ -15,6 +15,7 @@ import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.result.SimpleResult;
+import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -124,17 +125,17 @@ public class JdbcArray extends TraceObject implements Array {
     }
 
     /**
-     * Returns the base type of the array. This database does support mixed type
-     * arrays and therefore there is no base type.
+     * Returns the base type of the array.
      *
-     * @return Types.NULL
+     * @return the base type or Types.NULL
      */
     @Override
     public int getBaseType() throws SQLException {
         try {
             debugCodeCall("getBaseType");
             checkClosed();
-            return Types.NULL;
+            return value == ValueNull.INSTANCE ? Types.NULL
+                    : DataType.convertTypeToSQLType(((ValueArray) value).getComponentType().getValueType());
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -144,14 +145,15 @@ public class JdbcArray extends TraceObject implements Array {
      * Returns the base type name of the array. This database does support mixed
      * type arrays and therefore there is no base type.
      *
-     * @return "NULL"
+     * @return the base type name or "NULL"
      */
     @Override
     public String getBaseTypeName() throws SQLException {
         try {
             debugCodeCall("getBaseTypeName");
             checkClosed();
-            return "NULL";
+            return value == ValueNull.INSTANCE ? "NULL"
+                    : DataType.getDataType(((ValueArray) value).getComponentType().getValueType()).name;
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -258,11 +260,16 @@ public class JdbcArray extends TraceObject implements Array {
     private ResultSet getResultSetImpl(long index, int count) {
         int id = getNextId(TraceObject.RESULT_SET);
         SimpleResult rs = new SimpleResult();
-        rs.addColumn("INDEX", "INDEX", TypeInfo.TYPE_LONG);
-        // TODO array result set: there are multiple data types possible
-        rs.addColumn("VALUE", "VALUE", TypeInfo.TYPE_NULL);
+        ValueArray array;
         if (value != ValueNull.INSTANCE) {
-            Value[] values = ((ValueArray) value).getList();
+            array = (ValueArray) value;
+        } else {
+            array = null;
+        }
+        rs.addColumn("INDEX", "INDEX", TypeInfo.TYPE_LONG);
+        rs.addColumn("VALUE", "VALUE", array != null ? array.getComponentType() : TypeInfo.TYPE_NULL);
+        if (array != null) {
+            Value[] values = array.getList();
             count = checkRange(index, count, values.length);
             for (int i = (int) index; i < index + count; i++) {
                 rs.addRow(ValueLong.get(i), values[i - 1]);

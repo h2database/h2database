@@ -5,6 +5,7 @@
  */
 package org.h2.value;
 
+import java.util.Objects;
 import org.h2.api.CustomDataTypesHandler;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
@@ -368,9 +369,12 @@ public class TypeInfo {
             return new TypeInfo(type, precision, 0, MathUtils.convertLongToInt(precision), null);
         case Value.ARRAY:
             if (precision < 0 || precision >= Integer.MAX_VALUE) {
-                return TYPE_ARRAY;
+                if (extTypeInfo == null) {
+                    return TYPE_ARRAY;
+                }
+                precision = Integer.MAX_VALUE;
             }
-            return new TypeInfo(Value.ARRAY, precision, 0, Integer.MAX_VALUE, null);
+            return new TypeInfo(Value.ARRAY, precision, 0, Integer.MAX_VALUE, extTypeInfo);
         case Value.STRING_FIXED:
             if (precision < 0 || precision > Integer.MAX_VALUE) {
                 precision = Integer.MAX_VALUE;
@@ -598,6 +602,9 @@ public class TypeInfo {
                     scale == ValueInterval.DEFAULT_SCALE ? -1 : scale));
             break;
         case Value.ARRAY:
+            if (extTypeInfo != null) {
+                builder.append(extTypeInfo.getCreateSQL()).append(' ');
+            }
             builder.append("ARRAY");
             if (precision < Integer.MAX_VALUE) {
                 builder.append('[').append(precision).append(']');
@@ -616,6 +623,30 @@ public class TypeInfo {
             builder.append(DataType.getDataType(valueType).name);
         }
         return builder;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 1;
+        result = 31 * result + valueType;
+        result = 31 * result + (int) (precision ^ (precision >>> 32));
+        result = 31 * result + scale;
+        result = 31 * result + displaySize;
+        result = 31 * result + ((extTypeInfo == null) ? 0 : extTypeInfo.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != TypeInfo.class) {
+            return false;
+        }
+        TypeInfo other = (TypeInfo) obj;
+        return valueType == other.valueType && precision == other.precision && scale == other.scale
+                && displaySize == other.displaySize && Objects.equals(extTypeInfo, other.extTypeInfo);
     }
 
     @Override

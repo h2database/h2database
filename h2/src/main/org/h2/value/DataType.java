@@ -1315,7 +1315,7 @@ public class DataType {
             for (int i = 0; i < len; i++) {
                 v[i] = convertToValue(session, o[i], type);
             }
-            return ValueArray.get(clazz.getComponentType(), v);
+            return ValueArray.get(v);
         } else if (x instanceof Character) {
             return ValueStringFixed.get(((Character) x).toString());
         } else if (isGeometry(x)) {

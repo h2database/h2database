@@ -270,7 +270,7 @@ public class IntervalOperation extends Expression {
                         timeNanos += NANOS_PER_DAY;
                         absoluteDay--;
                     }
-                    return dateTimeToValue(l, dateValueFromAbsoluteDay(absoluteDay), timeNanos, false);
+                    return dateTimeToValue(l, dateValueFromAbsoluteDay(absoluteDay), timeNanos);
                 }
             }
         }

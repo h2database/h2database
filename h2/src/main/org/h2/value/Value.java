@@ -790,7 +790,7 @@ public abstract class Value extends VersionedValue {
         // converting BLOB to CLOB and vice versa is done in ValueLob
         if (getValueType() == targetType) {
             if (extTypeInfo != null) {
-                return extTypeInfo.cast(this);
+                return extTypeInfo.cast(this, provider, forComparison);
             }
             return this;
         }
@@ -1355,7 +1355,7 @@ public abstract class Value extends VersionedValue {
         default:
             result = ValueGeometry.get(getString());
         }
-        return extTypeInfo != null ? extTypeInfo.cast(result) : result;
+        return extTypeInfo != null ? extTypeInfo.cast(result, null, false) : result;
     }
 
     private ValueInterval convertToIntervalYearMonth(int targetType) {

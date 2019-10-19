@@ -359,19 +359,19 @@ public class TestValue extends TestDb {
     }
 
     private void testArray() {
-        ValueArray src = ValueArray.get(String.class,
+        ValueArray src = ValueArray.get(
                 new Value[] {ValueString.get("1"), ValueString.get("22"), ValueString.get("333")});
         assertEquals(3, src.getType().getPrecision());
         assertSame(src, src.convertPrecision(3));
-        ValueArray exp = ValueArray.get(String.class,
+        ValueArray exp = ValueArray.get(
                 new Value[] {ValueString.get("1"), ValueString.get("22")});
         Value got = src.convertPrecision(2);
         assertEquals(exp, got);
-        assertEquals(String.class, ((ValueArray) got).getComponentType());
-        exp = ValueArray.get(String.class, new Value[0]);
+        assertEquals(Value.STRING, ((ValueArray) got).getComponentType().getValueType());
+        exp = ValueArray.get(TypeInfo.TYPE_STRING, new Value[0]);
         got = src.convertPrecision(0);
         assertEquals(exp, got);
-        assertEquals(String.class, ((ValueArray) got).getComponentType());
+        assertEquals(Value.STRING, ((ValueArray) got).getComponentType().getValueType());
     }
 
     private void testUUID() {

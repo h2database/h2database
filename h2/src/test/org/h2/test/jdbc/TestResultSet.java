@@ -1912,8 +1912,8 @@ public class TestResultSet extends TestDb {
         list2 = (Object[]) array.getArray(Collections.<String, Class<?>>emptyMap());
         assertEquals(11, ((Integer) list2[0]).intValue());
 
-        assertEquals(Types.NULL, array.getBaseType());
-        assertEquals("NULL", array.getBaseTypeName());
+        assertEquals(Types.INTEGER, array.getBaseType());
+        assertEquals("INTEGER", array.getBaseTypeName());
 
         assertTrue(array.toString().endsWith(": [11, 12]"));
 

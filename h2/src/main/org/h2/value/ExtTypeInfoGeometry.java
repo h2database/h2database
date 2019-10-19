@@ -5,7 +5,9 @@
  */
 package org.h2.value;
 
+import java.util.Objects;
 import org.h2.api.ErrorCode;
+import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 import org.h2.util.geometry.EWKTUtils;
 
@@ -50,7 +52,7 @@ public final class ExtTypeInfoGeometry extends ExtTypeInfo {
     }
 
     @Override
-    public Value cast(Value value) {
+    public Value cast(Value value, CastDataProvider provider, boolean forComparison) {
         if (value.getValueType() != Value.GEOMETRY) {
             value = value.convertTo(Value.GEOMETRY);
         }
@@ -60,6 +62,23 @@ public final class ExtTypeInfoGeometry extends ExtTypeInfo {
                     toSQL(g.getTypeAndDimensionSystem(), g.getSRID()) + " <> " + toString());
         }
         return g;
+    }
+
+    @Override
+    public int hashCode() {
+        return 31 * ((srid == null) ? 0 : srid.hashCode()) + type;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != ExtTypeInfoGeometry.class) {
+            return false;
+        }
+        ExtTypeInfoGeometry other = (ExtTypeInfoGeometry) obj;
+        return type == other.type && Objects.equals(srid, other.srid);
     }
 
     @Override

@@ -213,7 +213,7 @@ public class ExpressionColumn extends Expression {
         if (value != ValueNull.INSTANCE) {
             ExtTypeInfo extTypeInfo = column.getType().getExtTypeInfo();
             if (extTypeInfo != null) {
-                return extTypeInfo.cast(value);
+                return extTypeInfo.cast(value, session, false);
             }
         }
         return value;

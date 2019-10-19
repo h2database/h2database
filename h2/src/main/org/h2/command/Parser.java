@@ -251,6 +251,7 @@ import org.h2.util.json.JSONItemType;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.ExtTypeInfo;
+import org.h2.value.ExtTypeInfoArray;
 import org.h2.value.ExtTypeInfoEnum;
 import org.h2.value.ExtTypeInfoGeometry;
 import org.h2.value.TypeInfo;
@@ -5793,13 +5794,21 @@ public class Parser {
     }
 
     private Column parseColumnWithType(String columnName, boolean forTable) {
+        Column column = parseColumnWithType1(columnName, forTable);
+        while (readIf(ARRAY)) {
+            column = parseArrayType(columnName, column.getType());
+        }
+        return column;
+    }
+
+    private Column parseColumnWithType1(String columnName, boolean forTable) {
         boolean regular = false;
         switch (currentTokenType) {
         case IDENTIFIER:
             break;
         case ARRAY:
             read();
-            return parseArrayType(columnName);
+            return parseArrayType(columnName, null);
         case INTERVAL:
             read();
             return readIntervalQualifier(columnName);
@@ -6155,14 +6164,15 @@ public class Parser {
                 scale < 0 ? ValueInterval.DEFAULT_SCALE : scale, null), qualifier.getTypeName(precision, scale));
     }
 
-    private Column parseArrayType(String columnName) {
+    private Column parseArrayType(String columnName, TypeInfo componentType) {
         int precision = -1;
         if (readIf(OPEN_BRACKET)) {
             precision = readNonNegativeInt();
             read(CLOSE_BRACKET);
         }
-        return new Column(columnName, TypeInfo.getTypeInfo(Value.ARRAY, precision, -1, null),
-                precision >= 0 ? "ARRAY[" + precision + ']' : "ARRAY");
+        TypeInfo typeInfo = TypeInfo.getTypeInfo(Value.ARRAY, precision, -1,
+                componentType != null ? new ExtTypeInfoArray(componentType) : null);
+        return new Column(columnName, typeInfo, typeInfo.toString());
     }
 
     private Column parseEnumType(String columnName) {

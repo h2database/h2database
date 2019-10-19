@@ -540,13 +540,7 @@ public class Transfer {
             ValueArray va = (ValueArray) v;
             Value[] list = va.getList();
             int len = list.length;
-            Class<?> componentType = va.getComponentType();
-            if (componentType == Object.class) {
-                writeInt(len);
-            } else {
-                writeInt(-(len + 1));
-                writeString(componentType.getName());
-            }
+            writeInt(len);
             for (Value value : list) {
                 writeValue(value);
             }
@@ -776,16 +770,15 @@ public class Transfer {
         }
         case ARRAY: {
             int len = readInt();
-            Class<?> componentType = Object.class;
             if (len < 0) {
-                len = -(len + 1);
-                componentType = JdbcUtils.loadUserClass(readString());
+                // Unlikely, but possible with H2 1.4.200 and older versions
+                len = ~len;
             }
             Value[] list = new Value[len];
             for (int i = 0; i < len; i++) {
                 list[i] = readValue();
             }
-            return ValueArray.get(componentType, list);
+            return ValueArray.get(list);
         }
         case ROW: {
             int len = readInt();

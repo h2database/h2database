@@ -5,6 +5,8 @@
  */
 package org.h2.value;
 
+import org.h2.engine.CastDataProvider;
+
 /**
  * Extended parameters of a data type.
  */
@@ -15,9 +17,13 @@ public abstract class ExtTypeInfo {
      *
      * @param value
      *            value to cast
+     * @param provider
+     *            the cast information provider
+     * @param forComparison
+     *            if {@code true}, perform cast for comparison operation
      * @return casted value
      */
-    public abstract Value cast(Value value);
+    public abstract Value cast(Value value, CastDataProvider provider, boolean forComparison);
 
     /**
      * Returns SQL including parentheses that should be appended to a type name.

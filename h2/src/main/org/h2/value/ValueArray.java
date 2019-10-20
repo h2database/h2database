@@ -23,7 +23,7 @@ public class ValueArray extends ValueCollectionBase {
      */
     private static final Object EMPTY = get(new Value[0]);
 
-    private volatile TypeInfo componentType;
+    private TypeInfo componentType;
 
     private ValueArray(TypeInfo componentType, Value[] list) {
         super(list);

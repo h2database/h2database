@@ -2713,6 +2713,25 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         }
         case CAST:
         case CONVERT:
+            typeInfo = type;
+            if (allConst) {
+                Value v = getValue(session);
+                if (v == ValueNull.INSTANCE) {
+                    return TypedValueExpression.get(ValueNull.INSTANCE, typeInfo);
+                }
+                int src = p0.getType().getValueType(), dst = typeInfo.getValueType();
+                if (canOptimizeCast(src, dst)) {
+                    DataType dt = DataType.getDataType(dst);
+                    TypeInfo vt = v.getType();
+                    if (dt.supportsPrecision && typeInfo.getPrecision() != vt.getPrecision()
+                            || dt.supportsScale && typeInfo.getScale() != vt.getScale()) {
+                        return TypedValueExpression.get(v, typeInfo);
+                    }
+                    break;
+                }
+                return this;
+            }
+            break;
         case TRUNCATE_VALUE:
             if (type != null) {
                 // data type, precision and scale is already set
@@ -2879,21 +2898,50 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         }
         type = typeInfo;
         if (allConst) {
-            Value v = getValue(session);
-            if (info.type == CAST || info.type == CONVERT) {
-                if (v == ValueNull.INSTANCE) {
-                    return TypedValueExpression.get(ValueNull.INSTANCE, type);
-                }
-                DataType dt = DataType.getDataType(type.getValueType());
-                TypeInfo vt = v.getType();
-                if (dt.supportsPrecision && type.getPrecision() != vt.getPrecision()
-                        || dt.supportsScale && type.getScale() != vt.getScale()) {
-                    return TypedValueExpression.get(v, type);
-                }
-            }
-            return ValueExpression.get(v);
+            return ValueExpression.get(getValue(session));
         }
         return this;
+    }
+
+    private static boolean canOptimizeCast(int src, int dst) {
+        switch (src) {
+        case Value.TIME:
+            switch (dst) {
+            case Value.TIME_TZ:
+            case Value.TIMESTAMP:
+            case Value.TIMESTAMP_TZ:
+                return false;
+            }
+            break;
+        case Value.TIME_TZ:
+            switch (dst) {
+            case Value.TIME:
+            case Value.TIMESTAMP:
+            case Value.TIMESTAMP_TZ:
+                return false;
+            }
+            break;
+        case Value.DATE:
+            if (dst == Value.TIMESTAMP_TZ) {
+                return false;
+            }
+            break;
+        case Value.TIMESTAMP:
+            switch (dst) {
+            case Value.TIME_TZ:
+            case Value.TIMESTAMP_TZ:
+                return false;
+            }
+            break;
+        case Value.TIMESTAMP_TZ:
+            switch (dst) {
+            case Value.TIME:
+            case Value.DATE:
+            case Value.TIMESTAMP:
+                return false;
+            }
+        }
+        return true;
     }
 
     private TypeInfo getRoundNumericType(Session session) {

@@ -773,6 +773,7 @@ public class Transfer {
             if (len < 0) {
                 // Unlikely, but possible with H2 1.4.200 and older versions
                 len = ~len;
+                readString();
             }
             Value[] list = new Value[len];
             for (int i = 0; i < len; i++) {

@@ -347,27 +347,6 @@ public class SysProperties {
     public static final boolean BIG_DECIMAL_IS_DECIMAL = Utils.getProperty("h2.bigDecimalIsDecimal", !PREVIEW);
 
     /**
-     * System property {@code h2.returnOffsetDateTime}, {@code false} by default
-     * unless {@code h2.preview} is enabled.
-     * <p>
-     * If {@code true} {@link java.sql.ResultSet#getObject(int)} and
-     * {@link java.sql.ResultSet#getObject(String)} return
-     * {@code TIMESTAMP WITH TIME ZONE} values as
-     * {@code java.time.OffsetDateTime}.
-     * </p>
-     * <p>
-     * If {@code false} return them as {@code org.h2.api.TimestampWithTimeZone}
-     * instead.
-     * </p>
-     * <p>
-     * This property has effect only on Java 8 / Android API 26 and later
-     * versions. Without JSR-310 {@code org.h2.api.TimestampWithTimeZone} is
-     * used unconditionally.
-     * </p>
-     */
-    public static final boolean RETURN_OFFSET_DATE_TIME = Utils.getProperty("h2.returnOffsetDateTime", PREVIEW);
-
-    /**
      * System property <code>h2.pgClientEncoding</code> (default: UTF-8).<br />
      * Default client encoding for PG server. It is used if the client does not
      * sends his encoding.

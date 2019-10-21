@@ -101,11 +101,6 @@ public class Schema extends DbObjectBase {
     }
 
     @Override
-    public String getDropSQL() {
-        return null;
-    }
-
-    @Override
     public String getCreateSQL() {
         if (system) {
             return null;
@@ -194,11 +189,6 @@ public class Schema extends DbObjectBase {
                 database.removeSchemaObject(session, obj);
             }
         }
-    }
-
-    @Override
-    public void checkRename() {
-        // ok
     }
 
     /**

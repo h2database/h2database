@@ -60,7 +60,7 @@ public class ConnectionInfo implements Comparable<ConnectionInfo> {
 
     @Override
     public int compareTo(ConnectionInfo o) {
-        return -Integer.compare(lastAccess, o.lastAccess);
+        return Integer.compare(o.lastAccess, lastAccess);
     }
 
 }

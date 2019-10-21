@@ -15,7 +15,6 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.JSR310;
 import org.h2.util.JSR310Utils;
 
 /**
@@ -135,13 +134,11 @@ public class ValueDate extends Value {
 
     @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        if (JSR310.PRESENT) {
-            try {
-                prep.setObject(parameterIndex, JSR310Utils.valueToLocalDate(this), Types.DATE);
-                return;
-            } catch (SQLException ignore) {
-                // Nothing to do
-            }
+        try {
+            prep.setObject(parameterIndex, JSR310Utils.valueToLocalDate(this), Types.DATE);
+            return;
+        } catch (SQLException ignore) {
+            // Nothing to do
         }
         prep.setDate(parameterIndex, getDate(null));
     }

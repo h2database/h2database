@@ -11,7 +11,6 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.h2.mvstore.CursorPos;
-import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.Page;
 import org.h2.mvstore.RootReference;
@@ -133,7 +132,7 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     @Override
     public V operate(SpatialKey key, V value, DecisionMaker<? super V> decisionMaker) {
         int attempt = 0;
-        final Collection<Page> removedPages = isPersistent() ? new ArrayList<Page>() : null;
+        final Collection<Page> removedPages = isPersistent() ? new ArrayList<>() : null;
         while(true) {
             RootReference rootReference = flushAndGetRoot();
             if (attempt++ == 0 && !rootReference.isLockedByCurrentThread()) {
@@ -544,12 +543,6 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
             SpatialKey c = current;
             fetchNext();
             return c;
-        }
-
-        @Override
-        public void remove() {
-            throw DataUtils.newUnsupportedOperationException(
-                    "Removing is not supported");
         }
 
         /**

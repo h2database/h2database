@@ -807,12 +807,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                         K k = cursor.next();
                         return new SimpleImmutableEntry<>(k, cursor.getValue());
                     }
-
-                    @Override
-                    public void remove() {
-                        throw DataUtils.newUnsupportedOperationException(
-                                "Removing is not supported");
-                    }
                 };
 
             }

@@ -312,16 +312,6 @@ public class TestMergeUsing extends TestDb implements Trigger {
     }
 
     @Override
-    public void close() {
-        // ignore
-    }
-
-    @Override
-    public void remove() {
-        // ignore
-    }
-
-    @Override
     public void init(Connection conn, String schemaName, String trigger,
             String tableName, boolean before, int type) {
         this.triggerName = trigger;

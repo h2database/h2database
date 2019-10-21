@@ -25,7 +25,9 @@ public interface AggregateFunction {
      *
      * @param conn a connection to the database
      */
-    void init(Connection conn) throws SQLException;
+    default void init(Connection conn) throws SQLException {
+        // Do nothing by default
+    }
 
     /**
      * This method must return the SQL type of the method, given the SQL type of

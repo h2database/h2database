@@ -3354,7 +3354,7 @@ If fractional seconds precision is specified it should be from 0 to 9, 0 is defa
 
 See also [time](https://h2database.com/html/grammar.html#time) literal grammar.
 Mapped to ""java.sql.Time"".
-""java.time.LocalTime"" is also supported and recommended on Java 8 and later versions.
+""java.time.LocalTime"" is also supported and recommended.
 Use ""java.time.LocalTime"" or ""String"" instead of ""java.sql.Time"" when non-zero precision is needed.
 Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up;
 if result of rounding is higher than maximum supported value 23:59:59.999999999 the value is rounded down instead.
@@ -3372,7 +3372,7 @@ The time with time zone data type.
 If fractional seconds precision is specified it should be from 0 to 9, 0 is default.
 
 See also [time with time zone](https://h2database.com/html/grammar.html#time_with_time_zone) literal grammar.
-Mapped to ""java.time.OffsetTime"" on Java 8 and later versions.
+Mapped to ""java.time.OffsetTime"".
 Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up;
 if result of rounding is higher than maximum supported value 23:59:59.999999999 the value is rounded down instead.
 The CAST operation to TIMESTAMP and TIMESTAMP WITH TIME ZONE data types uses the CURRENT_DATE for date fields,
@@ -3390,7 +3390,7 @@ The date data type. The proleptic Gregorian calendar is used.
 See also [date](https://h2database.com/html/grammar.html#date) literal grammar.
 Mapped to ""java.sql.Date"", with the time set to ""00:00:00""
 (or to the next possible time if midnight doesn't exist for the given date and time zone due to a daylight saving change).
-""java.time.LocalDate"" is also supported and recommended on Java 8 and later versions.
+""java.time.LocalDate"" is also supported and recommended.
 
 If your time zone had LMT (local mean time) in the past and you use such old dates
 (depends on the time zone, usually 100 or more years ago),
@@ -3417,7 +3417,7 @@ For absolute timestamps use the [TIMESTAMP WITH TIME ZONE](https://h2database.co
 
 See also [timestamp](https://h2database.com/html/grammar.html#timestamp) literal grammar.
 Mapped to ""java.sql.Timestamp"" (""java.util.Date"" may be used too).
-""java.time.LocalDateTime"" is also supported and recommended on Java 8 and later versions.
+""java.time.LocalDateTime"" is also supported and recommended.
 
 If your time zone had LMT (local mean time) in the past and you use such old dates
 (depends on the time zone, usually 100 or more years ago),
@@ -3440,8 +3440,8 @@ The timestamp with time zone data type. The proleptic Gregorian calendar is used
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
 
 See also [timestamp with time zone](https://h2database.com/html/grammar.html#timestamp_with_time_zone) literal grammar.
-Mapped to ""org.h2.api.TimestampWithTimeZone"" by default and can be optionally mapped to ""java.time.OffsetDateTime"".
-""java.time.ZonedDateTime"" and ""java.time.Instant"" are also supported on Java 8 and later versions.
+Mapped to ""java.time.OffsetDateTime"".
+""java.time.ZonedDateTime"" and ""java.time.Instant"" are also supported.
 
 Values of this data type are compared by UTC values. It means that ""2010-01-01 10:00:00+01"" is greater than ""2010-01-01 11:00:00+03"".
 
@@ -3713,7 +3713,7 @@ If precision is specified it should be from 1 to 18, 2 is default.
 
 See also [year interval](https://h2database.com/html/grammar.html#interval_year) literal grammar.
 Mapped to ""org.h2.api.Interval"".
-""java.time.Period"" is also supported on Java 8 and later versions.
+""java.time.Period"" is also supported.
 ","
 INTERVAL YEAR
 "
@@ -3726,7 +3726,7 @@ If precision is specified it should be from 1 to 18, 2 is default.
 
 See also [month interval](https://h2database.com/html/grammar.html#interval_month) literal grammar.
 Mapped to ""org.h2.api.Interval"".
-""java.time.Period"" is also supported on Java 8 and later versions.
+""java.time.Period"" is also supported.
 ","
 INTERVAL MONTH
 "
@@ -3739,7 +3739,7 @@ If precision is specified it should be from 1 to 18, 2 is default.
 
 See also [day interval](https://h2database.com/html/grammar.html#interval_day) literal grammar.
 Mapped to ""org.h2.api.Interval"".
-""java.time.Duration"" is also supported on Java 8 and later versions.
+""java.time.Duration"" is also supported.
 ","
 INTERVAL DAY
 "
@@ -3752,7 +3752,7 @@ If precision is specified it should be from 1 to 18, 2 is default.
 
 See also [hour interval](https://h2database.com/html/grammar.html#interval_hour) literal grammar.
 Mapped to ""org.h2.api.Interval"".
-""java.time.Duration"" is also supported on Java 8 and later versions.
+""java.time.Duration"" is also supported.
 ","
 INTERVAL HOUR
 "
@@ -3765,7 +3765,7 @@ If precision is specified it should be from 1 to 18, 2 is default.
 
 See also [minute interval](https://h2database.com/html/grammar.html#interval_minute) literal grammar.
 Mapped to ""org.h2.api.Interval"".
-""java.time.Duration"" is also supported on Java 8 and later versions.
+""java.time.Duration"" is also supported.
 ","
 INTERVAL MINUTE
 "
@@ -3779,7 +3779,7 @@ If fractional seconds precision is specified it should be from 0 to 9, 6 is defa
 
 See also [second interval](https://h2database.com/html/grammar.html#interval_second) literal grammar.
 Mapped to ""org.h2.api.Interval"".
-""java.time.Duration"" is also supported on Java 8 and later versions.
+""java.time.Duration"" is also supported.
 ","
 INTERVAL SECOND
 "
@@ -3792,7 +3792,7 @@ If leading field precision is specified it should be from 1 to 18, 2 is default.
 
 See also [year to month interval](https://h2database.com/html/grammar.html#interval_year_to_month) literal grammar.
 Mapped to ""org.h2.api.Interval"".
-""java.time.Period"" is also supported on Java 8 and later versions.
+""java.time.Period"" is also supported.
 ","
 INTERVAL YEAR TO MONTH
 "
@@ -3805,7 +3805,7 @@ If leading field precision is specified it should be from 1 to 18, 2 is default.
 
 See also [day to hour interval](https://h2database.com/html/grammar.html#interval_day_to_hour) literal grammar.
 Mapped to ""org.h2.api.Interval"".
-""java.time.Duration"" is also supported on Java 8 and later versions.
+""java.time.Duration"" is also supported.
 ","
 INTERVAL DAY TO HOUR
 "
@@ -3818,7 +3818,7 @@ If leading field precision is specified it should be from 1 to 18, 2 is default.
 
 See also [day to minute interval](https://h2database.com/html/grammar.html#interval_day_to_minute) literal grammar.
 Mapped to ""org.h2.api.Interval"".
-""java.time.Duration"" is also supported on Java 8 and later versions.
+""java.time.Duration"" is also supported.
 ","
 INTERVAL DAY TO MINUTE
 "
@@ -3832,7 +3832,7 @@ If fractional seconds precision is specified it should be from 0 to 9, 6 is defa
 
 See also [day to second interval](https://h2database.com/html/grammar.html#interval_day_to_second) literal grammar.
 Mapped to ""org.h2.api.Interval"".
-""java.time.Duration"" is also supported on Java 8 and later versions.
+""java.time.Duration"" is also supported.
 ","
 INTERVAL DAY TO SECOND
 "
@@ -3845,7 +3845,7 @@ If leading field precision is specified it should be from 1 to 18, 2 is default.
 
 See also [hour to minute interval](https://h2database.com/html/grammar.html#interval_hour_to_minute) literal grammar.
 Mapped to ""org.h2.api.Interval"".
-""java.time.Duration"" is also supported on Java 8 and later versions.
+""java.time.Duration"" is also supported.
 ","
 INTERVAL HOUR TO MINUTE
 "
@@ -3859,7 +3859,7 @@ If fractional seconds precision is specified it should be from 0 to 9, 6 is defa
 
 See also [hour to second interval](https://h2database.com/html/grammar.html#interval_hour_to_second) literal grammar.
 Mapped to ""org.h2.api.Interval"".
-""java.time.Duration"" is also supported on Java 8 and later versions.
+""java.time.Duration"" is also supported.
 ","
 INTERVAL HOUR TO SECOND
 "
@@ -3873,7 +3873,7 @@ If fractional seconds precision is specified it should be from 0 to 9, 6 is defa
 
 See also [minute to second interval](https://h2database.com/html/grammar.html#interval_minute_to_second) literal grammar.
 Mapped to ""org.h2.api.Interval"".
-""java.time.Duration"" is also supported on Java 8 and later versions.
+""java.time.Duration"" is also supported.
 ","
 INTERVAL MINUTE TO SECOND
 "

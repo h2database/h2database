@@ -329,11 +329,6 @@ public class TreeIndex extends BaseIndex {
     }
 
     @Override
-    public void checkRename() {
-        // nothing to do
-    }
-
-    @Override
     public boolean needRebuild() {
         return true;
     }

@@ -306,11 +306,6 @@ public class TableValueConstructor extends Query {
         }
 
         @Override
-        public String getTableAlias() {
-            return null;
-        }
-
-        @Override
         public Column[] getColumns() {
             return table.getColumns();
         }
@@ -321,43 +316,8 @@ public class TableValueConstructor extends Query {
         }
 
         @Override
-        public String getColumnName(Column column) {
-            return column.getName();
-        }
-
-        @Override
-        public boolean hasDerivedColumnList() {
-            return false;
-        }
-
-        @Override
-        public Column[] getSystemColumns() {
-            return null;
-        }
-
-        @Override
-        public Column getRowIdColumn() {
-            return null;
-        }
-
-        @Override
-        public String getSchemaName() {
-            return null;
-        }
-
-        @Override
         public Value getValue(Column column) {
             return currentRow[column.getColumnId()];
-        }
-
-        @Override
-        public TableFilter getTableFilter() {
-            return null;
-        }
-
-        @Override
-        public Select getSelect() {
-            return null;
         }
 
         @Override

@@ -175,24 +175,4 @@ public abstract class TriggerAdapter implements Trigger {
         return rs;
     }
 
-    /**
-     * This method is called when the database is closed.
-     * If the method throws an exception, it will be logged, but
-     * closing the database will continue.
-     * The default implementation does nothing.
-     */
-    @Override
-    public void remove() throws SQLException {
-        // do nothing by default
-    }
-
-    /**
-     * This method is called when the trigger is dropped.
-     * The default implementation does nothing.
-     */
-    @Override
-    public void close() throws SQLException {
-        // do nothing by default
-    }
-
 }

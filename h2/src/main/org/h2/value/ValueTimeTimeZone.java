@@ -7,12 +7,12 @@ package org.h2.value;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Types;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.JSR310;
 import org.h2.util.JSR310Utils;
 
 /**
@@ -187,23 +187,16 @@ public class ValueTimeTimeZone extends Value {
 
     @Override
     public Object getObject() {
-        if (JSR310.PRESENT) {
-            return JSR310Utils.valueToOffsetTime(this, null);
-        }
-        return getString();
+        return JSR310Utils.valueToOffsetTime(this, null);
     }
 
     @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        if (JSR310.PRESENT) {
-            try {
-                prep.setObject(parameterIndex, JSR310Utils.valueToOffsetTime(this, null),
-                        // TODO use Types.TIME_WITH_TIMEZONE on Java 8
-                        2013);
-                return;
-            } catch (SQLException ignore) {
-                // Nothing to do
-            }
+        try {
+            prep.setObject(parameterIndex, JSR310Utils.valueToOffsetTime(this, null), Types.TIME_WITH_TIMEZONE);
+            return;
+        } catch (SQLException ignore) {
+            // Nothing to do
         }
         prep.setString(parameterIndex, getString());
     }

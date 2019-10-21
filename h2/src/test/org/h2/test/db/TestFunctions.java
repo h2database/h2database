@@ -681,11 +681,6 @@ public class TestFunctions extends TestDb implements AggregateFunction {
             return Types.VARCHAR;
         }
 
-        @Override
-        public void init(Connection conn) {
-            // nothing to do
-        }
-
     }
 
     /**
@@ -708,11 +703,6 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         @Override
         public int getInternalType(int[] inputTypes) throws SQLException {
             return Value.STRING;
-        }
-
-        @Override
-        public void init(Connection conn) {
-            // nothing to do
         }
 
     }
@@ -2324,11 +2314,6 @@ public class TestFunctions extends TestDb implements AggregateFunction {
             throw new RuntimeException("unexpected data type");
         }
         return Types.DECIMAL;
-    }
-
-    @Override
-    public void init(Connection conn) {
-        // ignore
     }
 
 }

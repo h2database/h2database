@@ -37,11 +37,6 @@ public final class WindowFrame {
             this.orderedRows = orderedRows;
         }
 
-        @Override
-        public final void remove() {
-            throw new UnsupportedOperationException();
-        }
-
     }
 
     private static class PlainItr extends Itr {

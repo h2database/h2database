@@ -187,16 +187,10 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
 
     private void sortWithOrderBy(Value[] array) {
         final SortOrder sortOrder = orderBySort;
-        if (sortOrder != null) {
-            Arrays.sort(array, new Comparator<Value>() {
-                @Override
-                public int compare(Value v1, Value v2) {
-                    return sortOrder.compare(((ValueArray) v1).getList(), ((ValueArray) v2).getList());
-                }
-            });
-        } else {
-            Arrays.sort(array, select.getSession().getDatabase().getCompareMode());
-        }
+        Arrays.sort(array,
+                sortOrder != null
+                        ? (v1, v2) -> sortOrder.compare(((ValueArray) v1).getList(), ((ValueArray) v2).getList())
+                        : select.getSession().getDatabase().getCompareMode());
     }
 
     @Override
@@ -639,15 +633,8 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             i++;
         }
         Database db = session.getDatabase();
-        final CompareMode compareMode = db.getCompareMode();
-        Arrays.sort(values, new Comparator<ValueArray>() {
-            @Override
-            public int compare(ValueArray v1, ValueArray v2) {
-                Value a1 = v1.getList()[0];
-                Value a2 = v2.getList()[0];
-                return a1.compareTo(a2, session, compareMode);
-            }
-        });
+        CompareMode compareMode = db.getCompareMode();
+        Arrays.sort(values, (v1, v2) -> v1.getList()[0].compareTo(v2.getList()[0], session, compareMode));
         return ValueArray.get(values);
     }
 

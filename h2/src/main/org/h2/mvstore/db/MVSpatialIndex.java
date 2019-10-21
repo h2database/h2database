@@ -5,7 +5,6 @@
  */
 package org.h2.mvstore.db;
 
-import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import static org.h2.util.geometry.GeometryUtils.MAX_X;
 import static org.h2.util.geometry.GeometryUtils.MAX_Y;
@@ -357,11 +356,6 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
         return 0;
     }
 
-    @Override
-    public void checkRename() {
-        // ok
-    }
-
     /**
      * Get the map to store the data.
      *
@@ -472,12 +466,6 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
             SpatialKey result = current;
             fetchNext();
             return result;
-        }
-
-        @Override
-        public void remove() {
-            throw DataUtils.newUnsupportedOperationException(
-                    "Removal is not supported");
         }
     }
 

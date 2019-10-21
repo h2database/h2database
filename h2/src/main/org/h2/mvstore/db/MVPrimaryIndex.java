@@ -357,11 +357,6 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex {
     }
 
     @Override
-    public void checkRename() {
-        // ok
-    }
-
-    @Override
     public void addRowsToBuffer(List<Row> rows, String bufferName) {
         throw new UnsupportedOperationException();
     }

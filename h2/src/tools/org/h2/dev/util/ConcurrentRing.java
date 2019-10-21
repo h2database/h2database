@@ -7,8 +7,6 @@ package org.h2.dev.util;
 
 import java.util.Iterator;
 
-import org.h2.mvstore.DataUtils;
-
 /**
  * A ring buffer that supports concurrent access.
  *
@@ -142,11 +140,6 @@ public class ConcurrentRing<K> {
                     System.out.println("null?");
                 }
                 return buffer[getIndex(readPos + offset++)];
-            }
-
-            @Override
-            public void remove() {
-                throw DataUtils.newUnsupportedOperationException("remove");
             }
 
         };

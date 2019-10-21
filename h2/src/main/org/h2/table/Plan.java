@@ -14,7 +14,6 @@ import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.message.Trace;
-import org.h2.table.TableFilter.TableFilterVisitor;
 
 /**
  * A possible query execution plan. The time required to execute a query depends
@@ -44,13 +43,10 @@ public class Plan {
         }
         for (int i = 0; i < count; i++) {
             TableFilter f = filters[i];
-            f.visit(new TableFilterVisitor() {
-                @Override
-                public void accept(TableFilter f) {
-                    all.add(f);
-                    if (f.getJoinCondition() != null) {
-                        allCond.add(f.getJoinCondition());
-                    }
+            f.visit(f1 -> {
+                all.add(f1);
+                if (f1.getJoinCondition() != null) {
+                    allCond.add(f1.getJoinCondition());
                 }
             });
         }

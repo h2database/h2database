@@ -613,9 +613,9 @@ public class TestSpatial extends TestDb {
         assertEquals(ewkt, geom3d.getString());
         ValueGeometry copy = ValueGeometry.get(geom3d.getBytes());
         Geometry g = copy.getGeometry();
-        assertEquals(6, g.getCoordinates()[0].z);
-        assertEquals(5, g.getCoordinates()[1].z);
-        assertEquals(4, g.getCoordinates()[2].z);
+        assertEquals(6, g.getCoordinates()[0].getZ());
+        assertEquals(5, g.getCoordinates()[1].getZ());
+        assertEquals(4, g.getCoordinates()[2].getZ());
         // Test SRID
         copy = ValueGeometry.get(geom3d.getBytes());
         assertEquals(27572, g.getSRID());

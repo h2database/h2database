@@ -21,17 +21,14 @@ public class TestSort extends TestBase {
     /**
      * The number of times the compare method was called.
      */
-    AtomicInteger compareCount = new AtomicInteger();
+    private AtomicInteger compareCount = new AtomicInteger();
 
     /**
      * The comparison object used in this test.
      */
-    Comparator<Long> comp = new Comparator<Long>() {
-        @Override
-        public int compare(Long o1, Long o2) {
-            compareCount.incrementAndGet();
-            return Long.compare(o1 >> 32, o2 >> 32);
-        }
+    Comparator<Long> comp = (o1, o2) -> {
+        compareCount.incrementAndGet();
+        return Long.compare(o1 >> 32, o2 >> 32);
     };
 
     private final Long[] array = new Long[100000];

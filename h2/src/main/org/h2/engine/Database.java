@@ -851,12 +851,7 @@ public class Database implements DataHandler, CastDataProvider {
                 }
                 if (needRepair) {
                     Row[] array = allMetaRows.toArray(new Row[0]);
-                    Arrays.sort(array, new Comparator<Row>() {
-                        @Override
-                        public int compare(Row o1, Row o2) {
-                            return Integer.compare(o1.getValue(0).getInt(), o2.getValue(0).getInt());
-                        }
-                    });
+                    Arrays.sort(array, Comparator.comparingInt(t -> t.getValue(0).getInt()));
                     meta.truncate(systemSession);
                     for (Row row : array) {
                         meta.addRow(systemSession, row);
@@ -2828,7 +2823,7 @@ public class Database implements DataHandler, CastDataProvider {
      * @return the hash map
      */
     public <V> HashMap<String, V> newStringMap() {
-        return dbSettings.caseInsensitiveIdentifiers ? new CaseInsensitiveMap<V>() : new HashMap<String, V>();
+        return dbSettings.caseInsensitiveIdentifiers ? new CaseInsensitiveMap<>() : new HashMap<>();
     }
 
     /**
@@ -2839,8 +2834,8 @@ public class Database implements DataHandler, CastDataProvider {
      * @return the hash map
      */
     public <V> ConcurrentHashMap<String, V> newConcurrentStringMap() {
-        return dbSettings.caseInsensitiveIdentifiers ? new CaseInsensitiveConcurrentMap<V>()
-                : new ConcurrentHashMap<String, V>();
+        return dbSettings.caseInsensitiveIdentifiers ? new CaseInsensitiveConcurrentMap<>()
+                : new ConcurrentHashMap<>();
     }
 
     /**

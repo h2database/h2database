@@ -127,11 +127,6 @@ public class PageDelegateIndex extends PageIndex {
     }
 
     @Override
-    public void checkRename() {
-        // ok
-    }
-
-    @Override
     public long getRowCount(Session session) {
         return mainIndex.getRowCount(session);
     }

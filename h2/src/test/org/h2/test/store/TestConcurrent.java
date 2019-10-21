@@ -13,7 +13,6 @@ import java.io.OutputStream;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.Map;
@@ -160,12 +159,7 @@ public class TestConcurrent extends TestMVStore {
                 new Object[]{ new byte[]{(byte) -1, (byte) 1}, 20L},
                 new Object[]{ new byte[]{(byte) 1, (byte) -1}, 5},
         };
-        Arrays.sort(data, new Comparator<Object>() {
-            @Override
-            public int compare(Object o1, Object o2) {
-                return type.compare(o1, o2);
-            }
-        });
+        Arrays.sort(data, type::compare);
         Task[] tasks = new Task[2];
         for (int i = 0; i < tasks.length; i++) {
             tasks[i] = new Task() {

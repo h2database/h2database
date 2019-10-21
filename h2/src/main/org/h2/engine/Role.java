@@ -26,11 +26,6 @@ public class Role extends RightOwner {
         throw DbException.throwInternalError(toString());
     }
 
-    @Override
-    public String getDropSQL() {
-        return null;
-    }
-
     /**
      * Get the CREATE SQL statement for this object.
      *
@@ -80,11 +75,6 @@ public class Role extends RightOwner {
         }
         database.removeMeta(session, getId());
         invalidate();
-    }
-
-    @Override
-    public void checkRename() {
-        // ok
     }
 
 }

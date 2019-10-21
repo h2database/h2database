@@ -107,11 +107,6 @@ public abstract class VirtualTable extends Table {
     }
 
     @Override
-    public String getDropSQL() {
-        return null;
-    }
-
-    @Override
     public void checkRename() {
         throw DbException.getUnsupportedException("Virtual table");
     }

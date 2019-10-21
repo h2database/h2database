@@ -118,27 +118,13 @@ public class Doclet {
                 constructors.length);
         System.arraycopy(methods, 0, constructorsMethods, constructors.length,
                 methods.length);
-        Arrays.sort(constructorsMethods, new Comparator<ExecutableMemberDoc>() {
-            @Override
-            public int compare(ExecutableMemberDoc a, ExecutableMemberDoc b) {
-                // sort static method before non-static methods
-                if (a.isStatic() != b.isStatic()) {
-                    return a.isStatic() ? -1 : 1;
-                }
-                return a.name().compareTo(b.name());
+        Arrays.sort(constructorsMethods, (a, b) -> {
+            // sort static method before non-static methods
+            if (a.isStatic() != b.isStatic()) {
+                return a.isStatic() ? -1 : 1;
             }
+            return a.name().compareTo(b.name());
         });
-//
-//
-//        Arrays.sort(methods, new Comparator<MethodDoc>() {
-//            public int compare(MethodDoc a, MethodDoc b) {
-//                // sort static method before non-static methods
-//                if (a.isStatic() != b.isStatic()) {
-//                    return a.isStatic() ? -1 : 1;
-//                }
-//                return a.name().compareTo(b.name());
-//            }
-//        });
         ArrayList<String> signatures = new ArrayList<>();
         boolean hasMethods = false;
         int id = 0;
@@ -212,12 +198,7 @@ public class Doclet {
         if (clazz.interfaces().length > 0) {
             fields = clazz.interfaces()[0].fields();
         }
-        Arrays.sort(fields, new Comparator<FieldDoc>() {
-            @Override
-            public int compare(FieldDoc a, FieldDoc b) {
-                return a.name().compareTo(b.name());
-            }
-        });
+        Arrays.sort(fields, Comparator.comparing(FieldDoc::name));
         int fieldId = 0;
         for (FieldDoc field : fields) {
             if (skipField(clazz, field)) {
@@ -256,19 +237,16 @@ public class Doclet {
         }
 
         // field details
-        Arrays.sort(fields, new Comparator<FieldDoc>() {
-            @Override
-            public int compare(FieldDoc a, FieldDoc b) {
-                String ca = a.constantValueExpression();
-                if (ca == null) {
-                    ca = a.name();
-                }
-                String cb = b.constantValueExpression();
-                if (cb == null) {
-                    cb = b.name();
-                }
-                return ca.compareTo(cb);
+        Arrays.sort(fields, (a, b) -> {
+            String ca = a.constantValueExpression();
+            if (ca == null) {
+                ca = a.name();
             }
+            String cb = b.constantValueExpression();
+            if (cb == null) {
+                cb = b.name();
+            }
+            return ca.compareTo(cb);
         });
         for (FieldDoc field : fields) {
             writeFieldDetails(writer, clazz, field);

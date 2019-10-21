@@ -53,22 +53,6 @@ public abstract class DbObjectBase implements DbObject {
     }
 
     /**
-     * Build a SQL statement to re-create this object.
-     *
-     * @return the SQL statement
-     */
-    @Override
-    public abstract String getCreateSQL();
-
-    /**
-     * Build a SQL statement to drop this object.
-     *
-     * @return the SQL statement
-     */
-    @Override
-    public abstract String getDropSQL();
-
-    /**
      * Remove all dependent objects and free all resources (files, blocks in
      * files) of this object.
      *
@@ -76,12 +60,6 @@ public abstract class DbObjectBase implements DbObject {
      */
     @Override
     public abstract void removeChildrenAndResources(Session session);
-
-    /**
-     * Check if this object can be renamed. System objects may not be renamed.
-     */
-    @Override
-    public abstract void checkRename();
 
     /**
      * Tell the object that is was modified.

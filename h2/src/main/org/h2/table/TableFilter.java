@@ -19,7 +19,6 @@ import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
-import org.h2.expression.ExpressionColumn;
 import org.h2.expression.condition.Comparison;
 import org.h2.expression.condition.ConditionAndOr;
 import org.h2.index.Index;
@@ -49,12 +48,13 @@ public class TableFilter implements ColumnResolver {
     /**
      * Comparator that uses order in FROM clause as a sort key.
      */
-    public static final Comparator<TableFilter> ORDER_IN_FROM_COMPARATOR = new Comparator<TableFilter>() {
-        @Override
-        public int compare(TableFilter o1, TableFilter o2) {
-            return Integer.compare(o1.getOrderInFrom(), o2.getOrderInFrom());
-        }
-    };
+    public static final Comparator<TableFilter> ORDER_IN_FROM_COMPARATOR =
+            Comparator.comparing(TableFilter::getOrderInFrom);
+
+    /**
+     * A visitor that sets joinOuterIndirect to true.
+     */
+    private static final TableFilterVisitor JOI_VISITOR = f -> f.joinOuterIndirect = true;
 
     /**
      * Whether this is a direct or indirect (nested) outer join
@@ -586,12 +586,7 @@ public class TableFilter implements ColumnResolver {
         current = table.getNullRow();
         currentSearchRow = current;
         if (nestedJoin != null) {
-            nestedJoin.visit(new TableFilterVisitor() {
-                @Override
-                public void accept(TableFilter f) {
-                    f.setNullRow();
-                }
-            });
+            nestedJoin.visit(TableFilter::setNullRow);
         }
     }
 
@@ -706,7 +701,7 @@ public class TableFilter implements ColumnResolver {
             join = filter;
             filter.joinOuter = outer;
             if (outer) {
-                filter.visit(new JOIVisitor());
+                filter.visit(JOI_VISITOR);
             }
             if (on != null) {
                 filter.mapAndAddFilter(on);
@@ -1205,11 +1200,6 @@ public class TableFilter implements ColumnResolver {
     }
 
     @Override
-    public Expression optimize(ExpressionColumn expressionColumn, Column column) {
-        return expressionColumn;
-    }
-
-    @Override
     public String toString() {
         return alias != null ? alias : table.toString();
     }
@@ -1378,19 +1368,6 @@ public class TableFilter implements ColumnResolver {
         @Override
         public void accept(TableFilter f) {
             on.mapColumns(f, 0, Expression.MAP_INITIAL);
-        }
-    }
-
-    /**
-     * A visitor that sets joinOuterIndirect to true.
-     */
-    private static final class JOIVisitor implements TableFilterVisitor {
-        JOIVisitor() {
-        }
-
-        @Override
-        public void accept(TableFilter f) {
-            f.joinOuterIndirect = true;
         }
     }
 

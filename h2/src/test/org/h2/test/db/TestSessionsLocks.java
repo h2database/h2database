@@ -102,7 +102,7 @@ public class TestSessionsLocks extends TestDb {
         rs.getTimestamp("STATEMENT_START");
         assertFalse(rs.next());
         Connection conn2 = getConnection("sessionsLocks");
-        final Statement stat2 = conn2.createStatement();
+        Statement stat2 = conn2.createStatement();
         rs = stat.executeQuery("select * from information_schema.sessions " +
                 "order by SESSION_START, ID");
         assertTrue(rs.next());
@@ -112,17 +112,14 @@ public class TestSessionsLocks extends TestDb {
         assertTrue(otherId != sessionId);
         assertFalse(rs.next());
         stat2.execute("set throttle 1");
-        final boolean[] done = { false };
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    stat2.execute("select count(*) from " +
-                            "system_range(1, 10000000) t1, system_range(1, 10000000) t2");
-                    new Error("Unexpected success").printStackTrace();
-                } catch (SQLException e) {
-                    done[0] = true;
-                }
+        boolean[] done = { false };
+        Runnable runnable = () -> {
+            try {
+                stat2.execute("select count(*) from " +
+                        "system_range(1, 10000000) t1, system_range(1, 10000000) t2");
+                new Error("Unexpected success").printStackTrace();
+            } catch (SQLException e) {
+                done[0] = true;
             }
         };
         new Thread(runnable).start();

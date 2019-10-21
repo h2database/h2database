@@ -53,11 +53,6 @@ public class Setting extends DbObjectBase {
     }
 
     @Override
-    public String getDropSQL() {
-        return null;
-    }
-
-    @Override
     public String getCreateSQL() {
         StringBuilder buff = new StringBuilder("SET ");
         getSQL(buff, true).append(' ');

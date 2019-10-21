@@ -53,26 +53,23 @@ public class TestReleaseSelectLock extends TestDb {
         int tryCount = 500;
         int threadsCount = getSize(2, 4);
         for (int tryNumber = 0; tryNumber < tryCount; tryNumber++) {
-            final CountDownLatch allFinished = new CountDownLatch(threadsCount);
+            CountDownLatch allFinished = new CountDownLatch(threadsCount);
 
             for (int i = 0; i < threadsCount; i++) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            Connection conn = getConnection(TEST_DB_NAME);
-                            PreparedStatement stmt = conn.prepareStatement("select id from test");
-                            ResultSet rs = stmt.executeQuery();
-                            while (rs.next()) {
-                                rs.getInt(1);
-                            }
-                            stmt.close();
-                            conn.close();
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        } finally {
-                            allFinished.countDown();
+                new Thread(() -> {
+                    try {
+                        Connection conn = getConnection(TEST_DB_NAME);
+                        PreparedStatement stmt = conn.prepareStatement("select id from test");
+                        ResultSet rs = stmt.executeQuery();
+                        while (rs.next()) {
+                            rs.getInt(1);
                         }
+                        stmt.close();
+                        conn.close();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    } finally {
+                        allFinished.countDown();
                     }
                 }).start();
             }

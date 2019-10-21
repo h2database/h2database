@@ -8,7 +8,6 @@ package org.h2.command.dml;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -49,7 +48,6 @@ import org.h2.table.IndexColumn;
 import org.h2.table.JoinBatch;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.table.TableFilter.TableFilterVisitor;
 import org.h2.table.TableType;
 import org.h2.table.TableView;
 import org.h2.util.ColumnNamer;
@@ -502,13 +500,10 @@ public class Select extends Query {
 
     void setGroupData(final SelectGroups groupData) {
         this.groupData = groupData;
-        topTableFilter.visit(new TableFilterVisitor() {
-            @Override
-            public void accept(TableFilter f) {
-                Select s = f.getSelect();
-                if (s != null) {
-                    s.groupData = groupData;
-                }
+        topTableFilter.visit(f -> {
+            Select s = f.getSelect();
+            if (s != null) {
+                s.groupData = groupData;
             }
         });
     }
@@ -871,14 +866,11 @@ public class Select extends Query {
 
     private void disableLazyForJoinSubqueries(final TableFilter top) {
         if (session.isLazyQueryExecution()) {
-            top.visit(new TableFilter.TableFilterVisitor() {
-                @Override
-                public void accept(TableFilter f) {
-                    if (f != top && f.getTable().getTableType() == TableType.VIEW) {
-                        ViewIndex idx = (ViewIndex) f.getIndex();
-                        if (idx != null && idx.getQuery() != null) {
-                            idx.getQuery().setNeverLazy(true);
-                        }
+            top.visit(f -> {
+                if (f != top && f.getTable().getTableType() == TableType.VIEW) {
+                    ViewIndex idx = (ViewIndex) f.getIndex();
+                    if (idx != null && idx.getQuery() != null) {
+                        idx.getQuery().setNeverLazy(true);
                     }
                 }
             });
@@ -1009,7 +1001,7 @@ public class Select extends Query {
         if (checkInit) {
             DbException.throwInternalError();
         }
-        Collections.sort(filters, TableFilter.ORDER_IN_FROM_COMPARATOR);
+        filters.sort(TableFilter.ORDER_IN_FROM_COMPARATOR);
         expandColumnList();
         visibleColumnCount = expressions.size();
         ArrayList<String> expressionSQL;

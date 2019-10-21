@@ -37,7 +37,7 @@ public final class MemoryUnmapper {
                 // This method exists only on Java 9 and later versions
                 invokeCleaner = clazz.getMethod("invokeCleaner", ByteBuffer.class);
             } catch (ReflectiveOperationException e) {
-                // Java 7 or 8
+                // Java 8
                 unsafe = null;
                 // invokeCleaner can be only null here
             } catch (Throwable e) {
@@ -72,7 +72,7 @@ public final class MemoryUnmapper {
                 INVOKE_CLEANER.invoke(UNSAFE, buffer);
                 return true;
             }
-            // Java 7 or 8
+            // Java 8
             Method cleanerMethod = buffer.getClass().getMethod("cleaner");
             cleanerMethod.setAccessible(true);
             Object cleaner = cleanerMethod.invoke(buffer);

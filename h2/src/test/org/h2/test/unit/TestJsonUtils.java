@@ -29,42 +29,17 @@ public class TestJsonUtils extends TestBase {
     private static final Charset[] CHARSETS = { StandardCharsets.UTF_8, StandardCharsets.UTF_16BE,
             StandardCharsets.UTF_16LE, Charset.forName("UTF-32BE"), Charset.forName("UTF-32LE") };
 
-    private static final Callable<JSONTarget<?>> STRING_TARGET = new Callable<JSONTarget<?>>() {
-        @Override
-        public JSONTarget<?> call() throws Exception {
-            return new JSONStringTarget();
-        }
-    };
+    private static final Callable<JSONTarget<?>> STRING_TARGET = () -> new JSONStringTarget();
 
-    private static final Callable<JSONTarget<?>> BYTES_TARGET = new Callable<JSONTarget<?>>() {
-        @Override
-        public JSONTarget<?> call() throws Exception {
-            return new JSONByteArrayTarget();
-        }
-    };
+    private static final Callable<JSONTarget<?>> BYTES_TARGET = () -> new JSONByteArrayTarget();
 
-    private static final Callable<JSONTarget<?>> VALUE_TARGET = new Callable<JSONTarget<?>>() {
-        @Override
-        public JSONTarget<?> call() throws Exception {
-            return new JSONValueTarget();
-        }
-    };
+    private static final Callable<JSONTarget<?>> VALUE_TARGET = () -> new JSONValueTarget();
 
     private static final Callable<JSONTarget<?>> JSON_VALIDATION_TARGET_WITHOUT_UNIQUE_KEYS = //
-            new Callable<JSONTarget<?>>() {
-                @Override
-                public JSONTarget<?> call() throws Exception {
-                    return new JSONValidationTargetWithoutUniqueKeys();
-                }
-            };
+            () -> new JSONValidationTargetWithoutUniqueKeys();
 
     private static final Callable<JSONTarget<?>> JSON_VALIDATION_TARGET_WITH_UNIQUE_KEYS = //
-            new Callable<JSONTarget<?>>() {
-                @Override
-                public JSONTarget<?> call() throws Exception {
-                    return new JSONValidationTargetWithUniqueKeys();
-                }
-            };
+            () -> new JSONValidationTargetWithUniqueKeys();
 
     /**
      * Run just this test.
@@ -141,22 +116,16 @@ public class TestJsonUtils extends TestBase {
         } catch (RuntimeException expected) {
         }
         // Unexpected value without member name
-        testJsonStringTargetErrorDetectionAllValues(new Callable<JSONTarget<?>>() {
-            @Override
-            public JSONTarget<?> call() throws Exception {
-                JSONTarget<?> target = constructor.call();
-                target.startObject();
-                return target;
-            }
+        testJsonStringTargetErrorDetectionAllValues(() -> {
+            JSONTarget<?> target1 = constructor.call();
+            target1.startObject();
+            return target1;
         });
         // Unexpected second value
-        testJsonStringTargetErrorDetectionAllValues(new Callable<JSONTarget<?>>() {
-            @Override
-            public JSONTarget<?> call() throws Exception {
-                JSONTarget<?> target = constructor.call();
-                target.valueNull();
-                return target;
-            }
+        testJsonStringTargetErrorDetectionAllValues(() -> {
+            JSONTarget<?> target1 = constructor.call();
+            target1.valueNull();
+            return target1;
         });
         // No value
         target = constructor.call();

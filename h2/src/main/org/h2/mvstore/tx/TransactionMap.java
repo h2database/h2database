@@ -248,7 +248,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      * @param value the new value (not null)
      * @return the old value
      */
-    // Do not add @Override, code should be compatible with Java 7
+    @Override
     public V putIfAbsent(K key, V value) {
         DataUtils.checkArgument(value != null, "The value may not be null");
         TxDecisionMaker decisionMaker = new TxDecisionMaker.PutIfAbsentDecisionMaker(map.getId(), key, value,
@@ -982,12 +982,6 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
             X result = current;
             fetchNext();
             return result;
-        }
-
-        @Override
-        public final void remove() {
-            throw DataUtils.newUnsupportedOperationException(
-                    "Removal is not supported");
         }
     }
 

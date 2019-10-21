@@ -54,8 +54,7 @@ public class NonUniqueHashIndex extends BaseIndex {
     }
 
     private void reset() {
-        rows = totalOrdering ? new HashMap<Value, ArrayList<Long>>()
-                : new TreeMap<Value, ArrayList<Long>>(database.getCompareMode());
+        rows = totalOrdering ? new HashMap<>() : new TreeMap<>(database.getCompareMode());
         rowCount = 0;
     }
 
@@ -153,11 +152,6 @@ public class NonUniqueHashIndex extends BaseIndex {
             }
         }
         return 2;
-    }
-
-    @Override
-    public void checkRename() {
-        // ok
     }
 
     @Override

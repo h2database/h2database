@@ -118,6 +118,8 @@ public class TestGeometryUtils extends TestBase {
         testMultiPolygon();
         testGeometryCollection();
         testEmptyPoint();
+        testDimensionXY();
+        testDimensionZ();
         testDimensionM();
         testDimensionZM();
         testFiniteOnly();
@@ -210,9 +212,7 @@ public class TestGeometryUtils extends TestBase {
         Geometry geometryFromH2 = JTSUtils.ewkb2geometry(wkbFromJTS);
         String got = new WKTWriter(numOfDimensions).write(geometryFromH2);
         if (!jtsWkt.equals(got)) {
-            if (!jtsWkt.replaceAll(" Z", "").equals(got)) { // JTS 1.15
-                assertEquals(jtsWkt.replaceAll(" Z ", " Z"), got); // JTS 1.16
-            }
+            assertEquals(jtsWkt.replaceAll(" Z ", " Z"), got);
         }
 
         // Test Geometry->WKB conversion
@@ -259,6 +259,65 @@ public class TestGeometryUtils extends TestBase {
         assertEquals(ewkb, JTSUtils.geometry2ewkb(p));
     }
 
+    private void testDimensionXY() throws Exception {
+        byte[] ewkb = EWKTUtils.ewkt2ewkb("POINT (1 2)");
+        assertEquals("POINT (1 2)", EWKTUtils.ewkb2ewkt(ewkb));
+        Point p = (Point) JTSUtils.ewkb2geometry(ewkb);
+        CoordinateSequence cs = p.getCoordinateSequence();
+        testDimensionXYCheckPoint(cs, false);
+        assertEquals(ewkb, JTSUtils.geometry2ewkb(p));
+        testDimensions(GeometryUtils.DIMENSION_SYSTEM_XY, ewkb);
+        testValueGeometryProperties(ewkb);
+
+        p = (Point) new WKTReader().read("POINT (1 2)");
+        cs = p.getCoordinateSequence();
+        testDimensionXYCheckPoint(cs, true);
+        ewkb = JTSUtils.geometry2ewkb(p);
+        assertEquals("POINT (1 2)", EWKTUtils.ewkb2ewkt(ewkb));
+        p = (Point) JTSUtils.ewkb2geometry(ewkb);
+        cs = p.getCoordinateSequence();
+        testDimensionXYCheckPoint(cs, false);
+    }
+
+    private void testDimensionXYCheckPoint(CoordinateSequence cs, boolean fromJTS) {
+        assertEquals(fromJTS ? 3 : 2, cs.getDimension());
+        assertEquals(0, cs.getMeasures());
+        assertEquals(1, cs.getOrdinate(0, X));
+        assertEquals(2, cs.getOrdinate(0, Y));
+        assertEquals(Double.NaN, cs.getZ(0));
+    }
+
+    private void testDimensionZ() throws Exception {
+        byte[] ewkb = EWKTUtils.ewkt2ewkb("POINT Z (1 2 3)");
+        assertEquals("POINT Z (1 2 3)", EWKTUtils.ewkb2ewkt(ewkb));
+        assertEquals("POINT Z (1 2 3)", EWKTUtils.ewkb2ewkt(EWKTUtils.ewkt2ewkb("POINTZ(1 2 3)")));
+        assertEquals("POINT Z (1 2 3)", EWKTUtils.ewkb2ewkt(EWKTUtils.ewkt2ewkb("pointz(1 2 3)")));
+        Point p = (Point) JTSUtils.ewkb2geometry(ewkb);
+        CoordinateSequence cs = p.getCoordinateSequence();
+        testDimensionZCheckPoint(cs);
+        assertEquals(ewkb, JTSUtils.geometry2ewkb(p));
+        testDimensions(GeometryUtils.DIMENSION_SYSTEM_XYZ, ewkb);
+        testValueGeometryProperties(ewkb);
+
+        p = (Point) new WKTReader().read("POINT Z (1 2 3)");
+        cs = p.getCoordinateSequence();
+        testDimensionZCheckPoint(cs);
+        ewkb = JTSUtils.geometry2ewkb(p);
+        assertEquals("POINT Z (1 2 3)", EWKTUtils.ewkb2ewkt(ewkb));
+        p = (Point) JTSUtils.ewkb2geometry(ewkb);
+        cs = p.getCoordinateSequence();
+        testDimensionZCheckPoint(cs);
+    }
+
+    private void testDimensionZCheckPoint(CoordinateSequence cs) {
+        assertEquals(3, cs.getDimension());
+        assertEquals(0, cs.getMeasures());
+        assertEquals(1, cs.getOrdinate(0, X));
+        assertEquals(2, cs.getOrdinate(0, Y));
+        assertEquals(3, cs.getOrdinate(0, Z));
+        assertEquals(3, cs.getZ(0));
+    }
+
     private void testDimensionM() throws Exception {
         byte[] ewkb = EWKTUtils.ewkt2ewkb("POINT M (1 2 3)");
         assertEquals("POINT M (1 2 3)", EWKTUtils.ewkb2ewkt(ewkb));
@@ -271,29 +330,23 @@ public class TestGeometryUtils extends TestBase {
         testDimensions(GeometryUtils.DIMENSION_SYSTEM_XYM, ewkb);
         testValueGeometryProperties(ewkb);
 
-        if (JTSUtils.M_IS_SUPPORTED) {
-            p = (Point) new WKTReader().read("POINT M (1 2 3)");
-            cs = p.getCoordinateSequence();
-            assertEquals(3, cs.getDimension());
-            assertEquals(1, (int) cs.getClass().getMethod("getMeasures").invoke(cs));
-            assertEquals(1, cs.getOrdinate(0, 0));
-            assertEquals(2, cs.getOrdinate(0, 1));
-            assertEquals(3, cs.getOrdinate(0, 2));
-            ewkb = JTSUtils.geometry2ewkb(p);
-            assertEquals("POINT M (1 2 3)", EWKTUtils.ewkb2ewkt(ewkb));
-            p = (Point) JTSUtils.ewkb2geometry(ewkb);
-            cs = p.getCoordinateSequence();
-            testDimensionMCheckPoint(cs);
-            assertEquals(1, (int) cs.getClass().getMethod("getMeasures").invoke(cs));
-        }
+        p = (Point) new WKTReader().read("POINT M (1 2 3)");
+        cs = p.getCoordinateSequence();
+        testDimensionMCheckPoint(cs);
+        ewkb = JTSUtils.geometry2ewkb(p);
+        assertEquals("POINT M (1 2 3)", EWKTUtils.ewkb2ewkt(ewkb));
+        p = (Point) JTSUtils.ewkb2geometry(ewkb);
+        cs = p.getCoordinateSequence();
+        testDimensionMCheckPoint(cs);
     }
 
     private void testDimensionMCheckPoint(CoordinateSequence cs) {
-        assertEquals(4, cs.getDimension());
+        assertEquals(3, cs.getDimension());
+        assertEquals(1, cs.getMeasures());
         assertEquals(1, cs.getOrdinate(0, X));
         assertEquals(2, cs.getOrdinate(0, Y));
-        assertEquals(Double.NaN, cs.getOrdinate(0, Z));
-        assertEquals(3, cs.getOrdinate(0, M));
+        assertEquals(3, cs.getOrdinate(0, 2));
+        assertEquals(3, cs.getM(0));
     }
 
     private void testDimensionZM() throws Exception {
@@ -308,26 +361,25 @@ public class TestGeometryUtils extends TestBase {
         testDimensions(GeometryUtils.DIMENSION_SYSTEM_XYZM, ewkb);
         testValueGeometryProperties(ewkb);
 
-        if (JTSUtils.M_IS_SUPPORTED) {
-            p = (Point) new WKTReader().read("POINT ZM (1 2 3 4)");
-            cs = p.getCoordinateSequence();
-            testDimensionZMCheckPoint(cs);
-            assertEquals(1, (int) cs.getClass().getMethod("getMeasures").invoke(cs));
-            ewkb = JTSUtils.geometry2ewkb(p);
-            assertEquals("POINT ZM (1 2 3 4)", EWKTUtils.ewkb2ewkt(ewkb));
-            p = (Point) JTSUtils.ewkb2geometry(ewkb);
-            cs = p.getCoordinateSequence();
-            testDimensionZMCheckPoint(cs);
-            assertEquals(1, (int) cs.getClass().getMethod("getMeasures").invoke(cs));
-        }
+        p = (Point) new WKTReader().read("POINT ZM (1 2 3 4)");
+        cs = p.getCoordinateSequence();
+        testDimensionZMCheckPoint(cs);
+        ewkb = JTSUtils.geometry2ewkb(p);
+        assertEquals("POINT ZM (1 2 3 4)", EWKTUtils.ewkb2ewkt(ewkb));
+        p = (Point) JTSUtils.ewkb2geometry(ewkb);
+        cs = p.getCoordinateSequence();
+        testDimensionZMCheckPoint(cs);
     }
 
     private void testDimensionZMCheckPoint(CoordinateSequence cs) {
         assertEquals(4, cs.getDimension());
+        assertEquals(1, cs.getMeasures());
         assertEquals(1, cs.getOrdinate(0, X));
         assertEquals(2, cs.getOrdinate(0, Y));
         assertEquals(3, cs.getOrdinate(0, Z));
+        assertEquals(3, cs.getZ(0));
         assertEquals(4, cs.getOrdinate(0, M));
+        assertEquals(4, cs.getM(0));
     }
 
     private void testValueGeometryProperties(byte[] ewkb) {

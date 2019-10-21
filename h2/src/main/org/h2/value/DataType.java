@@ -21,6 +21,15 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.time.Period;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
@@ -28,7 +37,6 @@ import java.util.UUID;
 import org.h2.api.ErrorCode;
 import org.h2.api.Interval;
 import org.h2.api.IntervalQualifier;
-import org.h2.api.TimestampWithTimeZone;
 import org.h2.engine.Mode;
 import org.h2.engine.SessionInterface;
 import org.h2.engine.SysProperties;
@@ -38,7 +46,6 @@ import org.h2.jdbc.JdbcClob;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.jdbc.JdbcLob;
 import org.h2.message.DbException;
-import org.h2.util.JSR310;
 import org.h2.util.JSR310Utils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Utils;
@@ -252,11 +259,7 @@ public class DataType {
                         "TIME", true, ValueTime.DEFAULT_SCALE, ValueTime.MAXIMUM_SCALE),
                 new String[]{"TIME", "TIME WITHOUT TIME ZONE"}
         );
-        // 2013 is the value of Types.TIME_WITH_TIMEZONE
-        // use the value instead of the reference because the code has to
-        // compile (on Java 1.7). Can be replaced with
-        // Types.TIME_WITH_TIMEZONE once Java 1.8 is required.
-        add(Value.TIME_TZ, 2013,
+        add(Value.TIME_TZ, Types.TIME_WITH_TIMEZONE,
                 createDate(ValueTimeTimeZone.MAXIMUM_PRECISION, ValueTimeTimeZone.DEFAULT_PRECISION,
                         "TIME WITH TIME ZONE", true, ValueTime.DEFAULT_SCALE,
                         ValueTime.MAXIMUM_SCALE),
@@ -273,11 +276,7 @@ public class DataType {
                 new String[]{"TIMESTAMP", "TIMESTAMP WITHOUT TIME ZONE",
                         "DATETIME", "DATETIME2", "SMALLDATETIME"}
         );
-        // 2014 is the value of Types.TIMESTAMP_WITH_TIMEZONE
-        // use the value instead of the reference because the code has to
-        // compile (on Java 1.7). Can be replaced with
-        // Types.TIMESTAMP_WITH_TIMEZONE once Java 1.8 is required.
-        add(Value.TIMESTAMP_TZ, 2014,
+        add(Value.TIMESTAMP_TZ, Types.TIMESTAMP_WITH_TIMEZONE,
                 createDate(ValueTimestampTimeZone.MAXIMUM_PRECISION, ValueTimestampTimeZone.DEFAULT_PRECISION,
                         "TIMESTAMP WITH TIME ZONE", true, ValueTimestamp.DEFAULT_SCALE,
                         ValueTimestamp.MAXIMUM_SCALE),
@@ -589,42 +588,36 @@ public class DataType {
                 break;
             }
             case Value.DATE: {
-                if (JSR310.PRESENT) {
-                    try {
-                        Object value = rs.getObject(columnIndex, JSR310.LOCAL_DATE);
-                        v = value == null ? ValueNull.INSTANCE : JSR310Utils.localDateToValue(value);
-                        break;
-                    } catch (SQLException ignore) {
-                        // Nothing to do
-                    }
+                try {
+                    Object value = rs.getObject(columnIndex, LocalDate.class);
+                    v = value == null ? ValueNull.INSTANCE : JSR310Utils.localDateToValue(value);
+                    break;
+                } catch (SQLException ignore) {
+                    // Nothing to do
                 }
                 Date value = rs.getDate(columnIndex);
                 v = value == null ? ValueNull.INSTANCE : ValueDate.get(null, value);
                 break;
             }
             case Value.TIME: {
-                if (JSR310.PRESENT) {
-                    try {
-                        Object value = rs.getObject(columnIndex, JSR310.LOCAL_TIME);
-                        v = value == null ? ValueNull.INSTANCE : JSR310Utils.localTimeToValue(value);
-                        break;
-                    } catch (SQLException ignore) {
-                        // Nothing to do
-                    }
+                try {
+                    Object value = rs.getObject(columnIndex, LocalTime.class);
+                    v = value == null ? ValueNull.INSTANCE : JSR310Utils.localTimeToValue(value);
+                    break;
+                } catch (SQLException ignore) {
+                    // Nothing to do
                 }
                 Time value = rs.getTime(columnIndex);
                 v = value == null ? ValueNull.INSTANCE : ValueTime.get(null, value);
                 break;
             }
             case Value.TIME_TZ: {
-                if (JSR310.PRESENT) {
-                    try {
-                        Object value = rs.getObject(columnIndex, JSR310.OFFSET_TIME);
-                        v = value == null ? ValueNull.INSTANCE : JSR310Utils.offsetTimeToValue(value);
-                        break;
-                    } catch (SQLException ignore) {
-                        // Nothing to do
-                    }
+                try {
+                    Object value = rs.getObject(columnIndex, OffsetTime.class);
+                    v = value == null ? ValueNull.INSTANCE : JSR310Utils.offsetTimeToValue(value);
+                    break;
+                } catch (SQLException ignore) {
+                    // Nothing to do
                 }
                 Object obj = rs.getObject(columnIndex);
                 if (obj == null) {
@@ -635,37 +628,30 @@ public class DataType {
                 break;
             }
             case Value.TIMESTAMP: {
-                if (JSR310.PRESENT) {
-                    try {
-                        Object value = rs.getObject(columnIndex, JSR310.LOCAL_DATE_TIME);
-                        v = value == null ? ValueNull.INSTANCE : JSR310Utils.localDateTimeToValue(value);
-                        break;
-                    } catch (SQLException ignore) {
-                        // Nothing to do
-                    }
+                try {
+                    Object value = rs.getObject(columnIndex, LocalDateTime.class);
+                    v = value == null ? ValueNull.INSTANCE : JSR310Utils.localDateTimeToValue(value);
+                    break;
+                } catch (SQLException ignore) {
+                    // Nothing to do
                 }
                 Timestamp value = rs.getTimestamp(columnIndex);
                 v = value == null ? ValueNull.INSTANCE : ValueTimestamp.get(null, value);
                 break;
             }
             case Value.TIMESTAMP_TZ: {
-                if (JSR310.PRESENT) {
-                    try {
-                        Object value = rs.getObject(columnIndex, JSR310.OFFSET_DATE_TIME);
-                        v = value == null ? ValueNull.INSTANCE : JSR310Utils.offsetDateTimeToValue(value);
-                        break;
-                    } catch (SQLException ignore) {
-                        // Nothing to do
-                    }
+                try {
+                    Object value = rs.getObject(columnIndex, OffsetDateTime.class);
+                    v = value == null ? ValueNull.INSTANCE : JSR310Utils.offsetDateTimeToValue(value);
+                    break;
+                } catch (SQLException ignore) {
+                    // Nothing to do
                 }
                 Object obj = rs.getObject(columnIndex);
                 if (obj == null) {
                     v = ValueNull.INSTANCE;
-                } else if (JSR310.PRESENT
-                        && JSR310.ZONED_DATE_TIME.isInstance(obj)) {
+                } else if (obj instanceof ZonedDateTime) {
                     v = JSR310Utils.zonedDateTimeToValue(obj);
-                } else if (obj instanceof TimestampWithTimeZone) {
-                    v = ValueTimestampTimeZone.get((TimestampWithTimeZone) obj);
                 } else {
                     v = ValueTimestampTimeZone.parse(obj.toString());
                 }
@@ -892,12 +878,8 @@ public class DataType {
             // "java.sql.Time";
             return Time.class.getName();
         case Value.TIME_TZ:
-            if (JSR310.PRESENT) {
-                // "java.time.OffsetTime";
-                return JSR310.OFFSET_TIME.getName();
-            }
-            // "java.lang.String";
-            return String.class.getName();
+            // "java.time.OffsetTime";
+            return OffsetTime.class.getName();
         case Value.DATE:
             // "java.sql.Date";
             return Date.class.getName();
@@ -905,12 +887,8 @@ public class DataType {
             // "java.sql.Timestamp";
             return Timestamp.class.getName();
         case Value.TIMESTAMP_TZ:
-            if (SysProperties.RETURN_OFFSET_DATE_TIME && JSR310.PRESENT) {
-                // "java.time.OffsetDateTime";
-                return JSR310.OFFSET_DATE_TIME.getName();
-            }
-            // "org.h2.api.TimestampWithTimeZone";
-            return TimestampWithTimeZone.class.getName();
+            // "java.time.OffsetDateTime";
+            return OffsetDateTime.class.getName();
         case Value.BYTES:
         case Value.UUID:
         case Value.JSON:
@@ -1095,9 +1073,9 @@ public class DataType {
             return Value.TIME;
         case Types.TIMESTAMP:
             return Value.TIMESTAMP;
-        case 2013: // Types.TIME_WITH_TIMEZONE
+        case Types.TIME_WITH_TIMEZONE:
             return Value.TIME_TZ;
-        case 2014: // Types.TIMESTAMP_WITH_TIMEZONE
+        case Types.TIMESTAMP_WITH_TIMEZONE:
             return Value.TIMESTAMP_TZ;
         case Types.BLOB:
             return Value.BLOB;
@@ -1185,15 +1163,15 @@ public class DataType {
             return Value.ARRAY;
         } else if (isGeometryClass(x)) {
             return Value.GEOMETRY;
-        } else if (JSR310.LOCAL_DATE == x) {
+        } else if (LocalDate.class == x) {
             return Value.DATE;
-        } else if (JSR310.LOCAL_TIME == x) {
+        } else if (LocalTime.class == x) {
             return Value.TIME;
-        } else if (JSR310.OFFSET_TIME == x) {
+        } else if (OffsetTime.class == x) {
             return Value.TIME_TZ;
-        } else if (JSR310.LOCAL_DATE_TIME == x) {
+        } else if (LocalDateTime.class == x) {
             return Value.TIMESTAMP;
-        } else if (JSR310.OFFSET_DATE_TIME == x || JSR310.ZONED_DATE_TIME == x || JSR310.INSTANT == x) {
+        } else if (OffsetDateTime.class == x || ZonedDateTime.class == x || Instant.class == x) {
             return Value.TIMESTAMP_TZ;
         } else {
             if (JdbcUtils.customDataTypesHandler != null) {
@@ -1320,28 +1298,26 @@ public class DataType {
             return ValueStringFixed.get(((Character) x).toString());
         } else if (isGeometry(x)) {
             return ValueGeometry.getFromGeometry(x);
-        } else if (clazz == JSR310.LOCAL_DATE) {
+        } else if (clazz == LocalDate.class) {
             return JSR310Utils.localDateToValue(x);
-        } else if (clazz == JSR310.LOCAL_TIME) {
+        } else if (clazz == LocalTime.class) {
             return JSR310Utils.localTimeToValue(x);
-        } else if (clazz == JSR310.LOCAL_DATE_TIME) {
+        } else if (clazz == LocalDateTime.class) {
             return JSR310Utils.localDateTimeToValue(x);
-        } else if (clazz == JSR310.INSTANT) {
+        } else if (clazz == Instant.class) {
             return JSR310Utils.instantToValue(x);
-        } else if (clazz == JSR310.OFFSET_TIME) {
+        } else if (clazz == OffsetTime.class) {
             return JSR310Utils.offsetTimeToValue(x);
-        } else if (clazz == JSR310.OFFSET_DATE_TIME) {
+        } else if (clazz == OffsetDateTime.class) {
             return JSR310Utils.offsetDateTimeToValue(x);
-        } else if (clazz == JSR310.ZONED_DATE_TIME) {
+        } else if (clazz == ZonedDateTime.class) {
             return JSR310Utils.zonedDateTimeToValue(x);
-        } else if (x instanceof TimestampWithTimeZone) {
-            return ValueTimestampTimeZone.get((TimestampWithTimeZone) x);
         } else if (x instanceof Interval) {
             Interval i = (Interval) x;
             return ValueInterval.from(i.getQualifier(), i.isNegative(), i.getLeading(), i.getRemaining());
-        } else if (clazz == JSR310.PERIOD) {
+        } else if (clazz == Period.class) {
             return JSR310Utils.periodToValue(x);
-        } else if (clazz == JSR310.DURATION) {
+        } else if (clazz == Duration.class) {
             return JSR310Utils.durationToValue(x);
         } else {
             if (JdbcUtils.customDataTypesHandler != null) {

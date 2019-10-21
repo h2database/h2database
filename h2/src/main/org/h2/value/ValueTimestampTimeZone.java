@@ -8,14 +8,12 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.TimeZone;
 import org.h2.api.ErrorCode;
-import org.h2.api.TimestampWithTimeZone;
 import org.h2.engine.CastDataProvider;
-import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.JSR310;
 import org.h2.util.JSR310Utils;
 
 /**
@@ -89,18 +87,6 @@ public class ValueTimestampTimeZone extends Value {
             int timeZoneOffsetSeconds) {
         return (ValueTimestampTimeZone) Value.cache(new ValueTimestampTimeZone(
                 dateValue, timeNanos, timeZoneOffsetSeconds));
-    }
-
-    /**
-     * Get or create a timestamp value for the given timestamp.
-     *
-     * @param timestamp the timestamp
-     * @return the value
-     */
-    public static ValueTimestampTimeZone get(TimestampWithTimeZone timestamp) {
-        return fromDateValueAndNanos(timestamp.getYMD(),
-                timestamp.getNanosSinceMidnight(),
-                timestamp.getTimeZoneOffsetSeconds());
     }
 
     /**
@@ -264,23 +250,17 @@ public class ValueTimestampTimeZone extends Value {
 
     @Override
     public Object getObject() {
-        if (SysProperties.RETURN_OFFSET_DATE_TIME && JSR310.PRESENT) {
-            return JSR310Utils.valueToOffsetDateTime(this, null);
-        }
-        return new TimestampWithTimeZone(dateValue, timeNanos, timeZoneOffsetSeconds);
+        return JSR310Utils.valueToOffsetDateTime(this, null);
     }
 
     @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        if (JSR310.PRESENT) {
-            try {
-                prep.setObject(parameterIndex, JSR310Utils.valueToOffsetDateTime(this, null),
-                        // TODO use Types.TIMESTAMP_WITH_TIMEZONE on Java 8
-                        2014);
-                return;
-            } catch (SQLException ignore) {
-                // Nothing to do
-            }
+        try {
+            prep.setObject(parameterIndex, JSR310Utils.valueToOffsetDateTime(this, null),
+                    Types.TIMESTAMP_WITH_TIMEZONE);
+            return;
+        } catch (SQLException ignore) {
+            // Nothing to do
         }
         prep.setString(parameterIndex, getString());
     }

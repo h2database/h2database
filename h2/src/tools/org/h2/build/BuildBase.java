@@ -33,7 +33,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -304,12 +303,7 @@ public class BuildBase {
      */
     protected void projectHelp() {
         Method[] methods = getClass().getDeclaredMethods();
-        Arrays.sort(methods, new Comparator<Method>() {
-            @Override
-            public int compare(Method a, Method b) {
-                return a.getName().compareTo(b.getName());
-            }
-        });
+        Arrays.sort(methods, Comparator.comparing(Method::getName));
         sysOut.println("Targets:");
         String description;
         for (Method m : methods) {
@@ -831,20 +825,17 @@ public class BuildBase {
             String basePath, boolean storeOnly, boolean sortBySuffix, boolean jar) {
         if (sortBySuffix) {
             // for better compressibility, sort by suffix, then name
-            Collections.sort(files, new Comparator<File>() {
-                @Override
-                public int compare(File f1, File f2) {
-                    String p1 = f1.getPath();
-                    String p2 = f2.getPath();
-                    int comp = getSuffix(p1).compareTo(getSuffix(p2));
-                    if (comp == 0) {
-                        comp = p1.compareTo(p2);
-                    }
-                    return comp;
+            files.sort((f1, f2) -> {
+                String p1 = f1.getPath();
+                String p2 = f2.getPath();
+                int comp = getSuffix(p1).compareTo(getSuffix(p2));
+                if (comp == 0) {
+                    comp = p1.compareTo(p2);
                 }
+                return comp;
             });
         } else if (jar) {
-            Collections.sort(files, new Comparator<File>() {
+            files.sort(new Comparator<File>() {
                 private int priority(String path) {
                     if (path.startsWith("META-INF/")) {
                         if (path.equals("META-INF/MANIFEST.MF")) {
@@ -915,7 +906,7 @@ public class BuildBase {
     }
 
     /**
-     * Get the current java specification version (for example, 1.4).
+     * Get the current java specification version (for example, 1.8).
      *
      * @return the java specification version
      */
@@ -926,15 +917,15 @@ public class BuildBase {
     /**
      * Get the current Java version as integer value.
      *
-     * @return the Java version (7, 8, 9, 10, 11, etc)
+     * @return the Java version (8, 9, 10, 11, 12, 13, etc)
      */
     public static int getJavaVersion() {
-        int version = 7;
+        int version = 8;
         String v = getJavaSpecVersion();
         if (v != null) {
             int idx = v.indexOf('.');
             if (idx >= 0) {
-                // 1.7, 1.8
+                // 1.8
                 v = v.substring(idx + 1);
             }
             version = Integer.parseInt(v);

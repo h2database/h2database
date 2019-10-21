@@ -18,7 +18,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Set;
 import org.h2.api.ErrorCode;
@@ -204,12 +203,7 @@ public class ScriptCommand extends ScriptBase {
             final ArrayList<Table> tables = db.getAllTablesAndViews(false);
             // sort by id, so that views are after tables and views on views
             // after the base views
-            Collections.sort(tables, new Comparator<Table>() {
-                @Override
-                public int compare(Table t1, Table t2) {
-                    return t1.getId() - t2.getId();
-                }
-            });
+            tables.sort(Comparator.comparingInt(Table::getId));
 
             // Generate the DROP XXX  ... IF EXISTS
             for (Table table : tables) {
@@ -315,9 +309,8 @@ public class ScriptCommand extends ScriptBase {
                 tempLobTableCreated = false;
             }
             // Generate CREATE CONSTRAINT ...
-            final ArrayList<SchemaObject> constraints = db.getAllSchemaObjects(
-                    DbObject.CONSTRAINT);
-            Collections.sort(constraints, null);
+            final ArrayList<SchemaObject> constraints = db.getAllSchemaObjects(DbObject.CONSTRAINT);
+            constraints.sort(null);
             for (SchemaObject obj : constraints) {
                 if (excludeSchema(obj.getSchema())) {
                     continue;

@@ -9,8 +9,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URL;
@@ -25,6 +23,15 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.time.Period;
+import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
@@ -35,12 +42,10 @@ import org.h2.api.Interval;
 import org.h2.api.IntervalQualifier;
 import org.h2.api.Trigger;
 import org.h2.engine.SysProperties;
-import org.h2.message.DbException;
 import org.h2.store.Data;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.JSR310;
 import org.h2.util.Task;
 
 /**
@@ -51,148 +56,12 @@ public class TestPreparedStatement extends TestDb {
     private static final int LOB_SIZE = 4000, LOB_SIZE_BIG = 512 * 1024;
 
     /**
-     * {@code java.time.LocalDate#parse(CharSequence)} or {@code null}.
-     */
-    private static final Method LOCAL_DATE_PARSE;
-
-    /**
-     * {@code java.time.LocalTime#parse(CharSequence)} or {@code null}.
-     */
-    private static final Method LOCAL_TIME_PARSE;
-
-    /**
-     * {@code java.time.OffsetTime#parse(CharSequence)} or {@code null}.
-     */
-    private static final Method OFFSET_TIME_PARSE;
-
-    /**
-     * {@code java.time.LocalDateTime#parse(CharSequence)} or {@code null}.
-     */
-    private static final Method LOCAL_DATE_TIME_PARSE;
-
-    /**
-     * {@code java.time.OffsetDateTime#parse(CharSequence)} or {@code null}.
-     */
-    private static final Method OFFSET_DATE_TIME_PARSE;
-
-    /**
-     * {@code java.time.ZonedDateTime#parse(CharSequence)} or {@code null}.
-     */
-    private static final Method ZONED_DATE_TIME_PARSE;
-
-    static {
-        if (JSR310.PRESENT) {
-            try {
-                LOCAL_DATE_PARSE = JSR310.LOCAL_DATE.getMethod("parse", CharSequence.class);
-                LOCAL_TIME_PARSE = JSR310.LOCAL_TIME.getMethod("parse", CharSequence.class);
-                OFFSET_TIME_PARSE = JSR310.OFFSET_TIME.getMethod("parse", CharSequence.class);
-                LOCAL_DATE_TIME_PARSE = JSR310.LOCAL_DATE_TIME.getMethod("parse", CharSequence.class);
-                OFFSET_DATE_TIME_PARSE = JSR310.OFFSET_DATE_TIME.getMethod("parse", CharSequence.class);
-                ZONED_DATE_TIME_PARSE = JSR310.ZONED_DATE_TIME.getMethod("parse", CharSequence.class);
-            } catch (NoSuchMethodException e) {
-                throw DbException.convert(e);
-            }
-        } else {
-            LOCAL_DATE_PARSE = null;
-            LOCAL_TIME_PARSE = null;
-            OFFSET_TIME_PARSE = null;
-            LOCAL_DATE_TIME_PARSE = null;
-            OFFSET_DATE_TIME_PARSE = null;
-            ZONED_DATE_TIME_PARSE = null;
-        }
-    }
-
-    /**
      * Run just this test.
      *
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();
-    }
-
-    /**
-     * Parses an ISO date string into a java.time.LocalDate.
-     *
-     * @param text the ISO date string
-     * @return the java.time.LocalDate instance
-     */
-    public static Object parseLocalDate(CharSequence text) {
-        try {
-            return LOCAL_DATE_PARSE.invoke(null, text);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalArgumentException("error when parsing text '" + text + "'", e);
-        }
-    }
-
-    /**
-     * Parses an ISO time string into a java.time.LocalTime.
-     *
-     * @param text the ISO time string
-     * @return the java.time.LocalTime instance
-     */
-    public static Object parseLocalTime(CharSequence text) {
-        try {
-            return LOCAL_TIME_PARSE.invoke(null, text);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalArgumentException("error when parsing text '" + text + "'", e);
-        }
-    }
-
-    /**
-     * Parses an ISO date string into a java.time.OffsetDateTime.
-     *
-     * @param text the ISO date string
-     * @return the java.time.OffsetDateTime instance
-     */
-    public static Object parseOffsetTime(CharSequence text) {
-        try {
-            return OFFSET_TIME_PARSE.invoke(null, text);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalArgumentException("error when parsing text '" + text + "'", e);
-        }
-    }
-
-    /**
-     * Parses an ISO date string into a java.time.LocalDateTime.
-     *
-     * @param text the ISO date string
-     * @return the java.time.LocalDateTime instance
-     */
-    public static Object parseLocalDateTime(CharSequence text) {
-        try {
-            return LOCAL_DATE_TIME_PARSE.invoke(null, text);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalArgumentException("error when parsing text '" + text + "'", e);
-        }
-    }
-
-    /**
-     * Parses an ISO date string into a java.time.OffsetDateTime.
-     *
-     * @param text the ISO date string
-     * @return the java.time.OffsetDateTime instance
-     */
-    public static Object parseOffsetDateTime(CharSequence text) {
-        try {
-            return OFFSET_DATE_TIME_PARSE.invoke(null, text);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalArgumentException("error when parsing text '" + text + "'", e);
-        }
-    }
-
-    /**
-     * Parses an ISO date string into a java.time.ZonedDateTime.
-     *
-     * @param text the ISO date string
-     * @return the java.time.OffsetDateTime instance
-     */
-    public static Object parseZonedDateTime(CharSequence text) {
-        try {
-            return ZONED_DATE_TIME_PARSE.invoke(null, text);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalArgumentException("error when parsing text '" + text + "'", e);
-        }
     }
 
     @Override
@@ -708,16 +577,6 @@ public class TestPreparedStatement extends TestDb {
             // ignore
         }
 
-        @Override
-        public void close() {
-            // ignore
-        }
-
-        @Override
-        public void remove() {
-            // ignore
-        }
-
     }
 
     private void testScopedGeneratedKey(Connection conn) throws SQLException {
@@ -789,35 +648,32 @@ public class TestPreparedStatement extends TestDb {
     }
 
     private void testDate8(Connection conn) throws SQLException {
-        if (!JSR310.PRESENT) {
-            return;
-        }
         PreparedStatement prep = conn.prepareStatement("SELECT ?");
-        Object localDate = parseLocalDate("2001-02-03");
+        LocalDate localDate = LocalDate.parse("2001-02-03");
         prep.setObject(1, localDate);
         ResultSet rs = prep.executeQuery();
         rs.next();
-        Object localDate2 = rs.getObject(1, JSR310.LOCAL_DATE);
+        LocalDate localDate2 = rs.getObject(1, LocalDate.class);
         assertEquals(localDate, localDate2);
         rs.close();
-        localDate = parseLocalDate("-0509-01-01");
+        localDate = LocalDate.parse("-0509-01-01");
         prep.setObject(1, localDate);
         rs = prep.executeQuery();
         rs.next();
-        localDate2 = rs.getObject(1, JSR310.LOCAL_DATE);
+        localDate2 = rs.getObject(1, LocalDate.class);
         assertEquals(localDate, localDate2);
         rs.close();
         prep.setString(1, "1500-02-28");
         rs = prep.executeQuery();
         rs.next();
-        localDate2 = rs.getObject(1, JSR310.LOCAL_DATE);
-        assertEquals(parseLocalDate("1500-02-28"), localDate2);
+        localDate2 = rs.getObject(1, LocalDate.class);
+        assertEquals(LocalDate.parse("1500-02-28"), localDate2);
         rs.close();
         prep.setString(1, "-0100-02-28");
         rs = prep.executeQuery();
         rs.next();
-        localDate2 = rs.getObject(1, JSR310.LOCAL_DATE);
-        assertEquals(parseLocalDate("-0100-02-28"), localDate2);
+        localDate2 = rs.getObject(1, LocalDate.class);
+        assertEquals(LocalDate.parse("-0100-02-28"), localDate2);
         rs.close();
         /*
          * Test dates during Julian to Gregorian transition.
@@ -830,11 +686,11 @@ public class TestPreparedStatement extends TestDb {
         DateTimeUtils.resetCalendar();
         Data.resetCalendar();
         try {
-            localDate = parseLocalDate("1582-10-05");
+            localDate = LocalDate.parse("1582-10-05");
             prep.setObject(1, localDate);
             rs = prep.executeQuery();
             rs.next();
-            localDate2 = rs.getObject(1, JSR310.LOCAL_DATE);
+            localDate2 = rs.getObject(1, LocalDate.class);
             assertEquals(localDate, localDate2);
             assertEquals("1582-10-05", rs.getString(1));
             assertEquals(Date.valueOf("1582-09-25"), rs.getDate(1));
@@ -856,142 +712,118 @@ public class TestPreparedStatement extends TestDb {
     }
 
     private void testTime8(Connection conn) throws SQLException {
-        if (!JSR310.PRESENT) {
-            return;
-        }
         PreparedStatement prep = conn.prepareStatement("SELECT ?");
-        Object localTime = parseLocalTime("04:05:06");
+        LocalTime localTime = LocalTime.parse("04:05:06");
         prep.setObject(1, localTime);
         ResultSet rs = prep.executeQuery();
         rs.next();
-        Object localTime2 = rs.getObject(1, JSR310.LOCAL_TIME);
+        LocalTime localTime2 = rs.getObject(1, LocalTime.class);
         assertEquals(localTime, localTime2);
         rs.close();
-        localTime = parseLocalTime("04:05:06.123456789");
+        localTime = LocalTime.parse("04:05:06.123456789");
         prep.setObject(1, localTime);
         rs = prep.executeQuery();
         rs.next();
-        localTime2 = rs.getObject(1, JSR310.LOCAL_TIME);
+        localTime2 = rs.getObject(1, LocalTime.class);
         assertEquals(localTime, localTime2);
         rs.close();
     }
 
     private void testOffsetTime8(Connection conn) throws SQLException {
-        if (!JSR310.PRESENT) {
-            return;
-        }
         PreparedStatement prep = conn.prepareStatement("SELECT ?");
-        Object offsetTime = parseOffsetTime("04:05:06+02:30");
+        OffsetTime offsetTime = OffsetTime.parse("04:05:06+02:30");
         prep.setObject(1, offsetTime);
         ResultSet rs = prep.executeQuery();
         rs.next();
-        Object offsetTime2 = rs.getObject(1, JSR310.OFFSET_TIME);
+        OffsetTime offsetTime2 = rs.getObject(1, OffsetTime.class);
         assertEquals(offsetTime, offsetTime2);
         assertFalse(rs.next());
         rs.close();
 
-        prep.setObject(1, offsetTime, 2013); // Types.TIME_WITH_TIMEZONE
+        prep.setObject(1, offsetTime, Types.TIME_WITH_TIMEZONE);
         rs = prep.executeQuery();
         rs.next();
-        offsetTime2 = rs.getObject(1, JSR310.OFFSET_TIME);
+        offsetTime2 = rs.getObject(1, OffsetTime.class);
         assertEquals(offsetTime, offsetTime2);
         assertFalse(rs.next());
         rs.close();
     }
 
     private void testDateTime8(Connection conn) throws SQLException {
-        if (!JSR310.PRESENT) {
-            return;
-        }
         PreparedStatement prep = conn.prepareStatement("SELECT ?");
-        Object localDateTime = parseLocalDateTime("2001-02-03T04:05:06");
+        LocalDateTime localDateTime = LocalDateTime.parse("2001-02-03T04:05:06");
         prep.setObject(1, localDateTime);
         ResultSet rs = prep.executeQuery();
         rs.next();
-        Object localDateTime2 = rs.getObject(1, JSR310.LOCAL_DATE_TIME);
+        LocalDateTime localDateTime2 = rs.getObject(1, LocalDateTime.class);
         assertEquals(localDateTime, localDateTime2);
         rs.close();
     }
 
     private void testOffsetDateTime8(Connection conn) throws SQLException {
-        if (!JSR310.PRESENT) {
-            return;
-        }
         PreparedStatement prep = conn.prepareStatement("SELECT ?");
-        Object offsetDateTime = parseOffsetDateTime("2001-02-03T04:05:06+02:30");
+        OffsetDateTime offsetDateTime = OffsetDateTime.parse("2001-02-03T04:05:06+02:30");
         prep.setObject(1, offsetDateTime);
         ResultSet rs = prep.executeQuery();
         rs.next();
-        Object offsetDateTime2 = rs.getObject(1, JSR310.OFFSET_DATE_TIME);
+        OffsetDateTime offsetDateTime2 = rs.getObject(1, OffsetDateTime.class);
         assertEquals(offsetDateTime, offsetDateTime2);
         assertFalse(rs.next());
         rs.close();
 
-        prep.setObject(1, offsetDateTime, 2014); // Types.TIMESTAMP_WITH_TIMEZONE
+        prep.setObject(1, offsetDateTime, Types.TIMESTAMP_WITH_TIMEZONE);
         rs = prep.executeQuery();
         rs.next();
-        offsetDateTime2 = rs.getObject(1, JSR310.OFFSET_DATE_TIME);
+        offsetDateTime2 = rs.getObject(1, OffsetDateTime.class);
         assertEquals(offsetDateTime, offsetDateTime2);
         // Check default mapping
-        offsetDateTime2 = rs.getObject(1);
+        rs.getObject(1);
         assertFalse(rs.next());
         rs.close();
     }
 
     private void testZonedDateTime8(Connection conn) throws SQLException {
-        if (!JSR310.PRESENT) {
-            return;
-        }
         PreparedStatement prep = conn.prepareStatement("SELECT ?");
-        Object zonedDateTime = parseZonedDateTime("2001-02-03T04:05:06+02:30");
+        ZonedDateTime zonedDateTime = ZonedDateTime.parse("2001-02-03T04:05:06+02:30");
         prep.setObject(1, zonedDateTime);
         ResultSet rs = prep.executeQuery();
         rs.next();
-        Object zonedDateTime2 = rs.getObject(1, JSR310.ZONED_DATE_TIME);
+        ZonedDateTime zonedDateTime2 = rs.getObject(1, ZonedDateTime.class);
         assertEquals(zonedDateTime, zonedDateTime2);
         assertFalse(rs.next());
         rs.close();
 
-        prep.setObject(1, zonedDateTime, 2014); // Types.TIMESTAMP_WITH_TIMEZONE
+        prep.setObject(1, zonedDateTime, Types.TIMESTAMP_WITH_TIMEZONE);
         rs = prep.executeQuery();
         rs.next();
-        zonedDateTime2 = rs.getObject(1, JSR310.ZONED_DATE_TIME);
+        zonedDateTime2 = rs.getObject(1, ZonedDateTime.class);
         assertEquals(zonedDateTime, zonedDateTime2);
         assertFalse(rs.next());
         rs.close();
     }
 
     private void testInstant8(Connection conn) throws Exception {
-        if (!JSR310.PRESENT) {
-            return;
-        }
-        Method timestampToInstant = Timestamp.class.getMethod("toInstant");
-        Method now = JSR310.INSTANT.getMethod("now");
-        Method parse = JSR310.INSTANT.getMethod("parse", CharSequence.class);
-
         PreparedStatement prep = conn.prepareStatement("SELECT ?");
-
-        testInstant8Impl(prep, timestampToInstant, now.invoke(null));
-        testInstant8Impl(prep, timestampToInstant, parse.invoke(null, "2000-01-15T12:13:14.123456789Z"));
-        testInstant8Impl(prep, timestampToInstant, parse.invoke(null, "1500-09-10T23:22:11.123456789Z"));
+        testInstant8Impl(prep, Instant.now());
+        testInstant8Impl(prep, Instant.parse("2000-01-15T12:13:14.123456789Z"));
+        testInstant8Impl(prep, Instant.parse("1500-09-10T23:22:11.123456789Z"));
     }
 
-    private void testInstant8Impl(PreparedStatement prep, Method timestampToInstant, Object instant)
-            throws SQLException, IllegalAccessException, InvocationTargetException {
+    private void testInstant8Impl(PreparedStatement prep, Instant instant) throws SQLException {
         prep.setObject(1, instant);
         ResultSet rs = prep.executeQuery();
         rs.next();
-        Object instant2 = rs.getObject(1, JSR310.INSTANT);
+        Instant instant2 = rs.getObject(1, Instant.class);
         assertEquals(instant, instant2);
         Timestamp ts = rs.getTimestamp(1);
-        assertEquals(instant, timestampToInstant.invoke(ts));
+        assertEquals(instant, ts.toInstant());
         assertFalse(rs.next());
         rs.close();
 
         prep.setTimestamp(1, ts);
         rs = prep.executeQuery();
         rs.next();
-        instant2 = rs.getObject(1, JSR310.INSTANT);
+        instant2 = rs.getObject(1, Instant.class);
         assertEquals(instant, instant2);
         assertFalse(rs.next());
         rs.close();
@@ -1009,9 +841,6 @@ public class TestPreparedStatement extends TestDb {
     }
 
     private void testInterval8(Connection conn) throws SQLException {
-        if (!JSR310.PRESENT) {
-            return;
-        }
         PreparedStatement prep = conn.prepareStatement("SELECT ?");
         testPeriod8(prep, 1, 2, "INTERVAL '1-2' YEAR TO MONTH");
         testPeriod8(prep, -1, -2, "INTERVAL '-1-2' YEAR TO MONTH");
@@ -1022,26 +851,14 @@ public class TestPreparedStatement extends TestDb {
         testPeriod8(prep, -100, 0, "INTERVAL '-100' YEAR");
         testPeriod8(prep, 0, 100, "INTERVAL '100' MONTH");
         testPeriod8(prep, 0, -100, "INTERVAL '-100' MONTH");
-        Object period;
-        try {
-            Method method = JSR310.PERIOD.getMethod("of", int.class, int.class, int.class);
-            period = method.invoke(null, 0, 0, 1);
-        } catch (ReflectiveOperationException ex) {
-            throw new RuntimeException(ex);
-        }
+        Period period = Period.of(0, 0, 1);
         assertThrows(ErrorCode.INVALID_VALUE_2, prep).setObject(1, period);
-        Object duration;
-        try {
-            duration = JSR310.DURATION.getMethod("ofSeconds", long.class, long.class)
-                    .invoke(null, -4, 900_000_000);
-        } catch (ReflectiveOperationException ex) {
-            throw new RuntimeException(ex);
-        }
+        Duration duration = Duration.ofSeconds(-4, 900_000_000);
         prep.setObject(1, duration);
         ResultSet rs = prep.executeQuery();
         rs.next();
         assertEquals("INTERVAL '-3.1' SECOND", rs.getString(1));
-        assertEquals(duration, rs.getObject(1, JSR310.DURATION));
+        assertEquals(duration, rs.getObject(1, Duration.class));
     }
 
     private void testPeriod8(PreparedStatement prep, int years, int months, String expectedString)
@@ -1051,19 +868,13 @@ public class TestPreparedStatement extends TestDb {
 
     private void testPeriod8(PreparedStatement prep, int years, int months, String expectedString, int expYears,
             int expMonths) throws SQLException {
-        Object period, expectedPeriod;
-        try {
-            Method method = JSR310.PERIOD.getMethod("of", int.class, int.class, int.class);
-            period = method.invoke(null, years, months, 0);
-            expectedPeriod = method.invoke(null, expYears, expMonths, 0);
-        } catch (ReflectiveOperationException ex) {
-            throw new RuntimeException(ex);
-        }
+        Period period = Period.of(years, months, 0);
+        Period expectedPeriod = Period.of(expYears, expMonths, 0);
         prep.setObject(1, period);
         ResultSet rs = prep.executeQuery();
         rs.next();
         assertEquals(expectedString, rs.getString(1));
-        assertEquals(expectedPeriod, rs.getObject(1, JSR310.PERIOD));
+        assertEquals(expectedPeriod, rs.getObject(1, Period.class));
     }
 
     private void testJson(Connection conn) throws SQLException {

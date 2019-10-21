@@ -7,9 +7,6 @@ package org.h2.dev.util;
 
 import java.util.Iterator;
 
-import org.h2.mvstore.DataUtils;
-
-
 /**
  * A very simple linked list that supports concurrent access.
  * Internally, it uses immutable objects.
@@ -110,11 +107,6 @@ public class ConcurrentLinkedList<K> {
                 K x = current.obj;
                 current = current.next;
                 return x;
-            }
-
-            @Override
-            public void remove() {
-                throw DataUtils.newUnsupportedOperationException("remove");
             }
 
         };

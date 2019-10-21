@@ -70,15 +70,10 @@ public class TestOutOfMemory extends TestDb {
     private void testMVStoreUsingInMemoryFileSystem() {
         FilePath.register(new FilePathMem());
         String fileName = "memFS:" + getTestName();
-        final AtomicReference<Throwable> exRef = new AtomicReference<>();
+        AtomicReference<Throwable> exRef = new AtomicReference<>();
         MVStore store = new MVStore.Builder()
                 .fileName(fileName)
-                .backgroundExceptionHandler(new Thread.UncaughtExceptionHandler() {
-                    @Override
-                    public void uncaughtException(Thread t, Throwable e) {
-                        exRef.compareAndSet(null, e);
-                    }
-                })
+                .backgroundExceptionHandler((t, e) -> exRef.compareAndSet(null, e))
                 .open();
         try {
             Map<Integer, byte[]> map = store.openMap("test");

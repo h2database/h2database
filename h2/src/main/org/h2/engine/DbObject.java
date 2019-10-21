@@ -164,7 +164,9 @@ public interface DbObject {
      *
      * @return the SQL statement
      */
-    String getDropSQL();
+    default String getDropSQL() {
+        return null;
+    }
 
     /**
      * Get the object type.
@@ -183,7 +185,9 @@ public interface DbObject {
     /**
      * Check if renaming is allowed. Does nothing when allowed.
      */
-    void checkRename();
+    default void checkRename() {
+        // Allowed by default
+    }
 
     /**
      * Rename the object.

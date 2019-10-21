@@ -409,11 +409,6 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
         return find(session, higherThan, true, last);
     }
 
-    @Override
-    public void checkRename() {
-        // ok
-    }
-
     /**
      * Get the map to store the data.
      *

@@ -56,14 +56,7 @@ public class TestPerfectHash extends TestBase {
         RandomAccessFile f = new RandomAccessFile(fileName, "r");
         byte[] data = new byte[(int) f.length()];
         f.readFully(data);
-        UniversalHash<Text> hf = new UniversalHash<Text>() {
-
-            @Override
-            public int hashCode(Text o, int index, int seed) {
-                return o.hashCode(index, seed);
-            }
-
-        };
+        UniversalHash<Text> hf = Text::hashCode;
         f.close();
         HashSet<Text> set = new HashSet<>();
         Text t = new Text(data, 0);
@@ -149,16 +142,11 @@ public class TestPerfectHash extends TestBase {
         }
         for (int test = 1; test < 10; test++) {
             final int badUntilLevel = test;
-            UniversalHash<String> badHash = new UniversalHash<String>() {
-
-                @Override
-                public int hashCode(String o, int index, int seed) {
-                    if (index < badUntilLevel) {
-                        return 0;
-                    }
-                    return StringHash.getFastHash(o, index, seed);
+            UniversalHash<String> badHash = (o, index, seed) -> {
+                if (index < badUntilLevel) {
+                    return 0;
                 }
-
+                return StringHash.getFastHash(o, index, seed);
             };
             byte[] desc = MinimalPerfectHash.generate(set, badHash);
             testMinimal(desc, set, badHash);

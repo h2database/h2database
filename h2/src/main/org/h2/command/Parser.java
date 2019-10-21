@@ -240,7 +240,6 @@ import org.h2.table.IndexHints;
 import org.h2.table.RangeTable;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.table.TableFilter.TableFilterVisitor;
 import org.h2.table.TableView;
 import org.h2.util.IntervalUtils;
 import org.h2.util.ParserUtil;
@@ -639,15 +638,11 @@ public class Parser {
             // End
     };
 
-    private static final Comparator<TableFilter> TABLE_FILTER_COMPARATOR =
-            new Comparator<TableFilter>() {
-        @Override
-        public int compare(TableFilter o1, TableFilter o2) {
-            if (o1 == o2)
-                return 0;
-            assert o1.getOrderInFrom() != o2.getOrderInFrom();
-            return o1.getOrderInFrom() > o2.getOrderInFrom() ? 1 : -1;
-        }
+    private static final Comparator<TableFilter> TABLE_FILTER_COMPARATOR = (o1, o2) -> {
+        if (o1 == o2)
+            return 0;
+        assert o1.getOrderInFrom() != o2.getOrderInFrom();
+        return o1.getOrderInFrom() > o2.getOrderInFrom() ? 1 : -1;
     };
 
     private final Database database;
@@ -2832,7 +2827,7 @@ public class Parser {
         // Parser can reorder joined table filters, need to explicitly sort them
         // to get the order as it was in the original query.
         if (session.isForceJoinOrder()) {
-            Collections.sort(command.getTopFilters(), TABLE_FILTER_COMPARATOR);
+            command.getTopFilters().sort(TABLE_FILTER_COMPARATOR);
         }
     }
 
@@ -2843,12 +2838,7 @@ public class Parser {
         while (true) {
             TableFilter n = top.getNestedJoin();
             if (n != null) {
-                n.visit(new TableFilterVisitor() {
-                    @Override
-                    public void accept(TableFilter f) {
-                        command.addTableFilter(f, false);
-                    }
-                });
+                n.visit(f -> command.addTableFilter(f, false));
             }
             TableFilter join = top.getJoin();
             if (join == null) {

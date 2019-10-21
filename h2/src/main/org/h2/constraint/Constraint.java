@@ -147,11 +147,6 @@ public abstract class Constraint extends SchemaObjectBase implements
     public abstract Index getUniqueIndex();
 
     @Override
-    public void checkRename() {
-        // ok
-    }
-
-    @Override
     public int getType() {
         return DbObject.CONSTRAINT;
     }
@@ -162,11 +157,6 @@ public abstract class Constraint extends SchemaObjectBase implements
 
     public Table getRefTable() {
         return table;
-    }
-
-    @Override
-    public String getDropSQL() {
-        return null;
     }
 
     @Override

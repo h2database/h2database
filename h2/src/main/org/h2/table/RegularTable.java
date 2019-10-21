@@ -6,7 +6,6 @@
 package org.h2.table;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -94,12 +93,7 @@ public abstract class RegularTable extends TableBase {
      *            the index to sort for
      */
     protected static void sortRows(ArrayList<? extends SearchRow> list, final Index index) {
-        list.sort(new Comparator<SearchRow>() {
-            @Override
-            public int compare(SearchRow r1, SearchRow r2) {
-                return index.compareRows(r1, r2);
-            }
-        });
+        list.sort(index::compareRows);
     }
 
     /**

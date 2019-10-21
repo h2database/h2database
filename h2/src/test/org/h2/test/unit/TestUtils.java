@@ -152,12 +152,7 @@ public class TestUtils extends TestBase {
     }
 
     private void testSortTopN() {
-        Comparator<Integer> comp = new Comparator<Integer>() {
-            @Override
-            public int compare(Integer o1, Integer o2) {
-                return o1.compareTo(o2);
-            }
-        };
+        Comparator<Integer> comp = Comparator.naturalOrder();
         Integer[] arr = new Integer[] {};
         Utils.sortTopN(arr, 0, 5, comp);
 
@@ -172,12 +167,7 @@ public class TestUtils extends TestBase {
 
     private void testSortTopNRandom() {
         Random rnd = new Random();
-        Comparator<Integer> comp = new Comparator<Integer>() {
-            @Override
-            public int compare(Integer o1, Integer o2) {
-                return o1.compareTo(o2);
-            }
-        };
+        Comparator<Integer> comp = Comparator.naturalOrder();
         for (int z = 0; z < 10000; z++) {
             Integer[] arr = new Integer[1 + rnd.nextInt(500)];
             for (int i = 0; i < arr.length; i++) {

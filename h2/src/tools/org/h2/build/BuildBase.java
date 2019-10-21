@@ -303,12 +303,7 @@ public class BuildBase {
      */
     protected void projectHelp() {
         Method[] methods = getClass().getDeclaredMethods();
-        Arrays.sort(methods, new Comparator<Method>() {
-            @Override
-            public int compare(Method a, Method b) {
-                return a.getName().compareTo(b.getName());
-            }
-        });
+        Arrays.sort(methods, Comparator.comparing(Method::getName));
         sysOut.println("Targets:");
         String description;
         for (Method m : methods) {
@@ -830,17 +825,14 @@ public class BuildBase {
             String basePath, boolean storeOnly, boolean sortBySuffix, boolean jar) {
         if (sortBySuffix) {
             // for better compressibility, sort by suffix, then name
-            files.sort(new Comparator<File>() {
-                @Override
-                public int compare(File f1, File f2) {
-                    String p1 = f1.getPath();
-                    String p2 = f2.getPath();
-                    int comp = getSuffix(p1).compareTo(getSuffix(p2));
-                    if (comp == 0) {
-                        comp = p1.compareTo(p2);
-                    }
-                    return comp;
+            files.sort((f1, f2) -> {
+                String p1 = f1.getPath();
+                String p2 = f2.getPath();
+                int comp = getSuffix(p1).compareTo(getSuffix(p2));
+                if (comp == 0) {
+                    comp = p1.compareTo(p2);
                 }
+                return comp;
             });
         } else if (jar) {
             files.sort(new Comparator<File>() {

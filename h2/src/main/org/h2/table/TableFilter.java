@@ -49,12 +49,8 @@ public class TableFilter implements ColumnResolver {
     /**
      * Comparator that uses order in FROM clause as a sort key.
      */
-    public static final Comparator<TableFilter> ORDER_IN_FROM_COMPARATOR = new Comparator<TableFilter>() {
-        @Override
-        public int compare(TableFilter o1, TableFilter o2) {
-            return Integer.compare(o1.getOrderInFrom(), o2.getOrderInFrom());
-        }
-    };
+    public static final Comparator<TableFilter> ORDER_IN_FROM_COMPARATOR =
+            Comparator.comparing(TableFilter::getOrderInFrom);
 
     /**
      * Whether this is a direct or indirect (nested) outer join

@@ -851,12 +851,7 @@ public class Database implements DataHandler, CastDataProvider {
                 }
                 if (needRepair) {
                     Row[] array = allMetaRows.toArray(new Row[0]);
-                    Arrays.sort(array, new Comparator<Row>() {
-                        @Override
-                        public int compare(Row o1, Row o2) {
-                            return Integer.compare(o1.getValue(0).getInt(), o2.getValue(0).getInt());
-                        }
-                    });
+                    Arrays.sort(array, Comparator.comparingInt(t -> t.getValue(0).getInt()));
                     meta.truncate(systemSession);
                     for (Row row : array) {
                         meta.addRow(systemSession, row);

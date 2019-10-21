@@ -18,19 +18,17 @@ public class CharsetCollator extends Collator {
     /**
      * The comparator used to compare byte arrays.
      */
-    static final Comparator<byte[]> COMPARATOR = new Comparator<byte[]>() {
-        @Override
-        public int compare(byte[] b1, byte[] b2) {
-            int minLength = Math.min(b1.length, b2.length);
-            for (int index = 0; index < minLength; index++) {
-                int result = b1[index] - b2[index];
-                if (result != 0) {
-                    return result;
-                }
+    static final Comparator<byte[]> COMPARATOR = (b1, b2) -> {
+        int minLength = Math.min(b1.length, b2.length);
+        for (int index = 0; index < minLength; index++) {
+            int result = b1[index] - b2[index];
+            if (result != 0) {
+                return result;
             }
-            return b1.length - b2.length;
         }
+        return b1.length - b2.length;
     };
+
     private final Charset charset;
 
     public CharsetCollator(Charset charset) {

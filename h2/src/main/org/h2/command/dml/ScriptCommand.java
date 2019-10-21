@@ -203,12 +203,7 @@ public class ScriptCommand extends ScriptBase {
             final ArrayList<Table> tables = db.getAllTablesAndViews(false);
             // sort by id, so that views are after tables and views on views
             // after the base views
-            tables.sort(new Comparator<Table>() {
-                @Override
-                public int compare(Table t1, Table t2) {
-                    return t1.getId() - t2.getId();
-                }
-            });
+            tables.sort(Comparator.comparingInt(Table::getId));
 
             // Generate the DROP XXX  ... IF EXISTS
             for (Table table : tables) {

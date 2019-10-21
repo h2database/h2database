@@ -639,15 +639,11 @@ public class Parser {
             // End
     };
 
-    private static final Comparator<TableFilter> TABLE_FILTER_COMPARATOR =
-            new Comparator<TableFilter>() {
-        @Override
-        public int compare(TableFilter o1, TableFilter o2) {
-            if (o1 == o2)
-                return 0;
-            assert o1.getOrderInFrom() != o2.getOrderInFrom();
-            return o1.getOrderInFrom() > o2.getOrderInFrom() ? 1 : -1;
-        }
+    private static final Comparator<TableFilter> TABLE_FILTER_COMPARATOR = (o1, o2) -> {
+        if (o1 == o2)
+            return 0;
+        assert o1.getOrderInFrom() != o2.getOrderInFrom();
+        return o1.getOrderInFrom() > o2.getOrderInFrom() ? 1 : -1;
     };
 
     private final Database database;

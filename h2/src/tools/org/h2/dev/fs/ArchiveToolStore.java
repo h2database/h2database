@@ -12,7 +12,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -176,28 +175,22 @@ public class ArchiveToolStore {
         MVMap<int[], byte[]> data = store.openMap("data" + segmentId);
         MVMap<int[], Boolean> keepSegment = storeTemp.openMap("keep");
         while (list.size() > 0) {
-            list.sort(new Comparator<Cursor<int[], byte[]>>() {
-
-                @Override
-                public int compare(Cursor<int[], byte[]> o1,
-                        Cursor<int[], byte[]> o2) {
-                    int[] k1 = o1.getKey();
-                    int[] k2 = o2.getKey();
-                    int comp = 0;
-                    for (int i = 0; i < k1.length - 1; i++) {
-                        long x1 = k1[i];
-                        long x2 = k2[i];
-                        if (x1 > x2) {
-                            comp = 1;
-                            break;
-                        } else if (x1 < x2) {
-                            comp = -1;
-                            break;
-                        }
-                    }
-                    return comp;
+            list.sort((o1, o2) -> {
+                int[] k1 = o1.getKey();
+                int[] k2 = o2.getKey();
+                int comp = 0;
+                for (int i = 0; i < k1.length - 1; i++) {
+                long x1 = k1[i];
+                long x2 = k2[i];
+                if (x1 > x2) {
+                    comp = 1;
+                    break;
+                } else if (x1 < x2) {
+                    comp = -1;
+                    break;
                 }
-
+                }
+                return comp;
             });
             Cursor<int[], byte[]> top = list.get(0);
             int[] key = top.getKey();
@@ -394,28 +387,22 @@ public class ArchiveToolStore {
         OutputStream file = null;
         int[] lastKey = null;
         while (list.size() > 0) {
-            list.sort(new Comparator<Cursor<int[], byte[]>>() {
-
-                @Override
-                public int compare(Cursor<int[], byte[]> o1,
-                        Cursor<int[], byte[]> o2) {
-                    int[] k1 = o1.getKey();
-                    int[] k2 = o2.getKey();
-                    int comp = 0;
-                    for (int i = 0; i < k1.length; i++) {
-                        long x1 = k1[i];
-                        long x2 = k2[i];
-                        if (x1 > x2) {
-                            comp = 1;
-                            break;
-                        } else if (x1 < x2) {
-                            comp = -1;
-                            break;
-                        }
+            list.sort((o1, o2) -> {
+                int[] k1 = o1.getKey();
+                int[] k2 = o2.getKey();
+                int comp = 0;
+                for (int i = 0; i < k1.length; i++) {
+                    long x1 = k1[i];
+                    long x2 = k2[i];
+                    if (x1 > x2) {
+                        comp = 1;
+                        break;
+                    } else if (x1 < x2) {
+                        comp = -1;
+                        break;
                     }
-                    return comp;
                 }
-
+                return comp;
             });
             Cursor<int[], byte[]> top = list.get(0);
             int[] key = top.getKey();

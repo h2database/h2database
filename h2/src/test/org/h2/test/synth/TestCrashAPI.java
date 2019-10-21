@@ -115,12 +115,7 @@ public class TestCrashAPI extends TestDb implements Runnable {
     private static void recoverAll() {
         org.h2.Driver.load();
         File[] files = new File("temp/backup").listFiles();
-        Arrays.sort(files, new Comparator<File>() {
-            @Override
-            public int compare(File o1, File o2) {
-                return o1.getName().compareTo(o2.getName());
-            }
-        });
+        Arrays.sort(files, Comparator.comparing(File::getName));
         for (File f : files) {
             if (!f.getName().startsWith("db-")) {
                 continue;

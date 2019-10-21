@@ -11,7 +11,6 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.StringTokenizer;
@@ -134,12 +133,7 @@ public class Indexer {
         ignored = ignoredBuff.toString();
         // TODO support A, B, C,... class links in the index file and use them
         // for combined AND searches
-        wordList.sort(new Comparator<Word>() {
-            @Override
-            public int compare(Word w0, Word w1) {
-                return w0.name.compareToIgnoreCase(w1.name);
-            }
-        });
+        wordList.sort((w0, w1) -> w0.name.compareToIgnoreCase(w1.name));
     }
 
     private void removeOverflowRelations() {
@@ -164,12 +158,7 @@ public class Indexer {
     }
 
     private void sortPages() {
-        pages.sort(new Comparator<Page>() {
-            @Override
-            public int compare(Page p0, Page p1) {
-                return Integer.compare(p1.relations, p0.relations);
-            }
-        });
+        pages.sort((p0, p1) -> Integer.compare(p1.relations, p0.relations));
         for (int i = 0; i < pages.size(); i++) {
             pages.get(i).id = i;
         }

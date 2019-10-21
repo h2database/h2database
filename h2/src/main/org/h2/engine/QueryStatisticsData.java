@@ -19,15 +19,9 @@ import java.util.Map.Entry;
 public class QueryStatisticsData {
 
     private static final Comparator<QueryEntry> QUERY_ENTRY_COMPARATOR =
-            new Comparator<QueryEntry>() {
-        @Override
-        public int compare(QueryEntry o1, QueryEntry o2) {
-            return Long.signum(o1.lastUpdateTime - o2.lastUpdateTime);
-        }
-    };
+            Comparator.comparingLong(q -> q.lastUpdateTime);
 
-    private final HashMap<String, QueryEntry> map =
-            new HashMap<>();
+    private final HashMap<String, QueryEntry> map = new HashMap<>();
 
     private int maxQueryEntries;
 

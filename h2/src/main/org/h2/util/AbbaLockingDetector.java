@@ -11,7 +11,6 @@ import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -119,15 +118,9 @@ public class AbbaLockingDetector implements Runnable {
      * We cannot simply call getLockedMonitors because it is not guaranteed to
      * return the locks in the correct order.
      */
-    private static void generateOrdering(final List<String> lockOrder,
-            ThreadInfo info) {
+    private static void generateOrdering(List<String> lockOrder, ThreadInfo info) {
         final MonitorInfo[] lockedMonitors = info.getLockedMonitors();
-        Arrays.sort(lockedMonitors, new Comparator<MonitorInfo>() {
-            @Override
-            public int compare(MonitorInfo a, MonitorInfo b) {
-                return b.getLockedStackDepth() - a.getLockedStackDepth();
-            }
-        });
+        Arrays.sort(lockedMonitors, (a, b) -> b.getLockedStackDepth() - a.getLockedStackDepth());
         for (MonitorInfo mi : lockedMonitors) {
             String lockName = getObjectName(mi);
             if (lockName.equals("sun.misc.Launcher$AppClassLoader")) {

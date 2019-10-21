@@ -5,8 +5,10 @@
  */
 package org.h2.util.geometry;
 
+import static org.h2.util.geometry.GeometryUtils.DIMENSION_SYSTEM_XY;
 import static org.h2.util.geometry.GeometryUtils.DIMENSION_SYSTEM_XYM;
 import static org.h2.util.geometry.GeometryUtils.DIMENSION_SYSTEM_XYZ;
+import static org.h2.util.geometry.GeometryUtils.DIMENSION_SYSTEM_XYZM;
 import static org.h2.util.geometry.GeometryUtils.GEOMETRY_COLLECTION;
 import static org.h2.util.geometry.GeometryUtils.LINE_STRING;
 import static org.h2.util.geometry.GeometryUtils.M;
@@ -22,14 +24,12 @@ import static org.h2.util.geometry.GeometryUtils.checkFinite;
 import static org.h2.util.geometry.GeometryUtils.toCanonicalDouble;
 
 import java.io.ByteArrayOutputStream;
-import java.lang.reflect.Method;
 
 import org.h2.message.DbException;
 import org.h2.util.geometry.EWKBUtils.EWKBTarget;
 import org.h2.util.geometry.GeometryUtils.DimensionSystemTarget;
 import org.h2.util.geometry.GeometryUtils.Target;
 import org.locationtech.jts.geom.CoordinateSequence;
-import org.locationtech.jts.geom.CoordinateSequenceFactory;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryCollection;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -48,33 +48,6 @@ import org.locationtech.jts.geom.impl.PackedCoordinateSequenceFactory;
  * Utilities for Geometry data type from JTS library.
  */
 public final class JTSUtils {
-
-    /**
-     * {@code true} if M dimension is supported by used version of JTS,
-     * {@code false} if M dimension is only partially supported (JTS 1.15).
-     */
-    public static final boolean M_IS_SUPPORTED;
-
-    /**
-     * create(int,int,int) method from CoordinateSequenceFactory, if it exists
-     */
-    static final Method CREATE;
-
-    private static final Method GET_MEASURES;
-
-    static {
-        Method create, getMeasures;
-        try {
-            create = CoordinateSequenceFactory.class.getMethod("create", int.class, int.class, int.class);
-            getMeasures = CoordinateSequence.class.getMethod("getMeasures");
-        } catch (ReflectiveOperationException e) {
-            create = null;
-            getMeasures = null;
-        }
-        M_IS_SUPPORTED = create != null;
-        CREATE = create;
-        GET_MEASURES = getMeasures;
-    }
 
     /**
      * Converter output target that creates a JTS Geometry.
@@ -180,19 +153,28 @@ public final class JTSUtils {
         }
 
         private CoordinateSequence createCoordinates(int numPoints) {
-            if ((dimensionSystem & DIMENSION_SYSTEM_XYM) != 0) {
-                if (M_IS_SUPPORTED) {
-                    try {
-                        return (CoordinateSequence) CREATE.invoke(factory.getCoordinateSequenceFactory(), numPoints, 4,
-                                1);
-                    } catch (ReflectiveOperationException e) {
-                        throw DbException.convert(e);
-                    }
-                }
-                return factory.getCoordinateSequenceFactory().create(numPoints, 4);
-            } else {
-                return factory.getCoordinateSequenceFactory().create(numPoints, 3);
+            int d, m;
+            switch (dimensionSystem) {
+            case DIMENSION_SYSTEM_XY:
+                d = 2;
+                m = 0;
+                break;
+            case DIMENSION_SYSTEM_XYZ:
+                d = 3;
+                m = 0;
+                break;
+            case DIMENSION_SYSTEM_XYM:
+                d = 3;
+                m = 1;
+                break;
+            case DIMENSION_SYSTEM_XYZM:
+                d = 4;
+                m = 1;
+                break;
+            default:
+                throw DbException.throwInternalError();
             }
+            return factory.getCoordinateSequenceFactory().create(numPoints, d, m);
         }
 
         @Override
@@ -204,10 +186,15 @@ public final class JTSUtils {
             CoordinateSequence coordinates = innerOffset < 0 ? this.coordinates : innerCoordinates[innerOffset];
             coordinates.setOrdinate(index, X, checkFinite(x));
             coordinates.setOrdinate(index, Y, checkFinite(y));
-            coordinates.setOrdinate(index, Z,
-                    (dimensionSystem & DIMENSION_SYSTEM_XYZ) != 0 ? checkFinite(z) : Double.NaN);
-            if ((dimensionSystem & DIMENSION_SYSTEM_XYM) != 0) {
+            switch (dimensionSystem) {
+            case DIMENSION_SYSTEM_XYZM:
                 coordinates.setOrdinate(index, M, checkFinite(m));
+                //$FALL-THROUGH$
+            case DIMENSION_SYSTEM_XYZ:
+                coordinates.setOrdinate(index, Z, checkFinite(z));
+                break;
+            case DIMENSION_SYSTEM_XYM:
+                coordinates.setOrdinate(index, 2, checkFinite(m));
             }
         }
 
@@ -339,7 +326,7 @@ public final class JTSUtils {
                 target.addCoordinate(Double.NaN, Double.NaN, Double.NaN, Double.NaN, 0, 1);
             } else {
                 CoordinateSequence sequence = p.getCoordinateSequence();
-                addCoordinate(sequence, target, 0, 1, getMeasures(sequence));
+                addCoordinate(sequence, target, 0, 1);
             }
             target.endObject(POINT);
         } else if (geometry instanceof LineString) {
@@ -353,9 +340,8 @@ public final class JTSUtils {
                 throw new IllegalArgumentException();
             }
             target.startLineString(numPoints);
-            int measures = getMeasures(cs);
             for (int i = 0; i < numPoints; i++) {
-                addCoordinate(cs, target, i, numPoints, measures);
+                addCoordinate(cs, target, i, numPoints);
             }
             target.endObject(LINE_STRING);
         } else if (geometry instanceof Polygon) {
@@ -378,8 +364,7 @@ public final class JTSUtils {
             }
             target.startPolygon(numInner, size);
             if (size > 0) {
-                int measures = getMeasures(cs);
-                addRing(cs, target, size, measures);
+                addRing(cs, target, size);
                 for (int i = 0; i < numInner; i++) {
                     cs = p.getInteriorRingN(i).getCoordinateSequence();
                     size = cs.size();
@@ -388,7 +373,7 @@ public final class JTSUtils {
                         throw new IllegalArgumentException();
                     }
                     target.startPolygonInner(size);
-                    addRing(cs, target, size, measures);
+                    addRing(cs, target, size);
                 }
                 target.endNonEmptyPolygon();
             }
@@ -424,13 +409,13 @@ public final class JTSUtils {
         }
     }
 
-    private static void addRing(CoordinateSequence sequence, Target target, int size, int measures) {
+    private static void addRing(CoordinateSequence sequence, Target target, int size) {
         // 0 or 4+ are valid
         if (size >= 4) {
             double startX = toCanonicalDouble(sequence.getX(0)), startY = toCanonicalDouble(sequence.getY(0));
-            addCoordinate(sequence, target, 0, size, startX, startY, measures);
+            addCoordinate(sequence, target, 0, size, startX, startY);
             for (int i = 1; i < size - 1; i++) {
-                addCoordinate(sequence, target, i, size, measures);
+                addCoordinate(sequence, target, i, size);
             }
             double endX = toCanonicalDouble(sequence.getX(size - 1)), //
                     endY = toCanonicalDouble(sequence.getY(size - 1));
@@ -441,42 +426,20 @@ public final class JTSUtils {
             if (startX != endX || startY != endY) {
                 throw new IllegalArgumentException();
             }
-            addCoordinate(sequence, target, size - 1, size, endX, endY, measures);
+            addCoordinate(sequence, target, size - 1, size, endX, endY);
         }
     }
 
-    private static void addCoordinate(CoordinateSequence sequence, Target target, int index, int total, int measures) {
+    private static void addCoordinate(CoordinateSequence sequence, Target target, int index, int total) {
         addCoordinate(sequence, target, index, total, toCanonicalDouble(sequence.getX(index)),
-                toCanonicalDouble(sequence.getY(index)), measures);
+                toCanonicalDouble(sequence.getY(index)));
     }
 
     private static void addCoordinate(CoordinateSequence sequence, Target target, int index, int total, double x,
-            double y, int measures) {
-        double m, z;
-        int d = sequence.getDimension();
-        if (M_IS_SUPPORTED) {
-            d -= measures;
-            z = d > 2 ? toCanonicalDouble(sequence.getOrdinate(index, Z)) : Double.NaN;
-            m = measures >= 1 ? toCanonicalDouble(sequence.getOrdinate(index, d)) : Double.NaN;
-        } else {
-            z = d >= 3 ? toCanonicalDouble(sequence.getOrdinate(index, Z)) : Double.NaN;
-            m = d >= 4 ? toCanonicalDouble(sequence.getOrdinate(index, M)) : Double.NaN;
-        }
+            double y) {
+        double z = toCanonicalDouble(sequence.getZ(index));
+        double m = toCanonicalDouble(sequence.getM(index));
         target.addCoordinate(x, y, z, m, index, total);
-    }
-
-    private static int getMeasures(CoordinateSequence sequence) {
-        int m;
-        if (M_IS_SUPPORTED) {
-            try {
-                m = (int) GET_MEASURES.invoke(sequence);
-            } catch (ReflectiveOperationException e) {
-                throw DbException.convert(e);
-            }
-        } else {
-            m = 0;
-        }
-        return m;
     }
 
     private JTSUtils() {

@@ -1599,7 +1599,7 @@ public class TestTableEngines extends TestDb {
                 if (rnd.nextBoolean()) {
                     IteratorCursor c = (IteratorCursor) find(filter, first, last);
                     if (c.it.hasNext()) {
-                        future = new DoneFuture<Cursor>(c);
+                        future = new DoneFuture<>(c);
                     } else {
                         // we can return null instead of future of empty cursor
                         future = null;

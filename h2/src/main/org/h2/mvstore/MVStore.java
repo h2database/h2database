@@ -566,7 +566,7 @@ public class MVStore implements AutoCloseable
                 String configAsString = meta.get(MVMap.getMapKey(id));
                 HashMap<String, Object> config;
                 if (configAsString != null) {
-                    config = new HashMap<String, Object>(DataUtils.parseMap(configAsString));
+                    config = new HashMap<>(DataUtils.parseMap(configAsString));
                 } else {
                     config = new HashMap<>();
                 }

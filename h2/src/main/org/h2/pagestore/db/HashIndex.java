@@ -52,7 +52,7 @@ public class HashIndex extends BaseIndex {
     }
 
     private void reset() {
-        rows = totalOrdering ? new HashMap<Value, Long>() : new TreeMap<Value, Long>(database.getCompareMode());
+        rows = totalOrdering ? new HashMap<>() : new TreeMap<>(database.getCompareMode());
     }
 
     @Override

@@ -2828,7 +2828,7 @@ public class Database implements DataHandler, CastDataProvider {
      * @return the hash map
      */
     public <V> HashMap<String, V> newStringMap() {
-        return dbSettings.caseInsensitiveIdentifiers ? new CaseInsensitiveMap<V>() : new HashMap<String, V>();
+        return dbSettings.caseInsensitiveIdentifiers ? new CaseInsensitiveMap<>() : new HashMap<>();
     }
 
     /**
@@ -2839,8 +2839,8 @@ public class Database implements DataHandler, CastDataProvider {
      * @return the hash map
      */
     public <V> ConcurrentHashMap<String, V> newConcurrentStringMap() {
-        return dbSettings.caseInsensitiveIdentifiers ? new CaseInsensitiveConcurrentMap<V>()
-                : new ConcurrentHashMap<String, V>();
+        return dbSettings.caseInsensitiveIdentifiers ? new CaseInsensitiveConcurrentMap<>()
+                : new ConcurrentHashMap<>();
     }
 
     /**

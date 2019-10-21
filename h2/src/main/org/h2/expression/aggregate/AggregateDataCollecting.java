@@ -51,7 +51,7 @@ class AggregateDataCollecting extends AggregateData implements Iterable<Value> {
         }
         Collection<Value> c = values;
         if (c == null) {
-            values = c = distinct ? new TreeSet<>(database.getCompareMode()) : new ArrayList<Value>();
+            values = c = distinct ? new TreeSet<>(database.getCompareMode()) : new ArrayList<>();
         }
         c.add(v);
     }

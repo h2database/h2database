@@ -25,6 +25,15 @@ import java.sql.SQLXML;
 import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.time.Period;
+import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -41,7 +50,6 @@ import org.h2.result.ResultInterface;
 import org.h2.result.UpdatableRow;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
-import org.h2.util.JSR310;
 import org.h2.util.JSR310Utils;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
@@ -3922,23 +3930,23 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             return (T) new Interval(v.getQualifier(), false, v.getLeading(), v.getRemaining());
         } else if (DataType.isGeometryClass(type)) {
             return (T) value.convertTo(Value.GEOMETRY).getObject();
-        } else if (type == JSR310.LOCAL_DATE) {
+        } else if (type == LocalDate.class) {
             return (T) JSR310Utils.valueToLocalDate(value);
-        } else if (type == JSR310.LOCAL_TIME) {
+        } else if (type == LocalTime.class) {
             return (T) JSR310Utils.valueToLocalTime(value, conn);
-        } else if (type == JSR310.LOCAL_DATE_TIME) {
+        } else if (type == LocalDateTime.class) {
             return (T) JSR310Utils.valueToLocalDateTime(value, conn);
-        } else if (type == JSR310.INSTANT) {
+        } else if (type == Instant.class) {
             return (T) JSR310Utils.valueToInstant(value, conn);
-        } else if (type == JSR310.OFFSET_TIME) {
+        } else if (type == OffsetTime.class) {
             return (T) JSR310Utils.valueToOffsetTime(value, conn);
-        } else if (type == JSR310.OFFSET_DATE_TIME) {
+        } else if (type == OffsetDateTime.class) {
             return (T) JSR310Utils.valueToOffsetDateTime(value, conn);
-        } else if (type == JSR310.ZONED_DATE_TIME) {
+        } else if (type == ZonedDateTime.class) {
             return (T) JSR310Utils.valueToZonedDateTime(value, conn);
-        } else if (type == JSR310.PERIOD) {
+        } else if (type == Period.class) {
             return (T) JSR310Utils.valueToPeriod(value);
-        } else if (type == JSR310.DURATION) {
+        } else if (type == Duration.class) {
             return (T) JSR310Utils.valueToDuration(value);
         } else {
             throw unsupported(type.getName());

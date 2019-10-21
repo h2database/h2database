@@ -5,12 +5,6 @@
  */
 package org.h2.util;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.TimeZone;
-import java.util.concurrent.atomic.AtomicReference;
-
 /**
  * Provides access to time zone API.
  */
@@ -150,14 +144,7 @@ public abstract class TimeZoneProvider {
     }
 
     private static TimeZoneProvider ofId(String id, int index, int length) {
-        if (JSR310.PRESENT) {
-            return JSR310Utils.getTimeZoneProvider(id);
-        }
-        TimeZone tz = TimeZone.getTimeZone(id);
-        if (!tz.getID().startsWith(id)) {
-            throw new IllegalArgumentException(id + " (" + tz.getID() + "?)");
-        }
-        return new WithTimeZone7(TimeZone.getTimeZone(id));
+        return JSR310Utils.getTimeZoneProvider(id);
     }
 
     /**
@@ -166,10 +153,7 @@ public abstract class TimeZoneProvider {
      * @return the time zone provider for the system default time zone
      */
     public static TimeZoneProvider getDefault() {
-        if (JSR310.PRESENT) {
-            return JSR310Utils.getDefaultTimeZoneProvider();
-        }
-        return new WithTimeZone7(TimeZone.getDefault());
+        return JSR310Utils.getDefaultTimeZoneProvider();
     }
 
     /**
@@ -352,138 +336,6 @@ public abstract class TimeZoneProvider {
          * @return the epoch seconds
          */
         abstract long getEpochSecondsFromLocal(int year, int month, int day, int hour, int minute, int second);
-
-    }
-
-    private static final class WithTimeZone7 extends WithTimeZone {
-
-        private static final long EPOCH_SECONDS_HIGH = 730_000 * SECONDS_PER_PERIOD;
-
-        private static final long EPOCH_SECONDS_LOW = -3 * SECONDS_PER_PERIOD;
-
-        private final AtomicReference<GregorianCalendar> cachedCalendar = new AtomicReference<>();
-
-        private final TimeZone timeZone;
-
-        WithTimeZone7(TimeZone timeZone) {
-            this.timeZone = timeZone;
-        }
-
-        @Override
-        public int getTimeZoneOffsetUTC(long epochSeconds) {
-            return timeZone.getOffset(epochSecondsForCalendar(epochSeconds) * 1_000) / 1_000;
-        }
-
-        @Override
-        int getTimeZoneOffsetLocal(int year, int month, int day, int hour, int minute, int second) {
-            year = yearForCalendar(year);
-            GregorianCalendar c = cachedCalendar.getAndSet(null);
-            if (c == null) {
-                c = createCalendar();
-            }
-            c.clear();
-            c.set(Calendar.ERA, GregorianCalendar.AD);
-            c.set(Calendar.YEAR, year);
-            c.set(Calendar.MONTH, /* January is 0 */ month - 1);
-            c.set(Calendar.DAY_OF_MONTH, day);
-            c.set(Calendar.HOUR_OF_DAY, hour);
-            c.set(Calendar.MINUTE, minute);
-            c.set(Calendar.SECOND, second);
-            c.set(Calendar.MILLISECOND, 0);
-            int offset = c.get(Calendar.ZONE_OFFSET) + c.get(Calendar.DST_OFFSET);
-            cachedCalendar.compareAndSet(null, c);
-            return offset / 1_000;
-        }
-
-        @Override
-        long getEpochSecondsFromLocal(int year, int month, int day, int hour, int minute, int second) {
-            int yearForCalendar = yearForCalendar(year);
-            GregorianCalendar c = cachedCalendar.getAndSet(null);
-            if (c == null) {
-                c = createCalendar();
-            }
-            c.clear();
-            c.set(Calendar.ERA, GregorianCalendar.AD);
-            c.set(Calendar.YEAR, yearForCalendar);
-            c.set(Calendar.MONTH, /* January is 0 */ month - 1);
-            c.set(Calendar.DAY_OF_MONTH, day);
-            c.set(Calendar.HOUR_OF_DAY, hour);
-            c.set(Calendar.MINUTE, minute);
-            c.set(Calendar.SECOND, second);
-            c.set(Calendar.MILLISECOND, 0);
-            long epoch = c.getTimeInMillis();
-            cachedCalendar.compareAndSet(null, c);
-            return epoch / 1_000 + (year - yearForCalendar) * SECONDS_PER_YEAR;
-        }
-
-        private GregorianCalendar createCalendar() {
-            GregorianCalendar c = new GregorianCalendar(timeZone);
-            c.setGregorianChange(DateTimeUtils.PROLEPTIC_GREGORIAN_CHANGE);
-            return c;
-        }
-
-        @Override
-        public String getId() {
-            return timeZone.getID();
-        }
-
-        @Override
-        public String getShortId(long epochSeconds) {
-            return timeZone.getDisplayName(
-                    timeZone.inDaylightTime(new Date(epochSecondsForCalendar(epochSeconds) * 1_000)), TimeZone.SHORT);
-        }
-
-        /**
-         * Returns a year within the range 1..292,000,399 for the given year.
-         * Too large and too small years are replaced with years within the
-         * range using the 400 years period of the Gregorian calendar.
-         *
-         * java.util.* datetime API doesn't support too large and too small
-         * years. Years before 1 need special handing, and very old years also
-         * expose bugs in java.util.GregorianCalendar.
-         *
-         * Because we need them only to calculate a time zone offset, it's safe
-         * to normalize them to such range. There are no transitions before the
-         * year 1, and large years can have only the periodic transition rules.
-         *
-         * @param year
-         *            the year
-         * @return the specified year or the replacement year within the range
-         */
-        private static int yearForCalendar(int year) {
-            if (year > 292_000_000) {
-                year = year % 400 + 292_000_000;
-            } else if (year <= 0) {
-                year = year % 400 + 400;
-            }
-            return year;
-        }
-
-        /**
-         * Returns EPOCH seconds within the range
-         * -50,491,123,199..9,214,642,606,780,799
-         * (0370-01-01T00:00:01Z..+292002369-12-31T23:59:59Z). Too large and too
-         * small EPOCH seconds are replaced with EPOCH seconds within the range
-         * using the 400 years period of the Gregorian calendar.
-         *
-         * @param epochSeconds
-         *            the EPOCH seconds
-         * @return the specified or the replacement EPOCH seconds within the
-         *         range
-         */
-        private static long epochSecondsForCalendar(long epochSeconds) {
-            if (epochSeconds > EPOCH_SECONDS_HIGH) {
-                epochSeconds = epochSeconds % SECONDS_PER_PERIOD + EPOCH_SECONDS_HIGH;
-            } else if (epochSeconds < EPOCH_SECONDS_LOW) {
-                epochSeconds = epochSeconds % SECONDS_PER_PERIOD + EPOCH_SECONDS_LOW;
-            }
-            return epochSeconds;
-        }
-
-        @Override
-        public String toString() {
-            return "TimeZoneProvider " + timeZone.getID();
-        }
 
     }
 

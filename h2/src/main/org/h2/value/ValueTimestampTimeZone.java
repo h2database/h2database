@@ -16,7 +16,6 @@ import org.h2.engine.CastDataProvider;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.JSR310;
 import org.h2.util.JSR310Utils;
 
 /**
@@ -265,7 +264,7 @@ public class ValueTimestampTimeZone extends Value {
 
     @Override
     public Object getObject() {
-        if (SysProperties.RETURN_OFFSET_DATE_TIME && JSR310.PRESENT) {
+        if (SysProperties.RETURN_OFFSET_DATE_TIME) {
             return JSR310Utils.valueToOffsetDateTime(this, null);
         }
         return new TimestampWithTimeZone(dateValue, timeNanos, timeZoneOffsetSeconds);
@@ -273,14 +272,12 @@ public class ValueTimestampTimeZone extends Value {
 
     @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        if (JSR310.PRESENT) {
-            try {
-                prep.setObject(parameterIndex, JSR310Utils.valueToOffsetDateTime(this, null),
-                        Types.TIMESTAMP_WITH_TIMEZONE);
-                return;
-            } catch (SQLException ignore) {
-                // Nothing to do
-            }
+        try {
+            prep.setObject(parameterIndex, JSR310Utils.valueToOffsetDateTime(this, null),
+                    Types.TIMESTAMP_WITH_TIMEZONE);
+            return;
+        } catch (SQLException ignore) {
+            // Nothing to do
         }
         prep.setString(parameterIndex, getString());
     }

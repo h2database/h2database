@@ -33,7 +33,6 @@ import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.tools.Server;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.JSR310;
 
 /**
  * Tests the PostgreSQL server protocol compliant implementation.
@@ -480,15 +479,13 @@ public class TestPgServer extends TestDb {
             return;
         }
         TimeZone old = TimeZone.getDefault();
-        if (JSR310.PRESENT) {
-            /*
-             * java.util.TimeZone doesn't support LMT, so perform this test with
-             * fixed time zone offset
-             */
-            TimeZone.setDefault(TimeZone.getTimeZone("GMT+01"));
-            DateTimeUtils.resetCalendar();
-            Data.resetCalendar();
-        }
+        /*
+         * java.util.TimeZone doesn't support LMT, so perform this test with
+         * fixed time zone offset
+         */
+        TimeZone.setDefault(TimeZone.getTimeZone("GMT+01"));
+        DateTimeUtils.resetCalendar();
+        Data.resetCalendar();
         try {
             Server server = createPgServer(
                     "-ifNotExists", "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
@@ -543,11 +540,9 @@ public class TestPgServer extends TestDb {
                 server.stop();
             }
         } finally {
-            if (JSR310.PRESENT) {
-                TimeZone.setDefault(old);
-                DateTimeUtils.resetCalendar();
-                Data.resetCalendar();
-            }
+            TimeZone.setDefault(old);
+            DateTimeUtils.resetCalendar();
+            Data.resetCalendar();
         }
     }
 

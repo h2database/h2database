@@ -31,6 +31,15 @@ import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.time.Period;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
@@ -44,7 +53,6 @@ import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.util.IOUtils;
-import org.h2.util.JSR310;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 
@@ -1362,49 +1370,24 @@ public class TestResultSet extends TestDb {
         assertEquals("2002-02-02 02:02:02.0", ts.toString());
         rs.next();
 
-        if (JSR310.PRESENT) {
-            assertEquals("1800-01-01", rs.getObject("value",
-                            JSR310.LOCAL_DATE).toString());
-        } else {
-            assertEquals("1800-01-01", rs.getDate("value").toString());
-        }
+        assertEquals("1800-01-01", rs.getObject("value", LocalDate.class).toString());
         assertEquals("00:00:00", rs.getTime("value").toString());
-        if (JSR310.PRESENT) {
-            assertEquals("00:00", rs.getObject("value",
-                            JSR310.LOCAL_TIME).toString());
-        }
-        if (JSR310.PRESENT) {
-            assertEquals("1800-01-01T00:00", rs.getObject("value",
-                            JSR310.LOCAL_DATE_TIME).toString());
-        } else {
-            assertEquals("1800-01-01 00:00:00.0", rs.getTimestamp("value").toString());
-        }
+        assertEquals("00:00", rs.getObject("value", LocalTime.class).toString());
+        assertEquals("1800-01-01T00:00", rs.getObject("value", LocalDateTime.class).toString());
         rs.next();
 
         assertEquals("9999-12-31", rs.getDate("Value").toString());
-        if (JSR310.PRESENT) {
-            assertEquals("9999-12-31", rs.getObject("Value",
-                            JSR310.LOCAL_DATE).toString());
-        }
+        assertEquals("9999-12-31", rs.getObject("Value", LocalDate.class).toString());
         assertEquals("23:59:59", rs.getTime("Value").toString());
-        if (JSR310.PRESENT) {
-            assertEquals("23:59:59", rs.getObject("Value",
-                            JSR310.LOCAL_TIME).toString());
-        }
+        assertEquals("23:59:59", rs.getObject("Value", LocalTime.class).toString());
         assertEquals("9999-12-31 23:59:59.0", rs.getTimestamp("Value").toString());
-        if (JSR310.PRESENT) {
-            assertEquals("9999-12-31T23:59:59", rs.getObject("Value",
-                            JSR310.LOCAL_DATE_TIME).toString());
-        }
+        assertEquals("9999-12-31T23:59:59", rs.getObject("Value", LocalDateTime.class).toString());
         rs.next();
 
         assertTrue(rs.getDate("Value") == null && rs.wasNull());
         assertTrue(rs.getTime("vALUe") == null && rs.wasNull());
         assertTrue(rs.getTimestamp(2) == null && rs.wasNull());
-        if (JSR310.PRESENT) {
-            assertTrue(rs.getObject(2,
-                            JSR310.LOCAL_DATE_TIME) == null && rs.wasNull());
-        }
+        assertTrue(rs.getObject(2, LocalDateTime.class) == null && rs.wasNull());
         assertFalse(rs.next());
 
         rs = stat.executeQuery("SELECT DATE '2001-02-03' D, " +
@@ -1424,15 +1407,9 @@ public class TestResultSet extends TestDb {
         assertEquals("2001-02-03", date.toString());
         assertEquals("14:15:16", time.toString());
         assertEquals("2007-08-09 10:11:12.141516171", ts.toString());
-        if (JSR310.PRESENT) {
-            assertEquals("2001-02-03", rs.getObject(1,
-                            JSR310.LOCAL_DATE).toString());
-            assertEquals("14:15:16", rs.getObject(2,
-                            JSR310.LOCAL_TIME).toString());
-            assertEquals("2007-08-09T10:11:12.141516171",
-                    rs.getObject(3, JSR310.LOCAL_DATE_TIME)
-                            .toString());
-        }
+        assertEquals("2001-02-03", rs.getObject(1, LocalDate.class).toString());
+        assertEquals("14:15:16", rs.getObject(2, LocalTime.class).toString());
+        assertEquals("2007-08-09T10:11:12.141516171", rs.getObject(3, LocalDateTime.class).toString());
 
         stat.execute("DROP TABLE TEST");
 
@@ -1443,54 +1420,43 @@ public class TestResultSet extends TestDb {
         rs.next();
         assertEquals(rs.getTimestamp(1), rs.getTimestamp(2));
 
-        if (JSR310.PRESENT) {
-            rs = stat.executeQuery("SELECT DATE '-1000000000-01-01', " + "DATE '1000000000-12-31'");
-            rs.next();
-            assertEquals("-999999999-01-01", rs.getObject(1, JSR310.LOCAL_DATE).toString());
-            assertEquals("+999999999-12-31", rs.getObject(2, JSR310.LOCAL_DATE).toString());
+        rs = stat.executeQuery("SELECT DATE '-1000000000-01-01', " + "DATE '1000000000-12-31'");
+        rs.next();
+        assertEquals("-999999999-01-01", rs.getObject(1, LocalDate.class).toString());
+        assertEquals("+999999999-12-31", rs.getObject(2, LocalDate.class).toString());
 
-            rs = stat.executeQuery("SELECT TIMESTAMP '-1000000000-01-01 00:00:00', "
-                    + "TIMESTAMP '1000000000-12-31 23:59:59.999999999'");
-            rs.next();
-            assertEquals("-999999999-01-01T00:00", rs.getObject(1, JSR310.LOCAL_DATE_TIME).toString());
-            assertEquals("+999999999-12-31T23:59:59.999999999",
-                    rs.getObject(2, JSR310.LOCAL_DATE_TIME).toString());
+        rs = stat.executeQuery("SELECT TIMESTAMP '-1000000000-01-01 00:00:00', "
+                + "TIMESTAMP '1000000000-12-31 23:59:59.999999999'");
+        rs.next();
+        assertEquals("-999999999-01-01T00:00", rs.getObject(1, LocalDateTime.class).toString());
+        assertEquals("+999999999-12-31T23:59:59.999999999", rs.getObject(2, LocalDateTime.class).toString());
 
-            rs = stat.executeQuery("SELECT TIMESTAMP WITH TIME ZONE '-1000000000-01-01 00:00:00Z', "
-                    + "TIMESTAMP WITH TIME ZONE '1000000000-12-31 23:59:59.999999999Z', "
-                    + "TIMESTAMP WITH TIME ZONE '-1000000000-01-01 00:00:00+18', "
-                    + "TIMESTAMP WITH TIME ZONE '1000000000-12-31 23:59:59.999999999-18'");
-            rs.next();
-            assertEquals("-999999999-01-01T00:00Z", rs.getObject(1, JSR310.OFFSET_DATE_TIME).toString());
-            assertEquals("+999999999-12-31T23:59:59.999999999Z",
-                    rs.getObject(2, JSR310.OFFSET_DATE_TIME).toString());
-            assertEquals("-999999999-01-01T00:00+18:00",
-                    rs.getObject(3, JSR310.OFFSET_DATE_TIME).toString());
-            assertEquals("+999999999-12-31T23:59:59.999999999-18:00",
-                    rs.getObject(4, JSR310.OFFSET_DATE_TIME).toString());
-            assertEquals("-999999999-01-01T00:00Z", rs.getObject(1, JSR310.ZONED_DATE_TIME).toString());
-            assertEquals("+999999999-12-31T23:59:59.999999999Z",
-                    rs.getObject(2, JSR310.ZONED_DATE_TIME).toString());
-            assertEquals("-999999999-01-01T00:00+18:00",
-                    rs.getObject(3, JSR310.ZONED_DATE_TIME).toString());
-            assertEquals("+999999999-12-31T23:59:59.999999999-18:00",
-                    rs.getObject(4, JSR310.ZONED_DATE_TIME).toString());
-            assertEquals("-1000000000-01-01T00:00:00Z", rs.getObject(1, JSR310.INSTANT).toString());
-            assertEquals("+1000000000-12-31T23:59:59.999999999Z",
-                    rs.getObject(2, JSR310.INSTANT).toString());
-            assertEquals("-1000000000-01-01T00:00:00Z", rs.getObject(3, JSR310.INSTANT).toString());
-            assertEquals("+1000000000-12-31T23:59:59.999999999Z",
-                    rs.getObject(4, JSR310.INSTANT).toString());
+        rs = stat.executeQuery("SELECT TIMESTAMP WITH TIME ZONE '-1000000000-01-01 00:00:00Z', "
+                + "TIMESTAMP WITH TIME ZONE '1000000000-12-31 23:59:59.999999999Z', "
+                + "TIMESTAMP WITH TIME ZONE '-1000000000-01-01 00:00:00+18', "
+                + "TIMESTAMP WITH TIME ZONE '1000000000-12-31 23:59:59.999999999-18'");
+        rs.next();
+        assertEquals("-999999999-01-01T00:00Z", rs.getObject(1, OffsetDateTime.class).toString());
+        assertEquals("+999999999-12-31T23:59:59.999999999Z", rs.getObject(2, OffsetDateTime.class).toString());
+        assertEquals("-999999999-01-01T00:00+18:00", rs.getObject(3, OffsetDateTime.class).toString());
+        assertEquals("+999999999-12-31T23:59:59.999999999-18:00", rs.getObject(4, OffsetDateTime.class).toString());
+        assertEquals("-999999999-01-01T00:00Z", rs.getObject(1, ZonedDateTime.class).toString());
+        assertEquals("+999999999-12-31T23:59:59.999999999Z", rs.getObject(2, ZonedDateTime.class).toString());
+        assertEquals("-999999999-01-01T00:00+18:00", rs.getObject(3, ZonedDateTime.class).toString());
+        assertEquals("+999999999-12-31T23:59:59.999999999-18:00", rs.getObject(4, ZonedDateTime.class).toString());
+        assertEquals("-1000000000-01-01T00:00:00Z", rs.getObject(1, Instant.class).toString());
+        assertEquals("+1000000000-12-31T23:59:59.999999999Z", rs.getObject(2, Instant.class).toString());
+        assertEquals("-1000000000-01-01T00:00:00Z", rs.getObject(3, Instant.class).toString());
+        assertEquals("+1000000000-12-31T23:59:59.999999999Z", rs.getObject(4, Instant.class).toString());
 
-            rs = stat.executeQuery("SELECT LOCALTIME, CURRENT_TIME");
-            rs.next();
-            assertEquals(rs.getObject(1, JSR310.LOCAL_TIME), rs.getObject(2, JSR310.LOCAL_TIME));
-            assertEquals(rs.getObject(1, JSR310.OFFSET_TIME), rs.getObject(2, JSR310.OFFSET_TIME));
-            rs = stat.executeQuery("SELECT LOCALTIMESTAMP, CURRENT_TIMESTAMP");
-            rs.next();
-            assertEquals(rs.getObject(1, JSR310.LOCAL_DATE_TIME), rs.getObject(2, JSR310.LOCAL_DATE_TIME));
-            assertEquals(rs.getObject(1, JSR310.OFFSET_DATE_TIME), rs.getObject(2, JSR310.OFFSET_DATE_TIME));
-        }
+        rs = stat.executeQuery("SELECT LOCALTIME, CURRENT_TIME");
+        rs.next();
+        assertEquals(rs.getObject(1, LocalTime.class), rs.getObject(2, LocalTime.class));
+        assertEquals(rs.getObject(1, OffsetTime.class), rs.getObject(2, OffsetTime.class));
+        rs = stat.executeQuery("SELECT LOCALTIMESTAMP, CURRENT_TIMESTAMP");
+        rs.next();
+        assertEquals(rs.getObject(1, LocalDateTime.class), rs.getObject(2, LocalDateTime.class));
+        assertEquals(rs.getObject(1, OffsetDateTime.class), rs.getObject(2, OffsetDateTime.class));
     }
 
     private void testDatetimeWithCalendar() throws SQLException {
@@ -1639,36 +1605,20 @@ public class TestResultSet extends TestDb {
     }
 
     private void testInterval8() throws SQLException {
-        if (!JSR310.PRESENT) {
-            return;
-        }
         trace("Test INTERVAL 8");
         ResultSet rs;
-        Object expected;
 
         rs = stat.executeQuery("CALL INTERVAL '1-2' YEAR TO MONTH");
         rs.next();
         assertEquals("INTERVAL '1-2' YEAR TO MONTH", rs.getString(1));
-        try {
-            expected = JSR310.PERIOD.getMethod("of", int.class, int.class, int.class)
-                    .invoke(null, 1, 2, 0);
-        } catch (ReflectiveOperationException ex) {
-            throw new RuntimeException(ex);
-        }
-        assertEquals(expected, rs.getObject(1, JSR310.PERIOD));
-        assertThrows(ErrorCode.DATA_CONVERSION_ERROR_1, rs).getObject(1, JSR310.DURATION);
+        assertEquals(Period.of(1, 2, 0), rs.getObject(1, Period.class));
+        assertThrows(ErrorCode.DATA_CONVERSION_ERROR_1, rs).getObject(1, Duration.class);
 
         rs = stat.executeQuery("CALL INTERVAL '-3.1' SECOND");
         rs.next();
         assertEquals("INTERVAL '-3.1' SECOND", rs.getString(1));
-        try {
-            expected = JSR310.DURATION.getMethod("ofSeconds", long.class, long.class)
-                    .invoke(null, -4, 900_000_000);
-        } catch (ReflectiveOperationException ex) {
-            throw new RuntimeException(ex);
-        }
-        assertEquals(expected, rs.getObject(1, JSR310.DURATION));
-        assertThrows(ErrorCode.DATA_CONVERSION_ERROR_1, rs).getObject(1, JSR310.PERIOD);
+        assertEquals(Duration.ofSeconds(-4, 900_000_000), rs.getObject(1, Duration.class));
+        assertThrows(ErrorCode.DATA_CONVERSION_ERROR_1, rs).getObject(1, Period.class);
     }
 
     private void testBlob() throws SQLException {

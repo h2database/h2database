@@ -359,11 +359,6 @@ public class SysProperties {
      * If {@code false} return them as {@code org.h2.api.TimestampWithTimeZone}
      * instead.
      * </p>
-     * <p>
-     * This property has effect only on Java 8 / Android API 26 and later
-     * versions. Without JSR-310 {@code org.h2.api.TimestampWithTimeZone} is
-     * used unconditionally.
-     * </p>
      */
     public static final boolean RETURN_OFFSET_DATE_TIME = Utils.getProperty("h2.returnOffsetDateTime", PREVIEW);
 

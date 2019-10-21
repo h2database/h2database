@@ -27,7 +27,6 @@ import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.JSR310;
 
 /**
  * Updatable result set tests.
@@ -317,7 +316,7 @@ public class TestUpdatableResultSet extends TestDb {
         assertEquals("java.sql.Date", meta.getColumnClassName(++c));
         assertEquals("java.sql.Time", meta.getColumnClassName(++c));
         assertEquals("java.sql.Timestamp", meta.getColumnClassName(++c));
-        assertEquals(SysProperties.RETURN_OFFSET_DATE_TIME && JSR310.PRESENT //
+        assertEquals(SysProperties.RETURN_OFFSET_DATE_TIME //
                 ? "java.time.OffsetDateTime" : "org.h2.api.TimestampWithTimeZone", //
                 meta.getColumnClassName(++c));
         assertEquals("java.lang.Double", meta.getColumnClassName(++c));
@@ -517,7 +516,7 @@ public class TestUpdatableResultSet extends TestDb {
         assertEquals("2005-09-21", rs.getDate(++c).toString());
         assertEquals("21:46:28", rs.getTime(++c).toString());
         assertEquals("2005-09-21 21:47:09.567890123", rs.getTimestamp(++c).toString());
-        assertEquals(SysProperties.RETURN_OFFSET_DATE_TIME && JSR310.PRESENT //
+        assertEquals(SysProperties.RETURN_OFFSET_DATE_TIME //
                 ? "2005-09-21T22:33:09.123456789+01:00" : "2005-09-21 22:33:09.123456789+01", //
                 rs.getObject(++c).toString());
         assertTrue(rs.getDouble(++c) == 1.725);
@@ -568,7 +567,7 @@ public class TestUpdatableResultSet extends TestDb {
         assertEquals("2005-09-22", rs.getDate(++c).toString());
         assertEquals("21:46:29", rs.getTime(++c).toString());
         assertEquals("2005-09-21 21:47:10.111222333", rs.getTimestamp(++c).toString());
-        assertEquals(SysProperties.RETURN_OFFSET_DATE_TIME && JSR310.PRESENT //
+        assertEquals(SysProperties.RETURN_OFFSET_DATE_TIME //
                 ? "2005-09-22T00:00:10.111222333+02:00" : "2005-09-22 00:00:10.111222333+02", //
                 rs.getObject(++c).toString());
         assertTrue(rs.getDouble(++c) == 2.25);

@@ -37,7 +37,6 @@ import java.util.UUID;
 import org.h2.api.ErrorCode;
 import org.h2.api.Interval;
 import org.h2.api.IntervalQualifier;
-import org.h2.api.TimestampWithTimeZone;
 import org.h2.engine.Mode;
 import org.h2.engine.SessionInterface;
 import org.h2.engine.SysProperties;
@@ -653,8 +652,6 @@ public class DataType {
                     v = ValueNull.INSTANCE;
                 } else if (obj instanceof ZonedDateTime) {
                     v = JSR310Utils.zonedDateTimeToValue(obj);
-                } else if (obj instanceof TimestampWithTimeZone) {
-                    v = ValueTimestampTimeZone.get((TimestampWithTimeZone) obj);
                 } else {
                     v = ValueTimestampTimeZone.parse(obj.toString());
                 }
@@ -890,12 +887,8 @@ public class DataType {
             // "java.sql.Timestamp";
             return Timestamp.class.getName();
         case Value.TIMESTAMP_TZ:
-            if (SysProperties.RETURN_OFFSET_DATE_TIME) {
-                // "java.time.OffsetDateTime";
-                return OffsetDateTime.class.getName();
-            }
-            // "org.h2.api.TimestampWithTimeZone";
-            return TimestampWithTimeZone.class.getName();
+            // "java.time.OffsetDateTime";
+            return OffsetDateTime.class.getName();
         case Value.BYTES:
         case Value.UUID:
         case Value.JSON:
@@ -1319,8 +1312,6 @@ public class DataType {
             return JSR310Utils.offsetDateTimeToValue(x);
         } else if (clazz == ZonedDateTime.class) {
             return JSR310Utils.zonedDateTimeToValue(x);
-        } else if (x instanceof TimestampWithTimeZone) {
-            return ValueTimestampTimeZone.get((TimestampWithTimeZone) x);
         } else if (x instanceof Interval) {
             Interval i = (Interval) x;
             return ValueInterval.from(i.getQualifier(), i.isNegative(), i.getLeading(), i.getRemaining());

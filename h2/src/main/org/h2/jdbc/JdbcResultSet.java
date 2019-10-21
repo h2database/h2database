@@ -41,7 +41,6 @@ import java.util.Map;
 import java.util.UUID;
 import org.h2.api.ErrorCode;
 import org.h2.api.Interval;
-import org.h2.api.TimestampWithTimeZone;
 import org.h2.command.CommandInterface;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
@@ -71,7 +70,6 @@ import org.h2.value.ValueShort;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
-import org.h2.value.ValueTimestampTimeZone;
 
 /**
  * <p>
@@ -3919,9 +3917,6 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             int id = getNextId(TraceObject.RESULT_SET);
             return (T) new JdbcResultSet(conn, null, null,
                     ((ValueResultSet) value.convertTo(Value.RESULT_SET)).getResult(), id, false, true, false);
-        } else if (type == TimestampWithTimeZone.class) {
-            ValueTimestampTimeZone v = (ValueTimestampTimeZone) value.convertTo(Value.TIMESTAMP_TZ, conn, false);
-            return (T) new TimestampWithTimeZone(v.getDateValue(), v.getTimeNanos(), v.getTimeZoneOffsetSeconds());
         } else if (type == Interval.class) {
             if (!(value instanceof ValueInterval)) {
                 value = value.convertTo(Value.INTERVAL_DAY_TO_SECOND);

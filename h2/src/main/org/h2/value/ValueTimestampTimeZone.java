@@ -11,9 +11,7 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.TimeZone;
 import org.h2.api.ErrorCode;
-import org.h2.api.TimestampWithTimeZone;
 import org.h2.engine.CastDataProvider;
-import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.JSR310Utils;
@@ -89,18 +87,6 @@ public class ValueTimestampTimeZone extends Value {
             int timeZoneOffsetSeconds) {
         return (ValueTimestampTimeZone) Value.cache(new ValueTimestampTimeZone(
                 dateValue, timeNanos, timeZoneOffsetSeconds));
-    }
-
-    /**
-     * Get or create a timestamp value for the given timestamp.
-     *
-     * @param timestamp the timestamp
-     * @return the value
-     */
-    public static ValueTimestampTimeZone get(TimestampWithTimeZone timestamp) {
-        return fromDateValueAndNanos(timestamp.getYMD(),
-                timestamp.getNanosSinceMidnight(),
-                timestamp.getTimeZoneOffsetSeconds());
     }
 
     /**
@@ -264,10 +250,7 @@ public class ValueTimestampTimeZone extends Value {
 
     @Override
     public Object getObject() {
-        if (SysProperties.RETURN_OFFSET_DATE_TIME) {
-            return JSR310Utils.valueToOffsetDateTime(this, null);
-        }
-        return new TimestampWithTimeZone(dateValue, timeNanos, timeZoneOffsetSeconds);
+        return JSR310Utils.valueToOffsetDateTime(this, null);
     }
 
     @Override

@@ -1868,10 +1868,13 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             return;
         }
         addTableToDependencies(table, maps);
-        for (Constraint constraint : table.getConstraints()) {
-            Table ref = constraint.getTable();
-            if (ref != table && ref instanceof MVTable) {
-                addTableToDependencies((MVTable) ref, maps, processed);
+        ArrayList<Constraint> constraints = table.getConstraints();
+        if (constraints != null) {
+            for (Constraint constraint : constraints) {
+                Table ref = constraint.getTable();
+                if (ref != table && ref instanceof MVTable) {
+                    addTableToDependencies((MVTable) ref, maps, processed);
+                }
             }
         }
     }

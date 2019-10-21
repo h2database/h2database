@@ -186,9 +186,6 @@
         </includes>
       </resource>
       <resource>
-        <directory>src/java8/precompiled</directory>
-      </resource>
-      <resource>
         <directory>src/java9/precompiled</directory>
         <targetPath>META-INF/versions/9</targetPath>
       </resource>

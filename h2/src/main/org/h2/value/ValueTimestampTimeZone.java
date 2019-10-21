@@ -8,6 +8,7 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.api.TimestampWithTimeZone;
@@ -275,8 +276,7 @@ public class ValueTimestampTimeZone extends Value {
         if (JSR310.PRESENT) {
             try {
                 prep.setObject(parameterIndex, JSR310Utils.valueToOffsetDateTime(this, null),
-                        // TODO use Types.TIMESTAMP_WITH_TIMEZONE on Java 8
-                        2014);
+                        Types.TIMESTAMP_WITH_TIMEZONE);
                 return;
             } catch (SQLException ignore) {
                 // Nothing to do

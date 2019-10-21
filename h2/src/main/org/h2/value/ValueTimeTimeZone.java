@@ -7,6 +7,7 @@ package org.h2.value;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Types;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
@@ -197,9 +198,7 @@ public class ValueTimeTimeZone extends Value {
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
         if (JSR310.PRESENT) {
             try {
-                prep.setObject(parameterIndex, JSR310Utils.valueToOffsetTime(this, null),
-                        // TODO use Types.TIME_WITH_TIMEZONE on Java 8
-                        2013);
+                prep.setObject(parameterIndex, JSR310Utils.valueToOffsetTime(this, null), Types.TIME_WITH_TIMEZONE);
                 return;
             } catch (SQLException ignore) {
                 // Nothing to do

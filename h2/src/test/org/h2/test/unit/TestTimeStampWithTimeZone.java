@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.TimeZone;
 
 import org.h2.api.TimestampWithTimeZone;
@@ -125,12 +126,7 @@ public class TestTimeStampWithTimeZone extends TestDb {
 
         ResultSetMetaData metaData = rs.getMetaData();
         int columnType = metaData.getColumnType(1);
-        // 2014 is the value of Types.TIMESTAMP_WITH_TIMEZONE
-        // use the value instead of the reference because the code has to
-        // compile (on Java 1.7). Can be replaced with
-        // Types.TIMESTAMP_WITH_TIMEZONE
-        // once Java 1.8 is required.
-        assertEquals(2014, columnType);
+        assertEquals(Types.TIMESTAMP_WITH_TIMEZONE, columnType);
         if (SysProperties.RETURN_OFFSET_DATE_TIME && JSR310.PRESENT) {
             assertEquals("java.time.OffsetDateTime", metaData.getColumnClassName(1));
         } else {

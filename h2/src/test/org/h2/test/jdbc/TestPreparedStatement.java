@@ -890,7 +890,7 @@ public class TestPreparedStatement extends TestDb {
         assertFalse(rs.next());
         rs.close();
 
-        prep.setObject(1, offsetTime, 2013); // Types.TIME_WITH_TIMEZONE
+        prep.setObject(1, offsetTime, Types.TIME_WITH_TIMEZONE);
         rs = prep.executeQuery();
         rs.next();
         offsetTime2 = rs.getObject(1, JSR310.OFFSET_TIME);
@@ -927,7 +927,7 @@ public class TestPreparedStatement extends TestDb {
         assertFalse(rs.next());
         rs.close();
 
-        prep.setObject(1, offsetDateTime, 2014); // Types.TIMESTAMP_WITH_TIMEZONE
+        prep.setObject(1, offsetDateTime, Types.TIMESTAMP_WITH_TIMEZONE);
         rs = prep.executeQuery();
         rs.next();
         offsetDateTime2 = rs.getObject(1, JSR310.OFFSET_DATE_TIME);
@@ -952,7 +952,7 @@ public class TestPreparedStatement extends TestDb {
         assertFalse(rs.next());
         rs.close();
 
-        prep.setObject(1, zonedDateTime, 2014); // Types.TIMESTAMP_WITH_TIMEZONE
+        prep.setObject(1, zonedDateTime, Types.TIMESTAMP_WITH_TIMEZONE);
         rs = prep.executeQuery();
         rs.next();
         zonedDateTime2 = rs.getObject(1, JSR310.ZONED_DATE_TIME);

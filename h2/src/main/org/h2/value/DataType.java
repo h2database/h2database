@@ -252,11 +252,7 @@ public class DataType {
                         "TIME", true, ValueTime.DEFAULT_SCALE, ValueTime.MAXIMUM_SCALE),
                 new String[]{"TIME", "TIME WITHOUT TIME ZONE"}
         );
-        // 2013 is the value of Types.TIME_WITH_TIMEZONE
-        // use the value instead of the reference because the code has to
-        // compile (on Java 1.7). Can be replaced with
-        // Types.TIME_WITH_TIMEZONE once Java 1.8 is required.
-        add(Value.TIME_TZ, 2013,
+        add(Value.TIME_TZ, Types.TIME_WITH_TIMEZONE,
                 createDate(ValueTimeTimeZone.MAXIMUM_PRECISION, ValueTimeTimeZone.DEFAULT_PRECISION,
                         "TIME WITH TIME ZONE", true, ValueTime.DEFAULT_SCALE,
                         ValueTime.MAXIMUM_SCALE),
@@ -273,11 +269,7 @@ public class DataType {
                 new String[]{"TIMESTAMP", "TIMESTAMP WITHOUT TIME ZONE",
                         "DATETIME", "DATETIME2", "SMALLDATETIME"}
         );
-        // 2014 is the value of Types.TIMESTAMP_WITH_TIMEZONE
-        // use the value instead of the reference because the code has to
-        // compile (on Java 1.7). Can be replaced with
-        // Types.TIMESTAMP_WITH_TIMEZONE once Java 1.8 is required.
-        add(Value.TIMESTAMP_TZ, 2014,
+        add(Value.TIMESTAMP_TZ, Types.TIMESTAMP_WITH_TIMEZONE,
                 createDate(ValueTimestampTimeZone.MAXIMUM_PRECISION, ValueTimestampTimeZone.DEFAULT_PRECISION,
                         "TIMESTAMP WITH TIME ZONE", true, ValueTimestamp.DEFAULT_SCALE,
                         ValueTimestamp.MAXIMUM_SCALE),
@@ -1095,9 +1087,9 @@ public class DataType {
             return Value.TIME;
         case Types.TIMESTAMP:
             return Value.TIMESTAMP;
-        case 2013: // Types.TIME_WITH_TIMEZONE
+        case Types.TIME_WITH_TIMEZONE:
             return Value.TIME_TZ;
-        case 2014: // Types.TIMESTAMP_WITH_TIMEZONE
+        case Types.TIMESTAMP_WITH_TIMEZONE:
             return Value.TIMESTAMP_TZ;
         case Types.BLOB:
             return Value.BLOB;

@@ -207,11 +207,6 @@ public abstract class RegularTable extends TableBase {
     }
 
     @Override
-    public void checkRename() {
-        // ok
-    }
-
-    @Override
     public void checkSupportAlter() {
         // ok
     }

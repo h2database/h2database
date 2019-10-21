@@ -743,11 +743,6 @@ public class TransactionStore {
                 return result;
             }
 
-            @Override
-            public void remove() {
-                throw DataUtils.newUnsupportedOperationException("remove");
-            }
-
         };
     }
 

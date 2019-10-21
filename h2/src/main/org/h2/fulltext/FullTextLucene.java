@@ -585,14 +585,6 @@ public class FullTextLucene extends FullText {
         }
 
         /**
-         * INTERNAL
-         */
-        @Override
-        public void remove() {
-            // ignore
-        }
-
-        /**
          * Commit all changes to the Lucene index.
          */
         void commitIndex() throws SQLException {

@@ -143,11 +143,6 @@ public class MVDelegateIndex extends BaseIndex implements MVIndex {
     }
 
     @Override
-    public void checkRename() {
-        // ok
-    }
-
-    @Override
     public long getRowCount(Session session) {
         return mainIndex.getRowCount(session);
     }

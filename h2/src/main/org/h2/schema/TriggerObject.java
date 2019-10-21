@@ -334,11 +334,6 @@ public class TriggerObject extends SchemaObjectBase {
     }
 
     @Override
-    public String getDropSQL() {
-        return null;
-    }
-
-    @Override
     public String getCreateSQLForCopy(Table targetTable, String quotedName) {
         StringBuilder builder = new StringBuilder("CREATE FORCE TRIGGER ");
         builder.append(quotedName);
@@ -437,11 +432,6 @@ public class TriggerObject extends SchemaObjectBase {
         triggerSource = null;
         triggerCallback = null;
         invalidate();
-    }
-
-    @Override
-    public void checkRename() {
-        // nothing to do
     }
 
     /**

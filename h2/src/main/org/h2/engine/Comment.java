@@ -62,11 +62,6 @@ public class Comment extends DbObjectBase {
     }
 
     @Override
-    public String getDropSQL() {
-        return null;
-    }
-
-    @Override
     public String getCreateSQL() {
         StringBuilder buff = new StringBuilder("COMMENT ON ");
         buff.append(getTypeName(objectType)).append(' ').

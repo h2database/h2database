@@ -50,11 +50,6 @@ public class SequenceMap extends MVMap<Long, Long> {
                         return Long.valueOf(x++);
                     }
 
-                    @Override
-                    public void remove() {
-                        throw new UnsupportedOperationException();
-                    }
-
                 };
             }
 

@@ -54,11 +54,6 @@ public class Domain extends DbObjectBase {
         database.removeMeta(session, getId());
     }
 
-    @Override
-    public void checkRename() {
-        // ok
-    }
-
     public void setColumn(Column column) {
         this.column = column;
     }

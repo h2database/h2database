@@ -122,11 +122,6 @@ public class Right extends DbObjectBase {
     }
 
     @Override
-    public String getDropSQL() {
-        return null;
-    }
-
-    @Override
     public String getCreateSQLForCopy(Table table, String quotedName) {
         return getCreateSQLForCopy(table);
     }

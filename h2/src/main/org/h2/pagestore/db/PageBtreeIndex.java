@@ -287,11 +287,6 @@ public class PageBtreeIndex extends PageIndex {
         }
     }
 
-    @Override
-    public void checkRename() {
-        // ok
-    }
-
     /**
      * Get a row from the main index.
      *

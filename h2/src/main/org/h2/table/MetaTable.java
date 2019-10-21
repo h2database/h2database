@@ -666,11 +666,6 @@ public class MetaTable extends Table {
     }
 
     @Override
-    public String getDropSQL() {
-        return null;
-    }
-
-    @Override
     public String getCreateSQL() {
         return null;
     }

@@ -983,12 +983,6 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
             fetchNext();
             return result;
         }
-
-        @Override
-        public final void remove() {
-            throw DataUtils.newUnsupportedOperationException(
-                    "Removal is not supported");
-        }
     }
 
 }

@@ -85,11 +85,6 @@ public class User extends RightOwner {
         return getCreateSQL(true);
     }
 
-    @Override
-    public String getDropSQL() {
-        return null;
-    }
-
     /**
      * Checks that this user has the given rights for this database object.
      *
@@ -252,11 +247,6 @@ public class User extends RightOwner {
         Arrays.fill(passwordHash, (byte) 0);
         passwordHash = null;
         invalidate();
-    }
-
-    @Override
-    public void checkRename() {
-        // ok
     }
 
     /**

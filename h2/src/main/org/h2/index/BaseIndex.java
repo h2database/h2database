@@ -13,7 +13,6 @@ import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
-import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.schema.SchemaObjectBase;
@@ -79,11 +78,6 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         }
     }
 
-    @Override
-    public String getDropSQL() {
-        return null;
-    }
-
     /**
      * Create a duplicate key exception with a message that contains the index
      * name.
@@ -122,56 +116,10 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     }
 
     @Override
-    public String getPlanSQL() {
-        return getSQL(false);
-    }
-
-    @Override
     public void removeChildrenAndResources(Session session) {
         table.removeIndex(this);
         remove(session);
         database.removeMeta(session, getId());
-    }
-
-    @Override
-    public boolean canFindNext() {
-        return false;
-    }
-
-    @Override
-    public boolean isFindUsingFullTableScan() {
-        return false;
-    }
-
-    @Override
-    public Cursor find(TableFilter filter, SearchRow first, SearchRow last) {
-        return find(filter.getSession(), first, last);
-    }
-
-    /**
-     * Find a row or a list of rows that is larger and create a cursor to
-     * iterate over the result. The base implementation doesn't support this
-     * feature.
-     *
-     * @param session the session
-     * @param higherThan the lower limit (excluding)
-     * @param last the last row, or null for no limit
-     * @return the cursor
-     * @throws DbException always
-     */
-    @Override
-    public Cursor findNext(Session session, SearchRow higherThan, SearchRow last) {
-        throw DbException.throwInternalError(toString());
-    }
-
-    @Override
-    public boolean canGetFirstOrLast() {
-        return false;
-    }
-
-    @Override
-    public Cursor findFirstOrLast(Session session, boolean first) {
-        throw DbException.throwInternalError(toString());
     }
 
     /**
@@ -491,39 +439,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     }
 
     @Override
-    public Row getRow(Session session, long key) {
-        throw DbException.getUnsupportedException(toString());
-    }
-
-    @Override
     public boolean isHidden() {
         return table.isHidden();
-    }
-
-    @Override
-    public boolean isRowIdIndex() {
-        return false;
-    }
-
-    @Override
-    public boolean canScan() {
-        return true;
-    }
-
-    @Override
-    public void setSortedInsertMode(boolean sortedInsertMode) {
-        // ignore
-    }
-
-    @Override
-    public IndexLookupBatch createLookupBatch(TableFilter[] filters, int filter) {
-        // Lookup batching is not supported.
-        return null;
-    }
-
-    @Override
-    public void update(Session session, Row oldRow, Row newRow) {
-        remove(session, oldRow);
-        add(session, newRow);
     }
 }

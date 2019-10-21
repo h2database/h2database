@@ -342,11 +342,6 @@ public class Sequence extends SchemaObjectBase {
         invalidate();
     }
 
-    @Override
-    public void checkRename() {
-        // nothing to do
-    }
-
     public synchronized long getCurrentValue() {
         return value - increment;
     }

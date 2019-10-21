@@ -140,12 +140,6 @@ public class Cursor<K, V> implements Iterator<K> {
         }
     }
 
-    @Override
-    public void remove() {
-        throw DataUtils.newUnsupportedOperationException(
-                "Removal is not supported");
-    }
-
     /**
      * Fetch the next entry that is equal or larger than the given key, starting
      * from the given page. This method retains the stack.

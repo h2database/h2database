@@ -552,11 +552,6 @@ public class TableLink extends Table {
     }
 
     @Override
-    public void checkRename() {
-        // ok
-    }
-
-    @Override
     public void checkSupportAlter() {
         throw DbException.getUnsupportedException("LINK");
     }

@@ -5,10 +5,7 @@
  */
 package org.h2.table;
 
-import org.h2.command.dml.Select;
 import org.h2.engine.Database;
-import org.h2.expression.Expression;
-import org.h2.expression.ExpressionColumn;
 import org.h2.value.Value;
 
 /**
@@ -24,11 +21,6 @@ public class SingleColumnResolver implements ColumnResolver {
     SingleColumnResolver(Database database, Column column) {
         this.database = database;
         this.column = column;
-    }
-
-    @Override
-    public String getTableAlias() {
-        return null;
     }
 
     void setValue(Value value) {
@@ -51,46 +43,6 @@ public class SingleColumnResolver implements ColumnResolver {
             return column;
         }
         return null;
-    }
-
-    @Override
-    public String getColumnName(Column column) {
-        return column.getName();
-    }
-
-    @Override
-    public boolean hasDerivedColumnList() {
-        return false;
-    }
-
-    @Override
-    public String getSchemaName() {
-        return null;
-    }
-
-    @Override
-    public TableFilter getTableFilter() {
-        return null;
-    }
-
-    @Override
-    public Select getSelect() {
-        return null;
-    }
-
-    @Override
-    public Column[] getSystemColumns() {
-        return null;
-    }
-
-    @Override
-    public Column getRowIdColumn() {
-        return null;
-    }
-
-    @Override
-    public Expression optimize(ExpressionColumn expressionColumn, Column col) {
-        return expressionColumn;
     }
 
 }

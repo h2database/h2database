@@ -203,11 +203,6 @@ public final class ImmutableArray2<K> implements Iterable<K> {
                 return a.get(index++);
             }
 
-            @Override
-            public void remove() {
-                throw DataUtils.newUnsupportedOperationException("remove");
-            }
-
         };
     }
 

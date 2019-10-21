@@ -193,11 +193,6 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
     }
 
     @Override
-    public void checkRename() {
-        // nothing to do
-    }
-
-    @Override
     public boolean needRebuild() {
         return needRebuild;
     }

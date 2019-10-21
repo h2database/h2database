@@ -19,7 +19,6 @@ import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
-import org.h2.expression.ExpressionColumn;
 import org.h2.expression.condition.Comparison;
 import org.h2.expression.condition.ConditionAndOr;
 import org.h2.index.Index;
@@ -1198,11 +1197,6 @@ public class TableFilter implements ColumnResolver {
             map.put(columns[i], alias);
         }
         this.derivedColumnMap = map;
-    }
-
-    @Override
-    public Expression optimize(ExpressionColumn expressionColumn, Column column) {
-        return expressionColumn;
     }
 
     @Override

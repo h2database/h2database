@@ -1078,10 +1078,6 @@ public class WebApp {
                         query(conn, s, i - 1, list.size() - 2, b);
                         return b.toString();
                     }
-                    @Override
-                    public void remove() {
-                        throw new UnsupportedOperationException();
-                    }
                 });
                 return "result.jsp";
             }

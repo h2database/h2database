@@ -578,11 +578,6 @@ public class ArchiveTool {
                 return c;
             }
 
-            @Override
-            public void remove() {
-                throw new UnsupportedOperationException();
-            }
-
         };
     }
 

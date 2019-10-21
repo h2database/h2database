@@ -577,16 +577,6 @@ public class TestPreparedStatement extends TestDb {
             // ignore
         }
 
-        @Override
-        public void close() {
-            // ignore
-        }
-
-        @Override
-        public void remove() {
-            // ignore
-        }
-
     }
 
     private void testScopedGeneratedKey(Connection conn) throws SQLException {

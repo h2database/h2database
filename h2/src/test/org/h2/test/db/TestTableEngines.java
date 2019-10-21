@@ -940,11 +940,6 @@ public class TestTableEngines extends TestDb {
                 }
 
                 @Override
-                public void checkRename() {
-                    // do nothing
-                }
-
-                @Override
                 public void truncate(Session session) {
                     // do nothing
                 }
@@ -1109,11 +1104,6 @@ public class TestTableEngines extends TestDb {
                 // do nothing
             }
 
-            @Override
-            public void checkRename() {
-                // do nothing
-            }
-
         }
 
         /**
@@ -1161,11 +1151,6 @@ public class TestTableEngines extends TestDb {
                 @Override
                 public long getRowCount(Session session) {
                     return table.getRowCount(session);
-                }
-
-                @Override
-                public void checkRename() {
-                    // do nothing
                 }
 
                 @Override
@@ -1366,11 +1351,6 @@ public class TestTableEngines extends TestDb {
 
         TreeSetTable(CreateTableData data) {
             super(data);
-        }
-
-        @Override
-        public void checkRename() {
-            // No-op.
         }
 
         @Override
@@ -1748,11 +1728,6 @@ public class TestTableEngines extends TestDb {
         @Override
         public long getDiskSpaceUsed() {
             return 0;
-        }
-
-        @Override
-        public void checkRename() {
-            // No-op.
         }
     }
 

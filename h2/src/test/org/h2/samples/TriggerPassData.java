@@ -62,16 +62,6 @@ public class TriggerPassData implements Trigger {
         System.out.println(triggerData + ": " + row[0]);
     }
 
-    @Override
-    public void close() {
-        // ignore
-    }
-
-    @Override
-    public void remove() {
-        // ignore
-    }
-
     /**
      * Call this method to change a specific trigger.
      *

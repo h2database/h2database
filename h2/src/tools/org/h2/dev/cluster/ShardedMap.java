@@ -276,11 +276,6 @@ public class ShardedMap<K, V> extends AbstractMap<K, V> {
                     return e;
                 }
 
-                @Override
-                public void remove() {
-                    throw new UnsupportedOperationException();
-                }
-
             };
         }
 

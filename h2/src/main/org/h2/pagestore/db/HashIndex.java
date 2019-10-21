@@ -155,11 +155,6 @@ public class HashIndex extends BaseIndex {
     }
 
     @Override
-    public void checkRename() {
-        // ok
-    }
-
-    @Override
     public boolean needRebuild() {
         return true;
     }

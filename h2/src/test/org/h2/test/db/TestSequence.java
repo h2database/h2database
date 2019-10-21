@@ -496,16 +496,6 @@ public class TestSequence extends TestDb {
             // ignore
         }
 
-        @Override
-        public void close() throws SQLException {
-            // ignore
-        }
-
-        @Override
-        public void remove() throws SQLException {
-            // ignore
-        }
-
     }
 
 }

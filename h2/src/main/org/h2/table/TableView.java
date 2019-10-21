@@ -348,11 +348,6 @@ public class TableView extends Table {
     }
 
     @Override
-    public void checkRename() {
-        // ok
-    }
-
-    @Override
     public boolean lock(Session session, boolean exclusive, boolean forceLockEvenInMvcc) {
         // exclusive lock means: the view will be dropped
         return false;

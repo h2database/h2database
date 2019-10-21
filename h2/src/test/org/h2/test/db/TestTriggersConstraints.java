@@ -317,16 +317,6 @@ public class TestTriggersConstraints extends TestDb implements Trigger {
             }
         }
 
-        @Override
-        public void close() {
-            // ignore
-        }
-
-        @Override
-        public void remove() {
-            // ignore
-        }
-
     }
 
     /**
@@ -356,16 +346,6 @@ public class TestTriggersConstraints extends TestDb implements Trigger {
                     session.setLastTriggerIdentity(ValueLong.get(rs.getLong(1)));
                 }
             }
-        }
-
-        @Override
-        public void close() {
-            // ignore
-        }
-
-        @Override
-        public void remove() {
-            // ignore
         }
 
     }
@@ -428,16 +408,6 @@ public class TestTriggersConstraints extends TestDb implements Trigger {
             prepMeta.execute();
         }
 
-        @Override
-        public void close() {
-            // ignore
-        }
-
-        @Override
-        public void remove() {
-            // ignore
-        }
-
     }
 
     /**
@@ -449,12 +419,6 @@ public class TestTriggersConstraints extends TestDb implements Trigger {
         public void fire(Connection conn, Object[] oldRow, Object[] newRow)
                 throws SQLException {
             conn.createStatement().execute("call seq.nextval");
-        }
-
-        @Override
-        public void init(Connection conn, String schemaName,
-                String triggerName, String tableName, boolean before, int type) {
-            // nothing to do
         }
 
         @Override

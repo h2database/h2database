@@ -32,11 +32,6 @@ public class Constant extends SchemaObjectBase {
     }
 
     @Override
-    public String getDropSQL() {
-        return null;
-    }
-
-    @Override
     public String getCreateSQL() {
         StringBuilder builder = new StringBuilder("CREATE CONSTANT ");
         getSQL(builder, true).append(" VALUE ");
@@ -52,11 +47,6 @@ public class Constant extends SchemaObjectBase {
     public void removeChildrenAndResources(Session session) {
         database.removeMeta(session, getId());
         invalidate();
-    }
-
-    @Override
-    public void checkRename() {
-        // ok
     }
 
     public void setValue(Value value) {

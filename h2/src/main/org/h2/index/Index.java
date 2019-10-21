@@ -7,6 +7,7 @@ package org.h2.index;
 
 import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Session;
+import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
@@ -26,7 +27,9 @@ public interface Index extends SchemaObject {
      *
      * @return the plan
      */
-    String getPlanSQL();
+    default String getPlanSQL() {
+        return getSQL(false);
+    }
 
     /**
      * Close this index.
@@ -58,7 +61,10 @@ public interface Index extends SchemaObject {
      * @param oldRow row before the update
      * @param newRow row after the update
      */
-    void update(Session session, Row oldRow, Row newRow);
+    default void update(Session session, Row oldRow, Row newRow) {
+        remove(session, oldRow);
+        add(session, newRow);
+    }
 
     /**
      * Returns {@code true} if {@code find()} implementation performs scan over all
@@ -67,7 +73,9 @@ public interface Index extends SchemaObject {
      * @return {@code true} if {@code find()} implementation performs scan over all
      *         index, {@code false} if {@code find()} performs the fast lookup
      */
-    boolean isFindUsingFullTableScan();
+    default boolean isFindUsingFullTableScan() {
+        return false;
+    }
 
     /**
      * Find a row or a list of rows and create a cursor to iterate over the
@@ -90,7 +98,9 @@ public interface Index extends SchemaObject {
      * @param last the last row, or null for no limit
      * @return the cursor to iterate over the results
      */
-    Cursor find(TableFilter filter, SearchRow first, SearchRow last);
+    default Cursor find(TableFilter filter, SearchRow first, SearchRow last) {
+        return find(filter.getSession(), first, last);
+    }
 
     /**
      * Estimate the cost to search for rows given the search mask.
@@ -129,14 +139,18 @@ public interface Index extends SchemaObject {
      *
      * @return true if it can
      */
-    boolean canGetFirstOrLast();
+    default boolean canGetFirstOrLast() {
+        return false;
+    }
 
     /**
      * Check if the index can get the next higher value.
      *
      * @return true if it can
      */
-    boolean canFindNext();
+    default boolean canFindNext() {
+        return false;
+    }
 
     /**
      * Find a row or a list of rows that is larger and create a cursor to
@@ -147,7 +161,9 @@ public interface Index extends SchemaObject {
      * @param last the last row, or null for no limit
      * @return the cursor
      */
-    Cursor findNext(Session session, SearchRow higherThan, SearchRow last);
+    default Cursor findNext(Session session, SearchRow higherThan, SearchRow last) {
+        throw DbException.throwInternalError(toString());
+    }
 
     /**
      * Find the first (or last) value of this index. The cursor returned is
@@ -158,7 +174,9 @@ public interface Index extends SchemaObject {
      *            value should be returned
      * @return a cursor (never null)
      */
-    Cursor findFirstOrLast(Session session, boolean first);
+    default Cursor findFirstOrLast(Session session, boolean first) {
+        throw DbException.throwInternalError(toString());
+    }
 
     /**
      * Check if the index needs to be rebuilt.
@@ -251,21 +269,27 @@ public interface Index extends SchemaObject {
      * @param key the unique key
      * @return the row
      */
-    Row getRow(Session session, long key);
+    default Row getRow(Session session, long key) {
+        throw DbException.getUnsupportedException(toString());
+    }
 
     /**
      * Does this index support lookup by row id?
      *
      * @return true if it does
      */
-    boolean isRowIdIndex();
+    default boolean isRowIdIndex() {
+        return false;
+    }
 
     /**
      * Can this index iterate over all rows?
      *
      * @return true if it can
      */
-    boolean canScan();
+    default boolean canScan() {
+        return true;
+    }
 
     /**
      * Enable or disable the 'sorted insert' optimizations (rows are inserted in
@@ -274,7 +298,9 @@ public interface Index extends SchemaObject {
      *
      * @param sortedInsertMode the new value
      */
-    void setSortedInsertMode(boolean sortedInsertMode);
+    default void setSortedInsertMode(boolean sortedInsertMode) {
+        // ignore
+    }
 
     /**
      * Creates new lookup batch. Note that returned {@link IndexLookupBatch}
@@ -285,5 +311,7 @@ public interface Index extends SchemaObject {
      * @return created batch or {@code null} if batched lookup is not supported
      *         by this index.
      */
-    IndexLookupBatch createLookupBatch(TableFilter[] filters, int filter);
+    default IndexLookupBatch createLookupBatch(TableFilter[] filters, int filter) {
+        return null;
+    }
 }

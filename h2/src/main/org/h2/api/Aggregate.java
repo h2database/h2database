@@ -20,7 +20,9 @@ public interface Aggregate {
      *
      * @param conn a connection to the database
      */
-    void init(Connection conn) throws SQLException;
+    default void init(Connection conn) throws SQLException {
+        // Do nothing by default
+    }
 
     /**
      * This method must return the H2 data type, {@link org.h2.value.Value},

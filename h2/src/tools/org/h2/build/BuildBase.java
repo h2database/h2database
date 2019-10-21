@@ -915,7 +915,7 @@ public class BuildBase {
     }
 
     /**
-     * Get the current java specification version (for example, 1.4).
+     * Get the current java specification version (for example, 1.8).
      *
      * @return the java specification version
      */
@@ -926,15 +926,15 @@ public class BuildBase {
     /**
      * Get the current Java version as integer value.
      *
-     * @return the Java version (7, 8, 9, 10, 11, etc)
+     * @return the Java version (8, 9, 10, 11, 12, 13, etc)
      */
     public static int getJavaVersion() {
-        int version = 7;
+        int version = 8;
         String v = getJavaSpecVersion();
         if (v != null) {
             int idx = v.indexOf('.');
             if (idx >= 0) {
-                // 1.7, 1.8
+                // 1.8
                 v = v.substring(idx + 1);
             }
             version = Integer.parseInt(v);

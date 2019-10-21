@@ -1807,7 +1807,7 @@ public class MVStore implements AutoCloseable
             }
             if (!queue.isEmpty()) {
                 ArrayList<Chunk> list = new ArrayList<>(queue);
-                Collections.sort(list, Chunk.PositionComparator.INSTANCE);
+                list.sort(Chunk.PositionComparator.INSTANCE);
                 result = list;
             }
         }
@@ -2563,7 +2563,7 @@ public class MVStore implements AutoCloseable
             if (!remove.isEmpty()) {
                 // remove the youngest first, so we don't create gaps
                 // (in case we remove many chunks)
-                Collections.sort(remove, Collections.reverseOrder());
+                remove.sort(Collections.reverseOrder());
                 for (int id : remove) {
                     Chunk c = chunks.remove(id);
                     if (c != null) {

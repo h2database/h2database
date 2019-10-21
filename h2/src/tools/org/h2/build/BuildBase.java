@@ -33,7 +33,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -831,7 +830,7 @@ public class BuildBase {
             String basePath, boolean storeOnly, boolean sortBySuffix, boolean jar) {
         if (sortBySuffix) {
             // for better compressibility, sort by suffix, then name
-            Collections.sort(files, new Comparator<File>() {
+            files.sort(new Comparator<File>() {
                 @Override
                 public int compare(File f1, File f2) {
                     String p1 = f1.getPath();
@@ -844,7 +843,7 @@ public class BuildBase {
                 }
             });
         } else if (jar) {
-            Collections.sort(files, new Comparator<File>() {
+            files.sort(new Comparator<File>() {
                 private int priority(String path) {
                     if (path.startsWith("META-INF/")) {
                         if (path.equals("META-INF/MANIFEST.MF")) {

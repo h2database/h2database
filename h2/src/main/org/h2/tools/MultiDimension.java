@@ -9,7 +9,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import org.h2.util.StringUtils;
 
@@ -241,7 +240,7 @@ public class MultiDimension implements Comparator<long[]> {
      * @param total product of the gap lengths
      */
     private void combineEntries(ArrayList<long[]> list, int total) {
-        Collections.sort(list, this);
+        list.sort(this);
         for (int minGap = 10; minGap < total; minGap += minGap / 2) {
             for (int i = 0; i < list.size() - 1; i++) {
                 long[] current = list.get(i);

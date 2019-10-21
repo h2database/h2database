@@ -6,7 +6,6 @@
 package org.h2.build.indexer;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map.Entry;
@@ -70,7 +69,7 @@ public class Word {
     ArrayList<Weight> getSortedWeights() {
         if (weightList == null) {
             weightList = new ArrayList<>(pages.values());
-            Collections.sort(weightList, new Comparator<Weight>() {
+            weightList.sort(new Comparator<Weight>() {
                 @Override
                 public int compare(Weight w0, Weight w1) {
                     return Integer.compare(w1.value, w0.value);

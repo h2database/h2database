@@ -843,8 +843,8 @@ public class TestTableEngines extends TestDb {
             cols[i] = i;
         }
         Comparator<List<Object>> comp = new RowComparator(cols);
-        Collections.sort(res1, comp);
-        Collections.sort(res2, comp);
+        res1.sort(comp);
+        res2.sort(comp);
         assertTrue("Wrong data: \n" + res1 + "\n" + res2, res1.equals(res2));
     }
 
@@ -882,7 +882,7 @@ public class TestTableEngines extends TestDb {
             }
         }
         if (sort != null) {
-            Collections.sort(res, sort);
+            res.sort(sort);
         }
         return res;
     }

@@ -8,7 +8,6 @@ package org.h2.command.dml;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -1009,7 +1008,7 @@ public class Select extends Query {
         if (checkInit) {
             DbException.throwInternalError();
         }
-        Collections.sort(filters, TableFilter.ORDER_IN_FROM_COMPARATOR);
+        filters.sort(TableFilter.ORDER_IN_FROM_COMPARATOR);
         expandColumnList();
         visibleColumnCount = expressions.size();
         ArrayList<String> expressionSQL;

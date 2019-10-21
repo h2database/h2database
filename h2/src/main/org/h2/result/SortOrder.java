@@ -206,7 +206,7 @@ public class SortOrder implements Comparator<Value[]> {
      * @param rows the list of rows
      */
     public void sort(ArrayList<Value[]> rows) {
-        Collections.sort(rows, this);
+        rows.sort(this);
     }
 
     /**

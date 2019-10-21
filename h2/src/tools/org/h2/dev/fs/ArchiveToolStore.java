@@ -12,7 +12,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map.Entry;
 import java.util.Random;
@@ -177,7 +176,7 @@ public class ArchiveToolStore {
         MVMap<int[], byte[]> data = store.openMap("data" + segmentId);
         MVMap<int[], Boolean> keepSegment = storeTemp.openMap("keep");
         while (list.size() > 0) {
-            Collections.sort(list, new Comparator<Cursor<int[], byte[]>>() {
+            list.sort(new Comparator<Cursor<int[], byte[]>>() {
 
                 @Override
                 public int compare(Cursor<int[], byte[]> o1,
@@ -395,7 +394,7 @@ public class ArchiveToolStore {
         OutputStream file = null;
         int[] lastKey = null;
         while (list.size() > 0) {
-            Collections.sort(list, new Comparator<Cursor<int[], byte[]>>() {
+            list.sort(new Comparator<Cursor<int[], byte[]>>() {
 
                 @Override
                 public int compare(Cursor<int[], byte[]> o1,

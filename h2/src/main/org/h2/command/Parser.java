@@ -2832,7 +2832,7 @@ public class Parser {
         // Parser can reorder joined table filters, need to explicitly sort them
         // to get the order as it was in the original query.
         if (session.isForceJoinOrder()) {
-            Collections.sort(command.getTopFilters(), TABLE_FILTER_COMPARATOR);
+            command.getTopFilters().sort(TABLE_FILTER_COMPARATOR);
         }
     }
 

@@ -6,7 +6,6 @@
 package org.h2.expression.analysis;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 
 import org.h2.api.ErrorCode;
@@ -495,7 +494,7 @@ public abstract class DataAnalysisOperation extends Expression {
             ArrayList<SelectOrderBy> orderBy = over.getOrderBy();
             if (orderBy != null) {
                 rowIdColumn += orderBy.size();
-                Collections.sort(orderedData, overOrderBySort);
+                orderedData.sort(overOrderBySort);
             }
             rowIdColumn += getNumFrameExpressions();
             getOrderedResultLoop(session, result, orderedData, rowIdColumn);

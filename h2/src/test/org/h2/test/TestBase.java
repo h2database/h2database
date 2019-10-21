@@ -1381,34 +1381,26 @@ public abstract class TestBase {
      */
     protected <T> T assertThrows(final Class<?> expectedExceptionClass,
             final T obj) {
-        return assertThrows(new ResultVerifier() {
-            @Override
-            public boolean verify(Object returnValue, Throwable t, Method m,
-                    Object... args) {
-                if (t == null) {
-                    throw new AssertionError("Expected an exception of type " +
-                            expectedExceptionClass.getSimpleName() +
-                            " to be thrown, but the method returned " +
-                            returnValue +
-                            " for " + ProxyCodeGenerator.formatMethodCall(m, args));
-                }
-                if (!expectedExceptionClass.isAssignableFrom(t.getClass())) {
-                    AssertionError ae = new AssertionError(
-                            "Expected an exception of type\n" +
-                                    expectedExceptionClass.getSimpleName() +
-                                    " to be thrown, but the method under test " +
-                                    "threw an exception of type\n" +
-                                    t.getClass().getSimpleName() +
-                                    " (see in the 'Caused by' for the exception " +
-                                    "that was thrown) " +
-                                    " for " + ProxyCodeGenerator.
-                                    formatMethodCall(m, args));
-                    ae.initCause(t);
-                    throw ae;
-                }
-                return false;
+        return assertThrows((returnValue, t, m, args) -> {
+            if (t == null) {
+                throw new AssertionError("Expected an exception of type " +
+                        expectedExceptionClass.getSimpleName() +
+                        " to be thrown, but the method returned " +
+                        returnValue +
+                        " for " + ProxyCodeGenerator.formatMethodCall(m, args));
             }
-        }, obj);
+            if (!expectedExceptionClass.isAssignableFrom(t.getClass())) {
+                AssertionError ae = new AssertionError("Expected an exception of type\n" +
+                        expectedExceptionClass.getSimpleName() +
+                        " to be thrown, but the method under test threw an exception of type\n" +
+                        t.getClass().getSimpleName() +
+                        " (see in the 'Caused by' for the exception that was thrown) for " +
+                        ProxyCodeGenerator.formatMethodCall(m, args));
+                ae.initCause(t);
+                throw ae;
+            }
+            return false;
+         }, obj);
     }
 
     /**
@@ -1419,31 +1411,24 @@ public abstract class TestBase {
      * @param obj the object to wrap
      * @return a proxy for the object
      */
-    protected <T> T assertThrows(final int expectedErrorCode, final T obj) {
-        return assertThrows(new ResultVerifier() {
-            @Override
-            public boolean verify(Object returnValue, Throwable t, Method m,
-                    Object... args) {
-                int errorCode;
-                if (t instanceof DbException) {
-                    errorCode = ((DbException) t).getErrorCode();
-                } else if (t instanceof SQLException) {
-                    errorCode = ((SQLException) t).getErrorCode();
-                } else {
-                    errorCode = 0;
-                }
-                if (errorCode != expectedErrorCode) {
-                    AssertionError ae = new AssertionError(
-                            "Expected an SQLException or DbException with error code "
-                                    + expectedErrorCode
-                                    + ", but got a " + (t == null ? "null" :
-                                            t.getClass().getName() + " exception "
-                                    + " with error code " + errorCode));
-                    ae.initCause(t);
-                    throw ae;
-                }
-                return false;
+    protected <T> T assertThrows(int expectedErrorCode, T obj) {
+        return assertThrows((returnValue, t, m, args) -> {
+            int errorCode;
+            if (t instanceof DbException) {
+                errorCode = ((DbException) t).getErrorCode();
+            } else if (t instanceof SQLException) {
+                errorCode = ((SQLException) t).getErrorCode();
+            } else {
+                errorCode = 0;
             }
+            if (errorCode != expectedErrorCode) {
+                AssertionError ae = new AssertionError("Expected an SQLException or DbException with error code "
+                        + expectedErrorCode + ", but got a " + (t == null ? "null"
+                                : t.getClass().getName() + " exception " + " with error code " + errorCode));
+                ae.initCause(t);
+                throw ae;
+            }
+            return false;
         }, obj);
     }
 

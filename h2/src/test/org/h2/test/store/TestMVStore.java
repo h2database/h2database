@@ -5,7 +5,6 @@
  */
 package org.h2.test.store;
 
-import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
@@ -504,18 +503,10 @@ public class TestMVStore extends TestBase {
         String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s;
-        final AtomicReference<Throwable> exRef =
-                new AtomicReference<>();
+        AtomicReference<Throwable> exRef = new AtomicReference<>();
         s = new MVStore.Builder().
                 fileName(fileName).
-                backgroundExceptionHandler(new UncaughtExceptionHandler() {
-
-                    @Override
-                    public void uncaughtException(Thread t, Throwable e) {
-                        exRef.set(e);
-                    }
-
-                }).
+                backgroundExceptionHandler((t, e) -> exRef.set(e)).
                 open();
         s.setAutoCommitDelay(10);
         MVMap<Integer, String> m;

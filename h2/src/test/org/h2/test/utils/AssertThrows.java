@@ -5,7 +5,6 @@
  */
 package org.h2.test.utils;
 
-import java.lang.reflect.Method;
 import java.sql.SQLException;
 import org.h2.message.DbException;
 
@@ -25,30 +24,21 @@ public abstract class AssertThrows {
      *
      * @param expectedExceptionClass the expected exception class
      */
-    public AssertThrows(final Class<? extends Exception> expectedExceptionClass) {
-        this(new ResultVerifier() {
-            @Override
-            public boolean verify(Object returnValue, Throwable t, Method m,
-                    Object... args) {
-                if (t == null) {
-                    throw new AssertionError("Expected an exception of type " +
-                            expectedExceptionClass.getSimpleName() +
-                            " to be thrown, but the method returned successfully");
-                }
-                if (!expectedExceptionClass.isAssignableFrom(t.getClass())) {
-                    AssertionError ae = new AssertionError(
-                            "Expected an exception of type\n" +
-                                    expectedExceptionClass.getSimpleName() +
-                                    " to be thrown, but the method under test " +
-                                    "threw an exception of type\n" +
-                                    t.getClass().getSimpleName() +
-                                    " (see in the 'Caused by' for the exception " +
-                                    "that was thrown)");
-                    ae.initCause(t);
-                    throw ae;
-                }
-                return false;
+    public AssertThrows(Class<? extends Exception> expectedExceptionClass) {
+        this((returnValue, t, m, args) -> {
+            if (t == null) {
+                throw new AssertionError("Expected an exception of type " + expectedExceptionClass.getSimpleName()
+                        + " to be thrown, but the method returned successfully");
             }
+            if (!expectedExceptionClass.isAssignableFrom(t.getClass())) {
+                AssertionError ae = new AssertionError("Expected an exception of type\n"
+                        + expectedExceptionClass.getSimpleName() + " to be thrown, but the method under test "
+                        + "threw an exception of type\n" + t.getClass().getSimpleName()
+                        + " (see in the 'Caused by' for the exception " + "that was thrown)");
+                ae.initCause(t);
+                throw ae;
+            }
+            return false;
         });
     }
 
@@ -57,17 +47,13 @@ public abstract class AssertThrows {
      * expected exception is thrown.
      */
     public AssertThrows() {
-        this(new ResultVerifier() {
-            @Override
-            public boolean verify(Object returnValue, Throwable t, Method m,
-                    Object... args) {
-                if (t != null) {
-                    throw new AssertionError("Expected an exception " +
-                            "to be thrown, but the method returned successfully");
-                }
-                // all exceptions are fine
-                return false;
+        this((returnValue, t, m, args) -> {
+            if (t != null) {
+                throw new AssertionError(
+                        "Expected an exception to be thrown, but the method returned successfully");
             }
+            // all exceptions are fine
+            return false;
         });
     }
 
@@ -77,28 +63,23 @@ public abstract class AssertThrows {
      *
      * @param expectedErrorCode the error code of the exception
      */
-    public AssertThrows(final int expectedErrorCode) {
-        this(new ResultVerifier() {
-            @Override
-            public boolean verify(Object returnValue, Throwable t, Method m,
-                    Object... args) {
-                int errorCode;
-                if (t instanceof DbException) {
-                    errorCode = ((DbException) t).getErrorCode();
-                } else if (t instanceof SQLException) {
-                    errorCode = ((SQLException) t).getErrorCode();
-                } else {
-                    errorCode = 0;
-                }
-                if (errorCode != expectedErrorCode) {
-                    AssertionError ae = new AssertionError(
-                            "Expected an SQLException or DbException with error code " +
-                            expectedErrorCode);
-                    ae.initCause(t);
-                    throw ae;
-                }
-                return false;
+    public AssertThrows(int expectedErrorCode) {
+        this((returnValue, t, m, args) -> {
+            int errorCode;
+            if (t instanceof DbException) {
+                errorCode = ((DbException) t).getErrorCode();
+            } else if (t instanceof SQLException) {
+                errorCode = ((SQLException) t).getErrorCode();
+            } else {
+                errorCode = 0;
             }
+            if (errorCode != expectedErrorCode) {
+                AssertionError ae = new AssertionError(
+                        "Expected an SQLException or DbException with error code " + expectedErrorCode);
+                ae.initCause(t);
+                throw ae;
+            }
+            return false;
         });
     }
 

@@ -281,7 +281,7 @@ public class TestMultiThread extends TestDb implements Runnable {
     private void testViews() throws Exception {
         // is not supported
         deleteDb("lockMode");
-        final String url = getURL("lockMode", true);
+        String url = getURL("lockMode", true);
 
         // create some common tables and views
         ExecutorService executor = Executors.newFixedThreadPool(8);
@@ -304,37 +304,34 @@ public class TestMultiThread extends TestDb implements Runnable {
             ArrayList<Future<Void>> jobs = new ArrayList<>();
             for (int i = 0; i < 1000; i++) {
                 final int j = i;
-                jobs.add(executor.submit(new Callable<Void>() {
-                    @Override
-                    public Void call() throws Exception {
-                        try (Connection conn2 = getConnection(url)) {
-                            Statement stat2 = conn2.createStatement();
+                jobs.add(executor.submit(() -> {
+                    try (Connection conn2 = getConnection(url)) {
+                        Statement stat2 = conn2.createStatement();
 
-                            stat2.execute("CREATE VIEW INVOICE_VIEW" + j
-                                    + " as SELECT * FROM INVOICE_VIEW");
+                        stat2.execute("CREATE VIEW INVOICE_VIEW" + j
+                                + " as SELECT * FROM INVOICE_VIEW");
 
-                            // the following query intermittently results in a
-                            // NullPointerException
-                            stat2.execute("CREATE VIEW INVOICE_DETAIL_VIEW" + j
-                                    + " as SELECT DTL.* FROM INVOICE_VIEW" + j
-                                    + " INV JOIN INVOICE_DETAIL_VIEW DTL "
-                                    + "ON INV.INVOICE_ID = DTL.INVOICE_ID"
-                                    + " WHERE DESCRIPTION='TEST'");
+                        // the following query intermittently results in a
+                        // NullPointerException
+                        stat2.execute("CREATE VIEW INVOICE_DETAIL_VIEW" + j
+                                + " as SELECT DTL.* FROM INVOICE_VIEW" + j
+                                + " INV JOIN INVOICE_DETAIL_VIEW DTL "
+                                + "ON INV.INVOICE_ID = DTL.INVOICE_ID"
+                                + " WHERE DESCRIPTION='TEST'");
 
-                            ResultSet rs = stat2
-                                    .executeQuery("SELECT * FROM INVOICE_VIEW" + j);
-                            rs.next();
-                            rs.close();
+                        ResultSet rs = stat2
+                                .executeQuery("SELECT * FROM INVOICE_VIEW" + j);
+                        rs.next();
+                        rs.close();
 
-                            rs = stat2.executeQuery(
-                                    "SELECT * FROM INVOICE_DETAIL_VIEW" + j);
-                            rs.next();
-                            rs.close();
+                        rs = stat2.executeQuery(
+                                "SELECT * FROM INVOICE_DETAIL_VIEW" + j);
+                        rs.next();
+                        rs.close();
 
-                            stat2.close();
-                        }
-                        return null;
+                        stat2.close();
                     }
+                    return null;
                 }));
             }
             // check for exceptions
@@ -374,23 +371,20 @@ public class TestMultiThread extends TestDb implements Runnable {
             final ArrayList<Callable<Void>> callables = new ArrayList<>();
             for (int i = 0; i < threadCount; i++) {
                 final long initialTransactionId = i * 1000000L;
-                callables.add(new Callable<Void>() {
-                    @Override
-                    public Void call() throws Exception {
-                        try (Connection taskConn = getConnection(url)) {
-                            taskConn.setAutoCommit(false);
-                            PreparedStatement insertTranStmt = taskConn
-                                    .prepareStatement("INSERT INTO tran (id) VALUES(?)");
-                            // to guarantee uniqueness
-                            long tranId = initialTransactionId;
-                            for (int j = 0; j < 1000; j++) {
-                                insertTranStmt.setLong(1, tranId++);
-                                insertTranStmt.execute();
-                                taskConn.commit();
-                            }
+                callables.add(() -> {
+                    try (Connection taskConn = getConnection(url)) {
+                        taskConn.setAutoCommit(false);
+                        PreparedStatement insertTranStmt = taskConn
+                                .prepareStatement("INSERT INTO tran (id) VALUES(?)");
+                        // to guarantee uniqueness
+                        long tranId = initialTransactionId;
+                        for (int j = 0; j < 1000; j++) {
+                            insertTranStmt.setLong(1, tranId++);
+                            insertTranStmt.execute();
+                            taskConn.commit();
                         }
-                        return null;
                     }
+                    return null;
                 });
             }
 
@@ -433,22 +427,19 @@ public class TestMultiThread extends TestDb implements Runnable {
 
             final ArrayList<Callable<Void>> callables = new ArrayList<>();
             for (int i = 0; i < threadCount; i++) {
-                callables.add(new Callable<Void>() {
-                    @Override
-                    public Void call() throws Exception {
-                        try (Connection taskConn = getConnection(url)) {
-                            taskConn.setAutoCommit(false);
-                            final PreparedStatement updateAcctStmt = taskConn
-                                    .prepareStatement("UPDATE account SET balance = ? WHERE id = ?");
-                            for (int j = 0; j < 1000; j++) {
-                                updateAcctStmt.setDouble(1, Math.random());
-                                updateAcctStmt.setLong(2, (int) (Math.random() * objectCount));
-                                updateAcctStmt.execute();
-                                taskConn.commit();
-                            }
+                callables.add(() -> {
+                    try (Connection taskConn = getConnection(url)) {
+                        taskConn.setAutoCommit(false);
+                        final PreparedStatement updateAcctStmt = taskConn
+                                .prepareStatement("UPDATE account SET balance = ? WHERE id = ?");
+                        for (int j = 0; j < 1000; j++) {
+                            updateAcctStmt.setDouble(1, Math.random());
+                            updateAcctStmt.setLong(2, (int) (Math.random() * objectCount));
+                            updateAcctStmt.execute();
+                            taskConn.commit();
                         }
-                        return null;
                     }
+                    return null;
                 });
             }
 

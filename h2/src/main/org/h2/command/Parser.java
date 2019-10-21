@@ -240,7 +240,6 @@ import org.h2.table.IndexHints;
 import org.h2.table.RangeTable;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.table.TableFilter.TableFilterVisitor;
 import org.h2.table.TableView;
 import org.h2.util.IntervalUtils;
 import org.h2.util.ParserUtil;
@@ -2839,12 +2838,7 @@ public class Parser {
         while (true) {
             TableFilter n = top.getNestedJoin();
             if (n != null) {
-                n.visit(new TableFilterVisitor() {
-                    @Override
-                    public void accept(TableFilter f) {
-                        command.addTableFilter(f, false);
-                    }
-                });
+                n.visit(f -> command.addTableFilter(f, false));
             }
             TableFilter join = top.getJoin();
             if (join == null) {

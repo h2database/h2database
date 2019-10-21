@@ -19,11 +19,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.h2.api.TableEngine;
@@ -456,13 +454,10 @@ public class TestTableEngines extends TestDb {
         setBatchingEnabled(stat, false);
         setBatchingEnabled(stat, true);
 
-        TreeSetIndex.exec = Executors.newFixedThreadPool(8, new ThreadFactory() {
-            @Override
-            public Thread newThread(Runnable r) {
-                Thread t = new Thread(r);
-                t.setDaemon(true);
-                return t;
-            }
+        TreeSetIndex.exec = Executors.newFixedThreadPool(8, r -> {
+            Thread t = new Thread(r);
+            t.setDaemon(true);
+            return t;
         });
 
         forceJoinOrder(stat, true);
@@ -1588,13 +1583,12 @@ public class TestTableEngines extends TestDb {
             };
         }
 
-        public List<Future<Cursor>> findBatched(final TableFilter filter,
-                List<SearchRow> firstLastPairs) {
+        public List<Future<Cursor>> findBatched(TableFilter filter, List<SearchRow> firstLastPairs) {
             ArrayList<Future<Cursor>> result = new ArrayList<>(firstLastPairs.size());
-            final Random rnd = new Random();
+            Random rnd = new Random();
             for (int i = 0; i < firstLastPairs.size(); i += 2) {
-                final SearchRow first = firstLastPairs.get(i);
-                final SearchRow last = firstLastPairs.get(i + 1);
+                SearchRow first = firstLastPairs.get(i);
+                SearchRow last = firstLastPairs.get(i + 1);
                 Future<Cursor> future;
                 if (rnd.nextBoolean()) {
                     IteratorCursor c = (IteratorCursor) find(filter, first, last);
@@ -1605,14 +1599,11 @@ public class TestTableEngines extends TestDb {
                         future = null;
                     }
                 } else {
-                    future = exec.submit(new Callable<Cursor>() {
-                        @Override
-                        public Cursor call() throws Exception {
-                            if (rnd.nextInt(50) == 0) {
-                                Thread.sleep(0, 500);
-                            }
-                            return find(filter, first, last);
+                    future = exec.submit(() -> {
+                        if (rnd.nextInt(50) == 0) {
+                            Thread.sleep(0, 500);
                         }
+                        return find(filter, first, last);
                     });
                 }
                 result.add(future);

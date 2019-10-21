@@ -799,13 +799,7 @@ public class TransactionStore {
                         VersionedValue existingValue, VersionedValue restoredValue);
     }
 
-    private static final RollbackListener ROLLBACK_LISTENER_NONE = new RollbackListener() {
-        @Override
-        public void onRollback(MVMap<Object, VersionedValue> map, Object key,
-                                VersionedValue existingValue, VersionedValue restoredValue) {
-            // do nothing
-        }
-    };
+    private static final RollbackListener ROLLBACK_LISTENER_NONE = (map, key, existingValue, restoredValue) -> {};
 
     /**
      * A data type that contains an array of objects with the specified data

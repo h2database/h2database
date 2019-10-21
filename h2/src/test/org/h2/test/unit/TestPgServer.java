@@ -21,7 +21,6 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.Properties;
 import java.util.TimeZone;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -158,7 +157,7 @@ public class TestPgServer extends TestDb {
         try {
             Connection conn = DriverManager.getConnection(
                     "jdbc:postgresql://localhost:5535/pgserver", "sa", "sa");
-            final Statement stat = conn.createStatement();
+            Statement stat = conn.createStatement();
             stat.execute("create alias sleep for \"java.lang.Thread.sleep\"");
 
             // create a table with 200 rows (cancel interval is 127)
@@ -167,12 +166,7 @@ public class TestPgServer extends TestDb {
                 stat.execute("insert into test (id) values (rand())");
             }
 
-            Future<Boolean> future = executor.submit(new Callable<Boolean>() {
-                @Override
-                public Boolean call() throws SQLException {
-                    return stat.execute("select id, sleep(5) from test");
-                }
-            });
+            Future<Boolean> future = executor.submit(() -> stat.execute("select id, sleep(5) from test"));
 
             // give it a little time to start and then cancel it
             Thread.sleep(100);

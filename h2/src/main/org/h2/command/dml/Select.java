@@ -48,7 +48,6 @@ import org.h2.table.IndexColumn;
 import org.h2.table.JoinBatch;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.table.TableFilter.TableFilterVisitor;
 import org.h2.table.TableType;
 import org.h2.table.TableView;
 import org.h2.util.ColumnNamer;
@@ -501,13 +500,10 @@ public class Select extends Query {
 
     void setGroupData(final SelectGroups groupData) {
         this.groupData = groupData;
-        topTableFilter.visit(new TableFilterVisitor() {
-            @Override
-            public void accept(TableFilter f) {
-                Select s = f.getSelect();
-                if (s != null) {
-                    s.groupData = groupData;
-                }
+        topTableFilter.visit(f -> {
+            Select s = f.getSelect();
+            if (s != null) {
+                s.groupData = groupData;
             }
         });
     }
@@ -870,14 +866,11 @@ public class Select extends Query {
 
     private void disableLazyForJoinSubqueries(final TableFilter top) {
         if (session.isLazyQueryExecution()) {
-            top.visit(new TableFilter.TableFilterVisitor() {
-                @Override
-                public void accept(TableFilter f) {
-                    if (f != top && f.getTable().getTableType() == TableType.VIEW) {
-                        ViewIndex idx = (ViewIndex) f.getIndex();
-                        if (idx != null && idx.getQuery() != null) {
-                            idx.getQuery().setNeverLazy(true);
-                        }
+            top.visit(f -> {
+                if (f != top && f.getTable().getTableType() == TableType.VIEW) {
+                    ViewIndex idx = (ViewIndex) f.getIndex();
+                    if (idx != null && idx.getQuery() != null) {
+                        idx.getQuery().setNeverLazy(true);
                     }
                 }
             });

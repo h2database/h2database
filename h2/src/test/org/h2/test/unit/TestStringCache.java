@@ -156,12 +156,9 @@ public class TestStringCache extends TestBase {
         int threadCount = getSize(3, 100);
         Thread[] threads = new Thread[threadCount];
         for (int i = 0; i < threadCount; i++) {
-            Thread t = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    while (!stop) {
-                        testString();
-                    }
+            Thread t = new Thread(() -> {
+                while (!stop) {
+                    testString();
                 }
             });
             threads[i] = t;

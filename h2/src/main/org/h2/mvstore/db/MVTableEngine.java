@@ -6,7 +6,6 @@
 package org.h2.mvstore.db;
 
 import java.io.InputStream;
-import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -86,14 +85,7 @@ public class MVTableEngine implements TableEngine {
                 // use a larger page split size to improve the compression ratio
                 builder.pageSplitSize(64 * 1024);
             }
-            builder.backgroundExceptionHandler(new UncaughtExceptionHandler() {
-
-                @Override
-                public void uncaughtException(Thread t, Throwable e) {
-                    db.setBackgroundException(DbException.convert(e));
-                }
-
-            });
+            builder.backgroundExceptionHandler((t, e) -> db.setBackgroundException(DbException.convert(e)));
             // always start without background thread first, and if necessary,
             // it will be set up later, after db has been fully started,
             // otherwise background thread would compete for store lock

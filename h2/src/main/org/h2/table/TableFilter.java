@@ -53,6 +53,11 @@ public class TableFilter implements ColumnResolver {
             Comparator.comparing(TableFilter::getOrderInFrom);
 
     /**
+     * A visitor that sets joinOuterIndirect to true.
+     */
+    private static final TableFilterVisitor JOI_VISITOR = f -> f.joinOuterIndirect = true;
+
+    /**
      * Whether this is a direct or indirect (nested) outer join
      */
     protected boolean joinOuterIndirect;
@@ -582,12 +587,7 @@ public class TableFilter implements ColumnResolver {
         current = table.getNullRow();
         currentSearchRow = current;
         if (nestedJoin != null) {
-            nestedJoin.visit(new TableFilterVisitor() {
-                @Override
-                public void accept(TableFilter f) {
-                    f.setNullRow();
-                }
-            });
+            nestedJoin.visit(TableFilter::setNullRow);
         }
     }
 
@@ -702,7 +702,7 @@ public class TableFilter implements ColumnResolver {
             join = filter;
             filter.joinOuter = outer;
             if (outer) {
-                filter.visit(new JOIVisitor());
+                filter.visit(JOI_VISITOR);
             }
             if (on != null) {
                 filter.mapAndAddFilter(on);
@@ -1374,19 +1374,6 @@ public class TableFilter implements ColumnResolver {
         @Override
         public void accept(TableFilter f) {
             on.mapColumns(f, 0, Expression.MAP_INITIAL);
-        }
-    }
-
-    /**
-     * A visitor that sets joinOuterIndirect to true.
-     */
-    private static final class JOIVisitor implements TableFilterVisitor {
-        JOIVisitor() {
-        }
-
-        @Override
-        public void accept(TableFilter f) {
-            f.joinOuterIndirect = true;
         }
     }
 

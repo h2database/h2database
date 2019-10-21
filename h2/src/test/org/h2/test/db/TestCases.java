@@ -833,28 +833,25 @@ public class TestCases extends TestDb {
         }
         deleteDb("cases");
         Connection conn = getConnection("cases");
-        final Statement stat = conn.createStatement();
+        Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID IDENTITY)");
         for (int i = 0; i < 1000; i++) {
             stat.execute("INSERT INTO TEST() VALUES()");
         }
-        final SQLException[] stopped = { null };
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    long time = System.nanoTime();
-                    ResultSet rs = stat.executeQuery("SELECT MAX(T.ID) " +
-                            "FROM TEST T, TEST, TEST, TEST, TEST, " +
-                            "TEST, TEST, TEST, TEST, TEST, TEST");
-                    rs.next();
-                    time = System.nanoTime() - time;
-                    TestBase.logError("query was too quick; result: " +
-                            rs.getInt(1) + " time:" + TimeUnit.NANOSECONDS.toMillis(time), null);
-                } catch (SQLException e) {
-                    stopped[0] = e;
-                    // ok
-                }
+        SQLException[] stopped = { null };
+        Thread t = new Thread(() -> {
+            try {
+                long time = System.nanoTime();
+                ResultSet rs = stat.executeQuery("SELECT MAX(T.ID) " +
+                        "FROM TEST T, TEST, TEST, TEST, TEST, " +
+                        "TEST, TEST, TEST, TEST, TEST, TEST");
+                rs.next();
+                time = System.nanoTime() - time;
+                TestBase.logError("query was too quick; result: " +
+                        rs.getInt(1) + " time:" + TimeUnit.NANOSECONDS.toMillis(time), null);
+            } catch (SQLException e) {
+                stopped[0] = e;
+                // ok
             }
         });
         t.start();

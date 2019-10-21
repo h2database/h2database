@@ -1025,6 +1025,11 @@ public class TestTransaction extends TestDb {
                 conn2.setAutoCommit(false);
                 Statement stat1 = conn1.createStatement();
                 Statement stat2 = conn2.createStatement();
+                // Test a table without constraints
+                stat1.execute("CREATE TABLE TEST(VALUE INT)");
+                stat1.executeQuery("TABLE TEST").close();
+                stat1.execute("DROP TABLE TEST");
+                // Other tests
                 stat1.execute("CREATE TABLE TEST(ID VARCHAR PRIMARY KEY, VALUE INT)");
                 stat1.execute("INSERT INTO TEST VALUES ('1', 1)");
                 conn1.commit();

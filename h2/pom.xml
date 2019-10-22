@@ -39,7 +39,13 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
+    <asm.version>7.2</asm.version>
+    <jts.version>1.16.1</jts.version>
+    <junit.version>5.5.2</junit.version>
+    <lucene.version>8.2.0</lucene.version>
     <osgi.version>5.0.0</osgi.version>
+    <pgjdbc.version>42.2.8</pgjdbc.version>
+    <servlet.version>4.0.1</servlet.version>
     <slf4j.version>1.7.28</slf4j.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
@@ -50,22 +56,22 @@
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
-      <version>4.0.1</version>
+      <version>${servlet.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.lucene</groupId>
       <artifactId>lucene-core</artifactId>
-      <version>8.2.0</version>
+      <version>${lucene.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.lucene</groupId>
       <artifactId>lucene-analyzers-common</artifactId>
-      <version>8.2.0</version>
+      <version>${lucene.version}</version>
     </dependency>
     <dependency>
         <groupId>org.apache.lucene</groupId>
         <artifactId>lucene-queryparser</artifactId>
-        <version>8.2.0</version>
+        <version>${lucene.version}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -85,7 +91,7 @@
     <dependency>
       <groupId>org.locationtech.jts</groupId>
       <artifactId>jts-core</artifactId>
-      <version>1.16.1</version>
+      <version>${jts.version}</version>
     </dependency>
     <!-- END COMPILE DEPENDENCIES !-->
 
@@ -100,19 +106,19 @@
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>42.2.8</version>
+      <version>${pgjdbc.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.5.2</version>
+      <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm</artifactId>
-      <version>7.2</version>
+      <version>${asm.version}</version>
       <scope>test</scope>
     </dependency>
     <!-- END TEST DEPENDENCIES !-->

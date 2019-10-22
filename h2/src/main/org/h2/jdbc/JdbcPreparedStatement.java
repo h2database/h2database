@@ -20,6 +20,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.RowId;
 import java.sql.SQLException;
+import java.sql.SQLType;
 import java.sql.SQLXML;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -533,13 +534,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             if (isDebugEnabled()) {
                 debugCode("setObject("+parameterIndex+", x, "+targetSqlType+");");
             }
-            int type = DataType.convertSQLTypeToValueType(targetSqlType);
-            if (x == null) {
-                setParameter(parameterIndex, ValueNull.INSTANCE);
-            } else {
-                Value v = DataType.convertToValue(conn.getSession(), x, type);
-                setParameter(parameterIndex, v.convertTo(type, conn, false));
-            }
+            setObjectWithType(parameterIndex, x, DataType.convertSQLTypeToValueType(targetSqlType));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -563,9 +558,64 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             if (isDebugEnabled()) {
                 debugCode("setObject("+parameterIndex+", x, "+targetSqlType+", "+scale+");");
             }
-            setObject(parameterIndex, x, targetSqlType);
+            setObjectWithType(parameterIndex, x, DataType.convertSQLTypeToValueType(targetSqlType));
         } catch (Exception e) {
             throw logAndConvert(e);
+        }
+    }
+
+    /**
+     * Sets the value of a parameter. The object is converted, if required, to
+     * the specified data type before sending to the database.
+     * Objects of unknown classes are serialized (on the client side).
+     *
+     * @param parameterIndex the parameter index (1, 2, ...)
+     * @param x the value, null is allowed
+     * @param targetSqlType the SQL type
+     * @throws SQLException if this object is closed
+     */
+    @Override
+    public void setObject(int parameterIndex, Object x, SQLType targetSqlType) throws SQLException {
+        try {
+            if (isDebugEnabled()) {
+                debugCode("setObject(" + parameterIndex + ", x, " + DataType.sqlTypeToString(targetSqlType) + ");");
+            }
+            setObjectWithType(parameterIndex, x, DataType.convertSQLTypeToValueType(targetSqlType));
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
+    }
+
+    /**
+     * Sets the value of a parameter. The object is converted, if required, to
+     * the specified data type before sending to the database.
+     * Objects of unknown classes are serialized (on the client side).
+     *
+     * @param parameterIndex the parameter index (1, 2, ...)
+     * @param x the value, null is allowed
+     * @param targetSqlType the SQL type
+     * @param scaleOrLength is ignored
+     * @throws SQLException if this object is closed
+     */
+    @Override
+    public void setObject(int parameterIndex, Object x, SQLType targetSqlType, int scaleOrLength) throws SQLException {
+        try {
+            if (isDebugEnabled()) {
+                debugCode("setObject(" + parameterIndex + ", x, " + DataType.sqlTypeToString(targetSqlType) + ", "
+                        + scaleOrLength + ");");
+            }
+            setObjectWithType(parameterIndex, x, DataType.convertSQLTypeToValueType(targetSqlType));
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
+    }
+
+    private void setObjectWithType(int parameterIndex, Object x, int type) {
+        if (x == null) {
+            setParameter(parameterIndex, ValueNull.INSTANCE);
+        } else {
+            Value v = DataType.convertToValue(conn.getSession(), x, type);
+            setParameter(parameterIndex, v.convertTo(type, conn, false));
         }
     }
 

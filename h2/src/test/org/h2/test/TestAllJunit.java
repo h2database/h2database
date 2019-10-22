@@ -5,7 +5,7 @@
  */
 package org.h2.test;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * This class is a bridge between JUnit and the custom test framework

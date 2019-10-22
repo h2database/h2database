@@ -15,9 +15,11 @@ import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Date;
+import java.sql.JDBCType;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.SQLType;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
@@ -48,6 +50,7 @@ import org.h2.jdbc.JdbcLob;
 import org.h2.message.DbException;
 import org.h2.util.JSR310Utils;
 import org.h2.util.JdbcUtils;
+import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**
@@ -1031,6 +1034,21 @@ public class DataType {
      * @param sqlType the SQL type
      * @return the value type
      */
+    public static int convertSQLTypeToValueType(SQLType sqlType) {
+        if (sqlType instanceof JDBCType) {
+            return convertSQLTypeToValueType(sqlType.getVendorTypeNumber());
+        } else {
+            throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, sqlType == null ? "<null>"
+                    : unknownSqlTypeToString(new StringBuilder(), sqlType).toString());
+        }
+    }
+
+    /**
+     * Convert a SQL type to a value type.
+     *
+     * @param sqlType the SQL type
+     * @return the value type
+     */
     public static int convertSQLTypeToValueType(int sqlType) {
         switch (sqlType) {
         case Types.CHAR:
@@ -1092,6 +1110,28 @@ public class DataType {
             throw DbException.get(
                     ErrorCode.UNKNOWN_DATA_TYPE_1, Integer.toString(sqlType));
         }
+    }
+
+    /**
+     * Convert a SQL type to a debug string.
+     *
+     * @param sqlType the SQL type
+     * @return the textual representation
+     */
+    public static String sqlTypeToString(SQLType sqlType) {
+        if (sqlType == null) {
+            return "null";
+        }
+        if (sqlType instanceof JDBCType) {
+            return "JDBCType." + sqlType.getName();
+        }
+        return unknownSqlTypeToString(new StringBuilder("/* "), sqlType).append(" */ null").toString();
+    }
+
+    private static StringBuilder unknownSqlTypeToString(StringBuilder builder, SQLType sqlType) {
+        return builder.append(StringUtils.quoteJavaString(sqlType.getVendor())).append('/')
+                .append(StringUtils.quoteJavaString(sqlType.getName())).append(" [")
+                .append(sqlType.getVendorTypeNumber()).append(']');
     }
 
     /**

@@ -5057,8 +5057,7 @@ ISO_YEAR(CREATED)
 ABORT_SESSION(sessionInt)
 ","
 Cancels the currently executing statement of another session. Closes the session and releases the allocated resources.
-The method only works if the multithreaded kernel is enabled
-(it is enabled by default with MVStore engine only, see SET MULTI_THREADED).
+The method only works with default MVStore engine.
 Returns true if the session was closed, false if no session with the given id was found.
 
 If a client was connected while its session was aborted it will see an error.

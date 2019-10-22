@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.Date;
+import java.sql.JDBCType;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -52,6 +53,7 @@ public class TestUpdatableResultSet extends TestDb {
         testUpdateDeleteInsert();
         testUpdateDataType();
         testUpdateResetRead();
+        testUpdateObject();
         deleteDb("updatableResultSet");
     }
 
@@ -729,6 +731,77 @@ public class TestUpdatableResultSet extends TestDb {
             if (!error) {
                 throw e;
             }
+        }
+    }
+
+    private void testUpdateObject() throws SQLException {
+        deleteDb("updatableResultSet");
+        Connection conn = getConnection("updatableResultSet");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE INT)");
+        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES (?1, ?1)");
+        for (int i = 1; i <= 8; i++) {
+            prep.setInt(1, i);
+            prep.executeUpdate();
+        }
+        prep = conn.prepareStatement("TABLE TEST ORDER BY ID", ResultSet.TYPE_FORWARD_ONLY,
+                ResultSet.CONCUR_UPDATABLE);
+        try (ResultSet rs = prep.executeQuery()) {
+            for (int i = 1; i <= 8; i++) {
+            rs.next();
+                assertEquals(i, rs.getInt(1));
+                assertEquals(i, rs.getInt(2));
+                testUpdateObjectUpdateRow(rs, i, i * 10);
+                rs.updateRow();
+            }
+            assertFalse(rs.next());
+        }
+        try (ResultSet rs = prep.executeQuery()) {
+            for (int i = 1; i <= 8; i++) {
+                assertTrue(rs.next());
+                assertEquals(i, rs.getInt(1));
+                assertEquals(i * 10, rs.getInt(2));
+                testUpdateObjectUpdateRow(rs, i, null);
+                rs.updateRow();
+            }
+            assertFalse(rs.next());
+        }
+        try (ResultSet rs = prep.executeQuery()) {
+            for (int i = 1; i <= 8; i++) {
+                assertTrue(rs.next());
+                assertEquals(i, rs.getInt(1));
+                assertNull(rs.getObject(2));
+            }
+            assertFalse(rs.next());
+        }
+        conn.close();
+    }
+
+    private static void testUpdateObjectUpdateRow(ResultSet rs, int method, Object value) throws SQLException {
+        switch (method) {
+        case 1:
+            rs.updateObject(2, value);
+            break;
+        case 2:
+            rs.updateObject("VALUE", value);
+            break;
+        case 3:
+            rs.updateObject(2, value, 0);
+            break;
+        case 4:
+            rs.updateObject(2, value, JDBCType.INTEGER);
+            break;
+        case 5:
+            rs.updateObject("VALUE", value, 0);
+            break;
+        case 6:
+            rs.updateObject("VALUE", value, JDBCType.INTEGER);
+            break;
+        case 7:
+            rs.updateObject(2, value, JDBCType.INTEGER, 0);
+            break;
+        case 8:
+            rs.updateObject("VALUE", value, JDBCType.INTEGER, 0);
         }
     }
 

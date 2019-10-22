@@ -3064,12 +3064,12 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     /**
      * Gets the minor version of the supported JDBC API.
      *
-     * @return the minor version (1)
+     * @return the minor version (2)
      */
     @Override
     public int getJDBCMinorVersion() {
         debugCodeCall("getJDBCMinorVersion");
-        return 1;
+        return 2;
     }
 
     /**

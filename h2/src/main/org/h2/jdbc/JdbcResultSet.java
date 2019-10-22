@@ -20,6 +20,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.RowId;
 import java.sql.SQLException;
+import java.sql.SQLType;
 import java.sql.SQLWarning;
 import java.sql.SQLXML;
 import java.sql.Statement;
@@ -2220,6 +2221,92 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     }
 
     /**
+     * Updates a column in the current or insert row.
+     *
+     * @param columnIndex (1,2,...)
+     * @param x the value
+     * @param targetSqlType the SQL type
+     * @throws SQLException if the result set is closed or not updatable
+     */
+    @Override
+    public void updateObject(int columnIndex, Object x, SQLType targetSqlType) throws SQLException {
+        try {
+            if (isDebugEnabled()) {
+                debugCode("updateObject(" + columnIndex + ", x, " + DataType.sqlTypeToString(targetSqlType) + ");");
+            }
+            update(columnIndex, convertToValue(x, targetSqlType));
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
+    }
+
+    /**
+     * Updates a column in the current or insert row.
+     *
+     * @param columnIndex (1,2,...)
+     * @param x the value
+     * @param targetSqlType the SQL type
+     * @param scaleOrLength is ignored
+     * @throws SQLException if the result set is closed or not updatable
+     */
+    @Override
+    public void updateObject(int columnIndex, Object x, SQLType targetSqlType, int scaleOrLength) throws SQLException {
+        try {
+            if (isDebugEnabled()) {
+                debugCode("updateObject(" + columnIndex + ", x, " + DataType.sqlTypeToString(targetSqlType) + ", "
+                        + scaleOrLength + ");");
+            }
+            update(columnIndex, convertToValue(x, targetSqlType));
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
+    }
+
+    /**
+     * Updates a column in the current or insert row.
+     *
+     * @param columnLabel the column label
+     * @param x the value
+     * @param targetSqlType the SQL type
+     * @throws SQLException if the result set is closed or not updatable
+     */
+    @Override
+    public void updateObject(String columnLabel, Object x, SQLType targetSqlType) throws SQLException {
+        try {
+            if (isDebugEnabled()) {
+                debugCode("updateObject(" + quote(columnLabel) + ", x, " + DataType.sqlTypeToString(targetSqlType)
+                        + ");");
+            }
+            update(columnLabel, convertToValue(x, targetSqlType));
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
+    }
+
+    /**
+     * Updates a column in the current or insert row.
+     *
+     * @param columnLabel the column label
+     * @param x the value
+     * @param targetSqlType the SQL type
+     * @param scaleOrLength is ignored
+     * @throws SQLException if the result set is closed or not updatable
+     */
+    @Override
+    public void updateObject(String columnLabel, Object x, SQLType targetSqlType, int scaleOrLength)
+            throws SQLException {
+        try {
+            if (isDebugEnabled()) {
+                debugCode("updateObject(" + quote(columnLabel) + ", x, " + DataType.sqlTypeToString(targetSqlType)
+                        + ", " + scaleOrLength + ");");
+            }
+            update(columnLabel, convertToValue(x, targetSqlType));
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
+    }
+
+    /**
      * [Not supported]
      */
     @Override
@@ -3974,6 +4061,17 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             patchedRows.remove(rowId);
         } else {
             patchedRows.put(rowId, row);
+        }
+    }
+
+    private Value convertToValue(Object x, SQLType targetSqlType) {
+        checkClosed();
+        if (x == null) {
+            return ValueNull.INSTANCE;
+        } else {
+            int type = DataType.convertSQLTypeToValueType(targetSqlType);
+            Value v = DataType.convertToValue(conn.getSession(), x, type);
+            return v.convertTo(type, conn, false);
         }
     }
 

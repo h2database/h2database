@@ -14,6 +14,7 @@ import java.math.BigInteger;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.Date;
+import java.sql.JDBCType;
 import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -103,6 +104,7 @@ public class TestPreparedStatement extends TestDb {
         testJson(conn);
         testArray(conn);
         testSetObject(conn);
+        testSetObject2(conn);
         testPreparedSubquery(conn);
         testLikeIndex(conn);
         testCasewhen(conn);
@@ -635,6 +637,53 @@ public class TestPreparedStatement extends TestDb {
         assertEquals(103, ((Integer) o).intValue());
         assertFalse(rs.next());
         stat.execute("DROP TABLE TEST");
+    }
+
+    private void testSetObject2(Connection conn) throws SQLException {
+        try (PreparedStatement prep = conn.prepareStatement("VALUES (?1, ?1 IS OF(INTEGER), ?1 IS OF(BIGINT))")) {
+            for (int i = 1; i <= 5; i++) {
+                testSetObject2SetObjectType(prep, i, (long) i);
+                try (ResultSet rs = prep.executeQuery()) {
+                    rs.next();
+                    // Parameters are converted to VARCHAR by a query
+                    assertEquals(Integer.toString(i), rs.getString(1));
+                    // Use the type predicate to check a real data type
+                    if (i == 1) {
+                        assertFalse(rs.getBoolean(2));
+                        assertTrue(rs.getBoolean(3));
+                    } else {
+                        assertTrue(rs.getBoolean(2));
+                        assertFalse(rs.getBoolean(3));
+                    }
+                }
+                testSetObject2SetObjectType(prep, i, null);
+                try (ResultSet rs = prep.executeQuery()) {
+                    rs.next();
+                    assertNull(rs.getObject(1));
+                }
+            }
+            prep.setObject(1, 1);
+        }
+    }
+
+    private static void testSetObject2SetObjectType(PreparedStatement prep, int method, Object value)
+            throws SQLException {
+        switch (method) {
+        case 1:
+            prep.setObject(1, value);
+            break;
+        case 2:
+            prep.setObject(1, value, Types.INTEGER);
+            break;
+        case 3:
+            prep.setObject(1, value, JDBCType.INTEGER);
+            break;
+        case 4:
+            prep.setObject(1, value, Types.INTEGER, 0);
+            break;
+        case 5:
+            prep.setObject(1, value, JDBCType.INTEGER, 0);
+        }
     }
 
     private void testDate(Connection conn) throws SQLException {
@@ -1738,4 +1787,5 @@ public class TestPreparedStatement extends TestDb {
             }
         }
     }
+
 }

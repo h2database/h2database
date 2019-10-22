@@ -185,11 +185,11 @@ public class Build extends BuildBase {
             File.pathSeparator + "ext/lucene-analyzers-common-8.2.0.jar" +
             File.pathSeparator + "ext/lucene-queryparser-8.2.0.jar" +
             File.pathSeparator + "ext/h2mig_pagestore_addon.jar" +
-            File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
-            File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
+            File.pathSeparator + "ext/org.osgi.core-5.0.0.jar" +
+            File.pathSeparator + "ext/org.osgi.enterprise-5.0.0.jar" +
             File.pathSeparator + "ext/jts-core-1.16.1.jar" +
-            File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
-            File.pathSeparator + "ext/slf4j-nop-1.6.0.jar" +
+            File.pathSeparator + "ext/slf4j-api-1.7.28.jar" +
+            File.pathSeparator + "ext/slf4j-nop-1.7.28.jar" +
             File.pathSeparator + javaToolsJar;
         // Run tests
         execJava(args(
@@ -265,9 +265,9 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-core-8.2.0.jar" +
                 File.pathSeparator + "ext/lucene-analyzers-common-8.2.0.jar" +
                 File.pathSeparator + "ext/lucene-queryparser-8.2.0.jar" +
-                File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
-                File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
-                File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
+                File.pathSeparator + "ext/slf4j-api-1.7.28.jar" +
+                File.pathSeparator + "ext/org.osgi.core-5.0.0.jar" +
+                File.pathSeparator + "ext/org.osgi.enterprise-5.0.0.jar" +
                 File.pathSeparator + "ext/jts-core-1.16.1.jar" +
                 File.pathSeparator + "ext/asm-7.2.jar" +
                 File.pathSeparator + javaToolsJar;
@@ -368,15 +368,15 @@ public class Build extends BuildBase {
         downloadOrVerify("ext/lucene-queryparser-8.2.0.jar",
                 "org/apache/lucene", "lucene-queryparser", "8.2.0",
                 "8925df7b104e78e308e236ff0740a064dd93cadd", offline);
-        downloadOrVerify("ext/slf4j-api-1.6.0.jar",
-                "org/slf4j", "slf4j-api", "1.6.0",
-                "b353147a7d51fcfcd818d8aa6784839783db0915", offline);
-        downloadOrVerify("ext/org.osgi.core-4.2.0.jar",
-                "org/osgi", "org.osgi.core", "4.2.0",
-                "66ab449ff3aa5c4adfc82c89025cc983b422eb95", offline);
-        downloadOrVerify("ext/org.osgi.enterprise-4.2.0.jar",
-                "org/osgi", "org.osgi.enterprise", "4.2.0",
-                "8634dcb0fc62196e820ed0f1062993c377f74972", offline);
+        downloadOrVerify("ext/slf4j-api-1.7.28.jar",
+                "org/slf4j", "slf4j-api", "1.7.28",
+                "2cd9b264f76e3d087ee21bfc99305928e1bdb443", offline);
+        downloadOrVerify("ext/org.osgi.core-5.0.0.jar",
+                "org/osgi", "org.osgi.core", "5.0.0",
+                "6e5e8cd3c9059c08e1085540442a490b59a7783c", offline);
+        downloadOrVerify("ext/org.osgi.enterprise-5.0.0.jar",
+                "org/osgi", "org.osgi.enterprise", "5.0.0",
+                "4f6e081c38b951204e2b6a60d33ab0a90bfa1ad3", offline);
         downloadOrVerify("ext/jts-core-1.16.1.jar",
                 "org/locationtech/jts", "jts-core", "1.16.1",
                 "c4922e3566568f49a9219b9f9ece9049ee994c50", offline);
@@ -416,9 +416,9 @@ public class Build extends BuildBase {
                 "org.postgresql", "postgresql", "42.2.8",
                 "6f394c7df5600d11b221f356ff020440d2ece44f");
         // for TestTraceSystem
-        downloadUsingMaven("ext/slf4j-nop-1.6.0.jar",
-                "org/slf4j", "slf4j-nop", "1.6.0",
-                "4da67bb4a6eea5dc273f99c50ad2333eadb46f86");
+        downloadUsingMaven("ext/slf4j-nop-1.7.28.jar",
+                "org/slf4j", "slf4j-nop", "1.7.28",
+                "e427e2f69d0a8508994e0a754a44d5212fa38b56");
     }
 
     private static String getVersion() {
@@ -665,13 +665,13 @@ public class Build extends BuildBase {
                 "-tag", "h2.resource",
                 "-d", "docs/javadocImpl2",
                 "-classpath", javaToolsJar +
-                File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
+                File.pathSeparator + "ext/slf4j-api-1.7.28.jar" +
                 File.pathSeparator + "ext/javax.servlet-api-4.0.1.jar" +
                 File.pathSeparator + "ext/lucene-core-8.2.0.jar" +
                 File.pathSeparator + "ext/lucene-analyzers-common-8.2.0.jar" +
                 File.pathSeparator + "ext/lucene-queryparser-8.2.0.jar" +
-                File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
-                File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
+                File.pathSeparator + "ext/org.osgi.core-5.0.0.jar" +
+                File.pathSeparator + "ext/org.osgi.enterprise-5.0.0.jar" +
                 File.pathSeparator + "ext/jts-core-1.16.1.jar" +
                 File.pathSeparator + "ext/asm-7.2.jar" +
                 File.pathSeparator + "ext/junit-jupiter-api-5.5.2.jar",
@@ -683,13 +683,13 @@ public class Build extends BuildBase {
                 "-tag", "h2.resource",
                 "-d", "docs/javadocImpl3",
                 "-classpath", javaToolsJar +
-                File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
+                File.pathSeparator + "ext/slf4j-api-1.7.28.jar" +
                 File.pathSeparator + "ext/javax.servlet-api-4.0.1.jar" +
                 File.pathSeparator + "ext/lucene-core-8.2.0.jar" +
                 File.pathSeparator + "ext/lucene-analyzers-common-8.2.0.jar" +
                 File.pathSeparator + "ext/lucene-queryparser-8.2.0.jar" +
-                File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
-                File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
+                File.pathSeparator + "ext/org.osgi.core-5.0.0.jar" +
+                File.pathSeparator + "ext/org.osgi.enterprise-5.0.0.jar" +
                 File.pathSeparator + "ext/jts-core-1.16.1.jar",
                 "-subpackages", "org.h2.mvstore",
                 "-exclude", "org.h2.mvstore.db");
@@ -700,13 +700,13 @@ public class Build extends BuildBase {
                 File.pathSeparator + "src/test" +
                 File.pathSeparator + "src/tools",
                 "-classpath", javaToolsJar +
-                File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
+                File.pathSeparator + "ext/slf4j-api-1.7.28.jar" +
                 File.pathSeparator + "ext/javax.servlet-api-4.0.1.jar" +
                 File.pathSeparator + "ext/lucene-core-8.2.0.jar" +
                 File.pathSeparator + "ext/lucene-analyzers-common-8.2.0.jar" +
                 File.pathSeparator + "ext/lucene-queryparser-8.2.0.jar" +
-                File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
-                File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
+                File.pathSeparator + "ext/org.osgi.core-5.0.0.jar" +
+                File.pathSeparator + "ext/org.osgi.enterprise-5.0.0.jar" +
                 File.pathSeparator + "ext/jts-core-1.16.1.jar" +
                 File.pathSeparator + "ext/asm-7.2.jar" +
                 File.pathSeparator + "ext/junit-jupiter-api-5.5.2.jar",
@@ -966,11 +966,11 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-analyzers-common-8.2.0.jar" +
                 File.pathSeparator + "ext/lucene-queryparser-8.2.0.jar" +
                 File.pathSeparator + "ext/h2mig_pagestore_addon.jar" +
-                File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
-                File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
+                File.pathSeparator + "ext/org.osgi.core-5.0.0.jar" +
+                File.pathSeparator + "ext/org.osgi.enterprise-5.0.0.jar" +
                 File.pathSeparator + "ext/jts-core-1.16.1.jar" +
-                File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
-                File.pathSeparator + "ext/slf4j-nop-1.6.0.jar" +
+                File.pathSeparator + "ext/slf4j-api-1.7.28.jar" +
+                File.pathSeparator + "ext/slf4j-nop-1.7.28.jar" +
                 File.pathSeparator + "ext/asm-7.2.jar" +
                 File.pathSeparator + javaToolsJar;
         int version = getJavaVersion();

@@ -7,6 +7,7 @@ package org.h2.util;
 
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
+import java.util.Hashtable;
 import java.util.Properties;
 import javax.sql.ConnectionPoolDataSource;
 import javax.sql.DataSource;
@@ -288,7 +289,7 @@ public class OsgiDataSourceFactory implements DataSourceFactory {
      */
     static void registerService(BundleContext bundleContext,
             org.h2.Driver driver) {
-        Properties properties = new Properties();
+        Hashtable<String, String> properties = new Hashtable<>();
         properties.put(
                 DataSourceFactory.OSGI_JDBC_DRIVER_CLASS,
                 org.h2.Driver.class.getName());

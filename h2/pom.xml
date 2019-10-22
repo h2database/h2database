@@ -100,7 +100,7 @@
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>42.2.5.jre7</version>
+      <version>42.2.8</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -112,7 +112,7 @@
     <dependency>
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm</artifactId>
-      <version>7.0</version>
+      <version>7.2</version>
       <scope>test</scope>
     </dependency>
     <!-- END TEST DEPENDENCIES !-->

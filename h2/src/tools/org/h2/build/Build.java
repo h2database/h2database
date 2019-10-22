@@ -180,7 +180,7 @@ public class Build extends BuildBase {
         delete(files("coverage/bin/META-INF/versions"));
         String cp = "coverage/bin" +
             File.pathSeparator + "ext/postgresql-42.2.8" +
-            File.pathSeparator + "ext/servlet-api-3.1.0.jar" +
+            File.pathSeparator + "ext/javax.servlet-api-4.0.1.jar" +
             File.pathSeparator + "ext/lucene-core-8.2.0.jar" +
             File.pathSeparator + "ext/lucene-analyzers-common-8.2.0.jar" +
             File.pathSeparator + "ext/lucene-queryparser-8.2.0.jar" +
@@ -261,7 +261,7 @@ public class Build extends BuildBase {
         mkdir("temp");
         download();
         String classpath = "temp" +
-                File.pathSeparator + "ext/servlet-api-3.1.0.jar" +
+                File.pathSeparator + "ext/javax.servlet-api-4.0.1.jar" +
                 File.pathSeparator + "ext/lucene-core-8.2.0.jar" +
                 File.pathSeparator + "ext/lucene-analyzers-common-8.2.0.jar" +
                 File.pathSeparator + "ext/lucene-queryparser-8.2.0.jar" +
@@ -356,9 +356,9 @@ public class Build extends BuildBase {
     }
 
     private void downloadOrVerify(boolean offline) {
-        downloadOrVerify("ext/servlet-api-3.1.0.jar",
-                "javax/servlet", "javax.servlet-api", "3.1.0",
-                "3cd63d075497751784b2fa84be59432f4905bf7c", offline);
+        downloadOrVerify("ext/javax.servlet-api-4.0.1.jar",
+                "javax/servlet", "javax.servlet-api", "4.0.1",
+                "a27082684a2ff0bf397666c3943496c44541d1ca", offline);
         downloadOrVerify("ext/lucene-core-8.2.0.jar",
                 "org/apache/lucene", "lucene-core", "8.2.0",
                 "f6da40436d3633de272810fae1e339c237adfcf6", offline);
@@ -666,7 +666,7 @@ public class Build extends BuildBase {
                 "-d", "docs/javadocImpl2",
                 "-classpath", javaToolsJar +
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
-                File.pathSeparator + "ext/servlet-api-3.1.0.jar" +
+                File.pathSeparator + "ext/javax.servlet-api-4.0.1.jar" +
                 File.pathSeparator + "ext/lucene-core-8.2.0.jar" +
                 File.pathSeparator + "ext/lucene-analyzers-common-8.2.0.jar" +
                 File.pathSeparator + "ext/lucene-queryparser-8.2.0.jar" +
@@ -684,7 +684,7 @@ public class Build extends BuildBase {
                 "-d", "docs/javadocImpl3",
                 "-classpath", javaToolsJar +
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
-                File.pathSeparator + "ext/servlet-api-3.1.0.jar" +
+                File.pathSeparator + "ext/javax.servlet-api-4.0.1.jar" +
                 File.pathSeparator + "ext/lucene-core-8.2.0.jar" +
                 File.pathSeparator + "ext/lucene-analyzers-common-8.2.0.jar" +
                 File.pathSeparator + "ext/lucene-queryparser-8.2.0.jar" +
@@ -701,7 +701,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "src/tools",
                 "-classpath", javaToolsJar +
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
-                File.pathSeparator + "ext/servlet-api-3.1.0.jar" +
+                File.pathSeparator + "ext/javax.servlet-api-4.0.1.jar" +
                 File.pathSeparator + "ext/lucene-core-8.2.0.jar" +
                 File.pathSeparator + "ext/lucene-analyzers-common-8.2.0.jar" +
                 File.pathSeparator + "ext/lucene-queryparser-8.2.0.jar" +
@@ -961,7 +961,7 @@ public class Build extends BuildBase {
         downloadTest();
         String cp = "temp" + File.pathSeparator + "bin" +
                 File.pathSeparator + "ext/postgresql-42.2.8.jar" +
-                File.pathSeparator + "ext/servlet-api-3.1.0.jar" +
+                File.pathSeparator + "ext/javax.servlet-api-4.0.1.jar" +
                 File.pathSeparator + "ext/lucene-core-8.2.0.jar" +
                 File.pathSeparator + "ext/lucene-analyzers-common-8.2.0.jar" +
                 File.pathSeparator + "ext/lucene-queryparser-8.2.0.jar" +

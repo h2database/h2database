@@ -380,9 +380,9 @@ public class Build extends BuildBase {
         downloadOrVerify("ext/jts-core-1.16.1.jar",
                 "org/locationtech/jts", "jts-core", "1.16.1",
                 "c4922e3566568f49a9219b9f9ece9049ee994c50", offline);
-        downloadOrVerify("ext/junit-4.12.jar",
-                "junit", "junit", "4.12",
-                "2973d150c0dc1fefe998f834810d68f278ea58ec", offline);
+        downloadOrVerify("ext/junit-jupiter-api-5.5.2.jar",
+                "org.junit.jupiter", "junit-jupiter-api", "5.5.2",
+                "6393db7e4c0265152d8fc4ff146633d1a7d36c47", offline);
         downloadUsingMaven("ext/asm-7.2.jar",
                 "org.ow2.asm", "asm", "7.2",
                 "fa637eb67eb7628c915d73762b681ae7ff0b9731");
@@ -674,7 +674,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
                 File.pathSeparator + "ext/jts-core-1.16.1.jar" +
                 File.pathSeparator + "ext/asm-7.2.jar" +
-                File.pathSeparator + "ext/junit-4.12.jar",
+                File.pathSeparator + "ext/junit-jupiter-api-5.5.2.jar",
                 "-subpackages", "org.h2");
 
         mkdir("docs/javadocImpl3");
@@ -709,7 +709,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
                 File.pathSeparator + "ext/jts-core-1.16.1.jar" +
                 File.pathSeparator + "ext/asm-7.2.jar" +
-                File.pathSeparator + "ext/junit-4.12.jar",
+                File.pathSeparator + "ext/junit-jupiter-api-5.5.2.jar",
                 "-subpackages", "org.h2",
                 "-package",
                 "-docletpath", "bin" + File.pathSeparator + "temp",

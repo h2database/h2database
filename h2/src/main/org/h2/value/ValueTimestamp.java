@@ -180,20 +180,19 @@ public class ValueTimestamp extends Value {
 
     @Override
     public String getString() {
-        StringBuilder buff = new StringBuilder(MAXIMUM_PRECISION);
-        DateTimeUtils.appendDate(buff, dateValue);
-        buff.append(' ');
-        DateTimeUtils.appendTime(buff, timeNanos);
-        return buff.toString();
+        return toString(new StringBuilder(MAXIMUM_PRECISION)).toString();
     }
 
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
-        builder.append("TIMESTAMP '");
+        return toString(builder.append("TIMESTAMP '")).append('\'');
+    }
+
+    private StringBuilder toString(StringBuilder builder) {
         DateTimeUtils.appendDate(builder, dateValue);
         builder.append(' ');
         DateTimeUtils.appendTime(builder, timeNanos);
-        return builder.append('\'');
+        return builder;
     }
 
     @Override

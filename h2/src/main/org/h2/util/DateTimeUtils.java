@@ -1143,22 +1143,6 @@ public class DateTimeUtils {
     }
 
     /**
-     * Formats timestamp with time zone as string.
-     *
-     * @param buff the target string builder
-     * @param dateValue the year-month-day bit field
-     * @param timeNanos nanoseconds since midnight
-     * @param timeZoneOffsetSeconds the time zone offset in seconds
-     */
-    public static void appendTimestampTimeZone(StringBuilder buff, long dateValue, long timeNanos,
-            int timeZoneOffsetSeconds) {
-        appendDate(buff, dateValue);
-        buff.append(' ');
-        appendTime(buff, timeNanos);
-        appendTimeZone(buff, timeZoneOffsetSeconds);
-    }
-
-    /**
      * Generates time zone name for the specified offset in seconds.
      *
      * @param offsetSeconds

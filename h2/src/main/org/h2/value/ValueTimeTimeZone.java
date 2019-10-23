@@ -126,18 +126,18 @@ public class ValueTimeTimeZone extends Value {
 
     @Override
     public String getString() {
-        StringBuilder builder = new StringBuilder(MAXIMUM_PRECISION);
-        DateTimeUtils.appendTime(builder, nanos);
-        DateTimeUtils.appendTimeZone(builder, timeZoneOffsetSeconds);
-        return builder.toString();
+        return toString(new StringBuilder(MAXIMUM_PRECISION)).toString();
     }
 
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
-        builder.append("TIME WITH TIME ZONE '");
+        return toString(builder.append("TIME WITH TIME ZONE '")).append('\'');
+    }
+
+    private StringBuilder toString(StringBuilder builder) {
         DateTimeUtils.appendTime(builder, nanos);
         DateTimeUtils.appendTimeZone(builder, timeZoneOffsetSeconds);
-        return builder.append('\'');
+        return builder;
     }
 
     @Override

@@ -123,15 +123,14 @@ public class ValueTime extends Value {
 
     @Override
     public String getString() {
-        StringBuilder buff = new StringBuilder(MAXIMUM_PRECISION);
-        DateTimeUtils.appendTime(buff, nanos);
-        return buff.toString();
+        StringBuilder builder = new StringBuilder(MAXIMUM_PRECISION);
+        DateTimeUtils.appendTime(builder, nanos);
+        return builder.toString();
     }
 
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
-        builder.append("TIME '");
-        DateTimeUtils.appendTime(builder, nanos);
+        DateTimeUtils.appendTime(builder.append("TIME '"), nanos);
         return builder.append('\'');
     }
 

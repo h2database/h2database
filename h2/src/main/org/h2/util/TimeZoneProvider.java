@@ -265,7 +265,7 @@ public abstract class TimeZoneProvider {
         public String getId() {
             String id = this.id;
             if (id == null) {
-                this.id = DateTimeUtils.timeZoneNameFromOffsetSeconds(offset);
+                this.id = id = DateTimeUtils.timeZoneNameFromOffsetSeconds(offset);
             }
             return id;
         }

@@ -107,7 +107,7 @@ public class TestCsv extends TestDb {
         csv.setLineSeparator(";");
         csv.write(writer, rs);
         conn.close();
-        assertEquals("TS,N;-100-01-01 12:00:00,;", writer.toString());
+        assertEquals("TS,N;-0100-01-01 12:00:00,;", writer.toString());
     }
 
     private void testCaseSensitiveColumnNames() throws Exception {

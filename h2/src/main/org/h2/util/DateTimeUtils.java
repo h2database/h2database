@@ -1037,22 +1037,26 @@ public class DateTimeUtils {
     /**
      * Append a date to the string builder.
      *
-     * @param buff the target string builder
+     * @param builder the target string builder
      * @param dateValue the date value
      */
-    public static void appendDate(StringBuilder buff, long dateValue) {
+    public static void appendDate(StringBuilder builder, long dateValue) {
         int y = yearFromDateValue(dateValue);
         int m = monthFromDateValue(dateValue);
         int d = dayFromDateValue(dateValue);
-        if (y > 0 && y < 10_000) {
-            StringUtils.appendZeroPadded(buff, 4, y);
+        if (y < 1_000 && y > -1_000) {
+            if (y < 0) {
+                builder.append('-');
+                y = -y;
+            }
+            StringUtils.appendZeroPadded(builder, 4, y);
         } else {
-            buff.append(y);
+            builder.append(y);
         }
-        buff.append('-');
-        StringUtils.appendZeroPadded(buff, 2, m);
-        buff.append('-');
-        StringUtils.appendZeroPadded(buff, 2, d);
+        builder.append('-');
+        StringUtils.appendZeroPadded(builder, 2, m);
+        builder.append('-');
+        StringUtils.appendZeroPadded(builder, 2, d);
     }
 
     /**

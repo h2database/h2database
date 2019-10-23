@@ -14,11 +14,8 @@ import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.Period;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
@@ -37,105 +34,6 @@ import org.h2.value.ValueTimestampTimeZone;
  * This utility class provides access to JSR 310 classes.
  */
 public class JSR310Utils {
-
-    private static final class WithTimeZone8 extends TimeZoneProvider.WithTimeZone {
-
-        private static final long EPOCH_SECONDS_HIGH = 31556889864403199L;
-
-        private static final long EPOCH_SECONDS_LOW = -31557014167219200L;
-
-        private static volatile DateTimeFormatter TIME_ZONE_FORMATTER;
-
-        private final ZoneId zoneId;
-
-        WithTimeZone8(ZoneId timeZone) {
-            this.zoneId = timeZone;
-        }
-
-        @Override
-        public int getTimeZoneOffsetUTC(long epochSeconds) {
-            return zoneId.getRules().getOffset(epochSecondsForCalendar(epochSeconds)).getTotalSeconds();
-        }
-
-        @Override
-        int getTimeZoneOffsetLocal(int year, int month, int day, int hour, int minute, int second) {
-            year = yearForCalendar(year);
-            return ZonedDateTime.of(LocalDateTime.of(year, month, day, hour, minute, second), zoneId).getOffset()
-                    .getTotalSeconds();
-        }
-
-        @Override
-        long getEpochSecondsFromLocal(int year, int month, int day, int hour, int minute, int second) {
-            int yearForCalendar = yearForCalendar(year);
-            long epoch = ZonedDateTime.of(LocalDateTime.of(yearForCalendar, month, day, hour, minute, second), zoneId)
-                    .toOffsetDateTime().toEpochSecond();
-            return epoch + (year - yearForCalendar) * SECONDS_PER_YEAR;
-        }
-
-        @Override
-        public String getId() {
-            return zoneId.getId();
-        }
-
-        @Override
-        public String getShortId(long epochSeconds) {
-            DateTimeFormatter timeZoneFormatter = TIME_ZONE_FORMATTER;
-            if (timeZoneFormatter == null) {
-                TIME_ZONE_FORMATTER = timeZoneFormatter = DateTimeFormatter.ofPattern("z", Locale.ENGLISH);
-            }
-            return ZonedDateTime.ofInstant(Instant.ofEpochSecond(epochSeconds), zoneId).format(timeZoneFormatter);
-        }
-
-        /**
-         * Returns a year within the range -999,999,999..999,999,999 for the
-         * given year. Too large and too small years are replaced with years
-         * within the range using the 400 years period of the Gregorian
-         * calendar.
-         *
-         * Because we need them only to calculate a time zone offset, it's safe
-         * to normalize them to such range.
-         *
-         * @param year
-         *            the year
-         * @return the specified year or the replacement year within the range
-         */
-        private static int yearForCalendar(int year) {
-            if (year > 999_999_999) {
-                year -= 400;
-            } else if (year < -999_999_999) {
-                year += 400;
-            }
-            return year;
-        }
-
-        /**
-         * Returns an Instant with EPOCH seconds within the range
-         * -31,557,014,167,219,200..31,556,889,864,403,199
-         * (-1000000000-01-01T00:00Z..1000000000-12-31T23:59:59.999999999Z). Too
-         * large and too small EPOCH seconds are replaced with EPOCH seconds
-         * within the range using the 400 years period of the Gregorian
-         * calendar.
-         *
-         * @param epochSeconds
-         *            the EPOCH seconds
-         * @return an Instant with specified or the replacement EPOCH seconds
-         *         within the range
-         */
-        private static Instant epochSecondsForCalendar(long epochSeconds) {
-            if (epochSeconds > EPOCH_SECONDS_HIGH) {
-                epochSeconds -= SECONDS_PER_PERIOD;
-            } else if (epochSeconds < EPOCH_SECONDS_LOW) {
-                epochSeconds += SECONDS_PER_PERIOD;
-            }
-            return Instant.ofEpochSecond(epochSeconds);
-        }
-
-        @Override
-        public String toString() {
-            return "TimeZoneProvider " + zoneId.getId();
-        }
-
-    }
 
     private static final long MIN_DATE_VALUE = (-999_999_999L << DateTimeUtils.SHIFT_YEAR)
             + (1 << DateTimeUtils.SHIFT_MONTH) + 1;
@@ -529,26 +427,6 @@ public class JSR310Utils {
             seconds--;
         }
         return ValueInterval.from(IntervalQualifier.SECOND, negative, seconds, nano);
-    }
-
-    /**
-     * Returns a default time zone provider.
-     *
-     * @return the default time zone provider
-     */
-    public static TimeZoneProvider getDefaultTimeZoneProvider() {
-        return new WithTimeZone8(ZoneId.systemDefault());
-    }
-
-    /**
-     * Returns a time zone provider for a specified time zone ID.
-     *
-     * @param timeZoneId
-     *            the time zone ID
-     * @return the time zone provider
-     */
-    public static TimeZoneProvider getTimeZoneProvider(String timeZoneId) {
-        return new WithTimeZone8(ZoneId.of(timeZoneId, ZoneId.SHORT_IDS));
     }
 
 }

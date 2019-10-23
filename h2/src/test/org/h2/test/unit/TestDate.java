@@ -76,7 +76,7 @@ public class TestDate extends TestBase {
     private void testValueDate() {
         assertEquals("2000-01-01",
                 ValueDate.get(null, Date.valueOf("2000-01-01")).getString());
-        assertEquals("0-00-00",
+        assertEquals("0000-00-00",
                 ValueDate.fromDateValue(0).getString());
         assertEquals("9999-12-31",
                 ValueDate.parse("9999-12-31").getString());
@@ -183,7 +183,7 @@ public class TestDate extends TestBase {
                 "2001-02-03 04:05:06.001002003",
                 ValueTimestamp.get(null, Timestamp.valueOf("2001-02-03 04:05:06.001002003")).getString());
         assertEquals(
-                "0-00-00 00:00:00", ValueTimestamp.fromDateValueAndNanos(0, 0).getString());
+                "0000-00-00 00:00:00", ValueTimestamp.fromDateValueAndNanos(0, 0).getString());
         assertEquals(
                 "9999-12-31 23:59:59",
                 ValueTimestamp.parse("9999-12-31 23:59:59").getString());
@@ -439,8 +439,8 @@ public class TestDate extends TestBase {
             ValueTime t2 = (ValueTime) ts2.convertTo(Value.TIME);
             ValueDate d1 = (ValueDate) ts1.convertTo(Value.DATE);
             ValueDate d2 = (ValueDate) ts2.convertTo(Value.DATE);
-            assertEquals("-999-08-07 13:14:15.16", ts1.getString());
-            assertEquals("-999-08-07", d1.getString());
+            assertEquals("-0999-08-07 13:14:15.16", ts1.getString());
+            assertEquals("-0999-08-07", d1.getString());
             assertEquals("13:14:15.16", t1.getString());
             assertEquals("19999-08-07 13:14:15.16", ts2.getString());
             assertEquals("19999-08-07", d2.getString());
@@ -448,7 +448,7 @@ public class TestDate extends TestBase {
             TimeZone timeZone = TimeZone.getDefault();
             ValueTimestamp ts1a = ValueTimestamp.get(timeZone, ts1.getTimestamp(null, null));
             ValueTimestamp ts2a = ValueTimestamp.get(timeZone, ts2.getTimestamp(null, null));
-            assertEquals("-999-08-07 13:14:15.16", ts1a.getString());
+            assertEquals("-0999-08-07 13:14:15.16", ts1a.getString());
             assertEquals("19999-08-07 13:14:15.16", ts2a.getString());
         } finally {
             TimeZone.setDefault(old);

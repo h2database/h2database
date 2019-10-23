@@ -39,7 +39,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
-import java.util.GregorianCalendar;
+import java.time.temporal.WeekFields;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -74,6 +74,11 @@ public final class DateTimeFunctions {
     private static final BigDecimal BD_NANOS_PER_SECOND = new BigDecimal(NANOS_PER_SECOND);
 
     private static final HashMap<String, Integer> DATE_PART = new HashMap<>(128);
+
+    /**
+     * Local definitions of day-of-week, week-of-month, and week-of-year.
+     */
+    private static volatile WeekFields WEEK_FIELDS;
 
     /**
      * English names of months and week days.
@@ -699,9 +704,7 @@ public final class DateTimeFunctions {
                 return dow;
             }
             case WEEK:
-                GregorianCalendar gc = new GregorianCalendar();
-                return DateTimeUtils.getWeekOfYear(dateValue, gc.getFirstDayOfWeek() - 1,
-                        gc.getMinimalDaysInFirstWeek());
+                return getLocalWeekOfYear(dateValue);
             case QUARTER:
                 return (DateTimeUtils.monthFromDateValue(dateValue) - 1) / 3 + 1;
             case ISO_YEAR:
@@ -732,6 +735,15 @@ public final class DateTimeFunctions {
             }
         }
         throw DbException.getUnsupportedException("getDatePart(" + date + ", " + field + ')');
+    }
+
+    private static int getLocalWeekOfYear(long dateValue) {
+        WeekFields weekFields = WEEK_FIELDS;
+        if (weekFields == null) {
+            WEEK_FIELDS = weekFields = WeekFields.of(Locale.getDefault());
+        }
+        return DateTimeUtils.getWeekOfYear(dateValue, weekFields.getFirstDayOfWeek().getValue(),
+                weekFields.getMinimalDaysInFirstWeek());
     }
 
     /**

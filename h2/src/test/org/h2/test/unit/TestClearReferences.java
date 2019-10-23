@@ -27,6 +27,7 @@ public class TestClearReferences extends TestBase {
         "org.h2.engine.DbSettings.defaultSettings",
         "org.h2.engine.SessionRemote.sessionFactory",
         "org.h2.expression.function.DateTimeFunctions.MONTHS_AND_WEEKS",
+        "org.h2.expression.function.DateTimeFunctions.WEEK_FIELDS",
         "org.h2.expression.function.ToChar.NAMES",
         "org.h2.jdbcx.JdbcDataSourceFactory.cachedTraceSystem",
         "org.h2.store.RecoverTester.instance",

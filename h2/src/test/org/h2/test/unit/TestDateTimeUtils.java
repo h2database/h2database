@@ -141,21 +141,20 @@ public class TestDateTimeUtils extends TestBase {
     private void testUTC2Value(boolean allTimeZones) {
         TimeZone def = TimeZone.getDefault();
         GregorianCalendar gc = new GregorianCalendar();
-        if (allTimeZones) {
-            try {
-                for (String id : TimeZone.getAvailableIDs()) {
+        String[] ids = allTimeZones ? TimeZone.getAvailableIDs() : new String[] { def.getID(), "+10" };
+        try {
+            for (String id : ids) {
+                if (allTimeZones) {
                     System.out.println(id);
-                    TimeZone tz = TimeZone.getTimeZone(id);
-                    TimeZone.setDefault(tz);
-                    DateTimeUtils.resetCalendar();
-                    testUTC2ValueImpl(tz, gc);
                 }
-            } finally {
-                TimeZone.setDefault(def);
+                TimeZone tz = TimeZone.getTimeZone(id);
+                TimeZone.setDefault(tz);
                 DateTimeUtils.resetCalendar();
+                testUTC2ValueImpl(tz, gc);
             }
-        } else {
-            testUTC2ValueImpl(def, gc);
+        } finally {
+            TimeZone.setDefault(def);
+            DateTimeUtils.resetCalendar();
         }
     }
 

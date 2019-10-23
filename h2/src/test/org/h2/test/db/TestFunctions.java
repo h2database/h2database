@@ -1356,7 +1356,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
                 "(TIMESTAMP '-100-01-15 14:04:02.120')");
 
         assertResult("1979-11-12 08:12:34.56", stat, "SELECT X FROM T");
-        assertResult("-100-01-15 14:04:02.12", stat, "SELECT X FROM U");
+        assertResult("-0100-01-15 14:04:02.12", stat, "SELECT X FROM U");
         String expected = String.format("%tb", timestamp1979).toUpperCase();
         expected = stripTrailingPeriod(expected);
         assertResult("12-" + expected + "-79 08.12.34.560000000 AM", stat,

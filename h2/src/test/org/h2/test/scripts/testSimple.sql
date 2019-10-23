@@ -835,7 +835,7 @@ select date '+0011-01-01';
 >> 0011-01-01
 
 select date'-0010-01-01';
->> -10-01-01
+>> -0010-01-01
 
 create schema TEST_SCHEMA;
 > ok

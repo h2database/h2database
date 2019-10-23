@@ -96,15 +96,14 @@ public class ValueDate extends Value {
 
     @Override
     public String getString() {
-        StringBuilder buff = new StringBuilder(PRECISION);
-        DateTimeUtils.appendDate(buff, dateValue);
-        return buff.toString();
+        StringBuilder builder = new StringBuilder(PRECISION);
+        DateTimeUtils.appendDate(builder, dateValue);
+        return builder.toString();
     }
 
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
-        builder.append("DATE '");
-        DateTimeUtils.appendDate(builder, dateValue);
+        DateTimeUtils.appendDate(builder.append("DATE '"), dateValue);
         return builder.append('\'');
     }
 

@@ -7,8 +7,7 @@
  */
 package org.h2.util;
 
-import java.sql.Date;
-import java.util.GregorianCalendar;
+import java.util.Date;
 import java.util.TimeZone;
 
 import org.h2.api.ErrorCode;
@@ -75,8 +74,8 @@ public class DateTimeUtils {
     static final int SHIFT_MONTH = 5;
 
     /**
-     * Gregorian change date for a {@link GregorianCalendar} that represents a
-     * proleptic Gregorian calendar.
+     * Gregorian change date for a {@link java.util.GregorianCalendar} that
+     * represents a proleptic Gregorian calendar.
      */
     public static final Date PROLEPTIC_GREGORIAN_CHANGE = new Date(Long.MIN_VALUE);
 
@@ -99,10 +98,11 @@ public class DateTimeUtils {
             30, 31, 31, 30, 31, 30, 31 };
 
     /**
-     * Multipliers for {@link #convertScale(long, int, long)}.
+     * Multipliers for {@link #convertScale(long, int, long)} and
+     * {@link #appendNanos(StringBuilder, int)}.
      */
-    private static final int[] CONVERT_SCALE_TABLE = { 1_000_000_000, 100_000_000,
-            10_000_000, 1_000_000, 100_000, 10_000, 1_000, 100, 10 };
+    private static final int[] FRACTIONAL_SECONDS_TABLE = { 1_000_000_000, 100_000_000,
+            10_000_000, 1_000_000, 100_000, 10_000, 1_000, 100, 10, 1 };
 
     private static volatile TimeZoneProvider LOCAL;
 
@@ -1037,76 +1037,79 @@ public class DateTimeUtils {
     /**
      * Append a date to the string builder.
      *
-     * @param buff the target string builder
+     * @param builder the target string builder
      * @param dateValue the date value
+     * @return the specified string builder
      */
-    public static void appendDate(StringBuilder buff, long dateValue) {
+    public static StringBuilder appendDate(StringBuilder builder, long dateValue) {
         int y = yearFromDateValue(dateValue);
-        int m = monthFromDateValue(dateValue);
-        int d = dayFromDateValue(dateValue);
-        if (y > 0 && y < 10_000) {
-            StringUtils.appendZeroPadded(buff, 4, y);
+        if (y < 1_000 && y > -1_000) {
+            if (y < 0) {
+                builder.append('-');
+                y = -y;
+            }
+            StringUtils.appendZeroPadded(builder, 4, y);
         } else {
-            buff.append(y);
+            builder.append(y);
         }
-        buff.append('-');
-        StringUtils.appendZeroPadded(buff, 2, m);
-        buff.append('-');
-        StringUtils.appendZeroPadded(buff, 2, d);
+        StringUtils.appendTwoDigits(builder.append('-'), monthFromDateValue(dateValue)).append('-');
+        return StringUtils.appendTwoDigits(builder, dayFromDateValue(dateValue));
     }
 
     /**
      * Append a time to the string builder.
      *
-     * @param buff the target string builder
+     * @param builder the target string builder
      * @param nanos the time in nanoseconds
      */
-    public static void appendTime(StringBuilder buff, long nanos) {
+    public static void appendTime(StringBuilder builder, long nanos) {
         if (nanos < 0) {
-            buff.append('-');
+            builder.append('-');
             nanos = -nanos;
         }
         /*
          * nanos now either in range from 0 to Long.MAX_VALUE or equals to
-         * Long.MIN_VALUE. We need to divide nanos by 1000000 with unsigned division to
-         * get correct result. The simplest way to do this with such constraints is to
-         * divide -nanos by -1000000.
+         * Long.MIN_VALUE. We need to divide nanos by 1,000,000,000 with
+         * unsigned division to get correct result. The simplest way to do this
+         * with such constraints is to divide -nanos by -1,000,000,000.
          */
-        long ms = -nanos / -1_000_000;
-        nanos -= ms * 1_000_000;
-        long s = ms / 1_000;
-        ms -= s * 1_000;
-        long m = s / 60;
+        long s = -nanos / -1_000_000_000;
+        nanos -= s * 1_000_000_000;
+        int m = (int) (s / 60);
         s -= m * 60;
-        long h = m / 60;
+        int h = m / 60;
         m -= h * 60;
-        StringUtils.appendZeroPadded(buff, 2, h);
-        buff.append(':');
-        StringUtils.appendZeroPadded(buff, 2, m);
-        buff.append(':');
-        StringUtils.appendZeroPadded(buff, 2, s);
-        if (ms > 0 || nanos > 0) {
-            buff.append('.');
-            StringUtils.appendZeroPadded(buff, 3, ms);
-            if (nanos > 0) {
-                StringUtils.appendZeroPadded(buff, 6, nanos);
-            }
-            stripTrailingZeroes(buff);
-        }
+        StringUtils.appendTwoDigits(builder, h).append(':');
+        StringUtils.appendTwoDigits(builder, m).append(':');
+        StringUtils.appendTwoDigits(builder, (int) s);
+        appendNanos(builder, (int) nanos);
     }
 
     /**
-     * Skip trailing zeroes.
+     * Append nanoseconds of time, if any.
      *
-     * @param buff String buffer.
+     * @param builder string builder to append to
+     * @param nanos nanoseconds of second
      */
-    static void stripTrailingZeroes(StringBuilder buff) {
-        int i = buff.length() - 1;
-        if (buff.charAt(i) == '0') {
-            while (buff.charAt(--i) == '0') {
-                // do nothing
+    static void appendNanos(StringBuilder builder, int nanos) {
+        if (nanos > 0) {
+            builder.append('.');
+            for (int i = 1; nanos < FRACTIONAL_SECONDS_TABLE[i]; i++) {
+                builder.append('0');
             }
-            buff.setLength(i + 1);
+            if (nanos % 1_000 == 0) {
+                nanos /= 1_000;
+                if (nanos % 1_000 == 0) {
+                    nanos /= 1_000;
+                }
+            }
+            if (nanos % 10 == 0) {
+                nanos /= 10;
+                if (nanos % 10 == 0) {
+                    nanos /= 10;
+                }
+            }
+            builder.append(nanos);
         }
     }
 
@@ -1124,34 +1127,18 @@ public class DateTimeUtils {
             buff.append('+');
         }
         int rem = tz / 3_600;
-        StringUtils.appendZeroPadded(buff, 2, rem);
+        StringUtils.appendTwoDigits(buff, rem);
         tz -= rem * 3_600;
         if (tz != 0) {
             rem = tz / 60;
             buff.append(':');
-            StringUtils.appendZeroPadded(buff, 2, rem);
+            StringUtils.appendTwoDigits(buff, rem);
             tz -= rem * 60;
             if (tz != 0) {
                 buff.append(':');
-                StringUtils.appendZeroPadded(buff, 2, tz);
+                StringUtils.appendTwoDigits(buff, tz);
             }
         }
-    }
-
-    /**
-     * Formats timestamp with time zone as string.
-     *
-     * @param buff the target string builder
-     * @param dateValue the year-month-day bit field
-     * @param timeNanos nanoseconds since midnight
-     * @param timeZoneOffsetSeconds the time zone offset in seconds
-     */
-    public static void appendTimestampTimeZone(StringBuilder buff, long dateValue, long timeNanos,
-            int timeZoneOffsetSeconds) {
-        appendDate(buff, dateValue);
-        buff.append(' ');
-        appendTime(buff, timeNanos);
-        appendTimeZone(buff, timeZoneOffsetSeconds);
     }
 
     /**
@@ -1173,14 +1160,13 @@ public class DateTimeUtils {
         } else {
             b.append('+');
         }
-        StringUtils.appendZeroPadded(b, 2, offsetSeconds / 3_600);
-        b.append(':');
+        StringUtils.appendTwoDigits(b, offsetSeconds / 3_600).append(':');
         offsetSeconds %= 3_600;
-        StringUtils.appendZeroPadded(b, 2, offsetSeconds / 60);
+        StringUtils.appendTwoDigits(b, offsetSeconds / 60);
         offsetSeconds %= 60;
         if (offsetSeconds != 0) {
             b.append(':');
-            StringUtils.appendZeroPadded(b, 2, offsetSeconds);
+            StringUtils.appendTwoDigits(b, offsetSeconds);
         }
         return b.toString();
     }
@@ -1197,7 +1183,7 @@ public class DateTimeUtils {
         if (scale >= 9) {
             return nanosOfDay;
         }
-        int m = CONVERT_SCALE_TABLE[scale];
+        int m = FRACTIONAL_SECONDS_TABLE[scale];
         long mod = nanosOfDay % m;
         if (mod >= m >>> 1) {
             nanosOfDay += m;

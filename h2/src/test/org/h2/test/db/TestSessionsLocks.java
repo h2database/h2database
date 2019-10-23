@@ -185,7 +185,8 @@ public class TestSessionsLocks extends TestDb {
 
         // using the connection for the aborted session is expected to throw an
         // exception
-        assertThrows(ErrorCode.DATABASE_CALLED_AT_SHUTDOWN, stat2).executeQuery("select count(*) from test");
+        assertThrows(config.networked ? ErrorCode.CONNECTION_BROKEN_1 : ErrorCode.DATABASE_CALLED_AT_SHUTDOWN, stat2)
+                .executeQuery("select count(*) from test");
 
         conn2.close();
         conn.close();

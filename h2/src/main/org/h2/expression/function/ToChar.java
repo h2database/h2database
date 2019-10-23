@@ -690,9 +690,9 @@ public class ToChar {
         int monthOfYear = DateTimeUtils.monthFromDateValue(dateValue);
         int dayOfMonth = DateTimeUtils.dayFromDateValue(dateValue);
         int posYear = Math.abs(year);
-        long second = timeNanos / 1_000_000_000;
+        int second = (int) (timeNanos / 1_000_000_000);
         int nanos = (int) (timeNanos - second * 1_000_000_000);
-        int minute = (int) (second / 60);
+        int minute = second / 60;
         second -= minute * 60;
         int hour = minute / 60;
         minute -= hour * 60;
@@ -740,19 +740,14 @@ public class ToChar {
                 StringUtils.appendZeroPadded(output, 4, posYear);
                 i += 2;
             } else if (containsAt(format, i, "DS") != null) {
-                StringUtils.appendZeroPadded(output, 2, monthOfYear);
-                output.append('/');
-                StringUtils.appendZeroPadded(output, 2, dayOfMonth);
-                output.append('/');
+                StringUtils.appendTwoDigits(output, monthOfYear).append('/');
+                StringUtils.appendTwoDigits(output, dayOfMonth).append('/');
                 StringUtils.appendZeroPadded(output, 4, posYear);
                 i += 2;
             } else if (containsAt(format, i, "TS") != null) {
                 output.append(h12).append(':');
-                StringUtils.appendZeroPadded(output, 2, minute);
-                output.append(':');
-                StringUtils.appendZeroPadded(output, 2, second);
-                output.append(' ');
-                output.append(getDateNames(AM_PM)[isAM ? 0 : 1]);
+                StringUtils.appendTwoDigits(output, minute).append(':');
+                StringUtils.appendTwoDigits(output, second).append(' ').append(getDateNames(AM_PM)[isAM ? 0 : 1]);
                 i += 2;
 
                 // Day
@@ -761,7 +756,7 @@ public class ToChar {
                 output.append(DateTimeUtils.getDayOfYear(dateValue));
                 i += 3;
             } else if (containsAt(format, i, "DD") != null) {
-                StringUtils.appendZeroPadded(output, 2, dayOfMonth);
+                StringUtils.appendTwoDigits(output, dayOfMonth);
                 i += 2;
             } else if ((cap = containsAt(format, i, "DY")) != null) {
                 String day = getDateNames(SHORT_WEEKDAYS)[DateTimeUtils.getSundayDayOfWeek(dateValue)];
@@ -784,19 +779,19 @@ public class ToChar {
                 // Hours
 
             } else if (containsAt(format, i, "HH24") != null) {
-                StringUtils.appendZeroPadded(output, 2, hour);
+                StringUtils.appendTwoDigits(output, hour);
                 i += 4;
             } else if (containsAt(format, i, "HH12") != null) {
-                StringUtils.appendZeroPadded(output, 2, h12);
+                StringUtils.appendTwoDigits(output, h12);
                 i += 4;
             } else if (containsAt(format, i, "HH") != null) {
-                StringUtils.appendZeroPadded(output, 2, h12);
+                StringUtils.appendTwoDigits(output, h12);
                 i += 2;
 
                 // Minutes
 
             } else if (containsAt(format, i, "MI") != null) {
-                StringUtils.appendZeroPadded(output, 2, minute);
+                StringUtils.appendTwoDigits(output, minute);
                 i += 2;
 
                 // Seconds
@@ -806,7 +801,7 @@ public class ToChar {
                 output.append(seconds);
                 i += 5;
             } else if (containsAt(format, i, "SS") != null) {
-                StringUtils.appendZeroPadded(output, 2, second);
+                StringUtils.appendTwoDigits(output, second);
                 i += 2;
 
                 // Fractional seconds
@@ -833,10 +828,10 @@ public class ToChar {
                 // Week
 
             } else if (containsAt(format, i, "WW") != null) {
-                StringUtils.appendZeroPadded(output, 2, (DateTimeUtils.getDayOfYear(dateValue) - 1) / 7 + 1);
+                StringUtils.appendTwoDigits(output, (DateTimeUtils.getDayOfYear(dateValue) - 1) / 7 + 1);
                 i += 2;
             } else if (containsAt(format, i, "IW") != null) {
-                StringUtils.appendZeroPadded(output, 2, DateTimeUtils.getIsoWeekOfYear(dateValue));
+                StringUtils.appendTwoDigits(output, DateTimeUtils.getIsoWeekOfYear(dateValue));
                 i += 2;
             } else if (containsAt(format, i, "W") != null) {
                 output.append((dayOfMonth - 1) / 7 + 1);
@@ -867,10 +862,10 @@ public class ToChar {
                 StringUtils.appendZeroPadded(output, 3, Math.abs(DateTimeUtils.getIsoWeekYear(dateValue)) % 1000);
                 i += 3;
             } else if (containsAt(format, i, "YY", "RR") != null) {
-                StringUtils.appendZeroPadded(output, 2, posYear % 100);
+                StringUtils.appendTwoDigits(output, posYear % 100);
                 i += 2;
             } else if (containsAt(format, i, "IY") != null) {
-                StringUtils.appendZeroPadded(output, 2, Math.abs(DateTimeUtils.getIsoWeekYear(dateValue)) % 100);
+                StringUtils.appendTwoDigits(output, Math.abs(DateTimeUtils.getIsoWeekYear(dateValue)) % 100);
                 i += 2;
             } else if (containsAt(format, i, "Y") != null) {
                 output.append(posYear % 10);
@@ -893,7 +888,7 @@ public class ToChar {
                 output.append(cap.apply(month));
                 i += 3;
             } else if (containsAt(format, i, "MM") != null) {
-                StringUtils.appendZeroPadded(output, 2, monthOfYear);
+                StringUtils.appendTwoDigits(output, monthOfYear);
                 i += 2;
             } else if ((cap = containsAt(format, i, "RM")) != null) {
                 output.append(cap.apply(toRomanNumeral(monthOfYear)));

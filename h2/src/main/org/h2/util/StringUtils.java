@@ -1216,28 +1216,34 @@ public class StringUtils {
     }
 
     /**
+     * Append a zero-padded number from 00 to 99 to a string builder.
+     *
+     * @param builder the string builder
+     * @param positiveValue the number to append
+     * @return the specified string builder
+     */
+    public static StringBuilder appendTwoDigits(StringBuilder builder, int positiveValue) {
+        if (positiveValue < 10) {
+            builder.append('0');
+        }
+        return builder.append(positiveValue);
+    }
+
+    /**
      * Append a zero-padded number to a string builder.
      *
-     * @param buff the string builder
+     * @param builder the string builder
      * @param length the number of characters to append
      * @param positiveValue the number to append
+     * @return the specified string builder
      */
-    public static void appendZeroPadded(StringBuilder buff, int length,
-            long positiveValue) {
-        if (length == 2) {
-            if (positiveValue < 10) {
-                buff.append('0');
-            }
-            buff.append(positiveValue);
-        } else {
-            String s = Long.toString(positiveValue);
-            length -= s.length();
-            while (length > 0) {
-                buff.append('0');
-                length--;
-            }
-            buff.append(s);
+    public static StringBuilder appendZeroPadded(StringBuilder builder, int length, long positiveValue) {
+        String s = Long.toString(positiveValue);
+        length -= s.length();
+        for (; length > 0; length--) {
+            builder.append('0');
         }
+        return builder.append(s);
     }
 
     /**

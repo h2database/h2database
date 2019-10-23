@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 
@@ -149,7 +150,7 @@ public class TestSessionsLocks extends TestDb {
         Connection conn = getConnection("sessionsLocks");
         Statement stat = conn.createStatement();
         ResultSet rs;
-        rs = stat.executeQuery("select session_id() as ID from dual");
+        rs = stat.executeQuery("select session_id() as ID");
         rs.next();
         int sessionId = rs.getInt("ID");
 
@@ -163,7 +164,7 @@ public class TestSessionsLocks extends TestDb {
         // grab a lock
         stat2.executeUpdate("update test set name = 'Again' where id = 1");
 
-        rs = stat2.executeQuery("select session_id() as ID from dual");
+        rs = stat2.executeQuery("select session_id() as ID");
         rs.next();
 
         int otherId = rs.getInt("ID");
@@ -171,27 +172,21 @@ public class TestSessionsLocks extends TestDb {
         assertFalse(rs.next());
 
         // expect one lock
-        int lockCount = getLockCountForSession(stat, otherId);
-        assertTrue(lockCount > 0);
+        assertEquals(1, getLockCountForSession(stat, otherId));
         rs = stat.executeQuery("CALL ABORT_SESSION(" + otherId + ")");
         rs.next();
         assertTrue(rs.getBoolean(1));
 
         // expect the lock to be released along with its session
-        lockCount = getLockCountForSession(stat, otherId);
-        assertTrue(lockCount == 0);
+        assertEquals(0, getLockCountForSession(stat, otherId));
         rs = stat.executeQuery("CALL ABORT_SESSION(" + otherId + ")");
         rs.next();
-        if (rs.getBoolean(1)) {
-            new Error("Session is expected to be already aborted").printStackTrace();
-        }
+        assertFalse("Session is expected to be already aborted", rs.getBoolean(1));
 
-        try {
-            rs = stat2.executeQuery("select count(*) from test");
-            new Error("Connection for aborted session is expected to throw an exception").printStackTrace();
-        } catch (SQLException sqe) {
-            // expected behavior
-        }
+        // using the connection for the aborted session is expected to throw an
+        // exception
+        assertThrows(ErrorCode.DATABASE_CALLED_AT_SHUTDOWN, stat2).executeQuery("select count(*) from test");
+
         conn2.close();
         conn.close();
     }

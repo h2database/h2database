@@ -7,8 +7,7 @@
  */
 package org.h2.util;
 
-import java.sql.Date;
-import java.util.GregorianCalendar;
+import java.util.Date;
 import java.util.TimeZone;
 
 import org.h2.api.ErrorCode;
@@ -75,8 +74,8 @@ public class DateTimeUtils {
     static final int SHIFT_MONTH = 5;
 
     /**
-     * Gregorian change date for a {@link GregorianCalendar} that represents a
-     * proleptic Gregorian calendar.
+     * Gregorian change date for a {@link java.util.GregorianCalendar} that
+     * represents a proleptic Gregorian calendar.
      */
     public static final Date PROLEPTIC_GREGORIAN_CHANGE = new Date(Long.MIN_VALUE);
 

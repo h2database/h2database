@@ -8,8 +8,10 @@ package org.h2.util;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.zone.ZoneRules;
 import java.util.Locale;
 
 /**
@@ -156,7 +158,18 @@ public abstract class TimeZoneProvider {
      * @return the time zone provider for the system default time zone
      */
     public static TimeZoneProvider getDefault() {
-        return new WithTimeZone(ZoneId.systemDefault());
+        ZoneId zoneId = ZoneId.systemDefault();
+        ZoneOffset offset;
+        if (zoneId instanceof ZoneOffset) {
+            offset = (ZoneOffset) zoneId;
+        } else {
+            ZoneRules rules = zoneId.getRules();
+            if (!rules.isFixedOffset()) {
+                return new WithTimeZone(zoneId);
+            }
+            offset = rules.getOffset(Instant.EPOCH);
+        }
+        return ofOffset(offset.getTotalSeconds());
     }
 
     /**

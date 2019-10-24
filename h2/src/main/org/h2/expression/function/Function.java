@@ -151,7 +151,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
             FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227,
             NVL2 = 228, DECODE = 229, ARRAY_CONTAINS = 230, FILE_WRITE = 232,
-            UNNEST = 233, ARRAY_CONCAT = 234, ARRAY_APPEND = 235, ARRAY_SLICE = 236;
+            UNNEST = 233, ARRAY_CONCAT = 234, ARRAY_APPEND = 235, ARRAY_SLICE = 236,
+            ABORT_SESSION = 237;
 
     public static final int REGEXP_LIKE = 240;
 
@@ -476,6 +477,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunctionWithNull("GREATEST", GREATEST,
                 VAR_ARGS, Value.NULL);
         addFunctionNotDeterministic("CANCEL_SESSION", CANCEL_SESSION,
+                1, Value.BOOLEAN);
+        addFunctionNotDeterministic("ABORT_SESSION", ABORT_SESSION,
                 1, Value.BOOLEAN);
         addFunction("SET", SET,
                 2, Value.NULL, false, false, true, false);
@@ -1145,6 +1148,10 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             result = ValueBoolean.get(cancelStatement(session, v0.getInt()));
             break;
         }
+        case ABORT_SESSION: {
+            result = ValueBoolean.get(abortSession(session, v0.getInt()));
+            break;
+        }
         case TRANSACTION_ID: {
             result = session.getTransactionId();
             break;
@@ -1196,6 +1203,22 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                     return false;
                 }
                 c.cancel();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean abortSession(Session session, int targetSessionId) {
+        session.getUser().checkAdmin();
+        Session[] sessions = session.getDatabase().getSessions(false);
+        for (Session s : sessions) {
+            if (s.getId() == targetSessionId) {
+                Command c = s.getCurrentCommand();
+                if (c != null) {
+                    c.cancel();
+                }
+                s.close();
                 return true;
             }
         }

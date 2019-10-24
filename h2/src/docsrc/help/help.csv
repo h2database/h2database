@@ -5053,6 +5053,20 @@ Returns the ISO week year from a date/time value.
 ISO_YEAR(CREATED)
 "
 
+"Functions (System)","ABORT_SESSION","
+ABORT_SESSION(sessionInt)
+","
+Cancels the currently executing statement of another session. Closes the session and releases the allocated resources.
+The method only works with default MVStore engine.
+Returns true if the session was closed, false if no session with the given id was found.
+
+If a client was connected while its session was aborted it will see an error.
+
+Admin rights are required to execute this command.
+","
+CALL ABORT_SESSION(3)
+"
+
 "Functions (System)","ARRAY_GET","
 ARRAY_GET(arrayExpression, indexExpression)
 ","

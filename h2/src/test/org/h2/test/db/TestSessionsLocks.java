@@ -9,6 +9,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+
+import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 
@@ -38,6 +40,7 @@ public class TestSessionsLocks extends TestDb {
     public void test() throws Exception {
         testCancelStatement();
         testLocks();
+        testAbortStatement();
         deleteDb("sessionsLocks");
     }
 
@@ -142,4 +145,58 @@ public class TestSessionsLocks extends TestDb {
         conn.close();
     }
 
+    private void testAbortStatement() throws Exception {
+        deleteDb("sessionsLocks");
+        Connection conn = getConnection("sessionsLocks");
+        Statement stat = conn.createStatement();
+        ResultSet rs;
+        rs = stat.executeQuery("select session_id() as ID");
+        rs.next();
+        int sessionId = rs.getInt("ID");
+
+        // Setup session to be aborted
+        Connection conn2 = getConnection("sessionsLocks");
+        Statement stat2 = conn2.createStatement();
+        stat2.execute("create table test(id int primary key, name varchar)");
+        conn2.setAutoCommit(false);
+        stat2.execute("insert into test values(1, 'Hello')");
+        conn2.commit();
+        // grab a lock
+        stat2.executeUpdate("update test set name = 'Again' where id = 1");
+
+        rs = stat2.executeQuery("select session_id() as ID");
+        rs.next();
+
+        int otherId = rs.getInt("ID");
+        assertTrue(otherId != sessionId);
+        assertFalse(rs.next());
+
+        // expect one lock
+        assertEquals(1, getLockCountForSession(stat, otherId));
+        rs = stat.executeQuery("CALL ABORT_SESSION(" + otherId + ")");
+        rs.next();
+        assertTrue(rs.getBoolean(1));
+
+        // expect the lock to be released along with its session
+        assertEquals(0, getLockCountForSession(stat, otherId));
+        rs = stat.executeQuery("CALL ABORT_SESSION(" + otherId + ")");
+        rs.next();
+        assertFalse("Session is expected to be already aborted", rs.getBoolean(1));
+
+        // using the connection for the aborted session is expected to throw an
+        // exception
+        assertThrows(config.networked ? ErrorCode.CONNECTION_BROKEN_1 : ErrorCode.DATABASE_CALLED_AT_SHUTDOWN, stat2)
+                .executeQuery("select count(*) from test");
+
+        conn2.close();
+        conn.close();
+    }
+
+    private int getLockCountForSession(Statement stmnt, int otherId) throws SQLException {
+        try (ResultSet rs = stmnt
+                .executeQuery("select count(*) from information_schema.locks where session_id = " + otherId)) {
+            assertTrue(rs.next());
+            return rs.getInt(1);
+        }
+    }
 }

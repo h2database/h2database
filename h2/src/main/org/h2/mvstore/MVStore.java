@@ -2046,6 +2046,41 @@ public class MVStore implements AutoCloseable
         return fillRate;
     }
 
+    /**
+     * Get data chunks count.
+     *
+     * @return number of existing chunks in store.
+     */
+    public int getChunkCount() {
+        return chunks.size();
+    }
+
+    /**
+     * Get data pages count.
+     *
+     * @return number of existing pages in store.
+     */
+    public int getPageCount() {
+        int count = 0;
+        for (Chunk chunk : chunks.values()) {
+            count += chunk.pageCount;
+        }
+        return count;
+    }
+
+    /**
+     * Get live data pages count.
+     *
+     * @return number of existing live pages in store.
+     */
+    public int getLivePageCount() {
+        int count = 0;
+        for (Chunk chunk : chunks.values()) {
+            count += chunk.pageCountLive;
+        }
+        return count;
+    }
+
     private int getProjectedFillRate() {
         int vacatedBlocks = 0;
         long maxLengthSum = 1;

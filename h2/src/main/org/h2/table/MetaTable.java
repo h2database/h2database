@@ -1149,28 +1149,44 @@ public class MetaTable extends Table {
                 if (store != null) {
                     MVStore mvStore = store.getMvStore();
                     FileStore fs = mvStore.getFileStore();
-                    add(rows, "info.FILE_WRITE",
-                            Long.toString(fs.getWriteCount()));
-                    add(rows, "info.FILE_READ",
-                            Long.toString(fs.getReadCount()));
-                    add(rows, "info.UPDATE_FAILURE_PERCENT",
-                            String.format(Locale.ENGLISH, "%.2f%%", 100 * mvStore.getUpdateFailureRatio()));
-                    long size;
-                    try {
-                        size = fs.getFile().size();
-                    } catch (IOException e) {
-                        throw DbException.convertIOException(e, "Can not get size");
+                    if (fs != null) {
+                        add(rows, "info.FILE_WRITE",
+                                Long.toString(fs.getWriteCount()));
+                        add(rows, "info.FILE_WRITE_BYTES",
+                                Long.toString(fs.getWriteBytes()));
+                        add(rows, "info.FILE_READ",
+                                Long.toString(fs.getReadCount()));
+                        add(rows, "info.FILE_READ_BYTES",
+                                Long.toString(fs.getReadBytes()));
+                        add(rows, "info.UPDATE_FAILURE_PERCENT",
+                                String.format(Locale.ENGLISH, "%.2f%%", 100 * mvStore.getUpdateFailureRatio()));
+                        add(rows, "info.FILL_RATE",
+                                Integer.toString(mvStore.getFillRate()));
+                        add(rows, "info.CHUNKS_FILL_RATE",
+                                Integer.toString(mvStore.getChunksFillRate()));
+                        long size;
+                        try {
+                            size = fs.getFile().size();
+                        } catch (IOException e) {
+                            throw DbException.convertIOException(e, "Can not get size");
+                        }
+                        add(rows, "info.FILE_SIZE",
+                                Long.toString(size));
+                        add(rows, "info.CHUNK_COUNT",
+                                Long.toString(mvStore.getChunkCount()));
+                        add(rows, "info.PAGE_COUNT",
+                                Long.toString(mvStore.getPageCount()));
+                        add(rows, "info.PAGE_COUNT_LIVE",
+                                Long.toString(mvStore.getLivePageCount()));
+                        add(rows, "info.PAGE_SIZE",
+                                Integer.toString(mvStore.getPageSplitSize()));
+                        add(rows, "info.CACHE_MAX_SIZE",
+                                Integer.toString(mvStore.getCacheSize()));
+                        add(rows, "info.CACHE_SIZE",
+                                Integer.toString(mvStore.getCacheSizeUsed()));
+                        add(rows, "info.CACHE_HIT_RATIO",
+                                Integer.toString(mvStore.getCacheHitRatio()));
                     }
-                    int pageSize = 4 * 1024;
-                    long pageCount = size / pageSize;
-                    add(rows, "info.PAGE_COUNT",
-                            Long.toString(pageCount));
-                    add(rows, "info.PAGE_SIZE",
-                            Integer.toString(mvStore.getPageSplitSize()));
-                    add(rows, "info.CACHE_MAX_SIZE",
-                            Integer.toString(mvStore.getCacheSize()));
-                    add(rows, "info.CACHE_SIZE",
-                            Integer.toString(mvStore.getCacheSizeUsed()));
                 }
             }
             break;

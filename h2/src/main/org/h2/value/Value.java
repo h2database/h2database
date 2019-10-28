@@ -481,12 +481,12 @@ public abstract class Value extends VersionedValue {
      * @return the higher value type of the two
      */
     public static int getHigherOrder(int t1, int t2) {
-        if (t1 == Value.UNKNOWN || t2 == Value.UNKNOWN) {
+        if (t1 == UNKNOWN || t2 == UNKNOWN) {
             if (t1 == t2) {
                 throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "?, ?");
-            } else if (t1 == Value.NULL) {
+            } else if (t1 == NULL) {
                 throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "NULL, ?");
-            } else if (t2 == Value.NULL) {
+            } else if (t2 == NULL) {
                 throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "?, NULL");
             }
         }
@@ -558,7 +558,7 @@ public abstract class Value extends VersionedValue {
     }
 
     public boolean getBoolean() {
-        return ((ValueBoolean) convertTo(Value.BOOLEAN)).getBoolean();
+        return ((ValueBoolean) convertTo(BOOLEAN)).getBoolean();
     }
 
     /**
@@ -568,7 +568,7 @@ public abstract class Value extends VersionedValue {
      * @return the date
      */
     public Date getDate(TimeZone timeZone) {
-        return ((ValueDate) convertTo(Value.DATE)).getDate(timeZone);
+        return ((ValueDate) convertTo(DATE)).getDate(timeZone);
     }
 
     /**
@@ -579,7 +579,7 @@ public abstract class Value extends VersionedValue {
      * @return the date
      */
     public Time getTime(CastDataProvider provider, TimeZone timeZone) {
-        return ((ValueTime) convertTo(Value.TIME, provider, false)).getTime(provider, timeZone);
+        return ((ValueTime) convertTo(TIME, provider, false)).getTime(provider, timeZone);
     }
 
     /**
@@ -590,43 +590,43 @@ public abstract class Value extends VersionedValue {
      * @return the date
      */
     public Timestamp getTimestamp(CastDataProvider provider, TimeZone timeZone) {
-        return ((ValueTimestamp) convertTo(Value.TIMESTAMP, provider, false)).getTimestamp(provider, timeZone);
+        return ((ValueTimestamp) convertTo(TIMESTAMP, provider, false)).getTimestamp(provider, timeZone);
     }
 
     public byte[] getBytes() {
-        return ((ValueBytes) convertTo(Value.BYTES)).getBytes();
+        return ((ValueBytes) convertTo(BYTES)).getBytes();
     }
 
     public byte[] getBytesNoCopy() {
-        return ((ValueBytes) convertTo(Value.BYTES)).getBytesNoCopy();
+        return ((ValueBytes) convertTo(BYTES)).getBytesNoCopy();
     }
 
     public byte getByte() {
-        return ((ValueByte) convertTo(Value.BYTE)).getByte();
+        return ((ValueByte) convertTo(BYTE)).getByte();
     }
 
     public short getShort() {
-        return ((ValueShort) convertTo(Value.SHORT)).getShort();
+        return ((ValueShort) convertTo(SHORT)).getShort();
     }
 
     public BigDecimal getBigDecimal() {
-        return ((ValueDecimal) convertTo(Value.DECIMAL)).getBigDecimal();
+        return ((ValueDecimal) convertTo(DECIMAL)).getBigDecimal();
     }
 
     public double getDouble() {
-        return ((ValueDouble) convertTo(Value.DOUBLE)).getDouble();
+        return ((ValueDouble) convertTo(DOUBLE)).getDouble();
     }
 
     public float getFloat() {
-        return ((ValueFloat) convertTo(Value.FLOAT)).getFloat();
+        return ((ValueFloat) convertTo(FLOAT)).getFloat();
     }
 
     public int getInt() {
-        return ((ValueInt) convertTo(Value.INT)).getInt();
+        return ((ValueInt) convertTo(INT)).getInt();
     }
 
     public long getLong() {
-        return ((ValueLong) convertTo(Value.LONG)).getLong();
+        return ((ValueLong) convertTo(LONG)).getLong();
     }
 
     public InputStream getInputStream() {
@@ -844,22 +844,22 @@ public abstract class Value extends VersionedValue {
                 return convertToUuid();
             case GEOMETRY:
                 return convertToGeometry((ExtTypeInfoGeometry) extTypeInfo);
-            case Value.INTERVAL_YEAR:
-            case Value.INTERVAL_MONTH:
-            case Value.INTERVAL_YEAR_TO_MONTH:
-                return convertToIntervalYearMonth(targetType);
-            case Value.INTERVAL_DAY:
-            case Value.INTERVAL_HOUR:
-            case Value.INTERVAL_MINUTE:
-            case Value.INTERVAL_SECOND:
-            case Value.INTERVAL_DAY_TO_HOUR:
-            case Value.INTERVAL_DAY_TO_MINUTE:
-            case Value.INTERVAL_DAY_TO_SECOND:
-            case Value.INTERVAL_HOUR_TO_MINUTE:
-            case Value.INTERVAL_HOUR_TO_SECOND:
-            case Value.INTERVAL_MINUTE_TO_SECOND:
-                return convertToIntervalDayTime(targetType);
-            case Value.JSON:
+            case INTERVAL_YEAR:
+            case INTERVAL_MONTH:
+            case INTERVAL_YEAR_TO_MONTH:
+                return convertToIntervalYearMonth(targetType, column);
+            case INTERVAL_DAY:
+            case INTERVAL_HOUR:
+            case INTERVAL_MINUTE:
+            case INTERVAL_SECOND:
+            case INTERVAL_DAY_TO_HOUR:
+            case INTERVAL_DAY_TO_MINUTE:
+            case INTERVAL_DAY_TO_SECOND:
+            case INTERVAL_HOUR_TO_MINUTE:
+            case INTERVAL_HOUR_TO_SECOND:
+            case INTERVAL_MINUTE_TO_SECOND:
+                return convertToIntervalDayTime(targetType, column);
+            case JSON:
                 return convertToJson();
             case ARRAY:
                 return convertToArray();
@@ -923,10 +923,9 @@ public abstract class Value extends VersionedValue {
             return ValueByte.get(convertToByte(getLong(), column));
         case DECIMAL:
             return ValueByte.get(convertToByte(convertToLong(getBigDecimal(), column), column));
+        case FLOAT:
         case DOUBLE:
             return ValueByte.get(convertToByte(convertToLong(getDouble(), column), column));
-        case FLOAT:
-            return ValueByte.get(convertToByte(convertToLong(getFloat(), column), column));
         case BYTES:
             return ValueByte.get((byte) Integer.parseInt(getString(), 16));
         case TIMESTAMP_TZ:
@@ -948,10 +947,9 @@ public abstract class Value extends VersionedValue {
             return ValueShort.get(convertToShort(getLong(), column));
         case DECIMAL:
             return ValueShort.get(convertToShort(convertToLong(getBigDecimal(), column), column));
+        case FLOAT:
         case DOUBLE:
             return ValueShort.get(convertToShort(convertToLong(getDouble(), column), column));
-        case FLOAT:
-            return ValueShort.get(convertToShort(convertToLong(getFloat(), column), column));
         case BYTES:
             return ValueShort.get((short) Integer.parseInt(getString(), 16));
         case TIMESTAMP_TZ:
@@ -972,10 +970,9 @@ public abstract class Value extends VersionedValue {
             return ValueInt.get(convertToInt(getLong(), column));
         case DECIMAL:
             return ValueInt.get(convertToInt(convertToLong(getBigDecimal(), column), column));
+        case FLOAT:
         case DOUBLE:
             return ValueInt.get(convertToInt(convertToLong(getDouble(), column), column));
-        case FLOAT:
-            return ValueInt.get(convertToInt(convertToLong(getFloat(), column), column));
         case BYTES:
             return ValueInt.get((int) Long.parseLong(getString(), 16));
         case TIMESTAMP_TZ:
@@ -995,10 +992,9 @@ public abstract class Value extends VersionedValue {
             return ValueLong.get(getInt());
         case DECIMAL:
             return ValueLong.get(convertToLong(getBigDecimal(), column));
+        case FLOAT:
         case DOUBLE:
             return ValueLong.get(convertToLong(getDouble(), column));
-        case FLOAT:
-            return ValueLong.get(convertToLong(getFloat(), column));
         case BYTES: {
             // parseLong doesn't work for ffffffffffffffff
             byte[] d = getBytes();
@@ -1293,9 +1289,9 @@ public abstract class Value extends VersionedValue {
         case BYTES:
         case GEOMETRY:
         case JSON:
-            return ValueLobDb.createSmallLob(Value.BLOB, getBytesNoCopy());
+            return ValueLobDb.createSmallLob(BLOB, getBytesNoCopy());
         case UUID:
-            return ValueLobDb.createSmallLob(Value.BLOB, getBytes());
+            return ValueLobDb.createSmallLob(BLOB, getBytes());
         case TIMESTAMP_TZ:
             throw getDataConversionError(BLOB);
         }
@@ -1358,57 +1354,144 @@ public abstract class Value extends VersionedValue {
         return extTypeInfo != null ? extTypeInfo.cast(result, null, false) : result;
     }
 
-    private ValueInterval convertToIntervalYearMonth(int targetType) {
+    private ValueInterval convertToIntervalYearMonth(int targetType, Object column) {
+        long leading;
         switch (getValueType()) {
-        case Value.STRING:
-        case Value.STRING_IGNORECASE:
-        case Value.STRING_FIXED: {
+        case BYTE:
+        case SHORT:
+        case INT:
+            leading = getInt();
+            break;
+        case LONG:
+            leading = getLong();
+            break;
+        case FLOAT:
+        case DOUBLE:
+            if (targetType == INTERVAL_YEAR_TO_MONTH) {
+                return IntervalUtils.intervalFromAbsolute(IntervalQualifier.YEAR_TO_MONTH, getBigDecimal()
+                        .multiply(BigDecimal.valueOf(12)).setScale(0, RoundingMode.HALF_UP).toBigInteger());
+            }
+            leading = convertToLong(getDouble(), column);
+            break;
+        case DECIMAL:
+            if (targetType == INTERVAL_YEAR_TO_MONTH) {
+                return IntervalUtils.intervalFromAbsolute(IntervalQualifier.YEAR_TO_MONTH, getBigDecimal()
+                        .multiply(BigDecimal.valueOf(12)).setScale(0, RoundingMode.HALF_UP).toBigInteger());
+            }
+            leading = convertToLong(getBigDecimal(), column);
+            break;
+        case STRING:
+        case STRING_IGNORECASE:
+        case STRING_FIXED: {
             String s = getString();
             try {
                 return (ValueInterval) IntervalUtils
-                        .parseFormattedInterval(IntervalQualifier.valueOf(targetType - Value.INTERVAL_YEAR), s)
+                        .parseFormattedInterval(IntervalQualifier.valueOf(targetType - INTERVAL_YEAR), s)
                         .convertTo(targetType);
             } catch (Exception e) {
                 throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2, e, "INTERVAL", s);
             }
         }
-        case Value.INTERVAL_YEAR:
-        case Value.INTERVAL_MONTH:
-        case Value.INTERVAL_YEAR_TO_MONTH:
-            return IntervalUtils.intervalFromAbsolute(IntervalQualifier.valueOf(targetType - Value.INTERVAL_YEAR),
+        case INTERVAL_YEAR:
+        case INTERVAL_MONTH:
+        case INTERVAL_YEAR_TO_MONTH:
+            return IntervalUtils.intervalFromAbsolute(IntervalQualifier.valueOf(targetType - INTERVAL_YEAR),
                     IntervalUtils.intervalToAbsolute((ValueInterval) this));
+        default:
+            throw getDataConversionError(targetType);
         }
-        throw getDataConversionError(targetType);
+        boolean negative = false;
+        if (leading < 0) {
+            negative = true;
+            leading = -leading;
+        }
+        return ValueInterval.from(IntervalQualifier.valueOf(targetType - INTERVAL_YEAR), negative, leading,
+                0L);
     }
 
-    private ValueInterval convertToIntervalDayTime(int targetType) {
+    private ValueInterval convertToIntervalDayTime(int targetType, Object column) {
+        long leading;
         switch (getValueType()) {
-        case Value.STRING:
-        case Value.STRING_IGNORECASE:
-        case Value.STRING_FIXED: {
+        case BYTE:
+        case SHORT:
+        case INT:
+            leading = getInt();
+            break;
+        case LONG:
+            leading = getLong();
+            break;
+        case FLOAT:
+        case DOUBLE:
+            if (targetType > INTERVAL_MINUTE) {
+                return convertToIntervalDayTime(getBigDecimal(), targetType);
+            }
+            leading = convertToLong(getDouble(), column);
+            break;
+        case DECIMAL:
+            if (targetType > INTERVAL_MINUTE) {
+                return convertToIntervalDayTime(getBigDecimal(), targetType);
+            }
+            leading = convertToLong(getBigDecimal(), column);
+            break;
+        case STRING:
+        case STRING_IGNORECASE:
+        case STRING_FIXED: {
             String s = getString();
             try {
                 return (ValueInterval) IntervalUtils
-                        .parseFormattedInterval(IntervalQualifier.valueOf(targetType - Value.INTERVAL_YEAR), s)
+                        .parseFormattedInterval(IntervalQualifier.valueOf(targetType - INTERVAL_YEAR), s)
                         .convertTo(targetType);
             } catch (Exception e) {
                 throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2, e, "INTERVAL", s);
             }
         }
-        case Value.INTERVAL_DAY:
-        case Value.INTERVAL_HOUR:
-        case Value.INTERVAL_MINUTE:
-        case Value.INTERVAL_SECOND:
-        case Value.INTERVAL_DAY_TO_HOUR:
-        case Value.INTERVAL_DAY_TO_MINUTE:
-        case Value.INTERVAL_DAY_TO_SECOND:
-        case Value.INTERVAL_HOUR_TO_MINUTE:
-        case Value.INTERVAL_HOUR_TO_SECOND:
-        case Value.INTERVAL_MINUTE_TO_SECOND:
-            return IntervalUtils.intervalFromAbsolute(IntervalQualifier.valueOf(targetType - Value.INTERVAL_YEAR),
+        case INTERVAL_DAY:
+        case INTERVAL_HOUR:
+        case INTERVAL_MINUTE:
+        case INTERVAL_SECOND:
+        case INTERVAL_DAY_TO_HOUR:
+        case INTERVAL_DAY_TO_MINUTE:
+        case INTERVAL_DAY_TO_SECOND:
+        case INTERVAL_HOUR_TO_MINUTE:
+        case INTERVAL_HOUR_TO_SECOND:
+        case INTERVAL_MINUTE_TO_SECOND:
+            return IntervalUtils.intervalFromAbsolute(IntervalQualifier.valueOf(targetType - INTERVAL_YEAR),
                     IntervalUtils.intervalToAbsolute((ValueInterval) this));
+        default:
+            throw getDataConversionError(targetType);
         }
-        throw getDataConversionError(targetType);
+        boolean negative = false;
+        if (leading < 0) {
+            negative = true;
+            leading = -leading;
+        }
+        return ValueInterval.from(IntervalQualifier.valueOf(targetType - INTERVAL_YEAR), negative, leading,
+                0L);
+    }
+
+    private ValueInterval convertToIntervalDayTime(BigDecimal bigDecimal, int targetType) {
+        long multiplier;
+        switch (targetType) {
+        case INTERVAL_SECOND:
+            multiplier = DateTimeUtils.NANOS_PER_SECOND;
+            break;
+        case INTERVAL_DAY_TO_HOUR:
+        case INTERVAL_DAY_TO_MINUTE:
+        case INTERVAL_DAY_TO_SECOND:
+            multiplier = DateTimeUtils.NANOS_PER_DAY;
+            break;
+        case INTERVAL_HOUR_TO_MINUTE:
+        case INTERVAL_HOUR_TO_SECOND:
+            multiplier = DateTimeUtils.NANOS_PER_HOUR;
+            break;
+        case INTERVAL_MINUTE_TO_SECOND:
+            multiplier = DateTimeUtils.NANOS_PER_MINUTE;
+            break;
+        default:
+            throw getDataConversionError(targetType);
+        }
+        return IntervalUtils.intervalFromAbsolute(IntervalQualifier.valueOf(targetType - INTERVAL_YEAR),
+                bigDecimal.multiply(BigDecimal.valueOf(multiplier)).setScale(0, RoundingMode.HALF_UP).toBigInteger());
     }
 
     private ValueJson convertToJson() {
@@ -1438,7 +1521,7 @@ public abstract class Value extends VersionedValue {
             return ValueJson.getInternal(GeoJsonUtils.ewkbToGeoJson(vg.getBytesNoCopy(), vg.getDimensionSystem()));
         }
         default:
-            throw getDataConversionError(Value.JSON);
+            throw getDataConversionError(JSON);
         }
     }
 
@@ -1541,9 +1624,9 @@ public abstract class Value extends VersionedValue {
         Value l = this;
         int leftType = l.getValueType();
         int rightType = v.getValueType();
-        if (leftType != rightType || leftType == Value.ENUM) {
-            int dataType = Value.getHigherOrder(leftType, rightType);
-            if (dataType == Value.ENUM) {
+        if (leftType != rightType || leftType == ENUM) {
+            int dataType = getHigherOrder(leftType, rightType);
+            if (dataType == ENUM) {
                 ExtTypeInfoEnum enumerators = ExtTypeInfoEnum.getEnumeratorsForBinaryOperation(l, v);
                 l = l.convertToEnum(enumerators);
                 v = v.convertToEnum(enumerators);
@@ -1575,9 +1658,9 @@ public abstract class Value extends VersionedValue {
         Value l = this;
         int leftType = l.getValueType();
         int rightType = v.getValueType();
-        if (leftType != rightType || leftType == Value.ENUM) {
-            int dataType = Value.getHigherOrder(leftType, rightType);
-            if (dataType == Value.ENUM) {
+        if (leftType != rightType || leftType == ENUM) {
+            int dataType = getHigherOrder(leftType, rightType);
+            if (dataType == ENUM) {
                 ExtTypeInfoEnum enumerators = ExtTypeInfoEnum.getEnumeratorsForBinaryOperation(l, v);
                 l = l.convertToEnum(enumerators);
                 v = v.convertToEnum(enumerators);
@@ -1666,7 +1749,7 @@ public abstract class Value extends VersionedValue {
 
     private static long convertToLong(BigDecimal x, Object column) {
         if (x.compareTo(MAX_LONG_DECIMAL) > 0 ||
-                x.compareTo(Value.MIN_LONG_DECIMAL) < 0) {
+                x.compareTo(MIN_LONG_DECIMAL) < 0) {
             throw DbException.get(
                     ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, x.toString(), getColumnName(column));
         }

@@ -4543,6 +4543,12 @@ public class Parser {
             }
         }
         for (;;) {
+            TypeInfo ti = (TypeInfo) readIntervalQualifier(null, false);
+            if (ti != null) {
+                Function cast = Function.getFunctionWithArgs(database, Function.CAST, r);
+                cast.setDataType(ti);
+                r = cast;
+            }
             int index = lastParseIndex;
             if (readIf("AT")) {
                 if (readIf("TIME")) {
@@ -4750,7 +4756,12 @@ public class Parser {
         if (!negative) {
             readIf(PLUS_SIGN);
         }
-        String s = readString();
+        if (currentTokenType != VALUE || currentValue.getValueType() != Value.STRING) {
+            addExpected("string");
+            throw getSyntaxError();
+        }
+        String s = currentValue.getString();
+        read();
         IntervalQualifier qualifier;
         switch (currentTokenType) {
         case YEAR:

@@ -3221,11 +3221,13 @@ CURRENT ROW
     | case
     | caseWhen
     | userDefinedFunctionName }
-[ timeZone ]
+[ timeZone | intervalQualifier ]
 ","
 A value. Parameters can be indexed, for example ""?1"" meaning the first parameter.
 
-Interval qualifier may only be specified for a subtraction operation between two datetime values.
+Interval qualifier may only be specified for a compatible value
+or for a subtraction operation between two datetime values.
+The subtraction operation ignores the leading field precision of the qualifier.
 ","
 'Hello'
 

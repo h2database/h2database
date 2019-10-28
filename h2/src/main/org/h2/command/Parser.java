@@ -4358,6 +4358,14 @@ public class Parser {
                         list.add(readExpression());
                     } while (readIfMore());
                     r = new ExpressionList(list.toArray(new Expression[0]), false);
+                } else if (r instanceof BinaryOperation) {
+                    BinaryOperation binaryOperation = (BinaryOperation) r;
+                    if (binaryOperation.getOperationType() == OpType.MINUS) {
+                        TypeInfo ti = (TypeInfo) readIntervalQualifier(null, false);
+                        if (ti != null) {
+                            binaryOperation.setForcedType(ti);
+                        }
+                    }
                 }
             }
             break;
@@ -5868,7 +5876,7 @@ public class Parser {
             return parseArrayType(columnName, null);
         case INTERVAL:
             read();
-            return readIntervalQualifier(columnName);
+            return (Column) readIntervalQualifier(columnName, true);
         case NULL:
             read();
             return new Column(columnName, TypeInfo.TYPE_NULL, "NULL");
@@ -6119,7 +6127,7 @@ public class Parser {
         return new Column(columnName, TypeInfo.getTypeInfo(Value.TIMESTAMP, -1, scale, null), original);
     }
 
-    private Column readIntervalQualifier(String columnName) {
+    private Object readIntervalQualifier(String columnName, boolean asColumn) {
         IntervalQualifier qualifier;
         int precision = -1;
         int scale = -1;
@@ -6232,7 +6240,10 @@ public class Parser {
             qualifier = IntervalQualifier.SECOND;
             break;
         default:
-            throw intervalQualifierError();
+            if (asColumn) {
+                throw intervalQualifierError();
+            }
+            return null;
         }
         if (precision >= 0) {
             if (precision == 0 || precision > ValueInterval.MAXIMUM_PRECISION) {
@@ -6244,9 +6255,10 @@ public class Parser {
                 throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION, Integer.toString(scale));
             }
         }
-        return new Column(columnName, TypeInfo.getTypeInfo(qualifier.ordinal() + Value.INTERVAL_YEAR,
+        TypeInfo typeInfo = TypeInfo.getTypeInfo(qualifier.ordinal() + Value.INTERVAL_YEAR,
                 precision < 0 ? ValueInterval.DEFAULT_PRECISION : precision,
-                scale < 0 ? ValueInterval.DEFAULT_SCALE : scale, null), qualifier.getTypeName(precision, scale));
+                scale < 0 ? ValueInterval.DEFAULT_SCALE : scale, null);
+        return asColumn ? new Column(columnName, typeInfo, qualifier.getTypeName(precision, scale)) : typeInfo;
     }
 
     private DbException intervalQualifierError() {

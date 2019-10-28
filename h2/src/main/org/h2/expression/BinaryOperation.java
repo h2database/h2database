@@ -54,12 +54,25 @@ public class BinaryOperation extends Expression {
     private OpType opType;
     private Expression left, right;
     private TypeInfo type;
+    private TypeInfo forcedType;
     private boolean convertRight = true;
 
     public BinaryOperation(OpType opType, Expression left, Expression right) {
         this.opType = opType;
         this.left = left;
         this.right = right;
+    }
+
+    /**
+     * Sets a forced data type of a datetime minus datetime operation.
+     *
+     * @param forcedType the forced data type
+     */
+    public void setForcedType(TypeInfo forcedType) {
+        if (opType != OpType.MINUS) {
+            throw getUnexpectedForcedTypeException();
+        }
+        this.forcedType = forcedType;
     }
 
     @Override
@@ -155,9 +168,14 @@ public class BinaryOperation extends Expression {
                     type = TypeInfo.TYPE_DECIMAL_DEFAULT;
                 }
             } else if (DataType.isIntervalType(l) || DataType.isIntervalType(r)) {
+                if (forcedType != null) {
+                    throw getUnexpectedForcedTypeException();
+                }
                 return optimizeInterval(session, l, r);
             } else if (DataType.isDateTimeType(l) || DataType.isDateTimeType(r)) {
                 return optimizeDateTime(session, l, r);
+            } else if (forcedType != null) {
+                throw getUnexpectedForcedTypeException();
             } else {
                 int dataType = Value.getHigherOrder(l, r);
                 if (dataType == Value.ENUM) {
@@ -295,6 +313,9 @@ public class BinaryOperation extends Expression {
             case Value.TIMESTAMP_TZ:
                 switch (r) {
                 case Value.INT: {
+                    if (forcedType != null) {
+                        throw getUnexpectedForcedTypeException();
+                    }
                     // Oracle date subtract
                     return Function.getFunctionWithArgs(session.getDatabase(), Function.DATEADD,
                             ValueExpression.get(ValueString.get("DAY")), //
@@ -304,6 +325,9 @@ public class BinaryOperation extends Expression {
                 case Value.DECIMAL:
                 case Value.FLOAT:
                 case Value.DOUBLE: {
+                    if (forcedType != null) {
+                        throw getUnexpectedForcedTypeException();
+                    }
                     // Oracle date subtract
                     return Function.getFunctionWithArgs(session.getDatabase(), Function.DATEADD,
                                 ValueExpression.get(ValueString.get("SECOND")),
@@ -318,13 +342,13 @@ public class BinaryOperation extends Expression {
                 case Value.DATE:
                 case Value.TIMESTAMP:
                 case Value.TIMESTAMP_TZ:
-                    return new IntervalOperation(IntervalOpType.DATETIME_MINUS_DATETIME, left, right);
+                    return new IntervalOperation(IntervalOpType.DATETIME_MINUS_DATETIME, left, right, forcedType);
                 }
                 break;
             case Value.TIME:
             case Value.TIME_TZ:
                 if (r == Value.TIME || r == Value.TIME_TZ) {
-                    return new IntervalOperation(IntervalOpType.DATETIME_MINUS_DATETIME, left, right);
+                    return new IntervalOperation(IntervalOpType.DATETIME_MINUS_DATETIME, left, right, forcedType);
                 }
                 break;
             }
@@ -356,6 +380,13 @@ public class BinaryOperation extends Expression {
     private DbException getUnsupported(int l, int r) {
         return DbException.getUnsupportedException(
                 DataType.getDataType(l).name + ' ' + getOperationToken() + ' ' + DataType.getDataType(r).name);
+    }
+
+    private DbException getUnexpectedForcedTypeException() {
+        StringBuilder builder = getSQL(new StringBuilder(), false);
+        int index = builder.length();
+        return DbException.getSyntaxError(
+                IntervalOperation.getForcedTypeSQL(builder.append(' '), forcedType).toString(), index, "");
     }
 
     private void swap() {
@@ -406,6 +437,15 @@ public class BinaryOperation extends Expression {
         default:
             throw new IndexOutOfBoundsException();
         }
+    }
+
+    /**
+     * Returns the type of this binary operation.
+     *
+     * @return the type of this binary operation
+     */
+    public OpType getOperationType() {
+        return opType;
     }
 
 }

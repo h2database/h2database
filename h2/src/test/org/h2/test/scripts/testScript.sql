@@ -7515,7 +7515,7 @@ drop schema z cascade;
 > ok
 
 ----- Issue#493 -----
-create table test (year int, action varchar(10));
+create table test ("YEAR" int, action varchar(10));
 > ok
 
 insert into test values (2015, 'order'), (2016, 'order'), (2014, 'order');
@@ -7524,7 +7524,7 @@ insert into test values (2015, 'order'), (2016, 'order'), (2014, 'order');
 insert into test values (2014, 'execution'), (2015, 'execution'), (2016, 'execution');
 > update count: 3
 
-select * from test where year in (select distinct year from test order by year desc limit 1 offset 0);
+select * from test where "YEAR" in (select distinct "YEAR" from test order by "YEAR" desc limit 1 offset 0);
 > YEAR ACTION
 > ---- ---------
 > 2016 execution

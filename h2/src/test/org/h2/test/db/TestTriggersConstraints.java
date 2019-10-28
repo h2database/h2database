@@ -508,19 +508,19 @@ public class TestTriggersConstraints extends TestDb implements Trigger {
                 + "company_id int not null, "
                 + "foreign key(company_id) references companies(id))");
         stat.execute("create table connections (id identity, company_id int not null, "
-                + "first int not null, second int not null, "
+                + "first int not null, `second` int not null, "
                 + "foreign key (company_id) references companies(id), "
                 + "foreign key (first) references departments(id), "
-                + "foreign key (second) references departments(id), "
+                + "foreign key (`second`) references departments(id), "
                 + "check (select departments.company_id from departments, companies where "
-                + "       departments.id in (first, second)) = company_id)");
+                + "       departments.id in (first, `second`)) = company_id)");
         stat.execute("insert into companies(id) values(1)");
         stat.execute("insert into departments(id, company_id) "
                 + "values(10, 1)");
         stat.execute("insert into departments(id, company_id) "
                 + "values(20, 1)");
         assertThrows(ErrorCode.CHECK_CONSTRAINT_INVALID, stat)
-            .execute("insert into connections(id, company_id, first, second) "
+            .execute("insert into connections(id, company_id, first, `second`) "
                 + "values(100, 1, 10, 20)");
 
         stat.execute("drop table connections");

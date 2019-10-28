@@ -20,6 +20,7 @@ import static org.h2.util.ParserUtil.CURRENT_SCHEMA;
 import static org.h2.util.ParserUtil.CURRENT_TIME;
 import static org.h2.util.ParserUtil.CURRENT_TIMESTAMP;
 import static org.h2.util.ParserUtil.CURRENT_USER;
+import static org.h2.util.ParserUtil.DAY;
 import static org.h2.util.ParserUtil.DISTINCT;
 import static org.h2.util.ParserUtil.EXCEPT;
 import static org.h2.util.ParserUtil.EXISTS;
@@ -31,6 +32,7 @@ import static org.h2.util.ParserUtil.FROM;
 import static org.h2.util.ParserUtil.FULL;
 import static org.h2.util.ParserUtil.GROUP;
 import static org.h2.util.ParserUtil.HAVING;
+import static org.h2.util.ParserUtil.HOUR;
 import static org.h2.util.ParserUtil.IDENTIFIER;
 import static org.h2.util.ParserUtil.IF;
 import static org.h2.util.ParserUtil.INNER;
@@ -45,6 +47,8 @@ import static org.h2.util.ParserUtil.LIMIT;
 import static org.h2.util.ParserUtil.LOCALTIME;
 import static org.h2.util.ParserUtil.LOCALTIMESTAMP;
 import static org.h2.util.ParserUtil.MINUS;
+import static org.h2.util.ParserUtil.MINUTE;
+import static org.h2.util.ParserUtil.MONTH;
 import static org.h2.util.ParserUtil.NATURAL;
 import static org.h2.util.ParserUtil.NOT;
 import static org.h2.util.ParserUtil.NULL;
@@ -56,6 +60,7 @@ import static org.h2.util.ParserUtil.QUALIFY;
 import static org.h2.util.ParserUtil.RIGHT;
 import static org.h2.util.ParserUtil.ROW;
 import static org.h2.util.ParserUtil.ROWNUM;
+import static org.h2.util.ParserUtil.SECOND;
 import static org.h2.util.ParserUtil.SELECT;
 import static org.h2.util.ParserUtil.TABLE;
 import static org.h2.util.ParserUtil.TRUE;
@@ -67,6 +72,7 @@ import static org.h2.util.ParserUtil.VALUES;
 import static org.h2.util.ParserUtil.WHERE;
 import static org.h2.util.ParserUtil.WINDOW;
 import static org.h2.util.ParserUtil.WITH;
+import static org.h2.util.ParserUtil.YEAR;
 import static org.h2.util.ParserUtil._ROWID_;
 
 import java.io.ByteArrayOutputStream;
@@ -296,7 +302,7 @@ public class Parser {
     /**
      * Token with parameter.
      */
-    private static final int PARAMETER = WITH + 1;
+    private static final int PARAMETER = YEAR + 1;
 
     /**
      * End of input.
@@ -479,6 +485,8 @@ public class Parser {
             "CURRENT_TIMESTAMP",
             // CURRENT_USER
             "CURRENT_USER",
+            // DAY
+            "DAY",
             // DISTINCT
             "DISTINCT",
             // EXCEPT
@@ -501,6 +509,8 @@ public class Parser {
             "GROUP",
             // HAVING
             "HAVING",
+            // HOUR
+            "HOUR",
             // IF
             "IF",
             // INNER
@@ -527,6 +537,10 @@ public class Parser {
             "LOCALTIMESTAMP",
             // MINUS
             "MINUS",
+            // MINUTE
+            "MINUTE",
+            // MONTH
+            "MONTH",
             // NATURAL
             "NATURAL",
             // NOT
@@ -551,6 +565,8 @@ public class Parser {
             "_ROWID_",
             // ROWNUM
             "ROWNUM",
+            // SECOND
+            "SECOND",
             // SELECT
             "SELECT",
             // TABLE
@@ -573,6 +589,8 @@ public class Parser {
             "WINDOW",
             // WITH
             "WITH",
+            // YEAR
+            "YEAR",
             // PARAMETER
             "?",
             // END
@@ -4450,6 +4468,14 @@ public class Parser {
             read();
             r = readKeywordFunction(Function.USER);
             break;
+        case DAY:
+            read();
+            r = readKeywordFunction(Function.DAY_OF_MONTH);
+            break;
+        case HOUR:
+            read();
+            r = readKeywordFunction(Function.HOUR);
+            break;
         case LEFT:
             read();
             r = readKeywordFunction(Function.LEFT);
@@ -4462,9 +4488,25 @@ public class Parser {
             read();
             r = readKeywordFunction(Function.LOCALTIMESTAMP);
             break;
+        case MINUTE:
+            read();
+            r = readKeywordFunction(Function.MINUTE);
+            break;
+        case MONTH:
+            read();
+            r = readKeywordFunction(Function.MONTH);
+            break;
         case RIGHT:
             read();
             r = readKeywordFunction(Function.RIGHT);
+            break;
+        case SECOND:
+            read();
+            r = readKeywordFunction(Function.SECOND);
+            break;
+        case YEAR:
+            read();
+            r = readKeywordFunction(Function.YEAR);
             break;
         default:
             throw getSyntaxError();
@@ -4702,49 +4744,74 @@ public class Parser {
         }
         String s = readString();
         IntervalQualifier qualifier;
-        if (readIf("YEAR")) {
+        switch (currentTokenType) {
+        case YEAR:
+            read();
             if (readIf("TO")) {
-                read("MONTH");
+                read(MONTH);
                 qualifier = IntervalQualifier.YEAR_TO_MONTH;
             } else {
                 qualifier = IntervalQualifier.YEAR;
             }
-        } else if (readIf("MONTH")) {
+            break;
+        case MONTH:
+            read();
             qualifier = IntervalQualifier.MONTH;
-        } else if (readIf("DAY")) {
+            break;
+        case DAY:
+            read();
             if (readIf("TO")) {
-                if (readIf("HOUR")) {
+                switch (currentTokenType) {
+                case HOUR:
                     qualifier = IntervalQualifier.DAY_TO_HOUR;
-                } else if (readIf("MINUTE")) {
+                    break;
+                case MINUTE:
                     qualifier = IntervalQualifier.DAY_TO_MINUTE;
-                } else {
-                    read("SECOND");
+                    break;
+                case SECOND:
                     qualifier = IntervalQualifier.DAY_TO_SECOND;
+                    break;
+                default:
+                    throw intervalDayError();
                 }
+                read();
             } else {
                 qualifier = IntervalQualifier.DAY;
             }
-        } else if (readIf("HOUR")) {
+            break;
+        case HOUR:
+            read();
             if (readIf("TO")) {
-                if (readIf("MINUTE")) {
+                switch (currentTokenType) {
+                case MINUTE:
                     qualifier = IntervalQualifier.HOUR_TO_MINUTE;
-                } else {
-                    read("SECOND");
+                    break;
+                case SECOND:
                     qualifier = IntervalQualifier.HOUR_TO_SECOND;
+                    break;
+                default:
+                    throw intervalHourError();
                 }
+                read();
             } else {
                 qualifier = IntervalQualifier.HOUR;
             }
-        } else if (readIf("MINUTE")) {
+            break;
+        case MINUTE:
+            read();
             if (readIf("TO")) {
-                read("SECOND");
+                read(SECOND);
                 qualifier = IntervalQualifier.MINUTE_TO_SECOND;
             } else {
                 qualifier = IntervalQualifier.MINUTE;
             }
-        } else {
-            read("SECOND");
+            break;
+        case SECOND:
+            read();
             qualifier = IntervalQualifier.SECOND;
+            break;
+        default:
+            throw intervalQualifierError();
         }
         try {
             return ValueExpression.get(IntervalUtils.parseInterval(qualifier, negative, s));
@@ -6056,70 +6123,94 @@ public class Parser {
         IntervalQualifier qualifier;
         int precision = -1;
         int scale = -1;
-        if (readIf("YEAR")) {
+        switch (currentTokenType) {
+        case YEAR:
+            read();
             if (readIf(OPEN_PAREN)) {
                 precision = readNonNegativeInt();
                 read(CLOSE_PAREN);
             }
             if (readIf("TO")) {
-                read("MONTH");
+                read(MONTH);
                 qualifier = IntervalQualifier.YEAR_TO_MONTH;
             } else {
                 qualifier = IntervalQualifier.YEAR;
             }
-        } else if (readIf("MONTH")) {
+            break;
+        case MONTH:
+            read();
             if (readIf(OPEN_PAREN)) {
                 precision = readNonNegativeInt();
                 read(CLOSE_PAREN);
             }
             qualifier = IntervalQualifier.MONTH;
-        } else if (readIf("DAY")) {
+            break;
+        case DAY:
+            read();
             if (readIf(OPEN_PAREN)) {
                 precision = readNonNegativeInt();
                 read(CLOSE_PAREN);
             }
             if (readIf("TO")) {
-                if (readIf("HOUR")) {
+                switch (currentTokenType) {
+                case HOUR:
+                    read();
                     qualifier = IntervalQualifier.DAY_TO_HOUR;
-                } else if (readIf("MINUTE")) {
+                    break;
+                case MINUTE:
+                    read();
                     qualifier = IntervalQualifier.DAY_TO_MINUTE;
-                } else {
-                    read("SECOND");
+                    break;
+                case SECOND:
+                    read();
                     if (readIf(OPEN_PAREN)) {
                         scale = readNonNegativeInt();
                         read(CLOSE_PAREN);
                     }
                     qualifier = IntervalQualifier.DAY_TO_SECOND;
+                    break;
+                default:
+                    throw intervalDayError();
                 }
             } else {
                 qualifier = IntervalQualifier.DAY;
             }
-        } else if (readIf("HOUR")) {
+            break;
+        case HOUR:
+            read();
             if (readIf(OPEN_PAREN)) {
                 precision = readNonNegativeInt();
                 read(CLOSE_PAREN);
             }
             if (readIf("TO")) {
-                if (readIf("MINUTE")) {
+                switch (currentTokenType) {
+                case MINUTE:
+                    read();
                     qualifier = IntervalQualifier.HOUR_TO_MINUTE;
-                } else {
-                    read("SECOND");
+                    break;
+                case SECOND:
+                    read();
                     if (readIf(OPEN_PAREN)) {
                         scale = readNonNegativeInt();
                         read(CLOSE_PAREN);
                     }
                     qualifier = IntervalQualifier.HOUR_TO_SECOND;
+                    break;
+                default:
+                    throw intervalHourError();
                 }
             } else {
                 qualifier = IntervalQualifier.HOUR;
             }
-        } else if (readIf("MINUTE")) {
+            break;
+        case MINUTE:
+            read();
             if (readIf(OPEN_PAREN)) {
                 precision = readNonNegativeInt();
                 read(CLOSE_PAREN);
             }
             if (readIf("TO")) {
-                read("SECOND");
+                read(SECOND);
                 if (readIf(OPEN_PAREN)) {
                     scale = readNonNegativeInt();
                     read(CLOSE_PAREN);
@@ -6128,8 +6219,9 @@ public class Parser {
             } else {
                 qualifier = IntervalQualifier.MINUTE;
             }
-        } else {
-            read("SECOND");
+            break;
+        case SECOND:
+            read();
             if (readIf(OPEN_PAREN)) {
                 precision = readNonNegativeInt();
                 if (readIf(COMMA)) {
@@ -6138,6 +6230,9 @@ public class Parser {
                 read(CLOSE_PAREN);
             }
             qualifier = IntervalQualifier.SECOND;
+            break;
+        default:
+            throw intervalQualifierError();
         }
         if (precision >= 0) {
             if (precision == 0 || precision > ValueInterval.MAXIMUM_PRECISION) {
@@ -6152,6 +6247,27 @@ public class Parser {
         return new Column(columnName, TypeInfo.getTypeInfo(qualifier.ordinal() + Value.INTERVAL_YEAR,
                 precision < 0 ? ValueInterval.DEFAULT_PRECISION : precision,
                 scale < 0 ? ValueInterval.DEFAULT_SCALE : scale, null), qualifier.getTypeName(precision, scale));
+    }
+
+    private DbException intervalQualifierError() {
+        if (expectedList != null) {
+            addMultipleExpected(YEAR, MONTH, DAY, HOUR, MINUTE, SECOND);
+        }
+        return getSyntaxError();
+    }
+
+    private DbException intervalDayError() {
+        if (expectedList != null) {
+            addMultipleExpected(HOUR, MINUTE, SECOND);
+        }
+        return getSyntaxError();
+    }
+
+    private DbException intervalHourError() {
+        if (expectedList != null) {
+            addMultipleExpected(MINUTE, SECOND);
+        }
+        return getSyntaxError();
     }
 
     private Column parseArrayType(String columnName, TypeInfo componentType) {

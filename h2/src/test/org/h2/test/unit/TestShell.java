@@ -195,7 +195,7 @@ public class TestShell extends TestBase {
         testOut.println("list");
         read("sql> Result list mode is now on");
 
-        testOut.println("select 1 first, 2 second;");
+        testOut.println("select 1 first, 2 `second`;");
         read("sql> FIRST : 1");
         read("SECOND: 2");
         read("(1 row, ");

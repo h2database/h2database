@@ -2816,6 +2816,19 @@ Values for INSERT statement.
 VALUES (1, 'Test')
 "
 
+"Other Grammar","Interval qualifier","
+YEAR [(precisionInt)] [ TO MONTH ]
+    | MONTH [(precisionInt)]
+    | DAY [(precisionInt)] [ TO { HOUR | MINUTE | SECOND [(scaleInt)] } ]
+    | HOUR [(precisionInt)] [ TO { MINUTE | SECOND [(scaleInt)] } ]
+    | MINUTE [(precisionInt)] [ TO SECOND [(scaleInt)] ]
+    | SECOND [(precisionInt [, scaleInt])]
+","
+An interval qualifier.
+","
+DAY TO SECOND
+"
+
 "Other Grammar","Join specification","
 ON expression | USING (columnName [,...])
 ","
@@ -3203,16 +3216,21 @@ CURRENT ROW
     | sequenceValueExpression
     | function
     | { - | + } term
-    | ( expression )
+    | ( expression ) [ intervalQualifier ]
     | query
     | case
     | caseWhen
     | userDefinedFunctionName }
-[ timeZone ]
+[ timeZone | intervalQualifier ]
 ","
 A value. Parameters can be indexed, for example ""?1"" meaning the first parameter.
+
+Interval qualifier may only be specified for a compatible value
+or for a subtraction operation between two datetime values.
+The subtraction operation ignores the leading field precision of the qualifier.
 ","
 'Hello'
+
 "
 
 "Other Grammar","Time zone","

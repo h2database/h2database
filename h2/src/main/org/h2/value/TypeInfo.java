@@ -597,9 +597,9 @@ public class TypeInfo {
         case Value.INTERVAL_HOUR_TO_MINUTE:
         case Value.INTERVAL_HOUR_TO_SECOND:
         case Value.INTERVAL_MINUTE_TO_SECOND:
-            builder.append(IntervalQualifier.valueOf(valueType - Value.INTERVAL_YEAR).getTypeName(
+            IntervalQualifier.valueOf(valueType - Value.INTERVAL_YEAR).getTypeName(builder,
                     precision == ValueInterval.DEFAULT_PRECISION ? -1 : (int) precision,
-                    scale == ValueInterval.DEFAULT_SCALE ? -1 : scale));
+                    scale == ValueInterval.DEFAULT_SCALE ? -1 : scale, false);
             break;
         case Value.ARRAY:
             if (extTypeInfo != null) {

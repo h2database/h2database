@@ -10,6 +10,8 @@ import static org.h2.util.DateTimeUtils.NANOS_PER_HOUR;
 import static org.h2.util.DateTimeUtils.NANOS_PER_MINUTE;
 import static org.h2.util.DateTimeUtils.NANOS_PER_SECOND;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
@@ -241,6 +243,61 @@ public class ValueInterval extends Value {
     public String getString() {
         return IntervalUtils.appendInterval(new StringBuilder(), getQualifier(), negative, leading, remaining)
                 .toString();
+    }
+
+    @Override
+    public long getLong() {
+        if (valueType <= INTERVAL_MINUTE) {
+            return negative ? -leading : leading;
+        }
+        return getBigDecimal().setScale(0, RoundingMode.HALF_UP).longValue();
+    }
+
+    @Override
+    public BigDecimal getBigDecimal() {
+        long multiplier;
+        switch (valueType) {
+        case INTERVAL_YEAR:
+        case INTERVAL_MONTH:
+        case INTERVAL_DAY:
+        case INTERVAL_HOUR:
+        case INTERVAL_MINUTE:
+            return BigDecimal.valueOf(negative ? -leading : leading);
+        case INTERVAL_SECOND:
+            multiplier = DateTimeUtils.NANOS_PER_SECOND;
+            break;
+        case INTERVAL_YEAR_TO_MONTH: {
+            multiplier = 12;
+            break;
+        }
+        case INTERVAL_DAY_TO_HOUR:
+            multiplier = 24;
+            break;
+        case INTERVAL_DAY_TO_MINUTE:
+            multiplier = 24 * 60;
+            break;
+        case INTERVAL_DAY_TO_SECOND:
+            multiplier = DateTimeUtils.NANOS_PER_DAY;
+            break;
+        case INTERVAL_HOUR_TO_MINUTE:
+            multiplier = 60;
+            break;
+        case INTERVAL_HOUR_TO_SECOND:
+            multiplier = DateTimeUtils.NANOS_PER_HOUR;
+            break;
+        case INTERVAL_MINUTE_TO_SECOND:
+            multiplier = DateTimeUtils.NANOS_PER_MINUTE;
+            break;
+        default:
+            throw DbException.getUnsupportedException("valueType = " + valueType);
+        }
+        BigDecimal bd = BigDecimal.valueOf(leading);
+        if (remaining != 0L) {
+            BigDecimal m = BigDecimal.valueOf(multiplier);
+            bd = bd.add(BigDecimal.valueOf(remaining).divide(m, m.precision(), RoundingMode.HALF_DOWN))
+                    .stripTrailingZeros();
+        }
+        return negative ? bd.negate() : bd;
     }
 
     @Override

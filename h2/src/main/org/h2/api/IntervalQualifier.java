@@ -251,7 +251,7 @@ public enum IntervalQualifier {
      * @return full type name
      */
     public String getTypeName(int precision, int scale) {
-        return getTypeName(new StringBuilder(), precision, scale).toString();
+        return getTypeName(new StringBuilder(), precision, scale, false).toString();
     }
 
     /**
@@ -260,10 +260,13 @@ public enum IntervalQualifier {
      * @param builder string builder
      * @param precision precision, or {@code -1}
      * @param scale fractional seconds precision, or {@code -1}
+     * @param qualifierOnly if {@code true}, don't add the INTERVAL prefix
      * @return the specified string builder
      */
-    public StringBuilder getTypeName(StringBuilder builder, int precision, int scale) {
-        builder.append("INTERVAL ");
+    public StringBuilder getTypeName(StringBuilder builder, int precision, int scale, boolean qualifierOnly) {
+        if (!qualifierOnly) {
+            builder.append("INTERVAL ");
+        }
         switch (this) {
         case YEAR:
         case MONTH:

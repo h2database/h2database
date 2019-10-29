@@ -26,7 +26,6 @@ import org.h2.security.SHA256;
 import org.h2.store.Data;
 import org.h2.store.DataReader;
 import org.h2.util.Bits;
-import org.h2.util.CurrentTimestamp;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
@@ -412,7 +411,7 @@ public class Transfer {
             } else {
                 writeInt(TIME);
                 ValueTimestampTimeZone current = session instanceof CastDataProvider
-                        ? ((CastDataProvider) session).currentTimestamp() : CurrentTimestamp.get();
+                        ? ((CastDataProvider) session).currentTimestamp() : DateTimeUtils.currentTimestamp();
                 writeLong(DateTimeUtils.normalizeNanosOfDay(t.getNanos() +
                         (t.getTimeZoneOffsetSeconds() - current.getTimeZoneOffsetSeconds())
                         * DateTimeUtils.NANOS_PER_DAY));

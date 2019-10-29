@@ -53,7 +53,7 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableType;
 import org.h2.util.ColumnNamerConfiguration;
-import org.h2.util.CurrentTimestamp;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.Utils;
@@ -1313,7 +1313,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      */
     public void throttle() {
         if (currentCommandStart == null) {
-            currentCommandStart = CurrentTimestamp.get();
+            currentCommandStart = DateTimeUtils.currentTimestamp();
         }
         if (throttleNs == 0) {
             return;
@@ -1345,7 +1345,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             currentCommand = command;
             if (command != null) {
                 if (queryTimeout > 0) {
-                    currentCommandStart = CurrentTimestamp.get();
+                    currentCommandStart = DateTimeUtils.currentTimestamp();
                     long now = System.nanoTime();
                     cancelAtNs = now + TimeUnit.MILLISECONDS.toNanos(queryTimeout);
                 } else {
@@ -1404,7 +1404,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     public ValueTimestampTimeZone getCurrentCommandStart() {
         if (currentCommandStart == null) {
-            currentCommandStart = CurrentTimestamp.get();
+            currentCommandStart = DateTimeUtils.currentTimestamp();
         }
         return currentCommandStart;
     }
@@ -1582,7 +1582,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     public ValueTimestampTimeZone getTransactionStart() {
         if (transactionStart == null) {
-            transactionStart = CurrentTimestamp.get();
+            transactionStart = DateTimeUtils.currentTimestamp();
         }
         return transactionStart;
     }

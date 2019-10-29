@@ -203,7 +203,7 @@ public class TestMVTableEngine extends TestDb {
             rs.next();
             int pages = rs.getInt(2);
             // only one lob should remain (but it is small and compressed)
-            assertTrue("p:" + pages, pages < 4);
+            assertTrue("p:" + pages, pages < 7);
         }
     }
 

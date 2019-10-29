@@ -88,11 +88,13 @@ public class Chunk
      * This value consists of map id, page offset, page length and page type.
      * Format is the same as page's position id, but with map id replacing chunk id,
      * and page offset replacing page sequential number.
+     *
+     * @see DataUtils#getTocElement(int, int, int, int) for field format details
      */
     int tocPos;
 
     /**
-     * Collectio of "deleted" flags for all pages in the chunk.
+     * Collection of "deleted" flags for all pages in the chunk.
      */
     BitSet occupancy;
 

@@ -1771,6 +1771,7 @@ public class TestMVStore extends TestBase {
         for (int i = 0; i < 10; i++) {
             sleep(1);
             boolean result = s.compact(50, 50 * 1024);
+            s.commit();
             if (!result) {
                 break;
             }

@@ -697,76 +697,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return new Cursor<>(getRootPage(), from);
     }
 
-    /**
-     * Re-write any pages that belong to one of the chunks in the given set.
-     *
-     * @param set the set of chunk ids
-     * @return number of pages actually re-written
-     */
-    final int rewrite(Set<Integer> set) {
-        if (!singleWriter) {
-            return rewrite(getRootPage(), set);
-        }
-        RootReference<K,V> rootReference = lockRoot(getRoot(), 1);
-        int appendCounter = rootReference.getAppendCounter();
-        try {
-            if (appendCounter > 0) {
-                rootReference = flushAppendBuffer(rootReference, true);
-                assert rootReference.getAppendCounter() == 0;
-            }
-            int res = rewrite(rootReference.root, set);
-            return res;
-        } finally {
-            unlockRoot();
-        }
-    }
-
-    private int rewrite(Page<K,V> p, Set<Integer> set) {
-        if (p.isLeaf()) {
-            long pos = p.getPos();
-            int chunkId = DataUtils.getPageChunkId(pos);
-            if (!set.contains(chunkId)) {
-                return 0;
-            }
-            assert p.getKeyCount() > 0;
-            return rewritePage(p) ? 1 : 0;
-        }
-        int writtenPageCount = 0;
-        for (int i = 0; i < getChildPageCount(p); i++) {
-            long childPos = p.getChildPagePos(i);
-            if (childPos != 0 && DataUtils.getPageType(childPos) == DataUtils.PAGE_TYPE_LEAF) {
-                // we would need to load the page, and it's a leaf:
-                // only do that if it's within the set of chunks we are
-                // interested in
-                int chunkId = DataUtils.getPageChunkId(childPos);
-                if (!set.contains(chunkId)) {
-                    continue;
-                }
-            }
-            writtenPageCount += rewrite(p.getChildPage(i), set);
-        }
-        if (writtenPageCount == 0) {
-            long pos = p.getPos();
-            int chunkId = DataUtils.getPageChunkId(pos);
-            if (set.contains(chunkId)) {
-                // an inner node page that is in one of the chunks,
-                // but only points to chunks that are not in the set:
-                // if no child was changed, we need to do that now
-                // (this is not needed if anyway one of the children
-                // was changed, as this would have updated this
-                // page as well)
-                while (!p.isLeaf()) {
-                    p = p.getChildPage(0);
-                }
-                if (rewritePage(p)) {
-                    writtenPageCount = 1;
-                }
-            }
-        }
-        return writtenPageCount;
-    }
-
-    boolean rewritePage(Page<K,V> p) {
+    final boolean rewritePage(Page<K,V> p) {
         if (p.getKeyCount()==0) {
             return true;
         }
@@ -775,7 +706,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         if (!isClosed()) {
             return rewrite(key);
         }
-        return true;
+        return false;
     }
 
     /**

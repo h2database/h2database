@@ -1164,14 +1164,10 @@ public class MetaTable extends Table {
                                 Integer.toString(mvStore.getFillRate()));
                         add(rows, "info.CHUNKS_FILL_RATE",
                                 Integer.toString(mvStore.getChunksFillRate()));
-                        long size;
                         try {
-                            size = fs.getFile().size();
-                        } catch (IOException e) {
-                            throw DbException.convertIOException(e, "Can not get size");
-                        }
-                        add(rows, "info.FILE_SIZE",
-                                Long.toString(size));
+                            add(rows, "info.FILE_SIZE",
+                                    Long.toString(fs.getFile().size()));
+                        } catch (IOException ignore) {/**/}
                         add(rows, "info.CHUNK_COUNT",
                                 Long.toString(mvStore.getChunkCount()));
                         add(rows, "info.PAGE_COUNT",

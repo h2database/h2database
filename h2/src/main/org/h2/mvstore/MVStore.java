@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Deque;
@@ -19,6 +20,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
@@ -207,6 +209,13 @@ public class MVStore implements AutoCloseable
     private final CacheLongKeyLIRS<Page<?,?>> cache;
 
     /**
+     * Cache for chunks "Table of Content" used to translate page's
+     * sequential number within containing chunk into byte position
+     * within chunk's image. Cache keyed by chunk id.
+     */
+    private final CacheLongKeyLIRS<long[]> chunksToC;
+
+    /**
      * The newest chunk. If nothing was stored yet, this field is not set.
      */
     private Chunk lastChunk;
@@ -340,6 +349,7 @@ public class MVStore implements AutoCloseable
 
         int pgSplitSize = 48; // for "mem:" case it is # of keys
         CacheLongKeyLIRS.Config cc = null;
+        CacheLongKeyLIRS.Config cc2 = null;
         if (this.fileStore != null) {
             int mb = DataUtils.getConfigParam(config, "cacheSize", 16);
             if (mb > 0) {
@@ -350,6 +360,8 @@ public class MVStore implements AutoCloseable
                     cc.segmentCount = (Integer)o;
                 }
             }
+            cc2 = new CacheLongKeyLIRS.Config();
+            cc2.maxMemory = 1024L * 1024L;
             pgSplitSize = 16 * 1024;
         }
         if (cc != null) {
@@ -357,6 +369,7 @@ public class MVStore implements AutoCloseable
         } else {
             cache = null;
         }
+        chunksToC = cc2 == null ? null : new CacheLongKeyLIRS<>(cc2);
 
         pgSplitSize = DataUtils.getConfigParam(config, "pageSplitSize", pgSplitSize);
         // Make sure pages will fit into cache
@@ -821,10 +834,10 @@ public class MVStore implements AutoCloseable
         }
 
         if (assumeCleanShutdown) {
-            setLastChunk(newest);
             // quickly check latest 20 chunks referenced in meta table
             Queue<Chunk> chunksToVerify = new PriorityQueue<>(20, Collections.reverseOrder(chunkComparator));
             try {
+                setLastChunk(newest);
                 // load the chunk metadata: although meta's root page resides in the lastChunk,
                 // traversing meta map might recursively load another chunk(s)
                 Cursor<String, String> cursor = meta.cursor(DataUtils.META_CHUNK);
@@ -1202,17 +1215,6 @@ public class MVStore implements AutoCloseable
     }
 
     /**
-     * Read a page of data into a ByteBuffer.
-     *
-     * @param pos page pos
-     * @param expectedMapId expected map id for the page
-     * @return ByteBuffer containing page data.
-     */
-    private ByteBuffer readBufferForPage(long pos, int expectedMapId) {
-        return getChunk(pos).readBufferForPage(fileStore, pos, expectedMapId);
-    }
-
-    /**
      * Get the chunk for the given position.
      *
      * @param pos the position
@@ -1393,6 +1395,7 @@ public class MVStore implements AutoCloseable
         c.time = time;
         c.version = version;
         c.next = Long.MAX_VALUE;
+        c.occupancy = new BitSet();
         chunks.put(c.id, c);
         ArrayList<Page<?,?>> changed = new ArrayList<>();
         for (Iterator<MVMap<?, ?>> iter = maps.values().iterator(); iter.hasNext(); ) {
@@ -1414,6 +1417,7 @@ public class MVStore implements AutoCloseable
                 }
             }
         }
+        List<Long> toc = new ArrayList<>();
         WriteBuffer buff = getWriteBuffer();
         // need to patch the header later
         c.writeChunkHeader(buff, 0);
@@ -1424,7 +1428,7 @@ public class MVStore implements AutoCloseable
             if (p.getTotalCount() == 0) {
                 meta.remove(key);
             } else {
-                p.writeUnsavedRecursive(c, buff);
+                p.writeUnsavedRecursive(c, buff, toc);
                 long root = p.getPos();
                 meta.put(key, Long.toHexString(root));
             }
@@ -1442,13 +1446,21 @@ public class MVStore implements AutoCloseable
         onVersionChange(version);
 
         Page<String,String> metaRoot = metaRootReference.root;
-        metaRoot.writeUnsavedRecursive(c, buff);
+        metaRoot.writeUnsavedRecursive(c, buff, toc);
 
         // last allocated map id should be captured after the meta map was saved, because
         // this will ensure that concurrently created map, which made it into meta before save,
         // will have it's id reflected in mapid field of currently written chunk
         c.mapId = lastMapId.get();
 
+        c.tocPos = buff.position();
+        long[] tocArray = new long[toc.size()];
+        int indx = 0;
+        for (long tocElement : toc) {
+            tocArray[indx++] = tocElement;
+            buff.putLong(tocElement);
+        }
+        chunksToC.put(c.id, tocArray);
         int chunkLength = buff.position();
 
         // add the store header and round to the next block
@@ -1469,6 +1481,7 @@ public class MVStore implements AutoCloseable
             c.next = 0;
         }
         assert c.pageCountLive == c.pageCount : c;
+        assert c.occupancy.cardinality() == 0 : c;
         buff.position(0);
         c.writeChunkHeader(buff, headerLength);
 
@@ -1609,7 +1622,8 @@ public class MVStore implements AutoCloseable
                 Chunk chunk = chunks.get(chunkId);
                 assert chunk != null;
                 modifiedChunks.add(chunk);
-                if (chunk.accountForRemovedPage(rpi.getPageLength(), rpi.isPinned(), time, rpi.version)) {
+                if (chunk.accountForRemovedPage(rpi.getPageNo(), rpi.getPageLength(),
+                                                rpi.isPinned(), time, rpi.version)) {
                     deadChunks.offer(chunk);
                 }
             }
@@ -2164,27 +2178,35 @@ public class MVStore implements AutoCloseable
         // so lock has to be released and then re-acquired.
         storeLock.unlock();
         try {
-            for (MVMap<?, ?> map : maps.values()) {
-                if (!map.isClosed() && !map.isSingleWriter()) {
-                    try {
-                        rewrittenPageCount += map.rewrite(set);
-                    } catch(IllegalStateException ex) {
-                        if (!map.isClosed()) {
-                            throw ex;
+            for (int chunkId : set) {
+                Chunk chunk = chunks.get(chunkId);
+                long[] toc = getToC(chunk);
+                if (toc != null) {
+                    for (int pageNo = 0; (pageNo = chunk.occupancy.nextClearBit(pageNo)) < chunk.pageCount; ++pageNo) {
+                        long tocElement = toc[pageNo];
+                        int mapId = DataUtils.getPageMapId(tocElement);
+                        MVMap<?,?> map = getMap(mapId);
+                        if (map != null && !map.isClosed()) {
+                            assert !map.isSingleWriter();
+                            int length = DataUtils.getPageMaxLength(tocElement);
+                            int type = DataUtils.getPageType(tocElement);
+                            long pagePos = DataUtils.getPagePos(chunkId, pageNo, length, type);
+                            Page page = readPage(map, pagePos);
+                            if (map.rewritePage(page)) {
+                                ++rewrittenPageCount;
+                                if (map == meta) {
+                                    markMetaChanged();
+                                }
+                            }
                         }
                     }
                 }
-            }
-            int rewriteMetaCount = meta.rewrite(set);
-            if (rewriteMetaCount > 0) {
-                markMetaChanged();
-                rewrittenPageCount += rewriteMetaCount;
             }
         } finally {
             storeLock.lock();
         }
         commit();
-        assert validateRewrite(set);
+//        assert validateRewrite(set);
         return rewrittenPageCount;
     }
 
@@ -2239,8 +2261,11 @@ public class MVStore implements AutoCloseable
             }
             Page<K,V> p = readPageFromCache(pos);
             if (p == null) {
-                ByteBuffer buff = readBufferForPage(pos, map.getId());
                 try {
+                    Chunk chunk = getChunk(pos);
+                    long[] toc = getToC(chunk);
+                    int pageOffset = DataUtils.getPageOffset(toc == null ? pos : toc[DataUtils.getPageNo(pos)]);
+                    ByteBuffer buff = chunk.readBufferForPage(fileStore, pageOffset, pos, map.getId());
                     p = Page.read(buff, pos, map);
                 } catch (Exception e) {
                     throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
@@ -2255,6 +2280,17 @@ public class MVStore implements AutoCloseable
             }
             throw e;
         }
+    }
+
+    long[] getToC(Chunk chunk) {
+        long[] toc = chunksToC.get(chunk.id);
+        if (toc == null) {
+            toc = chunk.readToC(fileStore);
+            if (toc != null) {
+                chunksToC.put(chunk.id, toc, toc.length * 8);
+            }
+        }
+        return toc;
     }
 
     @SuppressWarnings("unchecked")
@@ -3333,7 +3369,7 @@ public class MVStore implements AutoCloseable
     private static class RemovedPageInfo implements Comparable<RemovedPageInfo>
     {
         final long version;
-        final int removedPageInfo;
+        final long removedPageInfo;
 
         RemovedPageInfo(long pagePos, boolean pinned, long version) {
             this.removedPageInfo = createRemovedPageInfo(pagePos, pinned);
@@ -3346,11 +3382,15 @@ public class MVStore implements AutoCloseable
         }
 
         int getPageChunkId() {
-            return removedPageInfo >>> 6;
+            return DataUtils.getPageChunkId(removedPageInfo);
+        }
+
+        int getPageNo() {
+            return DataUtils.getPageOffset(removedPageInfo);
         }
 
         int getPageLength() {
-            return DataUtils.decodePageLength((removedPageInfo >> 1) & 0x1F);
+            return DataUtils.getPageMaxLength(removedPageInfo);
         }
 
         /**
@@ -3362,17 +3402,14 @@ public class MVStore implements AutoCloseable
         }
 
         /**
-         * Transforms saved page position into removed page info, by eliminating page offset
-         * and replacing "page type" bit with "pinned page" flag.
-         * 0    "pinned" flag
-         * 1-5  encoded page length
-         * 6-31 chunk id
+         * Transforms saved page position into removed page info by
+         * replacing "page type" bit with "pinned page" flag.
          * @param pagePos of the saved page
          * @param isPinned whether page belong to a "single writer" map
-         * @return removed page info that contains chunk id, page length and pinned flag
+         * @return removed page info that contains chunk id, page number, page length and pinned flag
          */
-        private static int createRemovedPageInfo(long pagePos, boolean isPinned) {
-            int result = ((int) (pagePos >>> 32)) & ~0x3F | ((int) pagePos) & 0x3E;
+        private static long createRemovedPageInfo(long pagePos, boolean isPinned) {
+            long result = pagePos & ~1;
             if (isPinned) {
                 result |= 1;
             }

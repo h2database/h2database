@@ -533,6 +533,16 @@ public final class DataUtils {
     }
 
     /**
+     * Get the map id from the chunk's table of content element.
+     *
+     * @param tocElement packed table of content element
+     * @return the map id
+     */
+    public static int getPageMapId(long tocElement) {
+        return (int) (tocElement >>> 38);
+    }
+
+    /**
      * Get the maximum length for the given page position.
      *
      * @param pos the position
@@ -560,10 +570,20 @@ public final class DataUtils {
     /**
      * Get the offset from the position.
      *
-     * @param pos the position
+     * @param tocElement packed table of content element
      * @return the offset
      */
-    public static int getPageOffset(long pos) {
+    public static int getPageOffset(long tocElement) {
+        return (int) (tocElement >> 6);
+    }
+
+    /**
+     * Get the sequential 0-based page number within the chunk.
+     *
+     * @param pos the position
+     * @return the page number
+     */
+    public static int getPageNo(long pos) {
         return (int) (pos >> 6);
     }
 
@@ -609,18 +629,36 @@ public final class DataUtils {
 
     /**
      * Get the position of this page. The following information is encoded in
-     * the position: the chunk id, the offset, the maximum length, and the type
+     * the position: the chunk id, the page sequential number, the maximum length, and the type
      * (node or leaf).
      *
      * @param chunkId the chunk id
+     * @param pageNo the offset
+     * @param length the length
+     * @param type the page type (1 for node, 0 for leaf)
+     * @return the position
+     */
+    public static long getPagePos(int chunkId, int pageNo, int length, int type) {
+        long pos = (long) chunkId << 38;
+        pos |= (long) pageNo << 6;
+        pos |= encodeLength(length) << 1;
+        pos |= type;
+        return pos;
+    }
+
+    /**
+     * Create table of content element. The following information is encoded in it:
+     * the map id, the page offset, the maximum length, and the type
+     * (node or leaf).
+     *
+     * @param mapId the chunk id
      * @param offset the offset
      * @param length the length
      * @param type the page type (1 for node, 0 for leaf)
      * @return the position
      */
-    public static long getPagePos(int chunkId, int offset,
-            int length, int type) {
-        long pos = (long) chunkId << 38;
+    public static long getTocElement(int mapId, int offset, int length, int type) {
+        long pos = (long) mapId << 38;
         pos |= (long) offset << 6;
         pos |= encodeLength(length) << 1;
         pos |= type;
@@ -1104,6 +1142,56 @@ public final class DataUtils {
             throw newIllegalStateException(ERROR_FILE_CORRUPT,
                     "Error parsing the value {0}", v, e);
         }
+    }
+
+    public static String hexEncodeBytes(byte[] bytes) {
+        StringBuilder sb = new StringBuilder(bytes.length * 2);
+        for (byte b : bytes) {
+            sb.append(getHexDigitFor(b >> 4));
+            sb.append(getHexDigitFor(b));
+        }
+        return sb.toString();
+    }
+
+    private static char getHexDigitFor(int digit) {
+        digit &= 0xF;
+        return (char)((digit < 10 ? '0' : 'a' - 10) + digit);
+    }
+
+    public static byte[] parseHexBytes(Map<String, ?> map, String key) {
+        Object v = map.get(key);
+        if (v == null) {
+            return null;
+        }
+        String s = (String)v;
+        try {
+            int length = s.length();
+            byte[] data = new byte[length / 2];
+            for(int i = 0; i < length; i += 2) {
+                data[i / 2] = (byte)((hexValueOf(s.charAt(i)) << 4)
+                                    | hexValueOf(s.charAt(i + 1)));
+            }
+            return data;
+        } catch (NumberFormatException e) {
+            throw newIllegalStateException(ERROR_FILE_CORRUPT,
+                    "Error parsing the value {0}", v, e);
+        }
+    }
+
+    private  static int hexValueOf(char c) {
+        int res = c - '0';
+        if (res > 9) {
+            res = c - 'a';
+            if (res < 0 || res > 5) {
+                res = c - 'A';
+                if (res < 0 || res > 5) {
+                    throw newIllegalStateException(ERROR_FILE_CORRUPT,
+                            "Error parsing the value {0}", c);
+                }
+            }
+            res += 10;
+        }
+        return res;
     }
 
     /**

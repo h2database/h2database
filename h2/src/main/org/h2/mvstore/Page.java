@@ -11,6 +11,7 @@ import static org.h2.engine.Constants.MEMORY_POINTER;
 import static org.h2.mvstore.DataUtils.PAGE_TYPE_LEAF;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import org.h2.compress.Compressor;
 import org.h2.mvstore.type.DataType;
@@ -50,7 +51,9 @@ public abstract class Page<K,V> implements Cloneable
      * Field need to be volatile to avoid races between saving thread setting it
      * and other thread reading it to access the page.
      * On top of this update atomicity is required so removal mark and saved position
-     * can be set concurrently
+     * can be set concurrently.
+     *
+     * @see DataUtils#getPagePos(int, int, int, int) for field format details
      */
     private volatile long pos;
 
@@ -636,9 +639,11 @@ public abstract class Page<K,V> implements Cloneable
      *
      * @param chunk the chunk
      * @param buff the target buffer
+     * @param toc prospective table of content
      * @return the position of the buffer just after the type
      */
-    protected final int write(Chunk chunk, WriteBuffer buff) {
+    protected final int write(Chunk chunk, WriteBuffer buff, List<Long> toc) {
+        int pageNo = toc.size();
         int start = buff.position();
         int len = getKeyCount();
         int type = isLeaf() ? PAGE_TYPE_LEAF : DataUtils.PAGE_TYPE_NODE;
@@ -660,10 +665,10 @@ public abstract class Page<K,V> implements Cloneable
                 Compressor compressor;
                 int compressType;
                 if (compressionLevel == 1) {
-                    compressor = map.getStore().getCompressorFast();
+                    compressor = store.getCompressorFast();
                     compressType = DataUtils.PAGE_COMPRESSED;
                 } else {
-                    compressor = map.getStore().getCompressorHigh();
+                    compressor = store.getCompressorHigh();
                     compressType = DataUtils.PAGE_COMPRESSED_HIGH;
                 }
                 byte[] exp = new byte[expLen];
@@ -681,6 +686,7 @@ public abstract class Page<K,V> implements Cloneable
             }
         }
         int pageLength = buff.position() - start;
+        toc.add(DataUtils.getTocElement(getMapId(), start, pageLength, type));
         int chunkId = chunk.id;
         int check = DataUtils.getCheckValue(chunkId)
                 ^ DataUtils.getCheckValue(start)
@@ -691,7 +697,7 @@ public abstract class Page<K,V> implements Cloneable
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_INTERNAL, "Page already stored");
         }
-        long pagePos = DataUtils.getPagePos(chunkId, start, pageLength, type);
+        long pagePos = DataUtils.getPagePos(chunkId, pageNo, pageLength, type);
         boolean isDeleted = isRemoved();
         while (!posUpdater.compareAndSet(this, isDeleted ? 1L : 0L, pagePos)) {
             isDeleted = isRemoved();
@@ -730,11 +736,11 @@ public abstract class Page<K,V> implements Cloneable
     /**
      * Store this page and all children that are changed, in reverse order, and
      * update the position and the children.
-     *
      * @param chunk the chunk
      * @param buff the target buffer
+     * @param toc
      */
-    abstract void writeUnsavedRecursive(Chunk chunk, WriteBuffer buff);
+    abstract void writeUnsavedRecursive(Chunk chunk, WriteBuffer buff, List<Long> toc);
 
     /**
      * Unlink the children recursively after all data is written.
@@ -986,7 +992,7 @@ public abstract class Page<K,V> implements Cloneable
         @Override
         public String toString() {
             return "Cnt:" + count + ", pos:" + (pos == 0 ? "0" : DataUtils.getPageChunkId(pos) +
-                    "-" + DataUtils.getPageOffset(pos) + ":" + DataUtils.getPageMaxLength(pos)) +
+                    "-" + DataUtils.getPageNo(pos) + ":" + DataUtils.getPageMaxLength(pos)) +
                     ((page == null ? DataUtils.getPageType(pos) == 0 : page.isLeaf()) ? " leaf" : " node") +
                     ", page:{" + page + "}";
         }
@@ -1234,10 +1240,10 @@ public abstract class Page<K,V> implements Cloneable
         }
 
         @Override
-        void writeUnsavedRecursive(Chunk chunk, WriteBuffer buff) {
+        void writeUnsavedRecursive(Chunk chunk, WriteBuffer buff, List<Long> toc) {
             if (!isSaved()) {
-                int patch = write(chunk, buff);
-                writeChildrenRecursive(chunk, buff);
+                int patch = write(chunk, buff, toc);
+                writeChildrenRecursive(chunk, buff, toc);
                 int old = buff.position();
                 buff.position(patch);
                 writeChildren(buff, false);
@@ -1245,13 +1251,13 @@ public abstract class Page<K,V> implements Cloneable
             }
         }
 
-        void writeChildrenRecursive(Chunk chunk, WriteBuffer buff) {
+        void writeChildrenRecursive(Chunk chunk, WriteBuffer buff, List<Long> toc) {
             int len = getRawChildPageCount();
             for (int i = 0; i < len; i++) {
                 PageReference<K,V> ref = children[i];
                 Page<K,V> p = ref.getPage();
                 if (p != null) {
-                    p.writeUnsavedRecursive(chunk, buff);
+                    p.writeUnsavedRecursive(chunk, buff, toc);
                     ref.resetPos();
                 }
             }
@@ -1309,11 +1315,11 @@ public abstract class Page<K,V> implements Cloneable
         }
 
         @Override
-        void writeUnsavedRecursive(Chunk chunk, WriteBuffer buff) {
+        void writeUnsavedRecursive(Chunk chunk, WriteBuffer buff, List<Long> toc) {
             if (complete) {
-                super.writeUnsavedRecursive(chunk, buff);
+                super.writeUnsavedRecursive(chunk, buff, toc);
             } else if (!isSaved()) {
-                writeChildrenRecursive(chunk, buff);
+                writeChildrenRecursive(chunk, buff, toc);
             }
         }
 
@@ -1519,9 +1525,9 @@ public abstract class Page<K,V> implements Cloneable
         protected void writeChildren(WriteBuffer buff, boolean withCounts) {}
 
         @Override
-        void writeUnsavedRecursive(Chunk chunk, WriteBuffer buff) {
+        void writeUnsavedRecursive(Chunk chunk, WriteBuffer buff, List<Long> toc) {
             if (!isSaved()) {
-                write(chunk, buff);
+                write(chunk, buff, toc);
             }
         }
 

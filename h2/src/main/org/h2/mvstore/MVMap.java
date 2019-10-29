@@ -766,7 +766,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return writtenPageCount;
     }
 
-    private boolean rewritePage(Page<K,V> p) {
+    boolean rewritePage(Page<K,V> p) {
         if (p.getKeyCount()==0) {
             return true;
         }

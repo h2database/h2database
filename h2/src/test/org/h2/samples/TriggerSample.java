@@ -30,8 +30,8 @@ public class TriggerSample {
         Class.forName("org.h2.Driver");
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:", "sa", "");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE INVOICE(ID INT PRIMARY KEY, AMOUNT DECIMAL)");
-        stat.execute("CREATE TABLE INVOICE_SUM(AMOUNT DECIMAL)");
+        stat.execute("CREATE TABLE INVOICE(ID INT PRIMARY KEY, AMOUNT DECIMAL(10, 2))");
+        stat.execute("CREATE TABLE INVOICE_SUM(AMOUNT DECIMAL(10, 2))");
         stat.execute("INSERT INTO INVOICE_SUM VALUES(0.0)");
 
         stat.execute("CREATE TRIGGER INV_INS " +

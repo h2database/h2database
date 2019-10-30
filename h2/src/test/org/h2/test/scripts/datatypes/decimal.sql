@@ -9,99 +9,16 @@ CREATE TABLE TEST(I NUMERIC(-1));
 CREATE TABLE TEST(I NUMERIC(-1, -1));
 > exception INVALID_VALUE_2
 
-CREATE TABLE TEST (N NUMERIC) AS VALUES (0), (0.0), (NULL);
+CREATE TABLE TEST (N NUMERIC(3, 1)) AS VALUES (0), (0.0), (NULL);
 > ok
 
 SELECT * FROM TEST;
 > N
 > ----
-> 0
+> 0.0
 > 0.0
 > null
 > rows: 3
-
-SELECT DISTINCT * FROM TEST;
-> N
-> ----
-> 0
-> null
-> rows: 2
-
-DROP TABLE TEST;
-> ok
-
-CREATE TABLE TEST (N NUMERIC) AS VALUES (0), (0.0), (2), (NULL);
-> ok
-
-CREATE INDEX TEST_IDX ON TEST(N);
-> ok
-
-SELECT N FROM TEST WHERE N IN (0.000, 0.00, 1.0);
-> N
-> ---
-> 0
-> 0.0
-> rows: 2
-
-SELECT N FROM TEST WHERE N IN (SELECT DISTINCT ON(B) A FROM VALUES (0.000, 1), (0.00, 2), (1.0, 3) T(A, B));
-> N
-> ---
-> 0
-> 0.0
-> rows: 2
-
-DROP INDEX TEST_IDX;
-> ok
-
-CREATE UNIQUE INDEX TEST_IDX ON TEST(N);
-> exception DUPLICATE_KEY_1
-
-DROP TABLE TEST;
-> ok
-
-CREATE MEMORY TABLE TEST(N NUMERIC) AS VALUES (0), (0.0), (2), (NULL);
-> ok
-
-CREATE HASH INDEX TEST_IDX ON TEST(N);
-> ok
-
-SELECT N FROM TEST WHERE N = 0;
-> N
-> ---
-> 0
-> 0.0
-> rows: 2
-
-DROP INDEX TEST_IDX;
-> ok
-
-CREATE UNIQUE HASH INDEX TEST_IDX ON TEST(N);
-> exception DUPLICATE_KEY_1
-
-DELETE FROM TEST WHERE N = 0 LIMIT 1;
-> update count: 1
-
-CREATE UNIQUE HASH INDEX TEST_IDX ON TEST(N);
-> ok
-
-SELECT 1 FROM TEST WHERE N = 0;
->> 1
-
-INSERT INTO TEST VALUES (NULL);
-> update count: 1
-
-SELECT N FROM TEST WHERE N IS NULL;
-> N
-> ----
-> null
-> null
-> rows: 2
-
-DELETE FROM TEST WHERE N IS NULL LIMIT 1;
-> update count: 1
-
-SELECT N FROM TEST WHERE N IS NULL;
->> null
 
 DROP TABLE TEST;
 > ok
@@ -139,6 +56,23 @@ TABLE TEST;
 > 1 0.001
 > 2 0.001
 > 3 0.000
+> rows: 3
+
+DROP TABLE TEST;
+> ok
+
+CREATE TABLE TEST(I INT PRIMARY KEY, V NUMERIC(2));
+> ok
+
+INSERT INTO TEST VALUES (1, 1e-1), (2, 2e0), (3, 3e1);
+> update count: 3
+
+TABLE TEST;
+> I V
+> - --
+> 1 0
+> 2 2
+> 3 30
 > rows: 3
 
 DROP TABLE TEST;

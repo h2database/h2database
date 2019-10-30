@@ -40,7 +40,7 @@ public class ValueDecimal extends Value {
     /**
      * The default scale for a decimal value.
      */
-    static final int DEFAULT_SCALE = 32767;
+    static final int DEFAULT_SCALE = 0;
 
     /**
      * The default display size for a decimal value.
@@ -192,16 +192,10 @@ public class ValueDecimal extends Value {
 
     @Override
     public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
-        if (value.scale() == targetScale) {
+        if (value.scale() == targetScale || onlyToSmallerScale && value.scale() < targetScale) {
             return this;
         }
-        if (onlyToSmallerScale || targetScale >= DEFAULT_SCALE) {
-            if (value.scale() < targetScale) {
-                return this;
-            }
-        }
-        BigDecimal bd = ValueDecimal.setScale(value, targetScale);
-        return ValueDecimal.get(bd);
+        return ValueDecimal.get(ValueDecimal.setScale(value, targetScale));
     }
 
     @Override

@@ -508,9 +508,9 @@ public class TestValue extends TestDb {
 
         testTypeInfoCheck(Value.FLOAT, 7, 0, 15, TypeInfo.TYPE_FLOAT, TypeInfo.getTypeInfo(Value.FLOAT));
         testTypeInfoCheck(Value.DOUBLE, 17, 0, 24, TypeInfo.TYPE_DOUBLE, TypeInfo.getTypeInfo(Value.DOUBLE));
-        testTypeInfoCheck(Value.DECIMAL, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE,
+        testTypeInfoCheck(Value.DECIMAL, Integer.MAX_VALUE, ValueDecimal.MAXIMUM_SCALE, Integer.MAX_VALUE,
                 TypeInfo.TYPE_DECIMAL, TypeInfo.getTypeInfo(Value.DECIMAL));
-        testTypeInfoCheck(Value.DECIMAL, 65_535, 32_767, 65_537, TypeInfo.TYPE_DECIMAL_DEFAULT);
+        testTypeInfoCheck(Value.DECIMAL, 65_535, 32_767, 65_537, TypeInfo.TYPE_DECIMAL_FLOATING_POINT);
 
         testTypeInfoCheck(Value.TIME, 18, 9, 18, TypeInfo.TYPE_TIME, TypeInfo.getTypeInfo(Value.TIME));
         for (int s = 0; s <= 9; s++) {

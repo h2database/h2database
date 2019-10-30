@@ -2913,8 +2913,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         case NEXTVAL:
         case CURRVAL:
-            typeInfo = database.getMode().decimalSequences //
-                    ? TypeInfo.getTypeInfo(Value.DECIMAL, ValueLong.PRECISION, 0, null) : TypeInfo.TYPE_LONG;
+            typeInfo = database.getMode().decimalSequences ? TypeInfo.TYPE_DECIMAL_LONG : TypeInfo.TYPE_LONG;
             break;
         default:
             typeInfo = TypeInfo.getTypeInfo(info.returnDataType, -1, -1, null);

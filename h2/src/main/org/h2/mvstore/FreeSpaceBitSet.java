@@ -235,7 +235,12 @@ public class FreeSpaceBitSet {
         // to get approximation without holding a store lock
         int usedBlocks;
         int totalBlocks;
+        // to prevent infinite loop, which I saw once
+        int cnt = 3;
         do {
+            if (--cnt == 0) {
+                return 100;
+            }
             totalBlocks = set.length();
             usedBlocks = set.cardinality();
         } while (totalBlocks != set.length() || usedBlocks > totalBlocks);

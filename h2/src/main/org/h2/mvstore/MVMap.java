@@ -696,7 +696,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         assert p.isSaved();
         K key = p.getKey(0);
         if (!isClosed()) {
-            ContainsDecisionMaker<V> decisionMaker = new ContainsDecisionMaker<>(p.getPos());
+            RewriteDecisionMaker<V> decisionMaker = new RewriteDecisionMaker<>(p.getPos());
             V result = operate(key, null, decisionMaker);
             boolean res = decisionMaker.getDecision() != Decision.ABORT;
             assert !res || result != null;
@@ -1988,27 +1988,34 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
     }
 
-    private static final class ContainsDecisionMaker<V> extends DecisionMaker<V>
+    private static final class RewriteDecisionMaker<V> extends DecisionMaker<V>
     {
         private final long pagePos;
         private Decision decision;
 
-        ContainsDecisionMaker(long pagePos) {
+        RewriteDecisionMaker(long pagePos) {
             this.pagePos = pagePos;
         }
 
         @Override
         public Decision decide(V existingValue, V providedValue, CursorPos tip) {
             assert decision == null;
-            decision = tip.page.getPos() != pagePos ?
-                    Decision.ABORT :
-                    decide(existingValue, providedValue);
+            decision = Decision.ABORT;
+            if(!DataUtils.isLeafPosition(pagePos)) {
+                while ((tip = tip.parent) != null) {
+                    if (tip.page.getPos() == pagePos) {
+                        decision = decide(existingValue, providedValue);
+                        break;
+                    }
+                }
+            } else if (tip.page.getPos() == pagePos) {
+                decision = decide(existingValue, providedValue);
+            }
             return decision;
         }
 
         @Override
         public Decision decide(V existingValue, V providedValue) {
-            assert decision == null;
             decision = existingValue == null ? Decision.ABORT : Decision.PUT;
             return decision;
         }
@@ -2029,7 +2036,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
         @Override
         public String toString() {
-            return "contains";
+            return "rewrite";
         }
     }
 

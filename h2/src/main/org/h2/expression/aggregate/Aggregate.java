@@ -776,7 +776,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             case Value.DECIMAL:
             case Value.DOUBLE:
             case Value.FLOAT:
-                type = TypeInfo.TYPE_DECIMAL_DEFAULT;
+                type = TypeInfo.TYPE_DECIMAL_FLOATING_POINT;
                 break;
             }
             break;

@@ -5955,10 +5955,10 @@ public class Parser {
         default:
             regular = true;
         }
-        long precision = -1;
-        ExtTypeInfo extTypeInfo = null;
-        int scale = -1;
-        Column templateColumn = null;
+        long precision;
+        int scale;
+        ExtTypeInfo extTypeInfo;
+        Column templateColumn;
         DataType dataType;
         Domain domain = database.findDomain(original);
         Mode mode = database.getMode();
@@ -5975,6 +5975,10 @@ public class Parser {
             if (dataType == null || mode.disallowedTypes.contains(original)) {
                 throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, original);
             }
+            templateColumn = null;
+            precision = dataType.defaultPrecision;
+            scale = dataType.defaultScale;
+            extTypeInfo = null;
         }
         int t = dataType.type;
         if (database.getIgnoreCase() && t == Value.STRING && !equalsToken("VARCHAR_CASESENSITIVE", original)) {
@@ -5984,8 +5988,6 @@ public class Parser {
         if (regular) {
             read();
         }
-        precision = precision == -1 ? dataType.defaultPrecision : precision;
-        scale = scale == -1 ? dataType.defaultScale : scale;
         if ((dataType.supportsPrecision || dataType.supportsScale) && readIf(OPEN_PAREN)) {
             if (!readIf("MAX")) {
                 if (dataType.supportsPrecision) {
@@ -6007,6 +6009,15 @@ public class Parser {
                 }
             }
             read(CLOSE_PAREN);
+            if (dataType.supportsPrecision &&
+                    (precision < dataType.minPrecision || precision > dataType.maxPrecision)) {
+                throw DbException.get(ErrorCode.INVALID_VALUE_PRECISION, Long.toString(precision),
+                        Long.toString(dataType.minPrecision), Long.toString(dataType.maxPrecision));
+            }
+            if (dataType.supportsScale && (scale < dataType.minScale || scale > dataType.maxScale)) {
+                throw DbException.get(ErrorCode.INVALID_VALUE_SCALE, Integer.toString(scale),
+                        Integer.toString(dataType.minScale), Integer.toString(dataType.maxScale));
+            }
         }
         if (mode.allNumericTypesHavePrecision && dataType.decimal) {
             if (readIf(OPEN_PAREN)) {
@@ -6023,10 +6034,6 @@ public class Parser {
                 read("DATA");
                 dataType = DataType.getDataType(t = Value.BYTES);
             }
-        }
-        if (scale > precision && dataType.supportsPrecision && dataType.supportsScale) {
-            throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION,
-                    Integer.toString(scale), Long.toString(precision));
         }
         Column column = new Column(columnName, TypeInfo.getTypeInfo(t, precision, scale, extTypeInfo), original);
         if (templateColumn != null) {
@@ -6051,8 +6058,8 @@ public class Parser {
         if (readIf(OPEN_PAREN)) {
             precision = readNonNegativeInt();
             read(CLOSE_PAREN);
-            if (precision > 53) {
-                throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION, Integer.toString(precision));
+            if (precision < 1 || precision > 53) {
+                throw DbException.get(ErrorCode.INVALID_VALUE_PRECISION, Integer.toString(precision), "1", "53");
             }
             if (precision <= 24) {
                 type = Value.FLOAT;
@@ -6067,7 +6074,8 @@ public class Parser {
         if (readIf(OPEN_PAREN)) {
             scale = readNonNegativeInt();
             if (scale > ValueTime.MAXIMUM_SCALE) {
-                throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION, Integer.toString(scale));
+                throw DbException.get(ErrorCode.INVALID_VALUE_SCALE, Integer.toString(scale), "0",
+                        /* Folds to a constant */ "" + ValueTime.MAXIMUM_SCALE);
             }
             read(CLOSE_PAREN);
         }
@@ -6098,7 +6106,8 @@ public class Parser {
                 scale = readNonNegativeInt();
             }
             if (scale > ValueTimestamp.MAXIMUM_SCALE) {
-                throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION, Integer.toString(scale));
+                throw DbException.get(ErrorCode.INVALID_VALUE_SCALE, Integer.toString(scale), "0",
+                        /* Folds to a constant */ "" + ValueTimestamp.MAXIMUM_SCALE);
             }
             read(CLOSE_PAREN);
         }
@@ -6129,7 +6138,8 @@ public class Parser {
             if (readIf(OPEN_PAREN)) {
                 scale = readNonNegativeInt();
                 if (scale > ValueTimestamp.MAXIMUM_SCALE) {
-                    throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION, Integer.toString(scale));
+                    throw DbException.get(ErrorCode.INVALID_VALUE_SCALE, Integer.toString(scale), "0",
+                            /* folds to a constant */ "" + ValueTimestamp.MAXIMUM_SCALE);
                 }
                 read(CLOSE_PAREN);
                 original = original + '(' + scale + ')';
@@ -6258,12 +6268,14 @@ public class Parser {
         }
         if (precision >= 0) {
             if (precision == 0 || precision > ValueInterval.MAXIMUM_PRECISION) {
-                throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION, Integer.toString(precision));
+                throw DbException.get(ErrorCode.INVALID_VALUE_PRECISION, Integer.toString(precision), "1",
+                        /* Folds to a constant */ "" + ValueInterval.MAXIMUM_PRECISION);
             }
         }
         if (scale >= 0) {
             if (scale > ValueInterval.MAXIMUM_SCALE) {
-                throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION, Integer.toString(scale));
+                throw DbException.get(ErrorCode.INVALID_VALUE_SCALE, Integer.toString(scale), "0",
+                        /* Folds to a constant */ "" + ValueInterval.MAXIMUM_SCALE);
             }
         }
         TypeInfo typeInfo = TypeInfo.getTypeInfo(qualifier.ordinal() + Value.INTERVAL_YEAR,

@@ -111,7 +111,7 @@ public class IntervalOperation extends Expression {
             type = TypeInfo.getTypeInfo(Value.getHigherOrder(l, r));
             break;
         case INTERVAL_DIVIDE_INTERVAL:
-            type = TypeInfo.TYPE_DECIMAL_DEFAULT;
+            type = TypeInfo.TYPE_DECIMAL_FLOATING_POINT;
             break;
         case DATETIME_PLUS_INTERVAL:
         case DATETIME_MINUS_INTERVAL:

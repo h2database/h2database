@@ -7,6 +7,7 @@
  */
 package org.h2.util;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -129,6 +130,25 @@ public class DateTimeUtils {
             LOCAL = local = TimeZoneProvider.getDefault();
         }
         return local;
+    }
+
+    /**
+     * Returns current timestamp.
+     *
+     * @return current timestamp
+     */
+    public static ValueTimestampTimeZone currentTimestamp() {
+        Instant now = Instant.now();
+        long second = now.getEpochSecond();
+        int nano = now.getNano();
+        /*
+         * This code intentionally does not support properly dates before UNIX
+         * epoch because such support is not required for current dates.
+         */
+        int offset = getTimeZoneOffset(second);
+        second += offset;
+        return ValueTimestampTimeZone.fromDateValueAndNanos(dateValueFromAbsoluteDay(second / SECONDS_PER_DAY),
+                second % SECONDS_PER_DAY * 1_000_000_000 + nano, offset);
     }
 
     /**

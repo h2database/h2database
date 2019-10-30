@@ -72,10 +72,10 @@ select cast(X'ffffffffffffffff' as long);
 select cast(' 011 ' as int);
 >> 11
 
-select cast(cast(0.1 as real) as decimal);
+select cast(cast(0.1 as real) as decimal(1, 1));
 >> 0.1
 
-select cast(cast(95605327.73 as float) as decimal);
+select cast(cast(95605327.73 as float) as decimal(10, 8));
 >> 95605327.73
 
 select cast(cast('01020304-0506-0708-090a-0b0c0d0e0f00' as uuid) as binary);

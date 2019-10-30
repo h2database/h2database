@@ -165,7 +165,7 @@ public class BinaryOperation extends Expression {
                 if (opType == OpType.PLUS && session.getDatabase().getMode().allowPlusForStringConcat) {
                     return new ConcatenationOperation(left, right).optimize(session);
                 } else {
-                    type = TypeInfo.TYPE_DECIMAL_DEFAULT;
+                    type = TypeInfo.TYPE_DECIMAL_FLOATING_POINT;
                 }
             } else if (DataType.isIntervalType(l) || DataType.isIntervalType(r)) {
                 if (forcedType != null) {

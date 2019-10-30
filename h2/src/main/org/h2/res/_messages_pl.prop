@@ -85,7 +85,6 @@
 90048=Nieprawidłowa wersja pliku bazy danych lub nieprawidłowy nagłówek pliku {0}
 90049=Błąd szyfrowania pliku {0}
 90050=Zły format hasła, powinno być: plik hasło <spacja> użytkownik hasło
-90051=#Scale(${0}) must not be bigger than precision({1})
 90052=Podzapytanie nie jest zapytaniem opartym o jedna kolumnę
 90053=Skalarna pod-kwerenda zawiera więcej niż jeden wiersz
 90054=Nieprawidłowe użycie funkcji agregującej {0}
@@ -182,6 +181,8 @@
 90147=#Method {0} is not allowed when connection is in auto-commit mode
 90148=#Current value of sequence {0} is not yet defined in this session
 90149=#Database {0} not found, either pre-create it or allow remote database creation (not recommended in secure environments)
+90150=#Precision ({0}) must be between {1} and {2} inclusive
+90151=#Scale or fractional seconds precision ({0}) must be between {1} and {2} inclusive
 HY000=Błąd ogólny: {0}
 HY004=Nieznany typ danych: {0}
 HYC00=Cecha nie jest wspierana: {0}

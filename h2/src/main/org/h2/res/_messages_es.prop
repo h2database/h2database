@@ -85,7 +85,6 @@
 90048=Versión del archivo de base de datos no soportada ó encabezado de archivo invalido en archivo {0}
 90049=Error de Encriptación en archivo {0}
 90050=Formato de password erroneo, debe ser: archivo password <space> Usuario password
-90051=#Scale(${0}) must not be bigger than precision({1})
 90052=El Subquery no es un query escalar (debe devolver una sola columna)
 90053=El Subquery escalar contiene mas de una fila
 90054=Uso Invalido de la función de columna agregada {0}
@@ -182,6 +181,8 @@
 90147=#Method {0} is not allowed when connection is in auto-commit mode
 90148=#Current value of sequence {0} is not yet defined in this session
 90149=#Database {0} not found, either pre-create it or allow remote database creation (not recommended in secure environments)
+90150=#Precision ({0}) must be between {1} and {2} inclusive
+90151=#Scale or fractional seconds precision ({0}) must be between {1} and {2} inclusive
 HY000=Error General : {0}
 HY004=Tipo de dato desconocido : {0}
 HYC00=Caracteristica no soportada: {0}

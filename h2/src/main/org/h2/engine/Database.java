@@ -73,7 +73,7 @@ import org.h2.table.TableType;
 import org.h2.table.TableView;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
-import org.h2.util.CurrentTimestamp;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
@@ -2975,7 +2975,7 @@ public class Database implements DataHandler, CastDataProvider {
          * This method shouldn't be used in this class, but return a value for
          * safety.
          */
-        return CurrentTimestamp.get();
+        return DateTimeUtils.currentTimestamp();
     }
 
 }

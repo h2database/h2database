@@ -108,6 +108,11 @@ public class DataType {
     public int sqlTypePos;
 
     /**
+     * The minimum supported precision.
+     */
+    public long minPrecision;
+
+    /**
      * The maximum supported precision.
      */
     public long maxPrecision;
@@ -188,7 +193,7 @@ public class DataType {
         GEOMETRY_CLASS = g;
 
         DataType dataType = new DataType();
-        dataType.defaultPrecision = dataType.maxPrecision = ValueNull.PRECISION;
+        dataType.defaultPrecision = dataType.maxPrecision = dataType.minPrecision = ValueNull.PRECISION;
         add(Value.NULL, Types.NULL,
                 dataType,
                 new String[]{"NULL"}
@@ -299,7 +304,7 @@ public class DataType {
         );
         dataType = new DataType();
         dataType.prefix = dataType.suffix = "'";
-        dataType.defaultPrecision = dataType.maxPrecision = ValueUuid.PRECISION;
+        dataType.defaultPrecision = dataType.maxPrecision = dataType.minPrecision = ValueUuid.PRECISION;
         add(Value.UUID, Types.BINARY,
                 createString(false),
                 // UNIQUEIDENTIFIER is the MSSQL mode equivalent
@@ -359,14 +364,14 @@ public class DataType {
 
     private static void addDecimal() {
         add(Value.DECIMAL, Types.DECIMAL,
-                createNumeric(Integer.MAX_VALUE, ValueDecimal.DEFAULT_PRECISION, ValueDecimal.DEFAULT_SCALE),
+                createNumeric(),
                 new String[]{"DECIMAL", "DEC"}
         );
     }
 
     private static void addNumeric() {
         add(Value.DECIMAL, Types.NUMERIC,
-                createNumeric(Integer.MAX_VALUE, ValueDecimal.DEFAULT_PRECISION, ValueDecimal.DEFAULT_SCALE),
+                createNumeric(),
                 new String[]{"NUMERIC", "NUMBER"}
         );
     }
@@ -379,6 +384,7 @@ public class DataType {
         dataType.suffix = "' " + name;
         dataType.supportsPrecision = true;
         dataType.defaultPrecision = ValueInterval.DEFAULT_PRECISION;
+        dataType.minPrecision = 1;
         dataType.maxPrecision = ValueInterval.MAXIMUM_PRECISION;
         if (qualifier.hasSeconds()) {
             dataType.supportsScale = true;
@@ -402,6 +408,7 @@ public class DataType {
             dt.name = names[i];
             dt.autoIncrement = dataType.autoIncrement;
             dt.decimal = dataType.decimal;
+            dt.minPrecision = dataType.minPrecision;
             dt.maxPrecision = dataType.maxPrecision;
             dt.maxScale = dataType.maxScale;
             dt.minScale = dataType.minScale;
@@ -428,7 +435,7 @@ public class DataType {
     }
 
     /**
-     * Create a width numeric data type without parameters.
+     * Create a numeric data type without parameters.
      *
      * @param precision precision
      * @param scale scale
@@ -437,7 +444,7 @@ public class DataType {
      */
     public static DataType createNumeric(int precision, int scale, boolean autoInc) {
         DataType dataType = new DataType();
-        dataType.defaultPrecision = dataType.maxPrecision = precision;
+        dataType.defaultPrecision = dataType.maxPrecision = dataType.minPrecision = precision;
         dataType.defaultScale = dataType.maxScale = dataType.minScale = scale;
         dataType.decimal = true;
         dataType.autoIncrement = autoInc;
@@ -445,22 +452,21 @@ public class DataType {
     }
 
     /**
-     * Create a numeric data type.
+     * Create an exact numeric data type with parameters.
      *
-     * @param maxPrecision maximum supported precision
-     * @param defaultPrecision default precision
-     * @param defaultScale default scale
      * @return data type
      */
-    public static DataType createNumeric(int maxPrecision, int defaultPrecision, int defaultScale) {
+    private static DataType createNumeric() {
         DataType dataType = new DataType();
-        dataType.maxPrecision = maxPrecision;
-        dataType.defaultPrecision = defaultPrecision;
-        dataType.defaultScale = defaultScale;
+        dataType.minPrecision = 1;
+        dataType.maxPrecision = Integer.MAX_VALUE;
+        dataType.defaultPrecision = ValueDecimal.DEFAULT_PRECISION;
+        dataType.defaultScale = ValueDecimal.DEFAULT_SCALE;
+        dataType.maxScale = ValueDecimal.MAXIMUM_SCALE;
+        dataType.minScale = ValueDecimal.MINIMUM_SCALE;
         dataType.params = "PRECISION,SCALE";
         dataType.supportsPrecision = true;
         dataType.supportsScale = true;
-        dataType.maxScale = maxPrecision;
         dataType.decimal = true;
         return dataType;
     }
@@ -482,7 +488,7 @@ public class DataType {
         dataType.prefix = prefix + " '";
         dataType.suffix = "'";
         dataType.maxPrecision = maxPrecision;
-        dataType.defaultPrecision = precision;
+        dataType.defaultPrecision = dataType.minPrecision = precision;
         if (supportsScale) {
             dataType.params = "SCALE";
             dataType.supportsScale = true;

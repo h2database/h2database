@@ -20,7 +20,6 @@ import org.h2.engine.Mode;
 import org.h2.message.DbException;
 import org.h2.test.TestBase;
 import org.h2.test.utils.AssertThrows;
-import org.h2.util.CurrentTimestamp;
 import org.h2.util.DateTimeUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -39,7 +38,7 @@ import org.h2.value.ValueTimestampTimeZone;
 public class TestDate extends TestBase {
 
     static class SimpleCastDataProvider implements CastDataProvider {
-        private final ValueTimestampTimeZone currentTimestamp = CurrentTimestamp.get();
+        private final ValueTimestampTimeZone currentTimestamp = DateTimeUtils.currentTimestamp();
 
         @Override
         public Mode getMode() {

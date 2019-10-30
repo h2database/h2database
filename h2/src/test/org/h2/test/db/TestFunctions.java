@@ -59,6 +59,7 @@ import org.h2.tools.SimpleResultSet;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
+import org.h2.value.ValueDecimal;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
 
@@ -525,8 +526,8 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         stat.execute("create aggregate agg_sum for \""+getClass().getName()+"\"");
         rs = stat.executeQuery("select agg_sum(1), sum(1.6) from dual");
         rs.next();
-        assertEquals(Integer.MAX_VALUE, rs.getMetaData().getScale(2));
-        assertEquals(Integer.MAX_VALUE, rs.getMetaData().getScale(1));
+        assertEquals(ValueDecimal.MAXIMUM_SCALE, rs.getMetaData().getScale(2));
+        assertEquals(ValueDecimal.MAXIMUM_SCALE, rs.getMetaData().getScale(1));
         stat.executeQuery("select * from information_schema.function_aliases");
         conn.close();
     }

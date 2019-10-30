@@ -550,8 +550,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         } else {
             test.testAll();
         }
-        System.out.println(TestBase.formatTime(
-                TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time)) + " total");
+        System.out.println(TestBase.formatTime(new StringBuilder(),
+                TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time)).append(" total").toString());
     }
 
     private void testAll() throws Exception {

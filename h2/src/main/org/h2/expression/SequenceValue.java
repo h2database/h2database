@@ -34,7 +34,7 @@ public class SequenceValue extends Expression {
 
     @Override
     public TypeInfo getType() {
-        return sequence.getDatabase().getMode().decimalSequences ? TypeInfo.TYPE_DECIMAL : TypeInfo.TYPE_LONG;
+        return sequence.getDatabase().getMode().decimalSequences ? TypeInfo.TYPE_DECIMAL_LONG : TypeInfo.TYPE_LONG;
     }
 
     @Override

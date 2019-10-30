@@ -40,7 +40,7 @@ public class ValueDecimal extends Value {
     /**
      * The default scale for a decimal value.
      */
-    static final int DEFAULT_SCALE = 32767;
+    static final int DEFAULT_SCALE = 0;
 
     /**
      * The default display size for a decimal value.
@@ -50,9 +50,14 @@ public class ValueDecimal extends Value {
     private static final int DIVIDE_SCALE_ADD = 25;
 
     /**
-     * The maximum scale of a BigDecimal value.
+     * The maximum scale.
      */
-    private static final int BIG_DECIMAL_SCALE_MAX = 100_000;
+    public static final int MAXIMUM_SCALE = 100_000;
+
+    /**
+     * The minimum scale.
+     */
+    public static final int MINIMUM_SCALE = -100_000;
 
     private final BigDecimal value;
     private TypeInfo type;
@@ -187,16 +192,10 @@ public class ValueDecimal extends Value {
 
     @Override
     public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
-        if (value.scale() == targetScale) {
+        if (value.scale() == targetScale || onlyToSmallerScale && value.scale() < targetScale) {
             return this;
         }
-        if (onlyToSmallerScale || targetScale >= DEFAULT_SCALE) {
-            if (value.scale() < targetScale) {
-                return this;
-            }
-        }
-        BigDecimal bd = ValueDecimal.setScale(value, targetScale);
-        return ValueDecimal.get(bd);
+        return ValueDecimal.get(ValueDecimal.setScale(value, targetScale));
     }
 
     @Override
@@ -264,7 +263,7 @@ public class ValueDecimal extends Value {
      * @return the scaled value
      */
     public static BigDecimal setScale(BigDecimal bd, int scale) {
-        if (scale > BIG_DECIMAL_SCALE_MAX || scale < -BIG_DECIMAL_SCALE_MAX) {
+        if (scale > MAXIMUM_SCALE || scale < MINIMUM_SCALE) {
             throw DbException.getInvalidValueException("scale", scale);
         }
         return bd.setScale(scale, RoundingMode.HALF_UP);

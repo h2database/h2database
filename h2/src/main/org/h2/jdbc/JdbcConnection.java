@@ -48,7 +48,7 @@ import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 import org.h2.util.CloseWatcher;
-import org.h2.util.CurrentTimestamp;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
@@ -2128,7 +2128,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
         if (session instanceof CastDataProvider) {
             return ((CastDataProvider) session).currentTimestamp();
         }
-        return CurrentTimestamp.get();
+        return DateTimeUtils.currentTimestamp();
     }
 
 }

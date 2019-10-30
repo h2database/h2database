@@ -9,8 +9,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import org.h2.tools.DeleteDbFiles;
 
 /**
@@ -38,31 +38,31 @@ public class ToDate {
         stat.execute("insert into ToDateTest values(1, "
                 + "ADD_MONTHS(TO_DATE('2015-11-13', 'yyyy-MM-DD'), 1), "
                 + "TO_DATE('2015-12-15', 'YYYY-MM-DD'))");
-        stat.execute("insert into ToDateTest values(1, " +
+        stat.execute("insert into ToDateTest values(2, " +
                 "TO_DATE('2015-11-13', 'yyyy-MM-DD'), " +
                 "TO_DATE('2015-12-15', 'YYYY-MM-DD'))");
-        stat.execute("insert into ToDateTest values(2, " +
+        stat.execute("insert into ToDateTest values(3, " +
                 "TO_DATE('2015-12-12 00:00:00', 'yyyy-MM-DD HH24:MI:ss'), " +
                 "TO_DATE('2015-12-16 15:00:00', 'YYYY-MM-DD HH24:MI:ss'))");
-        stat.execute("insert into ToDateTest values(3, " +
+        stat.execute("insert into ToDateTest values(4, " +
                 "TO_DATE('2015-12-12 08:00 A.M.', 'yyyy-MM-DD HH:MI AM'), " +
                 "TO_DATE('2015-12-17 08:00 P.M.', 'YYYY-MM-DD HH:MI AM'))");
-        stat.execute("insert into ToDateTest values(4, " +
+        stat.execute("insert into ToDateTest values(5, " +
                 "TO_DATE(substr('2015-12-12 08:00 A.M.', 1, 10), 'yyyy-MM-DD'), " +
                 "TO_DATE('2015-12-17 08:00 P.M.', 'YYYY-MM-DD HH:MI AM'))");
 
         ResultSet rs = stat.executeQuery("select * from ToDateTest");
         while (rs.next()) {
-            System.out.println("Start date: " + dateToString(rs.getTimestamp("start_date")));
-            System.out.println("End date: " + dateToString(rs.getTimestamp("end_date")));
+            System.out.println("Start date: " + dateTimeToString(rs.getObject("start_date", LocalDateTime.class)));
+            System.out.println("End date: " + dateTimeToString(rs.getObject("end_date", LocalDateTime.class)));
             System.out.println();
         }
         stat.close();
         conn.close();
     }
 
-    private static String dateToString(Date date) {
-        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date);
+    private static String dateTimeToString(LocalDateTime dateTime) {
+        return DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(dateTime);
     }
 
 }

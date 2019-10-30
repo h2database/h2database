@@ -60,9 +60,14 @@ public class TypeInfo {
     public static final TypeInfo TYPE_DECIMAL;
 
     /**
-     * DECIMAL type with default parameters.
+     * DECIMAL type with parameters enough to hold a BIGINT value.
      */
-    public static final TypeInfo TYPE_DECIMAL_DEFAULT;
+    public static final TypeInfo TYPE_DECIMAL_LONG;
+
+    /**
+     * DECIMAL type that can hold values with floating point.
+     */
+    public static final TypeInfo TYPE_DECIMAL_FLOATING_POINT;
 
     /**
      * DOUBLE type with parameters.
@@ -192,10 +197,11 @@ public class TypeInfo {
                 null);
         infos[Value.INT] = TYPE_INT = new TypeInfo(Value.INT, ValueInt.PRECISION, 0, ValueInt.DISPLAY_SIZE, null);
         infos[Value.LONG] = TYPE_LONG = new TypeInfo(Value.LONG, ValueLong.PRECISION, 0, ValueLong.DISPLAY_SIZE, null);
-        infos[Value.DECIMAL] = TYPE_DECIMAL = new TypeInfo(Value.DECIMAL, Integer.MAX_VALUE, Integer.MAX_VALUE,
-                Integer.MAX_VALUE, null);
-        TYPE_DECIMAL_DEFAULT = new TypeInfo(Value.DECIMAL, ValueDecimal.DEFAULT_PRECISION, ValueDecimal.DEFAULT_SCALE,
-                ValueDecimal.DEFAULT_PRECISION + 2, null);
+        infos[Value.DECIMAL] = TYPE_DECIMAL = new TypeInfo(Value.DECIMAL, Integer.MAX_VALUE, //
+                ValueDecimal.MAXIMUM_SCALE, Integer.MAX_VALUE, null);
+        TYPE_DECIMAL_LONG = new TypeInfo(Value.DECIMAL, ValueLong.PRECISION, 0, ValueLong.DISPLAY_SIZE, null);
+        TYPE_DECIMAL_FLOATING_POINT = new TypeInfo(Value.DECIMAL, ValueDecimal.DEFAULT_PRECISION,
+                ValueDecimal.DEFAULT_PRECISION / 2, ValueDecimal.DEFAULT_PRECISION + 2, null);
         infos[Value.DOUBLE] = TYPE_DOUBLE = new TypeInfo(Value.DOUBLE, ValueDouble.PRECISION, 0,
                 ValueDouble.DISPLAY_SIZE, null);
         infos[Value.FLOAT] = TYPE_FLOAT = new TypeInfo(Value.FLOAT, ValueFloat.PRECISION, 0, ValueFloat.DISPLAY_SIZE,
@@ -310,12 +316,6 @@ public class TypeInfo {
                 precision = ValueDecimal.DEFAULT_PRECISION;
             } else if (precision > Integer.MAX_VALUE) {
                 precision = Integer.MAX_VALUE;
-            }
-            if (scale < 0) {
-                scale = ValueDecimal.DEFAULT_SCALE;
-            }
-            if (precision < scale) {
-                precision = scale;
             }
             return new TypeInfo(Value.DECIMAL, precision, scale, MathUtils.convertLongToInt(precision + 2), null);
         case Value.TIME: {

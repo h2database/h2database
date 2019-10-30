@@ -85,7 +85,6 @@
 90048=不支持的数据库文件版本或无效的文件头 {0}
 90049=文件加密错误 {0}
 90050=错误的口令格式, 必须为: 文件 口令 <空格> 用户 口令
-90051=#Scale(${0}) must not be bigger than precision({1})
 90052=子查询非单一字段查询
 90053=标量子查询(Scalar subquery)包含多于一行结果
 90054=非法使用聚合函数 {0}
@@ -182,6 +181,8 @@
 90147=#Method {0} is not allowed when connection is in auto-commit mode
 90148=#Current value of sequence {0} is not yet defined in this session
 90149=#Database {0} not found, either pre-create it or allow remote database creation (not recommended in secure environments)
+90150=#Precision ({0}) must be between {1} and {2} inclusive
+90151=#Scale or fractional seconds precision ({0}) must be between {1} and {2} inclusive
 HY000=常规错误: {0}
 HY004=位置数据类型: {0}
 HYC00=不支持的特性: {0}

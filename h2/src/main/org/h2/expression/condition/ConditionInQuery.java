@@ -18,6 +18,7 @@ import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
@@ -193,6 +194,11 @@ public class ConditionInQuery extends PredicateWithSubquery {
             return;
         }
         if (query.getColumnCount() != 1) {
+            return;
+        }
+        int leftType = left.getType().getValueType();
+        if (!DataType.hasTotalOrdering(leftType)
+                && leftType != query.getExpressions().get(0).getType().getValueType()) {
             return;
         }
         if (!(left instanceof ExpressionColumn)) {

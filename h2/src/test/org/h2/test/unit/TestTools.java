@@ -708,7 +708,7 @@ public class TestTools extends TestDb {
         Connection conn = getConnection(url + ";TRACE_LEVEL_FILE=3", "sa", "sa");
         Statement stat = conn.createStatement();
         stat.execute(
-                "create table test(id int primary key, name varchar, amount decimal)");
+                "create table test(id int primary key, name varchar, amount decimal(4, 2))");
         PreparedStatement prep = conn.prepareStatement(
                 "insert into test values(?, ?, ?)");
         prep.setInt(1, 1);

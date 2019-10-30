@@ -606,14 +606,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return res;
     }
 
-    private boolean rewrite(K key) {
-        ContainsDecisionMaker<V> decisionMaker = new ContainsDecisionMaker<>();
-        V result = operate(key, null, decisionMaker);
-        boolean res = decisionMaker.getDecision() != Decision.ABORT;
-        assert res == (result != null);
-        return res;
-    }
-
     /**
      * Replace a value for an existing key.
      *
@@ -701,10 +693,14 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         if (p.getKeyCount()==0) {
             return true;
         }
-
+        assert p.isSaved();
         K key = p.getKey(0);
         if (!isClosed()) {
-            return rewrite(key);
+            ContainsDecisionMaker<V> decisionMaker = new ContainsDecisionMaker<>(p.getPos());
+            V result = operate(key, null, decisionMaker);
+            boolean res = decisionMaker.getDecision() != Decision.ABORT;
+            assert !res || result != null;
+            return res;
         }
         return false;
     }
@@ -1673,12 +1669,20 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
         /**
          * Makes a decision about how to proceed with the update.
+         */
+        public Decision decide(V existingValue, V providedValue, CursorPos tip) {
+            return decide(existingValue, providedValue);
+        }
+
+        /**
+         * Makes a decision about how to proceed with the update.
          * @param existingValue value currently exists in the map
          * @param providedValue original input value
          * @return PUT if a new value need to replace existing one or
-         *             new value to be inserted if there is none
+         *             a new value to be inserted if there is none
          *         REMOVE if existing value should be deleted
-         *         ABORT if update operation should be aborted
+         *         ABORT if update operation should be aborted or repeated later
+         *         REPEAT if update operation should be repeated immediately
          */
         public abstract Decision decide(V existingValue, V providedValue);
 
@@ -1740,7 +1744,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 tip = pos;
                 pos = pos.parent;
                 result = index < 0 ? null : p.getValue(index);
-                Decision decision = decisionMaker.decide(result, value);
+                Decision decision = decisionMaker.decide(result, value, tip);
 
                 switch (decision) {
                     case REPEAT:
@@ -1984,10 +1988,23 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
     }
 
-    private static final class ContainsDecisionMaker<V> extends DecisionMaker<V> {
+    private static final class ContainsDecisionMaker<V> extends DecisionMaker<V>
+    {
+        private final long pagePos;
         private Decision decision;
 
-        ContainsDecisionMaker() {}
+        ContainsDecisionMaker(long pagePos) {
+            this.pagePos = pagePos;
+        }
+
+        @Override
+        public Decision decide(V existingValue, V providedValue, CursorPos tip) {
+            assert decision == null;
+            decision = tip.page.getPos() != pagePos ?
+                    Decision.ABORT :
+                    decide(existingValue, providedValue);
+            return decision;
+        }
 
         @Override
         public Decision decide(V existingValue, V providedValue) {

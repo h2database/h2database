@@ -20,9 +20,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.zip.ZipEntry;
@@ -103,8 +103,7 @@ public class TestRecover {
             }
             oldest.delete();
         }
-        SimpleDateFormat sd = new SimpleDateFormat("yyMMdd-HHmmss");
-        String date = sd.format(new Date());
+        String date = DateTimeFormatter.ofPattern("yyMMdd-HHmmss").format(LocalDateTime.now());
         File zipFile = new File(root, "backup-" + date + "-" + node + ".zip");
         ArrayList<File> list = new ArrayList<>();
         File base = new File(sourcePath);

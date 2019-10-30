@@ -2097,7 +2097,27 @@ public class ErrorCode {
      */
     public static final int REMOTE_DATABASE_NOT_FOUND_1 = 90149;
 
-    // next is 90150
+    /**
+     * The error with code <code>90150</code> is thrown when
+     * trying to use an invalid precision.
+     * Example:
+     * <pre>
+     * CREATE TABLE TABLE1 ( FAIL INTERVAL YEAR(20) );
+     * </pre>
+     */
+    public static final int INVALID_VALUE_PRECISION = 90150;
+
+    /**
+     * The error with code <code>90151</code> is thrown when
+     * trying to use an invalid scale or fractional seconds precision.
+     * Example:
+     * <pre>
+     * CREATE TABLE TABLE1 ( FAIL TIME(10) );
+     * </pre>
+     */
+    public static final int INVALID_VALUE_SCALE = 90151;
+
+    // next is 90152
 
     private ErrorCode() {
         // utility class

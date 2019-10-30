@@ -3356,7 +3356,7 @@ DOUBLE
 ","
 A single precision floating point number. Should not be used to represent currency
 values, because of rounding problems.
-Precision value for FLOAT type name should be from 0 to 24.
+Precision value for FLOAT type name should be from 1 to 24.
 
 See also [numeric](https://h2database.com/html/grammar.html#numeric) literal grammar.
 Mapped to ""java.lang.Float"".

@@ -182,6 +182,8 @@
 90147=#Method {0} is not allowed when connection is in auto-commit mode
 90148=#Current value of sequence {0} is not yet defined in this session
 90149=#Database {0} not found, either pre-create it or allow remote database creation (not recommended in secure environments)
+90150=#Precision ({0}) must be between {1} and {2} inclusive
+90151=#Scale or fractional seconds precision ({0}) must be between {1} and {2} inclusive
 HY000=一般エラー: {0}
 HY004=不明なデータ型: {0}
 HYC00=機能はサポートされていません: {0}

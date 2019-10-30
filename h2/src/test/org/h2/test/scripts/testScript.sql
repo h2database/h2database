@@ -275,9 +275,6 @@ drop table test;
 select 2^2;
 > exception SYNTAX_ERROR_1
 
-create table test(d decimal(1, 2));
-> exception INVALID_VALUE_SCALE_PRECISION
-
 select * from dual where cast('xx' as varchar_ignorecase(1)) = 'X' and cast('x x ' as char(2)) = 'x';
 >
 >

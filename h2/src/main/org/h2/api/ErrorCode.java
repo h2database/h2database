@@ -1010,15 +1010,7 @@ public class ErrorCode {
      */
     public static final int WRONG_PASSWORD_FORMAT = 90050;
 
-    /**
-     * The error with code <code>90051</code> is thrown when
-     * trying to use a scale that is > precision.
-     * Example:
-     * <pre>
-     * CREATE TABLE TABLE1 ( FAIL NUMBER(6,24) );
-     * </pre>
-     */
-    public static final int INVALID_VALUE_SCALE_PRECISION = 90051;
+    // 90051 was removed
 
     /**
      * The error with code <code>90052</code> is thrown when

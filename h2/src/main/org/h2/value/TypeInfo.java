@@ -311,9 +311,6 @@ public class TypeInfo {
             } else if (precision > Integer.MAX_VALUE) {
                 precision = Integer.MAX_VALUE;
             }
-            if (precision < scale) {
-                precision = scale;
-            }
             return new TypeInfo(Value.DECIMAL, precision, scale, MathUtils.convertLongToInt(precision + 2), null);
         case Value.TIME: {
             if (scale < 0 || scale >= ValueTime.MAXIMUM_SCALE) {

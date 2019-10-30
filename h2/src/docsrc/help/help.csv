@@ -3332,6 +3332,9 @@ IDENTITY
 Data type with fixed precision and scale. This data type is recommended for
 storing currency values.
 
+If precision is specified, it must be positive.
+If scale is specified, it must be from -100000 to 100000.
+
 See also [numeric](https://h2database.com/html/grammar.html#numeric) literal grammar.
 Mapped to ""java.math.BigDecimal"".
 ","

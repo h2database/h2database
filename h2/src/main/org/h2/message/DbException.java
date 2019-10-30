@@ -526,7 +526,6 @@ public class DbException extends RuntimeException {
         case TRIGGER_NOT_FOUND_1:
         case ERROR_CREATING_TRIGGER_OBJECT_3:
         case CONSTRAINT_ALREADY_EXISTS_1:
-        case INVALID_VALUE_SCALE_PRECISION:
         case SUBQUERY_IS_NOT_SINGLE_COLUMN:
         case INVALID_USE_OF_AGGREGATE_FUNCTION_1:
         case CONSTRAINT_NOT_FOUND_1:

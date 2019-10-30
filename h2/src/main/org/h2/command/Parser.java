@@ -6009,21 +6009,14 @@ public class Parser {
                 }
             }
             read(CLOSE_PAREN);
-            if (dataType.supportsPrecision) {
-                if (precision < dataType.minPrecision || precision > dataType.maxPrecision) {
-                    throw DbException.get(ErrorCode.INVALID_VALUE_PRECISION, Long.toString(precision),
-                            Long.toString(dataType.minPrecision), Long.toString(dataType.maxPrecision));
-                }
+            if (dataType.supportsPrecision &&
+                    (precision < dataType.minPrecision || precision > dataType.maxPrecision)) {
+                throw DbException.get(ErrorCode.INVALID_VALUE_PRECISION, Long.toString(precision),
+                        Long.toString(dataType.minPrecision), Long.toString(dataType.maxPrecision));
             }
-            if (dataType.supportsScale) {
-                if (scale < dataType.minScale || scale > dataType.maxScale) {
-                    throw DbException.get(ErrorCode.INVALID_VALUE_SCALE, Integer.toString(scale),
-                            Integer.toString(dataType.minScale), Integer.toString(dataType.maxScale));
-                }
-                if (scale > precision && dataType.supportsPrecision) {
-                    throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION, Integer.toString(scale),
-                            Long.toString(precision));
-                }
+            if (dataType.supportsScale && (scale < dataType.minScale || scale > dataType.maxScale)) {
+                throw DbException.get(ErrorCode.INVALID_VALUE_SCALE, Integer.toString(scale),
+                        Integer.toString(dataType.minScale), Integer.toString(dataType.maxScale));
             }
         }
         if (mode.allNumericTypesHavePrecision && dataType.decimal) {

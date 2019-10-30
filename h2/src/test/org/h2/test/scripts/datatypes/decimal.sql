@@ -123,3 +123,23 @@ DROP TABLE TEST;
 
 DROP DOMAIN N;
 > ok
+
+CREATE TABLE TEST(I INT PRIMARY KEY, V NUMERIC(1, 3));
+> ok
+
+INSERT INTO TEST VALUES (1, 1e-3), (2, 1.1e-3), (3, 1e-4);
+> update count: 3
+
+INSERT INTO TEST VALUES (4, 1e-2);
+> exception VALUE_TOO_LONG_2
+
+TABLE TEST;
+> I V
+> - -----
+> 1 0.001
+> 2 0.001
+> 3 0.000
+> rows: 3
+
+DROP TABLE TEST;
+> ok

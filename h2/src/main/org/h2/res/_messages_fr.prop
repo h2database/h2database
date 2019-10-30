@@ -85,7 +85,6 @@
 90048=Version de fichier de base de données non supportée ou entête de ficher invalide dans le fichier {0}
 90049=Erreur de cryptage dans le fichier {0}
 90050=Mauvais format de mot de passe, doit être: mot de passe du fichier <espace> mot de passe de l''utilisateur
-90051=L''échelle(${0}) ne doit pas être plus grande que la précision({1})
 90052=La sous requête n''est pas une requête sur une seule colonne
 90053=La sous-requête scalaire contient plus d''une rangée
 90054=Utilisation invalide de la fonction agrégée {0}

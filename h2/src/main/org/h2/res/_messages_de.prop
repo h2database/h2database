@@ -85,7 +85,6 @@
 90048=Datenbank Datei Version wird nicht unterstützt oder ungültiger Dateikopf in Datei {0}
 90049=Verschlüsselungsfehler in Datei {0}
 90050=Falsches Passwort Format, benötigt wird: Datei-Passwort <Leerschlag> Benutzer-Passwort
-90051=Skalierung(${0}) darf nicht grösser als Präzision sein({1})
 90052=Unterabfrage gibt mehr als eine Feld zurück
 90053=Skalar-Unterabfrage enthält mehr als eine Zeile
 90054=Ungültige Verwendung der Aggregat Funktion {0}

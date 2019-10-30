@@ -2170,7 +2170,6 @@ public class MVStore implements AutoCloseable
         int rewrittenPageCount = rewriteChunks(set, false);
         acceptChunkOccupancyChanges(getTimeSinceCreation(), currentVersion + 1);
         rewrittenPageCount += rewriteChunks(set, true);
-        assert validateRewrite(set);
         return rewrittenPageCount;
     }
 
@@ -2191,7 +2190,6 @@ public class MVStore implements AutoCloseable
                             int length = DataUtils.getPageMaxLength(tocElement);
                             long pagePos = DataUtils.getPagePos(chunkId, pageNo, length, type);
                             Page page = readPage(map, pagePos);
-//                            assert !secondPass || !page.isLeaf();
                             if (map.rewritePage(page)) {
                                 ++rewrittenPageCount;
                                 if (map == meta) {
@@ -2204,35 +2202,6 @@ public class MVStore implements AutoCloseable
             }
         }
         return rewrittenPageCount;
-    }
-
-    private boolean validateRewrite(Set<Integer> set) {
-        for (Integer chunkId : set) {
-            Chunk chunk = chunks.get(chunkId);
-            if (chunk != null && chunk.isLive()) {
-                BitSet occupancy = BitSet.valueOf(chunk.occupancy.toLongArray());
-                int pageCountLive = chunk.pageCountLive;
-                RemovedPageInfo[] removedPageInfos = removedPages.toArray(new RemovedPageInfo[0]);
-                for (RemovedPageInfo rpi : removedPageInfos) {
-                    if (rpi.getPageChunkId() == chunk.id) {
-                        --pageCountLive;
-                        occupancy.set(rpi.getPageNo());
-                    }
-                }
-                if (pageCountLive != 0) {
-                    long[] toc = getToC(chunk);
-                    if (toc != null) {
-                        for (int pageNo = 0; (pageNo = occupancy.nextClearBit(pageNo)) < chunk.pageCount; ++pageNo) {
-                            long tocElement = toc[pageNo];
-                            int mapId = DataUtils.getPageMapId(tocElement);
-                            MVMap<?, ?> map = getMap(mapId);
-                            assert map == null || map.isClosed() : chunk + " " + Arrays.toString(removedPageInfos);
-                        }
-                    }
-                }
-            }
-        }
-        return true;
     }
 
     private static HashSet<Integer> createIdSet(Iterable<Chunk> toCompact) {
@@ -3256,10 +3225,22 @@ public class MVStore implements AutoCloseable
             while ((chunk = deadChunks.poll()) != null &&
                     (isSeasonedChunk(chunk, time) && canOverwriteChunk(chunk, oldestVersionToKeep) ||
                             // if chunk is not ready yet, put it back and exit
-                            // since this deque is inbounded, offerFirst() always return true
+                            // since this deque is unbounded, offerFirst() always return true
                             !deadChunks.offerFirst(chunk))) {
 
                 if (chunks.remove(chunk.id) != null) {
+                    // purge dead pages from cache
+                    long[] toc = chunksToC.remove(chunk.id);
+                    if (toc != null) {
+                        for (int pageNo = 0; pageNo < toc.length; pageNo++) {
+                            long tocElement = toc[pageNo];
+                            int length = DataUtils.getPageMaxLength(tocElement);
+                            int type = DataUtils.getPageType(tocElement);
+                            long pagePos = DataUtils.getPagePos(chunk.id, pageNo, length, type);
+                            cache.remove(pagePos);
+                        }
+                    }
+
                     if (meta.remove(Chunk.getMetaKey(chunk.id)) != null) {
                         markMetaChanged();
                     }

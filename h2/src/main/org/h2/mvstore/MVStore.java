@@ -2166,10 +2166,9 @@ public class MVStore implements AutoCloseable
     private int compactRewrite(Set<Integer> set) {
         assert storeLock.isHeldByCurrentThread();
         assert currentStoreVersion < 0; // we should be able to do tryCommit() -> store()
-        long now = getTimeSinceCreation();
-        acceptChunkOccupancyChanges(now, currentVersion + 1);
+        acceptChunkOccupancyChanges(getTimeSinceCreation(), currentVersion + 1);
         int rewrittenPageCount = rewriteChunks(set, false);
-        acceptChunkOccupancyChanges(now, currentVersion + 1);
+        acceptChunkOccupancyChanges(getTimeSinceCreation(), currentVersion + 1);
         rewrittenPageCount += rewriteChunks(set, true);
         assert validateRewrite(set);
         return rewrittenPageCount;
@@ -2192,7 +2191,7 @@ public class MVStore implements AutoCloseable
                             int length = DataUtils.getPageMaxLength(tocElement);
                             long pagePos = DataUtils.getPagePos(chunkId, pageNo, length, type);
                             Page page = readPage(map, pagePos);
-                            assert !secondPass || !page.isLeaf();
+//                            assert !secondPass || !page.isLeaf();
                             if (map.rewritePage(page)) {
                                 ++rewrittenPageCount;
                                 if (map == meta) {
@@ -2689,6 +2688,9 @@ public class MVStore implements AutoCloseable
     private void clearCaches() {
         if (cache != null) {
             cache.clear();
+        }
+        if (chunksToC != null) {
+            chunksToC.clear();
         }
     }
 
@@ -3422,6 +3424,7 @@ public class MVStore implements AutoCloseable
             return "RemovedPageInfo{" +
                     "version=" + version +
                     ", chunk=" + getPageChunkId() +
+                    ", pageNo=" + getPageNo() +
                     ", len=" + getPageLength() +
                     (isPinned() ? ", pinned" : "") +
                     '}';

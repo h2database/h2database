@@ -2281,12 +2281,15 @@ public class MVStore implements AutoCloseable
     }
 
     private long[] getToC(Chunk chunk) {
+        if (chunk.tocPos == 0) {
+            // legacy chunk without table of content
+            return null;
+        }
         long[] toc = chunksToC.get(chunk.id);
         if (toc == null) {
             toc = chunk.readToC(fileStore);
-            if (toc != null) {
-                chunksToC.put(chunk.id, toc, toc.length * 8);
-            }
+            assert toc != null;
+            chunksToC.put(chunk.id, toc, toc.length * 8);
         }
         return toc;
     }

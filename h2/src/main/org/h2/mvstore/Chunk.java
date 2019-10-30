@@ -428,6 +428,7 @@ public class Chunk
 
     long[] readToC(FileStore fileStore) {
         assert isSaved() : this;
+        assert tocPos > 0;
         while (true) {
             long originalBlock = block;
             try {
@@ -487,13 +488,18 @@ public class Chunk
     boolean accountForRemovedPage(int pageNo, int pageLength, boolean pinned,
                                   long now, long version) {
         assert isSaved() : this;
-        assert pageCount - pageCountLive == occupancy.cardinality()
-                : pageCount + " - " + pageCountLive + " : " + occupancy;
+        // legacy chunks do not have a table of content,
+        // therefore pageNo is not valid, skip
+        if (tocPos > 0) {
+            assert pageCount - pageCountLive == occupancy.cardinality()
+                    : pageCount + " - " + pageCountLive + " : " + occupancy;
+            assert pageNo >= 0 && pageNo < pageCount;
+            assert !occupancy.get(pageNo);
+            occupancy.set(pageNo);
+        }
+
         maxLenLive -= pageLength;
         pageCountLive--;
-        assert pageNo >= 0 && pageNo < pageCount;
-        assert !occupancy.get(pageNo);
-        occupancy.set(pageNo);
         if (pinned) {
             pinCount--;
         }

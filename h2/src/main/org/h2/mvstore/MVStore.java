@@ -3231,7 +3231,7 @@ public class MVStore implements AutoCloseable
                 if (chunks.remove(chunk.id) != null) {
                     // purge dead pages from cache
                     long[] toc = chunksToC.remove(chunk.id);
-                    if (toc != null) {
+                    if (toc != null && cache != null) {
                         for (int pageNo = 0; pageNo < toc.length; pageNo++) {
                             long tocElement = toc[pageNo];
                             int length = DataUtils.getPageMaxLength(tocElement);

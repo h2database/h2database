@@ -3148,6 +3148,14 @@ public class MVStore implements AutoCloseable
     }
 
     public int getCacheHitRatio() {
+        return getCacheHitRatio(cache);
+    }
+
+    public int getTocCacheHitRatio() {
+        return getCacheHitRatio(chunksToC);
+    }
+
+    private int getCacheHitRatio(CacheLongKeyLIRS<?> cache) {
         if (cache == null) {
             return 0;
         }

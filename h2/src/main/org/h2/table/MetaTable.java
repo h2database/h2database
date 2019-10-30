@@ -1231,6 +1231,8 @@ public class MetaTable extends Table {
                                 "info.CACHE_SIZE", Integer.toString(mvStore.getCacheSizeUsed()));
                         add(session, rows,
                                 "info.CACHE_HIT_RATIO", Integer.toString(mvStore.getCacheHitRatio()));
+                        add(session, rows, "info.TOC_CACHE_HIT_RATIO",
+                                Integer.toString(mvStore.getTocCacheHitRatio()));
                     }
                 }
             }

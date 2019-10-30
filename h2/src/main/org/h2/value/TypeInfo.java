@@ -311,9 +311,6 @@ public class TypeInfo {
             } else if (precision > Integer.MAX_VALUE) {
                 precision = Integer.MAX_VALUE;
             }
-            if (scale < 0) {
-                scale = ValueDecimal.DEFAULT_SCALE;
-            }
             if (precision < scale) {
                 precision = scale;
             }

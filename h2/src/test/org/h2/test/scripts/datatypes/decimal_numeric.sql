@@ -5,18 +5,20 @@
 -- h2.bigDecimalIsDecimal=false
 --
 
-create memory table orders ( orderid varchar(10), name varchar(20),  customer_id varchar(10), completed numeric(1) not null, verified numeric(1) );
+create memory table orders ( orderid varchar(10), name varchar(20),  customer_id varchar(10),
+    completed numeric(1) not null, verified numeric(1), a numeric(10, -3) );
 > ok
 
 select * from information_schema.columns where table_name = 'ORDERS';
 > TABLE_CATALOG TABLE_SCHEMA TABLE_NAME COLUMN_NAME ORDINAL_POSITION DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME COLUMN_DEFAULT IS_NULLABLE DATA_TYPE CHARACTER_MAXIMUM_LENGTH CHARACTER_OCTET_LENGTH NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE DATETIME_PRECISION INTERVAL_TYPE INTERVAL_PRECISION CHARACTER_SET_NAME COLLATION_NAME TYPE_NAME NULLABLE IS_COMPUTED SELECTIVITY CHECK_CONSTRAINT SEQUENCE_NAME REMARKS SOURCE_DATA_TYPE COLUMN_TYPE         COLUMN_ON_UPDATE IS_VISIBLE
 > ------------- ------------ ---------- ----------- ---------------- -------------- ------------- ----------- -------------- ----------- --------- ------------------------ ---------------------- ----------------- ----------------------- ------------- ------------------ ------------- ------------------ ------------------ -------------- --------- -------- ----------- ----------- ---------------- ------------- ------- ---------------- ------------------- ---------------- ----------
+> SCRIPT        PUBLIC       ORDERS     A           6                null           null          null        null           YES         2         10                       10                     10                10                      -3            null               null          null               Unicode            OFF            NUMERIC   1        FALSE       50                           null                  null             NUMERIC(10, -3)     null             TRUE
 > SCRIPT        PUBLIC       ORDERS     COMPLETED   4                null           null          null        null           NO          2         1                        1                      1                 10                      0             null               null          null               Unicode            OFF            NUMERIC   0        FALSE       50                           null                  null             NUMERIC(1) NOT NULL null             TRUE
 > SCRIPT        PUBLIC       ORDERS     CUSTOMER_ID 3                null           null          null        null           YES         12        10                       10                     10                10                      0             null               null          null               Unicode            OFF            VARCHAR   1        FALSE       50                           null                  null             VARCHAR(10)         null             TRUE
 > SCRIPT        PUBLIC       ORDERS     NAME        2                null           null          null        null           YES         12        20                       20                     20                10                      0             null               null          null               Unicode            OFF            VARCHAR   1        FALSE       50                           null                  null             VARCHAR(20)         null             TRUE
 > SCRIPT        PUBLIC       ORDERS     ORDERID     1                null           null          null        null           YES         12        10                       10                     10                10                      0             null               null          null               Unicode            OFF            VARCHAR   1        FALSE       50                           null                  null             VARCHAR(10)         null             TRUE
 > SCRIPT        PUBLIC       ORDERS     VERIFIED    5                null           null          null        null           YES         2         1                        1                      1                 10                      0             null               null          null               Unicode            OFF            NUMERIC   1        FALSE       50                           null                  null             NUMERIC(1)          null             TRUE
-> rows: 5
+> rows: 6
 
 drop table orders;
 > ok

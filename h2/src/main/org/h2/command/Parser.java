@@ -5955,10 +5955,10 @@ public class Parser {
         default:
             regular = true;
         }
-        long precision = -1;
-        ExtTypeInfo extTypeInfo = null;
-        int scale = -1;
-        Column templateColumn = null;
+        long precision;
+        int scale;
+        ExtTypeInfo extTypeInfo;
+        Column templateColumn;
         DataType dataType;
         Domain domain = database.findDomain(original);
         Mode mode = database.getMode();
@@ -5975,6 +5975,10 @@ public class Parser {
             if (dataType == null || mode.disallowedTypes.contains(original)) {
                 throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, original);
             }
+            templateColumn = null;
+            precision = dataType.defaultPrecision;
+            scale = dataType.defaultScale;
+            extTypeInfo = null;
         }
         int t = dataType.type;
         if (database.getIgnoreCase() && t == Value.STRING && !equalsToken("VARCHAR_CASESENSITIVE", original)) {
@@ -5984,8 +5988,6 @@ public class Parser {
         if (regular) {
             read();
         }
-        precision = precision == -1 ? dataType.defaultPrecision : precision;
-        scale = scale == -1 ? dataType.defaultScale : scale;
         if ((dataType.supportsPrecision || dataType.supportsScale) && readIf(OPEN_PAREN)) {
             if (!readIf("MAX")) {
                 if (dataType.supportsPrecision) {

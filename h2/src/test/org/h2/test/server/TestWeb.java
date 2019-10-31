@@ -466,7 +466,7 @@ public class TestWeb extends TestDb {
             assertContains(result, "<tr><th>ID</th><th>ID</th></tr><tr><td>5</td><td>5</td></tr>");
             result = client.get(url,
                     "query.do?sql=@generated() insert into test(id) values(test_sequence.nextval)");
-            assertContains(result, "<table cellspacing=0 cellpadding=0><tr></tr></table>");
+            assertContains(result, "<table class=\"resultSet\" cellspacing=\"0\" cellpadding=\"0\"><tr></tr></table>");
             result = client.get(url, "query.do?sql=@maxrows 2000");
             assertContains(result, "Max rowcount is set");
             result = client.get(url, "query.do?sql=@password_hash user password");

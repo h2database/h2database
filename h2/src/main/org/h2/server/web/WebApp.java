@@ -1638,9 +1638,9 @@ public class WebApp {
                     "id=\"mainForm\" target=\"h2result\">" +
                     "<input type=\"hidden\" name=\"op\" value=\"1\" />" +
                     "<input type=\"hidden\" name=\"row\" value=\"\" />" +
-                    "<table cellspacing=0 cellpadding=0 id=\"editTable\">");
+                    "<table class=\"resultSet\" cellspacing=\"0\" cellpadding=\"0\" id=\"editTable\">");
         } else {
-            buff.append("<table cellspacing=0 cellpadding=0>");
+            buff.append("<table class=\"resultSet\" cellspacing=\"0\" cellpadding=\"0\">");
         }
         if (metadata) {
             SimpleResultSet r = new SimpleResultSet();

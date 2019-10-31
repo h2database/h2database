@@ -94,6 +94,10 @@ ul {
     margin: 10px;
 }
 
+table.resultSet {
+    white-space: pre;
+}
+
 .toolbar {
     background-color: #ece9d8;
 }

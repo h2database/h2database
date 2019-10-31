@@ -144,8 +144,7 @@ public class ToDateParser {
     }
 
     private void queryCurrentYearAndMonth() {
-        long dateValue = (session.getDatabase().getMode().dateTimeValueWithinTransaction
-                ? session.getTransactionStart() : session.getCurrentCommandStart()).getDateValue();
+        long dateValue = session.currentTimestamp().getDateValue();
         currentYear = DateTimeUtils.yearFromDateValue(dateValue);
         currentMonth = DateTimeUtils.monthFromDateValue(dateValue);
     }

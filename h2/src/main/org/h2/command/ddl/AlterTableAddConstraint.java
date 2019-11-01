@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashSet;
 
 import org.h2.api.ErrorCode;
+import org.h2.command.Command;
 import org.h2.command.CommandInterface;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintActionType;

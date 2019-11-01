@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Set;
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
+import org.h2.command.ddl.DefineCommand;
 import org.h2.command.dml.DataChangeStatement;
 import org.h2.command.dml.Explain;
 import org.h2.command.dml.Query;
@@ -337,5 +338,10 @@ public class CommandContainer extends Command {
         HashSet<DbObject> dependencies = new HashSet<>();
         prepared.collectDependencies(dependencies);
         return dependencies;
+    }
+    
+    @Override
+    protected boolean isCurrentCommandADefineCommand() {
+        return prepared instanceof DefineCommand;
     }
 }

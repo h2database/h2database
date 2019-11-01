@@ -7,8 +7,8 @@ package org.h2.command.ddl;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-
 import org.h2.api.ErrorCode;
+import org.h2.command.Command;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
@@ -312,6 +312,11 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             StringBuilder builder = new StringBuilder("DROP TABLE ");
             newTable.getSQL(builder, true);
             execute(builder.toString(), true);
+            if (Command.isConcurrentUpdateCode(e)) {
+                // Avoid re-trying this command when it hits the filterConcurrentUpdate
+                // call in CommandContainer#executeUpdate.
+                throw DbException.get(ErrorCode.GENERAL_ERROR_1, e);                
+            }
             throw e;
         }
         String tableName = table.getName();
@@ -515,6 +520,12 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             StringBuilder builder = new StringBuilder("DROP TABLE ");
             newTable.getSQL(builder, true);
             execute(builder.toString(), true);
+            DbException dbEx = (DbException) t;
+            if (dbEx != null && Command.isConcurrentUpdateCode(dbEx)) {
+                // Avoid re-trying this command when it hits the filterConcurrentUpdate
+                // call in CommandContainer#executeUpdate.
+                throw DbException.get(ErrorCode.GENERAL_ERROR_1, dbEx);                
+            }
             throw t;
         }
         for (String sql : children) {

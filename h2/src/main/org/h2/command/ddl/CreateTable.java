@@ -8,6 +8,7 @@ package org.h2.command.ddl;
 import java.util.ArrayList;
 import java.util.HashSet;
 import org.h2.api.ErrorCode;
+import org.h2.command.Command;
 import org.h2.command.CommandInterface;
 import org.h2.command.dml.Insert;
 import org.h2.command.dml.Query;
@@ -178,6 +179,11 @@ public class CreateTable extends CommandWithColumns {
                 }
             } catch (Throwable ex) {
                 e.addSuppressed(ex);
+            }
+            if (Command.isConcurrentUpdateCode(e)) {
+                // Avoid re-trying this command when it hits the filterConcurrentUpdate
+                // call in CommandContainer#executeUpdate.
+                throw DbException.get(ErrorCode.GENERAL_ERROR_1, e);                
             }
             throw e;
         }

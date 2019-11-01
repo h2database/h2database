@@ -298,10 +298,7 @@ public abstract class Command implements CommandInterface {
     }
 
     private long filterConcurrentUpdate(DbException e, long start) {
-        int errorCode = e.getErrorCode();
-        if (errorCode != ErrorCode.CONCURRENT_UPDATE_1 &&
-                errorCode != ErrorCode.ROW_NOT_FOUND_IN_PRIMARY_INDEX &&
-                errorCode != ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1) {
+        if (!isConcurrentUpdateCode(e)) {
             throw e;
         }
         long now = System.nanoTime();
@@ -327,6 +324,16 @@ public abstract class Command implements CommandInterface {
             }
         }
         return start == 0 ? now : start;
+    }
+    
+    /**
+     * Is this one of the error codes that will trigger a retry in the 
+     * executeUpdate loop?
+     */
+    public static boolean isConcurrentUpdateCode(DbException e) {
+        int errorCode = e.getErrorCode();
+        return errorCode == ErrorCode.CONCURRENT_UPDATE_1 || errorCode == ErrorCode.ROW_NOT_FOUND_IN_PRIMARY_INDEX
+                || errorCode == ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1;
     }
 
     @Override

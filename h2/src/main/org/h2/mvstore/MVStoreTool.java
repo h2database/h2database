@@ -543,10 +543,7 @@ public class MVStoreTool {
             // created in the process, especially if retention time
             // is set to a lower value, or even 0.
             for (String mapName : source.getMapNames()) {
-                MVMap.Builder<Object, Object> mp =
-                        new MVMap.Builder<>().
-                                keyType(new GenericDataType()).
-                                valueType(new GenericDataType());
+                MVMap.Builder<Object, Object> mp = getGenericMapBuilder();
                 // This is a hack to preserve chunks occupancy rate accounting.
                 // It exposes design deficiency flaw in MVStore related to lack of
                 // map's type metadata.
@@ -703,11 +700,21 @@ public class MVStoreTool {
         return newestVersion;
     }
 
+    static MVMap.Builder<Object, Object> getGenericMapBuilder() {
+        return new MVMap.Builder<>().
+                keyType(GenericDataType.INSTANCE).
+                valueType(GenericDataType.INSTANCE);
+    }
+
     /**
      * A data type that can read any data that is persisted, and converts it to
      * a byte array.
      */
-    static class GenericDataType implements DataType {
+    static class GenericDataType implements DataType
+    {
+        public static GenericDataType INSTANCE = new GenericDataType();
+
+        private GenericDataType() {}
 
         @Override
         public int compare(Object a, Object b) {

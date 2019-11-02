@@ -292,7 +292,6 @@ public class MVTableEngine implements TableEngine {
                 } else if (mapName.startsWith("table.") || mapName.startsWith("index.")) {
                     int id = StringUtils.parseUInt31(mapName, mapName.indexOf('.') + 1, mapName.length());
                     if (!objectIds.get(id)) {
-                        mvStore.openMap(mapName, new MVMap.Builder<>().keyType(new ValueDataType()).valueType(new ValueDataType()));
                         mvStore.removeMap(mapName);
                     }
                 }

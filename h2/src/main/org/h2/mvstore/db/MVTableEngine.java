@@ -23,6 +23,7 @@ import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.FileStore;
+import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreTool;
 import org.h2.mvstore.tx.Transaction;
@@ -291,6 +292,7 @@ public class MVTableEngine implements TableEngine {
                 } else if (mapName.startsWith("table.") || mapName.startsWith("index.")) {
                     int id = StringUtils.parseUInt31(mapName, mapName.indexOf('.') + 1, mapName.length());
                     if (!objectIds.get(id)) {
+                        mvStore.openMap(mapName, new MVMap.Builder<>().keyType(new ValueDataType()).valueType(new ValueDataType()));
                         mvStore.removeMap(mapName);
                     }
                 }

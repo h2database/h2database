@@ -23,7 +23,6 @@ import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.FileStore;
-import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreTool;
 import org.h2.mvstore.tx.Transaction;

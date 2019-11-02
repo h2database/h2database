@@ -944,8 +944,12 @@ public class Database implements DataHandler, CastDataProvider {
                 if (SysProperties.CHECK) {
                     verifyMetaLocked(session);
                 }
-                if (!metaIdIndex.find(session, r, r).next()) {
+                Cursor cursor = metaIdIndex.find(session, r, r);
+                if (!cursor.next()) {
                     meta.addRow(session, r);
+                } else {
+                    Row oldRow = cursor.get();
+                    meta.updateRow(session, oldRow, r);
                 }
             } else if (!starting) {
                 Row r = meta.getTemplateRow();

@@ -9,8 +9,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
 import org.h2.api.ErrorCode;
+import org.h2.command.ddl.DefineCommand;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
@@ -199,6 +199,10 @@ public abstract class Command implements CommandInterface {
                         }
                         return result;
                     } catch (DbException e) {
+                        // cannot retry DDL
+                        if (isCurrentCommandADefineCommand()) {
+                            throw e;
+                        }
                         start = filterConcurrentUpdate(e, start);
                     } catch (OutOfMemoryError e) {
                         callStop = false;
@@ -250,6 +254,10 @@ public abstract class Command implements CommandInterface {
                     try {
                         return update(generatedKeysRequest);
                     } catch (DbException e) {
+                        // cannot retry DDL
+                        if (isCurrentCommandADefineCommand()) {
+                            throw e;
+                        }
                         start = filterConcurrentUpdate(e, start);
                     } catch (OutOfMemoryError e) {
                         callStop = false;
@@ -299,9 +307,8 @@ public abstract class Command implements CommandInterface {
 
     private long filterConcurrentUpdate(DbException e, long start) {
         int errorCode = e.getErrorCode();
-        if (errorCode != ErrorCode.CONCURRENT_UPDATE_1 &&
-                errorCode != ErrorCode.ROW_NOT_FOUND_IN_PRIMARY_INDEX &&
-                errorCode != ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1) {
+        if (errorCode != ErrorCode.CONCURRENT_UPDATE_1 && errorCode != ErrorCode.ROW_NOT_FOUND_IN_PRIMARY_INDEX
+                && errorCode != ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1) {
             throw e;
         }
         long now = System.nanoTime();
@@ -328,7 +335,7 @@ public abstract class Command implements CommandInterface {
         }
         return start == 0 ? now : start;
     }
-
+    
     @Override
     public void close() {
         canReuse = true;
@@ -374,4 +381,9 @@ public abstract class Command implements CommandInterface {
     }
 
     public abstract Set<DbObject> getDependencies();
+    
+    /**
+     * Is the command we just tried to execute a DefineCommand (i.e. DDL)
+     */
+    protected abstract boolean isCurrentCommandADefineCommand();
 }

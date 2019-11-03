@@ -938,18 +938,20 @@ public class Database implements DataHandler, CastDataProvider {
         int id = obj.getId();
         if (id > 0 && !obj.isTemporary()) {
             if (isMVStore()) {
-                Row r = meta.getTemplateRow();
-                MetaRecord.populateRowFromDBObject(obj, r);
-                assert objectIds.get(id);
-                if (SysProperties.CHECK) {
-                    verifyMetaLocked(session);
-                }
-                Cursor cursor = metaIdIndex.find(session, r, r);
-                if (!cursor.next()) {
-                    meta.addRow(session, r);
-                } else {
-                    Row oldRow = cursor.get();
-                    meta.updateRow(session, oldRow, r);
+                if (!isReadOnly()) {
+                    Row r = meta.getTemplateRow();
+                    MetaRecord.populateRowFromDBObject(obj, r);
+                    assert objectIds.get(id);
+                    if (SysProperties.CHECK) {
+                        verifyMetaLocked(session);
+                    }
+                    Cursor cursor = metaIdIndex.find(session, r, r);
+                    if (!cursor.next()) {
+                        meta.addRow(session, r);
+                    } else {
+                        Row oldRow = cursor.get();
+                        meta.updateRow(session, oldRow, r);
+                    }
                 }
             } else if (!starting) {
                 Row r = meta.getTemplateRow();

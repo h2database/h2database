@@ -3920,8 +3920,20 @@ public class Parser {
             if (!readIf(CLOSE_PAREN)) {
                 int i = 0;
                 do {
-                    function.addParameter(readExpression());
-                    columns.add(new Column("C" + ++i, Value.NULL));
+                    Expression expr = readExpression();
+                    TypeInfo columnType = TypeInfo.TYPE_NULL;
+                    if (expr.isConstant()) {
+                        expr = expr.optimize(session);
+                        TypeInfo exprType = expr.getType();
+                        if (exprType.getValueType() == Value.ARRAY) {
+                            ExtTypeInfoArray extTypeInfoArray = (ExtTypeInfoArray) exprType.getExtTypeInfo();
+                            if (extTypeInfoArray != null) {
+                                columnType = extTypeInfoArray.getComponentType();
+                            }
+                        }
+                    }
+                    function.addParameter(expr);
+                    columns.add(new Column("C" + ++i, columnType));
                 } while (readIfMore());
             }
             if (readIf(WITH)) {

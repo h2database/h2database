@@ -23,6 +23,8 @@ public class ValueArray extends ValueCollectionBase {
      */
     private static final Object EMPTY = get(new Value[0]);
 
+    private TypeInfo type;
+
     private TypeInfo componentType;
 
     private ValueArray(TypeInfo componentType, Value[] list) {
@@ -60,6 +62,17 @@ public class ValueArray extends ValueCollectionBase {
      */
     public static ValueArray getEmpty() {
         return (ValueArray) EMPTY;
+    }
+
+    @Override
+    public TypeInfo getType() {
+        TypeInfo type = this.type;
+        if (type == null) {
+            TypeInfo componentType = getComponentType();
+            this.type = type = TypeInfo.getTypeInfo(getValueType(), values.length, 0,
+                    componentType.getValueType() != NULL ? new ExtTypeInfoArray(componentType) : null);
+        }
+        return type;
     }
 
     @Override

@@ -335,7 +335,7 @@ public abstract class Command implements CommandInterface {
         }
         return start == 0 ? now : start;
     }
-    
+
     @Override
     public void close() {
         canReuse = true;
@@ -381,7 +381,7 @@ public abstract class Command implements CommandInterface {
     }
 
     public abstract Set<DbObject> getDependencies();
-    
+
     /**
      * Is the command we just tried to execute a DefineCommand (i.e. DDL)
      */

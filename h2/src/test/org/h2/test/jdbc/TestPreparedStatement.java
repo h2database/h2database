@@ -457,6 +457,10 @@ public class TestPreparedStatement extends TestDb {
         meta = prep.getMetaData();
         assertEquals(1, meta.getColumnCount());
         assertEquals("INTEGER", meta.getColumnTypeName(1));
+        prep = conn.prepareStatement("CALL UNNEST(ARRAY[1, 2])");
+        meta = prep.getMetaData();
+        assertEquals(1, meta.getColumnCount());
+        assertEquals("INTEGER", meta.getColumnTypeName(1));
     }
 
     private void testArray(Connection conn) throws SQLException {

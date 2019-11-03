@@ -20,8 +20,6 @@ public abstract class ValueCollectionBase extends Value {
      */
     final Value[] values;
 
-    private TypeInfo type;
-
     private int hash;
 
     ValueCollectionBase(Value[] values) {
@@ -43,15 +41,6 @@ public abstract class ValueCollectionBase extends Value {
         }
         hash = h;
         return h;
-    }
-
-    @Override
-    public TypeInfo getType() {
-        TypeInfo type = this.type;
-        if (type == null) {
-            this.type = type = TypeInfo.getTypeInfo(getValueType(), values.length, 0, null);
-        }
-        return type;
     }
 
     @Override

@@ -883,7 +883,7 @@ public class Parser {
             break;
         case WITH:
             read();
-            c = parseWithStatementOrQuery();
+            c = parseWithStatementOrQuery(start);
             break;
         case IDENTIFIER:
             if (currentTokenQuoted) {
@@ -2647,7 +2647,7 @@ public class Parser {
         return command;
     }
 
-    private Prepared parseWithStatementOrQuery() {
+    private Prepared parseWithStatementOrQuery(int start) {
         int paramIndex = parameters.size();
         Prepared command = parseWith();
         int size = parameters.size();
@@ -2660,6 +2660,7 @@ public class Parser {
             Query query = (Query) command;
             query.init();
         }
+        setSQL(command, start);
         return command;
     }
 

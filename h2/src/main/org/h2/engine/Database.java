@@ -949,8 +949,14 @@ public class Database implements DataHandler, CastDataProvider {
                     if (!cursor.next()) {
                         meta.addRow(session, r);
                     } else {
+                        assert starting;
                         Row oldRow = cursor.get();
-                        meta.updateRow(session, oldRow, r);
+                        MetaRecord rec = new MetaRecord(oldRow);
+                        assert rec.getId() == obj.getId();
+                        assert rec.getObjectType() == obj.getType();
+                        if (!rec.getSQL().equals(obj.getCreateSQL())) {
+                            meta.updateRow(session, oldRow, r);
+                        }
                     }
                 }
             } else if (!starting) {

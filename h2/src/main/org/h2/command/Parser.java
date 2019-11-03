@@ -1035,7 +1035,8 @@ public class Parser {
             }
             parameters = indexedParameterList;
         }
-        if (readIf(OPEN_BRACE)) {
+        boolean withParamValues = readIf(OPEN_BRACE);
+        if (withParamValues) {
             do {
                 int index = (int) readLong() - 1;
                 if (index < 0 || index >= parameters.size()) {
@@ -1056,7 +1057,9 @@ public class Parser {
             }
             parameters.clear();
         }
-        setSQL(c, start);
+        if (withParamValues || c.getSQL() == null) {
+            setSQL(c, start);
+        }
         return c;
     }
 

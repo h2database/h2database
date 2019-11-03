@@ -1378,12 +1378,12 @@ public class Parser {
 
     private Delete parseDelete() {
         Delete command = new Delete(session);
+        int start = lastParseIndex;
         Expression limit = null;
         if (readIf("TOP")) {
             limit = readTerm().optimize(session);
         }
         currentPrepared = command;
-        int start = lastParseIndex;
         if (!readIf(FROM) && database.getMode().getEnum() == ModeEnum.MySQL) {
             readIdentifierWithSchema();
             read(FROM);
@@ -1642,6 +1642,7 @@ public class Parser {
         } else {
             command.setQuery(parseQuery());
         }
+        setSQL(command, "MERGE", start);
         return command;
     }
 
@@ -1752,6 +1753,7 @@ public class Parser {
 
     private Insert parseInsert() {
         Insert command = new Insert(session);
+        int start = lastParseIndex;
         currentPrepared = command;
         Mode mode = database.getMode();
         if (mode.onDuplicateKeyUpdate && readIf("IGNORE")) {
@@ -1804,6 +1806,7 @@ public class Parser {
         if (mode.isolationLevelInSelectOrInsertStatement) {
             parseIsolationClause();
         }
+        setSQL(command, "INSERT", start);
         return command;
     }
 
@@ -1854,6 +1857,7 @@ public class Parser {
     private Merge parseReplace() {
         Merge command = new Merge(session, true);
         currentPrepared = command;
+        int start = lastParseIndex;
         read("INTO");
         Table table = readTableOrView();
         command.setTable(table);
@@ -1871,6 +1875,7 @@ public class Parser {
         } else {
             command.setQuery(parseQuery());
         }
+        setSQL(command, "REPLACE", start);
         return command;
     }
 

@@ -98,15 +98,16 @@ public class CheckJavadoc {
                 inComment = true;
             }
             if (inComment) {
-                if (rawLine.length() > MAX_COMMENT_LINE_SIZE
+                int i = line.indexOf("*/", 2);
+                if (i >= 0) {
+                    inComment = false;
+                }
+                if (i == rawLine.length() - 2 && rawLine.length() > MAX_COMMENT_LINE_SIZE
                         && !line.trim().startsWith("* http://")
                         && !line.trim().startsWith("* https://")) {
                     System.out.println("Long line: " + file.getAbsolutePath()
                             + " (" + file.getName() + ":" + lineNumber + ")");
                     errorCount++;
-                }
-                if (line.endsWith("*/")) {
-                    inComment = false;
                 }
             }
             if (!inComment && line.startsWith("//")) {

@@ -339,7 +339,7 @@ public class CommandContainer extends Command {
         prepared.collectDependencies(dependencies);
         return dependencies;
     }
-    
+
     @Override
     protected boolean isCurrentCommandADefineCommand() {
         return prepared instanceof DefineCommand;

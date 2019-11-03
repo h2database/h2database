@@ -2765,7 +2765,7 @@ public class MVStore implements AutoCloseable
         if(id > 0) {
             MVMap<?, ?> map = getMap(id);
             if (map == null) {
-                map = openMap(name);
+                map = openMap(name, MVStoreTool.getGenericMapBuilder());
             }
             removeMap(map);
         }

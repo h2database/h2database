@@ -966,7 +966,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     }
 
     /**
-     * Register table as updated within current transaction.
+     * Register table as locked within current transaction.
      * Table is unlocked on commit or rollback.
      * It also assumes that table will be modified by transaction.
      *

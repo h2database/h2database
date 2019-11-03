@@ -936,16 +936,40 @@ public class Database implements DataHandler, CastDataProvider {
     private void addMeta(Session session, DbObject obj) {
         assert Thread.holdsLock(this);
         int id = obj.getId();
-        if (id > 0 && !starting && !obj.isTemporary()) {
-            Row r = meta.getTemplateRow();
-            MetaRecord.populateRowFromDBObject(obj, r);
-            synchronized (objectIds) {
-                objectIds.set(id);
+        if (id > 0 && !obj.isTemporary()) {
+            if (isMVStore()) {
+                if (!isReadOnly()) {
+                    Row r = meta.getTemplateRow();
+                    MetaRecord.populateRowFromDBObject(obj, r);
+                    assert objectIds.get(id);
+                    if (SysProperties.CHECK) {
+                        verifyMetaLocked(session);
+                    }
+                    Cursor cursor = metaIdIndex.find(session, r, r);
+                    if (!cursor.next()) {
+                        meta.addRow(session, r);
+                    } else {
+                        assert starting;
+                        Row oldRow = cursor.get();
+                        MetaRecord rec = new MetaRecord(oldRow);
+                        assert rec.getId() == obj.getId();
+                        assert rec.getObjectType() == obj.getType();
+                        if (!rec.getSQL().equals(obj.getCreateSQL())) {
+                            meta.updateRow(session, oldRow, r);
+                        }
+                    }
+                }
+            } else if (!starting) {
+                Row r = meta.getTemplateRow();
+                MetaRecord.populateRowFromDBObject(obj, r);
+                synchronized (objectIds) {
+                    objectIds.set(id);
+                }
+                if (SysProperties.CHECK) {
+                    verifyMetaLocked(session);
+                }
+                meta.addRow(session, r);
             }
-            if (SysProperties.CHECK) {
-                verifyMetaLocked(session);
-            }
-            meta.addRow(session, r);
         }
     }
 

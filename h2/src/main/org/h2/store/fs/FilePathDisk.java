@@ -254,7 +254,7 @@ public class FilePathDisk extends FilePath {
         }
         // File.canWrite() does not respect windows user permissions,
         // so we must try to open it using the mode "rw".
-        // See also http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4420020
+        // See also https://bugs.java.com/bugdatabase/view_bug.do?bug_id=4420020
         RandomAccessFile r = null;
         try {
             r = new RandomAccessFile(file, "rw");

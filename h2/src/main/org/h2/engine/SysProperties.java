@@ -282,7 +282,7 @@ public class SysProperties {
      * If enabled, use the reflection hack to un-map the mapped file if
      * possible. If disabled, System.gc() is called in a loop until the object
      * is garbage collected. See also
-     * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4724038
+     * https://bugs.java.com/bugdatabase/view_bug.do?bug_id=4724038
      */
     public static final boolean NIO_CLEANER_HACK =
             Utils.getProperty("h2.nioCleanerHack", false);
@@ -387,7 +387,7 @@ public class SysProperties {
      * System property <code>h2.socketConnectRetry</code> (default: 16).<br />
      * The number of times to retry opening a socket. Windows sometimes fails
      * to open a socket, see bug
-     * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6213296
+     * https://bugs.java.com/bugdatabase/view_bug.do?bug_id=6213296
      */
     public static final int SOCKET_CONNECT_RETRY =
             Utils.getProperty("h2.socketConnectRetry", 16);

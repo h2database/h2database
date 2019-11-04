@@ -75,6 +75,9 @@ Update newsfeed.sql:
     * (146, '1.4.197', '2017-06-10'),
     * remove oldest entry in that list
 
+Update download-archive.html:
+    * add new version under Distribution section
+
 ## Skipped
 
 * Minor version change: change sourceError.html and source.html

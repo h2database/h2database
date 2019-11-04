@@ -37,7 +37,7 @@ public class PgTcpRedirect {
         // MySQL protocol:
         // http://www.redferni.uklinux.net/mysql/MySQL-Protocol.html
         // PostgreSQL protocol:
-        // http://developer.postgresql.org/pgdocs/postgres/protocol.html
+        // https://www.postgresql.org/docs/devel/protocol.html
         // int portServer = 9083, portClient = 9084;
         // int portServer = 3306, portClient = 3307;
         // H2 PgServer
@@ -385,7 +385,7 @@ public class PgTcpRedirect {
                         break;
                     }
                     String msg = readStringNull(dataIn);
-                    // http://developer.postgresql.org/pgdocs/postgres/protocol-error-fields.html
+                    // https://www.postgresql.org/docs/devel/protocol-error-fields.html
                     // S Severity
                     // C Code: the SQLSTATE code
                     // M Message
@@ -420,7 +420,7 @@ public class PgTcpRedirect {
                         break;
                     }
                     String msg = readStringNull(dataIn);
-                    // http://developer.postgresql.org/pgdocs/postgres/protocol-error-fields.html
+                    // https://www.postgresql.org/docs/devel/protocol-error-fields.html
                     // S Severity
                     // C Code: the SQLSTATE code
                     // M Message

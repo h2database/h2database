@@ -68,7 +68,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Rebuild index functionality to shrink index size and improve performance.
 </li><li>Console: add accesskey to most important commands (A, AREA, BUTTON, INPUT, LABEL, LEGEND, TEXTAREA).
 </li><li>Test performance again with SQL Server, Oracle, DB2.
-</li><li>Test with Spatial DB in a box / JTS: http://www.opengeospatial.org/standards/sfs - OpenGIS Implementation Specification.
+</li><li>Test with Spatial DB in a box / JTS: https://www.opengeospatial.org/standards/sfs - OpenGIS Implementation Specification.
 </li><li>Find a tool to view large text file (larger than 100 MB), with find, page up and down (like less), truncate before / after.
 </li><li>Implement, test, document XAConnection and so on.
 </li><li>Pluggable data type (for streaming, hashing, compression, validation, conversion, encryption).
@@ -106,8 +106,10 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support Oracle functions: TO_NUMBER.
 </li><li>Work on the Java to C converter.
 </li><li>The HELP information schema can be directly exposed in the Console.
-</li><li>Support Oracle CONNECT BY in some way: http://www.adp-gmbh.ch/ora/sql/connect_by.html http://philip.greenspun.com/sql/trees.html
-</li><li>SQL 2003: http://www.wiscorp.com/sql_2003_standard.zip
+</li><li>Support Oracle CONNECT BY in some way:
+    https://renenyffenegger.ch/notes/development/databases/Oracle/SQL/select/hierarchical-queries/start-with_connect-by/index
+    https://philip.greenspun.com/sql/trees.html
+</li><li>SQL 2003: https://www.wiscorp.com/sql_2003_standard.zip
 </li><li>Version column (number/sequence and timestamp based).
 </li><li>Test and document UPDATE TEST SET (ID, NAME) = (SELECT ID*10, NAME || '!' FROM TEST T WHERE T.ID=TEST.ID).
 </li><li>Max memory rows / max undo log size: use block count / row size not row count.
@@ -170,12 +172,12 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>In the MySQL and PostgreSQL mode, use lower case identifiers by default (DatabaseMetaData.storesLowerCaseIdentifiers = true)
 </li><li>Support multiple directories (on different hard drives) for the same database
 </li><li>Server protocol: use challenge response authentication, but client sends hash(user+password) encrypted with response
-</li><li>Support native XML data type - see http://en.wikipedia.org/wiki/SQL/XML
+</li><li>Support native XML data type - see https://en.wikipedia.org/wiki/SQL/XML
 </li><li>Support triggers with a string property or option: SpringTrigger, OSGITrigger
 </li><li>MySQL compatibility: update test1 t1, test2 t2 set t1.id = t2.id where t1.id = t2.id;
 </li><li>Ability to resize the cache array when resizing the cache
 </li><li>Time based cache writing (one second after writing the log)
-</li><li>Check state of H2 driver for DDLUtils: http://issues.apache.org/jira/browse/DDLUTILS-185
+</li><li>Check state of H2 driver for DDLUtils: https://issues.apache.org/jira/browse/DDLUTILS-185
 </li><li>Index usage for REGEXP LIKE.
 </li><li>Compatibility: add a role DBA (like ADMIN).
 </li><li>Support compatibility for jdbc:hsqldb:res:
@@ -187,7 +189,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Document SET SEARCH_PATH, BEGIN, EXECUTE, parameters
 </li><li>Server: use one listener (detect if the request comes from an PG or TCP client)
 </li><li>Optimize SELECT MIN(ID), MAX(ID), COUNT(*) FROM TEST WHERE ID BETWEEN 100 AND 200
-</li><li>Sequence: PostgreSQL compatibility (rename, create) http://www.postgresql.org/docs/8.2/static/sql-altersequence.html
+</li><li>Sequence: PostgreSQL compatibility (rename, create) https://www.postgresql.org/docs/8.2/sql-altersequence.html
 </li><li>Support a special trigger on all tables to allow building a transaction log reader.
 </li><li>File system with a background writer thread; test if this is faster
 </li><li>Better document the source code (high level documentation).
@@ -211,7 +213,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Write an article about SQLInjection (h2/src/docsrc/html/images/SQLInjection.txt)
 </li><li>Convert SQL-injection-2.txt to html document, include SQLInjection.java sample
 </li><li>Support OUT parameters in user-defined procedures.
-</li><li>Web site design: http://www.igniterealtime.org/projects/openfire/index.jsp
+</li><li>Web site design: https://www.igniterealtime.org/projects/openfire/index.jsp
 </li><li>HSQLDB compatibility: Openfire server uses: CREATE SCHEMA PUBLIC AUTHORIZATION DBA;
     CREATE USER SA PASSWORD ""; GRANT DBA TO SA; SET SCHEMA PUBLIC
 </li><li>Translation: use ${.} in help.csv
@@ -256,7 +258,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Sequences: CURRVAL should be session specific. Compatibility with PostgreSQL.
 </li><li>Index creation using deterministic functions.
 </li><li>ANALYZE: for unique indexes that allow null, count the number of null.
-</li><li>MySQL compatibility: multi-table delete: DELETE .. FROM .. [,...] USING - See http://dev.mysql.com/doc/refman/5.0/en/delete.html
+</li><li>MySQL compatibility: multi-table delete: DELETE .. FROM .. [,...] USING - See https://dev.mysql.com/doc/refman/5.0/en/delete.html
 </li><li>AUTO_SERVER: support changing IP addresses (disable a network while the database is open).
 </li><li>Avoid using java.util.Calendar internally because it's slow, complicated, and buggy.
 </li><li>Support TRUNCATE .. CASCADE like PostgreSQL.
@@ -268,11 +270,11 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Replace information_schema tables with regular tables that are automatically re-built when needed. Use indexes.
 </li><li>Issue 50: Oracle compatibility: support calling 0-parameters functions without parenthesis. Make constants obsolete.
 </li><li>MySQL, HSQLDB compatibility: support where 'a'=1 (not supported by Derby, PostgreSQL)
-</li><li>Finer granularity for SLF4J trace - See http://code.google.com/p/h2database/issues/detail?id=62
+</li><li>Finer granularity for SLF4J trace - See https://code.google.com/archive/p/h2database/issues/62
 </li><li>Add database creation date and time to the database.
 </li><li>Support ASSERTION.
 </li><li>MySQL compatibility: support comparing 1='a'
-</li><li>Support PostgreSQL lock modes: http://www.postgresql.org/docs/8.3/static/explicit-locking.html
+</li><li>Support PostgreSQL lock modes: https://www.postgresql.org/docs/8.3/explicit-locking.html
 </li><li>PostgreSQL compatibility: test DbVisualizer and Squirrel SQL using a new PostgreSQL JDBC driver.
 </li><li>RunScript should be able to read from system in (or quite mode for Shell).
 </li><li>Natural join: support select x from dual natural join dual.
@@ -298,9 +300,9 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Batch parameter for INSERT, UPDATE, and DELETE, and commit after each batch. See also MySQL DELETE.
 </li><li>Use a lazy and auto-close input stream (open resource when reading, close on eof).
 </li><li>Connection pool: 'reset session' command (delete temp tables, rollback, auto-commit true).
-</li><li>Improve SQL documentation, see http://www.w3schools.com/sql/
+</li><li>Improve SQL documentation, see https://www.w3schools.com/sql/
 </li><li>MySQL compatibility: DatabaseMetaData.stores*() methods should return the same values. Test with SquirrelSQL.
-</li><li>Sybase/DB2/Oracle compatibility: support out parameters in stored procedures - See http://code.google.com/p/h2database/issues/detail?id=83
+</li><li>Sybase/DB2/Oracle compatibility: support out parameters in stored procedures - See https://code.google.com/archive/p/h2database/issues/83
 </li><li>Combine Server and Console tool (only keep Server).
 </li><li>Store the Lucene index in the database itself.
 </li><li>HSQLDB compatibility: CREATE FUNCTION (maybe using a Function interface).
@@ -310,7 +312,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Compatibility: Java functions with SQL/PSM (Persistent Stored Modules) - need to find the documentation.
 </li><li>CACHE_SIZE: automatically use a fraction of Runtime.maxMemory - maybe automatically the second level cache.
 </li><li>PostgreSQL compatibility: when in PG mode, treat BYTEA data like PG.
-</li><li>Support =ANY(array) as in PostgreSQL. See also http://www.postgresql.org/docs/8.0/interactive/arrays.html
+</li><li>Support =ANY(array) as in PostgreSQL. See also https://www.postgresql.org/docs/8.0/arrays.html
 </li><li>IBM DB2 compatibility: support PREVIOUS VALUE FOR sequence.
 </li><li>Compatibility: use different LIKE ESCAPE characters depending on the mode (disable for Derby, HSQLDB, DB2, Oracle, MSSQLServer).
 </li><li>FTP: document the server, including -ftpTask option to execute / kill remote processes
@@ -394,7 +396,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     PostgreSQL uses name order, which was judged to be more convenient.
     Derby: triggers are fired in the order in which they were created.
 </li><li>PostgreSQL compatibility: combine "users" and "roles". See:
-    http://www.postgresql.org/docs/8.1/interactive/user-manag.html
+    https://www.postgresql.org/docs/8.1/user-manag.html
 </li><li>Improve documentation of system properties: only list the property names, default values, and description.
 </li><li>Support running totals / cumulative sum using SUM(..) OVER(..).
 </li><li>Improve object memory size calculation. Use constants for known VMs, or use reflection to call java.lang.instrument.Instrumentation.getObjectSize(Object objectToSize)
@@ -467,13 +469,13 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Adding a primary key should make the columns 'not null' unless if there is a row with null
     (compatibility with MySQL, PostgreSQL, HSQLDB; not Derby).
 </li><li>ARRAY data type: support Integer[] and so on in Java functions (currently only Object[] is supported).
-</li><li>MySQL compatibility: LOCK TABLES a READ, b READ - see also http://dev.mysql.com/doc/refman/5.0/en/lock-tables.html
-</li><li>The HTML to PDF converter should use http://code.google.com/p/wkhtmltopdf/
+</li><li>MySQL compatibility: LOCK TABLES a READ, b READ - see also https://dev.mysql.com/doc/refman/5.0/en/lock-tables.html
+</li><li>The HTML to PDF converter should use https://wkhtmltopdf.org
 </li><li>Issue 303: automatically convert "X NOT IN(SELECT...)" to "NOT EXISTS(...)".
 </li><li>MySQL compatibility: update test1 t1, test2 t2 set t1.name=t2.name where t1.id=t2.id.
 </li><li>Issue 283: Improve performance of H2 on Android.
 </li><li>Support INSERT INTO / UPDATE / MERGE ... RETURNING to retrieve the generated key(s).
-</li><li>Column compression option - see http://groups.google.com/group/h2-database/browse_thread/thread/3e223504e52671fa/243da82244343f5d
+</li><li>Column compression option - see https://groups.google.com/forum/#!topic/h2-database/PiI1BOUmcfo
 </li><li>MS SQL Server compatibility: support @@ROWCOUNT.
 </li><li>Issue 311: Serialized lock mode: executeQuery of write operations fails.
 </li><li>PostgreSQL compatibility: support PgAdmin III (specially the function current_setting).

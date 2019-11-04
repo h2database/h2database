@@ -185,7 +185,10 @@ public class CheckTextFiles {
                             lineLength--;
                         }
                         if (lineLength > MAX_SOURCE_LINE_SIZE) {
-                            fail(file, "line too long: " + lineLength, line);
+                            String s = new String(data, startLinePos, lineLength).trim();
+                            if (!s.startsWith("// http://") && !s.startsWith("// https://")) {
+                                fail(file, "line too long: " + lineLength, line);
+                            }
                         }
                     }
                     startLinePos = i;

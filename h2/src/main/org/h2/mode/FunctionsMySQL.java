@@ -62,7 +62,7 @@ public class FunctionsMySQL extends FunctionsBase {
     /**
      * Format replacements for MySQL date formats.
      * See
-     * http://dev.mysql.com/doc/refman/5.1/en/date-and-time-functions.html#function_date-format
+     * https://dev.mysql.com/doc/refman/5.1/en/date-and-time-functions.html#function_date-format
      */
     private static final String[] FORMAT_REPLACE = {
             "%a", "EEE",
@@ -117,7 +117,7 @@ public class FunctionsMySQL extends FunctionsBase {
 
     /**
      * See
-     * http://dev.mysql.com/doc/refman/5.1/en/date-and-time-functions.html#function_from-unixtime
+     * https://dev.mysql.com/doc/refman/5.1/en/date-and-time-functions.html#function_from-unixtime
      *
      * @param seconds The current timestamp in seconds.
      * @return a formatted date/time String in the format "yyyy-MM-dd HH:mm:ss".
@@ -130,7 +130,7 @@ public class FunctionsMySQL extends FunctionsBase {
 
     /**
      * See
-     * http://dev.mysql.com/doc/refman/5.1/en/date-and-time-functions.html#function_from-unixtime
+     * https://dev.mysql.com/doc/refman/5.1/en/date-and-time-functions.html#function_from-unixtime
      *
      * @param seconds The current timestamp in seconds.
      * @param format The format of the date/time String to return.

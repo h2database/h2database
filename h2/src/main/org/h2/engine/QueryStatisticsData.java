@@ -142,8 +142,8 @@ public class QueryStatisticsData {
         public double rowCountMean;
 
         // Using Welford's method, see also
-        // http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
-        // http://www.johndcook.com/standard_deviation.html
+        // https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+        // https://www.johndcook.com/blog/standard_deviation/
 
         private double executionTimeM2Nanos;
         private double rowCountM2;

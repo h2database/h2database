@@ -1212,7 +1212,7 @@ public class MetaTable extends Table {
                         add(session, rows,
                                 "info.FILL_RATE", Integer.toString(mvStore.getFillRate()));
                         add(session, rows,
-                                "info.CHUNKS_FILL_RATE", Integer.toString(mvStore.getChunksFillRate()));
+                                "info.CHUNKS_FILL_RATE", Integer.toString(mvStore.getRewritableChunksFillRate()));
                         try {
                             add(session, rows,
                                     "info.FILE_SIZE", Long.toString(fs.getFile().size()));

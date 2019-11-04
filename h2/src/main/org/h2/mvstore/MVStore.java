@@ -2016,7 +2016,7 @@ public class MVStore implements AutoCloseable
                 try {
                     if (storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
                         try {
-                            return rewriteChunks(write);
+                            return rewriteChunks(write, targetFillRate);
                         } finally {
                             storeLock.unlock();
                         }
@@ -2029,10 +2029,10 @@ public class MVStore implements AutoCloseable
         return false;
     }
 
-    private boolean rewriteChunks(int writeLimit) {
+    private boolean rewriteChunks(int writeLimit, int targetFillRate) {
         TxCounter txCounter = registerVersionUsage();
         try {
-            Iterable<Chunk> old = findOldChunks(writeLimit);
+            Iterable<Chunk> old = findOldChunks(writeLimit, targetFillRate);
             if (old != null) {
                 HashSet<Integer> idSet = createIdSet(old);
                 return !idSet.isEmpty() && compactRewrite(idSet) > 0;
@@ -2052,12 +2052,23 @@ public class MVStore implements AutoCloseable
      * @return the fill rate, in percent (100 is completely full)
      */
     public int getChunksFillRate() {
+        return getChunksFillRate(true);
+    }
+
+    public int getRewritableChunksFillRate() {
+        return getChunksFillRate(false);
+    }
+
+    private int getChunksFillRate(boolean all) {
         long maxLengthSum = 1;
         long maxLengthLiveSum = 1;
+        long time = getTimeSinceCreation();
         for (Chunk c : chunks.values()) {
-            assert c.maxLen >= 0;
-            maxLengthSum += c.maxLen;
-            maxLengthLiveSum += c.maxLenLive;
+            if (all || isRewritable(c, time)) {
+                assert c.maxLen >= 0;
+                maxLengthSum += c.maxLen;
+                maxLengthLiveSum += c.maxLenLive;
+            }
         }
         // the fill rate of all chunks combined
         int fillRate = (int) (100 * maxLengthLiveSum / maxLengthSum);
@@ -2122,7 +2133,7 @@ public class MVStore implements AutoCloseable
         return fileStore.getFillRate();
     }
 
-    private Iterable<Chunk> findOldChunks(int writeLimit) {
+    private Iterable<Chunk> findOldChunks(int writeLimit, int targetFillRate) {
         assert lastChunk != null;
         long time = getTimeSinceCreation();
 
@@ -2142,9 +2153,10 @@ public class MVStore implements AutoCloseable
             // only look at chunk older than the retention time
             // (it's possible to compact chunks earlier, but right
             // now we don't do that)
-            if (isRewritable(chunk, time)) {
+            int fillRate = chunk.getFillRate();
+            if (isRewritable(chunk, time) /*&& fillRate <= targetFillRate*/) {
                 long age = latestVersion - chunk.version;
-                chunk.collectPriority = (int) (chunk.getFillRate() * 1000 / age);
+                chunk.collectPriority = (int) (fillRate * 1000 / age);
                 totalSize += chunk.maxLenLive;
                 queue.offer(chunk);
                 while (totalSize > writeLimit) {
@@ -2846,7 +2858,7 @@ public class MVStore implements AutoCloseable
                 if (storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
                     try {
                         int writeLimit = autoCommitMemory * targetFillRate / Math.max(projectedFillRate, 1);
-                        if (rewriteChunks(writeLimit)) {
+                        if (rewriteChunks(writeLimit, projectedFillRate)) {
                             dropUnusedChunks();
                         }
                     } finally {
@@ -2888,7 +2900,7 @@ public class MVStore implements AutoCloseable
                     try {
                         int writeLimit = autoCommitMemory * targetFillRate / Math.max(projectedFillRate, 1);
                         if (projectedFillRate < fillRate) {
-                            if ((!rewriteChunks(writeLimit) || dropUnusedChunks() == 0) && cnt > 0) {
+                            if ((!rewriteChunks(writeLimit, targetFillRate) || dropUnusedChunks() == 0) && cnt > 0) {
                                 break;
                             }
                         }

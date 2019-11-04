@@ -956,24 +956,25 @@ public class MVStore implements AutoCloseable
                             // used here as is, re-point our chunk to original
                             // location instead.
                             c.block = test.block;
-                        } else if (!c.isLive()) {
-                            // we can just remove entry from meta, referencing to this chunk,
-                            // but store maybe R/O, and it's not properly started yet,
-                            // so lets make this chunk "dead" and taking no space,
-                            // and it will be automatically removed later.
-                            c.block = Long.MAX_VALUE;
-                            c.len = Integer.MAX_VALUE;
-                            if (c.unused == 0) {
-                                c.unused = creationTime;
-                            }
-                            if (c.unusedAtVersion == 0) {
-                                c.unusedAtVersion = INITIAL_VERSION;
-                            }
-                        } else if (afterFullScan || readChunkHeaderAndFooter(c.block, c.id) == null) {
+                        } else if (c.isLive() && (afterFullScan || readChunkHeaderAndFooter(c.block, c.id) == null)) {
                             // chunk reference is invalid
                             // this "last chunk" candidate is not suitable
                             verified = false;
                             break;
+                        }
+                    }
+                    if (!c.isLive()) {
+                        // we can just remove entry from meta, referencing to this chunk,
+                        // but store maybe R/O, and it's not properly started yet,
+                        // so lets make this chunk "dead" and taking no space,
+                        // and it will be automatically removed later.
+                        c.block = Long.MAX_VALUE;
+                        c.len = Integer.MAX_VALUE;
+                        if (c.unused == 0) {
+                            c.unused = creationTime;
+                        }
+                        if (c.unusedAtVersion == 0) {
+                            c.unusedAtVersion = INITIAL_VERSION;
                         }
                     }
                 }

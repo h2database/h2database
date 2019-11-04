@@ -974,8 +974,8 @@ public class Database implements DataHandler, CastDataProvider {
      * @param session the session
      */
     public void verifyMetaLocked(Session session) {
-        if (meta != null && !meta.isLockedExclusivelyBy(session)
-                && lockMode != Constants.LOCK_MODE_OFF) {
+        if (lockMode != Constants.LOCK_MODE_OFF &&
+                meta != null && !meta.isLockedExclusivelyBy(session)) {
             throw DbException.throwInternalError();
         }
     }

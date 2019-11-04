@@ -317,7 +317,7 @@ public class ErrorCode {
      * sessions are also possible. To solve deadlock problems, an application
      * should lock tables always in the same order, such as always lock table A
      * before locking table B. For details, see <a
-     * href="http://en.wikipedia.org/wiki/Deadlock">Wikipedia Deadlock</a>.
+     * href="https://en.wikipedia.org/wiki/Deadlock">Wikipedia Deadlock</a>.
      */
     public static final int DEADLOCK_1 = 40001;
 

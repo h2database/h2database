@@ -291,7 +291,7 @@ class WebThread extends WebApp implements Runnable {
                 boolean isWebKit = lower.contains("webkit/");
                 if (isWebKit && session != null) {
                     // workaround for what seems to be a WebKit bug:
-                    // http://code.google.com/p/chromium/issues/detail?id=6402
+                    // https://bugs.chromium.org/p/chromium/issues/detail?id=6402
                     session.put("frame-border", "1");
                     session.put("frameset-border", "2");
                 }

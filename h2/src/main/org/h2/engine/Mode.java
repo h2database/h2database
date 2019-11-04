@@ -315,9 +315,7 @@ public class Mode {
         mode.nullConcatIsNull = true;
         mode.allowPlusForStringConcat = true;
         // HSQLDB does not support client info properties. See
-        // http://hsqldb.org/doc/apidocs/
-        //     org/hsqldb/jdbc/JDBCConnection.html#
-        //     setClientInfo%28java.lang.String,%20java.lang.String%29
+        // http://hsqldb.org/doc/apidocs/org/hsqldb/jdbc/JDBCConnection.html#setClientInfo-java.lang.String-java.lang.String-
         mode.supportedClientInfoPropertiesRegEx = null;
         add(mode);
 
@@ -356,9 +354,7 @@ public class Mode {
         mode.onDuplicateKeyUpdate = true;
         mode.replaceInto = true;
         // MySQL allows to use any key for client info entries. See
-        // http://grepcode.com/file/repo1.maven.org/maven2/mysql/
-        //     mysql-connector-java/5.1.24/com/mysql/jdbc/
-        //     JDBC4CommentClientInfoProvider.java
+        // https://github.com/mysql/mysql-connector-j/blob/5.1.47/src/com/mysql/jdbc/JDBC4CommentClientInfoProvider.java
         mode.supportedClientInfoPropertiesRegEx =
                 Pattern.compile(".*");
         mode.charToBinaryInUtf8 = true;

@@ -72,7 +72,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     public String getDatabaseProductName() {
         debugCodeCall("getDatabaseProductName");
         // This value must stay like that, see
-        // http://opensource.atlassian.com/projects/hibernate/browse/HHH-2682
+        // https://hibernate.atlassian.net/browse/HHH-2682
         return "H2";
     }
 

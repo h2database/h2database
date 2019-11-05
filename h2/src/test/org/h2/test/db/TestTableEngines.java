@@ -16,44 +16,32 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.h2.api.TableEngine;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Session;
-import org.h2.expression.Expression;
 import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
-import org.h2.index.IndexLookupBatch;
 import org.h2.index.IndexType;
 import org.h2.index.SingleRowCursor;
-import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
-import org.h2.pagestore.db.PageStoreTable;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.IndexColumn;
-import org.h2.table.SubQueryInfo;
 import org.h2.table.Table;
 import org.h2.table.TableBase;
 import org.h2.table.TableFilter;
 import org.h2.table.TableType;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
-import org.h2.util.DoneFuture;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
-import org.h2.value.ValueString;
 
 /**
  * The class for external table engines mechanism testing.
@@ -75,28 +63,10 @@ public class TestTableEngines extends TestDb {
     public void test() throws Exception {
         testQueryExpressionFlag();
         testSubQueryInfo();
-        testEarlyFilter();
         testEngineParams();
         testSchemaEngineParams();
         testSimpleQuery();
         testMultiColumnTreeSetIndex();
-        testBatchedJoin();
-        testAffinityKey();
-    }
-
-    private void testEarlyFilter() throws SQLException {
-        deleteDb("tableEngine");
-        Connection conn = getConnection("tableEngine;EARLY_FILTER=TRUE");
-        Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE t1(id int, name varchar) ENGINE \"" +
-        EndlessTableEngine.class.getName() + "\"");
-        ResultSet rs = stat.executeQuery(
-                "SELECT name FROM t1 where id=1 and name is not null");
-        assertTrue(rs.next());
-        assertEquals("((ID = 1)\n    AND (NAME IS NOT NULL))", rs.getString(1));
-        rs.close();
-        conn.close();
-        deleteDb("tableEngine");
     }
 
     private void testEngineParams() throws SQLException {
@@ -439,316 +409,6 @@ public class TestTableEngines extends TestDb {
         deleteDb("testSubQueryInfo");
     }
 
-    private void setBatchingEnabled(Statement stat, boolean enabled) throws SQLException {
-        stat.execute("SET BATCH_JOINS " + enabled);
-        if (!config.networked) {
-            Session s = (Session) ((JdbcConnection) stat.getConnection()).getSession();
-            assertEquals(enabled, s.isJoinBatchEnabled());
-        }
-    }
-
-    private void testBatchedJoin() throws SQLException {
-        deleteDb("testBatchedJoin");
-        Connection conn = getConnection("testBatchedJoin;OPTIMIZE_REUSE_RESULTS=0;BATCH_JOINS=1");
-        Statement stat = conn.createStatement();
-        setBatchingEnabled(stat, false);
-        setBatchingEnabled(stat, true);
-
-        TreeSetIndex.exec = Executors.newFixedThreadPool(8, r -> {
-            Thread t = new Thread(r);
-            t.setDaemon(true);
-            return t;
-        });
-
-        forceJoinOrder(stat, true);
-        try {
-            doTestBatchedJoinSubQueryUnion(stat);
-
-            TreeSetIndex.lookupBatches.set(0);
-            doTestBatchedJoin(stat, 1, 0, 0);
-            doTestBatchedJoin(stat, 0, 1, 0);
-            doTestBatchedJoin(stat, 0, 0, 1);
-
-            doTestBatchedJoin(stat, 0, 2, 0);
-            doTestBatchedJoin(stat, 0, 0, 2);
-
-            doTestBatchedJoin(stat, 0, 0, 3);
-            doTestBatchedJoin(stat, 0, 0, 4);
-            doTestBatchedJoin(stat, 0, 0, 5);
-
-            doTestBatchedJoin(stat, 0, 3, 1);
-            doTestBatchedJoin(stat, 0, 3, 3);
-            doTestBatchedJoin(stat, 0, 3, 7);
-
-            doTestBatchedJoin(stat, 0, 4, 1);
-            doTestBatchedJoin(stat, 0, 4, 6);
-            doTestBatchedJoin(stat, 0, 4, 20);
-
-            doTestBatchedJoin(stat, 0, 10, 0);
-            doTestBatchedJoin(stat, 0, 0, 10);
-
-            doTestBatchedJoin(stat, 0, 20, 0);
-            doTestBatchedJoin(stat, 0, 0, 20);
-            doTestBatchedJoin(stat, 0, 20, 20);
-
-            doTestBatchedJoin(stat, 3, 7, 0);
-            doTestBatchedJoin(stat, 0, 0, 5);
-            doTestBatchedJoin(stat, 0, 8, 1);
-            doTestBatchedJoin(stat, 0, 2, 1);
-
-            assertTrue(TreeSetIndex.lookupBatches.get() > 0);
-        } finally {
-            forceJoinOrder(stat, false);
-            TreeSetIndex.exec.shutdownNow();
-        }
-        conn.close();
-        deleteDb("testBatchedJoin");
-    }
-
-    private void testAffinityKey() throws SQLException {
-        deleteDb("tableEngine");
-        Connection conn = getConnection("tableEngine;mode=Ignite;MV_STORE=FALSE");
-        Statement stat = conn.createStatement();
-
-        stat.executeUpdate("CREATE TABLE T(ID INT AFFINITY PRIMARY KEY, NAME VARCHAR, AGE INT)" +
-                " ENGINE \"" + AffinityTableEngine.class.getName() + "\"");
-        Table tbl = AffinityTableEngine.createdTbl;
-        // Prevent memory leak
-        AffinityTableEngine.createdTbl = null;
-        assertNotNull(tbl);
-        assertEquals(3, tbl.getIndexes().size());
-        Index aff = tbl.getIndexes().get(2);
-        assertTrue(aff.getIndexType().isAffinity());
-        assertEquals("T_AFF", aff.getName());
-        assertEquals(1, aff.getIndexColumns().length);
-        assertEquals("ID", aff.getIndexColumns()[0].columnName);
-        conn.close();
-        deleteDb("tableEngine");
-    }
-
-    private static void forceJoinOrder(Statement s, boolean force) throws SQLException {
-        s.executeUpdate("SET FORCE_JOIN_ORDER " + force);
-    }
-
-    private void checkPlan(Statement stat, String sql) throws SQLException {
-        ResultSet rs = stat.executeQuery("EXPLAIN " + sql);
-        assertTrue(rs.next());
-        String plan = rs.getString(1);
-        assertEquals(normalize(sql), normalize(plan));
-    }
-
-    private static String normalize(String sql) {
-        sql = sql.replace('\n', ' ');
-        return sql.replaceAll("\\s+", " ").trim();
-    }
-
-    private void doTestBatchedJoinSubQueryUnion(Statement stat) throws SQLException {
-        String engine = '"' + TreeSetIndexTableEngine.class.getName() + '"';
-        stat.execute("CREATE TABLE t (a int, b int) ENGINE " + engine);
-        TreeSetTable t = TreeSetIndexTableEngine.created;
-        stat.execute("CREATE INDEX T_IDX_A ON t(a)");
-        stat.execute("CREATE INDEX T_IDX_B ON t(b)");
-        setBatchSize(t, 3);
-        for (int i = 0; i < 20; i++) {
-            stat.execute("insert into t values (" + i + "," + (i + 10) + ")");
-        }
-        stat.execute("CREATE TABLE u (a int, b int) ENGINE " + engine);
-        TreeSetTable u = TreeSetIndexTableEngine.created;
-        // Prevent memory leak
-        TreeSetIndexTableEngine.created = null;
-        stat.execute("CREATE INDEX U_IDX_A ON u(a)");
-        stat.execute("CREATE INDEX U_IDX_B ON u(b)");
-        setBatchSize(u, 0);
-        for (int i = 10; i < 25; i++) {
-            stat.execute("insert into u values (" + i + "," + (i - 15)+ ")");
-        }
-
-        checkPlan(stat, "SELECT 1 FROM \"PUBLIC\".\"T\" \"T1\" /* PUBLIC.scan */ "
-                + "INNER JOIN \"PUBLIC\".\"T\" \"T2\" /* batched:test PUBLIC.T_IDX_B: B = T1.A */ "
-                + "ON 1=1 WHERE \"T1\".\"A\" = \"T2\".\"B\"");
-        checkPlan(stat, "SELECT 1 FROM \"PUBLIC\".\"T\" \"T1\" /* PUBLIC.scan */ "
-                + "INNER JOIN \"PUBLIC\".\"T\" \"T2\" /* batched:test PUBLIC.T_IDX_B: B = T1.A */ "
-                + "ON 1=1 /* WHERE T1.A = T2.B */ "
-                + "INNER JOIN \"PUBLIC\".\"T\" \"T3\" /* batched:test PUBLIC.T_IDX_B: B = T2.A */ "
-                + "ON 1=1 WHERE (\"T2\".\"A\" = \"T3\".\"B\") AND (\"T1\".\"A\" = \"T2\".\"B\")");
-        checkPlan(stat, "SELECT 1 FROM \"PUBLIC\".\"T\" \"T1\" /* PUBLIC.scan */ "
-                + "INNER JOIN \"PUBLIC\".\"U\" /* batched:fake PUBLIC.U_IDX_A: A = T1.A */ "
-                + "ON 1=1 /* WHERE T1.A = U.A */ "
-                + "INNER JOIN \"PUBLIC\".\"T\" \"T2\" /* batched:test PUBLIC.T_IDX_B: B = U.B */ "
-                + "ON 1=1 WHERE (\"T1\".\"A\" = \"U\".\"A\") AND (\"U\".\"B\" = \"T2\".\"B\")");
-        checkPlan(stat, "SELECT 1 FROM ( SELECT \"A\" FROM \"PUBLIC\".\"T\" ) \"Z\" "
-                + "/* SELECT A FROM PUBLIC.T /++ PUBLIC.T_IDX_A ++/ */ "
-                + "INNER JOIN \"PUBLIC\".\"T\" /* batched:test PUBLIC.T_IDX_B: B = Z.A */ "
-                + "ON 1=1 WHERE \"Z\".\"A\" = \"T\".\"B\"");
-        checkPlan(stat, "SELECT 1 FROM \"PUBLIC\".\"T\" /* PUBLIC.T_IDX_B */ "
-                + "INNER JOIN ( SELECT \"A\" FROM \"PUBLIC\".\"T\" ) \"Z\" "
-                + "/* batched:view SELECT A FROM PUBLIC.T "
-                + "/++ batched:test PUBLIC.T_IDX_A: A IS NOT DISTINCT FROM ?1 ++/ "
-                + "WHERE A IS NOT DISTINCT FROM ?1: A = T.B */ ON 1=1 WHERE \"Z\".\"A\" = \"T\".\"B\"");
-        checkPlan(stat, "SELECT 1 FROM \"PUBLIC\".\"T\" /* PUBLIC.T_IDX_A */ "
-                + "INNER JOIN ( ((SELECT \"A\" FROM \"PUBLIC\".\"T\") UNION ALL (SELECT \"B\" FROM \"PUBLIC\".\"U\")) "
-                + "UNION ALL (SELECT \"B\" FROM \"PUBLIC\".\"T\") ) \"Z\" /* batched:view "
-                + "((SELECT A FROM PUBLIC.T /++ batched:test PUBLIC.T_IDX_A: A IS NOT DISTINCT FROM ?1 ++/ "
-                + "WHERE A IS NOT DISTINCT FROM ?1) "
-                + "UNION ALL "
-                + "(SELECT B FROM PUBLIC.U /++ PUBLIC.U_IDX_B: "
-                + "B IS NOT DISTINCT FROM ?1 ++/ WHERE B IS NOT DISTINCT FROM ?1)) "
-                + "UNION ALL "
-                + "(SELECT B FROM PUBLIC.T /++ batched:test PUBLIC.T_IDX_B: B IS NOT DISTINCT FROM ?1 ++/ "
-                + "WHERE B IS NOT DISTINCT FROM ?1): A = T.A */ ON 1=1 WHERE \"Z\".\"A\" = \"T\".\"A\"");
-        checkPlan(stat, "SELECT 1 FROM \"PUBLIC\".\"T\" /* PUBLIC.T_IDX_A */ "
-                + "INNER JOIN ( SELECT \"U\".\"A\" FROM \"PUBLIC\".\"U\" INNER JOIN \"PUBLIC\".\"T\" ON 1=1 "
-                + "WHERE \"U\".\"B\" = \"T\".\"B\" ) \"Z\" "
-                + "/* batched:view SELECT U.A FROM PUBLIC.U "
-                + "/++ batched:fake PUBLIC.U_IDX_A: A IS NOT DISTINCT FROM ?1 ++/ "
-                + "/++ WHERE U.A IS NOT DISTINCT FROM ?1 ++/ INNER JOIN PUBLIC.T "
-                + "/++ batched:test PUBLIC.T_IDX_B: B = U.B ++/ "
-                + "ON 1=1 WHERE (U.B = T.B) _LOCAL_AND_GLOBAL_ (U.A IS NOT DISTINCT FROM ?1): A = T.A */ "
-                + "ON 1=1 WHERE \"Z\".\"A\" = \"T\".\"A\"");
-        checkPlan(stat, "SELECT 1 FROM \"PUBLIC\".\"T\" /* PUBLIC.T_IDX_A */ "
-                + "INNER JOIN ( SELECT \"A\" FROM \"PUBLIC\".\"U\" ) \"Z\" /* SELECT A FROM PUBLIC.U "
-                + "/++ PUBLIC.U_IDX_A: A IS NOT DISTINCT FROM ?1 ++/ WHERE A IS NOT DISTINCT FROM ?1: A = T.A */ "
-                + "ON 1=1 WHERE \"T\".\"A\" = \"Z\".\"A\"");
-        checkPlan(stat, "SELECT 1 FROM "
-                + "( SELECT \"U\".\"A\" FROM \"PUBLIC\".\"U\" INNER JOIN \"PUBLIC\".\"T\" "
-                + "ON 1=1 WHERE \"U\".\"B\" = \"T\".\"B\" ) \"Z\" "
-                + "/* SELECT U.A FROM PUBLIC.U /++ PUBLIC.scan ++/ "
-                + "INNER JOIN PUBLIC.T /++ batched:test PUBLIC.T_IDX_B: B = U.B ++/ "
-                + "ON 1=1 WHERE U.B = T.B */ "
-                + "INNER JOIN \"PUBLIC\".\"T\" /* batched:test PUBLIC.T_IDX_A: A = Z.A */ ON 1=1 "
-                + "WHERE \"T\".\"A\" = \"Z\".\"A\"");
-        checkPlan(stat, "SELECT 1 FROM "
-                + "( SELECT \"U\".\"A\" FROM \"PUBLIC\".\"T\" INNER JOIN \"PUBLIC\".\"U\" "
-                + "ON 1=1 WHERE \"T\".\"B\" = \"U\".\"B\" ) \"Z\" "
-                + "/* SELECT U.A FROM PUBLIC.T /++ PUBLIC.T_IDX_B ++/ "
-                + "INNER JOIN PUBLIC.U /++ PUBLIC.U_IDX_B: B = T.B ++/ "
-                + "ON 1=1 WHERE T.B = U.B */ INNER JOIN \"PUBLIC\".\"T\" "
-                + "/* batched:test PUBLIC.T_IDX_A: A = Z.A */ "
-                + "ON 1=1 WHERE \"Z\".\"A\" = \"T\".\"A\"");
-        checkPlan(stat, "SELECT 1 FROM ( (SELECT \"A\" FROM \"PUBLIC\".\"T\") UNION "
-                + "(SELECT \"A\" FROM \"PUBLIC\".\"U\") ) \"Z\" "
-                + "/* (SELECT A FROM PUBLIC.T /++ PUBLIC.T_IDX_A ++/) "
-                + "UNION "
-                + "(SELECT A FROM PUBLIC.U /++ PUBLIC.U_IDX_A ++/) */ "
-                + "INNER JOIN \"PUBLIC\".\"T\" /* batched:test PUBLIC.T_IDX_A: A = Z.A */ ON 1=1 "
-                + "WHERE \"Z\".\"A\" = \"T\".\"A\"");
-        checkPlan(stat, "SELECT 1 FROM \"PUBLIC\".\"U\" /* PUBLIC.U_IDX_B */ "
-                + "INNER JOIN ( (SELECT \"A\", \"B\" FROM \"PUBLIC\".\"T\") "
-                + "UNION (SELECT \"B\", \"A\" FROM \"PUBLIC\".\"U\") ) \"Z\" "
-                + "/* batched:view (SELECT A, B FROM PUBLIC.T "
-                + "/++ batched:test PUBLIC.T_IDX_B: B IS NOT DISTINCT FROM ?1 ++/ "
-                + "WHERE B IS NOT DISTINCT FROM ?1) UNION (SELECT B, A FROM PUBLIC.U "
-                + "/++ PUBLIC.U_IDX_A: A IS NOT DISTINCT FROM ?1 ++/ "
-                + "WHERE A IS NOT DISTINCT FROM ?1): B = U.B */ ON 1=1 /* WHERE U.B = Z.B */ "
-                + "INNER JOIN \"PUBLIC\".\"T\" /* batched:test PUBLIC.T_IDX_A: A = Z.A */ ON 1=1 "
-                + "WHERE (\"U\".\"B\" = \"Z\".\"B\") AND (\"Z\".\"A\" = \"T\".\"A\")");
-        checkPlan(stat, "SELECT 1 FROM \"PUBLIC\".\"U\" /* PUBLIC.U_IDX_A */ "
-                + "INNER JOIN ( SELECT \"A\", \"B\" FROM \"PUBLIC\".\"U\" ) \"Z\" "
-                + "/* batched:fake SELECT A, B FROM PUBLIC.U /++ PUBLIC.U_IDX_A: A IS NOT DISTINCT FROM ?1 ++/ "
-                + "WHERE A IS NOT DISTINCT FROM ?1: A = U.A */ ON 1=1 /* WHERE U.A = Z.A */ "
-                + "INNER JOIN \"PUBLIC\".\"T\" /* batched:test PUBLIC.T_IDX_B: B = Z.B */ "
-                + "ON 1=1 WHERE (\"U\".\"A\" = \"Z\".\"A\") AND (\"Z\".\"B\" = \"T\".\"B\")");
-
-        // t: a = [ 0..20), b = [10..30)
-        // u: a = [10..25), b = [-5..10)
-        checkBatchedQueryResult(stat, 10,
-                "select t.a from t, (select t.b from u, t where u.a = t.a) z " +
-                "where t.b = z.b");
-        checkBatchedQueryResult(stat, 5,
-                "select t.a from (select t1.b from t t1, t t2 where t1.a = t2.b) z, t " +
-                "where t.b = z.b + 5");
-        checkBatchedQueryResult(stat, 1,
-                "select t.a from (select u.b from u, t t2 where u.a = t2.b) z, t " +
-                "where t.b = z.b + 1");
-        checkBatchedQueryResult(stat, 15,
-                "select t.a from (select u.b from u, t t2 where u.a = t2.b) z " +
-                "left join t on t.b = z.b");
-        checkBatchedQueryResult(stat, 15,
-                "select t.a from (select t1.b from t t1 left join t t2 on t1.a = t2.b) z, t "
-                + "where t.b = z.b + 5");
-        checkBatchedQueryResult(stat, 1,
-                "select t.a from t,(select 5 as b from t union select 10 from u) z "
-                + "where t.b = z.b");
-        checkBatchedQueryResult(stat, 15, "select t.a from u,(select 5 as b, a from t "
-                + "union select 10, a from u) z, t where t.b = z.b and z.a = u.a");
-
-        stat.execute("DROP TABLE T");
-        stat.execute("DROP TABLE U");
-    }
-
-    private void checkBatchedQueryResult(Statement stat, int size, String sql)
-            throws SQLException {
-        setBatchingEnabled(stat, false);
-        List<List<Object>> expected = query(stat, sql);
-        assertEquals(size, expected.size());
-        setBatchingEnabled(stat, true);
-        List<List<Object>> actual = query(stat, sql);
-        if (!expected.equals(actual)) {
-            fail("\n" + "expected: " + expected + "\n" + "actual:   " + actual);
-        }
-    }
-
-    private void doTestBatchedJoin(Statement stat, int... batchSizes) throws SQLException {
-        ArrayList<TreeSetTable> tables = new ArrayList<>(batchSizes.length);
-
-        for (int i = 0; i < batchSizes.length; i++) {
-            stat.executeUpdate("DROP TABLE IF EXISTS T" + i);
-            stat.executeUpdate("CREATE TABLE T" + i + "(A INT, B INT) ENGINE \"" +
-                    TreeSetIndexTableEngine.class.getName() + "\"");
-            tables.add(TreeSetIndexTableEngine.created);
-
-            stat.executeUpdate("CREATE INDEX IDX_B ON T" + i + "(B)");
-            stat.executeUpdate("CREATE INDEX IDX_A ON T" + i + "(A)");
-
-            PreparedStatement insert = stat.getConnection().prepareStatement(
-                    "INSERT INTO T"+ i + " VALUES (?,?)");
-
-            for (int j = i, size = i + 10; j < size; j++) {
-                insert.setInt(1, j);
-                insert.setInt(2, j);
-                insert.executeUpdate();
-            }
-
-            for (TreeSetTable table : tables) {
-                assertEquals(10, table.getRowCount(null));
-            }
-        }
-        // Prevent memory leak
-        TreeSetIndexTableEngine.created = null;
-
-        int[] zeroBatchSizes = new int[batchSizes.length];
-        int tests = 1 << (batchSizes.length * 4);
-
-        for (int test = 0; test < tests; test++) {
-            String query = generateQuery(test, batchSizes.length);
-
-            // System.out.println(Arrays.toString(batchSizes) +
-            //    ": " + test + " -> " + query);
-
-            setBatchSize(tables, batchSizes);
-            List<List<Object>> res1 = query(stat, query);
-
-            setBatchSize(tables, zeroBatchSizes);
-            List<List<Object>> res2 = query(stat, query);
-
-            // System.out.println(res1 + " " + res2);
-
-            if (!res2.equals(res1)) {
-                System.err.println(Arrays.toString(batchSizes) + ": " + res1 + " " + res2);
-                System.err.println("Test " + test);
-                System.err.println(query);
-                for (TreeSetTable table : tables) {
-                    System.err.println(table.getName() + " = " +
-                            query(stat, "select * from " + table.getName()));
-                }
-                fail();
-            }
-        }
-        for (int i = 0; i < batchSizes.length; i++) {
-            stat.executeUpdate("DROP TABLE IF EXISTS T" + i);
-        }
-    }
-
     /**
      * A static assertion method.
      *
@@ -759,68 +419,6 @@ public class TestTableEngines extends TestDb {
         if (!condition) {
             throw new AssertionError(message);
         }
-    }
-
-    private static void setBatchSize(ArrayList<TreeSetTable> tables, int... batchSizes) {
-        for (int i = 0; i < batchSizes.length; i++) {
-            int batchSize = batchSizes[i];
-            setBatchSize(tables.get(i), batchSize);
-        }
-    }
-
-    private static void setBatchSize(TreeSetTable t, int batchSize) {
-        if (t.getIndexes() == null) {
-            t.scan.preferredBatchSize = batchSize;
-        } else {
-            for (Index idx : t.getIndexes()) {
-                ((TreeSetIndex) idx).preferredBatchSize = batchSize;
-            }
-        }
-    }
-
-    private static String generateQuery(int t, int tables) {
-        final int withLeft = 1;
-        final int withFalse = 2;
-        final int withWhere = 4;
-        final int withOnIsNull = 8;
-
-        StringBuilder b = new StringBuilder();
-        b.append("select count(*) from ");
-
-        StringBuilder where = new StringBuilder();
-
-        for (int i = 0; i < tables; i++) {
-            if (i != 0) {
-                if ((t & withLeft) != 0) {
-                    b.append(" left ");
-                }
-                b.append(" join ");
-            }
-            b.append("\nT").append(i).append(' ');
-            if (i != 0) {
-                boolean even = (i & 1) == 0;
-                if ((t & withOnIsNull) != 0) {
-                    b.append(" on T").append(i - 1).append(even ? ".B" : ".A").append(" is null");
-                } else if ((t & withFalse) != 0) {
-                    b.append(" on false ");
-                } else {
-                    b.append(" on T").append(i - 1).append(even ? ".B = " : ".A = ");
-                    b.append("T").append(i).append(even ? ".B " : ".A ");
-                }
-            }
-            if ((t & withWhere) != 0) {
-                if (where.length() != 0) {
-                    where.append(" and ");
-                }
-                where.append(" T").append(i).append(".A > 5");
-            }
-            t >>>= 4;
-        }
-        if (where.length() != 0) {
-            b.append("\n" + "where ").append(where);
-        }
-
-        return b.toString();
     }
 
     private void checkResultsNoOrder(Statement stat, int size, String query1, String query2)
@@ -1120,134 +718,6 @@ public class TestTableEngines extends TestDb {
     }
 
     /**
-     * A test table factory producing affinity aware tables.
-     */
-    public static class AffinityTableEngine implements TableEngine {
-        public static Table createdTbl;
-
-        /**
-         * A table able to handle affinity indexes.
-         */
-        private static class AffinityTable extends PageStoreTable {
-
-            /**
-             * A (no-op) affinity index.
-             */
-            public class AffinityIndex extends BaseIndex {
-                AffinityIndex(Table table, int id, String name, IndexColumn[] newIndexColumns) {
-                    super(table, id, name, newIndexColumns, IndexType.createAffinity());
-                }
-
-                @Override
-                public long getRowCountApproximation() {
-                    return table.getRowCountApproximation();
-                }
-
-                @Override
-                public long getDiskSpaceUsed() {
-                    return table.getDiskSpaceUsed();
-                }
-
-                @Override
-                public long getRowCount(Session session) {
-                    return table.getRowCount(session);
-                }
-
-                @Override
-                public void truncate(Session session) {
-                    // do nothing
-                }
-
-                @Override
-                public void remove(Session session) {
-                    // do nothing
-                }
-
-                @Override
-                public void remove(Session session, Row r) {
-                    // do nothing
-                }
-
-                @Override
-                public boolean needRebuild() {
-                    return false;
-                }
-
-                @Override
-                public double getCost(Session session, int[] masks,
-                        TableFilter[] filters, int filter, SortOrder sortOrder,
-                        AllColumnsForPlan allColumnsSet) {
-                    return 0;
-                }
-
-                @Override
-                public Cursor find(Session session, SearchRow first, SearchRow last) {
-                    throw DbException.getUnsupportedException("TEST");
-                }
-
-                @Override
-                public void close(Session session) {
-                    // do nothing
-                }
-
-                @Override
-                public boolean canScan() {
-                    return false;
-                }
-
-                @Override
-                public void add(Session session, Row r) {
-                    // do nothing
-                }
-            }
-
-            AffinityTable(CreateTableData data) {
-                super(data);
-            }
-
-            @Override
-            public Index addIndex(Session session, String indexName,
-                    int indexId, IndexColumn[] cols, IndexType indexType,
-                    boolean create, String indexComment) {
-                if (!indexType.isAffinity()) {
-                    return super.addIndex(session, indexName, indexId, cols, indexType, create, indexComment);
-                }
-
-                boolean isSessionTemporary = isTemporary() && !isGlobalTemporary();
-                if (!isSessionTemporary) {
-                    database.lockMeta(session);
-                }
-                AffinityIndex index = new AffinityIndex(this, indexId, getName() + "_AFF", cols);
-                index.setTemporary(isTemporary());
-                if (index.getCreateSQL() != null) {
-                    index.setComment(indexComment);
-                    if (isSessionTemporary) {
-                        session.addLocalTempTableIndex(index);
-                    } else {
-                        database.addSchemaObject(session, index);
-                    }
-                }
-                getIndexes().add(index);
-                setModified();
-                return index;
-            }
-
-        }
-
-        /**
-         * Create a new OneRowTable.
-         *
-         * @param data the meta data of the table to create
-         * @return the new table
-         */
-        @Override
-        public Table createTable(CreateTableData data) {
-            return (createdTbl = new AffinityTable(data));
-        }
-
-    }
-
-    /**
      * A test table factory.
      */
     public static class EndlessTableEngine implements TableEngine {
@@ -1261,8 +731,7 @@ public class TestTableEngines extends TestDb {
 
             EndlessTable(CreateTableData data) {
                 super(data);
-                row = data.schema.getDatabase().createRow(
-                        new Value[] { ValueInt.get(1), ValueNull.INSTANCE }, 0);
+                row = new Row(new Value[] { ValueInt.get(1), ValueNull.INSTANCE }, 0);
                 scanIndex = new Auto(this);
             }
 
@@ -1276,25 +745,7 @@ public class TestTableEngines extends TestDb {
                 }
 
                 @Override
-                public Cursor find(TableFilter filter, SearchRow first, SearchRow last) {
-                    return find(filter.getFilterCondition());
-                }
-
-                @Override
                 public Cursor find(Session session, SearchRow first, SearchRow last) {
-                    return find(null);
-                }
-
-                /**
-                 * Search within the table.
-                 *
-                 * @param filter the table filter (optional)
-                 * @return the cursor
-                 */
-                private Cursor find(Expression filter) {
-                    if (filter != null) {
-                        row.setValue(1, ValueString.get(filter.getSQL(false)));
-                    }
                     return new SingleRowCursor(row);
                 }
 
@@ -1343,7 +794,6 @@ public class TestTableEngines extends TestDb {
             public double getCost(Session session, int[] masks,
                     TableFilter[] filters, int filter, SortOrder sortOrder,
                     AllColumnsForPlan allColumnsSet) {
-                doTests(session);
                 return getCostRangeIndex(masks, getRowCount(session), filters,
                         filter, sortOrder, true, allColumnsSet);
             }
@@ -1492,14 +942,6 @@ public class TestTableEngines extends TestDb {
      * An index that internally uses a tree set.
      */
     private static class TreeSetIndex extends BaseIndex implements Comparator<SearchRow> {
-        /**
-         * Executor service to test batched joins.
-         */
-        static ExecutorService exec;
-
-        static AtomicInteger lookupBatches = new AtomicInteger();
-
-        int preferredBatchSize;
 
         final TreeSet<SearchRow> set = new TreeSet<>(this);
 
@@ -1518,77 +960,6 @@ public class TestTableEngines extends TestDb {
                 }
             }
             return res;
-        }
-
-        @Override
-        public IndexLookupBatch createLookupBatch(TableFilter[] filters, int f) {
-            final TableFilter filter = filters[f];
-            assert0(filter.getMasks() != null || "scan".equals(getName()), "masks");
-            final int preferredSize = preferredBatchSize;
-            if (preferredSize == 0) {
-                return null;
-            }
-            lookupBatches.incrementAndGet();
-            return new IndexLookupBatch() {
-                List<SearchRow> searchRows = new ArrayList<>();
-
-                @Override
-                public String getPlanSQL() {
-                    return "test";
-                }
-
-                @Override public boolean isBatchFull() {
-                    return searchRows.size() >= preferredSize * 2;
-                }
-
-                @Override
-                public List<Future<Cursor>> find() {
-                    List<Future<Cursor>> res = findBatched(filter, searchRows);
-                    searchRows.clear();
-                    return res;
-                }
-
-                @Override
-                public boolean addSearchRows(SearchRow first, SearchRow last) {
-                    assert !isBatchFull();
-                    searchRows.add(first);
-                    searchRows.add(last);
-                    return true;
-                }
-
-                @Override
-                public void reset(boolean beforeQuery) {
-                    searchRows.clear();
-                }
-            };
-        }
-
-        public List<Future<Cursor>> findBatched(TableFilter filter, List<SearchRow> firstLastPairs) {
-            ArrayList<Future<Cursor>> result = new ArrayList<>(firstLastPairs.size());
-            Random rnd = new Random();
-            for (int i = 0; i < firstLastPairs.size(); i += 2) {
-                SearchRow first = firstLastPairs.get(i);
-                SearchRow last = firstLastPairs.get(i + 1);
-                Future<Cursor> future;
-                if (rnd.nextBoolean()) {
-                    IteratorCursor c = (IteratorCursor) find(filter, first, last);
-                    if (c.it.hasNext()) {
-                        future = new DoneFuture<>(c);
-                    } else {
-                        // we can return null instead of future of empty cursor
-                        future = null;
-                    }
-                } else {
-                    future = exec.submit(() -> {
-                        if (rnd.nextInt(50) == 0) {
-                            Thread.sleep(0, 500);
-                        }
-                        return find(filter, first, last);
-                    });
-                }
-                result.add(future);
-            }
-            return result;
         }
 
         @Override
@@ -1643,48 +1014,10 @@ public class TestTableEngines extends TestDb {
             return new IteratorCursor(subSet.iterator());
         }
 
-        private static String alias(SubQueryInfo info) {
-            return info.getFilters()[info.getFilter()].getTableAlias();
-        }
-
-        private void checkInfo(SubQueryInfo info) {
-            if (info.getUpper() == null) {
-                // check 1st level info
-                assert0(info.getFilters().length == 1, "getFilters().length " +
-                        info.getFilters().length);
-                String alias = alias(info);
-                assert0("T5".equals(alias), "alias: " + alias);
-            } else {
-                // check 2nd level info
-                assert0(info.getFilters().length == 2, "getFilters().length " +
-                        info.getFilters().length);
-                String alias = alias(info);
-                assert0("T4".equals(alias), "alias: " + alias);
-                checkInfo(info.getUpper());
-            }
-        }
-
-        protected void doTests(Session session) {
-            if (getTable().getName().equals("SUB_QUERY_TEST")) {
-                checkInfo(session.getSubQueryInfo());
-            } else if (getTable().getName().equals("EXPR_TEST")) {
-                assert0(session.getSubQueryInfo() == null, "select expression");
-            } else if (getTable().getName().equals("EXPR_TEST2")) {
-                String alias = alias(session.getSubQueryInfo());
-                assert0(alias.equals("ZZ"), "select expression sub-query: " + alias);
-                assert0(session.getSubQueryInfo().getUpper() == null, "upper");
-            } else if (getTable().getName().equals("QUERY_EXPR_TEST")) {
-                assert0(session.isPreparingQueryExpression(), "preparing query expression");
-            } else if (getTable().getName().equals("QUERY_EXPR_TEST_NO")) {
-                assert0(!session.isPreparingQueryExpression(), "not preparing query expression");
-            }
-        }
-
         @Override
         public double getCost(Session session, int[] masks,
                 TableFilter[] filters, int filter, SortOrder sortOrder,
                 AllColumnsForPlan allColumnsSet) {
-            doTests(session);
             return getCostRangeIndex(masks, set.size(), filters, filter,
                     sortOrder, false, allColumnsSet);
         }

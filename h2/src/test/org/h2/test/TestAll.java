@@ -66,7 +66,6 @@ import org.h2.test.db.TestQueryCache;
 import org.h2.test.db.TestReadOnly;
 import org.h2.test.db.TestRecursiveQueries;
 import org.h2.test.db.TestRights;
-import org.h2.test.db.TestRowFactory;
 import org.h2.test.db.TestRunscript;
 import org.h2.test.db.TestSQLInjection;
 import org.h2.test.db.TestSelectCountNonNullColumn;
@@ -92,7 +91,6 @@ import org.h2.test.jdbc.TestCallableStatement;
 import org.h2.test.jdbc.TestCancel;
 import org.h2.test.jdbc.TestConcurrentConnectionUsage;
 import org.h2.test.jdbc.TestConnection;
-import org.h2.test.jdbc.TestCustomDataTypesHandler;
 import org.h2.test.jdbc.TestDatabaseEventListener;
 import org.h2.test.jdbc.TestDriver;
 import org.h2.test.jdbc.TestGetGeneratedKeys;
@@ -198,7 +196,6 @@ import org.h2.test.unit.TestInterval;
 import org.h2.test.unit.TestJmx;
 import org.h2.test.unit.TestJsonUtils;
 import org.h2.test.unit.TestKeywords;
-import org.h2.test.unit.TestLocalResultFactory;
 import org.h2.test.unit.TestLocale;
 import org.h2.test.unit.TestMVTempResult;
 import org.h2.test.unit.TestMathUtils;
@@ -775,7 +772,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestSpatial());
         addTest(new TestSpeed());
         addTest(new TestTableEngines());
-        addTest(new TestRowFactory());
         addTest(new TestTempTables());
         addTest(new TestTransaction());
         addTest(new TestTriggersConstraints());
@@ -807,7 +803,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestTransactionIsolation());
         addTest(new TestUpdatableResultSet());
         addTest(new TestZloty());
-        addTest(new TestCustomDataTypesHandler());
         addTest(new TestSetCollation());
 
         // jdbcx
@@ -976,7 +971,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestStringUtils());
         addTest(new TestTraceSystem());
         addTest(new TestUtils());
-        addTest(new TestLocalResultFactory());
 
         runAddedTests();
 

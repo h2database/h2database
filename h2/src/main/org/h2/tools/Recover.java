@@ -52,7 +52,6 @@ import org.h2.pagestore.PageLog;
 import org.h2.pagestore.PageStore;
 import org.h2.pagestore.db.LobStorageBackend;
 import org.h2.result.Row;
-import org.h2.result.RowFactory;
 import org.h2.result.SimpleRow;
 import org.h2.security.SHA256;
 import org.h2.store.Data;
@@ -971,7 +970,7 @@ public class Recover extends Tool implements DataHandler {
             } else if (x == PageLog.ADD) {
                 int sessionId = in.readVarInt();
                 setStorage(in.readVarInt());
-                Row row = PageLog.readRow(RowFactory.DEFAULT, in, s);
+                Row row = PageLog.readRow(in, s);
                 writer.println("-- session " + sessionId +
                         " table " + storageId +
                         " + " + row.toString());

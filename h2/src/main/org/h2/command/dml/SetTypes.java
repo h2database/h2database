@@ -213,19 +213,9 @@ public class SetTypes {
     public static final int QUERY_STATISTICS_MAX_ENTRIES = QUERY_STATISTICS + 1;
 
     /**
-     * The type of a SET ROW_FACTORY statement.
-     */
-    public static final int ROW_FACTORY = QUERY_STATISTICS_MAX_ENTRIES + 1;
-
-    /**
-     * The type of SET BATCH_JOINS statement.
-     */
-    public static final int BATCH_JOINS = ROW_FACTORY + 1;
-
-    /**
      * The type of SET FORCE_JOIN_ORDER statement.
      */
-    public static final int FORCE_JOIN_ORDER = BATCH_JOINS + 1;
+    public static final int FORCE_JOIN_ORDER = QUERY_STATISTICS_MAX_ENTRIES + 1;
 
     /**
      * The type of SET LAZY_QUERY_EXECUTION statement.
@@ -248,14 +238,9 @@ public class SetTypes {
     public static final int AUTHENTICATOR = COLUMN_NAME_RULES + 1;
 
     /**
-     * The type of a SET LOCAL_RESULT_FACTORY statement.
-     */
-    public static final int LOCAL_RESULT_FACTORY = AUTHENTICATOR + 1;
-
-    /**
      * The type of a SET UUID_COLLATION statement.
      */
-    public static final int UUID_COLLATION = LOCAL_RESULT_FACTORY + 1;
+    public static final int UUID_COLLATION = AUTHENTICATOR + 1;
 
     /**
      * The type of a SET IGNORE_CATALOGS statement.
@@ -318,14 +303,11 @@ public class SetTypes {
         list.add(RETENTION_TIME, "RETENTION_TIME");
         list.add(QUERY_STATISTICS, "QUERY_STATISTICS");
         list.add(QUERY_STATISTICS_MAX_ENTRIES, "QUERY_STATISTICS_MAX_ENTRIES");
-        list.add(ROW_FACTORY, "ROW_FACTORY");
-        list.add(BATCH_JOINS, "BATCH_JOINS");
         list.add(FORCE_JOIN_ORDER, "FORCE_JOIN_ORDER");
         list.add(LAZY_QUERY_EXECUTION, "LAZY_QUERY_EXECUTION");
         list.add(BUILTIN_ALIAS_OVERRIDE, "BUILTIN_ALIAS_OVERRIDE");
         list.add(COLUMN_NAME_RULES, "COLUMN_NAME_RULES");
         list.add(AUTHENTICATOR, "AUTHENTICATOR");
-        list.add(LOCAL_RESULT_FACTORY, "LOCAL_RESULT_FACTORY");
         list.add(UUID_COLLATION, "UUID_COLLATION");
         list.add(IGNORE_CATALOGS, "IGNORE_CATALOGS");
         list.add(CATALOG, "CATALOG");

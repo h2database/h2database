@@ -25,7 +25,6 @@ import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
 import org.h2.command.ddl.Analyze;
-import org.h2.command.dml.Query;
 import org.h2.command.dml.SetTypes;
 import org.h2.constraint.Constraint;
 import org.h2.index.Index;
@@ -42,15 +41,12 @@ import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionStore;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
-import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.store.DataHandler;
 import org.h2.store.InDoubtTransaction;
 import org.h2.store.LobStorageFrontend;
-import org.h2.table.SubQueryInfo;
 import org.h2.table.Table;
-import org.h2.table.TableFilter;
 import org.h2.table.TableType;
 import org.h2.util.ColumnNamerConfiguration;
 import org.h2.util.DateTimeUtils;
@@ -140,12 +136,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private final int queryCacheSize;
     private SmallLRUCache<String, Command> queryCache;
     private long modificationMetaID = -1;
-    private SubQueryInfo subQueryInfo;
     private ArrayDeque<String> viewNameStack;
-    private int preparingQueryExpression;
     private volatile SmallLRUCache<Object, ViewIndex> viewIndexCache;
     private HashMap<Object, ViewIndex> subQueryIndexCache;
-    private boolean joinBatchEnabled;
     private boolean forceJoinOrder;
     private boolean lazyQueryExecution;
     private ColumnNamerConfiguration columnNamerConfiguration;
@@ -225,49 +218,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         return forceJoinOrder;
     }
 
-    public void setJoinBatchEnabled(boolean joinBatchEnabled) {
-        this.joinBatchEnabled = joinBatchEnabled;
-    }
-
-    public boolean isJoinBatchEnabled() {
-        return joinBatchEnabled;
-    }
-
-    /**
-     * Create a new row for a table.
-     *
-     * @param data the values
-     * @param memory whether the row is in memory
-     * @return the created row
-     */
-    public Row createRow(Value[] data, int memory) {
-        return database.createRow(data, memory);
-    }
-
-    /**
-     * Add a subquery info on top of the subquery info stack.
-     *
-     * @param masks the mask
-     * @param filters the filters
-     * @param filter the filter index
-     * @param sortOrder the sort order
-     */
-    public void pushSubQueryInfo(int[] masks, TableFilter[] filters, int filter,
-            SortOrder sortOrder) {
-        subQueryInfo = new SubQueryInfo(subQueryInfo, masks, filters, filter, sortOrder);
-    }
-
-    /**
-     * Remove the current subquery info from the stack.
-     */
-    public void popSubQueryInfo() {
-        subQueryInfo = subQueryInfo.getUpper();
-    }
-
-    public SubQueryInfo getSubQueryInfo() {
-        return subQueryInfo;
-    }
-
     /**
      * Stores name of currently parsed view in a stack so it can be determined
      * during {@code prepare()}.
@@ -296,31 +246,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     public boolean isParsingCreateView() {
         return viewNameStack != null && !viewNameStack.isEmpty();
-    }
-
-    /**
-     * Optimize a query. This will remember the subquery info, clear it, prepare
-     * the query, and reset the subquery info.
-     *
-     * @param query the query to prepare
-     */
-    public void optimizeQueryExpression(Query query) {
-        // we have to hide current subQueryInfo if we are going to optimize
-        // query expression
-        SubQueryInfo tmp = subQueryInfo;
-        subQueryInfo = null;
-        preparingQueryExpression++;
-        try {
-            query.prepare();
-        } finally {
-            subQueryInfo = tmp;
-            preparingQueryExpression--;
-        }
-    }
-
-    public boolean isPreparingQueryExpression() {
-        assert preparingQueryExpression >= 0;
-        return preparingQueryExpression != 0;
     }
 
     @Override
@@ -659,7 +584,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             // we can't reuse sub-query indexes, so just drop the whole cache
             subQueryIndexCache = null;
         }
-        command.prepareJoinBatch();
         if (queryCache != null) {
             if (command.isCacheable()) {
                 queryCache.put(sql, command);
@@ -1991,8 +1915,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             result = (Row) value;
             assert result.getKey() == recKey : result.getKey() + " != " + recKey;
         } else {
-            ValueArray array = (ValueArray) value;
-            result = table.createRow(array.getList(), 0);
+            result = new Row(((ValueArray) value).getList(), 0);
             result.setKey(recKey);
         }
         return result;

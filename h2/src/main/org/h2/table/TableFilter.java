@@ -24,8 +24,6 @@ import org.h2.expression.condition.ConditionAndOr;
 import org.h2.index.Index;
 import org.h2.index.IndexCondition;
 import org.h2.index.IndexCursor;
-import org.h2.index.IndexLookupBatch;
-import org.h2.index.ViewIndex;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -71,12 +69,6 @@ public class TableFilter implements ColumnResolver {
     private int[] masks;
     private int scanCount;
     private boolean evaluatable;
-
-    /**
-     * Batched join support.
-     */
-    private JoinBatch joinBatch;
-    private int joinFilterId = -1;
 
     /**
      * Indicates that this filter is used in the plan.
@@ -164,7 +156,7 @@ public class TableFilter implements ColumnResolver {
         this.table = table;
         this.alias = alias;
         this.select = select;
-        this.cursor = new IndexCursor(this);
+        this.cursor = new IndexCursor();
         if (!rightsChecked) {
             session.getUser().checkRight(table, Right.SELECT);
         }
@@ -382,11 +374,6 @@ public class TableFilter implements ColumnResolver {
      * Reset to the current position.
      */
     public void reset() {
-        if (joinBatch != null && joinFilterId == 0) {
-            // reset join batch only on top table filter
-            joinBatch.reset(true);
-            return;
-        }
         if (nestedJoin != null) {
             nestedJoin.reset();
         }
@@ -397,101 +384,12 @@ public class TableFilter implements ColumnResolver {
         foundOne = false;
     }
 
-    private boolean isAlwaysTopTableFilter(int filter) {
-        if (filter != 0) {
-            return false;
-        }
-        // check if we are at the top table filters all the way up
-        SubQueryInfo info = session.getSubQueryInfo();
-        while (true) {
-            if (info == null) {
-                return true;
-            }
-            if (info.getFilter() != 0) {
-                return false;
-            }
-            info = info.getUpper();
-        }
-    }
-
-    /**
-     * Attempt to initialize batched join.
-     *
-     * @param jb join batch if it is already created
-     * @param filters the table filters
-     * @param filter the filter index (0, 1,...)
-     * @return join batch if query runs over index which supports batched
-     *         lookups, {@code null} otherwise
-     */
-    public JoinBatch prepareJoinBatch(JoinBatch jb, TableFilter[] filters, int filter) {
-        assert filters[filter] == this;
-        joinBatch = null;
-        joinFilterId = -1;
-        if (getTable().isView()) {
-            session.pushSubQueryInfo(masks, filters, filter, select.getSortOrder());
-            try {
-                ((ViewIndex) index).getQuery().prepareJoinBatch();
-            } finally {
-                session.popSubQueryInfo();
-            }
-        }
-        // For globally top table filter we don't need to create lookup batch,
-        // because currently it will not be used (this will be shown in
-        // ViewIndex.getPlanSQL()). Probably later on it will make sense to
-        // create it to better support X IN (...) conditions, but this needs to
-        // be implemented separately. If isAlwaysTopTableFilter is false then we
-        // either not a top table filter or top table filter in a sub-query,
-        // which in turn is not top in outer query, thus we need to enable
-        // batching here to allow outer query run batched join against this
-        // sub-query.
-        IndexLookupBatch lookupBatch = null;
-        if (jb == null && select != null && !isAlwaysTopTableFilter(filter)) {
-            lookupBatch = index.createLookupBatch(filters, filter);
-            if (lookupBatch != null) {
-                jb = new JoinBatch(filter + 1, join);
-            }
-        }
-        if (jb != null) {
-            if (nestedJoin != null) {
-                throw DbException.throwInternalError();
-            }
-            joinBatch = jb;
-            joinFilterId = filter;
-            if (lookupBatch == null && !isAlwaysTopTableFilter(filter)) {
-                // createLookupBatch will be called at most once because jb can
-                // be created only if lookupBatch is already not null from the
-                // call above.
-                lookupBatch = index.createLookupBatch(filters, filter);
-                if (lookupBatch == null) {
-                    // the index does not support lookup batching, need to fake
-                    // it because we are not top
-                    lookupBatch = JoinBatch.createFakeIndexLookupBatch(this);
-                }
-            }
-            jb.register(this, lookupBatch);
-        }
-        return jb;
-    }
-
-    public int getJoinFilterId() {
-        return joinFilterId;
-    }
-
-    public JoinBatch getJoinBatch() {
-        return joinBatch;
-    }
-
     /**
      * Check if there are more rows to read.
      *
      * @return true if there are
      */
     public boolean next() {
-        if (joinBatch != null) {
-            // will happen only on topTableFilter since joinBatch.next() does
-            // not call join.next()
-            return joinBatch.next();
-        }
         if (state == AFTER_LAST) {
             return false;
         } else if (state == BEFORE_FIRST) {
@@ -864,16 +762,6 @@ public class TableFilter implements ColumnResolver {
         if (index != null) {
             builder.append('\n');
             StringBuilder planBuilder = new StringBuilder();
-            if (joinBatch != null) {
-                IndexLookupBatch lookupBatch = joinBatch.getLookupBatch(joinFilterId);
-                if (lookupBatch == null) {
-                    if (joinFilterId != 0) {
-                        throw DbException.throwInternalError(Integer.toString(joinFilterId));
-                    }
-                } else {
-                    planBuilder.append("batched:").append(lookupBatch.getPlanSQL()).append(' ');
-                }
-            }
             planBuilder.append(index.getPlanSQL());
             if (!indexConditions.isEmpty()) {
                 planBuilder.append(": ");
@@ -1143,9 +1031,6 @@ public class TableFilter implements ColumnResolver {
 
     @Override
     public Value getValue(Column column) {
-        if (joinBatch != null) {
-            return joinBatch.getValue(joinFilterId, column);
-        }
         if (currentSearchRow == null) {
             return null;
         }

@@ -534,16 +534,6 @@ public class SysProperties {
             Utils.getProperty("h2.javaObjectSerializer", null);
 
     /**
-     * System property <code>h2.customDataTypesHandler</code>
-     * (default: null).<br />
-     * The CustomDataTypesHandler class name that is used
-     * to provide support for user defined custom data types.
-     * It must be the same on client and server to work correctly.
-     */
-    public static final String CUSTOM_DATA_TYPES_HANDLER =
-            Utils.getProperty("h2.customDataTypesHandler", null);
-
-    /**
      * System property <code>h2.authConfigFile</code>
      * (default: null).<br />
      * authConfigFile define the URL of configuration file

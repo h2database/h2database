@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.h2.api.ErrorCode;
-import org.h2.command.ddl.DefineCommand;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
@@ -72,11 +71,6 @@ public abstract class Command implements CommandInterface {
      */
     @Override
     public abstract boolean isQuery();
-
-    /**
-     * Prepare join batching.
-     */
-    public abstract void prepareJoinBatch();
 
     /**
      * Get the list of parameters.

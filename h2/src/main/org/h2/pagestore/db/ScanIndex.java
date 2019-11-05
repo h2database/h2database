@@ -97,7 +97,7 @@ public class ScanIndex extends BaseIndex {
             rows = Utils.newSmallArrayList();
             firstFree = -1;
         } else {
-            Row free = session.createRow(null, 1);
+            Row free = new Row(null, 1);
             free.setKey(firstFree);
             long key = row.getKey();
             if (rows.size() <= key) {

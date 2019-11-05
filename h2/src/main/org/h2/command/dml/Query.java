@@ -166,15 +166,9 @@ public abstract class Query extends Prepared {
      */
     public abstract boolean isUnion();
 
-    /**
-     * Prepare join batching.
-     */
-    public abstract void prepareJoinBatch();
-
     @Override
     public ResultInterface queryMeta() {
-        LocalResult result = session.getDatabase().getResultFactory().create(session, expressionArray,
-                visibleColumnCount, resultColumnCount);
+        LocalResult result = new LocalResult(session, expressionArray, visibleColumnCount, resultColumnCount);
         result.done();
         return result;
     }
@@ -901,8 +895,7 @@ public abstract class Query extends Prepared {
      * @return the distinct result
      */
     LocalResult convertToDistinct(ResultInterface result) {
-        LocalResult distinctResult = session.getDatabase().getResultFactory().create(session,
-            expressionArray, visibleColumnCount, resultColumnCount);
+        LocalResult distinctResult = new LocalResult(session, expressionArray, visibleColumnCount, resultColumnCount);
         distinctResult.setDistinct();
         result.reset();
         while (result.next()) {

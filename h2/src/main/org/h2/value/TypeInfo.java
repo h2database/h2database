@@ -6,12 +6,10 @@
 package org.h2.value;
 
 import java.util.Objects;
-import org.h2.api.CustomDataTypesHandler;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
-import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 
 /**
@@ -268,13 +266,6 @@ public class TypeInfo {
                 return t;
             }
         }
-        CustomDataTypesHandler handler = JdbcUtils.customDataTypesHandler;
-        if (handler != null) {
-            DataType dt = handler.getDataTypeById(type);
-            if (dt != null) {
-                return handler.getTypeInfoById(type, dt.maxPrecision, dt.maxScale, null);
-            }
-        }
         return TYPE_NULL;
     }
 
@@ -417,12 +408,6 @@ public class TypeInfo {
             }
             return new TypeInfo(type, precision, scale, ValueInterval.getDisplaySize(type, (int) precision, scale),
                     null);
-        }
-        CustomDataTypesHandler handler = JdbcUtils.customDataTypesHandler;
-        if (handler != null) {
-            if (handler.getDataTypeById(type) != null) {
-                return handler.getTypeInfoById(type, precision, scale, extTypeInfo);
-            }
         }
         return TYPE_NULL;
     }

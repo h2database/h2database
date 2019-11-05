@@ -218,8 +218,7 @@ public class MetaTable extends Table {
                     "ID INT",
                     "SORT_TYPE INT",
                     "CONSTRAINT_NAME",
-                    "INDEX_CLASS",
-                    "AFFINITY BIT"
+                    "INDEX_CLASS"
             );
             indexColumnName = "TABLE_NAME";
             break;
@@ -1032,9 +1031,7 @@ public class MetaTable extends Table {
                                 // CONSTRAINT_NAME
                                 constraintName,
                                 // INDEX_CLASS
-                                indexClass,
-                                // AFFINITY
-                                ValueBoolean.get(index.getIndexType().isAffinity())
+                                indexClass
                             );
                     }
                 }
@@ -2299,7 +2296,7 @@ public class MetaTable extends Table {
             Value v = s == null ? ValueNull.INSTANCE : s instanceof String ? ValueString.get((String) s) : (Value) s;
             values[i] = columns[i].convert(v, false);
         }
-        Row row = database.createRow(values, 1);
+        Row row = new Row(values, 1);
         row.setKey(rows.size());
         rows.add(row);
     }

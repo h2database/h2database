@@ -612,7 +612,7 @@ public class PageDataLeaf extends PageData {
      * @param columnCount the number of columns
      * @return the row
      */
-    private Row readRow(Data data, int pos, int columnCount) {
+    private static Row readRow(Data data, int pos, int columnCount) {
         Value[] values = new Value[columnCount];
         synchronized (data) {
             data.setPos(pos);
@@ -620,7 +620,7 @@ public class PageDataLeaf extends PageData {
                 values[i] = data.readValue();
             }
         }
-        return index.getDatabase().createRow(values, Row.MEMORY_CALCULATE);
+        return new Row(values, Row.MEMORY_CALCULATE);
     }
 
 }

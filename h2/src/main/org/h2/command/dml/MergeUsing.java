@@ -24,7 +24,6 @@ import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
 import org.h2.result.Row;
-import org.h2.result.RowImpl;
 import org.h2.table.Column;
 import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.Table;
@@ -116,8 +115,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         targetTable.lock(session, true, false);
         while (rows.next()) {
             sourceQueryRowNumber++;
-            Value[] sourceRowValues = rows.currentRow();
-            Row sourceRow = new RowImpl(sourceRowValues, 0);
+            Row sourceRow = new Row(rows.currentRow(), 0);
             setCurrentRowNumber(sourceQueryRowNumber);
 
             merge(sourceRow);

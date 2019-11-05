@@ -60,7 +60,7 @@ class VirtualTableCursor implements Cursor {
             return null;
         }
         if (row == null) {
-            row = session.createRow(values, 1);
+            row = new Row(values, 1);
         }
         return row;
     }

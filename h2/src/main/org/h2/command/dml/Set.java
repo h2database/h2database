@@ -21,12 +21,10 @@ import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.ResultInterface;
-import org.h2.result.RowFactory;
 import org.h2.schema.Schema;
 import org.h2.security.auth.AuthenticatorFactory;
 import org.h2.table.Table;
 import org.h2.tools.CompressTool;
-import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.ValueInt;
@@ -553,19 +551,6 @@ public class Set extends Prepared {
                 database.setRetentionTime(value);
                 addOrUpdateSetting(name, null, value);
             }
-            break;
-        }
-        case SetTypes.ROW_FACTORY: {
-            session.getUser().checkAdmin();
-            String rowFactoryName = expression.getColumnName();
-            Class<RowFactory> rowFactoryClass = JdbcUtils.loadUserClass(rowFactoryName);
-            RowFactory rowFactory;
-            try {
-                rowFactory = rowFactoryClass.getDeclaredConstructor().newInstance();
-            } catch (Exception e) {
-                throw DbException.convert(e);
-            }
-            database.setRowFactory(rowFactory);
             break;
         }
         case SetTypes.FORCE_JOIN_ORDER: {

@@ -8,6 +8,7 @@ package org.h2.index;
 import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
+import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.IndexColumn;
@@ -62,7 +63,7 @@ public class RangeIndex extends VirtualTableIndex {
                 // error when converting the value - ignore
             }
         }
-        return new RangeCursor(session, min, max, step);
+        return new RangeCursor(min, max, step);
     }
 
     @Override
@@ -88,7 +89,7 @@ public class RangeIndex extends VirtualTableIndex {
         long max = rangeTable.getMax(session);
         long step = rangeTable.getStep(session);
         return new SingleRowCursor((step > 0 ? min <= max : min >= max)
-                ? session.createRow(new Value[]{ ValueLong.get(first ^ min >= max ? min : max) }, 1) : null);
+                ? new Row(new Value[]{ ValueLong.get(first ^ min >= max ? min : max) }, 1) : null);
     }
 
     @Override

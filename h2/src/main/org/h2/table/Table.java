@@ -631,19 +631,8 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
-    /**
-     * Create a new row for a table.
-     *
-     * @param data the values.
-     * @param memory whether the row is in memory.
-     * @return the created row.
-     */
-    public Row createRow(Value[] data, int memory) {
-        return database.createRow(data, memory);
-    }
-
     public Row getTemplateRow() {
-        return createRow(new Value[columns.length], Row.MEMORY_CALCULATE);
+        return new Row(new Value[columns.length], Row.MEMORY_CALCULATE);
     }
 
     /**
@@ -666,7 +655,7 @@ public abstract class Table extends SchemaObjectBase {
             // be ok.
             Value[] values = new Value[columns.length];
             Arrays.fill(values, ValueNull.INSTANCE);
-            nullRow = row = database.createRow(values, 1);
+            nullRow = row = new Row(values, 1);
         }
         return row;
     }

@@ -219,17 +219,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     }
 
     /**
-     * Create a new row for a table.
-     *
-     * @param data the values
-     * @param memory whether the row is in memory
-     * @return the created row
-     */
-    public Row createRow(Value[] data, int memory) {
-        return database.createRow(data, memory);
-    }
-
-    /**
      * Stores name of currently parsed view in a stack so it can be determined
      * during {@code prepare()}.
      *
@@ -1926,8 +1915,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             result = (Row) value;
             assert result.getKey() == recKey : result.getKey() + " != " + recKey;
         } else {
-            ValueArray array = (ValueArray) value;
-            result = table.createRow(array.getList(), 0);
+            result = new Row(((ValueArray) value).getList(), 0);
             result.setKey(recKey);
         }
         return result;

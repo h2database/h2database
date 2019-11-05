@@ -7,6 +7,7 @@ package org.h2.index;
 
 import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Session;
+import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.DualTable;
@@ -25,7 +26,7 @@ public class DualIndex extends VirtualTableIndex {
 
     @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
-        return new DualCursor(session);
+        return new DualCursor();
     }
 
     @Override
@@ -46,7 +47,7 @@ public class DualIndex extends VirtualTableIndex {
 
     @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
-        return new SingleRowCursor(session.createRow(new Value[0], 1));
+        return new SingleRowCursor(new Row(new Value[0], 1));
     }
 
     @Override

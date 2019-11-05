@@ -47,7 +47,6 @@ import org.h2.pagestore.PageStore;
 import org.h2.pagestore.WriterThread;
 import org.h2.pagestore.db.LobStorageBackend;
 import org.h2.result.Row;
-import org.h2.result.RowFactory;
 import org.h2.result.SearchRow;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
@@ -225,7 +224,6 @@ public class Database implements DataHandler, CastDataProvider {
     private boolean queryStatistics;
     private int queryStatisticsMaxEntries = Constants.QUERY_STATISTICS_MAX_ENTRIES;
     private QueryStatisticsData queryStatisticsData;
-    private RowFactory rowFactory = RowFactory.DEFAULT;
     private boolean ignoreCatalogs;
 
     private Authenticator authenticator;
@@ -336,25 +334,6 @@ public class Database implements DataHandler, CastDataProvider {
         Setting setting = findSetting(
                 SetTypes.getTypeName(SetTypes.DEFAULT_LOCK_TIMEOUT));
         return setting == null ? Constants.INITIAL_LOCK_TIMEOUT : setting.getIntValue();
-    }
-
-    /**
-     * Create a new row for a table.
-     *
-     * @param data the values
-     * @param memory whether the row is in memory
-     * @return the created row
-     */
-    public Row createRow(Value[] data, int memory) {
-        return rowFactory.createRow(data, memory);
-    }
-
-    public RowFactory getRowFactory() {
-        return rowFactory;
-    }
-
-    public void setRowFactory(RowFactory rowFactory) {
-        this.rowFactory = rowFactory;
     }
 
     public static void setInitialPowerOffCount(int count) {

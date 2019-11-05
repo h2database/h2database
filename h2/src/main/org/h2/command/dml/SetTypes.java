@@ -213,14 +213,9 @@ public class SetTypes {
     public static final int QUERY_STATISTICS_MAX_ENTRIES = QUERY_STATISTICS + 1;
 
     /**
-     * The type of a SET ROW_FACTORY statement.
-     */
-    public static final int ROW_FACTORY = QUERY_STATISTICS_MAX_ENTRIES + 1;
-
-    /**
      * The type of SET FORCE_JOIN_ORDER statement.
      */
-    public static final int FORCE_JOIN_ORDER = ROW_FACTORY + 1;
+    public static final int FORCE_JOIN_ORDER = QUERY_STATISTICS_MAX_ENTRIES + 1;
 
     /**
      * The type of SET LAZY_QUERY_EXECUTION statement.
@@ -308,7 +303,6 @@ public class SetTypes {
         list.add(RETENTION_TIME, "RETENTION_TIME");
         list.add(QUERY_STATISTICS, "QUERY_STATISTICS");
         list.add(QUERY_STATISTICS_MAX_ENTRIES, "QUERY_STATISTICS_MAX_ENTRIES");
-        list.add(ROW_FACTORY, "ROW_FACTORY");
         list.add(FORCE_JOIN_ORDER, "FORCE_JOIN_ORDER");
         list.add(LAZY_QUERY_EXECUTION, "LAZY_QUERY_EXECUTION");
         list.add(BUILTIN_ALIAS_OVERRIDE, "BUILTIN_ALIAS_OVERRIDE");

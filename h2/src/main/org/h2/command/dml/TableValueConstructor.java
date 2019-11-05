@@ -122,10 +122,6 @@ public class TableValueConstructor extends Query {
     }
 
     @Override
-    public void prepareJoinBatch() {
-    }
-
-    @Override
     protected ResultInterface queryWithoutCache(int limit, ResultTarget target) {
         OffsetFetch offsetFetch = getOffsetFetch(limit);
         long offset = offsetFetch.offset;

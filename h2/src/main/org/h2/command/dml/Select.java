@@ -45,7 +45,6 @@ import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.IndexColumn;
-import org.h2.table.JoinBatch;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableType;
@@ -818,33 +817,27 @@ public class Select extends Query {
         if (fetch != 0) {
             // Cannot apply limit now if percent is specified
             int limit = fetchPercent ? -1 : fetch;
-            try {
-                if (isQuickAggregateQuery) {
-                    queryQuick(columnCount, to, quickOffset && offset > 0);
-                } else if (isWindowQuery) {
-                    if (isGroupQuery) {
-                        queryGroupWindow(columnCount, result, offset, quickOffset);
-                    } else {
-                        queryWindow(columnCount, result, offset, quickOffset);
-                    }
-                } else if (isGroupQuery) {
-                    if (isGroupSortedQuery) {
-                        lazyResult = queryGroupSorted(columnCount, to, offset, quickOffset);
-                    } else {
-                        queryGroup(columnCount, result, offset, quickOffset);
-                    }
-                } else if (isDistinctQuery) {
-                    queryDistinct(to, offset, limit, withTies, quickOffset);
+            if (isQuickAggregateQuery) {
+                queryQuick(columnCount, to, quickOffset && offset > 0);
+            } else if (isWindowQuery) {
+                if (isGroupQuery) {
+                    queryGroupWindow(columnCount, result, offset, quickOffset);
                 } else {
-                    lazyResult = queryFlat(columnCount, to, offset, limit, withTies, quickOffset);
+                    queryWindow(columnCount, result, offset, quickOffset);
                 }
-                if (quickOffset) {
-                    offset = 0;
+            } else if (isGroupQuery) {
+                if (isGroupSortedQuery) {
+                    lazyResult = queryGroupSorted(columnCount, to, offset, quickOffset);
+                } else {
+                    queryGroup(columnCount, result, offset, quickOffset);
                 }
-            } finally {
-                if (!lazy) {
-                    resetJoinBatchAfterQuery();
-                }
+            } else if (isDistinctQuery) {
+                queryDistinct(to, offset, limit, withTies, quickOffset);
+            } else {
+                lazyResult = queryFlat(columnCount, to, offset, limit, withTies, quickOffset);
+            }
+            if (quickOffset) {
+                offset = 0;
             }
         }
         assert lazy == (lazyResult != null) : lazy;
@@ -874,16 +867,6 @@ public class Select extends Query {
                     }
                 }
             });
-        }
-    }
-
-    /**
-     * Reset the batch-join after the query result is closed.
-     */
-    void resetJoinBatchAfterQuery() {
-        JoinBatch jb = getJoinBatch();
-        if (jb != null) {
-            jb.reset(false);
         }
     }
 
@@ -1299,30 +1282,6 @@ public class Select extends Query {
         }
         expressionArray = expressions.toArray(new Expression[0]);
         isPrepared = true;
-    }
-
-    @Override
-    public void prepareJoinBatch() {
-        ArrayList<TableFilter> list = new ArrayList<>();
-        TableFilter f = getTopTableFilter();
-        do {
-            if (f.getNestedJoin() != null) {
-                // we do not support batching with nested joins
-                return;
-            }
-            list.add(f);
-            f = f.getJoin();
-        } while (f != null);
-        TableFilter[] fs = list.toArray(new TableFilter[0]);
-        // prepare join batch
-        JoinBatch jb = null;
-        for (int i = fs.length - 1; i >= 0; i--) {
-            jb = fs[i].prepareJoinBatch(jb, fs, i);
-        }
-    }
-
-    public JoinBatch getJoinBatch() {
-        return getTopTableFilter().getJoinBatch();
     }
 
     @Override
@@ -1798,17 +1757,8 @@ public class Select extends Query {
         }
 
         @Override
-        public void close() {
-            if (!isClosed()) {
-                super.close();
-                resetJoinBatchAfterQuery();
-            }
-        }
-
-        @Override
         public void reset() {
             super.reset();
-            resetJoinBatchAfterQuery();
             topTableFilter.reset();
             setCurrentRowNumber(0);
             rowNumber = 0;

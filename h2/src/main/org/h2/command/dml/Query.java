@@ -166,11 +166,6 @@ public abstract class Query extends Prepared {
      */
     public abstract boolean isUnion();
 
-    /**
-     * Prepare join batching.
-     */
-    public abstract void prepareJoinBatch();
-
     @Override
     public ResultInterface queryMeta() {
         LocalResult result = session.getDatabase().getResultFactory().create(session, expressionArray,

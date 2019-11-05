@@ -569,14 +569,6 @@ public class Set extends Prepared {
             database.setRowFactory(rowFactory);
             break;
         }
-        case SetTypes.BATCH_JOINS: {
-            int value = getIntValue();
-            if (value != 0 && value != 1) {
-                throw DbException.getInvalidValueException("BATCH_JOINS", value);
-            }
-            session.setJoinBatchEnabled(value == 1);
-            break;
-        }
         case SetTypes.FORCE_JOIN_ORDER: {
             int value = getIntValue();
             if (value != 0 && value != 1) {

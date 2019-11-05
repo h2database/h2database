@@ -73,11 +73,6 @@ public abstract class Command implements CommandInterface {
     public abstract boolean isQuery();
 
     /**
-     * Prepare join batching.
-     */
-    public abstract void prepareJoinBatch();
-
-    /**
      * Get the list of parameters.
      *
      * @return the list of parameters

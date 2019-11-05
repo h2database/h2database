@@ -13,8 +13,6 @@ import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.command.ddl.DefineCommand;
 import org.h2.command.dml.DataChangeStatement;
-import org.h2.command.dml.Explain;
-import org.h2.command.dml.Query;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.DbSettings;
@@ -134,26 +132,6 @@ public class CommandContainer extends Command {
         return prepared.isQuery();
     }
 
-    @Override
-    public void prepareJoinBatch() {
-        if (session.isJoinBatchEnabled()) {
-            prepareJoinBatch(prepared);
-        }
-    }
-
-    private static void prepareJoinBatch(Prepared prepared) {
-        if (prepared.isQuery()) {
-            int type = prepared.getType();
-
-            if (type == CommandInterface.SELECT) {
-                ((Query) prepared).prepareJoinBatch();
-            } else if (type == CommandInterface.EXPLAIN ||
-                    type == CommandInterface.EXPLAIN_ANALYZE) {
-                prepareJoinBatch(((Explain) prepared).getCommand());
-            }
-        }
-    }
-
     private void recompileIfRequired() {
         if (prepared.needRecompile()) {
             // TODO test with 'always recompile'
@@ -175,7 +153,6 @@ public class CommandContainer extends Command {
             }
             prepared.prepare();
             prepared.setModificationMetaId(mod);
-            prepareJoinBatch();
         }
     }
 

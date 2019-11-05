@@ -68,11 +68,6 @@ class CommandList extends Command {
     }
 
     @Override
-    public void prepareJoinBatch() {
-        command.prepareJoinBatch();
-    }
-
-    @Override
     public ResultInterface query(int maxrows) {
         ResultInterface result = command.query(maxrows);
         executeRemaining();

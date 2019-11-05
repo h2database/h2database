@@ -23,7 +23,6 @@ import org.h2.api.TableEngine;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Session;
-import org.h2.expression.Expression;
 import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
@@ -43,7 +42,6 @@ import org.h2.test.TestDb;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
-import org.h2.value.ValueString;
 
 /**
  * The class for external table engines mechanism testing.
@@ -748,25 +746,7 @@ public class TestTableEngines extends TestDb {
                 }
 
                 @Override
-                public Cursor find(TableFilter filter, SearchRow first, SearchRow last) {
-                    return find(filter.getFilterCondition());
-                }
-
-                @Override
                 public Cursor find(Session session, SearchRow first, SearchRow last) {
-                    return find(null);
-                }
-
-                /**
-                 * Search within the table.
-                 *
-                 * @param filter the table filter (optional)
-                 * @return the cursor
-                 */
-                private Cursor find(Expression filter) {
-                    if (filter != null) {
-                        row.setValue(1, ValueString.get(filter.getSQL(false)));
-                    }
                     return new SingleRowCursor(row);
                 }
 

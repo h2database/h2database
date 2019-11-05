@@ -89,20 +89,6 @@ public interface Index extends SchemaObject {
     Cursor find(Session session, SearchRow first, SearchRow last);
 
     /**
-     * Find a row or a list of rows and create a cursor to iterate over the
-     * result.
-     *
-     * @param filter the table filter (which possibly knows about additional
-     *            conditions)
-     * @param first the first row, or null for no limit
-     * @param last the last row, or null for no limit
-     * @return the cursor to iterate over the results
-     */
-    default Cursor find(TableFilter filter, SearchRow first, SearchRow last) {
-        return find(filter.getSession(), first, last);
-    }
-
-    /**
      * Estimate the cost to search for rows given the search mask.
      * There is one element per column in the search mask.
      * For possible search masks, see IndexCondition.

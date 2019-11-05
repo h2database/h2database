@@ -156,7 +156,7 @@ public class TableFilter implements ColumnResolver {
         this.table = table;
         this.alias = alias;
         this.select = select;
-        this.cursor = new IndexCursor(this);
+        this.cursor = new IndexCursor();
         if (!rightsChecked) {
             session.getUser().checkRight(table, Right.SELECT);
         }

@@ -150,9 +150,8 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
     }
 
     @Override
-    public Cursor findByGeometry(TableFilter filter, SearchRow first,
-            SearchRow last, SearchRow intersection) {
-        return find(filter.getSession(), first, last, intersection);
+    public Cursor findByGeometry(Session session, SearchRow first, SearchRow last, SearchRow intersection) {
+        return find(session, first, last, intersection);
     }
 
     private Cursor findRecursive(SearchRow first, SearchRow last) {

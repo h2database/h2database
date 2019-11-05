@@ -74,27 +74,11 @@ public class TestTableEngines extends TestDb {
     public void test() throws Exception {
         testQueryExpressionFlag();
         testSubQueryInfo();
-        testEarlyFilter();
         testEngineParams();
         testSchemaEngineParams();
         testSimpleQuery();
         testMultiColumnTreeSetIndex();
         testBatchedJoin();
-    }
-
-    private void testEarlyFilter() throws SQLException {
-        deleteDb("tableEngine");
-        Connection conn = getConnection("tableEngine;EARLY_FILTER=TRUE");
-        Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE t1(id int, name varchar) ENGINE \"" +
-        EndlessTableEngine.class.getName() + "\"");
-        ResultSet rs = stat.executeQuery(
-                "SELECT name FROM t1 where id=1 and name is not null");
-        assertTrue(rs.next());
-        assertEquals("((ID = 1)\n    AND (NAME IS NOT NULL))", rs.getString(1));
-        rs.close();
-        conn.close();
-        deleteDb("tableEngine");
     }
 
     private void testEngineParams() throws SQLException {

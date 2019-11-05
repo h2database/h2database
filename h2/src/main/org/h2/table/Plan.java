@@ -80,8 +80,7 @@ public class Plan {
         for (int i = 0; i < allFilters.length; i++) {
             TableFilter f = allFilters[i];
             setEvaluatable(f, true);
-            if (i < allFilters.length - 1 ||
-                    f.getSession().getDatabase().getSettings().earlyFilter) {
+            if (i < allFilters.length - 1) {
                 // the last table doesn't need the optimization,
                 // otherwise the expression is calculated twice unnecessarily
                 // (not that bad but not optimal)

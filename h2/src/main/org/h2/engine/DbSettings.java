@@ -125,13 +125,6 @@ public class DbSettings extends SettingsBase {
     public final boolean dropRestrict = get("DROP_RESTRICT", true);
 
     /**
-     * Database setting <code>EARLY_FILTER</code> (default: false).<br />
-     * This setting allows table implementations to apply filter conditions
-     * early on.
-     */
-    public final boolean earlyFilter = get("EARLY_FILTER", false);
-
-    /**
      * Database setting <code>ESTIMATED_FUNCTION_TABLE_ROWS</code> (default:
      * 1000).<br />
      * The estimated number of rows in a function table (for example, CSVREAD or

@@ -263,6 +263,11 @@ public abstract class Value extends VersionedValue {
      */
     public static final int TYPE_COUNT = TIME_TZ + 1;
 
+    /**
+     * Empty array of values.
+     */
+    public static final Value[] EMPTY_VALUES = new Value[0];
+
     private static SoftReference<Value[]> softCache;
 
     private static final BigDecimal MAX_LONG_DECIMAL = BigDecimal.valueOf(Long.MAX_VALUE);

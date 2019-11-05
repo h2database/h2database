@@ -33,7 +33,7 @@ class DualCursor implements Cursor {
     @Override
     public boolean next() {
         if (currentRow == null) {
-            currentRow = new Row(new Value[0], 1);
+            currentRow = new Row(Value.EMPTY_VALUES, 1);
             return true;
         } else {
             return false;

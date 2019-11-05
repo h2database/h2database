@@ -47,7 +47,7 @@ public class DualIndex extends VirtualTableIndex {
 
     @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
-        return new SingleRowCursor(new Row(new Value[0], 1));
+        return new SingleRowCursor(new Row(Value.EMPTY_VALUES, 1));
     }
 
     @Override

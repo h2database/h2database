@@ -169,8 +169,7 @@ public class CommandContainer extends Command {
                 result = executeUpdateWithGeneratedKeys((DataChangeStatement) prepared,
                         generatedKeysRequest);
             } else {
-                result = new ResultWithGeneratedKeys.WithKeys(prepared.update(),
-                        session.getDatabase().getResultFactory().create());
+                result = new ResultWithGeneratedKeys.WithKeys(prepared.update(), new LocalResult());
             }
         } else {
             result = ResultWithGeneratedKeys.of(prepared.update());
@@ -235,14 +234,14 @@ public class CommandContainer extends Command {
         }
         int columnCount = expressionColumns.size();
         if (columnCount == 0) {
-            return new ResultWithGeneratedKeys.WithKeys(statement.update(), db.getResultFactory().create());
+            return new ResultWithGeneratedKeys.WithKeys(statement.update(), new LocalResult());
         }
         int[] indexes = new int[columnCount];
         ExpressionColumn[] expressions = expressionColumns.toArray(new ExpressionColumn[0]);
         for (int i = 0; i < columnCount; i++) {
             indexes[i] = expressions[i].getColumn().getColumnId();
         }
-        LocalResult result = db.getResultFactory().create(session, expressions, columnCount, columnCount);
+        LocalResult result = new LocalResult(session, expressions, columnCount, columnCount);
         ResultTarget collector = new GeneratedKeysCollector(indexes, result);
         int updateCount;
         try {

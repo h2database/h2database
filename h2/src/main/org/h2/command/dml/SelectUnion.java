@@ -217,7 +217,7 @@ public class SelectUnion extends Query {
     }
 
     private LocalResult createLocalResult(int columnCount) {
-        return session.getDatabase().getResultFactory().create(session, expressionArray, columnCount, columnCount);
+        return new LocalResult(session, expressionArray, columnCount, columnCount);
     }
 
     @Override

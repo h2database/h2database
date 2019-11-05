@@ -128,8 +128,7 @@ public class TableValueConstructor extends Query {
         int fetch = offsetFetch.fetch;
         boolean fetchPercent = offsetFetch.fetchPercent;
         int visibleColumnCount = this.visibleColumnCount, resultColumnCount = this.resultColumnCount;
-        LocalResult result = session.getDatabase().getResultFactory().create(session, expressionArray,
-                visibleColumnCount, resultColumnCount);
+        LocalResult result = new LocalResult(session, expressionArray, visibleColumnCount, resultColumnCount);
         if (sort != null) {
             result.setSortOrder(sort);
         }

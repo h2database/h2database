@@ -46,7 +46,6 @@ import org.h2.mvstore.db.MVTableEngine;
 import org.h2.pagestore.PageStore;
 import org.h2.pagestore.WriterThread;
 import org.h2.pagestore.db.LobStorageBackend;
-import org.h2.result.LocalResultFactory;
 import org.h2.result.Row;
 import org.h2.result.RowFactory;
 import org.h2.result.SearchRow;
@@ -227,7 +226,6 @@ public class Database implements DataHandler, CastDataProvider {
     private int queryStatisticsMaxEntries = Constants.QUERY_STATISTICS_MAX_ENTRIES;
     private QueryStatisticsData queryStatisticsData;
     private RowFactory rowFactory = RowFactory.DEFAULT;
-    private LocalResultFactory resultFactory = LocalResultFactory.DEFAULT;
     private boolean ignoreCatalogs;
 
     private Authenticator authenticator;
@@ -357,14 +355,6 @@ public class Database implements DataHandler, CastDataProvider {
 
     public void setRowFactory(RowFactory rowFactory) {
         this.rowFactory = rowFactory;
-    }
-
-    public LocalResultFactory getResultFactory() {
-        return resultFactory;
-    }
-
-    public void setResultFactory(LocalResultFactory resultFactory) {
-        this.resultFactory = resultFactory;
     }
 
     public static void setInitialPowerOffCount(int count) {

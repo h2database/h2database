@@ -243,14 +243,9 @@ public class SetTypes {
     public static final int AUTHENTICATOR = COLUMN_NAME_RULES + 1;
 
     /**
-     * The type of a SET LOCAL_RESULT_FACTORY statement.
-     */
-    public static final int LOCAL_RESULT_FACTORY = AUTHENTICATOR + 1;
-
-    /**
      * The type of a SET UUID_COLLATION statement.
      */
-    public static final int UUID_COLLATION = LOCAL_RESULT_FACTORY + 1;
+    public static final int UUID_COLLATION = AUTHENTICATOR + 1;
 
     /**
      * The type of a SET IGNORE_CATALOGS statement.
@@ -319,7 +314,6 @@ public class SetTypes {
         list.add(BUILTIN_ALIAS_OVERRIDE, "BUILTIN_ALIAS_OVERRIDE");
         list.add(COLUMN_NAME_RULES, "COLUMN_NAME_RULES");
         list.add(AUTHENTICATOR, "AUTHENTICATOR");
-        list.add(LOCAL_RESULT_FACTORY, "LOCAL_RESULT_FACTORY");
         list.add(UUID_COLLATION, "UUID_COLLATION");
         list.add(IGNORE_CATALOGS, "IGNORE_CATALOGS");
         list.add(CATALOG, "CATALOG");

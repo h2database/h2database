@@ -871,8 +871,7 @@ public class Select extends Query {
     }
 
     private LocalResult createLocalResult(LocalResult old) {
-        return old != null ? old : session.getDatabase().getResultFactory().create(session, expressionArray,
-                visibleColumnCount, resultColumnCount);
+        return old != null ? old : new LocalResult(session, expressionArray, visibleColumnCount, resultColumnCount);
     }
 
     private void expandColumnList() {

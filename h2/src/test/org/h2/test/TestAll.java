@@ -197,7 +197,6 @@ import org.h2.test.unit.TestInterval;
 import org.h2.test.unit.TestJmx;
 import org.h2.test.unit.TestJsonUtils;
 import org.h2.test.unit.TestKeywords;
-import org.h2.test.unit.TestLocalResultFactory;
 import org.h2.test.unit.TestLocale;
 import org.h2.test.unit.TestMVTempResult;
 import org.h2.test.unit.TestMathUtils;
@@ -974,7 +973,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestStringUtils());
         addTest(new TestTraceSystem());
         addTest(new TestUtils());
-        addTest(new TestLocalResultFactory());
 
         runAddedTests();
 

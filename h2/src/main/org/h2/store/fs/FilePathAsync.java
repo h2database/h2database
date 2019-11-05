@@ -127,7 +127,7 @@ class FileAsync extends FileBase {
     }
 
     @Override
-    public long position() throws IOException {
+    public synchronized long position() throws IOException {
         return position;
     }
 
@@ -137,7 +137,7 @@ class FileAsync extends FileBase {
     }
 
     @Override
-    public int read(ByteBuffer dst) throws IOException {
+    public synchronized int read(ByteBuffer dst) throws IOException {
         int read = complete(channel.read(dst, position));
         if (read > 0) {
             position += read;
@@ -146,7 +146,7 @@ class FileAsync extends FileBase {
     }
 
     @Override
-    public FileChannel position(long pos) throws IOException {
+    public synchronized FileChannel position(long pos) throws IOException {
         if (pos < 0) {
             throw new IllegalArgumentException();
         }
@@ -169,7 +169,7 @@ class FileAsync extends FileBase {
     }
 
     @Override
-    public FileChannel truncate(long newLength) throws IOException {
+    public synchronized FileChannel truncate(long newLength) throws IOException {
         channel.truncate(newLength);
         if (newLength < position) {
             position = newLength;
@@ -183,7 +183,7 @@ class FileAsync extends FileBase {
     }
 
     @Override
-    public int write(ByteBuffer src) throws IOException {
+    public synchronized int write(ByteBuffer src) throws IOException {
         int written;
         try {
             written = complete(channel.write(src, position));
@@ -195,7 +195,7 @@ class FileAsync extends FileBase {
     }
 
     @Override
-    public synchronized FileLock tryLock(long position, long size, boolean shared) throws IOException {
+    public FileLock tryLock(long position, long size, boolean shared) throws IOException {
         return channel.tryLock(position, size, shared);
     }
 

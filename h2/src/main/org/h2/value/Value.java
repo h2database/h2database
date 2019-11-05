@@ -464,9 +464,6 @@ public abstract class Value extends VersionedValue {
         case RESULT_SET:
             return 52_000;
         default:
-            if (JdbcUtils.customDataTypesHandler != null) {
-                return JdbcUtils.customDataTypesHandler.getDataTypeOrder(type);
-            }
             throw DbException.throwInternalError("type:"+type);
         }
     }
@@ -868,9 +865,6 @@ public abstract class Value extends VersionedValue {
             case RESULT_SET:
                 return convertToResultSet();
             default:
-                if (JdbcUtils.customDataTypesHandler != null) {
-                    return JdbcUtils.customDataTypesHandler.convert(this, targetType);
-                }
                 throw getDataConversionError(targetType);
             }
         } catch (NumberFormatException e) {

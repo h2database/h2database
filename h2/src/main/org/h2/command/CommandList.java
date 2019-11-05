@@ -8,7 +8,6 @@ package org.h2.command;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
-import org.h2.command.ddl.DefineCommand;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.expression.Parameter;

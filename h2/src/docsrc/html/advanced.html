@@ -87,8 +87,6 @@ Advanced
     Database Upgrade</a><br />
 <a href="#java_objects_serialization">
     Java Objects Serialization</a><br />
-<a href="#custom_data_types_handler_api">
-    Custom Data Types Handler API</a><br />
 <a href="#limits_limitations">
     Limits and Limitations</a><br />
 <a href="#glossary_links">
@@ -1883,30 +1881,6 @@ Please note that this SQL statement can only be executed before any tables are d
 </p>
 </li>
 </ul>
-
-<h2 id="custom_data_types_handler_api">Custom Data Types Handler API</h2>
-<p>
-It is possible to extend the type system of the database by providing your own implementation
-of minimal required API basically consisting of type identification and conversion routines.
-</p>
-<p>
-In order to enable this feature, set the system property <code>h2.customDataTypesHandler</code> (default: null) to the fully qualified name of the class providing
-<a href="https://h2database.com/javadoc/org/h2/api/CustomDataTypesHandler.html">CustomDataTypesHandler</a> interface implementation. <br />
-The instance of that class will be created by H2 and used to:
-</p>
-<ul>
-<li>resolve the names and identifiers of extrinsic data types.
-</li>
-<li>convert values of extrinsic data types to and from values of built-in types.
-</li>
-<li>provide order of the data types.
-</li>
-</ul>
-<p>This is a system-level setting, i.e. affects all the databases.</p>
-
-<p><b>Note: </b>Please keep in mind that this feature may not possibly provide the same ABI stability level as other features as it exposes many of the H2 internals. You may be required to update your code occasionally due to internal changes in H2 if you are going to use this feature.
-</p>
-
 
 <h2 id="limits_limitations">Limits and Limitations</h2>
 <p>

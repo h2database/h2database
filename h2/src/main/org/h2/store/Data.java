@@ -26,7 +26,6 @@ import org.h2.result.ResultInterface;
 import org.h2.result.SimpleResult;
 import org.h2.util.Bits;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.Utils;
 import org.h2.value.TypeInfo;
@@ -122,7 +121,7 @@ public class Data {
     private static final int LOCAL_TIME = 132;
     private static final int LOCAL_DATE = 133;
     private static final int LOCAL_TIMESTAMP = 134;
-    private static final int CUSTOM_DATA_TYPE = 135;
+    // 135 was used for CUSTOM_DATA_TYPE
     private static final int JSON = 136;
     private static final int TIMESTAMP_TZ_2 = 137;
     private static final int TIME_TZ = 138;
@@ -796,14 +795,6 @@ public class Data {
             break;
         }
         default:
-            if (JdbcUtils.customDataTypesHandler != null) {
-                byte[] b = v.getBytesNoCopy();
-                writeByte((byte) CUSTOM_DATA_TYPE);
-                writeVarInt(type);
-                writeVarInt(b.length);
-                write(b, 0, b.length);
-                break;
-            }
             DbException.throwInternalError("type=" + v.getValueType());
         }
         assert pos - start == getValueLen(v)
@@ -992,18 +983,6 @@ public class Data {
             }
             return ValueInterval.from(IntervalQualifier.valueOf(ordinal), negative, readVarLong(),
                     ordinal < 5 ? 0 : readVarLong());
-        }
-        case CUSTOM_DATA_TYPE: {
-            if (JdbcUtils.customDataTypesHandler != null) {
-                int customType = readVarInt();
-                int len = readVarInt();
-                byte[] b = Utils.newBytes(len);
-                read(b, 0, len);
-                return JdbcUtils.customDataTypesHandler.convert(
-                        ValueBytes.getNoCopy(b), customType);
-            }
-            throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1,
-                    "No CustomDataTypesHandler has been set up");
         }
         case JSON: {
             int len = readVarInt();
@@ -1285,11 +1264,6 @@ public class Data {
             return 1 + getVarIntLen(b.length) + b.length;
         }
         default:
-            if (JdbcUtils.customDataTypesHandler != null) {
-                byte[] b = v.getBytesNoCopy();
-                return 1 + getVarIntLen(v.getValueType())
-                    + getVarIntLen(b.length) + b.length;
-            }
             throw DbException.throwInternalError("type=" + v.getValueType());
         }
     }

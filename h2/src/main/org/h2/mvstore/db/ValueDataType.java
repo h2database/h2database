@@ -28,7 +28,6 @@ import org.h2.result.SimpleResult;
 import org.h2.result.SortOrder;
 import org.h2.store.DataHandler;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.JdbcUtils;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.TypeInfo;
@@ -107,7 +106,7 @@ public class ValueDataType implements DataType {
     private static final byte STRING_0_31 = 68;
     private static final int BYTES_0_31 = 100;
     private static final int SPATIAL_KEY_2D = 132;
-    private static final int CUSTOM_DATA_TYPE = 133;
+    // 133 was used for CUSTOM_DATA_TYPE
     private static final int JSON = 134;
     private static final int TIMESTAMP_TZ_2 = 135;
     private static final int TIME_TZ = 136;
@@ -536,14 +535,6 @@ public class ValueDataType implements DataType {
             break;
         }
         default:
-            if (JdbcUtils.customDataTypesHandler != null) {
-                byte[] b = v.getBytesNoCopy();
-                buff.put((byte)CUSTOM_DATA_TYPE).
-                    putVarInt(type).
-                    putVarInt(b.length).
-                    put(b);
-                break;
-            }
             DbException.throwInternalError("type=" + v.getValueType());
         }
     }
@@ -732,18 +723,6 @@ public class ValueDataType implements DataType {
         }
         case SPATIAL_KEY_2D:
             return getSpatialDataType().read(buff);
-        case CUSTOM_DATA_TYPE: {
-            if (JdbcUtils.customDataTypesHandler != null) {
-                int customType = readVarInt(buff);
-                int len = readVarInt(buff);
-                byte[] b = Utils.newBytes(len);
-                buff.get(b, 0, len);
-                return JdbcUtils.customDataTypesHandler.convert(
-                        ValueBytes.getNoCopy(b), customType);
-            }
-            throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1,
-                    "No CustomDataTypesHandler has been set up");
-        }
         case JSON: {
             int len = readVarInt(buff);
             byte[] b = Utils.newBytes(len);

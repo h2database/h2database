@@ -63,7 +63,7 @@ SET COLUMN_NAME_RULES=DEFAULT;
 > ok
 
 -- Test all MODES of database:
--- DB2, Derby, MSSQLServer, HSQLDB, MySQL, Oracle, PostgreSQL, Ignite
+-- DB2, Derby, MSSQLServer, HSQLDB, MySQL, Oracle, PostgreSQL
 SET COLUMN_NAME_RULES=EMULATE='DB2';
 > ok
 
@@ -80,9 +80,6 @@ SET COLUMN_NAME_RULES=EMULATE='Oracle';
 > ok
 
 SET COLUMN_NAME_RULES=EMULATE='PostgreSQL';
-> ok
-
-SET COLUMN_NAME_RULES=EMULATE='Ignite';
 > ok
 
 SET COLUMN_NAME_RULES=EMULATE='REGULAR';

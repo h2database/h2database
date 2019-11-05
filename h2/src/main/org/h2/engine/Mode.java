@@ -22,7 +22,7 @@ import org.h2.value.Value;
 public class Mode {
 
     public enum ModeEnum {
-        REGULAR, DB2, Derby, MSSQLServer, HSQLDB, MySQL, Oracle, PostgreSQL, Ignite,
+        REGULAR, DB2, Derby, MSSQLServer, HSQLDB, MySQL, Oracle, PostgreSQL
     }
 
     /**
@@ -174,11 +174,6 @@ public class Mode {
      * Whether IN predicate may have an empty value list.
      */
     public boolean allowEmptyInPredicate;
-
-    /**
-     * Whether AFFINITY KEY keywords are supported.
-     */
-    public boolean allowAffinityKey;
 
     /**
      * Whether to right-pad fixed strings with spaces.
@@ -412,14 +407,6 @@ public class Mode {
         dt.sqlType = Types.NUMERIC;
         dt.name = "MONEY";
         mode.typeByNameMap.put("MONEY", dt);
-        mode.dateTimeValueWithinTransaction = true;
-        add(mode);
-
-        mode = new Mode(ModeEnum.Ignite);
-        mode.nullConcatIsNull = true;
-        mode.allowAffinityKey = true;
-        mode.indexDefinitionInCreateTable = true;
-        mode.allowEmptyInPredicate = true;
         mode.dateTimeValueWithinTransaction = true;
         add(mode);
     }

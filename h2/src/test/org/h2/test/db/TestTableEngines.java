@@ -37,7 +37,6 @@ import org.h2.index.IndexType;
 import org.h2.index.SingleRowCursor;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
-import org.h2.pagestore.db.PageStoreTable;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
@@ -81,7 +80,6 @@ public class TestTableEngines extends TestDb {
         testSimpleQuery();
         testMultiColumnTreeSetIndex();
         testBatchedJoin();
-        testAffinityKey();
     }
 
     private void testEarlyFilter() throws SQLException {
@@ -503,27 +501,6 @@ public class TestTableEngines extends TestDb {
         }
         conn.close();
         deleteDb("testBatchedJoin");
-    }
-
-    private void testAffinityKey() throws SQLException {
-        deleteDb("tableEngine");
-        Connection conn = getConnection("tableEngine;mode=Ignite;MV_STORE=FALSE");
-        Statement stat = conn.createStatement();
-
-        stat.executeUpdate("CREATE TABLE T(ID INT AFFINITY PRIMARY KEY, NAME VARCHAR, AGE INT)" +
-                " ENGINE \"" + AffinityTableEngine.class.getName() + "\"");
-        Table tbl = AffinityTableEngine.createdTbl;
-        // Prevent memory leak
-        AffinityTableEngine.createdTbl = null;
-        assertNotNull(tbl);
-        assertEquals(3, tbl.getIndexes().size());
-        Index aff = tbl.getIndexes().get(2);
-        assertTrue(aff.getIndexType().isAffinity());
-        assertEquals("T_AFF", aff.getName());
-        assertEquals(1, aff.getIndexColumns().length);
-        assertEquals("ID", aff.getIndexColumns()[0].columnName);
-        conn.close();
-        deleteDb("tableEngine");
     }
 
     private static void forceJoinOrder(Statement s, boolean force) throws SQLException {
@@ -1115,134 +1092,6 @@ public class TestTableEngines extends TestDb {
         @Override
         public OneRowTable createTable(CreateTableData data) {
             return new OneRowTable(data);
-        }
-
-    }
-
-    /**
-     * A test table factory producing affinity aware tables.
-     */
-    public static class AffinityTableEngine implements TableEngine {
-        public static Table createdTbl;
-
-        /**
-         * A table able to handle affinity indexes.
-         */
-        private static class AffinityTable extends PageStoreTable {
-
-            /**
-             * A (no-op) affinity index.
-             */
-            public class AffinityIndex extends BaseIndex {
-                AffinityIndex(Table table, int id, String name, IndexColumn[] newIndexColumns) {
-                    super(table, id, name, newIndexColumns, IndexType.createAffinity());
-                }
-
-                @Override
-                public long getRowCountApproximation() {
-                    return table.getRowCountApproximation();
-                }
-
-                @Override
-                public long getDiskSpaceUsed() {
-                    return table.getDiskSpaceUsed();
-                }
-
-                @Override
-                public long getRowCount(Session session) {
-                    return table.getRowCount(session);
-                }
-
-                @Override
-                public void truncate(Session session) {
-                    // do nothing
-                }
-
-                @Override
-                public void remove(Session session) {
-                    // do nothing
-                }
-
-                @Override
-                public void remove(Session session, Row r) {
-                    // do nothing
-                }
-
-                @Override
-                public boolean needRebuild() {
-                    return false;
-                }
-
-                @Override
-                public double getCost(Session session, int[] masks,
-                        TableFilter[] filters, int filter, SortOrder sortOrder,
-                        AllColumnsForPlan allColumnsSet) {
-                    return 0;
-                }
-
-                @Override
-                public Cursor find(Session session, SearchRow first, SearchRow last) {
-                    throw DbException.getUnsupportedException("TEST");
-                }
-
-                @Override
-                public void close(Session session) {
-                    // do nothing
-                }
-
-                @Override
-                public boolean canScan() {
-                    return false;
-                }
-
-                @Override
-                public void add(Session session, Row r) {
-                    // do nothing
-                }
-            }
-
-            AffinityTable(CreateTableData data) {
-                super(data);
-            }
-
-            @Override
-            public Index addIndex(Session session, String indexName,
-                    int indexId, IndexColumn[] cols, IndexType indexType,
-                    boolean create, String indexComment) {
-                if (!indexType.isAffinity()) {
-                    return super.addIndex(session, indexName, indexId, cols, indexType, create, indexComment);
-                }
-
-                boolean isSessionTemporary = isTemporary() && !isGlobalTemporary();
-                if (!isSessionTemporary) {
-                    database.lockMeta(session);
-                }
-                AffinityIndex index = new AffinityIndex(this, indexId, getName() + "_AFF", cols);
-                index.setTemporary(isTemporary());
-                if (index.getCreateSQL() != null) {
-                    index.setComment(indexComment);
-                    if (isSessionTemporary) {
-                        session.addLocalTempTableIndex(index);
-                    } else {
-                        database.addSchemaObject(session, index);
-                    }
-                }
-                getIndexes().add(index);
-                setModified();
-                return index;
-            }
-
-        }
-
-        /**
-         * Create a new OneRowTable.
-         *
-         * @param data the meta data of the table to create
-         * @return the new table
-         */
-        @Override
-        public Table createTable(CreateTableData data) {
-            return (createdTbl = new AffinityTable(data));
         }
 
     }

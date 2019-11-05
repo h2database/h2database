@@ -53,7 +53,6 @@ public class TestCompatibility extends TestDb {
         testDB2();
         testDerby();
         testSybaseAndMSSQLServer();
-        testIgnite();
 
         testUnknownSet();
 
@@ -667,28 +666,6 @@ public class TestCompatibility extends TestDb {
                 executeQuery("SELECT 1 FROM sysibm.sysdummy1");
         conn.close();
         conn = getConnection("compatibility");
-    }
-
-    private void testIgnite() throws SQLException {
-        Statement stat = conn.createStatement();
-        stat.execute("SET MODE Ignite");
-        stat.execute("DROP TABLE IF EXISTS TEST");
-        stat.execute("create table test(id int affinity key)");
-        stat.execute("DROP TABLE IF EXISTS TEST");
-        stat.execute("create table test(id int affinity primary key)");
-        stat.execute("DROP TABLE IF EXISTS TEST");
-        stat.execute("create table test(id int, v1 varchar, v2 long affinity key, primary key(v1, id))");
-        stat.execute("DROP TABLE IF EXISTS TEST");
-        stat.execute("create table test(id int, v1 varchar, v2 long, primary key(v1, id), affinity key (id))");
-
-        stat.execute("DROP TABLE IF EXISTS TEST");
-        stat.execute("create table test(id int shard key)");
-        stat.execute("DROP TABLE IF EXISTS TEST");
-        stat.execute("create table test(id int shard primary key)");
-        stat.execute("DROP TABLE IF EXISTS TEST");
-        stat.execute("create table test(id int, v1 varchar, v2 long shard key, primary key(v1, id))");
-        stat.execute("DROP TABLE IF EXISTS TEST");
-        stat.execute("create table test(id int, v1 varchar, v2 long, primary key(v1, id), shard key (id))");
     }
 
     private void testUnknownSet() throws SQLException {

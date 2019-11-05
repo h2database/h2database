@@ -339,13 +339,5 @@ SET MODE PostgreSQL;
 SELECT 1 WHERE 1 IN ();
 > exception SYNTAX_ERROR_2
 
-SET MODE Ignite;
-> ok
-
-SELECT 1 WHERE 1 IN ();
-> 1
-> -
-> rows: 0
-
 SET MODE Regular;
 > ok

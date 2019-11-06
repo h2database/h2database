@@ -120,7 +120,10 @@ public class GrantRevoke extends DefineCommand {
         Database db = session.getDatabase();
         Right right = grantee.getRightForObject(object);
         if (right == null) {
-            int id = getObjectId();
+            int id = getPersistedObjectId();
+            if (id == 0) {
+                id = session.getDatabase().allocateObjectId();
+            }
             right = new Right(db, id, grantee, rightMask, object);
             grantee.grantRight(object, right);
             db.addDatabaseObject(session, right);

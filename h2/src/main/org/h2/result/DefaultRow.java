@@ -48,28 +48,22 @@ public class DefaultRow extends Row {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder("( /* key:").append(key).append(" */ ");
-        if (data != null) {
-            for (int i = 0, length = data.length; i < length; i++) {
-                if (i > 0) {
-                    builder.append(", ");
-                }
-                Value v = data[i];
-                builder.append(v == null ? "null" : v.getTraceSQL());
+        for (int i = 0, length = data.length; i < length; i++) {
+            if (i > 0) {
+                builder.append(", ");
             }
+            Value v = data[i];
+            builder.append(v == null ? "null" : v.getTraceSQL());
         }
         return builder.append(')').toString();
     }
 
     @Override
     protected int calculateMemory() {
-        int m = Constants.MEMORY_ROW;
-        if (data != null) {
-            int len = data.length;
-            m += Constants.MEMORY_ARRAY + len * Constants.MEMORY_POINTER;
-            for (Value v : data) {
-                if (v != null) {
-                    m += v.getMemory();
-                }
+        int m = Constants.MEMORY_ROW + Constants.MEMORY_ARRAY + data.length * Constants.MEMORY_POINTER;
+        for (Value v : data) {
+            if (v != null) {
+                m += v.getMemory();
             }
         }
         return m;

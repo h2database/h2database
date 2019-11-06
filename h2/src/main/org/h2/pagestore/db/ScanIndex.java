@@ -96,7 +96,7 @@ public class ScanIndex extends BaseIndex {
             rows = Utils.newSmallArrayList();
             firstFree = -1;
         } else {
-            PageStoreRow free = PageStoreRow.get(null, 1, firstFree);
+            Row free = new PageStoreRow.RemovedRow(firstFree);
             long key = row.getKey();
             if (rows.size() <= key) {
                 throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1,

@@ -5,16 +5,17 @@
  */
 package org.h2.pagestore.db;
 
+import org.h2.engine.Constants;
+import org.h2.message.DbException;
 import org.h2.result.Row;
-import org.h2.result.DefaultRow;
 import org.h2.result.SearchRow;
-import org.h2.store.Data;
 import org.h2.value.Value;
+import org.h2.value.ValueLong;
 
 /**
  * Page Store implementation of a row.
  */
-public class PageStoreRow extends DefaultRow {
+public final class PageStoreRow {
 
     /**
      * An empty array of Row objects.
@@ -27,46 +28,55 @@ public class PageStoreRow extends DefaultRow {
     static final SearchRow[] EMPTY_SEARCH_ARRAY = new SearchRow[0];
 
     /**
-     * Creates a new row.
-     *
-     * @param data values of columns, or null
-     * @param memory used memory
-     * @return the allocated row
+     * The implementation of a removed row in an in-memory table.
      */
-    public static PageStoreRow get(Value[] data, int memory) {
-        return new PageStoreRow(data, memory);
-    }
+    static final class RemovedRow extends Row {
 
-    /**
-     * Creates a new row with the specified key.
-     *
-     * @param data values of columns, or null
-     * @param memory used memory
-     * @param key the key
-     * @return the allocated row
-     */
-    public static PageStoreRow get(Value[] data, int memory, long key) {
-        PageStoreRow r = new PageStoreRow(data, memory);
-        r.setKey(key);
-        return r;
-    }
-
-    private PageStoreRow(Value[] data, int memory) {
-        super(data, memory);
-    }
-
-    /**
-     * Get the number of bytes required for the data.
-     *
-     * @param dummy the template buffer
-     * @return the number of bytes
-     */
-    public int getByteCount(Data dummy) {
-        int size = 0;
-        for (Value v : data) {
-            size += dummy.getValueLen(v);
+        RemovedRow(long key) {
+            super(Constants.MEMORY_ROW);
+            setKey(key);
         }
-        return size;
+
+        @Override
+        public Value getValue(int i) {
+            if (i == ROWID_INDEX) {
+                return ValueLong.get(key);
+            }
+            throw DbException.throwInternalError();
+        }
+
+        @Override
+        public void setValue(int i, Value v) {
+            if (i == ROWID_INDEX) {
+                key = v.getLong();
+            } else {
+                DbException.throwInternalError();
+            }
+        }
+
+        @Override
+        public int getColumnCount() {
+            return 0;
+        }
+
+        @Override
+        public String toString() {
+            return "( /* key:" + key + " */ )";
+        }
+
+        @Override
+        protected int calculateMemory() {
+            return Constants.MEMORY_ROW;
+        }
+
+        @Override
+        public Value[] getValueList() {
+            return null;
+        }
+
+    }
+
+    private PageStoreRow() {
     }
 
 }

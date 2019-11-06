@@ -89,6 +89,8 @@ public abstract class Row implements SearchRow {
      * @return {@code true} if rows share the same underlying data,
      *         {@code false} otherwise or when unknown
      */
-    public abstract boolean hasSharedData(Row other);
+    public boolean hasSharedData(Row other) {
+        return false;
+    }
 
 }

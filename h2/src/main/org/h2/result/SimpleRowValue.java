@@ -23,11 +23,6 @@ public class SimpleRowValue implements SearchRow {
     }
 
     @Override
-    public void setKey(SearchRow row) {
-        key = row.getKey();
-    }
-
-    @Override
     public int getColumnCount() {
         return virtualColumnCount;
     }

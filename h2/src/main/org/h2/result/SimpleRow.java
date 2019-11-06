@@ -37,11 +37,6 @@ public class SimpleRow implements SearchRow {
     }
 
     @Override
-    public void setKey(SearchRow row) {
-        key = row.getKey();
-    }
-
-    @Override
     public void setValue(int i, Value v) {
         data[i] = v;
     }

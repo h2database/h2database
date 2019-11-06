@@ -54,11 +54,6 @@ public class Row implements SearchRow {
     }
 
     @Override
-    public void setKey(SearchRow row) {
-        setKey(row.getKey());
-    }
-
-    @Override
     public long getKey() {
         return key;
     }

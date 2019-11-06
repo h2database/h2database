@@ -115,7 +115,7 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         targetTable.lock(session, true, false);
         while (rows.next()) {
             sourceQueryRowNumber++;
-            Row sourceRow = new Row(rows.currentRow(), 0);
+            Row sourceRow = Row.get(rows.currentRow(), 0);
             setCurrentRowNumber(sourceQueryRowNumber);
 
             merge(sourceRow);

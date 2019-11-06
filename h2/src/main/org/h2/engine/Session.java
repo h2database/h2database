@@ -1915,8 +1915,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             result = (Row) value;
             assert result.getKey() == recKey : result.getKey() + " != " + recKey;
         } else {
-            result = new Row(((ValueArray) value).getList(), 0);
-            result.setKey(recKey);
+            result = Row.get(((ValueArray) value).getList(), 0, recKey);
         }
         return result;
     }

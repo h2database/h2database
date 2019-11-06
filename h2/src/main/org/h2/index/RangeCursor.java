@@ -50,7 +50,7 @@ class RangeCursor implements Cursor {
         } else {
             current += step;
         }
-        currentRow = new Row(new Value[]{ValueLong.get(current)}, 1);
+        currentRow = Row.get(new Value[]{ValueLong.get(current)}, 1);
         return step > 0 ? current <= end : current >= end;
     }
 

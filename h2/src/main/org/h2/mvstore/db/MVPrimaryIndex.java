@@ -257,9 +257,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex {
     }
 
     private static Row getRow(Session session, long key, ValueArray array) {
-        Row row = new Row(array.getList(), 0);
-        row.setKey(key);
-        return row;
+        return Row.get(array.getList(), 0, key);
     }
 
     @Override
@@ -314,8 +312,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex {
         Value key = first ? map.firstKey() : map.lastKey();
         Row row;
         if (key != null) {
-            row = new Row(((ValueArray) map.getFromSnapshot(key)).getList(), 0);
-            row.setKey(key.getLong());
+            row = Row.get(((ValueArray) map.getFromSnapshot(key)).getList(), 0, key.getLong());
         } else {
             row = null;
         }
@@ -442,8 +439,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex {
             if (row == null) {
                 if (current != null) {
                     ValueArray array = (ValueArray) current.getValue();
-                    row = new Row(array.getList(), 0);
-                    row.setKey(current.getKey().getLong());
+                    row = Row.get(array.getList(), 0, current.getKey().getLong());
                 }
             }
             return row;

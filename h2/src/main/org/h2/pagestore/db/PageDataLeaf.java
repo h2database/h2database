@@ -620,7 +620,7 @@ public class PageDataLeaf extends PageData {
                 values[i] = data.readValue();
             }
         }
-        return new Row(values, Row.MEMORY_CALCULATE);
+        return Row.get(values, Row.MEMORY_CALCULATE);
     }
 
 }

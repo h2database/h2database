@@ -89,7 +89,7 @@ public class RangeIndex extends VirtualTableIndex {
         long max = rangeTable.getMax(session);
         long step = rangeTable.getStep(session);
         return new SingleRowCursor((step > 0 ? min <= max : min >= max)
-                ? new Row(new Value[]{ ValueLong.get(first ^ min >= max ? min : max) }, 1) : null);
+                ? Row.get(new Value[]{ ValueLong.get(first ^ min >= max ? min : max) }, 1) : null);
     }
 
     @Override

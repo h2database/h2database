@@ -731,7 +731,7 @@ public class TestTableEngines extends TestDb {
 
             EndlessTable(CreateTableData data) {
                 super(data);
-                row = new Row(new Value[] { ValueInt.get(1), ValueNull.INSTANCE }, 0);
+                row = Row.get(new Value[] { ValueInt.get(1), ValueNull.INSTANCE }, 0);
                 scanIndex = new Auto(this);
             }
 

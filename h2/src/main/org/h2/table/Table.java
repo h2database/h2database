@@ -632,7 +632,7 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     public Row getTemplateRow() {
-        return new Row(new Value[columns.length], Row.MEMORY_CALCULATE);
+        return Row.get(new Value[columns.length], Row.MEMORY_CALCULATE);
     }
 
     /**
@@ -655,7 +655,7 @@ public abstract class Table extends SchemaObjectBase {
             // be ok.
             Value[] values = new Value[columns.length];
             Arrays.fill(values, ValueNull.INSTANCE);
-            nullRow = row = new Row(values, 1);
+            nullRow = row = Row.get(values, 1);
         }
         return row;
     }

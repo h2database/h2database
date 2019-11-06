@@ -469,9 +469,7 @@ public class PageLog {
         for (int i = 0; i < columnCount; i++) {
             values[i] = data.readValue();
         }
-        Row row = new Row(values, Row.MEMORY_CALCULATE);
-        row.setKey(key);
-        return row;
+        return Row.get(values, Row.MEMORY_CALCULATE, key);
     }
 
     /**

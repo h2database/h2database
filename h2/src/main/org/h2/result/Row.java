@@ -24,7 +24,32 @@ public final class Row implements SearchRow {
     private int memory;
     private boolean deleted;
 
-    public Row(Value[] data, int memory) {
+    /**
+     * Creates a new row.
+     *
+     * @param data values of columns, or null
+     * @param memory used memory
+     * @return the allocated row
+     */
+    public static Row get(Value[] data, int memory) {
+        return new Row(data, memory);
+    }
+
+    /**
+     * Creates a new row with the specified key.
+     *
+     * @param data values of columns, or null
+     * @param memory used memory
+     * @param key the key
+     * @return the allocated row
+     */
+    public static Row get(Value[] data, int memory, long key) {
+        Row r = new Row(data, memory);
+        r.setKey(key);
+        return r;
+    }
+
+    private Row(Value[] data, int memory) {
         this.data = data;
         this.memory = memory;
     }

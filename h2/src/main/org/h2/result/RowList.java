@@ -184,8 +184,7 @@ public class RowList implements AutoCloseable {
             }
             values[i] = v;
         }
-        Row row = new Row(values, mem);
-        row.setKey(key);
+        Row row = Row.get(values, mem, key);
         row.setDeleted(deleted);
         return row;
     }

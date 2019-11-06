@@ -97,8 +97,7 @@ public class ScanIndex extends BaseIndex {
             rows = Utils.newSmallArrayList();
             firstFree = -1;
         } else {
-            Row free = new Row(null, 1);
-            free.setKey(firstFree);
+            Row free = Row.get(null, 1, firstFree);
             long key = row.getKey();
             if (rows.size() <= key) {
                 throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1,

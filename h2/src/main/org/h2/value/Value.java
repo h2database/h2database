@@ -164,7 +164,7 @@ public abstract class Value extends VersionedValue {
      */
     public static final int GEOMETRY = 22;
 
-    /**
+    /*
      * 23 was a short-lived experiment "TIMESTAMP UTC" which has been removed.
      */
 
@@ -358,8 +358,9 @@ public abstract class Value extends VersionedValue {
      * @param prep the prepared statement
      * @param parameterIndex the parameter index
      */
-    public abstract void set(PreparedStatement prep, int parameterIndex)
-            throws SQLException;
+    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
+        throw new UnsupportedOperationException();
+    }
 
     @Override
     public abstract int hashCode();

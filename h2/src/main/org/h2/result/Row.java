@@ -10,10 +10,8 @@ import org.h2.value.Value;
 /**
  * Represents a row in a table.
  */
-public abstract class Row extends SearchRow {
-
-    private int memory;
-
+public abstract class Row extends SearchRow
+{
     /**
      * Creates a new row.
      *
@@ -38,25 +36,6 @@ public abstract class Row extends SearchRow {
         r.setKey(key);
         return r;
     }
-
-    protected Row(int memory) {
-        this.memory = memory;
-    }
-
-    @Override
-    public int getMemory() {
-        if (memory != MEMORY_CALCULATE) {
-            return memory;
-        }
-        return memory = calculateMemory();
-    }
-
-    /**
-     * Calculate the estimated memory used for this row, in bytes.
-     *
-     * @return the memory
-     */
-    protected abstract int calculateMemory();
 
     /**
      * Get values.

@@ -484,11 +484,9 @@ public class TransactionStore {
                     if (map != null) { // might be null if map was removed later
                         Object key = op[1];
                         commitDecisionMaker.setUndoKey(undoKey);
-                        // although second parameter (value) is not really
-                        // used by CommitDecisionMaker, MVRTreeMap has weird
-                        // traversal logic based on it, and any non-null
-                        // value will do, to signify update, not removal
-                        map.operate(key, VersionedValue.DUMMY, commitDecisionMaker);
+                        // second parameter (value) is not really
+                        // used by CommitDecisionMaker
+                        map.operate(key, null, commitDecisionMaker);
                     }
                 }
                 undoLog.clear();

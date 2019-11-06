@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.channels.NonWritableChannelException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
@@ -344,7 +345,7 @@ class FileZip extends FileBase {
 
     @Override
     public int write(ByteBuffer src) throws IOException {
-        throw new IOException("File is read-only");
+        throw new NonWritableChannelException();
     }
 
     @Override

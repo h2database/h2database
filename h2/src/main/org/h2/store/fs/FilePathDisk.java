@@ -488,6 +488,9 @@ class FileDisk extends FileBase {
 
     @Override
     public int write(ByteBuffer src) throws IOException {
+        if (readOnly) {
+            throw new NonWritableChannelException();
+        }
         int len = src.remaining();
         file.write(src.array(), src.arrayOffset() + src.position(), len);
         src.position(src.position() + len);

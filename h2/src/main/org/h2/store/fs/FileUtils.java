@@ -12,14 +12,34 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.OpenOption;
+import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.FileAttribute;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * This utility class contains utility functions that use the file system
  * abstraction.
  */
 public class FileUtils {
+
+    private static final Set<? extends OpenOption> R, W, RWS, RWD;
+
+    static final FileAttribute<?>[] NO_ATTIBUTES = new FileAttribute[0];
+
+    static {
+        R = Collections.singleton(StandardOpenOption.READ);
+        W = EnumSet.of(StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
+        RWS = EnumSet.of(StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE,
+                StandardOpenOption.SYNC);
+        RWD = EnumSet.of(StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE,
+                StandardOpenOption.DSYNC);
+    }
+
 
     /**
      * Checks if a file exists.
@@ -374,6 +394,27 @@ public class FileUtils {
         do {
             channel.write(src);
         } while (src.remaining() > 0);
+    }
+
+    static Set<? extends OpenOption> modeToOptions(String mode) {
+        Set<? extends OpenOption> options;
+        switch (mode) {
+        case "r":
+            options = R;
+            break;
+        case "rw":
+            options = W;
+            break;
+        case "rws":
+            options = RWS;
+            break;
+        case "rwd":
+            options = RWD;
+            break;
+        default:
+            throw new IllegalArgumentException(mode);
+        }
+        return options;
     }
 
 }

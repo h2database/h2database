@@ -374,7 +374,7 @@ public class TestFileSystem extends TestBase {
                 FileUtils.createTempFile(f, ".tmp", false);
         }};
         final FileChannel channel = FileUtils.open(f, "r");
-        new AssertThrows(IOException.class) {
+        new AssertThrows(NonWritableChannelException.class) {
             @Override
             public void test() throws IOException {
                 channel.write(ByteBuffer.allocate(1));
@@ -574,7 +574,7 @@ public class TestFileSystem extends TestBase {
         FileUtils.readFully(channel, ByteBuffer.wrap(test, 0, 10000));
         assertEquals(buffer, test);
         final FileChannel fc = channel;
-        new AssertThrows(IOException.class) {
+        new AssertThrows(NonWritableChannelException.class) {
             @Override
             public void test() throws Exception {
                 fc.write(ByteBuffer.wrap(test, 0, 10));
@@ -678,7 +678,6 @@ public class TestFileSystem extends TestBase {
         RandomAccessFile ra = new RandomAccessFile(file, "rw");
         FileUtils.delete(s);
         FileChannel f = FileUtils.open(s, "rw");
-        assertEquals(s, f.toString());
         assertEquals(-1, f.read(ByteBuffer.wrap(new byte[1])));
         f.force(true);
         Random random = new Random(seed);

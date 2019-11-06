@@ -77,15 +77,6 @@ public class Row implements SearchRow {
         }
     }
 
-    /**
-     * Check if this is an empty row.
-     *
-     * @return {@code true} if the row is empty
-     */
-    public boolean isEmpty() {
-        return data == null;
-    }
-
     @Override
     public int getColumnCount() {
         return data.length;

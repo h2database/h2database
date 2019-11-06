@@ -145,7 +145,7 @@ public class ScanIndex extends BaseIndex {
                 return null;
             }
             row = rows.get((int) key);
-            if (!row.isEmpty()) {
+            if (row.getValueList() != null) {
                 return row;
             }
         }

@@ -18,11 +18,6 @@ public interface SearchRow {
     int ROWID_INDEX = -1;
 
     /**
-     * An empty array of SearchRow objects.
-     */
-    SearchRow[] EMPTY_ARRAY = {};
-
-    /**
      * Get the column count.
      *
      * @return the column count

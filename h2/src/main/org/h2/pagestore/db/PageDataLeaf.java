@@ -89,7 +89,7 @@ public class PageDataLeaf extends PageData {
         PageDataLeaf p = new PageDataLeaf(index, pageId, index.getPageStore()
                 .createData());
         index.getPageStore().logUndo(p, null);
-        p.rows = Row.EMPTY_ARRAY;
+        p.rows = PageStoreRow.EMPTY_ARRAY;
         p.parentPageId = parentPageId;
         p.columnCount = index.getTable().getColumns().length;
         p.writeHead();

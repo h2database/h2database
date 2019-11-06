@@ -16,8 +16,6 @@ public class Row implements SearchRow {
 
     public static final int MEMORY_CALCULATE = -1;
 
-    public static final Row[] EMPTY_ARRAY = {};
-
     private long key;
     protected final Value[] data;
     private int memory;

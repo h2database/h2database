@@ -182,7 +182,7 @@ public class FilePathEncrypt extends FilePathWrapper {
             this.encryptionKey = encryptionKey;
         }
 
-        private void init() throws IOException {
+        private synchronized void init() throws IOException {
             if (xts != null) {
                 return;
             }
@@ -215,18 +215,18 @@ public class FilePathEncrypt extends FilePathWrapper {
         }
 
         @Override
-        public FileChannel position(long newPosition) throws IOException {
+        public synchronized FileChannel position(long newPosition) throws IOException {
             this.pos = newPosition;
             return this;
         }
 
         @Override
-        public long position() throws IOException {
+        public synchronized long position() throws IOException {
             return pos;
         }
 
         @Override
-        public int read(ByteBuffer dst) throws IOException {
+        public synchronized int read(ByteBuffer dst) throws IOException {
             int len = read(dst, pos);
             if (len > 0) {
                 pos += len;
@@ -235,18 +235,15 @@ public class FilePathEncrypt extends FilePathWrapper {
         }
 
         @Override
-        public int read(ByteBuffer dst, long position) throws IOException {
+        public synchronized int read(ByteBuffer dst, long position) throws IOException {
             int len = dst.remaining();
             if (len == 0) {
                 return 0;
             }
-            init();
-            len = (int) Math.min(len, size - position);
-            if (position >= size) {
-                return -1;
-            } else if (position < 0) {
+            if (position < 0) {
                 throw new IllegalArgumentException("pos: " + position);
             }
+            init();
             if ((position & BLOCK_SIZE_MASK) != 0 ||
                     (len & BLOCK_SIZE_MASK) != 0) {
                 // either the position or the len is unaligned:
@@ -290,7 +287,7 @@ public class FilePathEncrypt extends FilePathWrapper {
         }
 
         @Override
-        public int write(ByteBuffer src, long position) throws IOException {
+        public synchronized int write(ByteBuffer src, long position) throws IOException {
             init();
             int len = src.remaining();
             if ((position & BLOCK_SIZE_MASK) != 0 ||
@@ -353,7 +350,7 @@ public class FilePathEncrypt extends FilePathWrapper {
         }
 
         @Override
-        public int write(ByteBuffer src) throws IOException {
+        public synchronized int write(ByteBuffer src) throws IOException {
             int len = write(src, pos);
             if (len > 0) {
                 pos += len;
@@ -362,13 +359,13 @@ public class FilePathEncrypt extends FilePathWrapper {
         }
 
         @Override
-        public long size() throws IOException {
+        public synchronized long size() throws IOException {
             init();
             return size;
         }
 
         @Override
-        public FileChannel truncate(long newSize) throws IOException {
+        public synchronized FileChannel truncate(long newSize) throws IOException {
             init();
             if (newSize > size) {
                 return this;

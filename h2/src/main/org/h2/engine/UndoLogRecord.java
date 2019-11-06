@@ -211,7 +211,7 @@ public class UndoLogRecord {
         for (int i = 0; i < columnCount; i++) {
             values[i] = buff.readValue();
         }
-        row = Row.get(values, Row.MEMORY_CALCULATE, key);
+        row = table.createRow(values, Row.MEMORY_CALCULATE, key);
         row.setDeleted(deleted);
         state = IN_MEMORY_INVALID;
     }

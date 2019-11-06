@@ -631,8 +631,30 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
+    /**
+     * Create a new row for this table.
+     *
+     * @param data the values
+     * @param memory whether the row is in memory
+     * @return the created row
+     */
+    public Row createRow(Value[] data, int memory) {
+        return Row.get(data, memory);
+    }
+
+    /**
+     * Create a new row for this table.
+     *
+     * @param data the values
+     * @param memory whether the row is in memory
+     * @return the created row
+     */
+    public Row createRow(Value[] data, int memory, long key) {
+        return Row.get(data, memory, key);
+    }
+
     public Row getTemplateRow() {
-        return Row.get(new Value[columns.length], Row.MEMORY_CALCULATE);
+        return createRow(new Value[columns.length], Row.MEMORY_CALCULATE);
     }
 
     /**

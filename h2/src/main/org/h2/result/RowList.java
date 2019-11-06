@@ -12,6 +12,7 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.store.Data;
 import org.h2.store.FileStore;
+import org.h2.table.Table;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -23,6 +24,7 @@ import org.h2.value.Value;
 public class RowList implements AutoCloseable {
 
     private final Session session;
+    private final Table table;
     private final ArrayList<Row> list = Utils.newSmallArrayList();
     private int size;
     private int index, listIndex;
@@ -38,8 +40,9 @@ public class RowList implements AutoCloseable {
      *
      * @param session the session
      */
-    public RowList(Session session) {
+    public RowList(Session session, Table table) {
         this.session = session;
+        this.table = table;
         if (session.getDatabase().isPersistent()) {
             maxMemory = session.getDatabase().getMaxOperationMemory();
         } else {
@@ -184,7 +187,7 @@ public class RowList implements AutoCloseable {
             }
             values[i] = v;
         }
-        Row row = Row.get(values, mem, key);
+        Row row = table.createRow(values, mem, key);
         row.setDeleted(deleted);
         return row;
     }

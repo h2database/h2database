@@ -28,6 +28,7 @@ import org.h2.table.RegularTable;
 import org.h2.util.MathUtils;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
+import org.h2.value.Value;
 
 /**
  * A table store in a PageStore.
@@ -72,6 +73,16 @@ public class PageStoreTable extends RegularTable {
         for (Index index : indexes) {
             index.close(session);
         }
+    }
+
+    @Override
+    public Row createRow(Value[] data, int memory) {
+        return PageStoreRow.get(data, memory);
+    }
+
+    @Override
+    public Row createRow(Value[] data, int memory, long key) {
+        return PageStoreRow.get(data, memory, key);
     }
 
     @Override

@@ -221,7 +221,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex {
         TransactionMap<Value, Value> map = getMap(session);
         long key = row.getKey();
         ValueArray array = (ValueArray) lockRow(map, key);
-        return array == null ? null : getRow(session, key, array);
+        return array == null ? null : getRow(key, array);
     }
 
     private Value lockRow(TransactionMap<Value, Value> map, long key) {
@@ -253,11 +253,11 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex {
             throw DbException.get(ErrorCode.ROW_NOT_FOUND_IN_PRIMARY_INDEX,
                     getSQL(false), String.valueOf(key));
         }
-        return getRow(session, key, (ValueArray) v);
+        return getRow(key, (ValueArray) v);
     }
 
-    private static Row getRow(Session session, long key, ValueArray array) {
-        return Row.get(array.getList(), 0, key);
+    Row getRow(long key, ValueArray array) {
+        return table.createRow(array.getList(), 0, key);
     }
 
     @Override
@@ -312,7 +312,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex {
         Value key = first ? map.firstKey() : map.lastKey();
         Row row;
         if (key != null) {
-            row = Row.get(((ValueArray) map.getFromSnapshot(key)).getList(), 0, key.getLong());
+            row = getRow(key.getLong(), (ValueArray) map.getFromSnapshot(key));
         } else {
             row = null;
         }
@@ -424,7 +424,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex {
     /**
      * A cursor.
      */
-    static class MVStoreCursor implements Cursor {
+    class MVStoreCursor implements Cursor {
 
         private final Iterator<Entry<Value, Value>> it;
         private Entry<Value, Value> current;
@@ -439,7 +439,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex {
             if (row == null) {
                 if (current != null) {
                     ValueArray array = (ValueArray) current.getValue();
-                    row = Row.get(array.getList(), 0, current.getKey().getLong());
+                    row = getRow(current.getKey().getLong(), array);
                 }
             }
             return row;

@@ -116,8 +116,8 @@ public class Update extends Prepared implements DataChangeStatement {
     public int update() {
         targetTableFilter.startQuery(session);
         targetTableFilter.reset();
-        try (RowList rows = new RowList(session)) {
-            Table table = targetTableFilter.getTable();
+        Table table = targetTableFilter.getTable();
+        try (RowList rows = new RowList(session, table)) {
             session.getUser().checkRight(table, Right.UPDATE);
             table.fire(session, Trigger.UPDATE, true);
             table.lock(session, true, false);

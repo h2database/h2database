@@ -6,21 +6,20 @@
 package org.h2.result;
 
 import org.h2.engine.Constants;
-import org.h2.store.Data;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
 
 /**
  * Represents a row in a table.
  */
-public final class Row implements SearchRow {
+public class Row implements SearchRow {
 
     public static final int MEMORY_CALCULATE = -1;
 
     public static final Row[] EMPTY_ARRAY = {};
 
     private long key;
-    private final Value[] data;
+    protected final Value[] data;
     private int memory;
     private boolean deleted;
 
@@ -49,7 +48,7 @@ public final class Row implements SearchRow {
         return r;
     }
 
-    private Row(Value[] data, int memory) {
+    protected Row(Value[] data, int memory) {
         this.data = data;
         this.memory = memory;
     }
@@ -72,20 +71,6 @@ public final class Row implements SearchRow {
     @Override
     public Value getValue(int i) {
         return i == SearchRow.ROWID_INDEX ? ValueLong.get(key) : data[i];
-    }
-
-    /**
-     * Get the number of bytes required for the data.
-     *
-     * @param dummy the template buffer
-     * @return the number of bytes
-     */
-    public int getByteCount(Data dummy) {
-        int size = 0;
-        for (Value v : data) {
-            size += dummy.getValueLen(v);
-        }
-        return size;
     }
 
     @Override

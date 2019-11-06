@@ -16,6 +16,7 @@ import org.h2.compress.CompressLZF;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.pagestore.db.PageStoreRow;
 import org.h2.result.Row;
 import org.h2.store.Data;
 import org.h2.store.DataReader;
@@ -469,7 +470,7 @@ public class PageLog {
         for (int i = 0; i < columnCount; i++) {
             values[i] = data.readValue();
         }
-        return Row.get(values, Row.MEMORY_CALCULATE, key);
+        return PageStoreRow.get(values, Row.MEMORY_CALCULATE, key);
     }
 
     /**
@@ -625,7 +626,7 @@ public class PageLog {
         data.reset();
         int columns = row.getColumnCount();
         data.writeVarInt(columns);
-        data.checkCapacity(row.getByteCount(data));
+        data.checkCapacity(((PageStoreRow) row).getByteCount(data));
         if (session.isRedoLogBinaryEnabled()) {
             for (int i = 0; i < columns; i++) {
                 data.writeValue(row.getValue(i));

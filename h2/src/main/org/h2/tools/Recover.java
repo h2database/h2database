@@ -30,6 +30,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.zip.CRC32;
+
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
 import org.h2.compress.CompressLZF;
@@ -51,8 +52,8 @@ import org.h2.pagestore.PageFreeList;
 import org.h2.pagestore.PageLog;
 import org.h2.pagestore.PageStore;
 import org.h2.pagestore.db.LobStorageBackend;
+import org.h2.result.DefaultRow;
 import org.h2.result.Row;
-import org.h2.result.SimpleRow;
 import org.h2.security.SHA256;
 import org.h2.store.Data;
 import org.h2.store.DataHandler;
@@ -629,7 +630,7 @@ public class Recover extends Tool implements DataHandler {
                         Value[] values = ((ValueArray) dataMap.get(rowId))
                                 .getList();
                         try {
-                            SimpleRow r = new SimpleRow(values);
+                            DefaultRow r = new DefaultRow(values);
                             MetaRecord meta = new MetaRecord(r);
                             schema.add(meta);
                             if (meta.getObjectType() == DbObject.TABLE_OR_VIEW) {
@@ -1510,7 +1511,7 @@ public class Recover extends Tool implements DataHandler {
         writer.println(sb.toString());
         if (storageId == 0) {
             try {
-                SimpleRow r = new SimpleRow(data);
+                DefaultRow r = new DefaultRow(data);
                 MetaRecord meta = new MetaRecord(r);
                 schema.add(meta);
                 if (meta.getObjectType() == DbObject.TABLE_OR_VIEW) {

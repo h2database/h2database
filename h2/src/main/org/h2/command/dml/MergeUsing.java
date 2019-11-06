@@ -113,9 +113,10 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
         ResultInterface rows = query.query(0);
         targetTable.fire(session, evaluateTriggerMasks(), true);
         targetTable.lock(session, true, false);
+        Table sourceTable = sourceTableFilter.getTable();
         while (rows.next()) {
             sourceQueryRowNumber++;
-            Row sourceRow = new Row(rows.currentRow(), 0);
+            Row sourceRow = sourceTable.createRow(rows.currentRow(), 0);
             setCurrentRowNumber(sourceQueryRowNumber);
 
             merge(sourceRow);

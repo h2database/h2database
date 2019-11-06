@@ -8,6 +8,7 @@ package org.h2.engine;
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.result.Row;
+import org.h2.result.SearchRow;
 import org.h2.store.Data;
 import org.h2.store.FileStore;
 import org.h2.table.Table;
@@ -76,20 +77,12 @@ public class UndoLogRecord {
      * @param session the session
      */
     void undo(Session session) {
-        Database db = session.getDatabase();
         switch (operation) {
         case INSERT:
             if (state == IN_MEMORY_INVALID) {
                 state = IN_MEMORY;
             }
-            if (db.getLockMode() == Constants.LOCK_MODE_OFF) {
-                if (row.isDeleted()) {
-                    // it might have been deleted by another thread
-                    return;
-                }
-            }
             try {
-                row.setDeleted(false);
                 table.removeRow(session, row);
                 table.fireAfterRow(session, row, null, true);
             } catch (DbException e) {
@@ -131,7 +124,6 @@ public class UndoLogRecord {
         int p = buff.length();
         buff.writeInt(0);
         buff.writeInt(operation);
-        buff.writeByte(row.isDeleted() ? (byte) 1 : (byte) 0);
         buff.writeInt(log.getTableId(table));
         buff.writeLong(row.getKey());
         int count = row.getColumnCount();
@@ -203,7 +195,6 @@ public class UndoLogRecord {
 
     private void load(Data buff, UndoLog log) {
         operation = (short) buff.readInt();
-        boolean deleted = buff.readByte() == 1;
         table = log.getTable(buff.readInt());
         long key = buff.readLong();
         int columnCount = buff.readInt();
@@ -211,9 +202,7 @@ public class UndoLogRecord {
         for (int i = 0; i < columnCount; i++) {
             values[i] = buff.readValue();
         }
-        row = new Row(values, Row.MEMORY_CALCULATE);
-        row.setKey(key);
-        row.setDeleted(deleted);
+        row = table.createRow(values, SearchRow.MEMORY_CALCULATE, key);
         state = IN_MEMORY_INVALID;
     }
 

@@ -17,6 +17,7 @@ import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.Row;
+import org.h2.result.SearchRow;
 import org.h2.store.Data;
 import org.h2.store.DataReader;
 import org.h2.store.InDoubtTransaction;
@@ -469,9 +470,7 @@ public class PageLog {
         for (int i = 0; i < columnCount; i++) {
             values[i] = data.readValue();
         }
-        Row row = new Row(values, Row.MEMORY_CALCULATE);
-        row.setKey(key);
-        return row;
+        return Row.get(values, SearchRow.MEMORY_CALCULATE, key);
     }
 
     /**
@@ -627,7 +626,11 @@ public class PageLog {
         data.reset();
         int columns = row.getColumnCount();
         data.writeVarInt(columns);
-        data.checkCapacity(row.getByteCount(data));
+        int size = 0;
+        for (Value v : row.getValueList()) {
+            size += data.getValueLen(v);
+        }
+        data.checkCapacity(size);
         if (session.isRedoLogBinaryEnabled()) {
             for (int i = 0; i < columns; i++) {
                 data.writeValue(row.getValue(i));

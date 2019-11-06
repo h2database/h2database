@@ -21,7 +21,7 @@ public class ValueRow extends ValueCollectionBase {
     /**
      * Empty row.
      */
-    private static final Object EMPTY = get(new Value[0]);
+    private static final Object EMPTY = get(Value.EMPTY_VALUES);
 
     private TypeInfo type;
 

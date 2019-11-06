@@ -102,7 +102,7 @@ public class Delete extends Prepared implements DataChangeStatement {
                 limitRows = v.getInt();
             }
         }
-        try (RowList rows = new RowList(session)) {
+        try (RowList rows = new RowList(session, table)) {
             setCurrentRowNumber(0);
             int count = 0;
             while (limitRows != 0 && targetTableFilter.next()) {

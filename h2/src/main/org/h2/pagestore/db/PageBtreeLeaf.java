@@ -66,7 +66,7 @@ public class PageBtreeLeaf extends PageBtree {
         PageBtreeLeaf p = new PageBtreeLeaf(index, pageId, index.getPageStore()
                 .createData());
         index.getPageStore().logUndo(p, null);
-        p.rows = SearchRow.EMPTY_ARRAY;
+        p.rows = PageStoreRow.EMPTY_SEARCH_ARRAY;
         p.parentPageId = parentPageId;
         p.writeHead();
         p.start = p.data.length();

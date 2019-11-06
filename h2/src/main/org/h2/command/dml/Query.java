@@ -429,7 +429,7 @@ public abstract class Query extends Prepared {
     private  Value[] getParameterValues() {
         ArrayList<Parameter> list = getParameters();
         if (list == null) {
-            return new Value[0];
+            return Value.EMPTY_VALUES;
         }
         int size = list.size();
         Value[] params = new Value[size];

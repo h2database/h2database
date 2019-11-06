@@ -2296,9 +2296,7 @@ public class MetaTable extends Table {
             Value v = s == null ? ValueNull.INSTANCE : s instanceof String ? ValueString.get((String) s) : (Value) s;
             values[i] = columns[i].convert(v, false);
         }
-        Row row = new Row(values, 1);
-        row.setKey(rows.size());
-        rows.add(row);
+        rows.add(Row.get(values, 1, rows.size()));
     }
 
     @Override

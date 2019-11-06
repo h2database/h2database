@@ -282,14 +282,14 @@ public class TestPageStore extends TestDb {
 
     private void testInsertDelete() {
         Row[] x = new Row[0];
-        Row r = new Row(null, 0);
+        Row r = Row.get(null, 0);
         x = Page.insert(x, 0, 0, r);
         assertTrue(x[0] == r);
-        Row r2 = new Row(null, 0);
+        Row r2 = Row.get(null, 0);
         x = Page.insert(x, 1, 0, r2);
         assertTrue(x[0] == r2);
         assertTrue(x[1] == r);
-        Row r3 = new Row(null, 0);
+        Row r3 = Row.get(null, 0);
         x = Page.insert(x, 2, 1, r3);
         assertTrue(x[0] == r2);
         assertTrue(x[1] == r3);

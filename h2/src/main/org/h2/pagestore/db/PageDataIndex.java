@@ -166,7 +166,6 @@ public class PageDataIndex extends PageIndex {
             store.update(newRoot);
             root = newRoot;
         }
-        row.setDeleted(false);
         invalidateRowCount();
         rowCount++;
         store.logAddOrRemoveRow(session, tableData.getId(), row, true);

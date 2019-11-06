@@ -48,7 +48,7 @@ public class SimpleRow implements SearchRow {
 
     @Override
     public String toString() {
-        return Row.toString(key, false, data);
+        return Row.toString(key, data);
     }
 
     @Override

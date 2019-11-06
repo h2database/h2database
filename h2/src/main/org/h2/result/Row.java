@@ -21,7 +21,6 @@ public class Row implements SearchRow {
     private long key;
     protected final Value[] data;
     private int memory;
-    private boolean deleted;
 
     /**
      * Creates a new row.
@@ -103,22 +102,18 @@ public class Row implements SearchRow {
 
     @Override
     public String toString() {
-        return toString(key, deleted, data);
+        return toString(key,  data);
     }
 
     /**
      * Convert a row to a string.
      *
      * @param key the key
-     * @param isDeleted whether the row is deleted
      * @param data the row data
      * @return the string representation
      */
-    static String toString(long key, boolean isDeleted, Value[] data) {
+    static String toString(long key, Value[] data) {
         StringBuilder builder = new StringBuilder("( /* key:").append(key);
-        if (isDeleted) {
-            builder.append(" deleted");
-        }
         builder.append(" */ ");
         if (data != null) {
             for (int i = 0, length = data.length; i < length; i++) {
@@ -130,24 +125,6 @@ public class Row implements SearchRow {
             }
         }
         return builder.append(')').toString();
-    }
-
-    /**
-     * Mark the row as deleted.
-     *
-     * @param deleted deleted flag
-     */
-    public void setDeleted(boolean deleted) {
-        this.deleted = deleted;
-    }
-
-    /**
-     * Check if the row is deleted.
-     *
-     * @return {@code true} if the row is deleted
-     */
-    public boolean isDeleted() {
-        return deleted;
     }
 
     /**

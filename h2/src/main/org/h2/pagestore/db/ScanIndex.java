@@ -86,7 +86,6 @@ public class ScanIndex extends BaseIndex {
             row.setKey(key);
             rows.set((int) key, row);
         }
-        row.setDeleted(false);
         rowCount++;
     }
 

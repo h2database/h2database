@@ -51,13 +51,12 @@ public class RowList implements AutoCloseable {
     }
 
     private void writeRow(Data buff, Row r) {
-        buff.checkCapacity(2 + Data.LENGTH_INT * 3 + Data.LENGTH_LONG);
+        buff.checkCapacity(1 + Data.LENGTH_INT * 2 + Data.LENGTH_LONG);
         buff.writeByte((byte) 1);
         buff.writeInt(r.getMemory());
         int columnCount = r.getColumnCount();
         buff.writeInt(columnCount);
         buff.writeLong(r.getKey());
-        buff.writeByte(r.isDeleted() ? (byte) 1 : (byte) 0);
         for (int i = 0; i < columnCount; i++) {
             Value v = r.getValue(i);
             buff.checkCapacity(1);
@@ -169,7 +168,6 @@ public class RowList implements AutoCloseable {
         int mem = buff.readInt();
         int columnCount = buff.readInt();
         long key = buff.readLong();
-        boolean deleted = buff.readByte() != 0;
         Value[] values = new Value[columnCount];
         for (int i = 0; i < columnCount; i++) {
             Value v;
@@ -188,7 +186,6 @@ public class RowList implements AutoCloseable {
             values[i] = v;
         }
         Row row = table.createRow(values, mem, key);
-        row.setDeleted(deleted);
         return row;
     }
 

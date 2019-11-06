@@ -8,23 +8,26 @@ package org.h2.result;
 import org.h2.value.Value;
 
 /**
- * The interface for rows stored in a table, and for partial rows stored in the
+ * The base class for rows stored in a table, and for partial rows stored in the
  * index.
  */
-public interface SearchRow {
+public abstract class SearchRow {
+
     /**
      * Index of a virtual "_ROWID_" column within a row or a table
      */
-    int ROWID_INDEX = -1;
+    public static final int ROWID_INDEX = -1;
 
-    int MEMORY_CALCULATE = -1;
+    public static final int MEMORY_CALCULATE = -1;
+
+    protected long key;
 
     /**
      * Get the column count.
      *
      * @return the column count
      */
-    int getColumnCount();
+    public abstract int getColumnCount();
 
     /**
      * Get the value for the column
@@ -32,7 +35,7 @@ public interface SearchRow {
      * @param index the column number (starting with 0)
      * @return the value
      */
-    Value getValue(int index);
+    public abstract Value getValue(int index);
 
     /**
      * Set the value for given column
@@ -40,27 +43,31 @@ public interface SearchRow {
      * @param index the column number (starting with 0)
      * @param v the new value
      */
-    void setValue(int index, Value v);
+    public abstract void setValue(int index, Value v);
 
     /**
      * Set the unique key of the row.
      *
      * @param key the key
      */
-    void setKey(long key);
+    public void setKey(long key) {
+        this.key = key;
+    }
 
     /**
      * Get the unique key of the row.
      *
      * @return the key
      */
-    long getKey();
+    public long getKey() {
+        return key;
+    }
 
     /**
      * Get the estimated memory used for this row, in bytes.
      *
      * @return the memory
      */
-    int getMemory();
+    public abstract int getMemory();
 
 }

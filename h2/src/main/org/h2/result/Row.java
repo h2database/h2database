@@ -10,9 +10,7 @@ import org.h2.value.Value;
 /**
  * Represents a row in a table.
  */
-public abstract class Row implements SearchRow {
-
-    protected long key;
+public abstract class Row extends SearchRow {
 
     private int memory;
 
@@ -43,16 +41,6 @@ public abstract class Row implements SearchRow {
 
     protected Row(int memory) {
         this.memory = memory;
-    }
-
-    @Override
-    public long getKey() {
-        return key;
-    }
-
-    @Override
-    public void setKey(long key) {
-        this.key = key;
     }
 
     @Override

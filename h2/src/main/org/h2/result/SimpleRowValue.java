@@ -11,9 +11,8 @@ import org.h2.value.Value;
 /**
  * A simple row that contains data for only one column.
  */
-public class SimpleRowValue implements SearchRow {
+public class SimpleRowValue extends SearchRow {
 
-    private long key;
     private int index;
     private final int virtualColumnCount;
     private Value data;
@@ -25,16 +24,6 @@ public class SimpleRowValue implements SearchRow {
     @Override
     public int getColumnCount() {
         return virtualColumnCount;
-    }
-
-    @Override
-    public long getKey() {
-        return key;
-    }
-
-    @Override
-    public void setKey(long key) {
-        this.key = key;
     }
 
     @Override
@@ -56,7 +45,7 @@ public class SimpleRowValue implements SearchRow {
 
     @Override
     public int getMemory() {
-        return Constants.MEMORY_OBJECT + (data == null ? 0 : data.getMemory());
+        return Constants.MEMORY_ROW + (data == null ? 0 : data.getMemory());
     }
 
 }

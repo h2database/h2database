@@ -6,6 +6,7 @@
 package org.h2.test.store;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -77,7 +78,9 @@ public class TestMVTableEngine extends TestDb {
         testMinMaxWithNull();
         testTimeout();
         testExplainAnalyze();
-        testTransactionLogEmptyAfterCommit();
+        if (!config.memory) {
+            testTransactionLogEmptyAfterCommit();
+        }
         testShrinkDatabaseFile();
         testTwoPhaseCommit();
         testRecover();
@@ -631,7 +634,8 @@ public class TestMVTableEngine extends TestDb {
             stat.execute("shutdown immediately");
         } catch (Exception ignore) {/**/}
 
-        String file = getTestName() + Constants.SUFFIX_MV_FILE;
+        String file = getBaseDir() + "/" + getTestName() + Constants.SUFFIX_MV_FILE;
+        assertTrue(new File(file).exists());
         try (MVStore store = MVStore.open(file)) {
             TransactionStore t = new TransactionStore(store);
             t.init();

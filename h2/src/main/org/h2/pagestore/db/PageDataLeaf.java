@@ -15,6 +15,7 @@ import org.h2.message.DbException;
 import org.h2.pagestore.Page;
 import org.h2.pagestore.PageStore;
 import org.h2.result.Row;
+import org.h2.result.SearchRow;
 import org.h2.store.Data;
 import org.h2.value.Value;
 
@@ -620,7 +621,7 @@ public class PageDataLeaf extends PageData {
                 values[i] = data.readValue();
             }
         }
-        return PageStoreRow.get(values, Row.MEMORY_CALCULATE);
+        return PageStoreRow.get(values, SearchRow.MEMORY_CALCULATE);
     }
 
 }

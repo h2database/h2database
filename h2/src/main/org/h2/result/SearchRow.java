@@ -17,6 +17,8 @@ public interface SearchRow {
      */
     int ROWID_INDEX = -1;
 
+    int MEMORY_CALCULATE = -1;
+
     /**
      * Get the column count.
      *

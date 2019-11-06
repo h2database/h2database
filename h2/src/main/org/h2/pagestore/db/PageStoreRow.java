@@ -6,6 +6,7 @@
 package org.h2.pagestore.db;
 
 import org.h2.result.Row;
+import org.h2.result.DefaultRow;
 import org.h2.result.SearchRow;
 import org.h2.store.Data;
 import org.h2.value.Value;
@@ -13,7 +14,7 @@ import org.h2.value.Value;
 /**
  * Page Store implementation of a row.
  */
-public class PageStoreRow extends Row {
+public class PageStoreRow extends DefaultRow {
 
     /**
      * An empty array of Row objects.

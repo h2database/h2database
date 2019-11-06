@@ -27,10 +27,10 @@ import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.result.DefaultRow;
 import org.h2.result.Row;
 import org.h2.result.RowList;
 import org.h2.result.SearchRow;
-import org.h2.result.SimpleRow;
 import org.h2.result.SimpleRowValue;
 import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
@@ -654,7 +654,7 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     public Row getTemplateRow() {
-        return createRow(new Value[columns.length], Row.MEMORY_CALCULATE);
+        return createRow(new Value[columns.length], SearchRow.MEMORY_CALCULATE);
     }
 
     /**
@@ -667,7 +667,7 @@ public abstract class Table extends SchemaObjectBase {
         if (singleColumn) {
             return new SimpleRowValue(columns.length);
         }
-        return new SimpleRow(new Value[columns.length]);
+        return new DefaultRow(new Value[columns.length]);
     }
 
     Row getNullRow() {

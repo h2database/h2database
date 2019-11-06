@@ -8,6 +8,7 @@ package org.h2.engine;
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.result.Row;
+import org.h2.result.SearchRow;
 import org.h2.store.Data;
 import org.h2.store.FileStore;
 import org.h2.table.Table;
@@ -201,7 +202,7 @@ public class UndoLogRecord {
         for (int i = 0; i < columnCount; i++) {
             values[i] = buff.readValue();
         }
-        row = table.createRow(values, Row.MEMORY_CALCULATE, key);
+        row = table.createRow(values, SearchRow.MEMORY_CALCULATE, key);
         state = IN_MEMORY_INVALID;
     }
 

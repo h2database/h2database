@@ -5,19 +5,15 @@
  */
 package org.h2.result;
 
-import org.h2.engine.Constants;
 import org.h2.value.Value;
-import org.h2.value.ValueLong;
 
 /**
  * Represents a row in a table.
  */
-public class Row implements SearchRow {
+public abstract class Row implements SearchRow {
 
-    public static final int MEMORY_CALCULATE = -1;
+    protected long key;
 
-    private long key;
-    protected final Value[] data;
     private int memory;
 
     /**
@@ -28,7 +24,7 @@ public class Row implements SearchRow {
      * @return the allocated row
      */
     public static Row get(Value[] data, int memory) {
-        return new Row(data, memory);
+        return new DefaultRow(data, memory);
     }
 
     /**
@@ -40,13 +36,12 @@ public class Row implements SearchRow {
      * @return the allocated row
      */
     public static Row get(Value[] data, int memory, long key) {
-        Row r = new Row(data, memory);
+        Row r = new DefaultRow(data, memory);
         r.setKey(key);
         return r;
     }
 
-    protected Row(Value[] data, int memory) {
-        this.data = data;
+    protected Row(int memory) {
         this.memory = memory;
     }
 
@@ -61,78 +56,26 @@ public class Row implements SearchRow {
     }
 
     @Override
-    public Value getValue(int i) {
-        return i == SearchRow.ROWID_INDEX ? ValueLong.get(key) : data[i];
-    }
-
-    @Override
-    public void setValue(int i, Value v) {
-        if (i == SearchRow.ROWID_INDEX) {
-            this.key = v.getLong();
-        } else {
-            data[i] = v;
-        }
-    }
-
-    @Override
-    public int getColumnCount() {
-        return data.length;
-    }
-
-    @Override
     public int getMemory() {
         if (memory != MEMORY_CALCULATE) {
             return memory;
         }
-        int m = Constants.MEMORY_ROW;
-        if (data != null) {
-            int len = data.length;
-            m += Constants.MEMORY_OBJECT + len * Constants.MEMORY_POINTER;
-            for (Value v : data) {
-                if (v != null) {
-                    m += v.getMemory();
-                }
-            }
-        }
-        this.memory = m;
-        return m;
-    }
-
-    @Override
-    public String toString() {
-        return toString(key,  data);
+        return memory = calculateMemory();
     }
 
     /**
-     * Convert a row to a string.
+     * Calculate the estimated memory used for this row, in bytes.
      *
-     * @param key the key
-     * @param data the row data
-     * @return the string representation
+     * @return the memory
      */
-    static String toString(long key, Value[] data) {
-        StringBuilder builder = new StringBuilder("( /* key:").append(key);
-        builder.append(" */ ");
-        if (data != null) {
-            for (int i = 0, length = data.length; i < length; i++) {
-                if (i > 0) {
-                    builder.append(", ");
-                }
-                Value v = data[i];
-                builder.append(v == null ? "null" : v.getTraceSQL());
-            }
-        }
-        return builder.append(')').toString();
-    }
+    protected abstract int calculateMemory();
 
     /**
      * Get values.
      *
      * @return values
      */
-    public Value[] getValueList() {
-        return data;
-    }
+    public abstract Value[] getValueList();
 
     /**
      * Check whether this row and the specified row share the same underlying
@@ -146,8 +89,6 @@ public class Row implements SearchRow {
      * @return {@code true} if rows share the same underlying data,
      *         {@code false} otherwise or when unknown
      */
-    public boolean hasSharedData(Row other) {
-        return data == other.data;
-    }
+    public abstract boolean hasSharedData(Row other);
 
 }

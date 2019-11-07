@@ -18,7 +18,7 @@ public class FilePathNio extends FilePathWrapper {
     @Override
     public FileChannel open(String mode) throws IOException {
         return FileChannel.open(Paths.get(name.substring(getScheme().length() + 1)),
-                FileUtils.modeToOptions(mode), FileUtils.NO_ATTIBUTES);
+                FileUtils.modeToOptions(mode), FileUtils.NO_ATTRIBUTES);
     }
 
     @Override

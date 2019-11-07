@@ -64,7 +64,7 @@ class FileAsync extends FileBase {
     FileAsync(String fileName, String mode) throws IOException {
         this.name = fileName;
         channel = AsynchronousFileChannel.open(Paths.get(fileName), FileUtils.modeToOptions(mode), null,
-                FileUtils.NO_ATTIBUTES);
+                FileUtils.NO_ATTRIBUTES);
     }
 
     @Override

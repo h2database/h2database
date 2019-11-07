@@ -29,7 +29,7 @@ public class FileUtils {
 
     private static final Set<? extends OpenOption> R, W, RWS, RWD;
 
-    static final FileAttribute<?>[] NO_ATTIBUTES = new FileAttribute[0];
+    static final FileAttribute<?>[] NO_ATTRIBUTES = new FileAttribute[0];
 
     static {
         R = Collections.singleton(StandardOpenOption.READ);

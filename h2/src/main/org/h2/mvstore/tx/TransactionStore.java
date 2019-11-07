@@ -18,6 +18,7 @@ import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.RootReference;
 import org.h2.mvstore.WriteBuffer;
+import org.h2.mvstore.type.BasicDataType;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
 import org.h2.util.StringUtils;
@@ -798,8 +799,8 @@ public class TransactionStore {
      * A data type that contains an array of objects with the specified data
      * types.
      */
-    public static class ArrayType implements DataType {
-
+    public static class ArrayType extends BasicDataType<Object[]>
+    {
         private final int arrayLength;
         private final DataType[] elementTypes;
 
@@ -809,8 +810,12 @@ public class TransactionStore {
         }
 
         @Override
-        public int getMemory(Object obj) {
-            Object[] array = (Object[]) obj;
+        public Object[][] createStorage(int size) {
+            return new Object[size][];
+        }
+
+        @Override
+        public int getMemory(Object[] array) {
             int size = 0;
             for (int i = 0; i < arrayLength; i++) {
                 DataType t = elementTypes[i];
@@ -823,12 +828,10 @@ public class TransactionStore {
         }
 
         @Override
-        public int compare(Object aObj, Object bObj) {
-            if (aObj == bObj) {
+        public int compare(Object[] a, Object[] b) {
+            if (a == b) {
                 return 0;
             }
-            Object[] a = (Object[]) aObj;
-            Object[] b = (Object[]) bObj;
             for (int i = 0; i < arrayLength; i++) {
                 DataType t = elementTypes[i];
                 int comp = t.compare(a[i], b[i]);
@@ -840,24 +843,7 @@ public class TransactionStore {
         }
 
         @Override
-        public void read(ByteBuffer buff, Object[] obj,
-                int len, boolean key) {
-            for (int i = 0; i < len; i++) {
-                obj[i] = read(buff);
-            }
-        }
-
-        @Override
-        public void write(WriteBuffer buff, Object[] obj,
-                int len, boolean key) {
-            for (int i = 0; i < len; i++) {
-                write(buff, obj[i]);
-            }
-        }
-
-        @Override
-        public void write(WriteBuffer buff, Object obj) {
-            Object[] array = (Object[]) obj;
+        public void write(WriteBuffer buff, Object[] array) {
             for (int i = 0; i < arrayLength; i++) {
                 DataType t = elementTypes[i];
                 Object o = array[i];
@@ -871,7 +857,7 @@ public class TransactionStore {
         }
 
         @Override
-        public Object read(ByteBuffer buff) {
+        public Object[] read(ByteBuffer buff) {
             Object[] array = new Object[arrayLength];
             for (int i = 0; i < arrayLength; i++) {
                 DataType t = elementTypes[i];
@@ -881,6 +867,5 @@ public class TransactionStore {
             }
             return array;
         }
-
     }
 }

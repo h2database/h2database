@@ -22,6 +22,7 @@ import org.h2.message.DbException;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.rtree.SpatialDataType;
 import org.h2.mvstore.rtree.SpatialKey;
+import org.h2.mvstore.type.BasicDataType;
 import org.h2.mvstore.type.DataType;
 import org.h2.result.ResultInterface;
 import org.h2.result.SimpleResult;
@@ -64,7 +65,7 @@ import org.h2.value.ValueUuid;
 /**
  * A row type.
  */
-public class ValueDataType implements DataType {
+public class ValueDataType extends BasicDataType<Value> {
 
     private static final byte NULL = 0;
     private static final byte BYTE = 2;
@@ -143,7 +144,12 @@ public class ValueDataType implements DataType {
     }
 
     @Override
-    public int compare(Object a, Object b) {
+    public Value[] createStorage(int size) {
+        return new Value[size];
+    }
+
+    @Override
+    public int compare(Value a, Value b) {
         if (a == b) {
             return 0;
         }
@@ -173,7 +179,7 @@ public class ValueDataType implements DataType {
             }
             return 0;
         }
-        return compareValues((Value) a, (Value) b, SortOrder.ASCENDING);
+        return compareValues(a, b, SortOrder.ASCENDING);
     }
 
     private int compareValues(Value a, Value b, int sortType) {
@@ -194,45 +200,26 @@ public class ValueDataType implements DataType {
     }
 
     @Override
-    public int getMemory(Object obj) {
-        if (obj instanceof SpatialKey) {
-            return getSpatialDataType().getMemory(obj);
+    public int getMemory(Value v) {
+        if (v instanceof SpatialKey) {
+            return getSpatialDataType().getMemory((SpatialKey) v);
         }
-        return getMemory((Value) obj);
-    }
-
-    private static int getMemory(Value v) {
         return v == null ? 0 : v.getMemory();
     }
 
     @Override
-    public void read(ByteBuffer buff, Object[] obj, int len, boolean key) {
-        for (int i = 0; i < len; i++) {
-            obj[i] = read(buff);
-        }
-    }
-
-    @Override
-    public void write(WriteBuffer buff, Object[] obj, int len, boolean key) {
-        for (int i = 0; i < len; i++) {
-            write(buff, obj[i]);
-        }
-    }
-
-    @Override
-    public Object read(ByteBuffer buff) {
+    public Value read(ByteBuffer buff) {
         return readValue(buff);
     }
 
     @Override
-    public void write(WriteBuffer buff, Object obj) {
+    public void write(WriteBuffer buff, Value obj) {
         if (obj instanceof SpatialKey) {
             buff.put((byte) SPATIAL_KEY_2D);
-            getSpatialDataType().write(buff, obj);
+            getSpatialDataType().write(buff, (SpatialKey) obj);
             return;
         }
-        Value x = (Value) obj;
-        writeValue(buff, x);
+        writeValue(buff, obj);
     }
 
     private void writeValue(WriteBuffer buff, Value v) {
@@ -562,7 +549,7 @@ public class ValueDataType implements DataType {
      *
      * @return the value
      */
-    private Object readValue(ByteBuffer buff) {
+    private Value readValue(ByteBuffer buff) {
         int type = buff.get() & 255;
         switch (type) {
         case NULL:
@@ -585,9 +572,9 @@ public class ValueDataType implements DataType {
         case SHORT:
             return ValueShort.get(buff.getShort());
         case DECIMAL_0_1:
-            return ValueDecimal.ZERO;
+            return (ValueDecimal)ValueDecimal.ZERO;
         case DECIMAL_0_1 + 1:
-            return ValueDecimal.ONE;
+            return (ValueDecimal)ValueDecimal.ONE;
         case DECIMAL_SMALL_0:
             return ValueDecimal.get(BigDecimal.valueOf(
                     readVarLong(buff)));

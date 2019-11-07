@@ -5,6 +5,7 @@
  */
 package org.h2.mvstore.type;
 
+import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
 import java.nio.ByteBuffer;
 
@@ -16,20 +17,19 @@ import java.nio.ByteBuffer;
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
-public abstract class BasicDataType<T> implements DataType {
+public abstract class BasicDataType<T> implements DataType<T> {
 
     @Override
-    public abstract int getMemory(Object obj);
+    public abstract int getMemory(T obj);
 
     @Override
-    public abstract void write(WriteBuffer buff, Object obj);
+    public abstract void write(WriteBuffer buff, T obj);
 
     @Override
-    public abstract Object read(ByteBuffer buff);
-
+    public abstract T read(ByteBuffer buff);
 
     @Override
-    public int compare(Object a, Object b) {
+    public int compare(T a, T b) {
         if (a == b) {
             return 0;
         } else if (a == null) {
@@ -37,21 +37,26 @@ public abstract class BasicDataType<T> implements DataType {
         } else if (b == null) {
             return 1;
         }
-        throw new UnsupportedOperationException();
+        throw DataUtils.newUnsupportedOperationException("Can not compare");
     }
 
 
     @Override
-    public final void write(WriteBuffer buff, Object[] obj, int len, boolean key) {
+    public void write(WriteBuffer buff, Object storage, int len) {
         for (int i = 0; i < len; i++) {
-            write(buff, obj[i]);
+            write(buff, cast(storage)[i]);
         }
     }
 
     @Override
-    public final void read(ByteBuffer buff, Object[] obj, int len, boolean key) {
+    public void read(ByteBuffer buff, Object storage, int len) {
         for (int i = 0; i < len; i++) {
-            obj[i] = read(buff);
+            cast(storage)[i] = read(buff);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    protected final T[] cast(Object storage) {
+        return (T[])storage;
     }
 }

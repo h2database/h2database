@@ -1630,7 +1630,7 @@ public class TestMVStore extends TestBase {
         assertEquals("Hello", data.put("1", "Hallo"));
         s.commit();
         assertEquals("name:data", m.get(DataUtils.META_MAP + id));
-        assertTrue(m.get("root.1").length() > 0);
+        assertTrue(m.get(DataUtils.META_ROOT + id).length() > 0);
         assertTrue(m.containsKey(DataUtils.META_CHUNK + "1"));
 
         assertEquals(2, s.getCurrentVersion());

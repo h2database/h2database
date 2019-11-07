@@ -8,6 +8,7 @@ package org.h2.mvstore.tx;
 import org.h2.engine.Constants;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
+import org.h2.mvstore.type.BasicDataType;
 import org.h2.mvstore.type.DataType;
 import org.h2.value.VersionedValue;
 import java.nio.ByteBuffer;
@@ -15,18 +16,22 @@ import java.nio.ByteBuffer;
 /**
  * The value type for a versioned value.
  */
-public class VersionedValueType implements DataType {
+public class VersionedValueType extends BasicDataType<VersionedValue> {
 
-    private final DataType valueType;
+    private final DataType<Object> valueType;
 
     public VersionedValueType(DataType valueType) {
         this.valueType = valueType;
     }
 
     @Override
-    public int getMemory(Object obj) {
-        if(obj == null) return 0;
-        VersionedValue v = (VersionedValue) obj;
+    public VersionedValue[] createStorage(int size) {
+        return new VersionedValue[size];
+    }
+
+    @Override
+    public int getMemory(VersionedValue v) {
+        if(v == null) return 0;
         int res = Constants.MEMORY_OBJECT + 8 + 2 * Constants.MEMORY_POINTER +
                 getValMemory(v.getCurrentValue());
         if (v.getOperationId() != 0) {
@@ -40,16 +45,14 @@ public class VersionedValueType implements DataType {
     }
 
     @Override
-    public int compare(Object aObj, Object bObj) {
-        if (aObj == bObj) {
+    public int compare(VersionedValue a, VersionedValue b) {
+        if (a == b) {
             return 0;
-        } else if (aObj == null) {
+        } else if (a == null) {
             return -1;
-        } else if (bObj == null) {
+        } else if (b == null) {
             return 1;
         }
-        VersionedValue a = (VersionedValue) aObj;
-        VersionedValue b = (VersionedValue) bObj;
         long comp = a.getOperationId() - b.getOperationId();
         if (comp == 0) {
             return valueType.compare(a.getCurrentValue(), b.getCurrentValue());
@@ -58,22 +61,22 @@ public class VersionedValueType implements DataType {
     }
 
     @Override
-    public void read(ByteBuffer buff, Object[] obj, int len, boolean key) {
+    public void read(ByteBuffer buff, Object storage, int len) {
         if (buff.get() == 0) {
             // fast path (no op ids or null entries)
             for (int i = 0; i < len; i++) {
-                obj[i] = VersionedValueCommitted.getInstance(valueType.read(buff));
+                cast(storage)[i] = VersionedValueCommitted.getInstance(valueType.read(buff));
             }
         } else {
             // slow path (some entries may be null)
             for (int i = 0; i < len; i++) {
-                obj[i] = read(buff);
+                cast(storage)[i] = read(buff);
             }
         }
     }
 
     @Override
-    public Object read(ByteBuffer buff) {
+    public VersionedValue read(ByteBuffer buff) {
         long operationId = DataUtils.readVarLong(buff);
         if (operationId == 0) {
             return VersionedValueCommitted.getInstance(valueType.read(buff));
@@ -86,10 +89,10 @@ public class VersionedValueType implements DataType {
     }
 
     @Override
-    public void write(WriteBuffer buff, Object[] obj, int len, boolean key) {
+    public void write(WriteBuffer buff, Object storage, int len) {
         boolean fastPath = true;
         for (int i = 0; i < len; i++) {
-            VersionedValue v = (VersionedValue) obj[i];
+            VersionedValue v = cast(storage)[i];
             if (v.getOperationId() != 0 || v.getCurrentValue() == null) {
                 fastPath = false;
             }
@@ -97,7 +100,7 @@ public class VersionedValueType implements DataType {
         if (fastPath) {
             buff.put((byte) 0);
             for (int i = 0; i < len; i++) {
-                VersionedValue v = (VersionedValue) obj[i];
+                VersionedValue v = cast(storage)[i];
                 valueType.write(buff, v.getCurrentValue());
             }
         } else {
@@ -105,14 +108,13 @@ public class VersionedValueType implements DataType {
             // store op ids, and some entries may be null
             buff.put((byte) 1);
             for (int i = 0; i < len; i++) {
-                write(buff, obj[i]);
+                write(buff, cast(storage)[i]);
             }
         }
     }
 
     @Override
-    public void write(WriteBuffer buff, Object obj) {
-        VersionedValue v = (VersionedValue) obj;
+    public void write(WriteBuffer buff, VersionedValue v) {
         long operationId = v.getOperationId();
         buff.putVarLong(operationId);
         if (operationId == 0) {

@@ -23,7 +23,7 @@ import org.h2.compress.Compressor;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.mvstore.tx.TransactionStore;
-import org.h2.mvstore.type.DataType;
+import org.h2.mvstore.type.BasicDataType;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
@@ -710,7 +710,7 @@ public class MVStoreTool {
      * A data type that can read any data that is persisted, and converts it to
      * a byte array.
      */
-    private static class GenericDataType implements DataType
+    private static class GenericDataType extends BasicDataType<Object>
     {
         static GenericDataType INSTANCE = new GenericDataType();
 
@@ -727,16 +727,14 @@ public class MVStoreTool {
         }
 
         @Override
-        public void write(WriteBuffer buff, Object obj) {
-            if (obj != null) {
-                buff.put((byte[]) obj);
-            }
+        public Object[] createStorage(int size) {
+            return new Object[size];
         }
 
         @Override
-        public void write(WriteBuffer buff, Object[] obj, int len, boolean key) {
-            for (int i = 0; i < len; i++) {
-                write(buff, obj[i]);
+        public void write(WriteBuffer buff, Object obj) {
+            if (obj != null) {
+                buff.put((byte[]) obj);
             }
         }
 
@@ -749,13 +747,6 @@ public class MVStoreTool {
             byte[] data = new byte[len];
             buff.get(data);
             return data;
-        }
-
-        @Override
-        public void read(ByteBuffer buff, Object[] obj, int len, boolean key) {
-            for (int i = 0; i < len; i++) {
-                obj[i] = read(buff);
-            }
         }
     }
 }

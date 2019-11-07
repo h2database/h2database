@@ -5,12 +5,18 @@
  */
 package org.h2.mvstore.rtree;
 
+import org.h2.engine.CastDataProvider;
+import org.h2.value.CompareMode;
+import org.h2.value.TypeInfo;
+import org.h2.value.Value;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Arrays;
 
 /**
  * A unique spatial key.
  */
-public class SpatialKey {
+public class SpatialKey extends Value {
 
     private final long id;
     private final float[] minMax;
@@ -111,6 +117,11 @@ public class SpatialKey {
         return equalsIgnoringId(o);
     }
 
+    @Override
+    public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
+        return 0;
+    }
+
     /**
      * Check whether two objects are equals, but do not compare the id fields.
      *
@@ -121,4 +132,34 @@ public class SpatialKey {
         return Arrays.equals(minMax, o.minMax);
     }
 
+
+    @Override
+    public StringBuilder getSQL(StringBuilder builder) {
+        return null;
+    }
+
+    @Override
+    public TypeInfo getType() {
+        return null;
+    }
+
+    @Override
+    public int getValueType() {
+        return 0;
+    }
+
+    @Override
+    public String getString() {
+        return null;
+    }
+
+    @Override
+    public Object getObject() {
+        return null;
+    }
+
+    @Override
+    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
+
+    }
 }

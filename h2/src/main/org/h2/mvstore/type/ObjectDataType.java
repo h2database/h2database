@@ -25,7 +25,7 @@ import org.h2.util.Utils;
  * A data type implementation for the most common data types, including
  * serializable objects.
  */
-public class ObjectDataType implements DataType {
+public class ObjectDataType extends BasicDataType<Object> {
 
     /**
      * The type constants are also used as tag values.
@@ -99,6 +99,11 @@ public class ObjectDataType implements DataType {
     private AutoDetectDataType last = new StringType(this);
 
     @Override
+    public Object[] createStorage(int size) {
+        return new Object[size];
+    }
+
+    @Override
     public int compare(Object a, Object b) {
         return last.compare(a, b);
     }
@@ -106,20 +111,6 @@ public class ObjectDataType implements DataType {
     @Override
     public int getMemory(Object obj) {
         return last.getMemory(obj);
-    }
-
-    @Override
-    public void read(ByteBuffer buff, Object[] obj, int len, boolean key) {
-        for (int i = 0; i < len; i++) {
-            obj[i] = read(buff);
-        }
-    }
-
-    @Override
-    public void write(WriteBuffer buff, Object[] obj, int len, boolean key) {
-        for (int i = 0; i < len; i++) {
-            write(buff, obj[i]);
-        }
     }
 
     @Override
@@ -408,7 +399,7 @@ public class ObjectDataType implements DataType {
     /**
      * The base class for auto-detect data types.
      */
-    abstract static class AutoDetectDataType implements DataType {
+    abstract static class AutoDetectDataType<T> extends BasicDataType<T> {
 
         protected final ObjectDataType base;
         protected final int typeId;
@@ -419,7 +410,7 @@ public class ObjectDataType implements DataType {
         }
 
         @Override
-        public int getMemory(Object o) {
+        public int getMemory(T o) {
             return getType(o).getMemory(o);
         }
 
@@ -435,30 +426,8 @@ public class ObjectDataType implements DataType {
         }
 
         @Override
-        public void write(WriteBuffer buff, Object[] obj,
-                int len, boolean key) {
-            for (int i = 0; i < len; i++) {
-                write(buff, obj[i]);
-            }
-        }
-
-        @Override
-        public void write(WriteBuffer buff, Object o) {
+        public void write(WriteBuffer buff, T o) {
             getType(o).write(buff, o);
-        }
-
-        @Override
-        public void read(ByteBuffer buff, Object[] obj,
-                int len, boolean key) {
-            for (int i = 0; i < len; i++) {
-                obj[i] = read(buff);
-            }
-        }
-
-        @Override
-        public final Object read(ByteBuffer buff) {
-            throw DataUtils.newIllegalStateException(DataUtils.ERROR_INTERNAL,
-                    "Internal error");
         }
 
         /**

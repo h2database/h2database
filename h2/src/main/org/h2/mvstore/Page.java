@@ -602,7 +602,7 @@ public abstract class Page implements Cloneable
             compressor.expand(comp, 0, compLen, buff.array(),
                     buff.arrayOffset(), l);
         }
-        map.getKeyType().read(buff, keys, len, true);
+        map.getKeyType().read(buff, keys, len);
         if (isLeaf()) {
             readPayLoad(buff);
         }
@@ -666,7 +666,7 @@ public abstract class Page implements Cloneable
         buff.put((byte) type);
         writeChildren(buff, true);
         int compressStart = buff.position();
-        map.getKeyType().write(buff, keys, len, true);
+        map.getKeyType().write(buff, keys, len);
         writeValues(buff);
         MVStore store = map.getStore();
         int expLen = buff.position() - compressStart;
@@ -897,7 +897,7 @@ public abstract class Page implements Cloneable
      */
     private Object[] createKeyStorage(int size)
     {
-        return new Object[size];
+        return map.getKeyType().createStorage(size);
     }
 
     /**
@@ -908,7 +908,7 @@ public abstract class Page implements Cloneable
      */
     final Object[] createValueStorage(int size)
     {
-        return new Object[size];
+        return map.getValueType().createStorage(size);
     }
 
     /**
@@ -1508,12 +1508,12 @@ public abstract class Page implements Cloneable
         protected void readPayLoad(ByteBuffer buff) {
             int keyCount = getKeyCount();
             values = createValueStorage(keyCount);
-            map.getValueType().read(buff, values, getKeyCount(), false);
+            map.getValueType().read(buff, values, getKeyCount());
         }
 
         @Override
         protected void writeValues(WriteBuffer buff) {
-            map.getValueType().write(buff, values, getKeyCount(), false);
+            map.getValueType().write(buff, values, getKeyCount());
         }
 
         @Override

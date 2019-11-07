@@ -197,6 +197,9 @@ class FileNioMapped extends FileBase {
     }
 
     public synchronized void setFileLength(long newLength) throws IOException {
+        if (mode == MapMode.READ_ONLY) {
+            throw new NonWritableChannelException();
+        }
         checkFileSizeLimit(newLength);
         int oldPos = pos;
         unMap();

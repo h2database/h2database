@@ -96,7 +96,7 @@ public class ObjectDataType extends BasicDataType<Object> {
 
     private static final HashMap<Class<?>, Integer> COMMON_CLASSES_MAP = new HashMap<>(32);
 
-    private AutoDetectDataType last = new StringType(this);
+    private AutoDetectDataType last = StringType.INSTANCE;
 
     @Override
     public Object[] createStorage(int size) {
@@ -105,49 +105,57 @@ public class ObjectDataType extends BasicDataType<Object> {
 
     @Override
     public int compare(Object a, Object b) {
-        return last.compare(a, b);
+        int typeId = getTypeId(a);
+        int typeDiff = typeId - getTypeId(b);
+        if (typeDiff == 0) {
+            return newType(typeId).compare(a, b);
+        }
+        return Integer.signum(typeDiff);
     }
 
     @Override
     public int getMemory(Object obj) {
-        return last.getMemory(obj);
+        return switchType(obj).getMemory(obj);
     }
 
     @Override
     public void write(WriteBuffer buff, Object obj) {
-        last.write(buff, obj);
+        switchType(obj).write(buff, obj);
     }
 
     private AutoDetectDataType newType(int typeId) {
+        if (typeId == last.typeId) {
+            return last;
+        }
         switch (typeId) {
         case TYPE_NULL:
-            return new NullType(this);
+            return NullType.INSTANCE;
         case TYPE_BOOLEAN:
-            return new BooleanType(this);
+            return BooleanType.INSTANCE;
         case TYPE_BYTE:
-            return new ByteType(this);
+            return ByteType.INSTANCE;
         case TYPE_SHORT:
-            return new ShortType(this);
+            return ShortType.INSTANCE;
         case TYPE_CHAR:
-            return new CharacterType(this);
+            return  CharacterType.INSTANCE;
         case TYPE_INT:
-            return new IntegerType(this);
+            return IntegerType.INSTANCE;
         case TYPE_LONG:
-            return new LongType(this);
+            return LongType.INSTANCE;
         case TYPE_FLOAT:
-            return new FloatType(this);
+            return FloatType.INSTANCE;
         case TYPE_DOUBLE:
-            return new DoubleType(this);
+            return DoubleType.INSTANCE;
         case TYPE_BIG_INTEGER:
-            return new BigIntegerType(this);
+            return BigIntegerType.INSTANCE;
         case TYPE_BIG_DECIMAL:
-            return new BigDecimalType(this);
+            return BigDecimalType.INSTANCE;
         case TYPE_STRING:
-            return new StringType(this);
+            return StringType.INSTANCE;
         case TYPE_UUID:
-            return new UUIDType(this);
+            return UUIDType.INSTANCE;
         case TYPE_DATE:
-            return new DateType(this);
+            return DateType.INSTANCE;
         case TYPE_ARRAY:
             return new ObjectArrayType(this);
         case TYPE_SERIALIZED_OBJECT:
@@ -402,7 +410,12 @@ public class ObjectDataType extends BasicDataType<Object> {
     abstract static class AutoDetectDataType<T> extends BasicDataType<T> {
 
         protected final ObjectDataType base;
-        protected final int typeId;
+        final int typeId;
+
+        AutoDetectDataType(int typeId) {
+            this.base = null;
+            this.typeId = typeId;
+        }
 
         AutoDetectDataType(ObjectDataType base, int typeId) {
             this.base = base;
@@ -412,17 +425,6 @@ public class ObjectDataType extends BasicDataType<Object> {
         @Override
         public int getMemory(T o) {
             return getType(o).getMemory(o);
-        }
-
-        @Override
-        public int compare(Object aObj, Object bObj) {
-            AutoDetectDataType aType = getType(aObj);
-            AutoDetectDataType bType = getType(bObj);
-            int typeDiff = aType.typeId - bType.typeId;
-            if (typeDiff == 0) {
-                return aType.compare(aObj, bObj);
-            }
-            return Integer.signum(typeDiff);
         }
 
         @Override
@@ -454,36 +456,37 @@ public class ObjectDataType extends BasicDataType<Object> {
     /**
      * The type for the null value
      */
-    static class NullType extends AutoDetectDataType {
+    static class NullType extends AutoDetectDataType<Object>
+    {
+        static final NullType INSTANCE = new NullType();
 
-        NullType(ObjectDataType base) {
-            super(base, TYPE_NULL);
+        private NullType() {
+            super(TYPE_NULL);
+        }
+
+        @Override
+        public Object[] createStorage(int size) {
+            return null;
         }
 
         @Override
         public int compare(Object aObj, Object bObj) {
-            if (aObj == null && bObj == null) {
-                return 0;
-            } else if (aObj == null) {
-                return -1;
-            } else if (bObj == null) {
-                return 1;
-            }
-            return super.compare(aObj, bObj);
+            return 0;
         }
 
         @Override
         public int getMemory(Object obj) {
-            return obj == null ? 0 : super.getMemory(obj);
+            return 0;
         }
 
         @Override
         public void write(WriteBuffer buff, Object obj) {
-            if (obj != null) {
-                super.write(buff, obj);
-                return;
-            }
             buff.put((byte) TYPE_NULL);
+        }
+
+        @Override
+        public Object read(ByteBuffer buff) {
+            return null;
         }
 
         @Override
@@ -496,76 +499,81 @@ public class ObjectDataType extends BasicDataType<Object> {
     /**
      * The type for boolean true and false.
      */
-    static class BooleanType extends AutoDetectDataType {
+    static class BooleanType extends AutoDetectDataType<Boolean>
+    {
+        static final BooleanType INSTANCE = new BooleanType();
 
-        BooleanType(ObjectDataType base) {
-            super(base, TYPE_BOOLEAN);
+        private BooleanType() {
+            super(TYPE_BOOLEAN);
         }
 
         @Override
-        public int compare(Object aObj, Object bObj) {
-            if (aObj instanceof Boolean && bObj instanceof Boolean) {
-                Boolean a = (Boolean) aObj;
-                Boolean b = (Boolean) bObj;
-                return a.compareTo(b);
-            }
-            return super.compare(aObj, bObj);
+        public Boolean[] createStorage(int size) {
+            return new Boolean[size];
         }
 
         @Override
-        public int getMemory(Object obj) {
-            return obj instanceof Boolean ? 0 : super.getMemory(obj);
+        public int compare(Boolean a, Boolean b) {
+            return a.compareTo(b);
         }
 
         @Override
-        public void write(WriteBuffer buff, Object obj) {
-            if (!(obj instanceof Boolean)) {
-                super.write(buff, obj);
-                return;
-            }
-            int tag = ((Boolean) obj) ? TAG_BOOLEAN_TRUE : TYPE_BOOLEAN;
+        public int getMemory(Boolean obj) {
+            return 0;
+        }
+
+        @Override
+        public void write(WriteBuffer buff, Boolean obj) {
+            int tag = obj ? TAG_BOOLEAN_TRUE : TYPE_BOOLEAN;
             buff.put((byte) tag);
         }
 
         @Override
-        public Object read(ByteBuffer buff, int tag) {
-            return tag == TYPE_BOOLEAN ? Boolean.FALSE : Boolean.TRUE;
+        public Boolean read(ByteBuffer buff) {
+            return buff.get() == TAG_BOOLEAN_TRUE ? Boolean.TRUE : Boolean.FALSE;
         }
 
+        @Override
+        public Boolean read(ByteBuffer buff, int tag) {
+            return tag == TYPE_BOOLEAN ? Boolean.FALSE : Boolean.TRUE;
+        }
     }
 
     /**
      * The type for byte objects.
      */
-    static class ByteType extends AutoDetectDataType {
+    static class ByteType extends AutoDetectDataType<Byte>
+    {
+        static final ByteType INSTANCE = new ByteType();
 
-        ByteType(ObjectDataType base) {
-            super(base, TYPE_BYTE);
+        private ByteType() {
+            super(TYPE_BYTE);
         }
 
         @Override
-        public int compare(Object aObj, Object bObj) {
-            if (aObj instanceof Byte && bObj instanceof Byte) {
-                Byte a = (Byte) aObj;
-                Byte b = (Byte) bObj;
-                return a.compareTo(b);
-            }
-            return super.compare(aObj, bObj);
+        public Byte[] createStorage(int size) {
+            return new Byte[size];
         }
 
         @Override
-        public int getMemory(Object obj) {
-            return obj instanceof Byte ? 0 : super.getMemory(obj);
+        public int compare(Byte a, Byte b) {
+            return a.compareTo(b);
         }
 
         @Override
-        public void write(WriteBuffer buff, Object obj) {
-            if (!(obj instanceof Byte)) {
-                super.write(buff, obj);
-                return;
-            }
+        public int getMemory(Byte obj) {
+            return 1;
+        }
+
+        @Override
+        public void write(WriteBuffer buff, Byte obj) {
             buff.put((byte) TYPE_BYTE);
-            buff.put((Byte) obj);
+            buff.put(obj);
+        }
+
+        @Override
+        public Byte read(ByteBuffer buff) {
+            return buff.get();
         }
 
         @Override
@@ -578,116 +586,118 @@ public class ObjectDataType extends BasicDataType<Object> {
     /**
      * The type for character objects.
      */
-    static class CharacterType extends AutoDetectDataType {
+    static class CharacterType extends AutoDetectDataType<Character>
+    {
+        static final CharacterType INSTANCE = new CharacterType();
 
-        CharacterType(ObjectDataType base) {
-            super(base, TYPE_CHAR);
+        private CharacterType() {
+            super(TYPE_CHAR);
         }
 
         @Override
-        public int compare(Object aObj, Object bObj) {
-            if (aObj instanceof Character && bObj instanceof Character) {
-                Character a = (Character) aObj;
-                Character b = (Character) bObj;
-                return a.compareTo(b);
-            }
-            return super.compare(aObj, bObj);
+        public Character[] createStorage(int size) {
+            return new Character[size];
         }
 
         @Override
-        public int getMemory(Object obj) {
-            return obj instanceof Character ? 24 : super.getMemory(obj);
+        public int compare(Character a, Character b) {
+            return a.compareTo(b);
         }
 
         @Override
-        public void write(WriteBuffer buff, Object obj) {
-            if (!(obj instanceof Character)) {
-                super.write(buff, obj);
-                return;
-            }
+        public int getMemory(Character obj) {
+            return 24;
+        }
+
+        @Override
+        public void write(WriteBuffer buff, Character obj) {
             buff.put((byte) TYPE_CHAR);
-            buff.putChar((Character) obj);
+            buff.putChar(obj);
         }
 
         @Override
-        public Object read(ByteBuffer buff, int tag) {
+        public Character read(ByteBuffer buff) {
             return buff.getChar();
         }
 
+        @Override
+        public Character read(ByteBuffer buff, int tag) {
+            return buff.getChar();
+        }
     }
 
     /**
      * The type for short objects.
      */
-    static class ShortType extends AutoDetectDataType {
+    static class ShortType extends AutoDetectDataType<Short>
+    {
+        static final ShortType INSTANCE = new ShortType();
 
-        ShortType(ObjectDataType base) {
-            super(base, TYPE_SHORT);
+        private ShortType() {
+            super(TYPE_SHORT);
         }
 
         @Override
-        public int compare(Object aObj, Object bObj) {
-            if (aObj instanceof Short && bObj instanceof Short) {
-                Short a = (Short) aObj;
-                Short b = (Short) bObj;
-                return a.compareTo(b);
-            }
-            return super.compare(aObj, bObj);
+        public Short[] createStorage(int size) {
+            return new Short[size];
         }
 
         @Override
-        public int getMemory(Object obj) {
-            return obj instanceof Short ? 24 : super.getMemory(obj);
+        public int compare(Short a, Short b) {
+            return a.compareTo(b);
         }
 
         @Override
-        public void write(WriteBuffer buff, Object obj) {
-            if (!(obj instanceof Short)) {
-                super.write(buff, obj);
-                return;
-            }
+        public int getMemory(Short obj) {
+            return 24;
+        }
+
+        @Override
+        public void write(WriteBuffer buff, Short obj) {
             buff.put((byte) TYPE_SHORT);
-            buff.putShort((Short) obj);
+            buff.putShort(obj);
         }
 
         @Override
-        public Object read(ByteBuffer buff, int tag) {
+        public Short read(ByteBuffer buff) {
+            return read(buff, buff.get());
+        }
+
+        @Override
+        public Short read(ByteBuffer buff, int tag) {
             return buff.getShort();
         }
-
     }
 
     /**
      * The type for integer objects.
      */
-    static class IntegerType extends AutoDetectDataType {
+    static class IntegerType extends AutoDetectDataType<Integer>
+    {
+        static final IntegerType INSTANCE = new IntegerType();
 
-        IntegerType(ObjectDataType base) {
-            super(base, TYPE_INT);
+        private IntegerType() {
+            super(TYPE_INT);
         }
 
         @Override
-        public int compare(Object aObj, Object bObj) {
-            if (aObj instanceof Integer && bObj instanceof Integer) {
-                Integer a = (Integer) aObj;
-                Integer b = (Integer) bObj;
-                return a.compareTo(b);
-            }
-            return super.compare(aObj, bObj);
+        public Integer[] createStorage(int size) {
+            return new Integer[size];
         }
 
         @Override
-        public int getMemory(Object obj) {
-            return obj instanceof Integer ? 24 : super.getMemory(obj);
+        public int compare(Integer a, Integer b) {
+            return a.compareTo(b);
         }
 
         @Override
-        public void write(WriteBuffer buff, Object obj) {
-            if (!(obj instanceof Integer)) {
-                super.write(buff, obj);
-                return;
-            }
-            int x = (Integer) obj;
+        public int getMemory(Integer obj) {
+            return 24;
+        }
+
+        @Override
+        public void write(WriteBuffer buff, Integer obj) {
+            int x = obj;
             if (x < 0) {
                 // -Integer.MIN_VALUE is smaller than 0
                 if (-x < 0 || -x > DataUtils.COMPRESSED_VAR_INT_MAX) {
@@ -705,7 +715,12 @@ public class ObjectDataType extends BasicDataType<Object> {
         }
 
         @Override
-        public Object read(ByteBuffer buff, int tag) {
+        public Integer read(ByteBuffer buff) {
+            return read(buff, buff.get());
+        }
+
+        @Override
+        public Integer read(ByteBuffer buff, int tag) {
             switch (tag) {
             case TYPE_INT:
                 return DataUtils.readVarInt(buff);
@@ -716,40 +731,37 @@ public class ObjectDataType extends BasicDataType<Object> {
             }
             return tag - TAG_INTEGER_0_15;
         }
-
     }
 
     /**
      * The type for long objects.
      */
-    static class LongType extends AutoDetectDataType {
+    static class LongType extends AutoDetectDataType<Long>
+    {
+        static final LongType INSTANCE = new LongType();
 
-        LongType(ObjectDataType base) {
-            super(base, TYPE_LONG);
+        private LongType() {
+            super(TYPE_LONG);
         }
 
         @Override
-        public int compare(Object aObj, Object bObj) {
-            if (aObj instanceof Long && bObj instanceof Long) {
-                Long a = (Long) aObj;
-                Long b = (Long) bObj;
-                return a.compareTo(b);
-            }
-            return super.compare(aObj, bObj);
+        public Long[] createStorage(int size) {
+            return new Long[size];
         }
 
         @Override
-        public int getMemory(Object obj) {
-            return obj instanceof Long ? 30 : super.getMemory(obj);
+        public int compare(Long a, Long b) {
+            return a.compareTo(b);
         }
 
         @Override
-        public void write(WriteBuffer buff, Object obj) {
-            if (!(obj instanceof Long)) {
-                super.write(buff, obj);
-                return;
-            }
-            long x = (Long) obj;
+        public int getMemory(Long obj) {
+            return 30;
+        }
+
+        @Override
+        public void write(WriteBuffer buff, Long obj) {
+            long x = obj;
             if (x < 0) {
                 // -Long.MIN_VALUE is smaller than 0
                 if (-x < 0 || -x > DataUtils.COMPRESSED_VAR_LONG_MAX) {
@@ -771,7 +783,12 @@ public class ObjectDataType extends BasicDataType<Object> {
         }
 
         @Override
-        public Object read(ByteBuffer buff, int tag) {
+        public Long read(ByteBuffer buff) {
+            return read(buff, buff.get());
+        }
+
+        @Override
+        public Long read(ByteBuffer buff, int tag) {
             switch (tag) {
             case TYPE_LONG:
                 return DataUtils.readVarLong(buff);
@@ -782,40 +799,37 @@ public class ObjectDataType extends BasicDataType<Object> {
             }
             return (long) (tag - TAG_LONG_0_7);
         }
-
     }
 
     /**
      * The type for float objects.
      */
-    static class FloatType extends AutoDetectDataType {
+    static class FloatType extends AutoDetectDataType<Float>
+    {
+        static final FloatType INSTANCE = new FloatType();
 
-        FloatType(ObjectDataType base) {
-            super(base, TYPE_FLOAT);
+        private FloatType() {
+            super(TYPE_FLOAT);
         }
 
         @Override
-        public int compare(Object aObj, Object bObj) {
-            if (aObj instanceof Float && bObj instanceof Float) {
-                Float a = (Float) aObj;
-                Float b = (Float) bObj;
-                return a.compareTo(b);
-            }
-            return super.compare(aObj, bObj);
+        public Float[] createStorage(int size) {
+            return new Float[size];
         }
 
         @Override
-        public int getMemory(Object obj) {
-            return obj instanceof Float ? 24 : super.getMemory(obj);
+        public int compare(Float a, Float b) {
+            return a.compareTo(b);
         }
 
         @Override
-        public void write(WriteBuffer buff, Object obj) {
-            if (!(obj instanceof Float)) {
-                super.write(buff, obj);
-                return;
-            }
-            float x = (Float) obj;
+        public int getMemory(Float obj) {
+            return 24;
+        }
+
+        @Override
+        public void write(WriteBuffer buff, Float obj) {
+            float x = obj;
             int f = Float.floatToIntBits(x);
             if (f == ObjectDataType.FLOAT_ZERO_BITS) {
                 buff.put((byte) TAG_FLOAT_0);
@@ -832,7 +846,12 @@ public class ObjectDataType extends BasicDataType<Object> {
         }
 
         @Override
-        public Object read(ByteBuffer buff, int tag) {
+        public Float read(ByteBuffer buff) {
+            return read(buff, buff.get());
+        }
+
+        @Override
+        public Float read(ByteBuffer buff, int tag) {
             switch (tag) {
             case TAG_FLOAT_0:
                 return 0f;
@@ -850,34 +869,32 @@ public class ObjectDataType extends BasicDataType<Object> {
     /**
      * The type for double objects.
      */
-    static class DoubleType extends AutoDetectDataType {
+    static class DoubleType extends AutoDetectDataType<Double>
+    {
+        static final DoubleType INSTANCE = new DoubleType();
 
-        DoubleType(ObjectDataType base) {
-            super(base, TYPE_DOUBLE);
+        private DoubleType() {
+            super(TYPE_DOUBLE);
         }
 
         @Override
-        public int compare(Object aObj, Object bObj) {
-            if (aObj instanceof Double && bObj instanceof Double) {
-                Double a = (Double) aObj;
-                Double b = (Double) bObj;
-                return a.compareTo(b);
-            }
-            return super.compare(aObj, bObj);
+        public Double[] createStorage(int size) {
+            return new Double[size];
         }
 
         @Override
-        public int getMemory(Object obj) {
-            return obj instanceof Double ? 30 : super.getMemory(obj);
+        public int compare(Double a, Double b) {
+            return a.compareTo(b);
         }
 
         @Override
-        public void write(WriteBuffer buff, Object obj) {
-            if (!(obj instanceof Double)) {
-                super.write(buff, obj);
-                return;
-            }
-            double x = (Double) obj;
+        public int getMemory(Double obj) {
+            return 30;
+        }
+
+        @Override
+        public void write(WriteBuffer buff, Double obj) {
+            double x = obj;
             long d = Double.doubleToLongBits(x);
             if (d == ObjectDataType.DOUBLE_ZERO_BITS) {
                 buff.put((byte) TAG_DOUBLE_0);
@@ -896,7 +913,12 @@ public class ObjectDataType extends BasicDataType<Object> {
         }
 
         @Override
-        public Object read(ByteBuffer buff, int tag) {
+        public Double read(ByteBuffer buff) {
+            return read(buff, buff.get());
+        }
+
+        @Override
+        public Double read(ByteBuffer buff, int tag) {
             switch (tag) {
             case TAG_DOUBLE_0:
                 return 0d;
@@ -908,40 +930,36 @@ public class ObjectDataType extends BasicDataType<Object> {
             return Double.longBitsToDouble(Long.reverse(DataUtils
                     .readVarLong(buff)));
         }
-
     }
 
     /**
      * The type for BigInteger objects.
      */
-    static class BigIntegerType extends AutoDetectDataType {
+    static class BigIntegerType extends AutoDetectDataType<BigInteger>
+    {
+        static final BigIntegerType INSTANCE = new BigIntegerType();
 
-        BigIntegerType(ObjectDataType base) {
-            super(base, TYPE_BIG_INTEGER);
+        private BigIntegerType() {
+            super(TYPE_BIG_INTEGER);
         }
 
         @Override
-        public int compare(Object aObj, Object bObj) {
-            if (isBigInteger(aObj) && isBigInteger(bObj)) {
-                BigInteger a = (BigInteger) aObj;
-                BigInteger b = (BigInteger) bObj;
-                return a.compareTo(b);
-            }
-            return super.compare(aObj, bObj);
+        public BigInteger[] createStorage(int size) {
+            return new BigInteger[size];
         }
 
         @Override
-        public int getMemory(Object obj) {
-            return isBigInteger(obj) ? 100 : super.getMemory(obj);
+        public int compare(BigInteger a, BigInteger b) {
+            return a.compareTo(b);
         }
 
         @Override
-        public void write(WriteBuffer buff, Object obj) {
-            if (!isBigInteger(obj)) {
-                super.write(buff, obj);
-                return;
-            }
-            BigInteger x = (BigInteger) obj;
+        public int getMemory(BigInteger obj) {
+            return 100;
+        }
+
+        @Override
+        public void write(WriteBuffer buff, BigInteger x) {
             if (BigInteger.ZERO.equals(x)) {
                 buff.put((byte) TAG_BIG_INTEGER_0);
             } else if (BigInteger.ONE.equals(x)) {
@@ -960,7 +978,12 @@ public class ObjectDataType extends BasicDataType<Object> {
         }
 
         @Override
-        public Object read(ByteBuffer buff, int tag) {
+        public BigInteger read(ByteBuffer buff) {
+            return read(buff, buff.get());
+        }
+
+        @Override
+        public BigInteger read(ByteBuffer buff, int tag) {
             switch (tag) {
             case TAG_BIG_INTEGER_0:
                 return BigInteger.ZERO;
@@ -974,40 +997,36 @@ public class ObjectDataType extends BasicDataType<Object> {
             buff.get(bytes);
             return new BigInteger(bytes);
         }
-
     }
 
     /**
      * The type for BigDecimal objects.
      */
-    static class BigDecimalType extends AutoDetectDataType {
+    static class BigDecimalType extends AutoDetectDataType<BigDecimal>
+    {
+        static final BigDecimalType INSTANCE = new BigDecimalType();
 
-        BigDecimalType(ObjectDataType base) {
-            super(base, TYPE_BIG_DECIMAL);
+        private BigDecimalType() {
+            super(TYPE_BIG_DECIMAL);
         }
 
         @Override
-        public int compare(Object aObj, Object bObj) {
-            if (isBigDecimal(aObj) && isBigDecimal(bObj)) {
-                BigDecimal a = (BigDecimal) aObj;
-                BigDecimal b = (BigDecimal) bObj;
-                return a.compareTo(b);
-            }
-            return super.compare(aObj, bObj);
+        public BigDecimal[] createStorage(int size) {
+            return new BigDecimal[size];
         }
 
         @Override
-        public int getMemory(Object obj) {
-            return isBigDecimal(obj) ? 150 : super.getMemory(obj);
+        public int compare(BigDecimal a, BigDecimal b) {
+            return a.compareTo(b);
         }
 
         @Override
-        public void write(WriteBuffer buff, Object obj) {
-            if (!isBigDecimal(obj)) {
-                super.write(buff, obj);
-                return;
-            }
-            BigDecimal x = (BigDecimal) obj;
+        public int getMemory(BigDecimal obj) {
+            return 150;
+        }
+
+        @Override
+        public void write(WriteBuffer buff, BigDecimal x) {
             if (BigDecimal.ZERO.equals(x)) {
                 buff.put((byte) TAG_BIG_DECIMAL_0);
             } else if (BigDecimal.ONE.equals(x)) {
@@ -1033,7 +1052,12 @@ public class ObjectDataType extends BasicDataType<Object> {
         }
 
         @Override
-        public Object read(ByteBuffer buff, int tag) {
+        public BigDecimal read(ByteBuffer buff) {
+            return read(buff, buff.get());
+        }
+
+        @Override
+        public BigDecimal read(ByteBuffer buff, int tag) {
             switch (tag) {
             case TAG_BIG_DECIMAL_0:
                 return BigDecimal.ZERO;
@@ -1058,35 +1082,31 @@ public class ObjectDataType extends BasicDataType<Object> {
     /**
      * The type for string objects.
      */
-    static class StringType extends AutoDetectDataType {
+    static class StringType extends AutoDetectDataType<String>
+    {
+        static final StringType INSTANCE = new StringType();
 
-        StringType(ObjectDataType base) {
-            super(base, TYPE_STRING);
+        private StringType() {
+            super(TYPE_STRING);
         }
 
         @Override
-        public int getMemory(Object obj) {
-            if (!(obj instanceof String)) {
-                return super.getMemory(obj);
-            }
-            return 24 + 2 * obj.toString().length();
+        public String[] createStorage(int size) {
+            return new String[size];
         }
 
         @Override
-        public int compare(Object aObj, Object bObj) {
-            if (aObj instanceof String && bObj instanceof String) {
-                return aObj.toString().compareTo(bObj.toString());
-            }
-            return super.compare(aObj, bObj);
+        public int getMemory(String obj) {
+            return 24 + 2 * obj.length();
         }
 
         @Override
-        public void write(WriteBuffer buff, Object obj) {
-            if (!(obj instanceof String)) {
-                super.write(buff, obj);
-                return;
-            }
-            String s = (String) obj;
+        public int compare(String aObj, String bObj) {
+            return aObj.compareTo(bObj);
+        }
+
+        @Override
+        public void write(WriteBuffer buff, String s) {
             int len = s.length();
             if (len <= 15) {
                 buff.put((byte) (TAG_STRING_0_15 + len));
@@ -1097,7 +1117,12 @@ public class ObjectDataType extends BasicDataType<Object> {
         }
 
         @Override
-        public Object read(ByteBuffer buff, int tag) {
+        public String read(ByteBuffer buff) {
+            return read(buff, buff.get());
+        }
+
+        @Override
+        public String read(ByteBuffer buff, int tag) {
             int len;
             if (tag == TYPE_STRING) {
                 len = DataUtils.readVarInt(buff);
@@ -1112,41 +1137,43 @@ public class ObjectDataType extends BasicDataType<Object> {
     /**
      * The type for UUID objects.
      */
-    static class UUIDType extends AutoDetectDataType {
+    static class UUIDType extends AutoDetectDataType<UUID>
+    {
+        static final UUIDType INSTANCE = new UUIDType();
 
-        UUIDType(ObjectDataType base) {
-            super(base, TYPE_UUID);
+        private UUIDType() {
+            super(TYPE_UUID);
         }
 
         @Override
-        public int getMemory(Object obj) {
-            return obj instanceof UUID ? 40 : super.getMemory(obj);
+        public UUID[] createStorage(int size) {
+            return new UUID[size];
         }
 
         @Override
-        public int compare(Object aObj, Object bObj) {
-            if (aObj instanceof UUID && bObj instanceof UUID) {
-                UUID a = (UUID) aObj;
-                UUID b = (UUID) bObj;
-                return a.compareTo(b);
-            }
-            return super.compare(aObj, bObj);
+        public int getMemory(UUID obj) {
+            return 40;
         }
 
         @Override
-        public void write(WriteBuffer buff, Object obj) {
-            if (!(obj instanceof UUID)) {
-                super.write(buff, obj);
-                return;
-            }
+        public int compare(UUID a, UUID b) {
+            return a.compareTo(b);
+        }
+
+        @Override
+        public void write(WriteBuffer buff, UUID a) {
             buff.put((byte) TYPE_UUID);
-            UUID a = (UUID) obj;
             buff.putLong(a.getMostSignificantBits());
             buff.putLong(a.getLeastSignificantBits());
         }
 
         @Override
-        public Object read(ByteBuffer buff, int tag) {
+        public UUID read(ByteBuffer buff) {
+            return read(buff, buff.get());
+        }
+
+        @Override
+        public UUID read(ByteBuffer buff, int tag) {
             long a = buff.getLong(), b = buff.getLong();
             return new UUID(a, b);
         }
@@ -1156,40 +1183,42 @@ public class ObjectDataType extends BasicDataType<Object> {
     /**
      * The type for java.util.Date objects.
      */
-    static class DateType extends AutoDetectDataType {
+    static class DateType extends AutoDetectDataType<Date>
+    {
+        static final DateType INSTANCE = new DateType();
 
-        DateType(ObjectDataType base) {
-            super(base, TYPE_DATE);
+        private DateType() {
+            super(TYPE_DATE);
         }
 
         @Override
-        public int getMemory(Object obj) {
-            return isDate(obj) ? 40 : super.getMemory(obj);
+        public Date[] createStorage(int size) {
+            return new Date[size];
         }
 
         @Override
-        public int compare(Object aObj, Object bObj) {
-            if (isDate(aObj) && isDate(bObj)) {
-                Date a = (Date) aObj;
-                Date b = (Date) bObj;
-                return a.compareTo(b);
-            }
-            return super.compare(aObj, bObj);
+        public int getMemory(Date obj) {
+            return 40;
         }
 
         @Override
-        public void write(WriteBuffer buff, Object obj) {
-            if (!isDate(obj)) {
-                super.write(buff, obj);
-                return;
-            }
+        public int compare(Date a, Date b) {
+            return a.compareTo(b);
+        }
+
+        @Override
+        public void write(WriteBuffer buff, Date a) {
             buff.put((byte) TYPE_DATE);
-            Date a = (Date) obj;
             buff.putLong(a.getTime());
         }
 
         @Override
-        public Object read(ByteBuffer buff, int tag) {
+        public Date read(ByteBuffer buff) {
+            return read(buff, buff.get());
+        }
+
+        @Override
+        public Date read(ByteBuffer buff, int tag) {
             long a = buff.getLong();
             return new Date(a);
         }
@@ -1199,12 +1228,22 @@ public class ObjectDataType extends BasicDataType<Object> {
     /**
      * The type for object arrays.
      */
-    static class ObjectArrayType extends AutoDetectDataType {
+    static class ObjectArrayType extends AutoDetectDataType<Object>
+    {
 
         private final ObjectDataType elementType = new ObjectDataType();
 
         ObjectArrayType(ObjectDataType base) {
             super(base, TYPE_ARRAY);
+        }
+
+        ObjectArrayType() {
+            super(TYPE_ARRAY);
+        }
+
+        @Override
+        public Object[] createStorage(int size) {
+            return new Object[size];
         }
 
         @Override
@@ -1372,6 +1411,11 @@ public class ObjectDataType extends BasicDataType<Object> {
         }
 
         @Override
+        public Object read(ByteBuffer buff) {
+            return read(buff, buff.get());
+        }
+
+        @Override
         public Object read(ByteBuffer buff, int tag) {
             if (tag != TYPE_ARRAY) {
                 byte[] data;
@@ -1438,12 +1482,17 @@ public class ObjectDataType extends BasicDataType<Object> {
     /**
      * The type for serialized objects.
      */
-    static class SerializedObjectType extends AutoDetectDataType {
+    static class SerializedObjectType extends AutoDetectDataType<Object> {
 
         private int averageSize = 10_000;
 
         SerializedObjectType(ObjectDataType base) {
             super(base, TYPE_SERIALIZED_OBJECT);
+        }
+
+        @Override
+        public Object[] createStorage(int size) {
+            return new Object[size];
         }
 
         @SuppressWarnings("unchecked")
@@ -1502,6 +1551,11 @@ public class ObjectDataType extends BasicDataType<Object> {
             averageSize = (size + 15 * averageSize) / 16;
             buff.put((byte) TYPE_SERIALIZED_OBJECT).putVarInt(data.length)
                     .put(data);
+        }
+
+        @Override
+        public Object read(ByteBuffer buff) {
+            return read(buff, buff.get());
         }
 
         @Override

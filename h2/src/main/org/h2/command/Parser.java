@@ -7494,6 +7494,10 @@ public class Parser {
             readIfEqualOrTo();
             read();
             return new NoOperation(session);
+        } else if (readIf("NETWORK_TIMEOUT")){
+            readIfEqualOrTo();
+            read();
+            return new NoOperation(session);
         } else if (readIf("AUTO_SERVER")) {
             readIfEqualOrTo();
             read();

@@ -43,8 +43,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     private final int id;
     private final long createVersion;
-    private final DataType keyType;
-    private final DataType valueType;
+    private final DataType<K> keyType;
+    private final DataType<V> valueType;
     private final int keysPerPage;
     private final boolean singleWriter;
     private final K[] keysBuffer;
@@ -89,7 +89,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     // meta map constructor
     MVMap(MVStore store) {
-        this(store, StringDataType.INSTANCE,StringDataType.INSTANCE, 0, 0, new AtomicReference<RootReference>(),
+        this(store, StringDataType.INSTANCE,StringDataType.INSTANCE, 0, 0, new AtomicReference<>(),
                 store.getKeysPerPage(), false);
         setInitialRoot(createEmptyLeaf(), store.getCurrentVersion());
     }
@@ -587,7 +587,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param datatype to use for comparison
      * @return true if they are equal
      */
-    static boolean areValuesEqual(DataType datatype, Object a, Object b) {
+    static <X> boolean areValuesEqual(DataType<X> datatype, X a, X b) {
         return a == b
             || a != null && b != null && datatype.compare(a, b) == 0;
     }
@@ -637,7 +637,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return -1 if the first key is smaller, 1 if bigger, 0 if equal
      */
     final int compare(Object a, Object b) {
-        return keyType.compare(a, b);
+        return keyType.compare((K)a, (K)b);
     }
 
     /**
@@ -1063,7 +1063,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return sizeAsLong() == 0;
     }
 
-    public final long getCreateVersion() {
+    final long getCreateVersion() {
         return createVersion;
     }
 
@@ -2020,11 +2020,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     private static final class EqualsDecisionMaker<V> extends DecisionMaker<V> {
-        private final DataType dataType;
-        private final V        expectedValue;
-        private       Decision decision;
+        private final DataType<V> dataType;
+        private final V           expectedValue;
+        private       Decision    decision;
 
-        EqualsDecisionMaker(DataType dataType, V expectedValue) {
+        EqualsDecisionMaker(DataType<V> dataType, V expectedValue) {
             this.dataType = dataType;
             this.expectedValue = expectedValue;
         }

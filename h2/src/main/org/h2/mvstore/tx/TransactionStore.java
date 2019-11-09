@@ -141,11 +141,11 @@ public class TransactionStore {
      * @param dataType the data type for map keys and values
      * @param timeoutMillis lock acquisition timeout in milliseconds, 0 means no wait
      */
-    public TransactionStore(MVStore store, DataType dataType, int timeoutMillis) {
+    public TransactionStore(MVStore store, DataType<Object> dataType, int timeoutMillis) {
         this.store = store;
         this.timeoutMillis = timeoutMillis;
         preparedTransactions = store.openMap("openTransactions",
-                new MVMap.Builder<Integer, Object[]>());
+                new MVMap.Builder<>());
         DataType oldValueType = new VersionedValueType(dataType);
         ArrayType undoLogValueType = new ArrayType(new DataType[]{
                 new ObjectDataType(), dataType, oldValueType
@@ -153,7 +153,7 @@ public class TransactionStore {
         undoLogBuilder = new MVMap.Builder<Long, Object[]>()
                 .singleWriter()
                 .valueType(undoLogValueType);
-        DataType vt = new VersionedValueType(dataType);
+        DataType<VersionedValue> vt = new VersionedValueType(dataType);
         mapBuilder = new MVMap.Builder<Object, VersionedValue>()
                             .keyType(dataType).valueType(vt);
     }
@@ -518,7 +518,7 @@ public class TransactionStore {
      * @return the map
      */
     <K> MVMap<K, VersionedValue> openMap(String name,
-            DataType keyType, DataType valueType) {
+            DataType<? super K> keyType, DataType valueType) {
         if (keyType == null) {
             keyType = new ObjectDataType();
         }
@@ -802,8 +802,9 @@ public class TransactionStore {
     public static class ArrayType extends BasicDataType<Object[]>
     {
         private final int arrayLength;
-        private final DataType[] elementTypes;
+        private final DataType<Object>[] elementTypes;
 
+        @SuppressWarnings("unchecked")
         ArrayType(DataType[] elementTypes) {
             this.arrayLength = elementTypes.length;
             this.elementTypes = elementTypes;
@@ -818,7 +819,7 @@ public class TransactionStore {
         public int getMemory(Object[] array) {
             int size = 0;
             for (int i = 0; i < arrayLength; i++) {
-                DataType t = elementTypes[i];
+                DataType<Object> t = elementTypes[i];
                 Object o = array[i];
                 if (o != null) {
                     size += t.getMemory(o);
@@ -833,7 +834,7 @@ public class TransactionStore {
                 return 0;
             }
             for (int i = 0; i < arrayLength; i++) {
-                DataType t = elementTypes[i];
+                DataType<Object> t = elementTypes[i];
                 int comp = t.compare(a[i], b[i]);
                 if (comp != 0) {
                     return comp;
@@ -845,7 +846,7 @@ public class TransactionStore {
         @Override
         public void write(WriteBuffer buff, Object[] array) {
             for (int i = 0; i < arrayLength; i++) {
-                DataType t = elementTypes[i];
+                DataType<Object> t = elementTypes[i];
                 Object o = array[i];
                 if (o == null) {
                     buff.put((byte) 0);

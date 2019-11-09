@@ -470,7 +470,8 @@ public class Transaction {
      * @return the transaction map
      */
     public <K, V> TransactionMap<K, V> openMap(String name,
-                                                DataType keyType, DataType valueType) {
+                                                DataType<? super K> keyType,
+                                                DataType<? super V> valueType) {
         MVMap<K, VersionedValue> map = store.openMap(name, keyType, valueType);
         return openMap(map);
     }

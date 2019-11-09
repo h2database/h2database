@@ -27,6 +27,7 @@ import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreTool;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionStore;
+import org.h2.mvstore.type.DataType;
 import org.h2.store.InDoubtTransaction;
 import org.h2.store.fs.FileChannelInputStream;
 import org.h2.store.fs.FileUtils;
@@ -156,6 +157,7 @@ public class MVTableEngine implements TableEngine {
          * @param builder the builder
          * @param encrypted whether the store is encrypted
          */
+        @SuppressWarnings("unchecked")
         void open(Database db, MVStore.Builder builder, boolean encrypted) {
             this.encrypted = encrypted;
             try {
@@ -169,7 +171,7 @@ public class MVTableEngine implements TableEngine {
                 }
                 mvStore.setVersionsToKeep(0);
                 this.transactionStore = new TransactionStore(mvStore,
-                        new ValueDataType(db, null), db.getLockTimeout());
+                        (DataType) new ValueDataType(db, null), db.getLockTimeout());
             } catch (IllegalStateException e) {
                 throw convertIllegalStateException(e);
             }

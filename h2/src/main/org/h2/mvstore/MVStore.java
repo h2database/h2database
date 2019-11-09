@@ -35,6 +35,7 @@ import org.h2.compress.CompressDeflate;
 import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
 import org.h2.mvstore.cache.CacheLongKeyLIRS;
+import org.h2.mvstore.type.StringDataType;
 import org.h2.util.MathUtils;
 import org.h2.util.Utils;
 
@@ -366,7 +367,7 @@ public class MVStore implements AutoCloseable
         keysPerPage = DataUtils.getConfigParam(config, "keysPerPage", 48);
         backgroundExceptionHandler =
                 (UncaughtExceptionHandler)config.get("backgroundExceptionHandler");
-        meta = new MVMap<>(this);
+        meta = new MVMap<>(this, StringDataType.INSTANCE, StringDataType.INSTANCE);
         if (this.fileStore != null) {
             retentionTime = this.fileStore.getDefaultRetentionTime();
             // 19 KB memory is about 1 KB storage
@@ -2089,7 +2090,7 @@ public class MVStore implements AutoCloseable
         for (Chunk c : chunks.values()) {
             assert c.maxLen >= 0;
             if (isRewritable(c, time)) {
-                assert c.maxLenLive >= c.maxLenLive;
+                assert c.maxLen >= c.maxLenLive;
                 vacatedBlocks += c.len;
                 maxLengthSum += c.maxLen;
                 maxLengthLiveSum += c.maxLenLive;

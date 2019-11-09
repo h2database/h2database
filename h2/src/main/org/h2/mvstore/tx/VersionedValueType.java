@@ -20,6 +20,7 @@ public class VersionedValueType extends BasicDataType<VersionedValue> {
 
     private final DataType<Object> valueType;
 
+    @SuppressWarnings("unchecked")
     public VersionedValueType(DataType valueType) {
         this.valueType = valueType;
     }

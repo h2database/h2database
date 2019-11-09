@@ -846,7 +846,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
      */
     private static final class RepeatableIterator<K, X> extends TMIterator<K, X>
     {
-        private final DataType keyType;
+        private final DataType<K> keyType;
 
         private K snapshotKey;
 
@@ -858,6 +858,7 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
 
         private Object uncommittedValue;
 
+        @SuppressWarnings("unchecked")
         RepeatableIterator(TransactionMap<K, ?> transactionMap, K from, K to, boolean forEntries) {
             super(transactionMap, from, to, transactionMap.getSnapshot(), forEntries);
             keyType = transactionMap.map.getKeyType();

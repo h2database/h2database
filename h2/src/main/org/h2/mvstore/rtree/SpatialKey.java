@@ -9,8 +9,6 @@ import org.h2.engine.CastDataProvider;
 import org.h2.value.CompareMode;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.Arrays;
 
 /**
@@ -87,15 +85,7 @@ public class SpatialKey extends Value {
 
     @Override
     public String toString() {
-        StringBuilder buff = new StringBuilder();
-        buff.append(id).append(": (");
-        for (int i = 0; i < minMax.length; i += 2) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            buff.append(minMax[i]).append('/').append(minMax[i + 1]);
-        }
-        return buff.append(")").toString();
+        return getString();
     }
 
     @Override
@@ -119,7 +109,8 @@ public class SpatialKey extends Value {
 
     @Override
     public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
-        return 0;
+        throw new UnsupportedOperationException();
+//        return 0;
     }
 
     /**
@@ -135,31 +126,34 @@ public class SpatialKey extends Value {
 
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
-        return null;
+        builder.append(id).append(": (");
+        for (int i = 0; i < minMax.length; i += 2) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            builder.append(minMax[i]).append('/').append(minMax[i + 1]);
+        }
+        builder.append(")");
+        return builder;
     }
 
     @Override
     public TypeInfo getType() {
-        return null;
+        return TypeInfo.TYPE_GEOMETRY;
     }
 
     @Override
     public int getValueType() {
-        return 0;
+        return Value.GEOMETRY;
     }
 
     @Override
     public String getString() {
-        return null;
+        return getSQL(new StringBuilder()).toString();
     }
 
     @Override
     public Object getObject() {
-        return null;
-    }
-
-    @Override
-    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-
+        return this;
     }
 }

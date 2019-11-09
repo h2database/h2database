@@ -25,7 +25,7 @@ import org.h2.mvstore.type.ObjectDataType;
  */
 public class ShardedMap<K, V> extends AbstractMap<K, V> {
 
-    private final DataType keyType;
+    private final DataType<Object> keyType;
 
     /**
      * The shards. Each shard has a minimum and a maximum key (null for no

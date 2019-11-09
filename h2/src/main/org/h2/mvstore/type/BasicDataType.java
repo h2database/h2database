@@ -30,13 +30,6 @@ public abstract class BasicDataType<T> implements DataType<T> {
 
     @Override
     public int compare(T a, T b) {
-        if (a == b) {
-            return 0;
-        } else if (a == null) {
-            return -1;
-        } else if (b == null) {
-            return 1;
-        }
         throw DataUtils.newUnsupportedOperationException("Can not compare");
     }
 

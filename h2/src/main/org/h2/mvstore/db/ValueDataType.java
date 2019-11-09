@@ -23,7 +23,6 @@ import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.rtree.SpatialDataType;
 import org.h2.mvstore.rtree.SpatialKey;
 import org.h2.mvstore.type.BasicDataType;
-import org.h2.mvstore.type.DataType;
 import org.h2.result.ResultInterface;
 import org.h2.result.SimpleResult;
 import org.h2.result.SortOrder;
@@ -453,7 +452,7 @@ public class ValueDataType extends BasicDataType<Value> {
         }
         case Value.RESULT_SET: {
             buff.put(RESULT_SET);
-            ResultInterface result = ((ValueResultSet) v).getResult();
+            ResultInterface result = v.getResult();
             int columnCount = result.getVisibleColumnCount();
             buff.putVarInt(columnCount);
             for (int i = 0; i < columnCount; i++) {
@@ -522,7 +521,7 @@ public class ValueDataType extends BasicDataType<Value> {
             break;
         }
         default:
-            DbException.throwInternalError("type=" + v.getValueType());
+            throw DbException.throwInternalError("type=" + v.getValueType());
         }
     }
 
@@ -682,7 +681,7 @@ public class ValueDataType extends BasicDataType<Value> {
             int len = readVarInt(buff);
             Value[] list = new Value[len];
             for (int i = 0; i < len; i++) {
-                list[i] = (Value) readValue(buff);
+                list[i] = readValue(buff);
             }
             return type == ARRAY ? ValueArray.get(list) : ValueRow.get(list);
         }
@@ -696,7 +695,7 @@ public class ValueDataType extends BasicDataType<Value> {
             while (buff.get() != 0) {
                 Value[] o = new Value[columns];
                 for (int i = 0; i < columns; i++) {
-                    o[i] = (Value) readValue(buff);
+                    o[i] = readValue(buff);
                 }
                 rs.addRow(o);
             }

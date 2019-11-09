@@ -16,10 +16,9 @@ import org.h2.mvstore.type.DataType;
  */
 public class RowDataType extends BasicDataType<Object[]> {
 
-    static final String PREFIX = "org.h2.test.store.row";
+    private final DataType<Object>[] types;
 
-    private final DataType[] types;
-
+    @SuppressWarnings("unchecked")
     RowDataType(DataType[] types) {
         this.types = types;
     }

@@ -94,9 +94,29 @@ public class ObjectDataType extends BasicDataType<Object> {
             Float.class, Double.class, BigDecimal.class, String.class,
             UUID.class, Date.class };
 
-    private static final HashMap<Class<?>, Integer> COMMON_CLASSES_MAP = new HashMap<>(32);
+    private static class Holder
+    {
+        private static final HashMap<Class<?>, Integer> COMMON_CLASSES_MAP = new HashMap<>(32);
 
-    private AutoDetectDataType last = StringType.INSTANCE;
+        static {
+            for (int i = 0, size = COMMON_CLASSES.length; i < size; i++) {
+                COMMON_CLASSES_MAP.put(COMMON_CLASSES[i], i);
+            }
+        }
+
+        /**
+         * Get the class id, or null if not found.
+         *
+         * @param clazz the class
+         * @return the class id or null
+         */
+        static Integer getCommonClassId(Class<?> clazz) {
+            return COMMON_CLASSES_MAP.get(clazz);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private AutoDetectDataType<Object> last = selectDataType(TYPE_NULL);
 
     @Override
     public Object[] createStorage(int size) {
@@ -123,10 +143,15 @@ public class ObjectDataType extends BasicDataType<Object> {
         switchType(obj).write(buff, obj);
     }
 
-    private AutoDetectDataType newType(int typeId) {
+    @SuppressWarnings("unchecked")
+    private AutoDetectDataType<Object> newType(int typeId) {
         if (typeId == last.typeId) {
             return last;
         }
+        return selectDataType(typeId);
+    }
+
+    private AutoDetectDataType selectDataType(int typeId) {
         switch (typeId) {
         case TYPE_NULL:
             return NullType.INSTANCE;
@@ -157,12 +182,13 @@ public class ObjectDataType extends BasicDataType<Object> {
         case TYPE_DATE:
             return DateType.INSTANCE;
         case TYPE_ARRAY:
-            return new ObjectArrayType(this);
+            return new ObjectArrayType();
         case TYPE_SERIALIZED_OBJECT:
             return new SerializedObjectType(this);
+        default:
+            throw DataUtils.newIllegalStateException(DataUtils.ERROR_INTERNAL,
+                    "Unsupported type {0}", typeId);
         }
-        throw DataUtils.newIllegalStateException(DataUtils.ERROR_INTERNAL,
-                "Unsupported type {0}", typeId);
     }
 
     @Override
@@ -223,7 +249,7 @@ public class ObjectDataType extends BasicDataType<Object> {
                 }
             }
         }
-        AutoDetectDataType t = last;
+        AutoDetectDataType<Object> t = last;
         if (typeId != t.typeId) {
             last = t = newType(typeId);
         }
@@ -271,9 +297,9 @@ public class ObjectDataType extends BasicDataType<Object> {
      * @param obj the object
      * @return the auto-detected type used
      */
-    AutoDetectDataType switchType(Object obj) {
+    AutoDetectDataType<Object> switchType(Object obj) {
         int typeId = getTypeId(obj);
-        AutoDetectDataType l = last;
+        AutoDetectDataType<Object> l = last;
         if (typeId != l.typeId) {
             last = l = newType(typeId);
         }
@@ -318,28 +344,6 @@ public class ObjectDataType extends BasicDataType<Object> {
      */
     static boolean isArray(Object obj) {
         return obj != null && obj.getClass().isArray();
-    }
-
-    /**
-     * Get the class id, or null if not found.
-     *
-     * @param clazz the class
-     * @return the class id or null
-     */
-    static Integer getCommonClassId(Class<?> clazz) {
-        HashMap<Class<?>, Integer> map = COMMON_CLASSES_MAP;
-        if (map.size() == 0) {
-            // lazy initialization
-            // synchronized, because the COMMON_CLASSES_MAP is not
-            synchronized (map) {
-                if (map.size() == 0) {
-                    for (int i = 0, size = COMMON_CLASSES.length; i < size; i++) {
-                        map.put(COMMON_CLASSES[i], i);
-                    }
-                }
-            }
-        }
-        return map.get(clazz);
     }
 
     /**
@@ -438,7 +442,7 @@ public class ObjectDataType extends BasicDataType<Object> {
          * @param o the object
          * @return the type
          */
-        AutoDetectDataType getType(Object o) {
+        DataType<Object> getType(Object o) {
             return base.switchType(o);
         }
 
@@ -1230,12 +1234,7 @@ public class ObjectDataType extends BasicDataType<Object> {
      */
     static class ObjectArrayType extends AutoDetectDataType<Object>
     {
-
         private final ObjectDataType elementType = new ObjectDataType();
-
-        ObjectArrayType(ObjectDataType base) {
-            super(base, TYPE_ARRAY);
-        }
 
         ObjectArrayType() {
             super(TYPE_ARRAY);
@@ -1287,8 +1286,8 @@ public class ObjectDataType extends BasicDataType<Object> {
             Class<?> type = aObj.getClass().getComponentType();
             Class<?> bType = bObj.getClass().getComponentType();
             if (type != bType) {
-                Integer classA = getCommonClassId(type);
-                Integer classB = getCommonClassId(bType);
+                Integer classA = Holder.getCommonClassId(type);
+                Integer classB = Holder.getCommonClassId(bType);
                 if (classA != null) {
                     if (classB != null) {
                         return classA.compareTo(classB);
@@ -1358,7 +1357,7 @@ public class ObjectDataType extends BasicDataType<Object> {
                 return;
             }
             Class<?> type = obj.getClass().getComponentType();
-            Integer classId = getCommonClassId(type);
+            Integer classId = Holder.getCommonClassId(type);
             if (classId != null) {
                 if (type.isPrimitive()) {
                     if (type == byte.class) {
@@ -1501,8 +1500,8 @@ public class ObjectDataType extends BasicDataType<Object> {
             if (aObj == bObj) {
                 return 0;
             }
-            DataType ta = getType(aObj);
-            DataType tb = getType(bObj);
+            DataType<Object> ta = getType(aObj);
+            DataType<Object> tb = getType(bObj);
             if (ta != this || tb != this) {
                 if (ta == tb) {
                     return ta.compare(aObj, bObj);
@@ -1528,7 +1527,7 @@ public class ObjectDataType extends BasicDataType<Object> {
 
         @Override
         public int getMemory(Object obj) {
-            DataType t = getType(obj);
+            DataType<Object> t = getType(obj);
             if (t == this) {
                 return averageSize;
             }
@@ -1537,7 +1536,7 @@ public class ObjectDataType extends BasicDataType<Object> {
 
         @Override
         public void write(WriteBuffer buff, Object obj) {
-            DataType t = getType(obj);
+            DataType<Object> t = getType(obj);
             if (t != this) {
                 t.write(buff, obj);
                 return;

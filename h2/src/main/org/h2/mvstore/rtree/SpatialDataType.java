@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.BasicDataType;
-import org.h2.mvstore.type.DataType;
 
 /**
  * A spatial data type. This class supports up to 31 dimensions. Each dimension
@@ -123,13 +122,11 @@ public class SpatialDataType extends BasicDataType<SpatialKey>
     /**
      * Check whether the two objects overlap.
      *
-     * @param objA the first object
-     * @param objB the second object
+     * @param a the first object
+     * @param b the second object
      * @return true if they overlap
      */
-    public boolean isOverlap(Object objA, Object objB) {
-        SpatialKey a = (SpatialKey) objA;
-        SpatialKey b = (SpatialKey) objB;
+    public boolean isOverlap(SpatialKey a, SpatialKey b) {
         if (a.isNull() || b.isNull()) {
             return false;
         }

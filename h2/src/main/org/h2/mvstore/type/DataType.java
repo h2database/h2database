@@ -23,6 +23,7 @@ public interface DataType<T> extends Comparator<T> {
      * @return -1 if the first key is smaller, 1 if larger, and 0 if equal
      * @throws UnsupportedOperationException if the type is not orderable
      */
+    @Override
     int compare(T a, T b);
 
     /**

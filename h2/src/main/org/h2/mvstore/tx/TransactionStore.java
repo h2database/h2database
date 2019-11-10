@@ -146,7 +146,7 @@ public class TransactionStore {
         this.timeoutMillis = timeoutMillis;
         preparedTransactions = store.openMap("openTransactions",
                 new MVMap.Builder<>());
-        DataType oldValueType = new VersionedValueType(dataType);
+        DataType<VersionedValue> oldValueType = new VersionedValueType(dataType);
         ArrayType undoLogValueType = new ArrayType(new DataType[]{
                 new ObjectDataType(), dataType, oldValueType
         });

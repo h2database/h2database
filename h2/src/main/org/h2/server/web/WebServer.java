@@ -110,6 +110,8 @@ public class WebServer implements Service {
                 "jdbc:postgresql:test|" ,
         "Generic MySQL|com.mysql.cj.jdbc.Driver|" +
                 "jdbc:mysql://localhost:3306/test|" ,
+        "Generic MariaDB|org.mariadb.jdbc.Driver|" +
+                "jdbc:mariadb://localhost:3306/test|" ,
         "Generic HSQLDB|org.hsqldb.jdbcDriver|" +
                 "jdbc:hsqldb:test;hsqldb.default_table_type=cached|sa" ,
         "Generic Derby (Server)|org.apache.derby.client.ClientAutoloadedDriver|" +

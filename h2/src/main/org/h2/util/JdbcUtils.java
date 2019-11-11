@@ -57,6 +57,7 @@ public class JdbcUtils {
         "microsoft:", "com.microsoft.jdbc.sqlserver.SQLServerDriver",
         "mimer:", "com.mimer.jdbc.Driver",
         "mysql:", "com.mysql.cj.jdbc.Driver",
+        "mariadb:", "org.mariadb.jdbc.Driver",
         "odbc:", "sun.jdbc.odbc.JdbcOdbcDriver",
         "oracle:", "oracle.jdbc.driver.OracleDriver",
         "pervasive:", "com.pervasive.jdbc.v2.Driver",

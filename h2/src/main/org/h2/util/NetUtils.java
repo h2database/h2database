@@ -66,10 +66,10 @@ public class NetUtils {
      * @param ssl if SSL should be used
      * @return the socket
      */
-    public static Socket createSocket(String server, int defaultPort,
-                                      boolean ssl) throws IOException {
+    public static Socket createSocket(String server, int defaultPort, boolean ssl) throws IOException {
         return createSocket(server, defaultPort, ssl, 0);
     }
+
     /**
      * Create a client socket that is connected to the given address and port.
      *

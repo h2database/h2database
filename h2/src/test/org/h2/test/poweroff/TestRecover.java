@@ -54,7 +54,7 @@ public class TestRecover {
     //         "jdbc:derby:/temp/derby/data/test;create=true");
     // private static final String DRIVER =
     //     System.getProperty("test.driver",
-    //         "org.apache.derby.jdbc.EmbeddedDriver");
+    //         "org.apache.derby.iapi.jdbc.AutoloadedDriver");
 
     /**
      * This method is called when executing this application from the command

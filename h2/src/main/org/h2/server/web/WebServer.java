@@ -108,13 +108,15 @@ public class WebServer implements Service {
                 "jdbc:sqlserver://localhost;DatabaseName=test|sa",
         "Generic PostgreSQL|org.postgresql.Driver|" +
                 "jdbc:postgresql:test|" ,
-        "Generic MySQL|com.mysql.jdbc.Driver|" +
+        "Generic MySQL|com.mysql.cj.jdbc.Driver|" +
                 "jdbc:mysql://localhost:3306/test|" ,
+        "Generic MariaDB|org.mariadb.jdbc.Driver|" +
+                "jdbc:mariadb://localhost:3306/test|" ,
         "Generic HSQLDB|org.hsqldb.jdbcDriver|" +
                 "jdbc:hsqldb:test;hsqldb.default_table_type=cached|sa" ,
-        "Generic Derby (Server)|org.apache.derby.jdbc.ClientDriver|" +
+        "Generic Derby (Server)|org.apache.derby.client.ClientAutoloadedDriver|" +
                 "jdbc:derby://localhost:1527/test;create=true|sa",
-        "Generic Derby (Embedded)|org.apache.derby.jdbc.EmbeddedDriver|" +
+        "Generic Derby (Embedded)|org.apache.derby.iapi.jdbc.AutoloadedDriver|" +
                 "jdbc:derby:test;create=true|sa",
         "Generic H2 (Server)|org.h2.Driver|" +
                 "jdbc:h2:tcp://localhost/~/test|sa",

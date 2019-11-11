@@ -36,12 +36,12 @@ public class SQLInjection {
                 "jdbc:h2:./test", "sa", "sa");
 //        new SQLInjection().run("org.postgresql.Driver",
 //                "jdbc:postgresql:jpox2", "sa", "sa");
-//        new SQLInjection().run("com.mysql.jdbc.Driver",
+//        new SQLInjection().run("com.mysql.cj.jdbc.Driver",
 //                "jdbc:mysql://localhost/test", "sa", "sa");
 //        new SQLInjection().run("org.hsqldb.jdbcDriver",
 //                "jdbc:hsqldb:test", "sa", "");
 //        new SQLInjection().run(
-//                "org.apache.derby.jdbc.EmbeddedDriver",
+//                "org.apache.derby.iapi.jdbc.AutoloadedDriver",
 //                "jdbc:derby:test3;create=true", "sa", "sa");
     }
 

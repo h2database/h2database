@@ -42,7 +42,7 @@ public class TestWrite {
                 "jdbc:h2:./test", "sa", "");
         testDatabase("org.hsqldb.jdbcDriver",
                 "jdbc:hsqldb:test4", "sa", "");
-        testDatabase("org.apache.derby.jdbc.EmbeddedDriver",
+        testDatabase("org.apache.derby.iapi.jdbc.AutoloadedDriver",
                 "jdbc:derby:test;create=true", "sa", "");
         testDatabase("com.mysql.jdbc.Driver",
                 "jdbc:mysql://localhost/test", "sa", "sa");

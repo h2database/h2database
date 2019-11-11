@@ -35,6 +35,8 @@ public class Build extends BuildBase {
 
     private static final String ARGS4J_VERSION = "2.33";
 
+    private static final String DERBY_VERSION = "10.15.1.3";
+
     private static final String JACOCO_VERSION = "0.8.5";
 
     private static final String JTS_VERSION = "1.16.1";
@@ -72,15 +74,18 @@ public class Build extends BuildBase {
         downloadUsingMaven("ext/hsqldb-2.3.2.jar",
                 "org/hsqldb", "hsqldb", "2.3.2",
                 "970fd7b8f635e2c19305160459649569655b843c");
-        downloadUsingMaven("ext/derby-10.10.1.1.jar",
-                "org/apache/derby", "derby", "10.10.1.1",
-                "09f6f910f0373adc1b23c10f9b4bb151b7e7449f");
-        downloadUsingMaven("ext/derbyclient-10.10.1.1.jar",
-                "org/apache/derby", "derbyclient", "10.10.1.1",
-                "42d5293b4ac5c5f082583c3564c10f78bd34a4cb");
-        downloadUsingMaven("ext/derbynet-10.10.1.1.jar",
-                "org/apache/derby", "derbynet", "10.10.1.1",
-                "912b08dca73663d4665e09cd317be1218412d93e");
+        downloadUsingMaven("ext/derby-" + DERBY_VERSION,
+                "org.apache.derby", "derby", DERBY_VERSION,
+                "79505f952a4f8d6be761413d7b10a64d6405e57a");
+        downloadUsingMaven("ext/derbyclient-" + DERBY_VERSION + ".jar",
+                "org.apache.derby", "derbyclient", DERBY_VERSION,
+                "9a08ac1b0b547ca436c85799926b2459d48b2402");
+        downloadUsingMaven("ext/derbynet-" + DERBY_VERSION + ".jar",
+                "org.apache.derby", "derbynet", DERBY_VERSION,
+                "6e15859b3bb1e654f417f1a498fc2a6e76fa8e80");
+        downloadUsingMaven("ext/derbyshared-" + DERBY_VERSION + ".jar",
+                "org.apache.derby", "derbyshared", DERBY_VERSION,
+                "c7fb80babe6a671f0a5e4d0c9ad96dfb723df49d");
         downloadUsingMaven("ext/postgresql-" + PGJDBC_VERSION + ".jar",
                 "org.postgresql", "postgresql", PGJDBC_VERSION, PGJDBC_HASH);
         downloadUsingMaven("ext/mysql-connector-java-5.1.6.jar",
@@ -92,9 +97,10 @@ public class Build extends BuildBase {
                 File.pathSeparator + "bin/h2" + getJarSuffix() +
                 File.pathSeparator + "ext/hsqldb.jar" +
                 File.pathSeparator + "ext/hsqldb-2.3.2.jar" +
-                File.pathSeparator + "ext/derby-10.10.1.1.jar" +
-                File.pathSeparator + "ext/derbyclient-10.10.1.1.jar" +
-                File.pathSeparator + "ext/derbynet-10.10.1.1.jar" +
+                File.pathSeparator + "ext/derby-" + DERBY_VERSION + ".jar" +
+                File.pathSeparator + "ext/derbyclient-" + DERBY_VERSION + ".jar" +
+                File.pathSeparator + "ext/derbynet-" + DERBY_VERSION + ".jar" +
+                File.pathSeparator + "ext/derbyshared-" + DERBY_VERSION + ".jar" +
                 File.pathSeparator + "ext/postgresql-" + PGJDBC_VERSION + ".jar" +
                 File.pathSeparator + "ext/mysql-connector-java-5.1.6.jar";
         StringList args = args("-Xmx128m",

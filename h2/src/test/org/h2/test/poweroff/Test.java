@@ -151,7 +151,7 @@ public class Test {
                 // "jdbc:mysql://localhost/test", "sa", ""),
                 new Test("org.postgresql.Driver",
                         "jdbc:postgresql:test", "sa", "sa", false),
-                new Test("org.apache.derby.jdbc.EmbeddedDriver",
+                new Test("org.apache.derby.iapi.jdbc.AutoloadedDriver",
                         "jdbc:derby:test;create=true", "sa", "", false),
                 new Test("org.h2.Driver",
                         "jdbc:h2:./test5", "sa", "", true),

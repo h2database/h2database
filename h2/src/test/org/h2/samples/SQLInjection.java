@@ -41,7 +41,7 @@ public class SQLInjection {
 //        new SQLInjection().run("org.hsqldb.jdbcDriver",
 //                "jdbc:hsqldb:test", "sa", "");
 //        new SQLInjection().run(
-//                "org.apache.derby.jdbc.EmbeddedDriver",
+//                "org.apache.derby.iapi.jdbc.AutoloadedDriver",
 //                "jdbc:derby:test3;create=true", "sa", "sa");
     }
 

@@ -296,7 +296,7 @@ public abstract class TestHalt extends TestBase {
 //            lock.delete();
 //            System.gc();
 //        }
-//        Class.forName("org.apache.derby.jdbc.EmbeddedDriver").newInstance();
+//        Class.forName("org.apache.derby.iapi.jdbc.AutoloadedDriver").newInstance();
 //        try {
 //            return DriverManager.getConnection(
 //                    "jdbc:derby:test3;create=true", "sa", "sa");
@@ -322,7 +322,7 @@ public abstract class TestHalt extends TestBase {
 //    void disconnectDerby() {
 //        // super.disconnect();
 //        try {
-//            Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
+//            Class.forName("org.apache.derby.iapi.jdbc.AutoloadedDriver");
 //            DriverManager.getConnection(
 //                    "jdbc:derby:;shutdown=true", "sa", "sa");
 //        } catch (Exception e) {

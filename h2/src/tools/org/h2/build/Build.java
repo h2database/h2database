@@ -47,6 +47,8 @@ public class Build extends BuildBase {
 
     private static final String LUCENE_VERSION = "8.2.0";
 
+    private static final String MYSQL_CONNECTOR_VERSION = "8.0.18";
+
     private static final String OSGI_VERSION = "5.0.0";
 
     private static final String PGJDBC_VERSION = "42.2.8";
@@ -90,9 +92,9 @@ public class Build extends BuildBase {
                 "c7fb80babe6a671f0a5e4d0c9ad96dfb723df49d");
         downloadUsingMaven("ext/postgresql-" + PGJDBC_VERSION + ".jar",
                 "org.postgresql", "postgresql", PGJDBC_VERSION, PGJDBC_HASH);
-        downloadUsingMaven("ext/mysql-connector-java-5.1.6.jar",
-                "mysql", "mysql-connector-java", "5.1.6",
-                "380ef5226de2c85ff3b38cbfefeea881c5fce09d");
+        downloadUsingMaven("ext/mysql-connector-java-" + MYSQL_CONNECTOR_VERSION + ".jar",
+                "mysql", "mysql-connector-java", MYSQL_CONNECTOR_VERSION,
+                "e088efaa4b568bc7d9f7274b9c5ea1a00da1a45c");
         compile();
 
         String cp = "temp" +
@@ -103,7 +105,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/derbynet-" + DERBY_VERSION + ".jar" +
                 File.pathSeparator + "ext/derbyshared-" + DERBY_VERSION + ".jar" +
                 File.pathSeparator + "ext/postgresql-" + PGJDBC_VERSION + ".jar" +
-                File.pathSeparator + "ext/mysql-connector-java-5.1.6.jar";
+                File.pathSeparator + "ext/mysql-connector-java-" + MYSQL_CONNECTOR_VERSION + ".jar";
         StringList args = args("-Xmx128m",
                 "-cp", cp, "org.h2.test.bench.TestPerformance");
         execJava(args.plus("-init", "-db", "1"));

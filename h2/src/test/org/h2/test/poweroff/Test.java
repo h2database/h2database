@@ -147,7 +147,7 @@ public class Test {
                         "jdbc:h2:./test2", "sa", "", false),
                 new Test("org.hsqldb.jdbcDriver",
                         "jdbc:hsqldb:test4", "sa", "", false),
-                // new Test("com.mysql.jdbc.Driver",
+                // new Test("com.mysql.cj.jdbc.Driver",
                 // "jdbc:mysql://localhost/test", "sa", ""),
                 new Test("org.postgresql.Driver",
                         "jdbc:postgresql:test", "sa", "sa", false),

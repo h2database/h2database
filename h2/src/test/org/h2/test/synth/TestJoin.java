@@ -57,7 +57,7 @@ public class TestJoin extends TestDb {
         Connection c2 = DriverManager.getConnection("jdbc:postgresql:test", "sa", "sa");
         connections.add(c2);
 
-        // Class.forName("com.mysql.jdbc.Driver");
+        // Class.forName("com.mysql.cj.jdbc.Driver");
         // Connection c2 =
         // DriverManager.getConnection("jdbc:mysql://localhost/test", "sa",
         // "sa");

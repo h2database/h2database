@@ -37,6 +37,8 @@ public class Build extends BuildBase {
 
     private static final String DERBY_VERSION = "10.15.1.3";
 
+    private static final String HSQLDB_VERSION = "2.5.0";
+
     private static final String JACOCO_VERSION = "0.8.5";
 
     private static final String JTS_VERSION = "1.16.1";
@@ -71,9 +73,9 @@ public class Build extends BuildBase {
      */
     @Description(summary = "Run the benchmarks.")
     public void benchmark() {
-        downloadUsingMaven("ext/hsqldb-2.3.2.jar",
-                "org/hsqldb", "hsqldb", "2.3.2",
-                "970fd7b8f635e2c19305160459649569655b843c");
+        downloadUsingMaven("ext/hsqldb-" + HSQLDB_VERSION + ".jar",
+                "org.hsqldb", "hsqldb", HSQLDB_VERSION,
+                "59298fcd77faf01e02b405def2f80cccbf582508");
         downloadUsingMaven("ext/derby-" + DERBY_VERSION,
                 "org.apache.derby", "derby", DERBY_VERSION,
                 "79505f952a4f8d6be761413d7b10a64d6405e57a");
@@ -95,8 +97,7 @@ public class Build extends BuildBase {
 
         String cp = "temp" +
                 File.pathSeparator + "bin/h2" + getJarSuffix() +
-                File.pathSeparator + "ext/hsqldb.jar" +
-                File.pathSeparator + "ext/hsqldb-2.3.2.jar" +
+                File.pathSeparator + "ext/hsqldb-" + HSQLDB_VERSION + ".jar" +
                 File.pathSeparator + "ext/derby-" + DERBY_VERSION + ".jar" +
                 File.pathSeparator + "ext/derbyclient-" + DERBY_VERSION + ".jar" +
                 File.pathSeparator + "ext/derbynet-" + DERBY_VERSION + ".jar" +

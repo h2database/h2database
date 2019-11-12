@@ -5710,7 +5710,7 @@ SUM(X)
 "
 
 "Aggregate Functions (General)","EVERY","
-{EVERY|BOOL_AND}(boolean)
+{EVERY| @c@ {BOOL_AND}}(boolean)
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Returns true if all expressions are true.
@@ -5721,7 +5721,7 @@ EVERY(ID>10)
 "
 
 "Aggregate Functions (General)","ANY","
-{ANY|SOME|BOOL_OR}(boolean)
+{ANY|SOME| @c@ {BOOL_OR}}(boolean)
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Returns true if any expression is true.
@@ -5797,8 +5797,8 @@ VAR_SAMP(X)
 "
 
 "Aggregate Functions (General)","BIT_AND","
-BIT_AND(expression)
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+@h2@ BIT_AND(expression)
+@h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
 ","
 The bitwise AND of all non-null values.
 If no rows are selected, the result is NULL.
@@ -5808,8 +5808,8 @@ BIT_AND(ID)
 "
 
 "Aggregate Functions (General)","BIT_OR","
-BIT_OR(expression)
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+@h2@ BIT_OR(expression)
+@h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
 ","
 The bitwise OR of all non-null values.
 If no rows are selected, the result is NULL.
@@ -5819,8 +5819,8 @@ BIT_OR(ID)
 "
 
 "Aggregate Functions (General)","SELECTIVITY","
-SELECTIVITY(value)
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+@h2@ SELECTIVITY(value)
+@h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
 ","
 Estimates the selectivity (0-100) of a value.
 The value is defined as (100 * distinctCount / rowCount).
@@ -5832,8 +5832,8 @@ SELECT SELECTIVITY(FIRSTNAME), SELECTIVITY(NAME) FROM TEST WHERE ROWNUM()<20000
 "
 
 "Aggregate Functions (General)","ENVELOPE","
-ENVELOPE( value )
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+@h2@ ENVELOPE( value )
+@h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
 ","
 Returns the minimum bounding box that encloses all specified GEOMETRY values.
 Only 2D coordinate plane is supported.
@@ -5847,7 +5847,7 @@ ENVELOPE(X)
 "Aggregate Functions (Ordered)","LISTAGG","
 { LISTAGG ( [ DISTINCT|ALL ] string [, separatorString] [ ON OVERFLOW ERROR ] )
     withinGroupSpecification }
-| { GROUP_CONCAT ( [ DISTINCT|ALL ] string
+    | @c@ { GROUP_CONCAT ( [ DISTINCT|ALL ] string
     [ ORDER BY { expression [ ASC | DESC ] } [,...] ]
     [ SEPARATOR separatorString ] ) }
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
@@ -5977,8 +5977,8 @@ PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY V)
 "
 
 "Aggregate Functions (Inverse Distribution)","MEDIAN","
-MEDIAN( [ DISTINCT|ALL ] value )
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+@h2@ MEDIAN( [ DISTINCT|ALL ] value )
+@h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
 ","
 The value separating the higher half of a values from the lower half.
 Returns the middle value or an interpolated value between two middle values if number of values is even.
@@ -5991,9 +5991,9 @@ MEDIAN(X)
 "
 
 "Aggregate Functions (Inverse Distribution)","MODE","
-{ MODE( value ) [ ORDER BY value [ ASC | DESC ] ] }
-    | { MODE() WITHIN GROUP (ORDER BY expression [ ASC | DESC ]) }
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+@h2@ { MODE( value ) [ ORDER BY value [ ASC | DESC ] ] }
+    | @h2@ { MODE() WITHIN GROUP (ORDER BY expression [ ASC | DESC ]) }
+@h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
 ","
 Returns the value that occurs with the greatest frequency.
 If there are multiple values with the same frequency only one value will be returned.

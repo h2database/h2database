@@ -5914,6 +5914,15 @@ public class Parser {
                 original = "BINARY LARGE OBJECT";
             }
             break;
+        case "CHAR":
+            read();
+            if (readIf("VARYING")) {
+                original = "CHAR VARYING";
+            } else if (readIf("LARGE")) {
+                read("OBJECT");
+                original = "CHAR LARGE OBJECT";
+            }
+            break;
         case "CHARACTER":
             read();
             if (readIf("VARYING")) {
@@ -5946,6 +5955,35 @@ public class Parser {
             read();
             if (readIf("RAW")) {
                 original = "LONG RAW";
+            }
+            break;
+        case "NATIONAL":
+            read();
+            if (readIf("CHARACTER")) {
+                if (readIf("VARYING")) {
+                    original = "NATIONAL CHARACTER VARYING";
+                } else if (readIf("LARGE")) {
+                    read("OBJECT");
+                    original = "NATIONAL CHARACTER LARGE OBJECT";
+                } else {
+                    original = "NATIONAL CHARACTER";
+                }
+            } else {
+                read("CHAR");
+                if (readIf("VARYING")) {
+                    original = "NATIONAL CHAR VARYING";
+                } else {
+                    original = "NATIONAL CHAR";
+                }
+            }
+            break;
+        case "NCHAR":
+            read();
+            if (readIf("VARYING")) {
+                original = "NCHAR VARYING";
+            } else if (readIf("LARGE")) {
+                read("OBJECT");
+                original = "NCHAR LARGE OBJECT";
             }
             break;
         case "SMALLDATETIME":

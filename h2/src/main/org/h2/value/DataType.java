@@ -200,8 +200,10 @@ public class DataType {
         );
         add(Value.STRING, Types.VARCHAR,
                 createString(true),
-                new String[]{"VARCHAR", "CHARACTER VARYING", "VARCHAR2", "NVARCHAR", "NVARCHAR2",
-                    "VARCHAR_CASESENSITIVE", "TID"}
+                new String[]{"VARCHAR", "CHARACTER VARYING", "CHAR VARYING",
+                        "NCHAR VARYING", "NATIONAL CHARACTER VARYING", "NATIONAL CHAR VARYING",
+                        "VARCHAR2", "NVARCHAR", "NVARCHAR2",
+                        "VARCHAR_CASESENSITIVE", "TID"}
         );
         add(Value.STRING, Types.LONGVARCHAR,
                 createString(true),
@@ -209,7 +211,7 @@ public class DataType {
         );
         add(Value.STRING_FIXED, Types.CHAR,
                 createString(true),
-                new String[]{"CHAR", "CHARACTER", "NCHAR"}
+                new String[]{"CHAR", "CHARACTER", "NCHAR", "NATIONAL CHARACTER", "NATIONAL CHAR"}
         );
         add(Value.STRING_IGNORECASE, Types.VARCHAR,
                 createString(false),
@@ -321,8 +323,8 @@ public class DataType {
         );
         add(Value.CLOB, Types.CLOB,
                 createLob(true),
-                new String[]{"CLOB", "CHARACTER LARGE OBJECT", "TINYTEXT", "TEXT", "MEDIUMTEXT",
-                    "LONGTEXT", "NTEXT", "NCLOB"}
+                new String[]{"CLOB", "CHARACTER LARGE OBJECT", "CHAR LARGE OBJECT", "TINYTEXT", "TEXT", "MEDIUMTEXT",
+                    "LONGTEXT", "NTEXT", "NCLOB", "NCHAR LARGE OBJECT", "NATIONAL CHARACTER LARGE OBJECT"}
         );
         add(Value.GEOMETRY, Types.OTHER,
                 createGeometry(),

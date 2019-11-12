@@ -3261,7 +3261,7 @@ ID
 "
 
 "Data Types","INT Type","
-INT | INTEGER | MEDIUMINT | INT4 | SIGNED
+INT | INTEGER |  @c@ { MEDIUMINT | INT4 | SIGNED }
 ","
 Possible values: -2147483648 to 2147483647.
 
@@ -3272,7 +3272,7 @@ INT
 "
 
 "Data Types","BOOLEAN Type","
-BOOLEAN | BIT | BOOL
+BOOLEAN | @c@ { BIT | BOOL }
 ","
 Possible values: TRUE, FALSE, and UNKNOWN (NULL).
 
@@ -3283,7 +3283,7 @@ BOOLEAN
 "
 
 "Data Types","TINYINT Type","
-TINYINT
+@h2@ TINYINT
 ","
 Possible values are: -128 to 127.
 
@@ -3294,7 +3294,7 @@ TINYINT
 "
 
 "Data Types","SMALLINT Type","
-SMALLINT | INT2 | YEAR
+SMALLINT | @c@ { INT2 | YEAR }
 ","
 Possible values: -32768 to 32767.
 
@@ -3305,7 +3305,7 @@ SMALLINT
 "
 
 "Data Types","BIGINT Type","
-BIGINT | INT8
+BIGINT | @c@ INT8
 ","
 Possible values: -9223372036854775808 to 9223372036854775807.
 
@@ -3316,7 +3316,7 @@ BIGINT
 "
 
 "Data Types","IDENTITY Type","
-IDENTITY
+@c@ IDENTITY
 ","
 Auto-Increment value. Possible values: -9223372036854775808 to
 9223372036854775807. Used values are never re-used, even when the transaction is
@@ -3329,7 +3329,7 @@ IDENTITY
 "
 
 "Data Types","DECIMAL Type","
-{ DECIMAL | NUMBER | DEC | NUMERIC } ( precisionInt [ , scaleInt ] )
+{ DECIMAL | DEC | NUMERIC | @c@ { NUMBER } } ( precisionInt [ , scaleInt ] )
 ","
 Data type with fixed precision and scale. This data type is recommended for
 storing currency values.
@@ -3344,7 +3344,7 @@ DECIMAL(20, 2)
 "
 
 "Data Types","DOUBLE Type","
-{ DOUBLE [ PRECISION ] | FLOAT [ ( precisionInt ) ] | FLOAT8 }
+{ DOUBLE [ PRECISION ] | FLOAT [ ( precisionInt ) ] | @c@ { FLOAT8 } }
 ","
 A floating point number. Should not be used to represent currency values, because
 of rounding problems.
@@ -3357,7 +3357,7 @@ DOUBLE
 "
 
 "Data Types","REAL Type","
-{ REAL | FLOAT ( precisionInt ) | FLOAT4 }
+{ REAL | FLOAT ( precisionInt ) | @c@ { FLOAT4 } }
 ","
 A single precision floating point number. Should not be used to represent currency
 values, because of rounding problems.
@@ -3427,8 +3427,8 @@ DATE
 "
 
 "Data Types","TIMESTAMP Type","
-{ TIMESTAMP [ ( precisionInt ) ] [ WITHOUT TIME ZONE ]
-    | DATETIME [ ( precisionInt ) ] | SMALLDATETIME }
+TIMESTAMP [ ( precisionInt ) ] [ WITHOUT TIME ZONE ]
+    | @c@ { DATETIME [ ( precisionInt ) ] | SMALLDATETIME }
 ","
 The timestamp data type. The proleptic Gregorian calendar is used.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
@@ -3478,7 +3478,7 @@ TIMESTAMP(9) WITH TIME ZONE
 
 "Data Types","BINARY Type","
 { BINARY | VARBINARY | BINARY VARYING
-    | LONGVARBINARY | RAW | BYTEA }
+    | @c@ { LONGVARBINARY | RAW | BYTEA } }
 [ ( precisionInt ) ]
 ","
 Represents a byte array. For very long arrays, use BLOB.
@@ -3494,7 +3494,7 @@ BINARY(1000)
 "
 
 "Data Types","OTHER Type","
-OTHER
+@h2@ OTHER
 ","
 This type allows storing serialized Java objects. Internally, a byte array is used.
 Serialization and deserialization is done on the client side only.
@@ -3508,8 +3508,10 @@ OTHER
 "
 
 "Data Types","VARCHAR Type","
-{ VARCHAR | CHARACTER VARYING | LONGVARCHAR | VARCHAR2 | NVARCHAR
-    | NVARCHAR2 | VARCHAR_CASESENSITIVE} [ ( precisionInt ) ]
+{ VARCHAR | { CHARACTER | CHAR } VARYING
+    | { NCHAR | { NATIONAL { CHARACTER | CHAR } } } VARYING
+    | @c@ { LONGVARCHAR | VARCHAR2 | NVARCHAR | NVARCHAR2 }
+    | @h2@ { VARCHAR_CASESENSITIVE } } [ ( precisionInt ) ]
 ","
 A Unicode String.
 Use two single quotes ('') to create a quote.
@@ -3527,7 +3529,7 @@ VARCHAR(255)
 "
 
 "Data Types","VARCHAR_IGNORECASE Type","
-VARCHAR_IGNORECASE [ ( precisionInt ) ]
+@h2@ VARCHAR_IGNORECASE [ ( precisionInt ) ]
 ","
 Same as VARCHAR, but not case sensitive when comparing.
 Stored in mixed case.
@@ -3545,7 +3547,7 @@ VARCHAR_IGNORECASE
 "
 
 "Data Types","CHAR Type","
-{ CHAR | CHARACTER | NCHAR } [ ( precisionInt ) ]
+{ CHAR | CHARACTER | NCHAR | NATIONAL { CHARACTER | CHAR } } [ ( precisionInt ) ]
 ","
 A Unicode String.
 This type is supported for compatibility with other databases and older applications.
@@ -3565,7 +3567,7 @@ CHAR(10)
 
 "Data Types","BLOB Type","
 { BLOB | BINARY LARGE OBJECT
-    | TINYBLOB | MEDIUMBLOB | LONGBLOB | IMAGE | OID }
+    | @c@ { TINYBLOB | MEDIUMBLOB | LONGBLOB | IMAGE | OID } }
 [ ( precisionInt [K|M|G|T|P]) ]
 ","
 Like BINARY, but intended for very large values such as files or images. Unlike
@@ -3580,8 +3582,9 @@ BLOB(10K)
 "
 
 "Data Types","CLOB Type","
-{ CLOB | CHARACTER LARGE OBJECT
-    | TINYTEXT | TEXT | MEDIUMTEXT | LONGTEXT | NTEXT | NCLOB }
+{ CLOB | { CHARACTER | CHAR } LARGE OBJECT
+    | NCLOB | { NATIONAL CHARACTER | NCHAR } LARGE OBJECT
+    | @c@ { TINYTEXT | TEXT | MEDIUMTEXT | LONGTEXT | NTEXT } }
 [ ( precisionInt [K|M|G|T|P] [CHARACTERS|OCTETS]) ]
 ","
 CLOB is like VARCHAR, but intended for very large values. Unlike when using
@@ -3603,7 +3606,7 @@ CLOB(10K)
 "
 
 "Data Types","UUID Type","
-UUID
+@h2@ UUID
 ","
 Universally unique identifier. This is a 128 bit value.
 To store values, use ""PreparedStatement.setBytes"",
@@ -3640,7 +3643,7 @@ INTEGER ARRAY[10]
 "
 
 "Data Types","ENUM Type","
-{ ENUM (string [, ... ]) }
+@h2@ { ENUM (string [, ... ]) }
 ","
 A type with enumerated values.
 Mapped to ""java.lang.Integer"".
@@ -3654,7 +3657,7 @@ ENUM('clubs', 'diamonds', 'hearts', 'spades')
 "
 
 "Data Types","GEOMETRY Type","
-GEOMETRY
+@h2@ GEOMETRY
     [({ GEOMETRY |
     { POINT
     | LINESTRING
@@ -3693,7 +3696,7 @@ GEOMETRY(GEOMETRY, 4326)
 "
 
 "Data Types","JSON Type","
-JSON
+@h2@ JSON
 ","
 A RFC 8259-compliant JSON text.
 

@@ -1130,20 +1130,17 @@ public class Parser {
     private TransactionCommand parseRollback() {
         TransactionCommand command;
         if (readIf("TRANSACTION")) {
-            command = new TransactionCommand(session,
-                    CommandInterface.ROLLBACK_TRANSACTION);
+            command = new TransactionCommand(session, CommandInterface.ROLLBACK_TRANSACTION);
             command.setTransactionName(readUniqueIdentifier());
             return command;
         }
+        readIf("WORK");
         if (readIf("TO")) {
             read("SAVEPOINT");
-            command = new TransactionCommand(session,
-                    CommandInterface.ROLLBACK_TO_SAVEPOINT);
+            command = new TransactionCommand(session, CommandInterface.ROLLBACK_TO_SAVEPOINT);
             command.setSavepointName(readUniqueIdentifier());
         } else {
-            readIf("WORK");
-            command = new TransactionCommand(session,
-                    CommandInterface.ROLLBACK);
+            command = new TransactionCommand(session, CommandInterface.ROLLBACK);
         }
         return command;
     }
@@ -6563,15 +6560,6 @@ public class Parser {
         } else if (readIf("UPDATE")) {
             command.addRight(Right.UPDATE);
             return true;
-        } else if (readIf(ALL)) {
-            command.addRight(Right.ALL);
-            return true;
-        } else if (readIf("ALTER")) {
-            read("ANY");
-            read("SCHEMA");
-            command.addRight(Right.ALTER_ANY_SCHEMA);
-            command.addTable(null);
-            return false;
         } else if (readIf("CONNECT")) {
             // ignore this right
             return true;
@@ -6587,12 +6575,23 @@ public class Parser {
     private GrantRevoke parseGrantRevoke(int operationType) {
         GrantRevoke command = new GrantRevoke(session);
         command.setOperationType(operationType);
-        boolean tableClauseExpected = addRoleOrRight(command);
-        while (readIf(COMMA)) {
-            addRoleOrRight(command);
-            if (command.isRightMode() && command.isRoleMode()) {
-                throw DbException
-                        .get(ErrorCode.ROLES_AND_RIGHT_CANNOT_BE_MIXED);
+        boolean tableClauseExpected;
+        if (readIf(ALL)) {
+            readIf("PRIVILEGES");
+            command.addRight(Right.ALL);
+            tableClauseExpected = true;
+        } else if (readIf("ALTER")) {
+            read("ANY");
+            read("SCHEMA");
+            command.addRight(Right.ALTER_ANY_SCHEMA);
+            command.addTable(null);
+            tableClauseExpected = false;
+        } else {
+            tableClauseExpected = addRoleOrRight(command);
+            while (readIf(COMMA)) {
+                if (addRoleOrRight(command) != tableClauseExpected) {
+                    throw DbException.get(ErrorCode.ROLES_AND_RIGHT_CANNOT_BE_MIXED);
+                }
             }
         }
         if (tableClauseExpected) {
@@ -6601,6 +6600,7 @@ public class Parser {
                     Schema schema = database.getSchema(readAliasIdentifier());
                     command.setSchema(schema);
                 } else {
+                    readIf(TABLE);
                     do {
                         Table table = readTableOrView();
                         command.addTable(table);

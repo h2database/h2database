@@ -2266,11 +2266,12 @@ INTERVAL '11:12.123' MINUTE TO SECOND
 "Datetime fields","Datetime field","
 yearField | monthField | dayOfMonthField
     | hourField | minuteField | secondField
+    | timezoneHourField | timezoneMinuteField
+    | @h2@ { timezoneSecondField
     | millisecondField | microsecondField | nanosecondField
-    | timezoneHourField | timezoneMinuteField | timezoneSecondField
     | dayOfWeekField | isoWeekYearField | isoDayOfWeekField
     | weekOfYearField | isoWeekOfYearField
-    | quarterField | dayOfYearField | epochField
+    | quarterField | dayOfYearField | epochField }
 ","
 Fields for EXTRACT, DATEADD, and DATEDIFF functions.
 ","
@@ -2278,7 +2279,7 @@ YEAR
 "
 
 "Datetime fields","Year field","
-YEAR | YYYY | YY | SQL_TSI_YEAR
+YEAR | @c@ { YYYY | YY | SQL_TSI_YEAR }
 ","
 Year.
 ","
@@ -2286,7 +2287,7 @@ YEAR
 "
 
 "Datetime fields","Month field","
-MONTH | MM | M | SQL_TSI_MONTH
+MONTH | @c@ { MM | M | SQL_TSI_MONTH }
 ","
 Month (1-12).
 ","
@@ -2294,7 +2295,7 @@ MONTH
 "
 
 "Datetime fields","Day of month field","
-DAY | DD | D | SQL_TSI_DAY
+DAY | @c@ { DD | D | SQL_TSI_DAY }
 ","
 Day of month (1-31).
 ","
@@ -2302,7 +2303,7 @@ DAY
 "
 
 "Datetime fields","Hour field","
-HOUR | HH | SQL_TSI_HOUR
+HOUR | @c@ { HH | SQL_TSI_HOUR }
 ","
 Hour (0-23).
 ","
@@ -2310,7 +2311,7 @@ HOUR
 "
 
 "Datetime fields","Minute field","
-MINUTE | MI | N | SQL_TSI_MINUTE
+MINUTE | @c@ { MI | N | SQL_TSI_MINUTE }
 ","
 Minute (0-59).
 ","
@@ -2318,7 +2319,7 @@ MINUTE
 "
 
 "Datetime fields","Second field","
-SECOND | SS | S | SQL_TSI_SECOND
+SECOND | @c@ { SS | S | SQL_TSI_SECOND }
 ","
 Second (0-59).
 ","
@@ -2326,7 +2327,7 @@ SECOND
 "
 
 "Datetime fields","Millisecond field","
-MILLISECOND | MS
+@h2@ { MILLISECOND } | @c@ { MS }
 ","
 Millisecond (0-999).
 ","
@@ -2334,7 +2335,7 @@ MILLISECOND
 "
 
 "Datetime fields","Microsecond field","
-MICROSECOND | MCS
+@h2@ { MICROSECOND } | @c@ { MCS }
 ","
 Microsecond (0-999999).
 ","
@@ -2342,7 +2343,7 @@ MICROSECOND
 "
 
 "Datetime fields","Nanosecond field","
-NANOSECOND | NS
+@h2@ { NANOSECOND } | @c@ { NS }
 ","
 Nanosecond (0-999999999).
 ","
@@ -2366,7 +2367,7 @@ TIMEZONE_MINUTE
 "
 
 "Datetime fields","Timezone second field","
-TIMEZONE_SECOND
+@h2@ TIMEZONE_SECOND
 ","
 Timezone second (from -59 to +59).
 Local mean time (LMT) used in the past may have offsets with seconds.
@@ -2376,7 +2377,7 @@ TIMEZONE_SECOND
 "
 
 "Datetime fields","Day of week field","
-DAY_OF_WEEK | DAYOFWEEK | DOW
+@h2@ { DAY_OF_WEEK | DAYOFWEEK } | @c@ { DOW }
 ","
 Day of week (1-7). Sunday is 1.
 ","
@@ -2384,7 +2385,7 @@ DAY_OF_WEEK
 "
 
 "Datetime fields","ISO week year field","
-ISO_YEAR | ISOYEAR
+@h2@ { ISO_YEAR } | @c@ { ISOYEAR }
 ","
 Returns the ISO week year from a date/time value.
 ","
@@ -2392,7 +2393,7 @@ ISO_YEAR
 "
 
 "Datetime fields","ISO day of week field","
-ISO_DAY_OF_WEEK | ISODOW
+@h2@ { ISO_DAY_OF_WEEK } | @c@ { ISODOW }
 ","
 ISO day of week (1-7). Monday is 1.
 ","
@@ -2400,7 +2401,7 @@ ISO_DAY_OF_WEEK
 "
 
 "Datetime fields","Week of year field","
-WEEK | WW | W | SQL_TSI_WEEK
+@h2@ { WEEK } | @c@ { WW | W | SQL_TSI_WEEK }
 ","
 Week of year (1-53).
 EXTRACT function uses local rules to get number of week in year.
@@ -2410,7 +2411,7 @@ WEEK
 "
 
 "Datetime fields","ISO week of year field","
-ISO_WEEK
+@h2@ ISO_WEEK
 ","
 ISO week of year (1-53).
 ISO definition is used when first week of year should have at least four days
@@ -2420,7 +2421,7 @@ ISO_WEEK
 "
 
 "Datetime fields","Quarter field","
-QUARTER
+@h2@ QUARTER
 ","
 Quarter (1-4).
 ","
@@ -2428,7 +2429,7 @@ QUARTER
 "
 
 "Datetime fields","Day of year field","
-DAYOFYEAR | DAY_OF_YEAR | DOY | DY
+@h2@ { DAYOFYEAR | DAY_OF_YEAR } | @c@ { DOY | DY }
 ","
 Day of year (1-366).
 ","
@@ -2436,7 +2437,7 @@ DAYOFYEAR
 "
 
 "Datetime fields","Epoch field","
-EPOCH
+@h2@ EPOCH
 ","
 For TIMESTAMP values number of seconds since 1970-01-01 00:00:00 in local time zone.
 For TIMESTAMP WITH TIME ZONE values number of seconds since 1970-01-01 00:00:00 in UTC time zone.

@@ -5797,33 +5797,33 @@ public class Parser {
             throw DbException.get(ErrorCode.UNKNOWN_MODE_1,
                     "Internal Error - unhandled case: " + nullConstraint.name());
         }
-        if (readIf("AS")) {
-            if (isIdentity) {
-                getSyntaxError();
-            }
-            Expression expr = readExpression();
-            column.setComputedExpression(expr);
+        if (!isIdentity && readIf("AS")) {
+            column.setComputedExpression(readExpression());
         } else if (readIf("DEFAULT")) {
-            Expression defaultExpression = readExpression();
-            column.setDefaultExpression(session, defaultExpression);
+            column.setDefaultExpression(session, readExpression());
         } else if (readIf("GENERATED")) {
-            if (!readIf("ALWAYS")) {
+            boolean always = readIf("ALWAYS");
+            if (!always) {
                 read("BY");
                 read("DEFAULT");
             }
             read("AS");
-            read("IDENTITY");
-            SequenceOptions options = new SequenceOptions();
-            if (readIf(OPEN_PAREN)) {
-                parseSequenceOptions(options, null, true);
-                read(CLOSE_PAREN);
+            if (readIf("IDENTITY")) {
+                SequenceOptions options = new SequenceOptions();
+                if (readIf(OPEN_PAREN)) {
+                    parseSequenceOptions(options, null, true);
+                    read(CLOSE_PAREN);
+                }
+                column.setAutoIncrementOptions(options);
+            } else if (!always || isIdentity) {
+                throw getSyntaxError();
+            } else {
+                column.setComputedExpression(readExpression());
             }
-            column.setAutoIncrementOptions(options);
         }
         if (readIf(ON)) {
             read("UPDATE");
-            Expression onUpdateExpression = readExpression();
-            column.setOnUpdateExpression(session, onUpdateExpression);
+            column.setOnUpdateExpression(session, readExpression());
         }
         if (NullConstraintType.NULL_IS_NOT_ALLOWED == parseNotNullConstraint()) {
             column.setNullable(false);

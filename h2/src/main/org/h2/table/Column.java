@@ -514,9 +514,9 @@ public class Column {
 
         if (defaultExpression != null) {
             if (isComputed) {
-                buff.append(" AS ");
-                defaultExpression.getSQL(buff, true);
-            } else if (defaultExpression != null) {
+                buff.append(" GENERATED ALWAYS AS ");
+                defaultExpression.getEnclosedSQL(buff, true);
+            } else {
                 buff.append(" DEFAULT ");
                 defaultExpression.getSQL(buff, true);
             }

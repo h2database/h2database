@@ -149,6 +149,26 @@ public abstract class Expression {
     /**
      * Appends the SQL statement of this expression to the specified builder.
      * This may not always be the original SQL statement, specially after
+     * optimization. Enclosing '(' and ')' are always appended.
+     *
+     * @param builder
+     *            string builder
+     * @param alwaysQuote
+     *            quote all identifiers
+     * @return the specified string builder
+     */
+    public StringBuilder getEnclosedSQL(StringBuilder builder, boolean alwaysQuote) {
+        int first = builder.length();
+        int last = getSQL(builder, alwaysQuote).length() - 1;
+        if (last <= first || builder.charAt(first) != '(' || builder.charAt(last) != ')') {
+            builder.insert(first, '(').append(')');
+        }
+        return builder;
+    }
+
+    /**
+     * Appends the SQL statement of this expression to the specified builder.
+     * This may not always be the original SQL statement, specially after
      * optimization. Enclosing '(' and ')' are removed.
      *
      * @param builder

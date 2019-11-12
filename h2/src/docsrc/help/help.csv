@@ -1953,8 +1953,8 @@ SHUTDOWN COMPACT
 "
 
 "Literals","Value","
-string | dollarQuotedString | numeric | dateAndTime | boolean | bytes
-    | interval | array | json | null
+string | @h2@ { dollarQuotedString } | numeric | dateAndTime | boolean | bytes
+    | interval | array | @h2@ { json } | null
 ","
 A literal value of any data type, or null.
 ","
@@ -2024,7 +2024,7 @@ SELECT -1.4e-10
 "
 
 "Literals","Dollar Quoted String","
-$$anythingExceptTwoDollarSigns$$
+@h2@ $$anythingExceptTwoDollarSigns$$
 ","
 A string starts and ends with two dollar signs. Two dollar signs are not allowed
 within the text. A whitespace is required before the first set of dollar signs.
@@ -2034,7 +2034,7 @@ $$John's car$$
 "
 
 "Literals","Hex Number","
-[ + | - ] 0x { digit | a-f | A-F } [...]
+@h2@ [ + | - ] @h2@ 0x { digit | a-f | A-F } [...]
 ","
 A number written in hexadecimal notation.
 ","
@@ -2050,7 +2050,7 @@ The maximum integer number is 2147483647, the minimum is -2147483648.
 "
 
 "Literals","JSON","
-JSON { bytes | string }
+@h2@ JSON { bytes | string }
 ","
 A binary or character string with a RFC 8259-compliant JSON text and data format.
 JSON text is parsed into internal representation.
@@ -2087,7 +2087,7 @@ The maximum length of the number depends on the data type used.
 "
 
 "Literals","Numeric","
-decimal | int | long | hexNumber
+decimal | int | long | @h2@ { hexNumber }
 ","
 The data type of a numeric value is always the lowest possible for the given value.
 If the number contains a dot this is decimal; otherwise it is int, long, or decimal (depending on the value).
@@ -2117,7 +2117,7 @@ TIME '23:59:59'
 "
 
 "Literals","Time with time zone","
-TIME WITH TIME ZONE 'hh:mm:ss[.nnnnnnnnn]{Z | { - | + } timeZoneOffsetString}'
+TIME WITH TIME ZONE 'hh:mm:ss[.nnnnnnnnn]{ @h2@ { Z } | { - | + } timeZoneOffsetString}'
 ","
 A time with time zone literal. A value is between 0:00:00 and 23:59:59.999999999
 and has nanosecond resolution.
@@ -2137,7 +2137,7 @@ TIMESTAMP '2005-12-31 23:59:59'
 
 "Literals","Timestamp with time zone","
 TIMESTAMP WITH TIME ZONE '[-]yyyy-MM-dd hh:mm:ss[.nnnnnnnnn]
-[Z | { - | + } timeZoneOffsetString | timeZoneNameString ]'
+[ @h2@ { Z } | { - | + } timeZoneOffsetString | @h2@ { timeZoneNameString } ]'
 ","
 A timestamp with time zone literal.
 If name of time zone is specified it will be converted to time zone offset.

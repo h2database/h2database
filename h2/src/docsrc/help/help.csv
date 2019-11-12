@@ -5,21 +5,21 @@
 "SECTION","TOPIC","SYNTAX","TEXT","EXAMPLE"
 
 "Commands (DML)","SELECT","
-SELECT [ TOP term [ PERCENT ] [ WITH TIES ] ]
-[ DISTINCT [ ON ( expression [,...] ) ] | ALL ]
+SELECT @c@ [ TOP term [ PERCENT ] [ WITH TIES ] ]
+[ DISTINCT @h2@ [ ON ( expression [,...] ) ] | ALL ]
 selectExpression [,...]
 [ FROM tableExpression [,...] ]
 [ WHERE expression ]
 [ GROUP BY groupingElement [,...] ] [ HAVING expression ]
 [ WINDOW { { windowName AS windowSpecification } [,...] } ]
-[ QUALIFY expression ]
-[ { UNION [ ALL ] | EXCEPT | MINUS | INTERSECT } query ]
+@h2@ [ QUALIFY expression ]
+[ { UNION [ ALL ] | EXCEPT | @c@ { MINUS } | INTERSECT } query ]
 [ ORDER BY order [,...] ]
-[ LIMIT expression [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] ]
+@c@ [ LIMIT expression [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] ]
 [ [ OFFSET expression { ROW | ROWS } ]
     [ FETCH { FIRST | NEXT } [ expression [ PERCENT ] ] { ROW | ROWS }
-        { ONLY | WITH TIES } ] [ SAMPLE_SIZE rowCountInt ] ]
-[ FOR UPDATE ]
+        { ONLY | WITH TIES } ] @h2@ [ SAMPLE_SIZE rowCountInt ] ]
+@h2@ [ FOR UPDATE ]
 ","
 Selects data from a table or multiple tables.
 
@@ -115,7 +115,7 @@ INSERT INTO TEST VALUES(1, 'Hello')
 
 "Commands (DML)","UPDATE","
 UPDATE tableName [ [ AS ] newTableAlias ] SET setClauseList
-[ WHERE expression ] [ ORDER BY order [,...] ] [ LIMIT expression ]
+[ WHERE expression ] @c@ [ ORDER BY order [,...] ] @h2@ [ LIMIT expression ]
 ","
 Updates data in a table.
 ORDER BY is supported for MySQL compatibility, but it is ignored.
@@ -125,7 +125,7 @@ UPDATE PERSON P SET NAME=(SELECT A.NAME FROM ADDRESS A WHERE A.ID=P.ID);
 "
 
 "Commands (DML)","DELETE","
-DELETE [ TOP term ] FROM tableName [ WHERE expression ] [ LIMIT term ]
+DELETE @c@ [ TOP term ] FROM tableName [ WHERE expression ] @h2@ [ LIMIT term ]
 ","
 Deletes rows form a table.
 If TOP or LIMIT is specified, at most the specified number of rows are deleted (no limit if null or smaller than zero).
@@ -134,7 +134,7 @@ DELETE FROM TEST WHERE ID=2
 "
 
 "Commands (DML)","BACKUP","
-BACKUP TO fileNameString
+@h2@ BACKUP TO fileNameString
 ","
 Backs up the database files to a .zip file. Objects are not locked, but
 the backup is transactionally consistent because the transaction log is also copied.
@@ -166,8 +166,8 @@ EXECUTE IMMEDIATE 'ALTER TABLE TEST DROP CONSTRAINT ' ||
 "
 
 "Commands (DML)","EXPLAIN","
-EXPLAIN { [ PLAN FOR ] | ANALYZE }
-{ query | insert | update | delete | mergeInto | mergeUsing }
+@h2@ EXPLAIN { [ PLAN FOR ] | ANALYZE }
+@h2@ { query | insert | update | delete | mergeInto | mergeUsing }
 ","
 Shows the execution plan for a statement.
 When using EXPLAIN ANALYZE, the statement is actually executed, and the query plan
@@ -177,9 +177,9 @@ EXPLAIN SELECT * FROM TEST WHERE ID=1
 "
 
 "Commands (DML)","MERGE INTO","
-MERGE INTO tableName [ ( columnName [,...] ) ]
-[ KEY ( columnName [,...] ) ]
-{ insertValues | query }
+@h2@ MERGE INTO tableName [ ( columnName [,...] ) ]
+@h2@ [ KEY ( columnName [,...] ) ]
+@h2@ { insertValues | query }
 ","
 Updates existing rows, and insert rows that don't exist. If no key column is
 specified, the primary key columns are used to find the row. If more than one
@@ -224,8 +224,8 @@ MERGE INTO TARGET_TABLE USING DUAL ON ID = 1
 "
 
 "Commands (DML)","RUNSCRIPT","
-RUNSCRIPT FROM fileNameString scriptCompressionEncryption
-[ CHARSET charsetString ]
+@h2@ RUNSCRIPT FROM fileNameString scriptCompressionEncryption
+@h2@ [ CHARSET charsetString ]
 ","
 Runs a SQL script from a file. The script is a text file containing SQL
 statements; each statement must end with ';'. This command can be used to
@@ -246,13 +246,13 @@ RUNSCRIPT FROM 'classpath:/com/acme/test.sql'
 "
 
 "Commands (DML)","SCRIPT","
-SCRIPT { [ NODATA ] | [ SIMPLE ] [ COLUMNS ] }
-[ NOPASSWORDS ] [ NOSETTINGS ]
-[ DROP ] [ BLOCKSIZE blockSizeInt ]
-[ TO fileNameString scriptCompressionEncryption
+@h2@ SCRIPT { [ NODATA ] | [ SIMPLE ] [ COLUMNS ] }
+@h2@ [ NOPASSWORDS ] @h2@ [ NOSETTINGS ]
+@h2@ [ DROP ] @h2@ [ BLOCKSIZE blockSizeInt ]
+@h2@ [ TO fileNameString scriptCompressionEncryption
     [ CHARSET charsetString ] ]
-[ TABLE tableName [, ...] ]
-[ SCHEMA schemaName [, ...] ]
+@h2@ [ TABLE tableName [, ...] ]
+@h2@ [ SCHEMA schemaName [, ...] ]
 ","
 Creates a SQL script from the database.
 
@@ -287,7 +287,7 @@ SCRIPT NODATA
 "
 
 "Commands (DML)","SHOW","
-SHOW { SCHEMAS | TABLES [ FROM schemaName ] |
+@c@ SHOW { SCHEMAS | TABLES [ FROM schemaName ] |
     COLUMNS FROM tableName [ FROM schemaName ] }
 ","
 Lists the schemas, tables, or the columns of a table.
@@ -327,7 +327,7 @@ VALUES (1, 'Hello'), (2, 'World');
 
 "Commands (DML)","WITH","
 WITH [ RECURSIVE ] { name [( columnName [,...] )] AS ( query ) [,...] }
-{ query | insert | update | delete | mergeInto | mergeUsing | createTable }
+{ query | @h2@ { insert | update | delete | mergeInto | mergeUsing | createTable } }
 ","
 Can be used to create a recursive or non-recursive query (common table expression).
 For recursive queries the first select has to be a UNION.

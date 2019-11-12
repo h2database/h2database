@@ -174,4 +174,12 @@ public class BnfRailroad implements BnfVisitor {
         html = buff.toString();
     }
 
+    @Override
+    public void visitRuleExtension(Rule rule, boolean compatibility) {
+        StringBuilder buff = new StringBuilder("<div class=\"").append(compatibility ? "ruleCompat" : "ruleH2")
+                .append("\">");
+        rule.accept(this);
+        html = buff.append(html).append("</div>").toString();
+    }
+
 }

@@ -210,4 +210,9 @@ public class RuleFixed implements Rule {
         return false;
     }
 
+    @Override
+    public String toString() {
+        return "#" + type;
+    }
+
 }

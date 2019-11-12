@@ -71,4 +71,20 @@ public class RuleList implements Rule {
         return true;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0, l = list.size(); i < l; i++) {
+            if (i > 0) {
+                if (or) {
+                    builder.append(" | ");
+                } else {
+                    builder.append(' ');
+                }
+            }
+            builder.append(list.get(i).toString());
+        }
+        return builder.toString();
+    }
+
 }

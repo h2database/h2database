@@ -152,3 +152,11 @@ td.index {
     border-collapse: collapse;
     vertical-align: top;
 }
+
+span.ruleCompat {
+    color: darkred;
+}
+
+span.ruleH2 {
+    color: green;
+}

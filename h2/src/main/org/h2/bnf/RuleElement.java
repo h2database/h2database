@@ -77,4 +77,9 @@ public class RuleElement implements Rule {
         return link.autoComplete(sentence);
     }
 
+    @Override
+    public String toString() {
+        return name;
+    }
+
 }

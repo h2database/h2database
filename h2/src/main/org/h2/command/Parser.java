@@ -6768,7 +6768,7 @@ public class Parser {
         boolean ifNotExists = readIfNotExists();
         CreateDomain command = new CreateDomain(session);
         command.setTypeName(readUniqueIdentifier());
-        read("AS");
+        readIf("AS");
         Column col = parseColumnForTable("VALUE", true, false);
         if (readIf(CHECK)) {
             Expression expr = readExpression();
@@ -6830,10 +6830,11 @@ public class Parser {
         command.setTableName(tableName);
         if (readIf(FOR)) {
             read("EACH");
-            read(ROW);
-            command.setRowBased(true);
-        } else {
-            command.setRowBased(false);
+            if (readIf(ROW)) {
+                command.setRowBased(true);
+            } else {
+                read("STATEMENT");
+            }
         }
         if (readIf("QUEUE")) {
             command.setQueueSize(readNonNegativeInt());

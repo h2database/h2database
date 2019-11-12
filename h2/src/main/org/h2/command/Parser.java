@@ -4479,7 +4479,7 @@ public class Parser {
             break;
         case CURRENT_USER:
             read();
-            r = readKeywordFunction(Function.USER);
+            r = readKeywordFunction(Function.CURRENT_USER);
             break;
         case DAY:
             read();

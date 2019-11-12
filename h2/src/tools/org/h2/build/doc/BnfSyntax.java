@@ -86,8 +86,11 @@ public class BnfSyntax implements BnfVisitor {
             }
             buff.append(getLink(bnf, s));
         }
-        if (extension && (deque.size() != 1 || deque.getLast() != '*')) {
-            throw new AssertionError("Expected " + deque.getLast() + " got end of data");
+        if (extension) {
+            if (deque.size() != 1 || deque.getLast() != '*') {
+                throw new AssertionError("Expected " + deque.getLast() + " got end of data");
+            }
+            buff.append("</span>");
         }
         String s = buff.toString();
         // ensure it works within XHTML comments

@@ -14,7 +14,7 @@ selectExpression [,...]
 [ WINDOW { { windowName AS windowSpecification } [,...] } ]
 @h2@ [ QUALIFY expression ]
 [ { UNION [ ALL ] | EXCEPT | @c@ { MINUS } | INTERSECT } query ]
-[ ORDER BY order [,...] ]
+[ ORDER BY selectOrder [,...] ]
 [ OFFSET expression { ROW | ROWS } ]
 [ FETCH { FIRST | NEXT } [ expression [ PERCENT ] ] { ROW | ROWS }
     { ONLY | WITH TIES } ]
@@ -298,7 +298,7 @@ SHOW TABLES
 
 "Commands (DML)","Explicit table","
 TABLE [schemaName.]tableName
-[ ORDER BY order [,...] ]
+[ ORDER BY selectOrder [,...] ]
 [ OFFSET expression { ROW | ROWS } ]
 [ FETCH { FIRST | NEXT } [ expression [ PERCENT ] ] { ROW | ROWS }
     { ONLY | WITH TIES } ]
@@ -314,7 +314,7 @@ TABLE TEST ORDER BY ID FETCH FIRST ROW ONLY;
 
 "Commands (DML)","Table value","
 VALUES rowValueExpression [,...]
-[ ORDER BY order [,...] ]
+[ ORDER BY selectOrder [,...] ]
 [ OFFSET expression { ROW | ROWS } ]
 [ FETCH { FIRST | NEXT } [ expression [ PERCENT ] ] { ROW | ROWS }
     { ONLY | WITH TIES } ]
@@ -2909,13 +2909,11 @@ ARRAY[1, 2] || ARRAY[3, 4]
 "
 
 "Other Grammar","Order","
-{ expression | @c@ { int } } [ ASC | DESC ] [ NULLS { FIRST | LAST } ]
+expression [ ASC | DESC ] [ NULLS { FIRST | LAST } ]
 ","
-Sorts the result by the given column number, or by an expression. If the
-expression is a single parameter, then the value is interpreted as a column
-number. Negative column numbers reverse the sort order.
+Sorts the result by an expression.
 ","
-NAME DESC NULLS LAST
+X ASC NULLS FIRST
 "
 
 "Other Grammar","Query","
@@ -2974,6 +2972,16 @@ When using encryption, only DEFLATE and LZF are supported.
 LZF is faster but uses more space.
 ","
 COMPRESSION LZF
+"
+
+"Other Grammar","Select order","
+{ expression | @c@ { int } } [ ASC | DESC ] [ NULLS { FIRST | LAST } ]
+","
+Sorts the result by the given column number, or by an expression. If the
+expression is a single parameter, then the value is interpreted as a column
+number. Negative column numbers reverse the sort order.
+","
+NAME DESC NULLS LAST
 "
 
 "Other Grammar","Row value expression","
@@ -3098,7 +3106,7 @@ TEST1 AS T1 LEFT JOIN TEST2 AS T2 ON T1.ID = T2.PARENT_ID
 "
 
 "Other Grammar","Within group specification","
-WITHIN GROUP (ORDER BY {expression [ASC|DESC]} [,...])
+WITHIN GROUP (ORDER BY order [,...])
 ","
 Group specification for ordered set functions.
 ","
@@ -5849,7 +5857,7 @@ ENVELOPE(X)
 { LISTAGG ( [ DISTINCT|ALL ] string [, separatorString] [ ON OVERFLOW ERROR ] )
     withinGroupSpecification }
     | @c@ { GROUP_CONCAT ( [ DISTINCT|ALL ] string
-    [ ORDER BY { expression [ ASC | DESC ] } [,...] ]
+    [ ORDER BY order [,...] ]
     [ SEPARATOR separatorString ] ) }
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
@@ -5868,7 +5876,7 @@ LISTAGG(ID, ', ') WITHIN GROUP (ORDER BY ID) OVER (ORDER BY ID)
 
 "Aggregate Functions (Ordered)","ARRAY_AGG","
 ARRAY_AGG ( [ DISTINCT|ALL ] value
-[ ORDER BY { expression [ ASC | DESC ] } [,...] ] )
+[ ORDER BY order [,...] ] )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Aggregate the value into an array.

@@ -134,3 +134,25 @@ select g, group_concat(v separator v) from test group by g;
 
 drop table test;
 > ok
+
+CREATE TABLE TEST(A INT, B INT, C INT);
+> ok
+
+INSERT INTO TEST VALUES
+    (1, NULL, NULL),
+    (2, NULL, 1),
+    (3, 1, NULL),
+    (4, 1, 1),
+    (5, NULL, 2),
+    (6, 2, NULL),
+    (7, 2, 2);
+> update count: 7
+
+SELECT LISTAGG(A) WITHIN GROUP (ORDER BY B ASC NULLS FIRST, C ASC NULLS FIRST) FROM TEST;
+>> 1,2,5,3,4,6,7
+
+SELECT LISTAGG(A) WITHIN GROUP (ORDER BY B ASC NULLS LAST, C ASC NULLS LAST) FROM TEST;
+>> 4,3,7,6,2,5,1
+
+DROP TABLE TEST;
+> ok

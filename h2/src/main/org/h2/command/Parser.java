@@ -1345,12 +1345,9 @@ public class Parser {
             command.setCondition(condition);
         }
         if (allowExtensions) {
-            if (readIf(ORDER)) {
-                // for MySQL compatibility
-                // (this syntax is supported, but ignored)
-                read("BY");
-                parseSimpleOrderList();
-            }
+            // for MySQL compatibility
+            // (this syntax is supported, but ignored)
+            readIfOrderBy();
             if (readIf(LIMIT)) {
                 Expression limit = readTerm().optimize(session);
                 command.setLimit(limit);
@@ -3379,20 +3376,14 @@ public class Parser {
         case LISTAGG: {
             boolean distinct = readDistinctAgg();
             Expression arg = readExpression(), separator = null;
-            ArrayList<SelectOrderBy> orderByList = null;
+            ArrayList<SelectOrderBy> orderByList;
             if (equalsToken("STRING_AGG", aggregateName)) {
                 // PostgreSQL compatibility: string_agg(expression, delimiter)
                 read(COMMA);
                 separator = readExpression();
-                if (readIf(ORDER)) {
-                    read("BY");
-                    orderByList = parseSimpleOrderList();
-                }
+                orderByList = readIfOrderBy();
             } else if (equalsToken("GROUP_CONCAT", aggregateName)){
-                if (readIf(ORDER)) {
-                    read("BY");
-                    orderByList = parseSimpleOrderList();
-                }
+                orderByList = readIfOrderBy();
                 if (readIf("SEPARATOR")) {
                     separator = readExpression();
                 }
@@ -3404,12 +3395,13 @@ public class Parser {
                     read("OVERFLOW");
                     read("ERROR");
                 }
+                orderByList = null;
             }
             Expression[] args = separator == null ? new Expression[] { arg } : new Expression[] { arg, separator };
             int index = lastParseIndex;
             read(CLOSE_PAREN);
             if (orderByList == null && isToken("WITHIN")) {
-                r = readWithinGroup(aggregateType, args, distinct, false);
+                r = readWithinGroup(aggregateType, args, distinct, false, false);
             } else {
                 parseIndex = index;
                 read();
@@ -3423,7 +3415,7 @@ public class Parser {
         case ARRAY_AGG: {
             boolean distinct = readDistinctAgg();
             r = new Aggregate(AggregateType.ARRAY_AGG, new Expression[] { readExpression() }, currentSelect, distinct);
-            readAggregateOrderBy(r);
+            r.setOrderByList(readIfOrderBy());
             break;
         }
         case RANK:
@@ -3437,19 +3429,19 @@ public class Parser {
             do {
                 expressions.add(readExpression());
             } while (readIfMore());
-            r = readWithinGroup(aggregateType, expressions.toArray(new Expression[0]), false, true);
+            r = readWithinGroup(aggregateType, expressions.toArray(new Expression[0]), false, true, false);
             break;
         }
         case PERCENTILE_CONT:
         case PERCENTILE_DISC: {
             Expression num = readExpression();
             read(CLOSE_PAREN);
-            r = readWithinGroup(aggregateType, new Expression[] { num }, false, false);
+            r = readWithinGroup(aggregateType, new Expression[] { num }, false, false, true);
             break;
         }
         case MODE: {
             if (readIf(CLOSE_PAREN)) {
-                r = readWithinGroup(AggregateType.MODE, new Expression[0], false, false);
+                r = readWithinGroup(AggregateType.MODE, new Expression[0], false, false, true);
             } else {
                 Expression expr = readExpression();
                 r = new Aggregate(aggregateType, new Expression[0], currentSelect, false);
@@ -3461,9 +3453,9 @@ public class Parser {
                         throw DbException.getSyntaxError(ErrorCode.IDENTICAL_EXPRESSIONS_SHOULD_BE_USED, sqlCommand,
                                 lastParseIndex, sql, sql2);
                     }
-                    readAggregateOrder(r, expr, true);
+                    readAggregateSimpleOrder(r, expr, true);
                 } else {
-                    readAggregateOrder(r, expr, false);
+                    readAggregateSimpleOrder(r, expr, false);
                 }
             }
             break;
@@ -3484,7 +3476,7 @@ public class Parser {
         case JSON_ARRAYAGG: {
             r = new Aggregate(AggregateType.JSON_ARRAYAGG, new Expression[] { readExpression() }, currentSelect,
                     false);
-            readAggregateOrderBy(r);
+            r.setOrderByList(readIfOrderBy());
             r.setFlags(Function.JSON_ABSENT_ON_NULL);
             readJsonObjectFunctionFlags(r, true);
             break;
@@ -3500,7 +3492,7 @@ public class Parser {
     }
 
     private Aggregate readWithinGroup(AggregateType aggregateType, Expression[] args, boolean distinct,
-            boolean forHypotheticalSet) {
+            boolean forHypotheticalSet, boolean simple) {
         read("WITHIN");
         read(GROUP);
         read(OPEN_PAREN);
@@ -3516,17 +3508,19 @@ public class Parser {
                 }
                 SelectOrderBy order = new SelectOrderBy();
                 order.expression = readExpression();
-                order.sortType = parseSimpleSortType();
+                order.sortType = parseSortType();
                 orderList.add(order);
             }
             r.setOrderByList(orderList);
+        } else if (simple) {
+            readAggregateSimpleOrder(r, readExpression(), true);
         } else {
-            readAggregateOrder(r, readExpression(), true);
+            r.setOrderByList(parseOrderByList());
         }
         return r;
     }
 
-    private void readAggregateOrder(Aggregate r, Expression expr, boolean parseSortType) {
+    private void readAggregateSimpleOrder(Aggregate r, Expression expr, boolean parseSortType) {
         ArrayList<SelectOrderBy> orderList = new ArrayList<>(1);
         SelectOrderBy order = new SelectOrderBy();
         order.expression = expr;
@@ -3537,14 +3531,15 @@ public class Parser {
         r.setOrderByList(orderList);
     }
 
-    private void readAggregateOrderBy(Aggregate r) {
+    private ArrayList<SelectOrderBy> readIfOrderBy() {
         if (readIf(ORDER)) {
             read("BY");
-            r.setOrderByList(parseSimpleOrderList());
+            return parseOrderByList();
         }
+        return null;
     }
 
-    private ArrayList<SelectOrderBy> parseSimpleOrderList() {
+    private ArrayList<SelectOrderBy> parseOrderByList() {
         ArrayList<SelectOrderBy> orderList = Utils.newSmallArrayList();
         do {
             SelectOrderBy order = new SelectOrderBy();
@@ -3647,11 +3642,7 @@ public class Parser {
                 partitionBy.add(expr);
             } while (readIf(COMMA));
         }
-        ArrayList<SelectOrderBy> orderBy = null;
-        if (readIf(ORDER)) {
-            read("BY");
-            orderBy = parseSimpleOrderList();
-        }
+        ArrayList<SelectOrderBy> orderBy = readIfOrderBy();
         WindowFrame frame = readWindowFrame();
         read(CLOSE_PAREN);
         return new Window(parent, partitionBy, orderBy, frame);

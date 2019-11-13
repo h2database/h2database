@@ -229,7 +229,6 @@ public class ColumnNamerConfiguration {
         case DB2:
         case Derby:
         case HSQLDB:
-        case Ignite:
             default:
             setMaxIdentiferLength(Integer.MAX_VALUE);
             setRegularExpressionMatchAllowed(null);

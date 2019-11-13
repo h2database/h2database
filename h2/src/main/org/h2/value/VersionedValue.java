@@ -13,11 +13,6 @@ package org.h2.value;
  */
 public class VersionedValue {
 
-    /**
-     * Used when we don't care about a VersionedValue instance.
-     */
-    public static final VersionedValue DUMMY = new VersionedValue();
-
     protected VersionedValue() {}
 
     public boolean isCommitted() {

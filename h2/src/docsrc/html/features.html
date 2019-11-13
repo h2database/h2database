@@ -100,8 +100,8 @@ Features
 <h3>Additional Features</h3>
 <ul>
 <li>Disk based or in-memory databases and tables, read-only database support, temporary tables
-</li><li>Transaction support (read committed), 2-phase-commit
-</li><li>Multiple connections, table level locking
+</li><li>Transaction support (read uncommitted, read committed, repeatable read, snapshot), 2-phase-commit
+</li><li>Multiple connections, row-level locking
 </li><li>Cost based optimizer, using a genetic algorithm for complex queries, zero-administration
 </li><li>Scrollable and updatable result set support, large result set, external result sorting,
     functions can return a result set
@@ -1026,18 +1026,6 @@ Do not change value of DATABASE_TO_LOWER after creation of database.
 </li><li>Datetime value functions return the same value within a transaction.
 </li><li>ARRAY_SLICE() out of bounds parameters are silently corrected.
 </li><li>EXTRACT function with DOW field returns (0-6), Sunday is 0.
-</li></ul>
-
-<h3>Ignite Compatibility Mode</h3>
-<p>
-To use the Ignite mode, use the database URL <code>jdbc:h2:~/test;MODE=Ignite</code>
-or the SQL statement <code>SET MODE Ignite</code>.
-</p>
-<ul><li>Creating indexes in the <code>CREATE TABLE</code> statement is allowed using
-    <code>INDEX(..)</code> or <code>KEY(..)</code>.
-    Example: <code>create table test(id int primary key, name varchar(255), key idx_name(name));</code>
-</li><li>AFFINITY KEY and SHARD KEY keywords may be used in index definition.
-</li><li>Datetime value functions return the same value within a transaction.
 </li></ul>
 
 <h2 id="auto_reconnect">Auto-Reconnect</h2>

@@ -76,7 +76,7 @@ class FileNioMapped extends FileBase {
         mapped.force();
 
         // need to dispose old direct buffer, see bug
-        // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4724038
+        // https://bugs.java.com/bugdatabase/view_bug.do?bug_id=4724038
 
         if (SysProperties.NIO_CLEANER_HACK) {
             if (MemoryUnmapper.unmap(mapped)) {
@@ -197,6 +197,9 @@ class FileNioMapped extends FileBase {
     }
 
     public synchronized void setFileLength(long newLength) throws IOException {
+        if (mode == MapMode.READ_ONLY) {
+            throw new NonWritableChannelException();
+        }
         checkFileSizeLimit(newLength);
         int oldPos = pos;
         unMap();

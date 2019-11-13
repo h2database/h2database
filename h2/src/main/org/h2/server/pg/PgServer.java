@@ -30,9 +30,9 @@ import org.h2.util.Tool;
 
 /**
  * This class implements a subset of the PostgreSQL protocol as described here:
- * http://developer.postgresql.org/pgdocs/postgres/protocol.html
+ * https://www.postgresql.org/docs/devel/protocol.html
  * The PostgreSQL catalog is described here:
- * http://www.postgresql.org/docs/7.4/static/catalogs.html
+ * https://www.postgresql.org/docs/7.4/catalogs.html
  *
  * @author Thomas Mueller
  * @author Sergi Vladykin 2009-07-03 (convertType)

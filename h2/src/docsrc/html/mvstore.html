@@ -605,7 +605,7 @@ This mechanism is called copy-on-write, and is similar to how the
 Chunks without live pages are marked as free, so the space can be re-used by more recent chunks.
 Because not all chunks are of the same size, there can be a number of free blocks in front of a chunk
 for some time (until a small chunk is written or the chunks are compacted).
-There is a <a href="http://stackoverflow.com/questions/13650134/after-how-many-seconds-are-file-system-write-buffers-typically-flushed">
+There is a <a href="https://stackoverflow.com/questions/13650134/after-how-many-seconds-are-file-system-write-buffers-typically-flushed">
 delay of 45 seconds</a> (by default) before a free chunk is overwritten,
 to ensure new versions are persisted first.
 </p>

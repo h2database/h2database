@@ -311,13 +311,11 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
         do {
             sequenceNumWhenStarted = store.openTransactions.get().getVersion();
             assert transaction.getBlockerId() == 0;
-            // although second parameter (value) is not really used,
-            // since TxDecisionMaker has it embedded,
-            // MVRTreeMap has weird traversal logic based on it,
-            // and any non-null value will do
             @SuppressWarnings("unchecked")
             K k = (K) key;
-            result = map.operate(k, VersionedValue.DUMMY, decisionMaker);
+            // second parameter (value) is not really used,
+            // since TxDecisionMaker has it embedded
+            result = map.operate(k, null, decisionMaker);
 
             MVMap.Decision decision = decisionMaker.getDecision();
             assert decision != null;

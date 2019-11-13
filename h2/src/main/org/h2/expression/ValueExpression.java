@@ -16,6 +16,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueResultSet;
 
 /**
  * An expression representing a constant value.
@@ -205,8 +206,12 @@ public class ValueExpression extends Expression {
     @Override
     public Expression[] getExpressionColumns(Session session) {
         int valueType = getType().getValueType();
-        if (valueType == Value.ARRAY || valueType == Value.ROW) {
+        switch (valueType) {
+        case Value.ARRAY:
+        case Value.ROW:
             return getExpressionColumns(session, (ValueCollectionBase) getValue(session));
+        case Value.RESULT_SET:
+            return getExpressionColumns(session, ((ValueResultSet) getValue(session)).getResult());
         }
         return super.getExpressionColumns(session);
     }

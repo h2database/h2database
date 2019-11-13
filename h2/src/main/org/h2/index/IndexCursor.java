@@ -17,7 +17,6 @@ import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
-import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueGeometry;
 import org.h2.value.ValueNull;
@@ -32,7 +31,7 @@ import org.h2.value.ValueNull;
  */
 public class IndexCursor implements Cursor {
 
-    private final TableFilter tableFilter;
+    private Session session;
     private Index index;
     private Table table;
     private IndexColumn[] indexColumns;
@@ -45,8 +44,7 @@ public class IndexCursor implements Cursor {
     private Value[] inList;
     private ResultInterface inResult;
 
-    public IndexCursor(TableFilter filter) {
-        this.tableFilter = filter;
+    public IndexCursor() {
     }
 
     public void setIndex(Index index) {
@@ -72,6 +70,7 @@ public class IndexCursor implements Cursor {
      * @param indexConditions Index conditions.
      */
     public void prepare(Session s, ArrayList<IndexCondition> indexConditions) {
+        session = s;
         alwaysFalse = false;
         start = end = null;
         inList = null;
@@ -157,10 +156,9 @@ public class IndexCursor implements Cursor {
         }
         if (!alwaysFalse) {
             if (intersects != null && index instanceof SpatialIndex) {
-                cursor = ((SpatialIndex) index).findByGeometry(tableFilter,
-                        start, end, intersects);
+                cursor = ((SpatialIndex) index).findByGeometry(session, start, end, intersects);
             } else if (index != null) {
-                cursor = index.find(tableFilter, start, end);
+                cursor = index.find(session, start, end);
             }
         }
     }
@@ -319,7 +317,7 @@ public class IndexCursor implements Cursor {
         v = inColumn.convert(v, true);
         int id = inColumn.getColumnId();
         start.setValue(id, v);
-        cursor = index.find(tableFilter, start, start);
+        cursor = index.find(session, start, start);
     }
 
     @Override

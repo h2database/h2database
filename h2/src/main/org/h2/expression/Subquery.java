@@ -86,7 +86,7 @@ public class Subquery extends Expression {
 
     @Override
     public Expression optimize(Session session) {
-        session.optimizeQueryExpression(query);
+        query.prepare();
         return this;
     }
 

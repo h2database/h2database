@@ -85,7 +85,7 @@ public class TableFunction extends Function {
             ExpressionColumn col = new ExpressionColumn(db, c);
             header[i] = col;
         }
-        LocalResult result = db.getResultFactory().create(session, header, totalColumns, totalColumns);
+        LocalResult result = new LocalResult(session, header, totalColumns, totalColumns);
         if (!onlyColumnList && info.type == TABLE_DISTINCT) {
             result.setDistinct();
         }
@@ -103,7 +103,7 @@ public class TableFunction extends Function {
             for (int i = 0; i < len; i++) {
                 Value v = args[i].getValue(session);
                 if (v == ValueNull.INSTANCE) {
-                    list[i] = new Value[0];
+                    list[i] = Value.EMPTY_VALUES;
                 } else {
                     int type = v.getValueType();
                     if (type != Value.ARRAY && type != Value.ROW) {

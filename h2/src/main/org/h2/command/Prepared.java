@@ -175,7 +175,7 @@ public abstract class Prepared {
         if (persistedObjectId < 0) {
             // restore original persistedObjectId on Command re-run
             // i.e. due to concurrent update
-            persistedObjectId = -persistedObjectId - 1;
+            persistedObjectId = ~persistedObjectId;
         }
         if (parameters != null) {
             for (Parameter param : parameters) {
@@ -275,7 +275,7 @@ public abstract class Prepared {
         } else if (id < 0) {
             throw DbException.throwInternalError("Prepared.getObjectId() was called before");
         }
-        persistedObjectId = -persistedObjectId - 1;  // while negative, it can be restored later
+        persistedObjectId = ~persistedObjectId;  // while negative, it can be restored later
         return id;
     }
 

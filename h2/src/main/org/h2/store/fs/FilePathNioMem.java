@@ -644,9 +644,9 @@ class FileNioMemData {
      *
      * @param openReadOnly if the file was opened in read-only mode
      */
-    void touch(boolean openReadOnly) throws IOException {
+    void touch(boolean openReadOnly) {
         if (isReadOnly || openReadOnly) {
-            throw new IOException("Read only");
+            throw new NonWritableChannelException();
         }
         lastModified = System.currentTimeMillis();
     }

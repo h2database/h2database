@@ -835,11 +835,6 @@ public class DataType {
                 }
             }
             default:
-                if (JdbcUtils.customDataTypesHandler != null) {
-                    return JdbcUtils.customDataTypesHandler.getValue(type,
-                        rs.getObject(columnIndex),
-                        session.getDataHandler());
-                }
                 throw DbException.throwInternalError("type="+type);
             }
             return v;
@@ -951,9 +946,6 @@ public class DataType {
             // "org.h2.api.Interval"
             return Interval.class.getName();
         default:
-            if (JdbcUtils.customDataTypesHandler != null) {
-                return JdbcUtils.customDataTypesHandler.getDataTypeClassName(type);
-            }
             throw DbException.throwInternalError("type="+type);
         }
     }
@@ -970,12 +962,6 @@ public class DataType {
         }
         if (type >= Value.NULL && type < Value.TYPE_COUNT) {
             DataType dt = TYPES_BY_VALUE_TYPE[type];
-            if (dt != null) {
-                return dt;
-            }
-        }
-        if (JdbcUtils.customDataTypesHandler != null) {
-            DataType dt = JdbcUtils.customDataTypesHandler.getDataTypeById(type);
             if (dt != null) {
                 return dt;
             }
@@ -1220,9 +1206,6 @@ public class DataType {
         } else if (OffsetDateTime.class == x || ZonedDateTime.class == x || Instant.class == x) {
             return Value.TIMESTAMP_TZ;
         } else {
-            if (JdbcUtils.customDataTypesHandler != null) {
-                return JdbcUtils.customDataTypesHandler.getTypeIdFromClass(x);
-            }
             return Value.JAVA_OBJECT;
         }
     }
@@ -1366,10 +1349,6 @@ public class DataType {
         } else if (clazz == Duration.class) {
             return JSR310Utils.durationToValue(x);
         } else {
-            if (JdbcUtils.customDataTypesHandler != null) {
-                return JdbcUtils.customDataTypesHandler.getValue(type, x,
-                        session.getDataHandler());
-            }
             return ValueJavaObject.getNoCopy(x, null, session.getDataHandler());
         }
     }
@@ -1412,9 +1391,6 @@ public class DataType {
         DataType result = mode.typeByNameMap.get(s);
         if (result == null) {
             result = TYPES_BY_NAME.get(s);
-            if (result == null && JdbcUtils.customDataTypesHandler != null) {
-                result = JdbcUtils.customDataTypesHandler.getDataTypeByName(s);
-            }
         }
         return result;
     }
@@ -1624,29 +1600,7 @@ public class DataType {
         case Value.INTERVAL_HOUR_TO_SECOND:
         case Value.INTERVAL_MINUTE_TO_SECOND:
             return true;
-        case Value.BOOLEAN:
-        case Value.TIME:
-        case Value.DATE:
-        case Value.TIMESTAMP:
-        case Value.TIMESTAMP_TZ:
-        case Value.BYTES:
-        case Value.UUID:
-        case Value.STRING:
-        case Value.STRING_IGNORECASE:
-        case Value.STRING_FIXED:
-        case Value.BLOB:
-        case Value.CLOB:
-        case Value.NULL:
-        case Value.JAVA_OBJECT:
-        case Value.UNKNOWN:
-        case Value.ARRAY:
-        case Value.RESULT_SET:
-        case Value.GEOMETRY:
-            return false;
         default:
-            if (JdbcUtils.customDataTypesHandler != null) {
-                return JdbcUtils.customDataTypesHandler.supportsAdd(type);
-            }
             return false;
         }
     }
@@ -1688,44 +1642,7 @@ public class DataType {
             return Value.DECIMAL;
         case Value.SHORT:
             return Value.LONG;
-        case Value.BOOLEAN:
-        case Value.DECIMAL:
-        case Value.TIME:
-        case Value.DATE:
-        case Value.TIMESTAMP:
-        case Value.TIMESTAMP_TZ:
-        case Value.BYTES:
-        case Value.UUID:
-        case Value.STRING:
-        case Value.STRING_IGNORECASE:
-        case Value.STRING_FIXED:
-        case Value.BLOB:
-        case Value.CLOB:
-        case Value.DOUBLE:
-        case Value.NULL:
-        case Value.JAVA_OBJECT:
-        case Value.UNKNOWN:
-        case Value.ARRAY:
-        case Value.RESULT_SET:
-        case Value.GEOMETRY:
-        case Value.INTERVAL_YEAR:
-        case Value.INTERVAL_MONTH:
-        case Value.INTERVAL_DAY:
-        case Value.INTERVAL_HOUR:
-        case Value.INTERVAL_MINUTE:
-        case Value.INTERVAL_SECOND:
-        case Value.INTERVAL_YEAR_TO_MONTH:
-        case Value.INTERVAL_DAY_TO_HOUR:
-        case Value.INTERVAL_DAY_TO_MINUTE:
-        case Value.INTERVAL_DAY_TO_SECOND:
-        case Value.INTERVAL_HOUR_TO_MINUTE:
-        case Value.INTERVAL_HOUR_TO_SECOND:
-        case Value.INTERVAL_MINUTE_TO_SECOND:
-            return type;
         default:
-            if (JdbcUtils.customDataTypesHandler != null) {
-                return JdbcUtils.customDataTypesHandler.getAddProofType(type);
-            }
             return type;
         }
     }
@@ -1776,43 +1693,11 @@ public class DataType {
         } else if (paramClass == Array.class) {
             return new JdbcArray(conn, v, 0);
         }
-        switch (v.getValueType()) {
-        case Value.JAVA_OBJECT: {
+        if (v.getValueType() == Value.JAVA_OBJECT) {
             Object o = SysProperties.serializeJavaObject ? JdbcUtils.deserialize(v.getBytes(),
                     conn.getSession().getDataHandler()) : v.getObject();
             if (paramClass.isAssignableFrom(o.getClass())) {
                 return o;
-            }
-            break;
-        }
-        case Value.BOOLEAN:
-        case Value.BYTE:
-        case Value.SHORT:
-        case Value.INT:
-        case Value.LONG:
-        case Value.DECIMAL:
-        case Value.TIME:
-        case Value.DATE:
-        case Value.TIMESTAMP:
-        case Value.TIMESTAMP_TZ:
-        case Value.BYTES:
-        case Value.UUID:
-        case Value.STRING:
-        case Value.STRING_IGNORECASE:
-        case Value.STRING_FIXED:
-        case Value.BLOB:
-        case Value.CLOB:
-        case Value.DOUBLE:
-        case Value.FLOAT:
-        case Value.NULL:
-        case Value.UNKNOWN:
-        case Value.ARRAY:
-        case Value.RESULT_SET:
-        case Value.GEOMETRY:
-            break;
-        default:
-            if (JdbcUtils.customDataTypesHandler != null) {
-                return JdbcUtils.customDataTypesHandler.getObject(v, paramClass);
             }
         }
         throw DbException.getUnsupportedException("converting to class " + paramClass.getName());

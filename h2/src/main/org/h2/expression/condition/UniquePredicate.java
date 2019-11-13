@@ -85,7 +85,7 @@ public class UniquePredicate extends PredicateWithSubquery {
     public Value getValue(Session session) {
         query.setSession(session);
         int columnCount = query.getColumnCount();
-        LocalResult result = session.getDatabase().getResultFactory().create(session,
+        LocalResult result = new LocalResult(session,
                 query.getExpressions().toArray(new Expression[0]), columnCount, columnCount);
         result.setDistinct();
         Target target = new Target(columnCount, result);

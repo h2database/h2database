@@ -34,7 +34,7 @@ abstract class PredicateWithSubquery extends Condition {
 
     @Override
     public Expression optimize(Session session) {
-        session.optimizeQueryExpression(query);
+        query.prepare();
         return this;
     }
 

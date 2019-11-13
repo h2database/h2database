@@ -132,7 +132,7 @@ public class PageBtreeIndex extends PageIndex {
      */
     private SearchRow getSearchRow(Row row) {
         SearchRow r = table.getTemplateSimpleRow(columns.length == 1);
-        r.setKey(row);
+        r.setKey(row.getKey());
         for (Column c : columns) {
             int idx = c.getColumnId();
             r.setValue(idx, row.getValue(idx));

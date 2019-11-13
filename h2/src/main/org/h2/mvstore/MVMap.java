@@ -769,6 +769,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     private boolean rewritePage(Page p) {
+        if (p.getKeyCount()==0) {
+            return true;
+        }
+
         @SuppressWarnings("unchecked")
         K key = (K) p.getKey(0);
         if (!isClosed()) {

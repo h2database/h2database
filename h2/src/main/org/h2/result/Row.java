@@ -5,52 +5,65 @@
  */
 package org.h2.result;
 
-import org.h2.store.Data;
 import org.h2.value.Value;
 
 /**
  * Represents a row in a table.
  */
-public interface Row extends SearchRow {
+public abstract class Row extends SearchRow {
 
-    int MEMORY_CALCULATE = -1;
-    Row[] EMPTY_ARRAY = {};
-
-    /**
-     * Get the number of bytes required for the data.
-     *
-     * @param dummy the template buffer
-     * @return the number of bytes
-     */
-    int getByteCount(Data dummy);
+    private int memory;
 
     /**
-     * Check if this is an empty row.
+     * Creates a new row.
      *
-     * @return {@code true} if the row is empty
+     * @param data values of columns, or null
+     * @param memory used memory
+     * @return the allocated row
      */
-    boolean isEmpty();
+    public static Row get(Value[] data, int memory) {
+        return new DefaultRow(data, memory);
+    }
 
     /**
-     * Mark the row as deleted.
+     * Creates a new row with the specified key.
      *
-     * @param deleted deleted flag
+     * @param data values of columns, or null
+     * @param memory used memory
+     * @param key the key
+     * @return the allocated row
      */
-    void setDeleted(boolean deleted);
+    public static Row get(Value[] data, int memory, long key) {
+        Row r = new DefaultRow(data, memory);
+        r.setKey(key);
+        return r;
+    }
+
+    protected Row(int memory) {
+        this.memory = memory;
+    }
+
+    @Override
+    public int getMemory() {
+        if (memory != MEMORY_CALCULATE) {
+            return memory;
+        }
+        return memory = calculateMemory();
+    }
 
     /**
-     * Check if the row is deleted.
+     * Calculate the estimated memory used for this row, in bytes.
      *
-     * @return {@code true} if the row is deleted
+     * @return the memory
      */
-    boolean isDeleted();
+    protected abstract int calculateMemory();
 
     /**
      * Get values.
      *
      * @return values
      */
-    Value[] getValueList();
+    public abstract Value[] getValueList();
 
     /**
      * Check whether this row and the specified row share the same underlying
@@ -64,6 +77,8 @@ public interface Row extends SearchRow {
      * @return {@code true} if rows share the same underlying data,
      *         {@code false} otherwise or when unknown
      */
-    boolean hasSharedData(Row other);
+    public boolean hasSharedData(Row other) {
+        return false;
+    }
 
 }

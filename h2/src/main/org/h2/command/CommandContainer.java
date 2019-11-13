@@ -13,8 +13,6 @@ import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.command.ddl.DefineCommand;
 import org.h2.command.dml.DataChangeStatement;
-import org.h2.command.dml.Explain;
-import org.h2.command.dml.Query;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.DbSettings;
@@ -134,26 +132,6 @@ public class CommandContainer extends Command {
         return prepared.isQuery();
     }
 
-    @Override
-    public void prepareJoinBatch() {
-        if (session.isJoinBatchEnabled()) {
-            prepareJoinBatch(prepared);
-        }
-    }
-
-    private static void prepareJoinBatch(Prepared prepared) {
-        if (prepared.isQuery()) {
-            int type = prepared.getType();
-
-            if (type == CommandInterface.SELECT) {
-                ((Query) prepared).prepareJoinBatch();
-            } else if (type == CommandInterface.EXPLAIN ||
-                    type == CommandInterface.EXPLAIN_ANALYZE) {
-                prepareJoinBatch(((Explain) prepared).getCommand());
-            }
-        }
-    }
-
     private void recompileIfRequired() {
         if (prepared.needRecompile()) {
             // TODO test with 'always recompile'
@@ -175,7 +153,6 @@ public class CommandContainer extends Command {
             }
             prepared.prepare();
             prepared.setModificationMetaId(mod);
-            prepareJoinBatch();
         }
     }
 
@@ -192,8 +169,7 @@ public class CommandContainer extends Command {
                 result = executeUpdateWithGeneratedKeys((DataChangeStatement) prepared,
                         generatedKeysRequest);
             } else {
-                result = new ResultWithGeneratedKeys.WithKeys(prepared.update(),
-                        session.getDatabase().getResultFactory().create());
+                result = new ResultWithGeneratedKeys.WithKeys(prepared.update(), new LocalResult());
             }
         } else {
             result = ResultWithGeneratedKeys.of(prepared.update());
@@ -258,14 +234,14 @@ public class CommandContainer extends Command {
         }
         int columnCount = expressionColumns.size();
         if (columnCount == 0) {
-            return new ResultWithGeneratedKeys.WithKeys(statement.update(), db.getResultFactory().create());
+            return new ResultWithGeneratedKeys.WithKeys(statement.update(), new LocalResult());
         }
         int[] indexes = new int[columnCount];
         ExpressionColumn[] expressions = expressionColumns.toArray(new ExpressionColumn[0]);
         for (int i = 0; i < columnCount; i++) {
             indexes[i] = expressions[i].getColumn().getColumnId();
         }
-        LocalResult result = db.getResultFactory().create(session, expressions, columnCount, columnCount);
+        LocalResult result = new LocalResult(session, expressions, columnCount, columnCount);
         ResultTarget collector = new GeneratedKeysCollector(indexes, result);
         int updateCount;
         try {
@@ -339,7 +315,7 @@ public class CommandContainer extends Command {
         prepared.collectDependencies(dependencies);
         return dependencies;
     }
-    
+
     @Override
     protected boolean isCurrentCommandADefineCommand() {
         return prepared instanceof DefineCommand;

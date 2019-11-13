@@ -302,7 +302,7 @@ public class FullTextLucene extends FullText {
                     IndexWriterConfig conf = new IndexWriterConfig(analyzer);
                     conf.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
                     IndexWriter writer = new IndexWriter(indexDir, conf);
-                    //see http://wiki.apache.org/lucene-java/NearRealtimeSearch
+                    //see https://cwiki.apache.org/confluence/display/lucene/NearRealtimeSearch
                     access = new IndexAccess(writer);
                 } catch (IndexFormatTooOldException e) {
                     reindex(conn);

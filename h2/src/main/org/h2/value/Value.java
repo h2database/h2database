@@ -263,6 +263,11 @@ public abstract class Value extends VersionedValue {
      */
     public static final int TYPE_COUNT = TIME_TZ + 1;
 
+    /**
+     * Empty array of values.
+     */
+    public static final Value[] EMPTY_VALUES = new Value[0];
+
     private static SoftReference<Value[]> softCache;
 
     private static final BigDecimal MAX_LONG_DECIMAL = BigDecimal.valueOf(Long.MAX_VALUE);
@@ -464,9 +469,6 @@ public abstract class Value extends VersionedValue {
         case RESULT_SET:
             return 52_000;
         default:
-            if (JdbcUtils.customDataTypesHandler != null) {
-                return JdbcUtils.customDataTypesHandler.getDataTypeOrder(type);
-            }
             throw DbException.throwInternalError("type:"+type);
         }
     }
@@ -868,9 +870,6 @@ public abstract class Value extends VersionedValue {
             case RESULT_SET:
                 return convertToResultSet();
             default:
-                if (JdbcUtils.customDataTypesHandler != null) {
-                    return JdbcUtils.customDataTypesHandler.convert(this, targetType);
-                }
                 throw getDataConversionError(targetType);
             }
         } catch (NumberFormatException e) {

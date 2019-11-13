@@ -46,9 +46,7 @@ import org.h2.mvstore.db.MVTableEngine;
 import org.h2.pagestore.PageStore;
 import org.h2.pagestore.WriterThread;
 import org.h2.pagestore.db.LobStorageBackend;
-import org.h2.result.LocalResultFactory;
 import org.h2.result.Row;
-import org.h2.result.RowFactory;
 import org.h2.result.SearchRow;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
@@ -226,8 +224,6 @@ public class Database implements DataHandler, CastDataProvider {
     private boolean queryStatistics;
     private int queryStatisticsMaxEntries = Constants.QUERY_STATISTICS_MAX_ENTRIES;
     private QueryStatisticsData queryStatisticsData;
-    private RowFactory rowFactory = RowFactory.DEFAULT;
-    private LocalResultFactory resultFactory = LocalResultFactory.DEFAULT;
     private boolean ignoreCatalogs;
 
     private Authenticator authenticator;
@@ -338,33 +334,6 @@ public class Database implements DataHandler, CastDataProvider {
         Setting setting = findSetting(
                 SetTypes.getTypeName(SetTypes.DEFAULT_LOCK_TIMEOUT));
         return setting == null ? Constants.INITIAL_LOCK_TIMEOUT : setting.getIntValue();
-    }
-
-    /**
-     * Create a new row for a table.
-     *
-     * @param data the values
-     * @param memory whether the row is in memory
-     * @return the created row
-     */
-    public Row createRow(Value[] data, int memory) {
-        return rowFactory.createRow(data, memory);
-    }
-
-    public RowFactory getRowFactory() {
-        return rowFactory;
-    }
-
-    public void setRowFactory(RowFactory rowFactory) {
-        this.rowFactory = rowFactory;
-    }
-
-    public LocalResultFactory getResultFactory() {
-        return resultFactory;
-    }
-
-    public void setResultFactory(LocalResultFactory resultFactory) {
-        this.resultFactory = resultFactory;
     }
 
     public static void setInitialPowerOffCount(int count) {
@@ -936,16 +905,40 @@ public class Database implements DataHandler, CastDataProvider {
     private void addMeta(Session session, DbObject obj) {
         assert Thread.holdsLock(this);
         int id = obj.getId();
-        if (id > 0 && !starting && !obj.isTemporary()) {
-            Row r = meta.getTemplateRow();
-            MetaRecord.populateRowFromDBObject(obj, r);
-            synchronized (objectIds) {
-                objectIds.set(id);
+        if (id > 0 && !obj.isTemporary()) {
+            if (isMVStore()) {
+                if (!isReadOnly()) {
+                    Row r = meta.getTemplateRow();
+                    MetaRecord.populateRowFromDBObject(obj, r);
+                    assert objectIds.get(id);
+                    if (SysProperties.CHECK) {
+                        verifyMetaLocked(session);
+                    }
+                    Cursor cursor = metaIdIndex.find(session, r, r);
+                    if (!cursor.next()) {
+                        meta.addRow(session, r);
+                    } else {
+                        assert starting;
+                        Row oldRow = cursor.get();
+                        MetaRecord rec = new MetaRecord(oldRow);
+                        assert rec.getId() == obj.getId();
+                        assert rec.getObjectType() == obj.getType();
+                        if (!rec.getSQL().equals(obj.getCreateSQL())) {
+                            meta.updateRow(session, oldRow, r);
+                        }
+                    }
+                }
+            } else if (!starting) {
+                Row r = meta.getTemplateRow();
+                MetaRecord.populateRowFromDBObject(obj, r);
+                synchronized (objectIds) {
+                    objectIds.set(id);
+                }
+                if (SysProperties.CHECK) {
+                    verifyMetaLocked(session);
+                }
+                meta.addRow(session, r);
             }
-            if (SysProperties.CHECK) {
-                verifyMetaLocked(session);
-            }
-            meta.addRow(session, r);
         }
     }
 

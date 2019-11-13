@@ -11,13 +11,17 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Properties;
 import javax.naming.Context;
 import javax.sql.DataSource;
-import org.h2.api.CustomDataTypesHandler;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
 import org.h2.engine.SysProperties;
@@ -36,20 +40,15 @@ public class JdbcUtils {
      */
     public static JavaObjectSerializer serializer;
 
-    /**
-     * Custom data types handler to use.
-     */
-    public static CustomDataTypesHandler customDataTypesHandler;
-
     private static final String[] DRIVERS = {
         "h2:", "org.h2.Driver",
         "Cache:", "com.intersys.jdbc.CacheDriver",
         "daffodilDB://", "in.co.daffodil.db.rmi.RmiDaffodilDBDriver",
         "daffodil", "in.co.daffodil.db.jdbc.DaffodilDBDriver",
         "db2:", "com.ibm.db2.jcc.DB2Driver",
-        "derby:net:", "org.apache.derby.jdbc.ClientDriver",
-        "derby://", "org.apache.derby.jdbc.ClientDriver",
-        "derby:", "org.apache.derby.jdbc.EmbeddedDriver",
+        "derby:net:", "org.apache.derby.client.ClientAutoloadedDriver",
+        "derby://", "org.apache.derby.client.ClientAutoloadedDriver",
+        "derby:", "org.apache.derby.iapi.jdbc.AutoloadedDriver",
         "FrontBase:", "com.frontbase.jdbc.FBJDriver",
         "firebirdsql:", "org.firebirdsql.jdbc.FBDriver",
         "hsqldb:", "org.hsqldb.jdbcDriver",
@@ -57,7 +56,8 @@ public class JdbcUtils {
         "jtds:", "net.sourceforge.jtds.jdbc.Driver",
         "microsoft:", "com.microsoft.jdbc.sqlserver.SQLServerDriver",
         "mimer:", "com.mimer.jdbc.Driver",
-        "mysql:", "com.mysql.jdbc.Driver",
+        "mysql:", "com.mysql.cj.jdbc.Driver",
+        "mariadb:", "org.mariadb.jdbc.Driver",
         "odbc:", "sun.jdbc.odbc.JdbcOdbcDriver",
         "oracle:", "oracle.jdbc.driver.OracleDriver",
         "pervasive:", "com.pervasive.jdbc.v2.Driver",
@@ -116,16 +116,6 @@ public class JdbcUtils {
         if (clazz != null) {
             try {
                 serializer = (JavaObjectSerializer) loadUserClass(clazz).getDeclaredConstructor().newInstance();
-            } catch (Exception e) {
-                throw DbException.convert(e);
-            }
-        }
-
-        String customTypeHandlerClass = SysProperties.CUSTOM_DATA_TYPES_HANDLER;
-        if (customTypeHandlerClass != null) {
-            try {
-                customDataTypesHandler = (CustomDataTypesHandler)
-                        loadUserClass(customTypeHandlerClass).getDeclaredConstructor().newInstance();
             } catch (Exception e) {
                 throw DbException.convert(e);
             }

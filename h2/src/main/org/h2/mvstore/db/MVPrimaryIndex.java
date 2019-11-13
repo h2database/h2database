@@ -221,7 +221,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex {
         TransactionMap<Value, Value> map = getMap(session);
         long key = row.getKey();
         ValueArray array = (ValueArray) lockRow(map, key);
-        return array == null ? null : getRow(session, key, array);
+        return array == null ? null : getRow(key, array);
     }
 
     private Value lockRow(TransactionMap<Value, Value> map, long key) {
@@ -237,7 +237,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex {
         ValueLong min = first == null ? ValueLong.MIN : ValueLong.get(first.getKey());
         ValueLong max = last == null ? ValueLong.MAX : ValueLong.get(last.getKey());
         TransactionMap<Value, Value> map = getMap(session);
-        return new MVStoreCursor(session, map.entryIterator(min, max));
+        return new MVStoreCursor(map.entryIterator(min, max));
     }
 
     @Override
@@ -253,13 +253,11 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex {
             throw DbException.get(ErrorCode.ROW_NOT_FOUND_IN_PRIMARY_INDEX,
                     getSQL(false), String.valueOf(key));
         }
-        return getRow(session, key, (ValueArray) v);
+        return getRow(key, (ValueArray) v);
     }
 
-    private static Row getRow(Session session, long key, ValueArray array) {
-        Row row = session.createRow(array.getList(), 0);
-        row.setKey(key);
-        return row;
+    Row getRow(long key, ValueArray array) {
+        return table.createRow(array.getList(), 0, key);
     }
 
     @Override
@@ -314,8 +312,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex {
         Value key = first ? map.firstKey() : map.lastKey();
         Row row;
         if (key != null) {
-            row = session.createRow(((ValueArray) map.getFromSnapshot(key)).getList(), 0);
-            row.setKey(key.getLong());
+            row = getRow(key.getLong(), (ValueArray) map.getFromSnapshot(key));
         } else {
             row = null;
         }
@@ -397,7 +394,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex {
      */
     Cursor find(Session session, ValueLong first, ValueLong last) {
         TransactionMap<Value, Value> map = getMap(session);
-        return new MVStoreCursor(session, map.entryIterator(first, last));
+        return new MVStoreCursor(map.entryIterator(first, last));
     }
 
     @Override
@@ -427,15 +424,13 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex {
     /**
      * A cursor.
      */
-    static class MVStoreCursor implements Cursor {
+    class MVStoreCursor implements Cursor {
 
-        private final Session session;
         private final Iterator<Entry<Value, Value>> it;
         private Entry<Value, Value> current;
         private Row row;
 
-        public MVStoreCursor(Session session, Iterator<Entry<Value, Value>> it) {
-            this.session = session;
+        public MVStoreCursor(Iterator<Entry<Value, Value>> it) {
             this.it = it;
         }
 
@@ -444,8 +439,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex {
             if (row == null) {
                 if (current != null) {
                     ValueArray array = (ValueArray) current.getValue();
-                    row = session.createRow(array.getList(), 0);
-                    row.setKey(current.getKey().getLong());
+                    row = getRow(current.getKey().getLong(), array);
                 }
             }
             return row;

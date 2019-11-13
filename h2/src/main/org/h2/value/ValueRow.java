@@ -21,7 +21,9 @@ public class ValueRow extends ValueCollectionBase {
     /**
      * Empty row.
      */
-    private static final Object EMPTY = get(new Value[0]);
+    private static final Object EMPTY = get(Value.EMPTY_VALUES);
+
+    private TypeInfo type;
 
     private ValueRow(Value[] list) {
         super(list);
@@ -45,6 +47,15 @@ public class ValueRow extends ValueCollectionBase {
      */
     public static ValueRow getEmpty() {
         return (ValueRow) EMPTY;
+    }
+
+    @Override
+    public TypeInfo getType() {
+        TypeInfo type = this.type;
+        if (type == null) {
+            this.type = type = TypeInfo.getTypeInfo(getValueType(), values.length, 0, null);
+        }
+        return type;
     }
 
     @Override

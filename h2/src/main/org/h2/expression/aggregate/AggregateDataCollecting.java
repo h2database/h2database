@@ -80,7 +80,7 @@ class AggregateDataCollecting extends AggregateData implements Iterable<Value> {
         if (values == null) {
             return null;
         }
-        return values.toArray(new Value[0]);
+        return values.toArray(Value.EMPTY_VALUES);
     }
 
     @Override

@@ -62,16 +62,16 @@ public class TestNestedJoins extends TestDb {
         }
 
         // Derby doesn't work currently
-        // deleteDerby();
-        // try {
-        //     Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
-        //     Connection c2 = DriverManager.getConnection(
-        //         "jdbc:derby:" + getBaseDir() +
-        //         "/derby/test;create=true", "sa", "sa");
-        //     dbs.add(c2.createStatement());
-        // } catch (Exception e) {
-        //     // database not installed - ok
-        // }
+        deleteDerby();
+        try {
+            Class.forName("org.apache.derby.iapi.jdbc.AutoloadedDriver");
+            Connection c2 = DriverManager.getConnection(
+                "jdbc:derby:" + getBaseDir() +
+                "/derby/test;create=true", "sa", "sa");
+            dbs.add(c2.createStatement());
+        } catch (Exception e) {
+            // database not installed - ok
+        }
         String shortest = null;
         Throwable shortestEx = null;
         for (int i = 0; i < 10; i++) {

@@ -1637,7 +1637,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             final boolean isPG = database.getMode().getEnum() == ModeEnum.PostgreSQL;
             if (index1 > index2) {
                 if (isPG)
-                    result = ValueArray.get(array.getComponentType(), new Value[0]);
+                    result = ValueArray.get(array.getComponentType(), Value.EMPTY_VALUES);
                 else
                     result = ValueNull.INSTANCE;
             } else {

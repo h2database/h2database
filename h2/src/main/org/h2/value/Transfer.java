@@ -28,7 +28,6 @@ import org.h2.store.DataReader;
 import org.h2.util.Bits;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
-import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.StringUtils;
@@ -646,11 +645,6 @@ public class Transfer {
             break;
         }
         default:
-            if (JdbcUtils.customDataTypesHandler != null) {
-                writeInt(type);
-                writeBytes(v.getBytesNoCopy());
-                break;
-            }
             throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "type=" + type);
         }
     }
@@ -826,10 +820,6 @@ public class Transfer {
             // Do not trust the value
             return ValueJson.fromJson(readBytes());
         default:
-            if (JdbcUtils.customDataTypesHandler != null) {
-                return JdbcUtils.customDataTypesHandler.convert(
-                        ValueBytes.getNoCopy(readBytes()), type);
-            }
             throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "type=" + type);
         }
     }

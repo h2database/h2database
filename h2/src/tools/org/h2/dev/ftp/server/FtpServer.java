@@ -28,7 +28,7 @@ import org.h2.util.Tool;
 /**
  * Small FTP Server. Intended for ad-hoc networks in a secure environment.
  * Remote connections are possible.
- * See also http://cr.yp.to/ftp.html http://www.ftpguide.com/
+ * See also https://cr.yp.to/ftp.html http://www.ftpguide.com/
  */
 public class FtpServer extends Tool implements Service {
 

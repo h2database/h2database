@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.concurrent.CountDownLatch;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.engine.Session;
@@ -71,44 +72,50 @@ public class TestTriggersConstraints extends TestDb implements Trigger {
     }
 
     private void testTriggerDeadlock() throws Exception {
-        final Connection conn, conn2;
-        final Statement stat, stat2;
-        conn = getConnection("trigger");
-        conn2 = getConnection("trigger");
-        stat = conn.createStatement();
-        stat2 = conn2.createStatement();
-        stat.execute("create table test(id int) as select 1");
-        stat.execute("create table test2(id int) as select 1");
-        stat.execute("create trigger test_u before update on test2 " +
-                "for each row call \"" + DeleteTrigger.class.getName() + "\"");
-        conn.setAutoCommit(false);
-        conn2.setAutoCommit(false);
-        stat2.execute("update test set id = 2");
-        Task task = new Task() {
-            @Override
-            public void call() throws Exception {
-                Thread.sleep(300);
-                stat2.execute("update test2 set id = 4");
-            }
-        };
-        task.execute();
-        Thread.sleep(100);
-        try {
-            stat.execute("update test2 set id = 3");
-            task.get();
-        } catch (SQLException e) {
-            int errorCode = e.getErrorCode();
-            assertTrue(String.valueOf(errorCode),
+        final CountDownLatch latch = new CountDownLatch(2);
+        try (Connection conn = getConnection("trigger")) {
+            Statement stat = conn.createStatement();
+            stat.execute("create table test(id int) as select 1");
+            stat.execute("create table test2(id int) as select 1");
+            stat.execute("create trigger test_u before update on test2 " +
+                    "for each row call \"" + DeleteTrigger.class.getName() + "\"");
+            conn.setAutoCommit(false);
+            stat.execute("update test set id = 2");
+            Task task = new Task() {
+                @Override
+                public void call() throws Exception {
+                    try (Connection conn2 = getConnection("trigger")) {
+                        conn2.setAutoCommit(false);
+                        try (Statement stat2 = conn2.createStatement()) {
+                            latch.countDown();
+                            latch.await();
+                            stat2.execute("update test2 set id = 4");
+                        }
+                        conn2.rollback();
+                    } catch (SQLException e) {
+                        int errorCode = e.getErrorCode();
+                        assertTrue(String.valueOf(errorCode),
+                                ErrorCode.LOCK_TIMEOUT_1 == errorCode ||
+                                ErrorCode.DEADLOCK_1 == errorCode);
+                    }
+                }
+            };
+            task.execute();
+            latch.countDown();
+            latch.await();
+            try {
+                stat.execute("update test2 set id = 3");
+            } catch (SQLException e) {
+                int errorCode = e.getErrorCode();
+                assertTrue(String.valueOf(errorCode),
                         ErrorCode.LOCK_TIMEOUT_1 == errorCode ||
-                        ErrorCode.DEADLOCK_1 == errorCode ||
-                        ErrorCode.COMMIT_ROLLBACK_NOT_ALLOWED == errorCode);
+                        ErrorCode.DEADLOCK_1 == errorCode);
+            }
+            task.get();
+            conn.rollback();
+            stat.execute("drop table test");
+            stat.execute("drop table test2");
         }
-        conn2.rollback();
-        conn.rollback();
-        stat.execute("drop table test");
-        stat.execute("drop table test2");
-        conn.close();
-        conn2.close();
     }
 
     private void testDeleteInTrigger() throws SQLException {

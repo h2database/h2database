@@ -72,8 +72,8 @@ class AggregateDataDefault extends AggregateData {
         case VAR_POP:
         case VAR_SAMP: {
             // Using Welford's method, see also
-            // http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
-            // http://www.johndcook.com/standard_deviation.html
+            // https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+            // https://www.johndcook.com/standard_deviation.html
             double x = v.getDouble();
             if (count == 1) {
                 mean = x;

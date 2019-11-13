@@ -109,7 +109,7 @@ public abstract class Tool {
         }
         String className = getClass().getName();
         out.println(resources.get(className));
-        out.println("Usage: java "+getClass().getName() + " <options>");
+        out.println("Usage: java " + getClass().getName() + " <options>");
         out.println(resources.get(className + ".main"));
         out.println("See also https://h2database.com/javadoc/" +
                 className.replace('.', '/') + ".html");

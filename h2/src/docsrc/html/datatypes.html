@@ -46,10 +46,12 @@ syntax-end -->
 </table>
 <!-- railroad-end -->
 
-<!-- railroad-start -->
 <h2>Details</h2>
-<p>Click on the header to switch between railroad diagram and BNF.</p>
+<!-- railroad-start -->
+<p>Click on the header of the data type to switch between railroad diagram and BNF.</p>
 <!-- railroad-end -->
+<p>Non-standard syntax is marked in green. Compatibility-only non-standard syntax is marked in red,
+don't use it unless you need it for compatibility with other databases or old versions of H2.</p>
 
 <c:forEach var="item" items="dataTypes">
 <h2 id="${item.link}" class="notranslate" onclick="switchBnf(this)">${item.topic}</h2>

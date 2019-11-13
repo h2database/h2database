@@ -45,6 +45,7 @@ public class MergeDocs {
             text = removeHeaderFooter(fileName, text);
             text = fixLinks(text);
             text = fixTableBorders(text);
+            text = addLegacyFontTag(fileName, text);
             buff.append(text);
         }
         String finalText = buff.toString();
@@ -76,6 +77,32 @@ public class MergeDocs {
                 "syntax-end -->",
                 "<!-- syntax-end -->");
         return text;
+    }
+
+    private static String addLegacyFontTag(String fileName, String text) {
+        int idx1 = text.indexOf("<span class=\"rule");
+        if (idx1 < 0) {
+            return text;
+        }
+        int idx2 = 0, length = text.length();
+        StringBuilder builder = new StringBuilder(length + (length >> 4));
+        do {
+            builder.append(text, idx2, idx1);
+            boolean compat = text.regionMatches(idx1 + 17, "Compat\">", 0, 8);
+            boolean h2 = text.regionMatches(idx1 + 17, "H2\">", 0, 4);
+            if (compat == h2) {
+                throw new RuntimeException("Unknown BNF rule style in file " + fileName);
+            }
+            idx2 = text.indexOf("</span>", idx1 + (compat ? 8 : 4));
+            if (idx2 <= 0) {
+                throw new RuntimeException("</span> not found in file " + fileName);
+            }
+            idx2 += 7;
+            builder.append("<font color=\"").append(compat ? "darkred" : "green").append("\">")
+                    .append(text, idx1, idx2).append("</font>");
+            idx1 = text.indexOf("<span class=\"rule", idx2);
+        } while (idx1 >= 0);
+        return builder.append(text, idx2, length).toString();
     }
 
     private static String removeHeaderFooter(String fileName, String text) {

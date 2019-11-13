@@ -15,10 +15,11 @@ selectExpression [,...]
 @h2@ [ QUALIFY expression ]
 [ { UNION [ ALL ] | EXCEPT | @c@ { MINUS } | INTERSECT } query ]
 [ ORDER BY order [,...] ]
-@c@ [ LIMIT expression [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] ]
-[ [ OFFSET expression { ROW | ROWS } ]
-    [ FETCH { FIRST | NEXT } [ expression [ PERCENT ] ] { ROW | ROWS }
-        { ONLY | WITH TIES } ] @h2@ [ SAMPLE_SIZE rowCountInt ] ]
+[ OFFSET expression { ROW | ROWS } ]
+[ FETCH { FIRST | NEXT } [ expression [ PERCENT ] ] { ROW | ROWS }
+    { ONLY | WITH TIES } ]
+@c@ [ LIMIT expression [ OFFSET expression ] ]
+@h2@ [ SAMPLE_SIZE rowCountInt ]
 @h2@ [ FOR UPDATE ]
 ","
 Selects data from a table or multiple tables.

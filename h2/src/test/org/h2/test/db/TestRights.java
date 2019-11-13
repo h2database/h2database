@@ -347,7 +347,7 @@ public class TestRights extends TestDb {
 
         stat.execute("CREATE USER IF NOT EXISTS TEST PASSWORD 'TEST'");
         stat.execute("CREATE TABLE TEST(ID INT)");
-        stat.execute("GRANT ALL ON TEST TO TEST");
+        stat.execute("GRANT ALL ON TABLE TEST TO TEST");
         Connection conn2 = getConnection("rights", "TEST", getPassword("TEST"));
         DatabaseMetaData meta = conn2.getMetaData();
         meta.getTables(null, null, "%", new String[]{"TABLE", "VIEW", "SEQUENCE"});

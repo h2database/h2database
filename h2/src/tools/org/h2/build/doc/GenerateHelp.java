@@ -40,7 +40,11 @@ public class GenerateHelp {
             Object[] row = new Object[columnCount];
             for (int i = 0; i < columnCount; i++) {
                 String s = rs.getString(1 + i);
-                if (i == 3) {
+                switch (i) {
+                case 2:
+                    s = s.replaceAll("@c@ ", "").replaceAll("@h2@ ", "").replaceAll("@c@", "").replaceAll("@h2@", "");
+                    break;
+                case 3: {
                     int len = s.length();
                     int end = 0;
                     for (; end < len; end++) {
@@ -56,6 +60,7 @@ public class GenerateHelp {
                         }
                     }
                     s = s.substring(0, end);
+                }
                 }
                 row[i] = s;
             }

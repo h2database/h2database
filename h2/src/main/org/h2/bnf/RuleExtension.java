@@ -8,19 +8,23 @@ package org.h2.bnf;
 import java.util.HashMap;
 
 /**
- * Represents an optional BNF rule.
+ * Represents a non-standard syntax.
  */
-public class RuleOptional implements Rule {
+public class RuleExtension implements Rule {
+
     private final Rule rule;
+    private final boolean compatibility;
+
     private boolean mapSet;
 
-    public RuleOptional(Rule rule) {
+    public RuleExtension(Rule rule, boolean compatibility) {
         this.rule = rule;
+        this.compatibility = compatibility;
     }
 
     @Override
     public void accept(BnfVisitor visitor) {
-        visitor.visitRuleOptional(rule);
+        visitor.visitRuleExtension(rule, compatibility);
     }
 
     @Override
@@ -39,7 +43,7 @@ public class RuleOptional implements Rule {
 
     @Override
     public String toString() {
-        return '[' + rule.toString() + ']';
+        return (compatibility ? "@c@ " : "@h2@ ") + rule.toString();
     }
 
 }

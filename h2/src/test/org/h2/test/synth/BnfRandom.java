@@ -192,6 +192,11 @@ public class BnfRandom implements BnfVisitor {
         rule.accept(this);
     }
 
+    @Override
+    public void visitRuleExtension(Rule rule, boolean compatibility) {
+        rule.accept(this);
+    }
+
     public void setSeed(int seed) {
         random.setSeed(seed);
     }

@@ -3,17 +3,19 @@
 -- Initial Developer: H2 Group
 --
 
-CREATE TABLE TEST(C1 CHAR, C2 CHARACTER, C3 NCHAR);
+CREATE TABLE TEST(C1 CHAR, C2 CHARACTER, C3 NCHAR, C4 NATIONAL CHARACTER, C5 NATIONAL CHAR);
 > ok
 
 SELECT COLUMN_NAME, DATA_TYPE, TYPE_NAME, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
 > COLUMN_NAME DATA_TYPE TYPE_NAME COLUMN_TYPE
-> ----------- --------- --------- -----------
+> ----------- --------- --------- ------------------
 > C1          1         CHAR      CHAR
 > C2          1         CHAR      CHARACTER
 > C3          1         CHAR      NCHAR
-> rows (ordered): 3
+> C4          1         CHAR      NATIONAL CHARACTER
+> C5          1         CHAR      NATIONAL CHAR
+> rows (ordered): 5
 
 DROP TABLE TEST;
 > ok

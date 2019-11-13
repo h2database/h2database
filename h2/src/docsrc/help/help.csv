@@ -5,21 +5,22 @@
 "SECTION","TOPIC","SYNTAX","TEXT","EXAMPLE"
 
 "Commands (DML)","SELECT","
-SELECT [ TOP term [ PERCENT ] [ WITH TIES ] ]
-[ DISTINCT [ ON ( expression [,...] ) ] | ALL ]
+SELECT @c@ [ TOP term [ PERCENT ] [ WITH TIES ] ]
+[ DISTINCT @h2@ [ ON ( expression [,...] ) ] | ALL ]
 selectExpression [,...]
 [ FROM tableExpression [,...] ]
 [ WHERE expression ]
 [ GROUP BY groupingElement [,...] ] [ HAVING expression ]
 [ WINDOW { { windowName AS windowSpecification } [,...] } ]
-[ QUALIFY expression ]
-[ { UNION [ ALL ] | EXCEPT | MINUS | INTERSECT } query ]
-[ ORDER BY order [,...] ]
-[ LIMIT expression [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] ]
-[ [ OFFSET expression { ROW | ROWS } ]
-    [ FETCH { FIRST | NEXT } [ expression [ PERCENT ] ] { ROW | ROWS }
-        { ONLY | WITH TIES } ] [ SAMPLE_SIZE rowCountInt ] ]
-[ FOR UPDATE ]
+@h2@ [ QUALIFY expression ]
+[ { UNION [ ALL ] | EXCEPT | @c@ { MINUS } | INTERSECT } query ]
+[ ORDER BY selectOrder [,...] ]
+[ OFFSET expression { ROW | ROWS } ]
+[ FETCH { FIRST | NEXT } [ expression [ PERCENT ] ] { ROW | ROWS }
+    { ONLY | WITH TIES } ]
+@c@ [ LIMIT expression [ OFFSET expression ] ]
+@h2@ [ SAMPLE_SIZE rowCountInt ]
+@h2@ [ FOR UPDATE ]
 ","
 Selects data from a table or multiple tables.
 
@@ -115,7 +116,7 @@ INSERT INTO TEST VALUES(1, 'Hello')
 
 "Commands (DML)","UPDATE","
 UPDATE tableName [ [ AS ] newTableAlias ] SET setClauseList
-[ WHERE expression ] [ ORDER BY order [,...] ] [ LIMIT expression ]
+[ WHERE expression ] @c@ [ ORDER BY order [,...] ] @h2@ [ LIMIT expression ]
 ","
 Updates data in a table.
 ORDER BY is supported for MySQL compatibility, but it is ignored.
@@ -125,7 +126,7 @@ UPDATE PERSON P SET NAME=(SELECT A.NAME FROM ADDRESS A WHERE A.ID=P.ID);
 "
 
 "Commands (DML)","DELETE","
-DELETE [ TOP term ] FROM tableName [ WHERE expression ] [ LIMIT term ]
+DELETE @c@ [ TOP term ] FROM tableName [ WHERE expression ] @h2@ [ LIMIT term ]
 ","
 Deletes rows form a table.
 If TOP or LIMIT is specified, at most the specified number of rows are deleted (no limit if null or smaller than zero).
@@ -134,7 +135,7 @@ DELETE FROM TEST WHERE ID=2
 "
 
 "Commands (DML)","BACKUP","
-BACKUP TO fileNameString
+@h2@ BACKUP TO fileNameString
 ","
 Backs up the database files to a .zip file. Objects are not locked, but
 the backup is transactionally consistent because the transaction log is also copied.
@@ -166,8 +167,8 @@ EXECUTE IMMEDIATE 'ALTER TABLE TEST DROP CONSTRAINT ' ||
 "
 
 "Commands (DML)","EXPLAIN","
-EXPLAIN { [ PLAN FOR ] | ANALYZE }
-{ query | insert | update | delete | mergeInto | mergeUsing }
+@h2@ EXPLAIN { [ PLAN FOR ] | ANALYZE }
+@h2@ { query | insert | update | delete | mergeInto | mergeUsing }
 ","
 Shows the execution plan for a statement.
 When using EXPLAIN ANALYZE, the statement is actually executed, and the query plan
@@ -177,9 +178,9 @@ EXPLAIN SELECT * FROM TEST WHERE ID=1
 "
 
 "Commands (DML)","MERGE INTO","
-MERGE INTO tableName [ ( columnName [,...] ) ]
-[ KEY ( columnName [,...] ) ]
-{ insertValues | query }
+@h2@ MERGE INTO tableName [ ( columnName [,...] ) ]
+@h2@ [ KEY ( columnName [,...] ) ]
+@h2@ { insertValues | query }
 ","
 Updates existing rows, and insert rows that don't exist. If no key column is
 specified, the primary key columns are used to find the row. If more than one
@@ -224,8 +225,8 @@ MERGE INTO TARGET_TABLE USING DUAL ON ID = 1
 "
 
 "Commands (DML)","RUNSCRIPT","
-RUNSCRIPT FROM fileNameString scriptCompressionEncryption
-[ CHARSET charsetString ]
+@h2@ RUNSCRIPT FROM fileNameString scriptCompressionEncryption
+@h2@ [ CHARSET charsetString ]
 ","
 Runs a SQL script from a file. The script is a text file containing SQL
 statements; each statement must end with ';'. This command can be used to
@@ -246,13 +247,13 @@ RUNSCRIPT FROM 'classpath:/com/acme/test.sql'
 "
 
 "Commands (DML)","SCRIPT","
-SCRIPT { [ NODATA ] | [ SIMPLE ] [ COLUMNS ] }
-[ NOPASSWORDS ] [ NOSETTINGS ]
-[ DROP ] [ BLOCKSIZE blockSizeInt ]
-[ TO fileNameString scriptCompressionEncryption
+@h2@ SCRIPT { [ NODATA ] | [ SIMPLE ] [ COLUMNS ] }
+@h2@ [ NOPASSWORDS ] @h2@ [ NOSETTINGS ]
+@h2@ [ DROP ] @h2@ [ BLOCKSIZE blockSizeInt ]
+@h2@ [ TO fileNameString scriptCompressionEncryption
     [ CHARSET charsetString ] ]
-[ TABLE tableName [, ...] ]
-[ SCHEMA schemaName [, ...] ]
+@h2@ [ TABLE tableName [, ...] ]
+@h2@ [ SCHEMA schemaName [, ...] ]
 ","
 Creates a SQL script from the database.
 
@@ -287,7 +288,7 @@ SCRIPT NODATA
 "
 
 "Commands (DML)","SHOW","
-SHOW { SCHEMAS | TABLES [ FROM schemaName ] |
+@c@ SHOW { SCHEMAS | TABLES [ FROM schemaName ] |
     COLUMNS FROM tableName [ FROM schemaName ] }
 ","
 Lists the schemas, tables, or the columns of a table.
@@ -297,7 +298,7 @@ SHOW TABLES
 
 "Commands (DML)","Explicit table","
 TABLE [schemaName.]tableName
-[ ORDER BY order [,...] ]
+[ ORDER BY selectOrder [,...] ]
 [ OFFSET expression { ROW | ROWS } ]
 [ FETCH { FIRST | NEXT } [ expression [ PERCENT ] ] { ROW | ROWS }
     { ONLY | WITH TIES } ]
@@ -313,7 +314,7 @@ TABLE TEST ORDER BY ID FETCH FIRST ROW ONLY;
 
 "Commands (DML)","Table value","
 VALUES rowValueExpression [,...]
-[ ORDER BY order [,...] ]
+[ ORDER BY selectOrder [,...] ]
 [ OFFSET expression { ROW | ROWS } ]
 [ FETCH { FIRST | NEXT } [ expression [ PERCENT ] ] { ROW | ROWS }
     { ONLY | WITH TIES } ]
@@ -327,7 +328,7 @@ VALUES (1, 'Hello'), (2, 'World');
 
 "Commands (DML)","WITH","
 WITH [ RECURSIVE ] { name [( columnName [,...] )] AS ( query ) [,...] }
-{ query | insert | update | delete | mergeInto | mergeUsing | createTable }
+{ query | @h2@ { insert | update | delete | mergeInto | mergeUsing | createTable } }
 ","
 Can be used to create a recursive or non-recursive query (common table expression).
 For recursive queries the first select has to be a UNION.
@@ -354,7 +355,7 @@ SELECT sum(FIRST_COLUMN) FROM cte2;
 "
 
 "Commands (DDL)","ALTER INDEX RENAME","
-ALTER INDEX [ IF EXISTS ] indexName RENAME TO newIndexName
+@h2@ ALTER INDEX [ IF EXISTS ] indexName RENAME TO newIndexName
 ","
 Renames an index.
 This command commits an open transaction in this connection.
@@ -363,7 +364,7 @@ ALTER INDEX IDXNAME RENAME TO IDX_TEST_NAME
 "
 
 "Commands (DDL)","ALTER SCHEMA RENAME","
-ALTER SCHEMA [ IF EXISTS ] schemaName RENAME TO newSchemaName
+@h2@ ALTER SCHEMA [ IF EXISTS ] schemaName RENAME TO newSchemaName
 ","
 Renames a schema.
 This command commits an open transaction in this connection.
@@ -372,7 +373,7 @@ ALTER SCHEMA TEST RENAME TO PRODUCTION
 "
 
 "Commands (DDL)","ALTER SEQUENCE","
-ALTER SEQUENCE [ IF EXISTS ] sequenceName sequenceOptions
+ALTER SEQUENCE @h2@ [ IF EXISTS ] sequenceName sequenceOptions
 ","
 Changes the parameters of a sequence.
 This command does not commit the current transaction; however the new value is used by other
@@ -382,10 +383,10 @@ ALTER SEQUENCE SEQ_ID RESTART WITH 1000
 "
 
 "Commands (DDL)","ALTER TABLE ADD","
-ALTER TABLE [ IF EXISTS ] tableName ADD [ COLUMN ]
-{ [ IF NOT EXISTS ] columnName columnDefinition
-    | ( { columnName columnDefinition | constraint } [,...] ) }
-[ { { BEFORE | AFTER } columnName } | FIRST ]
+ALTER TABLE @h2@ [ IF EXISTS ] tableName ADD [ COLUMN ]
+{ @h2@ [ IF NOT EXISTS ] columnName columnDefinition
+    | @h2@ { ( { columnName columnDefinition | constraint } [,...] ) } }
+@h2@ [ { { BEFORE | AFTER } columnName } | FIRST ]
 ","
 Adds a new column to a table.
 This command commits an open transaction in this connection.
@@ -394,7 +395,7 @@ ALTER TABLE TEST ADD CREATEDATE TIMESTAMP
 "
 
 "Commands (DDL)","ALTER TABLE ADD CONSTRAINT","
-ALTER TABLE [ IF EXISTS ] tableName ADD constraint [ CHECK | NOCHECK ]
+ALTER TABLE @h2@ [ IF EXISTS ] tableName ADD constraint @h2@ [ CHECK | NOCHECK ]
 ","
 Adds a constraint to a table. If NOCHECK is specified, existing rows are not
 checked for consistency (the default is to check consistency for existing rows).
@@ -406,8 +407,8 @@ ALTER TABLE TEST ADD CONSTRAINT NAME_UNIQUE UNIQUE(NAME)
 "
 
 "Commands (DDL)","ALTER TABLE RENAME CONSTRAINT","
-ALTER TABLE [ IF EXISTS ] tableName RENAME oldConstraintName
-TO newConstraintName
+@h2@ ALTER TABLE [ IF EXISTS ] tableName RENAME oldConstraintName
+@h2@ TO newConstraintName
 ","
 Renames a constraint.
 This command commits an open transaction in this connection.
@@ -416,20 +417,20 @@ ALTER TABLE TEST RENAME CONSTRAINT FOO TO BAR
 "
 
 "Commands (DDL)","ALTER TABLE ALTER COLUMN","
-ALTER TABLE [ IF EXISTS ] tableName
-ALTER COLUMN [ IF EXISTS ] columnName
-{ { columnDefinition }
-    | { RENAME TO name }
+ALTER TABLE @h2@ [ IF EXISTS ] tableName
+ALTER COLUMN @h2@ [ IF EXISTS ] columnName
+{ @h2@ { columnDefinition }
+    | @h2@ { RENAME TO name }
     | { RESTART WITH long }
-    | { SELECTIVITY int }
+    | @h2@ { SELECTIVITY int }
     | { SET DEFAULT expression }
     | { DROP DEFAULT }
-    | { SET ON UPDATE expression }
-    | { DROP ON UPDATE }
+    | @h2@ { SET ON UPDATE expression }
+    | @h2@ { DROP ON UPDATE }
     | { SET NOT NULL }
-    | { DROP NOT NULL } | { SET NULL }
+    | { DROP NOT NULL } | @c@ { SET NULL }
     | { SET DATA TYPE dataType }
-    | { SET { VISIBLE | INVISIBLE } } }
+    | @h2@ { SET { VISIBLE | INVISIBLE } } }
 ","
 Changes the data type of a column, rename a column,
 change the identity value, or change the selectivity.
@@ -476,8 +477,8 @@ ALTER TABLE TEST ALTER COLUMN NAME SET INVISIBLE;
 "
 
 "Commands (DDL)","ALTER TABLE DROP COLUMN","
-ALTER TABLE [ IF EXISTS ] tableName DROP COLUMN [ IF EXISTS ]
-columnName [,...] | ( columnName [,...] )
+ALTER TABLE @h2@ [ IF EXISTS ] tableName DROP [ COLUMN ] @h2@ [ IF EXISTS ]
+columnName @h2@ [,...] | @c@ { ( columnName [,...] ) }
 ","
 Removes column(s) from a table.
 This command commits an open transaction in this connection.
@@ -488,8 +489,8 @@ ALTER TABLE TEST DROP COLUMN (NAME1, NAME2)
 "
 
 "Commands (DDL)","ALTER TABLE DROP CONSTRAINT","
-ALTER TABLE [ IF EXISTS ] tableName DROP
-{ CONSTRAINT [ IF EXISTS ] constraintName | PRIMARY KEY }
+ALTER TABLE @h2@ [ IF EXISTS ] tableName DROP
+{ CONSTRAINT @h2@ [ IF EXISTS ] constraintName | @c@ { PRIMARY KEY } }
 ","
 Removes a constraint or a primary key from a table.
 This command commits an open transaction in this connection.
@@ -498,8 +499,8 @@ ALTER TABLE TEST DROP CONSTRAINT UNIQUE_NAME
 "
 
 "Commands (DDL)","ALTER TABLE SET","
-ALTER TABLE [ IF EXISTS ] tableName SET REFERENTIAL_INTEGRITY
-{ FALSE | TRUE } [ CHECK | NOCHECK ]
+@h2@ ALTER TABLE [ IF EXISTS ] tableName SET REFERENTIAL_INTEGRITY
+@h2@ { FALSE | TRUE } @h2@ [ CHECK | NOCHECK ]
 ","
 Disables or enables referential integrity checking for a table. This command can
 be used inside a transaction. Enabling referential integrity does not check
@@ -513,7 +514,7 @@ ALTER TABLE TEST SET REFERENTIAL_INTEGRITY FALSE
 "
 
 "Commands (DDL)","ALTER TABLE RENAME","
-ALTER TABLE [ IF EXISTS ] tableName RENAME TO newName
+@h2@ ALTER TABLE [ IF EXISTS ] tableName RENAME TO newName
 ","
 Renames a table.
 This command commits an open transaction in this connection.
@@ -522,7 +523,7 @@ ALTER TABLE TEST RENAME TO MY_DATA
 "
 
 "Commands (DDL)","ALTER USER ADMIN","
-ALTER USER userName ADMIN { TRUE | FALSE }
+@h2@ ALTER USER userName ADMIN { TRUE | FALSE }
 ","
 Switches the admin flag of a user on or off.
 
@@ -534,7 +535,7 @@ ALTER USER TOM ADMIN TRUE
 "
 
 "Commands (DDL)","ALTER USER RENAME","
-ALTER USER userName RENAME TO newUserName
+@h2@ ALTER USER userName RENAME TO newUserName
 ","
 Renames a user.
 After renaming a user, the password becomes invalid and needs to be changed as well.
@@ -547,7 +548,7 @@ ALTER USER TOM RENAME TO THOMAS
 "
 
 "Commands (DDL)","ALTER USER SET PASSWORD","
-ALTER USER userName SET { PASSWORD string | SALT bytes HASH bytes }
+@h2@ ALTER USER userName SET { PASSWORD string | SALT bytes HASH bytes }
 ","
 Changes the password of a user.
 Only unquoted or uppercase user names are allowed.
@@ -561,7 +562,7 @@ ALTER USER SA SET PASSWORD 'rioyxlgt'
 "
 
 "Commands (DDL)","ALTER VIEW RECOMPILE","
-ALTER VIEW [ IF EXISTS ] viewName RECOMPILE
+@h2@ ALTER VIEW [ IF EXISTS ] viewName RECOMPILE
 ","
 Recompiles a view after the underlying tables have been changed or created.
 This command is used for views created using CREATE FORCE VIEW.
@@ -571,7 +572,7 @@ ALTER VIEW ADDRESS_VIEW RECOMPILE
 "
 
 "Commands (DDL)","ALTER VIEW RENAME","
-ALTER VIEW [ IF EXISTS ] viewName RENAME TO newName
+@h2@ ALTER VIEW [ IF EXISTS ] viewName RENAME TO newName
 ","
 Renames a view.
 This command commits an open transaction in this connection.
@@ -580,7 +581,7 @@ ALTER VIEW TEST RENAME TO MY_VIEW
 "
 
 "Commands (DDL)","ANALYZE","
-ANALYZE [ TABLE tableName ] [ SAMPLE_SIZE rowCountInt ]
+@h2@ ANALYZE [ TABLE tableName ] [ SAMPLE_SIZE rowCountInt ]
 ","
 Updates the selectivity statistics of tables.
 If no table name is given, all tables are analyzed.
@@ -597,11 +598,11 @@ ANALYZE SAMPLE_SIZE 1000
 "
 
 "Commands (DDL)","COMMENT","
-COMMENT ON
-{ { COLUMN [ schemaName. ] tableName.columnName }
+@h2@ COMMENT ON
+@h2@ { { COLUMN [ schemaName. ] tableName.columnName }
     | { { TABLE | VIEW | CONSTANT | CONSTRAINT | ALIAS | INDEX | ROLE
     | SCHEMA | SEQUENCE | TRIGGER | USER | DOMAIN } [ schemaName. ] objectName } }
-IS expression
+@h2@ IS expression
 ","
 Sets the comment of a database object. Use NULL to remove the comment.
 
@@ -612,7 +613,7 @@ COMMENT ON TABLE TEST IS 'Table used for testing'
 "
 
 "Commands (DDL)","CREATE AGGREGATE","
-CREATE AGGREGATE [ IF NOT EXISTS ] newAggregateName FOR className
+@h2@ CREATE AGGREGATE [ IF NOT EXISTS ] newAggregateName FOR className
 ","
 Creates a new user-defined aggregate function. The method name must be the full
 qualified class name. The class must implement the interface
@@ -625,8 +626,8 @@ CREATE AGGREGATE SIMPLE_MEDIAN FOR ""com.acme.db.Median""
 "
 
 "Commands (DDL)","CREATE ALIAS","
-CREATE ALIAS [ IF NOT EXISTS ] newFunctionAliasName [ DETERMINISTIC ]
-{ FOR classAndMethodName | AS sourceCodeString }
+@h2@ CREATE ALIAS [ IF NOT EXISTS ] newFunctionAliasName [ DETERMINISTIC ]
+@h2@ { FOR classAndMethodName | AS sourceCodeString }
 ","
 Creates a new function alias. If this is a ResultSet returning function,
 by default the return value is cached in a local temporary file.
@@ -674,7 +675,7 @@ $$
 "
 
 "Commands (DDL)","CREATE CONSTANT","
-CREATE CONSTANT [ IF NOT EXISTS ] newConstantName VALUE expression
+@h2@ CREATE CONSTANT [ IF NOT EXISTS ] newConstantName VALUE expression
 ","
 Creates a new constant.
 This command commits an open transaction in this connection.
@@ -683,8 +684,8 @@ CREATE CONSTANT ONE VALUE 1
 "
 
 "Commands (DDL)","CREATE DOMAIN","
-CREATE DOMAIN [ IF NOT EXISTS ] newDomainName AS dataType
-[ DEFAULT expression ] [ [ NOT ] NULL ] [ SELECTIVITY selectivityInt ]
+CREATE DOMAIN @h2@ [ IF NOT EXISTS ] newDomainName [ AS ] dataType
+[ DEFAULT expression ] @h2@ [ [ NOT ] NULL ] @h2@ [ SELECTIVITY selectivityInt ]
 [ CHECK condition ]
 ","
 Creates a new data type (domain). The check condition must evaluate to true or
@@ -699,10 +700,10 @@ CREATE DOMAIN EMAIL AS VARCHAR(255) CHECK (POSITION('@', VALUE) > 1)
 "
 
 "Commands (DDL)","CREATE INDEX","
-CREATE
-{ [ UNIQUE ] [ HASH | SPATIAL] INDEX [ [ IF NOT EXISTS ] newIndexName ]
+@h2@ CREATE
+@h2@ { [ UNIQUE ] [ HASH | SPATIAL] INDEX [ [ IF NOT EXISTS ] newIndexName ]
     | PRIMARY KEY [ HASH ] }
-ON tableName ( indexColumn [,...] )
+@h2@ ON tableName ( indexColumn [,...] )
 ","
 Creates a new index.
 This command commits an open transaction in this connection.
@@ -719,10 +720,10 @@ CREATE INDEX IDXNAME ON TEST(NAME)
 "
 
 "Commands (DDL)","CREATE LINKED TABLE","
-CREATE [ FORCE ] [ [ GLOBAL | LOCAL ] TEMPORARY ]
-LINKED TABLE [ IF NOT EXISTS ]
-name ( driverString, urlString, userString, passwordString,
-[ originalSchemaString, ] originalTableString ) [ EMIT UPDATES | READONLY ]
+@h2@ CREATE [ FORCE ] [ [ GLOBAL | LOCAL ] TEMPORARY ]
+@h2@ LINKED TABLE [ IF NOT EXISTS ]
+@h2@ name ( driverString, urlString, userString, passwordString,
+@h2@ [ originalSchemaString, ] @h2@ originalTableString ) [ EMIT UPDATES | READONLY ]
 ","
 Creates a table link to an external table. The driver name may be empty if the
 driver is already loaded. If the schema name is not set, only one table with
@@ -760,7 +761,7 @@ CREATE LINKED TABLE LINK('javax.naming.InitialContext',
 "
 
 "Commands (DDL)","CREATE ROLE","
-CREATE ROLE [ IF NOT EXISTS ] newRoleName
+CREATE ROLE @h2@ [ IF NOT EXISTS ] newRoleName
 ","
 Creates a new role.
 This command commits an open transaction in this connection.
@@ -769,9 +770,9 @@ CREATE ROLE READONLY
 "
 
 "Commands (DDL)","CREATE SCHEMA","
-CREATE SCHEMA [ IF NOT EXISTS ] name
+CREATE SCHEMA @h2@ [ IF NOT EXISTS ] name
 [ AUTHORIZATION ownerUserName ]
-[ WITH tableEngineParamName [,...] ]
+@h2@ [ WITH tableEngineParamName [,...] ]
 ","
 Creates a new schema. If no owner is specified, the current user is used. The
 user that executes the command must have admin rights, as well as the owner.
@@ -785,7 +786,7 @@ CREATE SCHEMA TEST_SCHEMA AUTHORIZATION SA
 "
 
 "Commands (DDL)","CREATE SEQUENCE","
-CREATE SEQUENCE [ IF NOT EXISTS ] newSequenceName [ sequenceOptions ]
+CREATE SEQUENCE @h2@ [ IF NOT EXISTS ] newSequenceName [ sequenceOptions ]
 ","
 Creates a new sequence.
 The data type of a sequence is BIGINT.
@@ -797,12 +798,12 @@ CREATE SEQUENCE SEQ_ID
 "
 
 "Commands (DDL)","CREATE TABLE","
-CREATE [ CACHED | MEMORY ] [ TEMP | [ GLOBAL | LOCAL ] TEMPORARY ]
-TABLE [ IF NOT EXISTS ] name
+CREATE @h2@ [ CACHED | MEMORY ] [ @c@ { TEMP } | [ GLOBAL | LOCAL ] TEMPORARY ]
+TABLE @h2@ [ IF NOT EXISTS ] name
 [ ( { columnName [columnDefinition] | constraint } [,...] ) ]
-[ ENGINE tableEngineName ]
-[ WITH tableEngineParamName [,...] ]
-[ NOT PERSISTENT ] [ TRANSACTIONAL ]
+@h2@ [ ENGINE tableEngineName ]
+@h2@ [ WITH tableEngineParamName [,...] ]
+@h2@ [ NOT PERSISTENT ] @h2@ [ TRANSACTIONAL ]
 [ AS query [ WITH [ NO ] DATA ] ]","
 Creates a new table.
 
@@ -840,12 +841,12 @@ CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))
 "
 
 "Commands (DDL)","CREATE TRIGGER","
-CREATE TRIGGER [ IF NOT EXISTS ] newTriggerName
+CREATE TRIGGER @h2@ [ IF NOT EXISTS ] newTriggerName
 { BEFORE | AFTER | INSTEAD OF }
-{ INSERT | UPDATE | DELETE | SELECT | ROLLBACK }
-[,...] ON tableName [ FOR EACH ROW ]
-[ QUEUE int ] [ NOWAIT ]
-{ CALL triggeredClassName | AS sourceCodeString }
+{ INSERT | UPDATE | DELETE | @h2@ { SELECT | ROLLBACK } }
+@h2@ [,...] ON tableName [ FOR EACH { ROW | STATEMENT } ]
+@c@ [ QUEUE int ] @h2@ [ NOWAIT ]
+@h2@ { CALL triggeredClassName | AS sourceCodeString }
 ","
 Creates a new trigger.
 The trigger class must be public and implement ""org.h2.api.Trigger"".
@@ -900,8 +901,8 @@ CREATE TRIGGER TRIG_JS BEFORE INSERT ON TEST AS $$//javascript\nreturn new Packa
 CREATE TRIGGER TRIG_RUBY BEFORE INSERT ON TEST AS $$#ruby\nJava::MyPackage::MyTrigger.new(""constructorParam"") $$;
 "
 "Commands (DDL)","CREATE USER","
-CREATE USER [ IF NOT EXISTS ] newUserName
-{ PASSWORD string | SALT bytes HASH bytes } [ ADMIN ]
+@h2@ CREATE USER [ IF NOT EXISTS ] newUserName
+@h2@ { PASSWORD string | SALT bytes HASH bytes } @h2@ [ ADMIN ]
 ","
 Creates a new user. For compatibility, only unquoted or uppercase user names are allowed.
 The password must be in single quotes. It is case sensitive and can contain spaces.
@@ -914,7 +915,7 @@ CREATE USER GUEST PASSWORD 'abc'
 "
 
 "Commands (DDL)","CREATE VIEW","
-CREATE [ OR REPLACE ] [ FORCE ] VIEW [ IF NOT EXISTS ] newViewName
+CREATE @h2@ [ OR REPLACE ] @h2@ [ FORCE ] VIEW @h2@ [ IF NOT EXISTS ] newViewName
 [ ( columnName [,...] ) ] AS query
 ","
 Creates a new view. If the force option is used, then the view is created even
@@ -934,7 +935,7 @@ CREATE VIEW TEST_VIEW AS SELECT * FROM TEST WHERE ID < 100
 "
 
 "Commands (DDL)","DROP AGGREGATE","
-DROP AGGREGATE [ IF EXISTS ] aggregateName
+@h2@ DROP AGGREGATE [ IF EXISTS ] aggregateName
 ","
 Drops an existing user-defined aggregate function.
 
@@ -945,7 +946,7 @@ DROP AGGREGATE SIMPLE_MEDIAN
 "
 
 "Commands (DDL)","DROP ALIAS","
-DROP ALIAS [ IF EXISTS ] existingFunctionAliasName
+@h2@ DROP ALIAS [ IF EXISTS ] existingFunctionAliasName
 ","
 Drops an existing function alias.
 
@@ -956,7 +957,7 @@ DROP ALIAS MY_SQRT
 "
 
 "Commands (DDL)","DROP ALL OBJECTS","
-DROP ALL OBJECTS [ DELETE FILES ]
+@h2@ DROP ALL OBJECTS [ DELETE FILES ]
 ","
 Drops all existing views, tables, sequences, schemas, function aliases, roles,
 user-defined aggregate functions, domains, and users (except the current user).
@@ -970,7 +971,7 @@ DROP ALL OBJECTS
 "
 
 "Commands (DDL)","DROP CONSTANT","
-DROP CONSTANT [ IF EXISTS ] constantName
+@h2@ DROP CONSTANT [ IF EXISTS ] constantName
 ","
 Drops a constant.
 This command commits an open transaction in this connection.
@@ -979,7 +980,7 @@ DROP CONSTANT ONE
 "
 
 "Commands (DDL)","DROP DOMAIN","
-DROP DOMAIN [ IF EXISTS ] domainName [ RESTRICT | CASCADE ]
+DROP DOMAIN @h2@ [ IF EXISTS ] domainName [ RESTRICT | CASCADE ]
 ","
 Drops a data type (domain).
 The command will fail if it is referenced by a column (the default).
@@ -990,7 +991,7 @@ DROP DOMAIN EMAIL
 "
 
 "Commands (DDL)","DROP INDEX","
-DROP INDEX [ IF EXISTS ] indexName
+@h2@ DROP INDEX [ IF EXISTS ] indexName
 ","
 Drops an index.
 This command commits an open transaction in this connection.
@@ -999,7 +1000,7 @@ DROP INDEX IF EXISTS IDXNAME
 "
 
 "Commands (DDL)","DROP ROLE","
-DROP ROLE [ IF EXISTS ] roleName
+DROP ROLE @h2@ [ IF EXISTS ] roleName
 ","
 Drops a role.
 This command commits an open transaction in this connection.
@@ -1008,7 +1009,7 @@ DROP ROLE READONLY
 "
 
 "Commands (DDL)","DROP SCHEMA","
-DROP SCHEMA [ IF EXISTS ] schemaName [ RESTRICT | CASCADE ]
+DROP SCHEMA @h2@ [ IF EXISTS ] schemaName [ RESTRICT | CASCADE ]
 ","
 Drops a schema.
 The command will fail if objects in this schema exist and the RESTRICT clause is used (the default).
@@ -1019,7 +1020,7 @@ DROP SCHEMA TEST_SCHEMA
 "
 
 "Commands (DDL)","DROP SEQUENCE","
-DROP SEQUENCE [ IF EXISTS ] sequenceName
+DROP SEQUENCE @h2@ [ IF EXISTS ] sequenceName
 ","
 Drops a sequence.
 This command commits an open transaction in this connection.
@@ -1028,7 +1029,7 @@ DROP SEQUENCE SEQ_ID
 "
 
 "Commands (DDL)","DROP TABLE","
-DROP TABLE [ IF EXISTS ] tableName [,...] [ RESTRICT | CASCADE ]
+DROP TABLE @h2@ [ IF EXISTS ] tableName @h2@ [,...] [ RESTRICT | CASCADE ]
 ","
 Drops an existing table, or a list of tables.
 The command will fail if dependent objects exist and the RESTRICT clause is used (the default).
@@ -1039,7 +1040,7 @@ DROP TABLE TEST
 "
 
 "Commands (DDL)","DROP TRIGGER","
-DROP TRIGGER [ IF EXISTS ] triggerName
+DROP TRIGGER @h2@ [ IF EXISTS ] triggerName
 ","
 Drops an existing trigger.
 This command commits an open transaction in this connection.
@@ -1048,7 +1049,7 @@ DROP TRIGGER TRIG_INS
 "
 
 "Commands (DDL)","DROP USER","
-DROP USER [ IF EXISTS ] userName
+@h2@ DROP USER [ IF EXISTS ] userName
 ","
 Drops a user. The current user cannot be dropped.
 For compatibility, only unquoted or uppercase user names are allowed.
@@ -1060,7 +1061,7 @@ DROP USER TOM
 "
 
 "Commands (DDL)","DROP VIEW","
-DROP VIEW [ IF EXISTS ] viewName [ RESTRICT | CASCADE ]
+DROP VIEW @h2@ [ IF EXISTS ] viewName [ RESTRICT | CASCADE ]
 ","
 Drops an existing view.
 All dependent views are dropped as well if the CASCADE clause is used (the default).
@@ -1087,7 +1088,7 @@ TRUNCATE TABLE TEST
 "
 
 "Commands (Other)","CHECKPOINT","
-CHECKPOINT
+@h2@ CHECKPOINT
 ","
 Flushes the data to disk.
 
@@ -1097,7 +1098,7 @@ CHECKPOINT
 "
 
 "Commands (Other)","CHECKPOINT SYNC","
-CHECKPOINT SYNC
+@h2@ CHECKPOINT SYNC
 ","
 Flushes the data to disk and forces all system buffers be written
 to the underlying device.
@@ -1116,7 +1117,7 @@ COMMIT
 "
 
 "Commands (Other)","COMMIT TRANSACTION","
-COMMIT TRANSACTION transactionName
+@h2@ COMMIT TRANSACTION transactionName
 ","
 Sets the resolution of an in-doubt transaction to 'commit'.
 
@@ -1127,8 +1128,8 @@ COMMIT TRANSACTION XID_TEST
 "
 
 "Commands (Other)","GRANT RIGHT","
-GRANT { SELECT | INSERT | UPDATE | DELETE | ALL } [,...] ON
-{ { SCHEMA schemaName } | { tableName [,...] } }
+GRANT { { SELECT | INSERT | UPDATE | DELETE } [,..] | ALL [ PRIVILEGES ] } ON
+{ @h2@ { SCHEMA schemaName } | { [ TABLE ] tableName @h2@ [,...] } }
 TO { PUBLIC | userName | roleName }
 ","
 Grants rights for a table to a user or role.
@@ -1140,7 +1141,7 @@ GRANT SELECT ON TEST TO READONLY
 "
 
 "Commands (Other)","GRANT ALTER ANY SCHEMA","
-GRANT ALTER ANY SCHEMA TO userName
+@h2@ GRANT ALTER ANY SCHEMA TO userName
 ","
 Grant schema altering rights to a user.
 
@@ -1151,7 +1152,7 @@ GRANT ALTER ANY SCHEMA TO Bob
 "
 
 "Commands (Other)","GRANT ROLE","
-GRANT roleName TO { PUBLIC | userName | roleName }
+GRANT { roleName [,...] } TO { PUBLIC | userName | roleName }
 ","
 Grants a role to a user or role.
 
@@ -1162,7 +1163,7 @@ GRANT READONLY TO PUBLIC
 "
 
 "Commands (Other)","HELP","
-HELP [ anything [...] ]
+@h2@ HELP [ anything [...] ]
 ","
 Displays the help pages of SQL commands or keywords.
 ","
@@ -1170,7 +1171,7 @@ HELP SELECT
 "
 
 "Commands (Other)","PREPARE COMMIT","
-PREPARE COMMIT newTransactionName
+@h2@ PREPARE COMMIT newTransactionName
 ","
 Prepares committing a transaction.
 This command is part of the 2-phase-commit protocol.
@@ -1179,8 +1180,8 @@ PREPARE COMMIT XID_TEST
 "
 
 "Commands (Other)","REVOKE RIGHT","
-REVOKE { SELECT | INSERT | UPDATE | DELETE | ALL } [,...] ON
-{ { SCHEMA schemaName } | { tableName [,...] } }
+REVOKE { { SELECT | INSERT | UPDATE | DELETE } [,..] | ALL [ PRIVILEGES ] } ON
+{ @h2@ { SCHEMA schemaName } | { [ TABLE ] tableName @h2@ [,...] } }
 FROM { PUBLIC | userName | roleName }
 ","
 Removes rights for a table from a user or role.
@@ -1192,7 +1193,7 @@ REVOKE SELECT ON TEST FROM READONLY
 "
 
 "Commands (Other)","REVOKE ROLE","
-REVOKE roleName FROM { PUBLIC | userName | roleName }
+REVOKE { roleName [,...] } FROM { PUBLIC | userName | roleName }
 ","
 Removes a role from a user or role.
 
@@ -1203,7 +1204,7 @@ REVOKE READONLY FROM TOM
 "
 
 "Commands (Other)","ROLLBACK","
-ROLLBACK [ TO SAVEPOINT savepointName ]
+ROLLBACK [ WORK ] [ TO SAVEPOINT savepointName ]
 ","
 Rolls back a transaction. If a savepoint name is used, the transaction is only
 rolled back to the specified savepoint.
@@ -1212,7 +1213,7 @@ ROLLBACK
 "
 
 "Commands (Other)","ROLLBACK TRANSACTION","
-ROLLBACK TRANSACTION transactionName
+@h2@ ROLLBACK TRANSACTION transactionName
 ","
 Sets the resolution of an in-doubt transaction to 'rollback'.
 
@@ -1232,7 +1233,7 @@ SAVEPOINT HALF_DONE
 "
 
 "Commands (Other)","SET @","
-SET @variableName [ = ] expression
+@h2@ SET @variableName [ = ] expression
 ","
 Updates a user-defined variable.
 Variables are not persisted and session scoped, that means only visible from within the session in which they are defined.
@@ -1242,7 +1243,7 @@ SET @TOTAL=0
 "
 
 "Commands (Other)","SET ALLOW_LITERALS","
-SET ALLOW_LITERALS { NONE | ALL | NUMBERS }
+@h2@ SET ALLOW_LITERALS { NONE | ALL | NUMBERS }
 ","
 This setting can help solve the SQL injection problem. By default, text and
 number literals are allowed in SQL statements. However, this enables SQL
@@ -1264,7 +1265,7 @@ SET ALLOW_LITERALS NONE
 "
 
 "Commands (Other)","SET AUTOCOMMIT","
-SET AUTOCOMMIT { TRUE | ON | FALSE | OFF }
+@h2@ SET AUTOCOMMIT { TRUE | ON | FALSE | OFF }
 ","
 Switches auto commit on or off.
 This setting can be appended to the database URL: ""jdbc:h2:./test;AUTOCOMMIT=OFF"" -
@@ -1277,7 +1278,7 @@ SET AUTOCOMMIT OFF
 "
 
 "Commands (Other)","SET CACHE_SIZE","
-SET CACHE_SIZE int
+@h2@ SET CACHE_SIZE int
 ","
 Sets the size of the cache in KB (each KB being 1024 bytes) for the current database.
 The default is 65536 per available GB of RAM, i.e. 64 MB per GB.
@@ -1299,7 +1300,7 @@ SET CACHE_SIZE 8192
 "
 
 "Commands (Other)","SET CLUSTER","
-SET CLUSTER serverListString
+@h2@ SET CLUSTER serverListString
 ","
 This command should not be used directly by an application, the statement is
 executed automatically by the system. The behavior may change in future
@@ -1314,7 +1315,7 @@ SET CLUSTER ''
 "
 
 "Commands (Other)","SET BINARY_COLLATION","
-SET BINARY_COLLATION { UNSIGNED | SIGNED }
+@h2@ SET BINARY_COLLATION { UNSIGNED | SIGNED }
 ","
 Sets the collation used for comparing BINARY columns, the default is SIGNED
 for version 1.3 and older, and UNSIGNED for version 1.4 and newer.
@@ -1328,7 +1329,7 @@ SET BINARY_COLLATION SIGNED
 "
 
 "Commands (Other)","SET UUID_COLLATION","
-SET UUID_COLLATION { UNSIGNED | SIGNED }
+@h2@ SET UUID_COLLATION { UNSIGNED | SIGNED }
 ","
 Sets the collation used for comparing UUID columns, the default is SIGNED.
 This command can only be executed if there are no tables defined.
@@ -1346,7 +1347,7 @@ SET UUID_COLLATION UNSIGNED
 "
 
 "Commands (Other)","SET BUILTIN_ALIAS_OVERRIDE","
-SET BUILTIN_ALIAS_OVERRIDE { TRUE | FALSE }
+@h2@ SET BUILTIN_ALIAS_OVERRIDE { TRUE | FALSE }
 ","
 Allows the overriding of the builtin system date/time functions
 for unit testing purposes.
@@ -1358,7 +1359,7 @@ SET BUILTIN_ALIAS_OVERRIDE TRUE
 "
 
 "Commands (Other)","SET CATALOG","
-SET CATALOG { catalogString | catalogName }
+SET CATALOG { catalogString | @h2@ { catalogName } }
 ","
 This command has no effect if the specified name matches the name of the database, otherwise it throws an exception.
 
@@ -1369,8 +1370,8 @@ SET CATALOG DB_NAME
 "
 
 "Commands (Other)","SET COLLATION","
-SET [ DATABASE ] COLLATION
-{ OFF | collationName
+@h2@ SET [ DATABASE ] COLLATION
+@h2@ { OFF | collationName
     [ STRENGTH { PRIMARY | SECONDARY | TERTIARY | IDENTICAL } ] }
 ","
 Sets the collation used for comparing strings.
@@ -1397,7 +1398,7 @@ SET COLLATION CHARSET_CP500
 "
 
 "Commands (Other)","SET COMPRESS_LOB","
-SET COMPRESS_LOB { NO | LZF | DEFLATE }
+@h2@ SET COMPRESS_LOB { NO | LZF | DEFLATE }
 ","
 This feature is only available for the PageStore storage engine.
 For the MVStore engine (the default for H2 version 1.4.x),
@@ -1414,7 +1415,7 @@ SET COMPRESS_LOB LZF
 "
 
 "Commands (Other)","SET DATABASE_EVENT_LISTENER","
-SET DATABASE_EVENT_LISTENER classNameString
+@h2@ SET DATABASE_EVENT_LISTENER classNameString
 ","
 Sets the event listener class. An empty string ('') means no listener should be
 used. This setting is not persistent.
@@ -1427,7 +1428,7 @@ SET DATABASE_EVENT_LISTENER 'sample.MyListener'
 "
 
 "Commands (Other)","SET DB_CLOSE_DELAY","
-SET DB_CLOSE_DELAY int
+@h2@ SET DB_CLOSE_DELAY int
 ","
 Sets the delay for closing a database if all connections are closed.
 The value -1 means the database is never closed until the close delay is set to some other value or SHUTDOWN is called.
@@ -1445,7 +1446,7 @@ SET DB_CLOSE_DELAY -1
 "
 
 "Commands (Other)","SET DEFAULT_LOCK_TIMEOUT","
-SET DEFAULT LOCK_TIMEOUT int
+@h2@ SET DEFAULT LOCK_TIMEOUT int
 ","
 Sets the default lock timeout (in milliseconds) in this database that is used
 for the new sessions. The default value for this setting is 1000 (one second).
@@ -1458,7 +1459,7 @@ SET DEFAULT_LOCK_TIMEOUT 5000
 "
 
 "Commands (Other)","SET DEFAULT_TABLE_TYPE","
-SET DEFAULT_TABLE_TYPE { MEMORY | CACHED }
+@h2@ SET DEFAULT_TABLE_TYPE { MEMORY | CACHED }
 ","
 Sets the default table storage type that is used when creating new tables.
 Memory tables are kept fully in the main memory (including indexes), however
@@ -1474,7 +1475,7 @@ SET DEFAULT_TABLE_TYPE MEMORY
 "
 
 "Commands (Other)","SET EXCLUSIVE","
-SET EXCLUSIVE { 0 | 1 | 2 }
+@h2@ SET EXCLUSIVE { 0 | 1 | 2 }
 ","
 Switched the database to exclusive mode (1, 2) and back to normal mode (0).
 
@@ -1494,7 +1495,7 @@ SET EXCLUSIVE 1
 "
 
 "Commands (Other)","SET IGNORECASE","
-SET IGNORECASE { TRUE | FALSE }
+@h2@ SET IGNORECASE { TRUE | FALSE }
 ","
 If IGNORECASE is enabled, text columns in newly created tables will be
 case-insensitive. Already existing tables are not affected. The effect of
@@ -1511,7 +1512,7 @@ SET IGNORECASE TRUE
 "
 
 "Commands (Other)","SET IGNORE_CATALOGS","
-SET IGNORE_CATALOGS { TRUE | FALSE }
+@c@ SET IGNORE_CATALOGS { TRUE | FALSE }
 ","
 If IGNORE_CATALOGS is enabled, catalog names in front of schema names will be ignored. This can be used if
 multiple catalogs used by the same connections must be simulated. Caveat: if both catalogs contain schemas of the
@@ -1523,8 +1524,7 @@ SET IGNORE_CATALOGS TRUE
 "
 
 "Commands (Other)","SET JAVA_OBJECT_SERIALIZER","
-SET JAVA_OBJECT_SERIALIZER
-{ null | className }
+@h2@ SET JAVA_OBJECT_SERIALIZER { null | className }
 ","
 Sets the object used to serialize and deserialize java objects being stored in column of type OTHER.
 The serializer class must be public and implement ""org.h2.api.JavaObjectSerializer"".
@@ -1542,7 +1542,7 @@ SET JAVA_OBJECT_SERIALIZER 'com.acme.SerializerClassName'
 "
 
 "Commands (Other)","SET LAZY_QUERY_EXECUTION","
-SET LAZY_QUERY_EXECUTION int
+@h2@ SET LAZY_QUERY_EXECUTION int
 ","
 Sets the lazy query execution mode. The values 0, 1 are supported.
 
@@ -1557,7 +1557,7 @@ SET LAZY_QUERY_EXECUTION 1
 "
 
 "Commands (Other)","SET LOG","
-SET LOG int
+@h2@ SET LOG int
 ","
 Sets the transaction log mode. The values 0, 1, and 2 are supported, the default is 2.
 This setting affects all connections.
@@ -1584,7 +1584,7 @@ SET LOG 1
 "
 
 "Commands (Other)","SET LOCK_MODE","
-SET LOCK_MODE int
+@h2@ SET LOCK_MODE int
 ","
 Sets the lock mode. The values 0, 1, 2, and 3 are supported. The default is 3.
 This setting affects all connections.
@@ -1612,7 +1612,7 @@ SET LOCK_MODE 1
 "
 
 "Commands (Other)","SET LOCK_TIMEOUT","
-SET LOCK_TIMEOUT int
+@h2@ SET LOCK_TIMEOUT int
 ","
 Sets the lock timeout (in milliseconds) for the current session. The default
 value for this setting is 1000 (one second).
@@ -1624,7 +1624,7 @@ SET LOCK_TIMEOUT 1000
 "
 
 "Commands (Other)","SET MAX_LENGTH_INPLACE_LOB","
-SET MAX_LENGTH_INPLACE_LOB int
+@h2@ SET MAX_LENGTH_INPLACE_LOB int
 ","
 Sets the maximum size of an in-place LOB object.
 
@@ -1639,7 +1639,7 @@ SET MAX_LENGTH_INPLACE_LOB 128
 "
 
 "Commands (Other)","SET MAX_LOG_SIZE","
-SET MAX_LOG_SIZE int
+@h2@ SET MAX_LOG_SIZE int
 ","
 Sets the maximum size of the transaction log, in megabytes.
 If the log is larger, and if there is no open transaction, the transaction log is truncated.
@@ -1655,7 +1655,7 @@ SET MAX_LOG_SIZE 2
 "
 
 "Commands (Other)","SET MAX_MEMORY_ROWS","
-SET MAX_MEMORY_ROWS int
+@h2@ SET MAX_MEMORY_ROWS int
 ","
 The maximum number of rows in a result set that are kept in-memory. If more rows
 are read, then the rows are buffered to disk.
@@ -1670,7 +1670,7 @@ SET MAX_MEMORY_ROWS 1000
 "
 
 "Commands (Other)","SET MAX_MEMORY_UNDO","
-SET MAX_MEMORY_UNDO int
+@h2@ SET MAX_MEMORY_UNDO int
 ","
 The maximum number of undo records per a session that are kept in-memory.
 If a transaction is larger, the records are buffered to disk.
@@ -1687,7 +1687,7 @@ SET MAX_MEMORY_UNDO 1000
 "
 
 "Commands (Other)","SET MAX_OPERATION_MEMORY","
-SET MAX_OPERATION_MEMORY int
+@h2@ SET MAX_OPERATION_MEMORY int
 ","
 Sets the maximum memory used for large operations (delete and insert), in bytes.
 Operations that use more memory are buffered to disk, slowing down the
@@ -1702,7 +1702,7 @@ SET MAX_OPERATION_MEMORY 0
 "
 
 "Commands (Other)","SET MODE","
-SET MODE { REGULAR | DB2 | DERBY | HSQLDB | MSSQLSERVER | MYSQL | ORACLE | POSTGRESQL }
+@h2@ SET MODE { REGULAR | DB2 | DERBY | HSQLDB | MSSQLSERVER | MYSQL | ORACLE | POSTGRESQL }
 ","
 Changes to another database compatibility mode. For details, see Compatibility
 Modes in the feature section.
@@ -1716,7 +1716,7 @@ SET MODE HSQLDB
 "
 
 "Commands (Other)","SET OPTIMIZE_REUSE_RESULTS","
-SET OPTIMIZE_REUSE_RESULTS { 0 | 1 }
+@h2@ SET OPTIMIZE_REUSE_RESULTS { 0 | 1 }
 ","
 Enabled (1) or disabled (0) the result reuse optimization. If enabled,
 subqueries and views used as subqueries are only re-run if the data in one of
@@ -1730,7 +1730,7 @@ SET OPTIMIZE_REUSE_RESULTS 0
 "
 
 "Commands (Other)","SET PASSWORD","
-SET PASSWORD string
+@h2@ SET PASSWORD string
 ","
 Changes the password of the current user. The password must be in single quotes.
 It is case sensitive and can contain spaces.
@@ -1741,7 +1741,7 @@ SET PASSWORD 'abcstzri!.5'
 "
 
 "Commands (Other)","SET QUERY_STATISTICS","
-SET QUERY_STATISTICS { TRUE | FALSE }
+@h2@ SET QUERY_STATISTICS { TRUE | FALSE }
 ","
 Disabled or enables query statistics gathering for the whole database.
 The statistics are reflected in the INFORMATION_SCHEMA.QUERY_STATISTICS meta-table.
@@ -1754,7 +1754,7 @@ SET QUERY_STATISTICS FALSE
 "
 
 "Commands (Other)","SET QUERY_STATISTICS_MAX_ENTRIES","
-SET QUERY_STATISTICS int
+@h2@ SET QUERY_STATISTICS int
 ","
 Set the maximum number of entries in query statistics meta-table.
 Default value is 100.
@@ -1767,7 +1767,7 @@ SET QUERY_STATISTICS_MAX_ENTRIES 500
 "
 
 "Commands (Other)","SET QUERY_TIMEOUT","
-SET QUERY_TIMEOUT int
+@h2@ SET QUERY_TIMEOUT int
 ","
 Set the query timeout of the current session to the given value. The timeout is
 in milliseconds. All kinds of statements will throw an exception if they take
@@ -1779,7 +1779,7 @@ SET QUERY_TIMEOUT 10000
 "
 
 "Commands (Other)","SET REFERENTIAL_INTEGRITY","
-SET REFERENTIAL_INTEGRITY { TRUE | FALSE }
+@h2@ SET REFERENTIAL_INTEGRITY { TRUE | FALSE }
 ","
 Disabled or enables referential integrity checking for the whole database.
 Enabling it does not check existing data. Use ALTER TABLE SET to disable it only
@@ -1793,7 +1793,7 @@ SET REFERENTIAL_INTEGRITY FALSE
 "
 
 "Commands (Other)","SET RETENTION_TIME","
-SET RETENTION_TIME int
+@h2@ SET RETENTION_TIME int
 ","
 This property is only used when using the MVStore storage engine.
 How long to retain old, persisted data, in milliseconds.
@@ -1813,7 +1813,7 @@ SET RETENTION_TIME 0
 "
 
 "Commands (Other)","SET SALT HASH","
-SET SALT bytes HASH bytes
+@h2@ SET SALT bytes HASH bytes
 ","
 Sets the password salt and hash for the current user. The password must be in
 single quotes. It is case sensitive and can contain spaces.
@@ -1824,7 +1824,7 @@ SET SALT '00' HASH '1122'
 "
 
 "Commands (Other)","SET SCHEMA","
-SET SCHEMA { schemaString | schemaName }
+SET SCHEMA { schemaString | @h2@ { schemaName } }
 ","
 Changes the default schema of the current connection. The default schema is used
 in statements where no schema is set explicitly. The default schema for new
@@ -1838,7 +1838,7 @@ SET SCHEMA INFORMATION_SCHEMA
 "
 
 "Commands (Other)","SET SCHEMA_SEARCH_PATH","
-SET SCHEMA_SEARCH_PATH schemaName [,...]
+@h2@ SET SCHEMA_SEARCH_PATH schemaName [,...]
 ","
 Changes the schema search path of the current connection. The default schema is
 used in statements where no schema is set explicitly. The default schema for new
@@ -1863,7 +1863,7 @@ SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE
 "
 
 "Commands (Other)","SET THROTTLE","
-SET THROTTLE int
+@h2@ SET THROTTLE int
 ","
 Sets the throttle for the current connection. The value is the number of
 milliseconds delay after each 50 ms. The default value is 0 (throttling
@@ -1876,7 +1876,7 @@ SET THROTTLE 200
 "
 
 "Commands (Other)","SET TRACE_LEVEL","
-SET { TRACE_LEVEL_FILE | TRACE_LEVEL_SYSTEM_OUT } int
+@h2@ SET { TRACE_LEVEL_FILE | TRACE_LEVEL_SYSTEM_OUT } int
 ","
 Sets the trace level for file the file or system out stream. Levels are: 0=off,
 1=error, 2=info, 3=debug. The default level is 1 for file and 0 for system out.
@@ -1891,7 +1891,7 @@ SET TRACE_LEVEL_SYSTEM_OUT 3
 "
 
 "Commands (Other)","SET TRACE_MAX_FILE_SIZE","
-SET TRACE_MAX_FILE_SIZE int
+@h2@ SET TRACE_MAX_FILE_SIZE int
 ","
 Sets the maximum trace file size. If the file exceeds the limit, the file is
 renamed to .old and a new file is created. If another .old file exists, it is
@@ -1906,7 +1906,7 @@ SET TRACE_MAX_FILE_SIZE 10
 "
 
 "Commands (Other)","SET UNDO_LOG","
-SET UNDO_LOG int
+@h2@ SET UNDO_LOG int
 ","
 Enables (1) or disables (0) the per session undo log. The undo log is enabled by
 default. When disabled, transactions can not be rolled back. This setting should
@@ -1918,7 +1918,7 @@ SET UNDO_LOG 0
 "
 
 "Commands (Other)","SET WRITE_DELAY","
-SET WRITE_DELAY int
+@h2@ SET WRITE_DELAY int
 ","
 Set the maximum delay between a commit and flushing the log, in milliseconds.
 This setting is persistent. The default is 500 ms.
@@ -1931,7 +1931,7 @@ SET WRITE_DELAY 2000
 "
 
 "Commands (Other)","SHUTDOWN","
-SHUTDOWN [ IMMEDIATELY | COMPACT | DEFRAG ]
+@h2@ SHUTDOWN [ IMMEDIATELY | COMPACT | DEFRAG ]
 ","
 This statement closes all open connections to the database and closes the
 database. This command is usually not required, as the database is
@@ -1954,8 +1954,8 @@ SHUTDOWN COMPACT
 "
 
 "Literals","Value","
-string | dollarQuotedString | numeric | dateAndTime | boolean | bytes
-    | interval | array | json | null
+string | @h2@ { dollarQuotedString } | numeric | dateAndTime | boolean | bytes
+    | interval | array | @h2@ { json } | null
 ","
 A literal value of any data type, or null.
 ","
@@ -2025,7 +2025,7 @@ SELECT -1.4e-10
 "
 
 "Literals","Dollar Quoted String","
-$$anythingExceptTwoDollarSigns$$
+@h2@ $$anythingExceptTwoDollarSigns$$
 ","
 A string starts and ends with two dollar signs. Two dollar signs are not allowed
 within the text. A whitespace is required before the first set of dollar signs.
@@ -2035,7 +2035,7 @@ $$John's car$$
 "
 
 "Literals","Hex Number","
-[ + | - ] 0x { digit | a-f | A-F } [...]
+@h2@ [ + | - ] @h2@ 0x { digit | a-f | A-F } [...]
 ","
 A number written in hexadecimal notation.
 ","
@@ -2051,7 +2051,7 @@ The maximum integer number is 2147483647, the minimum is -2147483648.
 "
 
 "Literals","JSON","
-JSON { bytes | string }
+@h2@ JSON { bytes | string }
 ","
 A binary or character string with a RFC 8259-compliant JSON text and data format.
 JSON text is parsed into internal representation.
@@ -2088,7 +2088,7 @@ The maximum length of the number depends on the data type used.
 "
 
 "Literals","Numeric","
-decimal | int | long | hexNumber
+decimal | int | long | @h2@ { hexNumber }
 ","
 The data type of a numeric value is always the lowest possible for the given value.
 If the number contains a dot this is decimal; otherwise it is int, long, or decimal (depending on the value).
@@ -2118,7 +2118,7 @@ TIME '23:59:59'
 "
 
 "Literals","Time with time zone","
-TIME WITH TIME ZONE 'hh:mm:ss[.nnnnnnnnn]{Z | { - | + } timeZoneOffsetString}'
+TIME WITH TIME ZONE 'hh:mm:ss[.nnnnnnnnn]{ @h2@ { Z } | { - | + } timeZoneOffsetString}'
 ","
 A time with time zone literal. A value is between 0:00:00 and 23:59:59.999999999
 and has nanosecond resolution.
@@ -2138,7 +2138,7 @@ TIMESTAMP '2005-12-31 23:59:59'
 
 "Literals","Timestamp with time zone","
 TIMESTAMP WITH TIME ZONE '[-]yyyy-MM-dd hh:mm:ss[.nnnnnnnnn]
-[Z | { - | + } timeZoneOffsetString | timeZoneNameString ]'
+[ @h2@ { Z } | { - | + } timeZoneOffsetString | @h2@ { timeZoneNameString } ]'
 ","
 A timestamp with time zone literal.
 If name of time zone is specified it will be converted to time zone offset.
@@ -2267,11 +2267,12 @@ INTERVAL '11:12.123' MINUTE TO SECOND
 "Datetime fields","Datetime field","
 yearField | monthField | dayOfMonthField
     | hourField | minuteField | secondField
+    | timezoneHourField | timezoneMinuteField
+    | @h2@ { timezoneSecondField
     | millisecondField | microsecondField | nanosecondField
-    | timezoneHourField | timezoneMinuteField | timezoneSecondField
     | dayOfWeekField | isoWeekYearField | isoDayOfWeekField
     | weekOfYearField | isoWeekOfYearField
-    | quarterField | dayOfYearField | epochField
+    | quarterField | dayOfYearField | epochField }
 ","
 Fields for EXTRACT, DATEADD, and DATEDIFF functions.
 ","
@@ -2279,7 +2280,7 @@ YEAR
 "
 
 "Datetime fields","Year field","
-YEAR | YYYY | YY | SQL_TSI_YEAR
+YEAR | @c@ { YYYY | YY | SQL_TSI_YEAR }
 ","
 Year.
 ","
@@ -2287,7 +2288,7 @@ YEAR
 "
 
 "Datetime fields","Month field","
-MONTH | MM | M | SQL_TSI_MONTH
+MONTH | @c@ { MM | M | SQL_TSI_MONTH }
 ","
 Month (1-12).
 ","
@@ -2295,7 +2296,7 @@ MONTH
 "
 
 "Datetime fields","Day of month field","
-DAY | DD | D | SQL_TSI_DAY
+DAY | @c@ { DD | D | SQL_TSI_DAY }
 ","
 Day of month (1-31).
 ","
@@ -2303,7 +2304,7 @@ DAY
 "
 
 "Datetime fields","Hour field","
-HOUR | HH | SQL_TSI_HOUR
+HOUR | @c@ { HH | SQL_TSI_HOUR }
 ","
 Hour (0-23).
 ","
@@ -2311,7 +2312,7 @@ HOUR
 "
 
 "Datetime fields","Minute field","
-MINUTE | MI | N | SQL_TSI_MINUTE
+MINUTE | @c@ { MI | N | SQL_TSI_MINUTE }
 ","
 Minute (0-59).
 ","
@@ -2319,7 +2320,7 @@ MINUTE
 "
 
 "Datetime fields","Second field","
-SECOND | SS | S | SQL_TSI_SECOND
+SECOND | @c@ { SS | S | SQL_TSI_SECOND }
 ","
 Second (0-59).
 ","
@@ -2327,7 +2328,7 @@ SECOND
 "
 
 "Datetime fields","Millisecond field","
-MILLISECOND | MS
+@h2@ { MILLISECOND } | @c@ { MS }
 ","
 Millisecond (0-999).
 ","
@@ -2335,7 +2336,7 @@ MILLISECOND
 "
 
 "Datetime fields","Microsecond field","
-MICROSECOND | MCS
+@h2@ { MICROSECOND } | @c@ { MCS }
 ","
 Microsecond (0-999999).
 ","
@@ -2343,7 +2344,7 @@ MICROSECOND
 "
 
 "Datetime fields","Nanosecond field","
-NANOSECOND | NS
+@h2@ { NANOSECOND } | @c@ { NS }
 ","
 Nanosecond (0-999999999).
 ","
@@ -2367,7 +2368,7 @@ TIMEZONE_MINUTE
 "
 
 "Datetime fields","Timezone second field","
-TIMEZONE_SECOND
+@h2@ TIMEZONE_SECOND
 ","
 Timezone second (from -59 to +59).
 Local mean time (LMT) used in the past may have offsets with seconds.
@@ -2377,7 +2378,7 @@ TIMEZONE_SECOND
 "
 
 "Datetime fields","Day of week field","
-DAY_OF_WEEK | DAYOFWEEK | DOW
+@h2@ { DAY_OF_WEEK | DAYOFWEEK } | @c@ { DOW }
 ","
 Day of week (1-7). Sunday is 1.
 ","
@@ -2385,7 +2386,7 @@ DAY_OF_WEEK
 "
 
 "Datetime fields","ISO week year field","
-ISO_YEAR | ISOYEAR
+@h2@ { ISO_YEAR } | @c@ { ISOYEAR }
 ","
 Returns the ISO week year from a date/time value.
 ","
@@ -2393,7 +2394,7 @@ ISO_YEAR
 "
 
 "Datetime fields","ISO day of week field","
-ISO_DAY_OF_WEEK | ISODOW
+@h2@ { ISO_DAY_OF_WEEK } | @c@ { ISODOW }
 ","
 ISO day of week (1-7). Monday is 1.
 ","
@@ -2401,7 +2402,7 @@ ISO_DAY_OF_WEEK
 "
 
 "Datetime fields","Week of year field","
-WEEK | WW | W | SQL_TSI_WEEK
+@h2@ { WEEK } | @c@ { WW | W | SQL_TSI_WEEK }
 ","
 Week of year (1-53).
 EXTRACT function uses local rules to get number of week in year.
@@ -2411,7 +2412,7 @@ WEEK
 "
 
 "Datetime fields","ISO week of year field","
-ISO_WEEK
+@h2@ ISO_WEEK
 ","
 ISO week of year (1-53).
 ISO definition is used when first week of year should have at least four days
@@ -2421,7 +2422,7 @@ ISO_WEEK
 "
 
 "Datetime fields","Quarter field","
-QUARTER
+@h2@ QUARTER
 ","
 Quarter (1-4).
 ","
@@ -2429,7 +2430,7 @@ QUARTER
 "
 
 "Datetime fields","Day of year field","
-DAYOFYEAR | DAY_OF_YEAR | DOY | DY
+@h2@ { DAYOFYEAR | DAY_OF_YEAR } | @c@ { DOY | DY }
 ","
 Day of year (1-366).
 ","
@@ -2437,7 +2438,7 @@ DAYOFYEAR
 "
 
 "Datetime fields","Epoch field","
-EPOCH
+@h2@ EPOCH
 ","
 For TIMESTAMP values number of seconds since 1970-01-01 00:00:00 in local time zone.
 For TIMESTAMP WITH TIME ZONE values number of seconds since 1970-01-01 00:00:00 in UTC time zone.
@@ -2484,7 +2485,7 @@ CASE WHEN CNT<10 THEN 'Low' ELSE 'High' END
 "
 
 "Other Grammar","Cipher","
-AES
+@h2@ AES
 ","
 Only the algorithm AES (""AES-128"") is supported currently.
 ","
@@ -2492,14 +2493,14 @@ AES
 "
 
 "Other Grammar","Column Definition","
-dataType [ VISIBLE | INVISIBLE ]
+dataType @h2@ [ VISIBLE | INVISIBLE ]
 [ { DEFAULT expression
-    | AS computedColumnExpression
+    | [ GENERATED ALWAYS ] AS (computedColumnExpression)
     | GENERATED {ALWAYS | BY DEFAULT} AS IDENTITY [(sequenceOptions)]} ]
-[ ON UPDATE expression ] [ [ NOT ] NULL ]
-[ { AUTO_INCREMENT | IDENTITY } [ ( startInt [, incrementInt ] ) ] ]
-[ SELECTIVITY selectivityInt ] [ COMMENT expression ]
-[ PRIMARY KEY [ HASH ] | UNIQUE ] [ CHECK condition ]
+@h2@ [ ON UPDATE expression ] [ NOT NULL | @h2@ { NULL } ]
+@c@ [ { AUTO_INCREMENT | IDENTITY } [ ( startInt [, incrementInt ] ) ] ]
+@h2@ [ SELECTIVITY selectivityInt ] @h2@ [ COMMENT expression ]
+[ PRIMARY KEY @c@ [ HASH ] | UNIQUE ] [ CHECK condition ]
 ","
 Default expressions are used if no explicit value was used when adding a row.
 The computed column expression is evaluated and assigned whenever the row changes.
@@ -2511,7 +2512,7 @@ Identity, auto-increment, or generated as identity columns are columns with a se
 The column declared as the identity columns with IDENTITY data type or with IDENTITY () clause
 is implicitly the primary key column of this table.
 AUTO_INCREMENT and GENERATED clauses do not create the primary key constraint.
-GENERATED ALWAYS is accepted but treated in the same way as GENERATED BY DEFAULT.
+GENERATED ALWAYS AS IDENTITY is accepted but treated in the same way as GENERATED BY DEFAULT AS IDENTITY.
 
 The invisible column will not be displayed as a result of SELECT * query.
 Otherwise, it works as normal column.
@@ -2530,7 +2531,7 @@ CREATE TABLE TEST(QUANTITY INT, PRICE DECIMAL, AMOUNT DECIMAL AS QUANTITY*PRICE)
 "
 
 "Other Grammar","Comments","
--- anythingUntilEndOfLine | // anythingUntilEndOfLine | /* anythingUntilEndComment */
+-- anythingUntilEndOfLine | /* anythingUntilEndComment */ | @h2@ // anythingUntilEndOfLine
 ","
 Comments can be used anywhere in a command and are ignored by the database. Line
 comments end with a newline. Block comments cannot be nested, but can be
@@ -2540,7 +2541,7 @@ multiple lines long.
 "
 
 "Other Grammar","Compare","
-<> | <= | >= | = | < | > | != | &&
+<> | <= | >= | = | < | > | != | @h2@ &&
 ","
 Comparison operator. The operator != is the same as <>.
 The operator ""&&"" means overlapping; it can only be used with geometry types.
@@ -2553,7 +2554,7 @@ operand [ conditionRightHandSide ]
     | NOT condition
     | EXISTS ( query )
     | UNIQUE ( query )
-    | INTERSECTS (operand, operand)
+    | @h2@ INTERSECTS (operand, operand)
 ","
 Boolean value or condition.
 
@@ -2584,8 +2585,8 @@ compare { { { ALL | ANY | SOME } ( query ) } | operand }
         [ [ WITH | WITHOUT ] UNIQUE [ KEYS ] ]
     | BETWEEN operand AND operand
     | IN ( { query | expression [,...] } )
-    | [ NOT ] [ LIKE | ILIKE ] operand [ ESCAPE string ]
-    | [ NOT ] REGEXP operand
+    | [ NOT ] { LIKE | @h2@ { ILIKE } } operand [ ESCAPE string ]
+    | @h2@ { [ NOT ] REGEXP operand }
 ","
 The right hand side of a condition.
 
@@ -2653,7 +2654,7 @@ LIKE 'Jo%'
 { CHECK expression
     | UNIQUE ( columnName [,...] )
     | referentialConstraint
-    | PRIMARY KEY [ HASH ] ( columnName [,...] ) }
+    | PRIMARY KEY @h2@ [ HASH ] ( columnName [,...] ) }
 ","
 Defines a constraint.
 The check condition must evaluate to TRUE, FALSE or NULL.
@@ -2665,7 +2666,7 @@ PRIMARY KEY(ID, NAME)
 "
 
 "Other Grammar","Constraint Name Definition","
-CONSTRAINT [ IF NOT EXISTS ] newConstraintName
+CONSTRAINT @h2@ [ IF NOT EXISTS ] newConstraintName
 ","
 Defines a constraint name.
 ","
@@ -2673,7 +2674,7 @@ CONSTRAINT CONST_ID
 "
 
 "Other Grammar","Csv Options","
-charsetString [, fieldSepString [, fieldDelimString [, escString [, nullString]]]]]
+@h2@ charsetString [, fieldSepString [, fieldDelimString [, escString [, nullString]]]]
     | optionString
 ","
 Optional parameters for CSVREAD and CSVWRITE.
@@ -2715,7 +2716,7 @@ CALL CSVWRITE('test2.csv', 'SELECT * FROM TEST', 'charset=UTF-8 fieldSeparator=|
 
 "Other Grammar","Data Change Delta Table","
 { OLD | NEW | FINAL } TABLE
-( { insert | update | delete | mergeInto | mergeUsing } )
+( { insert | update | delete | @h2@ { mergeInto } | mergeUsing } )
 ","
 Executes the inner data change command and returns old, new, or final rows.
 
@@ -2732,11 +2733,13 @@ SELECT ID FROM FINAL TABLE (INSERT INTO TEST (A, B) VALUES (1, 2))
 "
 
 "Other Grammar","Data Type","
-intType | booleanType | tinyintType | smallintType | bigintType | identityType
+intType | booleanType | smallintType | bigintType
     | decimalType | doubleType | realType | dateType | timeType
     | timeWithTimeZoneType | timestampType | timestampWithTimeZoneType
-    | binaryType | otherType | varcharType | varcharIgnorecaseType | charType
-    | blobType | clobType | uuidType | arrayType | enumType | intervalType
+    | binaryType | varcharType | charType
+    | blobType | clobType | arrayType | intervalType
+    | @h2@ { tinyintType | identityType | otherType | varcharIgnorecaseType
+    | uuidType | enumType }
 ","
 A data type definition.
 ","
@@ -2760,7 +2763,7 @@ ID=1 OR NAME='Hi'
 "
 
 "Other Grammar","Factor","
-term [ { { * | / | % } term } [...] ]
+term [ { { * | / | @h2@ { % } } term } [...] ]
 ","
 A value or a numeric factor.
 ","
@@ -2800,8 +2803,8 @@ NAME
 
 "Other Grammar","Insert columns and source","
 { [ ( columnName [,...] ) ]
-    { insertValues | [ DIRECT ] [ SORTED ] query | DEFAULT VALUES } }
-    | { SET { columnName = { DEFAULT | expression } } [,...] }
+    { insertValues | @h2@ [ DIRECT ] @h2@ [ SORTED ] query | DEFAULT VALUES } }
+    | @c@ { SET { columnName = { DEFAULT | expression } } [,...] }
 ","
 Names of columns and their values for INSERT statement.
 ","
@@ -2850,7 +2853,7 @@ WHEN MATCHED THEN DELETE
 WHEN MATCHED [ AND expression ] THEN
 UPDATE SET setClauseList
     | DELETE
-    | {UPDATE SET setClauseList [ WHERE expression ] DELETE [ WHERE expression ]}
+    | @c@ {UPDATE SET setClauseList [ WHERE expression ] DELETE [ WHERE expression ]}
 ","
 WHEN MATCHED clause for MERGE USING command.
 
@@ -2906,13 +2909,11 @@ ARRAY[1, 2] || ARRAY[3, 4]
 "
 
 "Other Grammar","Order","
-{ int | expression } [ ASC | DESC ] [ NULLS { FIRST | LAST } ]
+expression [ ASC | DESC ] [ NULLS { FIRST | LAST } ]
 ","
-Sorts the result by the given column number, or by an expression. If the
-expression is a single parameter, then the value is interpreted as a column
-number. Negative column numbers reverse the sort order.
+Sorts the result by an expression.
 ","
-NAME DESC NULLS LAST
+X ASC NULLS FIRST
 "
 
 "Other Grammar","Query","
@@ -2963,14 +2964,24 @@ FOREIGN KEY(ID) REFERENCES TEST(ID) ON UPDATE CASCADE
 "
 
 "Other Grammar","Script Compression Encryption","
-[ COMPRESSION { DEFLATE | LZF | ZIP | GZIP } ]
-[ CIPHER cipher PASSWORD string ]
+@h2@ [ COMPRESSION { DEFLATE | LZF | ZIP | GZIP } ]
+@h2@ [ CIPHER cipher PASSWORD string ]
 ","
 The compression and encryption algorithm to use for script files.
 When using encryption, only DEFLATE and LZF are supported.
 LZF is faster but uses more space.
 ","
 COMPRESSION LZF
+"
+
+"Other Grammar","Select order","
+{ expression | @c@ { int } } [ ASC | DESC ] [ NULLS { FIRST | LAST } ]
+","
+Sorts the result by the given column number, or by an expression. If the
+expression is a single parameter, then the value is interpreted as a column
+number. Negative column numbers reverse the sort order.
+","
+NAME DESC NULLS LAST
 "
 
 "Other Grammar","Row value expression","
@@ -2994,7 +3005,7 @@ ID AS VALUE
 "
 
 "Other Grammar","Sequence value expression","
-{ NEXT | CURRENT } VALUE FOR [schemaName.]sequenceName
+{ NEXT | @h2@ { CURRENT } } VALUE FOR [schemaName.]sequenceName
 ","
 The next or current value of a sequence.
 
@@ -3024,10 +3035,10 @@ START WITH 10 INCREMENT BY 10
 "Other Grammar","Sequence option","
 { START | RESTART } WITH long
     | INCREMENT BY long
-    | MINVALUE long | NO MINVALUE | NOMINVALUE
-    | MAXVALUE long | NO MAXVALUE | NOMAXVALUE
-    | CYCLE | NO CYCLE | NOCYCLE
-    | CACHE long | NO CACHE | NOCACHE
+    | MINVALUE long | NO MINVALUE | @c@ { NOMINVALUE }
+    | MAXVALUE long | NO MAXVALUE | @c@ { NOMAXVALUE }
+    | CYCLE | NO CYCLE | @c@ { NOCYCLE }
+    | @h2@ { CACHE long } | @h2@ { NO CACHE } | @c@ { NOCACHE }
 ","
 Option of a sequence.
 
@@ -3083,7 +3094,7 @@ ID + 20
     | table
     | dataChangeDeltaTable }
 [ [ AS ] newTableAlias [ ( columnName [,...] ) ] ]
-[ USE INDEX ([ indexName [,...] ]) ]
+@h2@ [ USE INDEX ([ indexName [,...] ]) ]
 [ { { LEFT | RIGHT } [ OUTER ] | [ INNER ] | CROSS | NATURAL }
     JOIN tableExpression [ joinSpecification ] ]
 ","
@@ -3095,7 +3106,7 @@ TEST1 AS T1 LEFT JOIN TEST2 AS T2 ON T1.ID = T2.PARENT_ID
 "
 
 "Other Grammar","Within group specification","
-WITHIN GROUP (ORDER BY {expression [ASC|DESC]} [,...])
+WITHIN GROUP (ORDER BY order [,...])
 ","
 Group specification for ordered set functions.
 ","
@@ -3103,7 +3114,7 @@ WITHIN GROUP (ORDER BY ID DESC)
 "
 
 "Other Grammar","Wildcard expression","
-{* | tableAlias.*} [EXCEPT ([tableAlias.]columnName, [,...])]
+{* | @h2@ {tableAlias.*}} @h2@ [EXCEPT ([tableAlias.]columnName, [,...])]
 ","
 A wildcard expression in a SELECT statement.
 A wildcard expression represents all visible columns. Some columns can be excluded with optional EXCEPT clause.
@@ -3250,7 +3261,7 @@ AT TIME ZONE 'Europe/London'
 "
 
 "Other Grammar","Column","
-[[schemaName.]tableAlias.] { columnName | _ROWID_ }
+[[schemaName.]tableAlias.] { columnName | @h2@ { _ROWID_ } }
 ","
 A column name with optional table alias and schema.
 _ROWID_ can be used to access unique row identifier.
@@ -3259,7 +3270,7 @@ ID
 "
 
 "Data Types","INT Type","
-INT | INTEGER | MEDIUMINT | INT4 | SIGNED
+INT | INTEGER |  @c@ { MEDIUMINT | INT4 | SIGNED }
 ","
 Possible values: -2147483648 to 2147483647.
 
@@ -3270,7 +3281,7 @@ INT
 "
 
 "Data Types","BOOLEAN Type","
-BOOLEAN | BIT | BOOL
+BOOLEAN | @c@ { BIT | BOOL }
 ","
 Possible values: TRUE, FALSE, and UNKNOWN (NULL).
 
@@ -3281,7 +3292,7 @@ BOOLEAN
 "
 
 "Data Types","TINYINT Type","
-TINYINT
+@h2@ TINYINT
 ","
 Possible values are: -128 to 127.
 
@@ -3292,7 +3303,7 @@ TINYINT
 "
 
 "Data Types","SMALLINT Type","
-SMALLINT | INT2 | YEAR
+SMALLINT | @c@ { INT2 | YEAR }
 ","
 Possible values: -32768 to 32767.
 
@@ -3303,7 +3314,7 @@ SMALLINT
 "
 
 "Data Types","BIGINT Type","
-BIGINT | INT8
+BIGINT | @c@ INT8
 ","
 Possible values: -9223372036854775808 to 9223372036854775807.
 
@@ -3314,7 +3325,7 @@ BIGINT
 "
 
 "Data Types","IDENTITY Type","
-IDENTITY
+@c@ IDENTITY
 ","
 Auto-Increment value. Possible values: -9223372036854775808 to
 9223372036854775807. Used values are never re-used, even when the transaction is
@@ -3327,7 +3338,7 @@ IDENTITY
 "
 
 "Data Types","DECIMAL Type","
-{ DECIMAL | NUMBER | DEC | NUMERIC } ( precisionInt [ , scaleInt ] )
+{ DECIMAL | DEC | NUMERIC | @c@ { NUMBER } } ( precisionInt [ , scaleInt ] )
 ","
 Data type with fixed precision and scale. This data type is recommended for
 storing currency values.
@@ -3342,7 +3353,7 @@ DECIMAL(20, 2)
 "
 
 "Data Types","DOUBLE Type","
-{ DOUBLE [ PRECISION ] | FLOAT [ ( precisionInt ) ] | FLOAT8 }
+{ DOUBLE [ PRECISION ] | FLOAT [ ( precisionInt ) ] | @c@ { FLOAT8 } }
 ","
 A floating point number. Should not be used to represent currency values, because
 of rounding problems.
@@ -3355,7 +3366,7 @@ DOUBLE
 "
 
 "Data Types","REAL Type","
-{ REAL | FLOAT ( precisionInt ) | FLOAT4 }
+{ REAL | FLOAT ( precisionInt ) | @c@ { FLOAT4 } }
 ","
 A single precision floating point number. Should not be used to represent currency
 values, because of rounding problems.
@@ -3425,8 +3436,8 @@ DATE
 "
 
 "Data Types","TIMESTAMP Type","
-{ TIMESTAMP [ ( precisionInt ) ] [ WITHOUT TIME ZONE ]
-    | DATETIME [ ( precisionInt ) ] | SMALLDATETIME }
+TIMESTAMP [ ( precisionInt ) ] [ WITHOUT TIME ZONE ]
+    | @c@ { DATETIME [ ( precisionInt ) ] | SMALLDATETIME }
 ","
 The timestamp data type. The proleptic Gregorian calendar is used.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
@@ -3476,7 +3487,7 @@ TIMESTAMP(9) WITH TIME ZONE
 
 "Data Types","BINARY Type","
 { BINARY | VARBINARY | BINARY VARYING
-    | LONGVARBINARY | RAW | BYTEA }
+    | @c@ { LONGVARBINARY | RAW | BYTEA } }
 [ ( precisionInt ) ]
 ","
 Represents a byte array. For very long arrays, use BLOB.
@@ -3492,7 +3503,7 @@ BINARY(1000)
 "
 
 "Data Types","OTHER Type","
-OTHER
+@h2@ OTHER
 ","
 This type allows storing serialized Java objects. Internally, a byte array is used.
 Serialization and deserialization is done on the client side only.
@@ -3506,8 +3517,10 @@ OTHER
 "
 
 "Data Types","VARCHAR Type","
-{ VARCHAR | CHARACTER VARYING | LONGVARCHAR | VARCHAR2 | NVARCHAR
-    | NVARCHAR2 | VARCHAR_CASESENSITIVE} [ ( precisionInt ) ]
+{ VARCHAR | { CHARACTER | CHAR } VARYING
+    | { NCHAR | { NATIONAL { CHARACTER | CHAR } } } VARYING
+    | @c@ { LONGVARCHAR | VARCHAR2 | NVARCHAR | NVARCHAR2 }
+    | @h2@ { VARCHAR_CASESENSITIVE } } [ ( precisionInt ) ]
 ","
 A Unicode String.
 Use two single quotes ('') to create a quote.
@@ -3525,7 +3538,7 @@ VARCHAR(255)
 "
 
 "Data Types","VARCHAR_IGNORECASE Type","
-VARCHAR_IGNORECASE [ ( precisionInt ) ]
+@h2@ VARCHAR_IGNORECASE [ ( precisionInt ) ]
 ","
 Same as VARCHAR, but not case sensitive when comparing.
 Stored in mixed case.
@@ -3543,7 +3556,7 @@ VARCHAR_IGNORECASE
 "
 
 "Data Types","CHAR Type","
-{ CHAR | CHARACTER | NCHAR } [ ( precisionInt ) ]
+{ CHAR | CHARACTER | NCHAR | NATIONAL { CHARACTER | CHAR } } [ ( precisionInt ) ]
 ","
 A Unicode String.
 This type is supported for compatibility with other databases and older applications.
@@ -3563,7 +3576,7 @@ CHAR(10)
 
 "Data Types","BLOB Type","
 { BLOB | BINARY LARGE OBJECT
-    | TINYBLOB | MEDIUMBLOB | LONGBLOB | IMAGE | OID }
+    | @c@ { TINYBLOB | MEDIUMBLOB | LONGBLOB | IMAGE | OID } }
 [ ( precisionInt [K|M|G|T|P]) ]
 ","
 Like BINARY, but intended for very large values such as files or images. Unlike
@@ -3578,8 +3591,9 @@ BLOB(10K)
 "
 
 "Data Types","CLOB Type","
-{ CLOB | CHARACTER LARGE OBJECT
-    | TINYTEXT | TEXT | MEDIUMTEXT | LONGTEXT | NTEXT | NCLOB }
+{ CLOB | { CHARACTER | CHAR } LARGE OBJECT
+    | NCLOB | { NATIONAL CHARACTER | NCHAR } LARGE OBJECT
+    | @c@ { TINYTEXT | TEXT | MEDIUMTEXT | LONGTEXT | NTEXT } }
 [ ( precisionInt [K|M|G|T|P] [CHARACTERS|OCTETS]) ]
 ","
 CLOB is like VARCHAR, but intended for very large values. Unlike when using
@@ -3601,7 +3615,7 @@ CLOB(10K)
 "
 
 "Data Types","UUID Type","
-UUID
+@h2@ UUID
 ","
 Universally unique identifier. This is a 128 bit value.
 To store values, use ""PreparedStatement.setBytes"",
@@ -3638,7 +3652,7 @@ INTEGER ARRAY[10]
 "
 
 "Data Types","ENUM Type","
-{ ENUM (string [, ... ]) }
+@h2@ { ENUM (string [, ... ]) }
 ","
 A type with enumerated values.
 Mapped to ""java.lang.Integer"".
@@ -3652,7 +3666,7 @@ ENUM('clubs', 'diamonds', 'hearts', 'spades')
 "
 
 "Data Types","GEOMETRY Type","
-GEOMETRY
+@h2@ GEOMETRY
     [({ GEOMETRY |
     { POINT
     | LINESTRING
@@ -3691,7 +3705,7 @@ GEOMETRY(GEOMETRY, 4326)
 "
 
 "Data Types","JSON Type","
-JSON
+@h2@ JSON
 ","
 A RFC 8259-compliant JSON text.
 
@@ -3967,7 +3981,7 @@ COSH(X)
 "
 
 "Functions (Numeric)","COT","
-COT(numeric)
+@h2@ COT(numeric)
 ","
 Calculate the trigonometric cotangent (""1/TAN(ANGLE)"").
 See also Java ""Math.*"" functions.
@@ -4017,7 +4031,7 @@ TANH(X)
 "
 
 "Functions (Numeric)","ATAN2","
-ATAN2(numeric, numeric)
+@h2@ ATAN2(numeric, numeric)
 ","
 Calculate the angle when converting the rectangular coordinates to polar coordinates.
 See also Java ""Math.atan2"".
@@ -4027,7 +4041,7 @@ ATAN2(X, Y)
 "
 
 "Functions (Numeric)","BITAND","
-BITAND(long, long)
+@h2@ BITAND(long, long)
 ","
 The bitwise AND operation.
 This method returns a long.
@@ -4037,7 +4051,7 @@ BITAND(A, B)
 "
 
 "Functions (Numeric)","BITGET","
-BITGET(long, int)
+@h2@ BITGET(long, int)
 ","
 Returns true if and only if the first parameter has a bit set in the
 position specified by the second parameter.
@@ -4048,7 +4062,7 @@ BITGET(A, 1)
 "
 
 "Functions (Numeric)","BITNOT","
-BITNOT(long)
+@h2@ BITNOT(long)
 ","
 The bitwise NOT operation.
 This method returns a long.
@@ -4058,7 +4072,7 @@ BITNOT(A)
 "
 
 "Functions (Numeric)","BITOR","
-BITOR(long, long)
+@h2@ BITOR(long, long)
 ","
 The bitwise OR operation.
 This method returns a long.
@@ -4068,7 +4082,7 @@ BITOR(A, B)
 "
 
 "Functions (Numeric)","BITXOR","
-BITXOR(long, long)
+@h2@ BITXOR(long, long)
 ","
 The bitwise XOR operation.
 This method returns a long.
@@ -4078,7 +4092,7 @@ BITXOR(A, B)
 "
 
 "Functions (Numeric)","LSHIFT","
-LSHIFT(long, int)
+@h2@ LSHIFT(long, int)
 ","
 The bitwise left shift operation.
 Shifts the first argument by the number of bits given by the second argument.
@@ -4089,7 +4103,7 @@ LSHIFT(A, B)
 "
 
 "Functions (Numeric)","RSHIFT","
-RSHIFT(long, int)
+@h2@ RSHIFT(long, int)
 ","
 The bitwise right shift operation.
 Shifts the first argument by the number of bits given by the second argument.
@@ -4119,7 +4133,7 @@ CEIL(A)
 "
 
 "Functions (Numeric)","DEGREES","
-DEGREES(numeric)
+@h2@ DEGREES(numeric)
 ","
 See also Java ""Math.toDegrees"".
 This method returns a double.
@@ -4176,7 +4190,7 @@ LOG10(A)
 "
 
 "Functions (Numeric)","ORA_HASH","
-ORA_HASH(expression [, bucketLong [, seedLong]])
+@c@ ORA_HASH(expression [, bucketLong [, seedLong]])
 ","
 Computes a hash value.
 Optional bucket argument determines the maximum returned value.
@@ -4189,7 +4203,7 @@ ORA_HASH(A)
 "
 
 "Functions (Numeric)","RADIANS","
-RADIANS(numeric)
+@h2@ RADIANS(numeric)
 ","
 See also Java ""Math.toRadians"".
 This method returns a double.
@@ -4207,7 +4221,7 @@ SQRT(A)
 "
 
 "Functions (Numeric)","PI","
-PI()
+@h2@ PI()
 ","
 See also Java ""Math.PI"".
 This method returns a double.
@@ -4225,7 +4239,7 @@ POWER(A, B)
 "
 
 "Functions (Numeric)","RAND","
-{ RAND | RANDOM } ( [ int ] )
+@h2@ { RAND | RANDOM } ( [ int ] )
 ","
 Calling the function without parameter returns the next a pseudo random number.
 Calling it with an parameter seeds the session's random number generator.
@@ -4235,7 +4249,7 @@ RAND()
 "
 
 "Functions (Numeric)","RANDOM_UUID","
-{ RANDOM_UUID | UUID } ()
+@h2@ { RANDOM_UUID | UUID } ()
 ","
 Returns a new UUID with 122 pseudo random bits.
 
@@ -4248,7 +4262,7 @@ RANDOM_UUID()
 "
 
 "Functions (Numeric)","ROUND","
-ROUND(numeric [, digitsInt])
+@h2@ ROUND(numeric [, digitsInt])
 ","
 Rounds to a number of fractional digits.
 This method returns a double, float, or numeric value depending on type of the argument.
@@ -4257,7 +4271,7 @@ ROUND(VALUE, 2)
 "
 
 "Functions (Numeric)","ROUNDMAGIC","
-ROUNDMAGIC(numeric)
+@h2@ ROUNDMAGIC(numeric)
 ","
 This function rounds numbers in a good way, but it is slow.
 It has a special handling for numbers around 0.
@@ -4270,7 +4284,7 @@ ROUNDMAGIC(VALUE/3*3)
 "
 
 "Functions (Numeric)","SECURE_RAND","
-SECURE_RAND(int)
+@h2@ SECURE_RAND(int)
 ","
 Generates a number of cryptographically secure random numbers.
 This method returns bytes.
@@ -4279,7 +4293,7 @@ CALL SECURE_RAND(16)
 "
 
 "Functions (Numeric)","SIGN","
-SIGN( { numeric | interval } )
+@h2@ SIGN( { numeric | interval } )
 ","
 Returns -1 if the value is smaller than 0, 0 if zero, and otherwise 1.
 ","
@@ -4287,7 +4301,7 @@ SIGN(VALUE)
 "
 
 "Functions (Numeric)","ENCRYPT","
-ENCRYPT(algorithmString, keyBytes, dataBytes)
+@h2@ ENCRYPT(algorithmString, keyBytes, dataBytes)
 ","
 Encrypts data using a key.
 The supported algorithm is AES.
@@ -4298,7 +4312,7 @@ CALL ENCRYPT('AES', '00', STRINGTOUTF8('Test'))
 "
 
 "Functions (Numeric)","DECRYPT","
-DECRYPT(algorithmString, keyBytes, dataBytes)
+@h2@ DECRYPT(algorithmString, keyBytes, dataBytes)
 ","
 Decrypts data using a key.
 The supported algorithm is AES.
@@ -4310,7 +4324,7 @@ CALL TRIM(CHAR(0) FROM UTF8TOSTRING(
 "
 
 "Functions (Numeric)","HASH","
-HASH(algorithmString, expression [, iterationInt])
+@h2@ HASH(algorithmString, expression [, iterationInt])
 ","
 Calculate the hash value using an algorithm, and repeat this process for a number of iterations.
 Currently, the only algorithm supported is SHA256.
@@ -4320,8 +4334,8 @@ CALL HASH('SHA256', STRINGTOUTF8('Password'), 1000)
 "
 
 "Functions (Numeric)","TRUNCATE","
-{ TRUNC | TRUNCATE } ( { {numeric [, digitsInt] }
-    | timestamp | timestampWithTimeZone | date | timestampString } )
+@h2@ { TRUNC | TRUNCATE } ( { {numeric [, digitsInt] }
+    | @c@ { timestamp | timestampWithTimeZone | date | timestampString } } )
 ","
 When a numeric argument is specified, truncates it to a number of digits (to the next value closer to 0)
 and returns a double, float, or numeric value depending on type of the argument.
@@ -4335,7 +4349,7 @@ TRUNCATE(VALUE, 2)
 "
 
 "Functions (Numeric)","COMPRESS","
-COMPRESS(dataBytes [, algorithmString])
+@h2@ COMPRESS(dataBytes [, algorithmString])
 ","
 Compresses the data using the specified compression algorithm.
 Supported algorithms are: LZF (faster but lower compression; default), and DEFLATE (higher compression).
@@ -4346,7 +4360,7 @@ COMPRESS(STRINGTOUTF8('Test'))
 "
 
 "Functions (Numeric)","EXPAND","
-EXPAND(bytes)
+@h2@ EXPAND(bytes)
 ","
 Expands data that was compressed using the COMPRESS function.
 This method returns bytes.
@@ -4355,7 +4369,7 @@ UTF8TOSTRING(EXPAND(COMPRESS(STRINGTOUTF8('Test'))))
 "
 
 "Functions (Numeric)","ZERO","
-ZERO()
+@h2@ ZERO()
 ","
 Returns the value 0. This function can be used even if numeric literals are disabled.
 ","
@@ -4363,7 +4377,7 @@ ZERO()
 "
 
 "Functions (String)","ASCII","
-ASCII(string)
+@h2@ ASCII(string)
 ","
 Returns the ASCII value of the first character in the string.
 This method returns an int.
@@ -4371,7 +4385,7 @@ This method returns an int.
 ASCII('Hi')
 "
 "Functions (String)","BIT_LENGTH","
-BIT_LENGTH(string)
+@h2@ BIT_LENGTH(string)
 ","
 Returns the number of bits in a string.
 This method returns a long.
@@ -4380,14 +4394,14 @@ For BLOB, CLOB, BYTES and JAVA_OBJECT, the precision is used. Each character nee
 BIT_LENGTH(NAME)
 "
 
-"Functions (String)","LENGTH","
-{ LENGTH | CHAR_LENGTH | CHARACTER_LENGTH } ( string )
+"Functions (String)","CHAR_LENGTH","
+{ CHAR_LENGTH | CHARACTER_LENGTH | @c@ { LENGTH } } ( string )
 ","
 Returns the number of characters in a string.
 This method returns a long.
 For BLOB, CLOB, BYTES and JAVA_OBJECT, the precision is used.
 ","
-LENGTH(NAME)
+CHAR_LENGTH(NAME)
 "
 
 "Functions (String)","OCTET_LENGTH","
@@ -4402,7 +4416,7 @@ OCTET_LENGTH(NAME)
 "
 
 "Functions (String)","CHAR","
-{ CHAR | CHR } ( int )
+@h2@ { CHAR | CHR } ( int )
 ","
 Returns the character that represents the ASCII value.
 This method returns a string.
@@ -4411,7 +4425,7 @@ CHAR(65)
 "
 
 "Functions (String)","CONCAT","
-CONCAT(string, string [,...])
+@h2@ CONCAT(string, string [,...])
 ","
 Combines strings.
 Unlike with the operator ""||"", NULL parameters are ignored,
@@ -4422,7 +4436,7 @@ CONCAT(NAME, '!')
 "
 
 "Functions (String)","CONCAT_WS","
-CONCAT_WS(separatorString, string, string [,...])
+@h2@ CONCAT_WS(separatorString, string, string [,...])
 ","
 Combines strings with separator.
 Unlike with the operator ""||"", NULL parameters are ignored,
@@ -4433,7 +4447,7 @@ CONCAT_WS(',', NAME, '!')
 "
 
 "Functions (String)","DIFFERENCE","
-DIFFERENCE(string, string)
+@h2@ DIFFERENCE(string, string)
 ","
 Returns the difference between the sounds of two strings.
 The difference is calculated as a number of matched characters
@@ -4446,7 +4460,7 @@ DIFFERENCE(T1.NAME, T2.NAME)
 "
 
 "Functions (String)","HEXTORAW","
-HEXTORAW(string)
+@h2@ HEXTORAW(string)
 ","
 Converts a hex representation of a string to a string.
 4 hex characters per string character are used.
@@ -4455,7 +4469,7 @@ HEXTORAW(DATA)
 "
 
 "Functions (String)","RAWTOHEX","
-RAWTOHEX(string|bytes)
+@h2@ RAWTOHEX(string|bytes)
 ","
 Converts a string or bytes to the hex representation.
 4 hex characters per string character are used.
@@ -4465,7 +4479,7 @@ RAWTOHEX(DATA)
 "
 
 "Functions (String)","INSTR","
-INSTR(string, searchString, [, startInt])
+@h2@ INSTR(string, searchString, [, startInt])
 ","
 Returns the location of a search string in a string.
 If a start position is used, the characters before it are ignored.
@@ -4477,7 +4491,7 @@ INSTR(EMAIL,'@')
 "
 
 "Functions (String)","INSERT Function","
-INSERT(originalString, startInt, lengthInt, addString)
+@h2@ INSERT(originalString, startInt, lengthInt, addString)
 ","
 Inserts a additional string into the original string at a specified start position.
 The length specifies the number of characters that are removed at the start position in the original string.
@@ -4487,7 +4501,7 @@ INSERT(NAME, 1, 1, ' ')
 "
 
 "Functions (String)","LOWER","
-{ LOWER | LCASE } ( string )
+{ LOWER | @c@ { LCASE } } ( string )
 ","
 Converts a string to lowercase.
 ","
@@ -4495,7 +4509,7 @@ LOWER(NAME)
 "
 
 "Functions (String)","UPPER","
-{ UPPER | UCASE } ( string )
+{ UPPER | @c@ { UCASE } } ( string )
 ","
 Converts a string to uppercase.
 ","
@@ -4503,7 +4517,7 @@ UPPER(NAME)
 "
 
 "Functions (String)","LEFT","
-LEFT(string, int)
+@h2@ LEFT(string, int)
 ","
 Returns the leftmost number of characters.
 ","
@@ -4511,7 +4525,7 @@ LEFT(NAME, 3)
 "
 
 "Functions (String)","RIGHT","
-RIGHT(string, int)
+@h2@ RIGHT(string, int)
 ","
 Returns the rightmost number of characters.
 ","
@@ -4519,7 +4533,7 @@ RIGHT(NAME, 3)
 "
 
 "Functions (String)","LOCATE","
-LOCATE(searchString, string [, startInt])
+@h2@ LOCATE(searchString, string [, startInt])
 ","
 Returns the location of a search string in a string.
 If a start position is used, the characters before it are ignored.
@@ -4530,7 +4544,7 @@ LOCATE('.', NAME)
 "
 
 "Functions (String)","POSITION","
-POSITION(searchString, string)
+@h2@ POSITION(searchString, string)
 ","
 Returns the location of a search string in a string. See also LOCATE.
 ","
@@ -4538,7 +4552,7 @@ POSITION('.', NAME)
 "
 
 "Functions (String)","LPAD","
-LPAD(string, int[, paddingString])
+@h2@ LPAD(string, int[, paddingString])
 ","
 Left pad the string to the specified length.
 If the length is shorter than the string, it will be truncated at the end.
@@ -4548,7 +4562,7 @@ LPAD(AMOUNT, 10, '*')
 "
 
 "Functions (String)","RPAD","
-RPAD(string, int[, paddingString])
+@h2@ RPAD(string, int[, paddingString])
 ","
 Right pad the string to the specified length.
 If the length is shorter than the string, it will be truncated.
@@ -4558,7 +4572,7 @@ RPAD(TEXT, 10, '-')
 "
 
 "Functions (String)","LTRIM","
-LTRIM(string)
+@c@ LTRIM(string)
 ","
 Removes all leading spaces from a string.
 ","
@@ -4566,7 +4580,7 @@ LTRIM(NAME)
 "
 
 "Functions (String)","RTRIM","
-RTRIM(string)
+@c@ RTRIM(string)
 ","
 Removes all trailing spaces from a string.
 ","
@@ -4583,7 +4597,7 @@ TRIM(BOTH '_' FROM NAME)
 "
 
 "Functions (String)","REGEXP_REPLACE","
-REGEXP_REPLACE(inputString, regexString, replacementString [, flagsString])
+@h2@ REGEXP_REPLACE(inputString, regexString, replacementString [, flagsString])
 ","
 Replaces each substring that matches a regular expression.
 For details, see the Java ""String.replaceAll()"" method.
@@ -4607,7 +4621,7 @@ REGEXP_REPLACE('Hello WWWWorld', 'w+', 'W', 'i')
 "
 
 "Functions (String)","REGEXP_LIKE","
-REGEXP_LIKE(inputString, regexString [, flagsString])
+@h2@ REGEXP_LIKE(inputString, regexString [, flagsString])
 ","
 Matches string to a regular expression.
 For details, see the Java ""Matcher.find()"" method.
@@ -4630,7 +4644,7 @@ REGEXP_LIKE('Hello    World', '[A-Z ]*', 'i')
 "
 
 "Functions (String)","REPEAT","
-REPEAT(string, int)
+@h2@ REPEAT(string, int)
 ","
 Returns a string repeated some number of times.
 ","
@@ -4638,7 +4652,7 @@ REPEAT(NAME || ' ', 10)
 "
 
 "Functions (String)","REPLACE","
-REPLACE(string, searchString [, replacementString])
+@h2@ REPLACE(string, searchString [, replacementString])
 ","
 Replaces all occurrences of a search string in a text with another string.
 If no replacement is specified, the search string is removed from the original string.
@@ -4648,7 +4662,7 @@ REPLACE(NAME, ' ')
 "
 
 "Functions (String)","SOUNDEX","
-SOUNDEX(string)
+@h2@ SOUNDEX(string)
 ","
 Returns a four character code representing the sound of a string.
 This method returns a string, or null if parameter is null.
@@ -4658,7 +4672,7 @@ SOUNDEX(NAME)
 "
 
 "Functions (String)","SPACE","
-SPACE(int)
+@h2@ SPACE(int)
 ","
 Returns a string consisting of a number of spaces.
 ","
@@ -4666,7 +4680,7 @@ SPACE(80)
 "
 
 "Functions (String)","STRINGDECODE","
-STRINGDECODE(string)
+@h2@ STRINGDECODE(string)
 ","
 Converts a encoded string using the Java string literal encoding format.
 Special characters are \b, \t, \n, \f, \r, \"", \\, \<octal>, \u<unicode>.
@@ -4676,7 +4690,7 @@ CALL STRINGENCODE(STRINGDECODE('Lines 1\nLine 2'))
 "
 
 "Functions (String)","STRINGENCODE","
-STRINGENCODE(string)
+@h2@ STRINGENCODE(string)
 ","
 Encodes special characters in a string using the Java string literal encoding format.
 Special characters are \b, \t, \n, \f, \r, \"", \\, \<octal>, \u<unicode>.
@@ -4686,7 +4700,7 @@ CALL STRINGENCODE(STRINGDECODE('Lines 1\nLine 2'))
 "
 
 "Functions (String)","STRINGTOUTF8","
-STRINGTOUTF8(string)
+@h2@ STRINGTOUTF8(string)
 ","
 Encodes a string to a byte array using the UTF8 encoding format.
 This method returns bytes.
@@ -4696,7 +4710,7 @@ CALL UTF8TOSTRING(STRINGTOUTF8('This is a test'))
 
 "Functions (String)","SUBSTRING","
 SUBSTRING ( {string|bytes} FROM startInt [ FOR lengthInt ] )
-    | { SUBSTRING | SUBSTR } ( {string|bytes}, startInt [, lengthInt ] )
+    | @c@ { { SUBSTRING | SUBSTR } ( {string|bytes}, startInt [, lengthInt ] ) }
 ","
 Returns a substring of a string starting at a position.
 If the start index is negative, then the start index is relative to the end of the string.
@@ -4708,7 +4722,7 @@ CALL SUBSTR('Hello World', -5);
 "
 
 "Functions (String)","UTF8TOSTRING","
-UTF8TOSTRING(bytes)
+@h2@ UTF8TOSTRING(bytes)
 ","
 Decodes a byte array in the UTF8 format to a string.
 ","
@@ -4716,7 +4730,7 @@ CALL UTF8TOSTRING(STRINGTOUTF8('This is a test'))
 "
 
 "Functions (String)","QUOTE_IDENT","
-QUOTE_IDENT(string)
+@h2@ QUOTE_IDENT(string)
 ","
 Quotes the specified identifier.
 Identifier is surrounded by double quotes.
@@ -4726,7 +4740,7 @@ QUOTE_IDENT('Column 1')
 "
 
 "Functions (String)","XMLATTR","
-XMLATTR(nameString, valueString)
+@h2@ XMLATTR(nameString, valueString)
 ","
 Creates an XML attribute element of the form ""name=value"".
 The value is encoded as XML text.
@@ -4736,7 +4750,7 @@ CALL XMLNODE('a', XMLATTR('href', 'https://h2database.com'))
 "
 
 "Functions (String)","XMLNODE","
-XMLNODE(elementString [, attributesString [, contentString [, indentBoolean]]])
+@h2@ XMLNODE(elementString [, attributesString [, contentString [, indentBoolean]]])
 ","
 Create an XML node element.
 An empty or null attribute string means no attributes are set.
@@ -4748,7 +4762,7 @@ CALL XMLNODE('a', XMLATTR('href', 'https://h2database.com'), 'H2')
 "
 
 "Functions (String)","XMLCOMMENT","
-XMLCOMMENT(commentString)
+@h2@ XMLCOMMENT(commentString)
 ","
 Creates an XML comment.
 Two dashes (""--"") are converted to ""- -"".
@@ -4758,7 +4772,7 @@ CALL XMLCOMMENT('Test')
 "
 
 "Functions (String)","XMLCDATA","
-XMLCDATA(valueString)
+@h2@ XMLCDATA(valueString)
 ","
 Creates an XML CDATA element.
 If the value contains ""]]>"", an XML text element is created instead.
@@ -4768,7 +4782,7 @@ CALL XMLCDATA('data')
 "
 
 "Functions (String)","XMLSTARTDOC","
-XMLSTARTDOC()
+@h2@ XMLSTARTDOC()
 ","
 Returns the XML declaration.
 The result is always ""<?xml version=""1.0""?>"".
@@ -4777,7 +4791,7 @@ CALL XMLSTARTDOC()
 "
 
 "Functions (String)","XMLTEXT","
-XMLTEXT(valueString [, escapeNewlineBoolean])
+@h2@ XMLTEXT(valueString [, escapeNewlineBoolean])
 ","
 Creates an XML text element.
 If enabled, newline and linefeed is converted to an XML entity (&#).
@@ -4787,7 +4801,7 @@ CALL XMLTEXT('test')
 "
 
 "Functions (String)","TO_CHAR","
-TO_CHAR(value [, formatString[, nlsParamString]])
+@c@ TO_CHAR(value [, formatString[, nlsParamString]])
 ","
 Oracle-compatible TO_CHAR function that can format a timestamp, a number, or text.
 ","
@@ -4795,7 +4809,7 @@ CALL TO_CHAR(TIMESTAMP '2010-01-01 00:00:00', 'DD MON, YYYY')
 "
 
 "Functions (String)","TRANSLATE","
-TRANSLATE(value, searchString, replacementString)
+@c@ TRANSLATE(value, searchString, replacementString)
 ","
 Oracle-compatible TRANSLATE function that replaces a sequence of characters in a string with another set of characters.
 ","
@@ -4803,7 +4817,7 @@ CALL TRANSLATE('Hello world', 'eo', 'EO')
 "
 
 "Functions (Time and Date)","CURRENT_DATE","
-CURRENT_DATE | CURDATE() | SYSDATE | TODAY
+CURRENT_DATE | @c@ { CURDATE() | SYSDATE | TODAY }
 ","
 Returns the current date.
 
@@ -4847,7 +4861,7 @@ CURRENT_TIMESTAMP(9)
 "
 
 "Functions (Time and Date)","LOCALTIME","
-LOCALTIME [ (int) ] | CURTIME([ int ])
+LOCALTIME [ (int) ] | @c@ CURTIME([ int ])
 ","
 Returns the current time without time zone.
 If fractional seconds precision is specified it should be from 0 to 9, 0 is default.
@@ -4863,7 +4877,7 @@ LOCALTIME(9)
 "
 
 "Functions (Time and Date)","LOCALTIMESTAMP","
-LOCALTIMESTAMP [ (int) ] | NOW( [ int ] )
+LOCALTIMESTAMP [ (int) ] | @c@ NOW( [ int ] )
 ","
 Returns the current timestamp without time zone.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
@@ -4885,7 +4899,7 @@ LOCALTIMESTAMP(9)
 "
 
 "Functions (Time and Date)","DATEADD","
-{ DATEADD| TIMESTAMPADD } (datetimeField, addIntLong, dateAndTime)
+@h2@ { DATEADD| TIMESTAMPADD } (datetimeField, addIntLong, dateAndTime)
 ","
 Adds units to a date-time value. The datetimeField indicates the unit.
 Use negative values to subtract units.
@@ -4900,7 +4914,7 @@ DATEADD(MONTH, 1, DATE '2001-01-31')
 "
 
 "Functions (Time and Date)","DATEDIFF","
-{ DATEDIFF | TIMESTAMPDIFF } (datetimeField, aDateAndTime, bDateAndTime)
+@h2@ { DATEDIFF | TIMESTAMPDIFF } (datetimeField, aDateAndTime, bDateAndTime)
 ","
 Returns the number of crossed unit boundaries between two date/time values.
 This method returns a long.
@@ -4912,7 +4926,7 @@ DATEDIFF(YEAR, T1.CREATED, T2.CREATED)
 "
 
 "Functions (Time and Date)","DAYNAME","
-DAYNAME(dateAndTime)
+@h2@ DAYNAME(dateAndTime)
 ","
 Returns the name of the day (in English).
 ","
@@ -4920,7 +4934,7 @@ DAYNAME(CREATED)
 "
 
 "Functions (Time and Date)","DAY_OF_MONTH","
-DAY_OF_MONTH(dateAndTime|interval)
+@c@ DAY_OF_MONTH(dateAndTime|interval)
 ","
 Returns the day of the month (1-31).
 ","
@@ -4928,7 +4942,7 @@ DAY_OF_MONTH(CREATED)
 "
 
 "Functions (Time and Date)","DAY_OF_WEEK","
-DAY_OF_WEEK(dateAndTime)
+@c@ DAY_OF_WEEK(dateAndTime)
 ","
 Returns the day of the week (1 means Sunday).
 ","
@@ -4936,7 +4950,7 @@ DAY_OF_WEEK(CREATED)
 "
 
 "Functions (Time and Date)","ISO_DAY_OF_WEEK","
-ISO_DAY_OF_WEEK(dateAndTime)
+@c@ ISO_DAY_OF_WEEK(dateAndTime)
 ","
 Returns the ISO day of the week (1 means Monday).
 ","
@@ -4944,7 +4958,7 @@ ISO_DAY_OF_WEEK(CREATED)
 "
 
 "Functions (Time and Date)","DAY_OF_YEAR","
-DAY_OF_YEAR(dateAndTime|interval)
+@c@ DAY_OF_YEAR(dateAndTime|interval)
 ","
 Returns the day of the year (1-366).
 ","
@@ -4962,7 +4976,7 @@ EXTRACT(SECOND FROM CURRENT_TIMESTAMP)
 "
 
 "Functions (Time and Date)","FORMATDATETIME","
-FORMATDATETIME ( dateAndTime, formatString
+@h2@ FORMATDATETIME ( dateAndTime, formatString
 [ , localeString [ , timeZoneString ] ] )
 ","
 Formats a date, time or timestamp as a string.
@@ -4978,7 +4992,7 @@ CALL FORMATDATETIME(TIMESTAMP '2001-02-03 04:05:06',
 "
 
 "Functions (Time and Date)","HOUR","
-HOUR(dateAndTime|interval)
+@c@ HOUR(dateAndTime|interval)
 ","
 Returns the hour (0-23) from a date/time value.
 ","
@@ -4986,7 +5000,7 @@ HOUR(CREATED)
 "
 
 "Functions (Time and Date)","MINUTE","
-MINUTE(dateAndTime|interval)
+@c@ MINUTE(dateAndTime|interval)
 ","
 Returns the minute (0-59) from a date/time value.
 ","
@@ -4994,7 +5008,7 @@ MINUTE(CREATED)
 "
 
 "Functions (Time and Date)","MONTH","
-MONTH(dateAndTime|interval)
+@c@ MONTH(dateAndTime|interval)
 ","
 Returns the month (1-12) from a date/time value.
 ","
@@ -5002,7 +5016,7 @@ MONTH(CREATED)
 "
 
 "Functions (Time and Date)","MONTHNAME","
-MONTHNAME(dateAndTime)
+@h2@ MONTHNAME(dateAndTime)
 ","
 Returns the name of the month (in English).
 ","
@@ -5010,7 +5024,7 @@ MONTHNAME(CREATED)
 "
 
 "Functions (Time and Date)","PARSEDATETIME","
-PARSEDATETIME(string, formatString
+@h2@ PARSEDATETIME(string, formatString
 [, localeString [, timeZoneString]])
 ","
 Parses a string and returns a timestamp.
@@ -5023,7 +5037,7 @@ CALL PARSEDATETIME('Sat, 3 Feb 2001 03:05:06 GMT',
 "
 
 "Functions (Time and Date)","QUARTER","
-QUARTER(dateAndTime)
+@c@ QUARTER(dateAndTime)
 ","
 Returns the quarter (1-4) from a date/time value.
 ","
@@ -5031,7 +5045,7 @@ QUARTER(CREATED)
 "
 
 "Functions (Time and Date)","SECOND","
-SECOND(dateAndTime)
+@c@ SECOND(dateAndTime)
 ","
 Returns the second (0-59) from a date/time value.
 ","
@@ -5039,7 +5053,7 @@ SECOND(CREATED|interval)
 "
 
 "Functions (Time and Date)","WEEK","
-WEEK(dateAndTime)
+@c@ WEEK(dateAndTime)
 ","
 Returns the week (1-53) from a date/time value.
 This method uses the current system locale.
@@ -5048,7 +5062,7 @@ WEEK(CREATED)
 "
 
 "Functions (Time and Date)","ISO_WEEK","
-ISO_WEEK(dateAndTime)
+@c@ ISO_WEEK(dateAndTime)
 ","
 Returns the ISO week (1-53) from a date/time value.
 This function uses the ISO definition when
@@ -5059,7 +5073,7 @@ ISO_WEEK(CREATED)
 "
 
 "Functions (Time and Date)","YEAR","
-YEAR(dateAndTime|interval)
+@c@ YEAR(dateAndTime|interval)
 ","
 Returns the year from a date/time value.
 ","
@@ -5067,7 +5081,7 @@ YEAR(CREATED)
 "
 
 "Functions (Time and Date)","ISO_YEAR","
-ISO_YEAR(dateAndTime)
+@c@ ISO_YEAR(dateAndTime)
 ","
 Returns the ISO week year from a date/time value.
 ","
@@ -5075,7 +5089,7 @@ ISO_YEAR(CREATED)
 "
 
 "Functions (System)","ABORT_SESSION","
-ABORT_SESSION(sessionInt)
+@h2@ ABORT_SESSION(sessionInt)
 ","
 Cancels the currently executing statement of another session. Closes the session and releases the allocated resources.
 The method only works with default MVStore engine.
@@ -5089,7 +5103,7 @@ CALL ABORT_SESSION(3)
 "
 
 "Functions (System)","ARRAY_GET","
-ARRAY_GET(arrayExpression, indexExpression)
+@c@ ARRAY_GET(arrayExpression, indexExpression)
 ","
 Returns element at the specified 1-based index from an array.
 Returns NULL if there is no such element or array is NULL.
@@ -5097,17 +5111,17 @@ Returns NULL if there is no such element or array is NULL.
 CALL ARRAY_GET(ARRAY['Hello', 'World'], 2)
 "
 
-"Functions (System)","ARRAY_LENGTH","
-ARRAY_LENGTH(arrayExpression)
+"Functions (System)","CARDINALITY","
+{ CARDINALITY | @c@ { ARRAY_LENGTH } } (arrayExpression)
 ","
 Returns the length of an array.
 Returns NULL if the specified array is NULL.
 ","
-CALL ARRAY_LENGTH(ARRAY['Hello', 'World'])
+CALL CARDINALITY(ARRAY['Hello', 'World'])
 "
 
 "Functions (System)","ARRAY_CONTAINS","
-ARRAY_CONTAINS(arrayExpression, value)
+@h2@ ARRAY_CONTAINS(arrayExpression, value)
 ","
 Returns a boolean TRUE if the array contains the value or FALSE if it does not contain it.
 Returns NULL if the specified array is NULL.
@@ -5116,7 +5130,7 @@ CALL ARRAY_CONTAINS(ARRAY['Hello', 'World'], 'Hello')
 "
 
 "Functions (System)","ARRAY_CAT","
-ARRAY_CAT(arrayExpression, arrayExpression)
+@c@ ARRAY_CAT(arrayExpression, arrayExpression)
 ","
 Returns the concatenation of two arrays.
 Returns NULL if any parameter is NULL.
@@ -5125,7 +5139,7 @@ CALL ARRAY_CAT(ARRAY[1, 2], ARRAY[3, 4])
 "
 
 "Functions (System)","ARRAY_APPEND","
-ARRAY_APPEND(arrayExpression, value)
+@c@ ARRAY_APPEND(arrayExpression, value)
 ","
 Append an element to the end of an array.
 Returns NULL if any parameter is NULL.
@@ -5134,7 +5148,7 @@ CALL ARRAY_APPEND(ARRAY[1, 2], 3)
 "
 
 "Functions (System)","ARRAY_SLICE","
-ARRAY_SLICE(arrayExpression, lowerBoundInt, upperBoundInt)
+@h2@ ARRAY_SLICE(arrayExpression, lowerBoundInt, upperBoundInt)
 ","
 Returns elements from the array as specified by the lower and upper bound parameters.
 Both parameters are inclusive and the first element has index 1, i.e. ARRAY_SLICE(a, 2, 2) has only the second element.
@@ -5144,7 +5158,7 @@ CALL ARRAY_SLICE(ARRAY[1, 2, 3, 4], 1, 3)
 "
 
 "Functions (System)","AUTOCOMMIT","
-AUTOCOMMIT()
+@h2@ AUTOCOMMIT()
 ","
 Returns true if auto commit is switched on for this session.
 ","
@@ -5152,7 +5166,7 @@ AUTOCOMMIT()
 "
 
 "Functions (System)","CANCEL_SESSION","
-CANCEL_SESSION(sessionInt)
+@h2@ CANCEL_SESSION(sessionInt)
 ","
 Cancels the currently executing statement of another session.
 The method only works with default MVStore engine.
@@ -5169,7 +5183,7 @@ CASEWHEN(boolean, aValue, bValue)
 Returns 'a' if the boolean expression is true, otherwise 'b'.
 Returns the same data type as the parameter.
 ","
-CASEWHEN(ID=1, 'A', 'B')
+@c@ CASEWHEN(ID=1, 'A', 'B')
 "
 
 "Functions (System)","CAST","
@@ -5192,7 +5206,7 @@ CAST(TIMESTAMP '2010-01-01 10:40:00.123456' AS TIME(6))
 "
 
 "Functions (System)","COALESCE","
-{ COALESCE | NVL } (aValue, bValue [,...])
+{ COALESCE | @c@ { NVL } } (aValue, bValue [,...])
 ","
 Returns the first value that is not null.
 ","
@@ -5200,7 +5214,7 @@ COALESCE(A, B, C)
 "
 
 "Functions (System)","CONVERT","
-CONVERT(value, dataType)
+@c@ CONVERT(value, dataType)
 ","
 Converts a value to another data type.
 ","
@@ -5208,7 +5222,7 @@ CONVERT(NAME, INT)
 "
 
 "Functions (System)","CURRVAL","
-CURRVAL( [ schemaNameString, ] sequenceString )
+@c@ CURRVAL( [ schemaNameString, ] sequenceString )
 ","
 Returns the latest generated value of the sequence for the current session.
 Current value may only be requested after generation of the sequence value in the current session.
@@ -5223,7 +5237,7 @@ CURRVAL('TEST_SEQ')
 "
 
 "Functions (System)","CSVREAD","
-CSVREAD(fileNameString [, columnsString [, csvOptions ] ] )
+@h2@ CSVREAD(fileNameString [, columnsString [, csvOptions ] ] )
 ","
 Returns the result set of reading the CSV (comma separated values) file.
 For each parameter, NULL means the default value should be used.
@@ -5267,7 +5281,7 @@ SELECT ""Last Name"" FROM CSVREAD('classpath:/org/acme/data/address.csv');
 "
 
 "Functions (System)","CSVWRITE","
-CSVWRITE ( fileNameString, queryString [, csvOptions [, lineSepString] ] )
+@h2@ CSVWRITE ( fileNameString, queryString [, csvOptions [, lineSepString] ] )
 ","
 Writes a CSV (comma separated values). The file is overwritten if it exists.
 If only a file name is specified, it will be written to the current working directory.
@@ -5290,7 +5304,7 @@ CALL CSVWRITE('data/test.tsv', 'SELECT * FROM TEST', 'charset=UTF-8 fieldSeparat
 "
 
 "Functions (System)","CURRENT_SCHEMA","
-CURRENT_SCHEMA | SCHEMA()
+CURRENT_SCHEMA | @c@ SCHEMA()
 ","
 Returns the name of the default schema for this session.
 ","
@@ -5298,7 +5312,7 @@ CALL CURRENT_SCHEMA
 "
 
 "Functions (System)","CURRENT_CATALOG","
-CURRENT_CATALOG | DATABASE()
+CURRENT_CATALOG | @h2@ DATABASE()
 ","
 Returns the name of the database.
 ","
@@ -5306,7 +5320,7 @@ CALL CURRENT_CATALOG
 "
 
 "Functions (System)","DATABASE_PATH","
-DATABASE_PATH()
+@h2@ DATABASE_PATH()
 ","
 Returns the directory of the database files and the database name, if it is file based.
 Returns NULL otherwise.
@@ -5315,7 +5329,7 @@ CALL DATABASE_PATH();
 "
 
 "Functions (System)","DECODE","
-DECODE(value, whenValue, thenValue [,...])
+@h2@ DECODE(value, whenValue, thenValue [,...])
 ","
 Returns the first matching value. NULL is considered to match NULL.
 If no match was found, then NULL or the last parameter (if the parameter count is even) is returned.
@@ -5325,7 +5339,7 @@ CALL DECODE(RAND()>0.5, 0, 'Red', 1, 'Black');
 "
 
 "Functions (System)","DISK_SPACE_USED","
-DISK_SPACE_USED(tableNameString)
+@h2@ DISK_SPACE_USED(tableNameString)
 ","
 Returns the approximate amount of space used by the table specified.
 Does not currently take into account indexes or LOB's.
@@ -5335,7 +5349,7 @@ CALL DISK_SPACE_USED('my_table');
 "
 
 "Functions (System)","SIGNAL","
-SIGNAL(sqlStateString, messageString)
+@h2@ SIGNAL(sqlStateString, messageString)
 ","
 Throw an SQLException with the passed SQLState and reason.
 ","
@@ -5343,7 +5357,7 @@ CALL SIGNAL('23505', 'Duplicate user ID: ' || user_id);
 "
 
 "Functions (System)","ESTIMATED_ENVELOPE","
-ESTIMATED_ENVELOPE(tableNameString, columnNameString)
+@h2@ ESTIMATED_ENVELOPE(tableNameString, columnNameString)
 ","
 Returns the estimated minimum bounding box that encloses all specified GEOMETRY values.
 Only 2D coordinate plane is supported.
@@ -5360,7 +5374,7 @@ CALL ESTIMATED_ENVELOPE('MY_TABLE', 'GEOMETRY_COLUMN');
 "
 
 "Functions (System)","FILE_READ","
-FILE_READ(fileNameString [,encodingString])
+@h2@ FILE_READ(fileNameString [,encodingString])
 ","
 Returns the contents of a file. If only one parameter is supplied, the data are
 returned as a BLOB. If two parameters are used, the data is returned as a CLOB
@@ -5377,7 +5391,7 @@ SELECT FILE_READ('http://localhost:8182/stylesheet.css', NULL) CSS;
 "
 
 "Functions (System)","FILE_WRITE","
-FILE_WRITE(blobValue, fileNameString)
+@h2@ FILE_WRITE(blobValue, fileNameString)
 ","
 Write the supplied parameter into a file. Return the number of bytes written.
 
@@ -5387,7 +5401,7 @@ SELECT FILE_WRITE('Hello world', '/tmp/hello.txt')) LEN;
 "
 
 "Functions (System)","GREATEST","
-GREATEST(aValue, bValue [,...])
+@h2@ GREATEST(aValue, bValue [,...])
 ","
 Returns the largest value that is not NULL, or NULL if all values are NULL.
 ","
@@ -5395,7 +5409,7 @@ CALL GREATEST(1, 2, 3);
 "
 
 "Functions (System)","IDENTITY","
-IDENTITY()
+@c@ IDENTITY()
 ","
 Returns the last inserted identity value for this session.
 This value changes whenever a new sequence number was generated,
@@ -5406,7 +5420,7 @@ CALL IDENTITY();
 "
 
 "Functions (System)","IFNULL","
-IFNULL(aValue, bValue)
+@c@ IFNULL(aValue, bValue)
 ","
 Returns the value of 'a' if it is not null, otherwise 'b'.
 ","
@@ -5414,7 +5428,7 @@ CALL IFNULL(NULL, '');
 "
 
 "Functions (System)","LEAST","
-LEAST(aValue, bValue [,...])
+@h2@ LEAST(aValue, bValue [,...])
 ","
 Returns the smallest value that is not NULL, or NULL if all values are NULL.
 ","
@@ -5422,7 +5436,7 @@ CALL LEAST(1, 2, 3);
 "
 
 "Functions (System)","LOCK_MODE","
-LOCK_MODE()
+@h2@ LOCK_MODE()
 ","
 Returns the current lock mode. See SET LOCK_MODE.
 This method returns an int.
@@ -5431,7 +5445,7 @@ CALL LOCK_MODE();
 "
 
 "Functions (System)","LOCK_TIMEOUT","
-LOCK_TIMEOUT()
+@h2@ LOCK_TIMEOUT()
 ","
 Returns the lock timeout of the current session (in milliseconds).
 ","
@@ -5439,8 +5453,8 @@ LOCK_TIMEOUT()
 "
 
 "Functions (System)","LINK_SCHEMA","
-LINK_SCHEMA(targetSchemaString, driverString, urlString,
-userString, passwordString, sourceSchemaString)
+@h2@ LINK_SCHEMA(targetSchemaString, driverString, urlString,
+    userString, passwordString, sourceSchemaString)
 ","
 Creates table links for all tables in a schema.
 If tables with the same name already exist, they are dropped first.
@@ -5453,7 +5467,7 @@ CALL LINK_SCHEMA('TEST2', '', 'jdbc:h2:./test2', 'sa', 'sa', 'PUBLIC');
 "
 
 "Functions (System)","MEMORY_FREE","
-MEMORY_FREE()
+@h2@ MEMORY_FREE()
 ","
 Returns the free memory in KB (where 1024 bytes is a KB).
 This method returns an int.
@@ -5464,7 +5478,7 @@ MEMORY_FREE()
 "
 
 "Functions (System)","MEMORY_USED","
-MEMORY_USED()
+@h2@ MEMORY_USED()
 ","
 Returns the used memory in KB (where 1024 bytes is a KB).
 This method returns an int.
@@ -5475,7 +5489,7 @@ MEMORY_USED()
 "
 
 "Functions (System)","NEXTVAL","
-NEXTVAL ( [ schemaNameString, ] sequenceString )
+@c@ NEXTVAL ( [ schemaNameString, ] sequenceString )
 ","
 Increments the sequence and returns its value.
 The current value of the sequence and the last identity in the current session are updated with the generated value.
@@ -5499,7 +5513,7 @@ NULLIF(A, B)
 "
 
 "Functions (System)","NVL2","
-NVL2(testValue, aValue, bValue)
+@c@ NVL2(testValue, aValue, bValue)
 ","
 If the test value is null, then 'b' is returned. Otherwise, 'a' is returned.
 The data type of the returned value is the data type of 'a' if this is a text type.
@@ -5508,7 +5522,7 @@ NVL2(X, 'not null', 'null')
 "
 
 "Functions (System)","READONLY","
-READONLY()
+@h2@ READONLY()
 ","
 Returns true if the database is read-only.
 ","
@@ -5516,7 +5530,7 @@ READONLY()
 "
 
 "Functions (System)","ROWNUM","
-ROWNUM()
+@h2@ ROWNUM()
 ","
 Returns the number of the current row.
 This method returns a long value.
@@ -5532,7 +5546,7 @@ SELECT ID FROM (SELECT T.*, ROWNUM AS R FROM TEST T) WHERE R BETWEEN 2 AND 3;
 "
 
 "Functions (System)","SCOPE_IDENTITY","
-SCOPE_IDENTITY()
+@c@ SCOPE_IDENTITY()
 ","
 Returns the last inserted identity value for this session for the current scope
 (the current statement).
@@ -5543,7 +5557,7 @@ CALL SCOPE_IDENTITY();
 "
 
 "Functions (System)","SESSION_ID","
-SESSION_ID()
+@h2@ SESSION_ID()
 ","
 Returns the unique session id number for the current database connection.
 This id stays the same while the connection is open.
@@ -5554,7 +5568,7 @@ CALL SESSION_ID()
 "
 
 "Functions (System)","SET","
-SET(@variableName, value)
+@h2@ SET(@variableName, value)
 ","
 Updates a variable with the given value.
 The new value is returned.
@@ -5566,8 +5580,8 @@ SELECT X, SET(@I, IFNULL(@I, 0)+X) RUNNING_TOTAL FROM SYSTEM_RANGE(1, 10)
 "
 
 "Functions (System)","TABLE","
-{ TABLE | TABLE_DISTINCT }
-( { name dataType = array|rowValueExpression } [,...] )
+@h2@ { TABLE | TABLE_DISTINCT }
+@h2@ ( { name dataType = {array|rowValueExpression} } [,...] )
 ","
 Returns the result set. TABLE_DISTINCT removes duplicate rows.
 ","
@@ -5576,7 +5590,7 @@ SELECT * FROM TABLE(ID INT=(1, 2), NAME VARCHAR=('Hello', 'World'));
 "
 
 "Functions (System)","TRANSACTION_ID","
-TRANSACTION_ID()
+@h2@ TRANSACTION_ID()
 ","
 Returns the current transaction id for this session.
 This method returns NULL if there is no uncommitted change, or if the database is not persisted.
@@ -5589,7 +5603,7 @@ CALL TRANSACTION_ID()
 "
 
 "Functions (System)","TRUNCATE_VALUE","
-TRUNCATE_VALUE(value, precisionInt, forceBoolean)
+@h2@ TRUNCATE_VALUE(value, precisionInt, forceBoolean)
 ","
 Truncate a value to the required precision.
 If force flag is set to ""FALSE"" fixed precision values are not truncated.
@@ -5611,15 +5625,15 @@ SELECT * FROM UNNEST(ARRAY['a', 'b', 'c']);
 "
 
 "Functions (System)","USER","
-{ USER | CURRENT_USER } ()
+CURRENT_USER | @c@ USER()
 ","
 Returns the name of the current user of this session.
 ","
-CURRENT_USER()
+CURRENT_USER
 "
 
 "Functions (System)","H2VERSION","
-H2VERSION()
+@h2@ H2VERSION()
 ","
 Returns the H2 version as a String.
 ","
@@ -5705,7 +5719,7 @@ SUM(X)
 "
 
 "Aggregate Functions (General)","EVERY","
-{EVERY|BOOL_AND}(boolean)
+{EVERY| @c@ {BOOL_AND}}(boolean)
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Returns true if all expressions are true.
@@ -5716,7 +5730,7 @@ EVERY(ID>10)
 "
 
 "Aggregate Functions (General)","ANY","
-{ANY|SOME|BOOL_OR}(boolean)
+{ANY|SOME| @c@ {BOOL_OR}}(boolean)
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Returns true if any expression is true.
@@ -5792,8 +5806,8 @@ VAR_SAMP(X)
 "
 
 "Aggregate Functions (General)","BIT_AND","
-BIT_AND(expression)
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+@h2@ BIT_AND(expression)
+@h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
 ","
 The bitwise AND of all non-null values.
 If no rows are selected, the result is NULL.
@@ -5803,8 +5817,8 @@ BIT_AND(ID)
 "
 
 "Aggregate Functions (General)","BIT_OR","
-BIT_OR(expression)
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+@h2@ BIT_OR(expression)
+@h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
 ","
 The bitwise OR of all non-null values.
 If no rows are selected, the result is NULL.
@@ -5814,8 +5828,8 @@ BIT_OR(ID)
 "
 
 "Aggregate Functions (General)","SELECTIVITY","
-SELECTIVITY(value)
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+@h2@ SELECTIVITY(value)
+@h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
 ","
 Estimates the selectivity (0-100) of a value.
 The value is defined as (100 * distinctCount / rowCount).
@@ -5827,8 +5841,8 @@ SELECT SELECTIVITY(FIRSTNAME), SELECTIVITY(NAME) FROM TEST WHERE ROWNUM()<20000
 "
 
 "Aggregate Functions (General)","ENVELOPE","
-ENVELOPE( value )
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+@h2@ ENVELOPE( value )
+@h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
 ","
 Returns the minimum bounding box that encloses all specified GEOMETRY values.
 Only 2D coordinate plane is supported.
@@ -5842,8 +5856,8 @@ ENVELOPE(X)
 "Aggregate Functions (Ordered)","LISTAGG","
 { LISTAGG ( [ DISTINCT|ALL ] string [, separatorString] [ ON OVERFLOW ERROR ] )
     withinGroupSpecification }
-| { GROUP_CONCAT ( [ DISTINCT|ALL ] string
-    [ ORDER BY { expression [ ASC | DESC ] } [,...] ]
+    | @c@ { GROUP_CONCAT ( [ DISTINCT|ALL ] string
+    [ ORDER BY order [,...] ]
     [ SEPARATOR separatorString ] ) }
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
@@ -5861,8 +5875,8 @@ LISTAGG(ID, ', ') WITHIN GROUP (ORDER BY ID) OVER (ORDER BY ID)
 "
 
 "Aggregate Functions (Ordered)","ARRAY_AGG","
-ARRAY_AGG ( [ DISTINCT|ALL ] value
-[ ORDER BY { expression [ ASC | DESC ] } [,...] ] )
+ARRAY_AGG ( @h2@ [ DISTINCT|ALL ] value
+[ ORDER BY order [,...] ] )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Aggregate the value into an array.
@@ -5972,8 +5986,8 @@ PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY V)
 "
 
 "Aggregate Functions (Inverse Distribution)","MEDIAN","
-MEDIAN( [ DISTINCT|ALL ] value )
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+@h2@ MEDIAN( [ DISTINCT|ALL ] value )
+@h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
 ","
 The value separating the higher half of a values from the lower half.
 Returns the middle value or an interpolated value between two middle values if number of values is even.
@@ -5986,9 +6000,9 @@ MEDIAN(X)
 "
 
 "Aggregate Functions (Inverse Distribution)","MODE","
-{ MODE( value ) [ ORDER BY value [ ASC | DESC ] ] }
-    | { MODE() WITHIN GROUP (ORDER BY expression [ ASC | DESC ]) }
-[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+@h2@ { MODE( value ) [ ORDER BY value [ ASC | DESC ] ] }
+    | @h2@ { MODE() WITHIN GROUP (ORDER BY expression [ ASC | DESC ]) }
+@h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
 ","
 Returns the value that occurs with the greatest frequency.
 If there are multiple values with the same frequency only one value will be returned.
@@ -6232,8 +6246,8 @@ SELECT NTILE(5) OVER (PARTITION BY CATEGORY ORDER BY ID), * FROM TEST;
 "
 
 "Window Functions (Other)","RATIO_TO_REPORT","
-RATIO_TO_REPORT(value)
-OVER windowNameOrSpecification
+@h2@ RATIO_TO_REPORT(value)
+@h2@ OVER windowNameOrSpecification
 ","
 Returns the ratio of a value to the sum of all values.
 If argument is NULL or sum of all values is 0, then the value of function is NULL.
@@ -6253,7 +6267,7 @@ INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'INFORMATION_SCHEMA'
 "
 
 "System Tables","Range Table","
-SYSTEM_RANGE(start, end)
+@h2@ SYSTEM_RANGE(start, end [, step])
 ","
 Contains all values from start to end (this is a dynamic table).
 ","

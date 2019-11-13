@@ -100,14 +100,9 @@ public class BnfSyntax implements BnfVisitor {
 
     private static String skipAfterExtensionStart(StringTokenizer tokenizer, StringBuilder buff) {
         String s;
-        for (;;) {
+        do {
             s = tokenizer.nextToken();
-            if (s.equals(" ")) {
-                buff.append(' ');
-            } else {
-                break;
-            }
-        }
+        } while (s.equals(" "));
         return s;
     }
 

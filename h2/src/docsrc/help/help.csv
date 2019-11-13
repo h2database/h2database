@@ -5875,7 +5875,7 @@ LISTAGG(ID, ', ') WITHIN GROUP (ORDER BY ID) OVER (ORDER BY ID)
 "
 
 "Aggregate Functions (Ordered)","ARRAY_AGG","
-ARRAY_AGG ( [ DISTINCT|ALL ] value
+ARRAY_AGG ( @h2@ [ DISTINCT|ALL ] value
 [ ORDER BY order [,...] ] )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","

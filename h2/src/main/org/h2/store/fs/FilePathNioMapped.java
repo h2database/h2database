@@ -7,7 +7,6 @@ package org.h2.store.fs;
 
 import java.io.EOFException;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.lang.ref.WeakReference;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
@@ -15,6 +14,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.NonWritableChannelException;
+import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 
 import org.h2.engine.SysProperties;
@@ -47,7 +47,7 @@ class FileNioMapped extends FileBase {
     private static final long GC_TIMEOUT_MS = 10_000;
     private final String name;
     private final MapMode mode;
-    private RandomAccessFile file;
+    private FileChannel channel;
     private MappedByteBuffer mapped;
     private long fileLength;
 
@@ -64,7 +64,7 @@ class FileNioMapped extends FileBase {
             this.mode = MapMode.READ_WRITE;
         }
         this.name = fileName;
-        file = new RandomAccessFile(fileName, mode);
+        channel = FileChannel.open(Paths.get(fileName), FileUtils.modeToOptions(mode), FileUtils.NO_ATTRIBUTES);
         reMap();
     }
 
@@ -107,10 +107,10 @@ class FileNioMapped extends FileBase {
             oldPos = pos;
             unMap();
         }
-        fileLength = file.length();
+        fileLength = channel.size();
         checkFileSizeLimit(fileLength);
         // maps new MappedByteBuffer; the old one is disposed during GC
-        mapped = file.getChannel().map(mode, 0, fileLength);
+        mapped = channel.map(mode, 0, fileLength);
         int limit = mapped.limit();
         int capacity = mapped.capacity();
         if (limit < fileLength || capacity < fileLength) {
@@ -132,10 +132,10 @@ class FileNioMapped extends FileBase {
 
     @Override
     public void implCloseChannel() throws IOException {
-        if (file != null) {
+        if (channel != null) {
             unMap();
-            file.close();
-            file = null;
+            channel.close();
+            channel = null;
         }
     }
 
@@ -205,7 +205,12 @@ class FileNioMapped extends FileBase {
         unMap();
         for (int i = 0;; i++) {
             try {
-                file.setLength(newLength);
+                long length = channel.size();
+                if (length >= newLength) {
+                    channel.truncate(newLength);
+                } else {
+                    channel.write(ByteBuffer.wrap(new byte[1]), newLength - 1);
+                }
                 break;
             } catch (IOException e) {
                 if (i > 16 || !e.toString().contains("user-mapped section open")) {
@@ -221,7 +226,7 @@ class FileNioMapped extends FileBase {
     @Override
     public void force(boolean metaData) throws IOException {
         mapped.force();
-        file.getFD().sync();
+        channel.force(metaData);
     }
 
     @Override
@@ -240,7 +245,7 @@ class FileNioMapped extends FileBase {
     @Override
     public synchronized FileLock tryLock(long position, long size,
             boolean shared) throws IOException {
-        return file.getChannel().tryLock(position, size, shared);
+        return channel.tryLock(position, size, shared);
     }
 
 }

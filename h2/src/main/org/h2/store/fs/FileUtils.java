@@ -27,19 +27,36 @@ import java.util.Set;
  */
 public class FileUtils {
 
-    private static final Set<? extends OpenOption> R, W, RWS, RWD;
+    /**
+     * {@link StandardOpenOption#READ}.
+     */
+    public static final Set<? extends OpenOption> R = Collections.singleton(StandardOpenOption.READ);
 
-    static final FileAttribute<?>[] NO_ATTRIBUTES = new FileAttribute[0];
+    /**
+     * {@link StandardOpenOption#READ}, {@link StandardOpenOption#WRITE}, and
+     * {@link StandardOpenOption#CREATE}.
+     */
+    public static final Set<? extends OpenOption> RW = Collections
+            .unmodifiableSet(EnumSet.of(StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE));
 
-    static {
-        R = Collections.singleton(StandardOpenOption.READ);
-        W = EnumSet.of(StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
-        RWS = EnumSet.of(StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE,
-                StandardOpenOption.SYNC);
-        RWD = EnumSet.of(StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE,
-                StandardOpenOption.DSYNC);
-    }
+    /**
+     * {@link StandardOpenOption#READ}, {@link StandardOpenOption#WRITE},
+     * {@link StandardOpenOption#CREATE}, and {@link StandardOpenOption#SYNC}.
+     */
+    public static final Set<? extends OpenOption> RWS = Collections.unmodifiableSet(EnumSet.of(StandardOpenOption.READ,
+            StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.SYNC));
 
+    /**
+     * {@link StandardOpenOption#READ}, {@link StandardOpenOption#WRITE},
+     * {@link StandardOpenOption#CREATE}, and {@link StandardOpenOption#DSYNC}.
+     */
+    public static final Set<? extends OpenOption> RWD = Collections.unmodifiableSet(EnumSet.of(StandardOpenOption.READ,
+            StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.DSYNC));
+
+    /**
+     * No file attributes.
+     */
+    public static final FileAttribute<?>[] NO_ATTRIBUTES = new FileAttribute[0];
 
     /**
      * Checks if a file exists.
@@ -403,7 +420,7 @@ public class FileUtils {
             options = R;
             break;
         case "rw":
-            options = W;
+            options = RW;
             break;
         case "rws":
             options = RWS;

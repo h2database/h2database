@@ -12,7 +12,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.RandomAccessFile;
 import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
@@ -254,20 +253,10 @@ public class FilePathDisk extends FilePath {
         // File.canWrite() does not respect windows user permissions,
         // so we must try to open it using the mode "rw".
         // See also https://bugs.java.com/bugdatabase/view_bug.do?bug_id=4420020
-        RandomAccessFile r = null;
-        try {
-            r = new RandomAccessFile(file, "rw");
+        try (FileChannel f = FileChannel.open(file.toPath(), FileUtils.RW, FileUtils.NO_ATTRIBUTES)) {
             return true;
-        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
             return false;
-        } finally {
-            if (r != null) {
-                try {
-                    r.close();
-                } catch (IOException e) {
-                    // ignore
-                }
-            }
         }
     }
 

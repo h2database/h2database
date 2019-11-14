@@ -787,7 +787,7 @@ public class Utils {
             return (int) (value * physicalMemorySize / (1024 * 1024 * 1024));
         } catch (Exception e) {
             // ignore
-        } catch(Error error) {
+        } catch (Error error) {
             // ignore
         }
         return value;

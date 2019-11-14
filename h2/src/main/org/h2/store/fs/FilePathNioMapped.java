@@ -24,7 +24,7 @@ import org.h2.util.MemoryUnmapper;
  * This file system stores files on disk and uses java.nio to access the files.
  * This class used memory mapped files.
  */
-public class FilePathNioMapped extends FilePathNio {
+public class FilePathNioMapped extends FilePathWrapper {
 
     @Override
     public FileChannel open(String mode) throws IOException {

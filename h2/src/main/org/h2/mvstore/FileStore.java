@@ -13,9 +13,7 @@ import java.nio.channels.OverlappingFileLockException;
 import java.util.concurrent.atomic.AtomicLong;
 import org.h2.mvstore.cache.FilePathCache;
 import org.h2.store.fs.FilePath;
-import org.h2.store.fs.FilePathDisk;
 import org.h2.store.fs.FilePathEncrypt;
-import org.h2.store.fs.FilePathNio;
 
 /**
  * The default storage mechanism of the MVStore. This implementation persists
@@ -130,14 +128,6 @@ public class FileStore {
         }
         // ensure the Cache file system is registered
         FilePathCache.INSTANCE.getScheme();
-        FilePath p = FilePath.get(fileName);
-        // if no explicit scheme was specified, NIO is used
-        if (p instanceof FilePathDisk &&
-                !fileName.startsWith(p.getScheme() + ":")) {
-            // ensure the NIO file system is registered
-            FilePathNio.class.getName();
-            fileName = "nio:" + fileName;
-        }
         this.fileName = fileName;
         FilePath f = FilePath.get(fileName);
         FilePath parent = f.getParent();

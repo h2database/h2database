@@ -71,7 +71,7 @@ public class TestConcurrent extends TestMVStore {
     }
 
     private void testInterruptReopenRetryNIO() {
-        testInterruptReopen("retry:nio:");
+        testInterruptReopen("retry:");
     }
 
     private void testInterruptReopen(String prefix) {

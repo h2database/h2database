@@ -389,7 +389,7 @@ public class ConnectionInfo implements Cloneable {
                             !name.contains(":/") &&
                             !name.contains(":\\")) {
                         // the name could start with "./", or
-                        // it could start with a prefix such as "nio:./"
+                        // it could start with a prefix such as "nioMapped:./"
                         // for Windows, the path "\test" is not considered
                         // absolute as the drive letter is missing,
                         // but we consider it absolute

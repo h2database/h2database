@@ -12,7 +12,6 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.channels.FileChannel.MapMode;
 import java.nio.channels.FileLock;
 import java.nio.channels.NonWritableChannelException;
 import java.sql.Connection;
@@ -63,7 +62,6 @@ public class TestFileSystem extends TestBase {
         testAbsoluteRelative();
         testDirectories(getBaseDir());
         testMoveTo(getBaseDir());
-        testUnsupportedFeatures(getBaseDir());
         FilePathZip2.register();
         FilePath.register(new FilePathCache());
         FilePathRec.register();
@@ -93,8 +91,7 @@ public class TestFileSystem extends TestBase {
         testFileSystem("rec:memFS:");
         testUserHome();
         try {
-            testFileSystem("nio:" + getBaseDir() + "/fs");
-            testFileSystem("cache:nio:" + getBaseDir() + "/fs");
+            testFileSystem("cache:" + getBaseDir() + "/fs");
             testFileSystem("nioMapped:" + getBaseDir() + "/fs");
             testFileSystem("encrypt:0007:" + getBaseDir() + "/fs");
             testFileSystem("cache:encrypt:0007:" + getBaseDir() + "/fs");
@@ -468,48 +465,6 @@ public class TestFileSystem extends TestBase {
                 public void test() {
                     FileUtils.move(fileName, fileName2);
             }};
-        }
-    }
-
-    private static void testUnsupportedFeatures(String fsBase) throws IOException {
-        final String fileName = fsBase + "/testFile";
-        if (FileUtils.exists(fileName)) {
-            FileUtils.delete(fileName);
-        }
-        if (FileUtils.createFile(fileName)) {
-            final FileChannel channel = FileUtils.open(fileName, "rw");
-            new AssertThrows(UnsupportedOperationException.class) {
-                @Override
-                public void test() throws IOException {
-                    channel.map(MapMode.PRIVATE, 0, channel.size());
-            }};
-            new AssertThrows(UnsupportedOperationException.class) {
-                @Override
-                public void test() throws IOException {
-                    channel.read(new ByteBuffer[]{ByteBuffer.allocate(10)}, 0, 0);
-            }};
-            new AssertThrows(UnsupportedOperationException.class) {
-                @Override
-                public void test() throws IOException {
-                    channel.write(new ByteBuffer[]{ByteBuffer.allocate(10)}, 0, 0);
-            }};
-            new AssertThrows(UnsupportedOperationException.class) {
-                @Override
-                public void test() throws IOException {
-                    channel.transferFrom(channel, 0, 0);
-            }};
-            new AssertThrows(UnsupportedOperationException.class) {
-                @Override
-                public void test() throws IOException {
-                    channel.transferTo(0, 0, channel);
-            }};
-            new AssertThrows(UnsupportedOperationException.class) {
-                @Override
-                public void test() throws IOException {
-                    channel.lock();
-            }};
-            channel.close();
-            FileUtils.delete(fileName);
         }
     }
 

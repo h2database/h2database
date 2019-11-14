@@ -370,12 +370,7 @@ public class MVStore implements AutoCloseable
         if (this.fileStore != null) {
             retentionTime = this.fileStore.getDefaultRetentionTime();
             // 19 KB memory is about 1 KB storage
-            int kb;
-            try {
-               kb = Math.max(1, Math.min(19, Utils.scaleForAvailableMemory(64))) * 1024;
-            } catch(NoClassDefFoundError ex) {
-                kb = 19 * 1024;     // this equates to 19MB
-            }
+            int kb = Math.max(1, Math.min(19, Utils.scaleForAvailableMemory(64))) * 1024;
             kb = DataUtils.getConfigParam(config, "autoCommitBufferSize", kb);
             autoCommitMemory = kb * 1024;
             autoCompactFillRate = DataUtils.getConfigParam(config, "autoCompactFillRate", 90);

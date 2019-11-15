@@ -7,21 +7,20 @@ package org.h2.util;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.io.Writer;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.SecureClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,7 +43,6 @@ import javax.tools.ToolProvider;
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
-import org.h2.store.fs.FileUtils;
 
 /**
  * This class allows to convert source code to a class. It uses one class loader
@@ -256,34 +254,37 @@ public class SourceCompiler {
      * @return the class file
      */
     byte[] javacCompile(String packageName, String className, String source) {
-        File dir = new File(COMPILE_DIR);
+        Path dir = Paths.get(COMPILE_DIR);
         if (packageName != null) {
-            dir = new File(dir, packageName.replace('.', '/'));
-            FileUtils.createDirectories(dir.getAbsolutePath());
+            dir = dir.resolve(packageName.replace('.', '/'));
+            try {
+                Files.createDirectories(dir);
+            } catch (Exception e) {
+                throw DbException.convert(e);
+            }
         }
-        File javaFile = new File(dir, className + ".java");
-        File classFile = new File(dir, className + ".class");
+        Path javaFile = dir.resolve(className + ".java");
+        Path classFile = dir.resolve(className + ".class");
         try {
-            OutputStream f = FileUtils.newOutputStream(javaFile.getAbsolutePath(), false);
-            Writer out = IOUtils.getBufferedWriter(f);
-            classFile.delete();
-            out.write(source);
-            out.close();
+            Files.write(javaFile, source.getBytes(StandardCharsets.UTF_8));
+            Files.deleteIfExists(classFile);
             if (JAVAC_SUN != null) {
                 javacSun(javaFile);
             } else {
                 javacProcess(javaFile);
             }
-            byte[] data = new byte[(int) classFile.length()];
-            DataInputStream in = new DataInputStream(Files.newInputStream(classFile.toPath()));
-            in.readFully(data);
-            in.close();
-            return data;
+            return Files.readAllBytes(classFile);
         } catch (Exception e) {
             throw DbException.convert(e);
         } finally {
-            javaFile.delete();
-            classFile.delete();
+            try {
+                Files.deleteIfExists(javaFile);
+            } catch (IOException e) {
+            }
+            try {
+                Files.deleteIfExists(classFile);
+            } catch (IOException e) {
+            }
         }
     }
 
@@ -352,12 +353,12 @@ public class SourceCompiler {
         }
     }
 
-    private static void javacProcess(File javaFile) {
+    private static void javacProcess(Path javaFile) {
         exec("javac",
                 "-sourcepath", COMPILE_DIR,
                 "-d", COMPILE_DIR,
                 "-encoding", "UTF-8",
-                javaFile.getAbsolutePath());
+                javaFile.toAbsolutePath().toString());
     }
 
     private static int exec(String... args) {
@@ -392,7 +393,7 @@ public class SourceCompiler {
         }.execute();
     }
 
-    private static synchronized void javacSun(File javaFile) {
+    private static synchronized void javacSun(Path javaFile) {
         PrintStream old = System.err;
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         PrintStream temp = new PrintStream(buff);
@@ -409,7 +410,7 @@ public class SourceCompiler {
                     // "-Xlint:unchecked",
                     "-d", COMPILE_DIR,
                     "-encoding", "UTF-8",
-                    javaFile.getAbsolutePath() });
+                    javaFile.toAbsolutePath().toString() });
             String output = new String(buff.toByteArray(), StandardCharsets.UTF_8);
             handleSyntaxError(output, status);
         } catch (Exception e) {

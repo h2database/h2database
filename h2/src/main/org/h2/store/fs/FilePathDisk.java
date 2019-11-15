@@ -14,6 +14,7 @@ import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.CopyOption;
+import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
@@ -156,10 +157,13 @@ public class FilePathDisk extends FilePath {
 
     @Override
     public boolean createFile() {
-        File file = new File(name);
+        Path file = Paths.get(name);
         for (int i = 0; i < SysProperties.MAX_FILE_RETRY; i++) {
             try {
-                return file.createNewFile();
+                Files.createFile(file);
+                return true;
+            } catch (FileAlreadyExistsException e) {
+                return false;
             } catch (IOException e) {
                 // 'access denied' is really a concurrent access problem
                 wait(i);
@@ -175,16 +179,21 @@ public class FilePathDisk extends FilePath {
 
     @Override
     public void delete() {
-        File file = new File(name);
+        Path file = Paths.get(name);
+        IOException cause = null;
         for (int i = 0; i < SysProperties.MAX_FILE_RETRY; i++) {
             IOUtils.trace("delete", name, null);
-            boolean ok = file.delete();
-            if (ok || !file.exists()) {
+            try {
+                Files.deleteIfExists(file);
                 return;
+            } catch (DirectoryNotEmptyException e) {
+                throw DbException.get(ErrorCode.FILE_DELETE_FAILED_1, e, name);
+            } catch (IOException e) {
+                cause = e;
             }
             wait(i);
         }
-        throw DbException.get(ErrorCode.FILE_DELETE_FAILED_1, name);
+        throw DbException.get(ErrorCode.FILE_DELETE_FAILED_1, cause, name);
     }
 
     @Override
@@ -238,7 +247,7 @@ public class FilePathDisk extends FilePath {
 
     @Override
     public boolean isDirectory() {
-        return new File(name).isDirectory();
+        return Files.isDirectory(Paths.get(name));
     }
 
     @Override
@@ -273,20 +282,29 @@ public class FilePathDisk extends FilePath {
 
     @Override
     public void createDirectory() {
-        File dir = new File(name);
-        for (int i = 0; i < SysProperties.MAX_FILE_RETRY; i++) {
-            if (dir.exists()) {
-                if (dir.isDirectory()) {
+        Path dir = Paths.get(name);
+        try {
+            Files.createDirectory(dir);
+        } catch (FileAlreadyExistsException e) {
+            throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1, name + " (a file with this name already exists)");
+        } catch (IOException e) {
+            IOException cause = e;
+            for (int i = 0; i < SysProperties.MAX_FILE_RETRY; i++) {
+                if (Files.isDirectory(dir)) {
                     return;
                 }
-                throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1,
-                        name + " (a file with this name already exists)");
-            } else if (dir.mkdir()) {
-                return;
+                try {
+                    Files.createDirectory(dir);
+                } catch (FileAlreadyExistsException ex) {
+                    throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1,
+                            name + " (a file with this name already exists)");
+                } catch (IOException ex) {
+                    cause = ex;
+                }
+                wait(i);
             }
-            wait(i);
+            throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1, cause, name);
         }
-        throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1, name);
     }
 
     @Override
@@ -374,24 +392,16 @@ public class FilePathDisk extends FilePath {
 
     @Override
     public FilePath createTempFile(String suffix, boolean inTempDir) throws IOException {
-        String fileName = name + ".";
-        String prefix = new File(fileName).getName();
-        File dir;
+        Path file = Paths.get(name + '.').toAbsolutePath();
+        String prefix = file.getFileName().toString();
         if (inTempDir) {
-            dir = new File(System.getProperty("java.io.tmpdir", "."));
+            file = Files.createTempFile(prefix, suffix);
         } else {
-            dir = new File(fileName).getAbsoluteFile().getParentFile();
+            Path dir = file.getParent();
+            Files.createDirectories(dir);
+            file = Files.createTempFile(dir, prefix, suffix);
         }
-        FileUtils.createDirectories(dir.getAbsolutePath());
-        while (true) {
-            File f = new File(dir, prefix + getNextTempFileNamePart(false) + suffix);
-            if (f.exists() || !f.createNewFile()) {
-                // in theory, the random number could collide
-                getNextTempFileNamePart(true);
-                continue;
-            }
-            return get(f.getCanonicalPath());
-        }
+        return get(file.toString());
     }
 
 }

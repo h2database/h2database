@@ -275,7 +275,7 @@ public abstract class FilePath {
      * @param newRandom if the random part of the filename should change
      * @return the file name part
      */
-    protected static synchronized String getNextTempFileNamePart(
+    private static synchronized String getNextTempFileNamePart(
             boolean newRandom) {
         if (newRandom || tempRandom == null) {
             tempRandom = MathUtils.randomInt(Integer.MAX_VALUE) + ".";

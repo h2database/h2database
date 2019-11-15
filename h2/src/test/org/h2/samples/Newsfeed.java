@@ -5,13 +5,12 @@
  */
 package org.h2.samples;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -33,7 +32,7 @@ public class Newsfeed {
      * @param args the command line parameters
      */
     public static void main(String... args) throws Exception {
-        String targetDir = args.length == 0 ? "." : args[0];
+        Path targetDir = Paths.get(args.length == 0 ? "." : args[0]);
         Class.forName("org.h2.Driver");
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:", "sa", "");
         InputStream in = Newsfeed.class.getResourceAsStream("newsfeed.sql");
@@ -45,12 +44,8 @@ public class Newsfeed {
             if (file.endsWith(".txt")) {
                 content = convertHtml2Text(content);
             }
-            new File(targetDir).mkdirs();
-            FileOutputStream out = new FileOutputStream(targetDir + "/" + file);
-            Writer writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
-            writer.write(content);
-            writer.close();
-            out.close();
+            Files.createDirectories(targetDir);
+            Files.write(targetDir.resolve(file), content.getBytes(StandardCharsets.UTF_8));
         }
         conn.close();
     }

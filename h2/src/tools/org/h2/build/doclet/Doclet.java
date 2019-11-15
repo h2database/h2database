@@ -5,11 +5,10 @@
  */
 package org.h2.build.doclet;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -80,11 +79,10 @@ public class Doclet {
     private void processClass(ClassDoc clazz) throws IOException {
         String packageName = clazz.containingPackage().name();
         String dir = destDir + "/" + packageName.replace('.', '/');
-        (new File(dir)).mkdirs();
+        Files.createDirectories(Paths.get(dir));
         String fileName = dir + "/" + clazz.name() + ".html";
         String className = getClass(clazz);
-        FileWriter out = new FileWriter(fileName);
-        PrintWriter writer = new PrintWriter(new BufferedWriter(out));
+        PrintWriter writer = new PrintWriter(Files.newBufferedWriter(Paths.get(fileName)));
         writer.println("<!DOCTYPE html PUBLIC \"-//W3C//DTD " +
                 "XHTML 1.0 Strict//EN\" " +
                 "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">");
@@ -254,7 +252,6 @@ public class Doclet {
 
         writer.println("</div></td></tr></table></body></html>");
         writer.close();
-        out.close();
     }
 
     private void writeFieldDetails(PrintWriter writer, ClassDoc clazz,

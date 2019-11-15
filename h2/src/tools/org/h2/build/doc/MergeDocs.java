@@ -5,10 +5,10 @@
  */
 package org.h2.build.doc;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import org.h2.engine.Constants;
 import org.h2.util.StringUtils;
@@ -49,8 +49,7 @@ public class MergeDocs {
             buff.append(text);
         }
         String finalText = buff.toString();
-        File output = new File(BASE_DIR, "onePage.html");
-        PrintWriter writer = new PrintWriter(new FileWriter(output));
+        PrintWriter writer = new PrintWriter(Files.newBufferedWriter(Paths.get(BASE_DIR, "onePage.html")));
         writer.println("<html><head><meta http-equiv=\"Content-Type\" " +
                 "content=\"text/html;charset=utf-8\" /><title>");
         writer.println("H2 Documentation");
@@ -143,18 +142,6 @@ public class MergeDocs {
     }
 
     private static String getContent(String fileName) throws Exception {
-        File file = new File(BASE_DIR, fileName);
-        int length = (int) file.length();
-        char[] data = new char[length];
-        FileReader reader = new FileReader(file);
-        int off = 0;
-        while (length > 0) {
-            int len = reader.read(data, off, length);
-            off += len;
-            length -= len;
-        }
-        reader.close();
-        String s = new String(data);
-        return s;
+        return new String(Files.readAllBytes(Paths.get(BASE_DIR, fileName)), StandardCharsets.UTF_8);
     }
 }

@@ -5,8 +5,10 @@
  */
 package org.h2.build.doc;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -72,8 +74,8 @@ public class SpellChecker {
     }
 
     private void run(String dictionaryFileName, String dir) throws IOException {
-        process(new File(dictionaryFileName));
-        process(new File(dir));
+        process(Paths.get(dictionaryFileName));
+        process(Paths.get(dir));
         HashSet<String> unused = new HashSet<>();
         unused.addAll(dictionary);
         unused.removeAll(used);
@@ -113,20 +115,20 @@ public class SpellChecker {
         }
     }
 
-    private void process(File file) throws IOException {
-        String name = file.getName();
+    private void process(Path file) throws IOException {
+        String name = file.getFileName().toString();
         if (name.endsWith(".svn") || name.endsWith(".DS_Store")) {
             return;
         }
         if (name.startsWith("_") && name.indexOf("_en") < 0) {
             return;
         }
-        if (file.isDirectory()) {
-            for (File f : file.listFiles()) {
+        if (Files.isDirectory(file)) {
+            for (Path f : Files.newDirectoryStream(file)) {
                 process(f);
             }
         } else {
-            String fileName = file.getAbsolutePath();
+            String fileName = file.toAbsolutePath().toString();
             int idx = fileName.lastIndexOf('.');
             String suffix;
             if (idx < 0) {

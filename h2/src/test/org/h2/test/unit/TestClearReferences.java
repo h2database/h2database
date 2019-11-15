@@ -114,9 +114,6 @@ public class TestClearReferences extends TestBase {
     private void findClasses(ArrayList<Class <?>> classes, File file) {
         String name = file.getName();
         if (file.isDirectory()) {
-            if (name.equals("CVS") || name.equals(".svn")) {
-                return;
-            }
             for (File f : file.listFiles()) {
                 findClasses(classes, f);
             }

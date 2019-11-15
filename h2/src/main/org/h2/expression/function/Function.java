@@ -6,14 +6,16 @@
 package org.h2.expression.function;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -1738,7 +1740,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             result = ValueNull.INSTANCE;
             String fileName = v1.getString();
             try {
-                FileOutputStream fileOutputStream = new FileOutputStream(fileName);
+                OutputStream fileOutputStream = Files.newOutputStream(Paths.get(fileName));
                 try (InputStream in = v0.getInputStream()) {
                     result = ValueLong.get(IOUtils.copyAndClose(in,
                             fileOutputStream));

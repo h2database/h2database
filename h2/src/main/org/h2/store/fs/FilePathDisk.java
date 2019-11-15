@@ -6,9 +6,7 @@
 package org.h2.store.fs;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -18,9 +16,11 @@ import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.CopyOption;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -291,18 +291,21 @@ public class FilePathDisk extends FilePath {
 
     @Override
     public OutputStream newOutputStream(boolean append) throws IOException {
+        Path file = Paths.get(name);
+        OpenOption[] options = append //
+                ? new OpenOption[] { StandardOpenOption.CREATE, StandardOpenOption.APPEND }
+                : new OpenOption[0];
         try {
-            File file = new File(name);
-            File parent = file.getParentFile();
+            Path parent = file.getParent();
             if (parent != null) {
-                FileUtils.createDirectories(parent.getAbsolutePath());
+                Files.createDirectories(parent);
             }
-            FileOutputStream out = new FileOutputStream(name, append);
+            OutputStream out = Files.newOutputStream(file, options);
             IOUtils.trace("openFileOutputStream", name, out);
             return out;
         } catch (IOException e) {
             freeMemoryAndFinalize();
-            return new FileOutputStream(name);
+            return Files.newOutputStream(file, options);
         }
     }
 
@@ -333,7 +336,7 @@ public class FilePathDisk extends FilePath {
             URL url = new URL(name);
             return url.openStream();
         }
-        FileInputStream in = new FileInputStream(name);
+        InputStream in = Files.newInputStream(Paths.get(name));
         IOUtils.trace("openFileInputStream", name, in);
         return in;
     }

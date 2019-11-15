@@ -6,16 +6,17 @@
 package org.h2.util;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.lang.instrument.Instrumentation;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -166,20 +167,17 @@ public class Profiler implements Runnable {
                     }
                     continue;
                 }
-                try (Reader reader = new InputStreamReader(new FileInputStream(arg))) {
+                Path file = Paths.get(arg);
+                try (Reader reader = Files.newBufferedReader(file)) {
                     LineNumberReader r = new LineNumberReader(reader);
-                    while (true) {
-                        String line = r.readLine();
-                        if (line == null) {
-                            break;
-                        } else if (line.startsWith("Full thread dump")) {
+                    for (String line; (line = r.readLine()) != null;) {
+                        if (line.startsWith("Full thread dump")) {
                             threadDumps++;
                         }
                     }
                 }
-                try (Reader reader = new InputStreamReader(new FileInputStream(arg))) {
-                    LineNumberReader r = new LineNumberReader(reader);
-                    processList(readStackTrace(r));
+                try (Reader reader = Files.newBufferedReader(file)) {
+                    processList(readStackTrace(new LineNumberReader(reader)));
                 }
             }
             System.out.println(getTopTraces(5));

@@ -9,7 +9,6 @@ import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -22,6 +21,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.security.SecureClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -275,7 +275,7 @@ public class SourceCompiler {
                 javacProcess(javaFile);
             }
             byte[] data = new byte[(int) classFile.length()];
-            DataInputStream in = new DataInputStream(new FileInputStream(classFile));
+            DataInputStream in = new DataInputStream(Files.newInputStream(classFile.toPath()));
             in.readFully(data);
             in.close();
             return data;

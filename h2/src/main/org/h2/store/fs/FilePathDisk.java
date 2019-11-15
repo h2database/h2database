@@ -14,8 +14,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.nio.channels.FileChannel;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.CopyOption;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -96,38 +101,44 @@ public class FilePathDisk extends FilePath {
 
     @Override
     public void moveTo(FilePath newName, boolean atomicReplace) {
-        File oldFile = new File(name);
-        File newFile = new File(newName.name);
-        if (oldFile.getAbsolutePath().equals(newFile.getAbsolutePath())) {
-            return;
+        Path oldFile = Paths.get(name);
+        Path newFile = Paths.get(newName.name);
+        if (!Files.exists(oldFile)) {
+            throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2, name + " (not found)", newName.name);
         }
-        if (!oldFile.exists()) {
-            throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2,
-                    name + " (not found)",
-                    newName.name);
-        }
-        // Java 7: use java.nio.file.Files.move(Path source, Path target,
-        //     CopyOption... options)
-        // with CopyOptions "REPLACE_EXISTING" and "ATOMIC_MOVE".
         if (atomicReplace) {
-            boolean ok = oldFile.renameTo(newFile);
-            if (ok) {
+            try {
+                Files.move(oldFile, newFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
                 return;
+            } catch (AtomicMoveNotSupportedException ex) {
+                // Ignore
+            } catch (IOException ex) {
+                throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2, ex, name, newName.name);
             }
-            throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2, name, newName.name);
         }
-        if (newFile.exists()) {
+        CopyOption[] copyOptions = atomicReplace ? new CopyOption[] { StandardCopyOption.REPLACE_EXISTING }
+                : new CopyOption[0];
+        IOException cause;
+        try {
+            Files.move(oldFile, newFile, copyOptions);
+        } catch (FileAlreadyExistsException ex) {
             throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2, name, newName + " (exists)");
-        }
-        for (int i = 0; i < SysProperties.MAX_FILE_RETRY; i++) {
-            IOUtils.trace("rename", name + " >" + newName, null);
-            boolean ok = oldFile.renameTo(newFile);
-            if (ok) {
-                return;
+        } catch (IOException ex) {
+            cause = ex;
+            for (int i = 0; i < SysProperties.MAX_FILE_RETRY; i++) {
+                IOUtils.trace("rename", name + " >" + newName, null);
+                try {
+                    Files.move(oldFile, newFile, copyOptions);
+                    return;
+                } catch (FileAlreadyExistsException ex2) {
+                    throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2, name, newName + " (exists)");
+                } catch (IOException ex2) {
+                    cause = ex;
+                }
+                wait(i);
             }
-            wait(i);
+            throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2, cause, name, newName.name);
         }
-        throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2, name, newName.name);
     }
 
     private static void wait(int i) {

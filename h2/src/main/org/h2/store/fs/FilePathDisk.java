@@ -5,7 +5,6 @@
  */
 package org.h2.store.fs;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,14 +15,22 @@ import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.CopyOption;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.FileStore;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.DosFileAttributeView;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
@@ -64,7 +71,11 @@ public class FilePathDisk extends FilePath {
                 return 0;
             }
         }
-        return new File(name).length();
+        try {
+            return Files.size(Paths.get(name));
+        } catch (IOException e) {
+            return 0L;
+        }
     }
 
     /**
@@ -174,7 +185,7 @@ public class FilePathDisk extends FilePath {
 
     @Override
     public boolean exists() {
-        return new File(name).exists();
+        return Files.exists(Paths.get(name));
     }
 
     @Override
@@ -198,21 +209,10 @@ public class FilePathDisk extends FilePath {
 
     @Override
     public List<FilePath> newDirectoryStream() {
-        ArrayList<FilePath> list = new ArrayList<>();
-        File f = new File(name);
-        try {
-            String[] files = f.list();
-            if (files != null) {
-                String base = f.getCanonicalPath();
-                if (!base.endsWith(SysProperties.FILE_SEPARATOR)) {
-                    base += SysProperties.FILE_SEPARATOR;
-                }
-                list.ensureCapacity(files.length);
-                for (String file : files) {
-                    list.add(getPath(base + file));
-                }
-            }
-            return list;
+        try (Stream<Path> files = Files.list(Paths.get(name).toRealPath())) {
+            return files.collect(ArrayList::new, (t, u) -> t.add(getPath(u.toString())), ArrayList::addAll);
+        } catch (NoSuchFileException e) {
+            return Collections.emptyList();
         } catch (IOException e) {
             throw DbException.convertIOException(e, name);
         }
@@ -220,20 +220,50 @@ public class FilePathDisk extends FilePath {
 
     @Override
     public boolean canWrite() {
-        return canWriteInternal(new File(name));
+        try {
+            return Files.isWritable(Paths.get(name));
+        } catch (Exception e) {
+            // Catch security exceptions
+            return false;
+        }
     }
 
     @Override
     public boolean setReadOnly() {
-        File f = new File(name);
-        return f.setReadOnly();
+        Path f = Paths.get(name);
+        try {
+            FileStore fileStore = Files.getFileStore(f);
+            if (fileStore.supportsFileAttributeView(DosFileAttributeView.class)) {
+                Files.setAttribute(f, "dos:readonly", true);
+            } else if (fileStore.supportsFileAttributeView(PosixFileAttributeView.class)) {
+                HashSet<PosixFilePermission> permissions = new HashSet<>();
+                for (PosixFilePermission p : Files.getPosixFilePermissions(f)) {
+                    switch (p) {
+                    case OWNER_WRITE:
+                    case GROUP_WRITE:
+                    case OTHERS_WRITE:
+                        break;
+                    default:
+                        permissions.add(p);
+                    }
+                }
+                Files.setPosixFilePermissions(f, permissions);
+            } else {
+                return false;
+            }
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     @Override
     public FilePathDisk toRealPath() {
+        Path path = Paths.get(name);
         try {
-            String fileName = new File(name).getCanonicalPath();
-            return getPath(fileName);
+            return getPath(path.toRealPath().toString());
+        } catch (NoSuchFileException e) {
+            return getPath(path.toAbsolutePath().normalize().toString());
         } catch (IOException e) {
             throw DbException.convertIOException(e, name);
         }
@@ -241,8 +271,8 @@ public class FilePathDisk extends FilePath {
 
     @Override
     public FilePath getParent() {
-        String p = new File(name).getParent();
-        return p == null ? null : getPath(p);
+        Path p = Paths.get(name).getParent();
+        return p == null ? null : getPath(p.toString());
     }
 
     @Override
@@ -252,31 +282,15 @@ public class FilePathDisk extends FilePath {
 
     @Override
     public boolean isAbsolute() {
-        return new File(name).isAbsolute();
+        return Paths.get(name).isAbsolute();
     }
 
     @Override
     public long lastModified() {
-        return new File(name).lastModified();
-    }
-
-    private static boolean canWriteInternal(File file) {
         try {
-            if (!file.canWrite()) {
-                return false;
-            }
-        } catch (Exception e) {
-            // workaround for GAE which throws a
-            // java.security.AccessControlException
-            return false;
-        }
-        // File.canWrite() does not respect windows user permissions,
-        // so we must try to open it using the mode "rw".
-        // See also https://bugs.java.com/bugdatabase/view_bug.do?bug_id=4420020
-        try (FileChannel f = FileChannel.open(file.toPath(), FileUtils.RW, FileUtils.NO_ATTRIBUTES)) {
-            return true;
+            return Files.getLastModifiedTime(Paths.get(name)).toMillis();
         } catch (IOException e) {
-            return false;
+            return 0L;
         }
     }
 

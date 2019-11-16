@@ -380,7 +380,8 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
      * @return {@code true} if row was updated, {@code false} if row was ignored
      */
     private boolean handleOnDuplicate(DbException de, Value[] currentRow) {
-        if (de.getErrorCode() != ErrorCode.DUPLICATE_KEY_1) {
+        if (de.getErrorCode() != ErrorCode.DUPLICATE_KEY_1 &&
+                de.getErrorCode() != ErrorCode.CONCURRENT_UPDATE_1) {
             throw de;
         }
         if (duplicateKeyAssignmentMap == null) {

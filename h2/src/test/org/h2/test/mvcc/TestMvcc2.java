@@ -50,6 +50,7 @@ public class TestMvcc2 extends TestDb {
     public void test() throws Exception {
         deleteDb("mvcc2");
         testConcurrentInsert();
+        testConcurrentInsertOnConflictDoNothing();
         testConcurrentUpdate();
         testSelectForUpdate();
         testInsertUpdateRollback();
@@ -93,6 +94,26 @@ public class TestMvcc2 extends TestDb {
         stat.execute("drop table test");
         conn2.close();
         conn.close();
+    }
+
+    private void testConcurrentInsertOnConflictDoNothing() throws Exception {
+        try (Connection conn = getConnection()) {
+            Statement stat = conn.createStatement();
+            stat.execute("create table test(id int primary key, name varchar)");
+            conn.setAutoCommit(false);
+            stat.execute("insert into test values(0, 'Hello')");
+            try (Connection conn2 = getConnection()) {
+                Statement stat2 = conn2.createStatement();
+                stat2.execute("set lock_timeout 100");
+                stat2.execute("set mode POSTGRESQL");
+                stat2.execute("insert into test values(0, 'Hallo') on conflict do nothing");
+            }
+            conn.commit();
+            ResultSet rs = stat.executeQuery("select name from test");
+            assertTrue(rs.next());
+            assertEquals("Hello", rs.getString(1));
+            stat.execute("drop table test");
+        }
     }
 
     private void testConcurrentUpdate() throws Exception {

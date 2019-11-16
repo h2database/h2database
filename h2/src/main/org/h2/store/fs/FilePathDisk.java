@@ -233,9 +233,13 @@ public class FilePathDisk extends FilePath {
         Path f = Paths.get(name);
         try {
             FileStore fileStore = Files.getFileStore(f);
-            if (fileStore.supportsFileAttributeView(DosFileAttributeView.class)) {
-                Files.setAttribute(f, "dos:readonly", true);
-            } else if (fileStore.supportsFileAttributeView(PosixFileAttributeView.class)) {
+            /*
+             * Need to check PosixFileAttributeView first because
+             * DosFileAttributeView is also supported by recent Java versions on
+             * non-Windows file systems, but it doesn't affect real access
+             * permissions.
+             */
+            if (fileStore.supportsFileAttributeView(PosixFileAttributeView.class)) {
                 HashSet<PosixFilePermission> permissions = new HashSet<>();
                 for (PosixFilePermission p : Files.getPosixFilePermissions(f)) {
                     switch (p) {
@@ -248,6 +252,8 @@ public class FilePathDisk extends FilePath {
                     }
                 }
                 Files.setPosixFilePermissions(f, permissions);
+            } else if (fileStore.supportsFileAttributeView(DosFileAttributeView.class)) {
+                Files.setAttribute(f, "dos:readonly", true);
             } else {
                 return false;
             }

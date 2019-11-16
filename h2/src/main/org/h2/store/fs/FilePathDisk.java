@@ -262,10 +262,8 @@ public class FilePathDisk extends FilePath {
         Path path = Paths.get(name);
         try {
             return getPath(path.toRealPath().toString());
-        } catch (NoSuchFileException e) {
-            return getPath(path.toAbsolutePath().normalize().toString());
         } catch (IOException e) {
-            throw DbException.convertIOException(e, name);
+            return getPath(path.toAbsolutePath().normalize().toString());
         }
     }
 

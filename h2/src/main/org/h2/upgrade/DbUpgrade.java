@@ -5,7 +5,8 @@
  */
 package org.h2.upgrade;
 
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -120,9 +121,8 @@ public class DbUpgrade {
         String script = null;
         try {
             if (scriptInTempDir) {
-                new File(Utils.getProperty("java.io.tmpdir", ".")).mkdirs();
-                script = File.createTempFile(
-                        "h2dbmigration", "backup.sql").getAbsolutePath();
+                Files.createDirectories(Paths.get(Utils.getProperty("java.io.tmpdir", ".")));
+                script = Files.createTempFile("h2dbmigration", "backup.sql").toAbsolutePath().toString();
             } else {
                 script = name + ".script.sql";
             }

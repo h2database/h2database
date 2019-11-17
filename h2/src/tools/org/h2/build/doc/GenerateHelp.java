@@ -6,7 +6,8 @@
 package org.h2.build.doc;
 
 import java.io.BufferedWriter;
-import java.io.FileWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Types;
@@ -66,7 +67,7 @@ public class GenerateHelp {
             }
             rs2.addRow(row);
         }
-        BufferedWriter writer = new BufferedWriter(new FileWriter(out));
+        BufferedWriter writer = Files.newBufferedWriter(Paths.get(out));
         writer.write("# Copyright 2004-2019 H2 Group. " +
                 "Multiple-Licensed under the MPL 2.0,\n" +
                 "# and the EPL 1.0 " +

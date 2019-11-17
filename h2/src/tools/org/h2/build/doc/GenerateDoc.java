@@ -5,9 +5,13 @@
  */
 package org.h2.build.doc;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -21,7 +25,6 @@ import java.util.List;
 import org.h2.bnf.Bnf;
 import org.h2.engine.Constants;
 import org.h2.server.web.PageParser;
-import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 
@@ -33,8 +36,8 @@ import org.h2.util.StringUtils;
 public class GenerateDoc {
 
     private static final String IN_HELP = "src/docsrc/help/help.csv";
-    private String inDir = "src/docsrc/html";
-    private String outDir = "docs/html";
+    private Path inDir = Paths.get("src/docsrc/html");
+    private Path outDir = Paths.get("docs/html");
     private Connection conn;
     private final HashMap<String, Object> session =
             new HashMap<>();
@@ -53,15 +56,15 @@ public class GenerateDoc {
     private void run(String... args) throws Exception {
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-in")) {
-                inDir = args[++i];
+                inDir = Paths.get(args[++i]);
             } else if (args[i].equals("-out")) {
-                outDir = args[++i];
+                outDir = Paths.get(args[++i]);
             }
         }
         Class.forName("org.h2.Driver");
         conn = DriverManager.getConnection("jdbc:h2:mem:");
-        new File(outDir).mkdirs();
-        new RailroadImages().run(outDir + "/images");
+        Files.createDirectories(outDir);
+        new RailroadImages().run(outDir.resolve("images"));
         bnf = Bnf.getInstance(null);
         bnf.linkStatements();
         session.put("version", Constants.VERSION);
@@ -127,38 +130,26 @@ public class GenerateDoc {
                 "FROM INFORMATION_SCHEMA.COLUMNS " +
                 "WHERE TABLE_SCHEMA='INFORMATION_SCHEMA' " +
                 "GROUP BY TABLE_NAME ORDER BY TABLE_NAME", false, false);
-        processAll("");
+        Files.walkFileTree(inDir, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                process(file);
+                return FileVisitResult.CONTINUE;
+            }
+        });
         conn.close();
     }
 
-    private void processAll(String dir) throws Exception {
-        if (dir.endsWith(".svn")) {
-            return;
-        }
-        File[] list = new File(inDir + "/" + dir).listFiles();
-        for (File file : list) {
-            if (file.isDirectory()) {
-                processAll(dir + file.getName());
-            } else {
-                process(dir, file.getName());
-            }
-        }
-    }
-
-    private void process(String dir, String fileName) throws Exception {
-        String inFile = inDir + "/" + dir + "/" + fileName;
-        String outFile = outDir + "/" + dir + "/" + fileName;
-        new File(outFile).getParentFile().mkdirs();
-        FileOutputStream out = new FileOutputStream(outFile);
-        FileInputStream in = new FileInputStream(inFile);
-        byte[] bytes = IOUtils.readBytesAndClose(in, 0);
-        if (fileName.endsWith(".html")) {
+    void process(Path inFile) throws IOException {
+        Path outFile = outDir.resolve(inDir.relativize(inFile));
+        Files.createDirectories(outFile.getParent());
+        byte[] bytes = Files.readAllBytes(inFile);
+        if (inFile.getFileName().toString().endsWith(".html")) {
             String page = new String(bytes);
             page = PageParser.parse(page, session);
             bytes = page.getBytes();
         }
-        out.write(bytes);
-        out.close();
+        Files.write(outFile, bytes);
     }
 
     private void map(String key, String sql, boolean railroads, boolean forDataTypes)

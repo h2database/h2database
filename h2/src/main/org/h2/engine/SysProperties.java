@@ -436,19 +436,6 @@ public class SysProperties {
             Utils.getProperty("h2.splitFileSizeShift", 30);
 
     /**
-     * System property <code>h2.syncMethod</code> (default: sync).<br />
-     * What method to call when closing the database, on checkpoint, and on
-     * CHECKPOINT SYNC. The following options are supported:
-     * "sync" (default): RandomAccessFile.getFD().sync();
-     * "force": RandomAccessFile.getChannel().force(true);
-     * "forceFalse": RandomAccessFile.getChannel().force(false);
-     * "": do not call a method (fast but there is a risk of data loss
-     * on power failure).
-     */
-    public static final String SYNC_METHOD =
-            Utils.getProperty("h2.syncMethod", "sync");
-
-    /**
      * System property <code>h2.traceIO</code> (default: false).<br />
      * Trace all I/O operations.
      */

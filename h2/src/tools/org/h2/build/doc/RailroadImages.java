@@ -10,8 +10,12 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import javax.imageio.ImageIO;
 
 /**
@@ -24,26 +28,28 @@ public class RailroadImages {
     private static final int DIV = 2;
     private static final int STROKE = 6;
 
-    private String outDir;
+    private Path outDir;
 
     /**
      * This method is called when executing this application from the command
      * line.
      *
      * @param args the command line parameters
+     * @throws IOException on I/O exception
      */
-    public static void main(String... args) {
-        new RailroadImages().run("docs/html/images");
+    public static void main(String... args) throws IOException {
+        new RailroadImages().run(Paths.get("docs/html/images"));
     }
 
     /**
      * Create the images.
      *
      * @param out the target directory
+     * @throws IOException on I/O exception
      */
-    void run(String out) {
+    void run(Path out) throws IOException {
         this.outDir = out;
-        new File(out).mkdirs();
+        Files.createDirectories(outDir);
         BufferedImage img;
         Graphics2D g;
 
@@ -111,8 +117,8 @@ public class RailroadImages {
                 RenderingHints.VALUE_INTERPOLATION_BILINEAR);
         g.drawImage(img, 0, 0, w / DIV, h / DIV, 0, 0, w, h, null);
         g.dispose();
-        try {
-            ImageIO.write(smaller, "png", new File(outDir + "/" + fileName));
+        try (OutputStream out = Files.newOutputStream(outDir.resolve(fileName))) {
+            ImageIO.write(smaller, "png", out);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

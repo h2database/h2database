@@ -72,7 +72,6 @@ public abstract class FilePath {
                     "org.h2.store.fs.FilePathNioMem",
                     "org.h2.store.fs.FilePathNioMemLZF",
                     "org.h2.store.fs.FilePathSplit",
-                    "org.h2.store.fs.FilePathNio",
                     "org.h2.store.fs.FilePathNioMapped",
                     "org.h2.store.fs.FilePathAsync",
                     "org.h2.store.fs.FilePathZip",
@@ -81,6 +80,9 @@ public abstract class FilePath {
                 try {
                     FilePath p = (FilePath) Class.forName(c).getDeclaredConstructor().newInstance();
                     map.put(p.getScheme(), p);
+                    if (p.getClass() == FilePathDisk.class) {
+                        map.put("nio", p);
+                    }
                     if (defaultProvider == null) {
                         defaultProvider = p;
                     }
@@ -273,7 +275,7 @@ public abstract class FilePath {
      * @param newRandom if the random part of the filename should change
      * @return the file name part
      */
-    protected static synchronized String getNextTempFileNamePart(
+    private static synchronized String getNextTempFileNamePart(
             boolean newRandom) {
         if (newRandom || tempRandom == null) {
             tempRandom = MathUtils.randomInt(Integer.MAX_VALUE) + ".";

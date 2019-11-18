@@ -261,7 +261,7 @@ public abstract class FilePath {
      * @throws IOException If an I/O error occurs
      */
     public InputStream newInputStream() throws IOException {
-        return new FileChannelInputStream(open("r"), true);
+        return Channels.newInputStream(open("r"));
     }
 
     /**

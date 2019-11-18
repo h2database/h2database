@@ -19,7 +19,6 @@ import org.h2.mvstore.MVStore;
 import org.h2.security.SHA256;
 import org.h2.store.FileLister;
 import org.h2.store.FileStore;
-import org.h2.store.fs.FileChannelInputStream;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FilePathEncrypt;
 import org.h2.store.fs.FileUtils;
@@ -239,7 +238,7 @@ public class ChangeFileEncryption extends Tool {
 
         String temp = directory + "/temp.db";
         try (FileChannel fileIn = getFileChannel(fileName, "r", decryptKey)){
-            try(InputStream inStream = new FileChannelInputStream(fileIn, true)) {
+            try (InputStream inStream = Channels.newInputStream(fileIn)) {
                 FileUtils.delete(temp);
                 try (OutputStream outStream = Channels.newOutputStream(getFileChannel(temp, "rw", encryptKey))) {
                     final byte[] buffer = new byte[4 * 1024];

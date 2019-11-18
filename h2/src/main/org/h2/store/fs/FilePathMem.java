@@ -6,8 +6,6 @@
 package org.h2.store.fs;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.FileChannel;
@@ -164,20 +162,6 @@ public class FilePathMem extends FilePath {
         synchronized (MEMORY_FILES) {
             MEMORY_FILES.put(name, DIRECTORY);
         }
-    }
-
-    @Override
-    public OutputStream newOutputStream(boolean append) throws IOException {
-        FileMemData obj = getMemoryFile();
-        FileMem m = new FileMem(obj, false);
-        return new FileChannelOutputStream(m, append);
-    }
-
-    @Override
-    public InputStream newInputStream() {
-        FileMemData obj = getMemoryFile();
-        FileMem m = new FileMem(obj, true);
-        return new FileChannelInputStream(m, true);
     }
 
     @Override

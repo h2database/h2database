@@ -222,7 +222,9 @@ public abstract class FilePath {
      * @return the output stream
      * @throws IOException If an I/O error occurs
      */
-    public abstract OutputStream newOutputStream(boolean append) throws IOException;
+    public OutputStream newOutputStream(boolean append) throws IOException {
+        return new FileChannelOutputStream(open("rw"), append);
+    }
 
     /**
      * Open a random access file object.
@@ -239,7 +241,9 @@ public abstract class FilePath {
      * @return the input stream
      * @throws IOException If an I/O error occurs
      */
-    public abstract InputStream newInputStream() throws IOException;
+    public InputStream newInputStream() throws IOException {
+        return new FileChannelInputStream(open("r"), true);
+    }
 
     /**
      * Disable the ability to write.

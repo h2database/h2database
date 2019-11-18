@@ -8,6 +8,7 @@ package org.h2.store.fs;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -223,7 +224,25 @@ public abstract class FilePath {
      * @throws IOException If an I/O error occurs
      */
     public OutputStream newOutputStream(boolean append) throws IOException {
-        return new FileChannelOutputStream(open("rw"), append);
+        return newFileChannelOutputStream(open("rw"), append);
+    }
+
+    /**
+     * Create a new output stream from the channel.
+     *
+     * @param channel the file channel
+     * @param append true for append mode, false for truncate and overwrite
+     * @return the output stream
+     * @throws IOException on I/O exception
+     */
+    static final OutputStream newFileChannelOutputStream(FileChannel channel, boolean append) throws IOException {
+        if (append) {
+            channel.position(channel.size());
+        } else {
+            channel.position(0);
+            channel.truncate(0);
+        }
+        return Channels.newOutputStream(channel);
     }
 
     /**

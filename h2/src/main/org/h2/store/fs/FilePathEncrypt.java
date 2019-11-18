@@ -70,7 +70,7 @@ public class FilePathEncrypt extends FilePathWrapper {
 
     @Override
     public OutputStream newOutputStream(boolean append) throws IOException {
-        return new FileChannelOutputStream(open("rw"), append);
+        return newFileChannelOutputStream(open("rw"), append);
     }
 
     @Override

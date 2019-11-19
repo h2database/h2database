@@ -3441,7 +3441,7 @@ public class MVStore implements AutoCloseable
          * this value, then chunks at the end of the file are moved. Compaction
          * stops if the target fill rate is reached.
          * <p>
-         * The default value is 40 (40%). The value 0 disables auto-compacting.
+         * The default value is 90 (90%). The value 0 disables auto-compacting.
          * <p>
          *
          * @param percent the target fill rate

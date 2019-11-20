@@ -13,6 +13,7 @@ import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.result.RowFactory;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.schema.SchemaObjectBase;
@@ -35,6 +36,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     protected int[] columnIds;
     protected final Table table;
     protected final IndexType indexType;
+    private final RowFactory rowFactory;
 
     /**
      * Initialize the base index.
@@ -62,6 +64,14 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
                 columnIds[i] = col.getColumnId();
             }
         }
+        rowFactory = database.getRowFactory().createRowFactory(
+                database, database.getCompareMode(), database.getMode(),
+                database, table.getColumns(),
+                newIndexType.isScan() ? null : newIndexColumns);
+    }
+
+    public RowFactory getRowFactory() {
+        return rowFactory;
     }
 
     /**

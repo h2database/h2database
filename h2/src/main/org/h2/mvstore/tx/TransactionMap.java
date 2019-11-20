@@ -159,12 +159,12 @@ public class TransactionMap<K, V> extends AbstractMap<K, V> {
             // and then lookup relevant map entry.
             for (RootReference undoLogRootReference : undoLogRootReferences) {
                 if (undoLogRootReference != null) {
-                    Cursor<Long, Object[]> cursor = new Cursor<>(undoLogRootReference.root, null);
+                    Cursor<Long, Record> cursor = new Cursor<>(undoLogRootReference.root, null);
                     while (cursor.hasNext()) {
                         cursor.next();
-                        Object[] op = cursor.getValue();
-                        if ((int) op[0] == map.getId()) {
-                            VersionedValue currentValue = map.get(mapRootPage, op[1]);
+                        Record op = cursor.getValue();
+                        if (op.mapId == map.getId()) {
+                            VersionedValue currentValue = map.get(mapRootPage, op.key);
                             // If map entry is not there, then we never counted
                             // it, in the first place, so skip it.
                             // This is possible when undo entry exists because

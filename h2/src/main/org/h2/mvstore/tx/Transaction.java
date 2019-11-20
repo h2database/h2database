@@ -217,7 +217,7 @@ public class Transaction {
         RootReference root;
         do {
             committingTransactions = store.committingTransactions.get();
-            root = store.openMap(mapId).flushAndGetRoot();
+            root = store.getMap(mapId).flushAndGetRoot();
         } while (committingTransactions != store.committingTransactions.get());
         return new Snapshot(root, committingTransactions);
     }
@@ -426,7 +426,8 @@ public class Transaction {
         }
         int currentStatus = getStatus(currentState);
         checkOpen(currentStatus);
-        long undoKey = store.addUndoLogRecord(transactionId, logId, new Object[]{ mapId, key, oldValue });
+        Record log = new Record(mapId, key, oldValue);
+        long undoKey = store.addUndoLogRecord(transactionId, logId, log);
         return undoKey;
     }
 

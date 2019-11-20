@@ -171,7 +171,8 @@ public class MVTableEngine implements TableEngine {
                 }
                 mvStore.setVersionsToKeep(0);
                 this.transactionStore = new TransactionStore(mvStore,
-                        (DataType) new ValueDataType(db, null), db.getLockTimeout());
+                        new DBMetaType(db, mvStore.backgroundExceptionHandler),
+                        new ValueDataType(db, null), db.getLockTimeout());
             } catch (IllegalStateException e) {
                 throw convertIllegalStateException(e);
             }

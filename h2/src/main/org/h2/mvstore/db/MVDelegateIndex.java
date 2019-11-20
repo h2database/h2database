@@ -14,6 +14,7 @@ import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.mvstore.MVMap;
 import org.h2.result.Row;
+import org.h2.result.RowFactory;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
@@ -40,6 +41,11 @@ public class MVDelegateIndex extends BaseIndex implements MVIndex {
         if (id < 0) {
             throw DbException.throwInternalError(name);
         }
+    }
+
+    @Override
+    public RowFactory getRowFactory() {
+        return mainIndex.getRowFactory();
     }
 
     @Override

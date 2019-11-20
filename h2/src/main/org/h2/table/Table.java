@@ -29,6 +29,7 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.DefaultRow;
 import org.h2.result.Row;
+import org.h2.result.RowFactory;
 import org.h2.result.RowList;
 import org.h2.result.SearchRow;
 import org.h2.result.SimpleRowValue;
@@ -89,6 +90,7 @@ public abstract class Table extends SchemaObjectBase {
     private boolean checkForeignKeyConstraints = true;
     private boolean onCommitDrop, onCommitTruncate;
     private volatile Row nullRow;
+    private RowFactory rowFactory = RowFactory.getRowFactory();
     private boolean tableExpression;
 
     protected Table(Schema schema, int id, String name, boolean persistIndexes, boolean persistData) {
@@ -448,6 +450,8 @@ public abstract class Table extends SchemaObjectBase {
             }
             columnMap.put(columnName, col);
         }
+        rowFactory = database.getRowFactory().createRowFactory(database, database.getCompareMode(),
+                database.getMode(), database, columns, null);
     }
 
     /**
@@ -631,6 +635,10 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
+    public RowFactory getRowFactory() {
+        return rowFactory;
+    }
+
     /**
      * Create a new row for this table.
      *
@@ -639,7 +647,7 @@ public abstract class Table extends SchemaObjectBase {
      * @return the created row
      */
     public Row createRow(Value[] data, int memory) {
-        return Row.get(data, memory);
+        return rowFactory.createRow(data, memory);
     }
 
     /**
@@ -650,11 +658,13 @@ public abstract class Table extends SchemaObjectBase {
      * @return the created row
      */
     public Row createRow(Value[] data, int memory, long key) {
-        return Row.get(data, memory, key);
+        Row row = rowFactory.createRow(data, memory);
+        row.setKey(key);
+        return row;
     }
 
     public Row getTemplateRow() {
-        return createRow(new Value[columns.length], SearchRow.MEMORY_CALCULATE);
+        return createRow(new Value[getColumns().length], DefaultRow.MEMORY_CALCULATE);
     }
 
     /**
@@ -677,7 +687,7 @@ public abstract class Table extends SchemaObjectBase {
             // be ok.
             Value[] values = new Value[columns.length];
             Arrays.fill(values, ValueNull.INSTANCE);
-            nullRow = row = Row.get(values, 1);
+            nullRow = row = createRow(values, 1);
         }
         return row;
     }

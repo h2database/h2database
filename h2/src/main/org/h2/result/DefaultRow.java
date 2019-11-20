@@ -8,6 +8,7 @@ package org.h2.result;
 import org.h2.engine.Constants;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
+import org.h2.value.ValueNull;
 
 /**
  * The default implementation of a row in a table.
@@ -17,6 +18,13 @@ public class DefaultRow extends Row
     protected final Value[] data;
     private         int     memory;
 
+    public static final int MEMORY_CALCULATE = -1;
+
+
+    DefaultRow(int columnCount) {
+        this.data = new Value[columnCount];
+        this.memory = MEMORY_CALCULATE;
+    }
 
     public DefaultRow(Value[] data) {
         this.data = data;
@@ -91,5 +99,13 @@ public class DefaultRow extends Row
     @Override
     public boolean hasSharedData(Row other) {
         return other instanceof DefaultRow && data == ((DefaultRow) other).data;
+    }
+
+    @Override
+    public void copyFrom(SearchRow source) {
+        setKey(source.getKey());
+        for (int i = 0; i < getColumnCount(); i++) {
+            setValue(i, source.getValue(i));
+        }
     }
 }

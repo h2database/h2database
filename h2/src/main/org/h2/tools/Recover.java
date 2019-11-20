@@ -54,6 +54,7 @@ import org.h2.pagestore.PageStore;
 import org.h2.pagestore.db.LobStorageBackend;
 import org.h2.result.DefaultRow;
 import org.h2.result.Row;
+import org.h2.result.SearchRow;
 import org.h2.security.SHA256;
 import org.h2.store.Data;
 import org.h2.store.DataHandler;
@@ -74,6 +75,7 @@ import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
+import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueLobDb;
 import org.h2.value.ValueLong;
@@ -627,14 +629,13 @@ public class Recover extends Tool implements DataHandler {
                     Iterator<Value> dataIt = dataMap.keyIterator(null);
                     while (dataIt.hasNext()) {
                         Value rowId = dataIt.next();
-                        Value[] values = ((ValueArray) dataMap.get(rowId))
-                                .getList();
+                        Value[] values = ((ValueCollectionBase) dataMap.get(rowId)).getList();
                         try {
                             DefaultRow r = new DefaultRow(values);
                             MetaRecord meta = new MetaRecord(r);
                             schema.add(meta);
                             if (meta.getObjectType() == DbObject.TABLE_OR_VIEW) {
-                                String sql = values[3].getString();
+                                String sql = r.getValue(3).getString();
                                 String name = extractTableOrViewName(sql);
                                 tableMap.put(meta.getId(), name);
                             }
@@ -656,13 +657,13 @@ public class Recover extends Tool implements DataHandler {
                 if (Integer.parseInt(tableId) == 0) {
                     continue;
                 }
-                TransactionMap<Value, Value> dataMap = store.begin().openMap(mapName, type, type);
+                TransactionMap<Value, Value> dataMap = store.begin().openMap(mapName);
                 Iterator<Value> dataIt = dataMap.keyIterator(null);
                 boolean init = false;
                 while (dataIt.hasNext()) {
                     Value rowId = dataIt.next();
-                    Value[] values = ((ValueArray) dataMap.get(rowId)).getList();
-                    recordLength = values.length;
+                    Value[] values = ((ValueCollectionBase) dataMap.get(rowId)).getList();
+                    recordLength = values.length - 1;
                     if (!init) {
                         setStorage(Integer.parseInt(tableId));
                         // init the column types

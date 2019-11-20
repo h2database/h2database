@@ -73,6 +73,10 @@ public final class PageStoreRow {
             return null;
         }
 
+        @Override
+        public void copyFrom(SearchRow source) {
+            setKey(source.getKey());
+        }
     }
 
     private PageStoreRow() {

@@ -5,19 +5,23 @@
  */
 package org.h2.result;
 
+import org.h2.engine.CastDataProvider;
+import org.h2.value.CompareMode;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueNull;
 
 /**
  * The base class for rows stored in a table, and for partial rows stored in the
  * index.
  */
-public abstract class SearchRow {
-
+public abstract class SearchRow extends Value
+{
     /**
      * Index of a virtual "_ROWID_" column within a row or a table
      */
     public static final int ROWID_INDEX = -1;
-
+    public static long MATCH_ALL_ROW_KEY = Long.MIN_VALUE + 1;
     public static final int MEMORY_CALCULATE = -1;
 
     protected long key;
@@ -28,6 +32,15 @@ public abstract class SearchRow {
      * @return the column count
      */
     public abstract int getColumnCount();
+
+    /**
+     * Determine if specified column contains NULL
+     * @param indx column index
+     * @return true if NULL
+     */
+    public boolean isNull(int indx) {
+        return getValue(indx) == ValueNull.INSTANCE;
+    }
 
     /**
      * Get the value for the column
@@ -70,4 +83,58 @@ public abstract class SearchRow {
      */
     public abstract int getMemory();
 
+    /**
+     * Copy all relevant values from the source to this row.
+     * @param source of column values
+     */
+    public abstract void copyFrom(SearchRow source);
+
+    @Override
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_ROW;
+    }
+
+    @Override
+    public int getValueType() {
+        return Value.ARRAY;
+    }
+
+    @Override
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append("(");
+        for (int indx = 0; indx < getColumnCount(); ++indx) {
+            if(indx != 0) {
+                builder.append(", ");
+            }
+            Value value = getValue(indx);
+            builder.append(value.getSQL());
+        }
+        builder.append(")");
+        return builder;
+    }
+
+    @Override
+    public String getString() {
+        return getSQL();
+    }
+
+    @Override
+    public Object getObject() {
+        return this;
+    }
+
+    @Override
+    public int hashCode() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
+        throw new UnsupportedOperationException();
+    }
 }

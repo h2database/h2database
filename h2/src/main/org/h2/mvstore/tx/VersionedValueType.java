@@ -6,9 +6,11 @@
 package org.h2.mvstore.tx;
 
 import org.h2.engine.Constants;
+import org.h2.engine.Database;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.BasicDataType;
+import org.h2.mvstore.db.StatefulDataType;
 import org.h2.mvstore.type.DataType;
 import org.h2.value.VersionedValue;
 import java.nio.ByteBuffer;
@@ -16,7 +18,8 @@ import java.nio.ByteBuffer;
 /**
  * The value type for a versioned value.
  */
-public class VersionedValueType extends BasicDataType<VersionedValue> {
+public class VersionedValueType extends BasicDataType<VersionedValue> implements StatefulDataType
+{
 
     private final DataType<Object> valueType;
 
@@ -130,6 +133,50 @@ public class VersionedValueType extends BasicDataType<VersionedValue> {
             if (committedValue != null) {
                 valueType.write(buff, committedValue);
             }
+        }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        } else if (!(obj instanceof VersionedValueType)) {
+            return false;
+        }
+        VersionedValueType other = (VersionedValueType) obj;
+        return valueType.equals(other.valueType);
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode() ^ valueType.hashCode();
+    }
+
+    @Override
+    public void save(WriteBuffer buff, DataType metaDataType, Database database) {
+        metaDataType.write(buff, valueType);
+    }
+
+    @Override
+    public void load(ByteBuffer buff, DataType metaDataType, Database database) {
+        throw DataUtils.newUnsupportedOperationException("load()");
+    }
+
+    @Override
+    public Factory getFactory() {
+        return FACTORY;
+    }
+
+
+
+    private static final Factory FACTORY = new Factory();
+
+    public static final class Factory implements StatefulDataType.Factory
+    {
+        @Override
+        public DataType create(ByteBuffer buff, DataType metaDataType, Database database) {
+            DataType valueType = (DataType)metaDataType.read(buff);
+            return new VersionedValueType(valueType);
         }
     }
 }

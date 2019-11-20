@@ -5,6 +5,7 @@
  */
 package org.h2.mvstore.db;
 
+import org.h2.mvstore.DataUtils;
 import static org.h2.mvstore.DataUtils.readString;
 import static org.h2.mvstore.DataUtils.readVarInt;
 import static org.h2.mvstore.DataUtils.readVarLong;
@@ -24,6 +25,8 @@ import org.h2.mvstore.rtree.SpatialDataType;
 import org.h2.mvstore.rtree.SpatialKey;
 import org.h2.mvstore.type.BasicDataType;
 import org.h2.result.ResultInterface;
+import org.h2.result.RowFactory;
+import org.h2.result.SearchRow;
 import org.h2.result.SimpleResult;
 import org.h2.result.SortOrder;
 import org.h2.store.DataHandler;
@@ -64,7 +67,7 @@ import org.h2.value.ValueUuid;
 /**
  * A row type.
  */
-public class ValueDataType extends BasicDataType<Value> {
+public final class ValueDataType extends BasicDataType<Value> implements StatefulDataType {
 
     private static final byte NULL = 0;
     private static final byte BYTE = 2;
@@ -117,6 +120,7 @@ public class ValueDataType extends BasicDataType<Value> {
     protected final Mode mode;
     final int[] sortTypes;
     SpatialDataType spatialType;
+    private RowFactory rowFactory;
 
     public ValueDataType() {
         this(null, CompareMode.getInstance(null, 0), null, null, null);
@@ -126,13 +130,25 @@ public class ValueDataType extends BasicDataType<Value> {
         this(database, database.getCompareMode(), database.getMode(), database, sortTypes);
     }
 
-    private ValueDataType(CastDataProvider provider, CompareMode compareMode, Mode mode, DataHandler handler,
-            int[] sortTypes) {
+    public ValueDataType(CastDataProvider provider, CompareMode compareMode, Mode mode, DataHandler handler,
+                         int[] sortTypes) {
         this.provider = provider;
         this.compareMode = compareMode;
         this.mode = mode;
         this.handler = handler;
         this.sortTypes = sortTypes;
+    }
+
+    public RowFactory getRowFactory() {
+        return rowFactory;
+//        return rowFactory != null ? rowFactory :
+//                RowFactory.getDefaultRowFactory().createRowFactory(provider,
+//                        compareMode, mode,
+//                        handler, sortTypes, null, sortTypes.length);
+    }
+
+    public void setRowFactory(RowFactory rowFactory) {
+        this.rowFactory = rowFactory;
     }
 
     private SpatialDataType getSpatialDataType() {
@@ -152,7 +168,9 @@ public class ValueDataType extends BasicDataType<Value> {
         if (a == b) {
             return 0;
         }
-        if (a instanceof ValueCollectionBase && b instanceof ValueCollectionBase) {
+        if (a instanceof SearchRow && b instanceof SearchRow) {
+            return compare((SearchRow)a, (SearchRow)b);
+        } else if (a instanceof ValueCollectionBase && b instanceof ValueCollectionBase) {
             Value[] ax = ((ValueCollectionBase) a).getList();
             Value[] bx = ((ValueCollectionBase) b).getList();
             int al = ax.length;
@@ -179,6 +197,43 @@ public class ValueDataType extends BasicDataType<Value> {
             return 0;
         }
         return compareValues(a, b, SortOrder.ASCENDING);
+    }
+
+    private int compare(SearchRow a, SearchRow b) {
+        if (a == b) {
+            return 0;
+        }
+        int[] indexes = rowFactory.getIndexes();
+        if (indexes == null) {
+            int len = a.getColumnCount();
+            assert len == b.getColumnCount() : len + " != " + b.getColumnCount();
+            for (int i = 0; i < len; i++) {
+                int comp = compareValues(a.getValue(i), b.getValue(i), sortTypes[i]);
+                if (comp != 0) {
+                    return comp;
+                }
+            }
+            return 0;
+        } else {
+            assert sortTypes.length == indexes.length;
+            for (int i = 0; i < indexes.length; i++) {
+                int indx = indexes[i];
+                Value v1 = a.getValue(indx);
+                Value v2 = b.getValue(indx);
+                if (v1 == null || v2 == null) {
+                    // can't compare further
+                    break;
+                }
+                int comp = compareValues(a.getValue(indx), b.getValue(indx), sortTypes[i]);
+                if (comp != 0) {
+                    return comp;
+                }
+            }
+            long aKey = a.getKey();
+            long bKey = b.getKey();
+            return aKey == SearchRow.MATCH_ALL_ROW_KEY || bKey == SearchRow.MATCH_ALL_ROW_KEY ?
+                    0 : Long.compare(aKey, bKey);
+        }
     }
 
     private int compareValues(Value a, Value b, int sortType) {
@@ -218,10 +273,10 @@ public class ValueDataType extends BasicDataType<Value> {
             getSpatialDataType().write(buff, (SpatialKey) obj);
             return;
         }
-        writeValue(buff, obj);
+        writeValue(buff, obj, true);
     }
 
-    private void writeValue(WriteBuffer buff, Value v) {
+    private void writeValue(WriteBuffer buff, Value v, boolean rowAsRow) {
         if (v == ValueNull.INSTANCE) {
             buff.put((byte) 0);
             return;
@@ -441,12 +496,34 @@ public class ValueDataType extends BasicDataType<Value> {
             break;
         }
         case Value.ARRAY:
-        case Value.ROW: {
+            if (rowAsRow && rowFactory != null && v instanceof SearchRow) {
+                buff.put(ARRAY);
+                int[] indexes = rowFactory.getIndexes();
+                SearchRow row = (SearchRow) v;
+                if (indexes == null) {
+                    int columnCount = row.getColumnCount();
+                    buff.putVarInt(columnCount + 1);
+                    for (int i = 0; i < columnCount; i++) {
+                        writeValue(buff, row.getValue(i), false);
+                    }
+                } else {
+                    buff.putVarInt(indexes.length + 1);
+                    for (int i : indexes) {
+                        writeValue(buff, row.getValue(i), false);
+                    }
+                }
+
+                writeValue(buff, ValueLong.get(row.getKey()), false);
+                break;
+            }
+            // FALL-THROUGH
+        case Value.ROW:
+        {
             Value[] list = ((ValueCollectionBase) v).getList();
             buff.put(type == Value.ARRAY ? ARRAY : ROW)
                     .putVarInt(list.length);
             for (Value x : list) {
-                writeValue(buff, x);
+                writeValue(buff, x, false);
             }
             break;
         }
@@ -467,7 +544,7 @@ public class ValueDataType extends BasicDataType<Value> {
                 buff.put((byte) 1);
                 Value[] row = result.currentRow();
                 for (int i = 0; i < columnCount; i++) {
-                    writeValue(buff, row[i]);
+                    writeValue(buff, row[i], false);
                 }
             }
             buff.put((byte) 0);
@@ -548,7 +625,7 @@ public class ValueDataType extends BasicDataType<Value> {
      *
      * @return the value
      */
-    private Value readValue(ByteBuffer buff) {
+    private Value readValue(ByteBuffer buff, boolean rowAsRow) {
         int type = buff.get() & 255;
         switch (type) {
         case NULL:
@@ -677,11 +754,30 @@ public class ValueDataType extends BasicDataType<Value> {
             }
         }
         case ARRAY:
-        case ROW: {
+            if (rowFactory != null && rowAsRow) {
+                int valueCount = readVarInt(buff) - 1;
+                SearchRow row = rowFactory.createRow();
+                int[] indexes = rowFactory.getIndexes();
+                if (indexes == null) {
+                    for (int i = 0; i < valueCount; i++) {
+                        row.setValue(i, (Value)readValue(buff, false));
+                    }
+                } else {
+                    assert valueCount == indexes.length;
+                    for (int i : indexes) {
+                        row.setValue(i, (Value)readValue(buff, false));
+                    }
+                }
+                row.setKey(((Value)readValue(buff, false)).getLong());
+                return row;
+            }
+            // FALL-TROUGH
+        case ROW:
+        {
             int len = readVarInt(buff);
             Value[] list = new Value[len];
             for (int i = 0; i < len; i++) {
-                list[i] = readValue(buff);
+                list[i] = readValue(buff, false);
             }
             return type == ARRAY ? ValueArray.get(list) : ValueRow.get(list);
         }
@@ -695,7 +791,7 @@ public class ValueDataType extends BasicDataType<Value> {
             while (buff.get() != 0) {
                 Value[] o = new Value[columns];
                 for (int i = 0; i < columns; i++) {
-                    o[i] = readValue(buff);
+                    o[i] = readValue(buff, false);
                 }
                 rs.addRow(o);
             }
@@ -744,11 +840,6 @@ public class ValueDataType extends BasicDataType<Value> {
     }
 
     @Override
-    public int hashCode() {
-        return compareMode.hashCode() ^ Arrays.hashCode(sortTypes);
-    }
-
-    @Override
     public boolean equals(Object obj) {
         if (obj == this) {
             return true;
@@ -759,7 +850,83 @@ public class ValueDataType extends BasicDataType<Value> {
         if (!compareMode.equals(v.compareMode)) {
             return false;
         }
-        return Arrays.equals(sortTypes, v.sortTypes);
+        int[] indexes = rowFactory == null ? null : rowFactory.getIndexes();
+        int[] indexes2 = v.rowFactory == null ? null : v.rowFactory.getIndexes();
+        return Arrays.equals(sortTypes, v.sortTypes)
+            && Arrays.equals(indexes, indexes2);
+    }
+
+    @Override
+    public int hashCode() {
+        int[] indexes = rowFactory == null ? null : rowFactory.getIndexes();
+        return super.hashCode() ^ Arrays.hashCode(indexes)
+            ^ compareMode.hashCode() ^ Arrays.hashCode(sortTypes);
+    }
+
+    @Override
+    public void save(WriteBuffer buff, DataType metaDataType, Database database) {
+        writeIntArray(buff, sortTypes);
+        int columnCount = rowFactory == null ? 0 : rowFactory.getColumnCount();
+        buff.putVarInt(columnCount);
+        int[] indexes = rowFactory == null ? null : rowFactory.getIndexes();
+        writeIntArray(buff, indexes);
+    }
+
+    private static void writeIntArray(WriteBuffer buff, int[] array) {
+        if(array == null) {
+            buff.putVarInt(0);
+        } else {
+            buff.putVarInt(array.length + 1);
+            for (int i : array) {
+                buff.putVarInt(i);
+            }
+        }
+    }
+
+    @Override
+    public void load(ByteBuffer buff, DataType metaDataType, Database database) {
+        throw DataUtils.newUnsupportedOperationException("load()");
+    }
+
+    @Override
+    public Factory getFactory() {
+        return FACTORY;
+    }
+
+
+
+    private static final Factory FACTORY = new Factory();
+
+    public static final class Factory implements StatefulDataType.Factory {
+
+        @Override
+        public DataType create(ByteBuffer buff, DataType metaDataType, Database database) {
+            int[] sortTypes = readIntArray(buff);
+            int columnCount = DataUtils.readVarInt(buff);
+            int[] indexes = readIntArray(buff);
+            CompareMode compareMode = database == null ? CompareMode.getInstance(null, 0) : database.getCompareMode();
+            Mode mode = database == null ? Mode.getRegular() : database.getMode();
+            if (database == null) {
+                return new ValueDataType();
+            } else if (sortTypes == null) {
+                return new ValueDataType(database, null);
+            }
+            RowFactory rowFactory = RowFactory.getDefaultRowFactory()
+                    .createRowFactory(database, compareMode, mode, database, sortTypes, indexes, columnCount);
+            return rowFactory.getDataType();
+        }
+
+        private static int[] readIntArray(ByteBuffer buff) {
+            int len = DataUtils.readVarInt(buff) - 1;
+            if(len < 0) {
+                return null;
+            }
+            int[] res = new int[len];
+            for (int i = 0; i < res.length; i++) {
+                res[i] = DataUtils.readVarInt(buff);
+            }
+            return res;
+        }
     }
 
 }

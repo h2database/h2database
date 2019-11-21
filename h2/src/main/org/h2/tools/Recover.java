@@ -610,7 +610,7 @@ public class Recover extends Tool implements DataHandler {
             writer.println("-- Meta");
             dumpMeta(writer, mv);
             writer.println("-- Tables");
-            TransactionStore store = new TransactionStore(mv);
+            TransactionStore store = new TransactionStore(mv, new ValueDataType());
             try {
                 store.init();
             } catch (Throwable e) {

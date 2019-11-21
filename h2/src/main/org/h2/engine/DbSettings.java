@@ -70,7 +70,8 @@ public class DbSettings extends SettingsBase {
      * chunks is lower, then the chunks with a low fill rate are re-written.
      * Also, if the percentage of empty space between chunks is higher than
      * this value, then chunks at the end of the file are moved. Compaction
-     * stops if the target fill rate is reached.
+     * stops if the target fill rate is reached.<br />
+     * This setting only affects MVStore engine.
      */
     public final int autoCompactFillRate = get("AUTO_COMPACT_FILL_RATE", 90);
 
@@ -167,7 +168,8 @@ public class DbSettings extends SettingsBase {
     /**
      * Database setting <code>MAX_COMPACT_COUNT</code>
      * (default: Integer.MAX_VALUE).<br />
-     * The maximum number of pages to move when closing a database.
+     * The maximum number of pages to move when closing a database.<br />
+     * This setting only affects PageStore engine.
      */
     public final int maxCompactCount = get("MAX_COMPACT_COUNT",
             Integer.MAX_VALUE);

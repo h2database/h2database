@@ -173,11 +173,6 @@ public class FilePathZip extends FilePath {
     }
 
     @Override
-    public InputStream newInputStream() throws IOException {
-        return new FileChannelInputStream(open("r"), true);
-    }
-
-    @Override
     public FileChannel open(String mode) throws IOException {
         ZipFile file = openZipFile();
         ZipEntry entry = file.getEntry(getEntryName());

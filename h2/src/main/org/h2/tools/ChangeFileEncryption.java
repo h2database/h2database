@@ -8,6 +8,7 @@ package org.h2.tools;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -18,8 +19,6 @@ import org.h2.mvstore.MVStore;
 import org.h2.security.SHA256;
 import org.h2.store.FileLister;
 import org.h2.store.FileStore;
-import org.h2.store.fs.FileChannelInputStream;
-import org.h2.store.fs.FileChannelOutputStream;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FilePathEncrypt;
 import org.h2.store.fs.FileUtils;
@@ -239,10 +238,9 @@ public class ChangeFileEncryption extends Tool {
 
         String temp = directory + "/temp.db";
         try (FileChannel fileIn = getFileChannel(fileName, "r", decryptKey)){
-            try(InputStream inStream = new FileChannelInputStream(fileIn, true)) {
+            try (InputStream inStream = Channels.newInputStream(fileIn)) {
                 FileUtils.delete(temp);
-                try (OutputStream outStream = new FileChannelOutputStream(getFileChannel(temp, "rw", encryptKey),
-                        true)) {
+                try (OutputStream outStream = Channels.newOutputStream(getFileChannel(temp, "rw", encryptKey))) {
                     final byte[] buffer = new byte[4 * 1024];
                     long remaining = fileIn.size();
                     long total = remaining;

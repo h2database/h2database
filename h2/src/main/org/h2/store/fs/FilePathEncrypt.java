@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.charset.StandardCharsets;
@@ -70,12 +71,12 @@ public class FilePathEncrypt extends FilePathWrapper {
 
     @Override
     public OutputStream newOutputStream(boolean append) throws IOException {
-        return new FileChannelOutputStream(open("rw"), append);
+        return newFileChannelOutputStream(open("rw"), append);
     }
 
     @Override
     public InputStream newInputStream() throws IOException {
-        return new FileChannelInputStream(open("r"), true);
+        return Channels.newInputStream(open("r"));
     }
 
     /**

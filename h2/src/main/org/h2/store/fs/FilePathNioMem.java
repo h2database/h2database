@@ -6,8 +6,6 @@
 package org.h2.store.fs;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.FileChannel;
@@ -162,20 +160,6 @@ public class FilePathNioMem extends FilePath {
                     name + " (a file with this name already exists)");
         }
         // TODO directories are not really supported
-    }
-
-    @Override
-    public OutputStream newOutputStream(boolean append) throws IOException {
-        FileNioMemData obj = getMemoryFile();
-        FileNioMem m = new FileNioMem(obj, false);
-        return new FileChannelOutputStream(m, append);
-    }
-
-    @Override
-    public InputStream newInputStream() {
-        FileNioMemData obj = getMemoryFile();
-        FileNioMem m = new FileNioMem(obj, true);
-        return new FileChannelInputStream(m, true);
     }
 
     @Override

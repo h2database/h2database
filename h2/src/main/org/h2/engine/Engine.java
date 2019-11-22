@@ -60,10 +60,9 @@ public class Engine implements SessionFactory {
                 database = DATABASES.get(name);
             }
             if (database == null) {
-                String p = ci.getProperty("MV_STORE");
-                boolean exists = p == null ? Database.exists(name)
-                        : Database.exists(name, Utils.parseBoolean(p, true, false));
-                if (!exists) {
+                String p;
+                if (!ci.isPersistent() || !((p = ci.getProperty("MV_STORE")) == null ? Database.exists(name)
+                        : Database.exists(name, Utils.parseBoolean(p, true, false)))) {
                     if (ifExists) {
                         throw DbException.get(ErrorCode.DATABASE_NOT_FOUND_WITH_IF_EXISTS_1, name);
                     }

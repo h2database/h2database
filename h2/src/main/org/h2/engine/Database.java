@@ -294,13 +294,12 @@ public class Database implements DataHandler, CastDataProvider {
                 ci.removeProperty("CACHE_TYPE", Constants.CACHE_TYPE_DEFAULT));
         this.ignoreCatalogs = ci.getProperty("IGNORE_CATALOGS",
                 dbSettings.ignoreCatalogs);
-        openDatabase(traceLevelFile, traceLevelSystemOut, closeAtVmShutdown, ci);
+        openDatabase(traceLevelFile, traceLevelSystemOut, closeAtVmShutdown);
     }
 
-    private void openDatabase(int traceLevelFile, int traceLevelSystemOut,
-            boolean closeAtVmShutdown, ConnectionInfo ci) {
+    private void openDatabase(int traceLevelFile, int traceLevelSystemOut, boolean closeAtVmShutdown) {
         try {
-            open(traceLevelFile, traceLevelSystemOut, ci);
+            open(traceLevelFile, traceLevelSystemOut);
             if (closeAtVmShutdown) {
                 OnExitDatabaseCloser.register(this);
             }
@@ -567,7 +566,7 @@ public class Database implements DataHandler, CastDataProvider {
         trace.info("opening {0} (build {1})", databaseName, Constants.BUILD_ID);
     }
 
-    private synchronized void open(int traceLevelFile, int traceLevelSystemOut, ConnectionInfo ci) {
+    private synchronized void open(int traceLevelFile, int traceLevelSystemOut) {
         if (persistent) {
             String dataFileName = databaseName + Constants.SUFFIX_OLD_DATABASE_FILE;
             boolean existsData = FileUtils.exists(dataFileName);

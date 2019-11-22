@@ -47,7 +47,10 @@ public class ValueDecimal extends Value {
      */
     static final int DEFAULT_DISPLAY_SIZE = 65535;
 
-    private static final int DIVIDE_SCALE_ADD = 25;
+    /**
+     * The additional scale digits for result of division operation.
+     */
+    public static final int DIVIDE_SCALE_ADD = 25;
 
     /**
      * The maximum scale.
@@ -168,9 +171,6 @@ public class ValueDecimal extends Value {
 
     @Override
     public boolean checkPrecision(long prec) {
-        if (prec == DEFAULT_PRECISION) {
-            return true;
-        }
         return value.precision() <= prec;
     }
 

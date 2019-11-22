@@ -639,4 +639,34 @@ public class TypeInfo {
         return getSQL(new StringBuilder()).toString();
     }
 
+    /**
+     * Convert this type information to compatible NUMERIC type information.
+     *
+     * @return NUMERIC type information
+     */
+    public TypeInfo toNumericType() {
+        switch (valueType) {
+        case Value.BOOLEAN:
+        case Value.BYTE:
+        case Value.SHORT:
+        case Value.INT:
+            return getTypeInfo(Value.DECIMAL, precision, 0, null);
+        case Value.LONG:
+            return TYPE_DECIMAL_LONG;
+        case Value.DECIMAL:
+            return this;
+        case Value.FLOAT:
+            // Smallest REAL value is 1.4E-45 with precision 2 and scale 46
+            // Largest REAL value is 3.4028235E+38 with precision 8 and scale -31
+            return getTypeInfo(Value.DECIMAL, 85, 46, null);
+        case Value.DOUBLE:
+            // Smallest DOUBLE value is 4.9E-324 with precision 2 and scale 325
+            // Largest DOUBLE value is 1.7976931348623157E+308 with precision 17
+            // and scale -292
+            return getTypeInfo(Value.DECIMAL, 634, 325, null);
+        default:
+            return TYPE_DECIMAL_FLOATING_POINT;
+        }
+    }
+
 }

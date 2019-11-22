@@ -253,6 +253,7 @@ public class ConnectionInfo implements Cloneable {
         if (idx >= 0) {
             String settings = url.substring(idx + 1);
             url = url.substring(0, idx);
+            String unknownSetting = null;
             String[] list = StringUtils.arraySplit(settings, ';', false);
             for (String setting : list) {
                 if (setting.isEmpty()) {
@@ -265,14 +266,19 @@ public class ConnectionInfo implements Cloneable {
                 String value = setting.substring(equal + 1);
                 String key = setting.substring(0, equal);
                 key = StringUtils.toUpperEnglish(key);
-                if (!isKnownSetting(key) && !defaultSettings.containsKey(key)) {
-                    throw DbException.get(ErrorCode.UNSUPPORTED_SETTING_1, key);
+                if (isKnownSetting(key) || defaultSettings.containsKey(key)) {
+                    String old = prop.getProperty(key);
+                    if (old != null && !old.equals(value)) {
+                        throw DbException.get(ErrorCode.DUPLICATE_PROPERTY_1, key);
+                    }
+                    prop.setProperty(key, value);
+                } else {
+                    unknownSetting = key;
                 }
-                String old = prop.getProperty(key);
-                if (old != null && !old.equals(value)) {
-                    throw DbException.get(ErrorCode.DUPLICATE_PROPERTY_1, key);
-                }
-                prop.setProperty(key, value);
+            }
+            if (unknownSetting != null //
+                    && !Utils.parseBoolean(prop.getProperty("IGNORE_UNKNOWN_SETTINGS"), false, false)) {
+                throw DbException.get(ErrorCode.UNSUPPORTED_SETTING_1, unknownSetting);
             }
         }
     }

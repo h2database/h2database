@@ -24,6 +24,7 @@ import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.rtree.SpatialDataType;
 import org.h2.mvstore.rtree.SpatialKey;
 import org.h2.mvstore.type.BasicDataType;
+import org.h2.mvstore.type.DataType;
 import org.h2.result.ResultInterface;
 import org.h2.result.RowFactory;
 import org.h2.result.SearchRow;
@@ -236,7 +237,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
         }
     }
 
-    private int compareValues(Value a, Value b, int sortType) {
+    public int compareValues(Value a, Value b, int sortType) {
         if (a == b) {
             return 0;
         }
@@ -263,7 +264,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
 
     @Override
     public Value read(ByteBuffer buff) {
-        return readValue(buff);
+        return readValue(buff, true);
     }
 
     @Override
@@ -760,15 +761,15 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
                 int[] indexes = rowFactory.getIndexes();
                 if (indexes == null) {
                     for (int i = 0; i < valueCount; i++) {
-                        row.setValue(i, (Value)readValue(buff, false));
+                        row.setValue(i, readValue(buff, false));
                     }
                 } else {
                     assert valueCount == indexes.length;
                     for (int i : indexes) {
-                        row.setValue(i, (Value)readValue(buff, false));
+                        row.setValue(i, readValue(buff, false));
                     }
                 }
-                row.setKey(((Value)readValue(buff, false)).getLong());
+                row.setKey(readValue(buff, false).getLong());
                 return row;
             }
             // FALL-TROUGH
@@ -864,7 +865,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
     }
 
     @Override
-    public void save(WriteBuffer buff, DataType metaDataType, Database database) {
+    public void save(WriteBuffer buff, DataType<DataType> metaDataType, Database database) {
         writeIntArray(buff, sortTypes);
         int columnCount = rowFactory == null ? 0 : rowFactory.getColumnCount();
         buff.putVarInt(columnCount);
@@ -884,7 +885,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
     }
 
     @Override
-    public void load(ByteBuffer buff, DataType metaDataType, Database database) {
+    public void load(ByteBuffer buff, DataType<DataType> metaDataType, Database database) {
         throw DataUtils.newUnsupportedOperationException("load()");
     }
 
@@ -900,7 +901,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
     public static final class Factory implements StatefulDataType.Factory {
 
         @Override
-        public DataType create(ByteBuffer buff, DataType metaDataType, Database database) {
+        public DataType create(ByteBuffer buff, DataType<DataType> metaDataType, Database database) {
             int[] sortTypes = readIntArray(buff);
             int columnCount = DataUtils.readVarInt(buff);
             int[] indexes = readIntArray(buff);

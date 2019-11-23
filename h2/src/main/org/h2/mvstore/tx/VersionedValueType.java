@@ -49,22 +49,6 @@ public class VersionedValueType extends BasicDataType<VersionedValue> implements
     }
 
     @Override
-    public int compare(VersionedValue a, VersionedValue b) {
-        if (a == b) {
-            return 0;
-        } else if (a == null) {
-            return -1;
-        } else if (b == null) {
-            return 1;
-        }
-        long comp = a.getOperationId() - b.getOperationId();
-        if (comp == 0) {
-            return valueType.compare(a.getCurrentValue(), b.getCurrentValue());
-        }
-        return Long.signum(comp);
-    }
-
-    @Override
     public void read(ByteBuffer buff, Object storage, int len) {
         if (buff.get() == 0) {
             // fast path (no op ids or null entries)
@@ -153,12 +137,12 @@ public class VersionedValueType extends BasicDataType<VersionedValue> implements
     }
 
     @Override
-    public void save(WriteBuffer buff, DataType metaDataType, Database database) {
+    public void save(WriteBuffer buff, DataType<DataType> metaDataType, Database database) {
         metaDataType.write(buff, valueType);
     }
 
     @Override
-    public void load(ByteBuffer buff, DataType metaDataType, Database database) {
+    public void load(ByteBuffer buff, DataType<DataType> metaDataType, Database database) {
         throw DataUtils.newUnsupportedOperationException("load()");
     }
 
@@ -174,8 +158,8 @@ public class VersionedValueType extends BasicDataType<VersionedValue> implements
     public static final class Factory implements StatefulDataType.Factory
     {
         @Override
-        public DataType create(ByteBuffer buff, DataType metaDataType, Database database) {
-            DataType valueType = (DataType)metaDataType.read(buff);
+        public DataType create(ByteBuffer buff, DataType<DataType> metaDataType, Database database) {
+            DataType valueType = metaDataType.read(buff);
             return new VersionedValueType(valueType);
         }
     }

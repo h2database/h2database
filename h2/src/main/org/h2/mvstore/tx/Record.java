@@ -9,7 +9,7 @@ import org.h2.engine.Constants;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.WriteBuffer;
-import org.h2.mvstore.type.DataType;
+import org.h2.mvstore.type.BasicDataType;
 import org.h2.value.VersionedValue;
 import java.nio.ByteBuffer;
 
@@ -51,7 +51,7 @@ final class Record
     /**
      * A data type for undo log values
      */
-    static final class Type implements DataType
+    static final class Type extends BasicDataType<Record>
     {
         private final TransactionStore transactionStore;
 
@@ -60,25 +60,23 @@ final class Record
         }
 
         @Override
-        public int getMemory(Object obj) {
+        public int getMemory(Record record) {
             int result = Constants.MEMORY_OBJECT + 4 + 3 * Constants.MEMORY_POINTER;
-            Record record = (Record) obj;
             if (record.mapId >= 0) {
                 MVMap<Object, VersionedValue> map = transactionStore.getMap(record.mapId);
                 result += map.getKeyType().getMemory(record.key) +
-                            map.getValueType().getMemory(record.oldValue);
+                        map.getValueType().getMemory(record.oldValue);
             }
             return result;
         }
 
         @Override
-        public int compare(Object aObj, Object bObj) {
+        public int compare(Record aObj, Record bObj) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public void write(WriteBuffer buff, Object obj) {
-            Record record = (Record) obj;
+        public void write(WriteBuffer buff, Record record) {
             buff.putVarInt(record.mapId);
             if (record.mapId >= 0) {
                 MVMap<Object, VersionedValue> map = transactionStore.getMap(record.mapId);
@@ -90,13 +88,6 @@ final class Record
                     buff.put((byte) 1);
                     map.getValueType().write(buff, oldValue);
                 }
-            }
-        }
-
-        @Override
-        public void write(WriteBuffer buff, Object[] obj, int len, boolean key) {
-            for (int i = 0; i < len; i++) {
-                write(buff, obj[i]);
             }
         }
 
@@ -116,10 +107,8 @@ final class Record
         }
 
         @Override
-        public void read(ByteBuffer buff, Object[] obj, int len, boolean key) {
-            for (int i = 0; i < len; i++) {
-                obj[i] = read(buff);
-            }
+        public Record[] createStorage(int size) {
+            return new Record[size];
         }
     }
 }

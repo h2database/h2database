@@ -22,7 +22,6 @@ import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionMap;
-import org.h2.mvstore.tx.VersionedValueType;
 import org.h2.mvstore.type.DataType;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;

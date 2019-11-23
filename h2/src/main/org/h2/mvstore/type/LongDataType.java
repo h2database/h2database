@@ -13,65 +13,34 @@ import java.nio.ByteBuffer;
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
-public final class LongDataType implements DataType {
-
+public final class LongDataType extends BasicDataType<Long>
+{
     public static final LongDataType INSTANCE = new LongDataType();
 
     public LongDataType() {}
 
     @Override
-    public int getMemory(Object obj) {
+    public int getMemory(Long obj) {
         return 8;
     }
 
     @Override
-    public void write(WriteBuffer buff, Object obj) {
-        Long data = (Long)obj;
+    public void write(WriteBuffer buff, Long data) {
         buff.putVarLong(data);
     }
 
     @Override
-    public void write(WriteBuffer buff, Object[] obj, int len, boolean key) {
-        for (int i = 0; i < len; i++) {
-            write(buff, obj[i]);
-        }
-    }
-
-    @Override
-    public Object read(ByteBuffer buff) {
+    public Long read(ByteBuffer buff) {
         return DataUtils.readVarLong(buff);
     }
 
     @Override
-    public void read(ByteBuffer buff, Object[] obj, int len, boolean key) {
-        for (int i = 0; i < len; i++) {
-            obj[i] = read(buff);
-        }
+    public Long[] createStorage(int size) {
+        return new Long[size];
     }
 
     @Override
-    public int compare(Object aObj, Object bObj) {
-        if (aObj instanceof Long && bObj instanceof Long) {
-            Long a = (Long) aObj;
-            Long b = (Long) bObj;
-            return Long.compare(a,b);
-        }
-        return compareWithNulls(aObj, bObj);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static long[] cast(Object storage) {
-        return (long[])storage;
-    }
-
-    private static int compareWithNulls(Object a, Object b) {
-        if (a == b) {
-            return 0;
-        } else if (a == null) {
-            return -1;
-        } else if (b == null) {
-            return 1;
-        }
-        throw new UnsupportedOperationException();
+    public int compare(Long one, Long two) {
+        return Long.compare(one, two);
     }
 }

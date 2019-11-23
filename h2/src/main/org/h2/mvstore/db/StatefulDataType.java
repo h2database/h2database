@@ -21,14 +21,14 @@ import java.nio.ByteBuffer;
  */
 public interface StatefulDataType {
 
-    void save(WriteBuffer buff, DataType metaDataType, Database database);
+    void save(WriteBuffer buff, DataType<DataType> metaDataType, Database database);
 
-    void load(ByteBuffer buff, DataType metaDataType, Database database);
+    void load(ByteBuffer buff, DataType<DataType> metaDataType, Database database);
 
     Factory getFactory();
 
-    interface Factory {
-
-        DataType create(ByteBuffer buff, DataType metaDataType, Database database);
+    interface Factory
+    {
+        DataType create(ByteBuffer buff, DataType<DataType> metaDataType, Database database);
     }
 }

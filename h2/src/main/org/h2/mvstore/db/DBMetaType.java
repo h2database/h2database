@@ -9,6 +9,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
+import org.h2.mvstore.type.BasicDataType;
 import org.h2.mvstore.type.DataType;
 
 import java.nio.ByteBuffer;
@@ -16,14 +17,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Class DBMetatype.
+ * Class DBMetatype is a type for values in the type registry map.
  * <UL>
  * <LI> 8/22/17 6:40 PM initial creation
  * </UL>
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
-public final class DBMetaType implements DataType
+public final class DBMetaType extends BasicDataType<DataType>
 {
     private final Database database;
     private final Thread.UncaughtExceptionHandler exceptionHandler;
@@ -35,17 +36,17 @@ public final class DBMetaType implements DataType
     }
 
     @Override
-    public int compare(Object a, Object b) {
+    public int compare(DataType a, DataType b) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public int getMemory(Object obj) {
+    public int getMemory(DataType obj) {
         return Constants.MEMORY_OBJECT;
     }
 
     @Override
-    public void write(WriteBuffer buff, Object obj) {
+    public void write(WriteBuffer buff, DataType obj) {
         Class<?> clazz = obj.getClass();
         StatefulDataType statefulDataType = null;
         if (obj instanceof StatefulDataType) {
@@ -61,13 +62,6 @@ public final class DBMetaType implements DataType
             .putStringData(className, len);
         if (statefulDataType != null) {
             statefulDataType.save(buff, this, database);
-        }
-    }
-
-    @Override
-    public void write(WriteBuffer buff, Object[] obj, int len, boolean key) {
-        for (int i = 0; i < len; i++) {
-            write(buff, obj[i]);
         }
     }
 
@@ -99,9 +93,7 @@ public final class DBMetaType implements DataType
     }
 
     @Override
-    public void read(ByteBuffer buff, Object[] obj, int len, boolean key) {
-        for (int i = 0; i < len; i++) {
-            obj[i] = read(buff);
-        }
+    public DataType[] createStorage(int size) {
+        return new DataType[size];
     }
 }

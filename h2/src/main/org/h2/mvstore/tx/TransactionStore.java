@@ -20,7 +20,7 @@ import org.h2.mvstore.MVStore;
 import org.h2.mvstore.RootReference;
 import org.h2.mvstore.db.DBMetaType;
 import org.h2.mvstore.rtree.MVRTreeMap;
-import org.h2.mvstore.type.BasicDataType;
+import org.h2.mvstore.rtree.SpatialDataType;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.LongDataType;
 import org.h2.mvstore.type.ObjectDataType;
@@ -150,10 +150,10 @@ public class TransactionStore {
      * Create a new transaction store.
      * @param store the store
      * @param metaDataType the data type for type registry map values
-     * @param dataType the data type for map keys and values
+     * @param dataType default data type for map keys and values
      * @param timeoutMillis lock acquisition timeout in milliseconds, 0 means no wait
      */
-    public TransactionStore(MVStore store, DataType metaDataType, DataType dataType, int timeoutMillis) {
+    public TransactionStore(MVStore store, DataType<DataType> metaDataType, DataType dataType, int timeoutMillis) {
         this.store = store;
         this.dataType = dataType;
         this.timeoutMillis = timeoutMillis;
@@ -163,11 +163,10 @@ public class TransactionStore {
                                                 .valueType(metaDataType);
         typeRegistry = store.openMap(TYPE_REGISTRY_NAME, typeRegistryBuilder);
         preparedTransactions = store.openMap("openTransactions", new MVMap.Builder<>());
-        DataType undoLogValueType = new Record.Type(this);
         undoLogBuilder = new MVMap.Builder<Long, Record>()
                         .singleWriter()
                         .keyType(LongDataType.INSTANCE)
-                        .valueType(undoLogValueType);
+                        .valueType(new Record.Type(this));
     }
 
     /**
@@ -831,9 +830,10 @@ public class TransactionStore {
             return Integer.toHexString(Objects.hashCode(dataType));
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public MVMap<K,V> create(MVStore store, Map<String, Object> config) {
-            DataType keyType = getKeyType();
+            DataType<K> keyType = getKeyType();
             if (keyType == null) {
                 String keyTypeKey = (String) config.remove("key");
                 if (keyTypeKey != null) {
@@ -868,7 +868,7 @@ public class TransactionStore {
                 registerDataType(getKeyType());
             }
             if (getValueType() == null) {
-                setValueType(new VersionedValueType(defaultDataType));
+                setValueType((DataType<? super V>) new VersionedValueType(defaultDataType));
                 registerDataType(getValueType());
             }
 
@@ -883,17 +883,17 @@ public class TransactionStore {
         @SuppressWarnings("unchecked")
         protected MVMap<K,V> create(Map<String,Object> config) {
             if("rtree".equals(config.get("type"))) {
-                MVMap<K, V> map = (MVMap<K, V>) new MVRTreeMap<V>(config);
+                MVMap<K, V> map = (MVMap<K, V>) new MVRTreeMap<>(config, (SpatialDataType)getKeyType(), getValueType());
                 return map;
             }
-            return new TMVMap<>(config);
+            return new TMVMap<>(config, getKeyType(), getValueType());
         }
 
         private static final class TMVMap<K,V> extends MVMap<K,V> {
             private final String type;
 
-            TMVMap(Map<String, Object> config) {
-                super(config);
+            TMVMap(Map<String, Object> config, DataType<K> keyType, DataType<V> valueType) {
+                super(config, keyType, valueType);
                 type = (String)config.get("type");
             }
 

@@ -27,7 +27,6 @@ import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreTool;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionStore;
-import org.h2.mvstore.type.DataType;
 import org.h2.store.InDoubtTransaction;
 import org.h2.store.fs.FileChannelInputStream;
 import org.h2.store.fs.FileUtils;
@@ -157,7 +156,6 @@ public class MVTableEngine implements TableEngine {
          * @param builder the builder
          * @param encrypted whether the store is encrypted
          */
-        @SuppressWarnings("unchecked")
         void open(Database db, MVStore.Builder builder, boolean encrypted) {
             this.encrypted = encrypted;
             try {
@@ -366,6 +364,7 @@ public class MVTableEngine implements TableEngine {
          *
          * @param maxCompactTime the maximum time in milliseconds to compact
          */
+        @SuppressWarnings("unused")
         public void compactFile(long maxCompactTime) {
             mvStore.compactFile(maxCompactTime);
         }
@@ -466,17 +465,8 @@ public class MVTableEngine implements TableEngine {
         }
 
         @Override
-        public String getState() {
-            switch (state) {
-            case IN_DOUBT:
-                return "IN_DOUBT";
-            case COMMIT:
-                return "COMMIT";
-            case ROLLBACK:
-                return "ROLLBACK";
-            default:
-                throw DbException.throwInternalError("state="+state);
-            }
+        public int getState() {
+            return state;
         }
 
         @Override

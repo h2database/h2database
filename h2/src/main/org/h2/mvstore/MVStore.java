@@ -2155,7 +2155,7 @@ public class MVStore implements AutoCloseable
         sync();
 
         int rewrittenPageCount = 0;
-        storeLock.unlock();
+        storeLock.lock();
         try {
             for (MVMap<?, ?> map : maps.values()) {
                 if (!map.isClosed() && !map.isSingleWriter()) {
@@ -2174,7 +2174,7 @@ public class MVStore implements AutoCloseable
                 rewrittenPageCount += rewriteMetaCount;
             }
         } finally {
-            storeLock.lock();
+            storeLock.unlock();
         }
         commit();
         assert validateRewrite(set);

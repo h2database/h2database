@@ -12,16 +12,16 @@ select 1 from(select 2 from(select 1) a right join dual b) c;
 >> 1
 
 select 1.00 / 3 * 0.00;
->> 0E-29
+>> 0E-24
 
 select 1.00000 / 3 * 0.0000;
->> 0E-34
+>> 0E-29
 
 select 1.0000000 / 3 * 0.00000;
->> 0E-37
+>> 0E-32
 
 select 1.0000000 / 3 * 0.000000;
->> 0E-38
+>> 0E-33
 
 create table test(id null);
 > ok

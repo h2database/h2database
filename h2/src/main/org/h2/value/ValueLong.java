@@ -125,7 +125,7 @@ public class ValueLong extends Value {
     }
 
     @Override
-    public Value divide(Value v) {
+    public Value divide(Value v, long divisorPrecision) {
         long y = ((ValueLong) v).value;
         if (y == 0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());

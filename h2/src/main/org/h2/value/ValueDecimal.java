@@ -48,11 +48,6 @@ public class ValueDecimal extends Value {
     static final int DEFAULT_DISPLAY_SIZE = 65535;
 
     /**
-     * The additional scale digits for result of division operation.
-     */
-    public static final int DIVIDE_SCALE_ADD = 25;
-
-    /**
      * The maximum scale.
      */
     public static final int MAXIMUM_SCALE = 100_000;
@@ -99,22 +94,29 @@ public class ValueDecimal extends Value {
     }
 
     @Override
-    public Value divide(Value v) {
-        ValueDecimal dec = (ValueDecimal) v;
-        if (dec.value.signum() == 0) {
+    public Value divide(Value v, long divisorPrecision) {
+        BigDecimal divisor = ((ValueDecimal) v).value;
+        if (divisor.signum() == 0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
         }
-        BigDecimal bd = value.divide(dec.value,
-                value.scale() + DIVIDE_SCALE_ADD,
-                RoundingMode.HALF_DOWN);
-        if (bd.signum() == 0) {
-            bd = BigDecimal.ZERO;
-        } else if (bd.scale() > 0) {
-            if (!bd.unscaledValue().testBit(0)) {
-                bd = bd.stripTrailingZeros();
-            }
-        }
-        return ValueDecimal.get(bd);
+        return ValueDecimal.get(value.divide(divisor,
+                getQuotientScale(value.scale(), divisorPrecision, divisor.scale()), RoundingMode.HALF_DOWN));
+    }
+
+    /**
+     * Evaluates the scale of the quotient.
+     *
+     * @param dividerScale
+     *            the scale of the divider
+     * @param divisorPrecision
+     *            the precision of the divisor
+     * @param divisorScale
+     *            the scale of the divisor
+     * @return the scale of the quotient
+     */
+    public static int getQuotientScale(int dividerScale, long divisorPrecision, int divisorScale) {
+        long scale = dividerScale - divisorScale + divisorPrecision * 2;
+        return scale >= MAXIMUM_SCALE ? MAXIMUM_SCALE : (int) scale;
     }
 
     @Override

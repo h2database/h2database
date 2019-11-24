@@ -1,10 +1,15 @@
 #!/bin/sh
 if [ -z "$JAVA_HOME" ] ; then
-  if [ -d "/System/Library/Frameworks/JavaVM.framework/Home" ] ; then
-    export JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/Home
-  else
-    echo "Error: JAVA_HOME is not defined."
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    if [ -d "/System/Library/Frameworks/JavaVM.framework/Home" ] ; then
+      export JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/Home
+    else
+      export JAVA_HOME=`/usr/libexec/java_home`
+    fi
   fi
+fi
+if [ -z "$JAVA_HOME" ] ; then
+  echo "Error: JAVA_HOME is not defined."
 fi
 if [ "$1" = "clean" ] ; then rm -rf temp bin ; fi
 if [ ! -d "temp" ] ; then mkdir temp ; fi

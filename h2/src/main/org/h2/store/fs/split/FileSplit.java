@@ -18,16 +18,16 @@ import org.h2.store.fs.FilePath;
  */
 class FileSplit extends FileBase {
 
-    private final FilePathSplit file;
+    private final FilePathSplit filePath;
     private final String mode;
     private final long maxLength;
     private FileChannel[] list;
-    private long filePointer;
-    private long length;
+    private volatile long filePointer;
+    private volatile long length;
 
     FileSplit(FilePathSplit file, String mode, FileChannel[] list, long length,
             long maxLength) {
-        this.file = file;
+        this.filePath = file;
         this.mode = mode;
         this.list = list;
         this.length = length;
@@ -35,7 +35,7 @@ class FileSplit extends FileBase {
     }
 
     @Override
-    public void implCloseChannel() throws IOException {
+    public synchronized void implCloseChannel() throws IOException {
         for (FileChannel c : list) {
             c.close();
         }
@@ -69,7 +69,7 @@ class FileSplit extends FileBase {
     }
 
     @Override
-    public int read(ByteBuffer dst) throws IOException {
+    public synchronized int read(ByteBuffer dst) throws IOException {
         int len = dst.remaining();
         if (len == 0) {
             return 0;
@@ -99,7 +99,7 @@ class FileSplit extends FileBase {
             int i = list.length;
             FileChannel[] newList = new FileChannel[i + 1];
             System.arraycopy(list, 0, newList, 0, i);
-            FilePath f = file.getBase(i);
+            FilePath f = filePath.getBase(i);
             newList[i] = f.open(mode);
             list = newList;
         }
@@ -107,7 +107,7 @@ class FileSplit extends FileBase {
     }
 
     @Override
-    public FileChannel truncate(long newLength) throws IOException {
+    public synchronized FileChannel truncate(long newLength) throws IOException {
         if (newLength >= length) {
             return this;
         }
@@ -122,7 +122,7 @@ class FileSplit extends FileBase {
                 list[i].truncate(0);
                 list[i].close();
                 try {
-                    file.getBase(i).delete();
+                    filePath.getBase(i).delete();
                 } catch (DbException e) {
                     throw DbException.convertToIOException(e);
                 }
@@ -137,14 +137,14 @@ class FileSplit extends FileBase {
     }
 
     @Override
-    public void force(boolean metaData) throws IOException {
+    public synchronized void force(boolean metaData) throws IOException {
         for (FileChannel c : list) {
             c.force(metaData);
         }
     }
 
     @Override
-    public int write(ByteBuffer src, long position) throws IOException {
+    public synchronized int write(ByteBuffer src, long position) throws IOException {
         if (position >= length && position > maxLength) {
             // may need to extend and create files
             long oldFilePointer = position;
@@ -175,7 +175,7 @@ class FileSplit extends FileBase {
     }
 
     @Override
-    public int write(ByteBuffer src) throws IOException {
+    public synchronized int write(ByteBuffer src) throws IOException {
         if (filePointer >= length && filePointer > maxLength) {
             // may need to extend and create files
             long oldFilePointer = filePointer;
@@ -215,7 +215,7 @@ class FileSplit extends FileBase {
 
     @Override
     public String toString() {
-        return file.toString();
+        return filePath.toString();
     }
 
 }

@@ -83,7 +83,7 @@ public class TestClearReferences extends TestBase {
         // initialize the known classes
         MathUtils.secureRandomLong();
         ValueInt.get(1);
-        Class.forName("org.h2.store.fs.FileMemData");
+        Class.forName("org.h2.store.fs.mem.FileMemData");
 
         clear();
 

@@ -208,7 +208,7 @@ public class ValueTime extends Value {
     }
 
     @Override
-    public Value divide(Value v) {
+    public Value divide(Value v, long divisorPrecision) {
         return ValueTime.fromNanos((long) (nanos / v.getDouble()));
     }
 

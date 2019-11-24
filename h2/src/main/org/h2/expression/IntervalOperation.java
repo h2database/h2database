@@ -84,6 +84,24 @@ public class IntervalOperation extends Expression {
         DATETIME_MINUS_DATETIME
     }
 
+    /**
+     * Number of digits enough to hold
+     * {@code INTERVAL '999999999999999999' YEAR / INTERVAL '1' MONTH}.
+     */
+    private static final int INTERVAL_YEAR_DIGITS = 20;
+
+    /**
+     * Number of digits enough to hold
+     * {@code INTERVAL '999999999999999999' DAY / INTERVAL '0.000000001' SECOND}.
+     */
+    private static final int INTERVAL_DAY_DIGITS = 32;
+
+    private static final TypeInfo INTERVAL_DIVIDE_INTERVAL_YEAR_TYPE = TypeInfo.getTypeInfo(Value.DECIMAL,
+            INTERVAL_YEAR_DIGITS * 3, INTERVAL_YEAR_DIGITS * 2, null);
+
+    private static final TypeInfo INTERVAL_DIVIDE_INTERVAL_DAY_TYPE = TypeInfo.getTypeInfo(Value.DECIMAL,
+            INTERVAL_DAY_DIGITS * 3, INTERVAL_DAY_DIGITS * 2, null);
+
     private final IntervalOpType opType;
     private Expression left, right;
     private TypeInfo forcedType;
@@ -111,7 +129,8 @@ public class IntervalOperation extends Expression {
             type = TypeInfo.getTypeInfo(Value.getHigherOrder(l, r));
             break;
         case INTERVAL_DIVIDE_INTERVAL:
-            type = TypeInfo.TYPE_DECIMAL_FLOATING_POINT;
+            type = DataType.isYearMonthIntervalType(left.getType().getValueType()) ? INTERVAL_DIVIDE_INTERVAL_YEAR_TYPE
+                    : INTERVAL_DIVIDE_INTERVAL_DAY_TYPE;
             break;
         case DATETIME_PLUS_INTERVAL:
         case DATETIME_MINUS_INTERVAL:
@@ -189,8 +208,9 @@ public class IntervalOperation extends Expression {
                     opType == IntervalOpType.INTERVAL_PLUS_INTERVAL ? a1.add(a2) : a1.subtract(a2));
         }
         case INTERVAL_DIVIDE_INTERVAL:
-            return ValueDecimal.get(IntervalUtils.intervalToAbsolute((ValueInterval) l))
-                    .divide(ValueDecimal.get(IntervalUtils.intervalToAbsolute((ValueInterval) r)));
+            return ValueDecimal.get(IntervalUtils.intervalToAbsolute((ValueInterval) l)).divide(
+                    ValueDecimal.get(IntervalUtils.intervalToAbsolute((ValueInterval) r)),
+                    DataType.isYearMonthIntervalType(l.getValueType()) ? INTERVAL_YEAR_DIGITS : INTERVAL_DAY_DIGITS);
         case DATETIME_PLUS_INTERVAL:
         case DATETIME_MINUS_INTERVAL:
             return getDateTimeWithInterval(session, l, r, lType, rType);

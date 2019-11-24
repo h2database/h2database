@@ -131,7 +131,7 @@ public class TestDate extends TestBase {
         assertEquals("TIME '11:11:11'", t1.getSQL());
         assertEquals("TIME '11:11:11'", t1.toString());
         assertEquals("05:35:35.5", t1.multiply(ValueDouble.get(0.5)).getString());
-        assertEquals("22:22:22", t1.divide(ValueDouble.get(0.5)).getString());
+        assertEquals("22:22:22", t1.divide(ValueDouble.get(0.5), ValueDouble.PRECISION).getString());
         assertEquals(Value.TIME, t1.getValueType());
         long nanos = t1.getNanos();
         assertEquals((int) ((nanos >>> 32) ^ nanos), t1.hashCode());

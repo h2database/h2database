@@ -100,7 +100,7 @@ public class ValueInt extends Value {
     }
 
     @Override
-    public Value divide(Value v) {
+    public Value divide(Value v, long divisorPrecision) {
         int y = ((ValueInt) v).value;
         if (y == 0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());

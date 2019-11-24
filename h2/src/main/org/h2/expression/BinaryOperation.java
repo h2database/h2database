@@ -130,7 +130,7 @@ public class BinaryOperation extends Expression {
             if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
                 return ValueNull.INSTANCE;
             }
-            return l.divide(r);
+            return l.divide(r, right.getType().getPrecision());
         case MODULUS:
             if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
                 return ValueNull.INSTANCE;
@@ -222,15 +222,11 @@ public class BinaryOperation extends Expression {
             break;
         case DIVIDE:
             // Precision and scale are implementation-defined.
-            // H2 adds some digits to the scale of dividend.
-            scale = leftScale + ValueDecimal.DIVIDE_SCALE_ADD;
-            // Add them to the precision too.
-            precision = leftPrecision + ValueDecimal.DIVIDE_SCALE_ADD;
-            // If scale of divisor is positive, the smallest absolute value of
-            // divisor is smaller than 1, so precision needs to be increased.
-            if (rightScale > 0) {
-                precision += rightScale;
-            }
+            scale = ValueDecimal.getQuotientScale(leftScale, rightPrecision, rightScale);
+            // Divider can be effectively multiplied by no more than
+            // 10^rightScale, so add rightScale to its precision and adjust the
+            // result to the changes in scale.
+            precision = leftPrecision + rightScale - leftScale + scale;
             break;
         case MODULUS:
             // Non-standard operation.

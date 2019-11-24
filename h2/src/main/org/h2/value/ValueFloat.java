@@ -76,7 +76,7 @@ public class ValueFloat extends Value {
     }
 
     @Override
-    public Value divide(Value v) {
+    public Value divide(Value v, long divisorPrecision) {
         ValueFloat v2 = (ValueFloat) v;
         if (v2.value == 0.0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());

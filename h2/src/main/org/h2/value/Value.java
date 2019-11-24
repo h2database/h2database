@@ -704,10 +704,11 @@ public abstract class Value extends VersionedValue {
     /**
      * Divide by a value and return the result.
      *
-     * @param v the value to divide by
+     * @param v the divisor
+     * @param divisorPrecision the precision of divisor
      * @return the result
      */
-    public Value divide(@SuppressWarnings("unused") Value v) {
+    public Value divide(@SuppressWarnings("unused") Value v, long divisorPrecision) {
         throw getUnsupportedExceptionForOperation("/");
     }
 

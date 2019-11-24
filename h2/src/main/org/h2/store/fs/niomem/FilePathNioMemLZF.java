@@ -8,7 +8,7 @@ package org.h2.store.fs.niomem;
 /**
  * A memory file system that compresses blocks to conserve memory.
  */
-class FilePathNioMemLZF extends FilePathNioMem {
+public class FilePathNioMemLZF extends FilePathNioMem {
 
     @Override
     boolean compressed() {

@@ -413,7 +413,7 @@ public class FileUtils {
         } while (src.remaining() > 0);
     }
 
-    static Set<? extends OpenOption> modeToOptions(String mode) {
+    public static Set<? extends OpenOption> modeToOptions(String mode) {
         Set<? extends OpenOption> options;
         switch (mode) {
         case "r":

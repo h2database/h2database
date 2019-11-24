@@ -3,7 +3,7 @@
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.store.fs;
+package org.h2.store.fs.disk;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -35,6 +35,8 @@ import java.util.stream.Stream;
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
+import org.h2.store.fs.FilePath;
+import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
 
 /**

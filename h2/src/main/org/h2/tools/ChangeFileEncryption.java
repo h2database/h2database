@@ -20,8 +20,9 @@ import org.h2.security.SHA256;
 import org.h2.store.FileLister;
 import org.h2.store.FileStore;
 import org.h2.store.fs.FilePath;
-import org.h2.store.fs.FilePathEncrypt;
 import org.h2.store.fs.FileUtils;
+import org.h2.store.fs.encrypt.FileEncrypt;
+import org.h2.store.fs.encrypt.FilePathEncrypt;
 import org.h2.util.Tool;
 
 /**
@@ -266,7 +267,7 @@ public class ChangeFileEncryption extends Tool {
             byte[] decryptKey) throws IOException {
         FileChannel fileIn = FilePath.get(fileName).open(r);
         if (decryptKey != null) {
-            fileIn = new FilePathEncrypt.FileEncrypt(fileName, decryptKey,
+            fileIn = new FileEncrypt(fileName, decryptKey,
                     fileIn);
         }
         return fileIn;

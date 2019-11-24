@@ -3,7 +3,7 @@
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.store.fs;
+package org.h2.store.fs.async;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -14,24 +14,8 @@ import java.nio.channels.NonWritableChannelException;
 import java.nio.file.Paths;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-
-/**
- * This file system stores files on disk and uses
- * java.nio.channels.AsynchronousFileChannel to access the files.
- */
-public class FilePathAsync extends FilePathWrapper {
-
-    @Override
-    public FileChannel open(String mode) throws IOException {
-        return new FileAsync(name.substring(getScheme().length() + 1), mode);
-    }
-
-    @Override
-    public String getScheme() {
-        return "async";
-    }
-
-}
+import org.h2.store.fs.FileBase;
+import org.h2.store.fs.FileUtils;
 
 /**
  * File which uses NIO2 AsynchronousFileChannel.

@@ -34,8 +34,8 @@ public class TestClearReferences extends TestBase {
         "org.h2.store.fs.FilePath.defaultProvider",
         "org.h2.store.fs.FilePath.providers",
         "org.h2.store.fs.FilePath.tempRandom",
-        "org.h2.store.fs.FilePathRec.recorder",
-        "org.h2.store.fs.FileMemData.data",
+        "org.h2.store.fs.rec.FilePathRec.recorder",
+        "org.h2.store.fs.mem.FileMemData.data",
         "org.h2.tools.CompressTool.cachedBuffer",
         "org.h2.util.CloseWatcher.queue",
         "org.h2.util.CloseWatcher.refs",
@@ -83,7 +83,7 @@ public class TestClearReferences extends TestBase {
         // initialize the known classes
         MathUtils.secureRandomLong();
         ValueInt.get(1);
-        Class.forName("org.h2.store.fs.FileMemData");
+        Class.forName("org.h2.store.fs.mem.FileMemData");
 
         clear();
 

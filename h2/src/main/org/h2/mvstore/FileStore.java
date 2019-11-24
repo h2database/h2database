@@ -13,7 +13,8 @@ import java.nio.channels.OverlappingFileLockException;
 import java.util.concurrent.atomic.AtomicLong;
 import org.h2.mvstore.cache.FilePathCache;
 import org.h2.store.fs.FilePath;
-import org.h2.store.fs.FilePathEncrypt;
+import org.h2.store.fs.encrypt.FileEncrypt;
+import org.h2.store.fs.encrypt.FilePathEncrypt;
 
 /**
  * The default storage mechanism of the MVStore. This implementation persists
@@ -144,7 +145,7 @@ public class FileStore {
             if (encryptionKey != null) {
                 byte[] key = FilePathEncrypt.getPasswordBytes(encryptionKey);
                 encryptedFile = file;
-                file = new FilePathEncrypt.FileEncrypt(fileName, key, file);
+                file = new FileEncrypt(fileName, key, file);
             }
             try {
                 if (readOnly) {

@@ -157,7 +157,7 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
      */
     public ValueEnum getValue(int ordinal) {
         if (ordinal < 0 || ordinal >= enumerators.length) {
-            throw DbException.get(ErrorCode.ENUM_VALUE_NOT_PERMITTED, enumerators.toString(),
+            throw DbException.get(ErrorCode.ENUM_VALUE_NOT_PERMITTED, Arrays.toString(enumerators),
                     Integer.toString(ordinal));
         }
         return new ValueEnum(this, enumerators[ordinal], ordinal);

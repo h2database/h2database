@@ -1,3 +1,8 @@
+/*
+ * Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (https://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
+ */
 package org.h2.store.fs.niomem;
 
 import java.nio.ByteBuffer;
@@ -7,8 +12,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.h2.compress.CompressLZF;
-import org.h2.store.fs.niomem.FileNioMemData.CompressItem;
-import org.h2.store.fs.niomem.FileNioMemData.CompressLaterCache;
 import org.h2.util.MathUtils;
 
 /**

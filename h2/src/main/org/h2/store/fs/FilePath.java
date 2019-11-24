@@ -68,16 +68,16 @@ public abstract class FilePath {
         if (providers == null || defaultProvider == null) {
             ConcurrentHashMap<String, FilePath> map = new ConcurrentHashMap<>();
             for (String c : new String[] {
-                    "org.h2.store.fs.FilePathDisk",
-                    "org.h2.store.fs.FilePathMem",
-                    "org.h2.store.fs.FilePathMemLZF",
-                    "org.h2.store.fs.FilePathNioMem",
-                    "org.h2.store.fs.FilePathNioMemLZF",
-                    "org.h2.store.fs.FilePathSplit",
-                    "org.h2.store.fs.FilePathNioMapped",
-                    "org.h2.store.fs.FilePathAsync",
-                    "org.h2.store.fs.FilePathZip",
-                    "org.h2.store.fs.FilePathRetryOnInterrupt"
+                    "org.h2.store.fs.disk.FilePathDisk",
+                    "org.h2.store.fs.mem.FilePathMem",
+                    "org.h2.store.fs.mem.FilePathMemLZF",
+                    "org.h2.store.fs.niomem.FilePathNioMem",
+                    "org.h2.store.fs.niomem.FilePathNioMemLZF",
+                    "org.h2.store.fs.split.FilePathSplit",
+                    "org.h2.store.fs.niomapped.FilePathNioMapped",
+                    "org.h2.store.fs.async.FilePathAsync",
+                    "org.h2.store.fs.zip.FilePathZip",
+                    "org.h2.store.fs.retry.FilePathRetryOnInterrupt"
             }) {
                 try {
                     FilePath p = (FilePath) Class.forName(c).getDeclaredConstructor().newInstance();

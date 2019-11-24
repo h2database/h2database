@@ -14,7 +14,7 @@ import org.h2.message.DbException;
 import org.h2.store.fs.FilePath;
 
 /**
- * This file system keeps files fully in memory. There is an option to compress
+ * This file system keeps files fully in off-java-heap memory. There is an option to compress
  * file blocks to save memory.
  */
 public class FilePathNioMem extends FilePath {

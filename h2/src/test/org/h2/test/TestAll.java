@@ -16,8 +16,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.h2.Driver;
 import org.h2.engine.Constants;
-import org.h2.store.fs.FilePathRec;
 import org.h2.store.fs.FileUtils;
+import org.h2.store.fs.rec.FilePathRec;
 import org.h2.test.auth.TestAuthentication;
 import org.h2.test.bench.TestPerformance;
 import org.h2.test.db.TestAlter;

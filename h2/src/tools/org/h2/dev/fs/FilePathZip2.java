@@ -21,8 +21,8 @@ import org.h2.message.DbException;
 import org.h2.store.fs.FakeFileChannel;
 import org.h2.store.fs.FileBase;
 import org.h2.store.fs.FilePath;
-import org.h2.store.fs.FilePathDisk;
 import org.h2.store.fs.FileUtils;
+import org.h2.store.fs.disk.FilePathDisk;
 import org.h2.util.IOUtils;
 
 /**

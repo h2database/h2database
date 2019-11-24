@@ -12,6 +12,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import org.h2.store.fs.disk.FilePathDisk;
 import org.h2.util.MathUtils;
 
 /**
@@ -36,7 +37,7 @@ public abstract class FilePath {
      * The complete path (which may be absolute or relative, depending on the
      * file system).
      */
-    protected String name;
+    public String name;
 
     /**
      * Get the file path object for the given path.
@@ -235,7 +236,7 @@ public abstract class FilePath {
      * @return the output stream
      * @throws IOException on I/O exception
      */
-    static final OutputStream newFileChannelOutputStream(FileChannel channel, boolean append) throws IOException {
+    public static final OutputStream newFileChannelOutputStream(FileChannel channel, boolean append) throws IOException {
         if (append) {
             channel.position(channel.size());
         } else {

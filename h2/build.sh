@@ -2,6 +2,8 @@
 if [ -z "$JAVA_HOME" ] ; then
   if [ -d "/System/Library/Frameworks/JavaVM.framework/Home" ] ; then
     export JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/Home
+  elif [[ "$OSTYPE" == "darwin"* ]]; then
+    export JAVA_HOME=`/usr/libexec/java_home`
   else
     echo "Error: JAVA_HOME is not defined."
   fi

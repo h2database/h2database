@@ -7528,6 +7528,11 @@ public class Parser {
             readIfEqualOrTo();
             read();
             return new NoOperation(session);
+        } else if (readIf("STATEMENT_TIMEOUT")){
+            // for PostgreSQL compatibility
+            readIfEqualOrTo();
+            read();
+            return new NoOperation(session);
         } else if (readIf("AUTO_SERVER")) {
             readIfEqualOrTo();
             read();

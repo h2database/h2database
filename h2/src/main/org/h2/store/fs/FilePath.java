@@ -236,7 +236,8 @@ public abstract class FilePath {
      * @return the output stream
      * @throws IOException on I/O exception
      */
-    public static final OutputStream newFileChannelOutputStream(FileChannel channel, boolean append) throws IOException {
+    public static final OutputStream newFileChannelOutputStream(FileChannel channel, boolean append)
+            throws IOException {
         if (append) {
             channel.position(channel.size());
         } else {

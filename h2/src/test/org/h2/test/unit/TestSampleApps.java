@@ -90,7 +90,9 @@ public class TestSampleApps extends TestDb {
         // process)
         testApp("The sum is 20.00", org.h2.samples.TriggerSample.class);
         testApp("Hello: 1\nWorld: 2", org.h2.samples.TriggerPassData.class);
-        testApp("table test:\n" +
+        testApp("Key 1 was generated\n" +
+                "Key 2 was generated\n\n" +
+                "table test:\n" +
                 "1 Hallo\n\n" +
                 "test_view:\n" +
                 "1 Hallo",

@@ -643,7 +643,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      *
      * @return the key type
      */
-    public final DataType getKeyType() {
+    public final DataType<K> getKeyType() {
         return keyType;
     }
 
@@ -652,7 +652,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      *
      * @return the value type
      */
-    public final DataType getValueType() {
+    public final DataType<V> getValueType() {
         return valueType;
     }
 

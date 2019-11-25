@@ -24,7 +24,7 @@ import java.util.Map;
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
-public final class DBMetaType extends BasicDataType<DataType>
+public final class DBMetaType extends BasicDataType<DataType<?>>
 {
     private final Database database;
     private final Thread.UncaughtExceptionHandler exceptionHandler;
@@ -41,12 +41,12 @@ public final class DBMetaType extends BasicDataType<DataType>
     }
 
     @Override
-    public int getMemory(DataType obj) {
+    public int getMemory(DataType<?> obj) {
         return Constants.MEMORY_OBJECT;
     }
 
     @Override
-    public void write(WriteBuffer buff, DataType obj) {
+    public void write(WriteBuffer buff, DataType<?> obj) {
         Class<?> clazz = obj.getClass();
         StatefulDataType statefulDataType = null;
         if (obj instanceof StatefulDataType) {
@@ -66,7 +66,7 @@ public final class DBMetaType extends BasicDataType<DataType>
     }
 
     @Override
-    public DataType read(ByteBuffer buff) {
+    public DataType<?> read(ByteBuffer buff) {
         int len = DataUtils.readVarInt(buff);
         String className = DataUtils.readString(buff, len);
         try {
@@ -83,7 +83,7 @@ public final class DBMetaType extends BasicDataType<DataType>
             } else if(obj instanceof StatefulDataType) {
                 ((StatefulDataType)obj).load(buff, this, database);
             }
-            return (DataType) obj;
+            return (DataType<?>) obj;
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
             if(exceptionHandler != null) {
                 exceptionHandler.uncaughtException(Thread.currentThread(), e);
@@ -93,7 +93,7 @@ public final class DBMetaType extends BasicDataType<DataType>
     }
 
     @Override
-    public DataType[] createStorage(int size) {
+    public DataType<?>[] createStorage(int size) {
         return new DataType[size];
     }
 }

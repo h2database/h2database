@@ -43,10 +43,13 @@ import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreTool;
 import org.h2.mvstore.StreamStore;
+import org.h2.mvstore.db.DBMetaType;
 import org.h2.mvstore.db.LobStorageMap;
 import org.h2.mvstore.db.ValueDataType;
 import org.h2.mvstore.tx.TransactionMap;
 import org.h2.mvstore.tx.TransactionStore;
+import org.h2.mvstore.type.DataType;
+import org.h2.mvstore.type.StringDataType;
 import org.h2.pagestore.Page;
 import org.h2.pagestore.PageFreeList;
 import org.h2.pagestore.PageLog;
@@ -74,7 +77,6 @@ import org.h2.util.Tool;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
 import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueLobDb;
@@ -609,6 +611,8 @@ public class Recover extends Tool implements DataHandler {
             dumpLobMaps(writer, mv);
             writer.println("-- Meta");
             dumpMeta(writer, mv);
+            writer.println("-- Types");
+            dumpTypes(writer, mv);
             writer.println("-- Tables");
             TransactionStore store = new TransactionStore(mv, new ValueDataType());
             try {
@@ -657,13 +661,20 @@ public class Recover extends Tool implements DataHandler {
                 if (Integer.parseInt(tableId) == 0) {
                     continue;
                 }
-                TransactionMap<Value, Value> dataMap = store.begin().openMap(mapName);
-                Iterator<Value> dataIt = dataMap.keyIterator(null);
+                TransactionMap<?,?> dataMap = store.begin().openMap(mapName);
+                Iterator<?> dataIt = dataMap.keyIterator(null);
                 boolean init = false;
                 while (dataIt.hasNext()) {
-                    Value rowId = dataIt.next();
-                    Value[] values = ((ValueCollectionBase) dataMap.get(rowId)).getList();
-                    recordLength = values.length - 1;
+                    Object rowId = dataIt.next();
+                    Object value = dataMap.get(rowId);
+                    Value[] values;
+                    if (value instanceof Row) {
+                        values = ((Row) value).getValueList();
+                        recordLength = values.length;
+                    } else {
+                        values = ((ValueCollectionBase) value).getList();
+                        recordLength = values.length - 1;
+                    }
                     if (!init) {
                         setStorage(Integer.parseInt(tableId));
                         // init the column types
@@ -702,6 +713,16 @@ public class Recover extends Tool implements DataHandler {
     private static void dumpMeta(PrintWriter writer, MVStore mv) {
         MVMap<String, String> meta = mv.getMetaMap();
         for (Entry<String, String> e : meta.entrySet()) {
+            writer.println("-- " + e.getKey() + " = " + e.getValue());
+        }
+    }
+
+    private static void dumpTypes(PrintWriter writer, MVStore mv) {
+        MVMap.Builder<String, DataType<?>> builder = new MVMap.Builder<String, DataType<?>>()
+                                                .keyType(StringDataType.INSTANCE)
+                                                .valueType(new DBMetaType(null, null));
+        MVMap<String,DataType<?>> map = mv.openMap("_", builder);
+        for (Entry<String,?> e : map.entrySet()) {
             writer.println("-- " + e.getKey() + " = " + e.getValue());
         }
     }

@@ -36,17 +36,17 @@ final class RollbackDecisionMaker extends MVMap.DecisionMaker<Record> {
             // where some undo log entry was captured on disk but actual map entry was not
             decision = MVMap.Decision.ABORT;
         } else {
-            VersionedValue valueToRestore = existingValue.oldValue;
+            VersionedValue<Object> valueToRestore = existingValue.oldValue;
             long operationId;
             if (valueToRestore == null ||
                     (operationId = valueToRestore.getOperationId()) == 0 ||
                     TransactionStore.getTransactionId(operationId) == transactionId
                             && TransactionStore.getLogId(operationId) < toLogId) {
                 int mapId = existingValue.mapId;
-                MVMap<Object, VersionedValue> map = store.openMap(mapId);
+                MVMap<Object, VersionedValue<Object>> map = store.openMap(mapId);
                 if (map != null && !map.isClosed()) {
                     Object key = existingValue.key;
-                    VersionedValue previousValue = map.operate(key, valueToRestore, MVMap.DecisionMaker.DEFAULT);
+                    VersionedValue<Object> previousValue = map.operate(key, valueToRestore, MVMap.DecisionMaker.DEFAULT);
                     listener.onRollback(map, key, previousValue, valueToRestore);
                 }
             }

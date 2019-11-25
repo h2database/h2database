@@ -49,7 +49,7 @@ import org.h2.value.VersionedValue;
  * @author Noel Grandin
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
-public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
+public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<SpatialKey, Value> {
 
     /**
      * The multi-value table.
@@ -57,7 +57,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     final MVTable mvTable;
 
     private final TransactionMap<SpatialKey, Value> dataMap;
-    private final MVRTreeMap<VersionedValue> spatialMap;
+    private final MVRTreeMap<VersionedValue<Value>> spatialMap;
 
     /**
      * Constructor.
@@ -101,13 +101,13 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
         }
         String mapName = "index." + getId();
         ValueDataType vt = new ValueDataType(db, null);
-        VersionedValueType valueType = new VersionedValueType(vt);
-        MVRTreeMap.Builder<VersionedValue> mapBuilder =
-                new MVRTreeMap.Builder<VersionedValue>().
+        VersionedValueType<Value> valueType = new VersionedValueType<>(vt);
+        MVRTreeMap.Builder<VersionedValue<Value>> mapBuilder =
+                new MVRTreeMap.Builder<VersionedValue<Value>>().
                 valueType(valueType);
         spatialMap = db.getStore().getMvStore().openMap(mapName, mapBuilder);
         Transaction t = mvTable.getTransactionBegin();
-        dataMap = t.openMap(spatialMap);
+        dataMap = t.openMapX(spatialMap);
         dataMap.map.setVolatile(!table.isPersistData() || !indexType.isPersistent());
         t.commit();
     }
@@ -369,7 +369,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     }
 
     @Override
-    public MVMap<SpatialKey, VersionedValue> getMVMap() {
+    public MVMap<SpatialKey, VersionedValue<Value>> getMVMap() {
         return dataMap.map;
     }
 

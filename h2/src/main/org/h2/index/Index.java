@@ -289,5 +289,5 @@ public interface Index extends SchemaObject {
         // ignore
     }
 
-    public RowFactory getRowFactory();
+    RowFactory getRowFactory();
 }

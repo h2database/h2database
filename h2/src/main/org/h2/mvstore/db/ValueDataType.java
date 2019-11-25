@@ -142,10 +142,6 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
 
     public RowFactory getRowFactory() {
         return rowFactory;
-//        return rowFactory != null ? rowFactory :
-//                RowFactory.getDefaultRowFactory().createRowFactory(provider,
-//                        compareMode, mode,
-//                        handler, sortTypes, null, sortTypes.length);
     }
 
     public void setRowFactory(RowFactory rowFactory) {
@@ -307,13 +303,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
         }
         case Value.LONG: {
             long x = v.getLong();
-            if (x < 0) {
-                buff.put(LONG_NEG).putVarLong(-x);
-            } else if (x < 8) {
-                buff.put((byte) (LONG_0_7 + x));
-            } else {
-                buff.put(LONG).putVarLong(x);
-            }
+            writeLong(buff, x);
             break;
         }
         case Value.DECIMAL: {
@@ -498,23 +488,9 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
         }
         case Value.ARRAY:
             if (rowAsRow && rowFactory != null && v instanceof SearchRow) {
-                buff.put(ARRAY);
-                int[] indexes = rowFactory.getIndexes();
                 SearchRow row = (SearchRow) v;
-                if (indexes == null) {
-                    int columnCount = row.getColumnCount();
-                    buff.putVarInt(columnCount + 1);
-                    for (int i = 0; i < columnCount; i++) {
-                        writeValue(buff, row.getValue(i), false);
-                    }
-                } else {
-                    buff.putVarInt(indexes.length + 1);
-                    for (int i : indexes) {
-                        writeValue(buff, row.getValue(i), false);
-                    }
-                }
-
-                writeValue(buff, ValueLong.get(row.getKey()), false);
+                int[] indexes = rowFactory.getIndexes();
+                writeRow(buff, row, indexes);
                 break;
             }
             // FALL-THROUGH
@@ -600,6 +576,33 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
         }
         default:
             throw DbException.throwInternalError("type=" + v.getValueType());
+        }
+    }
+
+    public void writeRow(WriteBuffer buff, SearchRow row, int[] indexes) {
+        buff.put(ARRAY);
+        if (indexes == null) {
+            int columnCount = row.getColumnCount();
+            buff.putVarInt(columnCount + 1);
+            for (int i = 0; i < columnCount; i++) {
+                writeValue(buff, row.getValue(i), false);
+            }
+        } else {
+            buff.putVarInt(indexes.length + 1);
+            for (int i : indexes) {
+                writeValue(buff, row.getValue(i), false);
+            }
+        }
+        writeValue(buff, ValueLong.get(row.getKey()), false);
+    }
+
+    public static void writeLong(WriteBuffer buff, long x) {
+        if (x < 0) {
+            buff.put(LONG_NEG).putVarLong(-x);
+        } else if (x < 8) {
+            buff.put((byte) (LONG_0_7 + x));
+        } else {
+            buff.put(LONG).putVarLong(x);
         }
     }
 
@@ -865,7 +868,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
     }
 
     @Override
-    public void save(WriteBuffer buff, DataType<DataType> metaDataType, Database database) {
+    public void save(WriteBuffer buff, DataType<DataType<?>> metaDataType, Database database) {
         writeIntArray(buff, sortTypes);
         int columnCount = rowFactory == null ? 0 : rowFactory.getColumnCount();
         buff.putVarInt(columnCount);
@@ -885,7 +888,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
     }
 
     @Override
-    public void load(ByteBuffer buff, DataType<DataType> metaDataType, Database database) {
+    public void load(ByteBuffer buff, DataType<DataType<?>> metaDataType, Database database) {
         throw DataUtils.newUnsupportedOperationException("load()");
     }
 
@@ -901,7 +904,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
     public static final class Factory implements StatefulDataType.Factory {
 
         @Override
-        public DataType create(ByteBuffer buff, DataType<DataType> metaDataType, Database database) {
+        public DataType<?> create(ByteBuffer buff, DataType<DataType<?>> metaDataType, Database database) {
             int[] sortTypes = readIntArray(buff);
             int columnCount = DataUtils.readVarInt(buff);
             int[] indexes = readIntArray(buff);
@@ -914,7 +917,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             }
             RowFactory rowFactory = RowFactory.getDefaultRowFactory()
                     .createRowFactory(database, compareMode, mode, database, sortTypes, indexes, columnCount);
-            return rowFactory.getDataType();
+            return rowFactory.getRowDataType();
         }
 
         private static int[] readIntArray(ByteBuffer buff) {

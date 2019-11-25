@@ -49,7 +49,7 @@ public class TransactionStore {
      */
     private final MVMap<Integer, Object[]> preparedTransactions;
 
-    private final MVMap<String, DataType> typeRegistry;
+    private final MVMap<String, DataType<?>> typeRegistry;
 
     /**
      * Undo logs.
@@ -153,20 +153,24 @@ public class TransactionStore {
      * @param dataType default data type for map keys and values
      * @param timeoutMillis lock acquisition timeout in milliseconds, 0 means no wait
      */
-    public TransactionStore(MVStore store, DataType<DataType> metaDataType, DataType dataType, int timeoutMillis) {
+    public TransactionStore(MVStore store, DBMetaType metaDataType, DataType<?> dataType, int timeoutMillis) {
         this.store = store;
         this.dataType = dataType;
         this.timeoutMillis = timeoutMillis;
-        MVMap.Builder<String, DataType> typeRegistryBuilder =
-                                    new MVMap.Builder<String, DataType>()
-                                                .keyType(StringDataType.INSTANCE)
-                                                .valueType(metaDataType);
-        typeRegistry = store.openMap(TYPE_REGISTRY_NAME, typeRegistryBuilder);
+        this.typeRegistry = openTypeRegistry(store, metaDataType);
         preparedTransactions = store.openMap("openTransactions", new MVMap.Builder<>());
         undoLogBuilder = new MVMap.Builder<Long, Record>()
                         .singleWriter()
                         .keyType(LongDataType.INSTANCE)
                         .valueType(new Record.Type(this));
+    }
+
+    public static MVMap<String, DataType<?>> openTypeRegistry(MVStore store, DBMetaType metaDataType) {
+        MVMap.Builder<String, DataType<?>> typeRegistryBuilder =
+                                    new MVMap.Builder<String, DataType<?>>()
+                                                .keyType(StringDataType.INSTANCE)
+                                                .valueType(metaDataType);
+        return store.openMap(TYPE_REGISTRY_NAME, typeRegistryBuilder);
     }
 
     /**
@@ -491,7 +495,7 @@ public class TransactionStore {
                     Long undoKey = cursor.next();
                     Record op = cursor.getValue();
                     int mapId = op.mapId;
-                    MVMap<Object, VersionedValue> map = openMap(mapId);
+                    MVMap<Object, VersionedValue<Object>> map = openMap(mapId);
                     if (map != null) { // might be null if map was removed later
                         Object key = op.key;
                         commitDecisionMaker.setUndoKey(undoKey);
@@ -527,11 +531,11 @@ public class TransactionStore {
      * @param valueType the value type
      * @return the map
      */
-    <K> MVMap<K, VersionedValue> openMap(String name, DataType<? super K> keyType, DataType valueType) {
-        VersionedValueType vt = valueType == null ? null : new VersionedValueType(valueType);
-        MVMap.Builder<K, VersionedValue> builder = new TxMapBuilder<K,VersionedValue>(typeRegistry, dataType)
+    <K,V> MVMap<K, VersionedValue<V>> openMap(String name, DataType<K> keyType, DataType<V> valueType) {
+        VersionedValueType<V> vt = valueType == null ? null : new VersionedValueType<>(valueType);
+        MVMap.Builder<K, VersionedValue<V>> builder = new TxMapBuilder<K,VersionedValue<V>>(typeRegistry, dataType)
                 .keyType(keyType).valueType(vt);
-        MVMap<K, VersionedValue> map = store.openMap(name, builder);
+        MVMap<K, VersionedValue<V>> map = store.openMap(name, builder);
         return map;
     }
 
@@ -541,23 +545,23 @@ public class TransactionStore {
      * @param mapId the id
      * @return the map
      */
-    MVMap<Object, VersionedValue> openMap(int mapId) {
-        MVMap<Object, VersionedValue> map = store.getMap(mapId);
+    MVMap<Object, VersionedValue<Object>> openMap(int mapId) {
+        MVMap<Object, VersionedValue<Object>> map = store.getMap(mapId);
         if (map == null) {
             String mapName = store.getMapName(mapId);
             if (mapName == null) {
                 // the map was removed later on
                 return null;
             }
-            MVMap.Builder<Object, VersionedValue> txMapBuilder = new TxMapBuilder<>(typeRegistry, dataType);
+            MVMap.Builder<Object, VersionedValue<Object>> txMapBuilder = new TxMapBuilder<>(typeRegistry, dataType);
 //            map = store.openMap(mapName, txMapBuilder);
             map = store.openMap(mapId, txMapBuilder);
         }
         return map;
     }
 
-    MVMap<Object,VersionedValue> getMap(int mapId) {
-        MVMap<Object, VersionedValue> map = store.getMap(mapId);
+    MVMap<Object,VersionedValue<Object>> getMap(int mapId) {
+        MVMap<Object, VersionedValue<Object>> map = store.getMap(mapId);
         if (map == null && !init) {
             map = openMap(mapId);
         }
@@ -727,9 +731,9 @@ public class TransactionStore {
                         continue;
                     }
                     int mapId = op.mapId;
-                    MVMap<Object, VersionedValue> m = openMap(mapId);
+                    MVMap<Object, VersionedValue<Object>> m = openMap(mapId);
                     if (m != null) { // could be null if map was removed later on
-                        VersionedValue oldValue = op.oldValue;
+                        VersionedValue<Object> oldValue = op.oldValue;
                         current = new Change(m.getName(), op.key, oldValue == null ? null : oldValue.getCurrentValue());
                         return;
                     }
@@ -802,18 +806,18 @@ public class TransactionStore {
          * @param existingValue value in the map (null if delete is rolled back)
          * @param restoredValue value to be restored (null if add is rolled back)
          */
-        void onRollback(MVMap<Object,VersionedValue> map, Object key,
-                        VersionedValue existingValue, VersionedValue restoredValue);
+        void onRollback(MVMap<Object,VersionedValue<Object>> map, Object key,
+                        VersionedValue<Object> existingValue, VersionedValue<Object> restoredValue);
     }
 
     private static final RollbackListener ROLLBACK_LISTENER_NONE = (map, key, existingValue, restoredValue) -> {};
 
     private static final class TxMapBuilder<K,V> extends MVMap.Builder<K,V> {
 
-        private final MVMap<String, DataType> typeRegistry;
+        private final MVMap<String, DataType<?>> typeRegistry;
         private final DataType defaultDataType;
 
-        TxMapBuilder(MVMap<String, DataType> typeRegistry, DataType defaultDataType) {
+        TxMapBuilder(MVMap<String, DataType<?>> typeRegistry, DataType defaultDataType) {
             this.typeRegistry = typeRegistry;
             this.defaultDataType = defaultDataType;
         }
@@ -837,7 +841,7 @@ public class TransactionStore {
             if (keyType == null) {
                 String keyTypeKey = (String) config.remove("key");
                 if (keyTypeKey != null) {
-                    keyType = typeRegistry.get(keyTypeKey);
+                    keyType = (DataType<K>)typeRegistry.get(keyTypeKey);
                     if (keyType == null) {
                         throw DataUtils.newIllegalStateException(DataUtils.ERROR_UNKNOWN_DATA_TYPE,
                                 "Data type with hash {0} can not be found", keyTypeKey);
@@ -848,11 +852,11 @@ public class TransactionStore {
                 registerDataType(keyType);
             }
 
-            DataType valueType = getValueType();
+            DataType<V> valueType = getValueType();
             if (valueType == null) {
                 String valueTypeKey = (String) config.remove("val");
                 if (valueTypeKey != null) {
-                    valueType = typeRegistry.get(valueTypeKey);
+                    valueType = (DataType<V>)typeRegistry.get(valueTypeKey);
                     if (valueType == null) {
                         throw DataUtils.newIllegalStateException(DataUtils.ERROR_UNKNOWN_DATA_TYPE,
                                 "Data type with hash {0} can not be found", valueTypeKey);

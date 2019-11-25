@@ -12,11 +12,11 @@ import org.h2.value.VersionedValue;
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
-class VersionedValueUncommitted extends VersionedValueCommitted {
+class VersionedValueUncommitted<T> extends VersionedValueCommitted<T> {
     private final long operationId;
-    private final Object committedValue;
+    private final T committedValue;
 
-    private VersionedValueUncommitted(long operationId, Object value, Object committedValue) {
+    private VersionedValueUncommitted(long operationId, T value, T committedValue) {
         super(value);
         assert operationId != 0;
         this.operationId = operationId;
@@ -31,8 +31,8 @@ class VersionedValueUncommitted extends VersionedValueCommitted {
      * @param committedValue value after commit
      * @return VersionedValue instance
      */
-    static VersionedValue getInstance(long operationId, Object value, Object committedValue) {
-        return new VersionedValueUncommitted(operationId, value, committedValue);
+    static <X> VersionedValue<X> getInstance(long operationId, X value, X committedValue) {
+        return new VersionedValueUncommitted<>(operationId, value, committedValue);
     }
 
     @Override
@@ -46,7 +46,7 @@ class VersionedValueUncommitted extends VersionedValueCommitted {
     }
 
     @Override
-    public Object getCommittedValue() {
+    public T getCommittedValue() {
         return committedValue;
     }
 

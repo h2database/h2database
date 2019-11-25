@@ -407,7 +407,7 @@ public class MVTable extends RegularTable {
         }
     }
 
-    private void rebuildIndexBlockMerge(Session session, MVIndex index) {
+    private void rebuildIndexBlockMerge(Session session, MVIndex<?,?> index) {
         if (index instanceof MVSpatialIndex) {
             // the spatial index doesn't support multi-way merge sort
             rebuildIndexBuffered(session, index);
@@ -456,7 +456,7 @@ public class MVTable extends RegularTable {
             addRowsToIndex(session, buffer, index);
         }
         if (remaining != 0) {
-            DbException.throwInternalError("rowcount remaining=" + remaining +
+            throw DbException.throwInternalError("rowcount remaining=" + remaining +
                     " " + getName());
         }
     }

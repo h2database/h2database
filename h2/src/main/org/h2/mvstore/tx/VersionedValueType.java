@@ -18,23 +18,23 @@ import java.nio.ByteBuffer;
 /**
  * The value type for a versioned value.
  */
-public class VersionedValueType extends BasicDataType<VersionedValue> implements StatefulDataType
+public class VersionedValueType<T> extends BasicDataType<VersionedValue<T>> implements StatefulDataType
 {
 
-    private final DataType<Object> valueType;
+    private final DataType<T> valueType;
 
-    @SuppressWarnings("unchecked")
-    public VersionedValueType(DataType valueType) {
+    public VersionedValueType(DataType<T> valueType) {
         this.valueType = valueType;
     }
 
     @Override
-    public VersionedValue[] createStorage(int size) {
+    @SuppressWarnings("unchecked")
+    public VersionedValue<T>[] createStorage(int size) {
         return new VersionedValue[size];
     }
 
     @Override
-    public int getMemory(VersionedValue v) {
+    public int getMemory(VersionedValue<T> v) {
         if(v == null) return 0;
         int res = Constants.MEMORY_OBJECT + 8 + 2 * Constants.MEMORY_POINTER +
                 getValMemory(v.getCurrentValue());
@@ -44,7 +44,7 @@ public class VersionedValueType extends BasicDataType<VersionedValue> implements
         return res;
     }
 
-    private int getValMemory(Object obj) {
+    private int getValMemory(T obj) {
         return obj == null ? 0 : valueType.getMemory(obj);
     }
 
@@ -64,14 +64,14 @@ public class VersionedValueType extends BasicDataType<VersionedValue> implements
     }
 
     @Override
-    public VersionedValue read(ByteBuffer buff) {
+    public VersionedValue<T> read(ByteBuffer buff) {
         long operationId = DataUtils.readVarLong(buff);
         if (operationId == 0) {
             return VersionedValueCommitted.getInstance(valueType.read(buff));
         } else {
             byte flags = buff.get();
-            Object value = (flags & 1) != 0 ? valueType.read(buff) : null;
-            Object committedValue = (flags & 2) != 0 ? valueType.read(buff) : null;
+            T value = (flags & 1) != 0 ? valueType.read(buff) : null;
+            T committedValue = (flags & 2) != 0 ? valueType.read(buff) : null;
             return VersionedValueUncommitted.getInstance(operationId, value, committedValue);
         }
     }
@@ -80,7 +80,7 @@ public class VersionedValueType extends BasicDataType<VersionedValue> implements
     public void write(WriteBuffer buff, Object storage, int len) {
         boolean fastPath = true;
         for (int i = 0; i < len; i++) {
-            VersionedValue v = cast(storage)[i];
+            VersionedValue<T> v = cast(storage)[i];
             if (v.getOperationId() != 0 || v.getCurrentValue() == null) {
                 fastPath = false;
             }
@@ -88,7 +88,7 @@ public class VersionedValueType extends BasicDataType<VersionedValue> implements
         if (fastPath) {
             buff.put((byte) 0);
             for (int i = 0; i < len; i++) {
-                VersionedValue v = cast(storage)[i];
+                VersionedValue<T> v = cast(storage)[i];
                 valueType.write(buff, v.getCurrentValue());
             }
         } else {
@@ -102,13 +102,13 @@ public class VersionedValueType extends BasicDataType<VersionedValue> implements
     }
 
     @Override
-    public void write(WriteBuffer buff, VersionedValue v) {
+    public void write(WriteBuffer buff, VersionedValue<T> v) {
         long operationId = v.getOperationId();
         buff.putVarLong(operationId);
         if (operationId == 0) {
             valueType.write(buff, v.getCurrentValue());
         } else {
-            Object committedValue = v.getCommittedValue();
+            T committedValue = v.getCommittedValue();
             int flags = (v.getCurrentValue() == null ? 0 : 1) | (committedValue == null ? 0 : 2);
             buff.put((byte) flags);
             if (v.getCurrentValue() != null) {
@@ -121,13 +121,14 @@ public class VersionedValueType extends BasicDataType<VersionedValue> implements
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean equals(Object obj) {
         if (obj == this) {
             return true;
         } else if (!(obj instanceof VersionedValueType)) {
             return false;
         }
-        VersionedValueType other = (VersionedValueType) obj;
+        VersionedValueType<T> other = (VersionedValueType<T>) obj;
         return valueType.equals(other.valueType);
     }
 
@@ -137,12 +138,12 @@ public class VersionedValueType extends BasicDataType<VersionedValue> implements
     }
 
     @Override
-    public void save(WriteBuffer buff, DataType<DataType> metaDataType, Database database) {
+    public void save(WriteBuffer buff, DataType<DataType<?>> metaDataType, Database database) {
         metaDataType.write(buff, valueType);
     }
 
     @Override
-    public void load(ByteBuffer buff, DataType<DataType> metaDataType, Database database) {
+    public void load(ByteBuffer buff, DataType<DataType<?>> metaDataType, Database database) {
         throw DataUtils.newUnsupportedOperationException("load()");
     }
 
@@ -158,9 +159,9 @@ public class VersionedValueType extends BasicDataType<VersionedValue> implements
     public static final class Factory implements StatefulDataType.Factory
     {
         @Override
-        public DataType create(ByteBuffer buff, DataType<DataType> metaDataType, Database database) {
-            DataType valueType = metaDataType.read(buff);
-            return new VersionedValueType(valueType);
+        public DataType<?> create(ByteBuffer buff, DataType<DataType<?>> metaDataType, Database database) {
+            DataType<?> valueType = metaDataType.read(buff);
+            return new VersionedValueType<>(valueType);
         }
     }
 }

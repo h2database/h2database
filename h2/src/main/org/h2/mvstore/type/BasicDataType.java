@@ -48,6 +48,16 @@ public abstract class BasicDataType<T> implements DataType<T> {
         }
     }
 
+    @Override
+    public int hashCode() {
+        return getClass().getName().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj != null && getClass().equals(obj.getClass());
+    }
+
     @SuppressWarnings("unchecked")
     protected final T[] cast(Object storage) {
         return (T[])storage;

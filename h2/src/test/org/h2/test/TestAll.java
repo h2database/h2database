@@ -409,7 +409,7 @@ java org.h2.test.TestAll timer
     /**
      * If the database should always be defragmented when closing.
      */
-    boolean defrag;
+    public boolean defrag;
 
     /**
      * The cache type.

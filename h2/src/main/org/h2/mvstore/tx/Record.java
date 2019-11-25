@@ -35,9 +35,9 @@ final class Record
      * Value of the entry before change.
      * It is null if entry did not exist before the change (addition).
      */
-    final VersionedValue oldValue;
+    final VersionedValue<Object> oldValue;
 
-    Record(int mapId, Object key, VersionedValue oldValue) {
+    Record(int mapId, Object key, VersionedValue<Object> oldValue) {
         this.mapId = mapId;
         this.key = key;
         this.oldValue = oldValue;
@@ -63,7 +63,7 @@ final class Record
         public int getMemory(Record record) {
             int result = Constants.MEMORY_OBJECT + 4 + 3 * Constants.MEMORY_POINTER;
             if (record.mapId >= 0) {
-                MVMap<Object, VersionedValue> map = transactionStore.getMap(record.mapId);
+                MVMap<Object, VersionedValue<Object>> map = transactionStore.getMap(record.mapId);
                 result += map.getKeyType().getMemory(record.key) +
                         map.getValueType().getMemory(record.oldValue);
             }
@@ -79,9 +79,9 @@ final class Record
         public void write(WriteBuffer buff, Record record) {
             buff.putVarInt(record.mapId);
             if (record.mapId >= 0) {
-                MVMap<Object, VersionedValue> map = transactionStore.getMap(record.mapId);
+                MVMap<Object, VersionedValue<Object>> map = transactionStore.getMap(record.mapId);
                 map.getKeyType().write(buff, record.key);
-                VersionedValue oldValue = record.oldValue;
+                VersionedValue<Object> oldValue = record.oldValue;
                 if (oldValue == null) {
                     buff.put((byte) 0);
                 } else {
@@ -97,11 +97,11 @@ final class Record
             if (mapId < 0) {
                 return new Record(-1, null, null);
             }
-            MVMap<Object, VersionedValue> map = transactionStore.getMap(mapId);
+            MVMap<Object, VersionedValue<Object>> map = transactionStore.getMap(mapId);
             Object key = map.getKeyType().read(buff);
-            VersionedValue oldValue = null;
+            VersionedValue<Object> oldValue = null;
             if (buff.get() == 1) {
-                oldValue = (VersionedValue)map.getValueType().read(buff);
+                oldValue = map.getValueType().read(buff);
             }
             return new Record(mapId, key, oldValue);
         }

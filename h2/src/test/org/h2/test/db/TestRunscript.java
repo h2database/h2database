@@ -31,6 +31,13 @@ public class TestRunscript extends TestDb implements Trigger {
      */
     public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();
+        org.h2.test.TestAll config = new org.h2.test.TestAll();
+        config.traceLevelFile = 1;
+        config.defrag = true;
+        System.out.println(config);
+        TestBase test = createCaller();
+        test.runTest(config);
+//        TestBase.createCaller().init().test();
     }
 
     @Override

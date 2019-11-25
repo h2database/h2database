@@ -22,9 +22,11 @@ import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
+import org.h2.mvstore.RowDataType;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionMap;
 import org.h2.mvstore.type.DataType;
+import org.h2.mvstore.type.ObjectDataType;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
@@ -37,7 +39,7 @@ import org.h2.value.VersionedValue;
 /**
  * An index stored in a MVStore.
  */
-public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
+public final class MVSecondaryIndex extends BaseIndex implements MVIndex<SearchRow,Value> {
 
     /**
      * The multi-value table.
@@ -54,8 +56,8 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
         }
         String mapName = "index." + getId();
         assert db.isStarting() || !db.getStore().getMvStore().getMetaMap().containsKey(DataUtils.META_NAME + mapName);
-        DataType keyType = getRowFactory().getDataType();
-        DataType valueType = new ValueDataType();
+        RowDataType keyType = getRowFactory().getRowDataType();
+        ValueDataType valueType = new ValueDataType();
         Transaction t = mvTable.getTransactionBegin();
         dataMap = t.openMap(mapName, keyType, valueType);
         dataMap.map.setVolatile(!table.isPersistData() || !indexType.isPersistent());
@@ -102,9 +104,9 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
 
         static final class Comparator implements java.util.Comparator<Source> {
 
-            private final DataType type;
+            private final DataType<SearchRow> type;
 
-            public Comparator(DataType type) {
+            public Comparator(DataType<SearchRow> type) {
                 this.type = type;
             }
 
@@ -119,7 +121,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
     public void addBufferedRows(List<String> bufferNames) {
         int buffersCount = bufferNames.size();
         Queue<Source> queue = new PriorityQueue<>(buffersCount,
-                                new Source.Comparator(getRowFactory().getDataType()));
+                                new Source.Comparator(getRowFactory().getRowDataType()));
         for (String bufferName : bufferNames) {
             Iterator<SearchRow> iter = openMap(bufferName).keyIterator(null);
             if (iter.hasNext()) {
@@ -151,8 +153,8 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
     }
 
     private MVMap<SearchRow,Value> openMap(String mapName) {
-        DataType keyType = getRowFactory().getDataType();
-        DataType valueType = new ValueDataType();
+        RowDataType keyType = getRowFactory().getRowDataType();
+        ValueDataType valueType = new ValueDataType();
         MVMap.Builder<SearchRow,Value> builder = new MVMap.Builder<SearchRow,Value>()
                                                 .singleWriter()
                                                 .keyType(keyType)
@@ -377,7 +379,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
     }
 
     @Override
-    public MVMap<SearchRow,VersionedValue> getMVMap() {
+    public MVMap<SearchRow,VersionedValue<Value>> getMVMap() {
         return dataMap.map;
     }
 

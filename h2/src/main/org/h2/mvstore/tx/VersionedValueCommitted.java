@@ -12,13 +12,13 @@ import org.h2.value.VersionedValue;
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
-class VersionedValueCommitted extends VersionedValue {
+class VersionedValueCommitted<T> extends VersionedValue<T> {
     /**
      * The current value.
      */
-    public final Object value;
+    public final T value;
 
-    VersionedValueCommitted(Object value) {
+    VersionedValueCommitted(T value) {
         this.value = value;
     }
 
@@ -27,18 +27,19 @@ class VersionedValueCommitted extends VersionedValue {
      * @param value the object to cast/wrap
      * @return VersionedValue instance
      */
-    static VersionedValue getInstance(Object value) {
+    @SuppressWarnings("unchecked")
+    static <X> VersionedValue<X> getInstance(X value) {
         assert value != null;
-        return value instanceof VersionedValue ? (VersionedValue) value : new VersionedValueCommitted(value);
+        return value instanceof VersionedValue ? (VersionedValue<X>)value : new VersionedValueCommitted<>(value);
     }
 
     @Override
-    public Object getCurrentValue() {
+    public T getCurrentValue() {
         return value;
     }
 
     @Override
-    public Object getCommittedValue() {
+    public T getCommittedValue() {
         return value;
     }
 

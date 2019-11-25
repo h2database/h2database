@@ -14,7 +14,7 @@ import org.h2.value.VersionedValue;
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
-class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
+class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue<Object>> {
     /**
      * Map to decide upon
      */
@@ -57,7 +57,7 @@ class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
     }
 
     @Override
-    public MVMap.Decision decide(VersionedValue existingValue, VersionedValue providedValue) {
+    public MVMap.Decision decide(VersionedValue<Object> existingValue, VersionedValue<Object> providedValue) {
         assert decision == null;
         long id;
         int blockingId;
@@ -129,7 +129,7 @@ class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
      * @param existingValue the parameter value
      * @return the current value.
      */
-    Object getNewValue(VersionedValue existingValue) {
+    Object getNewValue(VersionedValue<Object> existingValue) {
         return value;
     }
 
@@ -141,7 +141,7 @@ class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
      * @param value last known committed value
      * @return {@link MVMap.Decision#PUT}
      */
-    final MVMap.Decision logAndDecideToPut(VersionedValue valueToLog, Object value) {
+    final MVMap.Decision logAndDecideToPut(VersionedValue<Object> valueToLog, Object value) {
         undoKey = transaction.log(mapId, key, valueToLog);
         lastCommittedValue = value;
         return setDecision(MVMap.Decision.PUT);
@@ -229,7 +229,7 @@ class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
         }
 
         @Override
-        public MVMap.Decision decide(VersionedValue existingValue, VersionedValue providedValue) {
+        public MVMap.Decision decide(VersionedValue<Object> existingValue, VersionedValue<Object> providedValue) {
             assert getDecision() == null;
             int blockingId;
             // if map does not have that entry yet
@@ -289,7 +289,7 @@ class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
         }
 
         @Override
-        public MVMap.Decision decide(VersionedValue existingValue, VersionedValue providedValue) {
+        public MVMap.Decision decide(VersionedValue<Object> existingValue, VersionedValue<Object> providedValue) {
             MVMap.Decision decision = super.decide(existingValue, providedValue);
             if (existingValue == null) {
                 assert decision == MVMap.Decision.PUT;
@@ -299,7 +299,7 @@ class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
         }
 
         @Override
-        Object getNewValue(VersionedValue existingValue) {
+        Object getNewValue(VersionedValue<Object> existingValue) {
             return existingValue == null ? null : existingValue.getCurrentValue();
         }
     }

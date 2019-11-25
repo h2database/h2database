@@ -1,9 +1,10 @@
 package org.h2.mvstore.type;
 
-import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
+import org.h2.mvstore.db.ValueDataType;
 
 import java.nio.ByteBuffer;
+import java.util.Objects;
 
 /**
  * Class LongDataType.
@@ -16,6 +17,7 @@ import java.nio.ByteBuffer;
 public final class LongDataType extends BasicDataType<Long>
 {
     public static final LongDataType INSTANCE = new LongDataType();
+    private static final ValueDataType DUMMY = new ValueDataType();
 
     public LongDataType() {}
 
@@ -26,12 +28,16 @@ public final class LongDataType extends BasicDataType<Long>
 
     @Override
     public void write(WriteBuffer buff, Long data) {
-        buff.putVarLong(data);
+        //TODO: switch to compact format when format backward-compatibility is not required
+//        buff.putVarLong(data);
+        ValueDataType.writeLong(buff, data);
     }
 
     @Override
     public Long read(ByteBuffer buff) {
-        return DataUtils.readVarLong(buff);
+        //TODO: switch to compact format when format backward-compatibility is not required
+//        return DataUtils.readVarLong(buff);
+        return DUMMY.read(buff).getLong();
     }
 
     @Override

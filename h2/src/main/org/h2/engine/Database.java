@@ -673,21 +673,13 @@ public class Database implements DataHandler, CastDataProvider {
         if (store != null) {
             store.getTransactionStore().init();
         }
+        Set<String> settingKeys = dbSettings.getSettings().keySet();
         if (dbSettings.mvStore) {
             // MVStore
-            for (Iterator<String> i = dbSettings.getSettings().keySet().iterator(); i.hasNext();) {
-                if (i.next().startsWith("PAGE_STORE_")) {
-                    i.remove();
-                }
-            }
+            settingKeys.removeIf(name -> name.startsWith("PAGE_STORE_"));
         } else if (store == null) {
             // PageStore without additional MVStore for spatial features
-            for (Iterator<String> i = dbSettings.getSettings().keySet().iterator(); i.hasNext();) {
-                String name = i.next();
-                if ("COMPRESS".equals(name) || "REUSE_SPACE".equals(name)) {
-                    i.remove();
-                }
-            }
+            settingKeys.removeIf(name -> "COMPRESS".equals(name) || "REUSE_SPACE".equals(name));
         }
         systemUser = new User(this, 0, SYSTEM_USER_NAME, true);
         mainSchema = new Schema(this, Constants.MAIN_SCHEMA_ID, sysIdentifier(Constants.SCHEMA_MAIN), systemUser,

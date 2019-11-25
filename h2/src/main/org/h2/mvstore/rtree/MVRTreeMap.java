@@ -15,7 +15,6 @@ import org.h2.mvstore.MVMap;
 import org.h2.mvstore.Page;
 import org.h2.mvstore.RootReference;
 import org.h2.mvstore.type.DataType;
-import org.h2.value.VersionedValue;
 
 /**
  * An r-tree implementation. It supports both the linear and the quadratic split

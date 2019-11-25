@@ -14,7 +14,7 @@ import org.h2.value.VersionedValue;
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
-class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue<Object>> {
+class TxDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>> {
     /**
      * Map to decide upon
      */
@@ -28,7 +28,7 @@ class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue<Object>> {
     /**
      * Value for the map entry
      */
-    private final Object         value;
+    private final V         value;
 
     /**
      * Transaction we are operating within
@@ -47,9 +47,9 @@ class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue<Object>> {
 
     private       Transaction    blockingTransaction;
     private       MVMap.Decision decision;
-    private       Object         lastCommittedValue;
+    private       V              lastCommittedValue;
 
-    TxDecisionMaker(int mapId, Object key, Object value, Transaction transaction) {
+    TxDecisionMaker(int mapId, Object key, V value, Transaction transaction) {
         this.mapId = mapId;
         this.key = key;
         this.value = value;
@@ -57,7 +57,7 @@ class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue<Object>> {
     }
 
     @Override
-    public MVMap.Decision decide(VersionedValue<Object> existingValue, VersionedValue<Object> providedValue) {
+    public MVMap.Decision decide(VersionedValue<V> existingValue, VersionedValue<V> providedValue) {
         assert decision == null;
         long id;
         int blockingId;
@@ -73,7 +73,7 @@ class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue<Object>> {
             // We assume that we are looking at the final value for this transaction,
             // and if it's not the case, then it will fail later,
             // because a tree root has definitely been changed.
-            Object currentValue = existingValue.getCurrentValue();
+            V currentValue = existingValue.getCurrentValue();
             logAndDecideToPut(currentValue == null ? null : VersionedValueCommitted.getInstance(currentValue),
                                 currentValue);
         } else if (getBlockingTransaction() != null) {
@@ -89,7 +89,7 @@ class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue<Object>> {
             // Now we assume it's a leftover after unclean shutdown (map update
             // was written but not undo log), and will effectively roll it back
             // (just assume committed value and overwrite).
-            Object committedValue = existingValue.getCommittedValue();
+            V committedValue = existingValue.getCommittedValue();
             logAndDecideToPut(committedValue == null ? null : VersionedValueCommitted.getInstance(committedValue),
                                 committedValue);
         } else {
@@ -118,8 +118,8 @@ class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue<Object>> {
     @SuppressWarnings("unchecked")
     @Override
     // always return value (ignores existingValue)
-    public final VersionedValue selectValue(VersionedValue existingValue, VersionedValue providedValue) {
-        return VersionedValueUncommitted.getInstance(undoKey, getNewValue(existingValue), lastCommittedValue);
+    public <T extends VersionedValue<V>> T selectValue(T existingValue, T providedValue) {
+        return (T) VersionedValueUncommitted.getInstance(undoKey, getNewValue(existingValue), lastCommittedValue);
     }
 
     /**
@@ -129,7 +129,7 @@ class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue<Object>> {
      * @param existingValue the parameter value
      * @return the current value.
      */
-    Object getNewValue(VersionedValue<Object> existingValue) {
+    V getNewValue(VersionedValue<V> existingValue) {
         return value;
     }
 
@@ -141,8 +141,8 @@ class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue<Object>> {
      * @param value last known committed value
      * @return {@link MVMap.Decision#PUT}
      */
-    final MVMap.Decision logAndDecideToPut(VersionedValue<Object> valueToLog, Object value) {
-        undoKey = transaction.log(mapId, key, valueToLog);
+    final MVMap.Decision logAndDecideToPut(VersionedValue<V> valueToLog, V value) {
+        undoKey = transaction.log(new Record(mapId, key, valueToLog));
         lastCommittedValue = value;
         return setDecision(MVMap.Decision.PUT);
     }
@@ -222,14 +222,14 @@ class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue<Object>> {
 
 
 
-    public static final class PutIfAbsentDecisionMaker extends TxDecisionMaker
+    public static final class PutIfAbsentDecisionMaker<V> extends TxDecisionMaker<V>
     {
-        PutIfAbsentDecisionMaker(int mapId, Object key, Object value, Transaction transaction) {
+        PutIfAbsentDecisionMaker(int mapId, Object key, V value, Transaction transaction) {
             super(mapId, key, value, transaction);
         }
 
         @Override
-        public MVMap.Decision decide(VersionedValue<Object> existingValue, VersionedValue<Object> providedValue) {
+        public MVMap.Decision decide(VersionedValue<V> existingValue, VersionedValue<V> providedValue) {
             assert getDecision() == null;
             int blockingId;
             // if map does not have that entry yet
@@ -282,14 +282,14 @@ class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue<Object>> {
     }
 
 
-    public static final class LockDecisionMaker extends TxDecisionMaker {
+    public static final class LockDecisionMaker<V> extends TxDecisionMaker<V> {
 
         LockDecisionMaker(int mapId, Object key, Transaction transaction) {
             super(mapId, key, null, transaction);
         }
 
         @Override
-        public MVMap.Decision decide(VersionedValue<Object> existingValue, VersionedValue<Object> providedValue) {
+        public MVMap.Decision decide(VersionedValue<V> existingValue, VersionedValue<V> providedValue) {
             MVMap.Decision decision = super.decide(existingValue, providedValue);
             if (existingValue == null) {
                 assert decision == MVMap.Decision.PUT;
@@ -299,7 +299,7 @@ class TxDecisionMaker extends MVMap.DecisionMaker<VersionedValue<Object>> {
         }
 
         @Override
-        Object getNewValue(VersionedValue<Object> existingValue) {
+        V getNewValue(VersionedValue<V> existingValue) {
             return existingValue == null ? null : existingValue.getCurrentValue();
         }
     }

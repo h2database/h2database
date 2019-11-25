@@ -118,7 +118,7 @@ public class TransactionStore {
     private static final int MAX_OPEN_TRANSACTIONS = 65535;
 
     // -1 is a bogus map id
-    private static final Record COMMIT_MARKER = new Record(-1, null, null);
+    static final Record COMMIT_MARKER = new Record(-1, null, null);
 
 
     /**

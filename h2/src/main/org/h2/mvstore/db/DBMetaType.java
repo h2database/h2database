@@ -36,7 +36,7 @@ public final class DBMetaType extends BasicDataType<DataType<?>>
     }
 
     @Override
-    public int compare(DataType a, DataType b) {
+    public int compare(DataType<?> a, DataType<?> b) {
         throw new UnsupportedOperationException();
     }
 

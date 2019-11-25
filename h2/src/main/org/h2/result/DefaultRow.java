@@ -8,7 +8,6 @@ package org.h2.result;
 import org.h2.engine.Constants;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
-import org.h2.value.ValueNull;
 
 /**
  * The default implementation of a row in a table.

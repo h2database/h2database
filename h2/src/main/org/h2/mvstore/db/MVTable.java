@@ -163,7 +163,7 @@ public class MVTable extends RegularTable {
             }
             waitingSessions.addLast(session);
             try {
-                doLock1(session, lockMode, exclusive);
+                doLock1(session, exclusive);
             } finally {
                 session.setWaitForLock(null, null);
                 if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
@@ -175,7 +175,7 @@ public class MVTable extends RegularTable {
         return false;
     }
 
-    private void doLock1(Session session, int lockMode, boolean exclusive) {
+    private void doLock1(Session session, boolean exclusive) {
         traceLock(session, exclusive, TraceLockEvent.TRACE_LOCK_REQUESTING_FOR, NO_EXTRA_INFO);
         // don't get the current time unless necessary
         long max = 0;
@@ -183,7 +183,7 @@ public class MVTable extends RegularTable {
         while (true) {
             // if I'm the next one in the queue
             if (waitingSessions.getFirst() == session) {
-                if (doLock2(session, lockMode, exclusive)) {
+                if (doLock2(session, exclusive)) {
                     return;
                 }
             }
@@ -231,7 +231,7 @@ public class MVTable extends RegularTable {
         }
     }
 
-    private boolean doLock2(Session session, int lockMode, boolean exclusive) {
+    private boolean doLock2(Session session, boolean exclusive) {
         if (lockExclusiveSession == null) {
             if (exclusive) {
                 if (lockSharedSessions.isEmpty()) {
@@ -342,7 +342,7 @@ public class MVTable extends RegularTable {
         if (!isSessionTemporary) {
             database.lockMeta(session);
         }
-        MVIndex index;
+        MVIndex<?,?> index;
         int mainIndexColumn = primaryIndex.getMainIndexColumn() != SearchRow.ROWID_INDEX
                 ? SearchRow.ROWID_INDEX : getMainIndexColumn(indexType, cols);
         if (database.isStarting()) {
@@ -383,7 +383,7 @@ public class MVTable extends RegularTable {
         return index;
     }
 
-    private void rebuildIndex(Session session, MVIndex index, String indexName) {
+    private void rebuildIndex(Session session, MVIndex<?,?> index, String indexName) {
         try {
             if (session.getDatabase().getStore() == null ||
                     index instanceof MVSpatialIndex) {
@@ -483,7 +483,7 @@ public class MVTable extends RegularTable {
         }
         addRowsToIndex(session, buffer, index);
         if (remaining != 0) {
-            DbException.throwInternalError("rowcount remaining=" + remaining +
+            throw DbException.throwInternalError("rowcount remaining=" + remaining +
                     " " + getName());
         }
     }
@@ -630,7 +630,7 @@ public class MVTable extends RegularTable {
                     .getAllSchemaObjects(DbObject.INDEX)) {
                 Index index = (Index) obj;
                 if (index.getTable() == this) {
-                    DbException.throwInternalError("index not dropped: " +
+                    throw DbException.throwInternalError("index not dropped: " +
                             index.getName());
                 }
             }

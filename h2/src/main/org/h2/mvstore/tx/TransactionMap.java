@@ -251,7 +251,7 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
     @Override
     public V putIfAbsent(K key, V value) {
         DataUtils.checkArgument(value != null, "The value may not be null");
-        TxDecisionMaker decisionMaker = new TxDecisionMaker.PutIfAbsentDecisionMaker(map.getId(), key, value,
+        TxDecisionMaker<V> decisionMaker = new TxDecisionMaker.PutIfAbsentDecisionMaker<>(map.getId(), key, value,
                 transaction);
         return set(key, decisionMaker);
     }
@@ -263,7 +263,8 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @param value to be appended
      */
     public void append(K key, V value) {
-        map.append(key, VersionedValueUncommitted.getInstance(transaction.log(map.getId(), key, null), value, null));
+        map.append(key, VersionedValueUncommitted.getInstance(
+                                        transaction.log(new Record(map.getId(), key, null)), value, null));
         hasChanges = true;
     }
 
@@ -278,7 +279,7 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @throws IllegalStateException if a lock timeout occurs
      */
     public V lock(K key) {
-        TxDecisionMaker decisionMaker = new TxDecisionMaker.LockDecisionMaker(map.getId(), key, transaction);
+        TxDecisionMaker<V> decisionMaker = new TxDecisionMaker.LockDecisionMaker<>(map.getId(), key, transaction);
         return set(key, decisionMaker);
     }
 
@@ -289,6 +290,7 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @param value the value
      * @return the old value
      */
+    @SuppressWarnings("UnusedReturnValue")
     public V putCommitted(K key, V value) {
         DataUtils.checkArgument(value != null, "The value may not be null");
         VersionedValue<V> newValue = VersionedValueCommitted.getInstance(value);
@@ -298,12 +300,11 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
     }
 
     private V set(Object key, V value) {
-        TxDecisionMaker decisionMaker = new TxDecisionMaker(map.getId(), key, value, transaction);
+        TxDecisionMaker<V> decisionMaker = new TxDecisionMaker<>(map.getId(), key, value, transaction);
         return set(key, decisionMaker);
     }
 
-    @SuppressWarnings("unchecked")
-    private V set(Object key, TxDecisionMaker decisionMaker) {
+    private V set(Object key, TxDecisionMaker<V> decisionMaker) {
         TransactionStore store = transaction.store;
         Transaction blockingTransaction;
         long sequenceNumWhenStarted;
@@ -311,11 +312,11 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
         do {
             sequenceNumWhenStarted = store.openTransactions.get().getVersion();
             assert transaction.getBlockerId() == 0;
-//            @SuppressWarnings("unchecked")
+            @SuppressWarnings("unchecked")
             K k = (K) key;
             // second parameter (value) is not really used,
             // since TxDecisionMaker has it embedded
-            result = map.operate(k, null, (MVMap.DecisionMaker<? super VersionedValue<V>>)(Object)decisionMaker);
+            result = map.operate(k, null, decisionMaker);
 
             MVMap.Decision decision = decisionMaker.getDecision();
             assert decision != null;
@@ -328,7 +329,7 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
             }
             decisionMaker.reset();
         } while (blockingTransaction.sequenceNum > sequenceNumWhenStarted
-                || transaction.waitFor(blockingTransaction, map, key));
+                || transaction.waitFor(blockingTransaction, map.getName(), key));
 
         throw DataUtils.newIllegalStateException(DataUtils.ERROR_TRANSACTION_LOCKED,
                 "Map entry <{0}> with key <{1}> and value {2} is locked by tx {3} and can not be updated by tx {4}"

@@ -4,7 +4,6 @@ import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.db.ValueDataType;
 
 import java.nio.ByteBuffer;
-import java.util.Objects;
 
 /**
  * Class LongDataType.

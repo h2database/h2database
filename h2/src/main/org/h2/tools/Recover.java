@@ -57,7 +57,6 @@ import org.h2.pagestore.PageStore;
 import org.h2.pagestore.db.LobStorageBackend;
 import org.h2.result.DefaultRow;
 import org.h2.result.Row;
-import org.h2.result.SearchRow;
 import org.h2.security.SHA256;
 import org.h2.store.Data;
 import org.h2.store.DataHandler;

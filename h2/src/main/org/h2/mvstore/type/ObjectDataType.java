@@ -151,6 +151,7 @@ public class ObjectDataType extends BasicDataType<Object> {
         return selectDataType(typeId);
     }
 
+    @SuppressWarnings("rawtypes")
     private AutoDetectDataType selectDataType(int typeId) {
         switch (typeId) {
         case TYPE_NULL:

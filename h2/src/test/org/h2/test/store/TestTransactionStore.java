@@ -24,7 +24,6 @@ import org.h2.mvstore.tx.TransactionMap;
 import org.h2.mvstore.tx.TransactionStore;
 import org.h2.mvstore.tx.TransactionStore.Change;
 import org.h2.mvstore.type.LongDataType;
-import org.h2.mvstore.type.ObjectDataType;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.util.Task;

@@ -37,10 +37,11 @@ final class Record
      */
     final VersionedValue<Object> oldValue;
 
-    Record(int mapId, Object key, VersionedValue<Object> oldValue) {
+    @SuppressWarnings("unchecked")
+    Record(int mapId, Object key, VersionedValue<?> oldValue) {
         this.mapId = mapId;
         this.key = key;
-        this.oldValue = oldValue;
+        this.oldValue = (VersionedValue<Object>)oldValue;
     }
 
     @Override
@@ -95,7 +96,7 @@ final class Record
         public Record read(ByteBuffer buff) {
             int mapId = DataUtils.readVarInt(buff);
             if (mapId < 0) {
-                return new Record(-1, null, null);
+                return TransactionStore.COMMIT_MARKER;
             }
             MVMap<Object, VersionedValue<Object>> map = transactionStore.getMap(mapId);
             Object key = map.getKeyType().read(buff);

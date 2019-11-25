@@ -188,8 +188,7 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
                 if (deltaChangeCollectionMode == ResultOption.NEW) {
                     deltaChangeCollector.addRow(newRow.getValueList().clone());
                 }
-                boolean done = table.fireBeforeRow(session, null, newRow);
-                if (!done) {
+                if (!table.fireBeforeRow(session, null, newRow)) {
                     table.lock(session, true, false);
                     try {
                         table.addRow(session, newRow);
@@ -209,6 +208,8 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
                     }
                     session.log(table, UndoLogRecord.INSERT, newRow);
                     table.fireAfterRow(session, null, newRow, false);
+                } else if (deltaChangeCollectionMode == ResultOption.FINAL) {
+                    deltaChangeCollector.addRow(newRow.getValueList());
                 }
             }
         } else {
@@ -250,14 +251,15 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
         if (deltaChangeCollectionMode == ResultOption.NEW) {
             deltaChangeCollector.addRow(newRow.getValueList().clone());
         }
-        boolean done = table.fireBeforeRow(session, null, newRow);
-        if (!done) {
+        if (!table.fireBeforeRow(session, null, newRow)) {
             table.addRow(session, newRow);
             if (deltaChangeCollectionMode == ResultOption.FINAL) {
                 deltaChangeCollector.addRow(newRow.getValueList());
             }
             session.log(table, UndoLogRecord.INSERT, newRow);
             table.fireAfterRow(session, null, newRow, false);
+        } else if (deltaChangeCollectionMode == ResultOption.FINAL) {
+            deltaChangeCollector.addRow(newRow.getValueList());
         }
     }
 

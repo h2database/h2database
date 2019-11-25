@@ -2066,9 +2066,6 @@ public class Parser {
             throw getSyntaxError();
         }
         read(CLOSE_PAREN);
-        if (resultOption == ResultOption.FINAL && statement.getTable().hasInsteadOfTrigger()) {
-            throw DbException.getUnsupportedException("FINAL TABLE with INSTEAD OF trigger");
-        }
         if (statement instanceof MergeUsing) {
             if (((MergeUsing) statement).hasCombinedMatchedClause()) {
                 throw DbException.getUnsupportedException(resultOption

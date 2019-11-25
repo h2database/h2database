@@ -2204,7 +2204,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
      */
     @Override
     public boolean rowUpdated() throws SQLException {
-        throw getUnsupportedException();
+        return true;
     }
 
     /**

@@ -874,6 +874,9 @@ ROLLBACK triggers are only required if an operation communicates outside of the 
 INSTEAD OF triggers are implicitly row based and behave like BEFORE triggers.
 Only the first such trigger is called. Such triggers on views are supported.
 They can be used to make views updatable.
+These triggers on INSERT and UPDATE must update the passed new row to values that were actually inserted
+by the trigger; they are used for [FINAL TABLE](https://h2database.com/html/grammar.html#data_change_delta_table)
+and for retrieval of generated keys.
 
 A BEFORE SELECT trigger is fired just before the database engine tries to read from the table.
 The trigger can be used to update a table on demand.
@@ -2727,7 +2730,6 @@ Executes the inner data change command and returns old, new, or final rows.
 ""NEW"" returns new rows after evaluation of default expressions, but before execution of triggers.
 
 ""FINAL"" returns new rows after execution of triggers.
-If table or view has ""INSTEAD OF"" triggers ""FINAL"" is not allowed.
 ","
 SELECT ID FROM FINAL TABLE (INSERT INTO TEST (A, B) VALUES (1, 2))
 "

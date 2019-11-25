@@ -7531,8 +7531,9 @@ public class Parser {
         } else if (readIf("STATEMENT_TIMEOUT")){
             // for PostgreSQL compatibility
             readIfEqualOrTo();
-            read();
-            return new NoOperation(session);
+            Set command = new Set(session, SetTypes.QUERY_TIMEOUT);
+            command.setInt(readNonNegativeInt());
+            return command;
         } else if (readIf("AUTO_SERVER")) {
             readIfEqualOrTo();
             read();

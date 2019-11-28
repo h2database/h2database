@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
-import org.h2.store.fs.FileBase;
+import org.h2.store.fs.FileBaseDefault;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FilePathWrapper;
 
@@ -47,7 +47,7 @@ public class FilePathCache extends FilePathWrapper {
     /**
      * A file with a read cache.
      */
-    public static class FileCache extends FileBase {
+    public static class FileCache extends FileBaseDefault {
 
         private static final int CACHE_BLOCK_SIZE = 4 * 1024;
         private final FileChannel base;
@@ -68,22 +68,6 @@ public class FilePathCache extends FilePathWrapper {
         @Override
         protected void implCloseChannel() throws IOException {
             base.close();
-        }
-
-        @Override
-        public FileChannel position(long newPosition) throws IOException {
-            base.position(newPosition);
-            return this;
-        }
-
-        @Override
-        public long position() throws IOException {
-            return base.position();
-        }
-
-        @Override
-        public int read(ByteBuffer dst) throws IOException {
-            return base.read(dst);
         }
 
         @Override
@@ -130,22 +114,15 @@ public class FilePathCache extends FilePathWrapper {
         }
 
         @Override
-        public synchronized FileChannel truncate(long newSize) throws IOException {
+        protected void implTruncate(long newSize) throws IOException {
             cache.clear();
             base.truncate(newSize);
-            return this;
         }
 
         @Override
         public synchronized int write(ByteBuffer src, long position) throws IOException {
             clearCache(src, position);
             return base.write(src, position);
-        }
-
-        @Override
-        public synchronized int write(ByteBuffer src) throws IOException {
-            clearCache(src, position());
-            return base.write(src);
         }
 
         private void clearCache(ByteBuffer src, long position) {

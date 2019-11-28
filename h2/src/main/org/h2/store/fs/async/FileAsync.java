@@ -8,25 +8,21 @@ package org.h2.store.fs.async;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
-import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.NonWritableChannelException;
 import java.nio.file.Paths;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import org.h2.store.fs.FileBase;
+import org.h2.store.fs.FileBaseDefault;
 import org.h2.store.fs.FileUtils;
 
 /**
  * File which uses NIO2 AsynchronousFileChannel.
  */
-class FileAsync extends FileBase {
+class FileAsync extends FileBaseDefault {
 
     private final String name;
-
     private final AsynchronousFileChannel channel;
-
-    private long position;
 
     private static <T> T complete(Future<T> future) throws IOException {
         boolean interrupted = false;
@@ -57,31 +53,8 @@ class FileAsync extends FileBase {
     }
 
     @Override
-    public long position() throws IOException {
-        return position;
-    }
-
-    @Override
     public long size() throws IOException {
         return channel.size();
-    }
-
-    @Override
-    public int read(ByteBuffer dst) throws IOException {
-        int read = complete(channel.read(dst, position));
-        if (read > 0) {
-            position += read;
-        }
-        return read;
-    }
-
-    @Override
-    public FileChannel position(long pos) throws IOException {
-        if (pos < 0) {
-            throw new IllegalArgumentException();
-        }
-        position = pos;
-        return this;
     }
 
     @Override
@@ -99,24 +72,13 @@ class FileAsync extends FileBase {
     }
 
     @Override
-    public FileChannel truncate(long newLength) throws IOException {
+    protected void implTruncate(long newLength) throws IOException {
         channel.truncate(newLength);
-        if (newLength < position) {
-            position = newLength;
-        }
-        return this;
     }
 
     @Override
     public void force(boolean metaData) throws IOException {
         channel.force(metaData);
-    }
-
-    @Override
-    public int write(ByteBuffer src) throws IOException {
-        int written = complete(channel.write(src, position));
-        position += written;
-        return written;
     }
 
     @Override

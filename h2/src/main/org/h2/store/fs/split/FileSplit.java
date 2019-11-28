@@ -10,19 +10,18 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import org.h2.message.DbException;
-import org.h2.store.fs.FileBase;
+import org.h2.store.fs.FileBaseDefault;
 import org.h2.store.fs.FilePath;
 
 /**
  * A file that may be split into multiple smaller files.
  */
-class FileSplit extends FileBase {
+class FileSplit extends FileBaseDefault {
 
     private final FilePathSplit filePath;
     private final String mode;
     private final long maxLength;
     private FileChannel[] list;
-    private volatile long filePointer;
     private volatile long length;
 
     FileSplit(FilePathSplit file, String mode, FileChannel[] list, long length,
@@ -39,11 +38,6 @@ class FileSplit extends FileBase {
         for (FileChannel c : list) {
             c.close();
         }
-    }
-
-    @Override
-    public long position() {
-        return filePointer;
     }
 
     @Override
@@ -68,31 +62,6 @@ class FileSplit extends FileBase {
         return channel.read(dst, offset);
     }
 
-    @Override
-    public synchronized int read(ByteBuffer dst) throws IOException {
-        int len = dst.remaining();
-        if (len == 0) {
-            return 0;
-        }
-        len = (int) Math.min(len, length - filePointer);
-        if (len <= 0) {
-            return -1;
-        }
-        long offset = filePointer % maxLength;
-        len = (int) Math.min(len, maxLength - offset);
-        FileChannel channel = getFileChannel(filePointer);
-        channel.position(offset);
-        len = channel.read(dst);
-        filePointer += len;
-        return len;
-    }
-
-    @Override
-    public FileChannel position(long pos) {
-        filePointer = pos;
-        return this;
-    }
-
     private FileChannel getFileChannel(long position) throws IOException {
         int id = (int) (position / maxLength);
         while (id >= list.length) {
@@ -107,11 +76,10 @@ class FileSplit extends FileBase {
     }
 
     @Override
-    public synchronized FileChannel truncate(long newLength) throws IOException {
+    protected void implTruncate(long newLength) throws IOException {
         if (newLength >= length) {
-            return this;
+            return;
         }
-        filePointer = Math.min(filePointer, newLength);
         int newFileCount = 1 + (int) (newLength / maxLength);
         if (newFileCount < list.length) {
             // delete some of the files
@@ -133,7 +101,6 @@ class FileSplit extends FileBase {
         long size = newLength - maxLength * (newFileCount - 1);
         list[list.length - 1].truncate(size);
         this.length = newLength;
-        return this;
     }
 
     @Override
@@ -171,39 +138,6 @@ class FileSplit extends FileBase {
             src.limit(oldLimit);
         }
         length = Math.max(length, position + l);
-        return l;
-    }
-
-    @Override
-    public synchronized int write(ByteBuffer src) throws IOException {
-        if (filePointer >= length && filePointer > maxLength) {
-            // may need to extend and create files
-            long oldFilePointer = filePointer;
-            long x = length - (length % maxLength) + maxLength;
-            for (; x < filePointer; x += maxLength) {
-                if (x > length) {
-                    // expand the file size
-                    position(x - 1);
-                    write(ByteBuffer.wrap(new byte[1]));
-                }
-                filePointer = oldFilePointer;
-            }
-        }
-        long offset = filePointer % maxLength;
-        int len = src.remaining();
-        FileChannel channel = getFileChannel(filePointer);
-        channel.position(offset);
-        int l = (int) Math.min(len, maxLength - offset);
-        if (l == len) {
-            l = channel.write(src);
-        } else {
-            int oldLimit = src.limit();
-            src.limit(src.position() + l);
-            l = channel.write(src);
-            src.limit(oldLimit);
-        }
-        filePointer += l;
-        length = Math.max(length, filePointer);
         return l;
     }
 

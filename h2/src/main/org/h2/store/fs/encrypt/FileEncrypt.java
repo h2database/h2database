@@ -13,13 +13,13 @@ import java.nio.channels.FileLock;
 import java.util.Arrays;
 import org.h2.security.AES;
 import org.h2.security.SHA256;
-import org.h2.store.fs.FileBase;
+import org.h2.store.fs.FileBaseDefault;
 import org.h2.util.MathUtils;
 
 /**
  * An encrypted file with a read cache.
  */
-public class FileEncrypt extends FileBase {
+public class FileEncrypt extends FileBaseDefault {
 
     /**
      * The block size.
@@ -52,11 +52,6 @@ public class FileEncrypt extends FileBase {
     private static final int HASH_ITERATIONS = 10;
 
     private final FileChannel base;
-
-    /**
-     * The current position within the file, from a user perspective.
-     */
-    private long pos;
 
     /**
      * The current file size, from a user perspective.
@@ -108,26 +103,6 @@ public class FileEncrypt extends FileBase {
     @Override
     protected void implCloseChannel() throws IOException {
         base.close();
-    }
-
-    @Override
-    public FileChannel position(long newPosition) throws IOException {
-        this.pos = newPosition;
-        return this;
-    }
-
-    @Override
-    public long position() throws IOException {
-        return pos;
-    }
-
-    @Override
-    public int read(ByteBuffer dst) throws IOException {
-        int len = read(dst, pos);
-        if (len > 0) {
-            pos += len;
-        }
-        return len;
     }
 
     @Override
@@ -249,25 +224,16 @@ public class FileEncrypt extends FileBase {
     }
 
     @Override
-    public int write(ByteBuffer src) throws IOException {
-        int len = write(src, pos);
-        if (len > 0) {
-            pos += len;
-        }
-        return len;
-    }
-
-    @Override
     public long size() throws IOException {
         init();
         return size;
     }
 
     @Override
-    public FileChannel truncate(long newSize) throws IOException {
+    protected void implTruncate(long newSize) throws IOException {
         init();
         if (newSize > size) {
-            return this;
+            return;
         }
         if (newSize < 0) {
             throw new IllegalArgumentException("newSize: " + newSize);
@@ -279,8 +245,6 @@ public class FileEncrypt extends FileBase {
             base.truncate(newSize + HEADER_LENGTH);
         }
         this.size = newSize;
-        pos = Math.min(pos, size);
-        return this;
     }
 
     @Override

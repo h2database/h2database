@@ -682,7 +682,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     private void analyzeTables() {
         // take a local copy and clear because in rare cases we can call
-        // back into markTableForAnalyzer while iterating here
+        // back into markTableForAnalyze while iterating here
         HashSet<Table> tablesToAnalyzeLocal = tablesToAnalyze;
         tablesToAnalyze = null;
         int rowCount = getDatabase().getSettings().analyzeSample / 10;

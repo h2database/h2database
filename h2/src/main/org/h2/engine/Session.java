@@ -681,13 +681,16 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     }
 
     private void analyzeTables() {
+        // take a local copy and clear because in rare cases we can call
+        // back into markTableForAnalyzer while iterating here
+        HashSet<Table> tablesToAnalyzeLocal = tablesToAnalyze;
+        tablesToAnalyze = null;
         int rowCount = getDatabase().getSettings().analyzeSample / 10;
-        for (Table table : tablesToAnalyze) {
+        for (Table table : tablesToAnalyzeLocal) {
             Analyze.analyzeTable(this, table, rowCount, false);
         }
         // analyze can lock the meta
         database.unlockMeta(this);
-        tablesToAnalyze = null;
     }
 
     private void removeTemporaryLobs(boolean onTimeout) {

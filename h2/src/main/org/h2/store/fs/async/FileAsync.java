@@ -3,7 +3,7 @@
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.store.fs;
+package org.h2.store.fs.async;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -11,70 +11,16 @@ import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.NonWritableChannelException;
-import java.nio.file.OpenOption;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-
-/**
- * This file system stores files on disk and uses
- * java.nio.channels.AsynchronousFileChannel to access the files.
- */
-public class FilePathAsync extends FilePathWrapper {
-
-    private static final boolean AVAILABLE;
-
-    /*
-     * Android has NIO2 only since API 26.
-     */
-    static {
-        boolean a = false;
-        try {
-            AsynchronousFileChannel.class.getName();
-            a = true;
-        } catch (Throwable e) {
-            // Nothing to do
-        }
-        AVAILABLE = a;
-    }
-
-    /**
-     * Creates new instance of FilePathAsync.
-     */
-    public FilePathAsync() {
-        if (!AVAILABLE) {
-            throw new UnsupportedOperationException("NIO2 is not available");
-        }
-    }
-
-    @Override
-    public FileChannel open(String mode) throws IOException {
-        return new FileAsync(name.substring(getScheme().length() + 1), mode);
-    }
-
-    @Override
-    public String getScheme() {
-        return "async";
-    }
-
-}
+import org.h2.store.fs.FileBase;
+import org.h2.store.fs.FileUtils;
 
 /**
  * File which uses NIO2 AsynchronousFileChannel.
  */
 class FileAsync extends FileBase {
-
-    private static final OpenOption[] R = { StandardOpenOption.READ };
-
-    private static final OpenOption[] W = { StandardOpenOption.READ, StandardOpenOption.WRITE,
-            StandardOpenOption.CREATE };
-
-    private static final OpenOption[] RWS = { StandardOpenOption.READ, StandardOpenOption.WRITE,
-            StandardOpenOption.CREATE, StandardOpenOption.SYNC };
-
-    private static final OpenOption[] RWD = { StandardOpenOption.READ, StandardOpenOption.WRITE,
-            StandardOpenOption.CREATE, StandardOpenOption.DSYNC };
 
     private final String name;
 
@@ -101,24 +47,8 @@ class FileAsync extends FileBase {
 
     FileAsync(String fileName, String mode) throws IOException {
         this.name = fileName;
-        OpenOption[] options;
-        switch (mode) {
-        case "r":
-            options = R;
-            break;
-        case "rw":
-            options = W;
-            break;
-        case "rws":
-            options = RWS;
-            break;
-        case "rwd":
-            options = RWD;
-            break;
-        default:
-            throw new IllegalArgumentException(mode);
-        }
-        channel = AsynchronousFileChannel.open(Paths.get(fileName), options);
+        channel = AsynchronousFileChannel.open(Paths.get(fileName), FileUtils.modeToOptions(mode), null,
+                FileUtils.NO_ATTRIBUTES);
     }
 
     @Override
@@ -184,13 +114,8 @@ class FileAsync extends FileBase {
 
     @Override
     public int write(ByteBuffer src) throws IOException {
-        int written;
-        try {
-            written = complete(channel.write(src, position));
-            position += written;
-        } catch (NonWritableChannelException e) {
-            throw new IOException("read only");
-        }
+        int written = complete(channel.write(src, position));
+        position += written;
         return written;
     }
 

@@ -42,6 +42,37 @@ INSERT INTO TEST VALUES ('a', 'b', 'c');
 DROP TABLE TEST;
 > ok
 
+CREATE TABLE TEST(A VARCHAR, B VARCHAR, C INT);
+> ok
+
+CREATE TRIGGER T1 BEFORE INSERT ON TEST FOR EACH ROW CALL "org.h2.test.scripts.Trigger1";
+> ok
+
+INSERT INTO TEST VALUES ('1', 'a', 1);
+> update count: 1
+
+DROP TRIGGER T1;
+> ok
+
+CREATE TRIGGER T1 BEFORE INSERT ON TEST FOR EACH STATEMENT CALL "org.h2.test.scripts.Trigger1";
+> ok
+
+INSERT INTO TEST VALUES ('2', 'b', 2);
+> update count: 1
+
+DROP TRIGGER T1;
+> ok
+
+TABLE TEST;
+> A B C
+> - - --
+> 1 a 10
+> 2 b 2
+> rows: 2
+
+DROP TABLE TEST;
+> ok
+
 -- ---------------------------------------------------------------------------
 -- PostgreSQL syntax tests
 -- ---------------------------------------------------------------------------

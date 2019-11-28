@@ -820,4 +820,5 @@ sparsely shifting vacated evacuation bullet allocations projected evacuatable pi
 successfull deduplication entrant mvmap sporadic irrelevant interrupts
 sit sitting sooner hdr considering encounter compete quickack decrementing exhausting caveat aschoerk circular ident
 scr ffffl suspend asap ldt lmt movement ago snapshotting paris phenomena backends quirks pgjdbc jupiter grab folds
-umcfo
+umcfo iapi autoloaded derbyshared darkred coral mistyrose lightseagreen unmodifiable posix exc attrs relativize
+quotient niomem niomapped obtaining

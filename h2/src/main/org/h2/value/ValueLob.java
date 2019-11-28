@@ -6,10 +6,10 @@
 package org.h2.value;
 
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.nio.file.Paths;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
@@ -278,8 +278,8 @@ public class ValueLob extends Value {
     private static int getNewObjectId(DataHandler h) {
         String path = h.getDatabasePath();
         if (path != null && path.isEmpty()) {
-            path = new File(Utils.getProperty("java.io.tmpdir", "."),
-                    SysProperties.PREFIX_TEMP_FILE).getAbsolutePath();
+            path = Paths.get(Utils.getProperty("java.io.tmpdir", "."),
+                    SysProperties.PREFIX_TEMP_FILE).toAbsolutePath().toString();
         }
         int newId = 0;
         int lobsPerDir = SysProperties.LOB_FILES_PER_DIRECTORY;

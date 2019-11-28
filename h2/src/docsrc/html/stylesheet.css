@@ -283,6 +283,23 @@ td.index {
     vertical-align: top;
 }
 
+div.ruleCompat code {
+    border-color: coral;
+    background-color: mistyrose;
+}
+
+div.ruleH2 code {
+    border-color: lightseagreen;
+}
+
+span.ruleCompat {
+    color: darkred;
+}
+
+span.ruleH2 {
+    color: green;
+}
+
 .c {
     padding: 1px 3px;
     margin: 0px 0px;

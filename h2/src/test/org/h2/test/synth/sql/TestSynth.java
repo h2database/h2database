@@ -296,11 +296,11 @@ public class TestSynth extends TestDb {
         addDatabase("org.h2.Driver", "jdbc:h2:" +
                 getBaseDir() + "/synth/synth", "sa", "", false);
 
-        // addDatabase("com.mysql.jdbc.Driver", "jdbc:mysql://localhost/test",
+        // addDatabase("com.mysql.cj.jdbc.Driver", "jdbc:mysql://localhost/test",
         // "sa", "");
         // addDatabase("org.h2.Driver", "jdbc:h2:synth;mode=mysql", "sa", "");
 
-        // addDatabase("com.mysql.jdbc.Driver", "jdbc:mysql://localhost/test",
+        // addDatabase("com.mysql.cj.jdbc.Driver", "jdbc:mysql://localhost/test",
         // "sa", "");
         // addDatabase("org.ldbc.jdbc.jdbcDriver",
         // "jdbc:ldbc:mysql://localhost/test", "sa", "");

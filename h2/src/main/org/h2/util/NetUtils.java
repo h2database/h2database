@@ -66,8 +66,22 @@ public class NetUtils {
      * @param ssl if SSL should be used
      * @return the socket
      */
+    public static Socket createSocket(String server, int defaultPort, boolean ssl) throws IOException {
+        return createSocket(server, defaultPort, ssl, 0);
+    }
+
+    /**
+     * Create a client socket that is connected to the given address and port.
+     *
+     * @param server to connect to (including an optional port)
+     * @param defaultPort the default port (if not specified in the server
+     *            address)
+     * @param ssl if SSL should be used
+     * @param networkTimeout socket so timeout
+     * @return the socket
+     */
     public static Socket createSocket(String server, int defaultPort,
-            boolean ssl) throws IOException {
+            boolean ssl, int networkTimeout) throws IOException {
         int port = defaultPort;
         // IPv6: RFC 2732 format is '[a:b:c:d:e:f:g:h]' or
         // '[a:b:c:d:e:f:g:h]:port'
@@ -80,7 +94,7 @@ public class NetUtils {
             server = server.substring(0, idx);
         }
         InetAddress address = InetAddress.getByName(server);
-        return createSocket(address, port, ssl);
+        return createSocket(address, port, ssl, networkTimeout);
     }
 
     /**
@@ -92,6 +106,19 @@ public class NetUtils {
      * @return the socket
      */
     public static Socket createSocket(InetAddress address, int port, boolean ssl)
+        throws IOException {
+        return createSocket(address, port, ssl, 0);
+    }
+    /**
+     * Create a client socket that is connected to the given address and port.
+     *
+     * @param address the address to connect to
+     * @param port the port
+     * @param ssl if SSL should be used
+     * @param networkTimeout socket so timeout
+     * @return the socket
+     */
+    public static Socket createSocket(InetAddress address, int port, boolean ssl, int networkTimeout)
             throws IOException {
         long start = System.nanoTime();
         for (int i = 0;; i++) {
@@ -100,6 +127,7 @@ public class NetUtils {
                     return CipherFactory.createSocket(address, port);
                 }
                 Socket socket = new Socket();
+                socket.setSoTimeout(networkTimeout);
                 socket.connect(new InetSocketAddress(address, port),
                         SysProperties.SOCKET_CONNECT_TIMEOUT);
                 return socket;

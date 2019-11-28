@@ -72,7 +72,7 @@ public class MVTableEngine implements TableEngine {
                     String dir = FileUtils.getParent(fileName);
                     FileUtils.createDirectories(dir);
                 }
-                int autoCompactFillRate = db.getSettings().maxCompactCount;
+                int autoCompactFillRate = db.getSettings().autoCompactFillRate;
                 if (autoCompactFillRate <= 100) {
                     builder.autoCompactFillRate(autoCompactFillRate);
                 }

@@ -16,8 +16,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.h2.Driver;
 import org.h2.engine.Constants;
-import org.h2.store.fs.FilePathRec;
 import org.h2.store.fs.FileUtils;
+import org.h2.store.fs.rec.FilePathRec;
 import org.h2.test.auth.TestAuthentication;
 import org.h2.test.bench.TestPerformance;
 import org.h2.test.db.TestAlter;
@@ -169,6 +169,7 @@ import org.h2.test.synth.thread.TestMulti;
 import org.h2.test.unit.TestAnsCompression;
 import org.h2.test.unit.TestAutoReconnect;
 import org.h2.test.unit.TestBinaryArithmeticStream;
+import org.h2.test.unit.TestBinaryOperation;
 import org.h2.test.unit.TestBitStream;
 import org.h2.test.unit.TestBnf;
 import org.h2.test.unit.TestCache;
@@ -940,6 +941,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         // unit
         addTest(new TestAnsCompression());
         addTest(new TestBinaryArithmeticStream());
+        addTest(new TestBinaryOperation());
         addTest(new TestBitStream());
         addTest(new TestCharsetCollator());
         addTest(new TestClearReferences());

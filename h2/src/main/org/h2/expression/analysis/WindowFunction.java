@@ -402,7 +402,7 @@ public class WindowFunction extends DataAnalysisOperation {
             } else {
                 v = row[0];
                 if (v != ValueNull.INSTANCE) {
-                    v = v.convertTo(Value.DOUBLE).divide(value);
+                    v = v.convertTo(Value.DOUBLE).divide(value, ValueDouble.PRECISION);
                 }
             }
             result.put(row[rowIdColumn].getInt(), v);

@@ -198,14 +198,15 @@ public class TestScript extends TestDb {
             testScript("functions/string/" + s + ".sql");
         }
         for (String s : new String[] { "array-cat", "array-contains", "array-get",
-                "array-length","array-slice", "autocommit", "cancel-session", "casewhen",
-                "cast", "coalesce", "convert", "csvread", "csvwrite", "current_catalog", "current_schema", "currval",
+                "array-slice", "autocommit", "cancel-session", "casewhen",
+                "cardinality", "cast", "coalesce", "convert", "csvread", "csvwrite", "current_catalog",
+                "current_schema", "current_user", "currval",
                 "database-path", "decode", "disk-space-used",
                 "file-read", "file-write", "greatest", "h2version", "identity",
                 "ifnull", "last-insert-id", "least", "link-schema", "lock-mode", "lock-timeout",
                 "memory-free", "memory-used", "nextval", "nullif", "nvl2",
                 "readonly", "rownum", "scope-identity", "session-id",
-                "set", "table", "transaction-id", "truncate-value", "unnest", "user" }) {
+                "set", "table", "transaction-id", "truncate-value", "unnest" }) {
             testScript("functions/system/" + s + ".sql");
         }
         for (String s : new String[] { "add_months", "current_date", "current_timestamp",

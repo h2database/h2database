@@ -51,4 +51,12 @@ public interface BnfVisitor {
      */
     void visitRuleOptional(Rule rule);
 
+    /**
+     * Visit a rule with non-standard extension.
+     *
+     * @param rule the rule
+     * @param compatibility whether this rule exists for compatibility only
+     */
+    void visitRuleExtension(Rule rule, boolean compatibility);
+
 }

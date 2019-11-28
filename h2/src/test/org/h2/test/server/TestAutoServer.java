@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.util.SortedProperties;
@@ -36,6 +37,7 @@ public class TestAutoServer extends TestDb {
     public void test() throws Exception {
         testUnsupportedCombinations();
         testAutoServer(false);
+        testSocketReadTimeout(false);
         if (!config.big) {
             testAutoServer(true);
         }
@@ -107,6 +109,58 @@ public class TestAutoServer extends TestDb {
         }
         conn.close();
         connServer.close();
+        deleteDb("autoServer");
+    }
+
+
+    private void testSocketReadTimeout(boolean port) throws Exception {
+        if (config.memory || config.networked) {
+            return;
+        }
+        deleteDb(getTestName());
+        String url = getURL(getTestName() + ";AUTO_SERVER=TRUE", true);
+        if (port) {
+            url += ";AUTO_SERVER_PORT=11111";
+        }
+        String user = getUser(), password = getPassword();
+        Connection connServer = getConnection(url + ";OPEN_NEW=TRUE",
+            user, password);
+
+        SortedProperties prop = SortedProperties.loadProperties(
+            getBaseDir() + "/" + getTestName() + ".lock.db");
+        String key = prop.getProperty("id");
+        String server = prop.getProperty("server");
+        if (server != null) {
+            String u2 = url.substring(url.indexOf(';'));
+            //todo java.net.SocketTimeoutException: Read timed out
+            u2 = "jdbc:h2:tcp://" + server + "/" + key + u2 + ";NETWORK_TIMEOUT=10";
+            Connection conn = DriverManager.getConnection(u2, user, password);
+            Statement stat = conn.createStatement();
+
+            assertThrows(ErrorCode.CONNECTION_BROKEN_1, stat).
+                executeQuery("SELECT MAX(RAND()) " +
+                    "FROM SYSTEM_RANGE(1, 100000000)");
+
+            conn.close();
+            int gotPort = Integer.parseInt(server.substring(server.lastIndexOf(':') + 1));
+            if (port) {
+                assertEquals(11111, gotPort);
+            }
+        }
+
+        Connection conn = getConnection(url + ";OPEN_NEW=TRUE");
+        Statement stat = conn.createStatement();
+        if (config.big) {
+            try {
+                stat.execute("SHUTDOWN");
+            } catch (SQLException e) {
+                assertKnownException(e);
+                // the connection is closed
+            }
+        }
+        conn.close();
+        connServer.close();
+
         deleteDb("autoServer");
     }
 

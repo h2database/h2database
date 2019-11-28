@@ -61,7 +61,7 @@ public class TestOuterJoins extends TestDb {
         }
         deleteDerby();
         try {
-            Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
+            Class.forName("org.apache.derby.iapi.jdbc.AutoloadedDriver");
             Connection c2 = DriverManager.getConnection(
                     "jdbc:derby:" + getBaseDir() +
                     "/derby/test;create=true", "sa", "sa");

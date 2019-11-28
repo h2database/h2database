@@ -1130,20 +1130,17 @@ public class Parser {
     private TransactionCommand parseRollback() {
         TransactionCommand command;
         if (readIf("TRANSACTION")) {
-            command = new TransactionCommand(session,
-                    CommandInterface.ROLLBACK_TRANSACTION);
+            command = new TransactionCommand(session, CommandInterface.ROLLBACK_TRANSACTION);
             command.setTransactionName(readUniqueIdentifier());
             return command;
         }
+        readIf("WORK");
         if (readIf("TO")) {
             read("SAVEPOINT");
-            command = new TransactionCommand(session,
-                    CommandInterface.ROLLBACK_TO_SAVEPOINT);
+            command = new TransactionCommand(session, CommandInterface.ROLLBACK_TO_SAVEPOINT);
             command.setSavepointName(readUniqueIdentifier());
         } else {
-            readIf("WORK");
-            command = new TransactionCommand(session,
-                    CommandInterface.ROLLBACK);
+            command = new TransactionCommand(session, CommandInterface.ROLLBACK);
         }
         return command;
     }
@@ -1348,12 +1345,9 @@ public class Parser {
             command.setCondition(condition);
         }
         if (allowExtensions) {
-            if (readIf(ORDER)) {
-                // for MySQL compatibility
-                // (this syntax is supported, but ignored)
-                read("BY");
-                parseSimpleOrderList();
-            }
+            // for MySQL compatibility
+            // (this syntax is supported, but ignored)
+            readIfOrderBy();
             if (readIf(LIMIT)) {
                 Expression limit = readTerm().optimize(session);
                 command.setLimit(limit);
@@ -2072,9 +2066,6 @@ public class Parser {
             throw getSyntaxError();
         }
         read(CLOSE_PAREN);
-        if (resultOption == ResultOption.FINAL && statement.getTable().hasInsteadOfTrigger()) {
-            throw DbException.getUnsupportedException("FINAL TABLE with INSTEAD OF trigger");
-        }
         if (statement instanceof MergeUsing) {
             if (((MergeUsing) statement).hasCombinedMatchedClause()) {
                 throw DbException.getUnsupportedException(resultOption
@@ -3382,20 +3373,14 @@ public class Parser {
         case LISTAGG: {
             boolean distinct = readDistinctAgg();
             Expression arg = readExpression(), separator = null;
-            ArrayList<SelectOrderBy> orderByList = null;
+            ArrayList<SelectOrderBy> orderByList;
             if (equalsToken("STRING_AGG", aggregateName)) {
                 // PostgreSQL compatibility: string_agg(expression, delimiter)
                 read(COMMA);
                 separator = readExpression();
-                if (readIf(ORDER)) {
-                    read("BY");
-                    orderByList = parseSimpleOrderList();
-                }
+                orderByList = readIfOrderBy();
             } else if (equalsToken("GROUP_CONCAT", aggregateName)){
-                if (readIf(ORDER)) {
-                    read("BY");
-                    orderByList = parseSimpleOrderList();
-                }
+                orderByList = readIfOrderBy();
                 if (readIf("SEPARATOR")) {
                     separator = readExpression();
                 }
@@ -3407,12 +3392,13 @@ public class Parser {
                     read("OVERFLOW");
                     read("ERROR");
                 }
+                orderByList = null;
             }
             Expression[] args = separator == null ? new Expression[] { arg } : new Expression[] { arg, separator };
             int index = lastParseIndex;
             read(CLOSE_PAREN);
             if (orderByList == null && isToken("WITHIN")) {
-                r = readWithinGroup(aggregateType, args, distinct, false);
+                r = readWithinGroup(aggregateType, args, distinct, false, false);
             } else {
                 parseIndex = index;
                 read();
@@ -3426,7 +3412,7 @@ public class Parser {
         case ARRAY_AGG: {
             boolean distinct = readDistinctAgg();
             r = new Aggregate(AggregateType.ARRAY_AGG, new Expression[] { readExpression() }, currentSelect, distinct);
-            readAggregateOrderBy(r);
+            r.setOrderByList(readIfOrderBy());
             break;
         }
         case RANK:
@@ -3440,19 +3426,19 @@ public class Parser {
             do {
                 expressions.add(readExpression());
             } while (readIfMore());
-            r = readWithinGroup(aggregateType, expressions.toArray(new Expression[0]), false, true);
+            r = readWithinGroup(aggregateType, expressions.toArray(new Expression[0]), false, true, false);
             break;
         }
         case PERCENTILE_CONT:
         case PERCENTILE_DISC: {
             Expression num = readExpression();
             read(CLOSE_PAREN);
-            r = readWithinGroup(aggregateType, new Expression[] { num }, false, false);
+            r = readWithinGroup(aggregateType, new Expression[] { num }, false, false, true);
             break;
         }
         case MODE: {
             if (readIf(CLOSE_PAREN)) {
-                r = readWithinGroup(AggregateType.MODE, new Expression[0], false, false);
+                r = readWithinGroup(AggregateType.MODE, new Expression[0], false, false, true);
             } else {
                 Expression expr = readExpression();
                 r = new Aggregate(aggregateType, new Expression[0], currentSelect, false);
@@ -3464,9 +3450,9 @@ public class Parser {
                         throw DbException.getSyntaxError(ErrorCode.IDENTICAL_EXPRESSIONS_SHOULD_BE_USED, sqlCommand,
                                 lastParseIndex, sql, sql2);
                     }
-                    readAggregateOrder(r, expr, true);
+                    readAggregateSimpleOrder(r, expr, true);
                 } else {
-                    readAggregateOrder(r, expr, false);
+                    readAggregateSimpleOrder(r, expr, false);
                 }
             }
             break;
@@ -3487,7 +3473,7 @@ public class Parser {
         case JSON_ARRAYAGG: {
             r = new Aggregate(AggregateType.JSON_ARRAYAGG, new Expression[] { readExpression() }, currentSelect,
                     false);
-            readAggregateOrderBy(r);
+            r.setOrderByList(readIfOrderBy());
             r.setFlags(Function.JSON_ABSENT_ON_NULL);
             readJsonObjectFunctionFlags(r, true);
             break;
@@ -3503,7 +3489,7 @@ public class Parser {
     }
 
     private Aggregate readWithinGroup(AggregateType aggregateType, Expression[] args, boolean distinct,
-            boolean forHypotheticalSet) {
+            boolean forHypotheticalSet, boolean simple) {
         read("WITHIN");
         read(GROUP);
         read(OPEN_PAREN);
@@ -3519,17 +3505,19 @@ public class Parser {
                 }
                 SelectOrderBy order = new SelectOrderBy();
                 order.expression = readExpression();
-                order.sortType = parseSimpleSortType();
+                order.sortType = parseSortType();
                 orderList.add(order);
             }
             r.setOrderByList(orderList);
+        } else if (simple) {
+            readAggregateSimpleOrder(r, readExpression(), true);
         } else {
-            readAggregateOrder(r, readExpression(), true);
+            r.setOrderByList(parseOrderByList());
         }
         return r;
     }
 
-    private void readAggregateOrder(Aggregate r, Expression expr, boolean parseSortType) {
+    private void readAggregateSimpleOrder(Aggregate r, Expression expr, boolean parseSortType) {
         ArrayList<SelectOrderBy> orderList = new ArrayList<>(1);
         SelectOrderBy order = new SelectOrderBy();
         order.expression = expr;
@@ -3540,14 +3528,15 @@ public class Parser {
         r.setOrderByList(orderList);
     }
 
-    private void readAggregateOrderBy(Aggregate r) {
+    private ArrayList<SelectOrderBy> readIfOrderBy() {
         if (readIf(ORDER)) {
             read("BY");
-            r.setOrderByList(parseSimpleOrderList());
+            return parseOrderByList();
         }
+        return null;
     }
 
-    private ArrayList<SelectOrderBy> parseSimpleOrderList() {
+    private ArrayList<SelectOrderBy> parseOrderByList() {
         ArrayList<SelectOrderBy> orderList = Utils.newSmallArrayList();
         do {
             SelectOrderBy order = new SelectOrderBy();
@@ -3650,11 +3639,7 @@ public class Parser {
                 partitionBy.add(expr);
             } while (readIf(COMMA));
         }
-        ArrayList<SelectOrderBy> orderBy = null;
-        if (readIf(ORDER)) {
-            read("BY");
-            orderBy = parseSimpleOrderList();
-        }
+        ArrayList<SelectOrderBy> orderBy = readIfOrderBy();
         WindowFrame frame = readWindowFrame();
         read(CLOSE_PAREN);
         return new Window(parent, partitionBy, orderBy, frame);
@@ -4482,7 +4467,7 @@ public class Parser {
             break;
         case CURRENT_USER:
             read();
-            r = readKeywordFunction(Function.USER);
+            r = readKeywordFunction(Function.CURRENT_USER);
             break;
         case DAY:
             read();
@@ -5800,33 +5785,33 @@ public class Parser {
             throw DbException.get(ErrorCode.UNKNOWN_MODE_1,
                     "Internal Error - unhandled case: " + nullConstraint.name());
         }
-        if (readIf("AS")) {
-            if (isIdentity) {
-                getSyntaxError();
-            }
-            Expression expr = readExpression();
-            column.setComputedExpression(expr);
+        if (!isIdentity && readIf("AS")) {
+            column.setComputedExpression(readExpression());
         } else if (readIf("DEFAULT")) {
-            Expression defaultExpression = readExpression();
-            column.setDefaultExpression(session, defaultExpression);
+            column.setDefaultExpression(session, readExpression());
         } else if (readIf("GENERATED")) {
-            if (!readIf("ALWAYS")) {
+            boolean always = readIf("ALWAYS");
+            if (!always) {
                 read("BY");
                 read("DEFAULT");
             }
             read("AS");
-            read("IDENTITY");
-            SequenceOptions options = new SequenceOptions();
-            if (readIf(OPEN_PAREN)) {
-                parseSequenceOptions(options, null, true);
-                read(CLOSE_PAREN);
+            if (readIf("IDENTITY")) {
+                SequenceOptions options = new SequenceOptions();
+                if (readIf(OPEN_PAREN)) {
+                    parseSequenceOptions(options, null, true);
+                    read(CLOSE_PAREN);
+                }
+                column.setAutoIncrementOptions(options);
+            } else if (!always || isIdentity) {
+                throw getSyntaxError();
+            } else {
+                column.setComputedExpression(readExpression());
             }
-            column.setAutoIncrementOptions(options);
         }
         if (readIf(ON)) {
             read("UPDATE");
-            Expression onUpdateExpression = readExpression();
-            column.setOnUpdateExpression(session, onUpdateExpression);
+            column.setOnUpdateExpression(session, readExpression());
         }
         if (NullConstraintType.NULL_IS_NOT_ALLOWED == parseNotNullConstraint()) {
             column.setNullable(false);
@@ -5917,6 +5902,15 @@ public class Parser {
                 original = "BINARY LARGE OBJECT";
             }
             break;
+        case "CHAR":
+            read();
+            if (readIf("VARYING")) {
+                original = "CHAR VARYING";
+            } else if (readIf("LARGE")) {
+                read("OBJECT");
+                original = "CHAR LARGE OBJECT";
+            }
+            break;
         case "CHARACTER":
             read();
             if (readIf("VARYING")) {
@@ -5949,6 +5943,35 @@ public class Parser {
             read();
             if (readIf("RAW")) {
                 original = "LONG RAW";
+            }
+            break;
+        case "NATIONAL":
+            read();
+            if (readIf("CHARACTER")) {
+                if (readIf("VARYING")) {
+                    original = "NATIONAL CHARACTER VARYING";
+                } else if (readIf("LARGE")) {
+                    read("OBJECT");
+                    original = "NATIONAL CHARACTER LARGE OBJECT";
+                } else {
+                    original = "NATIONAL CHARACTER";
+                }
+            } else {
+                read("CHAR");
+                if (readIf("VARYING")) {
+                    original = "NATIONAL CHAR VARYING";
+                } else {
+                    original = "NATIONAL CHAR";
+                }
+            }
+            break;
+        case "NCHAR":
+            read();
+            if (readIf("VARYING")) {
+                original = "NCHAR VARYING";
+            } else if (readIf("LARGE")) {
+                read("OBJECT");
+                original = "NCHAR LARGE OBJECT";
             }
             break;
         case "SMALLDATETIME":
@@ -6563,15 +6586,6 @@ public class Parser {
         } else if (readIf("UPDATE")) {
             command.addRight(Right.UPDATE);
             return true;
-        } else if (readIf(ALL)) {
-            command.addRight(Right.ALL);
-            return true;
-        } else if (readIf("ALTER")) {
-            read("ANY");
-            read("SCHEMA");
-            command.addRight(Right.ALTER_ANY_SCHEMA);
-            command.addTable(null);
-            return false;
         } else if (readIf("CONNECT")) {
             // ignore this right
             return true;
@@ -6587,12 +6601,23 @@ public class Parser {
     private GrantRevoke parseGrantRevoke(int operationType) {
         GrantRevoke command = new GrantRevoke(session);
         command.setOperationType(operationType);
-        boolean tableClauseExpected = addRoleOrRight(command);
-        while (readIf(COMMA)) {
-            addRoleOrRight(command);
-            if (command.isRightMode() && command.isRoleMode()) {
-                throw DbException
-                        .get(ErrorCode.ROLES_AND_RIGHT_CANNOT_BE_MIXED);
+        boolean tableClauseExpected;
+        if (readIf(ALL)) {
+            readIf("PRIVILEGES");
+            command.addRight(Right.ALL);
+            tableClauseExpected = true;
+        } else if (readIf("ALTER")) {
+            read("ANY");
+            read("SCHEMA");
+            command.addRight(Right.ALTER_ANY_SCHEMA);
+            command.addTable(null);
+            tableClauseExpected = false;
+        } else {
+            tableClauseExpected = addRoleOrRight(command);
+            while (readIf(COMMA)) {
+                if (addRoleOrRight(command) != tableClauseExpected) {
+                    throw DbException.get(ErrorCode.ROLES_AND_RIGHT_CANNOT_BE_MIXED);
+                }
             }
         }
         if (tableClauseExpected) {
@@ -6601,6 +6626,7 @@ public class Parser {
                     Schema schema = database.getSchema(readAliasIdentifier());
                     command.setSchema(schema);
                 } else {
+                    readIf(TABLE);
                     do {
                         Table table = readTableOrView();
                         command.addTable(table);
@@ -6768,7 +6794,7 @@ public class Parser {
         boolean ifNotExists = readIfNotExists();
         CreateDomain command = new CreateDomain(session);
         command.setTypeName(readUniqueIdentifier());
-        read("AS");
+        readIf("AS");
         Column col = parseColumnForTable("VALUE", true, false);
         if (readIf(CHECK)) {
             Expression expr = readExpression();
@@ -6830,10 +6856,11 @@ public class Parser {
         command.setTableName(tableName);
         if (readIf(FOR)) {
             read("EACH");
-            read(ROW);
-            command.setRowBased(true);
-        } else {
-            command.setRowBased(false);
+            if (readIf(ROW)) {
+                command.setRowBased(true);
+            } else {
+                read("STATEMENT");
+            }
         }
         if (readIf("QUEUE")) {
             command.setQueueSize(readNonNegativeInt());
@@ -7494,6 +7521,16 @@ public class Parser {
             readIfEqualOrTo();
             read();
             return new NoOperation(session);
+        } else if (readIf("NETWORK_TIMEOUT")){
+            readIfEqualOrTo();
+            read();
+            return new NoOperation(session);
+        } else if (readIf("STATEMENT_TIMEOUT")){
+            // for PostgreSQL compatibility
+            readIfEqualOrTo();
+            Set command = new Set(session, SetTypes.QUERY_TIMEOUT);
+            command.setInt(readNonNegativeInt());
+            return command;
         } else if (readIf("AUTO_SERVER")) {
             readIfEqualOrTo();
             read();

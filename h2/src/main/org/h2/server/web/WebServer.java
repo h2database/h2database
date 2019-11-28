@@ -5,13 +5,15 @@
  */
 package org.h2.server.web;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -108,13 +110,15 @@ public class WebServer implements Service {
                 "jdbc:sqlserver://localhost;DatabaseName=test|sa",
         "Generic PostgreSQL|org.postgresql.Driver|" +
                 "jdbc:postgresql:test|" ,
-        "Generic MySQL|com.mysql.jdbc.Driver|" +
+        "Generic MySQL|com.mysql.cj.jdbc.Driver|" +
                 "jdbc:mysql://localhost:3306/test|" ,
+        "Generic MariaDB|org.mariadb.jdbc.Driver|" +
+                "jdbc:mariadb://localhost:3306/test|" ,
         "Generic HSQLDB|org.hsqldb.jdbcDriver|" +
                 "jdbc:hsqldb:test;hsqldb.default_table_type=cached|sa" ,
-        "Generic Derby (Server)|org.apache.derby.jdbc.ClientDriver|" +
+        "Generic Derby (Server)|org.apache.derby.client.ClientAutoloadedDriver|" +
                 "jdbc:derby://localhost:1527/test;create=true|sa",
-        "Generic Derby (Embedded)|org.apache.derby.jdbc.EmbeddedDriver|" +
+        "Generic Derby (Embedded)|org.apache.derby.iapi.jdbc.AutoloadedDriver|" +
                 "jdbc:derby:test;create=true|sa",
         "Generic H2 (Server)|org.h2.Driver|" +
                 "jdbc:h2:tcp://localhost/~/test|sa",
@@ -819,7 +823,7 @@ public class WebServer implements Service {
      */
     private class TranslateThread extends Thread {
 
-        private final File file = new File("translation.properties");
+        private final Path file = Paths.get("translation.properties");
         private final Map<Object, Object> translation;
         private volatile boolean stopNow;
 
@@ -828,7 +832,7 @@ public class WebServer implements Service {
         }
 
         public String getFileName() {
-            return file.getAbsolutePath();
+            return file.toAbsolutePath().toString();
         }
 
         public void stopNow() {
@@ -845,12 +849,12 @@ public class WebServer implements Service {
             while (!stopNow) {
                 try {
                     SortedProperties sp = new SortedProperties();
-                    if (file.exists()) {
-                        InputStream in = FileUtils.newInputStream(file.getName());
+                    if (Files.exists(file)) {
+                        InputStream in = Files.newInputStream(file);
                         sp.load(in);
                         translation.putAll(sp);
                     } else {
-                        OutputStream out = FileUtils.newOutputStream(file.getName(), false);
+                        OutputStream out = Files.newOutputStream(file);
                         sp.putAll(translation);
                         sp.store(out, "Translation");
                     }

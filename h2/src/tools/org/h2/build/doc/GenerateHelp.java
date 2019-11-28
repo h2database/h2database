@@ -6,7 +6,8 @@
 package org.h2.build.doc;
 
 import java.io.BufferedWriter;
-import java.io.FileWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Types;
@@ -40,7 +41,11 @@ public class GenerateHelp {
             Object[] row = new Object[columnCount];
             for (int i = 0; i < columnCount; i++) {
                 String s = rs.getString(1 + i);
-                if (i == 3) {
+                switch (i) {
+                case 2:
+                    s = s.replaceAll("@c@ ", "").replaceAll("@h2@ ", "").replaceAll("@c@", "").replaceAll("@h2@", "");
+                    break;
+                case 3: {
                     int len = s.length();
                     int end = 0;
                     for (; end < len; end++) {
@@ -57,11 +62,12 @@ public class GenerateHelp {
                     }
                     s = s.substring(0, end);
                 }
+                }
                 row[i] = s;
             }
             rs2.addRow(row);
         }
-        BufferedWriter writer = new BufferedWriter(new FileWriter(out));
+        BufferedWriter writer = Files.newBufferedWriter(Paths.get(out));
         writer.write("# Copyright 2004-2019 H2 Group. " +
                 "Multiple-Licensed under the MPL 2.0,\n" +
                 "# and the EPL 1.0 " +

@@ -3,11 +3,10 @@
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.store.fs;
+package org.h2.store.fs.niomapped;
 
 import java.io.EOFException;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.lang.ref.WeakReference;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
@@ -15,28 +14,12 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.NonWritableChannelException;
+import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
-
 import org.h2.engine.SysProperties;
+import org.h2.store.fs.FileBase;
+import org.h2.store.fs.FileUtils;
 import org.h2.util.MemoryUnmapper;
-
-/**
- * This file system stores files on disk and uses java.nio to access the files.
- * This class used memory mapped files.
- */
-public class FilePathNioMapped extends FilePathNio {
-
-    @Override
-    public FileChannel open(String mode) throws IOException {
-        return new FileNioMapped(name.substring(getScheme().length() + 1), mode);
-    }
-
-    @Override
-    public String getScheme() {
-        return "nioMapped";
-    }
-
-}
 
 /**
  * Uses memory mapped files.
@@ -47,7 +30,7 @@ class FileNioMapped extends FileBase {
     private static final long GC_TIMEOUT_MS = 10_000;
     private final String name;
     private final MapMode mode;
-    private RandomAccessFile file;
+    private FileChannel channel;
     private MappedByteBuffer mapped;
     private long fileLength;
 
@@ -64,7 +47,7 @@ class FileNioMapped extends FileBase {
             this.mode = MapMode.READ_WRITE;
         }
         this.name = fileName;
-        file = new RandomAccessFile(fileName, mode);
+        channel = FileChannel.open(Paths.get(fileName), FileUtils.modeToOptions(mode), FileUtils.NO_ATTRIBUTES);
         reMap();
     }
 
@@ -107,10 +90,10 @@ class FileNioMapped extends FileBase {
             oldPos = pos;
             unMap();
         }
-        fileLength = file.length();
+        fileLength = channel.size();
         checkFileSizeLimit(fileLength);
         // maps new MappedByteBuffer; the old one is disposed during GC
-        mapped = file.getChannel().map(mode, 0, fileLength);
+        mapped = channel.map(mode, 0, fileLength);
         int limit = mapped.limit();
         int capacity = mapped.capacity();
         if (limit < fileLength || capacity < fileLength) {
@@ -132,10 +115,10 @@ class FileNioMapped extends FileBase {
 
     @Override
     public void implCloseChannel() throws IOException {
-        if (file != null) {
+        if (channel != null) {
             unMap();
-            file.close();
-            file = null;
+            channel.close();
+            channel = null;
         }
     }
 
@@ -197,12 +180,20 @@ class FileNioMapped extends FileBase {
     }
 
     public synchronized void setFileLength(long newLength) throws IOException {
+        if (mode == MapMode.READ_ONLY) {
+            throw new NonWritableChannelException();
+        }
         checkFileSizeLimit(newLength);
         int oldPos = pos;
         unMap();
         for (int i = 0;; i++) {
             try {
-                file.setLength(newLength);
+                long length = channel.size();
+                if (length >= newLength) {
+                    channel.truncate(newLength);
+                } else {
+                    channel.write(ByteBuffer.wrap(new byte[1]), newLength - 1);
+                }
                 break;
             } catch (IOException e) {
                 if (i > 16 || !e.toString().contains("user-mapped section open")) {
@@ -218,7 +209,7 @@ class FileNioMapped extends FileBase {
     @Override
     public void force(boolean metaData) throws IOException {
         mapped.force();
-        file.getFD().sync();
+        channel.force(metaData);
     }
 
     @Override
@@ -237,7 +228,7 @@ class FileNioMapped extends FileBase {
     @Override
     public synchronized FileLock tryLock(long position, long size,
             boolean shared) throws IOException {
-        return file.getChannel().tryLock(position, size, shared);
+        return channel.tryLock(position, size, shared);
     }
 
 }

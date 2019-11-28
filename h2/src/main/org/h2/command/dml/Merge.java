@@ -176,8 +176,7 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
                 if (deltaChangeCollectionMode == ResultOption.NEW) {
                     deltaChangeCollector.addRow(row.getValueList().clone());
                 }
-                boolean done = table.fireBeforeRow(session, null, row);
-                if (!done) {
+                if (!table.fireBeforeRow(session, null, row)) {
                     table.lock(session, true, false);
                     table.addRow(session, row);
                     if (deltaChangeCollectionMode == ResultOption.FINAL) {
@@ -185,6 +184,8 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
                     }
                     session.log(table, UndoLogRecord.INSERT, row);
                     table.fireAfterRow(session, null, row, false);
+                } else if (deltaChangeCollectionMode == ResultOption.FINAL) {
+                    deltaChangeCollector.addRow(row.getValueList());
                 }
                 return 1;
             } catch (DbException e) {

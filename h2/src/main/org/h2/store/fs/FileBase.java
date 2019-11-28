@@ -19,21 +19,6 @@ import java.nio.channels.WritableByteChannel;
 public abstract class FileBase extends FileChannel {
 
     @Override
-    public abstract long size() throws IOException;
-
-    @Override
-    public abstract long position() throws IOException;
-
-    @Override
-    public abstract FileChannel position(long newPosition) throws IOException;
-
-    @Override
-    public abstract int read(ByteBuffer dst) throws IOException;
-
-    @Override
-    public abstract int write(ByteBuffer src) throws IOException;
-
-    @Override
     public synchronized int read(ByteBuffer dst, long position)
             throws IOException {
         long oldPos = position();
@@ -52,9 +37,6 @@ public abstract class FileBase extends FileChannel {
         position(oldPos);
         return len;
     }
-
-    @Override
-    public abstract FileChannel truncate(long size) throws IOException;
 
     @Override
     public void force(boolean metaData) throws IOException {

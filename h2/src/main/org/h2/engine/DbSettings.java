@@ -63,6 +63,19 @@ public class DbSettings extends SettingsBase {
     public final int analyzeSample = get("ANALYZE_SAMPLE", 10_000);
 
     /**
+     * Database setting <code>AUTO_COMPACT_FILL_RATE</code>
+     * (default: 90, which means 90%, 0 disables auto-compacting).<br />
+     * Set the auto-compact target fill rate. If the average fill rate (the
+     * percentage of the storage space that contains active data) of the
+     * chunks is lower, then the chunks with a low fill rate are re-written.
+     * Also, if the percentage of empty space between chunks is higher than
+     * this value, then chunks at the end of the file are moved. Compaction
+     * stops if the target fill rate is reached.<br />
+     * This setting only affects MVStore engine.
+     */
+    public final int autoCompactFillRate = get("AUTO_COMPACT_FILL_RATE", 90);
+
+    /**
      * Database setting <code>DATABASE_TO_LOWER</code> (default: false).<br />
      * When set to true unquoted identifiers and short name of database are
      * converted to lower case. Value of this setting should not be changed
@@ -155,7 +168,8 @@ public class DbSettings extends SettingsBase {
     /**
      * Database setting <code>MAX_COMPACT_COUNT</code>
      * (default: Integer.MAX_VALUE).<br />
-     * The maximum number of pages to move when closing a database.
+     * The maximum number of pages to move when closing a database.<br />
+     * This setting only affects PageStore engine.
      */
     public final int maxCompactCount = get("MAX_COMPACT_COUNT",
             Integer.MAX_VALUE);

@@ -5,6 +5,7 @@
  */
 package org.h2.build.doc;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 import org.h2.bnf.Bnf;
@@ -32,17 +33,76 @@ public class BnfSyntax implements BnfVisitor {
         syntaxLines = StringUtils.replaceAll(syntaxLines, "\n    ", "\n");
         StringTokenizer tokenizer = Bnf.getTokenizer(syntaxLines);
         StringBuilder buff = new StringBuilder();
+        ArrayDeque<Character> deque = new ArrayDeque<>();
+        boolean extension = false;
         while (tokenizer.hasMoreTokens()) {
             String s = tokenizer.nextToken();
+            if (s.equals("@c@")) {
+                if (!extension) {
+                    extension = true;
+                    buff.append("<span class=\"ruleCompat\">");
+                }
+                s = skipAfterExtensionStart(tokenizer, buff);
+            } else if (s.equals("@h2@")) {
+                if (!extension) {
+                    extension = true;
+                    buff.append("<span class=\"ruleH2\">");
+                }
+                s = skipAfterExtensionStart(tokenizer, buff);
+            }
+            if (extension) {
+                if (s.length() == 1) {
+                    char c = s.charAt(0);
+                    switch (c) {
+                    case '[':
+                        deque.addLast(']');
+                        break;
+                    case '{':
+                        deque.addLast('}');
+                        break;
+                    case ']':
+                    case '}':
+                        char c2 = deque.removeLast();
+                        if (c != c2) {
+                            throw new AssertionError("Expected " + c2 + " got " + c);
+                        }
+                        break;
+                    default:
+                        if (deque.isEmpty()) {
+                            deque.add('*');
+                        }
+                    }
+                } else if (deque.isEmpty()) {
+                    deque.add('*');
+                }
+            }
             if (s.length() == 1 || StringUtils.toUpperEnglish(s).equals(s)) {
                 buff.append(StringUtils.xmlText(s));
+                if (extension && deque.isEmpty()) {
+                    extension = false;
+                    buff.append("</span>");
+                }
                 continue;
             }
             buff.append(getLink(bnf, s));
         }
+        if (extension) {
+            if (deque.size() != 1 || deque.getLast() != '*') {
+                throw new AssertionError("Expected " + deque.getLast() + " got end of data");
+            }
+            buff.append("</span>");
+        }
         String s = buff.toString();
         // ensure it works within XHTML comments
         s = StringUtils.replaceAll(s, "--", "&#45;-");
+        return s;
+    }
+
+    private static String skipAfterExtensionStart(StringTokenizer tokenizer, StringBuilder buff) {
+        String s;
+        do {
+            s = tokenizer.nextToken();
+        } while (s.equals(" "));
         return s;
     }
 
@@ -108,6 +168,11 @@ public class BnfSyntax implements BnfVisitor {
 
     @Override
     public void visitRuleRepeat(boolean comma, Rule rule) {
+        // not used
+    }
+
+    @Override
+    public void visitRuleExtension(Rule rule, boolean compatibility) {
         // not used
     }
 

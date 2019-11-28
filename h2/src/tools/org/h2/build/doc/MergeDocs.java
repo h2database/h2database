@@ -5,10 +5,10 @@
  */
 package org.h2.build.doc;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import org.h2.engine.Constants;
 import org.h2.util.StringUtils;
@@ -45,11 +45,11 @@ public class MergeDocs {
             text = removeHeaderFooter(fileName, text);
             text = fixLinks(text);
             text = fixTableBorders(text);
+            text = addLegacyFontTag(fileName, text);
             buff.append(text);
         }
         String finalText = buff.toString();
-        File output = new File(BASE_DIR, "onePage.html");
-        PrintWriter writer = new PrintWriter(new FileWriter(output));
+        PrintWriter writer = new PrintWriter(Files.newBufferedWriter(Paths.get(BASE_DIR, "onePage.html")));
         writer.println("<html><head><meta http-equiv=\"Content-Type\" " +
                 "content=\"text/html;charset=utf-8\" /><title>");
         writer.println("H2 Documentation");
@@ -76,6 +76,32 @@ public class MergeDocs {
                 "syntax-end -->",
                 "<!-- syntax-end -->");
         return text;
+    }
+
+    private static String addLegacyFontTag(String fileName, String text) {
+        int idx1 = text.indexOf("<span class=\"rule");
+        if (idx1 < 0) {
+            return text;
+        }
+        int idx2 = 0, length = text.length();
+        StringBuilder builder = new StringBuilder(length + (length >> 4));
+        do {
+            builder.append(text, idx2, idx1);
+            boolean compat = text.regionMatches(idx1 + 17, "Compat\">", 0, 8);
+            boolean h2 = text.regionMatches(idx1 + 17, "H2\">", 0, 4);
+            if (compat == h2) {
+                throw new RuntimeException("Unknown BNF rule style in file " + fileName);
+            }
+            idx2 = text.indexOf("</span>", idx1 + (compat ? 8 : 4));
+            if (idx2 <= 0) {
+                throw new RuntimeException("</span> not found in file " + fileName);
+            }
+            idx2 += 7;
+            builder.append("<font color=\"").append(compat ? "darkred" : "green").append("\">")
+                    .append(text, idx1, idx2).append("</font>");
+            idx1 = text.indexOf("<span class=\"rule", idx2);
+        } while (idx1 >= 0);
+        return builder.append(text, idx2, length).toString();
     }
 
     private static String removeHeaderFooter(String fileName, String text) {
@@ -116,18 +142,6 @@ public class MergeDocs {
     }
 
     private static String getContent(String fileName) throws Exception {
-        File file = new File(BASE_DIR, fileName);
-        int length = (int) file.length();
-        char[] data = new char[length];
-        FileReader reader = new FileReader(file);
-        int off = 0;
-        while (length > 0) {
-            int len = reader.read(data, off, length);
-            off += len;
-            length -= len;
-        }
-        reader.close();
-        String s = new String(data);
-        return s;
+        return new String(Files.readAllBytes(Paths.get(BASE_DIR, fileName)), StandardCharsets.UTF_8);
     }
 }

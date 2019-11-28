@@ -207,9 +207,9 @@ public class Update extends Prepared implements DataChangeStatement {
                         if (updatedKeysCollector != null) {
                             updatedKeysCollector.add(key);
                         }
-                        if (deltaChangeCollectionMode == ResultOption.FINAL) {
-                            deltaChangeCollector.addRow(newRow.getValueList());
-                        }
+                    }
+                    if (deltaChangeCollectionMode == ResultOption.FINAL) {
+                        deltaChangeCollector.addRow(newRow.getValueList());
                     }
                     count++;
                 }

@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.ArrayList;
@@ -19,10 +20,9 @@ import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.store.fs.FakeFileChannel;
 import org.h2.store.fs.FileBase;
-import org.h2.store.fs.FileChannelInputStream;
 import org.h2.store.fs.FilePath;
-import org.h2.store.fs.FilePathDisk;
 import org.h2.store.fs.FileUtils;
+import org.h2.store.fs.disk.FilePathDisk;
 import org.h2.util.IOUtils;
 
 /**
@@ -243,7 +243,7 @@ public class FilePathZip2 extends FilePath {
 
     @Override
     public InputStream newInputStream() throws IOException {
-        return new FileChannelInputStream(open("r"), true);
+        return Channels.newInputStream(open("r"));
     }
 
     @Override

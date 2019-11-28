@@ -103,7 +103,7 @@ class Database {
      */
     void startServer() throws Exception {
         if (url.startsWith("jdbc:h2:tcp:")) {
-            serverH2 = Server.createTcpServer().start();
+            serverH2 = Server.createTcpServer("-ifNotExists").start();
             Thread.sleep(100);
         } else if (url.startsWith("jdbc:derby://")) {
             serverDerby = Class.forName(

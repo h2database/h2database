@@ -37,4 +37,9 @@ public class RuleOptional implements Rule {
         return true;
     }
 
+    @Override
+    public String toString() {
+        return '[' + rule.toString() + ']';
+    }
+
 }

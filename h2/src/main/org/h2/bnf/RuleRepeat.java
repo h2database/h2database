@@ -44,4 +44,9 @@ public class RuleRepeat implements Rule {
         return true;
     }
 
+    @Override
+    public String toString() {
+        return comma ? ", ..." : " ...";
+    }
+
 }

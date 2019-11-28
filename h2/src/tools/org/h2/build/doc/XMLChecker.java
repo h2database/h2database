@@ -5,11 +5,15 @@
  */
 package org.h2.build.doc;
 
-import java.io.File;
-import java.io.FileReader;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Stack;
-
-import org.h2.util.IOUtils;
 
 /**
  * This class checks that the HTML and XML part of the source code
@@ -24,35 +28,32 @@ public class XMLChecker {
      * @param args the command line parameters
      */
     public static void main(String... args) throws Exception {
-        new XMLChecker().run(args);
+        XMLChecker.run(args);
     }
 
-    private void run(String... args) throws Exception {
-        String dir = ".";
+    private static void run(String... args) throws Exception {
+        Path dir = Paths.get(".");
         for (int i = 0; i < args.length; i++) {
             if ("-dir".equals(args[i])) {
-                dir = args[++i];
+                dir = Paths.get(args[++i]);
             }
         }
-        process(dir + "/src");
-        process(dir + "/docs");
+        process(dir.resolve("src"));
+        process(dir.resolve("docs"));
     }
 
-    private void process(String path) throws Exception {
-        if (path.endsWith("/CVS") || path.endsWith("/.svn")) {
-            return;
-        }
-        File file = new File(path);
-        if (file.isDirectory()) {
-            for (String name : file.list()) {
-                process(path + "/" + name);
+    private static void process(Path path) throws Exception {
+        Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                processFile(file);
+                return FileVisitResult.CONTINUE;
             }
-        } else {
-            processFile(path);
-        }
+        });
     }
 
-    private static void processFile(String fileName) throws Exception {
+    static void processFile(Path file) throws IOException {
+        String fileName = file.getFileName().toString();
         int idx = fileName.lastIndexOf('.');
         if (idx < 0) {
             return;
@@ -62,8 +63,7 @@ public class XMLChecker {
             return;
         }
         // System.out.println("Checking file:" + fileName);
-        FileReader reader = new FileReader(fileName);
-        String s = IOUtils.readStringAndClose(reader, -1);
+        String s = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
         Exception last = null;
         try {
             checkXML(s, !suffix.equals("xml"));

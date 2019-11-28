@@ -6,14 +6,16 @@
 package org.h2.expression.function;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -147,7 +149,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             NEXTVAL = 207, CURRVAL = 208, ARRAY_GET = 209, CSVREAD = 210,
             CSVWRITE = 211, MEMORY_FREE = 212, MEMORY_USED = 213,
             LOCK_MODE = 214, CURRENT_SCHEMA = 215, SESSION_ID = 216,
-            ARRAY_LENGTH = 217, LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220,
+            CARDINALITY = 217, LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220,
             CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
             FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227,
             NVL2 = 228, DECODE = 229, ARRAY_CONTAINS = 230, FILE_WRITE = 232,
@@ -406,8 +408,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunctionNotDeterministic("DATABASE", CURRENT_CATALOG, 0, Value.STRING);
         addFunctionNotDeterministic("USER", USER,
                 0, Value.STRING);
-        addFunctionNotDeterministic("CURRENT_USER", CURRENT_USER,
-                0, Value.STRING);
+        addFunctionNotDeterministic("CURRENT_USER", CURRENT_USER, 0, Value.STRING, false);
         addFunctionNotDeterministic("IDENTITY", IDENTITY,
                 0, Value.LONG);
         addFunctionNotDeterministic("SCOPE_IDENTITY", SCOPE_IDENTITY,
@@ -468,8 +469,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         addFunctionNotDeterministic("SCHEMA", CURRENT_SCHEMA, 0, Value.STRING);
         addFunctionNotDeterministic("SESSION_ID", SESSION_ID,
                 0, Value.INT);
-        addFunction("ARRAY_LENGTH", ARRAY_LENGTH,
-                1, Value.INT);
+        addFunction("CARDINALITY", CARDINALITY, 1, Value.INT);
+        addFunction("ARRAY_LENGTH", CARDINALITY, 1, Value.INT);
         addFunctionNotDeterministic("LINK_SCHEMA", LINK_SCHEMA,
                 6, Value.RESULT_SET);
         addFunctionWithNull("LEAST", LEAST,
@@ -1119,7 +1120,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             }
             break;
         }
-        case ARRAY_LENGTH: {
+        case CARDINALITY: {
             Value[] list = getArray(v0);
             if (list != null) {
                 result = ValueInt.get(list.length);
@@ -1739,7 +1740,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             result = ValueNull.INSTANCE;
             String fileName = v1.getString();
             try {
-                FileOutputStream fileOutputStream = new FileOutputStream(fileName);
+                OutputStream fileOutputStream = Files.newOutputStream(Paths.get(fileName));
                 try (InputStream in = v0.getInputStream()) {
                     result = ValueLong.get(IOUtils.copyAndClose(in,
                             fileOutputStream));

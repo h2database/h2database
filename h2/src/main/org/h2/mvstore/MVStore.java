@@ -2156,6 +2156,10 @@ public class MVStore implements AutoCloseable
         sync();
 
         int rewrittenPageCount = 0;
+        // The purpose here is to temporarily release lock which was previously acquired,
+        // so normal store() procedure can be executed while this thread is re-writing pages.
+        // MVStore.store() will try to acquire this lock and it is non-reenterant,
+        // so lock has to be released and then re-acquired.
         storeLock.unlock();
         try {
             for (MVMap<?, ?> map : maps.values()) {
@@ -3442,7 +3446,7 @@ public class MVStore implements AutoCloseable
          * this value, then chunks at the end of the file are moved. Compaction
          * stops if the target fill rate is reached.
          * <p>
-         * The default value is 40 (40%). The value 0 disables auto-compacting.
+         * The default value is 90 (90%). The value 0 disables auto-compacting.
          * <p>
          *
          * @param percent the target fill rate

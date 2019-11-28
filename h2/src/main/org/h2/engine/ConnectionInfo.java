@@ -15,9 +15,9 @@ import org.h2.api.ErrorCode;
 import org.h2.command.dml.SetTypes;
 import org.h2.message.DbException;
 import org.h2.security.SHA256;
-import org.h2.store.fs.FilePathEncrypt;
-import org.h2.store.fs.FilePathRec;
 import org.h2.store.fs.FileUtils;
+import org.h2.store.fs.encrypt.FilePathEncrypt;
+import org.h2.store.fs.rec.FilePathRec;
 import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
@@ -98,7 +98,7 @@ public class ConnectionInfo implements Cloneable {
                 "IFEXISTS", "INIT", "FORBID_CREATION", "PASSWORD", "RECOVER", "RECOVER_TEST",
                 "USER", "AUTO_SERVER", "AUTO_SERVER_PORT", "NO_UPGRADE",
                 "AUTO_RECONNECT", "OPEN_NEW", "PAGE_SIZE", "PASSWORD_HASH", "JMX",
-                "SCOPE_GENERATED_KEYS", "AUTHREALM", "AUTHZPWD" };
+                "SCOPE_GENERATED_KEYS", "AUTHREALM", "AUTHZPWD", "NETWORK_TIMEOUT"};
         HashSet<String> set = new HashSet<>(128);
         set.addAll(SetTypes.getTypes());
         for (String key : connectionTime) {
@@ -253,6 +253,7 @@ public class ConnectionInfo implements Cloneable {
         if (idx >= 0) {
             String settings = url.substring(idx + 1);
             url = url.substring(0, idx);
+            String unknownSetting = null;
             String[] list = StringUtils.arraySplit(settings, ';', false);
             for (String setting : list) {
                 if (setting.isEmpty()) {
@@ -265,14 +266,19 @@ public class ConnectionInfo implements Cloneable {
                 String value = setting.substring(equal + 1);
                 String key = setting.substring(0, equal);
                 key = StringUtils.toUpperEnglish(key);
-                if (!isKnownSetting(key) && !defaultSettings.containsKey(key)) {
-                    throw DbException.get(ErrorCode.UNSUPPORTED_SETTING_1, key);
+                if (isKnownSetting(key) || defaultSettings.containsKey(key)) {
+                    String old = prop.getProperty(key);
+                    if (old != null && !old.equals(value)) {
+                        throw DbException.get(ErrorCode.DUPLICATE_PROPERTY_1, key);
+                    }
+                    prop.setProperty(key, value);
+                } else {
+                    unknownSetting = key;
                 }
-                String old = prop.getProperty(key);
-                if (old != null && !old.equals(value)) {
-                    throw DbException.get(ErrorCode.DUPLICATE_PROPERTY_1, key);
-                }
-                prop.setProperty(key, value);
+            }
+            if (unknownSetting != null //
+                    && !Utils.parseBoolean(prop.getProperty("IGNORE_UNKNOWN_SETTINGS"), false, false)) {
+                throw DbException.get(ErrorCode.UNSUPPORTED_SETTING_1, unknownSetting);
             }
         }
     }
@@ -389,7 +395,7 @@ public class ConnectionInfo implements Cloneable {
                             !name.contains(":/") &&
                             !name.contains(":\\")) {
                         // the name could start with "./", or
-                        // it could start with a prefix such as "nio:./"
+                        // it could start with a prefix such as "nioMapped:./"
                         // for Windows, the path "\test" is not considered
                         // absolute as the drive letter is missing,
                         // but we consider it absolute

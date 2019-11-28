@@ -15,6 +15,7 @@ import org.h2.table.TableFilter;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueDecimal;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
@@ -129,7 +130,7 @@ public class BinaryOperation extends Expression {
             if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
                 return ValueNull.INSTANCE;
             }
-            return l.divide(r);
+            return l.divide(r, right.getType().getPrecision());
         case MODULUS:
             if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
                 return ValueNull.INSTANCE;
@@ -150,51 +151,92 @@ public class BinaryOperation extends Expression {
     public Expression optimize(Session session) {
         left = left.optimize(session);
         right = right.optimize(session);
-        switch (opType) {
-        case PLUS:
-        case MINUS:
-        case MULTIPLY:
-        case DIVIDE:
-        case MODULUS:
-            int l = left.getType().getValueType();
-            int r = right.getType().getValueType();
-            if ((l == Value.NULL && r == Value.NULL) ||
-                    (l == Value.UNKNOWN && r == Value.UNKNOWN)) {
-                // (? + ?) - use decimal by default (the most safe data type) or
-                // string when text concatenation with + is enabled
-                if (opType == OpType.PLUS && session.getDatabase().getMode().allowPlusForStringConcat) {
-                    return new ConcatenationOperation(left, right).optimize(session);
-                } else {
-                    type = TypeInfo.TYPE_DECIMAL_FLOATING_POINT;
-                }
-            } else if (DataType.isIntervalType(l) || DataType.isIntervalType(r)) {
-                if (forcedType != null) {
-                    throw getUnexpectedForcedTypeException();
-                }
-                return optimizeInterval(session, l, r);
-            } else if (DataType.isDateTimeType(l) || DataType.isDateTimeType(r)) {
-                return optimizeDateTime(session, l, r);
-            } else if (forcedType != null) {
-                throw getUnexpectedForcedTypeException();
+        TypeInfo leftType = left.getType(), rightType = right.getType();
+        int l = leftType.getValueType(), r = rightType.getValueType();
+        if ((l == Value.NULL && r == Value.NULL) || (l == Value.UNKNOWN && r == Value.UNKNOWN)) {
+            // (? + ?) - use decimal by default (the most safe data type) or
+            // string when text concatenation with + is enabled
+            if (opType == OpType.PLUS && session.getDatabase().getMode().allowPlusForStringConcat) {
+                return new ConcatenationOperation(left, right).optimize(session);
             } else {
-                int dataType = Value.getHigherOrder(l, r);
-                if (dataType == Value.ENUM) {
-                    type = TypeInfo.TYPE_INT;
-                } else {
-                    type = TypeInfo.getTypeInfo(dataType);
-                    if (DataType.isStringType(dataType) && session.getDatabase().getMode().allowPlusForStringConcat) {
-                        return new ConcatenationOperation(left, right).optimize(session);
-                    }
-                }
+                type = TypeInfo.TYPE_DECIMAL_FLOATING_POINT;
             }
-            break;
-        default:
-            DbException.throwInternalError("type=" + opType);
+        } else if (DataType.isIntervalType(l) || DataType.isIntervalType(r)) {
+            if (forcedType != null) {
+                throw getUnexpectedForcedTypeException();
+            }
+            return optimizeInterval(session, l, r);
+        } else if (DataType.isDateTimeType(l) || DataType.isDateTimeType(r)) {
+            return optimizeDateTime(session, l, r);
+        } else if (forcedType != null) {
+            throw getUnexpectedForcedTypeException();
+        } else {
+            int dataType = Value.getHigherOrder(l, r);
+            if (dataType == Value.DECIMAL) {
+                optimizeNumeric(leftType, rightType);
+            } else if (dataType == Value.ENUM) {
+                type = TypeInfo.TYPE_INT;
+            } else if (DataType.isStringType(dataType)
+                    && opType == OpType.PLUS && session.getDatabase().getMode().allowPlusForStringConcat) {
+                return new ConcatenationOperation(left, right).optimize(session);
+            } else {
+                type = TypeInfo.getTypeInfo(dataType);
+            }
         }
         if (left.isConstant() && right.isConstant()) {
             return ValueExpression.get(getValue(session));
         }
         return this;
+    }
+
+    private void optimizeNumeric(TypeInfo leftType, TypeInfo rightType) {
+        leftType = leftType.toNumericType();
+        rightType = rightType.toNumericType();
+        long leftPrecision = leftType.getPrecision(), rightPrecision = rightType.getPrecision();
+        int leftScale = leftType.getScale(), rightScale = rightType.getScale();
+        long precision;
+        int scale;
+        switch (opType) {
+        case PLUS:
+        case MINUS:
+            // Precision is implementation-defined.
+            // Scale must be max(leftScale, rightScale).
+            // Choose the largest scale and adjust the precision of other
+            // argument.
+            if (leftScale < rightScale) {
+                leftPrecision += rightScale - leftScale;
+                scale = rightScale;
+            } else {
+                rightPrecision += leftScale - rightScale;
+                scale = leftScale;
+            }
+            // Add one extra digit to the largest precision.
+            precision = Math.max(leftPrecision, rightPrecision) + 1;
+            break;
+        case MULTIPLY:
+            // Precision is implementation-defined.
+            // Scale must be leftScale + rightScale.
+            // Use sum of precisions.
+            precision = leftPrecision + rightPrecision;
+            scale = leftScale + rightScale;
+            break;
+        case DIVIDE:
+            // Precision and scale are implementation-defined.
+            scale = ValueDecimal.getQuotientScale(leftScale, rightPrecision, rightScale);
+            // Divider can be effectively multiplied by no more than
+            // 10^rightScale, so add rightScale to its precision and adjust the
+            // result to the changes in scale.
+            precision = leftPrecision + rightScale - leftScale + scale;
+            break;
+        case MODULUS:
+            // Non-standard operation.
+            precision = rightPrecision;
+            scale = rightScale;
+            break;
+        default:
+            throw DbException.throwInternalError("type=" + opType);
+        }
+        type = TypeInfo.getTypeInfo(Value.DECIMAL, precision, scale, null);
     }
 
     private Expression optimizeInterval(Session session, int l, int r) {

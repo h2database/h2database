@@ -7,13 +7,15 @@ package org.h2.store;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.RandomAccessFile;
 import java.net.BindException;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.Paths;
 import java.util.Properties;
 import org.h2.Driver;
 import org.h2.api.ErrorCode;
@@ -208,10 +210,9 @@ public class FileLock implements Runnable {
          * cache.
          */
         try {
-            try (RandomAccessFile raRD = new RandomAccessFile(fileName, "rws")) {
-                raRD.seek(0);
-                byte b[] = new byte[1];
-                raRD.read(b);
+            try (FileChannel f = FileChannel.open(Paths.get(fileName), FileUtils.RWS, FileUtils.NO_ATTRIBUTES);) {
+                ByteBuffer b = ByteBuffer.wrap(new byte[1]);
+                f.read(b);
             }
         } catch (IOException ignoreEx) {}
         return FileUtils.lastModified(fileName);

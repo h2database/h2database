@@ -307,6 +307,18 @@ public class TestCompatibility extends TestDb {
         assertTrue(rs.next());
         assertEquals(new BigDecimal("92233720368547758.07"), rs.getBigDecimal(1));
         assertFalse(rs.next());
+
+        /* Test SET STATEMENT_TIMEOUT */
+        assertEquals(0, stat.getQueryTimeout());
+        conn.close();
+        deleteDb("compatibility");
+        // `stat.getQueryTimeout()` caches the result, so create another connection
+        conn = getConnection("compatibility");
+        stat = conn.createStatement();
+        // `STATEMENT_TIMEOUT` uses milliseconds
+        stat.execute("SET STATEMENT_TIMEOUT TO 30000");
+        // `stat.getQueryTimeout()` returns seconds
+        assertEquals(30, stat.getQueryTimeout());
     }
 
     private void testMySQL() throws SQLException {

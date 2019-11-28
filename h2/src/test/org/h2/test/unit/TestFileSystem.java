@@ -12,7 +12,6 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.channels.FileChannel.MapMode;
 import java.nio.channels.FileLock;
 import java.nio.channels.NonWritableChannelException;
 import java.sql.Connection;
@@ -29,9 +28,9 @@ import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.cache.FilePathCache;
 import org.h2.store.fs.FilePath;
-import org.h2.store.fs.FilePathEncrypt;
-import org.h2.store.fs.FilePathRec;
 import org.h2.store.fs.FileUtils;
+import org.h2.store.fs.encrypt.FilePathEncrypt;
+import org.h2.store.fs.rec.FilePathRec;
 import org.h2.test.TestBase;
 import org.h2.test.utils.AssertThrows;
 import org.h2.test.utils.FilePathDebug;
@@ -63,7 +62,6 @@ public class TestFileSystem extends TestBase {
         testAbsoluteRelative();
         testDirectories(getBaseDir());
         testMoveTo(getBaseDir());
-        testUnsupportedFeatures(getBaseDir());
         FilePathZip2.register();
         FilePath.register(new FilePathCache());
         FilePathRec.register();
@@ -93,8 +91,7 @@ public class TestFileSystem extends TestBase {
         testFileSystem("rec:memFS:");
         testUserHome();
         try {
-            testFileSystem("nio:" + getBaseDir() + "/fs");
-            testFileSystem("cache:nio:" + getBaseDir() + "/fs");
+            testFileSystem("cache:" + getBaseDir() + "/fs");
             testFileSystem("nioMapped:" + getBaseDir() + "/fs");
             testFileSystem("encrypt:0007:" + getBaseDir() + "/fs");
             testFileSystem("cache:encrypt:0007:" + getBaseDir() + "/fs");
@@ -374,7 +371,7 @@ public class TestFileSystem extends TestBase {
                 FileUtils.createTempFile(f, ".tmp", false);
         }};
         final FileChannel channel = FileUtils.open(f, "r");
-        new AssertThrows(IOException.class) {
+        new AssertThrows(NonWritableChannelException.class) {
             @Override
             public void test() throws IOException {
                 channel.write(ByteBuffer.allocate(1));
@@ -471,48 +468,6 @@ public class TestFileSystem extends TestBase {
         }
     }
 
-    private static void testUnsupportedFeatures(String fsBase) throws IOException {
-        final String fileName = fsBase + "/testFile";
-        if (FileUtils.exists(fileName)) {
-            FileUtils.delete(fileName);
-        }
-        if (FileUtils.createFile(fileName)) {
-            final FileChannel channel = FileUtils.open(fileName, "rw");
-            new AssertThrows(UnsupportedOperationException.class) {
-                @Override
-                public void test() throws IOException {
-                    channel.map(MapMode.PRIVATE, 0, channel.size());
-            }};
-            new AssertThrows(UnsupportedOperationException.class) {
-                @Override
-                public void test() throws IOException {
-                    channel.read(new ByteBuffer[]{ByteBuffer.allocate(10)}, 0, 0);
-            }};
-            new AssertThrows(UnsupportedOperationException.class) {
-                @Override
-                public void test() throws IOException {
-                    channel.write(new ByteBuffer[]{ByteBuffer.allocate(10)}, 0, 0);
-            }};
-            new AssertThrows(UnsupportedOperationException.class) {
-                @Override
-                public void test() throws IOException {
-                    channel.transferFrom(channel, 0, 0);
-            }};
-            new AssertThrows(UnsupportedOperationException.class) {
-                @Override
-                public void test() throws IOException {
-                    channel.transferTo(0, 0, channel);
-            }};
-            new AssertThrows(UnsupportedOperationException.class) {
-                @Override
-                public void test() throws IOException {
-                    channel.lock();
-            }};
-            channel.close();
-            FileUtils.delete(fileName);
-        }
-    }
-
     private void testParentEventuallyReturnsNull(String fsBase) {
         FilePath p = FilePath.get(fsBase + "/testFile");
         assertTrue(p.getScheme().length() > 0);
@@ -574,7 +529,7 @@ public class TestFileSystem extends TestBase {
         FileUtils.readFully(channel, ByteBuffer.wrap(test, 0, 10000));
         assertEquals(buffer, test);
         final FileChannel fc = channel;
-        new AssertThrows(IOException.class) {
+        new AssertThrows(NonWritableChannelException.class) {
             @Override
             public void test() throws Exception {
                 fc.write(ByteBuffer.wrap(test, 0, 10));
@@ -678,7 +633,6 @@ public class TestFileSystem extends TestBase {
         RandomAccessFile ra = new RandomAccessFile(file, "rw");
         FileUtils.delete(s);
         FileChannel f = FileUtils.open(s, "rw");
-        assertEquals(s, f.toString());
         assertEquals(-1, f.read(ByteBuffer.wrap(new byte[1])));
         f.force(true);
         Random random = new Random(seed);

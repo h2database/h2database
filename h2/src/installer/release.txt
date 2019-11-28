@@ -65,6 +65,9 @@ Update org.h2.engine.Constants.java:
 Update h2/pom.xml.
     set ...-SNAPSHOT to the next version
 
+Update README.md.
+    set version to the next version
+
 Update changelog.html:
     * create a new "Next Version (unreleased)" with an empty list
     * add a new version

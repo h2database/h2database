@@ -6,23 +6,25 @@
 package org.h2.build;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.Enumeration;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import org.h2.build.doc.XMLParser;
 
@@ -35,6 +37,10 @@ public class Build extends BuildBase {
 
     private static final String ARGS4J_VERSION = "2.33";
 
+    private static final String DERBY_VERSION = "10.15.1.3";
+
+    private static final String HSQLDB_VERSION = "2.5.0";
+
     private static final String JACOCO_VERSION = "0.8.5";
 
     private static final String JTS_VERSION = "1.16.1";
@@ -42,6 +48,8 @@ public class Build extends BuildBase {
     private static final String JUNIT_VERSION = "5.5.2";
 
     private static final String LUCENE_VERSION = "8.2.0";
+
+    private static final String MYSQL_CONNECTOR_VERSION = "8.0.18";
 
     private static final String OSGI_VERSION = "5.0.0";
 
@@ -69,34 +77,37 @@ public class Build extends BuildBase {
      */
     @Description(summary = "Run the benchmarks.")
     public void benchmark() {
-        downloadUsingMaven("ext/hsqldb-2.3.2.jar",
-                "org/hsqldb", "hsqldb", "2.3.2",
-                "970fd7b8f635e2c19305160459649569655b843c");
-        downloadUsingMaven("ext/derby-10.10.1.1.jar",
-                "org/apache/derby", "derby", "10.10.1.1",
-                "09f6f910f0373adc1b23c10f9b4bb151b7e7449f");
-        downloadUsingMaven("ext/derbyclient-10.10.1.1.jar",
-                "org/apache/derby", "derbyclient", "10.10.1.1",
-                "42d5293b4ac5c5f082583c3564c10f78bd34a4cb");
-        downloadUsingMaven("ext/derbynet-10.10.1.1.jar",
-                "org/apache/derby", "derbynet", "10.10.1.1",
-                "912b08dca73663d4665e09cd317be1218412d93e");
+        downloadUsingMaven("ext/hsqldb-" + HSQLDB_VERSION + ".jar",
+                "org.hsqldb", "hsqldb", HSQLDB_VERSION,
+                "59298fcd77faf01e02b405def2f80cccbf582508");
+        downloadUsingMaven("ext/derby-" + DERBY_VERSION,
+                "org.apache.derby", "derby", DERBY_VERSION,
+                "79505f952a4f8d6be761413d7b10a64d6405e57a");
+        downloadUsingMaven("ext/derbyclient-" + DERBY_VERSION + ".jar",
+                "org.apache.derby", "derbyclient", DERBY_VERSION,
+                "9a08ac1b0b547ca436c85799926b2459d48b2402");
+        downloadUsingMaven("ext/derbynet-" + DERBY_VERSION + ".jar",
+                "org.apache.derby", "derbynet", DERBY_VERSION,
+                "6e15859b3bb1e654f417f1a498fc2a6e76fa8e80");
+        downloadUsingMaven("ext/derbyshared-" + DERBY_VERSION + ".jar",
+                "org.apache.derby", "derbyshared", DERBY_VERSION,
+                "c7fb80babe6a671f0a5e4d0c9ad96dfb723df49d");
         downloadUsingMaven("ext/postgresql-" + PGJDBC_VERSION + ".jar",
                 "org.postgresql", "postgresql", PGJDBC_VERSION, PGJDBC_HASH);
-        downloadUsingMaven("ext/mysql-connector-java-5.1.6.jar",
-                "mysql", "mysql-connector-java", "5.1.6",
-                "380ef5226de2c85ff3b38cbfefeea881c5fce09d");
+        downloadUsingMaven("ext/mysql-connector-java-" + MYSQL_CONNECTOR_VERSION + ".jar",
+                "mysql", "mysql-connector-java", MYSQL_CONNECTOR_VERSION,
+                "e088efaa4b568bc7d9f7274b9c5ea1a00da1a45c");
         compile();
 
         String cp = "temp" +
                 File.pathSeparator + "bin/h2" + getJarSuffix() +
-                File.pathSeparator + "ext/hsqldb.jar" +
-                File.pathSeparator + "ext/hsqldb-2.3.2.jar" +
-                File.pathSeparator + "ext/derby-10.10.1.1.jar" +
-                File.pathSeparator + "ext/derbyclient-10.10.1.1.jar" +
-                File.pathSeparator + "ext/derbynet-10.10.1.1.jar" +
+                File.pathSeparator + "ext/hsqldb-" + HSQLDB_VERSION + ".jar" +
+                File.pathSeparator + "ext/derby-" + DERBY_VERSION + ".jar" +
+                File.pathSeparator + "ext/derbyclient-" + DERBY_VERSION + ".jar" +
+                File.pathSeparator + "ext/derbynet-" + DERBY_VERSION + ".jar" +
+                File.pathSeparator + "ext/derbyshared-" + DERBY_VERSION + ".jar" +
                 File.pathSeparator + "ext/postgresql-" + PGJDBC_VERSION + ".jar" +
-                File.pathSeparator + "ext/mysql-connector-java-5.1.6.jar";
+                File.pathSeparator + "ext/mysql-connector-java-" + MYSQL_CONNECTOR_VERSION + ".jar";
         StringList args = args("-Xmx128m",
                 "-cp", cp, "org.h2.test.bench.TestPerformance");
         execJava(args.plus("-init", "-db", "1"));
@@ -142,14 +153,6 @@ public class Build extends BuildBase {
         javac(args, files);
     }
 
-    private static void copy(InputStream in, OutputStream out) throws IOException {
-        byte[] buffer = new byte[8192];
-        int read;
-        while ((read = in.read(buffer, 0, buffer.length)) >= 0) {
-            out.write(buffer, 0, read);
-        }
-    }
-
     /**
      * Run the JaCoco code coverage.
      */
@@ -160,18 +163,11 @@ public class Build extends BuildBase {
         downloadUsingMaven("ext/org.jacoco.agent-" + JACOCO_VERSION + ".jar",
                 "org.jacoco", "org.jacoco.agent", JACOCO_VERSION,
                 "0fd03a8ab78af3dd03b27647067efa72690d4922");
-        try (ZipFile zipFile = new ZipFile(new File("ext/org.jacoco.agent-" + JACOCO_VERSION + ".jar"))) {
-            final Enumeration<? extends ZipEntry> e = zipFile.entries();
-            while (e.hasMoreElements()) {
-                final ZipEntry zipEntry = e.nextElement();
-                final String name = zipEntry.getName();
-                if (name.equals("jacocoagent.jar")) {
-                    try (InputStream in = zipFile.getInputStream(zipEntry);
-                            FileOutputStream out = new FileOutputStream("ext/jacocoagent.jar")) {
-                        copy(in, out);
-                    }
-                }
-            }
+        URI uri = URI.create("jar:"
+                + Paths.get("ext/org.jacoco.agent-" + JACOCO_VERSION + ".jar").toAbsolutePath().toUri());
+        try (FileSystem fs = FileSystems.newFileSystem(uri, Collections.emptyMap())) {
+            Files.copy(fs.getPath("jacocoagent.jar"), Paths.get("ext/jacocoagent.jar"),
+                    StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
@@ -339,9 +335,9 @@ public class Build extends BuildBase {
 
     private static void filter(String source, String target, String old,
             String replacement) {
-        String text = new String(readFile(new File(source)));
+        String text = new String(readFile(Paths.get(source)));
         text = replaceAll(text, old, replacement);
-        writeFile(new File(target), text.getBytes());
+        writeFile(Paths.get(target), text.getBytes());
     }
 
     /**
@@ -412,8 +408,8 @@ public class Build extends BuildBase {
     private void downloadOrVerify(String target, String group, String artifact,
             String version, String sha1Checksum, boolean offline) {
         if (offline) {
-            File targetFile = new File(target);
-            if (targetFile.exists()) {
+            Path targetFile = Paths.get(target);
+            if (Files.exists(targetFile)) {
                 return;
             }
             println("Missing file: " + target);
@@ -470,7 +466,7 @@ public class Build extends BuildBase {
             println("Put content of h2/src/installer/openoffice.txt here.");
             println("Edit BaseDir variable value:");
 
-            println("    BaseDir = \"" + new File(System.getProperty("user.dir")).getParentFile().toURI() + '"');
+            println("    BaseDir = \"" + Paths.get(System.getProperty("user.dir")).getParent().toUri() + '"');
             println("Close office application and try to build installer again.");
             println("********************************************************************************");
         }
@@ -489,32 +485,32 @@ public class Build extends BuildBase {
             println("NSIS is not available: " + e);
         }
         String buildDate = getStaticField("org.h2.engine.Constants", "BUILD_DATE");
-        byte[] data = readFile(new File("../h2web/h2.zip"));
+        byte[] data = readFile(Paths.get("../h2web/h2.zip"));
         String sha1Zip = getSHA1(data), sha1Exe = null;
-        writeFile(new File("../h2web/h2-" + buildDate + ".zip"), data);
+        writeFile(Paths.get("../h2web/h2-" + buildDate + ".zip"), data);
         if (installer) {
-            data = readFile(new File("../h2web/h2-setup.exe"));
+            data = readFile(Paths.get("../h2web/h2-setup.exe"));
             sha1Exe = getSHA1(data);
-            writeFile(new File("../h2web/h2-setup-" + buildDate + ".exe"), data);
+            writeFile(Paths.get("../h2web/h2-setup-" + buildDate + ".exe"), data);
         }
         updateChecksum("../h2web/html/download.html", sha1Zip, sha1Exe);
     }
 
-    private static void updateChecksum(String fileName, String sha1Zip,
-            String sha1Exe) {
-        String checksums = new String(readFile(new File(fileName)));
+    private static void updateChecksum(String fileName, String sha1Zip, String sha1Exe) {
+        Path file = Paths.get(fileName);
+        String checksums = new String(readFile(file));
         checksums = replaceAll(checksums, "<!-- sha1Zip -->",
                 "(SHA1 checksum: " + sha1Zip + ")");
         if (sha1Exe != null) {
             checksums = replaceAll(checksums, "<!-- sha1Exe -->",
                     "(SHA1 checksum: " + sha1Exe + ")");
         }
-        writeFile(new File(fileName), checksums.getBytes());
+        writeFile(file, checksums.getBytes());
     }
 
-    private static String canonicalPath(File file) {
+    private static String canonicalPath(Path file) {
         try {
-            return file.getCanonicalPath();
+            return file.toRealPath().toString();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -522,8 +518,8 @@ public class Build extends BuildBase {
 
     private FileList excludeTestMetaInfFiles(FileList files) {
         FileList testMetaInfFiles = files("src/test/META-INF");
-        int basePathLength = canonicalPath(new File("src/test")).length();
-        for (File file : testMetaInfFiles) {
+        int basePathLength = canonicalPath(Paths.get("src/test")).length();
+        for (Path file : testMetaInfFiles) {
             files = files.exclude(canonicalPath(file).substring(basePathLength + 1));
         }
         return files;
@@ -640,8 +636,8 @@ public class Build extends BuildBase {
             exclude("*.txt").
             exclude("*.DS_Store");
         files = excludeTestMetaInfFiles(files);
-        files.add(new File("temp/org/h2/tools/DeleteDbFiles.class"));
-        files.add(new File("temp/org/h2/tools/CompressTool.class"));
+        files.add(Paths.get("temp/org/h2/tools/DeleteDbFiles.class"));
+        files.add(Paths.get("temp/org/h2/tools/CompressTool.class"));
         jar("bin/h2small" + getJarSuffix(), files, "temp");
     }
 
@@ -735,14 +731,14 @@ public class Build extends BuildBase {
     }
 
     private static void manifest(String path) {
-        String manifest = new String(readFile(new File(path)), StandardCharsets.UTF_8);
+        String manifest = new String(readFile(Paths.get(path)), StandardCharsets.UTF_8);
         manifest = replaceAll(manifest, "${version}", getVersion());
         manifest = replaceAll(manifest, "${buildJdk}", getJavaSpecVersion());
         String createdBy = System.getProperty("java.runtime.version") +
             " (" + System.getProperty("java.vm.vendor") + ")";
         manifest = replaceAll(manifest, "${createdBy}", createdBy);
         mkdir("temp/META-INF");
-        writeFile(new File("temp/META-INF/MANIFEST.MF"), manifest.getBytes());
+        writeFile(Paths.get("temp/META-INF/MANIFEST.MF"), manifest.getBytes());
     }
 
     /**
@@ -757,10 +753,9 @@ public class Build extends BuildBase {
         copy("docs", files, "src/main");
         files = files("docs").keep("docs/org/*").keep("*.java");
         files.addAll(files("docs").keep("docs/META-INF/*"));
-        String manifest = new String(readFile(new File(
-                "src/installer/source-manifest.mf")));
+        String manifest = new String(readFile(Paths.get("src/installer/source-manifest.mf")));
         manifest = replaceAll(manifest, "${version}", getVersion());
-        writeFile(new File("docs/META-INF/MANIFEST.MF"), manifest.getBytes());
+        writeFile(Paths.get("docs/META-INF/MANIFEST.MF"), manifest.getBytes());
         jar("docs/h2-" + getVersion() + "-sources.jar", files, "docs");
         delete("docs/org");
         delete("docs/META-INF");
@@ -798,9 +793,9 @@ public class Build extends BuildBase {
 
         // generate and deploy the h2*.jar file
         jar();
-        String pom = new String(readFile(new File("src/installer/pom-template.xml")));
+        String pom = new String(readFile(Paths.get("src/installer/pom-template.xml")));
         pom = replaceAll(pom, "@version@", getVersion());
-        writeFile(new File("bin/pom.xml"), pom.getBytes());
+        writeFile(Paths.get("bin/pom.xml"), pom.getBytes());
         execScript("mvn", args(
                 "deploy:deploy-file",
                 "-Dfile=bin/h2" + getJarSuffix(),
@@ -818,10 +813,9 @@ public class Build extends BuildBase {
                 exclude("docs/org/h2/mvstore/db/*").
                 keep("*.java");
         files.addAll(files("docs").keep("docs/META-INF/*"));
-        manifest = new String(readFile(new File(
-                "src/installer/source-manifest.mf")));
+        manifest = new String(readFile(Paths.get("src/installer/source-manifest.mf")));
         manifest = replaceAll(manifest, "${version}", getVersion());
-        writeFile(new File("docs/META-INF/MANIFEST.MF"), manifest.getBytes());
+        writeFile(Paths.get("docs/META-INF/MANIFEST.MF"), manifest.getBytes());
         jar("docs/h2-mvstore-" + getVersion() + "-sources.jar", files, "docs");
         delete("docs/org");
         delete("docs/META-INF");
@@ -857,9 +851,9 @@ public class Build extends BuildBase {
 
         // generate and deploy the h2-mvstore-*.jar file
         jarMVStore();
-        pom = new String(readFile(new File("src/installer/pom-mvstore-template.xml")));
+        pom = new String(readFile(Paths.get("src/installer/pom-mvstore-template.xml")));
         pom = replaceAll(pom, "@version@", getVersion());
-        writeFile(new File("bin/pom.xml"), pom.getBytes());
+        writeFile(Paths.get("bin/pom.xml"), pom.getBytes());
         execScript("mvn", args(
                 "deploy:deploy-file",
                 "-Dfile=bin/h2-mvstore" + getJarSuffix(),
@@ -879,9 +873,9 @@ public class Build extends BuildBase {
     public void mavenInstallLocal() {
         // MVStore
         jarMVStore();
-        String pom = new String(readFile(new File("src/installer/pom-mvstore-template.xml")));
+        String pom = new String(readFile(Paths.get("src/installer/pom-mvstore-template.xml")));
         pom = replaceAll(pom, "@version@", "1.0-SNAPSHOT");
-        writeFile(new File("bin/pom.xml"), pom.getBytes());
+        writeFile(Paths.get("bin/pom.xml"), pom.getBytes());
         execScript("mvn", args(
                 "install:install-file",
                 "-Dversion=1.0-SNAPSHOT",
@@ -892,9 +886,9 @@ public class Build extends BuildBase {
                 "-DgroupId=com.h2database"));
         // database
         jar();
-        pom = new String(readFile(new File("src/installer/pom-template.xml")));
+        pom = new String(readFile(Paths.get("src/installer/pom-template.xml")));
         pom = replaceAll(pom, "@version@", "1.0-SNAPSHOT");
-        writeFile(new File("bin/pom.xml"), pom.getBytes());
+        writeFile(Paths.get("bin/pom.xml"), pom.getBytes());
         execScript("mvn", args(
                 "install:install-file",
                 "-Dversion=1.0-SNAPSHOT",
@@ -1184,8 +1178,8 @@ public class Build extends BuildBase {
     @Override
     protected String getLocalMavenDir() {
         String userHome = System.getProperty("user.home", "");
-        File file = new File(userHome, ".m2/settings.xml");
-        if (!file.exists()) {
+        Path file = Paths.get(userHome, ".m2/settings.xml");
+        if (!Files.exists(file)) {
             return super.getLocalMavenDir();
         }
         XMLParser p = new XMLParser(new String(BuildBase.readFile(file)));

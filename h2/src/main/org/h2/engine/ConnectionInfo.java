@@ -248,7 +248,7 @@ public class ConnectionInfo implements Cloneable {
     }
 
     private void readSettingsFromURL() {
-        DbSettings defaultSettings = DbSettings.getDefaultSettings();
+        DbSettings defaultSettings = DbSettings.DEFAULT;
         int idx = url.indexOf(';');
         if (idx >= 0) {
             String settings = url.substring(idx + 1);
@@ -657,7 +657,7 @@ public class ConnectionInfo implements Cloneable {
     }
 
     public DbSettings getDbSettings() {
-        DbSettings defaultSettings = DbSettings.getDefaultSettings();
+        DbSettings defaultSettings = DbSettings.DEFAULT;
         HashMap<String, String> s = new HashMap<>(DbSettings.TABLE_SIZE);
         for (Object k : prop.keySet()) {
             String key = k.toString();

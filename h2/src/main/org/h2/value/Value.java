@@ -1064,7 +1064,7 @@ public abstract class Value extends VersionedValue {
     private ValueDecimal convertToDecimal() {
         switch (getValueType()) {
         case BOOLEAN:
-            return (ValueDecimal) (getBoolean() ? ValueDecimal.ONE : ValueDecimal.ZERO);
+            return getBoolean() ? ValueDecimal.ONE : ValueDecimal.ZERO;
         case BYTE:
         case SHORT:
         case ENUM:

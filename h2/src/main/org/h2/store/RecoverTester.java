@@ -32,7 +32,7 @@ import org.h2.util.Utils;
  */
 public class RecoverTester implements Recorder {
 
-    private static RecoverTester instance;
+    private static final RecoverTester instance = new RecoverTester();
 
     private String testDatabase = "memFS:reopen";
     private int writeCount = Utils.getProperty("h2.recoverTestOffset", 0);
@@ -49,18 +49,10 @@ public class RecoverTester implements Recorder {
      * @param recoverTest the value of the recover test parameter
      */
     public static synchronized void init(String recoverTest) {
-        RecoverTester tester = RecoverTester.getInstance();
         if (StringUtils.isNumber(recoverTest)) {
-            tester.setTestEvery(Integer.parseInt(recoverTest));
+            instance.setTestEvery(Integer.parseInt(recoverTest));
         }
-        FilePathRec.setRecorder(tester);
-    }
-
-    public static synchronized RecoverTester getInstance() {
-        if (instance == null) {
-            instance = new RecoverTester();
-        }
-        return instance;
+        FilePathRec.setRecorder(instance);
     }
 
     @Override

@@ -25,12 +25,16 @@ import org.h2.util.Utils;
  */
 public class DbSettings extends SettingsBase {
 
-    private static DbSettings defaultSettings;
-
     /**
      * The initial size of the hash table.
      */
     static final int TABLE_SIZE = 64;
+
+    /**
+     * INTERNAL.
+     * The default settings. Those must not be modified.
+     */
+    public static final DbSettings DEFAULT = new DbSettings(new HashMap<>(TABLE_SIZE));
 
     /**
      * Database setting <code>ALIAS_COLUMN_NAME</code> (default: false).<br />
@@ -383,19 +387,6 @@ public class DbSettings extends SettingsBase {
      */
     public static DbSettings getInstance(HashMap<String, String> s) {
         return new DbSettings(s);
-    }
-
-    /**
-     * INTERNAL.
-     * Get the default settings. Those must not be modified.
-     *
-     * @return the settings
-     */
-    public static DbSettings getDefaultSettings() {
-        if (defaultSettings == null) {
-            defaultSettings = new DbSettings(new HashMap<String, String>(TABLE_SIZE));
-        }
-        return defaultSettings;
     }
 
 }

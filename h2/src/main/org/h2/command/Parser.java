@@ -3033,7 +3033,7 @@ public class Parser {
 
     private Expression readExpressionOrDefault() {
         if (readIf("DEFAULT")) {
-            return ValueExpression.getDefault();
+            return ValueExpression.DEFAULT;
         }
         return readExpression();
     }
@@ -3253,7 +3253,7 @@ public class Parser {
     private Expression readInPredicate(Expression left) {
         read(OPEN_PAREN);
         if (database.getMode().allowEmptyInPredicate && readIf(CLOSE_PAREN)) {
-            return ValueExpression.getBoolean(false);
+            return ValueExpression.FALSE;
         }
         ArrayList<Expression> v;
         if (isQuery()) {
@@ -4341,7 +4341,7 @@ public class Parser {
         case OPEN_PAREN:
             read();
             if (readIf(CLOSE_PAREN)) {
-                r = ValueExpression.get(ValueRow.getEmpty());
+                r = ValueExpression.get(ValueRow.EMPTY);
             } else {
                 r = readExpression();
                 if (readIfMore()) {
@@ -4366,7 +4366,7 @@ public class Parser {
             read();
             read(OPEN_BRACKET);
             if (readIf(CLOSE_BRACKET)) {
-                r = ValueExpression.get(ValueArray.getEmpty());
+                r = ValueExpression.get(ValueArray.EMPTY);
             } else {
                 ArrayList<Expression> list = Utils.newSmallArrayList();
                 do {
@@ -4384,7 +4384,7 @@ public class Parser {
             read();
             read(OPEN_PAREN);
             if (readIf(CLOSE_PAREN)) {
-                r = ValueExpression.get(ValueRow.getEmpty());
+                r = ValueExpression.get(ValueRow.EMPTY);
             } else {
                 ArrayList<Expression> list = Utils.newSmallArrayList();
                 do {
@@ -4396,15 +4396,15 @@ public class Parser {
         }
         case TRUE:
             read();
-            r = ValueExpression.getBoolean(true);
+            r = ValueExpression.TRUE;
             break;
         case FALSE:
             read();
-            r = ValueExpression.getBoolean(false);
+            r = ValueExpression.FALSE;
             break;
         case UNKNOWN:
             read();
-            r = TypedValueExpression.getUnknown();
+            r = TypedValueExpression.UNKNOWN;
             break;
         case ROWNUM:
             read();
@@ -4419,7 +4419,7 @@ public class Parser {
             break;
         case NULL:
             read();
-            r = ValueExpression.getNull();
+            r = ValueExpression.NULL;
             break;
         case _ROWID_:
             read();
@@ -4854,7 +4854,7 @@ public class Parser {
     private Expression readCase() {
         if (readIf("END")) {
             readIf(CASE);
-            return ValueExpression.getNull();
+            return ValueExpression.NULL;
         }
         if (readIf("ELSE")) {
             Expression elsePart = readExpression().optimize(session);
@@ -4875,7 +4875,7 @@ public class Parser {
             Expression expr = readExpression();
             if (readIf("END")) {
                 readIf(CASE);
-                return ValueExpression.getNull();
+                return ValueExpression.NULL;
             }
             if (readIf("ELSE")) {
                 Expression elsePart = readExpression().optimize(session);
@@ -7309,20 +7309,20 @@ public class Parser {
             } else if (readIf("MINVALUE")) {
                 options.setMinValue(readExpression());
             } else if (readIf("NOMINVALUE")) {
-                options.setMinValue(ValueExpression.getNull());
+                options.setMinValue(ValueExpression.NULL);
             } else if (readIf("MAXVALUE")) {
                 options.setMaxValue(readExpression());
             } else if (readIf("NOMAXVALUE")) {
-                options.setMaxValue(ValueExpression.getNull());
+                options.setMaxValue(ValueExpression.NULL);
             } else if (readIf("CYCLE")) {
                 options.setCycle(true);
             } else if (readIf("NOCYCLE")) {
                 options.setCycle(false);
             } else if (readIf("NO")) {
                 if (readIf("MINVALUE")) {
-                    options.setMinValue(ValueExpression.getNull());
+                    options.setMinValue(ValueExpression.NULL);
                 } else if (readIf("MAXVALUE")) {
-                    options.setMaxValue(ValueExpression.getNull());
+                    options.setMaxValue(ValueExpression.NULL);
                 } else if (readIf("CYCLE")) {
                     options.setCycle(false);
                 } else if (readIf("CACHE")) {

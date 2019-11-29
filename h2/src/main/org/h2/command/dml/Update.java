@@ -164,7 +164,7 @@ public class Update extends Prepared implements DataChangeStatement {
                                 setOnUpdate = true;
                             }
                             newValue = oldRow.getValue(i);
-                        } else if (newExpr == ValueExpression.getDefault()) {
+                        } else if (newExpr == ValueExpression.DEFAULT) {
                             newValue = table.getDefaultValue(session, column);
                         } else {
                             newValue = newExpr.getValue(session);

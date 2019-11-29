@@ -26,24 +26,24 @@ public class ValueExpression extends Expression {
     /**
      * The expression represents ValueNull.INSTANCE.
      */
-    private static final Object NULL = new ValueExpression(ValueNull.INSTANCE);
+    public static final ValueExpression NULL = new ValueExpression(ValueNull.INSTANCE);
 
     /**
      * This special expression represents the default value. It is used for
      * UPDATE statements of the form SET COLUMN = DEFAULT. The value is
      * ValueNull.INSTANCE, but should never be accessed.
      */
-    private static final Object DEFAULT = new ValueExpression(ValueNull.INSTANCE);
+    public static final ValueExpression DEFAULT = new ValueExpression(ValueNull.INSTANCE);
 
     /**
      * The expression represents ValueBoolean.TRUE.
      */
-    private static final Object TRUE = new ValueExpression(ValueBoolean.TRUE);
+    public static final ValueExpression TRUE = new ValueExpression(ValueBoolean.TRUE);
 
     /**
      * The expression represents ValueBoolean.FALSE.
      */
-    private static final Object FALSE = new ValueExpression(ValueBoolean.FALSE);
+    public static final ValueExpression FALSE = new ValueExpression(ValueBoolean.FALSE);
 
     /**
      * The value.
@@ -55,24 +55,6 @@ public class ValueExpression extends Expression {
     }
 
     /**
-     * Get the NULL expression.
-     *
-     * @return the NULL expression
-     */
-    public static ValueExpression getNull() {
-        return (ValueExpression) NULL;
-    }
-
-    /**
-     * Get the DEFAULT expression.
-     *
-     * @return the DEFAULT expression
-     */
-    public static ValueExpression getDefault() {
-        return (ValueExpression) DEFAULT;
-    }
-
-    /**
      * Create a new expression with the given value.
      *
      * @param value the value
@@ -80,7 +62,7 @@ public class ValueExpression extends Expression {
      */
     public static ValueExpression get(Value value) {
         if (value == ValueNull.INSTANCE) {
-            return getNull();
+            return NULL;
         }
         if (value.getValueType() == Value.BOOLEAN) {
             return getBoolean(value.getBoolean());
@@ -96,7 +78,7 @@ public class ValueExpression extends Expression {
      */
     public static ValueExpression getBoolean(Value value) {
         if (value == ValueNull.INSTANCE) {
-            return TypedValueExpression.getUnknown();
+            return TypedValueExpression.UNKNOWN;
         }
         return getBoolean(value.getBoolean());
     }
@@ -108,7 +90,7 @@ public class ValueExpression extends Expression {
      * @return the expression
      */
     public static ValueExpression getBoolean(boolean value) {
-        return (ValueExpression) (value ? TRUE : FALSE);
+        return value ? TRUE : FALSE;
     }
 
     @Override
@@ -130,7 +112,7 @@ public class ValueExpression extends Expression {
 
     @Override
     public Expression getNotIfPossible(Session session) {
-        return new Comparison(session, Comparison.EQUAL, this, ValueExpression.getBoolean(false));
+        return new Comparison(session, Comparison.EQUAL, this, ValueExpression.FALSE);
     }
 
     @Override

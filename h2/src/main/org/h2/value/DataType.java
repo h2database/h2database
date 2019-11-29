@@ -76,8 +76,7 @@ public class DataType {
             "org.locationtech.jts.geom.Geometry";
 
     /**
-     * The list of types. An ArrayList so that Tomcat doesn't set it to null
-     * when clearing references.
+     * The list of types.
      */
     private static final ArrayList<DataType> TYPES = new ArrayList<>(96);
     private static final HashMap<String, DataType> TYPES_BY_NAME = new HashMap<>(128);

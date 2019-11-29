@@ -21,7 +21,7 @@ public class ValueArray extends ValueCollectionBase {
     /**
      * Empty array.
      */
-    private static final Object EMPTY = get(Value.EMPTY_VALUES);
+    public static final ValueArray EMPTY = get(Value.EMPTY_VALUES);
 
     private TypeInfo type;
 
@@ -53,15 +53,6 @@ public class ValueArray extends ValueCollectionBase {
      */
     public static ValueArray get(TypeInfo componentType, Value[] list) {
         return new ValueArray(componentType, list);
-    }
-
-    /**
-     * Returns empty array.
-     *
-     * @return empty array
-     */
-    public static ValueArray getEmpty() {
-        return (ValueArray) EMPTY;
     }
 
     @Override

@@ -24,13 +24,13 @@ public class CloseWatcher extends PhantomReference<Object> {
     /**
      * The queue (might be set to null at any time).
      */
-    private static ReferenceQueue<Object> queue = new ReferenceQueue<>();
+    private static final ReferenceQueue<Object> queue = new ReferenceQueue<>();
 
     /**
      * The reference set. Must keep it, otherwise the references are garbage
      * collected first and thus never enqueued.
      */
-    private static Set<CloseWatcher> refs = createSet();
+    private static final Set<CloseWatcher> refs = Collections.synchronizedSet(new HashSet<>());
 
     /**
      * The stack trace of when the object was created. It is converted to a
@@ -50,22 +50,14 @@ public class CloseWatcher extends PhantomReference<Object> {
         this.closeable = closeable;
     }
 
-    private static Set<CloseWatcher> createSet() {
-        return Collections.synchronizedSet(new HashSet<CloseWatcher>());
-    }
-
     /**
      * Check for an collected object.
      *
      * @return the first watcher
      */
     public static CloseWatcher pollUnclosed() {
-        ReferenceQueue<Object> q = queue;
-        if (q == null) {
-            return null;
-        }
         while (true) {
-            CloseWatcher cw = (CloseWatcher) q.poll();
+            CloseWatcher cw = (CloseWatcher) queue.poll();
             if (cw == null) {
                 return null;
             }
@@ -90,20 +82,12 @@ public class CloseWatcher extends PhantomReference<Object> {
      */
     public static CloseWatcher register(Object o, Closeable closeable,
             boolean stackTrace) {
-        ReferenceQueue<Object> q = queue;
-        if (q == null) {
-            q = new ReferenceQueue<>();
-            queue = q;
-        }
-        CloseWatcher cw = new CloseWatcher(o, q, closeable);
+        CloseWatcher cw = new CloseWatcher(o, queue, closeable);
         if (stackTrace) {
             Exception e = new Exception("Open Stack Trace");
             StringWriter s = new StringWriter();
             e.printStackTrace(new PrintWriter(s));
             cw.openStackTrace = s.toString();
-        }
-        if (refs == null) {
-            refs = createSet();
         }
         refs.add(cw);
         return cw;

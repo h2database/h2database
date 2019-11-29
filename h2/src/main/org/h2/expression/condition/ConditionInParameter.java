@@ -138,7 +138,7 @@ public class ConditionInParameter extends Condition {
     public Expression optimize(Session session) {
         left = left.optimize(session);
         if (left.isNullConstant()) {
-            return TypedValueExpression.getUnknown();
+            return TypedValueExpression.UNKNOWN;
         }
         return this;
     }

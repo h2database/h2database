@@ -207,7 +207,7 @@ public class Engine implements SessionFactory {
         }
         synchronized (session) {
             session.setAllowLiterals(true);
-            DbSettings defaultSettings = DbSettings.getDefaultSettings();
+            DbSettings defaultSettings = DbSettings.DEFAULT;
             for (String setting : ci.getKeys()) {
                 if (defaultSettings.containsKey(setting)) {
                     // database setting are only used when opening the database

@@ -174,7 +174,6 @@ import org.h2.test.unit.TestBitStream;
 import org.h2.test.unit.TestBnf;
 import org.h2.test.unit.TestCache;
 import org.h2.test.unit.TestCharsetCollator;
-import org.h2.test.unit.TestClearReferences;
 import org.h2.test.unit.TestCollation;
 import org.h2.test.unit.TestCompress;
 import org.h2.test.unit.TestConnectionInfo;
@@ -944,7 +943,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestBinaryOperation());
         addTest(new TestBitStream());
         addTest(new TestCharsetCollator());
-        addTest(new TestClearReferences());
         addTest(new TestDataPage());
         addTest(new TestDateIso8601());
         addTest(new TestDbException());

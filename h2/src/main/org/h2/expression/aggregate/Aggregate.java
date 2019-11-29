@@ -623,7 +623,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
     private Value getHistogram(final Session session, AggregateData data) {
         TreeMap<Value, LongDataCounter> distinctValues = ((AggregateDataDistinctWithCounts) data).getValues();
         if (distinctValues == null) {
-            return ValueArray.getEmpty();
+            return ValueArray.EMPTY;
         }
         ValueArray[] values = new ValueArray[distinctValues.size()];
         int i = 0;

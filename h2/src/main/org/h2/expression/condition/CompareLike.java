@@ -108,7 +108,7 @@ public class CompareLike extends Condition {
             Value l = left.getValue(session);
             if (l == ValueNull.INSTANCE) {
                 // NULL LIKE something > NULL
-                return TypedValueExpression.getUnknown();
+                return TypedValueExpression.UNKNOWN;
             }
         }
         if (escape != null) {
@@ -121,16 +121,16 @@ public class CompareLike extends Condition {
             Value r = right.getValue(session);
             if (r == ValueNull.INSTANCE) {
                 // something LIKE NULL > NULL
-                return TypedValueExpression.getUnknown();
+                return TypedValueExpression.UNKNOWN;
             }
             Value e = escape == null ? null : escape.getValue(session);
             if (e == ValueNull.INSTANCE) {
-                return TypedValueExpression.getUnknown();
+                return TypedValueExpression.UNKNOWN;
             }
             String p = r.getString();
             initPattern(p, getEscapeChar(e));
             if (invalidPattern) {
-                return TypedValueExpression.getUnknown();
+                return TypedValueExpression.UNKNOWN;
             }
             if ("%".equals(p)) {
                 // optimization for X LIKE '%': convert to X IS NOT NULL

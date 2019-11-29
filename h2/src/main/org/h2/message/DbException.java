@@ -67,8 +67,7 @@ public class DbException extends RuntimeException {
 
     static {
         try {
-            byte[] messages = Utils.getResource(
-                    "/org/h2/res/_messages_en.prop");
+            byte[] messages = Utils.getResource("/org/h2/res/_messages_en.prop");
             if (messages != null) {
                 MESSAGES.load(new ByteArrayInputStream(messages));
             }
@@ -102,11 +101,7 @@ public class DbException extends RuntimeException {
     }
 
     private static String translate(String key, String... params) {
-        String message = null;
-        if (MESSAGES != null) {
-            // Tomcat sets final static fields to null sometimes
-            message = MESSAGES.getProperty(key);
-        }
+        String message = MESSAGES.getProperty(key);
         if (message == null) {
             message = "(Message " + key + " not found)";
         }

@@ -90,7 +90,7 @@ public class ConditionIn extends Condition {
         left = left.optimize(session);
         boolean constant = left.isConstant();
         if (constant && left.isNullConstant()) {
-            return TypedValueExpression.getUnknown();
+            return TypedValueExpression.UNKNOWN;
         }
         int size = valueList.size();
         if (size == 1) {

@@ -17,7 +17,8 @@ public class TypedValueExpression extends ValueExpression {
     /**
      * The expression represents the SQL UNKNOWN value.
      */
-    private static final Object UNKNOWN = new TypedValueExpression(ValueNull.INSTANCE, TypeInfo.TYPE_BOOLEAN);
+    public static final TypedValueExpression UNKNOWN = new TypedValueExpression(ValueNull.INSTANCE,
+            TypeInfo.TYPE_BOOLEAN);
 
     /**
      * Create a new expression with the given value and type.
@@ -30,18 +31,9 @@ public class TypedValueExpression extends ValueExpression {
      */
     public static TypedValueExpression get(Value value, TypeInfo type) {
         if (value == ValueNull.INSTANCE && type.getValueType() == Value.BOOLEAN) {
-            return getUnknown();
+            return UNKNOWN;
         }
         return new TypedValueExpression(value, type);
-    }
-
-    /**
-     * Get the UNKNOWN expression.
-     *
-     * @return the UNKNOWN expression
-     */
-    public static TypedValueExpression getUnknown() {
-        return (TypedValueExpression) UNKNOWN;
     }
 
     private final TypeInfo type;

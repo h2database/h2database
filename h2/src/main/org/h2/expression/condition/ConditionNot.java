@@ -55,7 +55,7 @@ public class ConditionNot extends Condition {
         if (expr.isConstant()) {
             Value v = expr.getValue(session);
             if (v == ValueNull.INSTANCE) {
-                return TypedValueExpression.getUnknown();
+                return TypedValueExpression.UNKNOWN;
             }
             return ValueExpression.getBoolean(!v.getBoolean());
         }

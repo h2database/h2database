@@ -51,7 +51,7 @@ public class NullPredicate extends SimplePredicate {
                 for (int i = 0, count = list.getSubexpressionCount(); i < count; i++) {
                     if (list.getSubexpression(i).isNullConstant()) {
                         if (not) {
-                            return ValueExpression.getBoolean(false);
+                            return ValueExpression.FALSE;
                         }
                         ArrayList<Expression> newList = new ArrayList<>(count - 1);
                         for (int j = 0; j < i; j++) {
@@ -127,7 +127,7 @@ public class NullPredicate extends SimplePredicate {
          * to be sure.
          */
         if (filter == c.getTableFilter() && c.getType().getValueType() != Value.ROW) {
-            filter.addIndexCondition(IndexCondition.get(Comparison.EQUAL_NULL_SAFE, c, ValueExpression.getNull()));
+            filter.addIndexCondition(IndexCondition.get(Comparison.EQUAL_NULL_SAFE, c, ValueExpression.NULL));
         }
     }
 

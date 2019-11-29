@@ -34,9 +34,9 @@ import org.h2.util.Utils;
  */
 public class CompressTool {
 
-    private static final int MAX_BUFFER_SIZE =
-            3 * Constants.IO_BUFFER_SIZE_COMPRESS;
-    private byte[] cachedBuffer;
+    private static final int MAX_BUFFER_SIZE = 3 * Constants.IO_BUFFER_SIZE_COMPRESS;
+
+    private byte[] buffer;
 
     private CompressTool() {
         // don't allow construction
@@ -46,10 +46,10 @@ public class CompressTool {
         if (min > MAX_BUFFER_SIZE) {
             return Utils.newBytes(min);
         }
-        if (cachedBuffer == null || cachedBuffer.length < min) {
-            cachedBuffer = Utils.newBytes(min);
+        if (buffer == null || buffer.length < min) {
+            buffer = Utils.newBytes(min);
         }
-        return cachedBuffer;
+        return buffer;
     }
 
     /**

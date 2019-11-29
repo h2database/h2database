@@ -206,7 +206,7 @@ public class Comparison extends Condition {
                 Value r = right.getValue(session);
                 if (r == ValueNull.INSTANCE) {
                     if ((compareType & NULL_SAFE) == 0) {
-                        return TypedValueExpression.getUnknown();
+                        return TypedValueExpression.UNKNOWN;
                     }
                 }
                 TypeInfo colType = left.getType(), constType = r.getType();
@@ -233,7 +233,7 @@ public class Comparison extends Condition {
             // TODO NULL handling: maybe issue a warning when comparing with
             // a NULL constants
             if ((compareType & NULL_SAFE) == 0) {
-                return TypedValueExpression.getUnknown();
+                return TypedValueExpression.UNKNOWN;
             }
             if (compareType == EQUAL_NULL_SAFE || compareType == NOT_EQUAL_NULL_SAFE) {
                 Expression e = left.isNullConstant() ? right : left;

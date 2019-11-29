@@ -212,13 +212,13 @@ public class ConditionAndOr extends Condition {
         case AND:
             if (l != null) {
                 if (l != ValueNull.INSTANCE && !l.getBoolean()) {
-                    return ValueExpression.getBoolean(false);
+                    return ValueExpression.FALSE;
                 } else if (l.getBoolean()) {
                     return castToBoolean(session, right);
                 }
             } else if (r != null) {
                 if (r != ValueNull.INSTANCE && !r.getBoolean()) {
-                    return ValueExpression.getBoolean(false);
+                    return ValueExpression.FALSE;
                 } else if (r.getBoolean()) {
                     return castToBoolean(session, left);
                 }
@@ -227,13 +227,13 @@ public class ConditionAndOr extends Condition {
         case OR:
             if (l != null) {
                 if (l.getBoolean()) {
-                    return ValueExpression.getBoolean(true);
+                    return ValueExpression.TRUE;
                 } else if (l != ValueNull.INSTANCE) {
                     return castToBoolean(session, right);
                 }
             } else if (r != null) {
                 if (r.getBoolean()) {
-                    return ValueExpression.getBoolean(true);
+                    return ValueExpression.TRUE;
                 } else if (r != ValueNull.INSTANCE) {
                     return castToBoolean(session, left);
                 }

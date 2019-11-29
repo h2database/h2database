@@ -829,9 +829,9 @@ public class Data {
         case SHORT:
             return ValueShort.get(readShortInt());
         case DECIMAL_0_1:
-            return (ValueDecimal) ValueDecimal.ZERO;
+            return ValueDecimal.ZERO;
         case DECIMAL_0_1 + 1:
-            return (ValueDecimal) ValueDecimal.ONE;
+            return ValueDecimal.ONE;
         case DECIMAL_SMALL_0:
             return ValueDecimal.get(BigDecimal.valueOf(readVarLong()));
         case DECIMAL_SMALL: {

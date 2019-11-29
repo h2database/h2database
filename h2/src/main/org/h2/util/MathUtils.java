@@ -21,7 +21,7 @@ public class MathUtils {
     /**
      * The secure random object.
      */
-    static SecureRandom cachedSecureRandom;
+    static SecureRandom secureRandom;
 
     /**
      * True if the secure random object is seeded.
@@ -62,15 +62,15 @@ public class MathUtils {
     }
 
     private static synchronized SecureRandom getSecureRandom() {
-        if (cachedSecureRandom != null) {
-            return cachedSecureRandom;
+        if (secureRandom != null) {
+            return secureRandom;
         }
         // Workaround for SecureRandom problem as described in
         // https://bugs.java.com/bugdatabase/view_bug.do?bug_id=6202721
         // Can not do that in a static initializer block, because
         // threads are not started until after the initializer block exits
         try {
-            cachedSecureRandom = SecureRandom.getInstance("SHA1PRNG");
+            secureRandom = SecureRandom.getInstance("SHA1PRNG");
             // On some systems, secureRandom.generateSeed() is very slow.
             // In this case it is initialized using our own seed implementation
             // and afterwards (in the thread) using the regular algorithm.
@@ -78,8 +78,8 @@ public class MathUtils {
                 try {
                     SecureRandom sr = SecureRandom.getInstance("SHA1PRNG");
                     byte[] seed = sr.generateSeed(20);
-                    synchronized (cachedSecureRandom) {
-                        cachedSecureRandom.setSeed(seed);
+                    synchronized (secureRandom) {
+                        secureRandom.setSeed(seed);
                         seeded = true;
                     }
                 } catch (Exception e) {
@@ -104,8 +104,8 @@ public class MathUtils {
                 if (!seeded) {
                     byte[] seed = generateAlternativeSeed();
                     // this never reduces randomness
-                    synchronized (cachedSecureRandom) {
-                        cachedSecureRandom.setSeed(seed);
+                    synchronized (secureRandom) {
+                        secureRandom.setSeed(seed);
                     }
                 }
             } catch (SecurityException e) {
@@ -117,9 +117,9 @@ public class MathUtils {
         } catch (Exception e) {
             // NoSuchAlgorithmException
             warn("SecureRandom", e);
-            cachedSecureRandom = new SecureRandom();
+            secureRandom = new SecureRandom();
         }
-        return cachedSecureRandom;
+        return secureRandom;
     }
 
     /**

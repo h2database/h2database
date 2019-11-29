@@ -201,7 +201,7 @@ class MVSortedTempResult extends MVTempResult {
                 }
                 ValueRow distinctRow = ValueRow.get(newValues);
                 if (orderedDistinctOnType == null) {
-                    if (index.putIfAbsent(distinctRow, ValueRow.getEmpty()) != null) {
+                    if (index.putIfAbsent(distinctRow, ValueRow.EMPTY) != null) {
                         return rowCount;
                     }
                 } else {
@@ -218,7 +218,7 @@ class MVSortedTempResult extends MVTempResult {
                 }
             } else if (visibleColumnCount != resultColumnCount) {
                 ValueRow distinctRow = ValueRow.get(Arrays.copyOf(values, visibleColumnCount));
-                if (index.putIfAbsent(distinctRow, ValueRow.getEmpty()) != null) {
+                if (index.putIfAbsent(distinctRow, ValueRow.EMPTY) != null) {
                     return rowCount;
                 }
             }

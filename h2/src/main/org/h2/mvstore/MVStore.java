@@ -514,7 +514,7 @@ public class MVStore implements AutoCloseable
      * @return the map
      */
     public <K, V> MVMap<K, V> openMap(String name) {
-        return openMap(name, new MVMap.Builder<K, V>());
+        return openMap(name, new MVMap.Builder<>());
     }
 
     /**

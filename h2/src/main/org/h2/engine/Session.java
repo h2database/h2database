@@ -657,15 +657,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                 autoCommitAtTransactionEnd = false;
             }
         }
-
-        if (tablesToAnalyze != null) {
-            analyzeTables();
-            if (database.isMVStore()) {
-                // table analysis opens a new transaction(s),
-                // so we need to commit afterwards whatever leftovers might be
-                commit(true);
-            }
-        }
+        analyzeTables();
         endTransaction(forRepeatableRead);
     }
 
@@ -681,16 +673,27 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     }
 
     private void analyzeTables() {
-        // take a local copy and clear because in rare cases we can call
-        // back into markTableForAnalyze while iterating here
-        HashSet<Table> tablesToAnalyzeLocal = tablesToAnalyze;
-        tablesToAnalyze = null;
-        int rowCount = getDatabase().getSettings().analyzeSample / 10;
-        for (Table table : tablesToAnalyzeLocal) {
-            Analyze.analyzeTable(this, table, rowCount, false);
+        // On rare occasions it can be called concurrently (i.e. from close())
+        // whithout proper locking, but instead of oversynchronizing
+        // we just skip this optional operation in such case
+        if (tablesToAnalyze != null &&
+                Thread.holdsLock(database.isMVStore() ? this : database)) {
+            // take a local copy and clear because in rare cases we can call
+            // back into markTableForAnalyze while iterating here
+            HashSet<Table> tablesToAnalyzeLocal = tablesToAnalyze;
+            tablesToAnalyze = null;
+            int rowCount = getDatabase().getSettings().analyzeSample / 10;
+            for (Table table : tablesToAnalyzeLocal) {
+                Analyze.analyzeTable(this, table, rowCount, false);
+            }
+            // analyze can lock the meta
+            database.unlockMeta(this);
+            if (database.isMVStore()) {
+                // table analysis opens a new transaction(s),
+                // so we need to commit afterwards whatever leftovers might be
+                commit(true);
+            }
         }
-        // analyze can lock the meta
-        database.unlockMeta(this);
     }
 
     private void removeTemporaryLobs(boolean onTimeout) {

@@ -5,11 +5,15 @@
  */
 package org.h2.test.server;
 
+import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.api.ErrorCode;
+import org.h2.engine.Database;
+import org.h2.engine.Session;
+import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.util.SortedProperties;
@@ -74,6 +78,12 @@ public class TestAutoServer extends TestDb {
         String user = getUser(), password = getPassword();
         Connection connServer = getConnection(url + ";OPEN_NEW=TRUE",
                 user, password);
+
+        // default closeDelay -1 for autoServer
+        Field closeDelay = Database.class.getDeclaredField("closeDelay");
+        closeDelay.setAccessible(true);
+        assertEquals(-1, ((Number) closeDelay.get(((Session)
+                ((JdbcConnection) connServer).getSession()).getDatabase())).intValue());
 
         int i = ITERATIONS;
         for (; i > 0; i--) {

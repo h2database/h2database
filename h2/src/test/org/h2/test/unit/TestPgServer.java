@@ -5,6 +5,7 @@
  */
 package org.h2.test.unit;
 
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -19,7 +20,9 @@ import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.Iterator;
 import java.util.Properties;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -27,6 +30,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.h2.api.ErrorCode;
+import org.h2.engine.Database;
+import org.h2.engine.Session;
+import org.h2.jdbc.JdbcConnection;
+import org.h2.server.pg.PgServer;
+import org.h2.server.pg.PgServerThread;
 import org.h2.store.Data;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
@@ -128,7 +136,7 @@ public class TestPgServer extends TestDb {
         }
     }
 
-    private void testPgAdapter() throws SQLException {
+    private void testPgAdapter() throws Exception {
         deleteDb("pgserver");
         Server server = Server.createPgServer(
                 "-ifNotExists", "-baseDir", getBaseDir(), "-pgPort", "5535", "-pgDaemon");
@@ -138,7 +146,9 @@ public class TestPgServer extends TestDb {
         assertStartsWith(server.getStatus(), "PG server running at pg://");
         try {
             if (getPgJdbcDriver()) {
-                testPgClient();
+                Field running = PgServer.class.getDeclaredField("running");
+                running.setAccessible(true);
+                testPgClient((Set<?>) running.get(server.getService()));
             }
         } finally {
             server.stop();
@@ -188,7 +198,7 @@ public class TestPgServer extends TestDb {
         deleteDb("pgserver");
     }
 
-    private void testPgClient() throws SQLException {
+    private void testPgClient(Set<?> threads) throws Exception {
         Connection conn = DriverManager.getConnection(
                 "jdbc:postgresql://localhost:5535/pgserver", "sa", "sa");
         Statement stat = conn.createStatement();
@@ -199,6 +209,16 @@ public class TestPgServer extends TestDb {
         stat.execute("create index idx_test_name on test(name, id)");
         stat.execute("grant all on test to test");
         stat.close();
+
+        assertFalse(threads.isEmpty());
+        // default closeDelay -1 for postgres
+        Field connField = PgServerThread.class.getDeclaredField("conn");
+        connField.setAccessible(true);
+        Field closeDelay = Database.class.getDeclaredField("closeDelay");
+        closeDelay.setAccessible(true);
+        assertEquals(-1, ((Number) closeDelay.get(((Session) ((JdbcConnection) connField.
+                get(threads.iterator().next())).getSession()).getDatabase())).intValue());
+
         conn.close();
 
         conn = DriverManager.getConnection(

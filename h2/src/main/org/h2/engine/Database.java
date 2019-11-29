@@ -270,7 +270,11 @@ public class Database implements DataHandler, CastDataProvider {
             setEventListenerClass(listener);
         }
         String modeName = ci.removeProperty("MODE", null);
+        boolean postgres = false;
         if (modeName != null) {
+            if ("PostgreSQL".equals(modeName)) {
+                postgres = true;
+            }
             mode = Mode.getInstance(modeName);
             if (mode == null) {
                 throw DbException.get(ErrorCode.UNKNOWN_MODE_1, modeName);
@@ -294,6 +298,9 @@ public class Database implements DataHandler, CastDataProvider {
                 ci.removeProperty("CACHE_TYPE", Constants.CACHE_TYPE_DEFAULT));
         this.ignoreCatalogs = ci.getProperty("IGNORE_CATALOGS",
                 dbSettings.ignoreCatalogs);
+        if (autoServerMode || postgres || ci.isRemote()) {
+            this.closeDelay = -1;
+        }
         openDatabase(traceLevelFile, traceLevelSystemOut, closeAtVmShutdown);
     }
 

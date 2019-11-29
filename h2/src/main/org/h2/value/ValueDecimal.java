@@ -25,12 +25,12 @@ public class ValueDecimal extends Value {
     /**
      * The value 'zero'.
      */
-    public static final Object ZERO = new ValueDecimal(BigDecimal.ZERO);
+    public static final ValueDecimal ZERO = new ValueDecimal(BigDecimal.ZERO);
 
     /**
      * The value 'one'.
      */
-    public static final Object ONE = new ValueDecimal(BigDecimal.ONE);
+    public static final ValueDecimal ONE = new ValueDecimal(BigDecimal.ONE);
 
     /**
      * The default precision for a decimal value.
@@ -220,9 +220,9 @@ public class ValueDecimal extends Value {
      */
     public static ValueDecimal get(BigDecimal dec) {
         if (BigDecimal.ZERO.equals(dec)) {
-            return (ValueDecimal) ZERO;
+            return ZERO;
         } else if (BigDecimal.ONE.equals(dec)) {
-            return (ValueDecimal) ONE;
+            return ONE;
         }
         return (ValueDecimal) Value.cache(new ValueDecimal(dec));
     }
@@ -235,9 +235,9 @@ public class ValueDecimal extends Value {
      */
     public static ValueDecimal get(BigInteger bigInteger) {
         if (bigInteger.signum() == 0) {
-            return (ValueDecimal) ZERO;
+            return ZERO;
         } else if (BigInteger.ONE.equals(bigInteger)) {
-            return (ValueDecimal) ONE;
+            return ONE;
         }
         return (ValueDecimal) Value.cache(new ValueDecimal(new BigDecimal(bigInteger)));
     }

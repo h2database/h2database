@@ -59,13 +59,13 @@ public class BooleanTest extends SimplePredicate {
                 if (not) {
                     if (right == null && c.getColumn().isNullable()) {
                         ArrayList<Expression> list = new ArrayList<>(2);
-                        list.add(ValueExpression.getBoolean(false));
-                        list.add(ValueExpression.getBoolean(true));
+                        list.add(ValueExpression.FALSE);
+                        list.add(ValueExpression.TRUE);
                         filter.addIndexCondition(IndexCondition.getInList(c, list));
                     }
                 } else {
                     filter.addIndexCondition(IndexCondition.get(Comparison.EQUAL_NULL_SAFE, c,
-                            right == null ? TypedValueExpression.getUnknown() : ValueExpression.getBoolean(right)));
+                            right == null ? TypedValueExpression.UNKNOWN : ValueExpression.getBoolean(right)));
                 }
             }
         }

@@ -23,9 +23,9 @@ import org.h2.util.MathUtils;
  */
 public abstract class FilePath {
 
-    private static FilePath defaultProvider;
+    private static final FilePath defaultProvider;
 
-    private static ConcurrentHashMap<String, FilePath> providers;
+    private static final ConcurrentHashMap<String, FilePath> providers;
 
     /**
      * The prefix for temporary files.
@@ -39,6 +39,38 @@ public abstract class FilePath {
      */
     public String name;
 
+    static {
+        FilePath def = null;
+        ConcurrentHashMap<String, FilePath> map = new ConcurrentHashMap<>();
+        for (String c : new String[] {
+                "org.h2.store.fs.disk.FilePathDisk",
+                "org.h2.store.fs.mem.FilePathMem",
+                "org.h2.store.fs.mem.FilePathMemLZF",
+                "org.h2.store.fs.niomem.FilePathNioMem",
+                "org.h2.store.fs.niomem.FilePathNioMemLZF",
+                "org.h2.store.fs.split.FilePathSplit",
+                "org.h2.store.fs.niomapped.FilePathNioMapped",
+                "org.h2.store.fs.async.FilePathAsync",
+                "org.h2.store.fs.zip.FilePathZip",
+                "org.h2.store.fs.retry.FilePathRetryOnInterrupt"
+        }) {
+            try {
+                FilePath p = (FilePath) Class.forName(c).getDeclaredConstructor().newInstance();
+                map.put(p.getScheme(), p);
+                if (p.getClass() == FilePathDisk.class) {
+                    map.put("nio", p);
+                }
+                if (def == null) {
+                    def = p;
+                }
+            } catch (Exception e) {
+                // ignore - the files may be excluded in purpose
+            }
+        }
+        defaultProvider = def;
+        providers = map;
+    }
+
     /**
      * Get the file path object for the given path.
      * Windows-style '\' is replaced with '/'.
@@ -49,7 +81,6 @@ public abstract class FilePath {
     public static FilePath get(String path) {
         path = path.replace('\\', '/');
         int index = path.indexOf(':');
-        registerDefaultProviders();
         if (index < 2) {
             // use the default provider if no prefix or
             // only a single character (drive name)
@@ -64,45 +95,12 @@ public abstract class FilePath {
         return p.getPath(path);
     }
 
-    private static void registerDefaultProviders() {
-        if (providers == null || defaultProvider == null) {
-            ConcurrentHashMap<String, FilePath> map = new ConcurrentHashMap<>();
-            for (String c : new String[] {
-                    "org.h2.store.fs.disk.FilePathDisk",
-                    "org.h2.store.fs.mem.FilePathMem",
-                    "org.h2.store.fs.mem.FilePathMemLZF",
-                    "org.h2.store.fs.niomem.FilePathNioMem",
-                    "org.h2.store.fs.niomem.FilePathNioMemLZF",
-                    "org.h2.store.fs.split.FilePathSplit",
-                    "org.h2.store.fs.niomapped.FilePathNioMapped",
-                    "org.h2.store.fs.async.FilePathAsync",
-                    "org.h2.store.fs.zip.FilePathZip",
-                    "org.h2.store.fs.retry.FilePathRetryOnInterrupt"
-            }) {
-                try {
-                    FilePath p = (FilePath) Class.forName(c).getDeclaredConstructor().newInstance();
-                    map.put(p.getScheme(), p);
-                    if (p.getClass() == FilePathDisk.class) {
-                        map.put("nio", p);
-                    }
-                    if (defaultProvider == null) {
-                        defaultProvider = p;
-                    }
-                } catch (Exception e) {
-                    // ignore - the files may be excluded in purpose
-                }
-            }
-            providers = map;
-        }
-    }
-
     /**
      * Register a file provider.
      *
      * @param provider the file provider
      */
     public static void register(FilePath provider) {
-        registerDefaultProviders();
         providers.put(provider.getScheme(), provider);
     }
 
@@ -112,7 +110,6 @@ public abstract class FilePath {
      * @param provider the file provider
      */
     public static void unregister(FilePath provider) {
-        registerDefaultProviders();
         providers.remove(provider.getScheme());
     }
 

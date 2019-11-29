@@ -53,9 +53,6 @@ public class StringUtils {
 
     private static String[] getCache() {
         String[] cache;
-        // softCache can be null due to a Tomcat problem
-        // a workaround is disable the system property org.apache.
-        // catalina.loader.WebappClassLoader.ENABLE_CLEAR_REFERENCES
         if (softCache != null) {
             cache = softCache.get();
             if (cache != null) {

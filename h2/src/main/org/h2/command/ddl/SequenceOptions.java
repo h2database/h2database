@@ -85,7 +85,7 @@ public class SequenceOptions {
      * @return max value when the MAXVALUE expression is set, otherwise returns default max value.
      */
     public Long getMaxValue(Sequence sequence, Session session) {
-        if (maxValue == ValueExpression.getNull() && sequence != null) {
+        if (maxValue == ValueExpression.NULL && sequence != null) {
             return Sequence.getDefaultMaxValue(getCurrentStart(sequence, session),
                     increment != null ? getIncrement(session) : sequence.getIncrement());
         }
@@ -109,7 +109,7 @@ public class SequenceOptions {
      * @return min value when the MINVALUE expression is set, otherwise returns default min value.
      */
     public Long getMinValue(Sequence sequence, Session session) {
-        if (minValue == ValueExpression.getNull() && sequence != null) {
+        if (minValue == ValueExpression.NULL && sequence != null) {
             return Sequence.getDefaultMinValue(getCurrentStart(sequence, session),
                     increment != null ? getIncrement(session) : sequence.getIncrement());
         }

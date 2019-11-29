@@ -75,8 +75,7 @@ public class JdbcUtils {
     /**
      *  In order to manage more than one class loader
      */
-    private static ArrayList<ClassFactory> userClassFactories =
-            new ArrayList<>();
+    private static final ArrayList<ClassFactory> userClassFactories = new ArrayList<>();
 
     private static String[] allowedClassNamePrefixes;
 
@@ -90,7 +89,7 @@ public class JdbcUtils {
      * @param classFactory An object that implements ClassFactory
      */
     public static void addClassFactory(ClassFactory classFactory) {
-        getUserClassFactories().add(classFactory);
+        userClassFactories.add(classFactory);
     }
 
     /**
@@ -99,16 +98,7 @@ public class JdbcUtils {
      * @param classFactory Already inserted class factory instance
      */
     public static void removeClassFactory(ClassFactory classFactory) {
-        getUserClassFactories().remove(classFactory);
-    }
-
-    private static ArrayList<ClassFactory> getUserClassFactories() {
-        if (userClassFactories == null) {
-            // initially, it is empty
-            // but Apache Tomcat may clear the fields as well
-            userClassFactories = new ArrayList<>();
-        }
-        return userClassFactories;
+        userClassFactories.remove(classFactory);
     }
 
     static {
@@ -164,7 +154,7 @@ public class JdbcUtils {
             }
         }
         // Use provided class factory first.
-        for (ClassFactory classFactory : getUserClassFactories()) {
+        for (ClassFactory classFactory : userClassFactories) {
             if (classFactory.match(className)) {
                 try {
                     Class<?> userClass = classFactory.loadClass(className);

@@ -23,18 +23,22 @@ import org.h2.message.TraceSystem;
  */
 public class JdbcDataSourceFactory implements ObjectFactory {
 
-    private static TraceSystem cachedTraceSystem;
+    private static final TraceSystem traceSystem;
+
     private final Trace trace;
 
     static {
         org.h2.Driver.load();
+        traceSystem = new TraceSystem(SysProperties.CLIENT_TRACE_DIRECTORY + "h2datasource"
+                + Constants.SUFFIX_TRACE_FILE);
+        traceSystem.setLevelFile(SysProperties.DATASOURCE_TRACE_LEVEL);
     }
 
     /**
      * The public constructor to create new factory objects.
      */
     public JdbcDataSourceFactory() {
-        trace = getTraceSystem().getTrace(Trace.JDBCX);
+        trace = traceSystem.getTrace(Trace.JDBCX);
     }
 
     /**
@@ -76,15 +80,7 @@ public class JdbcDataSourceFactory implements ObjectFactory {
      * INTERNAL
      */
     public static TraceSystem getTraceSystem() {
-        synchronized (JdbcDataSourceFactory.class) {
-            if (cachedTraceSystem == null) {
-                cachedTraceSystem = new TraceSystem(
-                        SysProperties.CLIENT_TRACE_DIRECTORY + "h2datasource" +
-                                Constants.SUFFIX_TRACE_FILE);
-                cachedTraceSystem.setLevelFile(SysProperties.DATASOURCE_TRACE_LEVEL);
-            }
-            return cachedTraceSystem;
-        }
+        return traceSystem;
     }
 
     Trace getTrace() {

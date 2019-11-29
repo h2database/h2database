@@ -76,7 +76,7 @@ public class UniquePredicate extends PredicateWithSubquery {
     public Expression optimize(Session session) {
         super.optimize(session);
         if (query.isStandardDistinct()) {
-            return ValueExpression.getBoolean(true);
+            return ValueExpression.TRUE;
         }
         return this;
     }

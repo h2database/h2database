@@ -80,7 +80,7 @@ public abstract class SelectGroups {
         @Override
         public void nextSource() {
             if (groupIndex == null) {
-                currentGroupsKey = ValueRow.getEmpty();
+                currentGroupsKey = ValueRow.EMPTY;
             } else {
                 Value[] keyValues = new Value[groupIndex.length];
                 // update group
@@ -114,7 +114,7 @@ public abstract class SelectGroups {
         public void done() {
             super.done();
             if (groupIndex == null && groupByData.size() == 0) {
-                groupByData.put(ValueRow.getEmpty(), createRow());
+                groupByData.put(ValueRow.EMPTY, createRow());
             }
             cursor = groupByData.entrySet().iterator();
         }
@@ -188,7 +188,7 @@ public abstract class SelectGroups {
             if (cursor.hasNext()) {
                 currentGroupByExprData = cursor.next();
                 currentGroupRowId++;
-                return ValueRow.getEmpty();
+                return ValueRow.EMPTY;
             }
             return null;
         }

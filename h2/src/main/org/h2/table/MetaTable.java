@@ -189,7 +189,6 @@ public class MetaTable extends Table {
                     "NULLABLE INT",
                     "IS_COMPUTED BIT",
                     "SELECTIVITY INT",
-                    "CHECK_CONSTRAINT",
                     "SEQUENCE_NAME",
                     "REMARKS",
                     "SOURCE_DATA_TYPE SMALLINT",
@@ -950,8 +949,6 @@ public class MetaTable extends Table {
                             ValueBoolean.get(c.getComputed()),
                             // SELECTIVITY
                             ValueInt.get(c.getSelectivity()),
-                            // CHECK_CONSTRAINT
-                            c.getCheckConstraintSQL(session, c.getName()),
                             // SEQUENCE_NAME
                             sequence == null ? null : sequence.getName(),
                             // REMARKS

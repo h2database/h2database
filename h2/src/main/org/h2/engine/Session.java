@@ -674,7 +674,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     private void analyzeTables() {
         // On rare occasions it can be called concurrently (i.e. from close())
-        // whithout proper locking, but instead of oversynchronizing
+        // without proper locking, but instead of oversynchronizing
         // we just skip this optional operation in such case
         if (tablesToAnalyze != null &&
                 Thread.holdsLock(database.isMVStore() ? this : database)) {

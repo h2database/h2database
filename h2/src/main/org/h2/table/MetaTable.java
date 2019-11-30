@@ -2244,7 +2244,7 @@ public class MetaTable extends Table {
                             t.getName(),
                             // COLUMN_NAME
                             column.getName()
-                     );
+                    );
                 }
             }
             break;

@@ -1,0 +1,73 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!--
+Copyright 2004-2019 H2 Group. Multiple-Licensed under the MPL 2.0,
+and the EPL 1.0 (https://h2database.com/html/license.html).
+Initial Developer: H2 Group
+-->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>
+Features
+</title>
+<link rel="stylesheet" type="text/css" href="stylesheet.css" />
+<!-- [search] { -->
+<script type="text/javascript" src="navigation.js"></script>
+</head><body onload="frameMe();">
+<table class="content"><tr class="content"><td class="content"><div class="contentDiv">
+<!-- } -->
+
+<h1>Securing your H2</h1>
+
+<a href="#introduction">
+    Introduction</a><br />
+<a href="#network">
+    Network exposed</a><br />
+<a href="#alias">
+    Alias / Stored Procedures</a><br />
+<a href="#roles">
+    Grants / Roles / Permissions</a><br />
+<a href="#encrypted">
+    Encrypted storage</a><br />
+
+<h2 id="introduction">Introduction</h2>
+<p>
+H2 is __not__ designed to be run in an adversarial environment. You should absolutely not expose your H2 server to untrusted connections. 
+</p>
+<p>
+Running H2 in embedded mode is the best choice - it is not externally exposed.
+</p>
+
+<h2 id="network">Network exposed</h2>
+<p>
+When running an H2 server in TCP mode, first prize is to run with it only listening to connections on localhost (i.e 127.0.0.1).
+</p>
+<p>
+Second prize is running listening to restricted ports on a secured network.
+</p>
+<p>
+If you expose H2 to the broader internet, you can secure the connection with SSL, but this is a rather tricky thing to get right, between JVM bugs, certificates and choosing a decent cipher.
+</p>
+
+<h2 id="alias">Alias / Stored procedures</h2>
+<p>
+Anything created with <code>CREATE ALIAS</code> can do anything the JVM can do, which includes reading/writing from the filesystem on the machine the JVM is running on.
+</p>
+
+<h2 id="roles">Grants / Roles / Permissions</h2>
+<p>
+<code>GRANT / REVOKE</code> TODO
+</p>
+
+<h2 id="encrypted_storage">Encrypted storage</h2>
+<p>
+Encrypting your on-disk database will provide a small measure of security to your stored data.
+You should not assume that this is any kind of real security against a determined opponent however,
+since there are many repeated data structures that will allow someone with resources and time to extract the secret key.
+</p>
+<p>
+Also the secret key is visible to anything that can read the memory of the process.
+</p>
+
+<!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>
+

@@ -19,7 +19,7 @@ public abstract class FileBaseDefault extends FileBase {
     
     @Override
     public synchronized final long position() throws IOException {
-        return 0;
+        return position;
     }
     
     @Override
@@ -34,14 +34,18 @@ public abstract class FileBaseDefault extends FileBase {
     @Override
     public final synchronized int read(ByteBuffer dst) throws IOException {
         int read = read(dst, position);
-        position += read;
+        if (read > 0) {
+            position += read;
+        }
         return read;
     }
     
     @Override
     public final synchronized int write(ByteBuffer src) throws IOException {
         int written = write(src, position);
-        position += written;
+        if (written > 0) {
+            position += written;
+        }
         return written;
     }
     

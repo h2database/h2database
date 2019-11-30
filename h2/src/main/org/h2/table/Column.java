@@ -525,11 +525,6 @@ public class Column {
             buff.append(" ON UPDATE ");
             onUpdateExpression.getSQL(buff, true);
         }
-        if (!nullable) {
-            buff.append(" NOT NULL");
-        } else if (domain != null && !domain.getColumn().isNullable()) {
-            buff.append(" NULL");
-        }
         if (convertNullToDefault) {
             buff.append(" NULL_TO_DEFAULT");
         }
@@ -543,6 +538,11 @@ public class Column {
         if (comment != null) {
             buff.append(" COMMENT ");
             StringUtils.quoteStringSQL(buff, comment);
+        }
+        if (!nullable) {
+            buff.append(" NOT NULL");
+        } else if (domain != null && !domain.getColumn().isNullable()) {
+            buff.append(" NULL");
         }
         if (checkConstraint != null) {
             buff.append(" CHECK ").append(checkConstraintSQL);

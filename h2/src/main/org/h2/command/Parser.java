@@ -8712,6 +8712,7 @@ public class Parser {
             if (readIf(CONSTRAINT)) {
                 constraintName = readColumnIdentifier();
             } else if (comment == null && (comment = readCommentIf()) != null) {
+                // Compatibility: COMMENT may be specified appear after some constraint
                 column.setComment(comment);
                 continue;
             } else {

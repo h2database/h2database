@@ -685,7 +685,8 @@ CREATE CONSTANT ONE VALUE 1
 
 "Commands (DDL)","CREATE DOMAIN","
 CREATE DOMAIN @h2@ [ IF NOT EXISTS ] newDomainName [ AS ] dataType
-[ DEFAULT expression ] @c@ [ [ NOT ] NULL ] @h2@ [ SELECTIVITY selectivityInt ]
+[ DEFAULT expression ] @c@ [ [ NOT ] NULL ]
+@h2@ [ SELECTIVITY selectivityInt ] @h2@ [ COMMENT expression ]
 [ CHECK (condition) | @h2@ { [ NOT ] NULL } ] [...]
 ","
 Creates a new data type (domain). The check condition must evaluate to true or
@@ -2502,8 +2503,8 @@ dataType @h2@ [ VISIBLE | INVISIBLE ]
     | GENERATED {ALWAYS | BY DEFAULT} AS IDENTITY [(sequenceOptions)]} ]
 @h2@ [ ON UPDATE expression ] @c@ [ [ NOT ] NULL ]
 @c@ [ { AUTO_INCREMENT | IDENTITY } [ ( startInt [, incrementInt ] ) ] ]
-@h2@ [ SELECTIVITY selectivityInt ]
-[ columnConstraintDefinition | @h2@ { COMMENT expression } ] [...]
+@h2@ [ SELECTIVITY selectivityInt ] @h2@ [ COMMENT expression ]
+[ columnConstraintDefinition ] [...]
 ","
 Default expressions are used if no explicit value was used when adding a row.
 The computed column expression is evaluated and assigned whenever the row changes.

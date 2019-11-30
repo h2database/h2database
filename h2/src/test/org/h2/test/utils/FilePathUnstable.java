@@ -13,7 +13,8 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.List;
 import java.util.Random;
-import org.h2.store.fs.FileBaseDefault;
+
+import org.h2.store.fs.FileBase;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FilePathWrapper;
 
@@ -211,7 +212,7 @@ public class FilePathUnstable extends FilePathWrapper {
 /**
  * An file that checks for errors before each write operation.
  */
-class FileUnstable extends FileBaseDefault {
+class FileUnstable extends FileBase {
 
     private final FilePathUnstable file;
     private final FileChannel channel;
@@ -229,8 +230,18 @@ class FileUnstable extends FileBaseDefault {
     }
 
     @Override
+    public long position() throws IOException {
+        return channel.position();
+    }
+
+    @Override
     public long size() throws IOException {
         return channel.size();
+    }
+
+    @Override
+    public int read(ByteBuffer dst) throws IOException {
+        return channel.read(dst);
     }
 
     @Override
@@ -239,15 +250,31 @@ class FileUnstable extends FileBaseDefault {
     }
 
     @Override
-    protected void implTruncate(long newLength) throws IOException {
+    public FileChannel position(long pos) throws IOException {
+        channel.position(pos);
+        return this;
+    }
+
+    @Override
+    public FileChannel truncate(long newLength) throws IOException {
         checkError();
         channel.truncate(newLength);
+        return this;
     }
 
     @Override
     public void force(boolean metaData) throws IOException {
         checkError();
         channel.force(metaData);
+    }
+
+    @Override
+    public int write(ByteBuffer src) throws IOException {
+        checkError();
+        if (file.getPartialWrites()) {
+            return channel.write(file.getRandomSubset(src));
+        }
+        return channel.write(src);
     }
 
     @Override

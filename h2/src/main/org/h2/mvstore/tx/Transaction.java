@@ -163,7 +163,7 @@ public class Transaction {
     /**
      * RootReferences for undo log snapshots
      */
-    private RootReference[] undoLogRootReferences;
+    private RootReference<Long,Record<?,?>>[] undoLogRootReferences;
 
     /**
      * Map of transactional maps for this transaction
@@ -207,22 +207,23 @@ public class Transaction {
      * @param mapId the map id
      * @return the root reference
      */
-    Snapshot createSnapshot(int mapId) {
+    <K,V> Snapshot<K,VersionedValue<V>> createSnapshot(int mapId) {
         // The purpose of the following loop is to get a coherent picture
         // of a state of two independent volatile / atomic variables,
         // which they had at some recent moment in time.
         // In order to get such a "snapshot", we wait for a moment of silence,
         // when neither of the variables concurrently changes it's value.
         BitSet committingTransactions;
-        RootReference root;
+        RootReference<K,VersionedValue<V>> root;
         do {
             committingTransactions = store.committingTransactions.get();
-            root = store.getMap(mapId).flushAndGetRoot();
+            MVMap<K,VersionedValue<V>> map = store.getMap(mapId);
+            root = map.flushAndGetRoot();
         } while (committingTransactions != store.committingTransactions.get());
-        return new Snapshot(root, committingTransactions);
+        return new Snapshot<>(root, committingTransactions);
     }
 
-    RootReference[] getUndoLogRootReferences() {
+    RootReference<Long,Record<?,?>>[] getUndoLogRootReferences() {
         return undoLogRootReferences;
     }
 
@@ -344,7 +345,7 @@ public class Transaction {
      * @param maps
      *            set of maps used by transaction or statement is about to be executed
      */
-//    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked","rawtypes"})
     public void markStatementStart(HashSet<MVMap<Object,VersionedValue<Object>>> maps) {
         markStatementEnd();
         if (txCounter == null) {
@@ -413,7 +414,7 @@ public class Transaction {
      *
      * @return key for the newly added undo log entry
      */
-    long log(Record logRecord) {
+    long log(Record<?,?> logRecord) {
         long currentState = statusAndLogId.getAndIncrement();
         long logId = getLogId(currentState);
         if (logId >= LOG_ID_LIMIT) {

@@ -204,7 +204,7 @@ public class MVStore implements AutoCloseable
      * It is split in 16 segments. The stack move distance is 2% of the expected
      * number of entries.
      */
-    private final CacheLongKeyLIRS<Page> cache;
+    private final CacheLongKeyLIRS<Page<?,?>> cache;
 
     /**
      * The newest chunk. If nothing was stored yet, this field is not set.
@@ -1350,6 +1350,8 @@ public class MVStore implements AutoCloseable
         long time = getTimeSinceCreation();
         int currentUnsavedPageCount = unsavedMemory;
         long storeVersion = currentStoreVersion;
+        // it is ok, sinse that path suppose to be single-threaded under storeLock
+        //noinspection NonAtomicOperationOnVolatileField
         long version = ++currentVersion;
         lastCommitTime = time;
 
@@ -2235,7 +2237,7 @@ public class MVStore implements AutoCloseable
                 throw DataUtils.newIllegalStateException(
                         DataUtils.ERROR_FILE_CORRUPT, "Position 0");
             }
-            Page<K,V> p = cache == null ? null : cache.get(pos);
+            Page<K,V> p = readPageFromCache(pos);
             if (p == null) {
                 ByteBuffer buff = readBufferForPage(pos, map.getId());
                 try {
@@ -2253,6 +2255,11 @@ public class MVStore implements AutoCloseable
             }
             throw e;
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <K, V> Page<K, V> readPageFromCache(long pos) {
+        return cache == null ? null : (Page<K,V>)cache.get(pos);
     }
 
     /**
@@ -2906,9 +2913,9 @@ public class MVStore implements AutoCloseable
         if (backgroundExceptionHandler != null) {
             try {
                 backgroundExceptionHandler.uncaughtException(Thread.currentThread(), ex);
-            } catch(Throwable ignore) {
-                if (ex != ignore) { // OOME may be the same
-                    ex.addSuppressed(ignore);
+            } catch(Throwable e) {
+                if (ex != e) { // OOME may be the same
+                    ex.addSuppressed(e);
                 }
             }
         }
@@ -3088,7 +3095,7 @@ public class MVStore implements AutoCloseable
      *
      * @return the cache
      */
-    public CacheLongKeyLIRS<Page> getCache() {
+    public CacheLongKeyLIRS<Page<?,?>> getCache() {
         return cache;
     }
 
@@ -3621,7 +3628,7 @@ public class MVStore implements AutoCloseable
          * @param s the string representation
          * @return the builder
          */
-        @SuppressWarnings({ "unchecked", "rawtypes" })
+        @SuppressWarnings({"unchecked", "rawtypes", "unused"})
         public static Builder fromString(String s) {
             // Cast from HashMap<String, String> to HashMap<String, Object> is safe
             return new Builder((HashMap) DataUtils.parseMap(s));

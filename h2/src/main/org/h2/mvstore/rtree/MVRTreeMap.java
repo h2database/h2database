@@ -147,7 +147,7 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                 Page.PageReference<SpatialKey,V>[] children = Page.createRefStorage(3);
                 children[0] = new Page.PageReference<>(p);
                 children[1] = new Page.PageReference<>(split);
-                children[2] = Page.PageReference.EMPTY;
+                children[2] = Page.PageReference.empty();
                 p = Page.createNode(this, keys, children, totalCount, 0);
                 if(isPersistent()) {
                     store.registerUnsavedMemory(p.getMemory());

@@ -19,8 +19,11 @@ import java.nio.ByteBuffer;
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
-final class Record
+final class Record<K,V>
 {
+    // -1 is a bogus map id
+    static final Record<?,?> COMMIT_MARKER = new Record<>(-1, null, null);
+
     /**
      * Map id for this change is related to
      */
@@ -29,19 +32,18 @@ final class Record
     /**
      * Key of the changed map entry key
      */
-    final Object key;
+    final K key;
 
     /**
      * Value of the entry before change.
      * It is null if entry did not exist before the change (addition).
      */
-    final VersionedValue<Object> oldValue;
+    final VersionedValue<V> oldValue;
 
-    @SuppressWarnings("unchecked")
-    Record(int mapId, Object key, VersionedValue<?> oldValue) {
+    Record(int mapId, K key, VersionedValue<V> oldValue) {
         this.mapId = mapId;
         this.key = key;
-        this.oldValue = (VersionedValue<Object>)oldValue;
+        this.oldValue = oldValue;
     }
 
     @Override
@@ -52,7 +54,7 @@ final class Record
     /**
      * A data type for undo log values
      */
-    static final class Type extends BasicDataType<Record>
+    static final class Type<K,V> extends BasicDataType<Record<K,V>>
     {
         private final TransactionStore transactionStore;
 
@@ -61,10 +63,10 @@ final class Record
         }
 
         @Override
-        public int getMemory(Record record) {
+        public int getMemory(Record<K,V> record) {
             int result = Constants.MEMORY_OBJECT + 4 + 3 * Constants.MEMORY_POINTER;
             if (record.mapId >= 0) {
-                MVMap<Object, VersionedValue<Object>> map = transactionStore.getMap(record.mapId);
+                MVMap<K,VersionedValue<V>> map = transactionStore.getMap(record.mapId);
                 result += map.getKeyType().getMemory(record.key) +
                         map.getValueType().getMemory(record.oldValue);
             }
@@ -77,12 +79,12 @@ final class Record
         }
 
         @Override
-        public void write(WriteBuffer buff, Record record) {
+        public void write(WriteBuffer buff, Record<K,V> record) {
             buff.putVarInt(record.mapId);
             if (record.mapId >= 0) {
-                MVMap<Object, VersionedValue<Object>> map = transactionStore.getMap(record.mapId);
+                MVMap<K, VersionedValue<V>> map = transactionStore.getMap(record.mapId);
                 map.getKeyType().write(buff, record.key);
-                VersionedValue<Object> oldValue = record.oldValue;
+                VersionedValue<V> oldValue = record.oldValue;
                 if (oldValue == null) {
                     buff.put((byte) 0);
                 } else {
@@ -92,24 +94,26 @@ final class Record
             }
         }
 
+        @SuppressWarnings("unchecked")
         @Override
-        public Record read(ByteBuffer buff) {
+        public Record<K,V> read(ByteBuffer buff) {
             int mapId = DataUtils.readVarInt(buff);
             if (mapId < 0) {
-                return TransactionStore.COMMIT_MARKER;
+                return (Record<K,V>)COMMIT_MARKER;
             }
-            MVMap<Object, VersionedValue<Object>> map = transactionStore.getMap(mapId);
-            Object key = map.getKeyType().read(buff);
-            VersionedValue<Object> oldValue = null;
+            MVMap<K, VersionedValue<V>> map = transactionStore.getMap(mapId);
+            K key = map.getKeyType().read(buff);
+            VersionedValue<V> oldValue = null;
             if (buff.get() == 1) {
                 oldValue = map.getValueType().read(buff);
             }
-            return new Record(mapId, key, oldValue);
+            return new Record<>(mapId, key, oldValue);
         }
 
+        @SuppressWarnings("unchecked")
         @Override
-        public Record[] createStorage(int size) {
-            return new Record[size];
+        public Record<K,V>[] createStorage(int size) {
+            return (Record<K,V>[])new Record[size];
         }
     }
 }

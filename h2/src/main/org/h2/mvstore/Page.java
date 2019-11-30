@@ -936,7 +936,7 @@ public abstract class Page<K,V> implements Cloneable
          * Singleton object used when arrays of PageReference have not yet been filled.
          */
         @SuppressWarnings("rawtypes")
-        public static final PageReference EMPTY = new PageReference<>(null, 0, 0);
+        private static final PageReference EMPTY = new PageReference<>(null, 0, 0);
 
         /**
          * The position, if known, or 0.
@@ -952,6 +952,11 @@ public abstract class Page<K,V> implements Cloneable
          * The descendant count for this child page.
          */
         final long count;
+
+        @SuppressWarnings("unchecked")
+        public static <X,Y> PageReference<X,Y> empty() {
+            return EMPTY;
+        }
 
         public PageReference(Page<K,V> page) {
             this(page, page.getPos(), page.getTotalCount());
@@ -1217,7 +1222,6 @@ public abstract class Page<K,V> implements Cloneable
             return childPage.getAppendCursorPos(new CursorPos<>(this, keyCount, cursorPos));
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         protected void readPayLoad(ByteBuffer buff) {
             int keyCount = getKeyCount();
@@ -1233,7 +1237,7 @@ public abstract class Page<K,V> implements Cloneable
                 assert position == 0 ? s == 0 : s >= 0;
                 total += s;
                 children[i] = position == 0 ?
-                        (PageReference<K, V>) PageReference.EMPTY :
+                        PageReference.empty() :
                         new PageReference<>(position, s);
             }
             totalCount = total;
@@ -1326,7 +1330,7 @@ public abstract class Page<K,V> implements Cloneable
         private static <K,V> PageReference<K,V>[] constructEmptyPageRefs(int size) {
             // replace child pages with empty pages
             PageReference<K,V>[] children = createRefStorage(size);
-            Arrays.fill(children, PageReference.EMPTY);
+            Arrays.fill(children, PageReference.empty());
             return children;
         }
 

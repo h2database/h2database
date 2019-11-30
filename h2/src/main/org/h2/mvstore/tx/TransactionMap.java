@@ -119,7 +119,7 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
         // either from values stored in transaction (never loops in that case),
         // or current values from the transaction store (loops until moment of silence)
         Snapshot<K,VersionedValue<V>> snapshot;
-        RootReference<?,?>[] undoLogRootReferences;
+        RootReference<Long,Record<?,?>>[] undoLogRootReferences;
         do {
             snapshot = getSnapshot();
             undoLogRootReferences = getTransaction().getUndoLogRootReferences();
@@ -142,7 +142,7 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
         // but they should not contribute into total count.
         if (2 * undoLogsTotalSize > size) {
             // the undo log is larger than half of the map - scan the entries of the map directly
-            Cursor<K, VersionedValue<?>> cursor = new Cursor(mapRootPage, null);
+            Cursor<K, VersionedValue<V>> cursor = new Cursor<>(mapRootPage, null);
             while(cursor.hasNext()) {
                 cursor.next();
                 VersionedValue<?> currentValue = cursor.getValue();
@@ -157,13 +157,14 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
             assert undoLogRootReferences != null;
             // The undo logs are much smaller than the map - scan all undo logs,
             // and then lookup relevant map entry.
-            for (RootReference<?,?> undoLogRootReference : undoLogRootReferences) {
+            for (RootReference<Long,Record<?,?>> undoLogRootReference : undoLogRootReferences) {
                 if (undoLogRootReference != null) {
-                    Cursor<Long, Record> cursor = new Cursor(undoLogRootReference.root, null);
+                    Cursor<Long,Record<?,?>> cursor = new Cursor<>(undoLogRootReference.root, null);
                     while (cursor.hasNext()) {
                         cursor.next();
-                        Record op = cursor.getValue();
+                        Record<?,?> op = cursor.getValue();
                         if (op.mapId == map.getId()) {
+                            @SuppressWarnings("unchecked")
                             VersionedValue<V> currentValue = map.get(mapRootPage, (K)op.key);
                             // If map entry is not there, then we never counted
                             // it, in the first place, so skip it.
@@ -264,7 +265,7 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
      */
     public void append(K key, V value) {
         map.append(key, VersionedValueUncommitted.getInstance(
-                                        transaction.log(new Record(map.getId(), key, null)), value, null));
+                                        transaction.log(new Record<>(map.getId(), key, null)), value, null));
         hasChanges = true;
     }
 
@@ -421,7 +422,7 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
         case SNAPSHOT:
         case SERIALIZABLE:
             if (transaction.hasChanges()) {
-                Snapshot snapshot = getStatementSnapshot();
+                Snapshot<K,VersionedValue<V>> snapshot = getStatementSnapshot();
                 VersionedValue<V> data = map.get(snapshot.root.root, key);
                 if (data != null) {
                     long id = data.getOperationId();
@@ -433,7 +434,7 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
             //$FALL-THROUGH$
         case READ_COMMITTED:
         default:
-            Snapshot snapshot = getSnapshot();
+            Snapshot<K,VersionedValue<V>> snapshot = getSnapshot();
             VersionedValue<V> data = map.get(snapshot.root.root, key);
             if (data == null) {
                 // doesn't exist or deleted by a committed transaction
@@ -735,14 +736,14 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @param <X>
      *            the type of elements
      */
-    private static class UncommittedIterator<K, X> extends TMIterator<K, X> {
-
-        UncommittedIterator(TransactionMap<K, ?> transactionMap, K from, K to, boolean forEntries) {
+    private static class UncommittedIterator<K,V,X> extends TMIterator<K,V,X>
+    {
+        UncommittedIterator(TransactionMap<K,V> transactionMap, K from, K to, boolean forEntries) {
             super(transactionMap, from, to, transactionMap.createSnapshot(), forEntries);
             fetchNext();
         }
 
-        UncommittedIterator(TransactionMap<K, ?> transactionMap, K from, K to, Snapshot<K,?> snapshot,
+        UncommittedIterator(TransactionMap<K,V> transactionMap, K from, K to, Snapshot<K,VersionedValue<V>> snapshot,
                             boolean forEntries) {
             super(transactionMap, from, to, snapshot, forEntries);
             fetchNext();
@@ -769,9 +770,9 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
         }
     }
 
-    private static final class ValidationIterator<K, X> extends UncommittedIterator<K, X>
+    private static final class ValidationIterator<K,V,X> extends UncommittedIterator<K,V,X>
     {
-        ValidationIterator(TransactionMap<K, ?> transactionMap, K from, K to) {
+        ValidationIterator(TransactionMap<K,V> transactionMap, K from, K to) {
             super(transactionMap, from, to, transactionMap.createSnapshot(), false);
         }
 
@@ -796,9 +797,9 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @param <X>
      *            the type of elements
      */
-    private static final class CommittedIterator<K, X> extends TMIterator<K, X>
+    private static final class CommittedIterator<K,V,X> extends TMIterator<K,V,X>
     {
-        CommittedIterator(TransactionMap<K, ?> transactionMap, K from, K to, boolean forEntries) {
+        CommittedIterator(TransactionMap<K,V> transactionMap, K from, K to, boolean forEntries) {
             super(transactionMap, from, to, transactionMap.getSnapshot(), forEntries);
             fetchNext();
         }
@@ -844,7 +845,7 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @param <X>
      *            the type of elements
      */
-    private static final class RepeatableIterator<K, X> extends TMIterator<K, X>
+    private static final class RepeatableIterator<K,V,X> extends TMIterator<K,V,X>
     {
         private final DataType<K> keyType;
 
@@ -852,17 +853,17 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
 
         private Object snapshotValue;
 
-        private final Cursor<K, VersionedValue<?>> uncommittedCursor;
+        private final Cursor<K, VersionedValue<V>> uncommittedCursor;
 
         private K uncommittedKey;
 
-        private Object uncommittedValue;
+        private V uncommittedValue;
 
-        RepeatableIterator(TransactionMap<K, ?> transactionMap, K from, K to, boolean forEntries) {
+        RepeatableIterator(TransactionMap<K,V> transactionMap, K from, K to, boolean forEntries) {
             super(transactionMap, from, to, transactionMap.getSnapshot(), forEntries);
             keyType = transactionMap.map.getKeyType();
-            Snapshot<K,?> snapshot = transactionMap.getStatementSnapshot();
-            uncommittedCursor = new Cursor(snapshot.root.root, from, to);
+            Snapshot<K,VersionedValue<V>> snapshot = transactionMap.getStatementSnapshot();
+            uncommittedCursor = new Cursor<>(snapshot.root.root, from, to);
             fetchNext();
         }
 
@@ -927,7 +928,7 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
         private void fetchUncommitted() {
             while (uncommittedCursor.hasNext()) {
                 K key = uncommittedCursor.next();
-                VersionedValue<?> data = uncommittedCursor.getValue();
+                VersionedValue<V> data = uncommittedCursor.getValue();
                 if (data != null) {
                     long id = data.getOperationId();
                     if (id != 0L && transactionId == TransactionStore.getTransactionId(id)) {
@@ -940,19 +941,19 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
         }
     }
 
-    private abstract static class TMIterator<K,X> implements Iterator<X>
+    private abstract static class TMIterator<K,V,X> implements Iterator<X>
     {
         final int transactionId;
 
         final BitSet committingTransactions;
 
-        protected final Cursor<K, VersionedValue<?>> cursor;
+        protected final Cursor<K, VersionedValue<V>> cursor;
 
         private final boolean forEntries;
 
         X current;
 
-        TMIterator(TransactionMap<K, ?> transactionMap, K from, K to, Snapshot snapshot, boolean forEntries) {
+        TMIterator(TransactionMap<K,V> transactionMap, K from, K to, Snapshot<K,VersionedValue<V>> snapshot, boolean forEntries) {
             Transaction transaction = transactionMap.getTransaction();
             this.transactionId = transaction.transactionId;
             this.forEntries = forEntries;

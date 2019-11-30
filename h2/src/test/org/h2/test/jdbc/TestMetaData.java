@@ -1090,6 +1090,10 @@ public class TestMetaData extends TestDb {
         rs.next();
         assertEquals("CATALOGS", rs.getString("TABLE_NAME"));
         rs.next();
+        assertEquals("CHECK_COLUMN_USAGE", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("CHECK_CONSTRAINTS", rs.getString("TABLE_NAME"));
+        rs.next();
         assertEquals("COLLATIONS", rs.getString("TABLE_NAME"));
         rs.next();
         assertEquals("COLUMNS", rs.getString("TABLE_NAME"));

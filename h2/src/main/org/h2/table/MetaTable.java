@@ -117,7 +117,8 @@ public class MetaTable extends Table {
     private static final int TABLE_CONSTRAINTS = 30;
     private static final int KEY_COLUMN_USAGE = 31;
     private static final int REFERENTIAL_CONSTRAINTS = 32;
-    private static final int META_TABLE_TYPE_COUNT = REFERENTIAL_CONSTRAINTS + 1;
+    private static final int CHECK_CONSTRAINTS = 33;
+    private static final int META_TABLE_TYPE_COUNT = CHECK_CONSTRAINTS + 1;
 
     private final int type;
     private final int indexColumn;
@@ -621,6 +622,16 @@ public class MetaTable extends Table {
                     "MATCH_OPTION",
                     "UPDATE_RULE",
                     "DELETE_RULE"
+            );
+            break;
+        }
+        case CHECK_CONSTRAINTS: {
+            setMetaTableName("CHECK_CONSTRAINTS");
+            cols = createColumns(
+                    "CONSTRAINT_CATALOG",
+                    "CONSTRAINT_SCHEMA",
+                    "CONSTRAINT_NAME",
+                    "CHECK_CLAUSE"
             );
             break;
         }
@@ -2161,6 +2172,29 @@ public class MetaTable extends Table {
                         constraint.getUpdateAction().getSqlName(),
                         // DELETE_RULE
                         constraint.getDeleteAction().getSqlName()
+                );
+            }
+            break;
+        }
+        case CHECK_CONSTRAINTS: {
+            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
+                if (((Constraint) obj).getConstraintType() != Constraint.Type.CHECK) {
+                    continue;
+                }
+                ConstraintCheck constraint = (ConstraintCheck) obj;
+                Table table = constraint.getTable();
+                if (hideTable(table, session)) {
+                    continue;
+                }
+                add(rows,
+                        // CONSTRAINT_CATALOG
+                        catalog,
+                        // CONSTRAINT_SCHEMA
+                        constraint.getSchema().getName(),
+                        // CONSTRAINT_NAME
+                        constraint.getName(),
+                        // CHECK_CLAUSE
+                        constraint.getExpression().getUnenclosedSQL(new StringBuilder(), true).toString()
                 );
             }
             break;

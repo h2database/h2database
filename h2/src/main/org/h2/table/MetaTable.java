@@ -14,6 +14,7 @@ import java.sql.ResultSet;
 import java.sql.Types;
 import java.text.Collator;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 
@@ -36,6 +37,7 @@ import org.h2.engine.Session;
 import org.h2.engine.Setting;
 import org.h2.engine.User;
 import org.h2.engine.UserAggregate;
+import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ValueExpression;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -118,7 +120,8 @@ public class MetaTable extends Table {
     private static final int KEY_COLUMN_USAGE = 31;
     private static final int REFERENTIAL_CONSTRAINTS = 32;
     private static final int CHECK_CONSTRAINTS = 33;
-    private static final int META_TABLE_TYPE_COUNT = CHECK_CONSTRAINTS + 1;
+    private static final int CHECK_COLUMN_USAGE = 34;
+    private static final int META_TABLE_TYPE_COUNT = CHECK_COLUMN_USAGE + 1;
 
     private final int type;
     private final int indexColumn;
@@ -632,6 +635,19 @@ public class MetaTable extends Table {
                     "CONSTRAINT_SCHEMA",
                     "CONSTRAINT_NAME",
                     "CHECK_CLAUSE"
+            );
+            break;
+        }
+        case CHECK_COLUMN_USAGE: {
+            setMetaTableName("CHECK_COLUMN_USAGE");
+            cols = createColumns(
+                    "CONSTRAINT_CATALOG",
+                    "CONSTRAINT_SCHEMA",
+                    "CONSTRAINT_NAME",
+                    "TABLE_CATALOG",
+                    "TABLE_SCHEMA",
+                    "TABLE_NAME",
+                    "COLUMN_NAME"
             );
             break;
         }
@@ -2196,6 +2212,40 @@ public class MetaTable extends Table {
                         // CHECK_CLAUSE
                         constraint.getExpression().getUnenclosedSQL(new StringBuilder(), true).toString()
                 );
+            }
+            break;
+        }
+        case CHECK_COLUMN_USAGE: {
+            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
+                if (((Constraint) obj).getConstraintType() != Constraint.Type.CHECK) {
+                    continue;
+                }
+                ConstraintCheck constraint = (ConstraintCheck) obj;
+                Table table = constraint.getTable();
+                if (hideTable(table, session)) {
+                    continue;
+                }
+                HashSet<Column> columns = new HashSet<>();
+                constraint.getExpression().isEverything(ExpressionVisitor.getColumnsVisitor(columns, null));
+                for (Column column: columns) {
+                    Table t = column.getTable();
+                    add(rows,
+                            // CONSTRAINT_CATALOG
+                            catalog,
+                            // CONSTRAINT_SCHEMA
+                            constraint.getSchema().getName(),
+                            // CONSTRAINT_NAME
+                            constraint.getName(),
+                            // TABLE_CATALOG
+                            catalog,
+                            // TABLE_SCHEMA
+                            t.getSchema().getName(),
+                            // TABLE_NAME
+                            t.getName(),
+                            // COLUMN_NAME
+                            column.getName()
+                     );
+                }
             }
             break;
         }

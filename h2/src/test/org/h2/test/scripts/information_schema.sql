@@ -21,7 +21,7 @@ ALTER TABLE T2 ADD CONSTRAINT FK_1 FOREIGN KEY (C3, C4) REFERENCES T1(C1, C3) ON
 ALTER TABLE T2 ADD CONSTRAINT FK_2 FOREIGN KEY (C3, C4) REFERENCES T1(C4, C3) ON UPDATE CASCADE ON DELETE SET DEFAULT;
 > ok
 
-ALTER TABLE T2 ADD CONSTRAINT CH_1 CHECK (C4 > 0 AND NOT EXISTS(SELECT 1 FROM T1 WHERE C1 + C2 = C4));
+ALTER TABLE T2 ADD CONSTRAINT CH_1 CHECK (C4 > 0 AND NOT EXISTS(SELECT 1 FROM T1 WHERE T1.C1 + T1.C2 = T2.C4));
 > ok
 
 SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS LIMIT 0;
@@ -100,9 +100,17 @@ SELECT U1.TABLE_NAME T1, U1.COLUMN_NAME C1, U2.TABLE_NAME T2, U2.COLUMN_NAME C2
 
 TABLE INFORMATION_SCHEMA.CHECK_CONSTRAINTS;
 > CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME CHECK_CLAUSE
-> ------------------ ----------------- --------------- --------------------------------------------------------------------------------------------------------------
-> SCRIPT             PUBLIC            CH_1            ("C4" > 0) AND (NOT EXISTS( SELECT 1 FROM "PUBLIC"."T1" /* PUBLIC.T1.tableScan */ WHERE ("C1" + "C2") = "C4"))
+> ------------------ ----------------- --------------- ------------------------------------------------------------------------------------------------------------------------------
+> SCRIPT             PUBLIC            CH_1            ("C4" > 0) AND (NOT EXISTS( SELECT 1 FROM "PUBLIC"."T1" /* PUBLIC.PRIMARY_KEY_A */ WHERE ("T1"."C1" + "T1"."C2") = "T2"."C4"))
 > rows: 1
+
+TABLE INFORMATION_SCHEMA.CHECK_COLUMN_USAGE;
+> CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME TABLE_CATALOG TABLE_SCHEMA TABLE_NAME COLUMN_NAME
+> ------------------ ----------------- --------------- ------------- ------------ ---------- -----------
+> SCRIPT             PUBLIC            CH_1            SCRIPT        PUBLIC       T1         C1
+> SCRIPT             PUBLIC            CH_1            SCRIPT        PUBLIC       T1         C2
+> SCRIPT             PUBLIC            CH_1            SCRIPT        PUBLIC       T2         C4
+> rows: 3
 
 DROP TABLE T2;
 > ok

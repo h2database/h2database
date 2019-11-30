@@ -15,7 +15,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -47,6 +46,7 @@ import org.h2.pagestore.PageStore;
 import org.h2.pagestore.WriterThread;
 import org.h2.pagestore.db.LobStorageBackend;
 import org.h2.result.Row;
+import org.h2.result.RowFactory;
 import org.h2.result.SearchRow;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
@@ -224,6 +224,7 @@ public class Database implements DataHandler, CastDataProvider {
     private boolean queryStatistics;
     private int queryStatisticsMaxEntries = Constants.QUERY_STATISTICS_MAX_ENTRIES;
     private QueryStatisticsData queryStatisticsData;
+    private RowFactory rowFactory = RowFactory.getRowFactory();
     private boolean ignoreCatalogs;
 
     private Authenticator authenticator;
@@ -294,6 +295,8 @@ public class Database implements DataHandler, CastDataProvider {
                 ci.removeProperty("CACHE_TYPE", Constants.CACHE_TYPE_DEFAULT));
         this.ignoreCatalogs = ci.getProperty("IGNORE_CATALOGS",
                 dbSettings.ignoreCatalogs);
+        this.lockMode = ci.getProperty("LOCK_MODE", Constants.DEFAULT_LOCK_MODE);
+        this.writeDelay = ci.getProperty("WRITE_DELAY", Constants.DEFAULT_WRITE_DELAY);
         openDatabase(traceLevelFile, traceLevelSystemOut, closeAtVmShutdown);
     }
 
@@ -333,6 +336,14 @@ public class Database implements DataHandler, CastDataProvider {
         Setting setting = findSetting(
                 SetTypes.getTypeName(SetTypes.DEFAULT_LOCK_TIMEOUT));
         return setting == null ? Constants.INITIAL_LOCK_TIMEOUT : setting.getIntValue();
+    }
+
+    public RowFactory getRowFactory() {
+        return rowFactory;
+    }
+
+    public void setRowFactory(RowFactory rowFactory) {
+        this.rowFactory = rowFactory;
     }
 
     public static void setInitialPowerOffCount(int count) {
@@ -661,21 +672,13 @@ public class Database implements DataHandler, CastDataProvider {
         if (store != null) {
             store.getTransactionStore().init();
         }
+        Set<String> settingKeys = dbSettings.getSettings().keySet();
         if (dbSettings.mvStore) {
             // MVStore
-            for (Iterator<String> i = dbSettings.getSettings().keySet().iterator(); i.hasNext();) {
-                if (i.next().startsWith("PAGE_STORE_")) {
-                    i.remove();
-                }
-            }
+            settingKeys.removeIf(name -> name.startsWith("PAGE_STORE_"));
         } else if (store == null) {
             // PageStore without additional MVStore for spatial features
-            for (Iterator<String> i = dbSettings.getSettings().keySet().iterator(); i.hasNext();) {
-                String name = i.next();
-                if ("COMPRESS".equals(name) || "REUSE_SPACE".equals(name)) {
-                    i.remove();
-                }
-            }
+            settingKeys.removeIf(name -> "COMPRESS".equals(name) || "REUSE_SPACE".equals(name));
         }
         systemUser = new User(this, 0, SYSTEM_USER_NAME, true);
         mainSchema = new Schema(this, Constants.MAIN_SCHEMA_ID, sysIdentifier(Constants.SCHEMA_MAIN), systemUser,
@@ -1028,7 +1031,7 @@ public class Database implements DataHandler, CastDataProvider {
      */
     public void removeMeta(Session session, int id) {
         if (id > 0 && !starting) {
-            SearchRow r = meta.getTemplateSimpleRow(false);
+            SearchRow r = meta.getRowFactory().createRow();
             r.setValue(0, ValueInt.get(id));
             boolean wasLocked = lockMeta(session);
             try {
@@ -1277,6 +1280,10 @@ public class Database implements DataHandler, CastDataProvider {
             delayedCloser = null;
         }
         return session;
+    }
+
+    public synchronized Session createTempSystemSession() {
+        return new Session(this, systemUser, ++nextSessionId);
     }
 
     /**
@@ -1579,7 +1586,7 @@ public class Database implements DataHandler, CastDataProvider {
     }
 
     private void checkMetaFree(Session session, int id) {
-        SearchRow r = meta.getTemplateSimpleRow(false);
+        SearchRow r = meta.getRowFactory().createRow();
         r.setValue(0, ValueInt.get(id));
         Cursor cursor = metaIdIndex.find(session, r, r);
         if (cursor.next()) {

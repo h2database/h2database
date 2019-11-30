@@ -15,7 +15,7 @@ import org.h2.value.VersionedValue;
 /**
  * An index that stores the data in an MVStore.
  */
-public interface MVIndex extends Index {
+public interface MVIndex<K,V> extends Index {
 
     /**
      * Add the rows to a temporary storage (not to the index yet). The rows are
@@ -34,5 +34,5 @@ public interface MVIndex extends Index {
      */
     void addBufferedRows(List<String> bufferNames);
 
-    MVMap<?, VersionedValue> getMVMap();
+    MVMap<K,VersionedValue<V>> getMVMap();
 }

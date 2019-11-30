@@ -17,7 +17,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
-import org.h2.mvstore.type.StringDataType;
 
 /**
  * A stored map.
@@ -43,8 +42,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     private final int id;
     private final long createVersion;
-    private final DataType keyType;
-    private final DataType valueType;
+    private final DataType<K> keyType;
+    private final DataType<V> valueType;
     private final int keysPerPage;
     private final boolean singleWriter;
     private final K[] keysBuffer;
@@ -68,13 +67,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     static final long INITIAL_VERSION = -1;
 
 
-    protected MVMap(Map<String, Object> config) {
-        this((MVStore) config.get("store"),
-                (DataType) config.get("key"),
-                (DataType) config.get("val"),
+    protected MVMap(Map<String, Object> config, DataType<K> keyType, DataType<V> valueType) {
+        this((MVStore) config.get("store"), keyType, valueType,
                 DataUtils.readHexInt(config, "id", 0),
                 DataUtils.readHexLong(config, "createVersion", 0),
-                new AtomicReference<RootReference>(),
+                new AtomicReference<>(),
                 ((MVStore) config.get("store")).getKeysPerPage(),
                 config.containsKey("singleWriter") && (Boolean) config.get("singleWriter")
         );
@@ -82,20 +79,20 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     // constructor for cloneIt()
+    @SuppressWarnings("CopyConstructorMissesField")
     protected MVMap(MVMap<K, V> source) {
         this(source.store, source.keyType, source.valueType, source.id, source.createVersion,
                 new AtomicReference<>(source.root.get()), source.keysPerPage, source.singleWriter);
     }
 
     // meta map constructor
-    MVMap(MVStore store) {
-        this(store, StringDataType.INSTANCE,StringDataType.INSTANCE, 0, 0, new AtomicReference<RootReference>(),
-                store.getKeysPerPage(), false);
+    MVMap(MVStore store, DataType<K> keyType, DataType<V> valueType) {
+        this(store, keyType, valueType, 0, 0, new AtomicReference<>(), store.getKeysPerPage(), false);
         setInitialRoot(createEmptyLeaf(), store.getCurrentVersion());
     }
 
     @SuppressWarnings("unchecked")
-    private MVMap(MVStore store, DataType keyType, DataType valueType, int id, long createVersion,
+    private MVMap(MVStore store, DataType<K> keyType, DataType<V> valueType, int id, long createVersion,
             AtomicReference<RootReference> root, int keysPerPage, boolean singleWriter) {
         this.store = store;
         this.id = id;
@@ -587,7 +584,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param datatype to use for comparison
      * @return true if they are equal
      */
-    static boolean areValuesEqual(DataType datatype, Object a, Object b) {
+    static <X> boolean areValuesEqual(DataType<X> datatype, X a, X b) {
         return a == b
             || a != null && b != null && datatype.compare(a, b) == 0;
     }
@@ -636,8 +633,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param b the second key
      * @return -1 if the first key is smaller, 1 if bigger, 0 if equal
      */
+    @SuppressWarnings("unchecked")
     final int compare(Object a, Object b) {
-        return keyType.compare(a, b);
+        return keyType.compare((K)a, (K)b);
     }
 
     /**
@@ -645,7 +643,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      *
      * @return the key type
      */
-    public final DataType getKeyType() {
+    public final DataType<K> getKeyType() {
         return keyType;
     }
 
@@ -654,7 +652,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      *
      * @return the value type
      */
-    public final DataType getValueType() {
+    public final DataType<V> getValueType() {
         return valueType;
     }
 
@@ -1063,7 +1061,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return sizeAsLong() == 0;
     }
 
-    public final long getCreateVersion() {
+    final long getCreateVersion() {
         return createVersion;
     }
 
@@ -1508,13 +1506,13 @@ public class MVMap<K, V> extends AbstractMap<K, V>
          */
         M create(MVStore store, Map<String, Object> config);
 
-        DataType getKeyType();
+        DataType<K> getKeyType();
 
-        DataType getValueType();
+        DataType<V> getValueType();
 
-        void setKeyType(DataType dataType);
+        void setKeyType(DataType<? super K> dataType);
 
-        void setValueType(DataType dataType);
+        void setValueType(DataType<? super V> dataType);
 
     }
 
@@ -1526,8 +1524,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     public abstract static class BasicBuilder<M extends MVMap<K, V>, K, V> implements MapBuilder<M, K, V> {
 
-        private DataType keyType;
-        private DataType valueType;
+        private DataType<K> keyType;
+        private DataType<V> valueType;
 
         /**
          * Create a new builder with the default key and value data types.
@@ -1537,23 +1535,25 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
 
         @Override
-        public DataType getKeyType() {
+        public DataType<K> getKeyType() {
             return keyType;
         }
 
         @Override
-        public DataType getValueType() {
+        public DataType<V> getValueType() {
             return valueType;
         }
 
+        @SuppressWarnings("unchecked")
         @Override
-        public void setKeyType(DataType keyType) {
-            this.keyType = keyType;
+        public void setKeyType(DataType<? super K> keyType) {
+            this.keyType = (DataType<K>)keyType;
         }
 
+        @SuppressWarnings("unchecked")
         @Override
-        public void setValueType(DataType valueType) {
-            this.valueType = valueType;
+        public void setValueType(DataType<? super V> valueType) {
+            this.valueType = (DataType<V>)valueType;
         }
 
         /**
@@ -1562,8 +1562,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
          * @param keyType the key type
          * @return this
          */
-        public BasicBuilder<M, K, V> keyType(DataType keyType) {
-            this.keyType = keyType;
+        public BasicBuilder<M, K, V> keyType(DataType<? super K> keyType) {
+            setKeyType(keyType);
             return this;
         }
 
@@ -1573,8 +1573,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
          * @param valueType the value type
          * @return this
          */
-        public BasicBuilder<M, K, V> valueType(DataType valueType) {
-            this.valueType = valueType;
+        public BasicBuilder<M, K, V> valueType(DataType<? super V> valueType) {
+            setValueType(valueType);
             return this;
         }
 
@@ -1586,8 +1586,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             if (getValueType() == null) {
                 setValueType(new ObjectDataType());
             }
-            DataType keyType = getKeyType();
-            DataType valueType = getValueType();
+            DataType<K> keyType = getKeyType();
+            DataType<V> valueType = getValueType();
             config.put("store", store);
             config.put("key", keyType);
             config.put("val", valueType);
@@ -1615,13 +1615,13 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         public Builder() {}
 
         @Override
-        public Builder<K,V> keyType(DataType dataType) {
+        public Builder<K,V> keyType(DataType<? super K> dataType) {
             setKeyType(dataType);
             return this;
         }
 
         @Override
-        public Builder<K, V> valueType(DataType dataType) {
+        public Builder<K, V> valueType(DataType<? super V> dataType) {
             setValueType(dataType);
             return this;
         }
@@ -1642,7 +1642,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             config.put("singleWriter", singleWriter);
             Object type = config.get("type");
             if(type == null || type.equals("rtree")) {
-                return new MVMap<>(config);
+                return new MVMap<>(config, getKeyType(), getValueType());
             }
             throw new IllegalArgumentException("Incompatible map type");
         }
@@ -2020,11 +2020,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     private static final class EqualsDecisionMaker<V> extends DecisionMaker<V> {
-        private final DataType dataType;
-        private final V        expectedValue;
-        private       Decision decision;
+        private final DataType<V> dataType;
+        private final V           expectedValue;
+        private       Decision    decision;
 
-        EqualsDecisionMaker(DataType dataType, V expectedValue) {
+        EqualsDecisionMaker(DataType<V> dataType, V expectedValue) {
             this.dataType = dataType;
             this.expectedValue = expectedValue;
         }

@@ -5,11 +5,12 @@
  */
 package org.h2.mvstore.tx;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 import org.h2.mvstore.Cursor;
@@ -17,9 +18,13 @@ import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.RootReference;
-import org.h2.mvstore.WriteBuffer;
+import org.h2.mvstore.db.DBMetaType;
+import org.h2.mvstore.rtree.MVRTreeMap;
+import org.h2.mvstore.rtree.SpatialDataType;
 import org.h2.mvstore.type.DataType;
+import org.h2.mvstore.type.LongDataType;
 import org.h2.mvstore.type.ObjectDataType;
+import org.h2.mvstore.type.StringDataType;
 import org.h2.util.StringUtils;
 import org.h2.value.VersionedValue;
 
@@ -44,6 +49,8 @@ public class TransactionStore {
      */
     private final MVMap<Integer, Object[]> preparedTransactions;
 
+    private final MVMap<String, DataType<?>> typeRegistry;
+
     /**
      * Undo logs.
      * <p>
@@ -55,10 +62,10 @@ public class TransactionStore {
      * Key: opId, value: [ mapId, key, oldValue ].
      */
     @SuppressWarnings("unchecked")
-    final MVMap<Long,Object[]>[] undoLogs = new MVMap[MAX_OPEN_TRANSACTIONS];
-    private final MVMap.Builder<Long,Object[]> undoLogBuilder;
+    final MVMap<Long,Record>[] undoLogs = (MVMap<Long,Record>[])new MVMap[MAX_OPEN_TRANSACTIONS];
+    private final MVMap.Builder<Long, Record> undoLogBuilder;
 
-    private final MVMap.Builder<Object, VersionedValue> mapBuilder;
+    private final DataType dataType;
 
     /**
      * This BitSet is used as vacancy indicator for transaction slots in transactions[].
@@ -92,6 +99,8 @@ public class TransactionStore {
     private final AtomicReferenceArray<Transaction> transactions =
                                                         new AtomicReferenceArray<>(MAX_OPEN_TRANSACTIONS + 1);
 
+    private static final String TYPE_REGISTRY_NAME = "_";
+
     /**
      * The prefix for undo log entries.
      */
@@ -109,7 +118,7 @@ public class TransactionStore {
     private static final int MAX_OPEN_TRANSACTIONS = 65535;
 
     // -1 is a bogus map id
-    private static final Object[] COMMIT_MARKER = new Object[] {-1, null, null};
+    static final Record COMMIT_MARKER = new Record(-1, null, null);
 
 
     /**
@@ -130,31 +139,38 @@ public class TransactionStore {
      * @param store the store
      */
     public TransactionStore(MVStore store) {
-        this(store, new ObjectDataType(), 0);
+        this(store, new ObjectDataType());
+    }
+
+    public TransactionStore(MVStore store, DataType dataType) {
+        this(store, new DBMetaType(null, store.backgroundExceptionHandler), dataType, 0);
     }
 
     /**
      * Create a new transaction store.
-     *
      * @param store the store
-     * @param dataType the data type for map keys and values
+     * @param metaDataType the data type for type registry map values
+     * @param dataType default data type for map keys and values
      * @param timeoutMillis lock acquisition timeout in milliseconds, 0 means no wait
      */
-    public TransactionStore(MVStore store, DataType dataType, int timeoutMillis) {
+    public TransactionStore(MVStore store, DBMetaType metaDataType, DataType<?> dataType, int timeoutMillis) {
         this.store = store;
+        this.dataType = dataType;
         this.timeoutMillis = timeoutMillis;
-        preparedTransactions = store.openMap("openTransactions",
-                new MVMap.Builder<Integer, Object[]>());
-        DataType oldValueType = new VersionedValueType(dataType);
-        ArrayType undoLogValueType = new ArrayType(new DataType[]{
-                new ObjectDataType(), dataType, oldValueType
-        });
-        undoLogBuilder = new MVMap.Builder<Long, Object[]>()
-                .singleWriter()
-                .valueType(undoLogValueType);
-        DataType vt = new VersionedValueType(dataType);
-        mapBuilder = new MVMap.Builder<Object, VersionedValue>()
-                            .keyType(dataType).valueType(vt);
+        this.typeRegistry = openTypeRegistry(store, metaDataType);
+        preparedTransactions = store.openMap("openTransactions", new MVMap.Builder<>());
+        undoLogBuilder = new MVMap.Builder<Long, Record>()
+                        .singleWriter()
+                        .keyType(LongDataType.INSTANCE)
+                        .valueType(new Record.Type(this));
+    }
+
+    public static MVMap<String, DataType<?>> openTypeRegistry(MVStore store, DBMetaType metaDataType) {
+        MVMap.Builder<String, DataType<?>> typeRegistryBuilder =
+                                    new MVMap.Builder<String, DataType<?>>()
+                                                .keyType(StringDataType.INSTANCE)
+                                                .valueType(metaDataType);
+        return store.openMap(TYPE_REGISTRY_NAME, typeRegistryBuilder);
     }
 
     /**
@@ -187,7 +203,7 @@ public class TransactionStore {
                                     status = (Integer) data[0];
                                     name = (String) data[1];
                                 }
-                                MVMap<Long, Object[]> undoLog = store.openMap(mapName, undoLogBuilder);
+                                MVMap<Long, Record> undoLog = store.openMap(mapName, undoLogBuilder);
                                 undoLogs[transactionId] = undoLog;
                                 Long lastUndoKey = undoLog.lastKey();
                                 assert lastUndoKey != null;
@@ -389,7 +405,7 @@ public class TransactionStore {
 
         if (undoLogs[transactionId] == null) {
             String undoName = getUndoLogName(transactionId);
-            MVMap<Long, Object[]> undoLog = store.openMap(undoName, undoLogBuilder);
+            MVMap<Long, Record> undoLog = store.openMap(undoName, undoLogBuilder);
             undoLogs[transactionId] = undoLog;
         }
         return transaction;
@@ -414,11 +430,10 @@ public class TransactionStore {
      *
      * @param transactionId id of the transaction
      * @param logId sequential number of the log record within transaction
-     * @param undoLogRecord Object[mapId, key, previousValue]
-     * @return undo key
+     * @param record Record(mapId, key, previousValue) to add
      */
-    long addUndoLogRecord(int transactionId, long logId, Object[] undoLogRecord) {
-        MVMap<Long, Object[]> undoLog = undoLogs[transactionId];
+    long addUndoLogRecord(int transactionId, long logId, Record record) {
+        MVMap<Long, Record> undoLog = undoLogs[transactionId];
         long undoKey = getOperationId(transactionId, logId);
         if (logId == 0 && !undoLog.isEmpty()) {
             throw DataUtils.newIllegalStateException(
@@ -427,7 +442,7 @@ public class TransactionStore {
                     "is still open: {0}",
                     transactionId);
         }
-        undoLog.append(undoKey, undoLogRecord);
+        undoLog.append(undoKey, record);
         return undoKey;
     }
 
@@ -460,8 +475,8 @@ public class TransactionStore {
             // First, mark log as "committed".
             // It does not change the way this transaction is treated by others,
             // but preserves fact of commit in case of abrupt termination.
-            MVMap<Long, Object[]> undoLog = undoLogs[transactionId];
-            Cursor<Long, Object[]> cursor;
+            MVMap<Long, Record> undoLog = undoLogs[transactionId];
+            Cursor<Long, Record> cursor;
             if(recovery) {
                 removeUndoLogRecord(transactionId);
                 cursor = undoLog.cursor(null);
@@ -478,11 +493,11 @@ public class TransactionStore {
             try {
                 while (cursor.hasNext()) {
                     Long undoKey = cursor.next();
-                    Object[] op = cursor.getValue();
-                    int mapId = (Integer) op[0];
-                    MVMap<Object, VersionedValue> map = openMap(mapId);
+                    Record op = cursor.getValue();
+                    int mapId = op.mapId;
+                    MVMap<Object, VersionedValue<Object>> map = openMap(mapId);
                     if (map != null) { // might be null if map was removed later
-                        Object key = op[1];
+                        Object key = op.key;
                         commitDecisionMaker.setUndoKey(undoKey);
                         // second parameter (value) is not really
                         // used by CommitDecisionMaker
@@ -516,20 +531,11 @@ public class TransactionStore {
      * @param valueType the value type
      * @return the map
      */
-    <K> MVMap<K, VersionedValue> openMap(String name,
-            DataType keyType, DataType valueType) {
-        if (keyType == null) {
-            keyType = new ObjectDataType();
-        }
-        if (valueType == null) {
-            valueType = new ObjectDataType();
-        }
-        VersionedValueType vt = new VersionedValueType(valueType);
-        MVMap<K, VersionedValue> map;
-        MVMap.Builder<K, VersionedValue> builder =
-                new MVMap.Builder<K, VersionedValue>().
-                keyType(keyType).valueType(vt);
-        map = store.openMap(name, builder);
+    <K,V> MVMap<K, VersionedValue<V>> openMap(String name, DataType<K> keyType, DataType<V> valueType) {
+        VersionedValueType<V> vt = valueType == null ? null : new VersionedValueType<>(valueType);
+        MVMap.Builder<K, VersionedValue<V>> builder = new TxMapBuilder<K,VersionedValue<V>>(typeRegistry, dataType)
+                .keyType(keyType).valueType(vt);
+        MVMap<K, VersionedValue<V>> map = store.openMap(name, builder);
         return map;
     }
 
@@ -539,16 +545,28 @@ public class TransactionStore {
      * @param mapId the id
      * @return the map
      */
-    MVMap<Object, VersionedValue> openMap(int mapId) {
-        MVMap<Object, VersionedValue> map = store.getMap(mapId);
+    MVMap<Object, VersionedValue<Object>> openMap(int mapId) {
+        MVMap<Object, VersionedValue<Object>> map = store.getMap(mapId);
         if (map == null) {
             String mapName = store.getMapName(mapId);
             if (mapName == null) {
                 // the map was removed later on
                 return null;
             }
-            map = store.openMap(mapName, mapBuilder);
+            MVMap.Builder<Object, VersionedValue<Object>> txMapBuilder = new TxMapBuilder<>(typeRegistry, dataType);
+//            map = store.openMap(mapName, txMapBuilder);
+            map = store.openMap(mapId, txMapBuilder);
         }
+        return map;
+    }
+
+    MVMap<Object,VersionedValue<Object>> getMap(int mapId) {
+        MVMap<Object, VersionedValue<Object>> map = store.getMap(mapId);
+        if (map == null && !init) {
+            map = openMap(mapId);
+        }
+        assert map != null : "map with id " + mapId + " is missing" +
+                                (init ? "" : " during initialization");
         return map;
     }
 
@@ -610,7 +628,7 @@ public class TransactionStore {
         BitSet opentransactions = openTransactions.get();
         RootReference[] undoLogRootReferences = new RootReference[opentransactions.length()];
         for (int i = opentransactions.nextSetBit(0); i >= 0; i = opentransactions.nextSetBit(i+1)) {
-            MVMap<Long, Object[]> undoLog = undoLogs[i];
+            MVMap<Long, Record> undoLog = undoLogs[i];
             if (undoLog != null) {
                 RootReference rootReference = undoLog.getRoot();
                 if (rootReference.needFlush()) {
@@ -643,7 +661,7 @@ public class TransactionStore {
     private boolean isUndoEmpty() {
         BitSet openTrans = openTransactions.get();
         for (int i = openTrans.nextSetBit(0); i >= 0; i = openTrans.nextSetBit(i + 1)) {
-            MVMap<Long, Object[]> undoLog = undoLogs[i];
+            MVMap<Long, Record> undoLog = undoLogs[i];
             if (undoLog != null && !undoLog.isEmpty()) {
                 return false;
             }
@@ -670,7 +688,7 @@ public class TransactionStore {
      */
     void rollbackTo(Transaction t, long maxLogId, long toLogId) {
         int transactionId = t.getId();
-        MVMap<Long, Object[]> undoLog = undoLogs[transactionId];
+        MVMap<Long, Record> undoLog = undoLogs[transactionId];
         RollbackDecisionMaker decisionMaker = new RollbackDecisionMaker(this, transactionId, toLogId, t.listener);
         for (long logId = maxLogId - 1; logId >= toLogId; logId--) {
             Long undoKey = getOperationId(transactionId, logId);
@@ -691,7 +709,7 @@ public class TransactionStore {
     Iterator<Change> getChanges(final Transaction t, final long maxLogId,
             final long toLogId) {
 
-        final MVMap<Long, Object[]> undoLog = undoLogs[t.getId()];
+        final MVMap<Long, Record> undoLog = undoLogs[t.getId()];
         return new Iterator<Change>() {
 
             private long logId = maxLogId - 1;
@@ -701,7 +719,7 @@ public class TransactionStore {
                 int transactionId = t.getId();
                 while (logId >= toLogId) {
                     Long undoKey = getOperationId(transactionId, logId);
-                    Object[] op = undoLog.get(undoKey);
+                    Record op = undoLog.get(undoKey);
                     logId--;
                     if (op == null) {
                         // partially rolled back: load previous
@@ -712,11 +730,11 @@ public class TransactionStore {
                         logId = getLogId(undoKey);
                         continue;
                     }
-                    int mapId = (int)op[0];
-                    MVMap<Object, VersionedValue> m = openMap(mapId);
+                    int mapId = op.mapId;
+                    MVMap<Object, VersionedValue<Object>> m = openMap(mapId);
                     if (m != null) { // could be null if map was removed later on
-                        VersionedValue oldValue = (VersionedValue) op[2];
-                        current = new Change(m.getName(), op[1], oldValue == null ? null : oldValue.getCurrentValue());
+                        VersionedValue<Object> oldValue = op.oldValue;
+                        current = new Change(m.getName(), op.key, oldValue == null ? null : oldValue.getCurrentValue());
                         return;
                     }
                 }
@@ -788,99 +806,124 @@ public class TransactionStore {
          * @param existingValue value in the map (null if delete is rolled back)
          * @param restoredValue value to be restored (null if add is rolled back)
          */
-        void onRollback(MVMap<Object,VersionedValue> map, Object key,
-                        VersionedValue existingValue, VersionedValue restoredValue);
+        void onRollback(MVMap<Object,VersionedValue<Object>> map, Object key,
+                        VersionedValue<Object> existingValue, VersionedValue<Object> restoredValue);
     }
 
     private static final RollbackListener ROLLBACK_LISTENER_NONE = (map, key, existingValue, restoredValue) -> {};
 
-    /**
-     * A data type that contains an array of objects with the specified data
-     * types.
-     */
-    public static class ArrayType implements DataType {
+    private static final class TxMapBuilder<K,V> extends MVMap.Builder<K,V> {
 
-        private final int arrayLength;
-        private final DataType[] elementTypes;
+        private final MVMap<String, DataType<?>> typeRegistry;
+        private final DataType defaultDataType;
 
-        ArrayType(DataType[] elementTypes) {
-            this.arrayLength = elementTypes.length;
-            this.elementTypes = elementTypes;
+        TxMapBuilder(MVMap<String, DataType<?>> typeRegistry, DataType defaultDataType) {
+            this.typeRegistry = typeRegistry;
+            this.defaultDataType = defaultDataType;
         }
 
+        private void registerDataType(DataType dataType) {
+            String key = getDataTypeRegistrationKey(dataType);
+            DataType registeredDataType = typeRegistry.putIfAbsent(key, dataType);
+            if(registeredDataType != null) {
+                // TODO: ensure type consistency
+            }
+        }
+
+        static String getDataTypeRegistrationKey(DataType dataType) {
+            return Integer.toHexString(Objects.hashCode(dataType));
+        }
+
+        @SuppressWarnings("unchecked")
         @Override
-        public int getMemory(Object obj) {
-            Object[] array = (Object[]) obj;
-            int size = 0;
-            for (int i = 0; i < arrayLength; i++) {
-                DataType t = elementTypes[i];
-                Object o = array[i];
-                if (o != null) {
-                    size += t.getMemory(o);
+        public MVMap<K,V> create(MVStore store, Map<String, Object> config) {
+            DataType<K> keyType = getKeyType();
+            if (keyType == null) {
+                String keyTypeKey = (String) config.remove("key");
+                if (keyTypeKey != null) {
+                    keyType = (DataType<K>)typeRegistry.get(keyTypeKey);
+                    if (keyType == null) {
+                        throw DataUtils.newIllegalStateException(DataUtils.ERROR_UNKNOWN_DATA_TYPE,
+                                "Data type with hash {0} can not be found", keyTypeKey);
+                    }
+                    setKeyType(keyType);
                 }
+            } else {
+                registerDataType(keyType);
             }
-            return size;
-        }
 
-        @Override
-        public int compare(Object aObj, Object bObj) {
-            if (aObj == bObj) {
-                return 0;
-            }
-            Object[] a = (Object[]) aObj;
-            Object[] b = (Object[]) bObj;
-            for (int i = 0; i < arrayLength; i++) {
-                DataType t = elementTypes[i];
-                int comp = t.compare(a[i], b[i]);
-                if (comp != 0) {
-                    return comp;
+            DataType<V> valueType = getValueType();
+            if (valueType == null) {
+                String valueTypeKey = (String) config.remove("val");
+                if (valueTypeKey != null) {
+                    valueType = (DataType<V>)typeRegistry.get(valueTypeKey);
+                    if (valueType == null) {
+                        throw DataUtils.newIllegalStateException(DataUtils.ERROR_UNKNOWN_DATA_TYPE,
+                                "Data type with hash {0} can not be found", valueTypeKey);
+                    }
+                    setValueType(valueType);
                 }
+            } else {
+                registerDataType(valueType);
             }
-            return 0;
+
+            if (getKeyType() == null) {
+                setKeyType(defaultDataType);
+                registerDataType(getKeyType());
+            }
+            if (getValueType() == null) {
+                setValueType((DataType<? super V>) new VersionedValueType(defaultDataType));
+                registerDataType(getValueType());
+            }
+
+            config.put("store", store);
+            config.put("key", getKeyType());
+            config.put("val", getValueType());
+            return create(config);
         }
+
 
         @Override
-        public void read(ByteBuffer buff, Object[] obj,
-                int len, boolean key) {
-            for (int i = 0; i < len; i++) {
-                obj[i] = read(buff);
+        @SuppressWarnings("unchecked")
+        protected MVMap<K,V> create(Map<String,Object> config) {
+            if("rtree".equals(config.get("type"))) {
+                MVMap<K, V> map = (MVMap<K, V>) new MVRTreeMap<>(config, (SpatialDataType)getKeyType(), getValueType());
+                return map;
             }
+            return new TMVMap<>(config, getKeyType(), getValueType());
         }
 
-        @Override
-        public void write(WriteBuffer buff, Object[] obj,
-                int len, boolean key) {
-            for (int i = 0; i < len; i++) {
-                write(buff, obj[i]);
+        private static final class TMVMap<K,V> extends MVMap<K,V> {
+            private final String type;
+
+            TMVMap(Map<String, Object> config, DataType<K> keyType, DataType<V> valueType) {
+                super(config, keyType, valueType);
+                type = (String)config.get("type");
+            }
+
+            private TMVMap(MVMap<K, V> source) {
+                super(source);
+                type = source.getType();
+            }
+
+            @Override
+            protected MVMap<K, V> cloneIt() {
+                return new TMVMap<>(this);
+            }
+
+            @Override
+            public String getType() {
+                return type;
+            }
+
+            @Override
+            protected String asString(String name) {
+                StringBuilder buff = new StringBuilder();
+                buff.append(super.asString(name));
+                DataUtils.appendMap(buff, "key", getDataTypeRegistrationKey(getKeyType()));
+                DataUtils.appendMap(buff, "val", getDataTypeRegistrationKey(getValueType()));
+                return buff.toString();
             }
         }
-
-        @Override
-        public void write(WriteBuffer buff, Object obj) {
-            Object[] array = (Object[]) obj;
-            for (int i = 0; i < arrayLength; i++) {
-                DataType t = elementTypes[i];
-                Object o = array[i];
-                if (o == null) {
-                    buff.put((byte) 0);
-                } else {
-                    buff.put((byte) 1);
-                    t.write(buff, o);
-                }
-            }
-        }
-
-        @Override
-        public Object read(ByteBuffer buff) {
-            Object[] array = new Object[arrayLength];
-            for (int i = 0; i < arrayLength; i++) {
-                DataType t = elementTypes[i];
-                if (buff.get() == 1) {
-                    array[i] = t.read(buff);
-                }
-            }
-            return array;
-        }
-
     }
 }

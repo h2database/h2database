@@ -148,7 +148,7 @@ public class Transaction {
     /**
      * Map on which this transaction is blocked.
      */
-    private MVMap<?,VersionedValue> blockingMap;
+    private String blockingMapName;
 
     /**
      * Key in blockingMap on which this transaction is blocked.
@@ -217,7 +217,7 @@ public class Transaction {
         RootReference root;
         do {
             committingTransactions = store.committingTransactions.get();
-            root = store.openMap(mapId).flushAndGetRoot();
+            root = store.getMap(mapId).flushAndGetRoot();
         } while (committingTransactions != store.committingTransactions.get());
         return new Snapshot(root, committingTransactions);
     }
@@ -344,8 +344,8 @@ public class Transaction {
      * @param maps
      *            set of maps used by transaction or statement is about to be executed
      */
-    @SuppressWarnings("unchecked")
-    public void markStatementStart(HashSet<MVMap<?, ?>> maps) {
+//    @SuppressWarnings("unchecked")
+    public void markStatementStart(HashSet<MVMap<Object,VersionedValue<Object>>> maps) {
         markStatementEnd();
         if (txCounter == null) {
             txCounter = store.store.registerVersionUsage();
@@ -358,8 +358,8 @@ public class Transaction {
             BitSet committingTransactions;
             do {
                 committingTransactions = store.committingTransactions.get();
-                for (MVMap<?, ?> map : maps) {
-                    TransactionMap<?, Object> txMap = openMap((MVMap<?, VersionedValue>) map);
+                for (MVMap<Object,VersionedValue<Object>> map : maps) {
+                    TransactionMap<?,?> txMap = openMapX(map);
                     txMap.setStatementSnapshot(new Snapshot(map.flushAndGetRoot(), committingTransactions));
                 }
                 if (isolationLevel == IsolationLevel.READ_COMMITTED) {
@@ -371,8 +371,8 @@ public class Transaction {
             // and committingTransactions mask tells us which of seemingly uncommitted changes
             // should be considered as committed.
             // Subsequent processing uses this snapshot info only.
-            for (MVMap<?, ?> map : maps) {
-                TransactionMap<?, Object> txMap = openMap((MVMap<?, VersionedValue>) map);
+            for (MVMap<Object,VersionedValue<Object>> map : maps) {
+                TransactionMap<?,?> txMap = openMapX(map);
                 txMap.promoteSnapshot();
             }
         }
@@ -409,13 +409,11 @@ public class Transaction {
     /**
      * Add a log entry.
      *
-     * @param mapId the map id
-     * @param key the key
-     * @param oldValue the old value
+     * @param logRecord to append
      *
      * @return key for the newly added undo log entry
      */
-    long log(int mapId, Object key, VersionedValue oldValue) {
+    long log(Record logRecord) {
         long currentState = statusAndLogId.getAndIncrement();
         long logId = getLogId(currentState);
         if (logId >= LOG_ID_LIMIT) {
@@ -426,7 +424,7 @@ public class Transaction {
         }
         int currentStatus = getStatus(currentState);
         checkOpen(currentStatus);
-        long undoKey = store.addUndoLogRecord(transactionId, logId, new Object[]{ mapId, key, oldValue });
+        long undoKey = store.addUndoLogRecord(transactionId, logId, logRecord);
         return undoKey;
     }
 
@@ -470,9 +468,10 @@ public class Transaction {
      * @return the transaction map
      */
     public <K, V> TransactionMap<K, V> openMap(String name,
-                                                DataType keyType, DataType valueType) {
-        MVMap<K, VersionedValue> map = store.openMap(name, keyType, valueType);
-        return openMap(map);
+                                                DataType<K> keyType,
+                                                DataType<V> valueType) {
+        MVMap<K, VersionedValue<V>> map = store.openMap(name, keyType, valueType);
+        return openMapX(map);
     }
 
     /**
@@ -483,11 +482,11 @@ public class Transaction {
      * @param map the base map
      * @return the transactional map
      */
-    public <K, V> TransactionMap<K, V> openMap(MVMap<K, VersionedValue> map) {
+    @SuppressWarnings("unchecked")
+    public <K, V> TransactionMap<K,V> openMapX(MVMap<K,VersionedValue<V>> map) {
         checkNotClosed();
         int id = map.getId();
-        @SuppressWarnings("unchecked")
-        TransactionMap<K,V> transactionMap = (TransactionMap<K, V>)transactionMaps.get(id);
+        TransactionMap<K,V> transactionMap = (TransactionMap<K,V>)transactionMaps.get(id);
         if (transactionMap == null) {
             transactionMap = new TransactionMap<>(this, map);
             transactionMaps.put(id, transactionMap);
@@ -678,13 +677,13 @@ public class Transaction {
      * because both of them try to modify the same map entry.
      *
      * @param toWaitFor transaction to wait for
-     * @param map containing blocking entry
+     * @param mapName name of the map containing blocking entry
      * @param key of the blocking entry
      * @return true if other transaction was closed and this one can proceed, false if timed out
      */
-    public boolean waitFor(Transaction toWaitFor, MVMap<?,VersionedValue> map, Object key) {
+    public boolean waitFor(Transaction toWaitFor, String mapName, Object key) {
         blockingTransaction = toWaitFor;
-        blockingMap = map;
+        blockingMapName = mapName;
         blockingKey = key;
         if (isDeadlocked(toWaitFor)) {
             StringBuilder details = new StringBuilder(
@@ -692,12 +691,12 @@ public class Transaction {
             for (Transaction tx = toWaitFor, nextTx; (nextTx = tx.blockingTransaction) != null; tx = nextTx) {
                 details.append(String.format(
                         "Transaction %d attempts to update map <%s> entry with key <%s> modified by transaction %s%n",
-                        tx.transactionId, tx.blockingMap.getName(), tx.blockingKey, tx.blockingTransaction));
+                        tx.transactionId, tx.blockingMapName, tx.blockingKey, tx.blockingTransaction));
                 if (nextTx == this) {
                     details.append(String.format(
                             "Transaction %d attempts to update map <%s> entry with key <%s>"
                                     + " modified by transaction %s%n",
-                            transactionId, blockingMap.getName(), blockingKey, toWaitFor));
+                            transactionId, blockingMapName, blockingKey, toWaitFor));
                     if (isDeadlocked(toWaitFor)) {
                         throw DataUtils.newIllegalStateException(DataUtils.ERROR_TRANSACTIONS_DEADLOCK, "{0}",
                                 details.toString());
@@ -709,7 +708,7 @@ public class Transaction {
         try {
             return toWaitFor.waitForThisToEnd(timeoutMillis);
         } finally {
-            blockingMap = null;
+            blockingMapName = null;
             blockingKey = null;
             blockingTransaction = null;
         }

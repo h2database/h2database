@@ -35,6 +35,7 @@ import org.h2.compress.CompressDeflate;
 import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
 import org.h2.mvstore.cache.CacheLongKeyLIRS;
+import org.h2.mvstore.type.StringDataType;
 import org.h2.util.MathUtils;
 import org.h2.util.Utils;
 
@@ -249,7 +250,7 @@ public class MVStore implements AutoCloseable
 
     private final boolean recoveryMode;
 
-    private final UncaughtExceptionHandler backgroundExceptionHandler;
+    public final UncaughtExceptionHandler backgroundExceptionHandler;
 
     private volatile long currentVersion;
 
@@ -366,7 +367,7 @@ public class MVStore implements AutoCloseable
         keysPerPage = DataUtils.getConfigParam(config, "keysPerPage", 48);
         backgroundExceptionHandler =
                 (UncaughtExceptionHandler)config.get("backgroundExceptionHandler");
-        meta = new MVMap<>(this);
+        meta = new MVMap<>(this, StringDataType.INSTANCE, StringDataType.INSTANCE);
         if (this.fileStore != null) {
             retentionTime = this.fileStore.getDefaultRetentionTime();
             // 19 KB memory is about 1 KB storage
@@ -513,7 +514,7 @@ public class MVStore implements AutoCloseable
      * @return the map
      */
     public <K, V> MVMap<K, V> openMap(String name) {
-        return openMap(name, new MVMap.Builder<K, V>());
+        return openMap(name, new MVMap.Builder<>());
     }
 
     /**
@@ -557,7 +558,7 @@ public class MVStore implements AutoCloseable
         return map;
     }
 
-    private <M extends MVMap<K, V>, K, V> M openMap(int id, MVMap.MapBuilder<M, K, V> builder) {
+    public <M extends MVMap<K, V>, K, V> M openMap(int id, MVMap.MapBuilder<M, K, V> builder) {
         storeLock.lock();
         try {
             @SuppressWarnings("unchecked")
@@ -2089,7 +2090,7 @@ public class MVStore implements AutoCloseable
         for (Chunk c : chunks.values()) {
             assert c.maxLen >= 0;
             if (isRewritable(c, time)) {
-                assert c.maxLenLive >= c.maxLenLive;
+                assert c.maxLen >= c.maxLenLive;
                 vacatedBlocks += c.len;
                 maxLengthSum += c.maxLen;
                 maxLengthLiveSum += c.maxLenLive;

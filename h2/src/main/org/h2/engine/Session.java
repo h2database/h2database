@@ -240,10 +240,6 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         }
     }
 
-    public String getParsingCreateViewName() {
-        return viewNameStack != null ? viewNameStack.peek() : null;
-    }
-
     public boolean isParsingCreateView() {
         return viewNameStack != null && !viewNameStack.isEmpty();
     }
@@ -312,7 +308,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         if (variables == null) {
             return new String[0];
         }
-        return variables.keySet().toArray(new String[variables.size()]);
+        return variables.keySet().toArray(new String[0]);
     }
 
     /**
@@ -808,7 +804,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             }
         }
         if (savepoints != null) {
-            String[] names = savepoints.keySet().toArray(new String[savepoints.size()]);
+            String[] names = savepoints.keySet().toArray(new String[0]);
             for (String name : names) {
                 Savepoint sp = savepoints.get(name);
                 int savepointIndex = sp.logIndex;
@@ -905,7 +901,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     public void registerTableAsLocked(Table table) {
         if (SysProperties.CHECK) {
             if (locks.contains(table)) {
-                DbException.throwInternalError(table.toString());
+                throw DbException.throwInternalError(table.toString());
             }
         }
         locks.add(table);
@@ -946,7 +942,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                     if (!locks.contains(log.getTable())
                             && TableType.TABLE_LINK != tableType
                             && TableType.EXTERNAL_TABLE_ENGINE != tableType) {
-                        DbException.throwInternalError(String.valueOf(tableType));
+                        throw DbException.throwInternalError(String.valueOf(tableType));
                     }
                 }
             }
@@ -968,7 +964,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     private void unlockAll() {
         if (undoLog != null && undoLog.size() > 0) {
-            DbException.throwInternalError();
+            throw DbException.throwInternalError();
         }
         if (!locks.isEmpty()) {
             Table[] array = locks.toArray(new Table[0]);
@@ -1396,7 +1392,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     public void removeAtCommit(Value v) {
         final String key = v.toString();
         if (!v.isLinkedToTable()) {
-            DbException.throwInternalError(key);
+            throw DbException.throwInternalError(key);
         }
         if (removeLobMap == null) {
             removeLobMap = new HashMap<>();
@@ -1744,7 +1740,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     public void startStatementWithinTransaction(Command command) {
         Transaction transaction = getTransaction();
         if (transaction != null) {
-            HashSet<MVMap<?, ?>> maps = new HashSet<>();
+            HashSet<MVMap<Object,VersionedValue<Object>>> maps = new HashSet<>();
             if (command != null) {
                 Set<DbObject> dependencies = command.getDependencies();
                 switch (transaction.getIsolationLevel()) {
@@ -1785,7 +1781,8 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         }
     }
 
-    private static void addTableToDependencies(MVTable table, HashSet<MVMap<?, ?>> maps) {
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static void addTableToDependencies(MVTable table, HashSet<MVMap<Object,VersionedValue<Object>>> maps) {
         for (Index index : table.getIndexes()) {
             if (index instanceof MVIndex) {
                 maps.add(((MVIndex) index).getMVMap());
@@ -1793,7 +1790,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         }
     }
 
-    private static void addTableToDependencies(MVTable table, HashSet<MVMap<?, ?>> maps, HashSet<MVTable> processed) {
+    private static void addTableToDependencies(MVTable table, HashSet<MVMap<Object,VersionedValue<Object>>> maps, HashSet<MVTable> processed) {
         if (!processed.add(table)) {
             return;
         }
@@ -1874,16 +1871,16 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     }
 
     @Override
-    public void onRollback(MVMap<Object, VersionedValue> map, Object key,
-                            VersionedValue existingValue,
-                            VersionedValue restoredValue) {
+    public void onRollback(MVMap<Object, VersionedValue<Object>> map, Object key,
+                            VersionedValue<Object> existingValue,
+                            VersionedValue<Object> restoredValue) {
         // Here we are relying on the fact that map which backs table's primary index
         // has the same name as the table itself
         MVTableEngine.Store store = database.getStore();
         if(store != null) {
             MVTable table = store.getTable(map.getName());
             if (table != null) {
-                long recKey = ((ValueLong)key).getLong();
+                long recKey = (Long)key;
                 Row oldRow = getRowFromVersionedValue(table, recKey, existingValue);
                 Row newRow = getRowFromVersionedValue(table, recKey, restoredValue);
                 table.fireAfterRow(this, oldRow, newRow, true);
@@ -1911,7 +1908,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     }
 
     private static Row getRowFromVersionedValue(MVTable table, long recKey,
-                                                VersionedValue versionedValue) {
+                                                VersionedValue<Object> versionedValue) {
         Object value = versionedValue == null ? null : versionedValue.getCurrentValue();
         if (value == null) {
             return null;

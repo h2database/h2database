@@ -169,6 +169,7 @@ public class MVTableEngine implements TableEngine {
                 }
                 mvStore.setVersionsToKeep(0);
                 this.transactionStore = new TransactionStore(mvStore,
+                        new DBMetaType(db, mvStore.backgroundExceptionHandler),
                         new ValueDataType(db, null), db.getLockTimeout());
             } catch (IllegalStateException e) {
                 throw convertIllegalStateException(e);
@@ -363,6 +364,7 @@ public class MVTableEngine implements TableEngine {
          *
          * @param maxCompactTime the maximum time in milliseconds to compact
          */
+        @SuppressWarnings("unused")
         public void compactFile(long maxCompactTime) {
             mvStore.compactFile(maxCompactTime);
         }
@@ -463,17 +465,8 @@ public class MVTableEngine implements TableEngine {
         }
 
         @Override
-        public String getState() {
-            switch (state) {
-            case IN_DOUBT:
-                return "IN_DOUBT";
-            case COMMIT:
-                return "COMMIT";
-            case ROLLBACK:
-                return "ROLLBACK";
-            default:
-                throw DbException.throwInternalError("state="+state);
-            }
+        public int getState() {
+            return state;
         }
 
         @Override

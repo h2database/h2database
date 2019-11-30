@@ -12,18 +12,27 @@ import org.h2.value.ValueLong;
 /**
  * The default implementation of a row in a table.
  */
-public class DefaultRow extends Row {
-
+public class DefaultRow extends Row
+{
     protected final Value[] data;
+    private         int     memory;
+
+    public static final int MEMORY_CALCULATE = -1;
+
+
+    DefaultRow(int columnCount) {
+        this.data = new Value[columnCount];
+        this.memory = MEMORY_CALCULATE;
+    }
 
     public DefaultRow(Value[] data) {
-        super(MEMORY_CALCULATE);
         this.data = data;
+        this.memory = MEMORY_CALCULATE;
     }
 
     public DefaultRow(Value[] data, int memory) {
-        super(memory);
         this.data = data;
+        this.memory = memory;
     }
 
     @Override
@@ -46,6 +55,14 @@ public class DefaultRow extends Row {
     }
 
     @Override
+    public int getMemory() {
+        if (memory != MEMORY_CALCULATE) {
+            return memory;
+        }
+        return memory = calculateMemory();
+    }
+
+    @Override
     public String toString() {
         StringBuilder builder = new StringBuilder("( /* key:").append(key).append(" */ ");
         for (int i = 0, length = data.length; i < length; i++) {
@@ -58,7 +75,11 @@ public class DefaultRow extends Row {
         return builder.append(')').toString();
     }
 
-    @Override
+    /**
+     * Calculate the estimated memory used for this row, in bytes.
+     *
+     * @return the memory
+     */
     protected int calculateMemory() {
         int m = Constants.MEMORY_ROW + Constants.MEMORY_ARRAY + data.length * Constants.MEMORY_POINTER;
         for (Value v : data) {
@@ -79,4 +100,11 @@ public class DefaultRow extends Row {
         return other instanceof DefaultRow && data == ((DefaultRow) other).data;
     }
 
+    @Override
+    public void copyFrom(SearchRow source) {
+        setKey(source.getKey());
+        for (int i = 0; i < getColumnCount(); i++) {
+            setValue(i, source.getValue(i));
+        }
+    }
 }

@@ -5,6 +5,8 @@
  */
 package org.h2.store;
 
+import org.h2.message.DbException;
+
 /**
  * Represents an in-doubt transaction (a transaction in the prepare phase).
  */
@@ -35,11 +37,30 @@ public interface InDoubtTransaction {
     void setState(int state);
 
     /**
+     * Get the state of this transaction.
+     *
+     * @return the transaction state
+     */
+    int getState();
+
+    /**
      * Get the state of this transaction as a text.
      *
      * @return the transaction state text
      */
-    String getState();
+    default String getStateDescription() {
+        int state = getState();
+        switch(state) {
+            case 0:
+                return "IN_DOUBT";
+            case 1:
+                return "COMMIT";
+            case 2:
+                return "ROLLBACK";
+            default:
+                throw DbException.throwInternalError("state=" + state);
+        }
+    }
 
     /**
      * Get the name of the transaction.
@@ -47,5 +68,4 @@ public interface InDoubtTransaction {
      * @return the transaction name
      */
     String getTransactionName();
-
 }

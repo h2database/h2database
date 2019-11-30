@@ -65,7 +65,7 @@ public class Cursor<K, V> implements Iterator<K> {
                     }
                     if (index < page.getKeyCount()) {
                         K key = (K) page.getKey(index);
-                        if (to != null && page.map.getKeyType().compare(key, to) > 0) {
+                        if (to != null && ((MVMap<K,V>)page.map).getKeyType().compare(key, to) > 0) {
                             return false;
                         }
                         current = last = key;
@@ -111,6 +111,7 @@ public class Cursor<K, V> implements Iterator<K> {
      *
      * @return the page
      */
+    @SuppressWarnings("unused")
     Page getPage() {
         return lastPage;
     }

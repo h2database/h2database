@@ -33,7 +33,6 @@ public final class PageStoreRow {
     static final class RemovedRow extends Row {
 
         RemovedRow(long key) {
-            super(Constants.MEMORY_ROW);
             setKey(key);
         }
 
@@ -65,7 +64,7 @@ public final class PageStoreRow {
         }
 
         @Override
-        protected int calculateMemory() {
+        public int getMemory() {
             return Constants.MEMORY_ROW;
         }
 
@@ -74,6 +73,10 @@ public final class PageStoreRow {
             return null;
         }
 
+        @Override
+        public void copyFrom(SearchRow source) {
+            setKey(source.getKey());
+        }
     }
 
     private PageStoreRow() {

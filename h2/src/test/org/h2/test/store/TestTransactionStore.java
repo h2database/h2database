@@ -23,7 +23,7 @@ import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionMap;
 import org.h2.mvstore.tx.TransactionStore;
 import org.h2.mvstore.tx.TransactionStore.Change;
-import org.h2.mvstore.type.ObjectDataType;
+import org.h2.mvstore.type.LongDataType;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
@@ -67,7 +67,7 @@ public class TestTransactionStore extends TestBase {
         final TransactionStore ts = new TransactionStore(s);
         ts.init();
         Transaction t = ts.begin();
-        ObjectDataType keyType = new ObjectDataType();
+        LongDataType keyType = LongDataType.INSTANCE;
         TransactionMap<Long, Long> map = t.openMap("test", keyType, keyType);
         // firstKey()
         assertNull(map.firstKey());

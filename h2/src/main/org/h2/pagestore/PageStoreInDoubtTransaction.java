@@ -46,23 +46,14 @@ public class PageStoreInDoubtTransaction implements InDoubtTransaction {
             store.setInDoubtTransactionState(sessionId, pos, false);
             break;
         default:
-            DbException.throwInternalError("state="+state);
+            throw DbException.throwInternalError("state="+state);
         }
         this.state = state;
     }
 
     @Override
-    public String getState() {
-        switch (state) {
-        case IN_DOUBT:
-            return "IN_DOUBT";
-        case COMMIT:
-            return "COMMIT";
-        case ROLLBACK:
-            return "ROLLBACK";
-        default:
-            throw DbException.throwInternalError("state="+state);
-        }
+    public int getState() {
+        return state;
     }
 
     @Override

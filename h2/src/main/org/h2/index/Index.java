@@ -9,6 +9,7 @@ import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.Row;
+import org.h2.result.RowFactory;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.schema.SchemaObject;
@@ -288,4 +289,5 @@ public interface Index extends SchemaObject {
         // ignore
     }
 
+    RowFactory getRowFactory();
 }

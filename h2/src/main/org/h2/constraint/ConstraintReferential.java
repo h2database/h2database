@@ -356,7 +356,7 @@ public class ConstraintReferential extends Constraint {
     }
 
     private void checkRow(Session session, Row oldRow) {
-        SearchRow check = table.getTemplateSimpleRow(false);
+        SearchRow check = table.getRowFactory().createRow();
         for (int i = 0, len = columns.length; i < len; i++) {
             Column refCol = refColumns[i].column;
             int refIdx = refCol.getColumnId();

@@ -106,7 +106,6 @@ public class TestObjectDataType extends TestBase {
             if (last != null) {
                 int comp = ot.compare(x, last);
                 if (comp <= 0) {
-                    ot.compare(x, last);
                     fail(x.getClass().getSimpleName() + ": " +
                             x.toString() + " " + comp);
                 }

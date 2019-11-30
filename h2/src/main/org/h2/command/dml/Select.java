@@ -690,7 +690,7 @@ public class Select extends Query {
             SearchRow found = cursor.getSearchRow();
             Value value = found.getValue(columnIndex);
             if (first == null) {
-                first = topTableFilter.getTable().getTemplateSimpleRow(true);
+                first = index.getRowFactory().createRow();
             }
             first.setValue(columnIndex, value);
             if (offset > 0) {

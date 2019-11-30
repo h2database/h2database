@@ -31,9 +31,9 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
 
     private boolean quadraticSplit;
 
-    public MVRTreeMap(Map<String, Object> config) {
-        super(config);
-        keyType = (SpatialDataType) config.get("key");
+    public MVRTreeMap(Map<String, Object> config, SpatialDataType keyType, DataType<V> valueType) {
+        super(config, keyType, valueType);
+        this.keyType = keyType;
         quadraticSplit = Boolean.parseBoolean(String.valueOf(config.get("quadraticSplit")));
     }
 
@@ -55,13 +55,7 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
      * @return the iterator
      */
     public RTreeCursor findIntersectingKeys(SpatialKey x) {
-        return new RTreeCursor(getRootPage(), x) {
-            @Override
-            protected boolean check(boolean leaf, SpatialKey key,
-                    SpatialKey test) {
-                return keyType.isOverlap(key, test);
-            }
-        };
+        return new IntersectsRTreeCursor(getRootPage(), x, keyType);
     }
 
     /**
@@ -72,16 +66,7 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
      * @return the iterator
      */
     public RTreeCursor findContainedKeys(SpatialKey x) {
-        return new RTreeCursor(getRootPage(), x) {
-            @Override
-            protected boolean check(boolean leaf, SpatialKey key,
-                    SpatialKey test) {
-                if (leaf) {
-                    return keyType.isInside(key, test);
-                }
-                return keyType.isOverlap(key, test);
-            }
-        };
+        return new ContainsRTreeCursor(getRootPage(), x, keyType);
     }
 
     private boolean contains(Page p, int index, Object key) {
@@ -452,6 +437,7 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         }
     }
 
+    @SuppressWarnings("unused")
     public boolean isQuadraticSplit() {
         return quadraticSplit;
     }
@@ -468,7 +454,7 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     /**
      * A cursor to iterate over a subset of the keys.
      */
-    public static class RTreeCursor implements Iterator<SpatialKey> {
+    public abstract static class RTreeCursor implements Iterator<SpatialKey> {
 
         private final SpatialKey filter;
         private CursorPos pos;
@@ -558,11 +544,40 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
          * @param test the user-supplied test key
          * @return true if there is a match
          */
-        @SuppressWarnings("unused")
-        protected boolean check(boolean leaf, SpatialKey key, SpatialKey test) {
-            return true;
+        protected abstract boolean check(boolean leaf, SpatialKey key, SpatialKey test);
+    }
+
+    private static final class IntersectsRTreeCursor extends RTreeCursor
+    {
+        private final SpatialDataType keyType;
+
+        public IntersectsRTreeCursor(Page root, SpatialKey filter, SpatialDataType keyType) {
+            super(root, filter);
+            this.keyType = keyType;
         }
 
+        @Override
+        protected boolean check(boolean leaf, SpatialKey key,
+                                SpatialKey test) {
+            return keyType.isOverlap(key, test);
+        }
+    }
+
+    private static final class ContainsRTreeCursor extends RTreeCursor
+    {
+        private final SpatialDataType keyType;
+
+        public ContainsRTreeCursor(Page root, SpatialKey filter, SpatialDataType keyType) {
+            super(root, filter);
+            this.keyType = keyType;
+        }
+
+        @Override
+        protected boolean check(boolean leaf, SpatialKey key, SpatialKey test) {
+            return leaf ?
+                keyType.isInside(key, test) :
+                keyType.isOverlap(key, test);
+        }
     }
 
     @Override
@@ -605,14 +620,14 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
          * @return this
          */
         @Override
-        public Builder<V> valueType(DataType valueType) {
+        public Builder<V> valueType(DataType<? super V> valueType) {
             setValueType(valueType);
             return this;
         }
 
         @Override
         public MVRTreeMap<V> create(Map<String, Object> config) {
-            return new MVRTreeMap<>(config);
+            return new MVRTreeMap<>(config, (SpatialDataType)getKeyType(), getValueType());
         }
     }
 }

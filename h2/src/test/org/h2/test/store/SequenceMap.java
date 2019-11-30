@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import org.h2.mvstore.MVMap;
+import org.h2.mvstore.type.DataType;
 
 /**
  * A custom map returning the keys and values 1 .. 10.
@@ -26,8 +27,8 @@ public class SequenceMap extends MVMap<Long, Long> {
      */
     int max = 10;
 
-    public SequenceMap(Map<String, Object> config) {
-        super(config);
+    public SequenceMap(Map<String, Object> config, DataType<Long> keyType, DataType<Long> valueType) {
+        super(config, keyType, valueType);
     }
 
     @Override
@@ -66,7 +67,7 @@ public class SequenceMap extends MVMap<Long, Long> {
     public static class Builder extends MVMap.Builder<Long, Long> {
         @Override
         public SequenceMap create(Map<String, Object> config) {
-            return new SequenceMap(config);
+            return new SequenceMap(config, getKeyType(), getValueType());
         }
 
     }

@@ -6,13 +6,14 @@
 package org.h2.mvstore.type;
 
 import java.nio.ByteBuffer;
+import java.util.Comparator;
 
 import org.h2.mvstore.WriteBuffer;
 
 /**
  * A data type.
  */
-public interface DataType {
+public interface DataType<T> extends Comparator<T> {
 
     /**
      * Compare two keys.
@@ -22,7 +23,8 @@ public interface DataType {
      * @return -1 if the first key is smaller, 1 if larger, and 0 if equal
      * @throws UnsupportedOperationException if the type is not orderable
      */
-    int compare(Object a, Object b);
+    @Override
+    int compare(T a, T b);
 
     /**
      * Estimate the used memory in bytes.
@@ -30,7 +32,7 @@ public interface DataType {
      * @param obj the object
      * @return the used memory
      */
-    int getMemory(Object obj);
+    int getMemory(T obj);
 
     /**
      * Write an object.
@@ -38,17 +40,16 @@ public interface DataType {
      * @param buff the target buffer
      * @param obj the value
      */
-    void write(WriteBuffer buff, Object obj);
+    void write(WriteBuffer buff, T obj);
 
     /**
      * Write a list of objects.
      *
      * @param buff the target buffer
-     * @param obj the objects
+     * @param storage the objects
      * @param len the number of objects to write
-     * @param key whether the objects are keys
      */
-    void write(WriteBuffer buff, Object[] obj, int len, boolean key);
+    void write(WriteBuffer buff, Object storage, int len);
 
     /**
      * Read an object.
@@ -56,17 +57,23 @@ public interface DataType {
      * @param buff the source buffer
      * @return the object
      */
-    Object read(ByteBuffer buff);
+    T read(ByteBuffer buff);
 
     /**
      * Read a list of objects.
      *
      * @param buff the target buffer
-     * @param obj the objects
+     * @param storage the objects
      * @param len the number of objects to read
-     * @param key whether the objects are keys
      */
-    void read(ByteBuffer buff, Object[] obj, int len, boolean key);
+    void read(ByteBuffer buff, Object storage, int len);
 
+    /**
+     * Create storage object of array type to hold values
+     *
+     * @param size number of values to hold
+     * @return storage object
+     */
+    T[] createStorage(int size);
 }
 

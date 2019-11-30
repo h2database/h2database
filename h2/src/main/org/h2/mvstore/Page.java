@@ -240,6 +240,11 @@ public abstract class Page implements Cloneable
         return p;
     }
 
+    @SuppressWarnings("unchecked")
+    static int getMemory(DataType keyType, Object key) {
+        return keyType.getMemory(key);
+    }
+
     /**
      * Get the id of the page's owner map
      * @return id
@@ -486,9 +491,9 @@ public abstract class Page implements Cloneable
         if(isPersistent()) {
             Object old = keys[index];
             DataType keyType = map.getKeyType();
-            int mem = keyType.getMemory(key);
+            int mem = getMemory(keyType, key);
             if (old != null) {
-                mem -= keyType.getMemory(old);
+                mem -= getMemory(keyType, old);
             }
             addMemory(mem);
         }
@@ -538,7 +543,7 @@ public abstract class Page implements Cloneable
         keys[index] = key;
 
         if (isPersistent()) {
-            addMemory(MEMORY_POINTER + map.getKeyType().getMemory(key));
+            addMemory(MEMORY_POINTER + getMemory(map.getKeyType(), key));
         }
     }
 
@@ -555,7 +560,7 @@ public abstract class Page implements Cloneable
         }
         if(isPersistent()) {
             Object old = getKey(index);
-            addMemory(-MEMORY_POINTER - keyType.getMemory(old));
+            addMemory(-MEMORY_POINTER - getMemory(keyType, old));
         }
         Object[] newKeys = createKeyStorage(keyCount - 1);
         DataUtils.copyExcept(keys, newKeys, keyCount, index);
@@ -602,7 +607,7 @@ public abstract class Page implements Cloneable
             compressor.expand(comp, 0, compLen, buff.array(),
                     buff.arrayOffset(), l);
         }
-        map.getKeyType().read(buff, keys, len, true);
+        map.getKeyType().read(buff, keys, len);
         if (isLeaf()) {
             readPayLoad(buff);
         }
@@ -666,7 +671,7 @@ public abstract class Page implements Cloneable
         buff.put((byte) type);
         writeChildren(buff, true);
         int compressStart = buff.position();
-        map.getKeyType().write(buff, keys, len, true);
+        map.getKeyType().write(buff, keys, len);
         writeValues(buff);
         MVStore store = map.getStore();
         int expLen = buff.position() - compressStart;
@@ -830,7 +835,7 @@ public abstract class Page implements Cloneable
         int mem = keyCount * MEMORY_POINTER;
         DataType keyType = map.getKeyType();
         for (int i = 0; i < keyCount; i++) {
-            mem += keyType.getMemory(keys[i]);
+            mem += getMemory(keyType, keys[i]);
         }
         return mem;
     }
@@ -897,7 +902,7 @@ public abstract class Page implements Cloneable
      */
     private Object[] createKeyStorage(int size)
     {
-        return new Object[size];
+        return map.getKeyType().createStorage(size);
     }
 
     /**
@@ -908,7 +913,7 @@ public abstract class Page implements Cloneable
      */
     final Object[] createValueStorage(int size)
     {
-        return new Object[size];
+        return map.getValueType().createStorage(size);
     }
 
     /**
@@ -1440,8 +1445,8 @@ public abstract class Page implements Cloneable
             values = values.clone();
             Object old = setValueInternal(index, value);
             if(isPersistent()) {
-                addMemory(valueType.getMemory(value) -
-                            valueType.getMemory(old));
+                addMemory(getMemory(valueType, value) -
+                        getMemory(valueType, old));
             }
             return old;
         }
@@ -1463,7 +1468,7 @@ public abstract class Page implements Cloneable
                 values = newValues;
                 setValueInternal(index, value);
                 if (isPersistent()) {
-                    addMemory(MEMORY_POINTER + map.getValueType().getMemory(value));
+                    addMemory(MEMORY_POINTER + getMemory(map.getValueType(), value));
                 }
             }
         }
@@ -1480,7 +1485,7 @@ public abstract class Page implements Cloneable
             if (values != null) {
                 if(isPersistent()) {
                     Object old = getValue(index);
-                    addMemory(-MEMORY_POINTER - map.getValueType().getMemory(old));
+                    addMemory(-MEMORY_POINTER - getMemory(map.getValueType(), old));
                 }
                 Object[] newValues = createValueStorage(keyCount - 1);
                 DataUtils.copyExcept(values, newValues, keyCount, index);
@@ -1508,12 +1513,12 @@ public abstract class Page implements Cloneable
         protected void readPayLoad(ByteBuffer buff) {
             int keyCount = getKeyCount();
             values = createValueStorage(keyCount);
-            map.getValueType().read(buff, values, getKeyCount(), false);
+            map.getValueType().read(buff, values, getKeyCount());
         }
 
         @Override
         protected void writeValues(WriteBuffer buff) {
-            map.getValueType().write(buff, values, getKeyCount(), false);
+            map.getValueType().write(buff, values, getKeyCount());
         }
 
         @Override
@@ -1540,7 +1545,7 @@ public abstract class Page implements Cloneable
             int mem = super.calculateMemory() + PAGE_LEAF_MEMORY + keyCount * MEMORY_POINTER;
             DataType valueType = map.getValueType();
             for (int i = 0; i < keyCount; i++) {
-                mem += valueType.getMemory(values[i]);
+                mem += getMemory(valueType, values[i]);
             }
             return mem;
         }

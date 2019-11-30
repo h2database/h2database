@@ -42,7 +42,7 @@ import org.h2.util.geometry.GeoJsonUtils;
  * @author Noel Grandin
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
-public abstract class Value extends VersionedValue {
+public abstract class Value extends VersionedValue<Value> {
 
     /**
      * The data type is unknown at this time.
@@ -164,7 +164,7 @@ public abstract class Value extends VersionedValue {
      */
     public static final int GEOMETRY = 22;
 
-    /**
+    /*
      * 23 was a short-lived experiment "TIMESTAMP UTC" which has been removed.
      */
 
@@ -358,8 +358,9 @@ public abstract class Value extends VersionedValue {
      * @param prep the prepared statement
      * @param parameterIndex the parameter index
      */
-    public abstract void set(PreparedStatement prep, int parameterIndex)
-            throws SQLException;
+    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
+        throw new UnsupportedOperationException();
+    }
 
     @Override
     public abstract int hashCode();
@@ -560,7 +561,7 @@ public abstract class Value extends VersionedValue {
     }
 
     public boolean getBoolean() {
-        return ((ValueBoolean) convertTo(BOOLEAN)).getBoolean();
+        return convertTo(BOOLEAN).getBoolean();
     }
 
     /**
@@ -570,7 +571,7 @@ public abstract class Value extends VersionedValue {
      * @return the date
      */
     public Date getDate(TimeZone timeZone) {
-        return ((ValueDate) convertTo(DATE)).getDate(timeZone);
+        return convertTo(DATE).getDate(timeZone);
     }
 
     /**
@@ -581,7 +582,7 @@ public abstract class Value extends VersionedValue {
      * @return the date
      */
     public Time getTime(CastDataProvider provider, TimeZone timeZone) {
-        return ((ValueTime) convertTo(TIME, provider, false)).getTime(provider, timeZone);
+        return convertTo(TIME, provider, false).getTime(provider, timeZone);
     }
 
     /**
@@ -592,43 +593,43 @@ public abstract class Value extends VersionedValue {
      * @return the date
      */
     public Timestamp getTimestamp(CastDataProvider provider, TimeZone timeZone) {
-        return ((ValueTimestamp) convertTo(TIMESTAMP, provider, false)).getTimestamp(provider, timeZone);
+        return convertTo(TIMESTAMP, provider, false).getTimestamp(provider, timeZone);
     }
 
     public byte[] getBytes() {
-        return ((ValueBytes) convertTo(BYTES)).getBytes();
+        return convertTo(BYTES).getBytes();
     }
 
     public byte[] getBytesNoCopy() {
-        return ((ValueBytes) convertTo(BYTES)).getBytesNoCopy();
+        return convertTo(BYTES).getBytesNoCopy();
     }
 
     public byte getByte() {
-        return ((ValueByte) convertTo(BYTE)).getByte();
+        return convertTo(BYTE).getByte();
     }
 
     public short getShort() {
-        return ((ValueShort) convertTo(SHORT)).getShort();
+        return convertTo(SHORT).getShort();
     }
 
     public BigDecimal getBigDecimal() {
-        return ((ValueDecimal) convertTo(DECIMAL)).getBigDecimal();
+        return convertTo(DECIMAL).getBigDecimal();
     }
 
     public double getDouble() {
-        return ((ValueDouble) convertTo(DOUBLE)).getDouble();
+        return convertTo(DOUBLE).getDouble();
     }
 
     public float getFloat() {
-        return ((ValueFloat) convertTo(FLOAT)).getFloat();
+        return convertTo(FLOAT).getFloat();
     }
 
     public int getInt() {
-        return ((ValueInt) convertTo(INT)).getInt();
+        return convertTo(INT).getInt();
     }
 
     public long getLong() {
-        return ((ValueLong) convertTo(LONG)).getLong();
+        return convertTo(LONG).getLong();
     }
 
     public InputStream getInputStream() {
@@ -1636,7 +1637,7 @@ public abstract class Value extends VersionedValue {
     private Value convertToRow() {
         Value[] a;
         if (getValueType() == RESULT_SET) {
-            ResultInterface result = ((ValueResultSet) this).getResult();
+            ResultInterface result = getResult();
             if (result.hasNext()) {
                 a = result.currentRow();
                 if (result.hasNext()) {
@@ -1712,6 +1713,10 @@ public abstract class Value extends VersionedValue {
         } else if (v == ValueNull.INSTANCE) {
             return 1;
         }
+        return compareToNotNullable(v, provider, compareMode);
+    }
+
+    private int compareToNotNullable(Value v, CastDataProvider provider, CompareMode compareMode) {
         Value l = this;
         int leftType = l.getValueType();
         int rightType = v.getValueType();
@@ -1746,21 +1751,7 @@ public abstract class Value extends VersionedValue {
         if (this == ValueNull.INSTANCE || v == ValueNull.INSTANCE) {
             return Integer.MIN_VALUE;
         }
-        Value l = this;
-        int leftType = l.getValueType();
-        int rightType = v.getValueType();
-        if (leftType != rightType || leftType == ENUM) {
-            int dataType = getHigherOrder(leftType, rightType);
-            if (dataType == ENUM) {
-                ExtTypeInfoEnum enumerators = ExtTypeInfoEnum.getEnumeratorsForBinaryOperation(l, v);
-                l = l.convertToEnum(enumerators);
-                v = v.convertToEnum(enumerators);
-            } else {
-                l = l.convertTo(dataType, provider, true);
-                v = v.convertTo(dataType, provider, true);
-            }
-        }
-        return l.compareTypeSafe(v, compareMode, provider);
+        return compareToNotNullable(v, provider, compareMode);
     }
 
     /**

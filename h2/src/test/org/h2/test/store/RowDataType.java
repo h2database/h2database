@@ -8,28 +8,31 @@ package org.h2.test.store;
 import java.nio.ByteBuffer;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
+import org.h2.mvstore.type.BasicDataType;
 import org.h2.mvstore.type.DataType;
 
 /**
  * A row type.
  */
-public class RowDataType implements DataType {
+public class RowDataType extends BasicDataType<Object[]> {
 
-    static final String PREFIX = "org.h2.test.store.row";
+    private final DataType<Object>[] types;
 
-    private final DataType[] types;
-
+    @SuppressWarnings("unchecked")
     RowDataType(DataType[] types) {
         this.types = types;
     }
 
     @Override
-    public int compare(Object a, Object b) {
-        if (a == b) {
+    public Object[][] createStorage(int size) {
+        return new Object[size][];
+    }
+
+    @Override
+    public int compare(Object[] ax, Object[] bx) {
+        if (ax == bx) {
             return 0;
         }
-        Object[] ax = (Object[]) a;
-        Object[] bx = (Object[]) b;
         int al = ax.length;
         int bl = bx.length;
         int len = Math.min(al, bl);
@@ -48,28 +51,13 @@ public class RowDataType implements DataType {
     }
 
     @Override
-    public int getMemory(Object obj) {
-        Object[] x = (Object[]) obj;
+    public int getMemory(Object[] x) {
         int len = x.length;
         int memory = 0;
         for (int i = 0; i < len; i++) {
             memory += types[i].getMemory(x[i]);
         }
         return memory;
-    }
-
-    @Override
-    public void read(ByteBuffer buff, Object[] obj, int len, boolean key) {
-        for (int i = 0; i < len; i++) {
-            obj[i] = read(buff);
-        }
-    }
-
-    @Override
-    public void write(WriteBuffer buff, Object[] obj, int len, boolean key) {
-        for (int i = 0; i < len; i++) {
-            write(buff, obj[i]);
-        }
     }
 
     @Override
@@ -83,13 +71,11 @@ public class RowDataType implements DataType {
     }
 
     @Override
-    public void write(WriteBuffer buff, Object obj) {
-        Object[] x = (Object[]) obj;
+    public void write(WriteBuffer buff, Object[] x) {
         int len = x.length;
         buff.putVarInt(len);
         for (int i = 0; i < len; i++) {
             types[i].write(buff, x[i]);
         }
     }
-
 }

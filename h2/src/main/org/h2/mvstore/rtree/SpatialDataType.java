@@ -10,15 +10,15 @@ import java.util.ArrayList;
 
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
-import org.h2.mvstore.type.DataType;
+import org.h2.mvstore.type.BasicDataType;
 
 /**
  * A spatial data type. This class supports up to 31 dimensions. Each dimension
  * can have a minimum and a maximum value of type float. For each dimension, the
  * maximum value is only stored when it is not the same as the minimum.
  */
-public class SpatialDataType implements DataType {
-
+public class SpatialDataType extends BasicDataType<SpatialKey>
+{
     private final int dimensions;
 
     public SpatialDataType(int dimensions) {
@@ -32,7 +32,12 @@ public class SpatialDataType implements DataType {
     }
 
     @Override
-    public int compare(Object a, Object b) {
+    public SpatialKey[] createStorage(int size) {
+        return new SpatialKey[size];
+    }
+
+    @Override
+    public int compare(SpatialKey a, SpatialKey b) {
         if (a == b) {
             return 0;
         } else if (a == null) {
@@ -40,8 +45,8 @@ public class SpatialDataType implements DataType {
         } else if (b == null) {
             return 1;
         }
-        long la = ((SpatialKey) a).getId();
-        long lb = ((SpatialKey) b).getId();
+        long la = a.getId();
+        long lb = b.getId();
         return Long.compare(la, lb);
     }
 
@@ -64,27 +69,12 @@ public class SpatialDataType implements DataType {
     }
 
     @Override
-    public int getMemory(Object obj) {
+    public int getMemory(SpatialKey obj) {
         return 40 + dimensions * 4;
     }
 
     @Override
-    public void read(ByteBuffer buff, Object[] obj, int len, boolean key) {
-        for (int i = 0; i < len; i++) {
-            obj[i] = read(buff);
-        }
-    }
-
-    @Override
-    public void write(WriteBuffer buff, Object[] obj, int len, boolean key) {
-        for (int i = 0; i < len; i++) {
-            write(buff, obj[i]);
-        }
-    }
-
-    @Override
-    public void write(WriteBuffer buff, Object obj) {
-        SpatialKey k = (SpatialKey) obj;
+    public void write(WriteBuffer buff, SpatialKey k) {
         if (k.isNull()) {
             buff.putVarInt(-1);
             buff.putVarLong(k.getId());
@@ -107,7 +97,7 @@ public class SpatialDataType implements DataType {
     }
 
     @Override
-    public Object read(ByteBuffer buff) {
+    public SpatialKey read(ByteBuffer buff) {
         int flags = DataUtils.readVarInt(buff);
         if (flags == -1) {
             long id = DataUtils.readVarLong(buff);
@@ -132,13 +122,11 @@ public class SpatialDataType implements DataType {
     /**
      * Check whether the two objects overlap.
      *
-     * @param objA the first object
-     * @param objB the second object
+     * @param a the first object
+     * @param b the second object
      * @return true if they overlap
      */
-    public boolean isOverlap(Object objA, Object objB) {
-        SpatialKey a = (SpatialKey) objA;
-        SpatialKey b = (SpatialKey) objB;
+    public boolean isOverlap(SpatialKey a, SpatialKey b) {
         if (a.isNull() || b.isNull()) {
             return false;
         }

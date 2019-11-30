@@ -1631,7 +1631,7 @@ public class MetaTable extends Table {
                             // TRANSACTION
                             prep.getTransactionName(),
                             // STATE
-                            prep.getState()
+                            prep.getStateDescription()
                     );
                 }
             }

@@ -7,6 +7,8 @@ package org.h2.result;
 
 import org.h2.engine.Constants;
 import org.h2.value.Value;
+import org.h2.value.ValueLong;
+import org.h2.value.ValueNull;
 
 /**
  * A simple row that contains data for only one column.
@@ -21,6 +23,11 @@ public class SimpleRowValue extends SearchRow {
         this.virtualColumnCount = columnCount;
     }
 
+    public SimpleRowValue(int columnCount, int index) {
+        this.virtualColumnCount = columnCount;
+        this.index = index;
+    }
+
     @Override
     public int getColumnCount() {
         return virtualColumnCount;
@@ -28,11 +35,17 @@ public class SimpleRowValue extends SearchRow {
 
     @Override
     public Value getValue(int idx) {
+        if (idx == ROWID_INDEX) {
+            return ValueLong.get(getKey());
+        }
         return idx == index ? data : null;
     }
 
     @Override
     public void setValue(int idx, Value v) {
+        if (idx == ROWID_INDEX) {
+            setKey(v.getLong());
+        }
         index = idx;
         data = v;
     }
@@ -48,4 +61,14 @@ public class SimpleRowValue extends SearchRow {
         return Constants.MEMORY_ROW + (data == null ? 0 : data.getMemory());
     }
 
+    @Override
+    public boolean isNull(int indx) {
+        return indx != index || data == null || data == ValueNull.INSTANCE;
+    }
+
+    @Override
+    public void copyFrom(SearchRow source) {
+        setKey(source.getKey());
+        setValue(index, source.getValue(index));
+    }
 }

@@ -5,12 +5,16 @@
  */
 package org.h2.mvstore.rtree;
 
+import org.h2.engine.CastDataProvider;
+import org.h2.value.CompareMode;
+import org.h2.value.TypeInfo;
+import org.h2.value.Value;
 import java.util.Arrays;
 
 /**
  * A unique spatial key.
  */
-public class SpatialKey {
+public class SpatialKey extends Value {
 
     private final long id;
     private final float[] minMax;
@@ -81,15 +85,7 @@ public class SpatialKey {
 
     @Override
     public String toString() {
-        StringBuilder buff = new StringBuilder();
-        buff.append(id).append(": (");
-        for (int i = 0; i < minMax.length; i += 2) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            buff.append(minMax[i]).append('/').append(minMax[i + 1]);
-        }
-        return buff.append(")").toString();
+        return getString();
     }
 
     @Override
@@ -111,6 +107,12 @@ public class SpatialKey {
         return equalsIgnoringId(o);
     }
 
+    @Override
+    public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
+        throw new UnsupportedOperationException();
+//        return 0;
+    }
+
     /**
      * Check whether two objects are equals, but do not compare the id fields.
      *
@@ -121,4 +123,37 @@ public class SpatialKey {
         return Arrays.equals(minMax, o.minMax);
     }
 
+
+    @Override
+    public StringBuilder getSQL(StringBuilder builder) {
+        builder.append(id).append(": (");
+        for (int i = 0; i < minMax.length; i += 2) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            builder.append(minMax[i]).append('/').append(minMax[i + 1]);
+        }
+        builder.append(")");
+        return builder;
+    }
+
+    @Override
+    public TypeInfo getType() {
+        return TypeInfo.TYPE_GEOMETRY;
+    }
+
+    @Override
+    public int getValueType() {
+        return Value.GEOMETRY;
+    }
+
+    @Override
+    public String getString() {
+        return getSQL(new StringBuilder()).toString();
+    }
+
+    @Override
+    public Object getObject() {
+        return this;
+    }
 }

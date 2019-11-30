@@ -56,7 +56,7 @@ class MVSortedTempResult extends MVTempResult {
      * {@link #contains(Value[])} method is invoked. Only the root result should
      * have an index if required.
      */
-    private MVMap<ValueRow, Object> index;
+    private MVMap<ValueRow, ValueRow> index;
 
     /**
      * Used for DISTINCT ON in presence of ORDER BY.
@@ -179,7 +179,7 @@ class MVSortedTempResult extends MVTempResult {
         if (distinct && resultColumnCount != visibleColumnCount || distinctIndexes != null) {
             int count = distinctIndexes != null ? distinctIndexes.length : visibleColumnCount;
             ValueDataType distinctType = new ValueDataType(database, new int[count]);
-            Builder<ValueRow, Object> indexBuilder = new MVMap.Builder<ValueRow, Object>().keyType(distinctType);
+            Builder<ValueRow, ValueRow> indexBuilder = new MVMap.Builder<ValueRow, ValueRow>().keyType(distinctType);
             if (distinctIndexes != null && sort != null) {
                 indexBuilder.valueType(keyType);
                 orderedDistinctOnType = keyType;
@@ -201,11 +201,11 @@ class MVSortedTempResult extends MVTempResult {
                 }
                 ValueRow distinctRow = ValueRow.get(newValues);
                 if (orderedDistinctOnType == null) {
-                    if (index.putIfAbsent(distinctRow, true) != null) {
+                    if (index.putIfAbsent(distinctRow, ValueRow.EMPTY) != null) {
                         return rowCount;
                     }
                 } else {
-                    ValueRow previous = (ValueRow) index.get(distinctRow);
+                    ValueRow previous = index.get(distinctRow);
                     if (previous == null) {
                         index.put(distinctRow, key);
                     } else if (orderedDistinctOnType.compare(previous, key) > 0) {
@@ -218,7 +218,7 @@ class MVSortedTempResult extends MVTempResult {
                 }
             } else if (visibleColumnCount != resultColumnCount) {
                 ValueRow distinctRow = ValueRow.get(Arrays.copyOf(values, visibleColumnCount));
-                if (index.putIfAbsent(distinctRow, true) != null) {
+                if (index.putIfAbsent(distinctRow, ValueRow.EMPTY) != null) {
                     return rowCount;
                 }
             }

@@ -6,8 +6,11 @@
 package org.h2.mvstore.tx;
 
 import org.h2.engine.Constants;
+import org.h2.engine.Database;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
+import org.h2.mvstore.type.BasicDataType;
+import org.h2.mvstore.db.StatefulDataType;
 import org.h2.mvstore.type.DataType;
 import org.h2.value.VersionedValue;
 import java.nio.ByteBuffer;
@@ -15,18 +18,24 @@ import java.nio.ByteBuffer;
 /**
  * The value type for a versioned value.
  */
-public class VersionedValueType implements DataType {
+public class VersionedValueType<T> extends BasicDataType<VersionedValue<T>> implements StatefulDataType
+{
 
-    private final DataType valueType;
+    private final DataType<T> valueType;
 
-    public VersionedValueType(DataType valueType) {
+    public VersionedValueType(DataType<T> valueType) {
         this.valueType = valueType;
     }
 
     @Override
-    public int getMemory(Object obj) {
-        if(obj == null) return 0;
-        VersionedValue v = (VersionedValue) obj;
+    @SuppressWarnings("unchecked")
+    public VersionedValue<T>[] createStorage(int size) {
+        return new VersionedValue[size];
+    }
+
+    @Override
+    public int getMemory(VersionedValue<T> v) {
+        if(v == null) return 0;
         int res = Constants.MEMORY_OBJECT + 8 + 2 * Constants.MEMORY_POINTER +
                 getValMemory(v.getCurrentValue());
         if (v.getOperationId() != 0) {
@@ -35,61 +44,43 @@ public class VersionedValueType implements DataType {
         return res;
     }
 
-    private int getValMemory(Object obj) {
+    private int getValMemory(T obj) {
         return obj == null ? 0 : valueType.getMemory(obj);
     }
 
     @Override
-    public int compare(Object aObj, Object bObj) {
-        if (aObj == bObj) {
-            return 0;
-        } else if (aObj == null) {
-            return -1;
-        } else if (bObj == null) {
-            return 1;
-        }
-        VersionedValue a = (VersionedValue) aObj;
-        VersionedValue b = (VersionedValue) bObj;
-        long comp = a.getOperationId() - b.getOperationId();
-        if (comp == 0) {
-            return valueType.compare(a.getCurrentValue(), b.getCurrentValue());
-        }
-        return Long.signum(comp);
-    }
-
-    @Override
-    public void read(ByteBuffer buff, Object[] obj, int len, boolean key) {
+    public void read(ByteBuffer buff, Object storage, int len) {
         if (buff.get() == 0) {
             // fast path (no op ids or null entries)
             for (int i = 0; i < len; i++) {
-                obj[i] = VersionedValueCommitted.getInstance(valueType.read(buff));
+                cast(storage)[i] = VersionedValueCommitted.getInstance(valueType.read(buff));
             }
         } else {
             // slow path (some entries may be null)
             for (int i = 0; i < len; i++) {
-                obj[i] = read(buff);
+                cast(storage)[i] = read(buff);
             }
         }
     }
 
     @Override
-    public Object read(ByteBuffer buff) {
+    public VersionedValue<T> read(ByteBuffer buff) {
         long operationId = DataUtils.readVarLong(buff);
         if (operationId == 0) {
             return VersionedValueCommitted.getInstance(valueType.read(buff));
         } else {
             byte flags = buff.get();
-            Object value = (flags & 1) != 0 ? valueType.read(buff) : null;
-            Object committedValue = (flags & 2) != 0 ? valueType.read(buff) : null;
+            T value = (flags & 1) != 0 ? valueType.read(buff) : null;
+            T committedValue = (flags & 2) != 0 ? valueType.read(buff) : null;
             return VersionedValueUncommitted.getInstance(operationId, value, committedValue);
         }
     }
 
     @Override
-    public void write(WriteBuffer buff, Object[] obj, int len, boolean key) {
+    public void write(WriteBuffer buff, Object storage, int len) {
         boolean fastPath = true;
         for (int i = 0; i < len; i++) {
-            VersionedValue v = (VersionedValue) obj[i];
+            VersionedValue<T> v = cast(storage)[i];
             if (v.getOperationId() != 0 || v.getCurrentValue() == null) {
                 fastPath = false;
             }
@@ -97,7 +88,7 @@ public class VersionedValueType implements DataType {
         if (fastPath) {
             buff.put((byte) 0);
             for (int i = 0; i < len; i++) {
-                VersionedValue v = (VersionedValue) obj[i];
+                VersionedValue<T> v = cast(storage)[i];
                 valueType.write(buff, v.getCurrentValue());
             }
         } else {
@@ -105,20 +96,19 @@ public class VersionedValueType implements DataType {
             // store op ids, and some entries may be null
             buff.put((byte) 1);
             for (int i = 0; i < len; i++) {
-                write(buff, obj[i]);
+                write(buff, cast(storage)[i]);
             }
         }
     }
 
     @Override
-    public void write(WriteBuffer buff, Object obj) {
-        VersionedValue v = (VersionedValue) obj;
+    public void write(WriteBuffer buff, VersionedValue<T> v) {
         long operationId = v.getOperationId();
         buff.putVarLong(operationId);
         if (operationId == 0) {
             valueType.write(buff, v.getCurrentValue());
         } else {
-            Object committedValue = v.getCommittedValue();
+            T committedValue = v.getCommittedValue();
             int flags = (v.getCurrentValue() == null ? 0 : 1) | (committedValue == null ? 0 : 2);
             buff.put((byte) flags);
             if (v.getCurrentValue() != null) {
@@ -127,6 +117,51 @@ public class VersionedValueType implements DataType {
             if (committedValue != null) {
                 valueType.write(buff, committedValue);
             }
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        } else if (!(obj instanceof VersionedValueType)) {
+            return false;
+        }
+        VersionedValueType<T> other = (VersionedValueType<T>) obj;
+        return valueType.equals(other.valueType);
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode() ^ valueType.hashCode();
+    }
+
+    @Override
+    public void save(WriteBuffer buff, DataType<DataType<?>> metaDataType, Database database) {
+        metaDataType.write(buff, valueType);
+    }
+
+    @Override
+    public void load(ByteBuffer buff, DataType<DataType<?>> metaDataType, Database database) {
+        throw DataUtils.newUnsupportedOperationException("load()");
+    }
+
+    @Override
+    public Factory getFactory() {
+        return FACTORY;
+    }
+
+
+
+    private static final Factory FACTORY = new Factory();
+
+    public static final class Factory implements StatefulDataType.Factory
+    {
+        @Override
+        public DataType<?> create(ByteBuffer buff, DataType<DataType<?>> metaDataType, Database database) {
+            DataType<?> valueType = metaDataType.read(buff);
+            return new VersionedValueType<>(valueType);
         }
     }
 }

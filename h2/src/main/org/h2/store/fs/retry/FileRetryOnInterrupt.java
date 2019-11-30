@@ -11,14 +11,14 @@ import java.nio.channels.ClosedByInterruptException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
-import org.h2.store.fs.FileBaseDefault;
+import org.h2.store.fs.FileBase;
 import org.h2.store.fs.FileUtils;
 
 /**
  * A file object that re-opens and re-tries the operation if the file was
  * closed.
  */
-class FileRetryOnInterrupt extends FileBaseDefault {
+class FileRetryOnInterrupt extends FileBase {
 
     private final String fileName;
     private final String mode;
@@ -83,12 +83,36 @@ class FileRetryOnInterrupt extends FileBaseDefault {
     }
 
     @Override
+    public long position() throws IOException {
+        for (int i = 0;; i++) {
+            try {
+                return channel.position();
+            } catch (IOException e) {
+                reopen(i, e);
+            }
+        }
+    }
+
+    @Override
     public long size() throws IOException {
         for (int i = 0;; i++) {
             try {
                 return channel.size();
             } catch (IOException e) {
                 reopen(i, e);
+            }
+        }
+    }
+
+    @Override
+    public int read(ByteBuffer dst) throws IOException {
+        long pos = position();
+        for (int i = 0;; i++) {
+            try {
+                return channel.read(dst);
+            } catch (IOException e) {
+                reopen(i, e);
+                position(pos);
             }
         }
     }
@@ -105,11 +129,23 @@ class FileRetryOnInterrupt extends FileBaseDefault {
     }
 
     @Override
-    protected void implTruncate(long newLength) throws IOException {
+    public FileChannel position(long pos) throws IOException {
+        for (int i = 0;; i++) {
+            try {
+                channel.position(pos);
+                return this;
+            } catch (IOException e) {
+                reopen(i, e);
+            }
+        }
+    }
+
+    @Override
+    public FileChannel truncate(long newLength) throws IOException {
         for (int i = 0;; i++) {
             try {
                 channel.truncate(newLength);
-                return;
+                return this;
             } catch (IOException e) {
                 reopen(i, e);
             }
@@ -124,6 +160,19 @@ class FileRetryOnInterrupt extends FileBaseDefault {
                 return;
             } catch (IOException e) {
                 reopen(i, e);
+            }
+        }
+    }
+
+    @Override
+    public int write(ByteBuffer src) throws IOException {
+        long pos = position();
+        for (int i = 0;; i++) {
+            try {
+                return channel.write(src);
+            } catch (IOException e) {
+                reopen(i, e);
+                position(pos);
             }
         }
     }

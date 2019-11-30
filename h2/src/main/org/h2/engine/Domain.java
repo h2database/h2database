@@ -5,6 +5,7 @@
  */
 package org.h2.engine;
 
+import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.table.Column;
@@ -37,6 +38,10 @@ public class Domain extends DbObjectBase {
         StringBuilder builder = new StringBuilder("CREATE DOMAIN ");
         getSQL(builder, true).append(" AS ");
         builder.append(column.getCreateSQL());
+        Expression check = column.getCheckConstraint(database.getSystemSession(), "VALUE");
+        if (check != null) {
+            check.getEnclosedSQL(builder.append(" CHECK "), true);
+        }
         return builder.toString();
     }
 

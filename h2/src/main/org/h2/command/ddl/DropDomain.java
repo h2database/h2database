@@ -11,6 +11,7 @@ import org.h2.constraint.ConstraintActionType;
 import org.h2.engine.Database;
 import org.h2.engine.Domain;
 import org.h2.engine.Session;
+import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.table.Column;
 import org.h2.table.Table;
@@ -50,6 +51,7 @@ public class DropDomain extends DefineCommand {
                 throw DbException.get(ErrorCode.DOMAIN_NOT_FOUND_1, typeName);
             }
         } else {
+            Column domainColumn = type.getColumn();
             for (Table t : db.getAllTablesAndViews(false)) {
                 boolean modified = false;
                 for (Column c : t.getColumns()) {
@@ -58,8 +60,22 @@ public class DropDomain extends DefineCommand {
                         if (dropAction == ConstraintActionType.RESTRICT) {
                             throw DbException.get(ErrorCode.CANNOT_DROP_2, typeName, t.getCreateSQL());
                         }
+                        String columnName = c.getName();
+                        Expression checkCondition = domainColumn.getCheckConstraint(session, columnName);
+                        if (checkCondition != null) {
+                            AlterTableAddConstraint check = new AlterTableAddConstraint(session, t.getSchema(), false);
+                            check.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_CHECK);
+                            check.setTableName(t.getName());
+                            check.setCheckExpression(checkCondition);
+                            check.update();
+                        }
                         c.setOriginalSQL(type.getColumn().getOriginalSQL());
                         c.setDomain(null);
+                        c.removeCheckConstraint();
+                        Domain domain2 = domainColumn.getDomain();
+                        if (domain2 != null) {
+                            c.addCheckConstraint(session, domain2.getColumn().getCheckConstraint(session, columnName));
+                        }
                         modified = true;
                     }
                 }

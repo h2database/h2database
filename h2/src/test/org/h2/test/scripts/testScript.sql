@@ -2193,11 +2193,12 @@ insert into test values('AA');
 
 script nodata nopasswords nosettings;
 > SCRIPT
-> -------------------------------------------------------------------------------------
+> ---------------------------------------------------------------------------------------------------------
 > -- 2 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> CREATE MEMORY TABLE "PUBLIC"."TEST"( "NAME" VARCHAR CHECK ("NAME" = UPPER("NAME")) );
+> ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_2" CHECK("NAME" = UPPER("NAME")) NOCHECK;
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "NAME" VARCHAR );
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
-> rows: 3
+> rows: 4
 
 drop table test;
 > ok
@@ -2269,7 +2270,7 @@ select DOMAIN_NAME, COLUMN_DEFAULT, IS_NULLABLE, DATA_TYPE, PRECISION, SCALE, TY
 
 script nodata nopasswords nosettings;
 > SCRIPT
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> ------------------------------------------------------------------------------------------------------------------------------------------------
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.ADDRESS;
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > ALTER TABLE "PUBLIC"."ADDRESS" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_E" PRIMARY KEY("ID");
@@ -2280,7 +2281,7 @@ script nodata nopasswords nosettings;
 > CREATE DOMAIN "STRING2" AS VARCHAR NOT NULL;
 > CREATE DOMAIN "STRING3" AS VARCHAR DEFAULT '<empty>';
 > CREATE DOMAIN "STRING_X" AS VARCHAR DEFAULT '<empty>';
-> CREATE MEMORY TABLE "PUBLIC"."ADDRESS"( "ID" INT NOT NULL, "NAME" "EMAIL" CHECK (POSITION('@', "NAME") > 1), "NAME2" "GMAIL" DEFAULT '@gmail.com' CHECK ((POSITION('@', "NAME2") > 1) AND (POSITION('gmail', "NAME2") > 1)) );
+> CREATE MEMORY TABLE "PUBLIC"."ADDRESS"( "ID" INT NOT NULL, "NAME" "EMAIL", "NAME2" "GMAIL" DEFAULT '@gmail.com' );
 > CREATE MEMORY TABLE "PUBLIC"."TEST"( "A" "STRING" DEFAULT '' NOT NULL, "B" "STRING1", "C" "STRING2" NOT NULL, "D" "STRING3" DEFAULT '<empty>' );
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > rows: 13

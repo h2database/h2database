@@ -544,9 +544,6 @@ public class Column {
         } else if (domain != null && !domain.getColumn().isNullable()) {
             buff.append(" NULL");
         }
-        if (checkConstraint != null) {
-            buff.append(" CHECK ").append(checkConstraintSQL);
-        }
         return buff.toString();
     }
 

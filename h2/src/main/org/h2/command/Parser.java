@@ -8316,10 +8316,6 @@ public class Parser {
         Column oldColumn = columnIfTableExists(schema, tableName, columnName, ifTableExists, ifExists);
         Column newColumn = parseColumnForTable(columnName,
                 !preserveNotNull || oldColumn == null || oldColumn.isNullable(), true);
-        if (readIf(CHECK)) {
-            Expression expr = readExpression();
-            newColumn.addCheckConstraint(session, expr);
-        }
         AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
         command.setTableName(tableName);
         command.setIfTableExists(ifTableExists);
@@ -8347,10 +8343,6 @@ public class Parser {
             e = oldColumn.getOnUpdateExpression();
             if (e != null) {
                 newColumn.setOnUpdateExpression(session, e);
-            }
-            e = oldColumn.getCheckConstraint(session, columnName);
-            if (e != null) {
-                newColumn.addCheckConstraint(session, e);
             }
             String c = oldColumn.getComment();
             if (c != null) {
@@ -8762,7 +8754,12 @@ public class Parser {
                     column.setNullable(true);
                 }
             } else if (readIf(CHECK)) {
-                column.addCheckConstraint(session, readExpression());
+                AlterTableAddConstraint check = new AlterTableAddConstraint(session, schema, false);
+                check.setConstraintName(constraintName);
+                check.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_CHECK);
+                check.setTableName(tableName);
+                check.setCheckExpression(readExpression());
+                command.addConstraintCommand(check);
             } else if (readIf("REFERENCES")) {
                 AlterTableAddConstraint ref = new AlterTableAddConstraint(session, schema, false);
                 ref.setConstraintName(constraintName);

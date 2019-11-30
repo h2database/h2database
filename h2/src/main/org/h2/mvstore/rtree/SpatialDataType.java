@@ -276,7 +276,7 @@ public class SpatialDataType extends BasicDataType<SpatialKey>
      * @param objA the object
      * @return the bounding box
      */
-    Object createBoundingBox(Object objA) {
+    SpatialKey createBoundingBox(Object objA) {
         SpatialKey a = (SpatialKey) objA;
         if (a.isNull()) {
             return a;

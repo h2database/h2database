@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.FileLock;
-import java.nio.channels.NonWritableChannelException;
 import java.nio.file.Paths;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -64,11 +63,7 @@ class FileAsync extends FileBaseDefault {
 
     @Override
     public int write(ByteBuffer src, long position) throws IOException {
-        try {
-            return complete(channel.write(src, position));
-        } catch (NonWritableChannelException e) {
-            throw new IOException("read only");
-        }
+        return complete(channel.write(src, position));
     }
 
     @Override

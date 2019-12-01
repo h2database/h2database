@@ -62,7 +62,7 @@ public class TransactionStore {
      * Key: opId, value: [ mapId, key, oldValue ].
      */
     @SuppressWarnings("unchecked")
-    final MVMap<Long,Record<?,?>>[] undoLogs = (MVMap<Long,Record<?,?>>[])new MVMap[MAX_OPEN_TRANSACTIONS];
+    final MVMap<Long,Record<?,?>>[] undoLogs = new MVMap[MAX_OPEN_TRANSACTIONS];
     private final MVMap.Builder<Long, Record<?,?>> undoLogBuilder;
 
     private final DataType<?> dataType;
@@ -627,8 +627,7 @@ public class TransactionStore {
     RootReference<Long,Record<?,?>>[] collectUndoLogRootReferences() {
         BitSet opentransactions = openTransactions.get();
         @SuppressWarnings("unchecked")
-        RootReference<Long,Record<?,?>>[] undoLogRootReferences =
-                            (RootReference<Long,Record<?,?>>[])new RootReference[opentransactions.length()];
+        RootReference<Long,Record<?,?>>[] undoLogRootReferences = new RootReference[opentransactions.length()];
         for (int i = opentransactions.nextSetBit(0); i >= 0; i = opentransactions.nextSetBit(i+1)) {
             MVMap<Long,Record<?,?>> undoLog = undoLogs[i];
             if (undoLog != null) {

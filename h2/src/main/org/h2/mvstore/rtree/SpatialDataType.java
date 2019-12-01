@@ -297,8 +297,8 @@ public class SpatialDataType extends BasicDataType<SpatialKey>
         if (list.isEmpty()) {
             return null;
         }
-        SpatialKey bounds = (SpatialKey) createBoundingBox(list.get(0));
-        SpatialKey boundsInner = (SpatialKey) createBoundingBox(bounds);
+        SpatialKey bounds = createBoundingBox(list.get(0));
+        SpatialKey boundsInner = createBoundingBox(bounds);
         for (int i = 0; i < dimensions; i++) {
             float t = boundsInner.min(i);
             boundsInner.setMin(i, boundsInner.max(i));

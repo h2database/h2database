@@ -33,6 +33,7 @@ import org.h2.command.CommandInterface;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.command.dml.SetTypes;
 import org.h2.constraint.Constraint;
+import org.h2.constraint.Constraint.Type;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -1994,10 +1995,12 @@ public class Database implements DataHandler, CastDataProvider {
             }
         } else if (type == DbObject.CONSTRAINT) {
             Constraint constraint = (Constraint) obj;
-            Table table = constraint.getTable();
-            if (table.isTemporary() && !table.isGlobalTemporary()) {
-                session.removeLocalTempTableConstraint(constraint);
-                return;
+            if (constraint.getConstraintType() != Type.DOMAIN) {
+                Table table = constraint.getTable();
+                if (table.isTemporary() && !table.isGlobalTemporary()) {
+                    session.removeLocalTempTableConstraint(constraint);
+                    return;
+                }
             }
         }
         checkWritingAllowed();

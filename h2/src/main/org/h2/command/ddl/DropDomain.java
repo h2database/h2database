@@ -5,9 +5,11 @@
  */
 package org.h2.command.ddl;
 
+import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.constraint.ConstraintActionType;
+import org.h2.constraint.ConstraintDomain;
 import org.h2.engine.Database;
 import org.h2.engine.Domain;
 import org.h2.engine.Session;
@@ -18,8 +20,7 @@ import org.h2.table.Column;
 import org.h2.table.Table;
 
 /**
- * This class represents the statement
- * DROP DOMAIN
+ * This class represents the statement DROP DOMAIN
  */
 public class DropDomain extends SchemaCommand {
 
@@ -29,8 +30,8 @@ public class DropDomain extends SchemaCommand {
 
     public DropDomain(Session session, Schema schema) {
         super(session, schema);
-        dropAction = session.getDatabase().getSettings().dropRestrict ?
-                ConstraintActionType.RESTRICT : ConstraintActionType.CASCADE;
+        dropAction = session.getDatabase().getSettings().dropRestrict ? ConstraintActionType.RESTRICT
+                : ConstraintActionType.CASCADE;
     }
 
     public void setIfExists(boolean ifExists) {
@@ -63,21 +64,20 @@ public class DropDomain extends SchemaCommand {
                             throw DbException.get(ErrorCode.CANNOT_DROP_2, typeName, t.getCreateSQL());
                         }
                         String columnName = c.getName();
-                        Expression checkCondition = domainColumn.getCheckConstraint(session, columnName);
-                        if (checkCondition != null) {
-                            AlterTableAddConstraint check = new AlterTableAddConstraint(session, t.getSchema(), false);
-                            check.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_CHECK);
-                            check.setTableName(t.getName());
-                            check.setCheckExpression(checkCondition);
-                            check.update();
+                        ArrayList<ConstraintDomain> constraints = domain.getConstraints();
+                        if (constraints != null && !constraints.isEmpty()) {
+                            for (ConstraintDomain constraint : constraints) {
+                                Expression checkCondition = constraint.getCheckConstraint(session, columnName);
+                                AlterTableAddConstraint check = new AlterTableAddConstraint(session, t.getSchema(),
+                                        false);
+                                check.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_CHECK);
+                                check.setTableName(t.getName());
+                                check.setCheckExpression(checkCondition);
+                                check.update();
+                            }
                         }
                         c.setOriginalSQL(domain.getColumn().getOriginalSQL());
-                        Domain domain2 = domainColumn.getDomain();
-                        c.setDomain(domain2);
-                        c.removeCheckConstraint();
-                        if (domain2 != null) {
-                            c.addCheckConstraint(session, domain2.getColumn().getCheckConstraint(session, columnName));
-                        }
+                        c.setDomain(domainColumn.getDomain());
                         modified = true;
                     }
                 }

@@ -39,7 +39,11 @@ public abstract class Constraint extends SchemaObjectBase implements
         /**
          * The constraint type for referential constraints.
          */
-        REFERENTIAL;
+        REFERENTIAL,
+        /**
+         * The constraint type for domain constraints.
+         */
+        DOMAIN;
 
         /**
          * Get standard SQL type name.
@@ -66,7 +70,9 @@ public abstract class Constraint extends SchemaObjectBase implements
     Constraint(Schema schema, int id, String name, Table table) {
         super(schema, id, name, Trace.CONSTRAINT);
         this.table = table;
-        this.setTemporary(table.isTemporary());
+        if (table != null) {
+            this.setTemporary(table.isTemporary());
+        }
     }
 
     /**

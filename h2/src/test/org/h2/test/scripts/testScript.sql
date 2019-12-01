@@ -2256,16 +2256,16 @@ select * from test;
 >   null x <empty>
 > rows: 1
 
-select DOMAIN_NAME, DOMAIN_DEFAULT, IS_NULLABLE, DATA_TYPE, PRECISION, SCALE, TYPE_NAME, SELECTIVITY, CHECK_CONSTRAINT, REMARKS, SQL from information_schema.domains;
-> DOMAIN_NAME DOMAIN_DEFAULT IS_NULLABLE DATA_TYPE PRECISION  SCALE TYPE_NAME SELECTIVITY CHECK_CONSTRAINT                                                    REMARKS SQL
-> ----------- -------------- ----------- --------- ---------- ----- --------- ----------- ------------------------------------------------------------------- ------- ---------------------------------------------------------------------------------------------------------------------------------------------
-> EMAIL       null           YES         12        200        0     VARCHAR   50          (POSITION('@', "VALUE") > 1)                                                CREATE DOMAIN "PUBLIC"."EMAIL" AS VARCHAR(200) CHECK (POSITION('@', "VALUE") > 1)
-> GMAIL       '@gmail.com'   YES         12        200        0     VARCHAR   50          ((POSITION('@', "VALUE") > 1) AND (POSITION('gmail', "VALUE") > 1))         CREATE DOMAIN "PUBLIC"."GMAIL" AS VARCHAR(200) DEFAULT '@gmail.com' CHECK ((POSITION('@', "VALUE") > 1) AND (POSITION('gmail', "VALUE") > 1))
-> STRING      ''             NO          12        255        0     VARCHAR   50                                                                                      CREATE DOMAIN "PUBLIC"."STRING" AS VARCHAR(255) DEFAULT '' NOT NULL
-> STRING1     null           YES         12        2147483647 0     VARCHAR   50                                                                                      CREATE DOMAIN "PUBLIC"."STRING1" AS VARCHAR
-> STRING2     null           NO          12        2147483647 0     VARCHAR   50                                                                                      CREATE DOMAIN "PUBLIC"."STRING2" AS VARCHAR NOT NULL
-> STRING3     '<empty>'      YES         12        2147483647 0     VARCHAR   50                                                                                      CREATE DOMAIN "PUBLIC"."STRING3" AS VARCHAR DEFAULT '<empty>'
-> STRING_X    '<empty>'      YES         12        2147483647 0     VARCHAR   50                                                                                      CREATE DOMAIN "PUBLIC"."STRING_X" AS VARCHAR DEFAULT '<empty>'
+select DOMAIN_NAME, DOMAIN_DEFAULT, IS_NULLABLE, DATA_TYPE, PRECISION, SCALE, TYPE_NAME, SELECTIVITY, REMARKS, SQL from information_schema.domains;
+> DOMAIN_NAME DOMAIN_DEFAULT IS_NULLABLE DATA_TYPE PRECISION  SCALE TYPE_NAME SELECTIVITY REMARKS SQL
+> ----------- -------------- ----------- --------- ---------- ----- --------- ----------- ------- -------------------------------------------------------------------
+> EMAIL       null           YES         12        200        0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."EMAIL" AS VARCHAR(200)
+> GMAIL       '@gmail.com'   YES         12        200        0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."GMAIL" AS VARCHAR(200) DEFAULT '@gmail.com'
+> STRING      ''             NO          12        255        0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING" AS VARCHAR(255) DEFAULT '' NOT NULL
+> STRING1     null           YES         12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING1" AS VARCHAR
+> STRING2     null           NO          12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING2" AS VARCHAR NOT NULL
+> STRING3     '<empty>'      YES         12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING3" AS VARCHAR DEFAULT '<empty>'
+> STRING_X    '<empty>'      YES         12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING_X" AS VARCHAR DEFAULT '<empty>'
 > rows: 7
 
 script nodata nopasswords nosettings;
@@ -2273,9 +2273,11 @@ script nodata nopasswords nosettings;
 > ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.ADDRESS;
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
+> ALTER DOMAIN "PUBLIC"."EMAIL" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_3" CHECK(POSITION('@', "VALUE") > 1) NOCHECK;
+> ALTER DOMAIN "PUBLIC"."GMAIL" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_4" CHECK(POSITION('gmail', "VALUE") > 1) NOCHECK;
 > ALTER TABLE "PUBLIC"."ADDRESS" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_E" PRIMARY KEY("ID");
-> CREATE DOMAIN "PUBLIC"."EMAIL" AS VARCHAR(200) CHECK (POSITION('@', "VALUE") > 1);
-> CREATE DOMAIN "PUBLIC"."GMAIL" AS VARCHAR(200) DEFAULT '@gmail.com' CHECK ((POSITION('@', "VALUE") > 1) AND (POSITION('gmail', "VALUE") > 1));
+> CREATE DOMAIN "PUBLIC"."EMAIL" AS VARCHAR(200);
+> CREATE DOMAIN "PUBLIC"."GMAIL" AS VARCHAR(200) DEFAULT '@gmail.com';
 > CREATE DOMAIN "PUBLIC"."STRING" AS VARCHAR(255) DEFAULT '' NOT NULL;
 > CREATE DOMAIN "PUBLIC"."STRING1" AS VARCHAR;
 > CREATE DOMAIN "PUBLIC"."STRING2" AS VARCHAR NOT NULL;
@@ -2284,7 +2286,7 @@ script nodata nopasswords nosettings;
 > CREATE MEMORY TABLE "PUBLIC"."ADDRESS"( "ID" INT NOT NULL, "NAME" "PUBLIC"."EMAIL", "NAME2" "PUBLIC"."GMAIL" DEFAULT '@gmail.com' );
 > CREATE MEMORY TABLE "PUBLIC"."TEST"( "A" "PUBLIC"."STRING" DEFAULT '' NOT NULL, "B" "PUBLIC"."STRING1", "C" "PUBLIC"."STRING2" NOT NULL, "D" "PUBLIC"."STRING3" DEFAULT '<empty>' );
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
-> rows: 13
+> rows: 15
 
 drop table test;
 > ok

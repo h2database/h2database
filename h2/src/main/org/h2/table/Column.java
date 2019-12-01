@@ -18,7 +18,6 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.SequenceValue;
 import org.h2.expression.ValueExpression;
-import org.h2.expression.condition.ConditionAndOr;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
@@ -67,8 +66,6 @@ public class Column {
     private boolean nullable = true;
     private Expression defaultExpression;
     private Expression onUpdateExpression;
-    private Expression checkConstraint;
-    private String checkConstraintSQL;
     private String originalSQL;
     private SequenceOptions autoIncrementOptions;
     private boolean convertNullToDefault;
@@ -76,7 +73,6 @@ public class Column {
     private boolean isComputed;
     private TableFilter computeTableFilter;
     private int selectivity;
-    private SingleColumnResolver resolver;
     private String comment;
     private boolean primaryKey;
     private boolean visible = true;
@@ -388,16 +384,8 @@ public class Column {
             }
             throw e;
         }
-        if (checkConstraint != null) {
-            Value v;
-            synchronized (this) {
-                resolver.setValue(value);
-                v = checkConstraint.getValue(session);
-            }
-            // Both TRUE and NULL are ok
-            if (v != ValueNull.INSTANCE && !v.getBoolean()) {
-                throw DbException.get(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, checkConstraint.getSQL(false));
-            }
+        if (domain != null) {
+            domain.checkConstraints(session, value);
         }
         if (addKey && !localDefaultExpression.isConstant() && primaryKey) {
             session.setLastIdentity(value);
@@ -636,72 +624,6 @@ public class Column {
         this.selectivity = selectivity;
     }
 
-    /**
-     * Add a check constraint expression to this column. An existing check
-     * constraint is added using AND.
-     *
-     * @param session the session
-     * @param expr the (additional) constraint
-     */
-    public void addCheckConstraint(Session session, Expression expr) {
-        if (expr == null) {
-            return;
-        }
-        if (resolver == null) {
-            resolver = new SingleColumnResolver(session.getDatabase(), this);
-        }
-        synchronized (this) {
-            String oldName = name;
-            if (name == null) {
-                name = "VALUE";
-            }
-            expr.mapColumns(resolver, 0, Expression.MAP_INITIAL);
-            name = oldName;
-        }
-        expr = expr.optimize(session);
-        resolver.setValue(ValueNull.INSTANCE);
-        // check if the column is mapped
-        synchronized (this) {
-            expr.getValue(session);
-        }
-        if (checkConstraint == null) {
-            checkConstraint = expr;
-        } else if (!expr.getSQL(true).equals(checkConstraintSQL)) {
-            checkConstraint = new ConditionAndOr(ConditionAndOr.AND, checkConstraint, expr);
-        }
-        checkConstraintSQL = getCheckConstraintSQL(session, name);
-    }
-
-    /**
-     * Remove the check constraint if there is one.
-     */
-    public void removeCheckConstraint() {
-        checkConstraint = null;
-        checkConstraintSQL = null;
-    }
-
-    /**
-     * Get the check constraint expression for this column if set.
-     *
-     * @param session the session
-     * @param asColumnName the column name to use
-     * @return the constraint expression
-     */
-    public Expression getCheckConstraint(Session session, String asColumnName) {
-        if (checkConstraint == null) {
-            return null;
-        }
-        Parser parser = new Parser(session);
-        String sql;
-        synchronized (this) {
-            String oldName = name;
-            name = asColumnName;
-            sql = checkConstraint.getSQL(true);
-            name = oldName;
-        }
-        return parser.parseExpression(sql);
-    }
-
     String getDefaultSQL() {
         return defaultExpression == null ? null : defaultExpression.getSQL(true);
     }
@@ -716,18 +638,6 @@ public class Column {
 
     DataType getDataType() {
         return DataType.getDataType(type.getValueType());
-    }
-
-    /**
-     * Get the check constraint SQL snippet.
-     *
-     * @param session the session
-     * @param asColumnName the column name to use
-     * @return the SQL snippet
-     */
-    String getCheckConstraintSQL(Session session, String asColumnName) {
-        Expression constraint = getCheckConstraint(session, asColumnName);
-        return constraint == null ? "" : constraint.getSQL(true);
     }
 
     public void setComment(String comment) {
@@ -760,9 +670,6 @@ public class Column {
             return false;
         }
         if (onUpdateExpression != null && !onUpdateExpression.isEverything(visitor)) {
-            return false;
-        }
-        if (checkConstraint != null && !checkConstraint.isEverything(visitor)) {
             return false;
         }
         return true;
@@ -806,7 +713,7 @@ public class Column {
         if (autoIncrementOptions != null || newColumn.autoIncrementOptions != null) {
             return false;
         }
-        if (checkConstraint != null || newColumn.checkConstraint != null) {
+        if (domain != newColumn.domain) {
             return false;
         }
         if (convertNullToDefault || newColumn.convertNullToDefault) {
@@ -833,8 +740,6 @@ public class Column {
      * @param source the source column
      */
     public void copy(Column source) {
-        checkConstraint = source.checkConstraint;
-        checkConstraintSQL = source.checkConstraintSQL;
         name = source.name;
         // table is not set
         // columnId is not set

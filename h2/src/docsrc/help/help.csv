@@ -354,6 +354,26 @@ WITH cte1 AS (
 SELECT sum(FIRST_COLUMN) FROM cte2;
 "
 
+"Commands (DDL)","ALTER DOMAIN ADD CONSTRAINT","
+ALTER DOMAIN @h2@ [ IF EXISTS ] domainName ADD [ constraintNameDefinition ]
+CHECK (condition) @h2@ [ CHECK | NOCHECK ]
+","
+Adds a constraint to a domain.
+This command commits an open transaction in this connection.
+","
+ALTER DOMAIN D ADD CONSTRAINT D_POSITIVE CHECK (VALUE > 0)
+"
+
+"Commands (DDL)","ALTER DOMAIN DROP CONSTRAINT","
+ALTER DOMAIN @h2@ [ IF EXISTS ] domainName DROP
+CONSTRAINT @h2@ [ IF EXISTS ] constraintName
+","
+Removes a constraint from a domain.
+This command commits an open transaction in this connection.
+","
+ALTER DOMAIN D DROP CONSTRAINT D_POSITIVE
+"
+
 "Commands (DDL)","ALTER INDEX RENAME","
 @h2@ ALTER INDEX [ IF EXISTS ] indexName RENAME TO newIndexName
 ","

@@ -5,13 +5,17 @@
  */
 package org.h2.engine;
 
-import org.h2.expression.Expression;
+import java.util.ArrayList;
+import org.h2.constraint.Constraint;
+import org.h2.constraint.ConstraintDomain;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObjectBase;
 import org.h2.table.Column;
 import org.h2.table.Table;
+import org.h2.util.Utils;
+import org.h2.value.Value;
 
 /**
  * Represents a domain.
@@ -19,6 +23,8 @@ import org.h2.table.Table;
 public class Domain extends SchemaObjectBase {
 
     private Column column;
+
+    private ArrayList<ConstraintDomain> constraints;
 
     public Domain(Schema schema, int id, String name) {
         super(schema, id, name, Trace.SCHEMA);
@@ -37,18 +43,41 @@ public class Domain extends SchemaObjectBase {
 
     @Override
     public String getCreateSQL() {
-        StringBuilder builder = new StringBuilder("CREATE DOMAIN ");
-        getSQL(builder, true).append(" AS ");
-        builder.append(column.getCreateSQL());
-        Expression check = column.getCheckConstraint(database.getSystemSession(), "VALUE");
-        if (check != null) {
-            check.getEnclosedSQL(builder.append(" CHECK "), true);
-        }
-        return builder.toString();
+        return getSQL(new StringBuilder("CREATE DOMAIN "), true).append(" AS ").append(column.getCreateSQL())
+                .toString();
     }
 
     public Column getColumn() {
         return column;
+    }
+
+    /**
+     * Add a constraint to the domain.
+     *
+     * @param constraint the constraint to add
+     */
+    public void addConstraint(ConstraintDomain constraint) {
+        if (constraints == null) {
+            constraints = Utils.newSmallArrayList();
+        }
+        if (!constraints.contains(constraint)) {
+            constraints.add(constraint);
+        }
+    }
+
+    public ArrayList<ConstraintDomain> getConstraints() {
+        return constraints;
+    }
+
+    /**
+     * Remove the given constraint from the list.
+     *
+     * @param constraint the constraint to remove
+     */
+    public void removeConstraint(Constraint constraint) {
+        if (constraints != null) {
+            constraints.remove(constraint);
+        }
     }
 
     @Override
@@ -58,11 +87,35 @@ public class Domain extends SchemaObjectBase {
 
     @Override
     public void removeChildrenAndResources(Session session) {
+        if (constraints != null && !constraints.isEmpty()) {
+            for (ConstraintDomain constraint : constraints.toArray(new ConstraintDomain[0])) {
+                database.removeSchemaObject(session, constraint);
+            }
+            constraints = null;
+        }
         database.removeMeta(session, getId());
     }
 
     public void setColumn(Column column) {
         this.column = column;
+    }
+
+    /**
+     * Check the specified value.
+     *
+     * @param session the session
+     * @param value the value
+     */
+    public void checkConstraints(Session session, Value value) {
+        if (constraints != null) {
+            for (ConstraintDomain constraint : constraints) {
+                constraint.check(session, value);
+            }
+        }
+        Domain next = column.getDomain();
+        if (next != null) {
+            next.checkConstraints(session, value);
+        }
     }
 
 }

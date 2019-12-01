@@ -490,6 +490,16 @@ public interface CommandInterface extends AutoCloseable {
     int EXECUTE_IMMEDIATELY = 91;
 
     /**
+     * The type of ALTER DOMAIN ADD CONSTRAINT statement.
+     */
+    int ALTER_DOMAIN_ADD_CONSTRAINT = 92;
+
+    /**
+     * The type of ALTER DOMAIN DROP CONSTRAINT statement.
+     */
+    int ALTER_DOMAIN_DROP_CONSTRAINT = 93;
+
+    /**
      * Get command type.
      *
      * @return one of the constants above

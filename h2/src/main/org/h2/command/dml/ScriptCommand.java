@@ -23,6 +23,7 @@ import java.util.Set;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.constraint.Constraint;
+import org.h2.constraint.Constraint.Type;
 import org.h2.engine.Comment;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -319,10 +320,11 @@ public class ScriptCommand extends ScriptBase {
                 if (excludeTable(constraint.getTable())) {
                     continue;
                 }
-                if (constraint.getTable().isHidden()) {
+                Type constraintType = constraint.getConstraintType();
+                if (constraintType != Type.DOMAIN && constraint.getTable().isHidden()) {
                     continue;
                 }
-                if (Constraint.Type.PRIMARY_KEY != constraint.getConstraintType()) {
+                if (constraintType != Constraint.Type.PRIMARY_KEY) {
                     add(constraint.getCreateSQLWithoutIndexes(), false);
                 }
             }

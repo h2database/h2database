@@ -3,14 +3,17 @@
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.table;
+package org.h2.constraint;
 
 import org.h2.engine.Database;
+import org.h2.table.Column;
+import org.h2.table.ColumnResolver;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
 /**
- * The single column resolver is like a table with exactly one row.
- * It is used to parse a simple one-column check constraint.
+ * The single column resolver resolves the VALUE column.
+ * It is used to parse a domain constraint.
  */
 public class SingleColumnResolver implements ColumnResolver {
 
@@ -18,12 +21,12 @@ public class SingleColumnResolver implements ColumnResolver {
     private final Column column;
     private Value value;
 
-    SingleColumnResolver(Database database, Column column) {
+    public SingleColumnResolver(Database database, TypeInfo typeInfo) {
         this.database = database;
-        this.column = column;
+        this.column = new Column("VALUE", typeInfo);
     }
 
-    void setValue(Value value) {
+    public void setValue(Value value) {
         this.value = value;
     }
 
@@ -39,10 +42,18 @@ public class SingleColumnResolver implements ColumnResolver {
 
     @Override
     public Column findColumn(String name) {
-        if (database.equalsIdentifiers(column.getName(), name)) {
+        if (database.equalsIdentifiers("VALUE", name)) {
             return column;
         }
         return null;
+    }
+
+    void setColumnName(String newName) {
+        column.rename(newName);
+    }
+
+    void resetColumnName() {
+        column.rename("VALUE");
     }
 
 }

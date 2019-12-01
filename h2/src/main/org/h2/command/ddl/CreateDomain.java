@@ -5,6 +5,7 @@
  */
 package org.h2.command.ddl;
 
+import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Domain;
@@ -13,6 +14,7 @@ import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.Table;
+import org.h2.util.Utils;
 import org.h2.value.DataType;
 
 /**
@@ -24,6 +26,8 @@ public class CreateDomain extends SchemaCommand {
     private String typeName;
     private Column column;
     private boolean ifNotExists;
+
+    private ArrayList<AlterDomainAddConstraint> constraintCommands;
 
     public CreateDomain(Session session, Schema schema) {
         super(session, schema);
@@ -69,12 +73,24 @@ public class CreateDomain extends SchemaCommand {
         Domain domain = new Domain(schema, id, typeName);
         domain.setColumn(column);
         schema.getDatabase().addSchemaObject(session, domain);
+        if (constraintCommands != null) {
+            for (AlterDomainAddConstraint command : constraintCommands) {
+                command.update();
+            }
+        }
         return 0;
     }
 
     @Override
     public int getType() {
         return CommandInterface.CREATE_DOMAIN;
+    }
+
+    public void addConstraintCommand(AlterDomainAddConstraint command) {
+        if (constraintCommands == null) {
+            constraintCommands = Utils.newSmallArrayList();
+        }
+        constraintCommands.add(command);
     }
 
 }

@@ -92,6 +92,8 @@ import java.util.List;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.api.Trigger;
+import org.h2.command.ddl.AlterDomainAddConstraint;
+import org.h2.command.ddl.AlterDomainDropConstraint;
 import org.h2.command.ddl.AlterIndexRename;
 import org.h2.command.ddl.AlterSchemaRename;
 import org.h2.command.ddl.AlterSequence;
@@ -5899,7 +5901,8 @@ public class Parser {
         }
         // Quoted tokens can be only domains
         if (originalQuoted) {
-            return getColumnWithDomain(columnName, database.getSchema(session.getCurrentSchemaName()).getDomain(originalCase), forTable);
+            return getColumnWithDomain(columnName,
+                    database.getSchema(session.getCurrentSchemaName()).getDomain(originalCase), forTable);
         }
         String original = identifiersToUpper ? originalCase : StringUtils.toUpperEnglish(originalCase);
         switch (original) {
@@ -6060,7 +6063,6 @@ public class Parser {
         if (selectivity != Constants.SELECTIVITY_DEFAULT) {
             column.setSelectivity(selectivity);
         }
-        column.addCheckConstraint(session, templateColumn.getCheckConstraint(session, columnName));
         column.setComment(templateColumn.getComment());
         if (forTable) {
             column.setDomain(domain);
@@ -6778,7 +6780,8 @@ public class Parser {
     private CreateDomain parseCreateDomain() {
         boolean ifNotExists = readIfNotExists();
         String domainName = readIdentifierWithSchema();
-        CreateDomain command = new CreateDomain(session, getSchema());
+        Schema schema = getSchema();
+        CreateDomain command = new CreateDomain(session, schema);
         command.setTypeName(domainName);
         readIf("AS");
         Column column = parseColumnForTable("VALUE", true, false);
@@ -6800,7 +6803,10 @@ public class Parser {
                     column.setNullable(true);
                 }
             } else if (readIf(CHECK)) {
-                column.addCheckConstraint(session, readExpression());
+                AlterDomainAddConstraint constraint = new AlterDomainAddConstraint(session, schema, ifNotExists);
+                constraint.setDomainName(domainName);
+                constraint.setCheckExpression(readExpression());
+                command.addConstraintCommand(constraint);
             } else if (constraintName == null) {
                 break;
             } else {
@@ -7219,6 +7225,8 @@ public class Parser {
             return parseAlterSequence();
         } else if (readIf("VIEW")) {
             return parseAlterView();
+        } else if (readIf("DOMAIN")) {
+            return parseAlterDomain();
         }
         throw getSyntaxError();
     }
@@ -7243,6 +7251,53 @@ public class Parser {
         checkSchema(old);
         command.setNewName(newName);
         return command;
+    }
+
+    private DefineCommand parseAlterDomain() {
+        boolean ifDomainExists = readIfExists(false);
+        String domainName = readIdentifierWithSchema();
+        Schema schema = getSchema();
+        Domain domain = schema.findDomain(domainName);
+        if (domain == null && !ifDomainExists) {
+            throw DbException.get(ErrorCode.DOMAIN_NOT_FOUND_1, domainName);
+        }
+        if (readIf("ADD")) {
+            boolean ifNotExists = false;
+            String constraintName = null;
+            String comment = null;
+            if (readIf(CONSTRAINT)) {
+                ifNotExists = readIfNotExists();
+                constraintName = readIdentifierWithSchema(schema.getName());
+                checkSchema(schema);
+                comment = readCommentIf();
+            }
+            read(CHECK);
+            AlterDomainAddConstraint command = new AlterDomainAddConstraint(session, schema, ifNotExists);
+            command.setDomainName(domainName);
+            command.setConstraintName(constraintName);
+            command.setCheckExpression(readExpression());
+            command.setIfDomainExists(ifDomainExists);
+            command.setComment(comment);
+            if (readIf("NOCHECK")) {
+                command.setCheckExisting(false);
+            } else {
+                readIf(CHECK);
+                command.setCheckExisting(true);
+            }
+            return command;
+        } else {
+            read("DROP");
+            read(CONSTRAINT);
+            boolean ifConstraintExists = readIfExists(false);
+            String constraintName = readIdentifierWithSchema(schema.getName());
+            checkSchema(schema);
+            AlterDomainDropConstraint command = new AlterDomainDropConstraint(session, getSchema(),
+                    ifConstraintExists);
+            command.setConstraintName(constraintName);
+            command.setDomainName(domainName);
+            command.setIfDomainExists(ifDomainExists);
+            return command;
+        }
     }
 
     private DefineCommand parseAlterView() {

@@ -496,6 +496,17 @@ public class Schema extends DbObjectBase {
     }
 
     /**
+     * Create a unique constraint name.
+     *
+     * @param session the session
+     * @param domain the constraint domain
+     * @return the unique name
+     */
+    public String getUniqueDomainConstraintName(Session session, Domain domain) {
+        return getUniqueName(domain, constraints, "CONSTRAINT_");
+    }
+
+    /**
      * Create a unique index name.
      *
      * @param session the session

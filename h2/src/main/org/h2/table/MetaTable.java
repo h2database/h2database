@@ -486,7 +486,6 @@ public class MetaTable extends Table {
                     "SCALE INT",
                     "TYPE_NAME",
                     "SELECTIVITY INT",
-                    "CHECK_CONSTRAINT",
                     "REMARKS",
                     "SQL",
                     "ID INT"
@@ -1837,8 +1836,6 @@ public class MetaTable extends Table {
                         col.getDataType().name,
                         // SELECTIVITY INT
                         ValueInt.get(col.getSelectivity()),
-                        // CHECK_CONSTRAINT
-                        col.getCheckConstraintSQL(session, "VALUE"),
                         // REMARKS
                         replaceNullWithEmpty(domain.getComment()),
                         // SQL

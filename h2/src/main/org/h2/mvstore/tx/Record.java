@@ -113,7 +113,7 @@ final class Record<K,V>
         @SuppressWarnings("unchecked")
         @Override
         public Record<K,V>[] createStorage(int size) {
-            return (Record<K,V>[])new Record[size];
+            return new Record[size];
         }
     }
 }

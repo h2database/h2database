@@ -15,14 +15,14 @@ import org.h2.value.Value;
  * The single column resolver resolves the VALUE column.
  * It is used to parse a domain constraint.
  */
-public class SingleColumnResolver implements ColumnResolver {
+public class DomainColumnResolver implements ColumnResolver {
 
     private final Database database;
     private final Column column;
     private Value value;
-    private boolean renamed;
+    private String name;
 
-    public SingleColumnResolver(Database database, TypeInfo typeInfo) {
+    public DomainColumnResolver(Database database, TypeInfo typeInfo) {
         this.database = database;
         this.column = new Column("VALUE", typeInfo);
     }
@@ -50,23 +50,29 @@ public class SingleColumnResolver implements ColumnResolver {
     }
 
     void setColumnName(String newName) {
-        column.rename(newName);
-        renamed = true;
+        name = newName;
     }
 
     void resetColumnName() {
-        column.rename("VALUE");
-        renamed = false;
+        name = null;
     }
 
     /**
-     * Return whether column name should be used. If not, a VALUE without quotes
-     * should be used unconditionally.
+     * Return column name to use or null.
      *
-     * @return whether column name should be used
+     * @return column name to use or null
      */
-    public boolean isRenamed() {
-        return renamed;
+    public String getColumnName() {
+        return name;
+    }
+
+    /**
+     * Return the type of the column.
+     *
+     * @return the type of the column
+     */
+    public TypeInfo getValueType() {
+        return column.getType();
     }
 
 }

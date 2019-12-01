@@ -117,7 +117,7 @@ public class TestCancel extends TestDb {
         assertEquals(1, stat.getQueryTimeout());
         Statement s2 = conn.createStatement();
         assertEquals(1, s2.getQueryTimeout());
-        ResultSet rs = s2.executeQuery("SELECT VALUE " +
+        ResultSet rs = s2.executeQuery("SELECT `VALUE` " +
                 "FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME = 'QUERY_TIMEOUT'");
         rs.next();
         assertEquals(1000, rs.getInt(1));

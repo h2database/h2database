@@ -360,7 +360,7 @@ public class TestOptimizations extends TestDb {
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("select value " +
+        ResultSet rs = stat.executeQuery("select `value` " +
                 "from information_schema.settings where name='analyzeAuto'");
         int auto = rs.next() ? rs.getInt(1) : 0;
         if (auto != 0) {
@@ -866,8 +866,8 @@ public class TestOptimizations extends TestDb {
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
         stat.execute("create " + (memory ? "memory" : "") +
-                " table test(id int primary key, value int)");
-        stat.execute("create index idx_value_id on test(value, id);");
+                " table test(id int primary key, v int)");
+        stat.execute("create index idx_v_id on test(v, id);");
         int len = getSize(1000, 10000);
         HashMap<Integer, Integer> map = new HashMap<>();
         TreeSet<Integer> set = new TreeSet<>();
@@ -922,7 +922,7 @@ public class TestOptimizations extends TestDb {
                     max = set.last();
                 }
                 ResultSet rs = stat.executeQuery(
-                        "select min(value), max(value), count(*) from test");
+                        "select min(v), max(v), count(*) from test");
                 rs.next();
                 Integer minDb = (Integer) rs.getObject(1);
                 Integer maxDb = (Integer) rs.getObject(2);

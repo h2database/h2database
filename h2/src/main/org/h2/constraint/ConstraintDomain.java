@@ -32,12 +32,12 @@ public class ConstraintDomain extends Constraint {
 
     private Expression expr;
 
-    private SingleColumnResolver resolver;
+    private DomainColumnResolver resolver;
 
     public ConstraintDomain(Schema schema, int id, String name, Domain domain) {
         super(schema, id, name, null);
         this.domain = domain;
-        resolver = new SingleColumnResolver(schema.getDatabase(), domain.getColumn().getType());
+        resolver = new DomainColumnResolver(schema.getDatabase(), domain.getColumn().getType());
     }
 
     @Override

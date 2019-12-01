@@ -139,7 +139,7 @@ public class TestMvccMultiThreaded extends TestDb {
         }
         Connection conn = connList[0];
         conn.createStatement().execute(
-                "create table test(id int primary key, value int)");
+                "create table test(id int primary key, v int)");
         conn.createStatement().execute(
                 "insert into test values(0, 0)");
         final int count = 1000;
@@ -157,10 +157,10 @@ public class TestMvccMultiThreaded extends TestDb {
                 public void call() throws Exception {
                     for (int a = 0; a < count; a++) {
                         ResultSet rs = connList[x].createStatement().executeQuery(
-                                "select value from test for update");
+                                "select v from test for update");
                         assertTrue(rs.next());
                         connList[x].createStatement().execute(
-                                "update test set value=value+1");
+                                "update test set v=v+1");
                         connList[x].commit();
                         barrier.await();
                     }
@@ -171,7 +171,7 @@ public class TestMvccMultiThreaded extends TestDb {
         for (int i = 0; i < len; i++) {
             tasks[i].get();
         }
-        ResultSet rs = conn.createStatement().executeQuery("select value from test");
+        ResultSet rs = conn.createStatement().executeQuery("select v from test");
         rs.next();
         assertEquals(count * len, rs.getInt(1));
         for (int i = 0; i < len; i++) {

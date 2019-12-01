@@ -68,6 +68,7 @@ import static org.h2.util.ParserUtil.UNION;
 import static org.h2.util.ParserUtil.UNIQUE;
 import static org.h2.util.ParserUtil.UNKNOWN;
 import static org.h2.util.ParserUtil.USING;
+import static org.h2.util.ParserUtil.VALUE;
 import static org.h2.util.ParserUtil.VALUES;
 import static org.h2.util.ParserUtil.WHERE;
 import static org.h2.util.ParserUtil.WINDOW;
@@ -186,6 +187,7 @@ import org.h2.expression.Alias;
 import org.h2.expression.BinaryOperation;
 import org.h2.expression.BinaryOperation.OpType;
 import org.h2.expression.ConcatenationOperation;
+import org.h2.expression.DomainValueExpression;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionList;
@@ -311,14 +313,14 @@ public class Parser {
     private static final int END = PARAMETER + 1;
 
     /**
-     * Token with value.
+     * Token with literal.
      */
-    private static final int VALUE = END + 1;
+    private static final int LITERAL = END + 1;
 
     /**
      * The token "=".
      */
-    private static final int EQUAL = VALUE + 1;
+    private static final int EQUAL = LITERAL + 1;
 
     /**
      * The token ">=".
@@ -582,6 +584,8 @@ public class Parser {
             "UNKNOWN",
             // USING
             "USING",
+            // VALUE
+            "VALUE",
             // VALUES
             "VALUES",
             // WHERE
@@ -3276,7 +3280,7 @@ public class Parser {
 
     private IsJsonPredicate readJsonPredicate(Expression left, boolean not) {
         JSONItemType itemType;
-        if (readIf("VALUE")) {
+        if (readIf(VALUE)) {
             itemType = JSONItemType.VALUE;
         } else if (readIf(ARRAY)) {
             itemType = JSONItemType.ARRAY;
@@ -3463,8 +3467,8 @@ public class Parser {
             boolean withKey = readIf("KEY");
             Expression key = readExpression();
             if (withKey) {
-                read("VALUE");
-            } else if (!readIf("VALUE")) {
+                read(VALUE);
+            } else if (!readIf(VALUE)) {
                 read(COLON);
             }
             Expression value = readExpression();
@@ -3797,7 +3801,7 @@ public class Parser {
         }
         case Function.DATEADD:
         case Function.DATEDIFF: {
-            if (currentTokenType == VALUE) {
+            if (currentTokenType == LITERAL) {
                 function.addParameter(ValueExpression.get(currentValue.convertTo(Value.STRING)));
             } else {
                 function.addParameter(ValueExpression.get(ValueString.get(currentToken)));
@@ -3938,8 +3942,8 @@ public class Parser {
                     boolean withKey = readIf("KEY");
                     function.addParameter(readExpression());
                     if (withKey) {
-                        read("VALUE");
-                    } else if (!readIf("VALUE")) {
+                        read(VALUE);
+                    } else if (!readIf(VALUE)) {
                         read(COLON);
                     }
                     function.addParameter(readExpression());
@@ -4317,7 +4321,7 @@ public class Parser {
             break;
         case MINUS_SIGN:
             read();
-            if (currentTokenType == VALUE) {
+            if (currentTokenType == LITERAL) {
                 r = ValueExpression.get(currentValue.negate());
                 int rType = r.getType().getValueType();
                 if (rType == Value.LONG &&
@@ -4427,13 +4431,17 @@ public class Parser {
             read();
             r = new ExpressionColumn(database, null, null, Column.ROWID, true);
             break;
-        case VALUE:
+        case LITERAL:
             if (currentValue.getValueType() == Value.STRING) {
                 r = ValueExpression.get(readCharacterStringLiteral());
             } else {
                 r = ValueExpression.get(currentValue);
                 read();
             }
+            break;
+        case VALUE:
+            read();
+            r = new DomainValueExpression();
             break;
         case VALUES:
             if (database.getMode().onDuplicateKeyUpdate) {
@@ -4582,7 +4590,7 @@ public class Parser {
         case 'C':
             if (equalsToken("CURRENT", name)) {
                 int index = lastParseIndex;
-                if (readIf("VALUE") && readIf(FOR)) {
+                if (readIf(VALUE) && readIf(FOR)) {
                     return new SequenceValue(readSequence(), true);
                 }
                 parseIndex = index;
@@ -4593,7 +4601,7 @@ public class Parser {
             }
             break;
         case 'D':
-            if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING &&
+            if (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING &&
                     (equalsToken("DATE", name) || equalsToken("D", name))) {
                 String date = currentValue.getString();
                 read();
@@ -4601,7 +4609,7 @@ public class Parser {
             }
             break;
         case 'E':
-            if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING && equalsToken("E", name)) {
+            if (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING && equalsToken("E", name)) {
                 String text = currentValue.getString();
                 // the PostgreSQL ODBC driver uses
                 // LIKE E'PROJECT\\_DATA' instead of LIKE
@@ -4613,14 +4621,14 @@ public class Parser {
             }
             break;
         case 'J':
-            if (currentTokenType == VALUE ) {
+            if (currentTokenType == LITERAL ) {
                 if (currentValue.getValueType() == Value.STRING && equalsToken("JSON", name)) {
                     return ValueExpression.get(ValueJson.fromJson(readCharacterStringLiteral().getString()));
                 }
             } else if (currentTokenType == IDENTIFIER && equalsToken("JSON", name) && equalsToken("X", currentToken)) {
                 int index = lastParseIndex;
                 read();
-                if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING) {
+                if (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING) {
                     return ValueExpression.get(ValueJson.fromJson(readBinaryLiteral()));
                 } else {
                     parseIndex = index;
@@ -4631,12 +4639,12 @@ public class Parser {
         case 'N':
             if (equalsToken("NEXT", name)) {
                 int index = lastParseIndex;
-                if (readIf("VALUE") && readIf(FOR)) {
+                if (readIf(VALUE) && readIf(FOR)) {
                     return new SequenceValue(readSequence(), false);
                 }
                 parseIndex = index;
                 read();
-            } else if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING
+            } else if (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING
                     && equalsToken("N", name)) {
                 // National character string literal
                 return ValueExpression.get(readCharacterStringLiteral());
@@ -4656,7 +4664,7 @@ public class Parser {
                 if (readIf(WITH)) {
                     read("TIME");
                     read("ZONE");
-                    if (currentTokenType != VALUE || currentValue.getValueType() != Value.STRING) {
+                    if (currentTokenType != LITERAL || currentValue.getValueType() != Value.STRING) {
                         throw getSyntaxError();
                     }
                     String time = currentValue.getString();
@@ -4668,7 +4676,7 @@ public class Parser {
                         read("TIME");
                         read("ZONE");
                     }
-                    if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING) {
+                    if (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING) {
                         String time = currentValue.getString();
                         read();
                         return ValueExpression.get(ValueTime.parse(time));
@@ -4680,7 +4688,7 @@ public class Parser {
                 if (readIf(WITH)) {
                     read("TIME");
                     read("ZONE");
-                    if (currentTokenType != VALUE || currentValue.getValueType() != Value.STRING) {
+                    if (currentTokenType != LITERAL || currentValue.getValueType() != Value.STRING) {
                         throw getSyntaxError();
                     }
                     String timestamp = currentValue.getString();
@@ -4692,7 +4700,7 @@ public class Parser {
                         read("TIME");
                         read("ZONE");
                     }
-                    if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING) {
+                    if (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING) {
                         String timestamp = currentValue.getString();
                         read();
                         return ValueExpression.get(ValueTimestamp.parse(timestamp, database));
@@ -4702,7 +4710,7 @@ public class Parser {
                 }
             } else if (equalsToken("TODAY", name)) {
                 return readFunctionWithoutParameters(Function.CURRENT_DATE);
-            } else if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING) {
+            } else if (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING) {
                 if (equalsToken("T", name)) {
                     String time = currentValue.getString();
                     read();
@@ -4715,7 +4723,7 @@ public class Parser {
             }
             break;
         case 'X':
-            if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING && equalsToken("X", name)) {
+            if (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING && equalsToken("X", name)) {
                 return ValueExpression.get(ValueBytes.getNoCopy(readBinaryLiteral()));
             }
             break;
@@ -4728,19 +4736,19 @@ public class Parser {
         do {
             baos = StringUtils.convertHexWithSpacesToBytes(baos, currentValue.getString());
             read();
-        } while (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING);
+        } while (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING);
         return baos.toByteArray();
     }
 
     private Value readCharacterStringLiteral() {
         Value value = currentValue;
         read();
-        if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING) {
+        if (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING) {
             StringBuilder builder = new StringBuilder(value.getString());
             do {
                 builder.append(currentValue.getString());
                 read();
-            } while (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING);
+            } while (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING);
             return ValueString.get(builder.toString());
         }
         return value;
@@ -4751,7 +4759,7 @@ public class Parser {
         if (!negative) {
             readIf(PLUS_SIGN);
         }
-        if (currentTokenType != VALUE || currentValue.getValueType() != Value.STRING) {
+        if (currentTokenType != LITERAL || currentValue.getValueType() != Value.STRING) {
             addExpected("string");
             throw getSyntaxError();
         }
@@ -4919,7 +4927,7 @@ public class Parser {
         } else if (currentTokenType == PLUS_SIGN) {
             read();
         }
-        if (currentTokenType != VALUE) {
+        if (currentTokenType != LITERAL) {
             throw DbException.getSyntaxError(sqlCommand, parseIndex, "integer");
         }
         if (minus) {
@@ -4947,7 +4955,7 @@ public class Parser {
         } else if (currentTokenType == PLUS_SIGN) {
             read();
         }
-        if (currentTokenType != VALUE) {
+        if (currentTokenType != LITERAL) {
             throw DbException.getSyntaxError(sqlCommand, parseIndex, "long");
         }
         if (minus) {
@@ -4968,7 +4976,7 @@ public class Parser {
         case FALSE:
             read();
             return false;
-        case VALUE:
+        case LITERAL:
             boolean result = currentValue.getBoolean();
             read();
             return result;
@@ -5226,7 +5234,7 @@ public class Parser {
                     }
                     checkLiterals(false);
                     currentValue = ValueInt.get((int) number);
-                    currentTokenType = VALUE;
+                    currentTokenType = LITERAL;
                     currentToken = "0";
                     parseIndex = i;
                     break;
@@ -5267,7 +5275,7 @@ public class Parser {
             checkLiterals(true);
             currentValue = ValueString.get(result, database);
             parseIndex = i;
-            currentTokenType = VALUE;
+            currentTokenType = LITERAL;
             return;
         }
         case CHAR_DOLLAR_QUOTED_STRING: {
@@ -5280,7 +5288,7 @@ public class Parser {
             checkLiterals(true);
             currentValue = ValueString.get(result, database);
             parseIndex = i;
-            currentTokenType = VALUE;
+            currentTokenType = LITERAL;
             return;
         }
         case CHAR_END:
@@ -5305,7 +5313,7 @@ public class Parser {
             }
         }
         currentValue = ValueInt.get((int) number);
-        currentTokenType = VALUE;
+        currentTokenType = LITERAL;
         currentToken = "0";
         parseIndex = i;
     }
@@ -5369,7 +5377,7 @@ public class Parser {
             }
             checkLiterals(false);
         }
-        currentTokenType = VALUE;
+        currentTokenType = LITERAL;
         currentToken = "0";
     }
 
@@ -5410,7 +5418,7 @@ public class Parser {
                     parseIndex++;
                 }
                 currentValue = ValueLong.get(bi.longValue());
-                currentTokenType = VALUE;
+                currentTokenType = LITERAL;
                 return;
             }
             currentValue = ValueDecimal.get(bi);
@@ -5423,7 +5431,7 @@ public class Parser {
             }
             currentValue = ValueDecimal.get(bd);
         }
-        currentTokenType = VALUE;
+        currentTokenType = LITERAL;
     }
 
     private void initialize(String sql) {
@@ -6750,7 +6758,7 @@ public class Parser {
             throw DbException.get(ErrorCode.CONSTANT_ALREADY_EXISTS_1,
                     constantName);
         }
-        read("VALUE");
+        read(VALUE);
         Expression expr = readExpression();
         CreateConstant command = new CreateConstant(session, schema);
         command.setConstantName(constantName);
@@ -7505,7 +7513,7 @@ public class Parser {
         } else if (readIf("COMPRESS_LOB")) {
             readIfEqualOrTo();
             Set command = new Set(session, SetTypes.COMPRESS_LOB);
-            if (currentTokenType == VALUE) {
+            if (currentTokenType == LITERAL) {
                 command.setString(readString());
             } else {
                 command.setString(readUniqueIdentifier());
@@ -9059,7 +9067,7 @@ public class Parser {
                 read();
             } while (readIfMore());
             return list.toArray(new String[0]);
-        } else if (currentTokenType == VALUE) {
+        } else if (currentTokenType == LITERAL) {
             ArrayList<Integer> list = Utils.newSmallArrayList();
             do {
                 list.add(readInt());

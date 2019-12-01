@@ -625,7 +625,7 @@ public class TestResultSet extends TestDb {
         ResultSet rs;
         Object o;
 
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE INT)");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,\"VALUE\" INT)");
         stat.execute("INSERT INTO TEST VALUES(1,-1)");
         stat.execute("INSERT INTO TEST VALUES(2,0)");
         stat.execute("INSERT INTO TEST VALUES(3,1)");
@@ -778,7 +778,7 @@ public class TestResultSet extends TestDb {
         ResultSet rs;
         Object o;
 
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE SMALLINT)");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,\"VALUE\" SMALLINT)");
         stat.execute("INSERT INTO TEST VALUES(1,-1)");
         stat.execute("INSERT INTO TEST VALUES(2,0)");
         stat.execute("INSERT INTO TEST VALUES(3,1)");
@@ -901,7 +901,7 @@ public class TestResultSet extends TestDb {
         ResultSet rs;
         Object o;
 
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE BIGINT)");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,\"VALUE\" BIGINT)");
         stat.execute("INSERT INTO TEST VALUES(1,-1)");
         stat.execute("INSERT INTO TEST VALUES(2,0)");
         stat.execute("INSERT INTO TEST VALUES(3,1)");
@@ -1032,7 +1032,7 @@ public class TestResultSet extends TestDb {
         ResultSet rs;
         Object o;
 
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,\"VALUE\" VARCHAR(255))");
         stat.execute("INSERT INTO TEST VALUES(1,'')");
         stat.execute("INSERT INTO TEST VALUES(2,' ')");
         stat.execute("INSERT INTO TEST VALUES(3,'  ')");
@@ -1127,7 +1127,7 @@ public class TestResultSet extends TestDb {
         ResultSet rs;
         Object o;
 
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE DECIMAL(10,2))");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,\"VALUE\" DECIMAL(10,2))");
         stat.execute("INSERT INTO TEST VALUES(1,-1)");
         stat.execute("INSERT INTO TEST VALUES(2,.0)");
         stat.execute("INSERT INTO TEST VALUES(3,1.)");
@@ -1185,7 +1185,7 @@ public class TestResultSet extends TestDb {
         assertFalse(rs.next());
         stat.execute("DROP TABLE TEST");
 
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE DECIMAL(22,2))");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,\"VALUE\" DECIMAL(22,2))");
         stat.execute("INSERT INTO TEST VALUES(1,-12345678909876543210)");
         stat.execute("INSERT INTO TEST VALUES(2,12345678901234567890.12345)");
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
@@ -1291,14 +1291,14 @@ public class TestResultSet extends TestDb {
         rs.next();
         assertEquals("-99999-12-23 01:02:03", rs.getString(1));
 
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE DATETIME)");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,\"VALUE\" DATETIME)");
         stat.execute("INSERT INTO TEST VALUES(1,DATE '2011-11-11')");
         stat.execute("INSERT INTO TEST VALUES(2,TIMESTAMP '2002-02-02 02:02:02')");
         stat.execute("INSERT INTO TEST VALUES(3,TIMESTAMP '1800-1-1 0:0:0')");
         stat.execute("INSERT INTO TEST VALUES(4,TIMESTAMP '9999-12-31 23:59:59')");
         stat.execute("INSERT INTO TEST VALUES(5,NULL)");
         rs = stat.executeQuery("SELECT 0 ID, " +
-                "TIMESTAMP '9999-12-31 23:59:59' VALUE FROM TEST ORDER BY ID");
+                "TIMESTAMP '9999-12-31 23:59:59' \"VALUE\" FROM TEST ORDER BY ID");
         assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" },
                 new int[] { Types.INTEGER, Types.TIMESTAMP },
                 new int[] { 10, 29 }, new int[] { 0, 9 });
@@ -1625,7 +1625,7 @@ public class TestResultSet extends TestDb {
         trace("Test BLOB");
         ResultSet rs;
 
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE BLOB)");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,\"VALUE\" BLOB)");
         stat.execute("INSERT INTO TEST VALUES(1,X'01010101')");
         stat.execute("INSERT INTO TEST VALUES(2,X'02020202')");
         stat.execute("INSERT INTO TEST VALUES(3,X'00')");
@@ -1731,7 +1731,7 @@ public class TestResultSet extends TestDb {
         String string;
         stat = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY,
                 ResultSet.CONCUR_UPDATABLE);
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE CLOB)");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,\"VALUE\" CLOB)");
         stat.execute("INSERT INTO TEST VALUES(1,'Test')");
         stat.execute("INSERT INTO TEST VALUES(2,'Hello')");
         stat.execute("INSERT INTO TEST VALUES(3,'World!')");
@@ -1824,7 +1824,7 @@ public class TestResultSet extends TestDb {
     private void testArray() throws SQLException {
         trace("Test ARRAY");
         ResultSet rs;
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE ARRAY)");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, \"VALUE\" ARRAY)");
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?)");
         prep.setInt(1, 1);
         prep.setObject(2, new Object[] { 1, 2 });
@@ -1934,7 +1934,7 @@ public class TestResultSet extends TestDb {
     private void testEnum() throws SQLException {
         trace("Test ENUM");
 
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE ENUM('A', 'B', 'C', 'D', 'E', 'F', 'G'))");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, \"VALUE\" ENUM('A', 'B', 'C', 'D', 'E', 'F', 'G'))");
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?)");
         prep.setInt(1, 1);
         prep.setString(2, "A");

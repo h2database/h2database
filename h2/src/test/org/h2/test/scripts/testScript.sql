@@ -3020,7 +3020,7 @@ drop table s;
 drop table p;
 > ok
 
-create table test (id identity, value int not null);
+create table test (id identity, "VALUE" int not null);
 > ok
 
 create primary key on test(id);
@@ -5615,7 +5615,7 @@ DROP TABLE TEST;
 > ok
 
 --- group by ----------------------------------------------------------------------------------------------
-CREATE TABLE TEST(A INT, B INT, VALUE INT, UNIQUE(A, B));
+CREATE TABLE TEST(A INT, B INT, "VALUE" INT, UNIQUE(A, B));
 > ok
 
 INSERT INTO TEST VALUES(?, ?, ?);
@@ -5630,7 +5630,7 @@ NULL, 1, 10
 };
 > update count: 7
 
-SELECT A, B, COUNT(*) CAL, COUNT(A) CA, COUNT(B) CB, MIN(VALUE) MI, MAX(VALUE) MA, SUM(VALUE) S FROM TEST GROUP BY A, B;
+SELECT A, B, COUNT(*) CAL, COUNT(A) CA, COUNT(B) CB, MIN("VALUE") MI, MAX("VALUE") MA, SUM("VALUE") S FROM TEST GROUP BY A, B;
 > A    B    CAL CA CB MI   MA   S
 > ---- ---- --- -- -- ---- ---- ----
 > 0    0    1   1  1  -1   -1   -1
@@ -6048,7 +6048,7 @@ DROP TABLE TEST;
 CREATE TABLE CUSTOMER(ID INT PRIMARY KEY, NAME VARCHAR(255));
 > ok
 
-CREATE TABLE INVOICE(ID INT, CUSTOMER_ID INT, PRIMARY KEY(CUSTOMER_ID, ID), VALUE DECIMAL(10,2));
+CREATE TABLE INVOICE(ID INT, CUSTOMER_ID INT, PRIMARY KEY(CUSTOMER_ID, ID), "VALUE" DECIMAL(10,2));
 > ok
 
 INSERT INTO CUSTOMER VALUES(?, ?);
@@ -6259,7 +6259,7 @@ drop view s;
 drop table t;
 > ok
 
-CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255), VALUE DECIMAL(10,2));
+CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255), "VALUE" DECIMAL(10,2));
 > ok
 
 INSERT INTO TEST VALUES(?, ?, ?);
@@ -6276,9 +6276,9 @@ INSERT INTO TEST VALUES(?, ?, ?);
 };
 > update count: 9
 
-SELECT IFNULL(NAME, '') || ': ' || GROUP_CONCAT(VALUE ORDER BY NAME, VALUE DESC SEPARATOR ', ') FROM TEST GROUP BY NAME ORDER BY 1;
-> (IFNULL(NAME, '') || ': ') || LISTAGG(VALUE, ', ') WITHIN GROUP (ORDER BY NAME, VALUE DESC)
-> -------------------------------------------------------------------------------------------
+SELECT IFNULL(NAME, '') || ': ' || GROUP_CONCAT("VALUE" ORDER BY NAME, "VALUE" DESC SEPARATOR ', ') FROM TEST GROUP BY NAME ORDER BY 1;
+> (IFNULL(NAME, '') || ': ') || LISTAGG("VALUE", ', ') WITHIN GROUP (ORDER BY NAME, "VALUE" DESC)
+> -----------------------------------------------------------------------------------------------
 > : 3.10, -10.00
 > Apples: 1.50, 1.20, 1.10
 > Bananas: 2.50
@@ -6325,24 +6325,24 @@ SELECT DISTINCT NAME FROM TEST ORDER BY NAME DESC NULLS LAST LIMIT 2 OFFSET 1;
 > Bananas
 > rows (ordered): 2
 
-SELECT NAME, COUNT(*), SUM(VALUE), MAX(VALUE), MIN(VALUE), AVG(VALUE), COUNT(DISTINCT VALUE) FROM TEST GROUP BY NAME;
-> NAME     COUNT(*) SUM(VALUE) MAX(VALUE) MIN(VALUE) AVG(VALUE)                                  COUNT(DISTINCT VALUE)
-> -------- -------- ---------- ---------- ---------- ------------------------------------------- ---------------------
-> Apples   3        3.80       1.50       1.10       1.2666666666666666666666666666666666666667  3
-> Bananas  1        2.50       2.50       2.50       2.5000000000000000000000000000000000000000  1
-> Cherries 1        5.10       5.10       5.10       5.1000000000000000000000000000000000000000  1
-> Oranges  2        3.85       2.05       1.80       1.9250000000000000000000000000000000000000  2
-> null     2        -6.90      3.10       -10.00     -3.4500000000000000000000000000000000000000 2
+SELECT NAME, COUNT(*), SUM("VALUE"), MAX("VALUE"), MIN("VALUE"), AVG("VALUE"), COUNT(DISTINCT "VALUE") FROM TEST GROUP BY NAME;
+> NAME     COUNT(*) SUM("VALUE") MAX("VALUE") MIN("VALUE") AVG("VALUE")                                COUNT(DISTINCT "VALUE")
+> -------- -------- ------------ ------------ ------------ ------------------------------------------- -----------------------
+> Apples   3        3.80         1.50         1.10         1.2666666666666666666666666666666666666667  3
+> Bananas  1        2.50         2.50         2.50         2.5000000000000000000000000000000000000000  1
+> Cherries 1        5.10         5.10         5.10         5.1000000000000000000000000000000000000000  1
+> Oranges  2        3.85         2.05         1.80         1.9250000000000000000000000000000000000000  2
+> null     2        -6.90        3.10         -10.00       -3.4500000000000000000000000000000000000000 2
 > rows: 5
 
-SELECT NAME, MAX(VALUE), MIN(VALUE), MAX(VALUE+1)*MIN(VALUE+1) FROM TEST GROUP BY NAME;
-> NAME     MAX(VALUE) MIN(VALUE) MAX(VALUE + 1) * MIN(VALUE + 1)
-> -------- ---------- ---------- -------------------------------
-> Apples   1.50       1.10       5.2500
-> Bananas  2.50       2.50       12.2500
-> Cherries 5.10       5.10       37.2100
-> Oranges  2.05       1.80       8.5400
-> null     3.10       -10.00     -36.9000
+SELECT NAME, MAX("VALUE"), MIN("VALUE"), MAX("VALUE"+1)*MIN("VALUE"+1) FROM TEST GROUP BY NAME;
+> NAME     MAX("VALUE") MIN("VALUE") MAX("VALUE" + 1) * MIN("VALUE" + 1)
+> -------- ------------ ------------ -----------------------------------
+> Apples   1.50         1.10         5.2500
+> Bananas  2.50         2.50         12.2500
+> Cherries 5.10         5.10         37.2100
+> Oranges  2.05         1.80         8.5400
+> null     3.10         -10.00       -36.9000
 > rows: 5
 
 DROP TABLE TEST;

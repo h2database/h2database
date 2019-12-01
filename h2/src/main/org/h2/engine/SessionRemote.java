@@ -801,7 +801,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     private String readSerializationSettings() {
         String javaObjectSerializerFQN = null;
         CommandInterface ci = prepareCommand(
-                "SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS "+
+                "SELECT `VALUE` FROM INFORMATION_SCHEMA.SETTINGS "+
                 " WHERE NAME='JAVA_OBJECT_SERIALIZER'", Integer.MAX_VALUE);
         try {
             ResultInterface result = ci.executeQuery(0, false);

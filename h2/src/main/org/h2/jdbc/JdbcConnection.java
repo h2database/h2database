@@ -792,7 +792,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             if (queryTimeoutCache == -1) {
                 checkClosed();
                 getQueryTimeout = prepareCommand(
-                        "SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS "
+                        "SELECT `VALUE` FROM INFORMATION_SCHEMA.SETTINGS "
                                 + "WHERE NAME=?",
                         getQueryTimeout);
                 getQueryTimeout.getParameters().get(0)
@@ -2077,7 +2077,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             String modeName = ModeEnum.REGULAR.name();
             boolean databaseToUpper = true, databaseToLower = false, caseInsensitiveIdentifiers = false;
             try (PreparedStatement prep = prepareStatement(
-                    "SELECT NAME, VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME IN (?, ?, ?, ?)")) {
+                    "SELECT NAME, `VALUE` FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME IN (?, ?, ?, ?)")) {
                 prep.setString(1, "MODE");
                 prep.setString(2, "DATABASE_TO_UPPER");
                 prep.setString(3, "DATABASE_TO_LOWER");

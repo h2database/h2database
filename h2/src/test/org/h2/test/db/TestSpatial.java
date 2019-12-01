@@ -874,7 +874,7 @@ public class TestSpatial extends TestDb {
             Statement stat = conn.createStatement();
             stat.execute("drop table if exists test");
             stat.execute("create table test(id serial primary key, " +
-                    "value double, the_geom geometry)");
+                    "v double, the_geom geometry)");
             stat.execute("create spatial index spatial on test(the_geom)");
             ResultSet rs = stat.executeQuery("explain select * from test where _ROWID_ = 5");
             assertTrue(rs.next());

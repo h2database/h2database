@@ -283,20 +283,20 @@ public class TestXA extends TestDb {
                 trace("stmt1.executeUpdate(\"CREATE TABLE xatest1 " +
                         "(id INT PRIMARY KEY, value INT)\")");
                 stat1.executeUpdate("CREATE TABLE xatest1 " +
-                        "(id INT PRIMARY KEY, value INT)");
+                        "(id INT PRIMARY KEY, v INT)");
                 trace("stmt2.executeUpdate(\"CREATE TABLE xatest2 " +
-                        "(id INT PRIMARY KEY, value INT)\")");
+                        "(id INT PRIMARY KEY, v INT)\")");
                 stat2.executeUpdate("CREATE TABLE xatest2 " +
-                        "(id INT PRIMARY KEY, value INT)");
+                        "(id INT PRIMARY KEY, v INT)");
             } else {
                 trace("stmt1.executeUpdate(\"CREATE TABLE xatest " +
                         "(id INT PRIMARY KEY, value INT)\")");
                 stat1.executeUpdate("CREATE TABLE xatest " +
-                        "(id INT PRIMARY KEY, value INT)");
+                        "(id INT PRIMARY KEY, v INT)");
                 trace("stmt2.executeUpdate(\"CREATE TABLE xatest " +
-                        "(id INT PRIMARY KEY, value INT)\")");
+                        "(id INT PRIMARY KEY, v INT)\")");
                 stat2.executeUpdate("CREATE TABLE xatest " +
-                        "(id INT PRIMARY KEY, value INT)");
+                        "(id INT PRIMARY KEY, v INT)");
             }
 
             if (useOneDatabase) {
@@ -343,22 +343,22 @@ public class TestXA extends TestDb {
 
             if (useOneDatabase) {
                 trace("stmt1.executeUpdate(\"UPDATE xatest1 " +
-                        "SET value=1 WHERE id=1\")");
+                        "SET v=1 WHERE id=1\")");
                 stat1.executeUpdate("UPDATE xatest1 " +
-                        "SET value=1 WHERE id=1");
+                        "SET v=1 WHERE id=1");
                 trace("stmt2.executeUpdate(\"UPDATE xatest2 " +
-                        "SET value=1 WHERE id=2\")");
+                        "SET v=1 WHERE id=2\")");
                 stat2.executeUpdate("UPDATE xatest2 " +
-                        "SET value=1 WHERE id=2");
+                        "SET v=1 WHERE id=2");
             } else {
                 trace("stmt1.executeUpdate(\"UPDATE xatest " +
-                        "SET value=1 WHERE id=1\")");
+                        "SET v=1 WHERE id=1\")");
                 stat1.executeUpdate("UPDATE xatest " +
-                        "SET value=1 WHERE id=1");
+                        "SET v=1 WHERE id=1");
                 trace("stmt2.executeUpdate(\"UPDATE xatest " +
-                        "SET value=1 WHERE id=2\")");
+                        "SET v=1 WHERE id=2\")");
                 stat2.executeUpdate("UPDATE xatest " +
-                        "SET value=1 WHERE id=2");
+                        "SET v=1 WHERE id=2");
             }
 
             trace("xares1.end(xid1, XAResource.TMSUCCESS)");

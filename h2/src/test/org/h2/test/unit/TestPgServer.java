@@ -559,7 +559,7 @@ public class TestPgServer extends TestDb {
                     "jdbc:postgresql://localhost:5535/pgserver", props);
 
             Statement stmt = conn.createStatement();
-            stmt.executeUpdate("create table t1 (id integer, value timestamp)");
+            stmt.executeUpdate("create table t1 (id integer, v timestamp)");
             stmt.close();
 
             PreparedStatement pstmt = conn.prepareStatement("insert into t1 values(100500, ?)");
@@ -571,7 +571,7 @@ public class TestPgServer extends TestDb {
             assertEquals(1, pstmt.executeUpdate());
             pstmt.close();
 
-            pstmt = conn.prepareStatement("SELECT * FROM t1 WHERE value = ?");
+            pstmt = conn.prepareStatement("SELECT * FROM t1 WHERE v = ?");
             assertEquals(Types.TIMESTAMP, pstmt.getParameterMetaData().getParameterType(1));
 
             pstmt.setObject(1, t);

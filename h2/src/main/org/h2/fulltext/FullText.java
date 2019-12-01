@@ -122,7 +122,7 @@ public class FullText {
         stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA +
                 ".IGNORELIST(LIST VARCHAR)");
         stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA +
-                ".SETTINGS(KEY VARCHAR PRIMARY KEY, VALUE VARCHAR)");
+                ".SETTINGS(KEY VARCHAR PRIMARY KEY, `VALUE` VARCHAR)");
         stat.execute("CREATE ALIAS IF NOT EXISTS FT_CREATE_INDEX FOR \"" +
                 FullText.class.getName() + ".createIndex\"");
         stat.execute("CREATE ALIAS IF NOT EXISTS FT_DROP_INDEX FOR \"" +
@@ -967,7 +967,7 @@ public class FullText {
                 throws SQLException {
             try (Statement stat = conn.createStatement()) {
                 ResultSet rs = stat.executeQuery(
-                                "SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS" +
+                                "SELECT `VALUE` FROM INFORMATION_SCHEMA.SETTINGS" +
                                 " WHERE NAME = 'MV_STORE'");
                 return rs.next() && "true".equals(rs.getString(1));
             }

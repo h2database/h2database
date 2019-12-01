@@ -1575,7 +1575,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * SECOND, SELECT, SYSDATE, SYSTIME, SYSTIMESTAMP,
      * TABLE, TODAY, TOP, TRAILING, TRUE,
      * UNION, UNIQUE, UNKNOWN, USING
-     * VALUES,
+     * VALUE, VALUES,
      * WHERE, WINDOW, WITH,
      * YEAR
      * </pre>

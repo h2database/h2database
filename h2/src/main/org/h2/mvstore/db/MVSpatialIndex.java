@@ -138,7 +138,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
 
         if (indexType.isUnique()) {
             // this will detect committed entries only
-            RTreeCursor cursor = spatialMap.findContainedKeys(key);
+            RTreeCursor<VersionedValue<Value>> cursor = spatialMap.findContainedKeys(key);
             Iterator<SpatialKey> it = new SpatialKeyIterator(map, cursor, false);
             while (it.hasNext()) {
                 SpatialKey k = it.next();
@@ -154,7 +154,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
         }
         if (indexType.isUnique()) {
             // check if there is another (uncommitted) entry
-            RTreeCursor cursor = spatialMap.findContainedKeys(key);
+            RTreeCursor<VersionedValue<Value>> cursor = spatialMap.findContainedKeys(key);
             Iterator<SpatialKey> it = new SpatialKeyIterator(map, cursor, true);
             while (it.hasNext()) {
                 SpatialKey k = it.next();
@@ -238,13 +238,13 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
      * @return the estimated minimum bounding box that encloses all keys, or null
      */
     public Value getEstimatedBounds(Session session) {
-        Page p = spatialMap.getRootPage();
+        Page<SpatialKey,VersionedValue<Value>> p = spatialMap.getRootPage();
         int count = p.getKeyCount();
         if (count > 0) {
-            SpatialKey key = (SpatialKey) p.getKey(0);
+            SpatialKey key = p.getKey(0);
             float bminxf = key.min(0), bmaxxf = key.max(0), bminyf = key.min(1), bmaxyf = key.max(1);
             for (int i = 1; i < count; i++) {
-                key = (SpatialKey) p.getKey(i);
+                key = p.getKey(i);
                 float minxf = key.min(0), maxxf = key.max(0), minyf = key.min(1), maxyf = key.max(1);
                 if (minxf < bminxf) {
                     bminxf = minxf;
@@ -470,7 +470,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
     /**
      * A cursor for getBounds() method.
      */
-    private final class FindBoundsCursor extends RTreeCursor {
+    private final class FindBoundsCursor extends RTreeCursor<VersionedValue<Value>> {
 
         private final Session session;
 
@@ -484,7 +484,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
 
         private double bminxd, bmaxxd, bminyd, bmaxyd;
 
-        FindBoundsCursor(Page root, SpatialKey filter, Session session, TransactionMap<SpatialKey, Value> map,
+        FindBoundsCursor(Page<SpatialKey,VersionedValue<Value>> root, SpatialKey filter, Session session, TransactionMap<SpatialKey, Value> map,
                 int columnId) {
             super(root, filter);
             this.session = session;

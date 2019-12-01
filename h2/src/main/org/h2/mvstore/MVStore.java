@@ -204,7 +204,7 @@ public class MVStore implements AutoCloseable
      * It is split in 16 segments. The stack move distance is 2% of the expected
      * number of entries.
      */
-    private final CacheLongKeyLIRS<Page> cache;
+    private final CacheLongKeyLIRS<Page<?,?>> cache;
 
     /**
      * The newest chunk. If nothing was stored yet, this field is not set.
@@ -1350,6 +1350,8 @@ public class MVStore implements AutoCloseable
         long time = getTimeSinceCreation();
         int currentUnsavedPageCount = unsavedMemory;
         long storeVersion = currentStoreVersion;
+        // it is ok, sinse that path suppose to be single-threaded under storeLock
+        //noinspection NonAtomicOperationOnVolatileField
         long version = ++currentVersion;
         lastCommitTime = time;
 
@@ -1392,17 +1394,17 @@ public class MVStore implements AutoCloseable
         c.version = version;
         c.next = Long.MAX_VALUE;
         chunks.put(c.id, c);
-        ArrayList<Page> changed = new ArrayList<>();
+        ArrayList<Page<?,?>> changed = new ArrayList<>();
         for (Iterator<MVMap<?, ?>> iter = maps.values().iterator(); iter.hasNext(); ) {
-            MVMap<?, ?> map = iter.next();
-            RootReference rootReference = map.setWriteVersion(version);
+            MVMap<?,?> map = iter.next();
+            RootReference<?,?> rootReference = map.setWriteVersion(version);
             if (rootReference == null) {
                 iter.remove();
             } else if (map.getCreateVersion() <= storeVersion && // if map was created after storing started, skip it
                     !map.isVolatile() &&
                     map.hasChangesSince(lastStoredVersion)) {
                 assert rootReference.version <= version : rootReference.version + " > " + version;
-                Page rootPage = rootReference.root;
+                Page<?,?> rootPage = rootReference.root;
                 if (!rootPage.isSaved() ||
                         // after deletion previously saved leaf
                         // may pop up as a root, but we still need
@@ -1417,7 +1419,7 @@ public class MVStore implements AutoCloseable
         c.writeChunkHeader(buff, 0);
         int headerLength = buff.position() + 44;
         buff.position(headerLength);
-        for (Page p : changed) {
+        for (Page<?,?> p : changed) {
             String key = MVMap.getMapRootKey(p.getMapId());
             if (p.getTotalCount() == 0) {
                 meta.remove(key);
@@ -1430,7 +1432,7 @@ public class MVStore implements AutoCloseable
 
         acceptChunkOccupancyChanges(time, version);
 
-        RootReference metaRootReference = meta.setWriteVersion(version);
+        RootReference<String,String> metaRootReference = meta.setWriteVersion(version);
         assert metaRootReference != null;
         assert metaRootReference.version == version : metaRootReference.version + " != " + version;
         metaChanged = false;
@@ -1439,7 +1441,7 @@ public class MVStore implements AutoCloseable
 
         onVersionChange(version);
 
-        Page metaRoot = metaRootReference.root;
+        Page<String,String> metaRoot = metaRootReference.root;
         metaRoot.writeUnsavedRecursive(c, buff);
 
         // last allocated map id should be captured after the meta map was saved, because
@@ -1523,7 +1525,7 @@ public class MVStore implements AutoCloseable
             // may only shrink after the store header was written
             shrinkFileIfPossible(1);
         }
-        for (Page p : changed) {
+        for (Page<?,?> p : changed) {
             p.writeEnd();
         }
         metaRoot.writeEnd();
@@ -2229,13 +2231,13 @@ public class MVStore implements AutoCloseable
      * @param pos the page position
      * @return the page
      */
-    Page readPage(MVMap<?, ?> map, long pos) {
+    <K,V> Page<K,V> readPage(MVMap<K,V> map, long pos) {
         try {
             if (!DataUtils.isPageSaved(pos)) {
                 throw DataUtils.newIllegalStateException(
                         DataUtils.ERROR_FILE_CORRUPT, "Position 0");
             }
-            Page p = cache == null ? null : cache.get(pos);
+            Page<K,V> p = readPageFromCache(pos);
             if (p == null) {
                 ByteBuffer buff = readBufferForPage(pos, map.getId());
                 try {
@@ -2253,6 +2255,11 @@ public class MVStore implements AutoCloseable
             }
             throw e;
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <K, V> Page<K, V> readPageFromCache(long pos) {
+        return cache == null ? null : (Page<K,V>)cache.get(pos);
     }
 
     /**
@@ -2723,13 +2730,13 @@ public class MVStore implements AutoCloseable
      *
      * @param map the map to remove
      */
-    public void removeMap(MVMap<?, ?> map) {
+    public void removeMap(MVMap<?,?> map) {
         storeLock.lock();
         try {
             checkOpen();
             DataUtils.checkArgument(map != meta,
                     "Removing the meta map is not allowed");
-            RootReference rootReference = map.clearIt();
+            RootReference<?,?> rootReference = map.clearIt();
             map.close();
 
             updateCounter += rootReference.updateCounter;
@@ -2906,9 +2913,9 @@ public class MVStore implements AutoCloseable
         if (backgroundExceptionHandler != null) {
             try {
                 backgroundExceptionHandler.uncaughtException(Thread.currentThread(), ex);
-            } catch(Throwable ignore) {
-                if (ex != ignore) { // OOME may be the same
-                    ex.addSuppressed(ignore);
+            } catch(Throwable e) {
+                if (ex != e) { // OOME may be the same
+                    ex.addSuppressed(e);
                 }
             }
         }
@@ -3049,7 +3056,7 @@ public class MVStore implements AutoCloseable
      * Put the page in the cache.
      * @param page the page
      */
-    void cachePage(Page page) {
+    void cachePage(Page<?,?> page) {
         if (cache != null) {
             cache.put(page.getPos(), page, page.getMemory());
         }
@@ -3088,7 +3095,7 @@ public class MVStore implements AutoCloseable
      *
      * @return the cache
      */
-    public CacheLongKeyLIRS<Page> getCache() {
+    public CacheLongKeyLIRS<Page<?,?>> getCache() {
         return cache;
     }
 
@@ -3112,11 +3119,11 @@ public class MVStore implements AutoCloseable
     public double getUpdateFailureRatio() {
         long updateCounter = this.updateCounter;
         long updateAttemptCounter = this.updateAttemptCounter;
-        RootReference rootReference = meta.getRoot();
+        RootReference<?,?> rootReference = meta.getRoot();
         updateCounter += rootReference.updateCounter;
         updateAttemptCounter += rootReference.updateAttemptCounter;
         for (MVMap<?, ?> map : maps.values()) {
-            RootReference root = map.getRoot();
+            RootReference<?,?> root = map.getRoot();
             updateCounter += root.updateCounter;
             updateAttemptCounter += root.updateAttemptCounter;
         }
@@ -3621,7 +3628,7 @@ public class MVStore implements AutoCloseable
          * @param s the string representation
          * @return the builder
          */
-        @SuppressWarnings({ "unchecked", "rawtypes" })
+        @SuppressWarnings({"unchecked", "rawtypes", "unused"})
         public static Builder fromString(String s) {
             // Cast from HashMap<String, String> to HashMap<String, Object> is safe
             return new Builder((HashMap) DataUtils.parseMap(s));

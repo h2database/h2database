@@ -142,7 +142,7 @@ class TxDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>> {
      * @return {@link MVMap.Decision#PUT}
      */
     final MVMap.Decision logAndDecideToPut(VersionedValue<V> valueToLog, V value) {
-        undoKey = transaction.log(new Record(mapId, key, valueToLog));
+        undoKey = transaction.log(new Record<>(mapId, key, valueToLog));
         lastCommittedValue = value;
         return setDecision(MVMap.Decision.PUT);
     }

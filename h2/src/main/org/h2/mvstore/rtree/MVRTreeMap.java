@@ -54,8 +54,8 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
      * @param x the rectangle
      * @return the iterator
      */
-    public RTreeCursor findIntersectingKeys(SpatialKey x) {
-        return new IntersectsRTreeCursor(getRootPage(), x, keyType);
+    public RTreeCursor<V> findIntersectingKeys(SpatialKey x) {
+        return new IntersectsRTreeCursor<>(getRootPage(), x, keyType);
     }
 
     /**
@@ -65,11 +65,11 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
      * @param x the rectangle
      * @return the iterator
      */
-    public RTreeCursor findContainedKeys(SpatialKey x) {
-        return new ContainsRTreeCursor(getRootPage(), x, keyType);
+    public RTreeCursor<V> findContainedKeys(SpatialKey x) {
+        return new ContainsRTreeCursor<>(getRootPage(), x, keyType);
     }
 
-    private boolean contains(Page p, int index, Object key) {
+    private boolean contains(Page<SpatialKey,V> p, int index, Object key) {
         return keyType.contains(p.getKey(index), key);
     }
 
@@ -80,9 +80,8 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
      * @param key the key
      * @return the value, or null if not found
      */
-    @SuppressWarnings("unchecked")
     @Override
-    public V get(Page p, Object key) {
+    public V get(Page<SpatialKey,V> p, SpatialKey key) {
         int keyCount = p.getKeyCount();
         if (!p.isLeaf()) {
             for (int i = 0; i < keyCount; i++) {
@@ -96,7 +95,7 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         } else {
             for (int i = 0; i < keyCount; i++) {
                 if (keyType.equals(p.getKey(i), key)) {
-                    return (V)p.getValue(i);
+                    return p.getValue(i);
                 }
             }
         }
@@ -117,13 +116,13 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     @Override
     public V operate(SpatialKey key, V value, DecisionMaker<? super V> decisionMaker) {
         int attempt = 0;
-        final Collection<Page> removedPages = isPersistent() ? new ArrayList<>() : null;
+        final Collection<Page<SpatialKey,V>> removedPages = isPersistent() ? new ArrayList<>() : null;
         while(true) {
-            RootReference rootReference = flushAndGetRoot();
+            RootReference<SpatialKey,V> rootReference = flushAndGetRoot();
             if (attempt++ == 0 && !rootReference.isLockedByCurrentThread()) {
                 beforeWrite();
             }
-            Page p = rootReference.root;
+            Page<SpatialKey,V> p = rootReference.root;
             if (removedPages != null && p.getTotalCount() > 0) {
                 removedPages.add(p);
             }
@@ -139,15 +138,16 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                 // only possible if this is the root, else we would have
                 // split earlier (this requires pageSplitSize is fixed)
                 long totalCount = p.getTotalCount();
-                Page split = split(p);
-                Object k1 = getBounds(p);
-                Object k2 = getBounds(split);
-                Object[] keys = {k1, k2};
-                Page.PageReference[] children = {
-                        new Page.PageReference(p),
-                        new Page.PageReference(split),
-                        Page.PageReference.EMPTY
-                };
+                Page<SpatialKey,V> split = split(p);
+                SpatialKey k1 = getBounds(p);
+                SpatialKey k2 = getBounds(split);
+                SpatialKey[] keys = p.createKeyStorage(2);
+                keys[0] = k1;
+                keys[1] = k2;
+                Page.PageReference<SpatialKey,V>[] children = Page.createRefStorage(3);
+                children[0] = new Page.PageReference<>(p);
+                children[1] = new Page.PageReference<>(split);
+                children[2] = Page.PageReference.empty();
                 p = Page.createNode(this, keys, children, totalCount, 0);
                 if(isPersistent()) {
                     store.registerUnsavedMemory(p.getMemory());
@@ -159,12 +159,12 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                     return result;
                 }
             } else {
-                RootReference lockedRootReference = tryLock(rootReference, attempt);
+                RootReference<SpatialKey,V> lockedRootReference = tryLock(rootReference, attempt);
                 if (lockedRootReference != null) {
                     try {
                         long version = lockedRootReference.version;
                         int unsavedMemory = 0;
-                        for (Page page : removedPages) {
+                        for (Page<SpatialKey,V> page : removedPages) {
                             if (!page.isRemoved()) {
                                 unsavedMemory += page.removePage(version);
                             }
@@ -181,9 +181,8 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private V operate(Page p, Object key, V value, DecisionMaker<? super V> decisionMaker,
-                        Collection<Page> removedPages) {
+    private V operate(Page<SpatialKey,V> p, SpatialKey key, V value, DecisionMaker<? super V> decisionMaker,
+                        Collection<Page<SpatialKey,V>> removedPages) {
         V result;
         if (p.isLeaf()) {
             int index = -1;
@@ -193,7 +192,7 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                     index = i;
                 }
             }
-            result = index < 0 ? null : (V)p.getValue(index);
+            result = index < 0 ? null : p.getValue(index);
             Decision decision = decisionMaker.decide(result, value);
             switch (decision) {
                 case REPEAT:
@@ -221,7 +220,7 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         int index = -1;
         for (int i = 0; i < p.getKeyCount(); i++) {
             if (contains(p, i, key)) {
-                Page c = p.getChildPage(i);
+                Page<SpatialKey,V> c = p.getChildPage(i);
                 if(get(c, key) != null) {
                     index = i;
                     break;
@@ -243,7 +242,7 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                 }
             }
         }
-        Page c = p.getChildPage(index);
+        Page<SpatialKey,V> c = p.getChildPage(index);
         if (removedPages != null) {
             removedPages.add(c);
         }
@@ -251,7 +250,7 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         if (c.getKeyCount() > store.getKeysPerPage() || c.getMemory() > store.getMaxPageSize()
                 && c.getKeyCount() > 4) {
             // split on the way down
-            Page split = split(c);
+            Page<SpatialKey,V> split = split(c);
             p.setKey(index, getBounds(c));
             p.setChild(index, c);
             p.insertNode(index, getBounds(split), split);
@@ -259,7 +258,7 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
             result = operate(p, key, value, decisionMaker, removedPages);
         } else {
             result = operate(c, key, value, decisionMaker, removedPages);
-            Object bounds = p.getKey(index);
+            SpatialKey bounds = p.getKey(index);
             if (!keyType.contains(bounds, key)) {
                 bounds = keyType.createBoundingBox(bounds);
                 keyType.increaseBounds(bounds, key);
@@ -274,8 +273,8 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         return result;
     }
 
-    private Object getBounds(Page x) {
-        Object bounds = keyType.createBoundingBox(x.getKey(0));
+    private SpatialKey getBounds(Page<SpatialKey,V> x) {
+        SpatialKey bounds = keyType.createBoundingBox(x.getKey(0));
         int keyCount = x.getKeyCount();
         for (int i = 1; i < keyCount; i++) {
             keyType.increaseBounds(bounds, x.getKey(i));
@@ -299,13 +298,13 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         operate(key, value, DecisionMaker.PUT);
     }
 
-    private Page split(Page p) {
+    private Page<SpatialKey,V> split(Page<SpatialKey,V> p) {
         return quadraticSplit ?
                 splitQuadratic(p) :
                 splitLinear(p);
     }
 
-    private Page splitLinear(Page p) {
+    private Page<SpatialKey,V> splitLinear(Page<SpatialKey,V> p) {
         int keyCount = p.getKeyCount();
         ArrayList<Object> keys = new ArrayList<>(keyCount);
         for (int i = 0; i < keyCount; i++) {
@@ -315,8 +314,8 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         if (extremes == null) {
             return splitQuadratic(p);
         }
-        Page splitA = newPage(p.isLeaf());
-        Page splitB = newPage(p.isLeaf());
+        Page<SpatialKey,V> splitA = newPage(p.isLeaf());
+        Page<SpatialKey,V> splitB = newPage(p.isLeaf());
         move(p, splitA, extremes[0]);
         if (extremes[1] > extremes[0]) {
             extremes[1]--;
@@ -342,9 +341,9 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         return splitA;
     }
 
-    private Page splitQuadratic(Page p) {
-        Page splitA = newPage(p.isLeaf());
-        Page splitB = newPage(p.isLeaf());
+    private Page<SpatialKey,V> splitQuadratic(Page<SpatialKey,V> p) {
+        Page<SpatialKey,V> splitA = newPage(p.isLeaf());
+        Page<SpatialKey,V> splitB = newPage(p.isLeaf());
         float largest = Float.MIN_VALUE;
         int ia = 0, ib = 0;
         int keyCount = p.getKeyCount();
@@ -400,21 +399,21 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         return splitA;
     }
 
-    private Page newPage(boolean leaf) {
-        Page page = leaf ? createEmptyLeaf() : createEmptyNode();
+    private Page<SpatialKey,V> newPage(boolean leaf) {
+        Page<SpatialKey,V> page = leaf ? createEmptyLeaf() : createEmptyNode();
         if(isPersistent()) {
             store.registerUnsavedMemory(page.getMemory());
         }
         return page;
     }
 
-    private static void move(Page source, Page target, int sourceIndex) {
-        Object k = source.getKey(sourceIndex);
+    private static <V> void move(Page<SpatialKey,V> source, Page<SpatialKey,V> target, int sourceIndex) {
+        SpatialKey k = source.getKey(sourceIndex);
         if (source.isLeaf()) {
-            Object v = source.getValue(sourceIndex);
+            V v = source.getValue(sourceIndex);
             target.insertLeaf(0, k, v);
         } else {
-            Page c = source.getChildPage(sourceIndex);
+            Page<SpatialKey,V> c = source.getChildPage(sourceIndex);
             target.insertNode(0, k, c);
         }
         source.remove(sourceIndex);
@@ -427,11 +426,11 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
      * @param list the list
      * @param p the root page
      */
-    public void addNodeKeys(ArrayList<SpatialKey> list, Page p) {
+    public void addNodeKeys(ArrayList<SpatialKey> list, Page<SpatialKey,V> p) {
         if (p != null && !p.isLeaf()) {
             int keyCount = p.getKeyCount();
             for (int i = 0; i < keyCount; i++) {
-                list.add((SpatialKey) p.getKey(i));
+                list.add(p.getKey(i));
                 addNodeKeys(list, p.getChildPage(i));
             }
         }
@@ -447,22 +446,22 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     }
 
     @Override
-    protected int getChildPageCount(Page p) {
+    protected int getChildPageCount(Page<SpatialKey,V> p) {
         return p.getRawChildPageCount() - 1;
     }
 
     /**
      * A cursor to iterate over a subset of the keys.
      */
-    public abstract static class RTreeCursor implements Iterator<SpatialKey> {
+    public abstract static class RTreeCursor<V> implements Iterator<SpatialKey> {
 
         private final SpatialKey filter;
-        private CursorPos pos;
+        private CursorPos<SpatialKey,V> pos;
         private SpatialKey current;
-        private final Page root;
+        private final Page<SpatialKey,V> root;
         private boolean initialized;
 
-        protected RTreeCursor(Page root, SpatialKey filter) {
+        protected RTreeCursor(Page<SpatialKey,V> root, SpatialKey filter) {
             this.root = root;
             this.filter = filter;
         }
@@ -471,7 +470,7 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         public boolean hasNext() {
             if (!initialized) {
                 // init
-                pos = new CursorPos(root, 0, null);
+                pos = new CursorPos<>(root, 0, null);
                 fetchNext();
                 initialized = true;
             }
@@ -505,10 +504,10 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
          */
         void fetchNext() {
             while (pos != null) {
-                Page p = pos.page;
+                Page<SpatialKey,V> p = pos.page;
                 if (p.isLeaf()) {
                     while (pos.index < p.getKeyCount()) {
-                        SpatialKey c = (SpatialKey) p.getKey(pos.index++);
+                        SpatialKey c = p.getKey(pos.index++);
                         if (filter == null || check(true, c, filter)) {
                             current = c;
                             return;
@@ -518,10 +517,10 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                     boolean found = false;
                     while (pos.index < p.getKeyCount()) {
                         int index = pos.index++;
-                        SpatialKey c = (SpatialKey) p.getKey(index);
+                        SpatialKey c = p.getKey(index);
                         if (filter == null || check(false, c, filter)) {
-                            Page child = pos.page.getChildPage(index);
-                            pos = new CursorPos(child, 0, pos);
+                            Page<SpatialKey,V> child = pos.page.getChildPage(index);
+                            pos = new CursorPos<>(child, 0, pos);
                             found = true;
                             break;
                         }
@@ -547,11 +546,11 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         protected abstract boolean check(boolean leaf, SpatialKey key, SpatialKey test);
     }
 
-    private static final class IntersectsRTreeCursor extends RTreeCursor
+    private static final class IntersectsRTreeCursor<V> extends RTreeCursor<V>
     {
         private final SpatialDataType keyType;
 
-        public IntersectsRTreeCursor(Page root, SpatialKey filter, SpatialDataType keyType) {
+        public IntersectsRTreeCursor(Page<SpatialKey,V> root, SpatialKey filter, SpatialDataType keyType) {
             super(root, filter);
             this.keyType = keyType;
         }
@@ -563,11 +562,11 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         }
     }
 
-    private static final class ContainsRTreeCursor extends RTreeCursor
+    private static final class ContainsRTreeCursor<V> extends RTreeCursor<V>
     {
         private final SpatialDataType keyType;
 
-        public ContainsRTreeCursor(Page root, SpatialKey filter, SpatialDataType keyType) {
+        public ContainsRTreeCursor(Page<SpatialKey,V> root, SpatialKey filter, SpatialDataType keyType) {
             super(root, filter);
             this.keyType = keyType;
         }

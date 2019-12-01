@@ -13,6 +13,7 @@ import org.h2.engine.Domain;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
+import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.Table;
 
@@ -20,14 +21,14 @@ import org.h2.table.Table;
  * This class represents the statement
  * DROP DOMAIN
  */
-public class DropDomain extends DefineCommand {
+public class DropDomain extends SchemaCommand {
 
     private String typeName;
     private boolean ifExists;
     private ConstraintActionType dropAction;
 
-    public DropDomain(Session session) {
-        super(session);
+    public DropDomain(Session session, Schema schema) {
+        super(session, schema);
         dropAction = session.getDatabase().getSettings().dropRestrict ?
                 ConstraintActionType.RESTRICT : ConstraintActionType.CASCADE;
     }
@@ -45,18 +46,19 @@ public class DropDomain extends DefineCommand {
         session.getUser().checkAdmin();
         session.commit(true);
         Database db = session.getDatabase();
-        Domain type = db.findDomain(typeName);
-        if (type == null) {
+        Schema schema = getSchema();
+        Domain domain = schema.findDomain(typeName);
+        if (domain == null) {
             if (!ifExists) {
                 throw DbException.get(ErrorCode.DOMAIN_NOT_FOUND_1, typeName);
             }
         } else {
-            Column domainColumn = type.getColumn();
+            Column domainColumn = domain.getColumn();
             for (Table t : db.getAllTablesAndViews(false)) {
                 boolean modified = false;
                 for (Column c : t.getColumns()) {
-                    Domain domain = c.getDomain();
-                    if (domain != null && domain.getName().equals(typeName)) {
+                    Domain columnDomain = c.getDomain();
+                    if (columnDomain != null && columnDomain.getName().equals(typeName)) {
                         if (dropAction == ConstraintActionType.RESTRICT) {
                             throw DbException.get(ErrorCode.CANNOT_DROP_2, typeName, t.getCreateSQL());
                         }
@@ -69,10 +71,10 @@ public class DropDomain extends DefineCommand {
                             check.setCheckExpression(checkCondition);
                             check.update();
                         }
-                        c.setOriginalSQL(type.getColumn().getOriginalSQL());
-                        c.setDomain(null);
-                        c.removeCheckConstraint();
+                        c.setOriginalSQL(domain.getColumn().getOriginalSQL());
                         Domain domain2 = domainColumn.getDomain();
+                        c.setDomain(domain2);
+                        c.removeCheckConstraint();
                         if (domain2 != null) {
                             c.addCheckConstraint(session, domain2.getColumn().getCheckConstraint(session, columnName));
                         }
@@ -83,7 +85,7 @@ public class DropDomain extends DefineCommand {
                     db.updateMeta(session, t);
                 }
             }
-            db.removeDatabaseObject(session, type);
+            session.getDatabase().removeSchemaObject(session, domain);
         }
         return 0;
     }

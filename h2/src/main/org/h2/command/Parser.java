@@ -2366,8 +2366,9 @@ public class Parser {
 
     private DropDomain parseDropDomain() {
         boolean ifExists = readIfExists(false);
-        DropDomain command = new DropDomain(session);
-        command.setTypeName(readUniqueIdentifier());
+        String domainName = readIdentifierWithSchema();
+        DropDomain command = new DropDomain(session, getSchema());
+        command.setTypeName(domainName);
         ifExists = readIfExists(ifExists);
         command.setIfExists(ifExists);
         ConstraintActionType dropAction = parseCascadeOrRestrict();
@@ -5886,18 +5887,21 @@ public class Parser {
             addExpected("data type");
             throw getSyntaxError();
         }
+        int index = lastParseIndex;
         String originalCase = currentToken;
-        // Quoted tokens can be only domains
-        if (currentTokenQuoted) {
-            Domain domain = database.findDomain(originalCase);
-            if (domain == null) {
-                throw DbException.get(ErrorCode.DOMAIN_NOT_FOUND_1, originalCase);
-            }
+        boolean originalQuoted = currentTokenQuoted;
+        read();
+        if (currentTokenType == DOT) {
+            parseIndex = index;
             read();
-            return getColumnWithDomain(columnName, domain, forTable);
+            originalCase = readIdentifierWithSchema();
+            return getColumnWithDomain(columnName, getSchema().getDomain(originalCase), forTable);
+        }
+        // Quoted tokens can be only domains
+        if (originalQuoted) {
+            return getColumnWithDomain(columnName, database.getSchema(session.getCurrentSchemaName()).getDomain(originalCase), forTable);
         }
         String original = identifiersToUpper ? originalCase : StringUtils.toUpperEnglish(originalCase);
-        read();
         switch (original) {
         case "BINARY":
             if (readIf("VARYING")) {
@@ -5978,7 +5982,7 @@ public class Parser {
         }
         // Domain names can't have multiple words without quotes
         if (originalCase.length() == original.length()) {
-            Domain domain = database.findDomain(originalCase);
+            Domain domain = database.getSchema(session.getCurrentSchemaName()).findDomain(originalCase);
             if (domain != null) {
                 return getColumnWithDomain(columnName, domain, forTable);
             }
@@ -6047,12 +6051,11 @@ public class Parser {
 
     private Column getColumnWithDomain(String columnName, Domain domain, boolean forTable) {
         Column templateColumn = domain.getColumn();
-        TypeInfo type = templateColumn.getType();
-        Column column = new Column(columnName,
-                TypeInfo.getTypeInfo(type.getValueType(), type.getPrecision(), type.getScale(), type.getExtTypeInfo()),
+        Column column = new Column(columnName, templateColumn.getType(),
                 forTable ? domain.getSQL(true) : templateColumn.getOriginalSQL());
         column.setNullable(templateColumn.isNullable());
         column.setDefaultExpression(session, templateColumn.getDefaultExpression());
+        column.setOnUpdateExpression(session, templateColumn.getOnUpdateExpression());
         int selectivity = templateColumn.getSelectivity();
         if (selectivity != Constants.SELECTIVITY_DEFAULT) {
             column.setSelectivity(selectivity);
@@ -6774,8 +6777,9 @@ public class Parser {
 
     private CreateDomain parseCreateDomain() {
         boolean ifNotExists = readIfNotExists();
-        CreateDomain command = new CreateDomain(session);
-        command.setTypeName(readUniqueIdentifier());
+        String domainName = readIdentifierWithSchema();
+        CreateDomain command = new CreateDomain(session, getSchema());
+        command.setTypeName(domainName);
         readIf("AS");
         Column column = parseColumnForTable("VALUE", true, false);
         boolean hasNotNull = false;

@@ -184,11 +184,12 @@ public class ScriptCommand extends ScriptBase {
                 }
                 add(schema.getCreateSQL(), false);
             }
-            for (Domain datatype : db.getAllDomains()) {
+            for (SchemaObject obj : db.getAllSchemaObjects(DbObject.DOMAIN)) {
+                Domain domain = (Domain) obj;
                 if (drop) {
-                    add(datatype.getDropSQL(), false);
+                    add(domain.getDropSQL(), false);
                 }
-                add(datatype.getCreateSQL(), false);
+                add(domain.getCreateSQL(), false);
             }
             for (SchemaObject obj : db.getAllSchemaObjects(
                     DbObject.CONSTANT)) {

@@ -7,10 +7,10 @@ package org.h2.command.ddl;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
-import org.h2.engine.Database;
 import org.h2.engine.Domain;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
+import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.value.DataType;
@@ -19,14 +19,14 @@ import org.h2.value.DataType;
  * This class represents the statement
  * CREATE DOMAIN
  */
-public class CreateDomain extends DefineCommand {
+public class CreateDomain extends SchemaCommand {
 
     private String typeName;
     private Column column;
     private boolean ifNotExists;
 
-    public CreateDomain(Session session) {
-        super(session);
+    public CreateDomain(Session session, Schema schema) {
+        super(session, schema);
     }
 
     public void setTypeName(String name) {
@@ -45,22 +45,18 @@ public class CreateDomain extends DefineCommand {
     public int update() {
         session.getUser().checkAdmin();
         session.commit(true);
-        Database db = session.getDatabase();
         session.getUser().checkAdmin();
-        if (db.findDomain(typeName) != null) {
+        Schema schema = getSchema();
+        if (schema.findDomain(typeName) != null) {
             if (ifNotExists) {
                 return 0;
             }
-            throw DbException.get(
-                    ErrorCode.DOMAIN_ALREADY_EXISTS_1,
-                    typeName);
+            throw DbException.get(ErrorCode.DOMAIN_ALREADY_EXISTS_1, typeName);
         }
         DataType builtIn = DataType.getTypeByName(typeName, session.getDatabase().getMode());
         if (builtIn != null) {
             if (!builtIn.hidden) {
-                throw DbException.get(
-                        ErrorCode.DOMAIN_ALREADY_EXISTS_1,
-                        typeName);
+                throw DbException.get(ErrorCode.DOMAIN_ALREADY_EXISTS_1, typeName);
             }
             Table table = session.getDatabase().getFirstUserTable();
             if (table != null) {
@@ -70,9 +66,9 @@ public class CreateDomain extends DefineCommand {
             }
         }
         int id = getObjectId();
-        Domain type = new Domain(db, id, typeName);
-        type.setColumn(column);
-        db.addDatabaseObject(session, type);
+        Domain domain = new Domain(schema, id, typeName);
+        domain.setColumn(column);
+        schema.getDatabase().addSchemaObject(session, domain);
         return 0;
     }
 

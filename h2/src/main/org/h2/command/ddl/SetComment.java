@@ -81,8 +81,7 @@ public class SetComment extends DefineCommand {
             object = db.getUser(objectName);
             break;
         case DbObject.DOMAIN:
-            schemaName = null;
-            object = db.findDomain(objectName);
+            object = db.getSchema(schemaName).findDomain(objectName);
             errorCode = ErrorCode.DOMAIN_ALREADY_EXISTS_1;
             break;
         default:

@@ -685,7 +685,8 @@ CREATE CONSTANT ONE VALUE 1
 
 "Commands (DDL)","CREATE DOMAIN","
 CREATE DOMAIN @h2@ [ IF NOT EXISTS ] newDomainName [ AS ] dataType
-[ DEFAULT expression ] @c@ [ [ NOT ] NULL ]
+[ DEFAULT expression ]
+@h2@ [ ON UPDATE expression ] @c@ [ [ NOT ] NULL ]
 @h2@ [ SELECTIVITY selectivityInt ] @h2@ [ COMMENT expression ]
 [ CHECK (condition) | @h2@ { [ NOT ] NULL } ] [...]
 ","

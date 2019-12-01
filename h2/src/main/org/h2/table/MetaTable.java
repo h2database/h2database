@@ -478,7 +478,8 @@ public class MetaTable extends Table {
                     "DOMAIN_CATALOG",
                     "DOMAIN_SCHEMA",
                     "DOMAIN_NAME",
-                    "COLUMN_DEFAULT",
+                    "DOMAIN_DEFAULT",
+                    "DOMAIN_ON_UPDATE",
                     "IS_NULLABLE",
                     "DATA_TYPE INT",
                     "PRECISION INT",
@@ -911,7 +912,7 @@ public class MetaTable extends Table {
                             // DOMAIN_CATALOG
                             domain != null ? catalog : null,
                             // DOMAIN_SCHEMA
-                            domain != null ? database.getMainSchema().getName() : null,
+                            domain != null ? domain.getSchema().getName() : null,
                             // DOMAIN_NAME
                             domain != null ? domain.getName() : null,
                             // COLUMN_DEFAULT
@@ -1810,17 +1811,20 @@ public class MetaTable extends Table {
             break;
         }
         case DOMAINS: {
-            for (Domain dt : database.getAllDomains()) {
-                Column col = dt.getColumn();
+            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.DOMAIN)) {
+                Domain domain = (Domain) obj;
+                Column col = domain.getColumn();
                 add(rows,
                         // DOMAIN_CATALOG
                         catalog,
                         // DOMAIN_SCHEMA
-                        database.getMainSchema().getName(),
+                        domain.getSchema().getName(),
                         // DOMAIN_NAME
-                        dt.getName(),
-                        // COLUMN_DEFAULT
+                        domain.getName(),
+                        // DOMAIN_DEFAULT
                         col.getDefaultSQL(),
+                        // DOMAIN_ON_UPDATE
+                        col.getOnUpdateSQL(),
                         // IS_NULLABLE
                         col.isNullable() ? "YES" : "NO",
                         // DATA_TYPE
@@ -1836,11 +1840,11 @@ public class MetaTable extends Table {
                         // CHECK_CONSTRAINT
                         col.getCheckConstraintSQL(session, "VALUE"),
                         // REMARKS
-                        replaceNullWithEmpty(dt.getComment()),
+                        replaceNullWithEmpty(domain.getComment()),
                         // SQL
-                        dt.getCreateSQL(),
+                        domain.getCreateSQL(),
                         // ID
-                        ValueInt.get(dt.getId())
+                        ValueInt.get(domain.getId())
                 );
             }
             break;

@@ -8,18 +8,20 @@ package org.h2.engine;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.schema.Schema;
+import org.h2.schema.SchemaObjectBase;
 import org.h2.table.Column;
 import org.h2.table.Table;
 
 /**
  * Represents a domain.
  */
-public class Domain extends DbObjectBase {
+public class Domain extends SchemaObjectBase {
 
     private Column column;
 
-    public Domain(Database database, int id, String name) {
-        super(database, id, name, Trace.DATABASE);
+    public Domain(Schema schema, int id, String name) {
+        super(schema, id, name, Trace.SCHEMA);
     }
 
     @Override

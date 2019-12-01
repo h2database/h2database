@@ -2132,21 +2132,20 @@ public class MetaTable extends Table {
                 Constraint constraint = (Constraint) obj;
                 Constraint.Type constraintType = constraint.getConstraintType();
                 IndexColumn[] indexColumns = null;
+                if (constraintType == Constraint.Type.UNIQUE || constraintType == Constraint.Type.PRIMARY_KEY) {
+                    indexColumns = ((ConstraintUnique) constraint).getColumns();
+                } else if (constraintType == Constraint.Type.REFERENTIAL) {
+                    indexColumns = ((ConstraintReferential) constraint).getColumns();
+                }
+                if (indexColumns == null) {
+                    continue;
+                }
                 Table table = constraint.getTable();
                 if (hideTable(table, session)) {
                     continue;
                 }
                 String tableName = table.getName();
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
-                    continue;
-                }
-                if (constraintType == Constraint.Type.UNIQUE ||
-                        constraintType == Constraint.Type.PRIMARY_KEY) {
-                    indexColumns = ((ConstraintUnique) constraint).getColumns();
-                } else if (constraintType == Constraint.Type.REFERENTIAL) {
-                    indexColumns = ((ConstraintReferential) constraint).getColumns();
-                }
-                if (indexColumns == null) {
                     continue;
                 }
                 ConstraintUnique referenced;

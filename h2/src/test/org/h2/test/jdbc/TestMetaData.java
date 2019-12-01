@@ -1108,6 +1108,8 @@ public class TestMetaData extends TestDb {
         rs.next();
         assertEquals("DOMAINS", rs.getString("TABLE_NAME"));
         rs.next();
+        assertEquals("DOMAIN_CONSTRAINTS", rs.getString("TABLE_NAME"));
+        rs.next();
         assertEquals("FUNCTION_ALIASES", rs.getString("TABLE_NAME"));
         rs.next();
         assertEquals("FUNCTION_COLUMNS", rs.getString("TABLE_NAME"));

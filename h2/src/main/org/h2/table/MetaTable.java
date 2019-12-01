@@ -2279,23 +2279,25 @@ public class MetaTable extends Table {
                 HashSet<Column> columns = new HashSet<>();
                 constraint.getExpression().isEverything(ExpressionVisitor.getColumnsVisitor(columns, null));
                 for (Column column: columns) {
+                    // General value specification VALUE is not a real column
+                    // and doesn't have a table
                     Table t = column.getTable();
-                    add(rows,
-                            // CONSTRAINT_CATALOG
-                            catalog,
-                            // CONSTRAINT_SCHEMA
-                            constraint.getSchema().getName(),
-                            // CONSTRAINT_NAME
-                            constraint.getName(),
-                            // TABLE_CATALOG
-                            catalog,
-                            // TABLE_SCHEMA
-                            t.getSchema().getName(),
-                            // TABLE_NAME
-                            t.getName(),
-                            // COLUMN_NAME
-                            column.getName()
-                    );
+                    if (t != null) {
+                        add(rows,
+                                catalog,
+                                // CONSTRAINT_SCHEMA
+                                constraint.getSchema().getName(),
+                                // CONSTRAINT_NAME
+                                constraint.getName(),
+                                catalog,
+                                // TABLE_SCHEMA
+                                t.getSchema().getName(),
+                                // TABLE_NAME
+                                t.getName(),
+                                // COLUMN_NAME
+                                column.getName()
+                        );
+                    }
                 }
             }
             break;

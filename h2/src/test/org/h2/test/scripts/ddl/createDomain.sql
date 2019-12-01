@@ -112,6 +112,9 @@ TABLE INFORMATION_SCHEMA.CHECK_CONSTRAINTS;
 > SCRIPT             PUBLIC            CONSTRAINT_4    VALUE <> 0
 > rows: 1
 
+SELECT COUNT(*) FROM INFORMATION_SCHEMA.CHECK_COLUMN_USAGE;
+>> 0
+
 INSERT INTO TEST VALUES -1;
 > update count: 1
 
@@ -144,6 +147,12 @@ TABLE INFORMATION_SCHEMA.CHECK_CONSTRAINTS;
 > CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME CHECK_CLAUSE
 > ------------------ ----------------- --------------- ------------
 > SCRIPT             PUBLIC            CONSTRAINT_2    "C" <> 0
+> rows: 1
+
+TABLE INFORMATION_SCHEMA.CHECK_COLUMN_USAGE;
+> CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME TABLE_CATALOG TABLE_SCHEMA TABLE_NAME COLUMN_NAME
+> ------------------ ----------------- --------------- ------------- ------------ ---------- -----------
+> SCRIPT             PUBLIC            CONSTRAINT_2    SCRIPT        PUBLIC       TEST       C
 > rows: 1
 
 DROP TABLE TEST;

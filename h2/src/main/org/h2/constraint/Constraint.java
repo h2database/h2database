@@ -8,6 +8,7 @@ package org.h2.constraint;
 import java.util.HashSet;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
+import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.index.Index;
 import org.h2.message.Trace;
@@ -115,6 +116,15 @@ public abstract class Constraint extends SchemaObjectBase implements
      * @return the set of referenced columns
      */
     public abstract HashSet<Column> getReferencedColumns(Table table);
+
+    /**
+     * Returns the CHECK expression or null.
+     *
+     * @return the CHECK expression or null.
+     */
+    public Expression getExpression() {
+        return null;
+    }
 
     /**
      * Get the SQL statement to create this constraint.

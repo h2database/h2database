@@ -20,8 +20,10 @@ import java.util.Map;
 
 import org.h2.command.Command;
 import org.h2.constraint.Constraint;
+import org.h2.constraint.Constraint.Type;
 import org.h2.constraint.ConstraintActionType;
 import org.h2.constraint.ConstraintCheck;
+import org.h2.constraint.ConstraintDomain;
 import org.h2.constraint.ConstraintReferential;
 import org.h2.constraint.ConstraintUnique;
 import org.h2.engine.Constants;
@@ -117,10 +119,11 @@ public class MetaTable extends Table {
     private static final int QUERY_STATISTICS = 28;
     private static final int SYNONYMS = 29;
     private static final int TABLE_CONSTRAINTS = 30;
-    private static final int KEY_COLUMN_USAGE = 31;
-    private static final int REFERENTIAL_CONSTRAINTS = 32;
-    private static final int CHECK_CONSTRAINTS = 33;
-    private static final int CHECK_COLUMN_USAGE = 34;
+    private static final int DOMAIN_CONSTRAINTS = 31;
+    private static final int KEY_COLUMN_USAGE = 32;
+    private static final int REFERENTIAL_CONSTRAINTS = 33;
+    private static final int CHECK_CONSTRAINTS = 34;
+    private static final int CHECK_COLUMN_USAGE = 35;
     private static final int META_TABLE_TYPE_COUNT = CHECK_COLUMN_USAGE + 1;
 
     private final int type;
@@ -594,6 +597,20 @@ public class MetaTable extends Table {
                     "INITIALLY_DEFERRED"
             );
             indexColumnName = "TABLE_NAME";
+            break;
+        }
+        case DOMAIN_CONSTRAINTS: {
+            setMetaTableName("DOMAIN_CONSTRAINTS");
+            cols = createColumns(
+                    "CONSTRAINT_CATALOG",
+                    "CONSTRAINT_SCHEMA",
+                    "CONSTRAINT_NAME",
+                    "DOMAIN_CATALOG",
+                    "DOMAIN_SCHEMA",
+                    "DOMAIN_NAME",
+                    "IS_DEFERRABLE",
+                    "INITIALLY_DEFERRED"
+            );
             break;
         }
         case KEY_COLUMN_USAGE: {
@@ -2048,6 +2065,9 @@ public class MetaTable extends Table {
             for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
                 Constraint constraint = (Constraint) obj;
                 Constraint.Type constraintType = constraint.getConstraintType();
+                if (constraintType == Constraint.Type.DOMAIN) {
+                    continue;
+                }
                 Table table = constraint.getTable();
                 if (hideTable(table, session)) {
                     continue;
@@ -2071,6 +2091,34 @@ public class MetaTable extends Table {
                         table.getSchema().getName(),
                         // TABLE_NAME
                         tableName,
+                        // IS_DEFERRABLE
+                        "NO",
+                        // INITIALLY_DEFERRED
+                        "NO"
+                );
+            }
+            break;
+        }
+        case DOMAIN_CONSTRAINTS: {
+            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
+                if (((Constraint) obj).getConstraintType() != Constraint.Type.DOMAIN) {
+                    continue;
+                }
+                ConstraintDomain constraint = (ConstraintDomain) obj;
+                Domain domain = constraint.getDomain();
+                add(rows,
+                        // CONSTRAINT_CATALOG
+                        catalog,
+                        // CONSTRAINT_SCHEMA
+                        constraint.getSchema().getName(),
+                        // CONSTRAINT_NAME
+                        constraint.getName(),
+                        // DOMAIN_CATALOG
+                        catalog,
+                        // DOMAIN_SCHEMA
+                        domain.getSchema().getName(),
+                        // DOMAIN_NAME
+                        domain.getName(),
                         // IS_DEFERRABLE
                         "NO",
                         // INITIALLY_DEFERRED
@@ -2192,21 +2240,24 @@ public class MetaTable extends Table {
         }
         case CHECK_CONSTRAINTS: {
             for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
-                if (((Constraint) obj).getConstraintType() != Constraint.Type.CHECK) {
-                    continue;
-                }
-                ConstraintCheck constraint = (ConstraintCheck) obj;
-                Table table = constraint.getTable();
-                if (hideTable(table, session)) {
+                Constraint constraint = (Constraint) obj;
+                Type constraintType = constraint.getConstraintType();
+                if (constraintType == Constraint.Type.CHECK) {
+                    ConstraintCheck check = (ConstraintCheck) obj;
+                    Table table = check.getTable();
+                    if (hideTable(table, session)) {
+                        continue;
+                    }
+                } else if (constraintType != Constraint.Type.DOMAIN) {
                     continue;
                 }
                 add(rows,
                         // CONSTRAINT_CATALOG
                         catalog,
                         // CONSTRAINT_SCHEMA
-                        constraint.getSchema().getName(),
+                        obj.getSchema().getName(),
                         // CONSTRAINT_NAME
-                        constraint.getName(),
+                        obj.getName(),
                         // CHECK_CLAUSE
                         constraint.getExpression().getUnenclosedSQL(new StringBuilder(), true).toString()
                 );
@@ -2215,12 +2266,15 @@ public class MetaTable extends Table {
         }
         case CHECK_COLUMN_USAGE: {
             for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
-                if (((Constraint) obj).getConstraintType() != Constraint.Type.CHECK) {
-                    continue;
-                }
-                ConstraintCheck constraint = (ConstraintCheck) obj;
-                Table table = constraint.getTable();
-                if (hideTable(table, session)) {
+                Constraint constraint = (Constraint) obj;
+                Type constraintType = constraint.getConstraintType();
+                if (constraintType == Constraint.Type.CHECK) {
+                    ConstraintCheck check = (ConstraintCheck) obj;
+                    Table table = check.getTable();
+                    if (hideTable(table, session)) {
+                        continue;
+                    }
+                } else if (constraintType != Constraint.Type.DOMAIN) {
                     continue;
                 }
                 HashSet<Column> columns = new HashSet<>();

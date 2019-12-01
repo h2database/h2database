@@ -10,6 +10,7 @@ import org.h2.command.Parser;
 import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectGroups;
 import org.h2.command.dml.SelectListColumnResolver;
+import org.h2.constraint.SingleColumnResolver;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.condition.Comparison;
@@ -68,8 +69,15 @@ public class ExpressionColumn extends Expression {
             Parser.quoteIdentifier(builder, tableAlias, alwaysQuote).append('.');
         }
         if (column != null) {
-            if (columnResolver != null && columnResolver.hasDerivedColumnList()) {
-                Parser.quoteIdentifier(builder, columnResolver.getColumnName(column), alwaysQuote);
+            if (columnResolver != null) {
+                if (columnResolver.hasDerivedColumnList()) {
+                    Parser.quoteIdentifier(builder, columnResolver.getColumnName(column), alwaysQuote);
+                } else if (columnResolver instanceof SingleColumnResolver
+                        && !((SingleColumnResolver) columnResolver).isRenamed()) {
+                    builder.append(columnName);
+                } else {
+                    column.getSQL(builder, alwaysQuote);
+                }
             } else {
                 column.getSQL(builder, alwaysQuote);
             }

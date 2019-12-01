@@ -131,6 +131,7 @@ public class ConstraintCheck extends Constraint {
         return columns;
     }
 
+    @Override
     public Expression getExpression() {
         return expr;
     }

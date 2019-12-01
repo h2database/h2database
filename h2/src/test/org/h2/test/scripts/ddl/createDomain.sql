@@ -92,13 +92,25 @@ ALTER DOMAIN X DROP CONSTRAINT IF EXISTS D1;
 
 SCRIPT NOPASSWORDS NOSETTINGS;
 > SCRIPT
-> ---------------------------------------------------------------------------------------------
+> -------------------------------------------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> ALTER DOMAIN "PUBLIC"."D" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_4" CHECK("VALUE" <> 0) NOCHECK;
+> ALTER DOMAIN "PUBLIC"."D" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_4" CHECK(VALUE <> 0) NOCHECK;
 > CREATE DOMAIN "PUBLIC"."D" AS INT;
 > CREATE MEMORY TABLE "PUBLIC"."TEST"( "C" "PUBLIC"."D" );
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > rows: 5
+
+TABLE INFORMATION_SCHEMA.DOMAIN_CONSTRAINTS;
+> CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME IS_DEFERRABLE INITIALLY_DEFERRED
+> ------------------ ----------------- --------------- -------------- ------------- ----------- ------------- ------------------
+> SCRIPT             PUBLIC            CONSTRAINT_4    SCRIPT         PUBLIC        D           NO            NO
+> rows: 1
+
+TABLE INFORMATION_SCHEMA.CHECK_CONSTRAINTS;
+> CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME CHECK_CLAUSE
+> ------------------ ----------------- --------------- ------------
+> SCRIPT             PUBLIC            CONSTRAINT_4    VALUE <> 0
+> rows: 1
 
 INSERT INTO TEST VALUES -1;
 > update count: 1
@@ -121,6 +133,18 @@ SCRIPT NOPASSWORDS NOSETTINGS;
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > INSERT INTO "PUBLIC"."TEST" VALUES (-1);
 > rows: 5
+
+TABLE INFORMATION_SCHEMA.TABLE_CONSTRAINTS;
+> CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME CONSTRAINT_TYPE TABLE_CATALOG TABLE_SCHEMA TABLE_NAME IS_DEFERRABLE INITIALLY_DEFERRED
+> ------------------ ----------------- --------------- --------------- ------------- ------------ ---------- ------------- ------------------
+> SCRIPT             PUBLIC            CONSTRAINT_2    CHECK           SCRIPT        PUBLIC       TEST       NO            NO
+> rows: 1
+
+TABLE INFORMATION_SCHEMA.CHECK_CONSTRAINTS;
+> CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME CHECK_CLAUSE
+> ------------------ ----------------- --------------- ------------
+> SCRIPT             PUBLIC            CONSTRAINT_2    "C" <> 0
+> rows: 1
 
 DROP TABLE TEST;
 > ok

@@ -20,6 +20,7 @@ public class SingleColumnResolver implements ColumnResolver {
     private final Database database;
     private final Column column;
     private Value value;
+    private boolean renamed;
 
     public SingleColumnResolver(Database database, TypeInfo typeInfo) {
         this.database = database;
@@ -50,10 +51,22 @@ public class SingleColumnResolver implements ColumnResolver {
 
     void setColumnName(String newName) {
         column.rename(newName);
+        renamed = true;
     }
 
     void resetColumnName() {
         column.rename("VALUE");
+        renamed = false;
+    }
+
+    /**
+     * Return whether column name should be used. If not, a VALUE without quotes
+     * should be used unconditionally.
+     *
+     * @return whether column name should be used
+     */
+    public boolean isRenamed() {
+        return renamed;
     }
 
 }

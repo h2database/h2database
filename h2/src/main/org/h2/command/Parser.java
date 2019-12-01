@@ -255,7 +255,6 @@ import org.h2.util.geometry.EWKTUtils;
 import org.h2.util.json.JSONItemType;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
-import org.h2.value.ExtTypeInfo;
 import org.h2.value.ExtTypeInfoArray;
 import org.h2.value.ExtTypeInfoEnum;
 import org.h2.value.ExtTypeInfoGeometry;
@@ -5871,7 +5870,6 @@ public class Parser {
     }
 
     private Column parseColumnWithType1(String columnName, boolean forTable) {
-        boolean regular = false;
         switch (currentTokenType) {
         case IDENTIFIER:
             break;
@@ -5888,13 +5886,20 @@ public class Parser {
             addExpected("data type");
             throw getSyntaxError();
         }
-        String original = currentToken;
-        if (!identifiersToUpper) {
-            original = StringUtils.toUpperEnglish(original);
-        }
-        switch (currentToken) {
-        case "BINARY":
+        String originalCase = currentToken;
+        // Quoted tokens can be only domains
+        if (currentTokenQuoted) {
+            Domain domain = database.findDomain(originalCase);
+            if (domain == null) {
+                throw DbException.get(ErrorCode.DOMAIN_NOT_FOUND_1, originalCase);
+            }
             read();
+            return getColumnWithDomain(columnName, domain, forTable);
+        }
+        String original = identifiersToUpper ? originalCase : StringUtils.toUpperEnglish(originalCase);
+        read();
+        switch (original) {
+        case "BINARY":
             if (readIf("VARYING")) {
                 original = "BINARY VARYING";
             } else if (readIf("LARGE")) {
@@ -5903,7 +5908,6 @@ public class Parser {
             }
             break;
         case "CHAR":
-            read();
             if (readIf("VARYING")) {
                 original = "CHAR VARYING";
             } else if (readIf("LARGE")) {
@@ -5912,7 +5916,6 @@ public class Parser {
             }
             break;
         case "CHARACTER":
-            read();
             if (readIf("VARYING")) {
                 original = "CHARACTER VARYING";
             } else if (readIf("LARGE")) {
@@ -5922,31 +5925,24 @@ public class Parser {
             break;
         case "DATETIME":
         case "DATETIME2":
-            read();
             return parseDateTimeType(columnName, original, false);
         case "DOUBLE":
-            read();
             if (readIf("PRECISION")) {
                 original = "DOUBLE PRECISION";
             }
             break;
         case "ENUM":
-            read();
             return parseEnumType(columnName);
         case "FLOAT":
-            read();
             return parseFloatType(columnName);
         case "GEOMETRY":
-            read();
             return parseGeometryType(columnName);
         case "LONG":
-            read();
             if (readIf("RAW")) {
                 original = "LONG RAW";
             }
             break;
         case "NATIONAL":
-            read();
             if (readIf("CHARACTER")) {
                 if (readIf("VARYING")) {
                     original = "NATIONAL CHARACTER VARYING";
@@ -5966,7 +5962,6 @@ public class Parser {
             }
             break;
         case "NCHAR":
-            read();
             if (readIf("VARYING")) {
                 original = "NCHAR VARYING";
             } else if (readIf("LARGE")) {
@@ -5975,49 +5970,30 @@ public class Parser {
             }
             break;
         case "SMALLDATETIME":
-            read();
             return parseDateTimeType(columnName, original, true);
         case "TIME":
-            read();
             return parseTimeType(columnName);
         case "TIMESTAMP":
-            read();
             return parseTimestampType(columnName);
-        default:
-            regular = true;
         }
-        long precision;
-        int scale;
-        ExtTypeInfo extTypeInfo;
-        Column templateColumn;
-        DataType dataType;
-        Domain domain = database.findDomain(original);
-        Mode mode = database.getMode();
-        if (domain != null) {
-            templateColumn = domain.getColumn();
-            TypeInfo type = templateColumn.getType();
-            dataType = DataType.getDataType(type.getValueType());
-            original = forTable ? domain.getSQL(true) : templateColumn.getOriginalSQL();
-            precision = type.getPrecision();
-            scale = type.getScale();
-            extTypeInfo = type.getExtTypeInfo();
-        } else {
-            dataType = DataType.getTypeByName(original, mode);
-            if (dataType == null || mode.disallowedTypes.contains(original)) {
-                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, original);
+        // Domain names can't have multiple words without quotes
+        if (originalCase.length() == original.length()) {
+            Domain domain = database.findDomain(originalCase);
+            if (domain != null) {
+                return getColumnWithDomain(columnName, domain, forTable);
             }
-            templateColumn = null;
-            precision = dataType.defaultPrecision;
-            scale = dataType.defaultScale;
-            extTypeInfo = null;
         }
+        Mode mode = database.getMode();
+        DataType dataType = DataType.getTypeByName(original, mode);
+        if (dataType == null || mode.disallowedTypes.contains(original)) {
+            throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, original);
+        }
+        long precision = dataType.defaultPrecision;
+        int scale = dataType.defaultScale;
         int t = dataType.type;
         if (database.getIgnoreCase() && t == Value.STRING && !equalsToken("VARCHAR_CASESENSITIVE", original)) {
             original = "VARCHAR_IGNORECASE";
             dataType = DataType.getDataType(t = Value.STRING_IGNORECASE);
-        }
-        if (regular) {
-            read();
         }
         if ((dataType.supportsPrecision || dataType.supportsScale) && readIf(OPEN_PAREN)) {
             if (!readIf("MAX")) {
@@ -6066,17 +6042,23 @@ public class Parser {
                 dataType = DataType.getDataType(t = Value.BYTES);
             }
         }
-        Column column = new Column(columnName, TypeInfo.getTypeInfo(t, precision, scale, extTypeInfo), original);
-        if (templateColumn != null) {
-            column.setNullable(templateColumn.isNullable());
-            column.setDefaultExpression(session, templateColumn.getDefaultExpression());
-            int selectivity = templateColumn.getSelectivity();
-            if (selectivity != Constants.SELECTIVITY_DEFAULT) {
-                column.setSelectivity(selectivity);
-            }
-            column.addCheckConstraint(session, templateColumn.getCheckConstraint(session, columnName));
-            column.setComment(templateColumn.getComment());
+        return new Column(columnName, TypeInfo.getTypeInfo(t, precision, scale, null), original);
+    }
+
+    private Column getColumnWithDomain(String columnName, Domain domain, boolean forTable) {
+        Column templateColumn = domain.getColumn();
+        TypeInfo type = templateColumn.getType();
+        Column column = new Column(columnName,
+                TypeInfo.getTypeInfo(type.getValueType(), type.getPrecision(), type.getScale(), type.getExtTypeInfo()),
+                forTable ? domain.getSQL(true) : templateColumn.getOriginalSQL());
+        column.setNullable(templateColumn.isNullable());
+        column.setDefaultExpression(session, templateColumn.getDefaultExpression());
+        int selectivity = templateColumn.getSelectivity();
+        if (selectivity != Constants.SELECTIVITY_DEFAULT) {
+            column.setSelectivity(selectivity);
         }
+        column.addCheckConstraint(session, templateColumn.getCheckConstraint(session, columnName));
+        column.setComment(templateColumn.getComment());
         if (forTable) {
             column.setDomain(domain);
         }

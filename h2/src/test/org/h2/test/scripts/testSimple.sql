@@ -1017,7 +1017,7 @@ comment on constraint const1 is 'unique id';
 comment on index IDX_ID is 'id_index';
 > ok
 
-select remarks from information_schema.constraints where constraint_name = 'CONST1';
+select remarks from information_schema.table_constraints where constraint_name = 'CONST1';
 >> unique id
 
 select remarks from information_schema.indexes where index_name = 'IDX_ID';
@@ -1025,7 +1025,7 @@ select remarks from information_schema.indexes where index_name = 'IDX_ID';
 
 @reconnect
 
-select remarks from information_schema.constraints where constraint_name = 'CONST1';
+select remarks from information_schema.table_constraints where constraint_name = 'CONST1';
 >> unique id
 
 select remarks from information_schema.indexes where index_name = 'IDX_ID';

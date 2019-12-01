@@ -108,22 +108,21 @@ public class MetaTable extends Table {
     private static final int VIEWS = 17;
     private static final int IN_DOUBT = 18;
     private static final int CROSS_REFERENCES = 19;
-    private static final int CONSTRAINTS = 20;
-    private static final int FUNCTION_COLUMNS = 21;
-    private static final int CONSTANTS = 22;
-    private static final int DOMAINS = 23;
-    private static final int TRIGGERS = 24;
-    private static final int SESSIONS = 25;
-    private static final int LOCKS = 26;
-    private static final int SESSION_STATE = 27;
-    private static final int QUERY_STATISTICS = 28;
-    private static final int SYNONYMS = 29;
-    private static final int TABLE_CONSTRAINTS = 30;
-    private static final int DOMAIN_CONSTRAINTS = 31;
-    private static final int KEY_COLUMN_USAGE = 32;
-    private static final int REFERENTIAL_CONSTRAINTS = 33;
-    private static final int CHECK_CONSTRAINTS = 34;
-    private static final int CHECK_COLUMN_USAGE = 35;
+    private static final int FUNCTION_COLUMNS = 20;
+    private static final int CONSTANTS = 21;
+    private static final int DOMAINS = 22;
+    private static final int TRIGGERS = 23;
+    private static final int SESSIONS = 24;
+    private static final int LOCKS = 25;
+    private static final int SESSION_STATE = 26;
+    private static final int QUERY_STATISTICS = 27;
+    private static final int SYNONYMS = 28;
+    private static final int TABLE_CONSTRAINTS = 29;
+    private static final int DOMAIN_CONSTRAINTS = 30;
+    private static final int KEY_COLUMN_USAGE = 31;
+    private static final int REFERENTIAL_CONSTRAINTS = 32;
+    private static final int CHECK_CONSTRAINTS = 33;
+    private static final int CHECK_COLUMN_USAGE = 34;
     private static final int META_TABLE_TYPE_COUNT = CHECK_COLUMN_USAGE + 1;
 
     private final int type;
@@ -444,25 +443,6 @@ public class MetaTable extends Table {
             );
             indexColumnName = "PKTABLE_NAME";
             break;
-        case CONSTRAINTS:
-            setMetaTableName("CONSTRAINTS");
-            cols = createColumns(
-                    "CONSTRAINT_CATALOG",
-                    "CONSTRAINT_SCHEMA",
-                    "CONSTRAINT_NAME",
-                    "CONSTRAINT_TYPE",
-                    "TABLE_CATALOG",
-                    "TABLE_SCHEMA",
-                    "TABLE_NAME",
-                    "UNIQUE_INDEX_NAME",
-                    "CHECK_EXPRESSION",
-                    "COLUMN_LIST",
-                    "REMARKS",
-                    "SQL",
-                    "ID INT"
-            );
-            indexColumnName = "TABLE_NAME";
-            break;
         case CONSTANTS:
             setMetaTableName("CONSTANTS");
             cols = createColumns(
@@ -594,7 +574,10 @@ public class MetaTable extends Table {
                     "TABLE_SCHEMA",
                     "TABLE_NAME",
                     "IS_DEFERRABLE",
-                    "INITIALLY_DEFERRED"
+                    "INITIALLY_DEFERRED",
+                    "REMARKS",
+                    "SQL",
+                    "ID INT"
             );
             indexColumnName = "TABLE_NAME";
             break;
@@ -609,7 +592,10 @@ public class MetaTable extends Table {
                     "DOMAIN_SCHEMA",
                     "DOMAIN_NAME",
                     "IS_DEFERRABLE",
-                    "INITIALLY_DEFERRED"
+                    "INITIALLY_DEFERRED",
+                    "REMARKS",
+                    "SQL",
+                    "ID INT"
             );
             break;
         }
@@ -624,7 +610,10 @@ public class MetaTable extends Table {
                     "TABLE_NAME",
                     "COLUMN_NAME",
                     "ORDINAL_POSITION INT",
-                    "POSITION_IN_UNIQUE_CONSTRAINT INT"
+                    "POSITION_IN_UNIQUE_CONSTRAINT INT",
+                    "INDEX_CATALOG",
+                    "INDEX_SCHEMA",
+                    "INDEX_NAME"
             );
             indexColumnName = "TABLE_NAME";
             break;
@@ -1731,77 +1720,6 @@ public class MetaTable extends Table {
             }
             break;
         }
-        case CONSTRAINTS: {
-            for (SchemaObject obj : database.getAllSchemaObjects(
-                    DbObject.CONSTRAINT)) {
-                Constraint constraint = (Constraint) obj;
-                Constraint.Type constraintType = constraint.getConstraintType();
-                String checkExpression = null;
-                IndexColumn[] indexColumns = null;
-                Table table = constraint.getTable();
-                if (hideTable(table, session)) {
-                    continue;
-                }
-                Index index = constraint.getUniqueIndex();
-                String uniqueIndexName = null;
-                if (index != null) {
-                    uniqueIndexName = index.getName();
-                }
-                String tableName = table.getName();
-                if (!checkIndex(session, tableName, indexFrom, indexTo)) {
-                    continue;
-                }
-                if (constraintType == Constraint.Type.CHECK) {
-                    checkExpression = ((ConstraintCheck) constraint).getExpression().getSQL(true);
-                } else if (constraintType == Constraint.Type.UNIQUE ||
-                        constraintType == Constraint.Type.PRIMARY_KEY) {
-                    indexColumns = ((ConstraintUnique) constraint).getColumns();
-                } else if (constraintType == Constraint.Type.REFERENTIAL) {
-                    indexColumns = ((ConstraintReferential) constraint).getColumns();
-                }
-                String columnList = null;
-                if (indexColumns != null) {
-                    StringBuilder builder = new StringBuilder();
-                    for (int i = 0, length = indexColumns.length; i < length; i++) {
-                        if (i > 0) {
-                            builder.append(',');
-                        }
-                        builder.append(indexColumns[i].column.getName());
-                    }
-                    columnList = builder.toString();
-                }
-                add(rows,
-                        // CONSTRAINT_CATALOG
-                        catalog,
-                        // CONSTRAINT_SCHEMA
-                        constraint.getSchema().getName(),
-                        // CONSTRAINT_NAME
-                        constraint.getName(),
-                        // CONSTRAINT_TYPE
-                        constraintType == Constraint.Type.PRIMARY_KEY ?
-                                constraintType.getSqlName() : constraintType.name(),
-                        // TABLE_CATALOG
-                        catalog,
-                        // TABLE_SCHEMA
-                        table.getSchema().getName(),
-                        // TABLE_NAME
-                        tableName,
-                        // UNIQUE_INDEX_NAME
-                        uniqueIndexName,
-                        // CHECK_EXPRESSION
-                        checkExpression,
-                        // COLUMN_LIST
-                        columnList,
-                        // REMARKS
-                        replaceNullWithEmpty(constraint.getComment()),
-                        // SQL
-                        constraint.getCreateSQL(),
-                        // ID
-                        ValueInt.get(constraint.getId())
-                    );
-            }
-            break;
-        }
         case CONSTANTS: {
             for (SchemaObject obj : database.getAllSchemaObjects(
                     DbObject.CONSTANT)) {
@@ -2094,7 +2012,13 @@ public class MetaTable extends Table {
                         // IS_DEFERRABLE
                         "NO",
                         // INITIALLY_DEFERRED
-                        "NO"
+                        "NO",
+                        // REMARKS
+                        replaceNullWithEmpty(constraint.getComment()),
+                        // SQL
+                        constraint.getCreateSQL(),
+                        // ID
+                        ValueInt.get(constraint.getId())
                 );
             }
             break;
@@ -2122,7 +2046,13 @@ public class MetaTable extends Table {
                         // IS_DEFERRABLE
                         "NO",
                         // INITIALLY_DEFERRED
-                        "NO"
+                        "NO",
+                        // REMARKS
+                        replaceNullWithEmpty(constraint.getComment()),
+                        // SQL
+                        constraint.getCreateSQL(),
+                        // ID
+                        ValueInt.get(constraint.getId())
                 );
             }
             break;
@@ -2154,6 +2084,7 @@ public class MetaTable extends Table {
                 } else {
                     referenced = null;
                 }
+                Index index = constraint.getUniqueIndex();
                 for (int i = 0; i < indexColumns.length; i++) {
                     IndexColumn indexColumn = indexColumns[i];
                     ValueInt ordinalPosition = ValueInt.get(i + 1);
@@ -2191,7 +2122,13 @@ public class MetaTable extends Table {
                             // ORDINAL_POSITION
                             ordinalPosition,
                             // POSITION_IN_UNIQUE_CONSTRAINT
-                            positionInUniqueConstraint
+                            positionInUniqueConstraint,
+                            // INDEX_CATALOG
+                            index != null ? catalog : null,
+                            // INDEX_SCHEMA
+                            index != null ? index.getSchema().getName() : null,
+                            // INDEX_NAME
+                            index != null ? index.getName() : null
                     );
                 }
             }

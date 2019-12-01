@@ -101,9 +101,9 @@ SCRIPT NOPASSWORDS NOSETTINGS;
 > rows: 5
 
 TABLE INFORMATION_SCHEMA.DOMAIN_CONSTRAINTS;
-> CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME IS_DEFERRABLE INITIALLY_DEFERRED
-> ------------------ ----------------- --------------- -------------- ------------- ----------- ------------- ------------------
-> SCRIPT             PUBLIC            CONSTRAINT_4    SCRIPT         PUBLIC        D           NO            NO
+> CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME IS_DEFERRABLE INITIALLY_DEFERRED REMARKS SQL                                                                                        ID
+> ------------------ ----------------- --------------- -------------- ------------- ----------- ------------- ------------------ ------- ------------------------------------------------------------------------------------------ --
+> SCRIPT             PUBLIC            CONSTRAINT_4    SCRIPT         PUBLIC        D           NO            NO                         ALTER DOMAIN "PUBLIC"."D" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_4" CHECK(VALUE <> 0) NOCHECK 5
 > rows: 1
 
 TABLE INFORMATION_SCHEMA.CHECK_CONSTRAINTS;
@@ -138,9 +138,9 @@ SCRIPT NOPASSWORDS NOSETTINGS;
 > rows: 5
 
 TABLE INFORMATION_SCHEMA.TABLE_CONSTRAINTS;
-> CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME CONSTRAINT_TYPE TABLE_CATALOG TABLE_SCHEMA TABLE_NAME IS_DEFERRABLE INITIALLY_DEFERRED
-> ------------------ ----------------- --------------- --------------- ------------- ------------ ---------- ------------- ------------------
-> SCRIPT             PUBLIC            CONSTRAINT_2    CHECK           SCRIPT        PUBLIC       TEST       NO            NO
+> CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME CONSTRAINT_TYPE TABLE_CATALOG TABLE_SCHEMA TABLE_NAME IS_DEFERRABLE INITIALLY_DEFERRED REMARKS SQL                                                                                        ID
+> ------------------ ----------------- --------------- --------------- ------------- ------------ ---------- ------------- ------------------ ------- ------------------------------------------------------------------------------------------ --
+> SCRIPT             PUBLIC            CONSTRAINT_2    CHECK           SCRIPT        PUBLIC       TEST       NO            NO                         ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_2" CHECK("C" <> 0) NOCHECK 6
 > rows: 1
 
 TABLE INFORMATION_SCHEMA.CHECK_CONSTRAINTS;

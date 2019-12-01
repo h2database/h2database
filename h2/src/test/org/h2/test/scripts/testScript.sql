@@ -854,13 +854,14 @@ create table test(id int primary key, lastname varchar, firstname varchar, paren
 alter table test add constraint name unique (lastname, firstname);
 > ok
 
-SELECT CONSTRAINT_NAME, UNIQUE_INDEX_NAME, COLUMN_LIST FROM INFORMATION_SCHEMA.CONSTRAINTS ;
-> CONSTRAINT_NAME UNIQUE_INDEX_NAME COLUMN_LIST
-> --------------- ----------------- ------------------
-> CONSTRAINT_2    PRIMARY_KEY_2     ID
-> CONSTRAINT_27   PRIMARY_KEY_2     PARENT
-> NAME            NAME_INDEX_2      LASTNAME,FIRSTNAME
-> rows: 3
+SELECT CONSTRAINT_NAME, COLUMN_NAME, INDEX_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE;
+> CONSTRAINT_NAME COLUMN_NAME INDEX_NAME
+> --------------- ----------- -------------
+> CONSTRAINT_2    ID          PRIMARY_KEY_2
+> CONSTRAINT_27   PARENT      PRIMARY_KEY_2
+> NAME            FIRSTNAME   NAME_INDEX_2
+> NAME            LASTNAME    NAME_INDEX_2
+> rows: 4
 
 drop table test;
 > ok

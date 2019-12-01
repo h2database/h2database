@@ -158,11 +158,6 @@ public class ConstraintCheck extends Constraint {
     }
 
     @Override
-    public Index getUniqueIndex() {
-        return null;
-    }
-
-    @Override
     public void rebuild() {
         // nothing to do
     }

@@ -1102,8 +1102,6 @@ public class TestMetaData extends TestDb {
         rs.next();
         assertEquals("CONSTANTS", rs.getString("TABLE_NAME"));
         rs.next();
-        assertEquals("CONSTRAINTS", rs.getString("TABLE_NAME"));
-        rs.next();
         assertEquals("CROSS_REFERENCES", rs.getString("TABLE_NAME"));
         rs.next();
         assertEquals("DOMAINS", rs.getString("TABLE_NAME"));

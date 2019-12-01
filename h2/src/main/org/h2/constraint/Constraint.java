@@ -160,7 +160,9 @@ public abstract class Constraint extends SchemaObjectBase implements
      *
      * @return the index
      */
-    public abstract Index getUniqueIndex();
+    public Index getUniqueIndex() {
+        return null;
+    }
 
     @Override
     public int getType() {

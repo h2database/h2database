@@ -856,9 +856,9 @@ alter table test add constraint name unique (lastname, firstname);
 
 SELECT CONSTRAINT_NAME, COLUMN_NAME, INDEX_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE;
 > CONSTRAINT_NAME COLUMN_NAME INDEX_NAME
-> --------------- ----------- -------------
+> --------------- ----------- ------------------
 > CONSTRAINT_2    ID          PRIMARY_KEY_2
-> CONSTRAINT_27   PARENT      PRIMARY_KEY_2
+> CONSTRAINT_27   PARENT      CONSTRAINT_INDEX_2
 > NAME            FIRSTNAME   NAME_INDEX_2
 > NAME            LASTNAME    NAME_INDEX_2
 > rows: 4

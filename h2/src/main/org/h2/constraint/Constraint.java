@@ -155,6 +155,16 @@ public abstract class Constraint extends SchemaObjectBase implements
     public abstract void rebuild();
 
     /**
+     * Get the index of this constraint in the source table, or null if no index
+     * is used.
+     *
+     * @return the index
+     */
+    public Index getIndex() {
+        return null;
+    }
+
+    /**
      * Get the unique index used to enforce this constraint, or null if no index
      * is used.
      *

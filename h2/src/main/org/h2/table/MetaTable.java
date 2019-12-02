@@ -2084,7 +2084,7 @@ public class MetaTable extends Table {
                 } else {
                     referenced = null;
                 }
-                Index index = constraint.getUniqueIndex();
+                Index index = constraint.getIndex();
                 for (int i = 0; i < indexColumns.length; i++) {
                     IndexColumn indexColumn = indexColumns[i];
                     ValueInt ordinalPosition = ValueInt.get(i + 1);
@@ -2261,12 +2261,12 @@ public class MetaTable extends Table {
     }
 
     private static ConstraintUnique lookupUniqueForReferential(ConstraintReferential referential) {
-        Table table = referential.getRefTable();
-        for (Constraint c : table.getConstraints()) {
-            if (c.getConstraintType() == Constraint.Type.UNIQUE) {
-                ConstraintUnique unique = (ConstraintUnique) c;
-                if (unique.getReferencedColumns(table).equals(referential.getReferencedColumns(table))) {
-                    return unique;
+        Index index = referential.getUniqueIndex();
+        for (Constraint c : referential.getRefTable().getConstraints()) {
+            Type constraintType = c.getConstraintType();
+            if (constraintType == Constraint.Type.PRIMARY_KEY || constraintType == Constraint.Type.UNIQUE) {
+                if (c.getIndex() == index) {
+                    return (ConstraintUnique) c;
                 }
             }
         }

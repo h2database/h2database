@@ -27,8 +27,10 @@ public interface StatefulDataType {
 
     Factory getFactory();
 
+    @Override
     boolean equals(Object obj);
 
+    @Override
     int hashCode();
 
     interface Factory

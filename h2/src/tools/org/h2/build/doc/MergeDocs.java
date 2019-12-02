@@ -30,7 +30,7 @@ public class MergeDocs {
     public static void main(String... args) throws Exception {
         // the order of pages is important here
         String[] pages = { "quickstart.html", "installation.html",
-                "tutorial.html", "features.html", "performance.html",
+                "tutorial.html", "features.html", "security.html", "performance.html",
                 "advanced.html", "commands.html",
                 "functions.html", "functions-aggregate.html", "functions-window.html",
                 "datatypes.html", "grammar.html", "systemtables.html",

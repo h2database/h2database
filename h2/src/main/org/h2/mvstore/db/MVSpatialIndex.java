@@ -484,8 +484,8 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
 
         private double bminxd, bmaxxd, bminyd, bmaxyd;
 
-        FindBoundsCursor(Page<SpatialKey,VersionedValue<Value>> root, SpatialKey filter, Session session, TransactionMap<SpatialKey, Value> map,
-                int columnId) {
+        FindBoundsCursor(Page<SpatialKey,VersionedValue<Value>> root, SpatialKey filter, Session session,
+                TransactionMap<SpatialKey, Value> map, int columnId) {
             super(root, filter);
             this.session = session;
             this.map = map;

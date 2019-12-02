@@ -36,8 +36,8 @@ public abstract class RowFactory
     }
 
 
-    public RowFactory createRowFactory(CastDataProvider provider, CompareMode compareMode, Mode mode, DataHandler handler,
-                                       Column[] columns, IndexColumn[] indexColumns) {
+    public RowFactory createRowFactory(CastDataProvider provider, CompareMode compareMode, Mode mode,
+            DataHandler handler, Column[] columns, IndexColumn[] indexColumns) {
         return this;
     }
 
@@ -88,9 +88,8 @@ public abstract class RowFactory
         }
 
         @Override
-        public RowFactory createRowFactory(CastDataProvider provider, CompareMode compareMode,
-                                           Mode mode, DataHandler handler,
-                                           Column[] columns, IndexColumn[] indexColumns) {
+        public RowFactory createRowFactory(CastDataProvider provider, CompareMode compareMode, Mode mode,
+                DataHandler handler, Column[] columns, IndexColumn[] indexColumns) {
             int[] indexes = null;
             int[] sortTypes = null;
             int columnCount = 0;
@@ -115,9 +114,8 @@ public abstract class RowFactory
             return createRowFactory(provider, compareMode, mode, handler, sortTypes, indexes, columnCount);
         }
 
-        public RowFactory createRowFactory(CastDataProvider provider, CompareMode compareMode,
-                                           Mode mode, DataHandler handler,
-                                           int[] sortTypes, int[] indexes, int columnCount) {
+        public RowFactory createRowFactory(CastDataProvider provider, CompareMode compareMode, Mode mode,
+                DataHandler handler, int[] sortTypes, int[] indexes, int columnCount) {
             RowDataType rowDataType = new RowDataType(provider, compareMode, mode, handler,
                                                     sortTypes, indexes, columnCount);
             RowFactory rowFactory = new DefaultRowFactory(rowDataType, columnCount, indexes);

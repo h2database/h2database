@@ -936,7 +936,7 @@ public abstract class Page<K,V> implements Cloneable
          * Singleton object used when arrays of PageReference have not yet been filled.
          */
         @SuppressWarnings("rawtypes")
-        private static final PageReference EMPTY = new PageReference<>(null, 0, 0);
+        static final PageReference EMPTY = new PageReference<>(null, 0, 0);
 
         /**
          * The position, if known, or 0.

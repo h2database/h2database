@@ -121,7 +121,7 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
         if (duplicateKeyAssignmentMap == null) {
             duplicateKeyAssignmentMap = new HashMap<>();
         }
-        if (duplicateKeyAssignmentMap.put(column, expression) != null) {
+        if (duplicateKeyAssignmentMap.putIfAbsent(column, expression) != null) {
             throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, column.getName());
         }
     }

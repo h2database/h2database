@@ -3237,17 +3237,20 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
                 // column labels have higher priority
                 for (int i = 0; i < columnCount; i++) {
                     String c = StringUtils.toUpperEnglish(result.getAlias(i));
-                    mapColumn(map, c, i);
+                    // Don't override previous mapping
+                    map.putIfAbsent(c, i);
                 }
                 for (int i = 0; i < columnCount; i++) {
                     String colName = result.getColumnName(i);
                     if (colName != null) {
                         colName = StringUtils.toUpperEnglish(colName);
-                        mapColumn(map, colName, i);
+                        // Don't override previous mapping
+                        map.putIfAbsent(colName, i);
                         String tabName = result.getTableName(i);
                         if (tabName != null) {
-                            colName = StringUtils.toUpperEnglish(tabName) + "." + colName;
-                            mapColumn(map, colName, i);
+                            colName = StringUtils.toUpperEnglish(tabName) + '.' + colName;
+                            // Don't override previous mapping
+                            map.putIfAbsent(colName, i);
                         }
                     }
                 }
@@ -3286,17 +3289,6 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             }
         }
         throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, columnLabel);
-    }
-
-    private static void mapColumn(HashMap<String, Integer> map, String label,
-            int index) {
-        // put the index (usually that's the only operation)
-        Integer old = map.put(label, index);
-        if (old != null) {
-            // if there was a clash (which is seldom),
-            // put the old one back
-            map.put(label, old);
-        }
     }
 
     private void checkColumnIndex(int columnIndex) {

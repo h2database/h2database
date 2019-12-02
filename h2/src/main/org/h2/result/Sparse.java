@@ -36,8 +36,8 @@ public final class Sparse extends DefaultRow {
         if (i == ROWID_INDEX) {
             return ValueLong.get(getKey());
         }
-        int indx = map[i];
-        return indx > 0 ? super.getValue(indx - 1) : null;
+        int index = map[i];
+        return index > 0 ? super.getValue(index - 1) : null;
     }
 
     @Override
@@ -45,9 +45,9 @@ public final class Sparse extends DefaultRow {
         if (i == ROWID_INDEX) {
             setKey(v.getLong());
         }
-        int indx = map[i];
-        if (indx > 0) {
-            super.setValue(indx - 1, v);
+        int index = map[i];
+        if (index > 0) {
+            super.setValue(index - 1, v);
         }
     }
 
@@ -55,9 +55,9 @@ public final class Sparse extends DefaultRow {
     public void copyFrom(SearchRow source) {
         setKey(source.getKey());
         for (int i = 0; i < map.length; i++) {
-            int indx = map[i];
-            if (indx > 0) {
-                super.setValue(indx - 1, source.getValue(i));
+            int index = map[i];
+            if (index > 0) {
+                super.setValue(index - 1, source.getValue(i));
             }
         }
     }

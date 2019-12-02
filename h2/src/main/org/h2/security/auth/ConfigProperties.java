@@ -8,7 +8,6 @@ package org.h2.security.auth;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Map;
 
 import org.h2.util.Utils;
 
@@ -17,7 +16,7 @@ import org.h2.util.Utils;
  */
 public class ConfigProperties {
 
-    private Map<String, String> properties;
+    private HashMap<String, String> properties;
 
     public ConfigProperties() {
         properties = new HashMap<>();
@@ -31,7 +30,7 @@ public class ConfigProperties {
         properties = new HashMap<>();
         if (properties != null) {
             for (PropertyConfig currentProperty : configProperties) {
-                if (properties.put(currentProperty.getName(), currentProperty.getValue()) != null) {
+                if (properties.putIfAbsent(currentProperty.getName(), currentProperty.getValue()) != null) {
                     throw new AuthConfigException("duplicate property " + currentProperty.getName());
                 }
             }

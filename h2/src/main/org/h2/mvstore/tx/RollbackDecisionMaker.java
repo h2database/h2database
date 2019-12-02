@@ -47,7 +47,8 @@ final class RollbackDecisionMaker extends MVMap.DecisionMaker<Record<?,?>> {
                 MVMap<Object, VersionedValue<Object>> map = store.openMap(mapId);
                 if (map != null && !map.isClosed()) {
                     Object key = existingValue.key;
-                    VersionedValue<Object> previousValue = map.operate(key, valueToRestore, MVMap.DecisionMaker.DEFAULT);
+                    VersionedValue<Object> previousValue = map.operate(key, valueToRestore,
+                            MVMap.DecisionMaker.DEFAULT);
                     listener.onRollback(map, key, previousValue, valueToRestore);
                 }
             }

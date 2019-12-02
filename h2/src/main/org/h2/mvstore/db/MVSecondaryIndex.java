@@ -81,7 +81,8 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex<SearchR
     private static final class Source {
 
         private final Iterator<SearchRow> iterator;
-                      SearchRow           currentRowData;
+
+        SearchRow currentRowData;
 
         public Source(Iterator<SearchRow> iterator) {
             assert iterator.hasNext();
@@ -258,15 +259,15 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex<SearchR
         return new MVStoreCursor(session, map.keyIterator(min, max), mvTable);
     }
 
-    private SearchRow convertToKey(SearchRow r, Boolean minmax) {
+    private SearchRow convertToKey(SearchRow r, Boolean minMax) {
         if (r == null) {
             return null;
         }
 
         SearchRow row = getRowFactory().createRow();
         row.copyFrom(r);
-        if (minmax != null) {
-            row.setKey(minmax ? Long.MAX_VALUE : Long.MIN_VALUE);
+        if (minMax != null) {
+            row.setKey(minMax ? Long.MAX_VALUE : Long.MIN_VALUE);
         }
         return row;
     }

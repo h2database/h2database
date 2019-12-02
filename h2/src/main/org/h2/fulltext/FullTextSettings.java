@@ -12,8 +12,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.h2.util.SoftHashMap;
@@ -26,7 +24,7 @@ final class FullTextSettings {
     /**
      * The settings of open indexes.
      */
-    private static final Map<String, FullTextSettings> SETTINGS = new HashMap<>();
+    private static final HashMap<String, FullTextSettings> SETTINGS = new HashMap<>();
 
     /**
      * Whether this instance has been initialized.
@@ -36,12 +34,12 @@ final class FullTextSettings {
     /**
      * The set of words not to index (stop words).
      */
-    private final Set<String> ignoreList = new HashSet<>();
+    private final HashSet<String> ignoreList = new HashSet<>();
 
     /**
      * The set of words / terms.
      */
-    private final Map<String, Integer> words = new HashMap<>();
+    private final HashMap<String, Integer> words = new HashMap<>();
 
     /**
      * The set of indexes in this database.
@@ -116,9 +114,7 @@ final class FullTextSettings {
      */
     public void addWord(String word, Integer id) {
         synchronized (words) {
-            if(!words.containsKey(word)) {
-                words.put(word, id);
-            }
+            words.putIfAbsent(word, id);
         }
     }
 

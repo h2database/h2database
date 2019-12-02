@@ -10,18 +10,18 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
 /**
- * Default implementation of the slow operations that need synchronisation because they
+ * Default implementation of the slow operations that need synchronization because they
  * involve the file position.
  */
 public abstract class FileBaseDefault extends FileBase {
 
     private long position = 0;
-    
+
     @Override
     public synchronized final long position() throws IOException {
         return position;
     }
-    
+
     @Override
     public final synchronized FileChannel position(long newPosition) throws IOException {
         if (newPosition < 0) {
@@ -30,7 +30,7 @@ public abstract class FileBaseDefault extends FileBase {
         position = newPosition;
         return this;
     }
-    
+
     @Override
     public final synchronized int read(ByteBuffer dst) throws IOException {
         int read = read(dst, position);
@@ -39,7 +39,7 @@ public abstract class FileBaseDefault extends FileBase {
         }
         return read;
     }
-    
+
     @Override
     public final synchronized int write(ByteBuffer src) throws IOException {
         int written = write(src, position);
@@ -48,7 +48,7 @@ public abstract class FileBaseDefault extends FileBase {
         }
         return written;
     }
-    
+
     @Override
     public final synchronized FileChannel truncate(long newLength) throws IOException {
         implTruncate(newLength);
@@ -57,6 +57,6 @@ public abstract class FileBaseDefault extends FileBase {
         }
         return this;
     }
-    
-    protected abstract void implTruncate(long size) throws IOException;    
+
+    protected abstract void implTruncate(long size) throws IOException;
 }

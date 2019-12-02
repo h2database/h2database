@@ -132,7 +132,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
     }
 
     public ValueDataType(CastDataProvider provider, CompareMode compareMode, Mode mode, DataHandler handler,
-                         int[] sortTypes) {
+            int[] sortTypes) {
         this.provider = provider;
         this.compareMode = compareMode;
         this.mode = mode;
@@ -214,14 +214,14 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
         } else {
             assert sortTypes.length == indexes.length;
             for (int i = 0; i < indexes.length; i++) {
-                int indx = indexes[i];
-                Value v1 = a.getValue(indx);
-                Value v2 = b.getValue(indx);
+                int index = indexes[i];
+                Value v1 = a.getValue(index);
+                Value v2 = b.getValue(index);
                 if (v1 == null || v2 == null) {
                     // can't compare further
                     break;
                 }
-                int comp = compareValues(a.getValue(indx), b.getValue(indx), sortTypes[i]);
+                int comp = compareValues(a.getValue(index), b.getValue(index), sortTypes[i]);
                 if (comp != 0) {
                     return comp;
                 }
@@ -493,7 +493,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
                 writeRow(buff, row, indexes);
                 break;
             }
-            // FALL-THROUGH
+            //$FALL-THROUGH$
         case Value.ROW:
         {
             Value[] list = ((ValueCollectionBase) v).getList();
@@ -775,7 +775,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
                 row.setKey(readValue(buff, false).getLong());
                 return row;
             }
-            // FALL-TROUGH
+            //$FALL-THROUGH$
         case ROW:
         {
             int len = readVarInt(buff);

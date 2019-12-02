@@ -70,6 +70,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
                 newIndexType.isScan() ? null : newIndexColumns);
     }
 
+    @Override
     public RowFactory getRowFactory() {
         return rowFactory;
     }

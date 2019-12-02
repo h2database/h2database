@@ -1049,15 +1049,15 @@ public class TestFunctions extends TestDb implements AggregateFunction {
                 getClass().getName() + ".blob2stream\"");
         stat.execute("CREATE ALIAS stream2stream FOR \"" +
                 getClass().getName() + ".stream2stream\"");
-        stat.execute("CREATE TABLE TEST_BLOB(ID INT PRIMARY KEY, VALUE BLOB)");
+        stat.execute("CREATE TABLE TEST_BLOB(ID INT PRIMARY KEY, \"VALUE\" BLOB)");
         stat.execute("INSERT INTO TEST_BLOB VALUES(0, null)");
         stat.execute("INSERT INTO TEST_BLOB VALUES(1, 'edd1f011edd1f011edd1f011')");
-        rs = stat.executeQuery("SELECT blob2stream(VALUE) FROM TEST_BLOB");
+        rs = stat.executeQuery("SELECT blob2stream(\"VALUE\") FROM TEST_BLOB");
         while (rs.next()) {
             // ignore
         }
         rs.close();
-        rs = stat.executeQuery("SELECT stream2stream(VALUE) FROM TEST_BLOB");
+        rs = stat.executeQuery("SELECT stream2stream(\"VALUE\") FROM TEST_BLOB");
         while (rs.next()) {
             // ignore
         }

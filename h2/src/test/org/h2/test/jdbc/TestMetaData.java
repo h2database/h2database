@@ -1090,6 +1090,10 @@ public class TestMetaData extends TestDb {
         rs.next();
         assertEquals("CATALOGS", rs.getString("TABLE_NAME"));
         rs.next();
+        assertEquals("CHECK_COLUMN_USAGE", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("CHECK_CONSTRAINTS", rs.getString("TABLE_NAME"));
+        rs.next();
         assertEquals("COLLATIONS", rs.getString("TABLE_NAME"));
         rs.next();
         assertEquals("COLUMNS", rs.getString("TABLE_NAME"));
@@ -1098,11 +1102,11 @@ public class TestMetaData extends TestDb {
         rs.next();
         assertEquals("CONSTANTS", rs.getString("TABLE_NAME"));
         rs.next();
-        assertEquals("CONSTRAINTS", rs.getString("TABLE_NAME"));
-        rs.next();
         assertEquals("CROSS_REFERENCES", rs.getString("TABLE_NAME"));
         rs.next();
         assertEquals("DOMAINS", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("DOMAIN_CONSTRAINTS", rs.getString("TABLE_NAME"));
         rs.next();
         assertEquals("FUNCTION_ALIASES", rs.getString("TABLE_NAME"));
         rs.next();

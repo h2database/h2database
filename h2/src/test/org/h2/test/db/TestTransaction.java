@@ -140,7 +140,7 @@ public class TestTransaction extends TestDb {
         stat.execute("set write_delay 0");
         stat.execute("set log " + logMode);
         rs = stat.executeQuery(
-                "select value from information_schema.settings where name = 'LOG'");
+                "select `value` from information_schema.settings where name = 'LOG'");
         rs.next();
         assertEquals(logMode, rs.getInt(1));
         stat.execute("insert into test values(2)");
@@ -359,7 +359,7 @@ public class TestTransaction extends TestDb {
         conn2.setAutoCommit(false);
         Statement stat1 = conn1.createStatement();
         Statement stat2 = conn2.createStatement();
-        stat1.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE BOOLEAN) AS "
+        stat1.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, \"VALUE\" BOOLEAN) AS "
                 + "SELECT X, FALSE FROM GENERATE_SERIES(1, " + count + ')');
         conn1.commit();
         stat1.executeQuery("SELECT * FROM TEST").close();
@@ -371,7 +371,7 @@ public class TestTransaction extends TestDb {
                 int sum = 0;
                 try {
                     PreparedStatement prep = conn1.prepareStatement(
-                            "UPDATE TEST SET VALUE = TRUE WHERE ID = ? AND NOT VALUE");
+                            "UPDATE TEST SET \"VALUE\" = TRUE WHERE ID = ? AND NOT \"VALUE\"");
                     for (int i = 1; i <= count; i++) {
                         prep.setInt(1, i);
                         prep.addBatch();
@@ -390,7 +390,7 @@ public class TestTransaction extends TestDb {
         t.start();
         int sum = 0;
         PreparedStatement prep = conn2.prepareStatement(
-                "UPDATE TEST SET VALUE = TRUE WHERE ID = ? AND NOT VALUE");
+                "UPDATE TEST SET \"VALUE\" = TRUE WHERE ID = ? AND NOT \"VALUE\"");
         for (int i = 1; i <= count; i++) {
             prep.setInt(1, i);
             prep.addBatch();
@@ -415,7 +415,7 @@ public class TestTransaction extends TestDb {
         conn2.setAutoCommit(false);
         Statement stat1 = conn1.createStatement();
         Statement stat2 = conn2.createStatement();
-        stat1.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE BOOLEAN) AS "
+        stat1.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, \"VALUE\" BOOLEAN) AS "
                 + "SELECT X, FALSE FROM GENERATE_SERIES(1, " + count + ')');
         conn1.commit();
         stat1.executeQuery("SELECT * FROM TEST").close();
@@ -427,8 +427,8 @@ public class TestTransaction extends TestDb {
                 int sum = 0;
                 try {
                     PreparedStatement prep = conn1.prepareStatement(
-                            "MERGE INTO TEST T USING (SELECT ?1::INT X) S ON T.ID = S.X AND NOT T.VALUE"
-                            + " WHEN MATCHED THEN UPDATE SET T.VALUE = TRUE"
+                            "MERGE INTO TEST T USING (SELECT ?1::INT X) S ON T.ID = S.X AND NOT T.\"VALUE\""
+                            + " WHEN MATCHED THEN UPDATE SET T.\"VALUE\" = TRUE"
                             + " WHEN NOT MATCHED THEN INSERT VALUES (10000 + ?1, FALSE)");
                     for (int i = 1; i <= count; i++) {
                         prep.setInt(1, i);
@@ -448,8 +448,8 @@ public class TestTransaction extends TestDb {
         t.start();
         int sum = 0;
         PreparedStatement prep = conn2.prepareStatement(
-                "MERGE INTO TEST T USING (SELECT ?1::INT X) S ON T.ID = S.X AND NOT T.VALUE"
-                + " WHEN MATCHED THEN UPDATE SET T.VALUE = TRUE"
+                "MERGE INTO TEST T USING (SELECT ?1::INT X) S ON T.ID = S.X AND NOT T.\"VALUE\""
+                + " WHEN MATCHED THEN UPDATE SET T.\"VALUE\" = TRUE"
                 + " WHEN NOT MATCHED THEN INSERT VALUES (10000 + ?1, FALSE)");
         for (int i = 1; i <= count; i++) {
             prep.setInt(1, i);
@@ -467,8 +467,8 @@ public class TestTransaction extends TestDb {
     }
 
     private void testDelete() throws Exception {
-        String sql1 = "DELETE FROM TEST WHERE ID = ? AND NOT VALUE";
-        String sql2 = "UPDATE TEST SET VALUE = TRUE WHERE ID = ? AND NOT VALUE";
+        String sql1 = "DELETE FROM TEST WHERE ID = ? AND NOT \"VALUE\"";
+        String sql2 = "UPDATE TEST SET \"VALUE\" = TRUE WHERE ID = ? AND NOT \"VALUE\"";
         testDeleteImpl(sql1, sql2);
         testDeleteImpl(sql2, sql1);
     }
@@ -482,7 +482,7 @@ public class TestTransaction extends TestDb {
         conn2.setAutoCommit(false);
         Statement stat1 = conn1.createStatement();
         Statement stat2 = conn2.createStatement();
-        stat1.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE BOOLEAN) AS "
+        stat1.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, \"VALUE\" BOOLEAN) AS "
                 + "SELECT X, FALSE FROM GENERATE_SERIES(1, " + count + ')');
         conn1.commit();
         stat1.executeQuery("SELECT * FROM TEST").close();
@@ -946,8 +946,8 @@ public class TestTransaction extends TestDb {
 
     private void testNestedResultSets(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
-        test(stat, "CREATE TABLE NEST1(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
-        test(stat, "CREATE TABLE NEST2(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
+        test(stat, "CREATE TABLE NEST1(ID INT PRIMARY KEY,\"VALUE\" VARCHAR(255))");
+        test(stat, "CREATE TABLE NEST2(ID INT PRIMARY KEY,\"VALUE\" VARCHAR(255))");
         DatabaseMetaData meta = conn.getMetaData();
         ArrayList<String> result = new ArrayList<>();
         ResultSet rs1, rs2;
@@ -1026,18 +1026,18 @@ public class TestTransaction extends TestDb {
                 Statement stat1 = conn1.createStatement();
                 Statement stat2 = conn2.createStatement();
                 // Test a table without constraints
-                stat1.execute("CREATE TABLE TEST(VALUE INT)");
+                stat1.execute("CREATE TABLE TEST(\"VALUE\" INT)");
                 stat1.executeQuery("TABLE TEST").close();
                 stat1.execute("DROP TABLE TEST");
                 // Other tests
-                stat1.execute("CREATE TABLE TEST(ID VARCHAR PRIMARY KEY, VALUE INT)");
+                stat1.execute("CREATE TABLE TEST(ID VARCHAR PRIMARY KEY, \"VALUE\" INT)");
                 stat1.execute("INSERT INTO TEST VALUES ('1', 1)");
                 conn1.commit();
                 try (ResultSet rs = stat1.executeQuery("SELECT * FROM TEST WHERE ID = '1'")) {
                     rs.next();
                     assertEquals(1, rs.getInt(2));
                 }
-                stat2.executeUpdate("UPDATE TEST SET VALUE = VALUE + 1");
+                stat2.executeUpdate("UPDATE TEST SET \"VALUE\" = \"VALUE\" + 1");
                 try (ResultSet rs = stat1.executeQuery("SELECT * FROM TEST WHERE ID = '1'")) {
                     rs.next();
                     assertEquals(isolationLevel == Connection.TRANSACTION_READ_UNCOMMITTED ? 2 : 1, rs.getInt(2));
@@ -1077,7 +1077,7 @@ public class TestTransaction extends TestDb {
                 conn2.setAutoCommit(false);
                 Statement stat1 = conn1.createStatement();
                 Statement stat2 = conn2.createStatement();
-                stat1.execute("CREATE TABLE TEST(ID BIGINT PRIMARY KEY, ID2 INT UNIQUE, VALUE INT)");
+                stat1.execute("CREATE TABLE TEST(ID BIGINT PRIMARY KEY, ID2 INT UNIQUE, \"VALUE\" INT)");
                 stat1.execute("INSERT INTO TEST VALUES (1, 1, 1), (2, 2, 2), (3, 3, 3)");
                 conn1.commit();
                 try (ResultSet rs = stat1.executeQuery("SELECT * FROM TEST WHERE ID2 IN (1, 2)")) {
@@ -1086,7 +1086,7 @@ public class TestTransaction extends TestDb {
                     rs.next();
                     assertEquals(2, rs.getInt(3));
                 }
-                stat2.executeUpdate("UPDATE TEST SET ID2 = 4, VALUE = 5 WHERE ID2 = 2");
+                stat2.executeUpdate("UPDATE TEST SET ID2 = 4, \"VALUE\" = 5 WHERE ID2 = 2");
                 try (ResultSet rs = stat1.executeQuery("SELECT * FROM TEST WHERE ID2 IN (1, 2)")) {
                     rs.next();
                     assertEquals(1, rs.getInt(3));
@@ -1106,7 +1106,7 @@ public class TestTransaction extends TestDb {
                             .executeQuery("SELECT * FROM TEST WHERE ID2 = 2 FOR UPDATE");
                     assertFalse(stat1.executeQuery("SELECT * FROM TEST WHERE ID2 = 4 FOR UPDATE").next());
                 }
-                stat2.executeUpdate("UPDATE TEST SET VALUE = 6 WHERE ID2 = 3");
+                stat2.executeUpdate("UPDATE TEST SET \"VALUE\" = 6 WHERE ID2 = 3");
                 conn2.commit();
                 if (isolationLevel == Connection.TRANSACTION_READ_UNCOMMITTED
                         || isolationLevel == Connection.TRANSACTION_READ_COMMITTED) {

@@ -1272,7 +1272,7 @@ public abstract class TestBase {
     protected void assertEqualDatabases(Statement stat1, Statement stat2)
             throws SQLException {
         ResultSet rs = stat1.executeQuery(
-                "select value from information_schema.settings " +
+                "select `value` from information_schema.settings " +
                 "where name='ANALYZE_AUTO'");
         int analyzeAuto = rs.next() ? rs.getInt(1) : 0;
         if (analyzeAuto > 0) {

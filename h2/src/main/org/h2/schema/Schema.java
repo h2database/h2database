@@ -19,6 +19,7 @@ import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.DbObjectBase;
 import org.h2.engine.DbSettings;
+import org.h2.engine.Domain;
 import org.h2.engine.FunctionAlias;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
@@ -46,6 +47,7 @@ public class Schema extends DbObjectBase {
     private ArrayList<String> tableEngineParams;
 
     private final ConcurrentHashMap<String, Table> tablesAndViews;
+    private final ConcurrentHashMap<String, Domain> domains;
     private final ConcurrentHashMap<String, TableSynonym> synonyms;
     private final ConcurrentHashMap<String, Index> indexes;
     private final ConcurrentHashMap<String, Sequence> sequences;
@@ -75,6 +77,7 @@ public class Schema extends DbObjectBase {
             boolean system) {
         super(database, id, schemaName, Trace.SCHEMA);
         tablesAndViews = database.newConcurrentStringMap();
+        domains = database.newConcurrentStringMap();
         synonyms = database.newConcurrentStringMap();
         indexes = database.newConcurrentStringMap();
         sequences = database.newConcurrentStringMap();
@@ -122,8 +125,9 @@ public class Schema extends DbObjectBase {
      * @return {@code true} if this schema is empty, {@code false} otherwise
      */
     public boolean isEmpty() {
-        return tablesAndViews.isEmpty() && synonyms.isEmpty() && indexes.isEmpty() && sequences.isEmpty()
-                && triggers.isEmpty() && constraints.isEmpty() && constants.isEmpty() && functions.isEmpty();
+        return tablesAndViews.isEmpty() && domains.isEmpty() && synonyms.isEmpty() && indexes.isEmpty()
+                && sequences.isEmpty() && triggers.isEmpty() && constraints.isEmpty() && constants.isEmpty()
+                && functions.isEmpty();
     }
 
     @Override
@@ -167,6 +171,7 @@ public class Schema extends DbObjectBase {
             }
             modified = newModified;
         }
+        removeChildrenFromMap(session, domains);
         removeChildrenFromMap(session, indexes);
         removeChildrenFromMap(session, sequences);
         removeChildrenFromMap(session, constants);
@@ -223,6 +228,9 @@ public class Schema extends DbObjectBase {
         switch (type) {
         case DbObject.TABLE_OR_VIEW:
             result = tablesAndViews;
+            break;
+        case DbObject.DOMAIN:
+            result = domains;
             break;
         case DbObject.SYNONYM:
             result = synonyms;
@@ -343,6 +351,16 @@ public class Schema extends DbObjectBase {
      */
     public TableSynonym getSynonym(String name) {
         return synonyms.get(name);
+    }
+
+    /**
+     * Get the domain if it exists, or null if not.
+     *
+     * @param name the name of the domain
+     * @return the domain or null
+     */
+    public Domain findDomain(String name) {
+        return domains.get(name);
     }
 
     /**
@@ -478,6 +496,17 @@ public class Schema extends DbObjectBase {
     }
 
     /**
+     * Create a unique constraint name.
+     *
+     * @param session the session
+     * @param domain the constraint domain
+     * @return the unique name
+     */
+    public String getUniqueDomainConstraintName(Session session, Domain domain) {
+        return getUniqueName(domain, constraints, "CONSTRAINT_");
+    }
+
+    /**
      * Create a unique index name.
      *
      * @param session the session
@@ -515,6 +544,21 @@ public class Schema extends DbObjectBase {
             }
         }
         return table;
+    }
+
+    /**
+     * Get the domain with the given name.
+     *
+     * @param name the domain name
+     * @return the domain
+     * @throws DbException if no such object exists
+     */
+    public Domain getDomain(String name) {
+        Domain domain = domains.get(name);
+        if (domain == null) {
+            throw DbException.get(ErrorCode.DOMAIN_NOT_FOUND_1, name);
+        }
+        return domain;
     }
 
     /**
@@ -591,6 +635,7 @@ public class Schema extends DbObjectBase {
             addTo = Utils.newSmallArrayList();
         }
         addTo.addAll(tablesAndViews.values());
+        addTo.addAll(domains.values());
         addTo.addAll(synonyms.values());
         addTo.addAll(sequences.values());
         addTo.addAll(indexes.values());

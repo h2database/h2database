@@ -84,7 +84,7 @@ public class TestBigResult extends TestDb {
         Connection conn = getConnection("bigResult");
         Statement stat = conn.createStatement();
         int count = getSize(1000, 4000);
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE INT NOT NULL)");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, V INT NOT NULL)");
         PreparedStatement ps = conn.prepareStatement("INSERT INTO TEST VALUES (?, ?)");
         for (int i = 0; i < count; i++) {
             ps.setInt(1, i);
@@ -149,7 +149,7 @@ public class TestBigResult extends TestDb {
         // external result
         testSortingAndDistinct3(stat, sql, 1, partCount);
         stat.execute("DROP TABLE TEST");
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE INT)");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, V INT)");
         ps = conn.prepareStatement("INSERT INTO TEST VALUES (?, ?)");
         for (int i = 0; i < count; i++) {
             ps.setInt(1, i);
@@ -164,7 +164,7 @@ public class TestBigResult extends TestDb {
         /*
          * Sorting and distinct
          */
-        sql = "SELECT DISTINCT VALUE FROM TEST ORDER BY VALUE";
+        sql = "SELECT DISTINCT V FROM TEST ORDER BY V";
         // local result
         testSortingAndDistinct4(stat, sql, count, partCount);
         // external result
@@ -172,7 +172,7 @@ public class TestBigResult extends TestDb {
         /*
          * Distinct only
          */
-        sql = "SELECT DISTINCT VALUE FROM TEST";
+        sql = "SELECT DISTINCT V FROM TEST";
         // local result
         testSortingAndDistinct4DistinctOnly(stat, sql, count, partCount);
         // external result
@@ -180,7 +180,7 @@ public class TestBigResult extends TestDb {
         /*
          * Sorting only
          */
-        sql = "SELECT VALUE FROM TEST ORDER BY VALUE";
+        sql = "SELECT V FROM TEST ORDER BY V";
         // local result
         testSortingAndDistinct4SortingOnly(stat, sql, count, partCount);
         // external result
@@ -190,7 +190,7 @@ public class TestBigResult extends TestDb {
 
     private void testSortingAndDistinct1(Statement stat, int maxRows, int count) throws SQLException {
         stat.execute("SET MAX_MEMORY_ROWS " + maxRows);
-        ResultSet rs = stat.executeQuery("SELECT VALUE FROM (SELECT DISTINCT ID, VALUE FROM TEST ORDER BY VALUE)");
+        ResultSet rs = stat.executeQuery("SELECT V FROM (SELECT DISTINCT ID, V FROM TEST ORDER BY V)");
         for (int i = 1; i <= count; i++) {
             assertTrue(rs.next());
             assertEquals(rs.getInt(1), i);
@@ -313,7 +313,7 @@ public class TestBigResult extends TestDb {
         Connection conn = getConnection("bigResult");
         Statement stat = conn.createStatement();
         stat.execute("SET MAX_MEMORY_ROWS " + 1);
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE BLOB NOT NULL)");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, V BLOB NOT NULL)");
         PreparedStatement ps = conn.prepareStatement("INSERT INTO TEST VALUES (?, ?)");
         int length = 1_000_000;
         byte[] data = new byte[length];
@@ -340,7 +340,7 @@ public class TestBigResult extends TestDb {
             b.free();
         }
         stat.execute("DROP TABLE TEST");
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE CLOB NOT NULL)");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, V CLOB NOT NULL)");
         ps = conn.prepareStatement("INSERT INTO TEST VALUES (?, ?)");
         char[] cdata = new char[length];
         for (int i = 1; i <= 10; i++) {

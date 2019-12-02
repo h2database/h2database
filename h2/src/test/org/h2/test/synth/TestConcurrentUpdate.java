@@ -129,7 +129,7 @@ public class TestConcurrentUpdate extends TestDb {
         deleteDb(getTestName());
         final String url = getURL(getTestName(), true);
         try (Connection connection = getConnection(url)) {
-            connection.createStatement().execute("create table test(id int primary key, value int)");
+            connection.createStatement().execute("create table test(id int primary key, v int)");
             connection.createStatement().execute("insert into test values(0, 0)");
         }
         int len = 2;

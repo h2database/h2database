@@ -204,7 +204,7 @@ public class TestRecovery extends TestDb {
         long base = 0;
         while (true) {
             ResultSet rs = stat.executeQuery(
-                        "select value from information_schema.settings " +
+                        "select `value` from information_schema.settings " +
                         "where name = 'info.FILE_WRITE'");
             rs.next();
             long count = rs.getLong(1);

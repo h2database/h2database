@@ -738,7 +738,7 @@ public class TestUpdatableResultSet extends TestDb {
         deleteDb("updatableResultSet");
         Connection conn = getConnection("updatableResultSet");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE INT)");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, V INT)");
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES (?1, ?1)");
         for (int i = 1; i <= 8; i++) {
             prep.setInt(1, i);
@@ -783,7 +783,7 @@ public class TestUpdatableResultSet extends TestDb {
             rs.updateObject(2, value);
             break;
         case 2:
-            rs.updateObject("VALUE", value);
+            rs.updateObject("V", value);
             break;
         case 3:
             rs.updateObject(2, value, 0);
@@ -792,16 +792,16 @@ public class TestUpdatableResultSet extends TestDb {
             rs.updateObject(2, value, JDBCType.INTEGER);
             break;
         case 5:
-            rs.updateObject("VALUE", value, 0);
+            rs.updateObject("V", value, 0);
             break;
         case 6:
-            rs.updateObject("VALUE", value, JDBCType.INTEGER);
+            rs.updateObject("V", value, JDBCType.INTEGER);
             break;
         case 7:
             rs.updateObject(2, value, JDBCType.INTEGER, 0);
             break;
         case 8:
-            rs.updateObject("VALUE", value, JDBCType.INTEGER, 0);
+            rs.updateObject("V", value, JDBCType.INTEGER, 0);
         }
     }
 

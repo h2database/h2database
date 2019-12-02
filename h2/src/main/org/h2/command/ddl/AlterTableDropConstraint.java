@@ -8,6 +8,7 @@ package org.h2.command.ddl;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.constraint.Constraint;
+import org.h2.constraint.Constraint.Type;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
@@ -36,7 +37,7 @@ public class AlterTableDropConstraint extends SchemaCommand {
     public int update() {
         session.commit(true);
         Constraint constraint = getSchema().findConstraint(session, constraintName);
-        if (constraint == null) {
+        if (constraint == null || constraint.getConstraintType() == Type.DOMAIN) {
             if (!ifExists) {
                 throw DbException.get(ErrorCode.CONSTRAINT_NOT_FOUND_1, constraintName);
             }

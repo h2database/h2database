@@ -638,6 +638,11 @@ public class ConstraintReferential extends Constraint {
     }
 
     @Override
+    public Index getIndex() {
+        return index;
+    }
+
+    @Override
     public Index getUniqueIndex() {
         return refIndex;
     }

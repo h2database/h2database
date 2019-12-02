@@ -177,9 +177,9 @@ public class TestCases extends TestDb {
         Connection conn = getConnection("cases");
         Statement stat = conn.createStatement();
         stat.execute(
-                "create view test as select 0 value, 'x' name from dual");
+                "create view test as select 0 v, 'x' name from dual");
         PreparedStatement prep = conn.prepareStatement(
-                "select 1 from test where name=? and value=? and value<=?");
+                "select 1 from test where name=? and v=? and v<=?");
         prep.setString(1, "x");
         prep.setInt(2, 0);
         prep.setInt(3, 1);

@@ -32,6 +32,7 @@ import org.h2.command.CommandInterface;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.command.dml.SetTypes;
 import org.h2.constraint.Constraint;
+import org.h2.constraint.Constraint.Type;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -142,7 +143,6 @@ public class Database implements DataHandler, CastDataProvider {
     private final ConcurrentHashMap<String, Setting> settings = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Schema> schemas = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Right> rights = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, Domain> domains = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, UserAggregate> aggregates = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Comment> comments = new ConcurrentHashMap<>();
 
@@ -1098,9 +1098,6 @@ public class Database implements DataHandler, CastDataProvider {
         case DbObject.SCHEMA:
             result = schemas;
             break;
-        case DbObject.DOMAIN:
-            result = domains;
-            break;
         case DbObject.COMMENT:
             result = comments;
             break;
@@ -1228,16 +1225,6 @@ public class Database implements DataHandler, CastDataProvider {
      */
     public User findUser(String name) {
         return users.get(StringUtils.toUpperEnglish(name));
-    }
-
-    /**
-     * Get the domain if it exists, or null if not.
-     *
-     * @param name the name of the domain
-     * @return the domain or null
-     */
-    public Domain findDomain(String name) {
-        return domains.get(name);
     }
 
     /**
@@ -1731,10 +1718,6 @@ public class Database implements DataHandler, CastDataProvider {
         return settings.values();
     }
 
-    public Collection<Domain> getAllDomains() {
-        return domains.values();
-    }
-
     public Collection<User> getAllUsers() {
         return users.values();
     }
@@ -2019,10 +2002,12 @@ public class Database implements DataHandler, CastDataProvider {
             }
         } else if (type == DbObject.CONSTRAINT) {
             Constraint constraint = (Constraint) obj;
-            Table table = constraint.getTable();
-            if (table.isTemporary() && !table.isGlobalTemporary()) {
-                session.removeLocalTempTableConstraint(constraint);
-                return;
+            if (constraint.getConstraintType() != Type.DOMAIN) {
+                Table table = constraint.getTable();
+                if (table.isTemporary() && !table.isGlobalTemporary()) {
+                    session.removeLocalTempTableConstraint(constraint);
+                    return;
+                }
             }
         }
         checkWritingAllowed();

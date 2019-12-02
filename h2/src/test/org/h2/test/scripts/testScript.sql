@@ -595,10 +595,10 @@ create memory table test(id int);
 
 script nodata nopasswords nosettings;
 > SCRIPT
-> --------------------------------------------------
+> -----------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> CREATE DOMAIN "INT" AS VARCHAR;
-> CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" "INT" );
+> CREATE DOMAIN "PUBLIC"."INT" AS VARCHAR;
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" "PUBLIC"."INT" );
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > rows: 4
 
@@ -854,13 +854,14 @@ create table test(id int primary key, lastname varchar, firstname varchar, paren
 alter table test add constraint name unique (lastname, firstname);
 > ok
 
-SELECT CONSTRAINT_NAME, UNIQUE_INDEX_NAME, COLUMN_LIST FROM INFORMATION_SCHEMA.CONSTRAINTS ;
-> CONSTRAINT_NAME UNIQUE_INDEX_NAME COLUMN_LIST
-> --------------- ----------------- ------------------
-> CONSTRAINT_2    PRIMARY_KEY_2     ID
-> CONSTRAINT_27   PRIMARY_KEY_2     PARENT
-> NAME            NAME_INDEX_2      LASTNAME,FIRSTNAME
-> rows: 3
+SELECT CONSTRAINT_NAME, COLUMN_NAME, INDEX_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE;
+> CONSTRAINT_NAME COLUMN_NAME INDEX_NAME
+> --------------- ----------- ------------------
+> CONSTRAINT_2    ID          PRIMARY_KEY_2
+> CONSTRAINT_27   PARENT      CONSTRAINT_INDEX_2
+> NAME            FIRSTNAME   NAME_INDEX_2
+> NAME            LASTNAME    NAME_INDEX_2
+> rows: 4
 
 drop table test;
 > ok
@@ -2193,11 +2194,12 @@ insert into test values('AA');
 
 script nodata nopasswords nosettings;
 > SCRIPT
-> -------------------------------------------------------------------------------------
+> ---------------------------------------------------------------------------------------------------------
 > -- 2 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> CREATE MEMORY TABLE "PUBLIC"."TEST"( "NAME" VARCHAR CHECK ("NAME" = UPPER("NAME")) );
+> ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_2" CHECK("NAME" = UPPER("NAME")) NOCHECK;
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "NAME" VARCHAR );
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
-> rows: 3
+> rows: 4
 
 drop table test;
 > ok
@@ -2255,35 +2257,37 @@ select * from test;
 >   null x <empty>
 > rows: 1
 
-select DOMAIN_NAME, COLUMN_DEFAULT, IS_NULLABLE, DATA_TYPE, PRECISION, SCALE, TYPE_NAME, SELECTIVITY, CHECK_CONSTRAINT, REMARKS, SQL from information_schema.domains;
-> DOMAIN_NAME COLUMN_DEFAULT IS_NULLABLE DATA_TYPE PRECISION  SCALE TYPE_NAME SELECTIVITY CHECK_CONSTRAINT                                                    REMARKS SQL
-> ----------- -------------- ----------- --------- ---------- ----- --------- ----------- ------------------------------------------------------------------- ------- ------------------------------------------------------------------------------------------------------------------------------------
-> EMAIL       null           YES         12        200        0     VARCHAR   50          (POSITION('@', "VALUE") > 1)                                                CREATE DOMAIN "EMAIL" AS VARCHAR(200) CHECK (POSITION('@', "VALUE") > 1)
-> GMAIL       '@gmail.com'   YES         12        200        0     VARCHAR   50          ((POSITION('@', "VALUE") > 1) AND (POSITION('gmail', "VALUE") > 1))         CREATE DOMAIN "GMAIL" AS VARCHAR(200) DEFAULT '@gmail.com' CHECK ((POSITION('@', "VALUE") > 1) AND (POSITION('gmail', "VALUE") > 1))
-> STRING      ''             NO          12        255        0     VARCHAR   50                                                                                      CREATE DOMAIN "STRING" AS VARCHAR(255) DEFAULT '' NOT NULL
-> STRING1     null           YES         12        2147483647 0     VARCHAR   50                                                                                      CREATE DOMAIN "STRING1" AS VARCHAR
-> STRING2     null           NO          12        2147483647 0     VARCHAR   50                                                                                      CREATE DOMAIN "STRING2" AS VARCHAR NOT NULL
-> STRING3     '<empty>'      YES         12        2147483647 0     VARCHAR   50                                                                                      CREATE DOMAIN "STRING3" AS VARCHAR DEFAULT '<empty>'
-> STRING_X    '<empty>'      YES         12        2147483647 0     VARCHAR   50                                                                                      CREATE DOMAIN "STRING_X" AS VARCHAR DEFAULT '<empty>'
+select DOMAIN_NAME, DOMAIN_DEFAULT, IS_NULLABLE, DATA_TYPE, PRECISION, SCALE, TYPE_NAME, SELECTIVITY, REMARKS, SQL from information_schema.domains;
+> DOMAIN_NAME DOMAIN_DEFAULT IS_NULLABLE DATA_TYPE PRECISION  SCALE TYPE_NAME SELECTIVITY REMARKS SQL
+> ----------- -------------- ----------- --------- ---------- ----- --------- ----------- ------- -------------------------------------------------------------------
+> EMAIL       null           YES         12        200        0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."EMAIL" AS VARCHAR(200)
+> GMAIL       '@gmail.com'   YES         12        200        0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."GMAIL" AS VARCHAR(200) DEFAULT '@gmail.com'
+> STRING      ''             NO          12        255        0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING" AS VARCHAR(255) DEFAULT '' NOT NULL
+> STRING1     null           YES         12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING1" AS VARCHAR
+> STRING2     null           NO          12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING2" AS VARCHAR NOT NULL
+> STRING3     '<empty>'      YES         12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING3" AS VARCHAR DEFAULT '<empty>'
+> STRING_X    '<empty>'      YES         12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING_X" AS VARCHAR DEFAULT '<empty>'
 > rows: 7
 
 script nodata nopasswords nosettings;
 > SCRIPT
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.ADDRESS;
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
+> ALTER DOMAIN "PUBLIC"."EMAIL" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_3" CHECK(POSITION('@', VALUE) > 1) NOCHECK;
+> ALTER DOMAIN "PUBLIC"."GMAIL" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_4" CHECK(POSITION('gmail', VALUE) > 1) NOCHECK;
 > ALTER TABLE "PUBLIC"."ADDRESS" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_E" PRIMARY KEY("ID");
-> CREATE DOMAIN "EMAIL" AS VARCHAR(200) CHECK (POSITION('@', "VALUE") > 1);
-> CREATE DOMAIN "GMAIL" AS VARCHAR(200) DEFAULT '@gmail.com' CHECK ((POSITION('@', "VALUE") > 1) AND (POSITION('gmail', "VALUE") > 1));
-> CREATE DOMAIN "STRING" AS VARCHAR(255) DEFAULT '' NOT NULL;
-> CREATE DOMAIN "STRING1" AS VARCHAR;
-> CREATE DOMAIN "STRING2" AS VARCHAR NOT NULL;
-> CREATE DOMAIN "STRING3" AS VARCHAR DEFAULT '<empty>';
-> CREATE DOMAIN "STRING_X" AS VARCHAR DEFAULT '<empty>';
-> CREATE MEMORY TABLE "PUBLIC"."ADDRESS"( "ID" INT NOT NULL, "NAME" "EMAIL" CHECK (POSITION('@', "NAME") > 1), "NAME2" "GMAIL" DEFAULT '@gmail.com' CHECK ((POSITION('@', "NAME2") > 1) AND (POSITION('gmail', "NAME2") > 1)) );
-> CREATE MEMORY TABLE "PUBLIC"."TEST"( "A" "STRING" DEFAULT '' NOT NULL, "B" "STRING1", "C" "STRING2" NOT NULL, "D" "STRING3" DEFAULT '<empty>' );
+> CREATE DOMAIN "PUBLIC"."EMAIL" AS VARCHAR(200);
+> CREATE DOMAIN "PUBLIC"."GMAIL" AS VARCHAR(200) DEFAULT '@gmail.com';
+> CREATE DOMAIN "PUBLIC"."STRING" AS VARCHAR(255) DEFAULT '' NOT NULL;
+> CREATE DOMAIN "PUBLIC"."STRING1" AS VARCHAR;
+> CREATE DOMAIN "PUBLIC"."STRING2" AS VARCHAR NOT NULL;
+> CREATE DOMAIN "PUBLIC"."STRING3" AS VARCHAR DEFAULT '<empty>';
+> CREATE DOMAIN "PUBLIC"."STRING_X" AS VARCHAR DEFAULT '<empty>';
+> CREATE MEMORY TABLE "PUBLIC"."ADDRESS"( "ID" INT NOT NULL, "NAME" "PUBLIC"."EMAIL", "NAME2" "PUBLIC"."GMAIL" DEFAULT '@gmail.com' );
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "A" "PUBLIC"."STRING" DEFAULT '' NOT NULL, "B" "PUBLIC"."STRING1", "C" "PUBLIC"."STRING2" NOT NULL, "D" "PUBLIC"."STRING3" DEFAULT '<empty>' );
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
-> rows: 13
+> rows: 15
 
 drop table test;
 > ok
@@ -3016,7 +3020,7 @@ drop table s;
 drop table p;
 > ok
 
-create table test (id identity, value int not null);
+create table test (id identity, "VALUE" int not null);
 > ok
 
 create primary key on test(id);
@@ -5611,7 +5615,7 @@ DROP TABLE TEST;
 > ok
 
 --- group by ----------------------------------------------------------------------------------------------
-CREATE TABLE TEST(A INT, B INT, VALUE INT, UNIQUE(A, B));
+CREATE TABLE TEST(A INT, B INT, "VALUE" INT, UNIQUE(A, B));
 > ok
 
 INSERT INTO TEST VALUES(?, ?, ?);
@@ -5626,7 +5630,7 @@ NULL, 1, 10
 };
 > update count: 7
 
-SELECT A, B, COUNT(*) CAL, COUNT(A) CA, COUNT(B) CB, MIN(VALUE) MI, MAX(VALUE) MA, SUM(VALUE) S FROM TEST GROUP BY A, B;
+SELECT A, B, COUNT(*) CAL, COUNT(A) CA, COUNT(B) CB, MIN("VALUE") MI, MAX("VALUE") MA, SUM("VALUE") S FROM TEST GROUP BY A, B;
 > A    B    CAL CA CB MI   MA   S
 > ---- ---- --- -- -- ---- ---- ----
 > 0    0    1   1  1  -1   -1   -1
@@ -6044,7 +6048,7 @@ DROP TABLE TEST;
 CREATE TABLE CUSTOMER(ID INT PRIMARY KEY, NAME VARCHAR(255));
 > ok
 
-CREATE TABLE INVOICE(ID INT, CUSTOMER_ID INT, PRIMARY KEY(CUSTOMER_ID, ID), VALUE DECIMAL(10,2));
+CREATE TABLE INVOICE(ID INT, CUSTOMER_ID INT, PRIMARY KEY(CUSTOMER_ID, ID), "VALUE" DECIMAL(10,2));
 > ok
 
 INSERT INTO CUSTOMER VALUES(?, ?);
@@ -6255,7 +6259,7 @@ drop view s;
 drop table t;
 > ok
 
-CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255), VALUE DECIMAL(10,2));
+CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255), "VALUE" DECIMAL(10,2));
 > ok
 
 INSERT INTO TEST VALUES(?, ?, ?);
@@ -6272,9 +6276,9 @@ INSERT INTO TEST VALUES(?, ?, ?);
 };
 > update count: 9
 
-SELECT IFNULL(NAME, '') || ': ' || GROUP_CONCAT(VALUE ORDER BY NAME, VALUE DESC SEPARATOR ', ') FROM TEST GROUP BY NAME ORDER BY 1;
-> (IFNULL(NAME, '') || ': ') || LISTAGG(VALUE, ', ') WITHIN GROUP (ORDER BY NAME, VALUE DESC)
-> -------------------------------------------------------------------------------------------
+SELECT IFNULL(NAME, '') || ': ' || GROUP_CONCAT("VALUE" ORDER BY NAME, "VALUE" DESC SEPARATOR ', ') FROM TEST GROUP BY NAME ORDER BY 1;
+> (IFNULL(NAME, '') || ': ') || LISTAGG("VALUE", ', ') WITHIN GROUP (ORDER BY NAME, "VALUE" DESC)
+> -----------------------------------------------------------------------------------------------
 > : 3.10, -10.00
 > Apples: 1.50, 1.20, 1.10
 > Bananas: 2.50
@@ -6321,24 +6325,24 @@ SELECT DISTINCT NAME FROM TEST ORDER BY NAME DESC NULLS LAST LIMIT 2 OFFSET 1;
 > Bananas
 > rows (ordered): 2
 
-SELECT NAME, COUNT(*), SUM(VALUE), MAX(VALUE), MIN(VALUE), AVG(VALUE), COUNT(DISTINCT VALUE) FROM TEST GROUP BY NAME;
-> NAME     COUNT(*) SUM(VALUE) MAX(VALUE) MIN(VALUE) AVG(VALUE)                                  COUNT(DISTINCT VALUE)
-> -------- -------- ---------- ---------- ---------- ------------------------------------------- ---------------------
-> Apples   3        3.80       1.50       1.10       1.2666666666666666666666666666666666666667  3
-> Bananas  1        2.50       2.50       2.50       2.5000000000000000000000000000000000000000  1
-> Cherries 1        5.10       5.10       5.10       5.1000000000000000000000000000000000000000  1
-> Oranges  2        3.85       2.05       1.80       1.9250000000000000000000000000000000000000  2
-> null     2        -6.90      3.10       -10.00     -3.4500000000000000000000000000000000000000 2
+SELECT NAME, COUNT(*), SUM("VALUE"), MAX("VALUE"), MIN("VALUE"), AVG("VALUE"), COUNT(DISTINCT "VALUE") FROM TEST GROUP BY NAME;
+> NAME     COUNT(*) SUM("VALUE") MAX("VALUE") MIN("VALUE") AVG("VALUE")                                COUNT(DISTINCT "VALUE")
+> -------- -------- ------------ ------------ ------------ ------------------------------------------- -----------------------
+> Apples   3        3.80         1.50         1.10         1.2666666666666666666666666666666666666667  3
+> Bananas  1        2.50         2.50         2.50         2.5000000000000000000000000000000000000000  1
+> Cherries 1        5.10         5.10         5.10         5.1000000000000000000000000000000000000000  1
+> Oranges  2        3.85         2.05         1.80         1.9250000000000000000000000000000000000000  2
+> null     2        -6.90        3.10         -10.00       -3.4500000000000000000000000000000000000000 2
 > rows: 5
 
-SELECT NAME, MAX(VALUE), MIN(VALUE), MAX(VALUE+1)*MIN(VALUE+1) FROM TEST GROUP BY NAME;
-> NAME     MAX(VALUE) MIN(VALUE) MAX(VALUE + 1) * MIN(VALUE + 1)
-> -------- ---------- ---------- -------------------------------
-> Apples   1.50       1.10       5.2500
-> Bananas  2.50       2.50       12.2500
-> Cherries 5.10       5.10       37.2100
-> Oranges  2.05       1.80       8.5400
-> null     3.10       -10.00     -36.9000
+SELECT NAME, MAX("VALUE"), MIN("VALUE"), MAX("VALUE"+1)*MIN("VALUE"+1) FROM TEST GROUP BY NAME;
+> NAME     MAX("VALUE") MIN("VALUE") MAX("VALUE" + 1) * MIN("VALUE" + 1)
+> -------- ------------ ------------ -----------------------------------
+> Apples   1.50         1.10         5.2500
+> Bananas  2.50         2.50         12.2500
+> Cherries 5.10         5.10         37.2100
+> Oranges  2.05         1.80         8.5400
+> null     3.10         -10.00       -36.9000
 > rows: 5
 
 DROP TABLE TEST;

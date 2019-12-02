@@ -237,22 +237,22 @@ public class TestStatement extends TestDb {
         assertTrue(stat.getQueryTimeout() == 0);
         trace("executeUpdate");
         count = stat.executeUpdate(
-                "CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
+                "CREATE TABLE TEST(ID INT PRIMARY KEY,V VARCHAR(255))");
         assertEquals(0, count);
         count = stat.executeUpdate(
                 "INSERT INTO TEST VALUES(1,'Hello')");
         assertEquals(1, count);
         count = stat.executeUpdate(
-                "INSERT INTO TEST(VALUE,ID) VALUES('JDBC',2)");
+                "INSERT INTO TEST(V,ID) VALUES('JDBC',2)");
         assertEquals(1, count);
         count = stat.executeUpdate(
-                "UPDATE TEST SET VALUE='LDBC' WHERE ID=2 OR ID=1");
+                "UPDATE TEST SET V='LDBC' WHERE ID=2 OR ID=1");
         assertEquals(2, count);
         count = stat.executeUpdate(
-                "UPDATE TEST SET VALUE='\\LDBC\\' WHERE VALUE LIKE 'LDBC' ");
+                "UPDATE TEST SET V='\\LDBC\\' WHERE V LIKE 'LDBC' ");
         assertEquals(2, count);
         count = stat.executeUpdate(
-                "UPDATE TEST SET VALUE='LDBC' WHERE VALUE LIKE '\\\\LDBC\\\\'");
+                "UPDATE TEST SET V='LDBC' WHERE V LIKE '\\\\LDBC\\\\'");
         trace("count:" + count);
         assertEquals(2, count);
         count = stat.executeUpdate("DELETE FROM TEST WHERE ID=-1");
@@ -262,7 +262,7 @@ public class TestStatement extends TestDb {
         largeCount = stat.executeLargeUpdate("DELETE FROM TEST WHERE ID=-1");
         assertEquals(0, largeCount);
         assertEquals(0, stat.getLargeUpdateCount());
-        largeCount = stat.executeLargeUpdate("INSERT INTO TEST(VALUE,ID) VALUES('JDBC',2)");
+        largeCount = stat.executeLargeUpdate("INSERT INTO TEST(V,ID) VALUES('JDBC',2)");
         assertEquals(1, largeCount);
         assertEquals(1, stat.getLargeUpdateCount());
         largeCount = stat.executeLargeUpdate("DELETE FROM TEST WHERE ID=2");
@@ -277,13 +277,13 @@ public class TestStatement extends TestDb {
 
         trace("execute");
         result = stat.execute(
-                "CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
+                "CREATE TABLE TEST(ID INT PRIMARY KEY,V VARCHAR(255))");
         assertFalse(result);
         result = stat.execute("INSERT INTO TEST VALUES(1,'Hello')");
         assertFalse(result);
-        result = stat.execute("INSERT INTO TEST(VALUE,ID) VALUES('JDBC',2)");
+        result = stat.execute("INSERT INTO TEST(V,ID) VALUES('JDBC',2)");
         assertFalse(result);
-        result = stat.execute("UPDATE TEST SET VALUE='LDBC' WHERE ID=2");
+        result = stat.execute("UPDATE TEST SET V='LDBC' WHERE ID=2");
         assertFalse(result);
         result = stat.execute("DELETE FROM TEST WHERE ID=3");
         assertFalse(result);
@@ -293,15 +293,15 @@ public class TestStatement extends TestDb {
         assertFalse(result);
 
         assertThrows(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY, stat).
-                executeQuery("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
+                executeQuery("CREATE TABLE TEST(ID INT PRIMARY KEY,V VARCHAR(255))");
 
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,V VARCHAR(255))");
 
         assertThrows(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY, stat).
                 executeQuery("INSERT INTO TEST VALUES(1,'Hello')");
 
         assertThrows(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY, stat).
-                executeQuery("UPDATE TEST SET VALUE='LDBC' WHERE ID=2");
+                executeQuery("UPDATE TEST SET V='LDBC' WHERE ID=2");
 
         assertThrows(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY, stat).
                 executeQuery("DELETE FROM TEST WHERE ID=3");

@@ -14,13 +14,16 @@ import java.sql.ResultSet;
 import java.sql.Types;
 import java.text.Collator;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 
 import org.h2.command.Command;
 import org.h2.constraint.Constraint;
+import org.h2.constraint.Constraint.Type;
 import org.h2.constraint.ConstraintActionType;
 import org.h2.constraint.ConstraintCheck;
+import org.h2.constraint.ConstraintDomain;
 import org.h2.constraint.ConstraintReferential;
 import org.h2.constraint.ConstraintUnique;
 import org.h2.engine.Constants;
@@ -36,6 +39,7 @@ import org.h2.engine.Session;
 import org.h2.engine.Setting;
 import org.h2.engine.User;
 import org.h2.engine.UserAggregate;
+import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ValueExpression;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -104,20 +108,22 @@ public class MetaTable extends Table {
     private static final int VIEWS = 17;
     private static final int IN_DOUBT = 18;
     private static final int CROSS_REFERENCES = 19;
-    private static final int CONSTRAINTS = 20;
-    private static final int FUNCTION_COLUMNS = 21;
-    private static final int CONSTANTS = 22;
-    private static final int DOMAINS = 23;
-    private static final int TRIGGERS = 24;
-    private static final int SESSIONS = 25;
-    private static final int LOCKS = 26;
-    private static final int SESSION_STATE = 27;
-    private static final int QUERY_STATISTICS = 28;
-    private static final int SYNONYMS = 29;
-    private static final int TABLE_CONSTRAINTS = 30;
+    private static final int FUNCTION_COLUMNS = 20;
+    private static final int CONSTANTS = 21;
+    private static final int DOMAINS = 22;
+    private static final int TRIGGERS = 23;
+    private static final int SESSIONS = 24;
+    private static final int LOCKS = 25;
+    private static final int SESSION_STATE = 26;
+    private static final int QUERY_STATISTICS = 27;
+    private static final int SYNONYMS = 28;
+    private static final int TABLE_CONSTRAINTS = 29;
+    private static final int DOMAIN_CONSTRAINTS = 30;
     private static final int KEY_COLUMN_USAGE = 31;
     private static final int REFERENTIAL_CONSTRAINTS = 32;
-    private static final int META_TABLE_TYPE_COUNT = REFERENTIAL_CONSTRAINTS + 1;
+    private static final int CHECK_CONSTRAINTS = 33;
+    private static final int CHECK_COLUMN_USAGE = 34;
+    private static final int META_TABLE_TYPE_COUNT = CHECK_COLUMN_USAGE + 1;
 
     private final int type;
     private final int indexColumn;
@@ -185,7 +191,6 @@ public class MetaTable extends Table {
                     "NULLABLE INT",
                     "IS_COMPUTED BIT",
                     "SELECTIVITY INT",
-                    "CHECK_CONSTRAINT",
                     "SEQUENCE_NAME",
                     "REMARKS",
                     "SOURCE_DATA_TYPE SMALLINT",
@@ -438,25 +443,6 @@ public class MetaTable extends Table {
             );
             indexColumnName = "PKTABLE_NAME";
             break;
-        case CONSTRAINTS:
-            setMetaTableName("CONSTRAINTS");
-            cols = createColumns(
-                    "CONSTRAINT_CATALOG",
-                    "CONSTRAINT_SCHEMA",
-                    "CONSTRAINT_NAME",
-                    "CONSTRAINT_TYPE",
-                    "TABLE_CATALOG",
-                    "TABLE_SCHEMA",
-                    "TABLE_NAME",
-                    "UNIQUE_INDEX_NAME",
-                    "CHECK_EXPRESSION",
-                    "COLUMN_LIST",
-                    "REMARKS",
-                    "SQL",
-                    "ID INT"
-            );
-            indexColumnName = "TABLE_NAME";
-            break;
         case CONSTANTS:
             setMetaTableName("CONSTANTS");
             cols = createColumns(
@@ -475,14 +461,14 @@ public class MetaTable extends Table {
                     "DOMAIN_CATALOG",
                     "DOMAIN_SCHEMA",
                     "DOMAIN_NAME",
-                    "COLUMN_DEFAULT",
+                    "DOMAIN_DEFAULT",
+                    "DOMAIN_ON_UPDATE",
                     "IS_NULLABLE",
                     "DATA_TYPE INT",
                     "PRECISION INT",
                     "SCALE INT",
                     "TYPE_NAME",
                     "SELECTIVITY INT",
-                    "CHECK_CONSTRAINT",
                     "REMARKS",
                     "SQL",
                     "ID INT"
@@ -588,9 +574,29 @@ public class MetaTable extends Table {
                     "TABLE_SCHEMA",
                     "TABLE_NAME",
                     "IS_DEFERRABLE",
-                    "INITIALLY_DEFERRED"
+                    "INITIALLY_DEFERRED",
+                    "REMARKS",
+                    "SQL",
+                    "ID INT"
             );
             indexColumnName = "TABLE_NAME";
+            break;
+        }
+        case DOMAIN_CONSTRAINTS: {
+            setMetaTableName("DOMAIN_CONSTRAINTS");
+            cols = createColumns(
+                    "CONSTRAINT_CATALOG",
+                    "CONSTRAINT_SCHEMA",
+                    "CONSTRAINT_NAME",
+                    "DOMAIN_CATALOG",
+                    "DOMAIN_SCHEMA",
+                    "DOMAIN_NAME",
+                    "IS_DEFERRABLE",
+                    "INITIALLY_DEFERRED",
+                    "REMARKS",
+                    "SQL",
+                    "ID INT"
+            );
             break;
         }
         case KEY_COLUMN_USAGE: {
@@ -604,7 +610,10 @@ public class MetaTable extends Table {
                     "TABLE_NAME",
                     "COLUMN_NAME",
                     "ORDINAL_POSITION INT",
-                    "POSITION_IN_UNIQUE_CONSTRAINT INT"
+                    "POSITION_IN_UNIQUE_CONSTRAINT INT",
+                    "INDEX_CATALOG",
+                    "INDEX_SCHEMA",
+                    "INDEX_NAME"
             );
             indexColumnName = "TABLE_NAME";
             break;
@@ -621,6 +630,29 @@ public class MetaTable extends Table {
                     "MATCH_OPTION",
                     "UPDATE_RULE",
                     "DELETE_RULE"
+            );
+            break;
+        }
+        case CHECK_CONSTRAINTS: {
+            setMetaTableName("CHECK_CONSTRAINTS");
+            cols = createColumns(
+                    "CONSTRAINT_CATALOG",
+                    "CONSTRAINT_SCHEMA",
+                    "CONSTRAINT_NAME",
+                    "CHECK_CLAUSE"
+            );
+            break;
+        }
+        case CHECK_COLUMN_USAGE: {
+            setMetaTableName("CHECK_COLUMN_USAGE");
+            cols = createColumns(
+                    "CONSTRAINT_CATALOG",
+                    "CONSTRAINT_SCHEMA",
+                    "CONSTRAINT_NAME",
+                    "TABLE_CATALOG",
+                    "TABLE_SCHEMA",
+                    "TABLE_NAME",
+                    "COLUMN_NAME"
             );
             break;
         }
@@ -885,7 +917,7 @@ public class MetaTable extends Table {
                             // DOMAIN_CATALOG
                             domain != null ? catalog : null,
                             // DOMAIN_SCHEMA
-                            domain != null ? database.getMainSchema().getName() : null,
+                            domain != null ? domain.getSchema().getName() : null,
                             // DOMAIN_NAME
                             domain != null ? domain.getName() : null,
                             // COLUMN_DEFAULT
@@ -923,8 +955,6 @@ public class MetaTable extends Table {
                             ValueBoolean.get(c.getComputed()),
                             // SELECTIVITY
                             ValueInt.get(c.getSelectivity()),
-                            // CHECK_CONSTRAINT
-                            c.getCheckConstraintSQL(session, c.getName()),
                             // SEQUENCE_NAME
                             sequence == null ? null : sequence.getName(),
                             // REMARKS
@@ -1690,77 +1720,6 @@ public class MetaTable extends Table {
             }
             break;
         }
-        case CONSTRAINTS: {
-            for (SchemaObject obj : database.getAllSchemaObjects(
-                    DbObject.CONSTRAINT)) {
-                Constraint constraint = (Constraint) obj;
-                Constraint.Type constraintType = constraint.getConstraintType();
-                String checkExpression = null;
-                IndexColumn[] indexColumns = null;
-                Table table = constraint.getTable();
-                if (hideTable(table, session)) {
-                    continue;
-                }
-                Index index = constraint.getUniqueIndex();
-                String uniqueIndexName = null;
-                if (index != null) {
-                    uniqueIndexName = index.getName();
-                }
-                String tableName = table.getName();
-                if (!checkIndex(session, tableName, indexFrom, indexTo)) {
-                    continue;
-                }
-                if (constraintType == Constraint.Type.CHECK) {
-                    checkExpression = ((ConstraintCheck) constraint).getExpression().getSQL(true);
-                } else if (constraintType == Constraint.Type.UNIQUE ||
-                        constraintType == Constraint.Type.PRIMARY_KEY) {
-                    indexColumns = ((ConstraintUnique) constraint).getColumns();
-                } else if (constraintType == Constraint.Type.REFERENTIAL) {
-                    indexColumns = ((ConstraintReferential) constraint).getColumns();
-                }
-                String columnList = null;
-                if (indexColumns != null) {
-                    StringBuilder builder = new StringBuilder();
-                    for (int i = 0, length = indexColumns.length; i < length; i++) {
-                        if (i > 0) {
-                            builder.append(',');
-                        }
-                        builder.append(indexColumns[i].column.getName());
-                    }
-                    columnList = builder.toString();
-                }
-                add(rows,
-                        // CONSTRAINT_CATALOG
-                        catalog,
-                        // CONSTRAINT_SCHEMA
-                        constraint.getSchema().getName(),
-                        // CONSTRAINT_NAME
-                        constraint.getName(),
-                        // CONSTRAINT_TYPE
-                        constraintType == Constraint.Type.PRIMARY_KEY ?
-                                constraintType.getSqlName() : constraintType.name(),
-                        // TABLE_CATALOG
-                        catalog,
-                        // TABLE_SCHEMA
-                        table.getSchema().getName(),
-                        // TABLE_NAME
-                        tableName,
-                        // UNIQUE_INDEX_NAME
-                        uniqueIndexName,
-                        // CHECK_EXPRESSION
-                        checkExpression,
-                        // COLUMN_LIST
-                        columnList,
-                        // REMARKS
-                        replaceNullWithEmpty(constraint.getComment()),
-                        // SQL
-                        constraint.getCreateSQL(),
-                        // ID
-                        ValueInt.get(constraint.getId())
-                    );
-            }
-            break;
-        }
         case CONSTANTS: {
             for (SchemaObject obj : database.getAllSchemaObjects(
                     DbObject.CONSTANT)) {
@@ -1786,17 +1745,20 @@ public class MetaTable extends Table {
             break;
         }
         case DOMAINS: {
-            for (Domain dt : database.getAllDomains()) {
-                Column col = dt.getColumn();
+            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.DOMAIN)) {
+                Domain domain = (Domain) obj;
+                Column col = domain.getColumn();
                 add(rows,
                         // DOMAIN_CATALOG
                         catalog,
                         // DOMAIN_SCHEMA
-                        database.getMainSchema().getName(),
+                        domain.getSchema().getName(),
                         // DOMAIN_NAME
-                        dt.getName(),
-                        // COLUMN_DEFAULT
+                        domain.getName(),
+                        // DOMAIN_DEFAULT
                         col.getDefaultSQL(),
+                        // DOMAIN_ON_UPDATE
+                        col.getOnUpdateSQL(),
                         // IS_NULLABLE
                         col.isNullable() ? "YES" : "NO",
                         // DATA_TYPE
@@ -1809,14 +1771,12 @@ public class MetaTable extends Table {
                         col.getDataType().name,
                         // SELECTIVITY INT
                         ValueInt.get(col.getSelectivity()),
-                        // CHECK_CONSTRAINT
-                        col.getCheckConstraintSQL(session, "VALUE"),
                         // REMARKS
-                        replaceNullWithEmpty(dt.getComment()),
+                        replaceNullWithEmpty(domain.getComment()),
                         // SQL
-                        dt.getCreateSQL(),
+                        domain.getCreateSQL(),
                         // ID
-                        ValueInt.get(dt.getId())
+                        ValueInt.get(domain.getId())
                 );
             }
             break;
@@ -2023,6 +1983,9 @@ public class MetaTable extends Table {
             for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
                 Constraint constraint = (Constraint) obj;
                 Constraint.Type constraintType = constraint.getConstraintType();
+                if (constraintType == Constraint.Type.DOMAIN) {
+                    continue;
+                }
                 Table table = constraint.getTable();
                 if (hideTable(table, session)) {
                     continue;
@@ -2049,7 +2012,47 @@ public class MetaTable extends Table {
                         // IS_DEFERRABLE
                         "NO",
                         // INITIALLY_DEFERRED
-                        "NO"
+                        "NO",
+                        // REMARKS
+                        replaceNullWithEmpty(constraint.getComment()),
+                        // SQL
+                        constraint.getCreateSQL(),
+                        // ID
+                        ValueInt.get(constraint.getId())
+                );
+            }
+            break;
+        }
+        case DOMAIN_CONSTRAINTS: {
+            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
+                if (((Constraint) obj).getConstraintType() != Constraint.Type.DOMAIN) {
+                    continue;
+                }
+                ConstraintDomain constraint = (ConstraintDomain) obj;
+                Domain domain = constraint.getDomain();
+                add(rows,
+                        // CONSTRAINT_CATALOG
+                        catalog,
+                        // CONSTRAINT_SCHEMA
+                        constraint.getSchema().getName(),
+                        // CONSTRAINT_NAME
+                        constraint.getName(),
+                        // DOMAIN_CATALOG
+                        catalog,
+                        // DOMAIN_SCHEMA
+                        domain.getSchema().getName(),
+                        // DOMAIN_NAME
+                        domain.getName(),
+                        // IS_DEFERRABLE
+                        "NO",
+                        // INITIALLY_DEFERRED
+                        "NO",
+                        // REMARKS
+                        replaceNullWithEmpty(constraint.getComment()),
+                        // SQL
+                        constraint.getCreateSQL(),
+                        // ID
+                        ValueInt.get(constraint.getId())
                 );
             }
             break;
@@ -2059,6 +2062,14 @@ public class MetaTable extends Table {
                 Constraint constraint = (Constraint) obj;
                 Constraint.Type constraintType = constraint.getConstraintType();
                 IndexColumn[] indexColumns = null;
+                if (constraintType == Constraint.Type.UNIQUE || constraintType == Constraint.Type.PRIMARY_KEY) {
+                    indexColumns = ((ConstraintUnique) constraint).getColumns();
+                } else if (constraintType == Constraint.Type.REFERENTIAL) {
+                    indexColumns = ((ConstraintReferential) constraint).getColumns();
+                }
+                if (indexColumns == null) {
+                    continue;
+                }
                 Table table = constraint.getTable();
                 if (hideTable(table, session)) {
                     continue;
@@ -2067,21 +2078,13 @@ public class MetaTable extends Table {
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
                 }
-                if (constraintType == Constraint.Type.UNIQUE ||
-                        constraintType == Constraint.Type.PRIMARY_KEY) {
-                    indexColumns = ((ConstraintUnique) constraint).getColumns();
-                } else if (constraintType == Constraint.Type.REFERENTIAL) {
-                    indexColumns = ((ConstraintReferential) constraint).getColumns();
-                }
-                if (indexColumns == null) {
-                    continue;
-                }
                 ConstraintUnique referenced;
                 if (constraintType == Constraint.Type.REFERENTIAL) {
                     referenced = lookupUniqueForReferential((ConstraintReferential) constraint);
                 } else {
                     referenced = null;
                 }
+                Index index = constraint.getIndex();
                 for (int i = 0; i < indexColumns.length; i++) {
                     IndexColumn indexColumn = indexColumns[i];
                     ValueInt ordinalPosition = ValueInt.get(i + 1);
@@ -2119,7 +2122,13 @@ public class MetaTable extends Table {
                             // ORDINAL_POSITION
                             ordinalPosition,
                             // POSITION_IN_UNIQUE_CONSTRAINT
-                            positionInUniqueConstraint
+                            positionInUniqueConstraint,
+                            // INDEX_CATALOG
+                            index != null ? catalog : null,
+                            // INDEX_SCHEMA
+                            index != null ? index.getSchema().getName() : null,
+                            // INDEX_NAME
+                            index != null ? index.getName() : null
                     );
                 }
             }
@@ -2165,6 +2174,71 @@ public class MetaTable extends Table {
             }
             break;
         }
+        case CHECK_CONSTRAINTS: {
+            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
+                Constraint constraint = (Constraint) obj;
+                Type constraintType = constraint.getConstraintType();
+                if (constraintType == Constraint.Type.CHECK) {
+                    ConstraintCheck check = (ConstraintCheck) obj;
+                    Table table = check.getTable();
+                    if (hideTable(table, session)) {
+                        continue;
+                    }
+                } else if (constraintType != Constraint.Type.DOMAIN) {
+                    continue;
+                }
+                add(rows,
+                        // CONSTRAINT_CATALOG
+                        catalog,
+                        // CONSTRAINT_SCHEMA
+                        obj.getSchema().getName(),
+                        // CONSTRAINT_NAME
+                        obj.getName(),
+                        // CHECK_CLAUSE
+                        constraint.getExpression().getUnenclosedSQL(new StringBuilder(), true).toString()
+                );
+            }
+            break;
+        }
+        case CHECK_COLUMN_USAGE: {
+            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
+                Constraint constraint = (Constraint) obj;
+                Type constraintType = constraint.getConstraintType();
+                if (constraintType == Constraint.Type.CHECK) {
+                    ConstraintCheck check = (ConstraintCheck) obj;
+                    Table table = check.getTable();
+                    if (hideTable(table, session)) {
+                        continue;
+                    }
+                } else if (constraintType != Constraint.Type.DOMAIN) {
+                    continue;
+                }
+                HashSet<Column> columns = new HashSet<>();
+                constraint.getExpression().isEverything(ExpressionVisitor.getColumnsVisitor(columns, null));
+                for (Column column: columns) {
+                    // General value specification VALUE is not a real column
+                    // and doesn't have a table
+                    Table t = column.getTable();
+                    if (t != null) {
+                        add(rows,
+                                catalog,
+                                // CONSTRAINT_SCHEMA
+                                constraint.getSchema().getName(),
+                                // CONSTRAINT_NAME
+                                constraint.getName(),
+                                catalog,
+                                // TABLE_SCHEMA
+                                t.getSchema().getName(),
+                                // TABLE_NAME
+                                t.getName(),
+                                // COLUMN_NAME
+                                column.getName()
+                        );
+                    }
+                }
+            }
+            break;
+        }
         default:
             DbException.throwInternalError("type="+type);
         }
@@ -2187,12 +2261,12 @@ public class MetaTable extends Table {
     }
 
     private static ConstraintUnique lookupUniqueForReferential(ConstraintReferential referential) {
-        Table table = referential.getRefTable();
-        for (Constraint c : table.getConstraints()) {
-            if (c.getConstraintType() == Constraint.Type.UNIQUE) {
-                ConstraintUnique unique = (ConstraintUnique) c;
-                if (unique.getReferencedColumns(table).equals(referential.getReferencedColumns(table))) {
-                    return unique;
+        Index index = referential.getUniqueIndex();
+        for (Constraint c : referential.getRefTable().getConstraints()) {
+            Type constraintType = c.getConstraintType();
+            if (constraintType == Constraint.Type.PRIMARY_KEY || constraintType == Constraint.Type.UNIQUE) {
+                if (c.getIndex() == index) {
+                    return (ConstraintUnique) c;
                 }
             }
         }

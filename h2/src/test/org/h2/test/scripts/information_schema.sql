@@ -21,12 +21,12 @@ ALTER TABLE T2 ADD CONSTRAINT FK_1 FOREIGN KEY (C3, C4) REFERENCES T1(C1, C3) ON
 ALTER TABLE T2 ADD CONSTRAINT FK_2 FOREIGN KEY (C3, C4) REFERENCES T1(C4, C3) ON UPDATE CASCADE ON DELETE SET DEFAULT;
 > ok
 
-ALTER TABLE T2 ADD CONSTRAINT CH_1 CHECK C4 > 0;
+ALTER TABLE T2 ADD CONSTRAINT CH_1 CHECK (C4 > 0 AND NOT EXISTS(SELECT 1 FROM T1 WHERE T1.C1 + T1.C2 = T2.C4));
 > ok
 
 SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS LIMIT 0;
-> CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME CONSTRAINT_TYPE TABLE_CATALOG TABLE_SCHEMA TABLE_NAME IS_DEFERRABLE INITIALLY_DEFERRED
-> ------------------ ----------------- --------------- --------------- ------------- ------------ ---------- ------------- ------------------
+> CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME CONSTRAINT_TYPE TABLE_CATALOG TABLE_SCHEMA TABLE_NAME IS_DEFERRABLE INITIALLY_DEFERRED REMARKS SQL ID
+> ------------------ ----------------- --------------- --------------- ------------- ------------ ---------- ------------- ------------------ ------- --- --
 > rows: 0
 
 SELECT CONSTRAINT_NAME, CONSTRAINT_TYPE, TABLE_NAME, IS_DEFERRABLE, INITIALLY_DEFERRED FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
@@ -41,21 +41,9 @@ SELECT CONSTRAINT_NAME, CONSTRAINT_TYPE, TABLE_NAME, IS_DEFERRABLE, INITIALLY_DE
 > FK_2            FOREIGN KEY     T2         NO            NO
 > rows (ordered): 5
 
-SELECT CONSTRAINT_NAME, CONSTRAINT_TYPE, TABLE_NAME, COLUMN_LIST FROM INFORMATION_SCHEMA.CONSTRAINTS
-    WHERE CONSTRAINT_CATALOG = DATABASE() AND CONSTRAINT_SCHEMA = SCHEMA() AND TABLE_CATALOG = DATABASE() AND TABLE_SCHEMA = SCHEMA()
-    ORDER BY TABLE_NAME, CONSTRAINT_NAME;
-> CONSTRAINT_NAME CONSTRAINT_TYPE TABLE_NAME COLUMN_LIST
-> --------------- --------------- ---------- -----------
-> PK_1            PRIMARY KEY     T1         C1,C2
-> U_1             UNIQUE          T1         C3,C4
-> CH_1            CHECK           T2         null
-> FK_1            REFERENTIAL     T2         C3,C4
-> FK_2            REFERENTIAL     T2         C3,C4
-> rows (ordered): 5
-
 SELECT * FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE LIMIT 0;
-> CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME TABLE_CATALOG TABLE_SCHEMA TABLE_NAME COLUMN_NAME ORDINAL_POSITION POSITION_IN_UNIQUE_CONSTRAINT
-> ------------------ ----------------- --------------- ------------- ------------ ---------- ----------- ---------------- -----------------------------
+> CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME TABLE_CATALOG TABLE_SCHEMA TABLE_NAME COLUMN_NAME ORDINAL_POSITION POSITION_IN_UNIQUE_CONSTRAINT INDEX_CATALOG INDEX_SCHEMA INDEX_NAME
+> ------------------ ----------------- --------------- ------------- ------------ ---------- ----------- ---------------- ----------------------------- ------------- ------------ ----------
 > rows: 0
 
 SELECT CONSTRAINT_NAME, TABLE_NAME, COLUMN_NAME, ORDINAL_POSITION, POSITION_IN_UNIQUE_CONSTRAINT FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
@@ -97,6 +85,20 @@ SELECT U1.TABLE_NAME T1, U1.COLUMN_NAME C1, U2.TABLE_NAME T2, U2.COLUMN_NAME C2
 > T2 C3 T1 C4
 > T2 C4 T1 C3
 > rows (ordered): 2
+
+TABLE INFORMATION_SCHEMA.CHECK_CONSTRAINTS;
+> CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME CHECK_CLAUSE
+> ------------------ ----------------- --------------- ------------------------------------------------------------------------------------------------------------------------------
+> SCRIPT             PUBLIC            CH_1            ("C4" > 0) AND (NOT EXISTS( SELECT 1 FROM "PUBLIC"."T1" /* PUBLIC.PRIMARY_KEY_A */ WHERE ("T1"."C1" + "T1"."C2") = "T2"."C4"))
+> rows: 1
+
+TABLE INFORMATION_SCHEMA.CHECK_COLUMN_USAGE;
+> CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME TABLE_CATALOG TABLE_SCHEMA TABLE_NAME COLUMN_NAME
+> ------------------ ----------------- --------------- ------------- ------------ ---------- -----------
+> SCRIPT             PUBLIC            CH_1            SCRIPT        PUBLIC       T1         C1
+> SCRIPT             PUBLIC            CH_1            SCRIPT        PUBLIC       T1         C2
+> SCRIPT             PUBLIC            CH_1            SCRIPT        PUBLIC       T2         C4
+> rows: 3
 
 DROP TABLE T2;
 > ok

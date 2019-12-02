@@ -318,9 +318,14 @@ public class ParserUtil {
     public static final int USING = UNKNOWN + 1;
 
     /**
+     * The token "VALUE".
+     */
+    public static final int VALUE = USING + 1;
+
+    /**
      * The token "VALUES".
      */
-    public static final int VALUES = USING + 1;
+    public static final int VALUES = VALUE + 1;
 
     /**
      * The token "WHERE".
@@ -694,7 +699,9 @@ public class ParserUtil {
             }
             return IDENTIFIER;
         case 'V':
-            if (eq("VALUES", s, ignoreCase, start, end)) {
+            if (eq("VALUE", s, ignoreCase, start, end)) {
+                return VALUE;
+            } else if (eq("VALUES", s, ignoreCase, start, end)) {
                 return VALUES;
             }
             return IDENTIFIER;

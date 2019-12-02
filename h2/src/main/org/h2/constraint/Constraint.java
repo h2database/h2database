@@ -8,6 +8,7 @@ package org.h2.constraint;
 import java.util.HashSet;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
+import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.index.Index;
 import org.h2.message.Trace;
@@ -39,7 +40,11 @@ public abstract class Constraint extends SchemaObjectBase implements
         /**
          * The constraint type for referential constraints.
          */
-        REFERENTIAL;
+        REFERENTIAL,
+        /**
+         * The constraint type for domain constraints.
+         */
+        DOMAIN;
 
         /**
          * Get standard SQL type name.
@@ -66,7 +71,9 @@ public abstract class Constraint extends SchemaObjectBase implements
     Constraint(Schema schema, int id, String name, Table table) {
         super(schema, id, name, Trace.CONSTRAINT);
         this.table = table;
-        this.setTemporary(table.isTemporary());
+        if (table != null) {
+            this.setTemporary(table.isTemporary());
+        }
     }
 
     /**
@@ -111,6 +118,15 @@ public abstract class Constraint extends SchemaObjectBase implements
     public abstract HashSet<Column> getReferencedColumns(Table table);
 
     /**
+     * Returns the CHECK expression or null.
+     *
+     * @return the CHECK expression or null.
+     */
+    public Expression getExpression() {
+        return null;
+    }
+
+    /**
      * Get the SQL statement to create this constraint.
      *
      * @return the SQL statement
@@ -139,12 +155,24 @@ public abstract class Constraint extends SchemaObjectBase implements
     public abstract void rebuild();
 
     /**
+     * Get the index of this constraint in the source table, or null if no index
+     * is used.
+     *
+     * @return the index
+     */
+    public Index getIndex() {
+        return null;
+    }
+
+    /**
      * Get the unique index used to enforce this constraint, or null if no index
      * is used.
      *
      * @return the index
      */
-    public abstract Index getUniqueIndex();
+    public Index getUniqueIndex() {
+        return null;
+    }
 
     @Override
     public int getType() {

@@ -130,7 +130,7 @@ public class TestKeywords extends TestBase {
                         }
                         stat.execute("DROP TABLE TEST");
                         stat.execute("CREATE TABLE TEST(" + s + " INT) AS (VALUES 10)");
-                        try (ResultSet rs = stat.executeQuery("SELECT " + s + " VALUE FROM TEST")) {
+                        try (ResultSet rs = stat.executeQuery("SELECT " + s + " V FROM TEST")) {
                             assertTrue(rs.next());
                             assertEquals(10, rs.getInt(1));
                         }

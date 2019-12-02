@@ -354,6 +354,26 @@ WITH cte1 AS (
 SELECT sum(FIRST_COLUMN) FROM cte2;
 "
 
+"Commands (DDL)","ALTER DOMAIN ADD CONSTRAINT","
+ALTER DOMAIN @h2@ [ IF EXISTS ] domainName ADD [ constraintNameDefinition ]
+CHECK (condition) @h2@ [ CHECK | NOCHECK ]
+","
+Adds a constraint to a domain.
+This command commits an open transaction in this connection.
+","
+ALTER DOMAIN D ADD CONSTRAINT D_POSITIVE CHECK (VALUE > 0)
+"
+
+"Commands (DDL)","ALTER DOMAIN DROP CONSTRAINT","
+ALTER DOMAIN @h2@ [ IF EXISTS ] domainName DROP
+CONSTRAINT @h2@ [ IF EXISTS ] constraintName
+","
+Removes a constraint from a domain.
+This command commits an open transaction in this connection.
+","
+ALTER DOMAIN D DROP CONSTRAINT D_POSITIVE
+"
+
 "Commands (DDL)","ALTER INDEX RENAME","
 @h2@ ALTER INDEX [ IF EXISTS ] indexName RENAME TO newIndexName
 ","
@@ -385,7 +405,7 @@ ALTER SEQUENCE SEQ_ID RESTART WITH 1000
 "Commands (DDL)","ALTER TABLE ADD","
 ALTER TABLE @h2@ [ IF EXISTS ] tableName ADD [ COLUMN ]
 { @h2@ [ IF NOT EXISTS ] columnName columnDefinition
-    | @h2@ { ( { columnName columnDefinition | constraint } [,...] ) } }
+    | @h2@ { ( { columnName columnDefinition | tableConstraintDefinition } [,...] ) } }
 @h2@ [ { { BEFORE | AFTER } columnName } | FIRST ]
 ","
 Adds a new column to a table.
@@ -395,7 +415,7 @@ ALTER TABLE TEST ADD CREATEDATE TIMESTAMP
 "
 
 "Commands (DDL)","ALTER TABLE ADD CONSTRAINT","
-ALTER TABLE @h2@ [ IF EXISTS ] tableName ADD constraint @h2@ [ CHECK | NOCHECK ]
+ALTER TABLE @h2@ [ IF EXISTS ] tableName ADD tableConstraintDefinition @h2@ [ CHECK | NOCHECK ]
 ","
 Adds a constraint to a table. If NOCHECK is specified, existing rows are not
 checked for consistency (the default is to check consistency for existing rows).
@@ -685,8 +705,10 @@ CREATE CONSTANT ONE VALUE 1
 
 "Commands (DDL)","CREATE DOMAIN","
 CREATE DOMAIN @h2@ [ IF NOT EXISTS ] newDomainName [ AS ] dataType
-[ DEFAULT expression ] @h2@ [ [ NOT ] NULL ] @h2@ [ SELECTIVITY selectivityInt ]
-[ CHECK condition ]
+[ DEFAULT expression ]
+@h2@ [ ON UPDATE expression ] @c@ [ [ NOT ] NULL ]
+@h2@ [ SELECTIVITY selectivityInt ] @h2@ [ COMMENT expression ]
+[ CHECK (condition) | @h2@ { [ NOT ] NULL } ] [...]
 ","
 Creates a new data type (domain). The check condition must evaluate to true or
 to NULL (to prevent NULL, use ""NOT NULL""). In the condition, the term VALUE refers
@@ -800,7 +822,7 @@ CREATE SEQUENCE SEQ_ID
 "Commands (DDL)","CREATE TABLE","
 CREATE @h2@ [ CACHED | MEMORY ] [ @c@ { TEMP } | [ GLOBAL | LOCAL ] TEMPORARY ]
 TABLE @h2@ [ IF NOT EXISTS ] name
-[ ( { columnName [columnDefinition] | constraint } [,...] ) ]
+[ ( { columnName [columnDefinition] | tableConstraintDefinition } [,...] ) ]
 @h2@ [ ENGINE tableEngineName ]
 @h2@ [ WITH tableEngineParamName [,...] ]
 @h2@ [ NOT PERSISTENT ] @h2@ [ TRANSACTIONAL ]
@@ -2500,10 +2522,10 @@ dataType @h2@ [ VISIBLE | INVISIBLE ]
 [ { DEFAULT expression
     | [ GENERATED ALWAYS ] AS (computedColumnExpression)
     | GENERATED {ALWAYS | BY DEFAULT} AS IDENTITY [(sequenceOptions)]} ]
-@h2@ [ ON UPDATE expression ] [ NOT NULL | @h2@ { NULL } ]
+@h2@ [ ON UPDATE expression ] @c@ [ [ NOT ] NULL ]
 @c@ [ { AUTO_INCREMENT | IDENTITY } [ ( startInt [, incrementInt ] ) ] ]
 @h2@ [ SELECTIVITY selectivityInt ] @h2@ [ COMMENT expression ]
-[ PRIMARY KEY @c@ [ HASH ] | UNIQUE ] [ CHECK condition ]
+[ columnConstraintDefinition ] [...]
 ","
 Default expressions are used if no explicit value was used when adding a row.
 The computed column expression is evaluated and assigned whenever the row changes.
@@ -2520,17 +2542,33 @@ GENERATED ALWAYS AS IDENTITY is accepted but treated in the same way as GENERATE
 The invisible column will not be displayed as a result of SELECT * query.
 Otherwise, it works as normal column.
 
-The options PRIMARY KEY, UNIQUE, and CHECK are not supported for ALTER statements.
-
-Check constraints can reference columns of the table,
-and they can reference objects that exist while the statement is executed.
-Conditions are only checked when a row is added or modified
-in the table where the constraint exists.
-
+Column constraint definitions are not supported for ALTER statements.
 ","
 CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255) DEFAULT '');
 CREATE TABLE TEST(ID BIGINT IDENTITY);
 CREATE TABLE TEST(QUANTITY INT, PRICE DECIMAL, AMOUNT DECIMAL AS QUANTITY*PRICE);
+"
+
+"Other Grammar","Column Constraint Definition","
+[ constraintNameDefinition ]
+NOT NULL | @h2@ { NULL } | PRIMARY KEY @c@ [ HASH ] | UNIQUE | referencesSpecification | CHECK (condition)
+","
+NOT NULL disallows NULL value for a column.
+
+PRIMARY KEY and UNIQUE require unique values.
+PRIMARY KEY also disallows NULL values and marks the column as a primary key.
+
+Referential constraint requires values that exist in other column (usually in another table).
+
+Check constraint require a specified condition to return TRUE or UNKNOWN (NULL).
+It can reference columns of the table, and can reference objects that exist while the statement is executed.
+Conditions are only checked when a row is added or modified in the table where the constraint exists.
+","
+NOT NULL
+PRIMARY KEY
+UNIQUE
+REFERENCES T2(ID)
+CHECK (VALUE > 0)
 "
 
 "Other Grammar","Comments","
@@ -2652,18 +2690,23 @@ T IS JSON OBJECT WITH UNIQUE KEYS
 LIKE 'Jo%'
 "
 
-"Other Grammar","Constraint","
+"Other Grammar","Table Constraint Definition","
 [ constraintNameDefinition ]
-{ CHECK expression
+{ PRIMARY KEY @h2@ [ HASH ] ( columnName [,...] ) }
     | UNIQUE ( columnName [,...] )
     | referentialConstraint
-    | PRIMARY KEY @h2@ [ HASH ] ( columnName [,...] ) }
+    | CHECK (condition)
 ","
 Defines a constraint.
-The check condition must evaluate to TRUE, FALSE or NULL.
-TRUE and NULL mean the operation is to be permitted,
-and FALSE means the operation is to be rejected.
-To prevent NULL in a column, use NOT NULL instead of a check constraint.
+
+PRIMARY KEY and UNIQUE require unique values.
+PRIMARY KEY also disallows NULL values and marks the column as a primary key.
+
+Referential constraint requires values that exist in other column(s) (usually in another table).
+
+Check constraint require a specified condition to return TRUE or UNKNOWN (NULL).
+It can reference columns of the table, and can reference objects that exist while the statement is executed.
+Conditions are only checked when a row is added or modified in the table where the constraint exists.
 ","
 PRIMARY KEY(ID, NAME)
 "
@@ -2940,18 +2983,25 @@ With default settings identifiers in H2 are case sensitive.
 "
 
 "Other Grammar","Referential Constraint","
-FOREIGN KEY ( columnName [,...] )
+FOREIGN KEY ( columnName [,...] ) referencesSpecification
+","
+Defines a referential constraint.
+","
+FOREIGN KEY(ID) REFERENCES TEST(ID)
+"
+
+"Other Grammar","References Specification","
 REFERENCES [ refTableName ] [ ( refColumnName [,...] ) ]
 [ ON DELETE referentialAction ] [ ON UPDATE referentialAction ]
 ","
-Defines a referential constraint.
+Defines a referential specification of a referential constraint.
 If the table name is not specified, then the same table is referenced.
 RESTRICT is the default action.
 If the referenced columns are not specified, then the primary key columns are used.
 The required indexes are automatically created if required.
 Some tables may not be referenced, such as metadata tables.
 ","
-FOREIGN KEY(ID) REFERENCES TEST(ID)
+REFERENCES TEST(ID)
 "
 
 "Other Grammar","Referential Action","
@@ -2962,7 +3012,8 @@ RESTRICT is the default action.
 As this database does not support deferred checking, RESTRICT and NO ACTION will both throw an exception if the constraint is violated.
 The action SET DEFAULT will set the column in the referencing (child) table to the default value, while SET NULL will set it to NULL.
 ","
-FOREIGN KEY(ID) REFERENCES TEST(ID) ON UPDATE CASCADE
+CASCADE
+SET NULL
 "
 
 "Other Grammar","Script Compression Encryption","

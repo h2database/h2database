@@ -20,9 +20,7 @@ import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.engine.User;
-import org.h2.expression.Alias;
 import org.h2.expression.Expression;
-import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.index.Index;
@@ -189,23 +187,6 @@ public class TableView extends Table {
                 }
                 Column col = new Column(name, type);
                 col.setTable(this, i);
-                // Fetch check constraint from view column source
-                ExpressionColumn fromColumn = null;
-                if (expr instanceof ExpressionColumn) {
-                    fromColumn = (ExpressionColumn) expr;
-                } else if (expr instanceof Alias) {
-                    Expression aliasExpr = expr.getNonAliasExpression();
-                    if (aliasExpr instanceof ExpressionColumn) {
-                        fromColumn = (ExpressionColumn) aliasExpr;
-                    }
-                }
-                if (fromColumn != null) {
-                    Expression checkExpression = fromColumn.getColumn()
-                            .getCheckConstraint(session, name);
-                    if (checkExpression != null) {
-                        col.addCheckConstraint(session, checkExpression);
-                    }
-                }
                 list.add(col);
             }
             cols = list.toArray(new Column[0]);

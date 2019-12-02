@@ -1127,7 +1127,7 @@ public class TestLob extends TestDb {
         conn = reconnect(conn);
         stat = conn.createStatement();
         ResultSet rs;
-        rs = stat.executeQuery("select value from information_schema.settings " +
+        rs = stat.executeQuery("select `value` from information_schema.settings " +
                 "where NAME='COMPRESS_LOB'");
         rs.next();
         assertEquals(compress ? "LZF" : "NO", rs.getString(1));
@@ -1422,7 +1422,7 @@ public class TestLob extends TestDb {
         PreparedStatement prep;
         ResultSet rs;
         long time;
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE " +
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, V " +
                 (clob ? "CLOB" : "BLOB") + ")");
 
         int len = getSize(1, 1000);
@@ -1447,7 +1447,7 @@ public class TestLob extends TestDb {
         conn = reconnect(conn);
 
         time = System.nanoTime();
-        prep = conn.prepareStatement("SELECT ID, VALUE FROM TEST");
+        prep = conn.prepareStatement("SELECT ID, V FROM TEST");
         rs = prep.executeQuery();
         while (rs.next()) {
             int id = rs.getInt("ID");
@@ -1528,13 +1528,13 @@ public class TestLob extends TestDb {
         assertFalse(rs.next());
 
         conn.createStatement().execute("drop table test");
-        stat.execute("create table test(value other)");
+        stat.execute("create table test(v other)");
         prep = conn.prepareStatement("insert into test values(?)");
         prep.setObject(1, JdbcUtils.serialize("", conn.getSession().getDataHandler()));
         prep.execute();
-        rs = stat.executeQuery("select value from test");
+        rs = stat.executeQuery("select v from test");
         while (rs.next()) {
-            assertEquals("", (String) rs.getObject("value"));
+            assertEquals("", (String) rs.getObject("v"));
         }
         conn.close();
     }

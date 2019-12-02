@@ -1171,17 +1171,17 @@ public class TestPreparedStatement extends TestDb {
         ResultSet rs;
         trace("Create tables");
         stat.execute("CREATE TABLE T_INT" +
-                "(ID INT PRIMARY KEY,VALUE INT)");
+                "(ID INT PRIMARY KEY,V INT)");
         stat.execute("CREATE TABLE T_VARCHAR" +
-                "(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
+                "(ID INT PRIMARY KEY,V VARCHAR(255))");
         stat.execute("CREATE TABLE T_DECIMAL_0" +
-                "(ID INT PRIMARY KEY,VALUE DECIMAL(30,0))");
+                "(ID INT PRIMARY KEY,V DECIMAL(30,0))");
         stat.execute("CREATE TABLE T_DECIMAL_10" +
-                "(ID INT PRIMARY KEY,VALUE DECIMAL(20,10))");
+                "(ID INT PRIMARY KEY,V DECIMAL(20,10))");
         stat.execute("CREATE TABLE T_DATETIME" +
-                "(ID INT PRIMARY KEY,VALUE DATETIME)");
+                "(ID INT PRIMARY KEY,V DATETIME)");
         stat.execute("CREATE TABLE T_BIGINT" +
-                "(ID INT PRIMARY KEY,VALUE DECIMAL(30,0))");
+                "(ID INT PRIMARY KEY,V DECIMAL(30,0))");
         prep = conn.prepareStatement("INSERT INTO T_INT VALUES(?,?)",
                 ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         prep.setInt(1, 1);
@@ -1275,7 +1275,7 @@ public class TestPreparedStatement extends TestDb {
         prep.setFloat(2, -40);
         prep.executeUpdate();
 
-        rs = stat.executeQuery("SELECT VALUE FROM T_DECIMAL_0 ORDER BY ID");
+        rs = stat.executeQuery("SELECT V FROM T_DECIMAL_0 ORDER BY ID");
         checkBigDecimal(rs, new String[] { "" + Long.MAX_VALUE,
                 "" + Long.MIN_VALUE, "10", "-20", "30", "-40" });
         prep = conn.prepareStatement("INSERT INTO T_BIGINT VALUES(?,?)");
@@ -1301,7 +1301,7 @@ public class TestPreparedStatement extends TestDb {
         prep.setObject(2, new BigInteger("-60"));
         prep.executeUpdate();
 
-        rs = stat.executeQuery("SELECT VALUE FROM T_BIGINT ORDER BY ID");
+        rs = stat.executeQuery("SELECT V FROM T_BIGINT ORDER BY ID");
         checkBigDecimal(rs, new String[] { "" + Long.MAX_VALUE,
                 "" + Long.MIN_VALUE, "10", "-20", "30", "-40", "-60" });
     }
@@ -1635,8 +1635,8 @@ public class TestPreparedStatement extends TestDb {
     private void testPreparedStatementWithAnyParameter() throws SQLException {
         deleteDb("preparedStatement");
         Connection conn = getConnection("preparedStatement");
-        conn.prepareStatement("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE INT UNIQUE)").execute();
-        PreparedStatement ps = conn.prepareStatement("INSERT INTO TEST(ID, VALUE) VALUES (?, ?)");
+        conn.prepareStatement("CREATE TABLE TEST(ID INT PRIMARY KEY, V INT UNIQUE)").execute();
+        PreparedStatement ps = conn.prepareStatement("INSERT INTO TEST(ID, V) VALUES (?, ?)");
         for (int i = 0; i < 10_000; i++) {
             ps.setInt(1, i);
             ps.setInt(2, i * 10);
@@ -1645,18 +1645,18 @@ public class TestPreparedStatement extends TestDb {
         Object[] values = {-100, 10, 200, 3_000, 40_000, 500_000};
         int[] expected = {1, 20, 300, 4_000};
         // Ensure that other methods return the same results
-        ps = conn.prepareStatement("SELECT ID FROM TEST WHERE VALUE IN (SELECT * FROM TABLE(X INT=?)) ORDER BY ID");
+        ps = conn.prepareStatement("SELECT ID FROM TEST WHERE V IN (SELECT * FROM TABLE(X INT=?)) ORDER BY ID");
         anyParameterCheck(ps, values, expected);
-        ps = conn.prepareStatement("SELECT ID FROM TEST INNER JOIN TABLE(X INT=?) T ON TEST.VALUE = T.X");
+        ps = conn.prepareStatement("SELECT ID FROM TEST INNER JOIN TABLE(X INT=?) T ON TEST.V = T.X");
         anyParameterCheck(ps, values, expected);
         // Test expression IN(UNNEST(?))
-        ps = conn.prepareStatement("SELECT ID FROM TEST WHERE VALUE IN(UNNEST(?))");
+        ps = conn.prepareStatement("SELECT ID FROM TEST WHERE V IN(UNNEST(?))");
         assertThrows(ErrorCode.PARAMETER_NOT_SET_1, ps).executeQuery();
         anyParameterCheck(ps, values, expected);
         anyParameterCheck(ps, 300, new int[] {30});
         anyParameterCheck(ps, -5, new int[0]);
         // Test expression = ANY(?)
-        ps = conn.prepareStatement("SELECT ID FROM TEST WHERE VALUE = ANY(?)");
+        ps = conn.prepareStatement("SELECT ID FROM TEST WHERE V = ANY(?)");
         assertThrows(ErrorCode.PARAMETER_NOT_SET_1, ps).executeQuery();
         anyParameterCheck(ps, values, expected);
         anyParameterCheck(ps, 300, new int[] {30});

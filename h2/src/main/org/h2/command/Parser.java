@@ -68,6 +68,7 @@ import static org.h2.util.ParserUtil.UNION;
 import static org.h2.util.ParserUtil.UNIQUE;
 import static org.h2.util.ParserUtil.UNKNOWN;
 import static org.h2.util.ParserUtil.USING;
+import static org.h2.util.ParserUtil.VALUE;
 import static org.h2.util.ParserUtil.VALUES;
 import static org.h2.util.ParserUtil.WHERE;
 import static org.h2.util.ParserUtil.WINDOW;
@@ -92,6 +93,8 @@ import java.util.List;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.api.Trigger;
+import org.h2.command.ddl.AlterDomainAddConstraint;
+import org.h2.command.ddl.AlterDomainDropConstraint;
 import org.h2.command.ddl.AlterIndexRename;
 import org.h2.command.ddl.AlterSchemaRename;
 import org.h2.command.ddl.AlterSequence;
@@ -184,6 +187,7 @@ import org.h2.expression.Alias;
 import org.h2.expression.BinaryOperation;
 import org.h2.expression.BinaryOperation.OpType;
 import org.h2.expression.ConcatenationOperation;
+import org.h2.expression.DomainValueExpression;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionList;
@@ -255,7 +259,6 @@ import org.h2.util.geometry.EWKTUtils;
 import org.h2.util.json.JSONItemType;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
-import org.h2.value.ExtTypeInfo;
 import org.h2.value.ExtTypeInfoArray;
 import org.h2.value.ExtTypeInfoEnum;
 import org.h2.value.ExtTypeInfoGeometry;
@@ -310,14 +313,14 @@ public class Parser {
     private static final int END = PARAMETER + 1;
 
     /**
-     * Token with value.
+     * Token with literal.
      */
-    private static final int VALUE = END + 1;
+    private static final int LITERAL = END + 1;
 
     /**
      * The token "=".
      */
-    private static final int EQUAL = VALUE + 1;
+    private static final int EQUAL = LITERAL + 1;
 
     /**
      * The token ">=".
@@ -581,6 +584,8 @@ public class Parser {
             "UNKNOWN",
             // USING
             "USING",
+            // VALUE
+            "VALUE",
             // VALUES
             "VALUES",
             // WHERE
@@ -2367,8 +2372,9 @@ public class Parser {
 
     private DropDomain parseDropDomain() {
         boolean ifExists = readIfExists(false);
-        DropDomain command = new DropDomain(session);
-        command.setTypeName(readUniqueIdentifier());
+        String domainName = readIdentifierWithSchema();
+        DropDomain command = new DropDomain(session, getSchema());
+        command.setTypeName(domainName);
         ifExists = readIfExists(ifExists);
         command.setIfExists(ifExists);
         ConstraintActionType dropAction = parseCascadeOrRestrict();
@@ -3274,7 +3280,7 @@ public class Parser {
 
     private IsJsonPredicate readJsonPredicate(Expression left, boolean not) {
         JSONItemType itemType;
-        if (readIf("VALUE")) {
+        if (readIf(VALUE)) {
             itemType = JSONItemType.VALUE;
         } else if (readIf(ARRAY)) {
             itemType = JSONItemType.ARRAY;
@@ -3461,8 +3467,8 @@ public class Parser {
             boolean withKey = readIf("KEY");
             Expression key = readExpression();
             if (withKey) {
-                read("VALUE");
-            } else if (!readIf("VALUE")) {
+                read(VALUE);
+            } else if (!readIf(VALUE)) {
                 read(COLON);
             }
             Expression value = readExpression();
@@ -3795,7 +3801,7 @@ public class Parser {
         }
         case Function.DATEADD:
         case Function.DATEDIFF: {
-            if (currentTokenType == VALUE) {
+            if (currentTokenType == LITERAL) {
                 function.addParameter(ValueExpression.get(currentValue.convertTo(Value.STRING)));
             } else {
                 function.addParameter(ValueExpression.get(ValueString.get(currentToken)));
@@ -3936,8 +3942,8 @@ public class Parser {
                     boolean withKey = readIf("KEY");
                     function.addParameter(readExpression());
                     if (withKey) {
-                        read("VALUE");
-                    } else if (!readIf("VALUE")) {
+                        read(VALUE);
+                    } else if (!readIf(VALUE)) {
                         read(COLON);
                     }
                     function.addParameter(readExpression());
@@ -4315,7 +4321,7 @@ public class Parser {
             break;
         case MINUS_SIGN:
             read();
-            if (currentTokenType == VALUE) {
+            if (currentTokenType == LITERAL) {
                 r = ValueExpression.get(currentValue.negate());
                 int rType = r.getType().getValueType();
                 if (rType == Value.LONG &&
@@ -4425,13 +4431,17 @@ public class Parser {
             read();
             r = new ExpressionColumn(database, null, null, Column.ROWID, true);
             break;
-        case VALUE:
+        case LITERAL:
             if (currentValue.getValueType() == Value.STRING) {
                 r = ValueExpression.get(readCharacterStringLiteral());
             } else {
                 r = ValueExpression.get(currentValue);
                 read();
             }
+            break;
+        case VALUE:
+            read();
+            r = new DomainValueExpression();
             break;
         case VALUES:
             if (database.getMode().onDuplicateKeyUpdate) {
@@ -4580,7 +4590,7 @@ public class Parser {
         case 'C':
             if (equalsToken("CURRENT", name)) {
                 int index = lastParseIndex;
-                if (readIf("VALUE") && readIf(FOR)) {
+                if (readIf(VALUE) && readIf(FOR)) {
                     return new SequenceValue(readSequence(), true);
                 }
                 parseIndex = index;
@@ -4591,7 +4601,7 @@ public class Parser {
             }
             break;
         case 'D':
-            if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING &&
+            if (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING &&
                     (equalsToken("DATE", name) || equalsToken("D", name))) {
                 String date = currentValue.getString();
                 read();
@@ -4599,7 +4609,7 @@ public class Parser {
             }
             break;
         case 'E':
-            if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING && equalsToken("E", name)) {
+            if (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING && equalsToken("E", name)) {
                 String text = currentValue.getString();
                 // the PostgreSQL ODBC driver uses
                 // LIKE E'PROJECT\\_DATA' instead of LIKE
@@ -4611,14 +4621,14 @@ public class Parser {
             }
             break;
         case 'J':
-            if (currentTokenType == VALUE ) {
+            if (currentTokenType == LITERAL ) {
                 if (currentValue.getValueType() == Value.STRING && equalsToken("JSON", name)) {
                     return ValueExpression.get(ValueJson.fromJson(readCharacterStringLiteral().getString()));
                 }
             } else if (currentTokenType == IDENTIFIER && equalsToken("JSON", name) && equalsToken("X", currentToken)) {
                 int index = lastParseIndex;
                 read();
-                if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING) {
+                if (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING) {
                     return ValueExpression.get(ValueJson.fromJson(readBinaryLiteral()));
                 } else {
                     parseIndex = index;
@@ -4629,12 +4639,12 @@ public class Parser {
         case 'N':
             if (equalsToken("NEXT", name)) {
                 int index = lastParseIndex;
-                if (readIf("VALUE") && readIf(FOR)) {
+                if (readIf(VALUE) && readIf(FOR)) {
                     return new SequenceValue(readSequence(), false);
                 }
                 parseIndex = index;
                 read();
-            } else if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING
+            } else if (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING
                     && equalsToken("N", name)) {
                 // National character string literal
                 return ValueExpression.get(readCharacterStringLiteral());
@@ -4654,7 +4664,7 @@ public class Parser {
                 if (readIf(WITH)) {
                     read("TIME");
                     read("ZONE");
-                    if (currentTokenType != VALUE || currentValue.getValueType() != Value.STRING) {
+                    if (currentTokenType != LITERAL || currentValue.getValueType() != Value.STRING) {
                         throw getSyntaxError();
                     }
                     String time = currentValue.getString();
@@ -4666,7 +4676,7 @@ public class Parser {
                         read("TIME");
                         read("ZONE");
                     }
-                    if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING) {
+                    if (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING) {
                         String time = currentValue.getString();
                         read();
                         return ValueExpression.get(ValueTime.parse(time));
@@ -4678,7 +4688,7 @@ public class Parser {
                 if (readIf(WITH)) {
                     read("TIME");
                     read("ZONE");
-                    if (currentTokenType != VALUE || currentValue.getValueType() != Value.STRING) {
+                    if (currentTokenType != LITERAL || currentValue.getValueType() != Value.STRING) {
                         throw getSyntaxError();
                     }
                     String timestamp = currentValue.getString();
@@ -4690,7 +4700,7 @@ public class Parser {
                         read("TIME");
                         read("ZONE");
                     }
-                    if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING) {
+                    if (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING) {
                         String timestamp = currentValue.getString();
                         read();
                         return ValueExpression.get(ValueTimestamp.parse(timestamp, database));
@@ -4700,7 +4710,7 @@ public class Parser {
                 }
             } else if (equalsToken("TODAY", name)) {
                 return readFunctionWithoutParameters(Function.CURRENT_DATE);
-            } else if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING) {
+            } else if (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING) {
                 if (equalsToken("T", name)) {
                     String time = currentValue.getString();
                     read();
@@ -4713,7 +4723,7 @@ public class Parser {
             }
             break;
         case 'X':
-            if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING && equalsToken("X", name)) {
+            if (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING && equalsToken("X", name)) {
                 return ValueExpression.get(ValueBytes.getNoCopy(readBinaryLiteral()));
             }
             break;
@@ -4726,19 +4736,19 @@ public class Parser {
         do {
             baos = StringUtils.convertHexWithSpacesToBytes(baos, currentValue.getString());
             read();
-        } while (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING);
+        } while (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING);
         return baos.toByteArray();
     }
 
     private Value readCharacterStringLiteral() {
         Value value = currentValue;
         read();
-        if (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING) {
+        if (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING) {
             StringBuilder builder = new StringBuilder(value.getString());
             do {
                 builder.append(currentValue.getString());
                 read();
-            } while (currentTokenType == VALUE && currentValue.getValueType() == Value.STRING);
+            } while (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING);
             return ValueString.get(builder.toString());
         }
         return value;
@@ -4749,7 +4759,7 @@ public class Parser {
         if (!negative) {
             readIf(PLUS_SIGN);
         }
-        if (currentTokenType != VALUE || currentValue.getValueType() != Value.STRING) {
+        if (currentTokenType != LITERAL || currentValue.getValueType() != Value.STRING) {
             addExpected("string");
             throw getSyntaxError();
         }
@@ -4917,7 +4927,7 @@ public class Parser {
         } else if (currentTokenType == PLUS_SIGN) {
             read();
         }
-        if (currentTokenType != VALUE) {
+        if (currentTokenType != LITERAL) {
             throw DbException.getSyntaxError(sqlCommand, parseIndex, "integer");
         }
         if (minus) {
@@ -4945,7 +4955,7 @@ public class Parser {
         } else if (currentTokenType == PLUS_SIGN) {
             read();
         }
-        if (currentTokenType != VALUE) {
+        if (currentTokenType != LITERAL) {
             throw DbException.getSyntaxError(sqlCommand, parseIndex, "long");
         }
         if (minus) {
@@ -4966,7 +4976,7 @@ public class Parser {
         case FALSE:
             read();
             return false;
-        case VALUE:
+        case LITERAL:
             boolean result = currentValue.getBoolean();
             read();
             return result;
@@ -5224,7 +5234,7 @@ public class Parser {
                     }
                     checkLiterals(false);
                     currentValue = ValueInt.get((int) number);
-                    currentTokenType = VALUE;
+                    currentTokenType = LITERAL;
                     currentToken = "0";
                     parseIndex = i;
                     break;
@@ -5265,7 +5275,7 @@ public class Parser {
             checkLiterals(true);
             currentValue = ValueString.get(result, database);
             parseIndex = i;
-            currentTokenType = VALUE;
+            currentTokenType = LITERAL;
             return;
         }
         case CHAR_DOLLAR_QUOTED_STRING: {
@@ -5278,7 +5288,7 @@ public class Parser {
             checkLiterals(true);
             currentValue = ValueString.get(result, database);
             parseIndex = i;
-            currentTokenType = VALUE;
+            currentTokenType = LITERAL;
             return;
         }
         case CHAR_END:
@@ -5303,7 +5313,7 @@ public class Parser {
             }
         }
         currentValue = ValueInt.get((int) number);
-        currentTokenType = VALUE;
+        currentTokenType = LITERAL;
         currentToken = "0";
         parseIndex = i;
     }
@@ -5367,7 +5377,7 @@ public class Parser {
             }
             checkLiterals(false);
         }
-        currentTokenType = VALUE;
+        currentTokenType = LITERAL;
         currentToken = "0";
     }
 
@@ -5408,7 +5418,7 @@ public class Parser {
                     parseIndex++;
                 }
                 currentValue = ValueLong.get(bi.longValue());
-                currentTokenType = VALUE;
+                currentTokenType = LITERAL;
                 return;
             }
             currentValue = ValueDecimal.get(bi);
@@ -5421,7 +5431,7 @@ public class Parser {
             }
             currentValue = ValueDecimal.get(bd);
         }
-        currentTokenType = VALUE;
+        currentTokenType = LITERAL;
     }
 
     private void initialize(String sql) {
@@ -5871,7 +5881,6 @@ public class Parser {
     }
 
     private Column parseColumnWithType1(String columnName, boolean forTable) {
-        boolean regular = false;
         switch (currentTokenType) {
         case IDENTIFIER:
             break;
@@ -5888,13 +5897,24 @@ public class Parser {
             addExpected("data type");
             throw getSyntaxError();
         }
-        String original = currentToken;
-        if (!identifiersToUpper) {
-            original = StringUtils.toUpperEnglish(original);
-        }
-        switch (currentToken) {
-        case "BINARY":
+        int index = lastParseIndex;
+        String originalCase = currentToken;
+        boolean originalQuoted = currentTokenQuoted;
+        read();
+        if (currentTokenType == DOT) {
+            parseIndex = index;
             read();
+            originalCase = readIdentifierWithSchema();
+            return getColumnWithDomain(columnName, getSchema().getDomain(originalCase), forTable);
+        }
+        // Quoted tokens can be only domains
+        if (originalQuoted) {
+            return getColumnWithDomain(columnName,
+                    database.getSchema(session.getCurrentSchemaName()).getDomain(originalCase), forTable);
+        }
+        String original = identifiersToUpper ? originalCase : StringUtils.toUpperEnglish(originalCase);
+        switch (original) {
+        case "BINARY":
             if (readIf("VARYING")) {
                 original = "BINARY VARYING";
             } else if (readIf("LARGE")) {
@@ -5903,7 +5923,6 @@ public class Parser {
             }
             break;
         case "CHAR":
-            read();
             if (readIf("VARYING")) {
                 original = "CHAR VARYING";
             } else if (readIf("LARGE")) {
@@ -5912,7 +5931,6 @@ public class Parser {
             }
             break;
         case "CHARACTER":
-            read();
             if (readIf("VARYING")) {
                 original = "CHARACTER VARYING";
             } else if (readIf("LARGE")) {
@@ -5922,31 +5940,24 @@ public class Parser {
             break;
         case "DATETIME":
         case "DATETIME2":
-            read();
             return parseDateTimeType(columnName, original, false);
         case "DOUBLE":
-            read();
             if (readIf("PRECISION")) {
                 original = "DOUBLE PRECISION";
             }
             break;
         case "ENUM":
-            read();
             return parseEnumType(columnName);
         case "FLOAT":
-            read();
             return parseFloatType(columnName);
         case "GEOMETRY":
-            read();
             return parseGeometryType(columnName);
         case "LONG":
-            read();
             if (readIf("RAW")) {
                 original = "LONG RAW";
             }
             break;
         case "NATIONAL":
-            read();
             if (readIf("CHARACTER")) {
                 if (readIf("VARYING")) {
                     original = "NATIONAL CHARACTER VARYING";
@@ -5966,7 +5977,6 @@ public class Parser {
             }
             break;
         case "NCHAR":
-            read();
             if (readIf("VARYING")) {
                 original = "NCHAR VARYING";
             } else if (readIf("LARGE")) {
@@ -5975,49 +5985,30 @@ public class Parser {
             }
             break;
         case "SMALLDATETIME":
-            read();
             return parseDateTimeType(columnName, original, true);
         case "TIME":
-            read();
             return parseTimeType(columnName);
         case "TIMESTAMP":
-            read();
             return parseTimestampType(columnName);
-        default:
-            regular = true;
         }
-        long precision;
-        int scale;
-        ExtTypeInfo extTypeInfo;
-        Column templateColumn;
-        DataType dataType;
-        Domain domain = database.findDomain(original);
-        Mode mode = database.getMode();
-        if (domain != null) {
-            templateColumn = domain.getColumn();
-            TypeInfo type = templateColumn.getType();
-            dataType = DataType.getDataType(type.getValueType());
-            original = forTable ? domain.getSQL(true) : templateColumn.getOriginalSQL();
-            precision = type.getPrecision();
-            scale = type.getScale();
-            extTypeInfo = type.getExtTypeInfo();
-        } else {
-            dataType = DataType.getTypeByName(original, mode);
-            if (dataType == null || mode.disallowedTypes.contains(original)) {
-                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, original);
+        // Domain names can't have multiple words without quotes
+        if (originalCase.length() == original.length()) {
+            Domain domain = database.getSchema(session.getCurrentSchemaName()).findDomain(originalCase);
+            if (domain != null) {
+                return getColumnWithDomain(columnName, domain, forTable);
             }
-            templateColumn = null;
-            precision = dataType.defaultPrecision;
-            scale = dataType.defaultScale;
-            extTypeInfo = null;
         }
+        Mode mode = database.getMode();
+        DataType dataType = DataType.getTypeByName(original, mode);
+        if (dataType == null || mode.disallowedTypes.contains(original)) {
+            throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, original);
+        }
+        long precision = dataType.defaultPrecision;
+        int scale = dataType.defaultScale;
         int t = dataType.type;
         if (database.getIgnoreCase() && t == Value.STRING && !equalsToken("VARCHAR_CASESENSITIVE", original)) {
             original = "VARCHAR_IGNORECASE";
             dataType = DataType.getDataType(t = Value.STRING_IGNORECASE);
-        }
-        if (regular) {
-            read();
         }
         if ((dataType.supportsPrecision || dataType.supportsScale) && readIf(OPEN_PAREN)) {
             if (!readIf("MAX")) {
@@ -6066,17 +6057,21 @@ public class Parser {
                 dataType = DataType.getDataType(t = Value.BYTES);
             }
         }
-        Column column = new Column(columnName, TypeInfo.getTypeInfo(t, precision, scale, extTypeInfo), original);
-        if (templateColumn != null) {
-            column.setNullable(templateColumn.isNullable());
-            column.setDefaultExpression(session, templateColumn.getDefaultExpression());
-            int selectivity = templateColumn.getSelectivity();
-            if (selectivity != Constants.SELECTIVITY_DEFAULT) {
-                column.setSelectivity(selectivity);
-            }
-            column.addCheckConstraint(session, templateColumn.getCheckConstraint(session, columnName));
-            column.setComment(templateColumn.getComment());
+        return new Column(columnName, TypeInfo.getTypeInfo(t, precision, scale, null), original);
+    }
+
+    private Column getColumnWithDomain(String columnName, Domain domain, boolean forTable) {
+        Column templateColumn = domain.getColumn();
+        Column column = new Column(columnName, templateColumn.getType(),
+                forTable ? domain.getSQL(true) : templateColumn.getOriginalSQL());
+        column.setNullable(templateColumn.isNullable());
+        column.setDefaultExpression(session, templateColumn.getDefaultExpression());
+        column.setOnUpdateExpression(session, templateColumn.getOnUpdateExpression());
+        int selectivity = templateColumn.getSelectivity();
+        if (selectivity != Constants.SELECTIVITY_DEFAULT) {
+            column.setSelectivity(selectivity);
         }
+        column.setComment(templateColumn.getComment());
         if (forTable) {
             column.setDomain(domain);
         }
@@ -6763,7 +6758,7 @@ public class Parser {
             throw DbException.get(ErrorCode.CONSTANT_ALREADY_EXISTS_1,
                     constantName);
         }
-        read("VALUE");
+        read(VALUE);
         Expression expr = readExpression();
         CreateConstant command = new CreateConstant(session, schema);
         command.setConstantName(constantName);
@@ -6792,16 +6787,42 @@ public class Parser {
 
     private CreateDomain parseCreateDomain() {
         boolean ifNotExists = readIfNotExists();
-        CreateDomain command = new CreateDomain(session);
-        command.setTypeName(readUniqueIdentifier());
+        String domainName = readIdentifierWithSchema();
+        Schema schema = getSchema();
+        CreateDomain command = new CreateDomain(session, schema);
+        command.setTypeName(domainName);
         readIf("AS");
-        Column col = parseColumnForTable("VALUE", true, false);
-        if (readIf(CHECK)) {
-            Expression expr = readExpression();
-            col.addCheckConstraint(session, expr);
+        Column column = parseColumnForTable("VALUE", true, false);
+        boolean hasNotNull = false;
+        NullConstraintType nullType;
+        for (;;) {
+            String constraintName;
+            if (readIf(CONSTRAINT)) {
+                constraintName = readColumnIdentifier();
+            } else {
+                constraintName = null;
+            }
+            if (!hasNotNull
+                    && (nullType = parseNotNullConstraint()) != NullConstraintType.NO_NULL_CONSTRAINT_FOUND) {
+                hasNotNull = true;
+                if (nullType == NullConstraintType.NULL_IS_NOT_ALLOWED) {
+                    column.setNullable(false);
+                } else if (nullType == NullConstraintType.NULL_IS_ALLOWED) {
+                    column.setNullable(true);
+                }
+            } else if (readIf(CHECK)) {
+                AlterDomainAddConstraint constraint = new AlterDomainAddConstraint(session, schema, ifNotExists);
+                constraint.setDomainName(domainName);
+                constraint.setCheckExpression(readExpression());
+                command.addConstraintCommand(constraint);
+            } else if (constraintName == null) {
+                break;
+            } else {
+                throw getSyntaxError();
+            }
         }
-        col.rename(null);
-        command.setColumn(col);
+        column.rename(null);
+        command.setColumn(column);
         command.setIfNotExists(ifNotExists);
         return command;
     }
@@ -7212,6 +7233,8 @@ public class Parser {
             return parseAlterSequence();
         } else if (readIf("VIEW")) {
             return parseAlterView();
+        } else if (readIf("DOMAIN")) {
+            return parseAlterDomain();
         }
         throw getSyntaxError();
     }
@@ -7236,6 +7259,53 @@ public class Parser {
         checkSchema(old);
         command.setNewName(newName);
         return command;
+    }
+
+    private DefineCommand parseAlterDomain() {
+        boolean ifDomainExists = readIfExists(false);
+        String domainName = readIdentifierWithSchema();
+        Schema schema = getSchema();
+        Domain domain = schema.findDomain(domainName);
+        if (domain == null && !ifDomainExists) {
+            throw DbException.get(ErrorCode.DOMAIN_NOT_FOUND_1, domainName);
+        }
+        if (readIf("ADD")) {
+            boolean ifNotExists = false;
+            String constraintName = null;
+            String comment = null;
+            if (readIf(CONSTRAINT)) {
+                ifNotExists = readIfNotExists();
+                constraintName = readIdentifierWithSchema(schema.getName());
+                checkSchema(schema);
+                comment = readCommentIf();
+            }
+            read(CHECK);
+            AlterDomainAddConstraint command = new AlterDomainAddConstraint(session, schema, ifNotExists);
+            command.setDomainName(domainName);
+            command.setConstraintName(constraintName);
+            command.setCheckExpression(readExpression());
+            command.setIfDomainExists(ifDomainExists);
+            command.setComment(comment);
+            if (readIf("NOCHECK")) {
+                command.setCheckExisting(false);
+            } else {
+                readIf(CHECK);
+                command.setCheckExisting(true);
+            }
+            return command;
+        } else {
+            read("DROP");
+            read(CONSTRAINT);
+            boolean ifConstraintExists = readIfExists(false);
+            String constraintName = readIdentifierWithSchema(schema.getName());
+            checkSchema(schema);
+            AlterDomainDropConstraint command = new AlterDomainDropConstraint(session, getSchema(),
+                    ifConstraintExists);
+            command.setConstraintName(constraintName);
+            command.setDomainName(domainName);
+            command.setIfDomainExists(ifDomainExists);
+            return command;
+        }
     }
 
     private DefineCommand parseAlterView() {
@@ -7443,7 +7513,7 @@ public class Parser {
         } else if (readIf("COMPRESS_LOB")) {
             readIfEqualOrTo();
             Set command = new Set(session, SetTypes.COMPRESS_LOB);
-            if (currentTokenType == VALUE) {
+            if (currentTokenType == LITERAL) {
                 command.setString(readString());
             } else {
                 command.setString(readUniqueIdentifier());
@@ -8295,10 +8365,6 @@ public class Parser {
         Column oldColumn = columnIfTableExists(schema, tableName, columnName, ifTableExists, ifExists);
         Column newColumn = parseColumnForTable(columnName,
                 !preserveNotNull || oldColumn == null || oldColumn.isNullable(), true);
-        if (readIf(CHECK)) {
-            Expression expr = readExpression();
-            newColumn.addCheckConstraint(session, expr);
-        }
         AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
         command.setTableName(tableName);
         command.setIfTableExists(ifTableExists);
@@ -8326,10 +8392,6 @@ public class Parser {
             e = oldColumn.getOnUpdateExpression();
             if (e != null) {
                 newColumn.setOnUpdateExpression(session, e);
-            }
-            e = oldColumn.getCheckConstraint(session, columnName);
-            if (e != null) {
-                newColumn.addCheckConstraint(session, e);
             }
             String c = oldColumn.getComment();
             if (c != null) {
@@ -8658,37 +8720,52 @@ public class Parser {
         DefineCommand c = parseAlterTableAddConstraintIf(tableName, schema, false);
         if (c != null) {
             command.addConstraintCommand(c);
-        } else {
-            String columnName = readColumnIdentifier();
-            if (forCreateTable && (currentTokenType == COMMA || currentTokenType == CLOSE_PAREN)) {
-                command.addColumn(new Column(columnName, TypeInfo.TYPE_UNKNOWN));
-                return;
-            }
-            Column column = parseColumnForTable(columnName, true, true);
-            if (column.isAutoIncrement() && column.isPrimaryKey()) {
-                column.setPrimaryKey(false);
-                IndexColumn[] cols = { new IndexColumn() };
-                cols[0].columnName = column.getName();
-                AlterTableAddConstraint pk = new AlterTableAddConstraint(
-                        session, schema, false);
-                pk.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY);
-                pk.setTableName(tableName);
-                pk.setIndexColumns(cols);
-                command.addConstraintCommand(pk);
-            }
-            command.addColumn(column);
-            String constraintName = null;
+            return;
+        }
+        String columnName = readColumnIdentifier();
+        if (forCreateTable && (currentTokenType == COMMA || currentTokenType == CLOSE_PAREN)) {
+            command.addColumn(new Column(columnName, TypeInfo.TYPE_UNKNOWN));
+            return;
+        }
+        Column column = parseColumnForTable(columnName, true, true);
+        if (column.isAutoIncrement() && column.isPrimaryKey()) {
+            column.setPrimaryKey(false);
+            IndexColumn[] cols = { new IndexColumn() };
+            cols[0].columnName = column.getName();
+            AlterTableAddConstraint pk = new AlterTableAddConstraint(
+                    session, schema, false);
+            pk.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY);
+            pk.setTableName(tableName);
+            pk.setIndexColumns(cols);
+            command.addConstraintCommand(pk);
+        }
+        command.addColumn(column);
+        readColumnConstraints(command, schema, tableName, columnName, column);
+    }
+
+    private void readColumnConstraints(CommandWithColumns command, Schema schema, String tableName, String columnName,
+            Column column) {
+        String comment = column.getComment();
+        boolean hasPrimaryKey = false, hasNotNull = false;
+        NullConstraintType nullType;
+        for (;;) {
+            String constraintName;
             if (readIf(CONSTRAINT)) {
                 constraintName = readColumnIdentifier();
+            } else if (comment == null && (comment = readCommentIf()) != null) {
+                // Compatibility: COMMENT may be specified appear after some constraint
+                column.setComment(comment);
+                continue;
+            } else {
+                constraintName = null;
             }
-            Mode mode = database.getMode();
-            if (readIf(PRIMARY)) {
+            if (!hasPrimaryKey && readIf(PRIMARY)) {
                 read("KEY");
+                hasPrimaryKey = true;
                 boolean hash = readIf("HASH");
                 IndexColumn[] cols = { new IndexColumn() };
                 cols[0].columnName = column.getName();
-                AlterTableAddConstraint pk = new AlterTableAddConstraint(
-                        session, schema, false);
+                AlterTableAddConstraint pk = new AlterTableAddConstraint(session, schema, false);
                 pk.setConstraintName(constraintName);
                 pk.setPrimaryKeyHash(hash);
                 pk.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY);
@@ -8698,7 +8775,7 @@ public class Parser {
                 if (readIf("AUTO_INCREMENT")) {
                     parseAutoIncrement(column);
                 }
-                if (mode.useIdentityAsAutoIncrement) {
+                if (database.getMode().useIdentityAsAutoIncrement) {
                     if (readIf(NOT)) {
                         read(NULL);
                         column.setNullable(false);
@@ -8708,8 +8785,7 @@ public class Parser {
                     }
                 }
             } else if (readIf(UNIQUE)) {
-                AlterTableAddConstraint unique = new AlterTableAddConstraint(
-                        session, schema, false);
+                AlterTableAddConstraint unique = new AlterTableAddConstraint(session, schema, false);
                 unique.setConstraintName(constraintName);
                 unique.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE);
                 IndexColumn[] cols = { new IndexColumn() };
@@ -8717,23 +8793,24 @@ public class Parser {
                 unique.setIndexColumns(cols);
                 unique.setTableName(tableName);
                 command.addConstraintCommand(unique);
-            }
-            if (NullConstraintType.NULL_IS_NOT_ALLOWED == parseNotNullConstraint()) {
-                column.setNullable(false);
-            }
-            if (column.getComment() == null) {
-                String comment = readCommentIf();
-                if (comment != null) {
-                    column.setComment(comment);
+            } else if (!hasNotNull
+                    && (nullType = parseNotNullConstraint()) != NullConstraintType.NO_NULL_CONSTRAINT_FOUND) {
+                hasNotNull = true;
+                if (nullType == NullConstraintType.NULL_IS_NOT_ALLOWED) {
+                    column.setNullable(false);
+                } else if (nullType == NullConstraintType.NULL_IS_ALLOWED) {
+                    //  domains may be defined as not nullable
+                    column.setNullable(true);
                 }
-            }
-            if (readIf(CHECK)) {
-                Expression expr = readExpression();
-                column.addCheckConstraint(session, expr);
-            }
-            if (readIf("REFERENCES")) {
-                AlterTableAddConstraint ref = new AlterTableAddConstraint(
-                        session, schema, false);
+            } else if (readIf(CHECK)) {
+                AlterTableAddConstraint check = new AlterTableAddConstraint(session, schema, false);
+                check.setConstraintName(constraintName);
+                check.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_CHECK);
+                check.setTableName(tableName);
+                check.setCheckExpression(readExpression());
+                command.addConstraintCommand(check);
+            } else if (readIf("REFERENCES")) {
+                AlterTableAddConstraint ref = new AlterTableAddConstraint(session, schema, false);
                 ref.setConstraintName(constraintName);
                 ref.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_REFERENTIAL);
                 IndexColumn[] cols = { new IndexColumn() };
@@ -8742,6 +8819,10 @@ public class Parser {
                 ref.setTableName(tableName);
                 parseReferences(ref, schema, tableName);
                 command.addConstraintCommand(ref);
+            } else if (constraintName == null) {
+                return;
+            } else {
+                throw getSyntaxError();
             }
         }
     }
@@ -8986,7 +9067,7 @@ public class Parser {
                 read();
             } while (readIfMore());
             return list.toArray(new String[0]);
-        } else if (currentTokenType == VALUE) {
+        } else if (currentTokenType == LITERAL) {
             ArrayList<Integer> list = Utils.newSmallArrayList();
             do {
                 list.add(readInt());

@@ -1219,7 +1219,6 @@ public abstract class Table extends SchemaObjectBase {
         for (Column column : columns) {
             column.setDefaultExpression(session, null);
             column.setOnUpdateExpression(session, null);
-            column.removeCheckConstraint();
         }
     }
 

@@ -468,7 +468,7 @@ public class TestRunscript extends TestDb implements Trigger {
         stat1.execute("grant all on testSchema.child to testUser");
         stat1.execute("grant select, insert on testSchema.parent to testRole");
         stat1.execute("grant testRole to testUser");
-        stat1.execute("create table blob (value blob)");
+        stat1.execute("create table blob (v blob)");
         PreparedStatement prep = conn1.prepareStatement(
                 "insert into blob values (?)");
         prep.setBytes(1, new byte[65536]);

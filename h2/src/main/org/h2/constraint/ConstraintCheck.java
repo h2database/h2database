@@ -131,6 +131,7 @@ public class ConstraintCheck extends Constraint {
         return columns;
     }
 
+    @Override
     public Expression getExpression() {
         return expr;
     }
@@ -154,11 +155,6 @@ public class ConstraintCheck extends Constraint {
         if (r.next()) {
             throw DbException.get(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, getName());
         }
-    }
-
-    @Override
-    public Index getUniqueIndex() {
-        return null;
     }
 
     @Override

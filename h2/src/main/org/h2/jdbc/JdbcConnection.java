@@ -1325,12 +1325,13 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
         if (sql == null) {
             throw DbException.getInvalidValueException("SQL", null);
         }
-        if (!escapeProcessing) {
+        if (!escapeProcessing || sql.indexOf('{') < 0) {
             return sql;
         }
-        if (sql.indexOf('{') < 0) {
-            return sql;
-        }
+        return translateSQLImpl(sql);
+    }
+
+    private static String translateSQLImpl(String sql) {
         int len = sql.length();
         char[] chars = null;
         int level = 0;

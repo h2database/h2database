@@ -81,16 +81,19 @@ public class Sequence extends SchemaObjectBase {
      * sequence state (e.g. min value > max value, start value < min value,
      * etc).
      *
-     * @param startValue the new start value (<code>null</code> if no change)
-     * @param minValue the new min value (<code>null</code> if no change)
-     * @param maxValue the new max value (<code>null</code> if no change)
-     * @param increment the new increment (<code>null</code> if no change)
+     * @param restart
+     *            if true, restart the sequence
+     * @param startValue
+     *            the new start value ({@code null} if no change), ignored if
+     *            {@code restart = true}
+     * @param minValue
+     *            the new min value ({@code null} if no change)
+     * @param maxValue
+     *            the new max value ({@code null} if no change)
+     * @param increment
+     *            the new increment ({@code null} if no change)
      */
-    public synchronized void modify(Long startValue, Long minValue,
-            Long maxValue, Long increment) {
-        if (startValue == null) {
-            startValue = this.value;
-        }
+    public synchronized void modify(boolean restart, Long startValue, Long minValue, Long maxValue, Long increment) {
         if (minValue == null) {
             minValue = this.minValue;
         }
@@ -99,6 +102,11 @@ public class Sequence extends SchemaObjectBase {
         }
         if (increment == null) {
             increment = this.increment;
+        }
+        if (restart) {
+            startValue = increment >= 0 ? minValue : maxValue;
+        } else if (startValue == null) {
+            startValue = this.value;
         }
         if (!isValid(startValue, minValue, maxValue, increment)) {
             throw DbException.get(ErrorCode.SEQUENCE_ATTRIBUTES_INVALID,

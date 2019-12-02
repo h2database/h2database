@@ -7365,9 +7365,15 @@ public class Parser {
 
     private void parseSequenceOptions(SequenceOptions options, CreateSequence command, boolean forCreate) {
         for (;;) {
-            if (readIf(forCreate ? "START" : "RESTART")) {
-                readIf(WITH);
+            if (forCreate && readIf("START")) {
+                read(WITH);
                 options.setStartValue(readExpression());
+            } else if (!forCreate && readIf("RESTART")) {
+                if (readIf(WITH)) {
+                    options.setStartValue(readExpression());
+                } else {
+                    options.setRestart();
+                }
             } else if (readIf("INCREMENT")) {
                 readIf("BY");
                 options.setIncrement(readExpression());
@@ -8091,8 +8097,7 @@ public class Parser {
             }
             return command;
         } else if (readIf("RESTART")) {
-            readIf(WITH);
-            Prepared command = readAlterColumnRestartWith(schema, column, ifExists);
+            Prepared command = readAlterColumnRestartWith(schema, column, true);
             return commandIfTableExists(schema, tableName, ifTableExists, command);
         } else if (readIf("SELECTIVITY")) {
             AlterTableAlterColumn command = new AlterTableAlterColumn(
@@ -8318,15 +8323,19 @@ public class Parser {
         throw getSyntaxError();
     }
 
-    private Prepared readAlterColumnRestartWith(Schema schema, Column column, boolean ifExists) {
-        Expression start = readExpression();
+    private Prepared readAlterColumnRestartWith(Schema schema, Column column, boolean readWith) {
+        Expression start = !readWith || readIf(WITH) ? readExpression() : null;
         if (column == null) {
             return new NoOperation(session);
         }
         AlterSequence command = new AlterSequence(session, schema);
         command.setColumn(column);
         SequenceOptions options = new SequenceOptions();
-        options.setStartValue(start);
+        if (start == null) {
+            options.setRestart();
+        } else {
+            options.setStartValue(start);
+        }
         command.setOptions(options);
         return command;
     }

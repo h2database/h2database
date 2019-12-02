@@ -35,11 +35,11 @@ public abstract class SearchRow extends Value
 
     /**
      * Determine if specified column contains NULL
-     * @param indx column index
+     * @param index column index
      * @return true if NULL
      */
-    public boolean isNull(int indx) {
-        return getValue(indx) == ValueNull.INSTANCE;
+    public boolean isNull(int index) {
+        return getValue(index) == ValueNull.INSTANCE;
     }
 
     /**
@@ -81,6 +81,7 @@ public abstract class SearchRow extends Value
      *
      * @return the memory
      */
+    @Override
     public abstract int getMemory();
 
     /**
@@ -102,11 +103,11 @@ public abstract class SearchRow extends Value
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
         builder.append("(");
-        for (int indx = 0; indx < getColumnCount(); ++indx) {
-            if(indx != 0) {
+        for (int index = 0; index < getColumnCount(); ++index) {
+            if(index != 0) {
                 builder.append(", ");
             }
-            Value value = getValue(indx);
+            Value value = getValue(index);
             builder.append(value.getSQL());
         }
         builder.append(")");

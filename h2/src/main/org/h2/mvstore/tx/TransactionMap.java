@@ -953,7 +953,8 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
 
         X current;
 
-        TMIterator(TransactionMap<K,V> transactionMap, K from, K to, Snapshot<K,VersionedValue<V>> snapshot, boolean forEntries) {
+        TMIterator(TransactionMap<K,V> transactionMap, K from, K to, Snapshot<K,VersionedValue<V>> snapshot,
+                boolean forEntries) {
             Transaction transaction = transactionMap.getTransaction();
             this.transactionId = transaction.transactionId;
             this.forEntries = forEntries;

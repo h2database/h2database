@@ -62,8 +62,8 @@ public class SimpleRowValue extends SearchRow {
     }
 
     @Override
-    public boolean isNull(int indx) {
-        return indx != index || data == null || data == ValueNull.INSTANCE;
+    public boolean isNull(int index) {
+        return index != this.index || data == null || data == ValueNull.INSTANCE;
     }
 
     @Override

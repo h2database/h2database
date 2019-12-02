@@ -694,7 +694,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the iterator
      */
     public final Iterator<K> keyIterator(K from) {
-        return new Cursor<K, V>(getRootPage(), from);
+        return new Cursor<>(getRootPage(), from);
     }
 
     /**
@@ -833,7 +833,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
             @Override
             public Iterator<K> iterator() {
-                return new Cursor<K, V>(root, null);
+                return new Cursor<>(root, null);
             }
 
             @Override
@@ -919,7 +919,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param updatedRootReference the new
      * @return whether updating worked
      */
-    final boolean compareAndSetRoot(RootReference<K,V> expectedRootReference, RootReference<K,V> updatedRootReference) {
+    final boolean compareAndSetRoot(RootReference<K,V> expectedRootReference, RootReference<K,V> updatedRootReference)
+    {
         return root.compareAndSet(expectedRootReference, updatedRootReference);
     }
 
@@ -1401,7 +1402,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return rootReference;
     }
 
-    private static <K,V> Page<K,V> replacePage(CursorPos<K,V> path, Page<K,V> replacement, IntValueHolder unsavedMemoryHolder) {
+    private static <K,V> Page<K,V> replacePage(CursorPos<K,V> path, Page<K,V> replacement,
+            IntValueHolder unsavedMemoryHolder) {
         int unsavedMemory = replacement.isSaved() ? 0 : replacement.getMemory();
         while (path != null) {
             Page<K,V> parent = path.page;

@@ -27,12 +27,12 @@ Features
     Alias / Stored Procedures</a><br />
 <a href="#roles">
     Grants / Roles / Permissions</a><br />
-<a href="#encrypted">
+<a href="#encrypted_storage">
     Encrypted storage</a><br />
 
 <h2 id="introduction">Introduction</h2>
 <p>
-H2 is __not__ designed to be run in an adversarial environment. You should absolutely not expose your H2 server to untrusted connections. 
+H2 is __not__ designed to be run in an adversarial environment. You should absolutely not expose your H2 server to untrusted connections.
 </p>
 <p>
 Running H2 in embedded mode is the best choice - it is not externally exposed.
@@ -46,7 +46,7 @@ When running an H2 server in TCP mode, first prize is to run with it only listen
 Second prize is running listening to restricted ports on a secured network.
 </p>
 <p>
-If you expose H2 to the broader internet, you can secure the connection with SSL, but this is a rather tricky thing to get right, between JVM bugs, certificates and choosing a decent cipher.
+If you expose H2 to the broader Internet, you can secure the connection with SSL, but this is a rather tricky thing to get right, between JVM bugs, certificates and choosing a decent cipher.
 </p>
 
 <h2 id="alias">Alias / Stored procedures</h2>

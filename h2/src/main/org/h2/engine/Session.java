@@ -1790,7 +1790,8 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         }
     }
 
-    private static void addTableToDependencies(MVTable table, HashSet<MVMap<Object,VersionedValue<Object>>> maps, HashSet<MVTable> processed) {
+    private static void addTableToDependencies(MVTable table, HashSet<MVMap<Object,VersionedValue<Object>>> maps,
+            HashSet<MVTable> processed) {
         if (!processed.add(table)) {
             return;
         }

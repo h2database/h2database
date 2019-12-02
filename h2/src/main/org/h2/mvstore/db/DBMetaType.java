@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Class DBMetatype is a type for values in the type registry map.
+ * Class DBMetaType is a type for values in the type registry map.
  * <UL>
  * <LI> 8/22/17 6:40 PM initial creation
  * </UL>

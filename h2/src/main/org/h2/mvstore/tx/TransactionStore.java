@@ -155,11 +155,11 @@ public class TransactionStore {
         this.timeoutMillis = timeoutMillis;
         this.typeRegistry = openTypeRegistry(store, metaDataType);
         this.preparedTransactions = store.openMap("openTransactions", new MVMap.Builder<>());
-        this.undoLogBuilder = createUnloLogBuilder();
+        this.undoLogBuilder = createUndoLogBuilder();
     }
 
     @SuppressWarnings({"unchecked","rawtypes"})
-    MVMap.Builder<Long,Record<?, ?>> createUnloLogBuilder() {
+    MVMap.Builder<Long,Record<?, ?>> createUndoLogBuilder() {
         return new MVMap.Builder<Long,Record<?,?>>()
                 .singleWriter()
                 .keyType(LongDataType.INSTANCE)
@@ -735,7 +735,8 @@ public class TransactionStore {
                     MVMap<Object, VersionedValue<Object>> m = openMap(mapId);
                     if (m != null) { // could be null if map was removed later on
                         VersionedValue<?> oldValue = op.oldValue;
-                        current = new Change(m.getName(), op.key, oldValue == null ? null : oldValue.getCurrentValue());
+                        current = new Change(m.getName(), op.key,
+                                oldValue == null ? null : oldValue.getCurrentValue());
                         return;
                     }
                 }
@@ -883,12 +884,12 @@ public class TransactionStore {
             return create(config);
         }
 
-
         @Override
         @SuppressWarnings("unchecked")
         protected MVMap<K,V> create(Map<String,Object> config) {
-            if("rtree".equals(config.get("type"))) {
-                MVMap<K, V> map = (MVMap<K, V>) new MVRTreeMap<>(config, (SpatialDataType)getKeyType(), getValueType());
+            if ("rtree".equals(config.get("type"))) {
+                MVMap<K, V> map = (MVMap<K, V>) new MVRTreeMap<>(config, (SpatialDataType) getKeyType(),
+                        getValueType());
                 return map;
             }
             return new TMVMap<>(config, getKeyType(), getValueType());

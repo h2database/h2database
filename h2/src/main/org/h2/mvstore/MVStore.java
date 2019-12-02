@@ -1350,7 +1350,7 @@ public class MVStore implements AutoCloseable
         long time = getTimeSinceCreation();
         int currentUnsavedPageCount = unsavedMemory;
         long storeVersion = currentStoreVersion;
-        // it is ok, sinse that path suppose to be single-threaded under storeLock
+        // it is ok, since that path suppose to be single-threaded under storeLock
         //noinspection NonAtomicOperationOnVolatileField
         long version = ++currentVersion;
         lastCommitTime = time;

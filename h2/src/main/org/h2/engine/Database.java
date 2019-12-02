@@ -1269,6 +1269,11 @@ public class Database implements DataHandler, CastDataProvider {
         return session;
     }
 
+    /**
+     * Creates a temporary system session.
+     *
+     * @return the session
+     */
     public synchronized Session createTempSystemSession() {
         return new Session(this, systemUser, ++nextSessionId);
     }

@@ -772,7 +772,7 @@ public class Parser {
             if (currentTokenType == SEMICOLON) {
                 String remaining = originalSQL.substring(parseIndex);
                 if (!StringUtils.isWhitespaceOrEmpty(remaining)) {
-                    return prepareCommandList(c, sql, remaining);
+                    return prepareCommandList(c, p, sql, remaining);
                 }
             }
             return c;
@@ -781,17 +781,16 @@ public class Parser {
         }
     }
 
-    private CommandList prepareCommandList(CommandContainer command, String sql, String remaining) {
+    private CommandList prepareCommandList(CommandContainer command, Prepared p, String sql, String remaining) {
         try {
             ArrayList<Prepared> list = Utils.newSmallArrayList();
-            boolean stop = false;
             do {
-                if (stop) {
+                if (p instanceof DefineCommand) {
+                    // Next commands may depend on results of this command.
                     return new CommandList(session, sql, command, list, parameters, remaining);
                 }
                 suppliedParameters = parameters;
                 suppliedParameterList = indexedParameterList;
-                Prepared p;
                 try {
                     p = parse(remaining);
                 } catch (DbException ex) {
@@ -800,10 +799,6 @@ public class Parser {
                         throw ex;
                     }
                     return new CommandList(session, sql, command, list, parameters, remaining);
-                }
-                if (p instanceof DefineCommand) {
-                    // Next commands may depend on results of this command.
-                    stop = true;
                 }
                 list.add(p);
                 if (currentTokenType == END) {

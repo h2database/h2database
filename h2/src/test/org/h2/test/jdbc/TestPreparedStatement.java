@@ -1758,6 +1758,12 @@ public class TestPreparedStatement extends TestDb {
             assertFalse(rs.next());
         }
         stmt.execute("DROP TABLE TEST");
+        ps = conn.prepareStatement("CREATE TABLE A (C1 INT);" //
+                + "CREATE INDEX A_IDX ON A(C1);" //
+                + "ALTER TABLE A ADD (C2 INT);" //
+                + "CREATE TABLE B AS (SELECT C1 FROM A);");
+        ps.executeUpdate();
+        stmt.execute("DROP TABLE A, B");
     }
 
     private void testAfterRollback(Connection conn) throws SQLException {

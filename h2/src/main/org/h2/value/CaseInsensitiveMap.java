@@ -28,6 +28,11 @@ public class CaseInsensitiveMap<V> extends HashMap<String, V> {
     }
 
     @Override
+    public V putIfAbsent(String key, V value) {
+        return super.putIfAbsent(StringUtils.toUpperEnglish(key), value);
+    }
+
+    @Override
     public boolean containsKey(Object key) {
         return super.containsKey(StringUtils.toUpperEnglish((String) key));
     }

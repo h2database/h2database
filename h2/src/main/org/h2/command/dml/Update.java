@@ -88,7 +88,7 @@ public class Update extends Prepared implements DataChangeStatement {
      * @param expression the expression
      */
     public void setAssignment(Column column, Expression expression) {
-        if (setClauseMap.put(column, expression) != null) {
+        if (setClauseMap.putIfAbsent(column, expression) != null) {
             throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, column.getName());
         }
         if (expression instanceof Parameter) {

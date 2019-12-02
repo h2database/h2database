@@ -55,7 +55,7 @@ public class Wildcard extends Expression {
             if (column == null) {
                 throw ec.getColumnException(ErrorCode.COLUMN_NOT_FOUND_1);
             }
-            if (exceptTableColumns.put(column, ec) != null) {
+            if (exceptTableColumns.putIfAbsent(column, ec) != null) {
                 throw ec.getColumnException(ErrorCode.DUPLICATE_COLUMN_NAME_1);
             }
         }

@@ -342,14 +342,13 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         if (localTempTables == null) {
             localTempTables = database.newStringMap();
         }
-        if (localTempTables.get(table.getName()) != null) {
+        if (localTempTables.putIfAbsent(table.getName(), table) != null) {
             StringBuilder builder = new StringBuilder();
             table.getSQL(builder, false).append(" AS ");
             Parser.quoteIdentifier(table.getName(), false);
             throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, builder.toString());
         }
         modificationId++;
-        localTempTables.put(table.getName(), table);
     }
 
     /**
@@ -407,10 +406,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         if (localTempTableIndexes == null) {
             localTempTableIndexes = database.newStringMap();
         }
-        if (localTempTableIndexes.get(index.getName()) != null) {
+        if (localTempTableIndexes.putIfAbsent(index.getName(), index) != null) {
             throw DbException.get(ErrorCode.INDEX_ALREADY_EXISTS_1, index.getSQL(false));
         }
-        localTempTableIndexes.put(index.getName(), index);
     }
 
     /**
@@ -465,10 +463,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             localTempTableConstraints = database.newStringMap();
         }
         String name = constraint.getName();
-        if (localTempTableConstraints.get(name) != null) {
+        if (localTempTableConstraints.putIfAbsent(name, constraint) != null) {
             throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, constraint.getSQL(false));
         }
-        localTempTableConstraints.put(name, constraint);
     }
 
     /**

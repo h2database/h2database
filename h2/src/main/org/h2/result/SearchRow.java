@@ -102,16 +102,14 @@ public abstract class SearchRow extends Value
 
     @Override
     public StringBuilder getSQL(StringBuilder builder) {
-        builder.append("(");
-        for (int index = 0; index < getColumnCount(); ++index) {
-            if(index != 0) {
+        builder.append("ROW (");
+        for (int index = 0, count = getColumnCount(); index < count; index++) {
+            if (index != 0) {
                 builder.append(", ");
             }
-            Value value = getValue(index);
-            builder.append(value.getSQL());
+            getValue(index).getSQL(builder);
         }
-        builder.append(")");
-        return builder;
+        return builder.append(')');
     }
 
     @Override

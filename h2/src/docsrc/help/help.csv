@@ -441,7 +441,7 @@ ALTER TABLE @h2@ [ IF EXISTS ] tableName
 ALTER COLUMN @h2@ [ IF EXISTS ] columnName
 { @h2@ { columnDefinition }
     | @h2@ { RENAME TO name }
-    | { RESTART WITH long }
+    | { RESTART [ WITH long ] }
     | @h2@ { SELECTIVITY int }
     | { SET DEFAULT expression }
     | { DROP DEFAULT }
@@ -3086,7 +3086,8 @@ START WITH 10 INCREMENT BY 10
 "
 
 "Other Grammar","Sequence option","
-{ START | RESTART } WITH long
+START WITH long
+    | RESTART [ WITH long ]
     | INCREMENT BY long
     | MINVALUE long | NO MINVALUE | @c@ { NOMINVALUE }
     | MAXVALUE long | NO MAXVALUE | @c@ { NOMAXVALUE }
@@ -3096,8 +3097,8 @@ START WITH 10 INCREMENT BY 10
 Option of a sequence.
 
 START WITH and RESTART WITH are used to set the first generated value of the sequence.
-START WITH may only be used in CREATE SEQUENCE command and it column definition,
-RESTART WITH may only be used in ALTER SEQUENCE command.
+START WITH may only be used in CREATE SEQUENCE command and in column definition,
+RESTART may only be used in ALTER SEQUENCE command.
 The default is MINVALUE for incrementing sequences and MAXVALUE for decrementing sequences.
 
 INCREMENT BY specifies the step of the sequence, may be positive or negative, but may not be zero.

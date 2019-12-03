@@ -17,6 +17,8 @@ import org.h2.value.ValueNull;
  */
 public class SequenceOptions {
 
+    private boolean restart;
+
     private Expression start;
 
     private Expression increment;
@@ -37,6 +39,22 @@ public class SequenceOptions {
             }
         }
         return null;
+    }
+
+    /**
+     * Returns {@code true} if sequence should be restarted.
+     *
+     * @return {@code true} if sequence should be restarted
+     */
+    public boolean getRestart() {
+        return restart;
+    }
+
+    /**
+     * Requires restart of the sequence from the first value.
+     */
+    public void setRestart() {
+        restart = true;
     }
 
     /**
@@ -163,7 +181,7 @@ public class SequenceOptions {
     }
 
     boolean isRangeSet() {
-        return start != null || minValue != null || maxValue != null || increment != null;
+        return restart || start != null || minValue != null || maxValue != null || increment != null;
     }
 
     private long getCurrentStart(Sequence sequence, Session session) {

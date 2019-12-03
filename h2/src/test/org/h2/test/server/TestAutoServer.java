@@ -125,41 +125,42 @@ public class TestAutoServer extends TestDb {
         String user = getUser(), password = getPassword();
         Connection connServer = getConnection(url + ";OPEN_NEW=TRUE",
             user, password);
-
-        SortedProperties prop = SortedProperties.loadProperties(
-            getBaseDir() + "/" + getTestName() + ".lock.db");
-        String key = prop.getProperty("id");
-        String server = prop.getProperty("server");
-        if (server != null) {
-            String u2 = url.substring(url.indexOf(';'));
-            //todo java.net.SocketTimeoutException: Read timed out
-            u2 = "jdbc:h2:tcp://" + server + "/" + key + u2 + ";NETWORK_TIMEOUT=10";
-            Connection conn = DriverManager.getConnection(u2, user, password);
+        try {
+            SortedProperties prop = SortedProperties.loadProperties(
+                getBaseDir() + "/" + getTestName() + ".lock.db");
+            String key = prop.getProperty("id");
+            String server = prop.getProperty("server");
+            if (server != null) {
+                String u2 = url.substring(url.indexOf(';'));
+                //todo java.net.SocketTimeoutException: Read timed out
+                u2 = "jdbc:h2:tcp://" + server + "/" + key + u2 + ";NETWORK_TIMEOUT=100";
+                Connection conn = DriverManager.getConnection(u2, user, password);
+                Statement stat = conn.createStatement();
+                assertThrows(ErrorCode.CONNECTION_BROKEN_1, stat).
+                    executeQuery("SELECT MAX(RAND()) FROM SYSTEM_RANGE(1, 100000000)");
+                conn.close();
+                int gotPort = Integer.parseInt(server.substring(server.lastIndexOf(':') + 1));
+                if (port) {
+                    assertEquals(11111, gotPort);
+                }
+            }
+            Connection conn = getConnection(url + ";OPEN_NEW=TRUE");
             Statement stat = conn.createStatement();
-
-            assertThrows(ErrorCode.CONNECTION_BROKEN_1, stat).
-                executeQuery("SELECT MAX(RAND()) " +
-                    "FROM SYSTEM_RANGE(1, 100000000)");
-
+            if (config.big) {
+                try {
+                    stat.execute("SHUTDOWN");
+                } catch (SQLException e) {
+                    assertKnownException(e);
+                    // the connection is closed
+                }
+            }
             conn.close();
-            int gotPort = Integer.parseInt(server.substring(server.lastIndexOf(':') + 1));
-            if (port) {
-                assertEquals(11111, gotPort);
-            }
-        }
-
-        Connection conn = getConnection(url + ";OPEN_NEW=TRUE");
-        Statement stat = conn.createStatement();
-        if (config.big) {
+        } finally {
+            connServer.createStatement().execute("SHUTDOWN");
             try {
-                stat.execute("SHUTDOWN");
-            } catch (SQLException e) {
-                assertKnownException(e);
-                // the connection is closed
-            }
+                connServer.close();
+            } catch (SQLException ignore) {}
         }
-        conn.close();
-        connServer.close();
 
         deleteDb("autoServer");
     }

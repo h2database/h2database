@@ -3097,7 +3097,7 @@ START WITH long
 Option of a sequence.
 
 START WITH and RESTART WITH are used to set the first generated value of the sequence.
-START WITH may only be used in CREATE SEQUENCE command and it column definition,
+START WITH may only be used in CREATE SEQUENCE command and in column definition,
 RESTART may only be used in ALTER SEQUENCE command.
 The default is MINVALUE for incrementing sequences and MAXVALUE for decrementing sequences.
 

@@ -7365,15 +7365,11 @@ public class Parser {
 
     private void parseSequenceOptions(SequenceOptions options, CreateSequence command, boolean forCreate) {
         for (;;) {
-            if (forCreate && readIf("START")) {
+            if (readIf("START")) {
                 read(WITH);
                 options.setStartValue(readExpression());
-            } else if (!forCreate && readIf("RESTART")) {
-                if (readIf(WITH)) {
-                    options.setStartValue(readExpression());
-                } else {
-                    options.setRestart();
-                }
+            } else if (readIf("RESTART")) {
+                options.setRestartValue(readIf(WITH) ? readExpression() : ValueExpression.DEFAULT);
             } else if (readIf("INCREMENT")) {
                 readIf("BY");
                 options.setIncrement(readExpression());
@@ -8324,18 +8320,14 @@ public class Parser {
     }
 
     private Prepared readAlterColumnRestartWith(Schema schema, Column column, boolean readWith) {
-        Expression start = !readWith || readIf(WITH) ? readExpression() : null;
+        Expression restart = !readWith || readIf(WITH) ? readExpression() : ValueExpression.DEFAULT;
         if (column == null) {
             return new NoOperation(session);
         }
         AlterSequence command = new AlterSequence(session, schema);
         command.setColumn(column);
         SequenceOptions options = new SequenceOptions();
-        if (start == null) {
-            options.setRestart();
-        } else {
-            options.setStartValue(start);
-        }
+        options.setRestartValue(restart);
         command.setOptions(options);
         return command;
     }

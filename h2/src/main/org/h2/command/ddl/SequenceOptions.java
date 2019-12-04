@@ -17,9 +17,9 @@ import org.h2.value.ValueNull;
  */
 public class SequenceOptions {
 
-    private boolean restart;
-
     private Expression start;
+
+    private Expression restart;
 
     private Expression increment;
 
@@ -42,22 +42,6 @@ public class SequenceOptions {
     }
 
     /**
-     * Returns {@code true} if sequence should be restarted.
-     *
-     * @return {@code true} if sequence should be restarted
-     */
-    public boolean getRestart() {
-        return restart;
-    }
-
-    /**
-     * Requires restart of the sequence from the first value.
-     */
-    public void setRestart() {
-        restart = true;
-    }
-
-    /**
      * Gets start value.
      *
      * @param session The session to calculate the value.
@@ -74,6 +58,30 @@ public class SequenceOptions {
      */
     public void setStartValue(Expression start) {
         this.start = start;
+    }
+
+    /**
+     * Gets restart value.
+     *
+     * @param session
+     *            the session to calculate the value
+     * @param startValue
+     *            the start value to use if restart without value is specified
+     * @return restart value or {@code null} if value is not defined.
+     */
+    public Long getRestartValue(Session session, long startValue) {
+        return restart == ValueExpression.DEFAULT ? (Long) startValue : getLong(session, restart);
+    }
+
+    /**
+     * Sets restart value expression, or {@link ValueExpression#DEFAULT}.
+     *
+     * @param restart
+     *            RESTART WITH value expression, or
+     *            {@link ValueExpression#DEFAULT} for simple RESTART
+     */
+    public void setRestartValue(Expression restart) {
+        this.restart = restart;
     }
 
     /**
@@ -181,7 +189,7 @@ public class SequenceOptions {
     }
 
     boolean isRangeSet() {
-        return restart || start != null || minValue != null || maxValue != null || increment != null;
+        return restart != null || start != null || minValue != null || maxValue != null || increment != null;
     }
 
     private long getCurrentStart(Sequence sequence, Session session) {

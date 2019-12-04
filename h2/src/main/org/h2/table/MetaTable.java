@@ -274,14 +274,19 @@ public class MetaTable extends Table {
                     "SEQUENCE_CATALOG",
                     "SEQUENCE_SCHEMA",
                     "SEQUENCE_NAME",
-                    "CURRENT_VALUE BIGINT",
+                    "DATA_TYPE",
+                    "NUMERIC_PRECISION INT",
+                    "NUMERIC_PRECISION_RADIX INT",
+                    "NUMERIC_SCALE INT",
+                    "START_VALUE BIGINT",
+                    "MINIMUM_VALUE BIGINT",
+                    "MAXIMUM_VALUE BIGINT",
                     "INCREMENT BIGINT",
+                    "CYCLE_OPTION",
+                    "CURRENT_VALUE BIGINT",
                     "IS_GENERATED BIT",
                     "REMARKS",
                     "CACHE BIGINT",
-                    "MIN_VALUE BIGINT",
-                    "MAX_VALUE BIGINT",
-                    "IS_CYCLE BIT",
                     "ID INT"
             );
             break;
@@ -1243,8 +1248,7 @@ public class MetaTable extends Table {
             break;
         }
         case SEQUENCES: {
-            for (SchemaObject obj : database.getAllSchemaObjects(
-                    DbObject.SEQUENCE)) {
+            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.SEQUENCE)) {
                 Sequence s = (Sequence) obj;
                 add(rows,
                         // SEQUENCE_CATALOG
@@ -1253,22 +1257,32 @@ public class MetaTable extends Table {
                         s.getSchema().getName(),
                         // SEQUENCE_NAME
                         s.getName(),
-                        // CURRENT_VALUE
-                        ValueLong.get(s.getCurrentValue()),
+                        // DATA_TYPE
+                        "BIGINT",
+                        // NUMERIC_PRECISION
+                        ValueInt.get(ValueLong.PRECISION),
+                        // NUMERIC_PRECISION_RADIX
+                        ValueInt.get(10),
+                        // NUMERIC_SCALE
+                        ValueInt.get(0),
+                        // START_VALUE
+                        ValueLong.get(s.getStartValue()),
+                        // MINIMUM_VALUE
+                        ValueLong.get(s.getMinValue()),
+                        // MAXIMUM_VALUE
+                        ValueLong.get(s.getMaxValue()),
                         // INCREMENT
                         ValueLong.get(s.getIncrement()),
+                        // CYCLE_OPTION
+                        s.getCycle() ? "YES" : "NO",
+                        // CURRENT_VALUE
+                        ValueLong.get(s.getCurrentValue()),
                         // IS_GENERATED
                         ValueBoolean.get(s.getBelongsToTable()),
                         // REMARKS
                         replaceNullWithEmpty(s.getComment()),
                         // CACHE
                         ValueLong.get(s.getCacheSize()),
-                        // MIN_VALUE
-                        ValueLong.get(s.getMinValue()),
-                        // MAX_VALUE
-                        ValueLong.get(s.getMaxValue()),
-                        // IS_CYCLE
-                        ValueBoolean.get(s.getCycle()),
                         // ID
                         ValueInt.get(s.getId())
                     );
@@ -2429,6 +2443,7 @@ public class MetaTable extends Table {
     public long getMaxDataModificationId() {
         switch (type) {
         case SETTINGS:
+        case SEQUENCES:
         case IN_DOUBT:
         case SESSIONS:
         case LOCKS:

@@ -573,7 +573,7 @@ public class DbException extends RuntimeException {
         case HEX_STRING_ODD_1:
         case HEX_STRING_WRONG_1:
         case INVALID_VALUE_2:
-        case SEQUENCE_ATTRIBUTES_INVALID:
+        case SEQUENCE_ATTRIBUTES_INVALID_6:
         case INVALID_TO_CHAR_FORMAT:
         case PARAMETER_NOT_SET_1:
         case PARSE_ERROR_1:

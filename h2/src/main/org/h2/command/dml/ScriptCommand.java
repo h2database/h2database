@@ -252,7 +252,15 @@ public class ScriptCommand extends ScriptBase {
                 if (drop) {
                     add(sequence.getDropSQL(), false);
                 }
-                add(sequence.getCreateSQL(), false);
+                String createSQL, alterSQL;
+                synchronized (sequence) {
+                    createSQL = sequence.getCreateSQL(true, false);
+                    alterSQL = sequence.getCreateSQL(true, true);
+                }
+                add(createSQL, false);
+                if (alterSQL != null) {
+                    add(alterSQL, false);
+                }
             }
 
             // Generate CREATE TABLE and INSERT...VALUES

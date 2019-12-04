@@ -3298,15 +3298,16 @@ script NOPASSWORDS NOSETTINGS drop;
 > SCRIPT
 > -----------------------------------------------------------------------------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM S.TEST;
+> ALTER SEQUENCE "S"."SEQ" RESTART WITH 10;
 > CREATE FORCE TRIGGER "S"."TEST_TRIGGER" BEFORE INSERT ON "S"."TEST" QUEUE 1024 CALL "org.h2.test.db.TestTriggersConstraints";
 > CREATE INDEX "S"."INDEX_ID" ON "S"."TEST"("ID");
 > CREATE MEMORY TABLE "S"."TEST"( "ID" INT );
 > CREATE SCHEMA IF NOT EXISTS "S" AUTHORIZATION "SA";
-> CREATE SEQUENCE "S"."SEQ" START WITH 10 NO CACHE;
+> CREATE SEQUENCE "S"."SEQ" START WITH 1 NO CACHE;
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > DROP SEQUENCE IF EXISTS "S"."SEQ";
 > DROP TABLE IF EXISTS "S"."TEST" CASCADE;
-> rows: 9
+> rows: 10
 
 drop trigger s.test_trigger;
 > ok

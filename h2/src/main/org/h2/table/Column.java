@@ -415,7 +415,7 @@ public class Column {
                 update = true;
             }
             if (update) {
-                sequence.modify(false, now + inc, null, null, null);
+                sequence.modify(null, now + inc, null, null, null);
                 session.setLastIdentity(ValueLong.get(now));
                 sequence.flush(session);
             }

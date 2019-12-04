@@ -43,7 +43,7 @@
 90006=La séquence {0} a épuisé ses éléments
 90007=L''objet est déjà fermé
 90008=Valeur invalide {0} pour le paramètre {1}
-90009=Impossible de créer ou modifier la séquence {0} car les attributs sont invalides (start value {1}, min value {2}, max value {3}, increment {4})
+90009=Impossible de créer ou modifier la séquence {0} car les attributs sont invalides (value {1}, start value {2}, min value {3}, max value {4}, increment {5})
 90010=Format invalide TO_CHAR {0}
 90011=Un chemin de fichier implicitement relatif au répertoire de travail actuel n''est pas autorisé dans l''URL de la base de données {0}. Utilisez un chemin absolu, ~ /nom, ./nom ou le paramètre baseDir à la place.
 90012=La paramètre {0} n''est pas initialisé

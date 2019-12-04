@@ -43,7 +43,7 @@
 90006=#Sequence {0} has run out of numbers
 90007=Tento objekt byl již uzavřen
 90008=Neplatná hodnota {0} pro parametr {1}
-90009=#Unable to create or alter sequence {0} because of invalid attributes (start value {1}, min value {2}, max value {3}, increment {4})
+90009=#Unable to create or alter sequence {0} because of invalid attributes (value {1}, start value {2}, min value {3}, max value {4}, increment {5})
 90010=#Invalid TO_CHAR format {0}
 90011=#A file path that is implicitly relative to the current working directory is not allowed in the database URL {0}. Use an absolute path, ~/name, ./name, or the baseDir setting instead.
 90012=Parametr {0} není nastaven

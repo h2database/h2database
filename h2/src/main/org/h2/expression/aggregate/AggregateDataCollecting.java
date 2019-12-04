@@ -8,6 +8,7 @@ package org.h2.expression.aggregate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.TreeSet;
 
@@ -15,6 +16,7 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.message.DbException;
 import org.h2.value.Value;
+import org.h2.value.ValueArray;
 import org.h2.value.ValueNull;
 
 /**
@@ -22,14 +24,16 @@ import org.h2.value.ValueNull;
  * values or a distinct aggregate.
  *
  * <p>
- * NULL values are not collected. {@link #getValue(Database, int)}
- * method returns {@code null}. Use {@link #getArray()} for instances of this
- * class instead.
+ * NULL values are not collected. {@link #getValue(Database, int)} method
+ * returns {@code null}. Use {@link #getArray()} for instances of this class
+ * instead.
  * </p>
  */
 class AggregateDataCollecting extends AggregateData implements Iterable<Value> {
 
     private final boolean distinct;
+
+    private final boolean orderedWithOrder;
 
     Collection<Value> values;
 
@@ -38,10 +42,14 @@ class AggregateDataCollecting extends AggregateData implements Iterable<Value> {
     /**
      * Creates new instance of data for collecting aggregates.
      *
-     * @param distinct if distinct is used
+     * @param distinct
+     *            if distinct is used
+     * @param orderedWithOrder
+     *            if aggregate is an ordered aggregate with ORDER BY clause
      */
-    AggregateDataCollecting(boolean distinct) {
+    AggregateDataCollecting(boolean distinct, boolean orderedWithOrder) {
         this.distinct = distinct;
+        this.orderedWithOrder = orderedWithOrder;
     }
 
     @Override
@@ -51,7 +59,16 @@ class AggregateDataCollecting extends AggregateData implements Iterable<Value> {
         }
         Collection<Value> c = values;
         if (c == null) {
-            values = c = distinct ? new TreeSet<>(database.getCompareMode()) : new ArrayList<>();
+            if (distinct) {
+                Comparator<Value> comparator = database.getCompareMode();
+                if (orderedWithOrder) {
+                    comparator = Comparator.comparing(t -> ((ValueArray) t).getList()[0], comparator);
+                }
+                c = new TreeSet<>(comparator);
+            } else {
+                c = new ArrayList<>();
+            }
+            values = c;
         }
         c.add(v);
     }

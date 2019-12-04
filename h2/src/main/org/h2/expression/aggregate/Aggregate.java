@@ -339,7 +339,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
 
     @Override
     protected Object createAggregateData() {
-        return AggregateData.create(aggregateType, distinct, type.getValueType());
+        return AggregateData.create(aggregateType, distinct, type.getValueType(), orderByList != null);
     }
 
     @Override

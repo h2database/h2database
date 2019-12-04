@@ -82,7 +82,9 @@ public class AlterSequence extends SchemaCommand {
             sequence.setCacheSize(cache);
         }
         if (options.isRangeSet()) {
-            sequence.modify(options.getRestart(), options.getStartValue(session),
+            Long startValue = options.getStartValue(session);
+            sequence.modify(startValue,
+                    options.getRestartValue(session, startValue != null ? startValue : sequence.getStartValue()),
                     options.getMinValue(sequence, session), options.getMaxValue(sequence, session),
                     options.getIncrement(session));
         }

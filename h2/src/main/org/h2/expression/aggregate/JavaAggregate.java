@@ -220,7 +220,7 @@ public class JavaAggregate extends AbstractAggregate {
 
     @Override
     protected Object createAggregateData() {
-        return distinct ? new AggregateDataCollecting(true) : getInstance();
+        return distinct ? new AggregateDataCollecting(true, false) : getInstance();
     }
 
 }

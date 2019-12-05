@@ -122,8 +122,8 @@ public class MetaTable extends Table {
     private static final int KEY_COLUMN_USAGE = 31;
     private static final int REFERENTIAL_CONSTRAINTS = 32;
     private static final int CHECK_CONSTRAINTS = 33;
-    private static final int CHECK_COLUMN_USAGE = 34;
-    private static final int META_TABLE_TYPE_COUNT = CHECK_COLUMN_USAGE + 1;
+    private static final int CONSTRAINT_COLUMN_USAGE = 34;
+    private static final int META_TABLE_TYPE_COUNT = CONSTRAINT_COLUMN_USAGE + 1;
 
     private final int type;
     private final int indexColumn;
@@ -648,17 +648,18 @@ public class MetaTable extends Table {
             );
             break;
         }
-        case CHECK_COLUMN_USAGE: {
-            setMetaTableName("CHECK_COLUMN_USAGE");
+        case CONSTRAINT_COLUMN_USAGE: {
+            setMetaTableName("CONSTRAINT_COLUMN_USAGE");
             cols = createColumns(
-                    "CONSTRAINT_CATALOG",
-                    "CONSTRAINT_SCHEMA",
-                    "CONSTRAINT_NAME",
                     "TABLE_CATALOG",
                     "TABLE_SCHEMA",
                     "TABLE_NAME",
-                    "COLUMN_NAME"
+                    "COLUMN_NAME",
+                    "CONSTRAINT_CATALOG",
+                    "CONSTRAINT_SCHEMA",
+                    "CONSTRAINT_NAME"
             );
+            indexColumnName = "TABLE_NAME";
             break;
         }
         default:
@@ -2214,41 +2215,40 @@ public class MetaTable extends Table {
             }
             break;
         }
-        case CHECK_COLUMN_USAGE: {
+        case CONSTRAINT_COLUMN_USAGE: {
             for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
                 Constraint constraint = (Constraint) obj;
-                Type constraintType = constraint.getConstraintType();
-                if (constraintType == Constraint.Type.CHECK) {
-                    ConstraintCheck check = (ConstraintCheck) obj;
-                    Table table = check.getTable();
-                    if (hideTable(table, session)) {
-                        continue;
+                switch (constraint.getConstraintType()) {
+                case CHECK:
+                case DOMAIN: {
+                    HashSet<Column> columns = new HashSet<>();
+                    constraint.getExpression().isEverything(ExpressionVisitor.getColumnsVisitor(columns, null));
+                    for (Column column: columns) {
+                        Table table = column.getTable();
+                        if (checkIndex(session, table.getName(), indexFrom, indexTo) && !hideTable(table, session)) {
+                            addConstraintColumnUsage(rows, catalog, constraint, column);
+                        }
                     }
-                } else if (constraintType != Constraint.Type.DOMAIN) {
-                    continue;
+                    break;
                 }
-                HashSet<Column> columns = new HashSet<>();
-                constraint.getExpression().isEverything(ExpressionVisitor.getColumnsVisitor(columns, null));
-                for (Column column: columns) {
-                    // General value specification VALUE is not a real column
-                    // and doesn't have a table
-                    Table t = column.getTable();
-                    if (t != null) {
-                        add(rows,
-                                catalog,
-                                // CONSTRAINT_SCHEMA
-                                constraint.getSchema().getName(),
-                                // CONSTRAINT_NAME
-                                constraint.getName(),
-                                catalog,
-                                // TABLE_SCHEMA
-                                t.getSchema().getName(),
-                                // TABLE_NAME
-                                t.getName(),
-                                // COLUMN_NAME
-                                column.getName()
-                        );
+                case REFERENTIAL: {
+                    Table table = constraint.getRefTable();
+                    if (checkIndex(session, table.getName(), indexFrom, indexTo) && !hideTable(table, session)) {
+                        for (Column column : constraint.getReferencedColumns(table)) {
+                            addConstraintColumnUsage(rows, catalog, constraint, column);
+                        }
                     }
+                }
+                //$FALL-THROUGH$
+                case PRIMARY_KEY:
+                case UNIQUE: {
+                    Table table = constraint.getTable();
+                    if (checkIndex(session, table.getName(), indexFrom, indexTo) && !hideTable(table, session)) {
+                        for (Column column : constraint.getReferencedColumns(table)) {
+                            addConstraintColumnUsage(rows, catalog, constraint, column);
+                        }
+                    }
+                }
                 }
             }
             break;
@@ -2285,6 +2285,26 @@ public class MetaTable extends Table {
             }
         }
         return null;
+    }
+
+    private void addConstraintColumnUsage(ArrayList<Row> rows, String catalog, Constraint constraint, Column column) {
+        Table table = column.getTable();
+        add(rows,
+                // TABLE_CATALOG
+                catalog,
+                // TABLE_SCHEMA
+                table.getSchema().getName(),
+                // TABLE_NAME
+                table.getName(),
+                // COLUMN_NAME
+                column.getName(),
+                // CONSTRAINT_CATALOG
+                catalog,
+                // CONSTRAINT_SCHEMA
+                constraint.getSchema().getName(),
+                // CONSTRAINT_NAME
+                constraint.getName()
+        );
     }
 
     @Override

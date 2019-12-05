@@ -92,13 +92,25 @@ TABLE INFORMATION_SCHEMA.CHECK_CONSTRAINTS;
 > SCRIPT             PUBLIC            CH_1            ("C4" > 0) AND (NOT EXISTS( SELECT 1 FROM "PUBLIC"."T1" /* PUBLIC.PRIMARY_KEY_A */ WHERE ("T1"."C1" + "T1"."C2") = "T2"."C4"))
 > rows: 1
 
-TABLE INFORMATION_SCHEMA.CHECK_COLUMN_USAGE;
-> CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME TABLE_CATALOG TABLE_SCHEMA TABLE_NAME COLUMN_NAME
-> ------------------ ----------------- --------------- ------------- ------------ ---------- -----------
-> SCRIPT             PUBLIC            CH_1            SCRIPT        PUBLIC       T1         C1
-> SCRIPT             PUBLIC            CH_1            SCRIPT        PUBLIC       T1         C2
-> SCRIPT             PUBLIC            CH_1            SCRIPT        PUBLIC       T2         C4
-> rows: 3
+TABLE INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE;
+> TABLE_CATALOG TABLE_SCHEMA TABLE_NAME COLUMN_NAME CONSTRAINT_CATALOG CONSTRAINT_SCHEMA CONSTRAINT_NAME
+> ------------- ------------ ---------- ----------- ------------------ ----------------- ---------------
+> SCRIPT        PUBLIC       T1         C1          SCRIPT             PUBLIC            CH_1
+> SCRIPT        PUBLIC       T1         C1          SCRIPT             PUBLIC            FK_1
+> SCRIPT        PUBLIC       T1         C1          SCRIPT             PUBLIC            PK_1
+> SCRIPT        PUBLIC       T1         C2          SCRIPT             PUBLIC            CH_1
+> SCRIPT        PUBLIC       T1         C2          SCRIPT             PUBLIC            PK_1
+> SCRIPT        PUBLIC       T1         C3          SCRIPT             PUBLIC            FK_1
+> SCRIPT        PUBLIC       T1         C3          SCRIPT             PUBLIC            FK_2
+> SCRIPT        PUBLIC       T1         C3          SCRIPT             PUBLIC            U_1
+> SCRIPT        PUBLIC       T1         C4          SCRIPT             PUBLIC            FK_2
+> SCRIPT        PUBLIC       T1         C4          SCRIPT             PUBLIC            U_1
+> SCRIPT        PUBLIC       T2         C3          SCRIPT             PUBLIC            FK_1
+> SCRIPT        PUBLIC       T2         C3          SCRIPT             PUBLIC            FK_2
+> SCRIPT        PUBLIC       T2         C4          SCRIPT             PUBLIC            CH_1
+> SCRIPT        PUBLIC       T2         C4          SCRIPT             PUBLIC            FK_1
+> SCRIPT        PUBLIC       T2         C4          SCRIPT             PUBLIC            FK_2
+> rows: 15
 
 DROP TABLE T2;
 > ok

@@ -3710,10 +3710,7 @@ INTEGER ARRAY[10]
 @h2@ { ENUM (string [, ... ]) }
 ","
 A type with enumerated values.
-Mapped to ""java.lang.Integer"".
-
-The first provided value is mapped to 0, the
-second mapped to 1, and so on.
+Mapped to ""java.lang.String"".
 
 Duplicate and empty values are not permitted.
 ","

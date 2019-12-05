@@ -5,7 +5,6 @@
  */
 package org.h2.constraint;
 
-import org.h2.engine.Database;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.value.TypeInfo;
@@ -17,13 +16,11 @@ import org.h2.value.Value;
  */
 public class DomainColumnResolver implements ColumnResolver {
 
-    private final Database database;
     private final Column column;
     private Value value;
     private String name;
 
-    public DomainColumnResolver(Database database, TypeInfo typeInfo) {
-        this.database = database;
+    public DomainColumnResolver(TypeInfo typeInfo) {
         this.column = new Column("VALUE", typeInfo);
     }
 
@@ -43,9 +40,6 @@ public class DomainColumnResolver implements ColumnResolver {
 
     @Override
     public Column findColumn(String name) {
-        if (database.equalsIdentifiers("VALUE", name)) {
-            return column;
-        }
         return null;
     }
 

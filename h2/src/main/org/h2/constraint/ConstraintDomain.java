@@ -37,7 +37,7 @@ public class ConstraintDomain extends Constraint {
     public ConstraintDomain(Schema schema, int id, String name, Domain domain) {
         super(schema, id, name, null);
         this.domain = domain;
-        resolver = new DomainColumnResolver(schema.getDatabase(), domain.getColumn().getType());
+        resolver = new DomainColumnResolver(domain.getColumn().getType());
     }
 
     @Override

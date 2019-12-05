@@ -498,13 +498,12 @@ ALTER TABLE TEST ALTER COLUMN NAME SET INVISIBLE;
 
 "Commands (DDL)","ALTER TABLE DROP COLUMN","
 ALTER TABLE @h2@ [ IF EXISTS ] tableName DROP [ COLUMN ] @h2@ [ IF EXISTS ]
-columnName @h2@ [,...] | @c@ { ( columnName [,...] ) }
+@h2@ { ( columnName [,...] ) } | columnName @c@ [,...]
 ","
 Removes column(s) from a table.
 This command commits an open transaction in this connection.
 ","
 ALTER TABLE TEST DROP COLUMN NAME
-ALTER TABLE TEST DROP COLUMN NAME1, NAME2
 ALTER TABLE TEST DROP COLUMN (NAME1, NAME2)
 "
 

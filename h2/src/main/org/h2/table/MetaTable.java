@@ -1103,9 +1103,9 @@ public class MetaTable extends Table {
                         // AUTO_INCREMENT
                         ValueBoolean.get(t.autoIncrement),
                         // MINIMUM_SCALE
-                        ValueShort.get((short) t.minScale),
+                        ValueShort.get(MathUtils.convertIntToShort(t.minScale)),
                         // MAXIMUM_SCALE
-                        ValueShort.get((short) t.maxScale),
+                        ValueShort.get(MathUtils.convertIntToShort(t.maxScale)),
                         // RADIX
                         t.decimal ? ValueInt.get(10) : null,
                         // POS
@@ -1494,7 +1494,7 @@ public class MetaTable extends Table {
                                 // PRECISION
                                 ValueInt.get(MathUtils.convertLongToInt(dt.defaultPrecision)),
                                 // SCALE
-                                ValueShort.get((short) dt.defaultScale),
+                                ValueShort.get(MathUtils.convertIntToShort(dt.defaultScale)),
                                 // RADIX
                                 ValueShort.get((short) 10),
                                 // NULLABLE
@@ -1539,7 +1539,7 @@ public class MetaTable extends Table {
                                 // PRECISION
                                 ValueInt.get(MathUtils.convertLongToInt(dt.defaultPrecision)),
                                 // SCALE
-                                ValueShort.get((short) dt.defaultScale),
+                                ValueShort.get(MathUtils.convertIntToShort(dt.defaultScale)),
                                 // RADIX
                                 ValueShort.get((short) 10),
                                 // NULLABLE

@@ -707,6 +707,10 @@ Most keywords in H2 are also reserved (+) or non-reserved (NR) words in the SQL 
 Newer versions of H2 may have more keywords than older ones.
 </p>
 
+<p>There is a compatibility setting
+<a href="commands.html#set_non_keywords"><code>SET NON_KEYWORDS</code></a>
+that can be used as a temporary workaround for applications that use keywords as unquoted identifiers.</p>.
+
 <h2 id="standards_compliance">Standards Compliance</h2>
 <p>
 This database tries to be as much standard compliant as possible. For the SQL language, ANSI/ISO is the main

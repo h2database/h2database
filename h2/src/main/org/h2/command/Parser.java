@@ -27,6 +27,7 @@ import static org.h2.util.ParserUtil.EXCEPT;
 import static org.h2.util.ParserUtil.EXISTS;
 import static org.h2.util.ParserUtil.FALSE;
 import static org.h2.util.ParserUtil.FETCH;
+import static org.h2.util.ParserUtil.FIRST_KEYWORD;
 import static org.h2.util.ParserUtil.FOR;
 import static org.h2.util.ParserUtil.FOREIGN;
 import static org.h2.util.ParserUtil.FROM;
@@ -87,6 +88,7 @@ import java.nio.charset.Charset;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -689,6 +691,8 @@ public class Parser {
      */
     private final boolean identifiersToUpper;
 
+    private final BitSet nonKeywords;
+
     /** indicates character-type for each char in sqlCommand */
     private int[] characterTypes;
     private int currentTokenType;
@@ -717,6 +721,49 @@ public class Parser {
     private boolean recompileAlways;
     private boolean literalsChecked;
     private int orderInFrom;
+    private boolean parseDomainConstraint;
+
+    /**
+     * Parses the specified collection of non-keywords.
+     *
+     * @param nonKeywords array of non-keywords in upper case
+     * @return bit set of non-keywords, or {@code null}
+     */
+    public static BitSet parseNonKeywords(String[] nonKeywords) {
+        if (nonKeywords.length == 0) {
+            return null;
+        }
+        BitSet set = new BitSet();
+        for (String nonKeyword : nonKeywords) {
+            int index = Arrays.binarySearch(TOKENS, FIRST_KEYWORD, LAST_KEYWORD + 1, nonKeyword);
+            if (index >= 0) {
+                set.set(index);
+            }
+        }
+        return set.isEmpty() ? null : set;
+    }
+
+    /**
+     * Formats a comma-separated list of keywords.
+     *
+     * @param nonKeywords bit set of non-keywords, or {@code null}
+     * @return comma-separated list of non-keywords
+     */
+    public static String formatNonKeywords(BitSet nonKeywords) {
+        if (nonKeywords == null || nonKeywords.isEmpty()) {
+            return "";
+        }
+        StringBuilder builder = new StringBuilder();
+        for (int i = -1; (i = nonKeywords.nextSetBit(i + 1)) >= 0;) {
+            if (i >= FIRST_KEYWORD && i <= LAST_KEYWORD) {
+                if (builder.length() > 0) {
+                    builder.append(',');
+                }
+                builder.append(TOKENS[i]);
+            }
+        }
+        return builder.toString();
+    }
 
     /**
      * Creates a new instance of parser.
@@ -727,6 +774,7 @@ public class Parser {
         this.database = session.getDatabase();
         this.identifiersToLower = database.getSettings().databaseToLower;
         this.identifiersToUpper = database.getSettings().databaseToUpper;
+        this.nonKeywords = session.getNonKeywords();
         this.session = session;
     }
 
@@ -737,6 +785,7 @@ public class Parser {
         database = null;
         identifiersToLower = false;
         identifiersToUpper = false;
+        nonKeywords = null;
         session = null;
     }
 
@@ -1368,16 +1417,7 @@ public class Parser {
     }
 
     private TableFilter readSimpleTableFilter() {
-        Table table = readTableOrView();
-        String alias;
-        if (readIf(AS)) {
-            alias = readAliasIdentifier();
-        } else if (currentTokenType == IDENTIFIER) {
-            alias = readAliasIdentifier();
-        } else {
-            alias = null;
-        }
-        return new TableFilter(session, table, alias, rightsChecked, currentSelect, 0, null);
+        return new TableFilter(session, readTableOrView(), readFromAlias(null), rightsChecked, currentSelect, 0, null);
     }
 
     private Delete parseDelete(int start) {
@@ -2107,7 +2147,7 @@ public class Parser {
     }
 
     private String readFromAlias(String alias) {
-        if (readIf(AS) || currentTokenType == IDENTIFIER) {
+        if (readIf(AS) || isIdentifier()) {
             alias = readAliasIdentifier();
         }
         return alias;
@@ -2943,7 +2983,7 @@ public class Parser {
                     break;
                 default:
                     Expression expr = readExpression();
-                    if (readIf(AS) || currentTokenType == IDENTIFIER) {
+                    if (readIf(AS) || isIdentifier()) {
                         String alias = readAliasIdentifier();
                         boolean aliasColumnName = database.getSettings().aliasColumnName;
                         aliasColumnName |= database.getMode().aliasColumnName;
@@ -4104,6 +4144,18 @@ public class Parser {
         return result;
     }
 
+    private Expression readKeywordFunctionOrColumn(int functionType) {
+        boolean nonKeyword = nonKeywords != null && nonKeywords.get(currentTokenType);
+        String name = currentToken;
+        read();
+        if (isToken(OPEN_PAREN)) {
+            return readKeywordFunction(functionType);
+        } else if (nonKeyword) {
+            return readIf(DOT) ? readTermObjectDot(name) : new ExpressionColumn(database, null, null, name, false);
+        }
+        throw getSyntaxError();
+    }
+
     private Expression readKeywordFunction(int id) {
         Function function = Function.getFunction(database, id);
         if (readIf(OPEN_PAREN)) {
@@ -4306,20 +4358,6 @@ public class Parser {
                 r = new Subquery(parseQuery());
             }
             break;
-        case IDENTIFIER:
-            String name = currentToken;
-            boolean quoted = currentTokenQuoted;
-            read();
-            if (readIf(OPEN_PAREN)) {
-                r = readFunction(null, name);
-            } else if (readIf(DOT)) {
-                r = readTermObjectDot(name);
-            } else if (quoted) {
-                r = new ExpressionColumn(database, null, null, name, false);
-            } else {
-                r = readTermWithIdentifier(name);
-            }
-            break;
         case MINUS_SIGN:
             read();
             if (currentTokenType == LITERAL) {
@@ -4440,10 +4478,6 @@ public class Parser {
                 read();
             }
             break;
-        case VALUE:
-            read();
-            r = new DomainValueExpression();
-            break;
         case VALUES:
             if (database.getMode().onDuplicateKeyUpdate) {
                 read();
@@ -4481,16 +4515,13 @@ public class Parser {
             r = readKeywordFunction(Function.CURRENT_USER);
             break;
         case DAY:
-            read();
-            r = readKeywordFunction(Function.DAY_OF_MONTH);
+            r = readKeywordFunctionOrColumn(Function.DAY_OF_MONTH);
             break;
         case HOUR:
-            read();
-            r = readKeywordFunction(Function.HOUR);
+            r = readKeywordFunctionOrColumn(Function.HOUR);
             break;
         case LEFT:
-            read();
-            r = readKeywordFunction(Function.LEFT);
+            r = readKeywordFunctionOrColumn(Function.LEFT);
             break;
         case LOCALTIME:
             read();
@@ -4501,31 +4532,49 @@ public class Parser {
             r = readKeywordFunction(Function.LOCALTIMESTAMP);
             break;
         case MINUTE:
-            read();
-            r = readKeywordFunction(Function.MINUTE);
+            r = readKeywordFunctionOrColumn(Function.MINUTE);
             break;
         case MONTH:
-            read();
-            r = readKeywordFunction(Function.MONTH);
+            r = readKeywordFunctionOrColumn(Function.MONTH);
             break;
         case RIGHT:
-            read();
-            r = readKeywordFunction(Function.RIGHT);
+            r = readKeywordFunctionOrColumn(Function.RIGHT);
             break;
         case SECOND:
-            read();
-            r = readKeywordFunction(Function.SECOND);
+            r = readKeywordFunctionOrColumn(Function.SECOND);
             break;
         case SET:
-            read();
-            r = readKeywordFunction(Function.SET);
+            r = readKeywordFunctionOrColumn(Function.SET);
             break;
         case YEAR:
-            read();
-            r = readKeywordFunction(Function.YEAR);
+            r = readKeywordFunctionOrColumn(Function.YEAR);
             break;
+        case VALUE:
+            if (parseDomainConstraint) {
+                read();
+                r = new DomainValueExpression();
+                break;
+            }
+            //$FALL-THROUGH$
         default:
-            throw getSyntaxError();
+            if (!isIdentifier()) {
+                throw getSyntaxError();
+            }
+            //$FALL-THROUGH$
+        case IDENTIFIER:
+            String name = currentToken;
+            boolean quoted = currentTokenQuoted;
+            read();
+            if (readIf(OPEN_PAREN)) {
+                r = readFunction(null, name);
+            } else if (readIf(DOT)) {
+                r = readTermObjectDot(name);
+            } else if (quoted) {
+                r = new ExpressionColumn(database, null, null, name, false);
+            } else {
+                r = readTermWithIdentifier(name);
+            }
+            break;
         }
         if (readIf(OPEN_BRACKET)) {
             r = Function.getFunctionWithArgs(database, Function.ARRAY_GET, r, readExpression());
@@ -5048,7 +5097,7 @@ public class Parser {
     }
 
     private String readColumnIdentifier() {
-        if (currentTokenType != IDENTIFIER) {
+        if (!isIdentifier()) {
             /*
              * Sometimes a new keywords are introduced. During metadata
              * initialization phase keywords are accepted as identifiers to
@@ -5123,6 +5172,10 @@ public class Parser {
             return a.equals(b) || !identifiersToUpper && a.equalsIgnoreCase(b);
     }
 
+    private boolean isIdentifier() {
+        return currentTokenType == IDENTIFIER || nonKeywords != null && nonKeywords.get(currentTokenType);
+    }
+
     private void addExpected(String token) {
         if (expectedList != null) {
             expectedList.add(token);
@@ -5163,7 +5216,7 @@ public class Parser {
                 i++;
             }
             currentTokenType = ParserUtil.getSaveTokenType(sqlCommand, !identifiersToUpper, start, i, false);
-            if (currentTokenType == IDENTIFIER) {
+            if (isIdentifier()) {
                 currentToken = StringUtils.cache(sqlCommand.substring(start, i));
             } else {
                 currentToken = TOKENS[currentTokenType];
@@ -6806,7 +6859,12 @@ public class Parser {
             } else if (readIf(CHECK)) {
                 AlterDomainAddConstraint constraint = new AlterDomainAddConstraint(session, schema, ifNotExists);
                 constraint.setDomainName(domainName);
-                constraint.setCheckExpression(readExpression());
+                parseDomainConstraint = true;
+                try {
+                    constraint.setCheckExpression(readExpression());
+                } finally {
+                    parseDomainConstraint = false;
+                }
                 command.addConstraintCommand(constraint);
             } else if (constraintName == null) {
                 break;
@@ -7276,7 +7334,12 @@ public class Parser {
             AlterDomainAddConstraint command = new AlterDomainAddConstraint(session, schema, ifNotExists);
             command.setDomainName(domainName);
             command.setConstraintName(constraintName);
-            command.setCheckExpression(readExpression());
+            parseDomainConstraint = true;
+            try {
+                command.setCheckExpression(readExpression());
+            } finally {
+                parseDomainConstraint = false;
+            }
             command.setIfDomainExists(ifDomainExists);
             command.setComment(comment);
             if (readIf("NOCHECK")) {
@@ -7688,6 +7751,21 @@ public class Parser {
         } else if (readIf("TRANSACTION")) {
             // TODO should affect only the current transaction
             return parseSetTransactionMode();
+        } else if (readIf("NON_KEYWORDS")) {
+            readIfEqualOrTo();
+            Set command = new Set(session, SetTypes.NON_KEYWORDS);
+            ArrayList<String> list = Utils.newSmallArrayList();
+            if (currentTokenType != END && currentTokenType != SEMICOLON) {
+                do {
+                    if (currentTokenType < IDENTIFIER || currentTokenType > LAST_KEYWORD) {
+                        throw getSyntaxError();
+                    }
+                    list.add(StringUtils.toUpperEnglish(currentToken));
+                    read();
+                } while (readIf(COMMA));
+            }
+            command.setStringArray(list.toArray(new String[0]));
+            return command;
         } else {
             if (isToken("LOGSIZE")) {
                 // HSQLDB compatibility
@@ -7738,7 +7816,7 @@ public class Parser {
     }
 
     private Expression readExpressionOrIdentifier() {
-        if (currentTokenType == IDENTIFIER) {
+        if (isIdentifier()) {
             return ValueExpression.get(ValueString.get(readAliasIdentifier()));
         }
         return readExpression();
@@ -9051,10 +9129,10 @@ public class Parser {
         if (readIf(CLOSE_PAREN)) {
             return Utils.EMPTY_INT_ARRAY;
         }
-        if (currentTokenType == IDENTIFIER) {
+        if (isIdentifier()) {
             ArrayList<String> list = Utils.newSmallArrayList();
             do {
-                if (currentTokenType != IDENTIFIER) {
+                if (!isIdentifier()) {
                     throw getSyntaxError();
                 }
                 list.add(currentToken);

@@ -14,11 +14,13 @@ import java.sql.ResultSet;
 import java.sql.Types;
 import java.text.Collator;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 
 import org.h2.command.Command;
+import org.h2.command.Parser;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.Constraint.Type;
 import org.h2.constraint.ConstraintActionType;
@@ -1154,6 +1156,10 @@ public class MetaTable extends Table {
                     "FALSE" : "TRUE");
             add(rows, "MODE", database.getMode().getName());
             add(rows, "QUERY_TIMEOUT", Integer.toString(session.getQueryTimeout()));
+            BitSet nonKeywords = session.getNonKeywords();
+            if (nonKeywords != null) {
+                add(rows, "NON_KEYWORDS", Parser.formatNonKeywords(nonKeywords));
+            }
             add(rows, "RETENTION_TIME", Integer.toString(database.getRetentionTime()));
             add(rows, "LOG", Integer.toString(database.getLogMode()));
             // database settings

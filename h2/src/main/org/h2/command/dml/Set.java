@@ -9,6 +9,7 @@ import java.text.Collator;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
+import org.h2.command.Parser;
 import org.h2.command.Prepared;
 import org.h2.compress.Compressor;
 import org.h2.engine.Constants;
@@ -64,6 +65,7 @@ public class Set extends Prepared {
         case SetTypes.CATALOG:
         case SetTypes.RETENTION_TIME:
         case SetTypes.LAZY_QUERY_EXECUTION:
+        case SetTypes.NON_KEYWORDS:
             return true;
         default:
         }
@@ -618,6 +620,9 @@ public class Set extends Prepared {
             }
             break;
         }
+        case SetTypes.NON_KEYWORDS:
+            session.setNonKeywords(Parser.parseNonKeywords(stringValueList));
+            break;
         default:
             DbException.throwInternalError("type="+type);
         }

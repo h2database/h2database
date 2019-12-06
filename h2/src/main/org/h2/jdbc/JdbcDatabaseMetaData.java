@@ -1548,7 +1548,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * MINUS,
      * OFFSET,
      * QUALIFY,
-     * REGEXP,_ROWID_,ROWNUM,
+     * REGEXP,ROWNUM,
      * SYSDATE,SYSTIME,SYSTIMESTAMP,
      * TODAY,TOP
      * </pre>
@@ -1578,7 +1578,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * UNION, UNIQUE, UNKNOWN, USING
      * VALUE, VALUES,
      * WHERE, WINDOW, WITH,
-     * YEAR
+     * YEAR,
+     * _ROWID_
      * </pre>
      *
      * @return a list of additional the keywords
@@ -1594,9 +1595,10 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                 + "MINUS," //
                 + "OFFSET," //
                 + "QUALIFY," //
-                + "REGEXP,_ROWID_,ROWNUM," //
+                + "REGEXP,ROWNUM," //
                 + "SYSDATE,SYSTIME,SYSTIMESTAMP," //
-                + "TODAY,TOP";
+                + "TODAY,TOP,"//
+                + "_ROWID_";
     }
 
     /**

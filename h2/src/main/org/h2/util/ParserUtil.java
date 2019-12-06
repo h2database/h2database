@@ -17,6 +17,8 @@ public class ParserUtil {
      */
     public static final int IDENTIFIER = 2;
 
+    // Constants below must be sorted
+
     /**
      * The token "ALL".
      */
@@ -278,14 +280,9 @@ public class ParserUtil {
     public static final int ROW = RIGHT + 1;
 
     /**
-     * The token "_ROWID_".
-     */
-    public static final int _ROWID_ = ROW + 1;
-
-    /**
      * The token "ROWNUM".
      */
-    public static final int ROWNUM = _ROWID_ + 1;
+    public static final int ROWNUM = ROW + 1;
 
     /**
      * The token "SECOND".
@@ -361,6 +358,23 @@ public class ParserUtil {
      * The token "YEAR".
      */
     public static final int YEAR = WITH + 1;
+
+    /**
+     * The token "_ROWID_".
+     */
+    public static final int _ROWID_ = YEAR + 1;
+
+    // Constants above must be sorted
+
+    /**
+     * The ordinal number of the first keyword.
+     */
+    public static final int FIRST_KEYWORD = IDENTIFIER + 1;
+
+    /**
+     * The ordinal number of the last keyword.
+     */
+    public static final int LAST_KEYWORD = _ROWID_;
 
     private static final int UPPER_OR_OTHER_LETTER =
             1 << Character.UPPERCASE_LETTER

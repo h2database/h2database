@@ -43,6 +43,7 @@ import static org.h2.util.ParserUtil.INTERVAL;
 import static org.h2.util.ParserUtil.IS;
 import static org.h2.util.ParserUtil.JOIN;
 import static org.h2.util.ParserUtil.KEY;
+import static org.h2.util.ParserUtil.LAST_KEYWORD;
 import static org.h2.util.ParserUtil.LEFT;
 import static org.h2.util.ParserUtil.LIKE;
 import static org.h2.util.ParserUtil.LIMIT;
@@ -307,7 +308,7 @@ public class Parser {
     /**
      * Token with parameter.
      */
-    private static final int PARAMETER = YEAR + 1;
+    private static final int PARAMETER = LAST_KEYWORD + 1;
 
     /**
      * End of input.
@@ -570,8 +571,6 @@ public class Parser {
             "RIGHT",
             // ROW
             "ROW",
-            // _ROWID_
-            "_ROWID_",
             // ROWNUM
             "ROWNUM",
             // SECOND
@@ -604,6 +603,8 @@ public class Parser {
             "WITH",
             // YEAR
             "YEAR",
+            // _ROWID_
+            "_ROWID_",
             // PARAMETER
             "?",
             // END

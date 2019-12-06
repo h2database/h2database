@@ -37,10 +37,10 @@ public class TestSelectCountNonNullColumn extends TestDb {
         Connection conn = getConnection(DBNAME);
         stat = conn.createStatement();
 
-        stat.execute("CREATE TABLE SIMPLE(KEY VARCHAR(25) " +
+        stat.execute("CREATE TABLE SIMPLE(\"KEY\" VARCHAR(25) " +
                 "PRIMARY KEY, NAME VARCHAR(25))");
-        stat.execute("INSERT INTO SIMPLE(KEY) VALUES('k1')");
-        stat.execute("INSERT INTO SIMPLE(KEY,NAME) VALUES('k2','name2')");
+        stat.execute("INSERT INTO SIMPLE(\"KEY\") VALUES('k1')");
+        stat.execute("INSERT INTO SIMPLE(\"KEY\",NAME) VALUES('k2','name2')");
 
         checkKeyCount(-1);
         checkNameCount(-1);
@@ -72,7 +72,7 @@ public class TestSelectCountNonNullColumn extends TestDb {
     }
 
     private void checkKeyCount(long expect) throws SQLException {
-        String sql = "SELECT COUNT(KEY) FROM SIMPLE";
+        String sql = "SELECT COUNT(\"KEY\") FROM SIMPLE";
         if (expect < 0) {
             sql = "EXPLAIN " + sql;
         }

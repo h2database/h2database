@@ -40,7 +40,6 @@ public class TestCompatibility extends TestDb {
         deleteDb("compatibility");
 
         testCaseSensitiveIdentifiers();
-        testKeyAsColumnInMySQLMode();
 
         conn = getConnection("compatibility");
         testDomain();
@@ -62,14 +61,6 @@ public class TestCompatibility extends TestDb {
         deleteDb("compatibility");
 
         testUnknownURL();
-    }
-
-    private void testKeyAsColumnInMySQLMode() throws SQLException {
-        Connection c = getConnection("compatibility;MODE=MYSQL");
-        Statement stat = c.createStatement();
-        stat.execute("create table test(id int primary key, key varchar)");
-        stat.execute("drop table test");
-        c.close();
     }
 
     private void testCaseSensitiveIdentifiers() throws SQLException {

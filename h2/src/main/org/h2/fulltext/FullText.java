@@ -75,7 +75,7 @@ public class FullText {
     private static final String SELECT_MAP_BY_WORD_ID =
             "SELECT ROWID FROM " + SCHEMA + ".MAP WHERE WORDID=?";
     private static final String SELECT_ROW_BY_ID =
-            "SELECT KEY, INDEXID FROM " + SCHEMA + ".ROWS WHERE ID=?";
+            "SELECT `KEY`, INDEXID FROM " + SCHEMA + ".ROWS WHERE ID=?";
 
     /**
      * The column name of the result set returned by the search method.
@@ -116,13 +116,13 @@ public class FullText {
                 "NAME VARCHAR, UNIQUE(NAME))");
         stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA +
                 ".ROWS(ID IDENTITY, HASH INT, INDEXID INT, " +
-                "KEY VARCHAR, UNIQUE(HASH, INDEXID, KEY))");
+                "`KEY` VARCHAR, UNIQUE(HASH, INDEXID, `KEY`))");
         stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA +
                 ".MAP(ROWID INT, WORDID INT, PRIMARY KEY(WORDID, ROWID))");
         stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA +
                 ".IGNORELIST(LIST VARCHAR)");
         stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA +
-                ".SETTINGS(KEY VARCHAR PRIMARY KEY, `VALUE` VARCHAR)");
+                ".SETTINGS(`KEY` VARCHAR PRIMARY KEY, `VALUE` VARCHAR)");
         stat.execute("CREATE ALIAS IF NOT EXISTS FT_CREATE_INDEX FOR \"" +
                 FullText.class.getName() + ".createIndex\"");
         stat.execute("CREATE ALIAS IF NOT EXISTS FT_DROP_INDEX FOR \"" +
@@ -875,11 +875,11 @@ public class FullText {
 
         private static final String SQL[] = {
             "MERGE INTO " + SCHEMA + ".WORDS(NAME) KEY(NAME) VALUES(?)",
-            "INSERT INTO " + SCHEMA + ".ROWS(HASH, INDEXID, KEY) VALUES(?, ?, ?)",
+            "INSERT INTO " + SCHEMA + ".ROWS(HASH, INDEXID, `KEY`) VALUES(?, ?, ?)",
             "INSERT INTO " + SCHEMA + ".MAP(ROWID, WORDID) VALUES(?, ?)",
-            "DELETE FROM " + SCHEMA + ".ROWS WHERE HASH=? AND INDEXID=? AND KEY=?",
+            "DELETE FROM " + SCHEMA + ".ROWS WHERE HASH=? AND INDEXID=? AND `KEY`=?",
             "DELETE FROM " + SCHEMA + ".MAP WHERE ROWID=? AND WORDID=?",
-            "SELECT ID FROM " + SCHEMA + ".ROWS WHERE HASH=? AND INDEXID=? AND KEY=?"
+            "SELECT ID FROM " + SCHEMA + ".ROWS WHERE HASH=? AND INDEXID=? AND `KEY`=?"
         };
 
         /**

@@ -1565,6 +1565,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * HAVING, HOUR,
      * IF, ILIKE, IN, INNER, INTERSECT, INTERSECTS, INTERVAL, IS,
      * JOIN,
+     * KEY,
      * LEADING, LEFT, LIKE, LIMIT, LOCALTIME, LOCALTIMESTAMP,
      * MINUS, MINUTE, MONTH,
      * NATURAL, NOT, NULL,
@@ -1572,7 +1573,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * PARTITION, PRIMARY,
      * QUALIFY,
      * RANGE, REGEXP, RIGHT, ROW, _ROWID_, ROWNUM, ROWS,
-     * SECOND, SELECT, SYSDATE, SYSTIME, SYSTIMESTAMP,
+     * SECOND, SELECT, SET, SYSDATE, SYSTIME, SYSTIMESTAMP,
      * TABLE, TODAY, TOP, TRAILING, TRUE,
      * UNION, UNIQUE, UNKNOWN, USING
      * VALUE, VALUES,

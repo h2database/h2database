@@ -28,9 +28,14 @@ public class ParserUtil {
     public static final int ARRAY = ALL + 1;
 
     /**
+     * The token "AS".
+     */
+    public static final int AS = ARRAY + 1;
+
+    /**
      * The token "CASE".
      */
-    public static final int CASE = ARRAY + 1;
+    public static final int CASE = AS + 1;
 
     /**
      * The token "CHECK".
@@ -178,9 +183,14 @@ public class ParserUtil {
     public static final int JOIN = IS + 1;
 
     /**
+     * The token "KEY".
+     */
+    public static final int KEY = JOIN + 1;
+
+    /**
      * The token "LEFT".
      */
-    public static final int LEFT = JOIN + 1;
+    public static final int LEFT = KEY + 1;
 
     /**
      * The token "LIKE".
@@ -288,9 +298,14 @@ public class ParserUtil {
     public static final int SELECT = SECOND + 1;
 
     /**
+     * The token "SET".
+     */
+    public static final int SET = SELECT + 1;
+
+    /**
      * The token "TABLE".
      */
-    public static final int TABLE = SELECT + 1;
+    public static final int TABLE = SET + 1;
 
     /**
      * The token "TRUE".
@@ -468,9 +483,11 @@ public class ParserUtil {
                 return ALL;
             } else if (eq("ARRAY", s, ignoreCase, start, end)) {
                 return ARRAY;
+            } else if (eq("AS", s, ignoreCase, start, end)) {
+                return AS;
             }
             if (additionalKeywords) {
-                if (eq("AND", s, ignoreCase, start, end) || eq("AS", s, ignoreCase, start, end)) {
+                if (eq("AND", s, ignoreCase, start, end)) {
                     return KEYWORD;
                 }
             }
@@ -581,6 +598,11 @@ public class ParserUtil {
                 return JOIN;
             }
             return IDENTIFIER;
+        case 'K':
+            if (eq("KEY", s, ignoreCase, start, end)) {
+                return KEY;
+            }
+            return IDENTIFIER;
         case 'L':
             if (eq("LEFT", s, ignoreCase, start, end)) {
                 return LEFT;
@@ -666,6 +688,8 @@ public class ParserUtil {
                 return SECOND;
             } else if (eq("SELECT", s, ignoreCase, start, end)) {
                 return SELECT;
+            } else if (eq("SET", s, ignoreCase, start, end)) {
+                return SET;
             }
             if (additionalKeywords) {
                 if (eq("SYSDATE", s, ignoreCase, start, end) || eq("SYSTIME", s, ignoreCase, start, end)

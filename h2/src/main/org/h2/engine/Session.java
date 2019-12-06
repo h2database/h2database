@@ -142,6 +142,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private boolean forceJoinOrder;
     private boolean lazyQueryExecution;
     private ColumnNamerConfiguration columnNamerConfiguration;
+
+    private BitSet nonKeywords;
+
     /**
      * Tables marked for ANALYZE after the current transaction is committed.
      * Prevents us calling ANALYZE repeatedly in large transactions.
@@ -2019,6 +2022,24 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                 set.update();
             }
         }
+    }
+
+    /**
+     * Gets bit set of non-keywords.
+     *
+     * @return set of non-keywords, or {@code null}
+     */
+    public BitSet getNonKeywords() {
+        return nonKeywords;
+    }
+
+    /**
+     * Sets bit set of non-keywords.
+     *
+     * @param nonKeywords set of non-keywords, or {@code null}
+     */
+    public void setNonKeywords(BitSet nonKeywords) {
+        this.nonKeywords = nonKeywords;
     }
 
 }

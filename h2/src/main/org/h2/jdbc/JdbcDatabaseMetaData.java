@@ -1548,7 +1548,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * MINUS,
      * OFFSET,
      * QUALIFY,
-     * REGEXP,_ROWID_,ROWNUM,
+     * REGEXP,ROWNUM,
      * SYSDATE,SYSTIME,SYSTIMESTAMP,
      * TODAY,TOP
      * </pre>
@@ -1565,6 +1565,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * HAVING, HOUR,
      * IF, ILIKE, IN, INNER, INTERSECT, INTERSECTS, INTERVAL, IS,
      * JOIN,
+     * KEY,
      * LEADING, LEFT, LIKE, LIMIT, LOCALTIME, LOCALTIMESTAMP,
      * MINUS, MINUTE, MONTH,
      * NATURAL, NOT, NULL,
@@ -1572,12 +1573,13 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * PARTITION, PRIMARY,
      * QUALIFY,
      * RANGE, REGEXP, RIGHT, ROW, _ROWID_, ROWNUM, ROWS,
-     * SECOND, SELECT, SYSDATE, SYSTIME, SYSTIMESTAMP,
+     * SECOND, SELECT, SET, SYSDATE, SYSTIME, SYSTIMESTAMP,
      * TABLE, TODAY, TOP, TRAILING, TRUE,
      * UNION, UNIQUE, UNKNOWN, USING
      * VALUE, VALUES,
      * WHERE, WINDOW, WITH,
-     * YEAR
+     * YEAR,
+     * _ROWID_
      * </pre>
      *
      * @return a list of additional the keywords
@@ -1593,9 +1595,10 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                 + "MINUS," //
                 + "OFFSET," //
                 + "QUALIFY," //
-                + "REGEXP,_ROWID_,ROWNUM," //
+                + "REGEXP,ROWNUM," //
                 + "SYSDATE,SYSTIME,SYSTIMESTAMP," //
-                + "TODAY,TOP";
+                + "TODAY,TOP,"//
+                + "_ROWID_";
     }
 
     /**

@@ -2320,7 +2320,7 @@ create force view address_view as select * from address;
 > ok
 
 create table address(id identity, name varchar check instr(value, '@') > 1);
-> exception COLUMN_NOT_FOUND_1
+> exception SYNTAX_ERROR_2
 
 create table address(id identity, name varchar check instr(name, '@') > 1);
 > ok

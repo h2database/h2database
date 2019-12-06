@@ -527,7 +527,7 @@ The following tokens are keywords in H2:
 <tr><td>ARRAY</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td></td></tr>
 <tr><td>AS</td>
-<td>CS</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>BETWEEN</td>
 <td>CS</td><td>+</td><td>+</td><td>+</td><td>+</td><td>NR</td><td>+</td></tr>
 <tr><td>BOTH</td>
@@ -600,6 +600,8 @@ The following tokens are keywords in H2:
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>JOIN</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>KEY</td>
+<td>+</td><td>NR</td><td>NR</td><td>NR</td><td>NR</td><td>+</td><td>+</td></tr>
 <tr><td>LEADING</td>
 <td>CS</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>LEFT</td>
@@ -648,8 +650,6 @@ The following tokens are keywords in H2:
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>ROW</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td></td></tr>
-<tr><td>_ROWID_</td>
-<td>+</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
 <tr><td>ROWNUM</td>
 <td>+</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
 <tr><td>ROWS</td>
@@ -657,6 +657,8 @@ The following tokens are keywords in H2:
 <tr><td>SECOND</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>SELECT</td>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>SET</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>SYSDATE</td>
 <td>CS</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
@@ -694,6 +696,8 @@ The following tokens are keywords in H2:
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>YEAR</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>_ROWID_</td>
+<td>+</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
 </tbody>
 </table>
 <p>
@@ -702,6 +706,10 @@ but cannot be used as identifiers in others.
 Most keywords in H2 are also reserved (+) or non-reserved (NR) words in the SQL Standard.
 Newer versions of H2 may have more keywords than older ones.
 </p>
+
+<p>There is a compatibility setting
+<a href="commands.html#set_non_keywords"><code>SET NON_KEYWORDS</code></a>
+that can be used as a temporary workaround for applications that use keywords as unquoted identifiers.</p>.
 
 <h2 id="standards_compliance">Standards Compliance</h2>
 <p>

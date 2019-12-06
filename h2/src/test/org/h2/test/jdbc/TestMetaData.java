@@ -469,9 +469,10 @@ public class TestMetaData extends TestDb {
                 + "MINUS," //
                 + "OFFSET," //
                 + "QUALIFY," //
-                + "REGEXP,_ROWID_,ROWNUM," //
+                + "REGEXP,ROWNUM," //
                 + "SYSDATE,SYSTIME,SYSTIMESTAMP," //
-                + "TODAY,TOP", //
+                + "TODAY,TOP,"//
+                + "_ROWID_", //
                 meta.getSQLKeywords());
 
         assertTrue(meta.getURL().startsWith("jdbc:h2:"));

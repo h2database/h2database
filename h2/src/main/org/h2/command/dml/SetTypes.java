@@ -252,7 +252,12 @@ public class SetTypes {
      */
     public static final int CATALOG = IGNORE_CATALOGS + 1;
 
-    private static final int COUNT = CATALOG + 1;
+    /**
+     * The type of a SET NON_KEYWORDS statement.
+     */
+    public static final int NON_KEYWORDS = CATALOG + 1;
+
+    private static final int COUNT = NON_KEYWORDS + 1;
 
     private static final ArrayList<String> TYPES;
 
@@ -311,6 +316,7 @@ public class SetTypes {
         list.add(UUID_COLLATION, "UUID_COLLATION");
         list.add(IGNORE_CATALOGS, "IGNORE_CATALOGS");
         list.add(CATALOG, "CATALOG");
+        list.add(NON_KEYWORDS, "NON_KEYWORDS");
         TYPES = list;
     }
 

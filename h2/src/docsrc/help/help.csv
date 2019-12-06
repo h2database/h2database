@@ -1739,6 +1739,19 @@ This setting can be appended to the database URL: ""jdbc:h2:./test;MODE=MYSQL""
 SET MODE HSQLDB
 "
 
+"Commands (Other)","SET NON_KEYWORDS","
+@h2@ SET NON_KEYWORDS [ name [,...] ]
+","
+Converts the specified tokens from keywords to plain identifiers for the current session.
+This setting may break some commands and should be used with caution and only when necessary.
+Use [quoted identifiers](https://h2database.com/html/grammar.html#quoted_name) instead of this setting if possible.
+
+This command does not commit a transaction, and rollback does not affect it.
+This setting can be appended to the database URL: ""jdbc:h2:./test;NON_KEYWORDS=KEY,VALUE""
+","
+SET NON_KEYWORDS KEY, VALUE
+"
+
 "Commands (Other)","SET OPTIMIZE_REUSE_RESULTS","
 @h2@ SET OPTIMIZE_REUSE_RESULTS { 0 | 1 }
 ","

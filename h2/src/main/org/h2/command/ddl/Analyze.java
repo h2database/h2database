@@ -102,7 +102,7 @@ public class Analyze extends DefineCommand {
         for (int i = 0; i < columnCount; i++) {
             Column col = columns[i];
             if (!DataType.isLargeObject(col.getType().getValueType())) {
-                aggregates[i] = new AggregateDataSelectivity(false);
+                aggregates[i] = new AggregateDataSelectivity();
             }
         }
         Cursor cursor = table.getScanIndex(session).find(session, null, null);

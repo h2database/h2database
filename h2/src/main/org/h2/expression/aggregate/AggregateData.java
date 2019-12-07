@@ -63,7 +63,7 @@ abstract class AggregateData {
             }
             break;
         case SELECTIVITY:
-            return new AggregateDataSelectivity(distinct);
+            return new AggregateDataSelectivity();
         case HISTOGRAM:
             return new AggregateDataDistinctWithCounts(false, Constants.SELECTIVITY_DISTINCT_COUNT);
         case LISTAGG:

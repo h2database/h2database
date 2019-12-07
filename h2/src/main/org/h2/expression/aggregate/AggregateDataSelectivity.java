@@ -16,19 +16,14 @@ import org.h2.value.ValueInt;
  */
 public class AggregateDataSelectivity extends AggregateData {
 
-    private final boolean distinct;
-
     private long count;
     private IntIntHashMap distinctHashes;
     private double m2;
 
     /**
      * Creates new instance of data for SELECTIVITY aggregate.
-     *
-     * @param distinct if distinct is used
      */
-    public AggregateDataSelectivity(boolean distinct) {
-        this.distinct = distinct;
+    public AggregateDataSelectivity() {
     }
 
     @Override
@@ -49,9 +44,6 @@ public class AggregateDataSelectivity extends AggregateData {
 
     @Override
     public Value getValue(Database database, int dataType) {
-        if (distinct) {
-            count = 0;
-        }
         Value v = null;
         int s = 0;
         if (count == 0) {

@@ -93,6 +93,7 @@ public class Analyze extends DefineCommand {
             // if the connection is closed and there is something to undo
             return;
         }
+        table.lock(session, false, false);
         Column[] columns = table.getColumns();
         int columnCount = columns.length;
         if (columnCount == 0) {

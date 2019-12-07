@@ -14,7 +14,7 @@ import org.h2.value.ValueInt;
 /**
  * Data stored while calculating a SELECTIVITY aggregate.
  */
-class AggregateDataSelectivity extends AggregateData {
+public class AggregateDataSelectivity extends AggregateData {
 
     private final boolean distinct;
 
@@ -27,12 +27,12 @@ class AggregateDataSelectivity extends AggregateData {
      *
      * @param distinct if distinct is used
      */
-    AggregateDataSelectivity(boolean distinct) {
+    public AggregateDataSelectivity(boolean distinct) {
         this.distinct = distinct;
     }
 
     @Override
-    void add(Database database, Value v) {
+    public void add(Database database, Value v) {
         count++;
         if (distinctHashes == null) {
             distinctHashes = new IntIntHashMap();
@@ -48,7 +48,7 @@ class AggregateDataSelectivity extends AggregateData {
     }
 
     @Override
-    Value getValue(Database database, int dataType) {
+    public Value getValue(Database database, int dataType) {
         if (distinct) {
             count = 0;
         }

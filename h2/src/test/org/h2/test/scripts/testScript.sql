@@ -366,9 +366,9 @@ insert into test(id) direct sorted select x from system_range(1, 100);
 explain insert into test(id) direct sorted select x from system_range(1, 100);
 >> INSERT INTO "PUBLIC"."TEST"("ID") DIRECT SORTED SELECT "X" FROM SYSTEM_RANGE(1, 100) /* range index */
 
-explain select * from test limit 10 sample_size 10;
-#+mvStore#>> SELECT "PUBLIC"."TEST"."ID" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ FETCH FIRST 10 ROWS ONLY SAMPLE_SIZE 10
-#-mvStore#>> SELECT "PUBLIC"."TEST"."ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */ FETCH FIRST 10 ROWS ONLY SAMPLE_SIZE 10
+explain select * from test limit 10;
+#+mvStore#>> SELECT "PUBLIC"."TEST"."ID" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ FETCH FIRST 10 ROWS ONLY
+#-mvStore#>> SELECT "PUBLIC"."TEST"."ID" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */ FETCH FIRST 10 ROWS ONLY
 
 drop table test;
 > ok

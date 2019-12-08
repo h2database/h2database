@@ -2806,10 +2806,6 @@ public class Parser {
                     command.setLimit(limit);
                 }
             }
-            if (readIf("SAMPLE_SIZE")) {
-                Expression sampleSize = readExpression().optimize(session);
-                command.setSampleSize(sampleSize);
-            }
             currentSelect = temp;
         }
         if (readIf(FOR)) {

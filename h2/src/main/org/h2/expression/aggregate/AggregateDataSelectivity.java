@@ -29,16 +29,16 @@ public class AggregateDataSelectivity extends AggregateData {
     public void add(Database database, Value v) {
         count++;
         if (distinctHashes == null) {
-            distinctHashes = new IntIntHashMap();
+            distinctHashes = new IntIntHashMap(false);
+        } else {
+            int size = distinctHashes.size();
+            if (size >= Constants.SELECTIVITY_DISTINCT_COUNT) {
+                distinctHashes.clear();
+                distinctCount += size;
+            }
         }
-        int size = distinctHashes.size();
-        if (size > Constants.SELECTIVITY_DISTINCT_COUNT) {
-            distinctHashes = new IntIntHashMap();
-            distinctCount += size;
-        }
-        int hash = v.hashCode();
         // the value -1 is not supported
-        distinctHashes.put(hash, 1);
+        distinctHashes.put(v.hashCode(), 1);
     }
 
     @Override

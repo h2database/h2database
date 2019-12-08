@@ -16,9 +16,8 @@ import org.h2.value.ValueInt;
  */
 public class AggregateDataSelectivity extends AggregateData {
 
-    private long count;
+    private long count, distinctCount;
     private IntIntHashMap distinctHashes;
-    private double m2;
 
     /**
      * Creates new instance of data for SELECTIVITY aggregate.
@@ -35,7 +34,7 @@ public class AggregateDataSelectivity extends AggregateData {
         int size = distinctHashes.size();
         if (size > Constants.SELECTIVITY_DISTINCT_COUNT) {
             distinctHashes = new IntIntHashMap();
-            m2 += size;
+            distinctCount += size;
         }
         int hash = v.hashCode();
         // the value -1 is not supported
@@ -44,18 +43,16 @@ public class AggregateDataSelectivity extends AggregateData {
 
     @Override
     public Value getValue(Database database, int dataType) {
-        Value v = null;
-        int s = 0;
+        int s;
         if (count == 0) {
             s = 0;
         } else {
-            m2 += distinctHashes.size();
-            m2 = 100 * m2 / count;
-            s = (int) m2;
-            s = s <= 0 ? 1 : s > 100 ? 100 : s;
+            s = (int) (100 * (distinctCount + distinctHashes.size()) / count);
+            if (s <= 0) {
+                s = 1;
+            }
         }
-        v = ValueInt.get(s);
-        return v.convertTo(dataType);
+        return ValueInt.get(s).convertTo(dataType);
     }
 
 }

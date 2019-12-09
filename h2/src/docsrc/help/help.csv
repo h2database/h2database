@@ -5900,19 +5900,6 @@ Aggregates are only allowed in select statements.
 BIT_OR(ID)
 "
 
-"Aggregate Functions (General)","SELECTIVITY","
-@h2@ SELECTIVITY(value)
-@h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
-","
-Estimates the selectivity (0-100) of a value.
-The value is defined as (100 * distinctCount / rowCount).
-The selectivity of 0 rows is 0 (unknown).
-Up to 10000 values are kept in memory.
-Aggregates are only allowed in select statements.
-","
-SELECT SELECTIVITY(FIRSTNAME), SELECTIVITY(NAME) FROM TEST WHERE ROWNUM()<20000
-"
-
 "Aggregate Functions (General)","ENVELOPE","
 @h2@ ENVELOPE( value )
 @h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]

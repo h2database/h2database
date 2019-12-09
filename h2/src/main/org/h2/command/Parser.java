@@ -3405,7 +3405,6 @@ public class Parser {
                 }
             }
             break;
-        case SELECTIVITY:
         case HISTOGRAM:
             r = new Aggregate(aggregateType, new Expression[] { readExpression() }, currentSelect, false);
             break;

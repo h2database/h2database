@@ -115,7 +115,6 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         addAggregate("EVERY", AggregateType.EVERY);
         // PostgreSQL compatibility
         addAggregate("BOOL_AND", AggregateType.EVERY);
-        addAggregate("SELECTIVITY", AggregateType.SELECTIVITY);
         addAggregate("HISTOGRAM", AggregateType.HISTOGRAM);
         addAggregate("BIT_OR", AggregateType.BIT_OR);
         addAggregate("BIT_AND", AggregateType.BIT_AND);
@@ -730,9 +729,6 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             }
             type = TypeInfo.TYPE_LONG;
             break;
-        case SELECTIVITY:
-            type = TypeInfo.TYPE_INT;
-            break;
         case HISTOGRAM:
             type = TypeInfo.TYPE_ARRAY;
             break;
@@ -834,9 +830,6 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             return appendTailConditions(builder.append("COUNT(*)"), alwaysQuote);
         case COUNT:
             text = "COUNT";
-            break;
-        case SELECTIVITY:
-            text = "SELECTIVITY";
             break;
         case HISTOGRAM:
             text = "HISTOGRAM";

@@ -4032,14 +4032,6 @@ insert into test values
 EXPLAIN SELECT * FROM TEST WHERE ID = 3;
 >> SELECT "PUBLIC"."TEST"."ID", "PUBLIC"."TEST"."FIRST_NAME", "PUBLIC"."TEST"."NAME", "PUBLIC"."TEST"."STATE" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2: ID = 3 */ WHERE "ID" = 3
 
-SELECT SELECTIVITY(ID), SELECTIVITY(FIRST_NAME),
-SELECTIVITY(NAME), SELECTIVITY(STATE)
-FROM TEST WHERE ROWNUM()<100000;
-> SELECTIVITY(ID) SELECTIVITY(FIRST_NAME) SELECTIVITY(NAME) SELECTIVITY(STATE)
-> --------------- ----------------------- ----------------- ------------------
-> 100             60                      80                10
-> rows: 1
-
 explain select * from test where name='Smith' and first_name='Tom' and state=0;
 >> SELECT "PUBLIC"."TEST"."ID", "PUBLIC"."TEST"."FIRST_NAME", "PUBLIC"."TEST"."NAME", "PUBLIC"."TEST"."STATE" FROM "PUBLIC"."TEST" /* PUBLIC.IDX_FIRST_NAME: FIRST_NAME = 'Tom' */ WHERE ("STATE" = 0) AND (("NAME" = 'Smith') AND ("FIRST_NAME" = 'Tom'))
 

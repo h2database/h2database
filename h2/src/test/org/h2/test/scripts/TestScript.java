@@ -158,9 +158,9 @@ public class TestScript extends TestDb {
             testScript("datatypes/" + s + ".sql");
         }
         for (String s : new String[] { "alterTableAdd", "alterTableAlterColumn", "alterTableDropColumn",
-                "alterTableRename", "createAlias", "createDomain", "createSequence", "createSynonym", "createTable",
-                "createTrigger", "createView", "dropAllObjects", "dropDomain", "dropIndex", "dropSchema", "dropTable",
-                "grant", "truncateTable" }) {
+                "alterTableRename", "analyze", "createAlias", "createDomain", "createSequence", "createSynonym",
+                "createTable", "createTrigger", "createView", "dropAllObjects", "dropDomain", "dropIndex",
+                "dropSchema", "dropTable", "grant", "truncateTable" }) {
             testScript("ddl/" + s + ".sql");
         }
         for (String s : new String[] { "delete", "error_reporting", "execute_immediate", "insert", "insertIgnore",
@@ -170,7 +170,7 @@ public class TestScript extends TestDb {
         for (String s : new String[] { "any", "array-agg", "avg", "bit-and", "bit-or", "count", "envelope",
                 "every", "histogram",
                 "json_arrayagg", "json_objectagg",
-                "listagg", "max", "min", "mode", "percentile", "rank", "selectivity",
+                "listagg", "max", "min", "mode", "percentile", "rank",
                 "stddev-pop", "stddev-samp", "sum", "var-pop", "var-samp" }) {
             testScript("functions/aggregate/" + s + ".sql");
         }

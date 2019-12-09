@@ -3,21 +3,17 @@
 -- Initial Developer: H2 Group
 --
 
-SELECT HISTOGRAM(X), HISTOGRAM(DISTINCT X) FROM VALUES (1), (2), (3), (1), (2), (NULL), (5) T(X);
-> HISTOGRAM(X)                                HISTOGRAM(DISTINCT X)
-> ------------------------------------------- -------------------------------------------
-> [[null, 1], [1, 2], [2, 2], [3, 1], [5, 1]] [[null, 1], [1, 1], [2, 1], [3, 1], [5, 1]]
-> rows: 1
+SELECT HISTOGRAM(X), FROM VALUES (1), (2), (3), (1), (2), (NULL), (5) T(X);
+>> [[null, 1], [1, 2], [2, 2], [3, 1], [5, 1]]
 
-SELECT HISTOGRAM(X) FILTER (WHERE X > 1), HISTOGRAM(DISTINCT X) FILTER (WHERE X > 1)
-    FROM VALUES (1), (2), (3), (1), (2), (NULL), (5) T(X);
-> HISTOGRAM(X) FILTER (WHERE (X > 1)) HISTOGRAM(DISTINCT X) FILTER (WHERE (X > 1))
-> ----------------------------------- --------------------------------------------
-> [[2, 2], [3, 1], [5, 1]]            [[2, 1], [3, 1], [5, 1]]
-> rows: 1
+SELECT HISTOGRAM(X) FILTER (WHERE X > 1) FROM VALUES (1), (2), (3), (1), (2), (NULL), (5) T(X);
+>> [[2, 2], [3, 1], [5, 1]]
 
-SELECT HISTOGRAM(X) FILTER (WHERE X > 0), HISTOGRAM(DISTINCT X) FILTER (WHERE X > 0) FROM VALUES (0) T(X);
-> HISTOGRAM(X) FILTER (WHERE (X > 0)) HISTOGRAM(DISTINCT X) FILTER (WHERE (X > 0))
-> ----------------------------------- --------------------------------------------
-> []                                  []
-> rows: 1
+SELECT HISTOGRAM(X) FILTER (WHERE X > 0) FROM VALUES (0) T(X);
+>> []
+
+SELECT HISTOGRAM(DISTINCT X) FROM VALUES (0) T(X);
+> exception SYNTAX_ERROR_2
+
+SELECT HISTOGRAM(ALL X) FROM VALUES (0) T(X);
+> exception SYNTAX_ERROR_2

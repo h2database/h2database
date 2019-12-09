@@ -355,10 +355,6 @@ public class SelectUnion extends Query {
         }
         buff.append('(').append(right.getPlanSQL(alwaysQuote)).append(')');
         appendEndOfQueryToSQL(buff, alwaysQuote, expressions.toArray(new Expression[0]));
-        if (sampleSizeExpr != null) {
-            buff.append("\nSAMPLE_SIZE ");
-            sampleSizeExpr.getUnenclosedSQL(buff, alwaysQuote);
-        }
         if (isForUpdate) {
             buff.append("\nFOR UPDATE");
         }

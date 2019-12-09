@@ -2806,10 +2806,6 @@ public class Parser {
                     command.setLimit(limit);
                 }
             }
-            if (readIf("SAMPLE_SIZE")) {
-                Expression sampleSize = readExpression().optimize(session);
-                command.setSampleSize(sampleSize);
-            }
             currentSelect = temp;
         }
         if (readIf(FOR)) {
@@ -3416,6 +3412,10 @@ public class Parser {
                     r = new Aggregate(AggregateType.COUNT, new Expression[] { on }, currentSelect, distinct);
                 }
             }
+            break;
+        case SELECTIVITY:
+        case HISTOGRAM:
+            r = new Aggregate(aggregateType, new Expression[] { readExpression() }, currentSelect, false);
             break;
         case LISTAGG: {
             boolean distinct = readDistinctAgg();

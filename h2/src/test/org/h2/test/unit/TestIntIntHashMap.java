@@ -36,44 +36,52 @@ public class TestIntIntHashMap extends TestBase {
         map.put(0, 2);
         assertEquals(2, map.size());
         rand.setSeed(10);
-        test(true);
-        test(false);
+        test(true, true);
+        test(false, true);
+        test(true, false);
+        test(false, false);
     }
 
-    private void test(boolean random) {
+    private void test(boolean random, boolean autoShrink) {
         int len = 2000;
         int[] x = new int[len];
         for (int i = 0; i < len; i++) {
-            int key = random ? rand.nextInt() : i;
-            x[i] = key;
+            x[i] = random ? rand.nextInt() : i;
         }
-        IntIntHashMap map = new IntIntHashMap();
+        IntIntHashMap map = new IntIntHashMap(autoShrink);
         for (int i = 0; i < len; i++) {
             map.put(x[i], i);
         }
-        for (int i = 0; i < len; i++) {
-            if (map.get(x[i]) != i) {
-                throw new AssertionError("get " + x[i] + " = " + map.get(i) +
-                        " should be " + i);
-            }
-        }
+        testAll(map, x, len);
         for (int i = 1; i < len; i += 2) {
             map.remove(x[i]);
         }
         for (int i = 1; i < len; i += 2) {
             if (map.get(x[i]) != -1) {
-                throw new AssertionError("get " + x[i] + " = " + map.get(i) +
-                        " should be <=0");
+                throw new AssertionError("get " + x[i] + " = " + map.get(i) + " should be -1");
             }
         }
         for (int i = 1; i < len; i += 2) {
             map.put(x[i], i);
         }
+        testAll(map, x, len);
+        map.clear();
+        assertEquals(0, map.size());
+        for (int i = 0; i < len; i++) {
+            assertEquals(-1, map.get(x[i]));
+        }
+        for (int i = 0; i < len; i++) {
+            map.put(x[i], i);
+        }
+        testAll(map, x, len);
+    }
+
+    private static void testAll(IntIntHashMap map, int[] x, int len) throws AssertionError {
         for (int i = 0; i < len; i++) {
             if (map.get(x[i]) != i) {
-                throw new AssertionError("get " + x[i] + " = " + map.get(i) +
-                        " should be " + i);
+                throw new AssertionError("get " + x[i] + " = " + map.get(i) + " should be " + i);
             }
         }
     }
+
 }

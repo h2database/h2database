@@ -620,7 +620,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         return ValueString.get(builder.toString());
     }
 
-    private Value getHistogram(final Session session, AggregateData data) {
+    private static Value getHistogram(Session session, AggregateData data) {
         TreeMap<Value, LongDataCounter> distinctValues = ((AggregateDataDistinctWithCounts) data).getValues();
         if (distinctValues == null) {
             return ValueArray.EMPTY;
@@ -629,7 +629,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         int i = 0;
         for (Entry<Value, LongDataCounter> entry : distinctValues.entrySet()) {
             LongDataCounter d = entry.getValue();
-            values[i] = ValueArray.get(new Value[] { entry.getKey(), ValueLong.get(distinct ? 1L : d.count) });
+            values[i] = ValueArray.get(new Value[] { entry.getKey(), ValueLong.get(d.count) });
             i++;
         }
         Database db = session.getDatabase();

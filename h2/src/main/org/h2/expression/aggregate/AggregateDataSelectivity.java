@@ -14,56 +14,45 @@ import org.h2.value.ValueInt;
 /**
  * Data stored while calculating a SELECTIVITY aggregate.
  */
-class AggregateDataSelectivity extends AggregateData {
+public class AggregateDataSelectivity extends AggregateData {
 
-    private final boolean distinct;
-
-    private long count;
+    private long count, distinctCount;
     private IntIntHashMap distinctHashes;
-    private double m2;
 
     /**
      * Creates new instance of data for SELECTIVITY aggregate.
-     *
-     * @param distinct if distinct is used
      */
-    AggregateDataSelectivity(boolean distinct) {
-        this.distinct = distinct;
+    public AggregateDataSelectivity() {
     }
 
     @Override
-    void add(Database database, Value v) {
+    public void add(Database database, Value v) {
         count++;
         if (distinctHashes == null) {
-            distinctHashes = new IntIntHashMap();
+            distinctHashes = new IntIntHashMap(false);
+        } else {
+            int size = distinctHashes.size();
+            if (size >= Constants.SELECTIVITY_DISTINCT_COUNT) {
+                distinctHashes.clear();
+                distinctCount += size;
+            }
         }
-        int size = distinctHashes.size();
-        if (size > Constants.SELECTIVITY_DISTINCT_COUNT) {
-            distinctHashes = new IntIntHashMap();
-            m2 += size;
-        }
-        int hash = v.hashCode();
         // the value -1 is not supported
-        distinctHashes.put(hash, 1);
+        distinctHashes.put(v.hashCode(), 1);
     }
 
     @Override
-    Value getValue(Database database, int dataType) {
-        if (distinct) {
-            count = 0;
-        }
-        Value v = null;
-        int s = 0;
+    public Value getValue(Database database, int dataType) {
+        int s;
         if (count == 0) {
             s = 0;
         } else {
-            m2 += distinctHashes.size();
-            m2 = 100 * m2 / count;
-            s = (int) m2;
-            s = s <= 0 ? 1 : s > 100 ? 100 : s;
+            s = (int) (100 * (distinctCount + distinctHashes.size()) / count);
+            if (s <= 0) {
+                s = 1;
+            }
         }
-        v = ValueInt.get(s);
-        return v.convertTo(dataType);
+        return ValueInt.get(s).convertTo(dataType);
     }
 
 }

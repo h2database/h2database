@@ -5,21 +5,18 @@
  */
 package org.h2.command.ddl;
 
-import java.util.ArrayList;
 import org.h2.command.CommandInterface;
-import org.h2.command.Prepared;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
-import org.h2.expression.Parameter;
-import org.h2.result.ResultInterface;
+import org.h2.expression.aggregate.AggregateDataSelectivity;
+import org.h2.index.Cursor;
+import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableType;
 import org.h2.value.DataType;
 import org.h2.value.Value;
-import org.h2.value.ValueInt;
-import org.h2.value.ValueNull;
 
 /**
  * This class represents the statements
@@ -96,47 +93,36 @@ public class Analyze extends DefineCommand {
             // if the connection is closed and there is something to undo
             return;
         }
+        table.lock(session, false, false);
         Column[] columns = table.getColumns();
-        if (columns.length == 0) {
+        int columnCount = columns.length;
+        if (columnCount == 0) {
             return;
         }
-        Database db = session.getDatabase();
-        StringBuilder buff = new StringBuilder("SELECT ");
-        for (int i = 0, l = columns.length; i < l; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
+        AggregateDataSelectivity[] aggregates = new AggregateDataSelectivity[columnCount];
+        for (int i = 0; i < columnCount; i++) {
             Column col = columns[i];
-            if (DataType.isLargeObject(col.getType().getValueType())) {
-                // can not index LOB columns, so calculating
-                // the selectivity is not required
-                buff.append("MAX(NULL)");
-            } else {
-                buff.append("SELECTIVITY(");
-                col.getSQL(buff, true).append(')');
+            if (!DataType.isLargeObject(col.getType().getValueType())) {
+                aggregates[i] = new AggregateDataSelectivity();
             }
         }
-        buff.append(" FROM ");
-        table.getSQL(buff, true);
-        if (sample > 0) {
-            buff.append(" FETCH FIRST ROW ONLY SAMPLE_SIZE ? ");
-        }
-        String sql = buff.toString();
-        Prepared command = session.prepare(sql);
-        if (sample > 0) {
-            ArrayList<Parameter> params = command.getParameters();
-            params.get(0).setValue(ValueInt.get(sample));
-        }
-        ResultInterface result = command.query(0);
-        result.next();
-        for (int j = 0; j < columns.length; j++) {
-            Value v = result.currentRow()[j];
-            if (v != ValueNull.INSTANCE) {
-                int selectivity = v.getInt();
-                columns[j].setSelectivity(selectivity);
+        Cursor cursor = table.getScanIndex(session).find(session, null, null);
+        for (int rowNumber = 0; (sample <= 0 || rowNumber < sample) && cursor.next(); rowNumber++) {
+            Row row = cursor.get();
+            for (int i = 0; i < columnCount; i++) {
+                AggregateDataSelectivity aggregate = aggregates[i];
+                if (aggregate != null) {
+                    aggregate.add(null, row.getValue(i));
+                }
             }
         }
-        db.updateMeta(session, table);
+        for (int i = 0; i < columnCount; i++) {
+            AggregateDataSelectivity aggregate = aggregates[i];
+            if (aggregate != null) {
+                columns[i].setSelectivity(aggregate.getValue(null, Value.INT).getInt());
+            }
+        }
+        session.getDatabase().updateMeta(session, table);
     }
 
     public void setTop(int top) {

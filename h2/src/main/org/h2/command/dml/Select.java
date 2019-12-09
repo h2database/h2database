@@ -510,16 +510,12 @@ public class Select extends Query {
     private void gatherGroup(int columnCount, int stage) {
         long rowNumber = 0;
         setCurrentRowNumber(0);
-        int sampleSize = getSampleSizeValue(session);
         while (topTableFilter.next()) {
             setCurrentRowNumber(rowNumber + 1);
             if (isForUpdateMvcc ? isConditionMetForUpdate() : isConditionMet()) {
                 rowNumber++;
                 groupData.nextSource();
                 updateAgg(columnCount, stage);
-                if (sampleSize > 0 && rowNumber >= sampleSize) {
-                    break;
-                }
             }
         }
         groupData.done();
@@ -677,7 +673,6 @@ public class Select extends Query {
         Index index = topTableFilter.getIndex();
         SearchRow first = null;
         int columnIndex = index.getColumns()[0].getColumnId();
-        int sampleSize = getSampleSizeValue(session);
         if (!quickOffset) {
             offset = 0;
         }
@@ -698,11 +693,7 @@ public class Select extends Query {
                 continue;
             }
             result.addRow(value);
-            if ((sort == null || sortUsingIndex) && limitRows > 0 &&
-                    rowNumber >= limitRows && !withTies) {
-                break;
-            }
-            if (sampleSize > 0 && rowNumber >= sampleSize) {
+            if ((sort == null || sortUsingIndex) && limitRows > 0 && rowNumber >= limitRows && !withTies) {
                 break;
             }
         }
@@ -717,9 +708,7 @@ public class Select extends Query {
                 limitRows = Long.MAX_VALUE;
             }
         }
-        int sampleSize = getSampleSizeValue(session);
-        LazyResultQueryFlat lazyResult = new LazyResultQueryFlat(expressionArray, columnCount, sampleSize,
-                isForUpdateMvcc);
+        LazyResultQueryFlat lazyResult = new LazyResultQueryFlat(expressionArray, columnCount, isForUpdateMvcc);
         skipOffset(lazyResult, offset, quickOffset);
         if (result == null) {
             return lazyResult;
@@ -1451,10 +1440,6 @@ public class Select extends Query {
             getFilterSQL(builder, "\nQUALIFY ", exprList, qualify, qualifyIndex);
         }
         appendEndOfQueryToSQL(builder, alwaysQuote, exprList);
-        if (sampleSizeExpr != null) {
-            builder.append("\nSAMPLE_SIZE ");
-            sampleSizeExpr.getUnenclosedSQL(builder, alwaysQuote);
-        }
         if (isForUpdate) {
             builder.append("\nFOR UPDATE");
         }
@@ -1769,19 +1754,16 @@ public class Select extends Query {
      */
     private final class LazyResultQueryFlat extends LazyResultSelect {
 
-        private int sampleSize;
-
         private boolean forUpdate;
 
-        LazyResultQueryFlat(Expression[] expressions, int columnCount, int sampleSize, boolean forUpdate) {
+        LazyResultQueryFlat(Expression[] expressions, int columnCount, boolean forUpdate) {
             super(expressions, columnCount);
-            this.sampleSize = sampleSize;
             this.forUpdate = forUpdate;
         }
 
         @Override
         protected Value[] fetchNextRow() {
-            while ((sampleSize <= 0 || rowNumber < sampleSize) && topTableFilter.next()) {
+            while (topTableFilter.next()) {
                 setCurrentRowNumber(rowNumber + 1);
                 // This method may lock rows
                 if (forUpdate ? isConditionMetForUpdate() : isConditionMet()) {
@@ -1799,7 +1781,7 @@ public class Select extends Query {
 
         @Override
         protected boolean skipNextRow() {
-            while ((sampleSize <= 0 || rowNumber < sampleSize) && topTableFilter.next()) {
+            while (topTableFilter.next()) {
                 setCurrentRowNumber(rowNumber + 1);
                 // This method does not lock rows
                 if (isConditionMet()) {

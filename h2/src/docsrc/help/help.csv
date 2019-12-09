@@ -19,7 +19,6 @@ selectExpression [,...]
 [ FETCH { FIRST | NEXT } [ expression [ PERCENT ] ] { ROW | ROWS }
     { ONLY | WITH TIES } ]
 @c@ [ LIMIT expression [ OFFSET expression ] ]
-@h2@ [ SAMPLE_SIZE rowCountInt ]
 @h2@ [ FOR UPDATE ]
 ","
 Selects data from a table or multiple tables.
@@ -35,7 +34,7 @@ If FROM clause is not specified a single row is constructed.
 If GROUP BY clause is not specified, but non-window aggregate functions are used or HAVING is specified
 all rows are grouped together.
 
-4. Aggregate functions are evaluated, SAMPLE_SIZE limits the number of rows read.
+4. Aggregate functions are evaluated.
 
 5. HAVING filters rows after grouping and evaluation of aggregate functions.
 Non-window aggregate functions are allowed in this clause.

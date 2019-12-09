@@ -1446,8 +1446,7 @@ public class Parser {
     private IndexColumn[] parseIndexColumnList() {
         ArrayList<IndexColumn> columns = Utils.newSmallArrayList();
         do {
-            IndexColumn column = new IndexColumn();
-            column.columnName = readColumnIdentifier();
+            IndexColumn column = new IndexColumn(readColumnIdentifier());
             column.sortType = parseSortType();
             columns.add(column);
         } while (readIfMore());
@@ -8813,20 +8812,17 @@ public class Parser {
         Column column = parseColumnForTable(columnName, true, true);
         if (column.isAutoIncrement() && column.isPrimaryKey()) {
             column.setPrimaryKey(false);
-            IndexColumn[] cols = { new IndexColumn() };
-            cols[0].columnName = column.getName();
             AlterTableAddConstraint pk = new AlterTableAddConstraint(session, schema,
                     CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY, false);
             pk.setTableName(tableName);
-            pk.setIndexColumns(cols);
+            pk.setIndexColumns(new IndexColumn[] { new IndexColumn(column.getName()) });
             command.addConstraintCommand(pk);
         }
         command.addColumn(column);
-        readColumnConstraints(command, schema, tableName, columnName, column);
+        readColumnConstraints(command, schema, tableName, column);
     }
 
-    private void readColumnConstraints(CommandWithColumns command, Schema schema, String tableName, String columnName,
-            Column column) {
+    private void readColumnConstraints(CommandWithColumns command, Schema schema, String tableName, Column column) {
         String comment = column.getComment();
         boolean hasPrimaryKey = false, hasNotNull = false;
         NullConstraintType nullType;
@@ -8845,14 +8841,12 @@ public class Parser {
                 read(KEY);
                 hasPrimaryKey = true;
                 boolean hash = readIf("HASH");
-                IndexColumn[] cols = { new IndexColumn() };
-                cols[0].columnName = column.getName();
                 AlterTableAddConstraint pk = new AlterTableAddConstraint(session, schema,
                         CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY, false);
                 pk.setConstraintName(constraintName);
                 pk.setPrimaryKeyHash(hash);
                 pk.setTableName(tableName);
-                pk.setIndexColumns(cols);
+                pk.setIndexColumns(new IndexColumn[] { new IndexColumn(column.getName()) });
                 command.addConstraintCommand(pk);
                 if (readIf("AUTO_INCREMENT")) {
                     parseAutoIncrement(column);
@@ -8870,9 +8864,7 @@ public class Parser {
                 AlterTableAddConstraint unique = new AlterTableAddConstraint(session, schema,
                         CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE, false);
                 unique.setConstraintName(constraintName);
-                IndexColumn[] cols = { new IndexColumn() };
-                cols[0].columnName = columnName;
-                unique.setIndexColumns(cols);
+                unique.setIndexColumns(new IndexColumn[] { new IndexColumn(column.getName()) });
                 unique.setTableName(tableName);
                 command.addConstraintCommand(unique);
             } else if (!hasNotNull
@@ -8895,8 +8887,7 @@ public class Parser {
                 AlterTableAddConstraint ref = new AlterTableAddConstraint(session, schema,
                         CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_REFERENTIAL, false);
                 ref.setConstraintName(constraintName);
-                IndexColumn[] cols = { new IndexColumn() };
-                cols[0].columnName = columnName;
+                IndexColumn[] cols = { new IndexColumn(column.getName()) };
                 ref.setIndexColumns(cols);
                 ref.setTableName(tableName);
                 parseReferences(ref, schema, tableName);

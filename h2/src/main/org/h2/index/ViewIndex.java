@@ -358,10 +358,9 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
                         continue;
                     }
                 }
-                IndexColumn c = new IndexColumn();
-                c.column = table.getColumn(i);
-                indexColumns[indexColumnId] = c;
-                columnIds[indexColumnId] = c.column.getColumnId();
+                Column column = table.getColumn(i);
+                indexColumns[indexColumnId] = new IndexColumn(column);
+                columnIds[indexColumnId] = column.getColumnId();
                 indexColumnId++;
             }
         }

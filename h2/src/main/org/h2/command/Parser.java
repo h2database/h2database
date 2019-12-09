@@ -1454,7 +1454,7 @@ public class Parser {
     }
 
     private int parseSortType() {
-        int sortType = parseSimpleSortType();
+        int sortType = !readIf("ASC") && readIf("DESC") ? SortOrder.DESCENDING : SortOrder.ASCENDING;
         if (readIf("NULLS")) {
             if (readIf("FIRST")) {
                 sortType |= SortOrder.NULLS_FIRST;
@@ -1464,13 +1464,6 @@ public class Parser {
             }
         }
         return sortType;
-    }
-
-    private int parseSimpleSortType() {
-        if (!readIf("ASC") && readIf("DESC")) {
-            return SortOrder.DESCENDING;
-        }
-        return SortOrder.ASCENDING;
     }
 
     private String[] parseColumnList() {
@@ -3487,7 +3480,7 @@ public class Parser {
                 r = readWithinGroup(AggregateType.MODE, new Expression[0], false, false, true);
             } else {
                 Expression expr = readExpression();
-                r = new Aggregate(aggregateType, new Expression[0], currentSelect, false);
+                r = new Aggregate(AggregateType.MODE, new Expression[0], currentSelect, false);
                 if (readIf(ORDER)) {
                     read("BY");
                     Expression expr2 = readExpression();
@@ -3496,9 +3489,9 @@ public class Parser {
                         throw DbException.getSyntaxError(ErrorCode.IDENTICAL_EXPRESSIONS_SHOULD_BE_USED, sqlCommand,
                                 lastParseIndex, sql, sql2);
                     }
-                    readAggregateSimpleOrder(r, expr, true);
+                    readAggregateOrder(r, expr, true);
                 } else {
-                    readAggregateSimpleOrder(r, expr, false);
+                    readAggregateOrder(r, expr, false);
                 }
             }
             break;
@@ -3549,26 +3542,23 @@ public class Parser {
                 if (i > 0) {
                     read(COMMA);
                 }
-                SelectOrderBy order = new SelectOrderBy();
-                order.expression = readExpression();
-                order.sortType = parseSortType();
-                orderList.add(order);
+                orderList.add(parseSortSpecification());
             }
             r.setOrderByList(orderList);
         } else if (simple) {
-            readAggregateSimpleOrder(r, readExpression(), true);
+            readAggregateOrder(r, readExpression(), true);
         } else {
-            r.setOrderByList(parseOrderByList());
+            r.setOrderByList(parseSortSpecificationList());
         }
         return r;
     }
 
-    private void readAggregateSimpleOrder(Aggregate r, Expression expr, boolean parseSortType) {
+    private void readAggregateOrder(Aggregate r, Expression expr, boolean parseSortType) {
         ArrayList<SelectOrderBy> orderList = new ArrayList<>(1);
         SelectOrderBy order = new SelectOrderBy();
         order.expression = expr;
         if (parseSortType) {
-            order.sortType = parseSimpleSortType();
+            order.sortType = parseSortType();
         }
         orderList.add(order);
         r.setOrderByList(orderList);
@@ -3577,20 +3567,24 @@ public class Parser {
     private ArrayList<SelectOrderBy> readIfOrderBy() {
         if (readIf(ORDER)) {
             read("BY");
-            return parseOrderByList();
+            return parseSortSpecificationList();
         }
         return null;
     }
 
-    private ArrayList<SelectOrderBy> parseOrderByList() {
+    private ArrayList<SelectOrderBy> parseSortSpecificationList() {
         ArrayList<SelectOrderBy> orderList = Utils.newSmallArrayList();
         do {
-            SelectOrderBy order = new SelectOrderBy();
-            order.expression = readExpression();
-            order.sortType = parseSortType();
-            orderList.add(order);
+            orderList.add(parseSortSpecification());
         } while (readIf(COMMA));
         return orderList;
+    }
+
+    private SelectOrderBy parseSortSpecification() {
+        SelectOrderBy order = new SelectOrderBy();
+        order.expression = readExpression();
+        order.sortType = parseSortType();
+        return order;
     }
 
     private JavaFunction readJavaFunction(Schema schema, String functionName, boolean throwIfNotFound) {

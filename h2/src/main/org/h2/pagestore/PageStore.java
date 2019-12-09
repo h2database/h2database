@@ -37,6 +37,7 @@ import org.h2.pagestore.db.PageDelegateIndex;
 import org.h2.pagestore.db.PageIndex;
 import org.h2.pagestore.db.PageStoreTable;
 import org.h2.result.Row;
+import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
 import org.h2.store.Data;
 import org.h2.store.FileStore;
@@ -1711,14 +1712,14 @@ public class PageStore implements CacheWriter {
             IndexColumn[] cols = new IndexColumn[len];
             for (int i = 0; i < len; i++) {
                 String c = columns[i];
-                IndexColumn ic = new IndexColumn();
+                int sortType = SortOrder.ASCENDING;
                 int idx = c.indexOf('/');
                 if (idx >= 0) {
-                    String s = c.substring(idx + 1);
-                    ic.sortType = Integer.parseInt(s);
+                    sortType = Integer.parseInt(c.substring(idx + 1));
                     c = c.substring(0, idx);
                 }
-                ic.column = tableCols[Integer.parseInt(c)];
+                IndexColumn ic = new IndexColumn(tableCols[Integer.parseInt(c)]);
+                ic.sortType = sortType;
                 cols[i] = ic;
             }
             IndexType indexType;

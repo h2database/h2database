@@ -1446,8 +1446,7 @@ public class Parser {
     private IndexColumn[] parseIndexColumnList() {
         ArrayList<IndexColumn> columns = Utils.newSmallArrayList();
         do {
-            IndexColumn column = new IndexColumn();
-            column.columnName = readColumnIdentifier();
+            IndexColumn column = new IndexColumn(readColumnIdentifier());
             column.sortType = parseSortType();
             columns.add(column);
         } while (readIfMore());
@@ -1455,7 +1454,7 @@ public class Parser {
     }
 
     private int parseSortType() {
-        int sortType = parseSimpleSortType();
+        int sortType = !readIf("ASC") && readIf("DESC") ? SortOrder.DESCENDING : SortOrder.ASCENDING;
         if (readIf("NULLS")) {
             if (readIf("FIRST")) {
                 sortType |= SortOrder.NULLS_FIRST;
@@ -1465,13 +1464,6 @@ public class Parser {
             }
         }
         return sortType;
-    }
-
-    private int parseSimpleSortType() {
-        if (!readIf("ASC") && readIf("DESC")) {
-            return SortOrder.DESCENDING;
-        }
-        return SortOrder.ASCENDING;
     }
 
     private String[] parseColumnList() {
@@ -3413,7 +3405,6 @@ public class Parser {
                 }
             }
             break;
-        case SELECTIVITY:
         case HISTOGRAM:
             r = new Aggregate(aggregateType, new Expression[] { readExpression() }, currentSelect, false);
             break;
@@ -3488,7 +3479,7 @@ public class Parser {
                 r = readWithinGroup(AggregateType.MODE, new Expression[0], false, false, true);
             } else {
                 Expression expr = readExpression();
-                r = new Aggregate(aggregateType, new Expression[0], currentSelect, false);
+                r = new Aggregate(AggregateType.MODE, new Expression[0], currentSelect, false);
                 if (readIf(ORDER)) {
                     read("BY");
                     Expression expr2 = readExpression();
@@ -3497,9 +3488,9 @@ public class Parser {
                         throw DbException.getSyntaxError(ErrorCode.IDENTICAL_EXPRESSIONS_SHOULD_BE_USED, sqlCommand,
                                 lastParseIndex, sql, sql2);
                     }
-                    readAggregateSimpleOrder(r, expr, true);
+                    readAggregateOrder(r, expr, true);
                 } else {
-                    readAggregateSimpleOrder(r, expr, false);
+                    readAggregateOrder(r, expr, false);
                 }
             }
             break;
@@ -3550,26 +3541,23 @@ public class Parser {
                 if (i > 0) {
                     read(COMMA);
                 }
-                SelectOrderBy order = new SelectOrderBy();
-                order.expression = readExpression();
-                order.sortType = parseSortType();
-                orderList.add(order);
+                orderList.add(parseSortSpecification());
             }
             r.setOrderByList(orderList);
         } else if (simple) {
-            readAggregateSimpleOrder(r, readExpression(), true);
+            readAggregateOrder(r, readExpression(), true);
         } else {
-            r.setOrderByList(parseOrderByList());
+            r.setOrderByList(parseSortSpecificationList());
         }
         return r;
     }
 
-    private void readAggregateSimpleOrder(Aggregate r, Expression expr, boolean parseSortType) {
+    private void readAggregateOrder(Aggregate r, Expression expr, boolean parseSortType) {
         ArrayList<SelectOrderBy> orderList = new ArrayList<>(1);
         SelectOrderBy order = new SelectOrderBy();
         order.expression = expr;
         if (parseSortType) {
-            order.sortType = parseSimpleSortType();
+            order.sortType = parseSortType();
         }
         orderList.add(order);
         r.setOrderByList(orderList);
@@ -3578,20 +3566,24 @@ public class Parser {
     private ArrayList<SelectOrderBy> readIfOrderBy() {
         if (readIf(ORDER)) {
             read("BY");
-            return parseOrderByList();
+            return parseSortSpecificationList();
         }
         return null;
     }
 
-    private ArrayList<SelectOrderBy> parseOrderByList() {
+    private ArrayList<SelectOrderBy> parseSortSpecificationList() {
         ArrayList<SelectOrderBy> orderList = Utils.newSmallArrayList();
         do {
-            SelectOrderBy order = new SelectOrderBy();
-            order.expression = readExpression();
-            order.sortType = parseSortType();
-            orderList.add(order);
+            orderList.add(parseSortSpecification());
         } while (readIf(COMMA));
         return orderList;
+    }
+
+    private SelectOrderBy parseSortSpecification() {
+        SelectOrderBy order = new SelectOrderBy();
+        order.expression = readExpression();
+        order.sortType = parseSortType();
+        return order;
     }
 
     private JavaFunction readJavaFunction(Schema schema, String functionName, boolean throwIfNotFound) {
@@ -8534,28 +8526,22 @@ public class Parser {
         }
     }
 
-    private DefineCommand parseAlterTableAddConstraintIf(String tableName,
-            Schema schema, boolean ifTableExists) {
+    private DefineCommand parseAlterTableAddConstraintIf(String tableName, Schema schema, boolean ifTableExists) {
         String constraintName = null, comment = null;
         boolean ifNotExists = false;
-        Mode mode = database.getMode();
-        boolean allowIndexDefinition = mode.indexDefinitionInCreateTable;
         if (readIf(CONSTRAINT)) {
             ifNotExists = readIfNotExists();
             constraintName = readIdentifierWithSchema(schema.getName());
             checkSchema(schema);
             comment = readCommentIf();
-            allowIndexDefinition = true;
         }
-        if (readIf(PRIMARY)) {
+        AlterTableAddConstraint command;
+        switch (currentTokenType) {
+        case PRIMARY:
+            read();
             read(KEY);
-            AlterTableAddConstraint command = new AlterTableAddConstraint(
-                    session, schema, ifNotExists);
-            command.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY);
-            command.setComment(comment);
-            command.setConstraintName(constraintName);
-            command.setTableName(tableName);
-            command.setIfTableExists(ifTableExists);
+            command = new AlterTableAddConstraint(session, schema,
+                    CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY, ifNotExists);
             if (readIf("HASH")) {
                 command.setPrimaryKeyHash(true);
             }
@@ -8565,59 +8551,35 @@ public class Parser {
                 String indexName = readIdentifierWithSchema();
                 command.setIndex(getSchema().findIndex(session, indexName));
             }
-            return command;
-        } else if (allowIndexDefinition && (isToken("INDEX") || isToken(KEY))) {
-            // MySQL
-            // need to read ahead, as it could be a column name
-            int start = lastParseIndex;
+            break;
+        case UNIQUE:
             read();
-            if (DataType.getTypeByName(currentToken, mode) != null) {
-                // known data type
-                parseIndex = start;
-                read();
-                return null;
-            }
-            CreateIndex command = new CreateIndex(session, schema);
-            command.setComment(comment);
-            command.setTableName(tableName);
-            command.setIfTableExists(ifTableExists);
-            if (!readIf(OPEN_PAREN)) {
-                command.setIndexName(readUniqueIdentifier());
-                read(OPEN_PAREN);
-            }
-            command.setIndexColumns(parseIndexColumnList());
             // MySQL compatibility
-            if (readIf(USING)) {
-                read("BTREE");
+            boolean compatibility = database.getMode().indexDefinitionInCreateTable;
+            if (compatibility) {
+                if (!readIf(KEY)) {
+                    readIf("INDEX");
+                }
+                if (!isToken(OPEN_PAREN)) {
+                    constraintName = readUniqueIdentifier();
+                }
             }
-            return command;
-        }
-        AlterTableAddConstraint command;
-        if (readIf(CHECK)) {
-            command = new AlterTableAddConstraint(session, schema, ifNotExists);
-            command.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_CHECK);
-            command.setCheckExpression(readExpression());
-        } else if (readIf(UNIQUE)) {
-            readIf(KEY);
-            readIf("INDEX");
-            command = new AlterTableAddConstraint(session, schema, ifNotExists);
-            command.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE);
-            if (!readIf(OPEN_PAREN)) {
-                constraintName = readUniqueIdentifier();
-                read(OPEN_PAREN);
-            }
+            read(OPEN_PAREN);
+            command = new AlterTableAddConstraint(session, schema, CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE,
+                    ifNotExists);
             command.setIndexColumns(parseIndexColumnList());
             if (readIf("INDEX")) {
                 String indexName = readIdentifierWithSchema();
                 command.setIndex(getSchema().findIndex(session, indexName));
             }
-            // MySQL compatibility
-            if (readIf(USING)) {
+            if (compatibility && readIf(USING)) {
                 read("BTREE");
             }
-        } else if (readIf(FOREIGN)) {
-            command = new AlterTableAddConstraint(session, schema, ifNotExists);
-            command.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_REFERENTIAL);
+            break;
+        case FOREIGN:
+            read();
+            command = new AlterTableAddConstraint(session, schema,
+                    CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_REFERENTIAL, ifNotExists);
             read(KEY);
             read(OPEN_PAREN);
             command.setIndexColumns(parseIndexColumnList());
@@ -8627,17 +8589,58 @@ public class Parser {
             }
             read("REFERENCES");
             parseReferences(command, schema, tableName);
-        } else {
-            if (constraintName != null) {
+            break;
+        case CHECK:
+            read();
+            command = new AlterTableAddConstraint(session, schema, CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_CHECK,
+                    ifNotExists);
+            command.setCheckExpression(readExpression());
+            break;
+        default:
+            if (constraintName == null) {
+                Mode mode = database.getMode();
+                if (mode.indexDefinitionInCreateTable) {
+                    int start = lastParseIndex;
+                    if (readIf(KEY) || readIf("INDEX")) {
+                        // MySQL
+                        // need to read ahead, as it could be a column name
+                        if (DataType.getTypeByName(currentToken, mode) == null) {
+                            CreateIndex createIndex = new CreateIndex(session, schema);
+                            createIndex.setComment(comment);
+                            createIndex.setTableName(tableName);
+                            createIndex.setIfTableExists(ifTableExists);
+                            if (!readIf(OPEN_PAREN)) {
+                                createIndex.setIndexName(readUniqueIdentifier());
+                                read(OPEN_PAREN);
+                            }
+                            createIndex.setIndexColumns(parseIndexColumnList());
+                            // MySQL compatibility
+                            if (readIf(USING)) {
+                                read("BTREE");
+                            }
+                            return createIndex;
+                        } else {
+                            // known data type
+                            parseIndex = start;
+                            read();
+                        }
+                    }
+                }
+                return null;
+            } else {
+                if (expectedList != null) {
+                    addMultipleExpected(PRIMARY, UNIQUE, FOREIGN, CHECK);
+                }
                 throw getSyntaxError();
             }
-            return null;
         }
-        if (readIf("NOCHECK")) {
-            command.setCheckExisting(false);
-        } else {
-            readIf(CHECK);
-            command.setCheckExisting(true);
+        if (command.getType() != CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY) {
+            if (readIf("NOCHECK")) {
+                command.setCheckExisting(false);
+            } else {
+                readIf(CHECK);
+                command.setCheckExisting(true);
+            }
         }
         command.setTableName(tableName);
         command.setIfTableExists(ifTableExists);
@@ -8802,21 +8805,17 @@ public class Parser {
         Column column = parseColumnForTable(columnName, true, true);
         if (column.isAutoIncrement() && column.isPrimaryKey()) {
             column.setPrimaryKey(false);
-            IndexColumn[] cols = { new IndexColumn() };
-            cols[0].columnName = column.getName();
-            AlterTableAddConstraint pk = new AlterTableAddConstraint(
-                    session, schema, false);
-            pk.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY);
+            AlterTableAddConstraint pk = new AlterTableAddConstraint(session, schema,
+                    CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY, false);
             pk.setTableName(tableName);
-            pk.setIndexColumns(cols);
+            pk.setIndexColumns(new IndexColumn[] { new IndexColumn(column.getName()) });
             command.addConstraintCommand(pk);
         }
         command.addColumn(column);
-        readColumnConstraints(command, schema, tableName, columnName, column);
+        readColumnConstraints(command, schema, tableName, column);
     }
 
-    private void readColumnConstraints(CommandWithColumns command, Schema schema, String tableName, String columnName,
-            Column column) {
+    private void readColumnConstraints(CommandWithColumns command, Schema schema, String tableName, Column column) {
         String comment = column.getComment();
         boolean hasPrimaryKey = false, hasNotNull = false;
         NullConstraintType nullType;
@@ -8835,14 +8834,12 @@ public class Parser {
                 read(KEY);
                 hasPrimaryKey = true;
                 boolean hash = readIf("HASH");
-                IndexColumn[] cols = { new IndexColumn() };
-                cols[0].columnName = column.getName();
-                AlterTableAddConstraint pk = new AlterTableAddConstraint(session, schema, false);
+                AlterTableAddConstraint pk = new AlterTableAddConstraint(session, schema,
+                        CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY, false);
                 pk.setConstraintName(constraintName);
                 pk.setPrimaryKeyHash(hash);
-                pk.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY);
                 pk.setTableName(tableName);
-                pk.setIndexColumns(cols);
+                pk.setIndexColumns(new IndexColumn[] { new IndexColumn(column.getName()) });
                 command.addConstraintCommand(pk);
                 if (readIf("AUTO_INCREMENT")) {
                     parseAutoIncrement(column);
@@ -8857,12 +8854,10 @@ public class Parser {
                     }
                 }
             } else if (readIf(UNIQUE)) {
-                AlterTableAddConstraint unique = new AlterTableAddConstraint(session, schema, false);
+                AlterTableAddConstraint unique = new AlterTableAddConstraint(session, schema,
+                        CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE, false);
                 unique.setConstraintName(constraintName);
-                unique.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE);
-                IndexColumn[] cols = { new IndexColumn() };
-                cols[0].columnName = columnName;
-                unique.setIndexColumns(cols);
+                unique.setIndexColumns(new IndexColumn[] { new IndexColumn(column.getName()) });
                 unique.setTableName(tableName);
                 command.addConstraintCommand(unique);
             } else if (!hasNotNull
@@ -8875,18 +8870,17 @@ public class Parser {
                     column.setNullable(true);
                 }
             } else if (readIf(CHECK)) {
-                AlterTableAddConstraint check = new AlterTableAddConstraint(session, schema, false);
+                AlterTableAddConstraint check = new AlterTableAddConstraint(session, schema,
+                        CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_CHECK, false);
                 check.setConstraintName(constraintName);
-                check.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_CHECK);
                 check.setTableName(tableName);
                 check.setCheckExpression(readExpression());
                 command.addConstraintCommand(check);
             } else if (readIf("REFERENCES")) {
-                AlterTableAddConstraint ref = new AlterTableAddConstraint(session, schema, false);
+                AlterTableAddConstraint ref = new AlterTableAddConstraint(session, schema,
+                        CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_REFERENTIAL, false);
                 ref.setConstraintName(constraintName);
-                ref.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_REFERENTIAL);
-                IndexColumn[] cols = { new IndexColumn() };
-                cols[0].columnName = columnName;
+                IndexColumn[] cols = { new IndexColumn(column.getName()) };
                 ref.setIndexColumns(cols);
                 ref.setTableName(tableName);
                 parseReferences(ref, schema, tableName);

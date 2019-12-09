@@ -1138,10 +1138,10 @@ public class TestOptimizations extends TestDb {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TABLE_A(id IDENTITY PRIMARY KEY NOT NULL, " +
                 "name VARCHAR NOT NULL, active BOOLEAN DEFAULT TRUE, " +
-                "UNIQUE KEY TABLE_A_UK (name) )");
+                "CONSTRAINT TABLE_A_UK UNIQUE (name) )");
         stat.execute("CREATE TABLE TABLE_B(id IDENTITY PRIMARY KEY NOT NULL,  " +
                 "TABLE_a_id BIGINT NOT NULL,  createDate TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP, " +
-                "UNIQUE KEY TABLE_B_UK (table_a_id, createDate), " +
+                "CONSTRAINT TABLE_B_UK UNIQUE (table_a_id, createDate), " +
                 "FOREIGN KEY (table_a_id) REFERENCES TABLE_A(id) )");
         stat.execute("INSERT INTO TABLE_A (name)  SELECT 'package_' || CAST(X as VARCHAR) " +
                 "FROM SYSTEM_RANGE(1, 100)  WHERE X <= 100");

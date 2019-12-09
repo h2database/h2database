@@ -115,7 +115,7 @@ INSERT INTO TEST VALUES(1, 'Hello')
 
 "Commands (DML)","UPDATE","
 UPDATE tableName [ [ AS ] newTableAlias ] SET setClauseList
-[ WHERE expression ] @c@ [ ORDER BY order [,...] ] @h2@ [ LIMIT expression ]
+[ WHERE expression ] @c@ [ ORDER BY sortSpecificationList ] @h2@ [ LIMIT expression ]
 ","
 Updates data in a table.
 ORDER BY is supported for MySQL compatibility, but it is ignored.
@@ -2964,14 +2964,6 @@ ARRAY[1, 2] || 3
 ARRAY[1, 2] || ARRAY[3, 4]
 "
 
-"Other Grammar","Order","
-expression [ ASC | DESC ] [ NULLS { FIRST | LAST } ]
-","
-Sorts the result by an expression.
-","
-X ASC NULLS FIRST
-"
-
 "Other Grammar","Query","
 select | explicitTable | tableValue
 ","
@@ -3144,6 +3136,23 @@ NAME = 'Test', VALUE = 2
 (A, B) = (SELECT X, Y FROM OTHER T2 WHERE T1.ID = T2.ID)
 "
 
+"Other Grammar","Sort specification","
+expression [ ASC | DESC ] [ NULLS { FIRST | LAST } ]
+","
+Sorts the result by an expression.
+","
+X ASC NULLS FIRST
+"
+
+"Other Grammar","Sort specification list","
+sortSpecification [,...]
+","
+Sorts the result by expressions.
+","
+V
+A, B DESC NULLS FIRST
+"
+
 "Other Grammar","Summand","
 factor [ { { + | - } factor } [...] ]
 ","
@@ -3173,7 +3182,7 @@ TEST1 AS T1 LEFT JOIN TEST2 AS T2 ON T1.ID = T2.PARENT_ID
 "
 
 "Other Grammar","Within group specification","
-WITHIN GROUP (ORDER BY order [,...])
+WITHIN GROUP (ORDER BY sortSpecificationList)
 ","
 Group specification for ordered set functions.
 ","
@@ -3203,7 +3212,7 @@ W1
 
 "Other Grammar","Window specification","
 ([existingWindowName]
-[PARTITION BY expression [,...]] [ORDER BY order [,...]]
+[PARTITION BY expression [,...]] [ORDER BY sortSpecificationList]
 [windowFrame])
 ","
 A window specification for a window, window function or aggregate.
@@ -5891,19 +5900,6 @@ Aggregates are only allowed in select statements.
 BIT_OR(ID)
 "
 
-"Aggregate Functions (General)","SELECTIVITY","
-@h2@ SELECTIVITY(value)
-@h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
-","
-Estimates the selectivity (0-100) of a value.
-The value is defined as (100 * distinctCount / rowCount).
-The selectivity of 0 rows is 0 (unknown).
-Up to 10000 values are kept in memory.
-Aggregates are only allowed in select statements.
-","
-SELECT SELECTIVITY(FIRSTNAME), SELECTIVITY(NAME) FROM TEST WHERE ROWNUM()<20000
-"
-
 "Aggregate Functions (General)","ENVELOPE","
 @h2@ ENVELOPE( value )
 @h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
@@ -5921,7 +5917,7 @@ ENVELOPE(X)
 { LISTAGG ( [ DISTINCT|ALL ] string [, separatorString] [ ON OVERFLOW ERROR ] )
     withinGroupSpecification }
     | @c@ { GROUP_CONCAT ( [ DISTINCT|ALL ] string
-    [ ORDER BY order [,...] ]
+    [ ORDER BY sortSpecificationList ]
     [ SEPARATOR separatorString ] ) }
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
@@ -5940,7 +5936,7 @@ LISTAGG(ID, ', ') WITHIN GROUP (ORDER BY ID) OVER (ORDER BY ID)
 
 "Aggregate Functions (Ordered)","ARRAY_AGG","
 ARRAY_AGG ( @h2@ [ DISTINCT|ALL ] value
-[ ORDER BY order [,...] ] )
+[ ORDER BY sortSpecificationList ] )
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Aggregate the value into an array.
@@ -6018,7 +6014,7 @@ SELECT CUME_DIST(5) WITHIN GROUP (ORDER BY V) FROM TEST;
 "
 
 "Aggregate Functions (Inverse Distribution)","PERCENTILE_CONT","
-PERCENTILE_CONT(numeric) WITHIN GROUP (ORDER BY value [ASC|DESC])
+PERCENTILE_CONT(numeric) WITHIN GROUP (ORDER BY sortSpecification)
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Return percentile of values from the group with interpolation.
@@ -6034,7 +6030,7 @@ PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY V)
 "
 
 "Aggregate Functions (Inverse Distribution)","PERCENTILE_DISC","
-PERCENTILE_DISC(numeric) WITHIN GROUP (ORDER BY value [ASC|DESC])
+PERCENTILE_DISC(numeric) WITHIN GROUP (ORDER BY sortSpecification)
 [FILTER (WHERE expression)] [OVER windowNameOrSpecification]
 ","
 Return percentile of values from the group.
@@ -6064,8 +6060,8 @@ MEDIAN(X)
 "
 
 "Aggregate Functions (Inverse Distribution)","MODE","
-@h2@ { MODE( value ) [ ORDER BY value [ ASC | DESC ] ] }
-    | @h2@ { MODE() WITHIN GROUP (ORDER BY expression [ ASC | DESC ]) }
+@h2@ { MODE() WITHIN GROUP (ORDER BY sortSpecification) }
+    | @c@ { MODE( value [ ORDER BY sortSpecification ] ) }
 @h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
 ","
 Returns the value that occurs with the greatest frequency.
@@ -6079,8 +6075,6 @@ NULL values are ignored in the calculation.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
-MODE(X)
-MODE(X ORDER BY X)
 MODE() WITHIN GROUP (ORDER BY X)
 "
 

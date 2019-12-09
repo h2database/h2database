@@ -66,7 +66,7 @@ public class TestOuterJoins extends TestDb {
                     "jdbc:derby:" + getBaseDir() +
                     "/derby/test;create=true", "sa", "sa");
             dbs.add(c2.createStatement());
-        } catch (Exception e) {
+        } catch (Throwable e) {
             // database not installed - ok
         }
         String shortest = null;

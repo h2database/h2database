@@ -36,7 +36,7 @@ import org.h2.table.TableFilter;
  */
 public class AlterTableAddConstraint extends SchemaCommand {
 
-    private int type;
+    private final int type;
     private String constraintName;
     private String tableName;
     private IndexColumn[] indexColumns;
@@ -54,10 +54,10 @@ public class AlterTableAddConstraint extends SchemaCommand {
     private final boolean ifNotExists;
     private final ArrayList<Index> createdIndexes = new ArrayList<>();
 
-    public AlterTableAddConstraint(Session session, Schema schema,
-            boolean ifNotExists) {
+    public AlterTableAddConstraint(Session session, Schema schema, int type, boolean ifNotExists) {
         super(session, schema);
         this.ifNotExists = ifNotExists;
+        this.type = type;
     }
 
     public void setIfTableExists(boolean b) {
@@ -396,10 +396,6 @@ public class AlterTableAddConstraint extends SchemaCommand {
 
     public String getConstraintName() {
         return constraintName;
-    }
-
-    public void setType(int type) {
-        this.type = type;
     }
 
     @Override

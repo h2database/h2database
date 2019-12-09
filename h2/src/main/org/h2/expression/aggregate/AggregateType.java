@@ -81,11 +81,6 @@ public enum AggregateType {
     BIT_AND,
 
     /**
-     * The aggregate type for SELECTIVITY(expression).
-     */
-    SELECTIVITY,
-
-    /**
      * The aggregate type for HISTOGRAM(expression).
      */
     HISTOGRAM,

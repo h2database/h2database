@@ -69,8 +69,7 @@ public class DropDomain extends SchemaCommand {
                             for (ConstraintDomain constraint : constraints) {
                                 Expression checkCondition = constraint.getCheckConstraint(session, columnName);
                                 AlterTableAddConstraint check = new AlterTableAddConstraint(session, t.getSchema(),
-                                        false);
-                                check.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_CHECK);
+                                        CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_CHECK, false);
                                 check.setTableName(t.getName());
                                 check.setCheckExpression(checkCondition);
                                 check.update();

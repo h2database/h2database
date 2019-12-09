@@ -198,7 +198,7 @@ public class TestTempTables extends TestDb {
         stat.execute("commit");
         stat.execute("insert into test values(2)");
         stat.execute("create local temporary table temp(" +
-                "id int primary key, name varchar, constraint x index(name)) transactional");
+                "id int primary key, name varchar, constraint x unique(name)) transactional");
         stat.execute("insert into temp values(3, 'test')");
         stat.execute("rollback");
         rs = stat.executeQuery("select * from test");

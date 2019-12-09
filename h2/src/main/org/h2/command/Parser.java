@@ -8534,28 +8534,22 @@ public class Parser {
         }
     }
 
-    private DefineCommand parseAlterTableAddConstraintIf(String tableName,
-            Schema schema, boolean ifTableExists) {
+    private DefineCommand parseAlterTableAddConstraintIf(String tableName, Schema schema, boolean ifTableExists) {
         String constraintName = null, comment = null;
         boolean ifNotExists = false;
-        Mode mode = database.getMode();
-        boolean allowIndexDefinition = mode.indexDefinitionInCreateTable;
         if (readIf(CONSTRAINT)) {
             ifNotExists = readIfNotExists();
             constraintName = readIdentifierWithSchema(schema.getName());
             checkSchema(schema);
             comment = readCommentIf();
-            allowIndexDefinition = true;
         }
-        if (readIf(PRIMARY)) {
+        AlterTableAddConstraint command;
+        switch (currentTokenType) {
+        case PRIMARY:
+            read();
             read(KEY);
-            AlterTableAddConstraint command = new AlterTableAddConstraint(
-                    session, schema, ifNotExists);
-            command.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY);
-            command.setComment(comment);
-            command.setConstraintName(constraintName);
-            command.setTableName(tableName);
-            command.setIfTableExists(ifTableExists);
+            command = new AlterTableAddConstraint(session, schema,
+                    CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY, ifNotExists);
             if (readIf("HASH")) {
                 command.setPrimaryKeyHash(true);
             }
@@ -8565,59 +8559,35 @@ public class Parser {
                 String indexName = readIdentifierWithSchema();
                 command.setIndex(getSchema().findIndex(session, indexName));
             }
-            return command;
-        } else if (allowIndexDefinition && (isToken("INDEX") || isToken(KEY))) {
-            // MySQL
-            // need to read ahead, as it could be a column name
-            int start = lastParseIndex;
+            break;
+        case UNIQUE:
             read();
-            if (DataType.getTypeByName(currentToken, mode) != null) {
-                // known data type
-                parseIndex = start;
-                read();
-                return null;
-            }
-            CreateIndex command = new CreateIndex(session, schema);
-            command.setComment(comment);
-            command.setTableName(tableName);
-            command.setIfTableExists(ifTableExists);
-            if (!readIf(OPEN_PAREN)) {
-                command.setIndexName(readUniqueIdentifier());
-                read(OPEN_PAREN);
-            }
-            command.setIndexColumns(parseIndexColumnList());
             // MySQL compatibility
-            if (readIf(USING)) {
-                read("BTREE");
+            boolean compatibility = database.getMode().indexDefinitionInCreateTable;
+            if (compatibility) {
+                if (!readIf(KEY)) {
+                    readIf("INDEX");
+                }
+                if (!isToken(OPEN_PAREN)) {
+                    constraintName = readUniqueIdentifier();
+                }
             }
-            return command;
-        }
-        AlterTableAddConstraint command;
-        if (readIf(CHECK)) {
-            command = new AlterTableAddConstraint(session, schema, ifNotExists);
-            command.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_CHECK);
-            command.setCheckExpression(readExpression());
-        } else if (readIf(UNIQUE)) {
-            readIf(KEY);
-            readIf("INDEX");
-            command = new AlterTableAddConstraint(session, schema, ifNotExists);
-            command.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE);
-            if (!readIf(OPEN_PAREN)) {
-                constraintName = readUniqueIdentifier();
-                read(OPEN_PAREN);
-            }
+            read(OPEN_PAREN);
+            command = new AlterTableAddConstraint(session, schema, CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE,
+                    ifNotExists);
             command.setIndexColumns(parseIndexColumnList());
             if (readIf("INDEX")) {
                 String indexName = readIdentifierWithSchema();
                 command.setIndex(getSchema().findIndex(session, indexName));
             }
-            // MySQL compatibility
-            if (readIf(USING)) {
+            if (compatibility && readIf(USING)) {
                 read("BTREE");
             }
-        } else if (readIf(FOREIGN)) {
-            command = new AlterTableAddConstraint(session, schema, ifNotExists);
-            command.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_REFERENTIAL);
+            break;
+        case FOREIGN:
+            read();
+            command = new AlterTableAddConstraint(session, schema,
+                    CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_REFERENTIAL, ifNotExists);
             read(KEY);
             read(OPEN_PAREN);
             command.setIndexColumns(parseIndexColumnList());
@@ -8627,17 +8597,58 @@ public class Parser {
             }
             read("REFERENCES");
             parseReferences(command, schema, tableName);
-        } else {
-            if (constraintName != null) {
+            break;
+        case CHECK:
+            read();
+            command = new AlterTableAddConstraint(session, schema, CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_CHECK,
+                    ifNotExists);
+            command.setCheckExpression(readExpression());
+            break;
+        default:
+            if (constraintName == null) {
+                Mode mode = database.getMode();
+                if (mode.indexDefinitionInCreateTable) {
+                    int start = lastParseIndex;
+                    if (readIf(KEY) || readIf("INDEX")) {
+                        // MySQL
+                        // need to read ahead, as it could be a column name
+                        if (DataType.getTypeByName(currentToken, mode) == null) {
+                            CreateIndex createIndex = new CreateIndex(session, schema);
+                            createIndex.setComment(comment);
+                            createIndex.setTableName(tableName);
+                            createIndex.setIfTableExists(ifTableExists);
+                            if (!readIf(OPEN_PAREN)) {
+                                createIndex.setIndexName(readUniqueIdentifier());
+                                read(OPEN_PAREN);
+                            }
+                            createIndex.setIndexColumns(parseIndexColumnList());
+                            // MySQL compatibility
+                            if (readIf(USING)) {
+                                read("BTREE");
+                            }
+                            return createIndex;
+                        } else {
+                            // known data type
+                            parseIndex = start;
+                            read();
+                        }
+                    }
+                }
+                return null;
+            } else {
+                if (expectedList != null) {
+                    addMultipleExpected(PRIMARY, UNIQUE, FOREIGN, CHECK);
+                }
                 throw getSyntaxError();
             }
-            return null;
         }
-        if (readIf("NOCHECK")) {
-            command.setCheckExisting(false);
-        } else {
-            readIf(CHECK);
-            command.setCheckExisting(true);
+        if (command.getType() != CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY) {
+            if (readIf("NOCHECK")) {
+                command.setCheckExisting(false);
+            } else {
+                readIf(CHECK);
+                command.setCheckExisting(true);
+            }
         }
         command.setTableName(tableName);
         command.setIfTableExists(ifTableExists);
@@ -8804,9 +8815,8 @@ public class Parser {
             column.setPrimaryKey(false);
             IndexColumn[] cols = { new IndexColumn() };
             cols[0].columnName = column.getName();
-            AlterTableAddConstraint pk = new AlterTableAddConstraint(
-                    session, schema, false);
-            pk.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY);
+            AlterTableAddConstraint pk = new AlterTableAddConstraint(session, schema,
+                    CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY, false);
             pk.setTableName(tableName);
             pk.setIndexColumns(cols);
             command.addConstraintCommand(pk);
@@ -8837,10 +8847,10 @@ public class Parser {
                 boolean hash = readIf("HASH");
                 IndexColumn[] cols = { new IndexColumn() };
                 cols[0].columnName = column.getName();
-                AlterTableAddConstraint pk = new AlterTableAddConstraint(session, schema, false);
+                AlterTableAddConstraint pk = new AlterTableAddConstraint(session, schema,
+                        CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY, false);
                 pk.setConstraintName(constraintName);
                 pk.setPrimaryKeyHash(hash);
-                pk.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY);
                 pk.setTableName(tableName);
                 pk.setIndexColumns(cols);
                 command.addConstraintCommand(pk);
@@ -8857,9 +8867,9 @@ public class Parser {
                     }
                 }
             } else if (readIf(UNIQUE)) {
-                AlterTableAddConstraint unique = new AlterTableAddConstraint(session, schema, false);
+                AlterTableAddConstraint unique = new AlterTableAddConstraint(session, schema,
+                        CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE, false);
                 unique.setConstraintName(constraintName);
-                unique.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE);
                 IndexColumn[] cols = { new IndexColumn() };
                 cols[0].columnName = columnName;
                 unique.setIndexColumns(cols);
@@ -8875,16 +8885,16 @@ public class Parser {
                     column.setNullable(true);
                 }
             } else if (readIf(CHECK)) {
-                AlterTableAddConstraint check = new AlterTableAddConstraint(session, schema, false);
+                AlterTableAddConstraint check = new AlterTableAddConstraint(session, schema,
+                        CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_CHECK, false);
                 check.setConstraintName(constraintName);
-                check.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_CHECK);
                 check.setTableName(tableName);
                 check.setCheckExpression(readExpression());
                 command.addConstraintCommand(check);
             } else if (readIf("REFERENCES")) {
-                AlterTableAddConstraint ref = new AlterTableAddConstraint(session, schema, false);
+                AlterTableAddConstraint ref = new AlterTableAddConstraint(session, schema,
+                        CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_REFERENTIAL, false);
                 ref.setConstraintName(constraintName);
-                ref.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_REFERENTIAL);
                 IndexColumn[] cols = { new IndexColumn() };
                 cols[0].columnName = columnName;
                 ref.setIndexColumns(cols);

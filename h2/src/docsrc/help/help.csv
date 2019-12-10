@@ -2587,9 +2587,9 @@ CHECK (VALUE > 0)
 "Other Grammar","Comments","
 -- anythingUntilEndOfLine | /* anythingUntilEndComment */ | @h2@ // anythingUntilEndOfLine
 ","
-Comments can be used anywhere in a command and are ignored by the database. Line
-comments end with a newline. Block comments cannot be nested, but can be
-multiple lines long.
+Comments can be used anywhere in a command and are ignored by the database.
+Line comments ""--"" and ""//"" end with a newline.
+Block comments ""/* */"" can be nested and can be multiple lines long.
 ","
 // This is a comment
 "

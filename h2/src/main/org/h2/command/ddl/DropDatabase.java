@@ -115,7 +115,7 @@ public class DropDatabase extends DefineCommand {
         list.addAll(db.getAllSchemaObjects(DbObject.CONSTANT));
         list.addAll(db.getAllSchemaObjects(DbObject.FUNCTION_ALIAS));
         for (SchemaObject obj : list) {
-            if (obj.isHidden()) {
+            if (!obj.getSchema().isValid() || obj.isHidden()) {
                 continue;
             }
             db.removeSchemaObject(session, obj);

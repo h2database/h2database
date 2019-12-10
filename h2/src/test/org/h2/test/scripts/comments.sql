@@ -4,22 +4,19 @@
 --
 
 CALL 1 /* comment */ ;;
-> 1
-> -
-> 1
-> rows: 1
+>> 1
 
 CALL 1 /* comment */ ;
-> 1
-> -
-> 1
-> rows: 1
+>> 1
 
-call /* remark * / * /* ** // end */ 1;
-> 1
-> -
-> 1
-> rows: 1
+call /* remark * / * /* ** // end */*/ 1;
+>> 1
+
+call /*/*/ */*/ 1;
+>> 1
+
+call /*1/*1*/1*/1;
+>> 1
 
 --- remarks/comments/syntax ----------------------------------------------------------------------------------------------
 CREATE TABLE TEST(
@@ -44,6 +41,9 @@ DROP_ TABLE_ TEST_T;
 > exception SYNTAX_ERROR_2
 
 DROP TABLE TEST /*;
+> exception SYNTAX_ERROR_1
+
+call /* remark * / * /* ** // end */ 1;
 > exception SYNTAX_ERROR_1
 
 DROP TABLE TEST;

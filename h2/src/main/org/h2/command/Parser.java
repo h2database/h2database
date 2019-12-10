@@ -5499,14 +5499,23 @@ public class Parser {
                     command[i + 1] = ' ';
                     startLoop = i;
                     i += 2;
-                    checkRunOver(i, len, startLoop);
-                    while (command[i] != '*' || command[i + 1] != '/') {
-                        command[i++] = ' ';
-                        checkRunOver(i, len, startLoop);
+                    for (int level = 1; level > 0;) {
+                        for (;;) {
+                            checkRunOver(i, len, startLoop);
+                            char ch = command[i];
+                            command[i++] = ' ';
+                            if (ch == '*') {
+                                if (command[i] == '/') {
+                                    level--;
+                                    break;
+                                }
+                            } else if (ch == '/' && command[i] == '*') {
+                                level++;
+                                command[i++] = ' ';
+                            }
+                        }
+                        command[i] = ' ';
                     }
-                    command[i] = ' ';
-                    command[i + 1] = ' ';
-                    i++;
                 } else if (command[i + 1] == '/') {
                     // single line comment
                     changed = true;

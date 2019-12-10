@@ -6,8 +6,6 @@
 package org.h2.command.ddl;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
@@ -25,7 +23,6 @@ import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
-import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
@@ -167,11 +164,11 @@ public class AlterTableAddConstraint extends SchemaCommand {
         case CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE: {
             IndexColumn.mapColumns(indexColumns, table);
             boolean isOwner = false;
-            if (index != null && canUseUniqueIndex(index, table, indexColumns)) {
+            if (index != null && canUseIndex(index, table, indexColumns, true)) {
                 isOwner = true;
                 index.getIndexType().setBelongsToConstraint(true);
             } else {
-                index = getUniqueIndex(table, indexColumns);
+                index = getIndex(table, indexColumns, true);
                 if (index == null) {
                     index = createIndex(table, indexColumns, true);
                     isOwner = true;
@@ -214,11 +211,11 @@ public class AlterTableAddConstraint extends SchemaCommand {
             }
             boolean isOwner = false;
             IndexColumn.mapColumns(indexColumns, table);
-            if (index != null && canUseIndex(index, table, indexColumns)) {
+            if (index != null && canUseIndex(index, table, indexColumns, false)) {
                 isOwner = true;
                 index.getIndexType().setBelongsToConstraint(true);
             } else {
-                index = getIndex(table, indexColumns);
+                index = getIndex(table, indexColumns, false);
                 if (index == null) {
                     index = createIndex(table, indexColumns, false);
                     isOwner = true;
@@ -235,14 +232,14 @@ public class AlterTableAddConstraint extends SchemaCommand {
             }
             boolean isRefOwner = false;
             if (refIndex != null && refIndex.getTable() == refTable &&
-                    canUseIndex(refIndex, refTable, refIndexColumns)) {
+                    canUseIndex(refIndex, refTable, refIndexColumns, false)) {
                 isRefOwner = true;
                 refIndex.getIndexType().setBelongsToConstraint(true);
             } else {
                 refIndex = null;
             }
             if (refIndex == null) {
-                refIndex = getIndex(refTable, refIndexColumns);
+                refIndex = getIndex(refTable, refIndexColumns, false);
                 if (refIndex == null) {
                     refIndex = createIndex(refTable, refIndexColumns, true);
                     isRefOwner = true;
@@ -312,60 +309,27 @@ public class AlterTableAddConstraint extends SchemaCommand {
         this.updateAction = action;
     }
 
-    private static Index getUniqueIndex(Table t, IndexColumn[] cols) {
-        if (t.getIndexes() == null) {
-            return null;
-        }
-        for (Index idx : t.getIndexes()) {
-            if (canUseUniqueIndex(idx, t, cols)) {
-                return idx;
+    private static Index getIndex(Table t, IndexColumn[] cols, boolean unique) {
+        ArrayList<Index> indexes = t.getIndexes();
+        if (indexes != null) {
+            for (Index idx : indexes) {
+                if (canUseIndex(idx, t, cols, unique)) {
+                    return idx;
+                }
             }
         }
         return null;
     }
 
-    private static Index getIndex(Table t, IndexColumn[] cols) {
-        if (t.getIndexes() == null) {
-            return null;
-        }
-        for (Index idx : t.getIndexes()) {
-            if (canUseIndex(idx, t, cols)) {
-                return idx;
-            }
-        }
-        return null;
-    }
-
-
-    // all cols must be in the index key, the order doesn't matter and there
-    // must be no other fields in the index key
-    private static boolean canUseUniqueIndex(Index idx, Table table, IndexColumn[] cols) {
-        if (idx.getTable() != table || !idx.getIndexType().isUnique()) {
-            return false;
-        }
-        Column[] indexCols = idx.getColumns();
-        HashSet<Column> indexColsSet = new HashSet<>();
-        Collections.addAll(indexColsSet, indexCols);
-        HashSet<Column> colsSet = new HashSet<>();
-        for (IndexColumn c : cols) {
-            colsSet.add(c.column);
-        }
-        return colsSet.equals(indexColsSet);
-    }
-
-    private static boolean canUseIndex(Index existingIndex, Table table, IndexColumn[] cols) {
-        if (existingIndex.getTable() != table || existingIndex.getCreateSQL() == null) {
-            // can't use the scan index or index of another table
-            return false;
-        }
-        Column[] indexCols = existingIndex.getColumns();
-        if (indexCols.length != cols.length) {
+    private static boolean canUseIndex(Index index, Table table, IndexColumn[] cols, boolean unique) {
+        if (index.getTable() != table //
+                || (unique ? !index.getIndexType().isUnique() : index.getCreateSQL() == null) //
+                || index.getColumns().length != cols.length) {
             return false;
         }
         for (IndexColumn col : cols) {
             // all columns of the list must be part of the index
-            int idx = existingIndex.getColumnIndex(col.column);
-            if (idx < 0) {
+            if (index.getColumnIndex(col.column) < 0) {
                 return false;
             }
         }

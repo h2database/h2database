@@ -2116,7 +2116,20 @@ public class ErrorCode {
      */
     public static final int INVALID_VALUE_SCALE = 90151;
 
-    // next is 90152
+    /**
+     * The error with code <code>90152</code> is thrown when trying to manually
+     * drop a unique or primary key constraint that is referenced by a foreign
+     * key constraint without a CASCADE clause.
+     *
+     * <pre>
+     * CREATE TABLE PARENT(ID INT CONSTRAINT P1 PRIMARY KEY);
+     * CREATE TABLE CHILD(ID INT CONSTRAINT P2 PRIMARY KEY, CHILD INT CONSTRAINT C REFERENCES PARENT);
+     * ALTER TABLE PARENT DROP CONSTRAINT P1 RESTRICT;
+     * </pre>
+     */
+    public static final int CONSTRAINT_IS_USED_BY_CONSTRAINT_2 = 90152;
+
+    // next is 90153
 
     private ErrorCode() {
         // utility class

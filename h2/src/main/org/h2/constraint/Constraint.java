@@ -174,6 +174,15 @@ public abstract class Constraint extends SchemaObjectBase implements
         return null;
     }
 
+    /**
+     * Returns the referenced unique constraint, or null.
+     *
+     * @return the referenced unique constraint, or null
+     */
+    public ConstraintUnique getReferencedConstraint() {
+        return null;
+    }
+
     @Override
     public int getType() {
         return DbObject.CONSTRAINT;

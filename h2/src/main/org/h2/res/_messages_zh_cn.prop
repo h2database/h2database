@@ -183,6 +183,7 @@
 90149=#Database {0} not found, either pre-create it or allow remote database creation (not recommended in secure environments)
 90150=#Precision ({0}) must be between {1} and {2} inclusive
 90151=#Scale or fractional seconds precision ({0}) must be between {1} and {2} inclusive
+90152=#Constraint {0} is used by constraint {1}
 HY000=常规错误: {0}
 HY004=位置数据类型: {0}
 HYC00=不支持的特性: {0}

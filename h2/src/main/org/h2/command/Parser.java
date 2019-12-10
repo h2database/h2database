@@ -8185,6 +8185,10 @@ public class Parser {
             checkSchema(schema);
             AlterTableDropConstraint command = new AlterTableDropConstraint(session, getSchema(), ifExists);
             command.setConstraintName(constraintName);
+            ConstraintActionType dropAction = parseCascadeOrRestrict();
+            if (dropAction != null) {
+                command.setDropAction(dropAction);
+            }
             return commandIfTableExists(schema, tableName, ifTableExists, command);
         } else if (readIf(PRIMARY)) {
             read(KEY);

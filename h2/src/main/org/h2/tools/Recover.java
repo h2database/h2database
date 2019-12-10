@@ -1619,11 +1619,21 @@ public class Recover extends Tool implements DataHandler {
             writer.println("DELETE FROM INFORMATION_SCHEMA.LOBS WHERE `TABLE` = " +
                     LobStorageFrontend.TABLE_TEMP + ";");
         }
+        ArrayList<String> referentialConstraints = new ArrayList<>();
         for (MetaRecord m : schema) {
             if (isSchemaObjectTypeDelayed(m)) {
                 String sql = m.getSQL();
-                writer.println(sql + ";");
+                // TODO parse SQL properly
+                if (m.getObjectType() == DbObject.CONSTRAINT && sql.endsWith("NOCHECK")
+                        && sql.contains(" FOREIGN KEY") && sql.contains("REFERENCES ")) {
+                    referentialConstraints.add(sql);
+                } else {
+                    writer.println(sql + ';');
+                }
             }
+        }
+        for (String sql : referentialConstraints) {
+            writer.println(sql + ';');
         }
     }
 

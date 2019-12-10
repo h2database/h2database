@@ -58,11 +58,15 @@ public class DropIndex extends SchemaCommand {
                 if (cons.usesIndex(index)) {
                     // can drop primary key index (for compatibility)
                     if (Constraint.Type.PRIMARY_KEY == cons.getConstraintType()) {
+                        for (Constraint c : constraints) {
+                            if (c.getReferencedConstraint() == cons) {
+                                throw DbException.get(ErrorCode.INDEX_BELONGS_TO_CONSTRAINT_2, indexName,
+                                        cons.getName());
+                            }
+                        }
                         pkConstraint = cons;
                     } else {
-                        throw DbException.get(
-                                ErrorCode.INDEX_BELONGS_TO_CONSTRAINT_2,
-                                indexName, cons.getName());
+                        throw DbException.get(ErrorCode.INDEX_BELONGS_TO_CONSTRAINT_2, indexName, cons.getName());
                     }
                 }
             }

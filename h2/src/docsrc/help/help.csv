@@ -508,12 +508,14 @@ ALTER TABLE TEST DROP COLUMN (NAME1, NAME2)
 
 "Commands (DDL)","ALTER TABLE DROP CONSTRAINT","
 ALTER TABLE @h2@ [ IF EXISTS ] tableName DROP
-{ CONSTRAINT @h2@ [ IF EXISTS ] constraintName | @c@ { PRIMARY KEY } }
+CONSTRAINT @h2@ [ IF EXISTS ] constraintName [ RESTRICT | CASCADE ] | @c@ { PRIMARY KEY }
 ","
 Removes a constraint or a primary key from a table.
+If CASCADE is specified, unique or primary key constraint is dropped together with all
+referential constraints that reference the specified constraint.
 This command commits an open transaction in this connection.
 ","
-ALTER TABLE TEST DROP CONSTRAINT UNIQUE_NAME
+ALTER TABLE TEST DROP CONSTRAINT UNIQUE_NAME RESTRICT
 "
 
 "Commands (DDL)","ALTER TABLE SET","

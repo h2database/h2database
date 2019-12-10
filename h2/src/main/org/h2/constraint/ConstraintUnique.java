@@ -161,11 +161,6 @@ public class ConstraintUnique extends Constraint {
     }
 
     @Override
-    public Index getUniqueIndex() {
-        return index;
-    }
-
-    @Override
     public void rebuild() {
         // nothing to do
     }

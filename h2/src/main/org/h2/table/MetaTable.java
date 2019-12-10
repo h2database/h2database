@@ -1733,7 +1733,7 @@ public class MetaTable extends Table {
                             // FK_NAME
                             ref.getName(),
                             // PK_NAME
-                            ref.getUniqueIndex().getName(),
+                            ref.getReferencedConstraint().getName(),
                             // DEFERRABILITY
                             ValueShort.get((short) DatabaseMetaData.importedKeyNotDeferrable)
                     );

@@ -165,16 +165,6 @@ public abstract class Constraint extends SchemaObjectBase implements
     }
 
     /**
-     * Get the unique index used to enforce this constraint, or null if no index
-     * is used.
-     *
-     * @return the index
-     */
-    public Index getUniqueIndex() {
-        return null;
-    }
-
-    /**
      * Returns the referenced unique constraint, or null.
      *
      * @return the referenced unique constraint, or null

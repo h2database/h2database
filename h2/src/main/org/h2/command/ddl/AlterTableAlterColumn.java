@@ -477,7 +477,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
                         if (child instanceof ConstraintUnique) {
                             ConstraintUnique constraint = (ConstraintUnique) child;
                             if (constraint.getConstraintType() == Constraint.Type.PRIMARY_KEY) {
-                                index = constraint.getUniqueIndex();
+                                index = constraint.getIndex();
                             }
                         } else if (child instanceof Index) {
                             index = (Index) child;

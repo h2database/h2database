@@ -633,11 +633,6 @@ public class ConstraintReferential extends Constraint {
     }
 
     @Override
-    public Index getUniqueIndex() {
-        return refConstraint.getIndex();
-    }
-
-    @Override
     public ConstraintUnique getReferencedConstraint() {
         return refConstraint;
     }

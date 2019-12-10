@@ -624,7 +624,9 @@ public abstract class Table extends SchemaObjectBase {
             }
         }
         for (Constraint c : constraintsToDrop) {
-            session.getDatabase().removeSchemaObject(session, c);
+            if (c.isValid()) {
+                session.getDatabase().removeSchemaObject(session, c);
+            }
         }
         for (Index i : indexesToDrop) {
             // the index may already have been dropped when dropping the

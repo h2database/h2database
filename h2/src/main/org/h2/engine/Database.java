@@ -29,6 +29,7 @@ import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
 import org.h2.api.TableEngine;
 import org.h2.command.CommandInterface;
+import org.h2.command.Prepared;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.command.dml.SetTypes;
 import org.h2.constraint.Constraint;
@@ -721,19 +722,7 @@ public class Database implements DataHandler, CastDataProvider {
                 false, false), true, null);
         systemSession.commit(true);
         objectIds.set(0);
-        Cursor cursor = metaIdIndex.find(systemSession, null, null);
-        ArrayList<MetaRecord> records = new ArrayList<>((int) metaIdIndex.getRowCountApproximation());
-        while (cursor.next()) {
-            MetaRecord rec = new MetaRecord(cursor.get());
-            objectIds.set(rec.getId());
-            records.add(rec);
-        }
-        Collections.sort(records);
-        synchronized (systemSession) {
-            for (MetaRecord rec : records) {
-                rec.execute(this, systemSession, eventListener);
-            }
-        }
+        executeMeta();
         systemSession.commit(true);
         if (store != null) {
             store.getTransactionStore().endLeftoverTransactions();
@@ -772,6 +761,55 @@ public class Database implements DataHandler, CastDataProvider {
                 writer = WriterThread.create(this, writeDelay);
             } else {
                 setWriteDelay(writeDelay);
+            }
+        }
+    }
+
+    private void executeMeta() {
+        Cursor cursor = metaIdIndex.find(systemSession, null, null);
+        ArrayList<MetaRecord> records = new ArrayList<>((int) metaIdIndex.getRowCountApproximation());
+        while (cursor.next()) {
+            MetaRecord rec = new MetaRecord(cursor.get());
+            objectIds.set(rec.getId());
+            records.add(rec);
+        }
+        Collections.sort(records);
+        synchronized (systemSession) {
+            int i = 0, metaCount = records.size();
+            // Create all objects before the first constraint
+            for (;; i++) {
+                if (i >= metaCount) {
+                    return;
+                }
+                MetaRecord rec = records.get(i);
+                if (rec.getObjectType() == DbObject.CONSTRAINT) {
+                    break;
+                }
+                rec.prepareAndExecute(this, systemSession, eventListener);
+            }
+            // Find the last constraint
+            int j = i + 1;
+            while (j < metaCount && records.get(j).getObjectType() == DbObject.CONSTRAINT) {
+                j++;
+            }
+            // Prepare, but don't create all constraints and sort them
+            int constraintsCount = j - i;
+            Prepared[] constraints = new Prepared[constraintsCount];
+            for (int k = 0; k < constraintsCount; k++) {
+                constraints[k] = records.get(k + i).prepare(this, systemSession, eventListener);
+            }
+            Arrays.sort(constraints, MetaRecord.CONSTRAINTS_COMPARATOR);
+            // Create constraints in order (unique and primary key before all
+            // others)
+            for (int k = 0; k < constraintsCount; k++) {
+                Prepared constraint = constraints[k];
+                if (constraint != null) {
+                    records.get(k + i).execute(this, constraint, eventListener);
+                }
+            }
+            // Create all remaining objects
+            for (; j < metaCount; j++) {
+                records.get(j).prepareAndExecute(this, systemSession, eventListener);
             }
         }
     }

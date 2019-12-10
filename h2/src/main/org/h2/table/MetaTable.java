@@ -1733,7 +1733,7 @@ public class MetaTable extends Table {
                             // FK_NAME
                             ref.getName(),
                             // PK_NAME
-                            ref.getUniqueIndex().getName(),
+                            ref.getReferencedConstraint().getName(),
                             // DEFERRABILITY
                             ValueShort.get((short) DatabaseMetaData.importedKeyNotDeferrable)
                     );
@@ -2101,7 +2101,7 @@ public class MetaTable extends Table {
                 }
                 ConstraintUnique referenced;
                 if (constraintType == Constraint.Type.REFERENTIAL) {
-                    referenced = lookupUniqueForReferential((ConstraintReferential) constraint);
+                    referenced = ((ConstraintReferential) constraint).getReferencedConstraint();
                 } else {
                     referenced = null;
                 }
@@ -2109,21 +2109,16 @@ public class MetaTable extends Table {
                 for (int i = 0; i < indexColumns.length; i++) {
                     IndexColumn indexColumn = indexColumns[i];
                     ValueInt ordinalPosition = ValueInt.get(i + 1);
-                    ValueInt positionInUniqueConstraint;
-                    if (constraintType == Constraint.Type.REFERENTIAL) {
-                        positionInUniqueConstraint = ordinalPosition;
-                        if (referenced != null) {
-                            Column c = ((ConstraintReferential) constraint).getRefColumns()[i].column;
-                            IndexColumn[] refColumns = referenced.getColumns();
-                            for (int j = 0; j < refColumns.length; j++) {
-                                if (refColumns[j].column.equals(c)) {
-                                    positionInUniqueConstraint = ValueInt.get(j + 1);
-                                    break;
-                                }
+                    ValueInt positionInUniqueConstraint = null;
+                    if (referenced != null) {
+                        Column c = ((ConstraintReferential) constraint).getRefColumns()[i].column;
+                        IndexColumn[] refColumns = referenced.getColumns();
+                        for (int j = 0; j < refColumns.length; j++) {
+                            if (refColumns[j].column.equals(c)) {
+                                positionInUniqueConstraint = ValueInt.get(j + 1);
+                                break;
                             }
                         }
-                    } else {
-                        positionInUniqueConstraint = null;
                     }
                     add(rows,
                             // CONSTRAINT_CATALOG
@@ -2165,13 +2160,7 @@ public class MetaTable extends Table {
                 if (hideTable(table, session)) {
                     continue;
                 }
-                // Should be referenced unique constraint, but H2 uses indexes instead.
-                // So try to find matching unique constraint first and there is no such
-                // constraint use index name to return something.
-                SchemaObject unique = lookupUniqueForReferential(constraint);
-                if (unique == null) {
-                    unique = constraint.getUniqueIndex();
-                }
+                ConstraintUnique unique = constraint.getReferencedConstraint();
                 add(rows,
                         // CONSTRAINT_CATALOG
                         catalog,
@@ -2278,19 +2267,6 @@ public class MetaTable extends Table {
         default:
             throw DbException.throwInternalError("action="+action);
         }
-    }
-
-    private static ConstraintUnique lookupUniqueForReferential(ConstraintReferential referential) {
-        Index index = referential.getUniqueIndex();
-        for (Constraint c : referential.getRefTable().getConstraints()) {
-            Type constraintType = c.getConstraintType();
-            if (constraintType == Constraint.Type.PRIMARY_KEY || constraintType == Constraint.Type.UNIQUE) {
-                if (c.getIndex() == index) {
-                    return (ConstraintUnique) c;
-                }
-            }
-        }
-        return null;
     }
 
     private void addConstraintColumnUsage(ArrayList<Row> rows, String catalog, Constraint constraint, Column column) {

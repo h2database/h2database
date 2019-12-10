@@ -5,6 +5,7 @@
  */
 package org.h2.constraint;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import org.h2.engine.Session;
 import org.h2.index.Index;
@@ -99,6 +100,15 @@ public class ConstraintUnique extends Constraint {
 
     @Override
     public void removeChildrenAndResources(Session session) {
+        ArrayList<Constraint> constraints = table.getConstraints();
+        if (constraints != null) {
+            constraints = new ArrayList<>(table.getConstraints());
+            for (Constraint c : constraints) {
+                if (c.getReferencedConstraint() == this) {
+                    database.removeSchemaObject(session, c);
+                }
+            }
+        }
         table.removeConstraint(this);
         if (indexOwner) {
             table.removeIndexOrTransferOwnership(session, index);
@@ -147,11 +157,6 @@ public class ConstraintUnique extends Constraint {
 
     @Override
     public Index getIndex() {
-        return index;
-    }
-
-    @Override
-    public Index getUniqueIndex() {
         return index;
     }
 

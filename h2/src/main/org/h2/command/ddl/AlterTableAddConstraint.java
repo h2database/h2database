@@ -6,8 +6,6 @@
 package org.h2.command.ddl;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
@@ -25,7 +23,6 @@ import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
-import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
@@ -53,6 +50,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
     private boolean ifTableExists;
     private final boolean ifNotExists;
     private final ArrayList<Index> createdIndexes = new ArrayList<>();
+    private ConstraintUnique createdUniqueConstraint;
 
     public AlterTableAddConstraint(Session session, Schema schema, int type, boolean ifNotExists) {
         super(session, schema);
@@ -66,8 +64,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
 
     private String generateConstraintName(Table table) {
         if (constraintName == null) {
-            constraintName = getSchema().getUniqueConstraintName(
-                    session, table);
+            constraintName = getSchema().getUniqueConstraintName(session, table);
         }
         return constraintName;
     }
@@ -78,6 +75,11 @@ public class AlterTableAddConstraint extends SchemaCommand {
             return tryUpdate();
         } catch (DbException e) {
             try {
+                if (createdUniqueConstraint != null) {
+                    Index index = createdUniqueConstraint.getIndex();
+                    session.getDatabase().removeSchemaObject(session, createdUniqueConstraint);
+                    createdIndexes.remove(index);
+                }
                 for (Index index : createdIndexes) {
                     session.getDatabase().removeSchemaObject(session, index);
                 }
@@ -164,28 +166,10 @@ public class AlterTableAddConstraint extends SchemaCommand {
             constraint = pk;
             break;
         }
-        case CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE: {
+        case CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE:
             IndexColumn.mapColumns(indexColumns, table);
-            boolean isOwner = false;
-            if (index != null && canUseUniqueIndex(index, table, indexColumns)) {
-                isOwner = true;
-                index.getIndexType().setBelongsToConstraint(true);
-            } else {
-                index = getUniqueIndex(table, indexColumns);
-                if (index == null) {
-                    index = createIndex(table, indexColumns, true);
-                    isOwner = true;
-                }
-            }
-            int id = getObjectId();
-            String name = generateConstraintName(table);
-            ConstraintUnique unique = new ConstraintUnique(getSchema(), id,
-                    name, table, false);
-            unique.setColumns(indexColumns);
-            unique.setIndex(index, isOwner);
-            constraint = unique;
+            constraint = createUniqueConstraint(table, index, indexColumns, false);
             break;
-        }
         case CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_CHECK: {
             int id = getObjectId();
             String name = generateConstraintName(table);
@@ -214,6 +198,14 @@ public class AlterTableAddConstraint extends SchemaCommand {
             }
             boolean isOwner = false;
             IndexColumn.mapColumns(indexColumns, table);
+            if (refIndexColumns == null) {
+                refIndexColumns = refTable.getPrimaryKey().getIndexColumns();
+            } else {
+                IndexColumn.mapColumns(refIndexColumns, refTable);
+            }
+            if (refIndexColumns.length != indexColumns.length) {
+                throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
+            }
             if (index != null && canUseIndex(index, table, indexColumns, false)) {
                 isOwner = true;
                 index.getIndexType().setBelongsToConstraint(true);
@@ -224,30 +216,6 @@ public class AlterTableAddConstraint extends SchemaCommand {
                     isOwner = true;
                 }
             }
-            if (refIndexColumns == null) {
-                Index refIdx = refTable.getPrimaryKey();
-                refIndexColumns = refIdx.getIndexColumns();
-            } else {
-                IndexColumn.mapColumns(refIndexColumns, refTable);
-            }
-            if (refIndexColumns.length != indexColumns.length) {
-                throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
-            }
-            boolean isRefOwner = false;
-            if (refIndex != null && refIndex.getTable() == refTable &&
-                    canUseIndex(refIndex, refTable, refIndexColumns, false)) {
-                isRefOwner = true;
-                refIndex.getIndexType().setBelongsToConstraint(true);
-            } else {
-                refIndex = null;
-            }
-            if (refIndex == null) {
-                refIndex = getIndex(refTable, refIndexColumns, false);
-                if (refIndex == null) {
-                    refIndex = createIndex(refTable, refIndexColumns, true);
-                    isRefOwner = true;
-                }
-            }
             int id = getObjectId();
             String name = generateConstraintName(table);
             ConstraintReferential refConstraint = new ConstraintReferential(getSchema(),
@@ -256,7 +224,13 @@ public class AlterTableAddConstraint extends SchemaCommand {
             refConstraint.setIndex(index, isOwner);
             refConstraint.setRefTable(refTable);
             refConstraint.setRefColumns(refIndexColumns);
-            refConstraint.setRefIndex(refIndex, isRefOwner);
+            ConstraintUnique unique = getUniqueConstraint(refTable, refIndexColumns);
+            if (unique == null) {
+                unique = createUniqueConstraint(refTable, refIndex, refIndexColumns, true);
+                addConstraintToTable(db, refTable, unique);
+                createdUniqueConstraint = unique;
+            }
+            refConstraint.setRefConstraint(unique);
             if (checkExisting) {
                 refConstraint.checkExistingData(session);
             }
@@ -271,13 +245,45 @@ public class AlterTableAddConstraint extends SchemaCommand {
         }
         // parent relationship is already set with addConstraint
         constraint.setComment(comment);
+        addConstraintToTable(db, table, constraint);
+        return 0;
+    }
+
+    private ConstraintUnique createUniqueConstraint(Table table, Index index, IndexColumn[] indexColumns,
+            boolean forForeignKey) {
+        boolean isOwner = false;
+        if (index != null && canUseIndex(index, table, indexColumns, true)) {
+            isOwner = true;
+            index.getIndexType().setBelongsToConstraint(true);
+        } else {
+            index = getIndex(table, indexColumns, true);
+            if (index == null) {
+                index = createIndex(table, indexColumns, true);
+                isOwner = true;
+            }
+        }
+        int id;
+        String name;
+        if (forForeignKey) {
+            id = session.getDatabase().allocateObjectId();
+            name = getSchema().getUniqueConstraintName(session, table);
+        } else {
+            id = getObjectId();
+            name = generateConstraintName(table);
+        }
+        ConstraintUnique unique = new ConstraintUnique(getSchema(), id, name, table, false);
+        unique.setColumns(indexColumns);
+        unique.setIndex(index, isOwner);
+        return unique;
+    }
+
+    private void addConstraintToTable(Database db, Table table, Constraint constraint) {
         if (table.isTemporary() && !table.isGlobalTemporary()) {
             session.addLocalTempTableConstraint(constraint);
         } else {
             db.addSchemaObject(session, constraint);
         }
         table.addConstraint(constraint);
-        return 0;
     }
 
     private Index createIndex(Table t, IndexColumn[] cols, boolean unique) {
@@ -312,79 +318,45 @@ public class AlterTableAddConstraint extends SchemaCommand {
         this.updateAction = action;
     }
 
-    private static Index getUniqueIndex(Table t, IndexColumn[] cols) {
-        if (t.getIndexes() == null) {
-            return null;
-        }
-        for (Index idx : t.getIndexes()) {
-            if (canUseUniqueIndex(idx, t, cols)) {
-                return idx;
+    private static ConstraintUnique getUniqueConstraint(Table t, IndexColumn[] cols) {
+        ArrayList<Constraint> constraints = t.getConstraints();
+        if (constraints != null) {
+            for (Constraint constraint : constraints) {
+                if (constraint.getTable() == t) {
+                    Constraint.Type constraintType = constraint.getConstraintType();
+                    if (constraintType == Constraint.Type.PRIMARY_KEY || constraintType == Constraint.Type.UNIQUE) {
+                        if (canUseIndex(constraint.getIndex(), t, cols, true)) {
+                            return (ConstraintUnique) constraint;
+                        }
+                    }
+                }
             }
         }
         return null;
     }
 
-    private static Index getIndex(Table t, IndexColumn[] cols, boolean moreColumnOk) {
-        if (t.getIndexes() == null) {
-            return null;
-        }
-        for (Index idx : t.getIndexes()) {
-            if (canUseIndex(idx, t, cols, moreColumnOk)) {
-                return idx;
+    private static Index getIndex(Table t, IndexColumn[] cols, boolean unique) {
+        ArrayList<Index> indexes = t.getIndexes();
+        if (indexes != null) {
+            for (Index idx : indexes) {
+                if (canUseIndex(idx, t, cols, unique)) {
+                    return idx;
+                }
             }
         }
         return null;
     }
 
-
-    // all cols must be in the index key, the order doesn't matter and there
-    // must be no other fields in the index key
-    private static boolean canUseUniqueIndex(Index idx, Table table, IndexColumn[] cols) {
-        if (idx.getTable() != table || !idx.getIndexType().isUnique()) {
+    private static boolean canUseIndex(Index index, Table table, IndexColumn[] cols, boolean unique) {
+        if (index.getTable() != table //
+                || (unique ? !index.getIndexType().isUnique() : index.getCreateSQL() == null) //
+                || index.getColumns().length != cols.length) {
             return false;
         }
-        Column[] indexCols = idx.getColumns();
-        HashSet<Column> indexColsSet = new HashSet<>();
-        Collections.addAll(indexColsSet, indexCols);
-        HashSet<Column> colsSet = new HashSet<>();
-        for (IndexColumn c : cols) {
-            colsSet.add(c.column);
-        }
-        return colsSet.equals(indexColsSet);
-    }
-
-    private static boolean canUseIndex(Index existingIndex, Table table,
-            IndexColumn[] cols, boolean moreColumnsOk) {
-        if (existingIndex.getTable() != table || existingIndex.getCreateSQL() == null) {
-            // can't use the scan index or index of another table
-            return false;
-        }
-        Column[] indexCols = existingIndex.getColumns();
-
-        if (moreColumnsOk) {
-            if (indexCols.length < cols.length) {
+        for (IndexColumn col : cols) {
+            // all columns of the list must be part of the index
+            if (index.getColumnIndex(col.column) < 0) {
                 return false;
-            }
-            for (IndexColumn col : cols) {
-                // all columns of the list must be part of the index,
-                // but not all columns of the index need to be part of the list
-                // holes are not allowed (index=a,b,c & list=a,b is ok;
-                // but list=a,c is not)
-                int idx = existingIndex.getColumnIndex(col.column);
-                if (idx < 0 || idx >= cols.length) {
-                    return false;
-                }
-            }
-        } else {
-            if (indexCols.length != cols.length) {
-                return false;
-            }
-            for (IndexColumn col : cols) {
-                // all columns of the list must be part of the index
-                int idx = existingIndex.getColumnIndex(col.column);
-                if (idx < 0) {
-                    return false;
-                }
             }
         }
         return true;

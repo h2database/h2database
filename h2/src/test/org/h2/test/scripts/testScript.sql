@@ -1980,18 +1980,18 @@ CREATE TABLE child(parentid int REFERENCES parent);
 > ok
 
 select * from INFORMATION_SCHEMA.CROSS_REFERENCES;
-> PKTABLE_CATALOG PKTABLE_SCHEMA PKTABLE_NAME PKCOLUMN_NAME FKTABLE_CATALOG FKTABLE_SCHEMA FKTABLE_NAME FKCOLUMN_NAME ORDINAL_POSITION UPDATE_RULE DELETE_RULE FK_NAME      PK_NAME       DEFERRABILITY
-> --------------- -------------- ------------ ------------- --------------- -------------- ------------ ------------- ---------------- ----------- ----------- ------------ ------------- -------------
-> SCRIPT          PUBLIC         PARENT       ID            SCRIPT          PUBLIC         CHILD        PARENTID      1                1           1           CONSTRAINT_3 PRIMARY_KEY_8 7
+> PKTABLE_CATALOG PKTABLE_SCHEMA PKTABLE_NAME PKCOLUMN_NAME FKTABLE_CATALOG FKTABLE_SCHEMA FKTABLE_NAME FKCOLUMN_NAME ORDINAL_POSITION UPDATE_RULE DELETE_RULE FK_NAME      PK_NAME      DEFERRABILITY
+> --------------- -------------- ------------ ------------- --------------- -------------- ------------ ------------- ---------------- ----------- ----------- ------------ ------------ -------------
+> SCRIPT          PUBLIC         PARENT       ID            SCRIPT          PUBLIC         CHILD        PARENTID      1                1           1           CONSTRAINT_3 CONSTRAINT_8 7
 > rows: 1
 
 ALTER TABLE parent ADD COLUMN name varchar;
 > ok
 
 select * from INFORMATION_SCHEMA.CROSS_REFERENCES;
-> PKTABLE_CATALOG PKTABLE_SCHEMA PKTABLE_NAME PKCOLUMN_NAME FKTABLE_CATALOG FKTABLE_SCHEMA FKTABLE_NAME FKCOLUMN_NAME ORDINAL_POSITION UPDATE_RULE DELETE_RULE FK_NAME      PK_NAME        DEFERRABILITY
-> --------------- -------------- ------------ ------------- --------------- -------------- ------------ ------------- ---------------- ----------- ----------- ------------ -------------- -------------
-> SCRIPT          PUBLIC         PARENT       ID            SCRIPT          PUBLIC         CHILD        PARENTID      1                1           1           CONSTRAINT_3 PRIMARY_KEY_82 7
+> PKTABLE_CATALOG PKTABLE_SCHEMA PKTABLE_NAME PKCOLUMN_NAME FKTABLE_CATALOG FKTABLE_SCHEMA FKTABLE_NAME FKCOLUMN_NAME ORDINAL_POSITION UPDATE_RULE DELETE_RULE FK_NAME      PK_NAME      DEFERRABILITY
+> --------------- -------------- ------------ ------------- --------------- -------------- ------------ ------------- ---------------- ----------- ----------- ------------ ------------ -------------
+> SCRIPT          PUBLIC         PARENT       ID            SCRIPT          PUBLIC         CHILD        PARENTID      1                1           1           CONSTRAINT_3 CONSTRAINT_8 7
 > rows: 1
 
 drop table parent, child;
@@ -6589,10 +6589,10 @@ CREATE TABLE CHILD(ID INT PRIMARY KEY, PA INT, PB INT, CONSTRAINT AB FOREIGN KEY
 > ok
 
 SELECT * FROM INFORMATION_SCHEMA.CROSS_REFERENCES;
-> PKTABLE_CATALOG PKTABLE_SCHEMA PKTABLE_NAME PKCOLUMN_NAME FKTABLE_CATALOG FKTABLE_SCHEMA FKTABLE_NAME FKCOLUMN_NAME ORDINAL_POSITION UPDATE_RULE DELETE_RULE FK_NAME PK_NAME       DEFERRABILITY
-> --------------- -------------- ------------ ------------- --------------- -------------- ------------ ------------- ---------------- ----------- ----------- ------- ------------- -------------
-> SCRIPT          PUBLIC         PARENT       A             SCRIPT          PUBLIC         CHILD        PA            1                1           1           AB      PRIMARY_KEY_8 7
-> SCRIPT          PUBLIC         PARENT       B             SCRIPT          PUBLIC         CHILD        PB            2                1           1           AB      PRIMARY_KEY_8 7
+> PKTABLE_CATALOG PKTABLE_SCHEMA PKTABLE_NAME PKCOLUMN_NAME FKTABLE_CATALOG FKTABLE_SCHEMA FKTABLE_NAME FKCOLUMN_NAME ORDINAL_POSITION UPDATE_RULE DELETE_RULE FK_NAME PK_NAME      DEFERRABILITY
+> --------------- -------------- ------------ ------------- --------------- -------------- ------------ ------------- ---------------- ----------- ----------- ------- ------------ -------------
+> SCRIPT          PUBLIC         PARENT       A             SCRIPT          PUBLIC         CHILD        PA            1                1           1           AB      CONSTRAINT_8 7
+> SCRIPT          PUBLIC         PARENT       B             SCRIPT          PUBLIC         CHILD        PB            2                1           1           AB      CONSTRAINT_8 7
 > rows: 2
 
 DROP TABLE PARENT, CHILD;
@@ -6668,7 +6668,7 @@ ALTER TABLE TEST DROP PRIMARY KEY;
 > exception INDEX_BELONGS_TO_CONSTRAINT_2
 
 ALTER TABLE TEST DROP CONSTRAINT PK;
-> ok
+> exception CONSTRAINT_IS_USED_BY_CONSTRAINT_2
 
 INSERT INTO TEST VALUES(1, 'Frank', 1);
 > update count: 1
@@ -6711,9 +6711,10 @@ SCRIPT NOPASSWORDS NOSETTINGS;
 > --------------------------------------------------------------------------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."C1" FOREIGN KEY("A_INT") REFERENCES "PUBLIC"."TEST"("B_INT") NOCHECK;
+> ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_2" UNIQUE("B_INT");
 > CREATE MEMORY TABLE "PUBLIC"."TEST"( "A_INT" INT NOT NULL, "B_INT" INT NOT NULL );
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
-> rows: 4
+> rows: 5
 
 ALTER TABLE TEST DROP CONSTRAINT C1;
 > ok
@@ -6956,6 +6957,8 @@ SCRIPT SIMPLE NOPASSWORDS NOSETTINGS;
 > -- 4 +/- SELECT COUNT(*) FROM PUBLIC.CHILD;
 > ALTER TABLE "PUBLIC"."CHILD" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_3" UNIQUE("ID", "PARENTID");
 > ALTER TABLE "PUBLIC"."CHILD" ADD CONSTRAINT "PUBLIC"."PARENT_CHILD" FOREIGN KEY("PARENTID", "FAMILY_ID") REFERENCES "PUBLIC"."PARENT"("ID", "FAMILY_ID") ON DELETE SET NULL ON UPDATE CASCADE NOCHECK;
+> ALTER TABLE "PUBLIC"."FAMILY" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_7" UNIQUE("ID");
+> ALTER TABLE "PUBLIC"."PARENT" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_8" UNIQUE("ID", "FAMILY_ID");
 > ALTER TABLE "PUBLIC"."PARENT" ADD CONSTRAINT "PUBLIC"."PARENT_FAMILY" FOREIGN KEY("FAMILY_ID") REFERENCES "PUBLIC"."FAMILY"("ID") NOCHECK;
 > CREATE INDEX "PUBLIC"."FAMILY_ID_NAME" ON "PUBLIC"."FAMILY"("ID", "NAME");
 > CREATE MEMORY TABLE "PUBLIC"."CHILD"( "ID" INT, "PARENTID" INT, "FAMILY_ID" INT, "NAME" VARCHAR(20) );
@@ -6968,7 +6971,7 @@ SCRIPT SIMPLE NOPASSWORDS NOSETTINGS;
 > INSERT INTO "PUBLIC"."CHILD" VALUES(201, NULL, NULL, 'Johann');
 > INSERT INTO "PUBLIC"."FAMILY" VALUES(1, 'Capone');
 > INSERT INTO "PUBLIC"."PARENT" VALUES(3, 1, 'Sue');
-> rows: 17
+> rows: 19
 
 ALTER TABLE CHILD DROP CONSTRAINT PARENT_CHILD;
 > ok
@@ -6980,6 +6983,8 @@ SCRIPT SIMPLE NOPASSWORDS NOSETTINGS;
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.PARENT;
 > -- 4 +/- SELECT COUNT(*) FROM PUBLIC.CHILD;
 > ALTER TABLE "PUBLIC"."CHILD" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_3" UNIQUE("ID", "PARENTID");
+> ALTER TABLE "PUBLIC"."FAMILY" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_7" UNIQUE("ID");
+> ALTER TABLE "PUBLIC"."PARENT" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_8" UNIQUE("ID", "FAMILY_ID");
 > ALTER TABLE "PUBLIC"."PARENT" ADD CONSTRAINT "PUBLIC"."PARENT_FAMILY" FOREIGN KEY("FAMILY_ID") REFERENCES "PUBLIC"."FAMILY"("ID") NOCHECK;
 > CREATE INDEX "PUBLIC"."FAMILY_ID_NAME" ON "PUBLIC"."FAMILY"("ID", "NAME");
 > CREATE MEMORY TABLE "PUBLIC"."CHILD"( "ID" INT, "PARENTID" INT, "FAMILY_ID" INT, "NAME" VARCHAR(20) );
@@ -6992,7 +6997,7 @@ SCRIPT SIMPLE NOPASSWORDS NOSETTINGS;
 > INSERT INTO "PUBLIC"."CHILD" VALUES(201, NULL, NULL, 'Johann');
 > INSERT INTO "PUBLIC"."FAMILY" VALUES(1, 'Capone');
 > INSERT INTO "PUBLIC"."PARENT" VALUES(3, 1, 'Sue');
-> rows: 16
+> rows: 18
 
 DELETE FROM PARENT;
 > update count: 1
@@ -7057,9 +7062,10 @@ SCRIPT NOPASSWORDS NOSETTINGS;
 > ----------------------------------------------------------------------------------------------------------------------------
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_2" FOREIGN KEY("B") REFERENCES "PUBLIC"."TEST"("A") NOCHECK;
+> ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_27" UNIQUE("A");
 > CREATE MEMORY TABLE "PUBLIC"."TEST"( "A" INT, "B" INT );
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
-> rows: 4
+> rows: 5
 
 DROP TABLE TEST;
 > ok

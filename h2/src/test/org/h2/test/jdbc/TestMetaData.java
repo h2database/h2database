@@ -352,13 +352,13 @@ public class TestMetaData extends TestDb {
                         Constants.SCHEMA_MAIN, "CHILD", "PA", "1",
                         "" + DatabaseMetaData.importedKeyRestrict,
                         "" + DatabaseMetaData.importedKeyRestrict, "AB",
-                        "PRIMARY_KEY_8",
+                        "CONSTRAINT_8",
                         "" + DatabaseMetaData.importedKeyNotDeferrable },
                 { CATALOG, Constants.SCHEMA_MAIN, "PARENT", "B", CATALOG,
                         Constants.SCHEMA_MAIN, "CHILD", "PB", "2",
                         "" + DatabaseMetaData.importedKeyRestrict,
                         "" + DatabaseMetaData.importedKeyRestrict, "AB",
-                        "PRIMARY_KEY_8",
+                        "CONSTRAINT_8",
                         "" + DatabaseMetaData.importedKeyNotDeferrable } });
     }
 

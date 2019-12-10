@@ -569,6 +569,7 @@ public class DbException extends RuntimeException {
         case FOR_UPDATE_IS_NOT_ALLOWED_IN_DISTINCT_OR_GROUPED_SELECT:
         case INVALID_VALUE_PRECISION:
         case INVALID_VALUE_SCALE:
+        case CONSTRAINT_IS_USED_BY_CONSTRAINT_2:
             return new JdbcSQLSyntaxErrorException(message, sql, state, errorCode, cause, stackTrace);
         case HEX_STRING_ODD_1:
         case HEX_STRING_WRONG_1:

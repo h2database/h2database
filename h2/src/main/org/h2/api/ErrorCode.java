@@ -1403,11 +1403,7 @@ public class ErrorCode {
      * FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
      * WHERE INDEX_SCHEMA = '&lt;index schema&gt;'
      * AND INDEX_NAME = '&lt;index name&gt;'
-     * UNION
-     * SELECT CONSTRAINT_SCHEMA, CONSTRAINT_NAME
-     * FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
-     * WHERE UNIQUE_CONSTRAINT_SCHEMA = '&lt;index schema&gt;'
-     * AND UNIQUE_CONSTRAINT_NAME = '&lt;index name&gt;';
+     * FETCH FIRST ROW ONLY
      * </pre>
      * Example of wrong usage:
      * <pre>

@@ -120,7 +120,7 @@ public class Bnf {
         addFixedRule("anything_except_single_quote", RuleFixed.ANY_EXCEPT_SINGLE_QUOTE);
         addFixedRule("anything_except_double_quote", RuleFixed.ANY_EXCEPT_DOUBLE_QUOTE);
         addFixedRule("anything_until_end_of_line", RuleFixed.ANY_UNTIL_EOL);
-        addFixedRule("anything_until_end_comment", RuleFixed.ANY_UNTIL_END);
+        addFixedRule("anything_until_comment_start_or_end", RuleFixed.ANY_UNTIL_END);
         addFixedRule("anything_except_two_dollar_signs", RuleFixed.ANY_EXCEPT_2_DOLLAR);
         addFixedRule("anything", RuleFixed.ANY_WORD);
         addFixedRule("@hex_start@", RuleFixed.HEX_START);

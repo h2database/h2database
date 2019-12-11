@@ -15,7 +15,7 @@ import org.h2.value.VersionedValue;
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
-final class CommitDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
+final class CommitDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>> {
     private long undoKey;
     private MVMap.Decision decision;
 
@@ -25,7 +25,7 @@ final class CommitDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
     }
 
     @Override
-    public MVMap.Decision decide(VersionedValue existingValue, VersionedValue providedValue) {
+    public MVMap.Decision decide(VersionedValue<V> existingValue, VersionedValue<V> providedValue) {
         assert decision == null;
         if (existingValue == null ||
             // map entry was treated as already committed, and then
@@ -47,10 +47,10 @@ final class CommitDecisionMaker extends MVMap.DecisionMaker<VersionedValue> {
 
     @SuppressWarnings("unchecked")
     @Override
-    public VersionedValue selectValue(VersionedValue existingValue, VersionedValue providedValue) {
+    public <T extends VersionedValue<V>> T selectValue(T existingValue, T providedValue) {
         assert decision == MVMap.Decision.PUT;
         assert existingValue != null;
-        return VersionedValueCommitted.getInstance(existingValue.getCurrentValue());
+        return (T) VersionedValueCommitted.getInstance(existingValue.getCurrentValue());
     }
 
     @Override

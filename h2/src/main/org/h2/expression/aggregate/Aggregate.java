@@ -188,7 +188,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         final SortOrder sortOrder = orderBySort;
         Arrays.sort(array,
                 sortOrder != null
-                        ? (v1, v2) -> sortOrder.compare(((ValueArray) v1).getList(), ((ValueArray) v2).getList())
+                        ? (v1, v2) -> sortOrder.compare(((ValueRow) v1).getList(), ((ValueRow) v2).getList())
                         : select.getSession().getDatabase().getCompareMode());
     }
 
@@ -254,9 +254,9 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                 throw DbException.getInvalidValueException("JSON_OBJECTAGG key", "NULL");
             }
             if (value != ValueNull.INSTANCE) {
-                v = ValueArray.get(new Value[] { key, value });
+                v = ValueRow.get(new Value[] { key, value });
             } else if ((flags & Function.JSON_ABSENT_ON_NULL) == 0) {
-                v = ValueArray.get(new Value[] { key, ValueJson.NULL });
+                v = ValueRow.get(new Value[] { key, ValueJson.NULL });
             } else {
                 return;
             }
@@ -284,17 +284,17 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
     private Value updateCollecting(Session session, Value v, Value[] remembered) {
         if (orderByList != null) {
             int size = orderByList.size();
-            Value[] array = new Value[1 + size];
-            array[0] = v;
+            Value[] row = new Value[1 + size];
+            row[0] = v;
             if (remembered == null) {
                 for (int i = 0; i < size; i++) {
                     SelectOrderBy o = orderByList.get(i);
-                    array[i + 1] = o.expression.getValue(session);
+                    row[i + 1] = o.expression.getValue(session);
                 }
             } else {
-                System.arraycopy(remembered, 1, array, 1, size);
+                System.arraycopy(remembered, 1, row, 1, size);
             }
-            v = ValueArray.get(array);
+            v = ValueRow.get(row);
         }
         return v;
     }
@@ -440,7 +440,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             }
             if (orderByList != null) {
                 for (int i = 0; i < array.length; i++) {
-                    array[i] = ((ValueArray) array[i]).getList()[0];
+                    array[i] = ((ValueRow) array[i]).getList()[0];
                 }
             }
             return ValueArray.get(array);
@@ -492,7 +492,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             baos.write('[');
             for (Value v : array) {
                 if (orderByList != null) {
-                    v = ((ValueArray) v).getList()[0];
+                    v = ((ValueRow) v).getList()[0];
                 }
                 Function.jsonArrayAppend(baos, v, flags);
             }
@@ -507,7 +507,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             baos.write('{');
             for (Value v : array) {
-                Value[] row = ((ValueArray) v).getList();
+                Value[] row = ((ValueRow) v).getList();
                 String key = row[0].getString();
                 if (key == null) {
                     throw DbException.getInvalidValueException("JSON_OBJECTAGG key", "NULL");
@@ -607,7 +607,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             Value val = array[i];
             String s;
             if (orderByList != null) {
-                s = ((ValueArray) val).getList()[0].getString();
+                s = ((ValueRow) val).getList()[0].getString();
             } else {
                 s = val.getString();
             }
@@ -624,11 +624,11 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         if (distinctValues == null) {
             return ValueArray.EMPTY;
         }
-        ValueArray[] values = new ValueArray[distinctValues.size()];
+        ValueRow[] values = new ValueRow[distinctValues.size()];
         int i = 0;
         for (Entry<Value, LongDataCounter> entry : distinctValues.entrySet()) {
             LongDataCounter d = entry.getValue();
-            values[i] = ValueArray.get(new Value[] { entry.getKey(), ValueLong.get(d.count) });
+            values[i] = ValueRow.get(new Value[] { entry.getKey(), ValueLong.get(d.count) });
             i++;
         }
         Database db = session.getDatabase();

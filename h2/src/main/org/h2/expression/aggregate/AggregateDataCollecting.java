@@ -16,8 +16,8 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.message.DbException;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueRow;
 
 /**
  * Data stored while calculating an aggregate that needs collecting of all
@@ -62,7 +62,7 @@ class AggregateDataCollecting extends AggregateData implements Iterable<Value> {
             if (distinct) {
                 Comparator<Value> comparator = database.getCompareMode();
                 if (orderedWithOrder) {
-                    comparator = Comparator.comparing(t -> ((ValueArray) t).getList()[0], comparator);
+                    comparator = Comparator.comparing(t -> ((ValueRow) t).getList()[0], comparator);
                 }
                 c = new TreeSet<>(comparator);
             } else {

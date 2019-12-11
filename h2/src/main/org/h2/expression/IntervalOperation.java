@@ -140,8 +140,7 @@ public class IntervalOperation extends Expression {
             break;
         case DATETIME_MINUS_DATETIME:
             if (forcedType != null) {
-                type = TypeInfo.getTypeInfo(forcedType.getValueType(), ValueInterval.MAXIMUM_PRECISION,
-                        forcedType.getScale(), null);
+                type = forcedType;
             } else if ((l == Value.TIME || l == Value.TIME_TZ) && (r == Value.TIME || r == Value.TIME_TZ)) {
                 type = TypeInfo.TYPE_INTERVAL_HOUR_TO_SECOND;
             } else if (l == Value.DATE && r == Value.DATE) {
@@ -260,7 +259,7 @@ public class IntervalOperation extends Expression {
                 result = IntervalUtils.intervalFromAbsolute(IntervalQualifier.DAY_TO_SECOND, diff);
             }
             if (forcedType != null) {
-                result = result.convertTo(forcedType.getValueType()).convertScale(true, forcedType.getScale());
+                result = forcedType.cast(result, session, false, true, null);
             }
             return result;
         }

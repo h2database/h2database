@@ -490,7 +490,7 @@ public class TransactionStore {
             // made by this transaction, to be considered as "committed"
             flipCommittingTransactionsBit(transactionId, true);
 
-            CommitDecisionMaker commitDecisionMaker = new CommitDecisionMaker();
+            CommitDecisionMaker<Object> commitDecisionMaker = new CommitDecisionMaker<>();
             try {
                 while (cursor.hasNext()) {
                     Long undoKey = cursor.next();

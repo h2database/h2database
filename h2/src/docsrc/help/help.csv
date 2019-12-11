@@ -617,7 +617,7 @@ This command commits an open transaction in this connection.
 ANALYZE SAMPLE_SIZE 1000
 "
 
-"Commands (DDL)","COMMENT","
+"Commands (DDL)","COMMENT ON","
 @h2@ COMMENT ON
 @h2@ { { COLUMN [ schemaName. ] tableName.columnName }
     | { { TABLE | VIEW | CONSTANT | CONSTRAINT | ALIAS | INDEX | ROLE
@@ -2584,18 +2584,28 @@ REFERENCES T2(ID)
 CHECK (VALUE > 0)
 "
 
-"Other Grammar","Comments","
--- anythingUntilEndOfLine | /* anythingUntilEndComment */ | @h2@ // anythingUntilEndOfLine
+"Other Grammar","Comment","
+bracketedComment | -- anythingUntilEndOfLine | @h2@ // anythingUntilEndOfLine
 ","
 Comments can be used anywhere in a command and are ignored by the database.
 Line comments ""--"" and ""//"" end with a newline.
-Block comments ""/* */"" can be nested and can be multiple lines long.
 ","
-// This is a comment
+-- comment
+/* comment */
+"
+
+"Other Grammar","Bracketed comment","
+/* [ [ bracketedComment ] [ anythingUntilCommentStartOrEnd ] [...] ] */
+","
+Comments can be used anywhere in a command and are ignored by the database.
+Bracketed comments ""/* */"" can be nested and can be multiple lines long.
+","
+/* comment */
+/* comment /* nested comment */ comment */
 "
 
 "Other Grammar","Compare","
-<> | <= | >= | = | < | > | != | @h2@ &&
+<> | <= | >= | = | < | > | @c@ { != } | @h2@ &&
 ","
 Comparison operator. The operator != is the same as <>.
 The operator ""&&"" means overlapping; it can only be used with geometry types.

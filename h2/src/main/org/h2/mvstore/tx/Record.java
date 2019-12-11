@@ -74,7 +74,7 @@ final class Record<K,V>
         }
 
         @Override
-        public int compare(Record aObj, Record bObj) {
+        public int compare(Record<K,V> aObj, Record<K,V> bObj) {
             throw new UnsupportedOperationException();
         }
 

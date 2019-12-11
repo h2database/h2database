@@ -204,8 +204,7 @@ public class TestDataPage extends TestBase implements DataHandler {
             }
         }
         testValue(ValueArray.get(new Value[0]));
-        testValue(ValueArray.get(new Value[] { ValueBoolean.TRUE,
-                ValueInt.get(10) }));
+        testValue(ValueArray.get(new Value[] { ValueInt.get(-20), ValueInt.get(10) }));
 
         SimpleResult rs = new SimpleResult();
         rs.addColumn("ID", "ID", Value.INT, 0, 0);

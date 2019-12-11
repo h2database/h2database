@@ -2605,7 +2605,7 @@ Bracketed comments ""/* */"" can be nested and can be multiple lines long.
 "
 
 "Other Grammar","Compare","
-<> | <= | >= | = | < | > | != | @h2@ &&
+<> | <= | >= | = | < | > | @c@ { != } | @h2@ &&
 ","
 Comparison operator. The operator != is the same as <>.
 The operator ""&&"" means overlapping; it can only be used with geometry types.

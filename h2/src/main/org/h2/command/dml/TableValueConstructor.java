@@ -160,6 +160,7 @@ public class TableValueConstructor extends Query {
         if (checkInit) {
             DbException.throwInternalError();
         }
+        visibleColumnCount = expressions.size();
         checkInit = true;
         if (withTies && !hasOrder()) {
             throw DbException.get(ErrorCode.WITH_TIES_WITHOUT_ORDER_BY);
@@ -176,7 +177,6 @@ public class TableValueConstructor extends Query {
             DbException.throwInternalError("not initialized");
         }
         isPrepared = true;
-        visibleColumnCount = expressions.size();
         if (orderList != null) {
             ArrayList<String> expressionsSQL = new ArrayList<>();
             for (Expression e : expressions) {

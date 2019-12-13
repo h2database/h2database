@@ -3010,7 +3010,7 @@ public class Parser {
             command.setGroupQuery();
             ArrayList<Expression> list = Utils.newSmallArrayList();
             do {
-                if (readIf(OPEN_PAREN)) {
+                if (isToken(OPEN_PAREN) && isOrdinaryGroupingSet()) {
                     if (!readIf(CLOSE_PAREN)) {
                         do {
                             list.add(readExpression());
@@ -3049,6 +3049,65 @@ public class Parser {
         currentPrepared = oldPrepared;
         setSQL(command, start);
         return command;
+    }
+
+    /**
+     * Checks whether current opening parenthesis can be a start of ordinary
+     * grouping set. This method reads this parenthesis if it is.
+     *
+     * @return whether current opening parenthesis can be a start of ordinary
+     *         grouping set
+     */
+    private boolean isOrdinaryGroupingSet() {
+        int lastIndex = lastParseIndex, index = parseIndex;
+        int level = 1;
+        loop: for (;;) {
+            read();
+            switch (currentTokenType) {
+            case CLOSE_PAREN:
+                if (--level <= 0) {
+                    break loop;
+                }
+                break;
+            case OPEN_PAREN:
+                level++;
+                break;
+            case END:
+                addExpected(CLOSE_PAREN);
+                throw getSyntaxError();
+            }
+        }
+        read();
+        switch (currentTokenType) {
+        // End of query
+        case CLOSE_PAREN:
+        case SEMICOLON:
+        case END:
+        // Next grouping element
+        case COMMA:
+        // Next select clause
+        case HAVING:
+        case WINDOW:
+        case QUALIFY:
+        // Next query expression body clause
+        case UNION:
+        case EXCEPT:
+        case MINUS:
+        case INTERSECT:
+        // Next query expression clause
+        case ORDER:
+        case OFFSET:
+        case FETCH:
+        case LIMIT:
+        case FOR:
+            parseIndex = index;
+            read();
+            return true;
+        default:
+            parseIndex = lastIndex;
+            read();
+            return false;
+        }
     }
 
     private Query parseExplicitTable(int start) {

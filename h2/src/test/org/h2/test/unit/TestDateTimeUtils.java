@@ -141,7 +141,10 @@ public class TestDateTimeUtils extends TestBase {
     private void testUTC2Value(boolean allTimeZones) {
         TimeZone def = TimeZone.getDefault();
         GregorianCalendar gc = new GregorianCalendar();
-        String[] ids = allTimeZones ? TimeZone.getAvailableIDs() : new String[] { def.getID(), "+10" };
+        String[] ids = allTimeZones ? TimeZone.getAvailableIDs()
+                : new String[] { def.getID(), "+10",
+                        // Any time zone with DST in the future (JDK-8073446)
+                        "America/New_York" };
         try {
             for (String id : ids) {
                 if (allTimeZones) {
@@ -171,7 +174,7 @@ public class TestDateTimeUtils extends TestBase {
             for (int j = 0; j < 48; j++) {
                 gc.set(year, month - 1, day, j / 2, (j & 1) * 30, 0);
                 long timeMillis = gc.getTimeInMillis();
-                ValueTimestamp ts = ValueTimestamp.get(gc.getTimeZone(), new Timestamp(timeMillis));
+                ValueTimestamp ts = ValueTimestamp.get(null, new Timestamp(timeMillis));
                 timeMillis += DateTimeUtils.getTimeZoneOffsetMillis(timeMillis);
                 assertEquals(ts.getDateValue(), DateTimeUtils.dateValueFromLocalMillis(timeMillis));
                 assertEquals(ts.getTimeNanos(), DateTimeUtils.nanosFromLocalMillis(timeMillis));

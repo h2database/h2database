@@ -34,7 +34,7 @@ class FileMemData {
     private String name;
     private final int id;
     private final boolean compress;
-    private long length;
+    private volatile long length;
     private AtomicReference<byte[]>[] data;
     private long lastModified;
     private boolean isReadOnly;
@@ -62,7 +62,7 @@ class FileMemData {
      * @param page the page id
      * @return the byte array, or null
      */
-    byte[] getPage(int page) {
+    private byte[] getPage(int page) {
         AtomicReference<byte[]>[] b = data;
         if (page >= b.length) {
             return null;
@@ -79,7 +79,7 @@ class FileMemData {
      * @param force whether the data should be overwritten even if the old data
      *            doesn't match
      */
-    void setPage(int page, byte[] oldData, byte[] newData, boolean force) {
+    private void setPage(int page, byte[] oldData, byte[] newData, boolean force) {
         AtomicReference<byte[]>[] b = data;
         if (page >= b.length) {
             return;

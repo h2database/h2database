@@ -2241,13 +2241,13 @@ select * from test;
 
 select DOMAIN_NAME, DOMAIN_DEFAULT, DATA_TYPE, PRECISION, SCALE, TYPE_NAME, SELECTIVITY, REMARKS, SQL from information_schema.domains;
 > DOMAIN_NAME DOMAIN_DEFAULT DATA_TYPE PRECISION  SCALE TYPE_NAME SELECTIVITY REMARKS SQL
-> ----------- -------------- --------- ---------- ----- --------- ----------- ------- -------------------------------------------------------------------
+> ----------- -------------- --------- ---------- ----- --------- ----------- ------- -------------------------------------------------------------------------
 > EMAIL       null           12        200        0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."EMAIL" AS VARCHAR(200)
-> GMAIL       '@gmail.com'   12        200        0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."GMAIL" AS VARCHAR(200) DEFAULT '@gmail.com'
+> GMAIL       '@gmail.com'   12        200        0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."GMAIL" AS "PUBLIC"."EMAIL" DEFAULT '@gmail.com'
 > STRING      ''             12        255        0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING" AS VARCHAR(255) DEFAULT ''
 > STRING1     null           12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING1" AS VARCHAR
 > STRING2     '<empty>'      12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING2" AS VARCHAR DEFAULT '<empty>'
-> STRING_X    '<empty>'      12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING_X" AS VARCHAR DEFAULT '<empty>'
+> STRING_X    '<empty>'      12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING_X" AS "PUBLIC"."STRING2" DEFAULT '<empty>'
 > rows: 6
 
 script nodata nopasswords nosettings;
@@ -2259,11 +2259,11 @@ script nodata nopasswords nosettings;
 > ALTER DOMAIN "PUBLIC"."GMAIL" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_4" CHECK(POSITION('gmail', VALUE) > 1) NOCHECK;
 > ALTER TABLE "PUBLIC"."ADDRESS" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_E" PRIMARY KEY("ID");
 > CREATE DOMAIN "PUBLIC"."EMAIL" AS VARCHAR(200);
-> CREATE DOMAIN "PUBLIC"."GMAIL" AS VARCHAR(200) DEFAULT '@gmail.com';
+> CREATE DOMAIN "PUBLIC"."GMAIL" AS "PUBLIC"."EMAIL" DEFAULT '@gmail.com';
 > CREATE DOMAIN "PUBLIC"."STRING" AS VARCHAR(255) DEFAULT '';
 > CREATE DOMAIN "PUBLIC"."STRING1" AS VARCHAR;
 > CREATE DOMAIN "PUBLIC"."STRING2" AS VARCHAR DEFAULT '<empty>';
-> CREATE DOMAIN "PUBLIC"."STRING_X" AS VARCHAR DEFAULT '<empty>';
+> CREATE DOMAIN "PUBLIC"."STRING_X" AS "PUBLIC"."STRING2" DEFAULT '<empty>';
 > CREATE MEMORY TABLE "PUBLIC"."ADDRESS"( "ID" INT NOT NULL, "NAME" "PUBLIC"."EMAIL", "NAME2" "PUBLIC"."GMAIL" DEFAULT '@gmail.com' );
 > CREATE MEMORY TABLE "PUBLIC"."TEST"( "A" "PUBLIC"."STRING" DEFAULT '', "B" "PUBLIC"."STRING1", "C" "PUBLIC"."STRING2" DEFAULT '<empty>' );
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;

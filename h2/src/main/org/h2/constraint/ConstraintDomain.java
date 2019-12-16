@@ -125,15 +125,22 @@ public class ConstraintDomain extends Constraint {
 
     public Expression getCheckConstraint(Session session, String columnName) {
         String sql;
-        synchronized (this) {
-            try {
-                resolver.setColumnName(columnName);
-                sql = expr.getSQL(true);
-            } finally {
-                resolver.resetColumnName();
+        if (columnName != null) {
+            synchronized (this) {
+                try {
+                    resolver.setColumnName(columnName);
+                    sql = expr.getSQL(true);
+                } finally {
+                    resolver.resetColumnName();
+                }
             }
+            return new Parser(session).parseExpression(sql);
+        } else {
+            synchronized (this) {
+                sql = expr.getSQL(true);
+            }
+            return new Parser(session).parseDomainConstraintExpression(sql);
         }
-        return new Parser(session).parseExpression(sql);
     }
 
     @Override

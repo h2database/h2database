@@ -114,6 +114,7 @@ public class DropDatabase extends DefineCommand {
         list.addAll(db.getAllSchemaObjects(DbObject.TRIGGER));
         list.addAll(db.getAllSchemaObjects(DbObject.CONSTANT));
         list.addAll(db.getAllSchemaObjects(DbObject.FUNCTION_ALIAS));
+        list.addAll(db.getAllSchemaObjects(DbObject.DOMAIN));
         for (SchemaObject obj : list) {
             if (!obj.getSchema().isValid() || obj.isHidden()) {
                 continue;

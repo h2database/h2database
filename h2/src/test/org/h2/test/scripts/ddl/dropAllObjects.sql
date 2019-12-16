@@ -50,3 +50,12 @@ set schema public;
 
 drop all objects;
 > ok
+
+CREATE DOMAIN D INT;
+> ok
+
+DROP ALL OBJECTS;
+> ok
+
+SELECT COUNT(*) FROM INFORMATION_SCHEMA.DOMAINS WHERE DOMAIN_SCHEMA = 'PUBLIC';
+>> 0

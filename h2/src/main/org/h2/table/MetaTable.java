@@ -474,6 +474,9 @@ public class MetaTable extends Table {
                     "PRECISION INT",
                     "SCALE INT",
                     "TYPE_NAME",
+                    "PARENT_DOMAIN_CATALOG",
+                    "PARENT_DOMAIN_SCHEMA",
+                    "PARENT_DOMAIN_NAME",
                     "SELECTIVITY INT",
                     "REMARKS",
                     "SQL",
@@ -1768,6 +1771,7 @@ public class MetaTable extends Table {
             for (SchemaObject obj : database.getAllSchemaObjects(DbObject.DOMAIN)) {
                 Domain domain = (Domain) obj;
                 Column col = domain.getColumn();
+                Domain parentDomain = col.getDomain();
                 add(rows,
                         // DOMAIN_CATALOG
                         catalog,
@@ -1787,6 +1791,12 @@ public class MetaTable extends Table {
                         ValueInt.get(col.getType().getScale()),
                         // TYPE_NAME
                         col.getDataType().name,
+                        // PARENT_DOMAIN_CATALOG
+                        parentDomain != null ? catalog : null,
+                        // PARENT_DOMAIN_SCHEMA
+                        parentDomain != null ? parentDomain.getSchema().getName() : null,
+                        // PARENT_DOMAIN_NAME
+                        parentDomain != null ? parentDomain.getName() : null,
                         // SELECTIVITY INT
                         ValueInt.get(col.getSelectivity()),
                         // REMARKS

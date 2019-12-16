@@ -2278,7 +2278,7 @@ drop domain string;
 drop domain string1;
 > ok
 
-drop domain string2;
+drop domain string2 cascade;
 > ok
 
 drop domain string_x;
@@ -2287,7 +2287,7 @@ drop domain string_x;
 drop table address;
 > ok
 
-drop domain email;
+drop domain email cascade;
 > ok
 
 drop domain gmail;

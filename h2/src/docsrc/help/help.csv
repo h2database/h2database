@@ -1007,7 +1007,7 @@ DROP CONSTANT ONE
 DROP DOMAIN @h2@ [ IF EXISTS ] domainName [ RESTRICT | CASCADE ]
 ","
 Drops a data type (domain).
-The command will fail if it is referenced by a column (the default).
+The command will fail if it is referenced by a column or another domain (the default).
 Column descriptors are replaced with original definition of specified domain if the CASCADE clause is used.
 This command commits an open transaction in this connection.
 ","

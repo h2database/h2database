@@ -9162,6 +9162,24 @@ public class Parser {
     }
 
     /**
+     * Parse a SQL code snippet that represents an expression for a domain constraint.
+     *
+     * @param sql the code snippet
+     * @return the expression object
+     */
+    public Expression parseDomainConstraintExpression(String sql) {
+        parameters = Utils.newSmallArrayList();
+        initialize(sql);
+        read();
+        try {
+            parseDomainConstraint = true;
+            return readExpression();
+        } finally {
+            parseDomainConstraint = false;
+        }
+    }
+
+    /**
      * Parse a SQL code snippet that represents a table name.
      *
      * @param sql the code snippet

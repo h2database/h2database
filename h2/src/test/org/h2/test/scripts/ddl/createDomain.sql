@@ -157,3 +157,74 @@ TABLE INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE;
 
 DROP TABLE TEST;
 > ok
+
+CREATE DOMAIN D1 AS INT DEFAULT 1 CHECK (VALUE >= 1);
+> ok
+
+CREATE DOMAIN D2 AS D1 DEFAULT 2;
+> ok
+
+CREATE DOMAIN D3 AS D1 CHECK (VALUE >= 3);
+> ok
+
+CREATE DOMAIN D4 AS D1 DEFAULT 4 CHECK (VALUE >= 4);
+> ok
+
+SELECT DOMAIN_CATALOG, DOMAIN_SCHEMA, DOMAIN_NAME, DOMAIN_DEFAULT, DOMAIN_ON_UPDATE, DATA_TYPE, PRECISION, SCALE, TYPE_NAME,
+    PARENT_DOMAIN_CATALOG, PARENT_DOMAIN_SCHEMA, PARENT_DOMAIN_NAME FROM INFORMATION_SCHEMA.DOMAINS WHERE DOMAIN_SCHEMA = 'PUBLIC';
+> DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME DOMAIN_DEFAULT DOMAIN_ON_UPDATE DATA_TYPE PRECISION SCALE TYPE_NAME PARENT_DOMAIN_CATALOG PARENT_DOMAIN_SCHEMA PARENT_DOMAIN_NAME
+> -------------- ------------- ----------- -------------- ---------------- --------- --------- ----- --------- --------------------- -------------------- ------------------
+> SCRIPT         PUBLIC        D1          1              null             4         10        0     INTEGER   null                  null                 null
+> SCRIPT         PUBLIC        D2          2              null             4         10        0     INTEGER   SCRIPT                PUBLIC               D1
+> SCRIPT         PUBLIC        D3          1              null             4         10        0     INTEGER   SCRIPT                PUBLIC               D1
+> SCRIPT         PUBLIC        D4          4              null             4         10        0     INTEGER   SCRIPT                PUBLIC               D1
+> rows: 4
+
+SELECT DOMAIN_NAME, CHECK_CLAUSE FROM INFORMATION_SCHEMA.DOMAIN_CONSTRAINTS D JOIN INFORMATION_SCHEMA.CHECK_CONSTRAINTS C
+    ON D.CONSTRAINT_CATALOG = C.CONSTRAINT_CATALOG AND D.CONSTRAINT_SCHEMA = C.CONSTRAINT_SCHEMA AND D.CONSTRAINT_NAME = C.CONSTRAINT_NAME
+    WHERE C.CONSTRAINT_SCHEMA = 'PUBLIC';
+> DOMAIN_NAME CHECK_CLAUSE
+> ----------- ------------
+> D1          VALUE >= 1
+> D3          VALUE >= 3
+> D4          VALUE >= 4
+> rows: 3
+
+VALUES CAST(0 AS D2);
+> exception CHECK_CONSTRAINT_VIOLATED_1
+
+DROP DOMAIN D1;
+> exception CANNOT_DROP_2
+
+DROP DOMAIN D1 CASCADE;
+> ok
+
+SELECT DOMAIN_CATALOG, DOMAIN_SCHEMA, DOMAIN_NAME, DOMAIN_DEFAULT, DOMAIN_ON_UPDATE, DATA_TYPE, PRECISION, SCALE, TYPE_NAME,
+    PARENT_DOMAIN_CATALOG, PARENT_DOMAIN_SCHEMA, PARENT_DOMAIN_NAME FROM INFORMATION_SCHEMA.DOMAINS WHERE DOMAIN_SCHEMA = 'PUBLIC';
+> DOMAIN_CATALOG DOMAIN_SCHEMA DOMAIN_NAME DOMAIN_DEFAULT DOMAIN_ON_UPDATE DATA_TYPE PRECISION SCALE TYPE_NAME PARENT_DOMAIN_CATALOG PARENT_DOMAIN_SCHEMA PARENT_DOMAIN_NAME
+> -------------- ------------- ----------- -------------- ---------------- --------- --------- ----- --------- --------------------- -------------------- ------------------
+> SCRIPT         PUBLIC        D2          2              null             4         10        0     INTEGER   null                  null                 null
+> SCRIPT         PUBLIC        D3          1              null             4         10        0     INTEGER   null                  null                 null
+> SCRIPT         PUBLIC        D4          4              null             4         10        0     INTEGER   null                  null                 null
+> rows: 3
+
+SELECT DOMAIN_NAME, CHECK_CLAUSE FROM INFORMATION_SCHEMA.DOMAIN_CONSTRAINTS D JOIN INFORMATION_SCHEMA.CHECK_CONSTRAINTS C
+    ON D.CONSTRAINT_CATALOG = C.CONSTRAINT_CATALOG AND D.CONSTRAINT_SCHEMA = C.CONSTRAINT_SCHEMA AND D.CONSTRAINT_NAME = C.CONSTRAINT_NAME
+    WHERE C.CONSTRAINT_SCHEMA = 'PUBLIC';
+> DOMAIN_NAME CHECK_CLAUSE
+> ----------- ------------
+> D2          VALUE >= 1
+> D3          VALUE >= 1
+> D3          VALUE >= 3
+> D4          VALUE >= 1
+> D4          VALUE >= 4
+> rows: 5
+
+DROP DOMAIN D2;
+> ok
+
+DROP DOMAIN D3;
+> ok
+
+DROP DOMAIN D4;
+> ok

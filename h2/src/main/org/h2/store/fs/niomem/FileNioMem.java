@@ -94,7 +94,7 @@ class FileNioMem extends FileBaseDefault {
     }
 
     @Override
-    public synchronized FileLock tryLock(long position, long size,
+    public FileLock tryLock(long position, long size,
             boolean shared) throws IOException {
         if (closed) {
             throw new ClosedChannelException();

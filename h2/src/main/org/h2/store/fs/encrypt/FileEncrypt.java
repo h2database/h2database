@@ -56,7 +56,7 @@ public class FileEncrypt extends FileBaseDefault {
     /**
      * The current file size, from a user perspective.
      */
-    private long size;
+    private volatile long size;
 
     private final String name;
 

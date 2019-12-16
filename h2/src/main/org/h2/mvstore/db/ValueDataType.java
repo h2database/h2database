@@ -70,7 +70,7 @@ import org.h2.value.ValueUuid;
 /**
  * A row type.
  */
-public final class ValueDataType extends BasicDataType<Value> implements org.h2.mvstore.type.StatefulDataType<Database> {
+public final class ValueDataType extends BasicDataType<Value> implements StatefulDataType<Database> {
 
     private static final byte NULL = 0;
     private static final byte BYTE = 2;

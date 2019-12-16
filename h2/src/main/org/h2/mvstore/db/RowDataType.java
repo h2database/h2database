@@ -13,7 +13,6 @@ import org.h2.engine.Mode;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.BasicDataType;
-import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.MetaType;
 import org.h2.mvstore.type.StatefulDataType;
 import org.h2.result.RowFactory;
@@ -30,7 +29,7 @@ import org.h2.value.Value;
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
-public final class RowDataType extends BasicDataType<SearchRow> implements org.h2.mvstore.type.StatefulDataType<Database> {
+public final class RowDataType extends BasicDataType<SearchRow> implements StatefulDataType<Database> {
 
     private final ValueDataType valueDataType;
     private final int[]         sortTypes;

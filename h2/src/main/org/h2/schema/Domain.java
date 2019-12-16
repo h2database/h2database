@@ -3,15 +3,15 @@
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.engine;
+package org.h2.schema;
 
 import java.util.ArrayList;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintDomain;
+import org.h2.engine.DbObject;
+import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
-import org.h2.schema.Schema;
-import org.h2.schema.SchemaObjectBase;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.util.Utils;

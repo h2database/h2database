@@ -714,8 +714,6 @@ Creates a new data type (domain). The check condition must evaluate to true or
 to NULL (to prevent NULL, use ""NOT NULL""). In the condition, the term VALUE refers
 to the value being tested.
 
-Domains are usable within the whole database. They can not be created in a specific schema.
-
 This command commits an open transaction in this connection.
 ","
 CREATE DOMAIN EMAIL AS VARCHAR(255) CHECK (POSITION('@', VALUE) > 1)

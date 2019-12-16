@@ -10,9 +10,9 @@ import org.h2.command.CommandInterface;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.Constraint.Type;
 import org.h2.constraint.ConstraintDomain;
-import org.h2.engine.Domain;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
+import org.h2.schema.Domain;
 import org.h2.schema.Schema;
 
 /**

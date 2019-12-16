@@ -710,7 +710,8 @@ CREATE DOMAIN @h2@ [ IF NOT EXISTS ] newDomainName [ AS ] dataType
 @h2@ [ SELECTIVITY selectivityInt ] @h2@ [ COMMENT expression ]
 [ CHECK (condition) ] [...]
 ","
-Creates a new data type (domain).
+Creates a new domain to define a set of permissible values.
+Domains can be used as data types.
 The domain constraints must evaluate to TRUE or to UNKNOWN.
 In the conditions, the term VALUE refers to the value being tested.
 

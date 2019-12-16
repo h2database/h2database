@@ -470,7 +470,6 @@ public class MetaTable extends Table {
                     "DOMAIN_NAME",
                     "DOMAIN_DEFAULT",
                     "DOMAIN_ON_UPDATE",
-                    "IS_NULLABLE",
                     "DATA_TYPE INT",
                     "PRECISION INT",
                     "SCALE INT",
@@ -1780,8 +1779,6 @@ public class MetaTable extends Table {
                         col.getDefaultSQL(),
                         // DOMAIN_ON_UPDATE
                         col.getOnUpdateSQL(),
-                        // IS_NULLABLE
-                        col.isNullable() ? "YES" : "NO",
                         // DATA_TYPE
                         ValueInt.get(col.getDataType().sqlType),
                         // PRECISION

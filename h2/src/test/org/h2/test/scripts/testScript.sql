@@ -342,21 +342,6 @@ delete from test limit -1;
 drop table test;
 > ok
 
-create domain x as int not null;
-> ok
-
-create table test(id x);
-> ok
-
-insert into test values(null);
-> exception NULL_NOT_ALLOWED
-
-drop table test;
-> ok
-
-drop domain x;
-> ok
-
 create table test(id int primary key);
 > ok
 
@@ -2227,51 +2212,47 @@ insert into address(id, name, name2) values(3, 'test_abc', 'test@gmail');
 insert into address2(name) values('test@abc');
 > exception TABLE_OR_VIEW_NOT_FOUND_1
 
-CREATE DOMAIN STRING AS VARCHAR(255) DEFAULT '' NOT NULL;
+CREATE DOMAIN STRING AS VARCHAR(255) DEFAULT '';
 > ok
 
-CREATE DOMAIN IF NOT EXISTS STRING AS VARCHAR(255) DEFAULT '' NOT NULL;
+CREATE DOMAIN IF NOT EXISTS STRING AS VARCHAR(255) DEFAULT '';
 > ok
 
-CREATE DOMAIN STRING1 AS VARCHAR NULL;
+CREATE DOMAIN STRING1 AS VARCHAR;
 > ok
 
-CREATE DOMAIN STRING2 AS VARCHAR NOT NULL;
+CREATE DOMAIN STRING2 AS VARCHAR DEFAULT '<empty>';
 > ok
 
-CREATE DOMAIN STRING3 AS VARCHAR DEFAULT '<empty>';
+create domain string_x as string2;
 > ok
 
-create domain string_x as string3;
+create memory table test(a string, b string1, c string2);
 > ok
 
-create memory table test(a string, b string1, c string2, d string3);
-> ok
-
-insert into test(c) values('x');
+insert into test(b) values('x');
 > update count: 1
 
 select * from test;
-> A B    C D
-> - ---- - -------
->   null x <empty>
+> A B C
+> - - -------
+>   x <empty>
 > rows: 1
 
-select DOMAIN_NAME, DOMAIN_DEFAULT, IS_NULLABLE, DATA_TYPE, PRECISION, SCALE, TYPE_NAME, SELECTIVITY, REMARKS, SQL from information_schema.domains;
-> DOMAIN_NAME DOMAIN_DEFAULT IS_NULLABLE DATA_TYPE PRECISION  SCALE TYPE_NAME SELECTIVITY REMARKS SQL
-> ----------- -------------- ----------- --------- ---------- ----- --------- ----------- ------- -------------------------------------------------------------------
-> EMAIL       null           YES         12        200        0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."EMAIL" AS VARCHAR(200)
-> GMAIL       '@gmail.com'   YES         12        200        0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."GMAIL" AS VARCHAR(200) DEFAULT '@gmail.com'
-> STRING      ''             NO          12        255        0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING" AS VARCHAR(255) DEFAULT '' NOT NULL
-> STRING1     null           YES         12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING1" AS VARCHAR
-> STRING2     null           NO          12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING2" AS VARCHAR NOT NULL
-> STRING3     '<empty>'      YES         12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING3" AS VARCHAR DEFAULT '<empty>'
-> STRING_X    '<empty>'      YES         12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING_X" AS VARCHAR DEFAULT '<empty>'
-> rows: 7
+select DOMAIN_NAME, DOMAIN_DEFAULT, DATA_TYPE, PRECISION, SCALE, TYPE_NAME, SELECTIVITY, REMARKS, SQL from information_schema.domains;
+> DOMAIN_NAME DOMAIN_DEFAULT DATA_TYPE PRECISION  SCALE TYPE_NAME SELECTIVITY REMARKS SQL
+> ----------- -------------- --------- ---------- ----- --------- ----------- ------- -------------------------------------------------------------------
+> EMAIL       null           12        200        0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."EMAIL" AS VARCHAR(200)
+> GMAIL       '@gmail.com'   12        200        0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."GMAIL" AS VARCHAR(200) DEFAULT '@gmail.com'
+> STRING      ''             12        255        0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING" AS VARCHAR(255) DEFAULT ''
+> STRING1     null           12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING1" AS VARCHAR
+> STRING2     '<empty>'      12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING2" AS VARCHAR DEFAULT '<empty>'
+> STRING_X    '<empty>'      12        2147483647 0     VARCHAR   50                  CREATE DOMAIN "PUBLIC"."STRING_X" AS VARCHAR DEFAULT '<empty>'
+> rows: 6
 
 script nodata nopasswords nosettings;
 > SCRIPT
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> ------------------------------------------------------------------------------------------------------------------------------------------
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.ADDRESS;
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
 > ALTER DOMAIN "PUBLIC"."EMAIL" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_3" CHECK(POSITION('@', VALUE) > 1) NOCHECK;
@@ -2279,15 +2260,14 @@ script nodata nopasswords nosettings;
 > ALTER TABLE "PUBLIC"."ADDRESS" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_E" PRIMARY KEY("ID");
 > CREATE DOMAIN "PUBLIC"."EMAIL" AS VARCHAR(200);
 > CREATE DOMAIN "PUBLIC"."GMAIL" AS VARCHAR(200) DEFAULT '@gmail.com';
-> CREATE DOMAIN "PUBLIC"."STRING" AS VARCHAR(255) DEFAULT '' NOT NULL;
+> CREATE DOMAIN "PUBLIC"."STRING" AS VARCHAR(255) DEFAULT '';
 > CREATE DOMAIN "PUBLIC"."STRING1" AS VARCHAR;
-> CREATE DOMAIN "PUBLIC"."STRING2" AS VARCHAR NOT NULL;
-> CREATE DOMAIN "PUBLIC"."STRING3" AS VARCHAR DEFAULT '<empty>';
+> CREATE DOMAIN "PUBLIC"."STRING2" AS VARCHAR DEFAULT '<empty>';
 > CREATE DOMAIN "PUBLIC"."STRING_X" AS VARCHAR DEFAULT '<empty>';
 > CREATE MEMORY TABLE "PUBLIC"."ADDRESS"( "ID" INT NOT NULL, "NAME" "PUBLIC"."EMAIL", "NAME2" "PUBLIC"."GMAIL" DEFAULT '@gmail.com' );
-> CREATE MEMORY TABLE "PUBLIC"."TEST"( "A" "PUBLIC"."STRING" DEFAULT '' NOT NULL, "B" "PUBLIC"."STRING1", "C" "PUBLIC"."STRING2" NOT NULL, "D" "PUBLIC"."STRING3" DEFAULT '<empty>' );
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "A" "PUBLIC"."STRING" DEFAULT '', "B" "PUBLIC"."STRING1", "C" "PUBLIC"."STRING2" DEFAULT '<empty>' );
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
-> rows: 15
+> rows: 14
 
 drop table test;
 > ok
@@ -2299,9 +2279,6 @@ drop domain string1;
 > ok
 
 drop domain string2;
-> ok
-
-drop domain string3;
 > ok
 
 drop domain string_x;

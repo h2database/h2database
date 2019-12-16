@@ -529,8 +529,6 @@ public class Column {
         }
         if (!nullable) {
             buff.append(" NOT NULL");
-        } else if (domain != null && !domain.getColumn().isNullable()) {
-            buff.append(" NULL");
         }
         return buff.toString();
     }

@@ -5894,8 +5894,7 @@ public class Parser {
             column.setNullable(false);
             break;
         case NO_NULL_CONSTRAINT_FOUND:
-            // domains may be defined as not nullable
-            column.setNullable(defaultNullable & column.isNullable());
+            column.setNullable(defaultNullable);
             break;
         default:
             throw DbException.get(ErrorCode.UNKNOWN_MODE_1,
@@ -6898,39 +6897,41 @@ public class Parser {
         CreateDomain command = new CreateDomain(session, schema);
         command.setTypeName(domainName);
         readIf(AS);
-        Column column = parseColumnForTable("VALUE", true, false);
-        boolean hasNotNull = false;
-        NullConstraintType nullType;
+        Column column = parseColumnWithType("VALUE", false);
+        if (readIf("DEFAULT")) {
+            column.setDefaultExpression(session, readExpression());
+        }
+        if (readIf(ON)) {
+            read("UPDATE");
+            column.setOnUpdateExpression(session, readExpression());
+        }
+        if (readIf("SELECTIVITY")) {
+            column.setSelectivity(readNonNegativeInt());
+        }
+        String comment = readCommentIf();
+        if (comment != null) {
+            column.setComment(comment);
+        }
         for (;;) {
             String constraintName;
             if (readIf(CONSTRAINT)) {
                 constraintName = readColumnIdentifier();
-            } else {
-                constraintName = null;
-            }
-            if (!hasNotNull
-                    && (nullType = parseNotNullConstraint()) != NullConstraintType.NO_NULL_CONSTRAINT_FOUND) {
-                hasNotNull = true;
-                if (nullType == NullConstraintType.NULL_IS_NOT_ALLOWED) {
-                    column.setNullable(false);
-                } else if (nullType == NullConstraintType.NULL_IS_ALLOWED) {
-                    column.setNullable(true);
-                }
+                read(CHECK);
             } else if (readIf(CHECK)) {
-                AlterDomainAddConstraint constraint = new AlterDomainAddConstraint(session, schema, ifNotExists);
-                constraint.setDomainName(domainName);
-                parseDomainConstraint = true;
-                try {
-                    constraint.setCheckExpression(readExpression());
-                } finally {
-                    parseDomainConstraint = false;
-                }
-                command.addConstraintCommand(constraint);
-            } else if (constraintName == null) {
-                break;
+                constraintName = null;
             } else {
-                throw getSyntaxError();
+                break;
             }
+            AlterDomainAddConstraint constraint = new AlterDomainAddConstraint(session, schema, ifNotExists);
+            constraint.setConstraintName(constraintName);
+            constraint.setDomainName(domainName);
+            parseDomainConstraint = true;
+            try {
+                constraint.setCheckExpression(readExpression());
+            } finally {
+                parseDomainConstraint = false;
+            }
+            command.addConstraintCommand(constraint);
         }
         column.rename(null);
         command.setColumn(column);
@@ -8938,7 +8939,6 @@ public class Parser {
                 if (nullType == NullConstraintType.NULL_IS_NOT_ALLOWED) {
                     column.setNullable(false);
                 } else if (nullType == NullConstraintType.NULL_IS_ALLOWED) {
-                    //  domains may be defined as not nullable
                     column.setNullable(true);
                 }
             } else if (readIf(CHECK)) {

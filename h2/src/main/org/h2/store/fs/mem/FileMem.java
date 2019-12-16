@@ -21,9 +21,10 @@ class FileMem extends FileBaseDefault {
     /**
      * The file data.
      */
-    FileMemData data;
+    private final FileMemData data;
 
     private final boolean readOnly;
+    private volatile boolean closed;
 
     FileMem(FileMemData data, boolean readOnly) {
         this.data = data;
@@ -41,7 +42,7 @@ class FileMem extends FileBaseDefault {
         if (readOnly) {
             throw new NonWritableChannelException();
         }
-        if (data == null) {
+        if (closed) {
             throw new ClosedChannelException();
         }
         if (newLength < size()) {
@@ -52,8 +53,11 @@ class FileMem extends FileBaseDefault {
 
     @Override
     public int write(ByteBuffer src, long position) throws IOException {
-        if (data == null) {
+        if (closed) {
             throw new ClosedChannelException();
+        }
+        if (readOnly) {
+            throw new NonWritableChannelException();
         }
         int len = src.remaining();
         if (len == 0) {
@@ -68,7 +72,7 @@ class FileMem extends FileBaseDefault {
 
     @Override
     public int read(ByteBuffer dst, long position) throws IOException {
-        if (data == null) {
+        if (closed) {
             throw new ClosedChannelException();
         }
         int len = dst.remaining();
@@ -87,7 +91,7 @@ class FileMem extends FileBaseDefault {
 
     @Override
     public void implCloseChannel() throws IOException {
-        data = null;
+        closed = true;
     }
 
     @Override
@@ -98,7 +102,7 @@ class FileMem extends FileBaseDefault {
     @Override
     public synchronized FileLock tryLock(long position, long size,
             boolean shared) throws IOException {
-        if (data == null) {
+        if (closed) {
             throw new ClosedChannelException();
         }
         if (shared) {
@@ -127,7 +131,7 @@ class FileMem extends FileBaseDefault {
 
     @Override
     public String toString() {
-        return data == null ? "<closed>" : data.getName();
+        return closed ? "<closed>" : data.getName();
     }
 
 }

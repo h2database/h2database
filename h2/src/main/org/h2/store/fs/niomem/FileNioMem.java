@@ -21,9 +21,10 @@ class FileNioMem extends FileBaseDefault {
     /**
      * The file data.
      */
-    FileNioMemData data;
+    final FileNioMemData data;
 
     private final boolean readOnly;
+    private volatile boolean closed;
 
     FileNioMem(FileNioMemData data, boolean readOnly) {
         this.data = data;
@@ -41,7 +42,7 @@ class FileNioMem extends FileBaseDefault {
         if (readOnly) {
             throw new NonWritableChannelException();
         }
-        if (data == null) {
+        if (closed) {
             throw new ClosedChannelException();
         }
         if (newLength < size()) {
@@ -52,7 +53,7 @@ class FileNioMem extends FileBaseDefault {
 
     @Override
     public int write(ByteBuffer src, long position) throws IOException {
-        if (data == null) {
+        if (closed) {
             throw new ClosedChannelException();
         }
         data.touch(readOnly);
@@ -65,7 +66,7 @@ class FileNioMem extends FileBaseDefault {
 
     @Override
     public int read(ByteBuffer dst, long position) throws IOException {
-        if (data == null) {
+        if (closed) {
             throw new ClosedChannelException();
         }
         int len = dst.remaining();
@@ -84,7 +85,7 @@ class FileNioMem extends FileBaseDefault {
 
     @Override
     public void implCloseChannel() throws IOException {
-        data = null;
+        closed = true;
     }
 
     @Override
@@ -95,7 +96,7 @@ class FileNioMem extends FileBaseDefault {
     @Override
     public synchronized FileLock tryLock(long position, long size,
             boolean shared) throws IOException {
-        if (data == null) {
+        if (closed) {
             throw new ClosedChannelException();
         }
         if (shared) {
@@ -124,7 +125,7 @@ class FileNioMem extends FileBaseDefault {
 
     @Override
     public String toString() {
-        return data == null ? "<closed>" : data.getName();
+        return closed ? "<closed>" : data.getName();
     }
 
 }

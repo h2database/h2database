@@ -7,7 +7,7 @@ package org.h2.result;
 
 import org.h2.engine.CastDataProvider;
 import org.h2.engine.Mode;
-import org.h2.mvstore.RowDataType;
+import org.h2.mvstore.db.RowDataType;
 import org.h2.store.DataHandler;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;

@@ -253,9 +253,9 @@ public class Build extends BuildBase {
     private void compileMVStore(boolean debugInfo) {
         clean();
         mkdir("temp");
-        String classpath = "temp";
-        FileList files;
-        files = files("src/main/org/h2/mvstore").
+        String classpath = "temp" +
+            File.pathSeparator + "ext/jts-core-" + JTS_VERSION + ".jar";
+        FileList files = files("src/main/org/h2/mvstore").
                 exclude("src/main/org/h2/mvstore/db/*");
         StringList args = args();
         if (debugInfo) {

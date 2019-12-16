@@ -25,6 +25,8 @@ import org.h2.mvstore.rtree.SpatialDataType;
 import org.h2.mvstore.rtree.SpatialKey;
 import org.h2.mvstore.type.BasicDataType;
 import org.h2.mvstore.type.DataType;
+import org.h2.mvstore.type.MetaType;
+import org.h2.mvstore.type.StatefulDataType;
 import org.h2.result.ResultInterface;
 import org.h2.result.RowFactory;
 import org.h2.result.SearchRow;
@@ -68,7 +70,7 @@ import org.h2.value.ValueUuid;
 /**
  * A row type.
  */
-public final class ValueDataType extends BasicDataType<Value> implements StatefulDataType {
+public final class ValueDataType extends BasicDataType<Value> implements org.h2.mvstore.type.StatefulDataType<Database> {
 
     private static final byte NULL = 0;
     private static final byte BYTE = 2;
@@ -868,7 +870,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
     }
 
     @Override
-    public void save(WriteBuffer buff, DataType<DataType<?>> metaDataType, Database database) {
+    public void save(WriteBuffer buff, MetaType<Database> metaType) {
         writeIntArray(buff, sortTypes);
         int columnCount = rowFactory == null ? 0 : rowFactory.getColumnCount();
         buff.putVarInt(columnCount);
@@ -888,11 +890,6 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
     }
 
     @Override
-    public void load(ByteBuffer buff, DataType<DataType<?>> metaDataType, Database database) {
-        throw DataUtils.newUnsupportedOperationException("load()");
-    }
-
-    @Override
     public Factory getFactory() {
         return FACTORY;
     }
@@ -901,10 +898,10 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
 
     private static final Factory FACTORY = new Factory();
 
-    public static final class Factory implements StatefulDataType.Factory {
+    public static final class Factory implements StatefulDataType.Factory<Database> {
 
         @Override
-        public DataType<?> create(ByteBuffer buff, DataType<DataType<?>> metaDataType, Database database) {
+        public DataType<?> create(ByteBuffer buff, MetaType<Database> metaType, Database database) {
             int[] sortTypes = readIntArray(buff);
             int columnCount = DataUtils.readVarInt(buff);
             int[] indexes = readIntArray(buff);

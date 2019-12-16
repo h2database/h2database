@@ -3,14 +3,11 @@
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.mvstore.db;
+package org.h2.mvstore.type;
 
 import org.h2.engine.Constants;
-import org.h2.engine.Database;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
-import org.h2.mvstore.type.BasicDataType;
-import org.h2.mvstore.type.DataType;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -18,19 +15,18 @@ import java.util.Map;
 
 /**
  * Class DBMetaType is a type for values in the type registry map.
- * <UL>
- * <LI> 8/22/17 6:40 PM initial creation
- * </UL>
+ *
+ * @param <D> type of opaque parameter passed as an operational context to Factory.create()
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
-public final class DBMetaType extends BasicDataType<DataType<?>>
+public final class MetaType<D> extends BasicDataType<DataType<?>>
 {
-    private final Database database;
+    private final D database;
     private final Thread.UncaughtExceptionHandler exceptionHandler;
-    private final Map<String,StatefulDataType.Factory> cache = new HashMap<>();
+    private final Map<String, StatefulDataType.Factory<D>> cache = new HashMap<>();
 
-    public DBMetaType(Database database, Thread.UncaughtExceptionHandler exceptionHandler) {
+    public MetaType(D database, Thread.UncaughtExceptionHandler exceptionHandler) {
         this.database = database;
         this.exceptionHandler = exceptionHandler;
     }
@@ -45,13 +41,14 @@ public final class DBMetaType extends BasicDataType<DataType<?>>
         return Constants.MEMORY_OBJECT;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void write(WriteBuffer buff, DataType<?> obj) {
         Class<?> clazz = obj.getClass();
-        StatefulDataType statefulDataType = null;
+        StatefulDataType<D> statefulDataType = null;
         if (obj instanceof StatefulDataType) {
-            statefulDataType = (StatefulDataType) obj;
-            StatefulDataType.Factory factory = statefulDataType.getFactory();
+            statefulDataType = (StatefulDataType<D>) obj;
+            StatefulDataType.Factory<D> factory = statefulDataType.getFactory();
             if (factory != null) {
                 clazz = factory.getClass();
             }
@@ -61,27 +58,26 @@ public final class DBMetaType extends BasicDataType<DataType<?>>
         buff.putVarInt(len)
             .putStringData(className, len);
         if (statefulDataType != null) {
-            statefulDataType.save(buff, this, database);
+            statefulDataType.save(buff, this);
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public DataType<?> read(ByteBuffer buff) {
         int len = DataUtils.readVarInt(buff);
         String className = DataUtils.readString(buff, len);
         try {
-            StatefulDataType.Factory factory = cache.get(className);
+            StatefulDataType.Factory<D> factory = cache.get(className);
             if (factory != null) {
                 return factory.create(buff, this, database);
             }
             Class<?> clazz = Class.forName(className);
             Object obj = clazz.newInstance();
             if (obj instanceof StatefulDataType.Factory) {
-                factory = (StatefulDataType.Factory) obj;
+                factory = (StatefulDataType.Factory<D>) obj;
                 cache.put(className, factory);
                 return factory.create(buff, this, database);
-            } else if(obj instanceof StatefulDataType) {
-                ((StatefulDataType)obj).load(buff, this, database);
             }
             return (DataType<?>) obj;
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {

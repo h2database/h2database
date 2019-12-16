@@ -3,17 +3,19 @@
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.mvstore;
+package org.h2.mvstore.db;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import org.h2.engine.CastDataProvider;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
-import org.h2.mvstore.db.StatefulDataType;
-import org.h2.mvstore.db.ValueDataType;
+import org.h2.mvstore.DataUtils;
+import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.BasicDataType;
 import org.h2.mvstore.type.DataType;
+import org.h2.mvstore.type.MetaType;
+import org.h2.mvstore.type.StatefulDataType;
 import org.h2.result.RowFactory;
 import org.h2.result.SearchRow;
 import org.h2.store.DataHandler;
@@ -28,7 +30,7 @@ import org.h2.value.Value;
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
-public final class RowDataType extends BasicDataType<SearchRow> implements StatefulDataType {
+public final class RowDataType extends BasicDataType<SearchRow> implements org.h2.mvstore.type.StatefulDataType<Database> {
 
     private final ValueDataType valueDataType;
     private final int[]         sortTypes;
@@ -208,7 +210,7 @@ public final class RowDataType extends BasicDataType<SearchRow> implements State
     }
 
     @Override
-    public void save(WriteBuffer buff, DataType<DataType<?>> metaDataType, Database database) {
+    public void save(WriteBuffer buff, MetaType<Database> metaType) {
         buff.putVarInt(columnCount);
         writeIntArray(buff, sortTypes);
         writeIntArray(buff, indexes);
@@ -226,11 +228,6 @@ public final class RowDataType extends BasicDataType<SearchRow> implements State
     }
 
     @Override
-    public void load(ByteBuffer buff, DataType<DataType<?>> metaDataType, Database database) {
-        throw DataUtils.newUnsupportedOperationException("load()");
-    }
-
-    @Override
     public Factory getFactory() {
         return FACTORY;
     }
@@ -239,10 +236,10 @@ public final class RowDataType extends BasicDataType<SearchRow> implements State
 
     private static final Factory FACTORY = new Factory();
 
-    public static final class Factory implements StatefulDataType.Factory {
+    public static final class Factory implements StatefulDataType.Factory<Database> {
 
         @Override
-        public RowDataType create(ByteBuffer buff, DataType<DataType<?>> metaDataType, Database database) {
+        public RowDataType create(ByteBuffer buff, MetaType<Database> metaDataType, Database database) {
             int columnCount = DataUtils.readVarInt(buff);
             int[] sortTypes = readIntArray(buff);
             int[] indexes = readIntArray(buff);

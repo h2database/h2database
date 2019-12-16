@@ -101,7 +101,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex<S
         }
         String mapName = "index." + getId();
         ValueDataType vt = new ValueDataType(db, null);
-        VersionedValueType<Value> valueType = new VersionedValueType<>(vt);
+        VersionedValueType<Value, Database> valueType = new VersionedValueType<>(vt);
         MVRTreeMap.Builder<VersionedValue<Value>> mapBuilder =
                 new MVRTreeMap.Builder<VersionedValue<Value>>().
                 valueType(valueType);

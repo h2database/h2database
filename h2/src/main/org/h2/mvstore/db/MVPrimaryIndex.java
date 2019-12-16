@@ -20,10 +20,8 @@ import org.h2.index.SingleRowCursor;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
-import org.h2.mvstore.RowDataType;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionMap;
-import org.h2.mvstore.type.LongDataType;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
@@ -49,7 +47,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
             IndexColumn[] columns, IndexType indexType) {
         super(table, id, table.getName() + "_DATA", columns, indexType);
         this.mvTable = table;
-        LongDataType keyType = new LongDataType();
+        LongDBDataType keyType = new LongDBDataType();
         RowDataType valueType = table.getRowFactory().getRowDataType();
         mapName = "table." + getId();
         assert db.isStarting() || !db.getStore().getMvStore().getMetaMap().containsKey(DataUtils.META_NAME + mapName);

@@ -18,7 +18,7 @@ import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.RootReference;
-import org.h2.mvstore.db.DBMetaType;
+import org.h2.mvstore.type.MetaType;
 import org.h2.mvstore.rtree.MVRTreeMap;
 import org.h2.mvstore.rtree.SpatialDataType;
 import org.h2.mvstore.type.DataType;
@@ -139,7 +139,7 @@ public class TransactionStore {
     }
 
     public TransactionStore(MVStore store, DataType<?> dataType) {
-        this(store, new DBMetaType(null, store.backgroundExceptionHandler), dataType, 0);
+        this(store, new MetaType<>(null, store.backgroundExceptionHandler), dataType, 0);
     }
 
     /**
@@ -149,7 +149,7 @@ public class TransactionStore {
      * @param dataType default data type for map keys and values
      * @param timeoutMillis lock acquisition timeout in milliseconds, 0 means no wait
      */
-    public TransactionStore(MVStore store, DBMetaType metaDataType, DataType<?> dataType, int timeoutMillis) {
+    public TransactionStore(MVStore store, MetaType<?> metaDataType, DataType<?> dataType, int timeoutMillis) {
         this.store = store;
         this.dataType = dataType;
         this.timeoutMillis = timeoutMillis;
@@ -166,7 +166,7 @@ public class TransactionStore {
                 .valueType(new Record.Type(this));
     }
 
-    public static MVMap<String, DataType<?>> openTypeRegistry(MVStore store, DBMetaType metaDataType) {
+    public static MVMap<String, DataType<?>> openTypeRegistry(MVStore store, MetaType<?> metaDataType) {
         MVMap.Builder<String, DataType<?>> typeRegistryBuilder =
                                     new MVMap.Builder<String, DataType<?>>()
                                                 .keyType(StringDataType.INSTANCE)
@@ -533,7 +533,7 @@ public class TransactionStore {
      * @return the map
      */
     <K,V> MVMap<K, VersionedValue<V>> openMap(String name, DataType<K> keyType, DataType<V> valueType) {
-        VersionedValueType<V> vt = valueType == null ? null : new VersionedValueType<>(valueType);
+        VersionedValueType<V,?> vt = valueType == null ? null : new VersionedValueType<>(valueType);
         MVMap.Builder<K, VersionedValue<V>> builder = new TxMapBuilder<K,VersionedValue<V>>(typeRegistry, dataType)
                 .keyType(keyType).valueType(vt);
         MVMap<K, VersionedValue<V>> map = store.openMap(name, builder);
@@ -832,7 +832,7 @@ public class TransactionStore {
             }
         }
 
-        static String getDataTypeRegistrationKey(DataType dataType) {
+        static String getDataTypeRegistrationKey(DataType<?> dataType) {
             return Integer.toHexString(Objects.hashCode(dataType));
         }
 
@@ -874,7 +874,7 @@ public class TransactionStore {
                 registerDataType(getKeyType());
             }
             if (getValueType() == null) {
-                setValueType((DataType<? super V>) new VersionedValueType<V>(defaultDataType));
+                setValueType((DataType<? super V>) new VersionedValueType<V,Object>(defaultDataType));
                 registerDataType(getValueType());
             }
 

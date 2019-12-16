@@ -27,6 +27,7 @@ import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreTool;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionStore;
+import org.h2.mvstore.type.MetaType;
 import org.h2.store.InDoubtTransaction;
 import org.h2.store.fs.FileChannelInputStream;
 import org.h2.store.fs.FileUtils;
@@ -169,7 +170,7 @@ public class MVTableEngine implements TableEngine {
                 }
                 mvStore.setVersionsToKeep(0);
                 this.transactionStore = new TransactionStore(mvStore,
-                        new DBMetaType(db, mvStore.backgroundExceptionHandler),
+                        new MetaType<>(db, mvStore.backgroundExceptionHandler),
                         new ValueDataType(db, null), db.getLockTimeout());
             } catch (IllegalStateException e) {
                 throw convertIllegalStateException(e);

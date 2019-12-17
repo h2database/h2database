@@ -43,7 +43,7 @@ import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreTool;
 import org.h2.mvstore.StreamStore;
-import org.h2.mvstore.db.DBMetaType;
+import org.h2.mvstore.type.MetaType;
 import org.h2.mvstore.db.LobStorageMap;
 import org.h2.mvstore.db.ValueDataType;
 import org.h2.mvstore.tx.TransactionMap;
@@ -719,7 +719,7 @@ public class Recover extends Tool implements DataHandler {
     private static void dumpTypes(PrintWriter writer, MVStore mv) {
         MVMap.Builder<String, DataType<?>> builder = new MVMap.Builder<String, DataType<?>>()
                                                 .keyType(StringDataType.INSTANCE)
-                                                .valueType(new DBMetaType(null, null));
+                                                .valueType(new MetaType<>(null, null));
         MVMap<String,DataType<?>> map = mv.openMap("_", builder);
         for (Entry<String,?> e : map.entrySet()) {
             writer.println("-- " + e.getKey() + " = " + e.getValue());

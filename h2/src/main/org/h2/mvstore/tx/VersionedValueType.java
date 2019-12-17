@@ -6,11 +6,11 @@
 package org.h2.mvstore.tx;
 
 import org.h2.engine.Constants;
-import org.h2.engine.Database;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.BasicDataType;
-import org.h2.mvstore.db.StatefulDataType;
+import org.h2.mvstore.type.MetaType;
+import org.h2.mvstore.type.StatefulDataType;
 import org.h2.mvstore.type.DataType;
 import org.h2.value.VersionedValue;
 import java.nio.ByteBuffer;
@@ -18,10 +18,11 @@ import java.nio.ByteBuffer;
 /**
  * The value type for a versioned value.
  */
-public class VersionedValueType<T> extends BasicDataType<VersionedValue<T>> implements StatefulDataType
+public class VersionedValueType<T,D> extends BasicDataType<VersionedValue<T>> implements StatefulDataType<D>
 {
-
     private final DataType<T> valueType;
+    private final Factory<D> factory = new Factory<>();
+
 
     public VersionedValueType(DataType<T> valueType) {
         this.valueType = valueType;
@@ -128,7 +129,7 @@ public class VersionedValueType<T> extends BasicDataType<VersionedValue<T>> impl
         } else if (!(obj instanceof VersionedValueType)) {
             return false;
         }
-        VersionedValueType<T> other = (VersionedValueType<T>) obj;
+        VersionedValueType<T,D> other = (VersionedValueType<T,D>) obj;
         return valueType.equals(other.valueType);
     }
 
@@ -138,30 +139,22 @@ public class VersionedValueType<T> extends BasicDataType<VersionedValue<T>> impl
     }
 
     @Override
-    public void save(WriteBuffer buff, DataType<DataType<?>> metaDataType, Database database) {
-        metaDataType.write(buff, valueType);
+    public void save(WriteBuffer buff, MetaType<D> metaType) {
+        metaType.write(buff, valueType);
     }
 
     @Override
-    public void load(ByteBuffer buff, DataType<DataType<?>> metaDataType, Database database) {
-        throw DataUtils.newUnsupportedOperationException("load()");
+    public Factory<D> getFactory() {
+        return factory;
     }
 
-    @Override
-    public Factory getFactory() {
-        return FACTORY;
-    }
-
-
-
-    private static final Factory FACTORY = new Factory();
-
-    public static final class Factory implements StatefulDataType.Factory
+    public static final class Factory<D> implements StatefulDataType.Factory<D>
     {
+        @SuppressWarnings("unchecked")
         @Override
-        public DataType<?> create(ByteBuffer buff, DataType<DataType<?>> metaDataType, Database database) {
-            DataType<?> valueType = metaDataType.read(buff);
-            return new VersionedValueType<>(valueType);
+        public DataType<?> create(ByteBuffer buff, MetaType<D> metaType, D database) {
+            DataType<VersionedValue<?>> valueType = (DataType<VersionedValue<?>>)metaType.read(buff);
+            return new VersionedValueType<VersionedValue<?>,D>(valueType);
         }
     }
 }

@@ -102,7 +102,7 @@ SELECT DISTINCT ON(C1) C1, C2 FROM TEST ORDER BY C1;
 "
 
 "Commands (DML)","INSERT","
-INSERT INTO tableName insertColumnsAndSource
+INSERT INTO [schemaName.]tableName insertColumnsAndSource
 ","
 Inserts a new row / new rows into a table.
 
@@ -114,7 +114,7 @@ INSERT INTO TEST VALUES(1, 'Hello')
 "
 
 "Commands (DML)","UPDATE","
-UPDATE tableName [ [ AS ] newTableAlias ] SET setClauseList
+UPDATE [schemaName.]tableName [ [ AS ] newTableAlias ] SET setClauseList
 [ WHERE expression ] @c@ [ ORDER BY sortSpecificationList ] @h2@ [ LIMIT expression ]
 ","
 Updates data in a table.
@@ -125,7 +125,8 @@ UPDATE PERSON P SET NAME=(SELECT A.NAME FROM ADDRESS A WHERE A.ID=P.ID);
 "
 
 "Commands (DML)","DELETE","
-DELETE @c@ [ TOP term ] FROM tableName [ WHERE expression ] @h2@ [ LIMIT term ]
+DELETE @c@ [ TOP term ] FROM [schemaName.]tableName
+[ WHERE expression ] @h2@ [ LIMIT term ]
 ","
 Deletes rows form a table.
 If TOP or LIMIT is specified, at most the specified number of rows are deleted (no limit if null or smaller than zero).
@@ -177,7 +178,7 @@ EXPLAIN SELECT * FROM TEST WHERE ID=1
 "
 
 "Commands (DML)","MERGE INTO","
-@h2@ MERGE INTO tableName [ ( columnName [,...] ) ]
+@h2@ MERGE INTO [schemaName.]tableName [ ( columnName [,...] ) ]
 @h2@ [ KEY ( columnName [,...] ) ]
 @h2@ { insertValues | query }
 ","
@@ -189,8 +190,8 @@ MERGE INTO TEST KEY(ID) VALUES(2, 'World')
 "
 
 "Commands (DML)","MERGE USING","
-MERGE INTO targetTableName [ [AS] targetAlias]
-USING { ( query ) | sourceTableName }[ [AS] sourceAlias ]
+MERGE INTO [schemaName.]targetTableName [ [AS] targetAlias]
+USING { ( query ) | [schemaName.]sourceTableName }[ [AS] sourceAlias ]
 ON expression
 mergeWhenClause [,...]
 ","
@@ -251,7 +252,7 @@ RUNSCRIPT FROM 'classpath:/com/acme/test.sql'
 @h2@ [ DROP ] @h2@ [ BLOCKSIZE blockSizeInt ]
 @h2@ [ TO fileNameString scriptCompressionEncryption
     [ CHARSET charsetString ] ]
-@h2@ [ TABLE tableName [, ...] ]
+@h2@ [ TABLE [schemaName.]tableName [, ...] ]
 @h2@ [ SCHEMA schemaName [, ...] ]
 ","
 Creates a SQL script from the database.
@@ -354,7 +355,8 @@ SELECT sum(FIRST_COLUMN) FROM cte2;
 "
 
 "Commands (DDL)","ALTER DOMAIN ADD CONSTRAINT","
-ALTER DOMAIN @h2@ [ IF EXISTS ] domainName ADD [ constraintNameDefinition ]
+ALTER DOMAIN @h2@ [ IF EXISTS ] [schemaName.]domainName
+ADD [ constraintNameDefinition ]
 CHECK (condition) @h2@ [ CHECK | NOCHECK ]
 ","
 Adds a constraint to a domain.
@@ -364,8 +366,8 @@ ALTER DOMAIN D ADD CONSTRAINT D_POSITIVE CHECK (VALUE > 0)
 "
 
 "Commands (DDL)","ALTER DOMAIN DROP CONSTRAINT","
-ALTER DOMAIN @h2@ [ IF EXISTS ] domainName DROP
-CONSTRAINT @h2@ [ IF EXISTS ] constraintName
+ALTER DOMAIN @h2@ [ IF EXISTS ] [schemaName.]domainName
+DROP CONSTRAINT @h2@ [ IF EXISTS ] [schemaName.]constraintName
 ","
 Removes a constraint from a domain.
 This command commits an open transaction in this connection.
@@ -374,7 +376,7 @@ ALTER DOMAIN D DROP CONSTRAINT D_POSITIVE
 "
 
 "Commands (DDL)","ALTER INDEX RENAME","
-@h2@ ALTER INDEX [ IF EXISTS ] indexName RENAME TO newIndexName
+@h2@ ALTER INDEX [ IF EXISTS ] [schemaName.]indexName RENAME TO newIndexName
 ","
 Renames an index.
 This command commits an open transaction in this connection.
@@ -392,7 +394,7 @@ ALTER SCHEMA TEST RENAME TO PRODUCTION
 "
 
 "Commands (DDL)","ALTER SEQUENCE","
-ALTER SEQUENCE @h2@ [ IF EXISTS ] sequenceName sequenceOptions
+ALTER SEQUENCE @h2@ [ IF EXISTS ] [schemaName.]sequenceName sequenceOptions
 ","
 Changes the parameters of a sequence.
 This command does not commit the current transaction; however the new value is used by other
@@ -402,7 +404,7 @@ ALTER SEQUENCE SEQ_ID RESTART WITH 1000
 "
 
 "Commands (DDL)","ALTER TABLE ADD","
-ALTER TABLE @h2@ [ IF EXISTS ] tableName ADD [ COLUMN ]
+ALTER TABLE @h2@ [ IF EXISTS ] [schemaName.]tableName ADD [ COLUMN ]
 { @h2@ [ IF NOT EXISTS ] columnName columnDefinition
     | @h2@ { ( { columnName columnDefinition | tableConstraintDefinition } [,...] ) } }
 @h2@ [ { { BEFORE | AFTER } columnName } | FIRST ]
@@ -426,7 +428,8 @@ ALTER TABLE TEST ADD CONSTRAINT NAME_UNIQUE UNIQUE(NAME)
 "
 
 "Commands (DDL)","ALTER TABLE RENAME CONSTRAINT","
-@h2@ ALTER TABLE [ IF EXISTS ] tableName RENAME oldConstraintName
+@h2@ ALTER TABLE [ IF EXISTS ] [schemaName.]tableName
+RENAME [schemaName.]oldConstraintName
 @h2@ TO newConstraintName
 ","
 Renames a constraint.
@@ -436,7 +439,7 @@ ALTER TABLE TEST RENAME CONSTRAINT FOO TO BAR
 "
 
 "Commands (DDL)","ALTER TABLE ALTER COLUMN","
-ALTER TABLE @h2@ [ IF EXISTS ] tableName
+ALTER TABLE @h2@ [ IF EXISTS ] [schemaName.]tableName
 ALTER COLUMN @h2@ [ IF EXISTS ] columnName
 { @h2@ { columnDefinition }
     | @h2@ { RENAME TO name }
@@ -496,7 +499,8 @@ ALTER TABLE TEST ALTER COLUMN NAME SET INVISIBLE;
 "
 
 "Commands (DDL)","ALTER TABLE DROP COLUMN","
-ALTER TABLE @h2@ [ IF EXISTS ] tableName DROP [ COLUMN ] @h2@ [ IF EXISTS ]
+ALTER TABLE @h2@ [ IF EXISTS ] [schemaName.]tableName
+DROP [ COLUMN ] @h2@ [ IF EXISTS ]
 @h2@ { ( columnName [,...] ) } | columnName @c@ [,...]
 ","
 Removes column(s) from a table.
@@ -507,8 +511,8 @@ ALTER TABLE TEST DROP COLUMN (NAME1, NAME2)
 "
 
 "Commands (DDL)","ALTER TABLE DROP CONSTRAINT","
-ALTER TABLE @h2@ [ IF EXISTS ] tableName DROP
-CONSTRAINT @h2@ [ IF EXISTS ] constraintName [ RESTRICT | CASCADE ] | @c@ { PRIMARY KEY }
+ALTER TABLE @h2@ [ IF EXISTS ] [schemaName.]tableName DROP
+CONSTRAINT @h2@ [ IF EXISTS ] [schemaName.]constraintName [ RESTRICT | CASCADE ] | @c@ { PRIMARY KEY }
 ","
 Removes a constraint or a primary key from a table.
 If CASCADE is specified, unique or primary key constraint is dropped together with all
@@ -519,7 +523,8 @@ ALTER TABLE TEST DROP CONSTRAINT UNIQUE_NAME RESTRICT
 "
 
 "Commands (DDL)","ALTER TABLE SET","
-@h2@ ALTER TABLE [ IF EXISTS ] tableName SET REFERENTIAL_INTEGRITY
+@h2@ ALTER TABLE [ IF EXISTS ] [schemaName.]tableName
+SET REFERENTIAL_INTEGRITY
 @h2@ { FALSE | TRUE } @h2@ [ CHECK | NOCHECK ]
 ","
 Disables or enables referential integrity checking for a table. This command can
@@ -534,7 +539,7 @@ ALTER TABLE TEST SET REFERENTIAL_INTEGRITY FALSE
 "
 
 "Commands (DDL)","ALTER TABLE RENAME","
-@h2@ ALTER TABLE [ IF EXISTS ] tableName RENAME TO newName
+@h2@ ALTER TABLE [ IF EXISTS ] [schemaName.]tableName RENAME TO newName
 ","
 Renames a table.
 This command commits an open transaction in this connection.
@@ -582,7 +587,7 @@ ALTER USER SA SET PASSWORD 'rioyxlgt'
 "
 
 "Commands (DDL)","ALTER VIEW RECOMPILE","
-@h2@ ALTER VIEW [ IF EXISTS ] viewName RECOMPILE
+@h2@ ALTER VIEW [ IF EXISTS ] [schemaName.]viewName RECOMPILE
 ","
 Recompiles a view after the underlying tables have been changed or created.
 This command is used for views created using CREATE FORCE VIEW.
@@ -592,7 +597,7 @@ ALTER VIEW ADDRESS_VIEW RECOMPILE
 "
 
 "Commands (DDL)","ALTER VIEW RENAME","
-@h2@ ALTER VIEW [ IF EXISTS ] viewName RENAME TO newName
+@h2@ ALTER VIEW [ IF EXISTS ] [schemaName.]viewName RENAME TO newName
 ","
 Renames a view.
 This command commits an open transaction in this connection.
@@ -601,7 +606,7 @@ ALTER VIEW TEST RENAME TO MY_VIEW
 "
 
 "Commands (DDL)","ANALYZE","
-@h2@ ANALYZE [ TABLE tableName ] [ SAMPLE_SIZE rowCountInt ]
+@h2@ ANALYZE [ TABLE [schemaName.]tableName ] [ SAMPLE_SIZE rowCountInt ]
 ","
 Updates the selectivity statistics of tables.
 If no table name is given, all tables are analyzed.
@@ -619,9 +624,9 @@ ANALYZE SAMPLE_SIZE 1000
 
 "Commands (DDL)","COMMENT ON","
 @h2@ COMMENT ON
-@h2@ { { COLUMN [ schemaName. ] tableName.columnName }
+@h2@ { { COLUMN [schemaName.]tableName.columnName }
     | { { TABLE | VIEW | CONSTANT | CONSTRAINT | ALIAS | INDEX | ROLE
-    | SCHEMA | SEQUENCE | TRIGGER | USER | DOMAIN } [ schemaName. ] objectName } }
+    | SCHEMA | SEQUENCE | TRIGGER | USER | DOMAIN } [schemaName.]objectName } }
 @h2@ IS expression
 ","
 Sets the comment of a database object. Use NULL to remove the comment.
@@ -633,7 +638,7 @@ COMMENT ON TABLE TEST IS 'Table used for testing'
 "
 
 "Commands (DDL)","CREATE AGGREGATE","
-@h2@ CREATE AGGREGATE [ IF NOT EXISTS ] newAggregateName FOR className
+@h2@ CREATE AGGREGATE [ IF NOT EXISTS ] aggregateName FOR className
 ","
 Creates a new user-defined aggregate function. The method name must be the full
 qualified class name. The class must implement the interface
@@ -646,7 +651,8 @@ CREATE AGGREGATE SIMPLE_MEDIAN FOR ""com.acme.db.Median""
 "
 
 "Commands (DDL)","CREATE ALIAS","
-@h2@ CREATE ALIAS [ IF NOT EXISTS ] newFunctionAliasName [ DETERMINISTIC ]
+@h2@ CREATE ALIAS [ IF NOT EXISTS ] [schemaName.]functionAliasName
+@h2@ [ DETERMINISTIC ]
 @h2@ { FOR classAndMethodName | AS sourceCodeString }
 ","
 Creates a new function alias. If this is a ResultSet returning function,
@@ -695,7 +701,8 @@ $$
 "
 
 "Commands (DDL)","CREATE CONSTANT","
-@h2@ CREATE CONSTANT [ IF NOT EXISTS ] newConstantName VALUE expression
+@h2@ CREATE CONSTANT [ IF NOT EXISTS ] [schemaName.]constantName
+VALUE expression
 ","
 Creates a new constant.
 This command commits an open transaction in this connection.
@@ -704,7 +711,8 @@ CREATE CONSTANT ONE VALUE 1
 "
 
 "Commands (DDL)","CREATE DOMAIN","
-CREATE DOMAIN @h2@ [ IF NOT EXISTS ] newDomainName [ AS ] dataType
+CREATE DOMAIN @h2@ [ IF NOT EXISTS ] [schemaName.]domainName
+[ AS ] dataType
 [ DEFAULT expression ]
 @h2@ [ ON UPDATE expression ]
 @h2@ [ SELECTIVITY selectivityInt ] @h2@ [ COMMENT expression ]
@@ -722,9 +730,9 @@ CREATE DOMAIN EMAIL AS VARCHAR(255) CHECK (POSITION('@', VALUE) > 1)
 
 "Commands (DDL)","CREATE INDEX","
 @h2@ CREATE
-@h2@ { [ UNIQUE ] [ HASH | SPATIAL] INDEX [ [ IF NOT EXISTS ] newIndexName ]
+@h2@ { [ UNIQUE ] [ HASH | SPATIAL] INDEX [ [ IF NOT EXISTS ] [schemaName.]indexName ]
     | PRIMARY KEY [ HASH ] }
-@h2@ ON tableName ( indexColumn [,...] )
+@h2@ ON [schemaName.]tableName ( indexColumn [,...] )
 ","
 Creates a new index.
 This command commits an open transaction in this connection.
@@ -743,7 +751,7 @@ CREATE INDEX IDXNAME ON TEST(NAME)
 "Commands (DDL)","CREATE LINKED TABLE","
 @h2@ CREATE [ FORCE ] [ [ GLOBAL | LOCAL ] TEMPORARY ]
 @h2@ LINKED TABLE [ IF NOT EXISTS ]
-@h2@ name ( driverString, urlString, userString, passwordString,
+@h2@ [schemaName.]tableName ( driverString, urlString, userString, passwordString,
 @h2@ [ originalSchemaString, ] @h2@ originalTableString ) [ EMIT UPDATES | READONLY ]
 ","
 Creates a table link to an external table. The driver name may be empty if the
@@ -807,7 +815,8 @@ CREATE SCHEMA TEST_SCHEMA AUTHORIZATION SA
 "
 
 "Commands (DDL)","CREATE SEQUENCE","
-CREATE SEQUENCE @h2@ [ IF NOT EXISTS ] newSequenceName [ sequenceOptions ]
+CREATE SEQUENCE @h2@ [ IF NOT EXISTS ] [schemaName.]sequenceName
+[ sequenceOptions ]
 ","
 Creates a new sequence.
 The data type of a sequence is BIGINT.
@@ -820,7 +829,7 @@ CREATE SEQUENCE SEQ_ID
 
 "Commands (DDL)","CREATE TABLE","
 CREATE @h2@ [ CACHED | MEMORY ] [ @c@ { TEMP } | [ GLOBAL | LOCAL ] TEMPORARY ]
-TABLE @h2@ [ IF NOT EXISTS ] name
+TABLE @h2@ [ IF NOT EXISTS ] [schemaName.]tableName
 [ ( { columnName [columnDefinition] | tableConstraintDefinition } [,...] ) ]
 @h2@ [ ENGINE tableEngineName ]
 @h2@ [ WITH tableEngineParamName [,...] ]
@@ -862,10 +871,10 @@ CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))
 "
 
 "Commands (DDL)","CREATE TRIGGER","
-CREATE TRIGGER @h2@ [ IF NOT EXISTS ] newTriggerName
+CREATE TRIGGER @h2@ [ IF NOT EXISTS ] [schemaName.]triggerName
 { BEFORE | AFTER | INSTEAD OF }
 { INSERT | UPDATE | DELETE | @h2@ { SELECT | ROLLBACK } }
-@h2@ [,...] ON tableName [ FOR EACH { ROW | STATEMENT } ]
+@h2@ [,...] ON [schemaName.]tableName [ FOR EACH { ROW | STATEMENT } ]
 @c@ [ QUEUE int ] @h2@ [ NOWAIT ]
 @h2@ { CALL triggeredClassName | AS sourceCodeString }
 ","
@@ -939,7 +948,8 @@ CREATE USER GUEST PASSWORD 'abc'
 "
 
 "Commands (DDL)","CREATE VIEW","
-CREATE @h2@ [ OR REPLACE ] @h2@ [ FORCE ] VIEW @h2@ [ IF NOT EXISTS ] newViewName
+CREATE @h2@ [ OR REPLACE ] @h2@ [ FORCE ]
+VIEW @h2@ [ IF NOT EXISTS ] [schemaName.]viewName
 [ ( columnName [,...] ) ] AS query
 ","
 Creates a new view. If the force option is used, then the view is created even
@@ -970,7 +980,7 @@ DROP AGGREGATE SIMPLE_MEDIAN
 "
 
 "Commands (DDL)","DROP ALIAS","
-@h2@ DROP ALIAS [ IF EXISTS ] existingFunctionAliasName
+@h2@ DROP ALIAS [ IF EXISTS ] [schemaName.]aliasName
 ","
 Drops an existing function alias.
 
@@ -995,7 +1005,7 @@ DROP ALL OBJECTS
 "
 
 "Commands (DDL)","DROP CONSTANT","
-@h2@ DROP CONSTANT [ IF EXISTS ] constantName
+@h2@ DROP CONSTANT [ IF EXISTS ] [schemaName.]constantName
 ","
 Drops a constant.
 This command commits an open transaction in this connection.
@@ -1004,7 +1014,7 @@ DROP CONSTANT ONE
 "
 
 "Commands (DDL)","DROP DOMAIN","
-DROP DOMAIN @h2@ [ IF EXISTS ] domainName [ RESTRICT | CASCADE ]
+DROP DOMAIN @h2@ [ IF EXISTS ] [schemaName.]domainName [ RESTRICT | CASCADE ]
 ","
 Drops a data type (domain).
 The command will fail if it is referenced by a column or another domain (the default).
@@ -1015,7 +1025,7 @@ DROP DOMAIN EMAIL
 "
 
 "Commands (DDL)","DROP INDEX","
-@h2@ DROP INDEX [ IF EXISTS ] indexName
+@h2@ DROP INDEX [ IF EXISTS ] [schemaName.]indexName
 ","
 Drops an index.
 This command commits an open transaction in this connection.
@@ -1044,7 +1054,7 @@ DROP SCHEMA TEST_SCHEMA
 "
 
 "Commands (DDL)","DROP SEQUENCE","
-DROP SEQUENCE @h2@ [ IF EXISTS ] sequenceName
+DROP SEQUENCE @h2@ [ IF EXISTS ] [schemaName.]sequenceName
 ","
 Drops a sequence.
 This command commits an open transaction in this connection.
@@ -1053,7 +1063,8 @@ DROP SEQUENCE SEQ_ID
 "
 
 "Commands (DDL)","DROP TABLE","
-DROP TABLE @h2@ [ IF EXISTS ] tableName @h2@ [,...] [ RESTRICT | CASCADE ]
+DROP TABLE @h2@ [ IF EXISTS ] [schemaName.]tableName @h2@ [,...]
+[ RESTRICT | CASCADE ]
 ","
 Drops an existing table, or a list of tables.
 The command will fail if dependent objects exist and the RESTRICT clause is used (the default).
@@ -1064,7 +1075,7 @@ DROP TABLE TEST
 "
 
 "Commands (DDL)","DROP TRIGGER","
-DROP TRIGGER @h2@ [ IF EXISTS ] triggerName
+DROP TRIGGER @h2@ [ IF EXISTS ] [schemaName.]triggerName
 ","
 Drops an existing trigger.
 This command commits an open transaction in this connection.
@@ -1085,7 +1096,7 @@ DROP USER TOM
 "
 
 "Commands (DDL)","DROP VIEW","
-DROP VIEW @h2@ [ IF EXISTS ] viewName [ RESTRICT | CASCADE ]
+DROP VIEW @h2@ [ IF EXISTS ] [schemaName.]viewName [ RESTRICT | CASCADE ]
 ","
 Drops an existing view.
 All dependent views are dropped as well if the CASCADE clause is used (the default).
@@ -1096,7 +1107,7 @@ DROP VIEW TEST_VIEW
 "
 
 "Commands (DDL)","TRUNCATE TABLE","
-TRUNCATE TABLE tableName [ [ CONTINUE | RESTART ] IDENTITY ]
+TRUNCATE TABLE [schemaName.]tableName [ [ CONTINUE | RESTART ] IDENTITY ]
 ","
 Removes all rows from a table.
 Unlike DELETE FROM without where clause, this command can not be rolled back.
@@ -1153,7 +1164,7 @@ COMMIT TRANSACTION XID_TEST
 
 "Commands (Other)","GRANT RIGHT","
 GRANT { { SELECT | INSERT | UPDATE | DELETE } [,..] | ALL [ PRIVILEGES ] } ON
-{ @h2@ { SCHEMA schemaName } | { [ TABLE ] tableName @h2@ [,...] } }
+{ @h2@ { SCHEMA schemaName } | { [ TABLE ] [schemaName.]tableName @h2@ [,...] } }
 TO { PUBLIC | userName | roleName }
 ","
 Grants rights for a table to a user or role.
@@ -1205,7 +1216,7 @@ PREPARE COMMIT XID_TEST
 
 "Commands (Other)","REVOKE RIGHT","
 REVOKE { { SELECT | INSERT | UPDATE | DELETE } [,..] | ALL [ PRIVILEGES ] } ON
-{ @h2@ { SCHEMA schemaName } | { [ TABLE ] tableName @h2@ [,...] } }
+{ @h2@ { SCHEMA schemaName } | { [ TABLE ] [schemaName.]tableName @h2@ [,...] } }
 FROM { PUBLIC | userName | roleName }
 ","
 Removes rights for a table from a user or role.
@@ -2800,6 +2811,14 @@ SELECT ID FROM FINAL TABLE (INSERT INTO TEST (A, B) VALUES (1, 2))
 "
 
 "Other Grammar","Data Type","
+predefinedType | [schemaName.]domainName
+","
+A predefined or domain data type.
+","
+INT
+"
+
+"Other Grammar","Predefined Type","
 intType | booleanType | smallintType | bigintType
     | decimalType | doubleType | realType | dateType | timeType
     | timeWithTimeZoneType | timestampType | timestampWithTimeZoneType
@@ -2808,7 +2827,7 @@ intType | booleanType | smallintType | bigintType
     | @h2@ { tinyintType | identityType | otherType | varcharIgnorecaseType
     | uuidType | enumType }
 ","
-A data type definition.
+A predefined data type.
 ","
 INT
 "

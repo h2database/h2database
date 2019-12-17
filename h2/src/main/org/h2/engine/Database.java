@@ -767,49 +767,88 @@ public class Database implements DataHandler, CastDataProvider {
 
     private void executeMeta() {
         Cursor cursor = metaIdIndex.find(systemSession, null, null);
-        ArrayList<MetaRecord> records = new ArrayList<>((int) metaIdIndex.getRowCountApproximation());
+        ArrayList<MetaRecord> firstRecords = new ArrayList<>(), domainRecords = new ArrayList<>(),
+                middleRecords = new ArrayList<>(), constraintRecords = new ArrayList<>(),
+                lastRecords = new ArrayList<>();
         while (cursor.next()) {
             MetaRecord rec = new MetaRecord(cursor.get());
             objectIds.set(rec.getId());
-            records.add(rec);
+            switch (rec.getObjectType()) {
+            case DbObject.SETTING:
+            case DbObject.USER:
+            case DbObject.SCHEMA:
+            case DbObject.FUNCTION_ALIAS:
+                firstRecords.add(rec);
+                break;
+            case DbObject.DOMAIN:
+                domainRecords.add(rec);
+                break;
+            case DbObject.SEQUENCE:
+            case DbObject.CONSTANT:
+            case DbObject.TABLE_OR_VIEW:
+            case DbObject.INDEX:
+                middleRecords.add(rec);
+                break;
+            case DbObject.CONSTRAINT:
+                constraintRecords.add(rec);
+                break;
+            default:
+                lastRecords.add(rec);
+            }
         }
-        Collections.sort(records);
         synchronized (systemSession) {
-            int i = 0, metaCount = records.size();
-            // Create all objects before the first constraint
-            for (;; i++) {
-                if (i >= metaCount) {
-                    return;
+            executeMeta(firstRecords);
+            // Domains may depend on other domains
+            int count = domainRecords.size();
+            if (count > 0) {
+                for (int j = 0;; count = j) {
+                    DbException exception = null;
+                    for (int i = 0; i < count; i++) {
+                        MetaRecord rec = domainRecords.get(i);
+                        try {
+                            rec.prepareAndExecute(this, systemSession, eventListener);
+                        } catch (DbException ex) {
+                            if (exception == null) {
+                                exception = ex;
+                            }
+                            domainRecords.set(j++, rec);
+                        }
+                    }
+                    if (exception == null) {
+                        break;
+                    }
+                    if (count == j) {
+                        throw exception;
+                    }
                 }
-                MetaRecord rec = records.get(i);
-                if (rec.getObjectType() == DbObject.CONSTRAINT) {
-                    break;
-                }
-                rec.prepareAndExecute(this, systemSession, eventListener);
             }
-            // Find the last constraint
-            int j = i + 1;
-            while (j < metaCount && records.get(j).getObjectType() == DbObject.CONSTRAINT) {
-                j++;
-            }
+            executeMeta(middleRecords);
             // Prepare, but don't create all constraints and sort them
-            int constraintsCount = j - i;
-            Prepared[] constraints = new Prepared[constraintsCount];
-            for (int k = 0; k < constraintsCount; k++) {
-                constraints[k] = records.get(k + i).prepare(this, systemSession, eventListener);
-            }
-            Arrays.sort(constraints, MetaRecord.CONSTRAINTS_COMPARATOR);
-            // Create constraints in order (unique and primary key before all
-            // others)
-            for (int k = 0; k < constraintsCount; k++) {
-                Prepared constraint = constraints[k];
-                if (constraint != null) {
-                    records.get(k + i).execute(this, constraint, eventListener);
+            count = constraintRecords.size();
+            if (count > 0) {
+                ArrayList<Prepared> constraints = new ArrayList<>(count);
+                for (int i = 0; i < count; i++) {
+                    Prepared prepared = constraintRecords.get(i).prepare(this, systemSession, eventListener);
+                    if (prepared != null) {
+                        constraints.add(prepared);
+                    }
+                }
+                constraints.sort(MetaRecord.CONSTRAINTS_COMPARATOR);
+                // Create constraints in order (unique and primary key before
+                // all others)
+                for (Prepared constraint : constraints) {
+                    MetaRecord.execute(this, constraint, eventListener, constraint.getSQL());
                 }
             }
-            // Create all remaining objects
-            for (; j < metaCount; j++) {
-                records.get(j).prepareAndExecute(this, systemSession, eventListener);
+            executeMeta(lastRecords);
+        }
+    }
+
+    private void executeMeta(ArrayList<MetaRecord> records) {
+        if (!records.isEmpty()) {
+            records.sort(null);
+            for (MetaRecord rec : records) {
+                rec.prepareAndExecute(this, systemSession, eventListener);
             }
         }
     }

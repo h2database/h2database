@@ -228,3 +228,23 @@ DROP DOMAIN D3;
 
 DROP DOMAIN D4;
 > ok
+
+CREATE DOMAIN D1 INT;
+> ok
+
+CREATE DOMAIN D2 INT;
+> ok
+
+DROP DOMAIN D1;
+> ok
+
+CREATE DOMAIN D3 D2;
+> ok
+
+@reconnect
+
+DROP DOMAIN D3;
+> ok
+
+DROP DOMAIN D2;
+> ok

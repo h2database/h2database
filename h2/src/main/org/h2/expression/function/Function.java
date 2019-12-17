@@ -50,6 +50,7 @@ import org.h2.mode.FunctionsMSSQLServer;
 import org.h2.mode.FunctionsMySQL;
 import org.h2.mode.FunctionsOracle;
 import org.h2.mvstore.db.MVSpatialIndex;
+import org.h2.schema.Domain;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.security.BlockCipher;
@@ -205,6 +206,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
     protected final FunctionInfo info;
     private int flags;
     protected TypeInfo type;
+    private Domain domain;
 
     private final Database database;
 
@@ -971,6 +973,9 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case CAST:
         case CONVERT:
             result = type.cast(v0, session, false, true, null);
+            if (domain != null) {
+                domain.checkConstraints(session, result);
+            }
             break;
         case MEMORY_FREE:
             session.getUser().checkAdmin();
@@ -2599,6 +2604,12 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
 
     public void setDataType(TypeInfo type) {
         this.type = type;
+        this.domain = null;
+    }
+
+    public void setDataType(Column column) {
+        this.type = column.getType();
+        this.domain = column.getDomain();
     }
 
     @Override
@@ -3043,7 +3054,11 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         }
         case CAST: {
             args[0].getSQL(builder, alwaysQuote).append(" AS ");
-            type.getSQL(builder);
+            if (domain != null) {
+                domain.getSQL(builder, alwaysQuote);
+            } else {
+                type.getSQL(builder);
+            }
             break;
         }
         case CONVERT: {

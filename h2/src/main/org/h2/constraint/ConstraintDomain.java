@@ -9,13 +9,13 @@ import java.util.HashSet;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
-import org.h2.engine.Domain;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.result.Row;
+import org.h2.schema.Domain;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.Table;
@@ -125,15 +125,22 @@ public class ConstraintDomain extends Constraint {
 
     public Expression getCheckConstraint(Session session, String columnName) {
         String sql;
-        synchronized (this) {
-            try {
-                resolver.setColumnName(columnName);
-                sql = expr.getSQL(true);
-            } finally {
-                resolver.resetColumnName();
+        if (columnName != null) {
+            synchronized (this) {
+                try {
+                    resolver.setColumnName(columnName);
+                    sql = expr.getSQL(true);
+                } finally {
+                    resolver.resetColumnName();
+                }
             }
+            return new Parser(session).parseExpression(sql);
+        } else {
+            synchronized (this) {
+                sql = expr.getSQL(true);
+            }
+            return new Parser(session).parseDomainConstraintExpression(sql);
         }
-        return new Parser(session).parseExpression(sql);
     }
 
     @Override

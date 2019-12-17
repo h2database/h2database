@@ -196,7 +196,7 @@ public abstract class Constraint extends SchemaObjectBase implements
 
     @Override
     public boolean isHidden() {
-        return table.isHidden();
+        return table != null && table.isHidden();
     }
 
     /**

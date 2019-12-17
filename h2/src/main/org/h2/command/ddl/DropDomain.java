@@ -11,11 +11,13 @@ import org.h2.command.CommandInterface;
 import org.h2.constraint.ConstraintActionType;
 import org.h2.constraint.ConstraintDomain;
 import org.h2.engine.Database;
-import org.h2.engine.Domain;
+import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
+import org.h2.schema.Domain;
 import org.h2.schema.Schema;
+import org.h2.schema.SchemaObject;
 import org.h2.table.Column;
 import org.h2.table.Table;
 
@@ -55,11 +57,33 @@ public class DropDomain extends SchemaCommand {
             }
         } else {
             Column domainColumn = domain.getColumn();
+            for (SchemaObject obj : db.getAllSchemaObjects(DbObject.DOMAIN)) {
+                Domain d = (Domain) obj;
+                Column c = d.getColumn();
+                if (c.getDomain() == domain) {
+                    if (dropAction == ConstraintActionType.RESTRICT) {
+                        throw DbException.get(ErrorCode.CANNOT_DROP_2, typeName, d.getSQL(true));
+                    }
+                    ArrayList<ConstraintDomain> constraints = domain.getConstraints();
+                    if (constraints != null && !constraints.isEmpty()) {
+                        for (ConstraintDomain constraint : constraints) {
+                            Expression checkCondition = constraint.getCheckConstraint(session, null);
+                            AlterDomainAddConstraint check = new AlterDomainAddConstraint(session, d.getSchema(),
+                                    false);
+                            check.setDomainName(d.getName());
+                            check.setCheckExpression(checkCondition);
+                            check.update();
+                        }
+                    }
+                    c.setOriginalSQL(domain.getColumn().getOriginalSQL());
+                    c.setDomain(domainColumn.getDomain());
+                    db.updateMeta(session, d);
+                }
+            }
             for (Table t : db.getAllTablesAndViews(false)) {
                 boolean modified = false;
                 for (Column c : t.getColumns()) {
-                    Domain columnDomain = c.getDomain();
-                    if (columnDomain != null && columnDomain.getName().equals(typeName)) {
+                    if (c.getDomain() == domain) {
                         if (dropAction == ConstraintActionType.RESTRICT) {
                             throw DbException.get(ErrorCode.CANNOT_DROP_2, typeName, t.getCreateSQL());
                         }

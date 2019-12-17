@@ -178,7 +178,6 @@ import org.h2.constraint.ConstraintActionType;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
-import org.h2.engine.Domain;
 import org.h2.engine.FunctionAlias;
 import org.h2.engine.IsolationLevel;
 import org.h2.engine.Mode;
@@ -243,6 +242,7 @@ import org.h2.expression.function.TableFunction;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.result.SortOrder;
+import org.h2.schema.Domain;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.table.Column;
@@ -1216,7 +1216,7 @@ public class Parser {
         if (readIf(OPEN_PAREN)) {
             ArrayList<Column> list = Utils.newSmallArrayList();
             for (int i = 0;; i++) {
-                Column column = parseColumnForTable("C" + i, true, false);
+                Column column = parseColumnForTable("C" + i, true);
                 list.add(column);
                 if (!readIfMore()) {
                     break;
@@ -3339,7 +3339,7 @@ public class Parser {
         read(OPEN_PAREN);
         ArrayList<TypeInfo> typeList = Utils.newSmallArrayList();
         do {
-            typeList.add(parseColumnWithType(null, false).getType());
+            typeList.add(parseColumnWithType(null).getType());
         } while (readIfMore());
         return new TypePredicate(left, not, typeList.toArray(new TypeInfo[0]));
     }
@@ -3865,20 +3865,20 @@ public class Parser {
         case Function.CAST: {
             function.addParameter(readExpression());
             read(AS);
-            function.setDataType(parseColumnWithType(null, false).getType());
+            function.setDataType(parseColumnWithType(null));
             read(CLOSE_PAREN);
             break;
         }
         case Function.CONVERT: {
             if (database.getMode().swapConvertFunctionParameters) {
-                function.setDataType(parseColumnWithType(null, false).getType());
+                function.setDataType(parseColumnWithType(null));
                 read(COMMA);
                 function.addParameter(readExpression());
                 read(CLOSE_PAREN);
             } else {
                 function.addParameter(readExpression());
                 read(COMMA);
-                function.setDataType(parseColumnWithType(null, false).getType());
+                function.setDataType(parseColumnWithType(null));
                 read(CLOSE_PAREN);
             }
             break;
@@ -3990,7 +3990,7 @@ public class Parser {
             ArrayList<Column> columns = Utils.newSmallArrayList();
             do {
                 String columnName = readAliasIdentifier();
-                Column column = parseColumnWithType(columnName, false);
+                Column column = parseColumnWithType(columnName);
                 columns.add(column);
                 read(EQUAL);
                 function.addParameter(readExpression());
@@ -4646,7 +4646,7 @@ public class Parser {
                 r = new JavaFunction(f, args);
             } else {
                 Function function = Function.getFunctionWithArgs(database, Function.CAST, r);
-                function.setDataType(parseColumnWithType(null, false).getType());
+                function.setDataType(parseColumnWithType(null));
                 r = function;
             }
         }
@@ -5853,8 +5853,7 @@ public class Parser {
         return ParserUtil.isKeyword(s, !identifiersToUpper);
     }
 
-    private Column parseColumnForTable(String columnName,
-            boolean defaultNullable, boolean forTable) {
+    private Column parseColumnForTable(String columnName, boolean defaultNullable) {
         Column column;
         boolean isIdentity = readIf("IDENTITY");
         if (isIdentity || readIf("BIGSERIAL")) {
@@ -5878,7 +5877,7 @@ public class Parser {
                 column.setPrimaryKey(true);
             }
         } else {
-            column = parseColumnWithType(columnName, forTable);
+            column = parseColumnWithType(columnName);
         }
         if (readIf("INVISIBLE")) {
             column.setVisible(false);
@@ -5894,8 +5893,7 @@ public class Parser {
             column.setNullable(false);
             break;
         case NO_NULL_CONSTRAINT_FOUND:
-            // domains may be defined as not nullable
-            column.setNullable(defaultNullable & column.isNullable());
+            column.setNullable(defaultNullable);
             break;
         default:
             throw DbException.get(ErrorCode.UNKNOWN_MODE_1,
@@ -5978,15 +5976,15 @@ public class Parser {
         return null;
     }
 
-    private Column parseColumnWithType(String columnName, boolean forTable) {
-        Column column = parseColumnWithType1(columnName, forTable);
+    private Column parseColumnWithType(String columnName) {
+        Column column = parseColumnWithType1(columnName);
         while (readIf(ARRAY)) {
             column = parseArrayType(columnName, column.getType());
         }
         return column;
     }
 
-    private Column parseColumnWithType1(String columnName, boolean forTable) {
+    private Column parseColumnWithType1(String columnName) {
         switch (currentTokenType) {
         case IDENTIFIER:
             break;
@@ -6011,12 +6009,12 @@ public class Parser {
             parseIndex = index;
             read();
             originalCase = readIdentifierWithSchema();
-            return getColumnWithDomain(columnName, getSchema().getDomain(originalCase), forTable);
+            return getColumnWithDomain(columnName, getSchema().getDomain(originalCase));
         }
         // Quoted tokens can be only domains
         if (originalQuoted) {
             return getColumnWithDomain(columnName,
-                    database.getSchema(session.getCurrentSchemaName()).getDomain(originalCase), forTable);
+                    database.getSchema(session.getCurrentSchemaName()).getDomain(originalCase));
         }
         String original = identifiersToUpper ? originalCase : StringUtils.toUpperEnglish(originalCase);
         switch (original) {
@@ -6101,7 +6099,7 @@ public class Parser {
         if (originalCase.length() == original.length()) {
             Domain domain = database.getSchema(session.getCurrentSchemaName()).findDomain(originalCase);
             if (domain != null) {
-                return getColumnWithDomain(columnName, domain, forTable);
+                return getColumnWithDomain(columnName, domain);
             }
         }
         Mode mode = database.getMode();
@@ -6166,10 +6164,9 @@ public class Parser {
         return new Column(columnName, TypeInfo.getTypeInfo(t, precision, scale, null), original);
     }
 
-    private Column getColumnWithDomain(String columnName, Domain domain, boolean forTable) {
+    private Column getColumnWithDomain(String columnName, Domain domain) {
         Column templateColumn = domain.getColumn();
-        Column column = new Column(columnName, templateColumn.getType(),
-                forTable ? domain.getSQL(true) : templateColumn.getOriginalSQL());
+        Column column = new Column(columnName, templateColumn.getType(), domain.getSQL(true));
         column.setNullable(templateColumn.isNullable());
         column.setDefaultExpression(session, templateColumn.getDefaultExpression());
         column.setOnUpdateExpression(session, templateColumn.getOnUpdateExpression());
@@ -6178,9 +6175,7 @@ public class Parser {
             column.setSelectivity(selectivity);
         }
         column.setComment(templateColumn.getComment());
-        if (forTable) {
-            column.setDomain(domain);
-        }
+        column.setDomain(domain);
         return column;
     }
 
@@ -6898,39 +6893,41 @@ public class Parser {
         CreateDomain command = new CreateDomain(session, schema);
         command.setTypeName(domainName);
         readIf(AS);
-        Column column = parseColumnForTable("VALUE", true, false);
-        boolean hasNotNull = false;
-        NullConstraintType nullType;
+        Column column = parseColumnWithType("VALUE");
+        if (readIf("DEFAULT")) {
+            column.setDefaultExpression(session, readExpression());
+        }
+        if (readIf(ON)) {
+            read("UPDATE");
+            column.setOnUpdateExpression(session, readExpression());
+        }
+        if (readIf("SELECTIVITY")) {
+            column.setSelectivity(readNonNegativeInt());
+        }
+        String comment = readCommentIf();
+        if (comment != null) {
+            column.setComment(comment);
+        }
         for (;;) {
             String constraintName;
             if (readIf(CONSTRAINT)) {
                 constraintName = readColumnIdentifier();
-            } else {
-                constraintName = null;
-            }
-            if (!hasNotNull
-                    && (nullType = parseNotNullConstraint()) != NullConstraintType.NO_NULL_CONSTRAINT_FOUND) {
-                hasNotNull = true;
-                if (nullType == NullConstraintType.NULL_IS_NOT_ALLOWED) {
-                    column.setNullable(false);
-                } else if (nullType == NullConstraintType.NULL_IS_ALLOWED) {
-                    column.setNullable(true);
-                }
+                read(CHECK);
             } else if (readIf(CHECK)) {
-                AlterDomainAddConstraint constraint = new AlterDomainAddConstraint(session, schema, ifNotExists);
-                constraint.setDomainName(domainName);
-                parseDomainConstraint = true;
-                try {
-                    constraint.setCheckExpression(readExpression());
-                } finally {
-                    parseDomainConstraint = false;
-                }
-                command.addConstraintCommand(constraint);
-            } else if (constraintName == null) {
-                break;
+                constraintName = null;
             } else {
-                throw getSyntaxError();
+                break;
             }
+            AlterDomainAddConstraint constraint = new AlterDomainAddConstraint(session, schema, ifNotExists);
+            constraint.setConstraintName(constraintName);
+            constraint.setDomainName(domainName);
+            parseDomainConstraint = true;
+            try {
+                constraint.setCheckExpression(readExpression());
+            } finally {
+                parseDomainConstraint = false;
+            }
+            command.addConstraintCommand(constraint);
         }
         column.rename(null);
         command.setColumn(column);
@@ -8412,7 +8409,7 @@ public class Parser {
                 boolean nullable = column == null ? true : column.isNullable();
                 // new column type ignored. RENAME and MODIFY are
                 // a single command in MySQL but two different commands in H2.
-                parseColumnForTable(newColumnName, nullable, true);
+                parseColumnForTable(newColumnName, nullable);
                 AlterTableRenameColumn command = new AlterTableRenameColumn(session, schema);
                 command.setTableName(tableName);
                 command.setIfTableExists(ifTableExists);
@@ -8500,7 +8497,7 @@ public class Parser {
             String tableName, String columnName, boolean ifTableExists, boolean ifExists, boolean preserveNotNull) {
         Column oldColumn = columnIfTableExists(schema, tableName, columnName, ifTableExists, ifExists);
         Column newColumn = parseColumnForTable(columnName,
-                !preserveNotNull || oldColumn == null || oldColumn.isNullable(), true);
+                !preserveNotNull || oldColumn == null || oldColumn.isNullable());
         AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
         command.setTableName(tableName);
         command.setIfTableExists(ifTableExists);
@@ -8513,7 +8510,7 @@ public class Parser {
     private AlterTableAlterColumn parseAlterTableAlterColumnDataType(Schema schema,
             String tableName, String columnName, boolean ifTableExists, boolean ifExists) {
         Column oldColumn = columnIfTableExists(schema, tableName, columnName, ifTableExists, ifExists);
-        Column newColumn = parseColumnWithType(columnName, true);
+        Column newColumn = parseColumnWithType(columnName);
         if (oldColumn != null) {
             if (!oldColumn.isNullable()) {
                 newColumn.setNullable(false);
@@ -8874,7 +8871,7 @@ public class Parser {
             command.addColumn(new Column(columnName, TypeInfo.TYPE_UNKNOWN));
             return;
         }
-        Column column = parseColumnForTable(columnName, true, true);
+        Column column = parseColumnForTable(columnName, true);
         if (column.isAutoIncrement() && column.isPrimaryKey()) {
             column.setPrimaryKey(false);
             AlterTableAddConstraint pk = new AlterTableAddConstraint(session, schema,
@@ -8938,7 +8935,6 @@ public class Parser {
                 if (nullType == NullConstraintType.NULL_IS_NOT_ALLOWED) {
                     column.setNullable(false);
                 } else if (nullType == NullConstraintType.NULL_IS_ALLOWED) {
-                    //  domains may be defined as not nullable
                     column.setNullable(true);
                 }
             } else if (readIf(CHECK)) {
@@ -9163,6 +9159,24 @@ public class Parser {
         initialize(sql);
         read();
         return readExpression();
+    }
+
+    /**
+     * Parse a SQL code snippet that represents an expression for a domain constraint.
+     *
+     * @param sql the code snippet
+     * @return the expression object
+     */
+    public Expression parseDomainConstraintExpression(String sql) {
+        parameters = Utils.newSmallArrayList();
+        initialize(sql);
+        read();
+        try {
+            parseDomainConstraint = true;
+            return readExpression();
+        } finally {
+            parseDomainConstraint = false;
+        }
     }
 
     /**

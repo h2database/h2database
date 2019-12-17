@@ -706,15 +706,14 @@ CREATE CONSTANT ONE VALUE 1
 "Commands (DDL)","CREATE DOMAIN","
 CREATE DOMAIN @h2@ [ IF NOT EXISTS ] newDomainName [ AS ] dataType
 [ DEFAULT expression ]
-@h2@ [ ON UPDATE expression ] @c@ [ [ NOT ] NULL ]
+@h2@ [ ON UPDATE expression ]
 @h2@ [ SELECTIVITY selectivityInt ] @h2@ [ COMMENT expression ]
-[ CHECK (condition) | @h2@ { [ NOT ] NULL } ] [...]
+[ CHECK (condition) ] [...]
 ","
-Creates a new data type (domain). The check condition must evaluate to true or
-to NULL (to prevent NULL, use ""NOT NULL""). In the condition, the term VALUE refers
-to the value being tested.
-
-Domains are usable within the whole database. They can not be created in a specific schema.
+Creates a new domain to define a set of permissible values.
+Domains can be used as data types.
+The domain constraints must evaluate to TRUE or to UNKNOWN.
+In the conditions, the term VALUE refers to the value being tested.
 
 This command commits an open transaction in this connection.
 ","
@@ -1008,7 +1007,7 @@ DROP CONSTANT ONE
 DROP DOMAIN @h2@ [ IF EXISTS ] domainName [ RESTRICT | CASCADE ]
 ","
 Drops a data type (domain).
-The command will fail if it is referenced by a column (the default).
+The command will fail if it is referenced by a column or another domain (the default).
 Column descriptors are replaced with original definition of specified domain if the CASCADE clause is used.
 This command commits an open transaction in this connection.
 ","

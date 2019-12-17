@@ -12,7 +12,6 @@ import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.command.ddl.SequenceOptions;
 import org.h2.engine.Constants;
-import org.h2.engine.Domain;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
@@ -20,6 +19,7 @@ import org.h2.expression.SequenceValue;
 import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
 import org.h2.result.Row;
+import org.h2.schema.Domain;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.util.MathUtils;
@@ -529,8 +529,6 @@ public class Column {
         }
         if (!nullable) {
             buff.append(" NOT NULL");
-        } else if (domain != null && !domain.getColumn().isNullable()) {
-            buff.append(" NULL");
         }
         return buff.toString();
     }

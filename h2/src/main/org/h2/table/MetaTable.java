@@ -31,7 +31,6 @@ import org.h2.constraint.ConstraintUnique;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
-import org.h2.engine.Domain;
 import org.h2.engine.FunctionAlias;
 import org.h2.engine.FunctionAlias.JavaMethod;
 import org.h2.engine.QueryStatisticsData;
@@ -55,6 +54,7 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.schema.Constant;
+import org.h2.schema.Domain;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
@@ -470,11 +470,13 @@ public class MetaTable extends Table {
                     "DOMAIN_NAME",
                     "DOMAIN_DEFAULT",
                     "DOMAIN_ON_UPDATE",
-                    "IS_NULLABLE",
                     "DATA_TYPE INT",
                     "PRECISION INT",
                     "SCALE INT",
                     "TYPE_NAME",
+                    "PARENT_DOMAIN_CATALOG",
+                    "PARENT_DOMAIN_SCHEMA",
+                    "PARENT_DOMAIN_NAME",
                     "SELECTIVITY INT",
                     "REMARKS",
                     "SQL",
@@ -1769,6 +1771,7 @@ public class MetaTable extends Table {
             for (SchemaObject obj : database.getAllSchemaObjects(DbObject.DOMAIN)) {
                 Domain domain = (Domain) obj;
                 Column col = domain.getColumn();
+                Domain parentDomain = col.getDomain();
                 add(rows,
                         // DOMAIN_CATALOG
                         catalog,
@@ -1780,8 +1783,6 @@ public class MetaTable extends Table {
                         col.getDefaultSQL(),
                         // DOMAIN_ON_UPDATE
                         col.getOnUpdateSQL(),
-                        // IS_NULLABLE
-                        col.isNullable() ? "YES" : "NO",
                         // DATA_TYPE
                         ValueInt.get(col.getDataType().sqlType),
                         // PRECISION
@@ -1790,6 +1791,12 @@ public class MetaTable extends Table {
                         ValueInt.get(col.getType().getScale()),
                         // TYPE_NAME
                         col.getDataType().name,
+                        // PARENT_DOMAIN_CATALOG
+                        parentDomain != null ? catalog : null,
+                        // PARENT_DOMAIN_SCHEMA
+                        parentDomain != null ? parentDomain.getSchema().getName() : null,
+                        // PARENT_DOMAIN_NAME
+                        parentDomain != null ? parentDomain.getName() : null,
                         // SELECTIVITY INT
                         ValueInt.get(col.getSelectivity()),
                         // REMARKS

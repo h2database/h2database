@@ -27,11 +27,6 @@ public class MetaRecord implements Comparable<MetaRecord> {
      * constraints first.
      */
     static final Comparator<Prepared> CONSTRAINTS_COMPARATOR = (o1, o2) -> {
-        if (o1 == null) {
-            return o2 == null ? 0 : 1;
-        } else if (o2 == null) {
-            return -1;
-        }
         int t1 = o1.getType(), t2 = o2.getType();
         boolean u1 = t1 == CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY
                 || t1 == CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE;
@@ -81,7 +76,7 @@ public class MetaRecord implements Comparable<MetaRecord> {
             command.setPersistedObjectId(id);
             command.update();
         } catch (DbException e) {
-            throwException(db, listener, e);
+            throwException(db, listener, e, sql);
         }
     }
 
@@ -99,7 +94,7 @@ public class MetaRecord implements Comparable<MetaRecord> {
             command.setPersistedObjectId(id);
             return command;
         } catch (DbException e) {
-            throwException(db, listener, e);
+            throwException(db, listener, e, sql);
             return null;
         }
     }
@@ -110,16 +105,17 @@ public class MetaRecord implements Comparable<MetaRecord> {
      * @param db the database
      * @param command the prepared command
      * @param listener the database event listener
+     * @param sql SQL
      */
-    void execute(Database db, Prepared command, DatabaseEventListener listener) {
+    static void execute(Database db, Prepared command, DatabaseEventListener listener, String sql) {
         try {
             command.update();
         } catch (DbException e) {
-            throwException(db, listener, e);
+            throwException(db, listener, e, sql);
         }
     }
 
-    private void throwException(Database db, DatabaseEventListener listener, DbException e) {
+    private static void throwException(Database db, DatabaseEventListener listener, DbException e, String sql) {
         e = e.addSQL(sql);
         SQLException s = e.getSQLException();
         db.getTrace(Trace.DATABASE).error(s, sql);

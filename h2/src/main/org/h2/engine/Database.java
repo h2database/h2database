@@ -826,18 +826,18 @@ public class Database implements DataHandler, CastDataProvider {
             // Prepare, but don't create all constraints and sort them
             count = constraintRecords.size();
             if (count > 0) {
-                Prepared[] constraints = new Prepared[count];
+                ArrayList<Prepared> constraints = new ArrayList<>(count);
                 for (int i = 0; i < count; i++) {
-                    constraints[i] = constraintRecords.get(i).prepare(this, systemSession, eventListener);
+                    Prepared prepared = constraintRecords.get(i).prepare(this, systemSession, eventListener);
+                    if (prepared != null) {
+                        constraints.add(prepared);
+                    }
                 }
-                Arrays.sort(constraints, MetaRecord.CONSTRAINTS_COMPARATOR);
+                constraints.sort(MetaRecord.CONSTRAINTS_COMPARATOR);
                 // Create constraints in order (unique and primary key before
                 // all others)
-                for (int i = 0; i < count; i++) {
-                    Prepared constraint = constraints[i];
-                    if (constraint != null) {
-                        constraintRecords.get(i).execute(this, constraint, eventListener);
-                    }
+                for (Prepared constraint : constraints) {
+                    MetaRecord.execute(this, constraint, eventListener, constraint.getSQL());
                 }
             }
             executeMeta(lastRecords);

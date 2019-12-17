@@ -77,7 +77,7 @@ class FileAsync extends FileBaseDefault {
     }
 
     @Override
-    public synchronized FileLock tryLock(long position, long size, boolean shared) throws IOException {
+    public FileLock tryLock(long position, long size, boolean shared) throws IOException {
         return channel.tryLock(position, size, shared);
     }
 

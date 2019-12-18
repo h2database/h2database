@@ -8,8 +8,6 @@
 package org.h2.util;
 
 import java.time.Instant;
-import java.util.Date;
-import java.util.TimeZone;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
@@ -40,11 +38,6 @@ public class DateTimeUtils {
     public static final long SECONDS_PER_DAY = 24 * 60 * 60;
 
     /**
-     * UTC time zone.
-     */
-    public static final TimeZone UTC = TimeZone.getTimeZone("UTC");
-
-    /**
      * The number of nanoseconds per second.
      */
     public static final long NANOS_PER_SECOND = 1_000_000_000;
@@ -73,12 +66,6 @@ public class DateTimeUtils {
      * The offset of month bits in date values.
      */
     static final int SHIFT_MONTH = 5;
-
-    /**
-     * Gregorian change date for a {@link java.util.GregorianCalendar} that
-     * represents a proleptic Gregorian calendar.
-     */
-    public static final Date PROLEPTIC_GREGORIAN_CHANGE = new Date(Long.MIN_VALUE);
 
     /**
      * Date value for 1970-01-01.
@@ -446,21 +433,6 @@ public class DateTimeUtils {
     }
 
     /**
-     * Returns local time zone offset for a specified timestamp.
-     *
-     * @param ms milliseconds since Epoch in UTC
-     * @return local time zone offset
-     */
-    public static int getTimeZoneOffsetMillis(long ms) {
-        long seconds = ms / 1_000;
-        // Round toward negative infinity
-        if (ms < 0 && (seconds * 1_000 != ms)) {
-            seconds--;
-        }
-        return getTimeZoneOffset(seconds) * 1_000;
-    }
-
-    /**
      * Returns local time zone offset for a specified EPOCH second.
      *
      * @param epochSeconds seconds since Epoch in UTC
@@ -483,23 +455,6 @@ public class DateTimeUtils {
      */
     public static long getEpochSeconds(long dateValue, long timeNanos, int offsetSeconds) {
         return absoluteDayFromDateValue(dateValue) * SECONDS_PER_DAY + timeNanos / NANOS_PER_SECOND - offsetSeconds;
-    }
-
-    /**
-     * Calculate the milliseconds since 1970-01-01 (UTC) for the given date and
-     * time (in the specified timezone).
-     *
-     * @param tz the timezone of the parameters, or null for the default
-     *            timezone
-     * @param dateValue
-     *            date value
-     * @param timeNanos
-     *            nanoseconds since midnight
-     * @return the number of milliseconds (UTC)
-     */
-    public static long getMillis(TimeZone tz, long dateValue, long timeNanos) {
-        TimeZoneProvider c = tz == null ? getTimeZone() : TimeZoneProvider.ofId(tz.getID());
-        return c.getEpochSecondsFromLocal(dateValue, timeNanos) * 1_000 + timeNanos / 1_000_000 % 1_000;
     }
 
     /**
@@ -840,21 +795,6 @@ public class DateTimeUtils {
     }
 
     /**
-     * Convert a local datetime in millis to an encoded date.
-     *
-     * @param ms the milliseconds
-     * @return the date value
-     */
-    public static long dateValueFromLocalMillis(long ms) {
-        long absoluteDay = ms / MILLIS_PER_DAY;
-        // Round toward negative infinity
-        if (ms < 0 && (absoluteDay * MILLIS_PER_DAY != ms)) {
-            absoluteDay--;
-        }
-        return dateValueFromAbsoluteDay(absoluteDay);
-    }
-
-    /**
      * Convert a time in seconds in local time to the nanoseconds since midnight.
      *
      * @param localSeconds the seconds since 1970-01-01
@@ -866,20 +806,6 @@ public class DateTimeUtils {
             localSeconds += SECONDS_PER_DAY;
         }
         return localSeconds * NANOS_PER_SECOND;
-    }
-
-    /**
-     * Convert a time in milliseconds in local time to the nanoseconds since midnight.
-     *
-     * @param ms the milliseconds
-     * @return the nanoseconds
-     */
-    public static long nanosFromLocalMillis(long ms) {
-        ms %= MILLIS_PER_DAY;
-        if (ms < 0) {
-            ms += MILLIS_PER_DAY;
-        }
-        return ms * 1_000_000;
     }
 
     /**

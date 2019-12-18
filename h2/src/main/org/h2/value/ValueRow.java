@@ -10,7 +10,6 @@ import java.sql.SQLException;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
-import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 
 /**
@@ -85,24 +84,6 @@ public class ValueRow extends ValueCollectionBase {
             }
         }
         return 0;
-    }
-
-    @Override
-    public Object getObject() {
-        int len = values.length;
-        Object[] list = new Object[len];
-        for (int i = 0; i < len; i++) {
-            final Value value = values[i];
-            if (!SysProperties.OLD_RESULT_SET_GET_OBJECT) {
-                final int type = value.getValueType();
-                if (type == Value.BYTE || type == Value.SHORT) {
-                    list[i] = value.getInt();
-                    continue;
-                }
-            }
-            list[i] = value.getObject();
-        }
-        return list;
     }
 
     @Override

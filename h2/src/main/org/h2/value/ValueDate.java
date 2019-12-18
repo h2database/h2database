@@ -5,17 +5,16 @@
  */
 package org.h2.value;
 
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.TimeZone;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.JSR310Utils;
+import org.h2.util.LegacyDateTimeUtils;
 
 /**
  * Implementation of the DATE data type.
@@ -48,19 +47,6 @@ public class ValueDate extends Value {
     }
 
     /**
-     * Get or create a date value for the given date.
-     *
-     * @param timeZone time zone, or {@code null} for default
-     * @param date the date
-     * @return the value
-     */
-    public static ValueDate get(TimeZone timeZone, Date date) {
-        long ms = date.getTime();
-        return fromDateValue(DateTimeUtils.dateValueFromLocalMillis(
-                ms + (timeZone == null ? DateTimeUtils.getTimeZoneOffsetMillis(ms) : timeZone.getOffset(ms))));
-    }
-
-    /**
      * Parse a string to a ValueDate.
      *
      * @param s the string to parse
@@ -77,11 +63,6 @@ public class ValueDate extends Value {
 
     public long getDateValue() {
         return dateValue;
-    }
-
-    @Override
-    public Date getDate(TimeZone timeZone) {
-        return new Date(DateTimeUtils.getMillis(timeZone, dateValue, 0));
     }
 
     @Override
@@ -128,7 +109,7 @@ public class ValueDate extends Value {
 
     @Override
     public Object getObject() {
-        return getDate(null);
+        return JSR310Utils.valueToLocalDate(this);
     }
 
     @Override
@@ -139,7 +120,7 @@ public class ValueDate extends Value {
         } catch (SQLException ignore) {
             // Nothing to do
         }
-        prep.setDate(parameterIndex, getDate(null));
+        prep.setDate(parameterIndex, LegacyDateTimeUtils.toDate(null, null, this));
     }
 
 }

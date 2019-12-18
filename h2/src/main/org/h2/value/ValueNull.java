@@ -8,13 +8,9 @@ package org.h2.value;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Time;
-import java.sql.Timestamp;
 import java.sql.Types;
-import java.util.TimeZone;
 
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
@@ -72,21 +68,6 @@ public class ValueNull extends Value {
     @Override
     public boolean getBoolean() {
         return false;
-    }
-
-    @Override
-    public Date getDate(TimeZone timeZone) {
-        return null;
-    }
-
-    @Override
-    public Time getTime(CastDataProvider provider, TimeZone timeZone) {
-        return null;
-    }
-
-    @Override
-    public Timestamp getTimestamp(CastDataProvider provider, TimeZone timeZone) {
-        return null;
     }
 
     @Override

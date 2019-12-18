@@ -7,9 +7,7 @@ package org.h2.value;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.sql.Types;
-import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
@@ -132,14 +130,6 @@ public class ValueTimestampTimeZone extends Value {
      */
     public int getTimeZoneOffsetSeconds() {
         return timeZoneOffsetSeconds;
-    }
-
-    @Override
-    public Timestamp getTimestamp(CastDataProvider provider, TimeZone timeZone) {
-        Timestamp ts = new Timestamp(DateTimeUtils.absoluteDayFromDateValue(dateValue) * DateTimeUtils.MILLIS_PER_DAY
-                + timeNanos / 1_000_000 - timeZoneOffsetSeconds * 1_000);
-        ts.setNanos((int) (timeNanos % DateTimeUtils.NANOS_PER_SECOND));
-        return ts;
     }
 
     @Override

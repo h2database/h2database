@@ -16,6 +16,7 @@ import org.h2.api.IntervalQualifier;
 import org.h2.test.TestBase;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IntervalUtils;
+import org.h2.util.LegacyDateTimeUtils;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueTimestamp;
 
@@ -33,7 +34,7 @@ public class TestDateTimeUtils extends TestBase {
      */
     public static GregorianCalendar createGregorianCalendar(TimeZone tz) {
         GregorianCalendar c = new GregorianCalendar(tz);
-        c.setGregorianChange(DateTimeUtils.PROLEPTIC_GREGORIAN_CHANGE);
+        c.setGregorianChange(LegacyDateTimeUtils.PROLEPTIC_GREGORIAN_CHANGE);
         return c;
     }
 
@@ -80,7 +81,7 @@ public class TestDateTimeUtils extends TestBase {
      * {@link DateTimeUtils#getIsoDayOfWeek(long)}.
      */
     private void testDayOfWeek() {
-        GregorianCalendar gc = createGregorianCalendar(DateTimeUtils.UTC);
+        GregorianCalendar gc = createGregorianCalendar(LegacyDateTimeUtils.UTC);
         for (int i = -1_000_000; i <= 1_000_000; i++) {
             gc.clear();
             gc.setTimeInMillis(i * 86400000L);
@@ -109,7 +110,7 @@ public class TestDateTimeUtils extends TestBase {
      * {@link DateTimeUtils#getWeekYear(long, int, int)}.
      */
     private void testWeekOfYear() {
-        GregorianCalendar gc = new GregorianCalendar(DateTimeUtils.UTC);
+        GregorianCalendar gc = new GregorianCalendar(LegacyDateTimeUtils.UTC);
         for (int firstDay = 1; firstDay <= 7; firstDay++) {
             gc.setFirstDayOfWeek(firstDay);
             for (int minimalDays = 1; minimalDays <= 7; minimalDays++) {
@@ -174,10 +175,10 @@ public class TestDateTimeUtils extends TestBase {
             for (int j = 0; j < 48; j++) {
                 gc.set(year, month - 1, day, j / 2, (j & 1) * 30, 0);
                 long timeMillis = gc.getTimeInMillis();
-                ValueTimestamp ts = ValueTimestamp.get(null, new Timestamp(timeMillis));
-                timeMillis += DateTimeUtils.getTimeZoneOffsetMillis(timeMillis);
-                assertEquals(ts.getDateValue(), DateTimeUtils.dateValueFromLocalMillis(timeMillis));
-                assertEquals(ts.getTimeNanos(), DateTimeUtils.nanosFromLocalMillis(timeMillis));
+                ValueTimestamp ts = LegacyDateTimeUtils.fromTimestamp(null, new Timestamp(timeMillis));
+                timeMillis += LegacyDateTimeUtils.getTimeZoneOffsetMillis(timeMillis);
+                assertEquals(ts.getDateValue(), LegacyDateTimeUtils.dateValueFromLocalMillis(timeMillis));
+                assertEquals(ts.getTimeNanos(), LegacyDateTimeUtils.nanosFromLocalMillis(timeMillis));
             }
         }
     }
@@ -312,11 +313,11 @@ public class TestDateTimeUtils extends TestBase {
         try {
             long n = -1111971600;
             assertEquals(3_600, DateTimeUtils.getTimeZoneOffset(n - 1));
-            assertEquals(3_600_000, DateTimeUtils.getTimeZoneOffsetMillis(n * 1_000 - 1));
+            assertEquals(3_600_000, LegacyDateTimeUtils.getTimeZoneOffsetMillis(n * 1_000 - 1));
             assertEquals(0, DateTimeUtils.getTimeZoneOffset(n));
-            assertEquals(0, DateTimeUtils.getTimeZoneOffsetMillis(n * 1_000));
+            assertEquals(0, LegacyDateTimeUtils.getTimeZoneOffsetMillis(n * 1_000));
             assertEquals(0, DateTimeUtils.getTimeZoneOffset(n + 1));
-            assertEquals(0, DateTimeUtils.getTimeZoneOffsetMillis(n * 1_000 + 1));
+            assertEquals(0, LegacyDateTimeUtils.getTimeZoneOffsetMillis(n * 1_000 + 1));
         } finally {
             TimeZone.setDefault(old);
             DateTimeUtils.resetCalendar();

@@ -67,6 +67,7 @@ import org.h2.util.Bits;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
+import org.h2.util.LegacyDateTimeUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -1557,9 +1558,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                     tz = DateTimeUtils.timeZoneNameFromOffsetSeconds(
                             ((ValueTimestampTimeZone) v0).getTimeZoneOffsetSeconds());
                 }
-                result = ValueString.get(
-                        DateTimeFunctions.formatDateTime(v0.getTimestamp(session, null), v1.getString(), locale, tz),
-                        database);
+                result = ValueString.get(DateTimeFunctions.formatDateTime(
+                        LegacyDateTimeUtils.toTimestamp(session, null, v0), v1.getString(), locale, tz), database);
             }
             break;
         }
@@ -1573,7 +1573,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                         null : v3 == ValueNull.INSTANCE ? null : v3.getString();
                 java.util.Date d = DateTimeFunctions.parseDateTime(
                         v0.getString(), v1.getString(), locale, tz);
-                result = ValueTimestamp.fromMillis(d.getTime(), 0);
+                result = LegacyDateTimeUtils.fromTimestamp(d.getTime(), 0);
             }
             break;
         }

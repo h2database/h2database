@@ -111,4 +111,14 @@ public abstract class ValueCollectionBase extends Value {
         return memory;
     }
 
+    @Override
+    public Object getObject() {
+        int len = values.length;
+        Object[] list = new Object[len];
+        for (int i = 0; i < len; i++) {
+            list[i] = values[i].getObject();
+        }
+        return list;
+    }
+
 }

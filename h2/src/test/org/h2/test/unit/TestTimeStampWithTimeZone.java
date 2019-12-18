@@ -19,6 +19,7 @@ import org.h2.engine.CastDataProvider;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.util.DateTimeUtils;
+import org.h2.util.LegacyDateTimeUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueTime;
@@ -189,7 +190,8 @@ public class TestTimeStampWithTimeZone extends TestDb {
         assertEquals(ts, tstz.convertTo(Value.TIMESTAMP));
         assertEquals(d, tstz.convertTo(Value.DATE));
         assertEquals(t, tstz.convertTo(Value.TIME));
-        assertEquals(ts.getTimestamp(provider, null), tstz.getTimestamp(provider, null));
+        assertEquals(LegacyDateTimeUtils.toTimestamp(provider, null, ts),
+                LegacyDateTimeUtils.toTimestamp(provider, null, tstz));
         if (testReverse) {
             assertEquals(0, tstz.compareTo(ts.convertTo(Value.TIMESTAMP_TZ), null, null));
             assertEquals(d.convertTo(Value.TIMESTAMP).convertTo(Value.TIMESTAMP_TZ),

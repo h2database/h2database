@@ -36,6 +36,7 @@ import org.h2.test.TestDb;
 import org.h2.test.utils.AssertThrows;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.Bits;
+import org.h2.util.LegacyDateTimeUtils;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -338,22 +339,24 @@ public class TestValue extends TestDb {
         ValueTimestamp valueTs = ValueTimestamp.parse("2000-01-15 10:20:30.333222111");
         Timestamp ts = Timestamp.valueOf("2000-01-15 10:20:30.333222111");
         assertEquals(ts.toString(), valueTs.getString());
-        assertEquals(ts, valueTs.getTimestamp(null, null));
+        assertEquals(ts, LegacyDateTimeUtils.toTimestamp(null,  null, valueTs));
         Calendar c = Calendar.getInstance(TimeZone.getTimeZone("Europe/Berlin"));
         c.set(2018, 02, 25, 1, 59, 00);
         c.set(Calendar.MILLISECOND, 123);
         long expected = c.getTimeInMillis();
-        ts = ValueTimestamp.parse("2018-03-25 01:59:00.123123123 Europe/Berlin").getTimestamp(null, null);
+        ts = LegacyDateTimeUtils.toTimestamp(null,  null,
+                ValueTimestamp.parse("2018-03-25 01:59:00.123123123 Europe/Berlin"));
         assertEquals(expected, ts.getTime());
         assertEquals(123123123, ts.getNanos());
-        ts = ValueTimestamp.parse("2018-03-25 01:59:00.123123123+01").getTimestamp(null, null);
+        ts = LegacyDateTimeUtils.toTimestamp(null,  null, ValueTimestamp.parse("2018-03-25 01:59:00.123123123+01"));
         assertEquals(expected, ts.getTime());
         assertEquals(123123123, ts.getNanos());
         expected += 60000; // 1 minute
-        ts = ValueTimestamp.parse("2018-03-25 03:00:00.123123123 Europe/Berlin").getTimestamp(null, null);
+        ts = LegacyDateTimeUtils.toTimestamp(null,  null,
+                ValueTimestamp.parse("2018-03-25 03:00:00.123123123 Europe/Berlin"));
         assertEquals(expected, ts.getTime());
         assertEquals(123123123, ts.getNanos());
-        ts = ValueTimestamp.parse("2018-03-25 03:00:00.123123123+02").getTimestamp(null, null);
+        ts = LegacyDateTimeUtils.toTimestamp(null,  null, ValueTimestamp.parse("2018-03-25 03:00:00.123123123+02"));
         assertEquals(expected, ts.getTime());
         assertEquals(123123123, ts.getNanos());
     }

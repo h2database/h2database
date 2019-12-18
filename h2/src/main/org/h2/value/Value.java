@@ -13,12 +13,8 @@ import java.lang.ref.SoftReference;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.CastDataProvider;
@@ -562,38 +558,6 @@ public abstract class Value extends VersionedValue<Value> {
 
     public boolean getBoolean() {
         return convertTo(BOOLEAN).getBoolean();
-    }
-
-    /**
-     * Get the date value converted to the specified timezone.
-     *
-     * @param timeZone the target timezone
-     * @return the date
-     */
-    public Date getDate(TimeZone timeZone) {
-        return convertTo(DATE).getDate(timeZone);
-    }
-
-    /**
-     * Get the time value converted to the specified timezone.
-     *
-     * @param provider the cast information provider
-     * @param timeZone the target timezone
-     * @return the date
-     */
-    public Time getTime(CastDataProvider provider, TimeZone timeZone) {
-        return convertTo(TIME, provider, false).getTime(provider, timeZone);
-    }
-
-    /**
-     * Get the timezone value converted to the specified timezone.
-     *
-     * @param provider the cast information provider
-     * @param timeZone the target timezone
-     * @return the date
-     */
-    public Timestamp getTimestamp(CastDataProvider provider, TimeZone timeZone) {
-        return convertTo(TIMESTAMP, provider, false).getTimestamp(provider, timeZone);
     }
 
     public byte[] getBytes() {

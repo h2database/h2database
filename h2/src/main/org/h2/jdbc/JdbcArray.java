@@ -286,7 +286,7 @@ public class JdbcArray extends TraceObject implements Array {
     }
 
     private Object[] get() {
-        return (Object[]) value.getObject();
+        return (Object[]) conn.convertToDefaultObject(value);
     }
 
     private Object[] get(long index, int count) {

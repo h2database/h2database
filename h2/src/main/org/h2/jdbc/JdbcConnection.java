@@ -50,10 +50,12 @@ import org.h2.result.ResultInterface;
 import org.h2.util.CloseWatcher;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.JdbcUtils;
+import org.h2.util.LegacyDateTimeUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueBytes;
+import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
@@ -2021,6 +2023,12 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
      */
     Object convertToDefaultObject(Value v) {
         switch (v.getValueType()) {
+        case Value.DATE:
+            return LegacyDateTimeUtils.toDate(this, null, v);
+        case Value.TIME:
+            return LegacyDateTimeUtils.toTime(this, null, v);
+        case Value.TIMESTAMP:
+            return LegacyDateTimeUtils.toTimestamp(this, null, v);
         case Value.CLOB: {
             int id = getNextId(TraceObject.CLOB);
             return new JdbcClob(this, v, JdbcLob.State.WITH_VALUE, id);
@@ -2028,6 +2036,16 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
         case Value.BLOB: {
             int id = getNextId(TraceObject.BLOB);
             return new JdbcBlob(this, v, JdbcLob.State.WITH_VALUE, id);
+        }
+        case Value.ARRAY:
+        case Value.ROW: {
+            Value[] values = ((ValueCollectionBase) v).getList();
+            int len = values.length;
+            Object[] list = new Object[len];
+            for (int i = 0; i < len; i++) {
+                list[i] = convertToDefaultObject(values[i]);
+            }
+            return list;
         }
         case Value.JAVA_OBJECT:
             if (SysProperties.serializeJavaObject) {

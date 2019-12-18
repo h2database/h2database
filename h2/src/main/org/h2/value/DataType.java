@@ -50,6 +50,7 @@ import org.h2.jdbc.JdbcLob;
 import org.h2.message.DbException;
 import org.h2.util.JSR310Utils;
 import org.h2.util.JdbcUtils;
+import org.h2.util.LegacyDateTimeUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
@@ -606,7 +607,7 @@ public class DataType {
                     // Nothing to do
                 }
                 Date value = rs.getDate(columnIndex);
-                v = value == null ? ValueNull.INSTANCE : ValueDate.get(null, value);
+                v = value == null ? ValueNull.INSTANCE : LegacyDateTimeUtils.fromDate(null, value);
                 break;
             }
             case Value.TIME: {
@@ -618,7 +619,7 @@ public class DataType {
                     // Nothing to do
                 }
                 Time value = rs.getTime(columnIndex);
-                v = value == null ? ValueNull.INSTANCE : ValueTime.get(null, value);
+                v = value == null ? ValueNull.INSTANCE : LegacyDateTimeUtils.fromTime(null, value);
                 break;
             }
             case Value.TIME_TZ: {
@@ -646,7 +647,7 @@ public class DataType {
                     // Nothing to do
                 }
                 Timestamp value = rs.getTimestamp(columnIndex);
-                v = value == null ? ValueNull.INSTANCE : ValueTimestamp.get(null, value);
+                v = value == null ? ValueNull.INSTANCE : LegacyDateTimeUtils.fromTimestamp(null, value);
                 break;
             }
             case Value.TIMESTAMP_TZ: {
@@ -1261,13 +1262,13 @@ public class DataType {
         } else if (x instanceof byte[]) {
             return ValueBytes.get((byte[]) x);
         } else if (x instanceof Date) {
-            return ValueDate.get(null, (Date) x);
+            return LegacyDateTimeUtils.fromDate(null, (Date) x);
         } else if (x instanceof Time) {
-            return ValueTime.get(null, (Time) x);
+            return LegacyDateTimeUtils.fromTime(null, (Time) x);
         } else if (x instanceof Timestamp) {
-            return ValueTimestamp.get(null, (Timestamp) x);
+            return LegacyDateTimeUtils.fromTimestamp(null, (Timestamp) x);
         } else if (x instanceof java.util.Date) {
-            return ValueTimestamp.fromMillis(((java.util.Date) x).getTime(), 0);
+            return LegacyDateTimeUtils.fromTimestamp(((java.util.Date) x).getTime(), 0);
         } else if (x instanceof java.io.Reader) {
             Reader r = new BufferedReader((java.io.Reader) x);
             return session.getDataHandler().getLobStorage().
@@ -1687,7 +1688,13 @@ public class DataType {
      */
     public static Object convertTo(JdbcConnection conn, Value v,
             Class<?> paramClass) {
-        if (paramClass == Blob.class) {
+        if (paramClass == Time.class) {
+            return LegacyDateTimeUtils.toTime(conn, null, v);
+        } else if (paramClass == Date.class) {
+            return LegacyDateTimeUtils.toDate(conn, null, v);
+        } else if (paramClass == Timestamp.class) {
+            return LegacyDateTimeUtils.toTimestamp(conn, null, v);
+        } else if (paramClass == Blob.class) {
             return new JdbcBlob(conn, v, JdbcLob.State.WITH_VALUE, 0);
         } else if (paramClass == Clob.class) {
             return new JdbcClob(conn, v, JdbcLob.State.WITH_VALUE, 0);

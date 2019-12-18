@@ -7,14 +7,13 @@ package org.h2.value;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Time;
 import java.sql.Types;
-import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.JSR310Utils;
+import org.h2.util.LegacyDateTimeUtils;
 
 /**
  * Implementation of the TIME data type.
@@ -72,19 +71,6 @@ public class ValueTime extends Value {
     }
 
     /**
-     * Get or create a time value for the given time.
-     *
-     * @param timeZone time zone, or {@code null} for default
-     * @param time the time
-     * @return the value
-     */
-    public static ValueTime get(TimeZone timeZone, Time time) {
-        long ms = time.getTime();
-        return fromNanos(DateTimeUtils.nanosFromLocalMillis(
-                ms + (timeZone == null ? DateTimeUtils.getTimeZoneOffsetMillis(ms) : timeZone.getOffset(ms))));
-    }
-
-    /**
      * Parse a string to a ValueTime.
      *
      * @param s the string to parse
@@ -104,11 +90,6 @@ public class ValueTime extends Value {
      */
     public long getNanos() {
         return nanos;
-    }
-
-    @Override
-    public Time getTime(CastDataProvider provider, TimeZone timeZone) {
-        return new Time(DateTimeUtils.getMillis(timeZone, DateTimeUtils.EPOCH_DATE_VALUE, nanos));
     }
 
     @Override
@@ -176,7 +157,7 @@ public class ValueTime extends Value {
 
     @Override
     public Object getObject() {
-        return getTime(null, null);
+        return JSR310Utils.valueToLocalTime(this, null);
     }
 
     @Override
@@ -187,7 +168,7 @@ public class ValueTime extends Value {
         } catch (SQLException ignore) {
             // Nothing to do
         }
-        prep.setTime(parameterIndex, getTime(null, null));
+        prep.setTime(parameterIndex, LegacyDateTimeUtils.toTime(null, null, this));
     }
 
     @Override

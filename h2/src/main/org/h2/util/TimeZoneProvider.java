@@ -45,6 +45,9 @@ public abstract class TimeZoneProvider {
         if (offset == 0) {
             return UTC;
         }
+        if (offset < (-18 * 60 * 60) || offset > (18 * 60 * 60)) {
+            throw new IllegalArgumentException("Time zone offset " + offset + " seconds is out of range");
+        }
         return new Simple(offset);
     }
 
@@ -54,10 +57,10 @@ public abstract class TimeZoneProvider {
      * @param id
      *            the ID of the time zone
      * @return the time zone provider with the specified name
-     * @throws IllegalArgumentException
+     * @throws RuntimeException
      *             if time zone with specified ID isn't known
      */
-    public static TimeZoneProvider ofId(String id) throws IllegalArgumentException {
+    public static TimeZoneProvider ofId(String id) throws RuntimeException {
         int length = id.length();
         if (length == 1 && id.charAt(0) == 'Z') {
             return UTC;
@@ -67,20 +70,20 @@ public abstract class TimeZoneProvider {
             if (length == 3) {
                 return UTC;
             }
-            index += 3;
+            index = 3;
         }
-        readOffset: if (length - index >= 2) {
+        if (length > index) {
             boolean negative = false;
             char c = id.charAt(index);
-            if (c == '+') {
-                c = id.charAt(++index);
-            } else if (c == '-') {
-                negative = true;
-                c = id.charAt(++index);
-            } else {
-                break readOffset;
+            if (length > index + 1) {
+                if (c == '+') {
+                    c = id.charAt(++index);
+                } else if (c == '-') {
+                    negative = true;
+                    c = id.charAt(++index);
+                }
             }
-            if (c >= '0' && c <= '9') {
+            if (index != 3 && c >= '0' && c <= '9') {
                 int hour = c - '0';
                 if (++index < length) {
                     c = id.charAt(index);

@@ -101,33 +101,29 @@ public class TimeZoneOperation extends Expression {
 
     private static int parseTimeZone(Value b, long dateValue, long timeNanos, int offsetSeconds,
             boolean allowTimeZoneName) {
-        int timeZoneType = b.getValueType();
-        if (DataType.isStringType(timeZoneType)) {
-            String s = b.getString();
-            if (s.equals("Z") || s.equals("UTC") || s.equals("GMT")) {
-                return 0;
-            } else if (!s.isEmpty()) {
-                char c = s.charAt(0);
-                if (c != '+' && c != '-' && (c < '0' || c > '9')) {
-                    TimeZoneProvider timeZone;
-                    try {
-                        timeZone = TimeZoneProvider.ofId(s);
-                    } catch (IllegalArgumentException ex) {
-                        throw DbException.getInvalidValueException("time zone", b.getSQL());
-                    }
-                    if (!allowTimeZoneName && !timeZone.hasFixedOffset()) {
-                        throw DbException.getInvalidValueException("time zone", b.getSQL());
-                    }
-                    return timeZone
-                            .getTimeZoneOffsetUTC(DateTimeUtils.getEpochSeconds(dateValue, timeNanos, offsetSeconds));
-                }
+        if (DataType.isStringType(b.getValueType())) {
+            TimeZoneProvider timeZone;
+            try {
+                timeZone = TimeZoneProvider.ofId(b.getString());
+            } catch (RuntimeException ex) {
+                throw DbException.getInvalidValueException("time zone", b.getSQL());
             }
+            if (!allowTimeZoneName && !timeZone.hasFixedOffset()) {
+                throw DbException.getInvalidValueException("time zone", b.getSQL());
+            }
+            return timeZone.getTimeZoneOffsetUTC(DateTimeUtils.getEpochSeconds(dateValue, timeNanos, offsetSeconds));
         }
         return parseInterval(b);
     }
 
-    private static int parseInterval(Value b) {
-        ValueInterval i = (ValueInterval) b.convertTo(Value.INTERVAL_HOUR_TO_SECOND);
+    /**
+     * Parses a daytime interval as time zone offset.
+     *
+     * @param interval the interval
+     * @return the time zone offset in seconds
+     */
+    public static int parseInterval(Value interval) {
+        ValueInterval i = (ValueInterval) interval.convertTo(Value.INTERVAL_HOUR_TO_SECOND);
         long h = i.getLeading(), seconds = i.getRemaining();
         if (h > 18 || h == 18 && seconds != 0 || seconds % DateTimeUtils.NANOS_PER_SECOND != 0) {
             throw DbException.getInvalidValueException("time zone", i.getSQL());

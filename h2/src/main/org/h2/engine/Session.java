@@ -2043,4 +2043,20 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         this.nonKeywords = nonKeywords;
     }
 
+    @Override
+    public StaticSettings getStaticSettings() {
+        StaticSettings settings = staticSettings;
+        if (settings == null) {
+            DbSettings dbSettings = database.getSettings();
+            staticSettings = settings = new StaticSettings(dbSettings.databaseToUpper, dbSettings.databaseToLower,
+                    dbSettings.caseInsensitiveIdentifiers);
+        }
+        return settings;
+    }
+
+    @Override
+    public DynamicSettings getDynamicSettings() {
+        return new DynamicSettings(database.getMode());
+    }
+
 }

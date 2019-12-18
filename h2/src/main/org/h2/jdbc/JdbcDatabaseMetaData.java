@@ -2595,7 +2595,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public boolean supportsMixedCaseIdentifiers() throws SQLException{
         debugCodeCall("supportsMixedCaseIdentifiers");
-        JdbcConnection.Settings settings = conn.getSettings();
+        SessionInterface.StaticSettings settings = conn.getStaticSettings();
         return !settings.databaseToUpper && !settings.databaseToLower && !settings.caseInsensitiveIdentifiers;
     }
 
@@ -2608,7 +2608,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public boolean storesUpperCaseIdentifiers() throws SQLException {
         debugCodeCall("storesUpperCaseIdentifiers");
-        return conn.getSettings().databaseToUpper;
+        return conn.getStaticSettings().databaseToUpper;
     }
 
     /**
@@ -2620,7 +2620,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public boolean storesLowerCaseIdentifiers() throws SQLException {
         debugCodeCall("storesLowerCaseIdentifiers");
-        return conn.getSettings().databaseToLower;
+        return conn.getStaticSettings().databaseToLower;
     }
 
     /**
@@ -2632,7 +2632,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public boolean storesMixedCaseIdentifiers() throws SQLException {
         debugCodeCall("storesMixedCaseIdentifiers");
-        JdbcConnection.Settings settings = conn.getSettings();
+        SessionInterface.StaticSettings settings = conn.getStaticSettings();
         return !settings.databaseToUpper && !settings.databaseToLower && settings.caseInsensitiveIdentifiers;
     }
 
@@ -2645,7 +2645,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public boolean supportsMixedCaseQuotedIdentifiers() throws SQLException {
         debugCodeCall("supportsMixedCaseQuotedIdentifiers");
-        return !conn.getSettings().caseInsensitiveIdentifiers;
+        return !conn.getStaticSettings().caseInsensitiveIdentifiers;
     }
 
     /**
@@ -2681,7 +2681,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public boolean storesMixedCaseQuotedIdentifiers() throws SQLException {
         debugCodeCall("storesMixedCaseQuotedIdentifiers");
-        return conn.getSettings().caseInsensitiveIdentifiers;
+        return conn.getStaticSettings().caseInsensitiveIdentifiers;
     }
 
     /**

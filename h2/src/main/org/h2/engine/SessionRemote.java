@@ -16,6 +16,8 @@ import org.h2.api.JavaObjectSerializer;
 import org.h2.command.CommandInterface;
 import org.h2.command.CommandRemote;
 import org.h2.command.dml.SetTypes;
+import org.h2.engine.Mode.ModeEnum;
+import org.h2.expression.ParameterInterface;
 import org.h2.jdbc.JdbcException;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
@@ -38,6 +40,7 @@ import org.h2.value.CompareMode;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
+import org.h2.value.ValueString;
 
 /**
  * The client side part of a session when using the server mode. This object
@@ -98,6 +101,8 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     private final CompareMode compareMode = CompareMode.getInstance(null, 0);
 
     private String currentSchemaName;
+
+    private volatile DynamicSettings dynamicSettings;
 
     public SessionRemote(ConnectionInfo ci) {
         this.connectionInfo = ci;
@@ -619,6 +624,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         } else if (status == STATUS_OK_STATE_CHANGED) {
             sessionStateChanged = true;
             currentSchemaName = null;
+            dynamicSettings = null;
         } else if (status == STATUS_OK) {
             // ok
         } else {
@@ -896,6 +902,74 @@ public class SessionRemote extends SessionWithState implements DataHandler {
                 command.executeUpdate(null);
             }
         }
+    }
+
+    @Override
+    public StaticSettings getStaticSettings() {
+        StaticSettings settings = staticSettings;
+        if (settings == null) {
+            boolean databaseToUpper = true, databaseToLower = false, caseInsensitiveIdentifiers = false;
+            try (CommandInterface command = prepareCommand(
+                    "SELECT NAME, `VALUE` FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME IN (?, ?, ?)",
+                    Integer.MAX_VALUE)) {
+                ArrayList<? extends ParameterInterface> parameters = command.getParameters();
+                parameters.get(0).setValue(ValueString.get("DATABASE_TO_UPPER"), false);
+                parameters.get(1).setValue(ValueString.get("DATABASE_TO_LOWER"), false);
+                parameters.get(2).setValue(ValueString.get("CASE_INSENSITIVE_IDENTIFIERS"), false);
+                try (ResultInterface result = command.executeQuery(Integer.MAX_VALUE, false)) {
+                    while (result.next()) {
+                        Value[] row = result.currentRow();
+                        String value = row[1].getString();
+                        switch (row[0].getString()) {
+                        case "DATABASE_TO_UPPER":
+                            databaseToUpper = Boolean.valueOf(value);
+                            break;
+                        case "DATABASE_TO_LOWER":
+                            databaseToLower = Boolean.valueOf(value);
+                            break;
+                        case "CASE_INSENSITIVE_IDENTIFIERS":
+                            caseInsensitiveIdentifiers = Boolean.valueOf(value);
+                        }
+                    }
+                }
+            }
+            if (clientVersion < Constants.TCP_PROTOCOL_VERSION_18) {
+                caseInsensitiveIdentifiers = !databaseToUpper;
+            }
+            staticSettings = settings = new StaticSettings(databaseToUpper, databaseToLower,
+                    caseInsensitiveIdentifiers);
+        }
+        return settings;
+    }
+
+    @Override
+    public DynamicSettings getDynamicSettings() {
+        DynamicSettings settings = dynamicSettings;
+        if (settings == null) {
+            String modeName = ModeEnum.REGULAR.name();
+            try (CommandInterface command = prepareCommand(
+                    "SELECT NAME, `VALUE` FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME = ?",
+                    Integer.MAX_VALUE)) {
+                ArrayList<? extends ParameterInterface> parameters = command.getParameters();
+                parameters.get(0).setValue(ValueString.get("MODE"), false);
+                try (ResultInterface result = command.executeQuery(Integer.MAX_VALUE, false)) {
+                    while (result.next()) {
+                        Value[] row = result.currentRow();
+                        String value = row[1].getString();
+                        switch (row[0].getString()) {
+                        case "MODE":
+                            modeName = value;
+                        }
+                    }
+                }
+            }
+            Mode mode = Mode.getInstance(modeName);
+            if (mode == null) {
+                mode = Mode.getRegular();
+            }
+            dynamicSettings = settings = new DynamicSettings(mode);
+        }
+        return settings;
     }
 
 }

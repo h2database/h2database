@@ -19,6 +19,67 @@ import org.h2.value.Value;
 public interface SessionInterface extends Closeable {
 
     /**
+     * Static settings.
+     */
+    final class StaticSettings {
+
+        /**
+         * Whether unquoted identifiers are converted to upper case.
+         */
+        public final boolean databaseToUpper;
+
+        /**
+         * Whether unquoted identifiers are converted to lower case.
+         */
+        public final boolean databaseToLower;
+
+        /**
+         * Whether all identifiers are case insensitive.
+         */
+        public final boolean caseInsensitiveIdentifiers;
+
+        /**
+         * Creates new instance of static settings.
+         *
+         * @param databaseToUpper
+         *            whether unquoted identifiers are converted to upper case
+         * @param databaseToLower
+         *            whether unquoted identifiers are converted to lower case
+         * @param caseInsensitiveIdentifiers
+         *            whether all identifiers are case insensitive
+         */
+        public StaticSettings(boolean databaseToUpper, boolean databaseToLower, boolean caseInsensitiveIdentifiers) {
+            this.databaseToUpper = databaseToUpper;
+            this.databaseToLower = databaseToLower;
+            this.caseInsensitiveIdentifiers = caseInsensitiveIdentifiers;
+        }
+
+    }
+
+    /**
+     * Dynamic settings.
+     */
+    final class DynamicSettings {
+
+        /**
+         * The database mode.
+         */
+        public final Mode mode;
+
+
+        /**
+         * Creates new instance of dynamic settings.
+         *
+         * @param mode
+         *            the database mode
+         */
+        public DynamicSettings(Mode mode) {
+            this.mode = mode;
+        }
+
+    }
+
+    /**
      * Get the list of the cluster servers for this session.
      *
      * @return A list of "ip:port" strings for the cluster servers in this
@@ -161,5 +222,21 @@ public interface SessionInterface extends Closeable {
      * @param isolationLevel the isolation level to set
      */
     void setIsolationLevel(IsolationLevel isolationLevel);
+
+    /**
+     * Returns static settings. These settings cannot be changed during
+     * lifecycle of session.
+     *
+     * @return static settings
+     */
+    StaticSettings getStaticSettings();
+
+    /**
+     * Returns dynamic settings. These settings can be changed during lifecycle
+     * of session.
+     *
+     * @return dynamic settings
+     */
+    DynamicSettings getDynamicSettings();
 
 }

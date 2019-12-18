@@ -61,7 +61,6 @@ import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
 import org.h2.store.InDoubtTransaction;
 import org.h2.tools.Csv;
-import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.StringUtils;
@@ -1865,7 +1864,7 @@ public class MetaTable extends Table {
                             // CLIENT_INFO
                             networkConnectionInfo == null ? null : networkConnectionInfo.getClientInfo(),
                             // SESSION_START
-                            DateTimeUtils.timestampTimeZoneFromMillis(s.getSessionStart()),
+                            s.getSessionStart(),
                             // ISOLATION_LEVEL
                             session.getIsolationLevel().getSQL(),
                             // STATEMENT

@@ -122,7 +122,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private boolean autoCommitAtTransactionEnd;
     private String currentTransactionName;
     private volatile long cancelAtNs;
-    private final long sessionStart = System.currentTimeMillis();
+    private final ValueTimestampTimeZone sessionStart;
     private ValueTimestampTimeZone transactionStart;
     private ValueTimestampTimeZone currentCommandStart;
     private HashMap<String, Value> variables;
@@ -203,6 +203,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         this.currentSchemaName = mainSchema != null ? mainSchema.getName()
                 : database.sysIdentifier(Constants.SCHEMA_MAIN);
         this.columnNamerConfiguration = ColumnNamerConfiguration.getDefault();
+        sessionStart = DateTimeUtils.currentTimestamp();
     }
 
     public void setLazyQueryExecution(boolean lazyQueryExecution) {
@@ -1502,7 +1503,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         autoCommit = false;
     }
 
-    public long getSessionStart() {
+    public ValueTimestampTimeZone getSessionStart() {
         return sessionStart;
     }
 

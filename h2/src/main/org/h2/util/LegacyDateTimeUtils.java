@@ -43,59 +43,68 @@ public final class LegacyDateTimeUtils {
     /**
      * Get or create a date value for the given date.
      *
+     * @param provider
+     *            the cast information provider
      * @param timeZone
      *            time zone, or {@code null} for default
      * @param date
      *            the date
      * @return the value
      */
-    public static ValueDate fromDate(TimeZone timeZone, Date date) {
+    public static ValueDate fromDate(CastDataProvider provider, TimeZone timeZone, Date date) {
         long ms = date.getTime();
         return ValueDate.fromDateValue(dateValueFromLocalMillis(
-                ms + (timeZone == null ? getTimeZoneOffsetMillis(ms) : timeZone.getOffset(ms))));
+                ms + (timeZone == null ? getTimeZoneOffsetMillis(provider, ms) : timeZone.getOffset(ms))));
     }
 
     /**
      * Get or create a time value for the given time.
      *
+     * @param provider
+     *            the cast information provider
      * @param timeZone
      *            time zone, or {@code null} for default
      * @param time
      *            the time
      * @return the value
      */
-    public static ValueTime fromTime(TimeZone timeZone, Time time) {
+    public static ValueTime fromTime(CastDataProvider provider, TimeZone timeZone, Time time) {
         long ms = time.getTime();
-        return ValueTime.fromNanos(
-                nanosFromLocalMillis(ms + (timeZone == null ? getTimeZoneOffsetMillis(ms) : timeZone.getOffset(ms))));
+        return ValueTime.fromNanos(nanosFromLocalMillis(
+                ms + (timeZone == null ? getTimeZoneOffsetMillis(provider, ms) : timeZone.getOffset(ms))));
     }
 
     /**
      * Get or create a timestamp value for the given timestamp.
      *
+     * @param provider
+     *            the cast information provider
      * @param timeZone
      *            time zone, or {@code null} for default
      * @param timestamp
      *            the timestamp
      * @return the value
      */
-    public static ValueTimestamp fromTimestamp(TimeZone timeZone, Timestamp timestamp) {
+    public static ValueTimestamp fromTimestamp(CastDataProvider provider, TimeZone timeZone, Timestamp timestamp) {
         long ms = timestamp.getTime();
-        return timestampFromLocalMillis(ms + (timeZone == null ? getTimeZoneOffsetMillis(ms) : timeZone.getOffset(ms)),
+        return timestampFromLocalMillis(
+                ms + (timeZone == null ? getTimeZoneOffsetMillis(provider, ms) : timeZone.getOffset(ms)),
                 timestamp.getNanos() % 1_000_000);
     }
 
     /**
      * Get or create a timestamp value for the given date/time in millis.
      *
+     * @param provider
+     *            the cast information provider
      * @param ms
      *            the milliseconds
      * @param nanos
      *            the nanoseconds
      * @return the value
      */
-    public static ValueTimestamp fromTimestamp(long ms, int nanos) {
-        return timestampFromLocalMillis(ms + getTimeZoneOffsetMillis(ms), nanos);
+    public static ValueTimestamp fromTimestamp(CastDataProvider provider, long ms, int nanos) {
+        return timestampFromLocalMillis(ms + getTimeZoneOffsetMillis(provider, ms), nanos);
     }
 
     private static ValueTimestamp timestampFromLocalMillis(long ms, int nanos) {
@@ -154,7 +163,7 @@ public final class LegacyDateTimeUtils {
             //$FALL-THROUGH$
         case Value.DATE:
             ValueDate v = (ValueDate) value;
-            return new Date(getMillis(timeZone, v.getDateValue(), 0));
+            return new Date(getMillis(provider, timeZone, v.getDateValue(), 0));
         }
     }
 
@@ -175,7 +184,8 @@ public final class LegacyDateTimeUtils {
             value = value.convertTo(Value.TIME, provider, false);
             //$FALL-THROUGH$
         case Value.TIME:
-            return new Time(getMillis(timeZone, DateTimeUtils.EPOCH_DATE_VALUE, ((ValueTime) value).getNanos()));
+            return new Time(
+                    getMillis(provider, timeZone, DateTimeUtils.EPOCH_DATE_VALUE, ((ValueTime) value).getNanos()));
         }
     }
 
@@ -198,7 +208,7 @@ public final class LegacyDateTimeUtils {
         case Value.TIMESTAMP: {
             ValueTimestamp v = (ValueTimestamp) value;
             long timeNanos = v.getTimeNanos();
-            Timestamp ts = new Timestamp(getMillis(timeZone, v.getDateValue(), timeNanos));
+            Timestamp ts = new Timestamp(getMillis(provider, timeZone, v.getDateValue(), timeNanos));
             ts.setNanos((int) (timeNanos % NANOS_PER_SECOND));
             return ts;
         }
@@ -217,6 +227,8 @@ public final class LegacyDateTimeUtils {
      * Calculate the milliseconds since 1970-01-01 (UTC) for the given date and
      * time (in the specified timezone).
      *
+     * @param provider
+     *            the cast information provider
      * @param tz
      *            the timezone of the parameters, or null for the default
      *            timezone
@@ -226,7 +238,7 @@ public final class LegacyDateTimeUtils {
      *            nanoseconds since midnight
      * @return the number of milliseconds (UTC)
      */
-    public static long getMillis(TimeZone tz, long dateValue, long timeNanos) {
+    public static long getMillis(CastDataProvider provider, TimeZone tz, long dateValue, long timeNanos) {
         TimeZoneProvider c = tz == null ? DateTimeUtils.getTimeZone() : TimeZoneProvider.ofId(tz.getID());
         return c.getEpochSecondsFromLocal(dateValue, timeNanos) * 1_000 + timeNanos / 1_000_000 % 1_000;
     }
@@ -234,11 +246,13 @@ public final class LegacyDateTimeUtils {
     /**
      * Returns local time zone offset for a specified timestamp.
      *
+     * @param provider
+     *            the cast information provider
      * @param ms
      *            milliseconds since Epoch in UTC
      * @return local time zone offset
      */
-    public static int getTimeZoneOffsetMillis(long ms) {
+    public static int getTimeZoneOffsetMillis(CastDataProvider provider, long ms) {
         long seconds = ms / 1_000;
         // Round toward negative infinity
         if (ms < 0 && (seconds * 1_000 != ms)) {

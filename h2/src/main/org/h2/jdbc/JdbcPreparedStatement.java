@@ -447,7 +447,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             if (isDebugEnabled()) {
                 debugCode("setDate(" + parameterIndex + ", " + quoteDate(x) + ");");
             }
-            setParameter(parameterIndex, x == null ? ValueNull.INSTANCE : LegacyDateTimeUtils.fromDate(null, x));
+            setParameter(parameterIndex, x == null ? ValueNull.INSTANCE : LegacyDateTimeUtils.fromDate(conn, null, x));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -466,7 +466,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             if (isDebugEnabled()) {
                 debugCode("setTime(" + parameterIndex + ", " + quoteTime(x) + ");");
             }
-            setParameter(parameterIndex, x == null ? ValueNull.INSTANCE : LegacyDateTimeUtils.fromTime(null, x));
+            setParameter(parameterIndex, x == null ? ValueNull.INSTANCE : LegacyDateTimeUtils.fromTime(conn, null, x));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -485,7 +485,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             if (isDebugEnabled()) {
                 debugCode("setTimestamp(" + parameterIndex + ", " + quoteTimestamp(x) + ");");
             }
-            setParameter(parameterIndex, x == null ? ValueNull.INSTANCE : LegacyDateTimeUtils.fromTimestamp(null, x));
+            setParameter(parameterIndex,
+                    x == null ? ValueNull.INSTANCE : LegacyDateTimeUtils.fromTimestamp(conn, null, x));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -758,7 +759,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
                 setParameter(parameterIndex, ValueNull.INSTANCE);
             } else {
                 setParameter(parameterIndex,
-                        LegacyDateTimeUtils.fromDate(calendar != null ? calendar.getTimeZone() : null, x));
+                        LegacyDateTimeUtils.fromDate(conn, calendar != null ? calendar.getTimeZone() : null, x));
             }
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -784,7 +785,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
                 setParameter(parameterIndex, ValueNull.INSTANCE);
             } else {
                 setParameter(parameterIndex,
-                        LegacyDateTimeUtils.fromTime(calendar != null ? calendar.getTimeZone() : null, x));
+                        LegacyDateTimeUtils.fromTime(conn, calendar != null ? calendar.getTimeZone() : null, x));
             }
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -810,7 +811,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
                 setParameter(parameterIndex, ValueNull.INSTANCE);
             } else {
                 setParameter(parameterIndex,
-                        LegacyDateTimeUtils.fromTimestamp(calendar != null ? calendar.getTimeZone() : null, x));
+                        LegacyDateTimeUtils.fromTimestamp(conn, calendar != null ? calendar.getTimeZone() : null, x));
             }
         } catch (Exception e) {
             throw logAndConvert(e);

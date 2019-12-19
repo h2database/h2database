@@ -607,7 +607,7 @@ public class DataType {
                     // Nothing to do
                 }
                 Date value = rs.getDate(columnIndex);
-                v = value == null ? ValueNull.INSTANCE : LegacyDateTimeUtils.fromDate(null, value);
+                v = value == null ? ValueNull.INSTANCE : LegacyDateTimeUtils.fromDate(session, null, value);
                 break;
             }
             case Value.TIME: {
@@ -619,7 +619,7 @@ public class DataType {
                     // Nothing to do
                 }
                 Time value = rs.getTime(columnIndex);
-                v = value == null ? ValueNull.INSTANCE : LegacyDateTimeUtils.fromTime(null, value);
+                v = value == null ? ValueNull.INSTANCE : LegacyDateTimeUtils.fromTime(session, null, value);
                 break;
             }
             case Value.TIME_TZ: {
@@ -647,7 +647,7 @@ public class DataType {
                     // Nothing to do
                 }
                 Timestamp value = rs.getTimestamp(columnIndex);
-                v = value == null ? ValueNull.INSTANCE : LegacyDateTimeUtils.fromTimestamp(null, value);
+                v = value == null ? ValueNull.INSTANCE : LegacyDateTimeUtils.fromTimestamp(session, null, value);
                 break;
             }
             case Value.TIMESTAMP_TZ: {
@@ -1262,13 +1262,13 @@ public class DataType {
         } else if (x instanceof byte[]) {
             return ValueBytes.get((byte[]) x);
         } else if (x instanceof Date) {
-            return LegacyDateTimeUtils.fromDate(null, (Date) x);
+            return LegacyDateTimeUtils.fromDate(session, null, (Date) x);
         } else if (x instanceof Time) {
-            return LegacyDateTimeUtils.fromTime(null, (Time) x);
+            return LegacyDateTimeUtils.fromTime(session, null, (Time) x);
         } else if (x instanceof Timestamp) {
-            return LegacyDateTimeUtils.fromTimestamp(null, (Timestamp) x);
+            return LegacyDateTimeUtils.fromTimestamp(session, null, (Timestamp) x);
         } else if (x instanceof java.util.Date) {
-            return LegacyDateTimeUtils.fromTimestamp(((java.util.Date) x).getTime(), 0);
+            return LegacyDateTimeUtils.fromTimestamp(session, ((java.util.Date) x).getTime(), 0);
         } else if (x instanceof java.io.Reader) {
             Reader r = new BufferedReader((java.io.Reader) x);
             return session.getDataHandler().getLobStorage().

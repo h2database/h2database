@@ -1573,7 +1573,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                         null : v3 == ValueNull.INSTANCE ? null : v3.getString();
                 java.util.Date d = DateTimeFunctions.parseDateTime(
                         v0.getString(), v1.getString(), locale, tz);
-                result = LegacyDateTimeUtils.fromTimestamp(d.getTime(), 0);
+                result = LegacyDateTimeUtils.fromTimestamp(session, d.getTime(), 0);
             }
             break;
         }

@@ -1740,7 +1740,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             if (isDebugEnabled()) {
                 debugCode("updateDate(" + columnIndex + ", x);");
             }
-            update(columnIndex, x == null ? ValueNull.INSTANCE : LegacyDateTimeUtils.fromDate(null, x));
+            update(columnIndex, x == null ? ValueNull.INSTANCE : LegacyDateTimeUtils.fromDate(conn, null, x));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1759,7 +1759,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             if (isDebugEnabled()) {
                 debugCode("updateDate(" + quote(columnLabel) + ", x);");
             }
-            update(columnLabel, x == null ? ValueNull.INSTANCE : LegacyDateTimeUtils.fromDate(null, x));
+            update(columnLabel, x == null ? ValueNull.INSTANCE : LegacyDateTimeUtils.fromDate(conn, null, x));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1778,7 +1778,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             if (isDebugEnabled()) {
                 debugCode("updateTime(" + columnIndex + ", x);");
             }
-            update(columnIndex, x == null ? ValueNull.INSTANCE : LegacyDateTimeUtils.fromTime(null, x));
+            update(columnIndex, x == null ? ValueNull.INSTANCE : LegacyDateTimeUtils.fromTime(conn, null, x));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1797,7 +1797,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             if (isDebugEnabled()) {
                 debugCode("updateTime(" + quote(columnLabel) + ", x);");
             }
-            update(columnLabel, x == null ? ValueNull.INSTANCE : LegacyDateTimeUtils.fromTime(null, x));
+            update(columnLabel, x == null ? ValueNull.INSTANCE : LegacyDateTimeUtils.fromTime(conn, null, x));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1816,7 +1816,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             if (isDebugEnabled()) {
                 debugCode("updateTimestamp(" + columnIndex + ", x);");
             }
-            update(columnIndex, x == null ? ValueNull.INSTANCE : LegacyDateTimeUtils.fromTimestamp(null, x));
+            update(columnIndex, x == null ? ValueNull.INSTANCE : LegacyDateTimeUtils.fromTimestamp(conn, null, x));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1835,7 +1835,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             if (isDebugEnabled()) {
                 debugCode("updateTimestamp(" + quote(columnLabel) + ", x);");
             }
-            update(columnLabel, x == null ? ValueNull.INSTANCE : LegacyDateTimeUtils.fromTimestamp(null, x));
+            update(columnLabel, x == null ? ValueNull.INSTANCE : LegacyDateTimeUtils.fromTimestamp(conn, null, x));
         } catch (Exception e) {
             throw logAndConvert(e);
         }

@@ -75,7 +75,7 @@ public class TestDate extends TestBase {
 
     private void testValueDate() {
         assertEquals("2000-01-01",
-                LegacyDateTimeUtils.fromDate(null, Date.valueOf("2000-01-01")).getString());
+                LegacyDateTimeUtils.fromDate(null, null, Date.valueOf("2000-01-01")).getString());
         assertEquals("0000-00-00",
                 ValueDate.fromDateValue(0).getString());
         assertEquals("9999-12-31",
@@ -111,7 +111,7 @@ public class TestDate extends TestBase {
     }
 
     private void testValueTime() {
-        assertEquals("10:20:30", LegacyDateTimeUtils.fromTime(null, Time.valueOf("10:20:30")).getString());
+        assertEquals("10:20:30", LegacyDateTimeUtils.fromTime(null, null, Time.valueOf("10:20:30")).getString());
         assertEquals("00:00:00", ValueTime.fromNanos(0).getString());
         assertEquals("23:59:59", ValueTime.parse("23:59:59").getString());
         assertEquals("11:22:33.444555666", ValueTime.parse("11:22:33.444555666").getString());
@@ -178,10 +178,10 @@ public class TestDate extends TestBase {
     private void testValueTimestamp() {
         assertEquals(
                 "2001-02-03 04:05:06",
-                LegacyDateTimeUtils.fromTimestamp(null, Timestamp.valueOf("2001-02-03 04:05:06")).getString());
+                LegacyDateTimeUtils.fromTimestamp(null, null, Timestamp.valueOf("2001-02-03 04:05:06")).getString());
         assertEquals(
                 "2001-02-03 04:05:06.001002003",
-                LegacyDateTimeUtils.fromTimestamp(null, Timestamp.valueOf("2001-02-03 04:05:06.001002003"))
+                LegacyDateTimeUtils.fromTimestamp(null, null, Timestamp.valueOf("2001-02-03 04:05:06.001002003"))
                 .getString());
         assertEquals(
                 "0000-00-00 00:00:00", ValueTimestamp.fromDateValueAndNanos(0, 0).getString());
@@ -391,7 +391,8 @@ public class TestDate extends TestBase {
     }
 
     private static void testDate(int y, int m, int day) {
-        long millis = LegacyDateTimeUtils.getMillis(TimeZone.getDefault(), DateTimeUtils.dateValue(y, m, day), 0);
+        long millis = LegacyDateTimeUtils.getMillis(null, TimeZone.getDefault(), DateTimeUtils.dateValue(y, m, day),
+                0);
         String st = new java.sql.Date(millis).toString();
         int y2 = Integer.parseInt(st.substring(0, 4));
         int m2 = Integer.parseInt(st.substring(5, 7));
@@ -447,9 +448,9 @@ public class TestDate extends TestBase {
             assertEquals("19999-08-07", d2.getString());
             assertEquals("13:14:15.16", t2.getString());
             TimeZone timeZone = TimeZone.getDefault();
-            ValueTimestamp ts1a = LegacyDateTimeUtils.fromTimestamp(timeZone,
+            ValueTimestamp ts1a = LegacyDateTimeUtils.fromTimestamp(null, timeZone,
                     LegacyDateTimeUtils.toTimestamp(null,  null, ts1));
-            ValueTimestamp ts2a = LegacyDateTimeUtils.fromTimestamp(timeZone,
+            ValueTimestamp ts2a = LegacyDateTimeUtils.fromTimestamp(null, timeZone,
                     LegacyDateTimeUtils.toTimestamp(null,  null, ts2));
             assertEquals("-0999-08-07 13:14:15.16", ts1a.getString());
             assertEquals("19999-08-07 13:14:15.16", ts2a.getString());

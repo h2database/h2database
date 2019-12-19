@@ -175,8 +175,8 @@ public class TestDateTimeUtils extends TestBase {
             for (int j = 0; j < 48; j++) {
                 gc.set(year, month - 1, day, j / 2, (j & 1) * 30, 0);
                 long timeMillis = gc.getTimeInMillis();
-                ValueTimestamp ts = LegacyDateTimeUtils.fromTimestamp(null, new Timestamp(timeMillis));
-                timeMillis += LegacyDateTimeUtils.getTimeZoneOffsetMillis(timeMillis);
+                ValueTimestamp ts = LegacyDateTimeUtils.fromTimestamp(null, null, new Timestamp(timeMillis));
+                timeMillis += LegacyDateTimeUtils.getTimeZoneOffsetMillis(null, timeMillis);
                 assertEquals(ts.getDateValue(), LegacyDateTimeUtils.dateValueFromLocalMillis(timeMillis));
                 assertEquals(ts.getTimeNanos(), LegacyDateTimeUtils.nanosFromLocalMillis(timeMillis));
             }
@@ -313,11 +313,11 @@ public class TestDateTimeUtils extends TestBase {
         try {
             long n = -1111971600;
             assertEquals(3_600, DateTimeUtils.getTimeZoneOffset(n - 1));
-            assertEquals(3_600_000, LegacyDateTimeUtils.getTimeZoneOffsetMillis(n * 1_000 - 1));
+            assertEquals(3_600_000, LegacyDateTimeUtils.getTimeZoneOffsetMillis(null, n * 1_000 - 1));
             assertEquals(0, DateTimeUtils.getTimeZoneOffset(n));
-            assertEquals(0, LegacyDateTimeUtils.getTimeZoneOffsetMillis(n * 1_000));
+            assertEquals(0, LegacyDateTimeUtils.getTimeZoneOffsetMillis(null, n * 1_000));
             assertEquals(0, DateTimeUtils.getTimeZoneOffset(n + 1));
-            assertEquals(0, LegacyDateTimeUtils.getTimeZoneOffsetMillis(n * 1_000 + 1));
+            assertEquals(0, LegacyDateTimeUtils.getTimeZoneOffsetMillis(null, n * 1_000 + 1));
         } finally {
             TimeZone.setDefault(old);
             DateTimeUtils.resetCalendar();

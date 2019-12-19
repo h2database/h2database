@@ -852,14 +852,14 @@ public class Data {
         case DATE: {
             long ms = readVarLong() * MILLIS_PER_MINUTE - zoneOffsetMillis;
             return ValueDate.fromDateValue(LegacyDateTimeUtils.dateValueFromLocalMillis(
-                    ms + LegacyDateTimeUtils.getTimeZoneOffsetMillis(ms)));
+                    ms + LegacyDateTimeUtils.getTimeZoneOffsetMillis(null, ms)));
         }
         case LOCAL_TIME:
             return ValueTime.fromNanos(readVarLong() * 1_000_000 + readVarInt());
         case TIME: {
             long ms = readVarLong() - zoneOffsetMillis;
-            return ValueTime.fromNanos(
-                    LegacyDateTimeUtils.nanosFromLocalMillis(ms + LegacyDateTimeUtils.getTimeZoneOffsetMillis(ms)));
+            return ValueTime.fromNanos(LegacyDateTimeUtils.nanosFromLocalMillis(
+                    ms + LegacyDateTimeUtils.getTimeZoneOffsetMillis(null, ms)));
         }
         case TIME_TZ:
             return ValueTimeTimeZone.fromNanos(readVarInt() * DateTimeUtils.NANOS_PER_SECOND + readVarInt(),
@@ -867,7 +867,7 @@ public class Data {
         case LOCAL_TIMESTAMP:
             return ValueTimestamp.fromDateValueAndNanos(readVarLong(), readVarLong() * 1_000_000 + readVarInt());
         case TIMESTAMP:
-            return LegacyDateTimeUtils.fromTimestamp(readVarLong() - zoneOffsetMillis, readVarInt() % 1_000_000);
+            return LegacyDateTimeUtils.fromTimestamp(null, readVarLong() - zoneOffsetMillis, readVarInt() % 1_000_000);
         case TIMESTAMP_TZ: {
             long dateValue = readVarLong();
             long nanos = readVarLong();

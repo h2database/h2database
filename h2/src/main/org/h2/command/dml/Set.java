@@ -34,6 +34,7 @@ import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
+import org.h2.value.ValueNull;
 
 /**
  * This class represents the statement
@@ -653,6 +654,8 @@ public class Set extends Prepared {
                 throw DbException.getInvalidValueException("time zone", v.getSQL());
             }
             return timeZone;
+        } else if (v == ValueNull.INSTANCE) {
+            throw DbException.getInvalidValueException("TIME ZONE", v);
         }
         return TimeZoneProvider.ofOffset(TimeZoneOperation.parseInterval(v));
     }

@@ -184,19 +184,19 @@ public class TestTimeStampWithTimeZone extends TestDb {
 
     private void testConversionsImpl(String timeStr, boolean testReverse, CastDataProvider provider) {
         ValueTimestamp ts = ValueTimestamp.parse(timeStr);
-        ValueDate d = (ValueDate) ts.convertTo(Value.DATE);
-        ValueTime t = (ValueTime) ts.convertTo(Value.TIME);
+        ValueDate d = (ValueDate) ts.convertTo(Value.DATE, provider, false);
+        ValueTime t = (ValueTime) ts.convertTo(Value.TIME, provider, false);
         ValueTimestampTimeZone tstz = ValueTimestampTimeZone.parse(timeStr);
-        assertEquals(ts, tstz.convertTo(Value.TIMESTAMP));
-        assertEquals(d, tstz.convertTo(Value.DATE));
-        assertEquals(t, tstz.convertTo(Value.TIME));
+        assertEquals(ts, tstz.convertTo(Value.TIMESTAMP, provider, false));
+        assertEquals(d, tstz.convertTo(Value.DATE, provider, false));
+        assertEquals(t, tstz.convertTo(Value.TIME, provider, false));
         assertEquals(LegacyDateTimeUtils.toTimestamp(provider, null, ts),
                 LegacyDateTimeUtils.toTimestamp(provider, null, tstz));
         if (testReverse) {
-            assertEquals(0, tstz.compareTo(ts.convertTo(Value.TIMESTAMP_TZ), null, null));
-            assertEquals(d.convertTo(Value.TIMESTAMP).convertTo(Value.TIMESTAMP_TZ),
-                    d.convertTo(Value.TIMESTAMP_TZ));
-            assertEquals(t.convertTo(Value.TIMESTAMP, provider, false).convertTo(Value.TIMESTAMP_TZ),
+            assertEquals(0, tstz.compareTo(ts.convertTo(Value.TIMESTAMP_TZ, provider, false), null, null));
+            assertEquals(d.convertTo(Value.TIMESTAMP, provider, false).convertTo(Value.TIMESTAMP_TZ, provider, false),
+                    d.convertTo(Value.TIMESTAMP_TZ, provider, false));
+            assertEquals(t.convertTo(Value.TIMESTAMP, provider, false).convertTo(Value.TIMESTAMP_TZ, provider, false),
                     t.convertTo(Value.TIMESTAMP_TZ, provider, false));
         }
     }

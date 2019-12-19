@@ -896,7 +896,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             result = ValueString.get(StringUtils.xmlStartDoc(), database);
             break;
         case CURRENT_DATE:
-            result = session.currentTimestamp().convertTo(Value.DATE);
+            result = session.currentTimestamp().convertTo(Value.DATE, session, false);
             break;
         case CURRENT_TIME:
             result = session.currentTimestamp().convertTo(Value.TIME_TZ, session, false) //

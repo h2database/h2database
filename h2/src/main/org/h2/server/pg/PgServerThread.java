@@ -589,7 +589,8 @@ public class PgServerThread implements Runnable {
                 break;
             }
             case PgServer.PG_TYPE_DATE: {
-                ValueDate d = (ValueDate) v.convertTo(Value.DATE);
+                ValueDate d = (ValueDate) v.convertTo(Value.DATE,
+                        (JdbcConnection) rs.getStatement().getConnection(), false);
                 writeInt(4);
                 writeInt((int) (toPostgreDays(d.getDateValue())));
                 break;

@@ -783,7 +783,7 @@ public abstract class Value extends VersionedValue<Value> {
             case FLOAT:
                 return convertToFloat();
             case DATE:
-                return convertToDate();
+                return convertToDate(provider);
             case TIME:
                 return convertToTime(provider, forComparison);
             case TIME_TZ:
@@ -1127,7 +1127,7 @@ public abstract class Value extends VersionedValue<Value> {
         return ValueFloat.get(Float.parseFloat(getString().trim()));
     }
 
-    private ValueDate convertToDate() {
+    private ValueDate convertToDate(CastDataProvider provider) {
         switch (getValueType()) {
         case TIMESTAMP:
             return ValueDate.fromDateValue(((ValueTimestamp) this).getDateValue());

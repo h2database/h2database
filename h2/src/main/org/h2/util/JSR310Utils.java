@@ -56,10 +56,12 @@ public class JSR310Utils {
      *
      * @param value
      *            the value to convert
+     * @param provider
+     *            the cast information provider
      * @return the LocalDate
      */
-    public static Object valueToLocalDate(Value value) {
-        long dateValue = ((ValueDate) value.convertTo(Value.DATE)).getDateValue();
+    public static Object valueToLocalDate(Value value, CastDataProvider provider) {
+        long dateValue = ((ValueDate) value.convertTo(Value.DATE, provider, false)).getDateValue();
         if (dateValue > MAX_DATE_VALUE) {
             dateValue = MAX_DATE_VALUE;
         } else if (dateValue < MIN_DATE_VALUE) {

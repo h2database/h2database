@@ -109,13 +109,13 @@ public class ValueDate extends Value {
 
     @Override
     public Object getObject() {
-        return JSR310Utils.valueToLocalDate(this);
+        return JSR310Utils.valueToLocalDate(this, null);
     }
 
     @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
         try {
-            prep.setObject(parameterIndex, JSR310Utils.valueToLocalDate(this), Types.DATE);
+            prep.setObject(parameterIndex, JSR310Utils.valueToLocalDate(this, null), Types.DATE);
             return;
         } catch (SQLException ignore) {
             // Nothing to do

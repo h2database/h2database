@@ -246,7 +246,7 @@ public class FunctionsMySQL extends FunctionsBase {
                 //$FALL-THROUGH$
             case Value.TIMESTAMP:
             case Value.TIMESTAMP_TZ:
-                result = v0.convertTo(Value.DATE);
+                result = v0.convertTo(Value.DATE, session, false);
             }
             break;
         case LAST_INSERT_ID:

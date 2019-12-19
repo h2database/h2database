@@ -4008,7 +4008,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         } else if (DataType.isGeometryClass(type)) {
             return (T) value.convertTo(Value.GEOMETRY).getObject();
         } else if (type == LocalDate.class) {
-            return (T) JSR310Utils.valueToLocalDate(value);
+            return (T) JSR310Utils.valueToLocalDate(value, conn);
         } else if (type == LocalTime.class) {
             return (T) JSR310Utils.valueToLocalTime(value, conn);
         } else if (type == LocalDateTime.class) {

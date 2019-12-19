@@ -322,19 +322,19 @@ public class DateTimeUtils {
         }
         long dateValue = parseDateValue(s, 0, dateEnd);
         long nanos;
-        int tzSeconds = 0;
+        TimeZoneProvider tz = null;
         if (timeStart < 0) {
             nanos = 0;
         } else {
-            int timeEnd = s.length();
-            TimeZoneProvider tz = null;
+            dateEnd++;
+            int timeEnd;
             if (s.endsWith("Z")) {
                 tz = TimeZoneProvider.UTC;
-                timeEnd--;
+                timeEnd = s.length() - 1;
             } else {
-                int timeZoneStart = s.indexOf('+', dateEnd + 1);
+                int timeZoneStart = s.indexOf('+', dateEnd);
                 if (timeZoneStart < 0) {
-                    timeZoneStart = s.indexOf('-', dateEnd + 1);
+                    timeZoneStart = s.indexOf('-', dateEnd);
                 }
                 if (timeZoneStart >= 0) {
                     // Allow [timeZoneName] part after time zone offset
@@ -348,30 +348,34 @@ public class DateTimeUtils {
                     }
                     timeEnd = timeZoneStart;
                 } else {
-                    timeZoneStart = s.indexOf(' ', dateEnd + 1);
+                    timeZoneStart = s.indexOf(' ', dateEnd);
                     if (timeZoneStart > 0) {
                         tz = TimeZoneProvider.ofId(s.substring(timeZoneStart + 1));
                         timeEnd = timeZoneStart;
+                    } else {
+                        timeEnd = s.length();
                     }
                 }
             }
-            nanos = parseTimeNanos(s, dateEnd + 1, timeEnd);
-            if (tz != null) {
-                if (withTimeZone) {
-                    if (tz != TimeZoneProvider.UTC) {
-                        long seconds = tz.getEpochSecondsFromLocal(dateValue, nanos);
-                        tzSeconds = tz.getTimeZoneOffsetUTC(seconds);
-                    }
-                } else {
-                    long seconds = tz.getEpochSecondsFromLocal(dateValue, nanos);
-                    seconds += getTimeZoneOffset(seconds);
-                    dateValue = dateValueFromLocalSeconds(seconds);
-                    nanos = nanos % 1_000_000_000 + nanosFromLocalSeconds(seconds);
-                }
-            }
+            nanos = parseTimeNanos(s, dateEnd, timeEnd);
         }
         if (withTimeZone) {
+            int tzSeconds;
+            if (tz != null) {
+                if (tz != TimeZoneProvider.UTC) {
+                    tzSeconds = tz.getTimeZoneOffsetUTC(tz.getEpochSecondsFromLocal(dateValue, nanos));
+                } else {
+                    tzSeconds = 0;
+                }
+            } else {
+                tzSeconds = DateTimeUtils.getTimeZoneOffset(dateValue, nanos);
+            }
             return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, nanos, tzSeconds);
+        } else if (tz != null) {
+            long seconds = tz.getEpochSecondsFromLocal(dateValue, nanos);
+            seconds += getTimeZoneOffset(seconds);
+            dateValue = dateValueFromLocalSeconds(seconds);
+            nanos = nanos % 1_000_000_000 + nanosFromLocalSeconds(seconds);
         }
         return ValueTimestamp.fromDateValueAndNanos(dateValue, nanos);
     }

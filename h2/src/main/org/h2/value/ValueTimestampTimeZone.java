@@ -93,14 +93,16 @@ public class ValueTimestampTimeZone extends Value {
      * part.
      *
      * @param s the string to parse
+     * @param provider
+     *            the cast information provider, may be {@code null} for
+     *            literals with time zone
      * @return the date
      */
-    public static ValueTimestampTimeZone parse(String s) {
+    public static ValueTimestampTimeZone parse(String s, CastDataProvider provider) {
         try {
-            return (ValueTimestampTimeZone) DateTimeUtils.parseTimestamp(s, null, true);
+            return (ValueTimestampTimeZone) DateTimeUtils.parseTimestamp(s, provider, true);
         } catch (Exception e) {
-            throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2, e,
-                    "TIMESTAMP WITH TIME ZONE", s);
+            throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2, e, "TIMESTAMP WITH TIME ZONE", s);
         }
     }
 

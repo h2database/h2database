@@ -297,7 +297,8 @@ public class DateTimeUtils {
      * @param s
      *            string to parse
      * @param provider
-     *            the cast information provider, or {@code null}
+     *            the cast information provider, may be {@code null} for
+     *            Standard-compliant literals
      * @param withTimeZone
      *            if {@code true} return {@link ValueTimestampTimeZone} instead of
      *            {@link ValueTimestamp}

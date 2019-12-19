@@ -119,8 +119,8 @@ public class TestTimeStampWithTimeZone extends TestDb {
     }
 
     private void test2() {
-        ValueTimestampTimeZone a = ValueTimestampTimeZone.parse("1970-01-01 12:00:00.00+00:15");
-        ValueTimestampTimeZone b = ValueTimestampTimeZone.parse("1970-01-01 12:00:01.00+01:15");
+        ValueTimestampTimeZone a = ValueTimestampTimeZone.parse("1970-01-01 12:00:00.00+00:15", null);
+        ValueTimestampTimeZone b = ValueTimestampTimeZone.parse("1970-01-01 12:00:01.00+01:15", null);
         int c = a.compareTo(b, null, null);
         assertEquals(1, c);
         c = b.compareTo(a, null, null);
@@ -128,8 +128,8 @@ public class TestTimeStampWithTimeZone extends TestDb {
     }
 
     private void test3() {
-        ValueTimestampTimeZone a = ValueTimestampTimeZone.parse("1970-01-02 00:00:02.00+01:15");
-        ValueTimestampTimeZone b = ValueTimestampTimeZone.parse("1970-01-01 23:00:01.00+00:15");
+        ValueTimestampTimeZone a = ValueTimestampTimeZone.parse("1970-01-02 00:00:02.00+01:15", null);
+        ValueTimestampTimeZone b = ValueTimestampTimeZone.parse("1970-01-01 23:00:01.00+00:15", null);
         int c = a.compareTo(b, null, null);
         assertEquals(1, c);
         c = b.compareTo(a, null, null);
@@ -137,8 +137,8 @@ public class TestTimeStampWithTimeZone extends TestDb {
     }
 
     private void test4() {
-        ValueTimestampTimeZone a = ValueTimestampTimeZone.parse("1970-01-02 00:00:01.00+01:15");
-        ValueTimestampTimeZone b = ValueTimestampTimeZone.parse("1970-01-01 23:00:01.00+00:15");
+        ValueTimestampTimeZone a = ValueTimestampTimeZone.parse("1970-01-02 00:00:01.00+01:15", null);
+        ValueTimestampTimeZone b = ValueTimestampTimeZone.parse("1970-01-01 23:00:01.00+00:15", null);
         int c = a.compareTo(b, null, null);
         assertEquals(0, c);
         c = b.compareTo(a, null, null);
@@ -155,7 +155,7 @@ public class TestTimeStampWithTimeZone extends TestDb {
         PreparedStatement preparedStatement = conn.prepareStatement("select id"
                         + " from test5"
                         + " where (t1 < ?)");
-        Value value = ValueTimestampTimeZone.parse("2016-12-24 00:00:00.000000001+00:01");
+        Value value = ValueTimestampTimeZone.parse("2016-12-24 00:00:00.000000001+00:01", null);
         preparedStatement.setObject(1, value.getObject());
 
         ResultSet rs = preparedStatement.executeQuery();
@@ -183,10 +183,10 @@ public class TestTimeStampWithTimeZone extends TestDb {
     }
 
     private void testConversionsImpl(String timeStr, boolean testReverse, CastDataProvider provider) {
-        ValueTimestamp ts = ValueTimestamp.parse(timeStr);
+        ValueTimestamp ts = ValueTimestamp.parse(timeStr, null);
         ValueDate d = (ValueDate) ts.convertTo(Value.DATE, provider, false);
         ValueTime t = (ValueTime) ts.convertTo(Value.TIME, provider, false);
-        ValueTimestampTimeZone tstz = ValueTimestampTimeZone.parse(timeStr);
+        ValueTimestampTimeZone tstz = ValueTimestampTimeZone.parse(timeStr, null);
         assertEquals(ts, tstz.convertTo(Value.TIMESTAMP, provider, false));
         assertEquals(d, tstz.convertTo(Value.DATE, provider, false));
         assertEquals(t, tstz.convertTo(Value.TIME, provider, false));

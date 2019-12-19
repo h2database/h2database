@@ -664,7 +664,7 @@ public class DataType {
                 } else if (obj instanceof ZonedDateTime) {
                     v = JSR310Utils.zonedDateTimeToValue(obj);
                 } else {
-                    v = ValueTimestampTimeZone.parse(obj.toString());
+                    v = ValueTimestampTimeZone.parse(obj.toString(), session);
                 }
                 break;
             }

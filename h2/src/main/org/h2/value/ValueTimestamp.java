@@ -76,32 +76,21 @@ public class ValueTimestamp extends Value {
     }
 
     /**
-     * Parse a string to a ValueTimestamp. This method supports the format
-     * +/-year-month-day hour[:.]minute[:.]seconds.fractional and an optional timezone
-     * part.
-     *
-     * @param s the string to parse
-     * @return the date
-     */
-    public static ValueTimestamp parse(String s) {
-        return parse(s, null);
-    }
-
-    /**
      * Parse a string to a ValueTimestamp, using the given {@link CastDataProvider}.
      * This method supports the format +/-year-month-day[ -]hour[:.]minute[:.]seconds.fractional
      * and an optional timezone part.
      *
      * @param s the string to parse
-     * @param provider the cast information provider, or {@code null}
+     * @param provider
+     *            the cast information provider, may be {@code null} for
+     *            literals without time zone
      * @return the date
      */
     public static ValueTimestamp parse(String s, CastDataProvider provider) {
         try {
             return (ValueTimestamp) DateTimeUtils.parseTimestamp(s, provider, false);
         } catch (Exception e) {
-            throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2,
-                    e, "TIMESTAMP", s);
+            throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2, e, "TIMESTAMP", s);
         }
     }
 

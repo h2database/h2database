@@ -4798,7 +4798,7 @@ public class Parser {
                     }
                     String timestamp = currentValue.getString();
                     read();
-                    return ValueExpression.get(ValueTimestampTimeZone.parse(timestamp));
+                    return ValueExpression.get(ValueTimestampTimeZone.parse(timestamp, session));
                 } else {
                     boolean without = readIf("WITHOUT");
                     if (without) {
@@ -4808,7 +4808,7 @@ public class Parser {
                     if (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING) {
                         String timestamp = currentValue.getString();
                         read();
-                        return ValueExpression.get(ValueTimestamp.parse(timestamp, database));
+                        return ValueExpression.get(ValueTimestamp.parse(timestamp, session));
                     } else if (without) {
                         throw getSyntaxError();
                     }
@@ -4823,7 +4823,7 @@ public class Parser {
                 } else if (equalsToken("TS", name)) {
                     String timestamp = currentValue.getString();
                     read();
-                    return ValueExpression.get(ValueTimestamp.parse(timestamp, database));
+                    return ValueExpression.get(ValueTimestamp.parse(timestamp, session));
                 }
             }
             break;

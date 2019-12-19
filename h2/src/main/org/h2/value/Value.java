@@ -1254,7 +1254,7 @@ public abstract class Value extends VersionedValue<Value> {
         case ENUM:
             throw getDataConversionError(TIMESTAMP_TZ);
         }
-        return ValueTimestampTimeZone.parse(getString().trim());
+        return ValueTimestampTimeZone.parse(getString().trim(), provider);
     }
 
     private ValueBytes convertToBytes(CastDataProvider provider) {

@@ -169,7 +169,7 @@ public class TestDataPage extends TestBase implements DataHandler {
         testValue(LegacyDateTimeUtils.fromTime(null, null, new Time(0)));
         testValue(LegacyDateTimeUtils.fromTimestamp(null, System.currentTimeMillis(), 0));
         testValue(LegacyDateTimeUtils.fromTimestamp(null, 0L, 0));
-        testValue(ValueTimestampTimeZone.parse("2000-01-01 10:00:00"));
+        testValue(ValueTimestampTimeZone.parse("2000-01-01 10:00:00+00", null));
         testValue(ValueJavaObject.getNoCopy(null, new byte[0], this));
         testValue(ValueJavaObject.getNoCopy(null, new byte[100], this));
         for (int i = 0; i < 300; i++) {

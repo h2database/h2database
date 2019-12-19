@@ -167,7 +167,7 @@ public class TestDateStorage extends TestDb {
     }
 
     private static void test(int year, int month, int day, int hour) {
-        ValueTimestamp.parse(year + "-" + month + "-" + day + " " + hour + ":00:00");
+        ValueTimestamp.parse(year + "-" + month + "-" + day + " " + hour + ":00:00", null);
     }
 
     private void testAllTimeZones() throws SQLException {

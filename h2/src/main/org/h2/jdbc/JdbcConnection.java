@@ -486,7 +486,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
     public synchronized void commit() throws SQLException {
         try {
             debugCodeCall("commit");
-            checkClosedForWrite();
+            checkClosed();
             if (SysProperties.FORCE_AUTOCOMMIT_OFF_ON_COMMIT
                     && getAutoCommit()) {
                 throw DbException.get(ErrorCode.METHOD_DISABLED_ON_AUTOCOMMIT_TRUE, "commit()");
@@ -508,7 +508,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
     public synchronized void rollback() throws SQLException {
         try {
             debugCodeCall("rollback");
-            checkClosedForWrite();
+            checkClosed();
             if (SysProperties.FORCE_AUTOCOMMIT_OFF_ON_COMMIT
                     && getAutoCommit()) {
                 throw DbException.get(ErrorCode.METHOD_DISABLED_ON_AUTOCOMMIT_TRUE, "rollback()");
@@ -1015,7 +1015,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             if (isDebugEnabled()) {
                 debugCode("rollback(" + sp.getTraceObjectName() + ");");
             }
-            checkClosedForWrite();
+            checkClosed();
             sp.rollback();
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -1437,32 +1437,11 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
     }
 
     /**
-     * INTERNAL. Check if this connection is closed. The next operation is a
-     * read request.
+     * INTERNAL. Check if this connection is closed.
      *
      * @throws DbException if the connection or session is closed
      */
     protected void checkClosed() {
-        checkClosed(false);
-    }
-
-    /**
-     * Check if this connection is closed. The next operation may be a write
-     * request.
-     *
-     * @throws DbException if the connection or session is closed
-     */
-    private void checkClosedForWrite() {
-        checkClosed(true);
-    }
-
-    /**
-     * INTERNAL. Check if this connection is closed.
-     *
-     * @param write if the next operation is possibly writing
-     * @throws DbException if the connection or session is closed
-     */
-    protected void checkClosed(boolean write) {
         if (session == null) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }
@@ -1540,7 +1519,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
         try {
             int id = getNextId(TraceObject.CLOB);
             debugCodeAssign("Clob", TraceObject.CLOB, id, "createClob()");
-            checkClosedForWrite();
+            checkClosed();
             return new JdbcClob(this, ValueString.EMPTY, JdbcLob.State.NEW, id);
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -1557,7 +1536,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
         try {
             int id = getNextId(TraceObject.BLOB);
             debugCodeAssign("Blob", TraceObject.BLOB, id, "createClob()");
-            checkClosedForWrite();
+            checkClosed();
             return new JdbcBlob(this, ValueBytes.EMPTY, JdbcLob.State.NEW, id);
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -1574,7 +1553,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
         try {
             int id = getNextId(TraceObject.CLOB);
             debugCodeAssign("NClob", TraceObject.CLOB, id, "createNClob()");
-            checkClosedForWrite();
+            checkClosed();
             return new JdbcClob(this, ValueString.EMPTY, JdbcLob.State.NEW, id);
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -1591,7 +1570,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
         try {
             int id = getNextId(TraceObject.SQLXML);
             debugCodeAssign("SQLXML", TraceObject.SQLXML, id, "createSQLXML()");
-            checkClosedForWrite();
+            checkClosed();
             return new JdbcSQLXML(this, ValueString.EMPTY, JdbcLob.State.NEW, id);
         } catch (Exception e) {
             throw logAndConvert(e);

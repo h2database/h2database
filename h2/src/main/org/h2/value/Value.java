@@ -1232,29 +1232,35 @@ public abstract class Value extends VersionedValue<Value> {
     }
 
     private ValueTimestampTimeZone convertToTimestampTimeZone(CastDataProvider provider, boolean forComparison) {
+        long dateValue, timeNanos;
         switch (getValueType()) {
         case TIME:
-            return DateTimeUtils.timestampTimeZoneFromLocalDateValueAndNanos(forComparison
-                    ? DateTimeUtils.EPOCH_DATE_VALUE
-                    : provider.currentTimestamp().getDateValue(),
-                    ((ValueTime) this).getNanos());
+            dateValue = forComparison ? DateTimeUtils.EPOCH_DATE_VALUE : provider.currentTimestamp().getDateValue();
+            timeNanos = ((ValueTime) this).getNanos();
+            break;
         case TIME_TZ: {
             ValueTimeTimeZone t = (ValueTimeTimeZone) this;
-            return ValueTimestampTimeZone.fromDateValueAndNanos(forComparison
-                    ? DateTimeUtils.EPOCH_DATE_VALUE
-                    : provider.currentTimestamp().getDateValue(),
+            return ValueTimestampTimeZone.fromDateValueAndNanos(
+                    forComparison ? DateTimeUtils.EPOCH_DATE_VALUE : provider.currentTimestamp().getDateValue(),
                     t.getNanos(), t.getTimeZoneOffsetSeconds());
         }
         case DATE:
-            return DateTimeUtils.timestampTimeZoneFromLocalDateValueAndNanos(((ValueDate) this).getDateValue(), 0);
+            dateValue = ((ValueDate) this).getDateValue();
+            timeNanos = 0L;
+            break;
         case TIMESTAMP: {
             ValueTimestamp ts = (ValueTimestamp) this;
-            return DateTimeUtils.timestampTimeZoneFromLocalDateValueAndNanos(ts.getDateValue(), ts.getTimeNanos());
+            dateValue = ts.getDateValue();
+            timeNanos = ts.getTimeNanos();
+            break;
         }
         case ENUM:
             throw getDataConversionError(TIMESTAMP_TZ);
+        default:
+            return ValueTimestampTimeZone.parse(getString().trim(), provider);
         }
-        return ValueTimestampTimeZone.parse(getString().trim(), provider);
+        return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos,
+                DateTimeUtils.getTimeZone().getTimeZoneOffsetLocal(dateValue, timeNanos));
     }
 
     private ValueBytes convertToBytes(CastDataProvider provider) {

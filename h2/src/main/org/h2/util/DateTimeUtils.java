@@ -828,20 +828,6 @@ public class DateTimeUtils {
     }
 
     /**
-     * Converts local date value and nanoseconds to timestamp with time zone.
-     *
-     * @param dateValue
-     *            date value
-     * @param timeNanos
-     *            nanoseconds since midnight
-     * @return timestamp with time zone
-     */
-    public static ValueTimestampTimeZone timestampTimeZoneFromLocalDateValueAndNanos(long dateValue, long timeNanos) {
-        return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos,
-                getTimeZoneOffset(dateValue, timeNanos));
-    }
-
-    /**
      * Calculate the absolute day for a January, 1 of the specified year.
      *
      * @param year

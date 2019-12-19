@@ -49,7 +49,6 @@ import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 import org.h2.util.CloseWatcher;
-import org.h2.util.DateTimeUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.LegacyDateTimeUtils;
 import org.h2.value.CompareMode;
@@ -2034,7 +2033,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
 
     @Override
     public Mode getMode() {
-        return getDynamicSettings().mode;
+        return session.getMode();
     }
 
     /**
@@ -2053,10 +2052,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
 
     @Override
     public ValueTimestampTimeZone currentTimestamp() {
-        if (session instanceof CastDataProvider) {
-            return ((CastDataProvider) session).currentTimestamp();
-        }
-        return DateTimeUtils.currentTimestamp();
+        return session.currentTimestamp();
     }
 
 }

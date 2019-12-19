@@ -67,7 +67,7 @@ import org.h2.value.VersionedValue;
  * mode, this object resides on the server side and communicates with a
  * SessionRemote object on the client side.
  */
-public class Session extends SessionWithState implements TransactionStore.RollbackListener, CastDataProvider {
+public class Session extends SessionWithState implements TransactionStore.RollbackListener {
 
     public enum State { INIT, RUNNING, BLOCKED, SLEEP, THROTTLED, SUSPENDED, CLOSED }
 

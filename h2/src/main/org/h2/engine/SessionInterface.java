@@ -16,7 +16,7 @@ import org.h2.value.Value;
 /**
  * A local or remote session. A session represents a database connection.
  */
-public interface SessionInterface extends Closeable {
+public interface SessionInterface extends CastDataProvider, Closeable {
 
     /**
      * Static settings.

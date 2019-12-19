@@ -28,6 +28,7 @@ import org.h2.store.FileStore;
 import org.h2.store.LobStorageFrontend;
 import org.h2.store.LobStorageInterface;
 import org.h2.store.fs.FileUtils;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
@@ -41,6 +42,7 @@ import org.h2.value.Transfer;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueString;
+import org.h2.value.ValueTimestampTimeZone;
 
 /**
  * The client side part of a session when using the server mode. This object
@@ -970,6 +972,16 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             dynamicSettings = settings = new DynamicSettings(mode);
         }
         return settings;
+    }
+
+    @Override
+    public ValueTimestampTimeZone currentTimestamp() {
+        return DateTimeUtils.currentTimestamp();
+    }
+
+    @Override
+    public Mode getMode() {
+        return getDynamicSettings().mode;
     }
 
 }

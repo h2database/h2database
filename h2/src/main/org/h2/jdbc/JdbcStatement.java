@@ -1362,7 +1362,12 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
      */
     @Override
     public boolean isSimpleIdentifier(String identifier) throws SQLException {
-        SessionInterface.StaticSettings settings = conn.getStaticSettings();
+        SessionInterface.StaticSettings settings;
+        try {
+            settings = conn.getStaticSettings();
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
         return ParserUtil.isSimpleIdentifier(identifier, settings.databaseToUpper, settings.databaseToLower);
     }
 

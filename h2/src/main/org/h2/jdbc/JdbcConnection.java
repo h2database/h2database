@@ -40,7 +40,6 @@ import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.IsolationLevel;
 import org.h2.engine.Mode;
-import org.h2.engine.SessionInterface.DynamicSettings;
 import org.h2.engine.SessionInterface.StaticSettings;
 import org.h2.engine.SessionInterface;
 import org.h2.engine.SessionRemote;
@@ -2041,23 +2040,25 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
      * INTERNAL
      */
     public StaticSettings getStaticSettings() {
+        checkClosed();
         return session.getStaticSettings();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public DynamicSettings getDynamicSettings() {
-        return session.getDynamicSettings();
     }
 
     @Override
     public ValueTimestampTimeZone currentTimestamp() {
+        SessionInterface session = this.session;
+        if (session == null) {
+            throw DbException.get(ErrorCode.OBJECT_CLOSED);
+        }
         return session.currentTimestamp();
     }
 
     @Override
     public TimeZoneProvider currentTimeZone() {
+        SessionInterface session = this.session;
+        if (session == null) {
+            throw DbException.get(ErrorCode.OBJECT_CLOSED);
+        }
         return session.currentTimeZone();
     }
 

@@ -429,7 +429,7 @@ public class TestScript extends TestDb {
     private void process(String sql, boolean allowReconnect) throws Exception {
         if (allowReconnect && reconnectOften) {
             if (!containsTempTables()
-                    && ((JdbcConnection) conn).getDynamicSettings().mode.getEnum() == ModeEnum.REGULAR
+                    && ((JdbcConnection) conn).getMode().getEnum() == ModeEnum.REGULAR
                     && conn.getSchema().equals("PUBLIC")) {
                 boolean autocommit = conn.getAutoCommit();
                 if (autocommit && random.nextInt(10) < 1) {

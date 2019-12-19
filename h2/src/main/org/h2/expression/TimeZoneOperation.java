@@ -63,24 +63,7 @@ public class TimeZoneOperation extends Expression {
                     int offsetSeconds = v.getTimeZoneOffsetSeconds();
                     int newOffset = parseTimeZone(b, dateValue, timeNanos, offsetSeconds, true);
                     if (offsetSeconds != newOffset) {
-                        timeNanos += (newOffset - offsetSeconds) * DateTimeUtils.NANOS_PER_SECOND;
-                        // Value can be 18+18 hours before or after the limit
-                        if (timeNanos < 0) {
-                            timeNanos += DateTimeUtils.NANOS_PER_DAY;
-                            dateValue = DateTimeUtils.decrementDateValue(dateValue);
-                            if (timeNanos < 0) {
-                                timeNanos += DateTimeUtils.NANOS_PER_DAY;
-                                dateValue = DateTimeUtils.decrementDateValue(dateValue);
-                            }
-                        } else if (timeNanos >= DateTimeUtils.NANOS_PER_DAY) {
-                            timeNanos -= DateTimeUtils.NANOS_PER_DAY;
-                            dateValue = DateTimeUtils.incrementDateValue(dateValue);
-                            if (timeNanos >= DateTimeUtils.NANOS_PER_DAY) {
-                                timeNanos -= DateTimeUtils.NANOS_PER_DAY;
-                                dateValue = DateTimeUtils.incrementDateValue(dateValue);
-                            }
-                        }
-                        a = ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos, newOffset);
+                        a = DateTimeUtils.timestampTimeZoneAtOffset(dateValue, timeNanos, offsetSeconds, newOffset);
                     }
                 } else {
                     ValueTimeTimeZone v = (ValueTimeTimeZone) a;

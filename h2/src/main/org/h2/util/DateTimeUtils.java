@@ -1090,4 +1090,35 @@ public class DateTimeUtils {
         return r;
     }
 
+    /**
+     * Moves timestamp with time zone to a new time zone.
+     *
+     * @param dateValue the date value
+     * @param timeNanos the nanoseconds since midnight
+     * @param oldOffset old offset
+     * @param newOffset new offset
+     * @return timestamp with time zone with new offset
+     */
+    public static ValueTimestampTimeZone timestampTimeZoneAtOffset(long dateValue, long timeNanos, int oldOffset,
+            int newOffset) {
+        timeNanos += (newOffset - oldOffset) * DateTimeUtils.NANOS_PER_SECOND;
+        // Value can be 18+18 hours before or after the limit
+        if (timeNanos < 0) {
+            timeNanos += DateTimeUtils.NANOS_PER_DAY;
+            dateValue = DateTimeUtils.decrementDateValue(dateValue);
+            if (timeNanos < 0) {
+                timeNanos += DateTimeUtils.NANOS_PER_DAY;
+                dateValue = DateTimeUtils.decrementDateValue(dateValue);
+            }
+        } else if (timeNanos >= DateTimeUtils.NANOS_PER_DAY) {
+            timeNanos -= DateTimeUtils.NANOS_PER_DAY;
+            dateValue = DateTimeUtils.incrementDateValue(dateValue);
+            if (timeNanos >= DateTimeUtils.NANOS_PER_DAY) {
+                timeNanos -= DateTimeUtils.NANOS_PER_DAY;
+                dateValue = DateTimeUtils.incrementDateValue(dateValue);
+            }
+        }
+        return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos, newOffset);
+    }
+
 }

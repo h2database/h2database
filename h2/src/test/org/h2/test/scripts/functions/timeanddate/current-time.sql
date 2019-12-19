@@ -3,6 +3,9 @@
 -- Initial Developer: H2 Group
 --
 
+SET TIME ZONE '-8:00';
+> ok
+
 SELECT CAST(CURRENT_TIME AS TIME(9)) = LOCALTIME;
 >> TRUE
 
@@ -11,6 +14,9 @@ SELECT CAST(CURRENT_TIME(0) AS TIME(9)) = LOCALTIME(0);
 
 SELECT CAST(CURRENT_TIME(9) AS TIME(9)) = LOCALTIME(9);
 >> TRUE
+
+SET TIME ZONE LOCAL;
+> ok
 
 select length(curtime())>=8 c1, length(current_time())>=8 c2, substring(curtime(), 3, 1) c3;
 > C1   C2   C3

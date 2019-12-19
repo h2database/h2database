@@ -2076,8 +2076,24 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     public void setTimeZone(TimeZoneProvider timeZone) {
         if (!timeZone.equals(this.timeZone)) {
             this.timeZone = timeZone;
+            ValueTimestampTimeZone ts = transactionStart;
+            if (ts != null) {
+                transactionStart = moveTimestamp(ts, timeZone);
+            }
+            ts = currentCommandStart;
+            if (ts != null) {
+                currentCommandStart = moveTimestamp(ts, timeZone);
+            }
             modificationId++;
         }
+    }
+
+    private static ValueTimestampTimeZone moveTimestamp(ValueTimestampTimeZone timestamp, TimeZoneProvider timeZone) {
+        long dateValue = timestamp.getDateValue();
+        long timeNanos = timestamp.getTimeNanos();
+        int offsetSeconds = timestamp.getTimeZoneOffsetSeconds();
+        return DateTimeUtils.timestampTimeZoneAtOffset(dateValue, timeNanos, offsetSeconds,
+                timeZone.getTimeZoneOffsetUTC(DateTimeUtils.getEpochSeconds(dateValue, timeNanos, offsetSeconds)));
     }
 
 }

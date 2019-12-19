@@ -18,6 +18,7 @@ import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.engine.Setting;
 import org.h2.expression.Expression;
+import org.h2.expression.TimeZoneOperation;
 import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
@@ -26,8 +27,12 @@ import org.h2.schema.Schema;
 import org.h2.security.auth.AuthenticatorFactory;
 import org.h2.table.Table;
 import org.h2.tools.CompressTool;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.StringUtils;
+import org.h2.util.TimeZoneProvider;
 import org.h2.value.CompareMode;
+import org.h2.value.DataType;
+import org.h2.value.Value;
 import org.h2.value.ValueInt;
 
 /**
@@ -66,6 +71,7 @@ public class Set extends Prepared {
         case SetTypes.RETENTION_TIME:
         case SetTypes.LAZY_QUERY_EXECUTION:
         case SetTypes.NON_KEYWORDS:
+        case SetTypes.TIME_ZONE:
             return true;
         default:
         }
@@ -623,6 +629,10 @@ public class Set extends Prepared {
         case SetTypes.NON_KEYWORDS:
             session.setNonKeywords(Parser.parseNonKeywords(stringValueList));
             break;
+        case SetTypes.TIME_ZONE:
+            session.setTimeZone(expression == null ? DateTimeUtils.getTimeZone()
+                    : parseTimeZone(expression.getValue(session)));
+            break;
         default:
             DbException.throwInternalError("type="+type);
         }
@@ -632,6 +642,19 @@ public class Set extends Prepared {
         // when changing the compatibility mode
         database.getNextModificationMetaId();
         return 0;
+    }
+
+    private static TimeZoneProvider parseTimeZone(Value v) {
+        if (DataType.isStringType(v.getValueType())) {
+            TimeZoneProvider timeZone;
+            try {
+                timeZone = TimeZoneProvider.ofId(v.getString());
+            } catch (IllegalArgumentException ex) {
+                throw DbException.getInvalidValueException("time zone", v.getSQL());
+            }
+            return timeZone;
+        }
+        return TimeZoneProvider.ofOffset(TimeZoneOperation.parseInterval(v));
     }
 
     private int getIntValue() {

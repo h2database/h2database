@@ -122,9 +122,11 @@ public class DateTimeUtils {
     /**
      * Returns current timestamp.
      *
+     * @param timeZone
+     *            the time zone
      * @return current timestamp
      */
-    public static ValueTimestampTimeZone currentTimestamp() {
+    public static ValueTimestampTimeZone currentTimestamp(TimeZoneProvider timeZone) {
         Instant now = Instant.now();
         long second = now.getEpochSecond();
         int nano = now.getNano();
@@ -132,7 +134,7 @@ public class DateTimeUtils {
          * This code intentionally does not support properly dates before UNIX
          * epoch because such support is not required for current dates.
          */
-        int offset = getTimeZoneOffset(second);
+        int offset = timeZone.getTimeZoneOffsetUTC(second);
         second += offset;
         return ValueTimestampTimeZone.fromDateValueAndNanos(dateValueFromAbsoluteDay(second / SECONDS_PER_DAY),
                 second % SECONDS_PER_DAY * 1_000_000_000 + nano, offset);
@@ -362,19 +364,19 @@ public class DateTimeUtils {
         }
         if (withTimeZone) {
             int tzSeconds;
-            if (tz != null) {
-                if (tz != TimeZoneProvider.UTC) {
-                    tzSeconds = tz.getTimeZoneOffsetUTC(tz.getEpochSecondsFromLocal(dateValue, nanos));
-                } else {
-                    tzSeconds = 0;
-                }
+            if (tz == null) {
+                tz = provider != null ? provider.currentTimeZone() : DateTimeUtils.getTimeZone();
+            }
+            if (tz != TimeZoneProvider.UTC) {
+                tzSeconds = tz.getTimeZoneOffsetUTC(tz.getEpochSecondsFromLocal(dateValue, nanos));
             } else {
-                tzSeconds = DateTimeUtils.getTimeZoneOffset(dateValue, nanos);
+                tzSeconds = 0;
             }
             return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, nanos, tzSeconds);
         } else if (tz != null) {
             long seconds = tz.getEpochSecondsFromLocal(dateValue, nanos);
-            seconds += getTimeZoneOffset(seconds);
+            seconds += (provider != null ? provider.currentTimeZone() : DateTimeUtils.getTimeZone())
+                    .getTimeZoneOffsetUTC(seconds);
             dateValue = dateValueFromLocalSeconds(seconds);
             nanos = nanos % 1_000_000_000 + nanosFromLocalSeconds(seconds);
         }
@@ -421,30 +423,6 @@ public class DateTimeUtils {
             }
         }
         return ValueTimeTimeZone.fromNanos(parseTimeNanos(s, 0, timeEnd), tz.getTimeZoneOffsetUTC(0L));
-    }
-
-    /**
-     * Calculates the time zone offset in seconds for the specified date
-     * value, and nanoseconds since midnight.
-     *
-     * @param dateValue
-     *            date value
-     * @param timeNanos
-     *            nanoseconds since midnight
-     * @return time zone offset in seconds
-     */
-    public static int getTimeZoneOffset(long dateValue, long timeNanos) {
-        return getTimeZone().getTimeZoneOffsetLocal(dateValue, timeNanos);
-    }
-
-    /**
-     * Returns local time zone offset for a specified EPOCH second.
-     *
-     * @param epochSeconds seconds since Epoch in UTC
-     * @return local time zone offset in minutes
-     */
-    public static int getTimeZoneOffset(long epochSeconds) {
-        return getTimeZone().getTimeZoneOffsetUTC(epochSeconds);
     }
 
     /**

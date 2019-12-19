@@ -239,8 +239,9 @@ public final class LegacyDateTimeUtils {
      * @return the number of milliseconds (UTC)
      */
     public static long getMillis(CastDataProvider provider, TimeZone tz, long dateValue, long timeNanos) {
-        TimeZoneProvider c = tz == null ? DateTimeUtils.getTimeZone() : TimeZoneProvider.ofId(tz.getID());
-        return c.getEpochSecondsFromLocal(dateValue, timeNanos) * 1_000 + timeNanos / 1_000_000 % 1_000;
+        return (tz == null ? provider != null ? provider.currentTimeZone() : DateTimeUtils.getTimeZone()
+                : TimeZoneProvider.ofId(tz.getID())).getEpochSecondsFromLocal(dateValue, timeNanos) * 1_000
+                + timeNanos / 1_000_000 % 1_000;
     }
 
     /**
@@ -258,7 +259,8 @@ public final class LegacyDateTimeUtils {
         if (ms < 0 && (seconds * 1_000 != ms)) {
             seconds--;
         }
-        return DateTimeUtils.getTimeZoneOffset(seconds) * 1_000;
+        return (provider != null ? provider.currentTimeZone() : DateTimeUtils.getTimeZone())
+                .getTimeZoneOffsetUTC(seconds) * 1_000;
     }
 
 }

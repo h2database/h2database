@@ -1137,7 +1137,8 @@ public abstract class Value extends VersionedValue<Value> {
             long epochSeconds = DateTimeUtils.getEpochSeconds(ts.getDateValue(), timeNanos,
                     ts.getTimeZoneOffsetSeconds());
             return ValueDate.fromDateValue(DateTimeUtils
-                    .dateValueFromLocalSeconds(epochSeconds + DateTimeUtils.getTimeZoneOffset(epochSeconds)));
+                    .dateValueFromLocalSeconds(epochSeconds
+                            + provider.currentTimeZone().getTimeZoneOffsetUTC(epochSeconds)));
         }
         case TIME:
         case TIME_TZ:
@@ -1159,7 +1160,8 @@ public abstract class Value extends VersionedValue<Value> {
             long epochSeconds = DateTimeUtils.getEpochSeconds(ts.getDateValue(), timeNanos,
                     ts.getTimeZoneOffsetSeconds());
             return ValueTime.fromNanos(
-                    DateTimeUtils.nanosFromLocalSeconds(epochSeconds + DateTimeUtils.getTimeZoneOffset(epochSeconds))
+                    DateTimeUtils.nanosFromLocalSeconds(epochSeconds
+                            + provider.currentTimeZone().getTimeZoneOffsetUTC(epochSeconds))
                             + timeNanos % DateTimeUtils.NANOS_PER_SECOND);
         }
         case DATE:
@@ -1173,7 +1175,7 @@ public abstract class Value extends VersionedValue<Value> {
         switch (getValueType()) {
         case TIME: {
             ValueTime ts = (ValueTime) this;
-            int localOffset = forComparison ? DateTimeUtils.getTimeZoneOffset(0L)
+            int localOffset = forComparison ? provider.currentTimeZone().getTimeZoneOffsetUTC(0L)
                     : provider.currentTimestamp().getTimeZoneOffsetSeconds();
             return ValueTimeTimeZone.fromNanos(ts.getNanos(), localOffset);
         }
@@ -1181,7 +1183,7 @@ public abstract class Value extends VersionedValue<Value> {
             ValueTimestamp ts = (ValueTimestamp) this;
             long timeNanos = ts.getTimeNanos();
             return ValueTimeTimeZone.fromNanos(timeNanos,
-                    DateTimeUtils.getTimeZoneOffset(ts.getDateValue(), timeNanos));
+                    provider.currentTimeZone().getTimeZoneOffsetLocal(ts.getDateValue(), timeNanos));
         }
         case TIMESTAMP_TZ: {
             ValueTimestampTimeZone ts = (ValueTimestampTimeZone) this;
@@ -1213,7 +1215,7 @@ public abstract class Value extends VersionedValue<Value> {
             long timeNanos = ts.getTimeNanos();
             long epochSeconds = DateTimeUtils.getEpochSeconds(ts.getDateValue(), timeNanos,
                     ts.getTimeZoneOffsetSeconds());
-            epochSeconds += DateTimeUtils.getTimeZoneOffset(epochSeconds);
+            epochSeconds += provider.currentTimeZone().getTimeZoneOffsetUTC(epochSeconds);
             return ValueTimestamp.fromDateValueAndNanos(DateTimeUtils.dateValueFromLocalSeconds(epochSeconds),
                     DateTimeUtils.nanosFromLocalSeconds(epochSeconds) + timeNanos % DateTimeUtils.NANOS_PER_SECOND);
         }
@@ -1225,7 +1227,7 @@ public abstract class Value extends VersionedValue<Value> {
 
     private long getLocalTimeNanos(CastDataProvider provider, boolean forComparison) {
         ValueTimeTimeZone ts = (ValueTimeTimeZone) this;
-        int localOffset = forComparison ? DateTimeUtils.getTimeZoneOffset(0L)
+        int localOffset = forComparison ? provider.currentTimeZone().getTimeZoneOffsetUTC(0L)
                 : provider.currentTimestamp().getTimeZoneOffsetSeconds();
         return DateTimeUtils.normalizeNanosOfDay(ts.getNanos() +
                 (ts.getTimeZoneOffsetSeconds() - localOffset) * DateTimeUtils.NANOS_PER_DAY);
@@ -1260,7 +1262,7 @@ public abstract class Value extends VersionedValue<Value> {
             return ValueTimestampTimeZone.parse(getString().trim(), provider);
         }
         return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos,
-                DateTimeUtils.getTimeZone().getTimeZoneOffsetLocal(dateValue, timeNanos));
+                provider.currentTimeZone().getTimeZoneOffsetLocal(dateValue, timeNanos));
     }
 
     private ValueBytes convertToBytes(CastDataProvider provider) {

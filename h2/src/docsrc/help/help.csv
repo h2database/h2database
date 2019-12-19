@@ -1923,6 +1923,20 @@ This setting can be appended to the database URL: ""jdbc:h2:./test;THROTTLE=50""
 SET THROTTLE 200
 "
 
+"Commands (Other)","SET TIME ZONE","
+SET TIME ZONE { LOCAL | intervalHourToMinute | intervalHourToSecond | string }
+","
+Sets the current time zone for the session.
+
+This command does not commit a transaction, and rollback does not affect it.
+This setting can be appended to the database URL: ""jdbc:h2:./test;TIME ZONE='1:00'""
+","
+SET TIME ZONE LOCAL
+SET TIME ZONE '-5:00'
+SET TIME ZONE INTERVAL '1:00' HOUR TO MINUTE
+SET TIME ZONE 'Europe/London'
+"
+
 "Commands (Other)","SET TRACE_LEVEL","
 @h2@ SET { TRACE_LEVEL_FILE | TRACE_LEVEL_SYSTEM_OUT } int
 ","

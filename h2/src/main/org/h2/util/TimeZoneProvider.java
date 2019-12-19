@@ -250,6 +250,22 @@ public abstract class TimeZoneProvider {
         }
 
         @Override
+        public int hashCode() {
+            return offset + 129607;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null || obj.getClass() != Simple.class) {
+                return false;
+            }
+            return offset == ((Simple) obj).offset;
+        }
+
+        @Override
         public int getTimeZoneOffsetUTC(long epochSeconds) {
             return offset;
         }
@@ -315,6 +331,22 @@ public abstract class TimeZoneProvider {
 
         WithTimeZone(ZoneId timeZone) {
             this.zoneId = timeZone;
+        }
+
+        @Override
+        public int hashCode() {
+            return zoneId.hashCode() + 951689;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null || obj.getClass() != WithTimeZone.class) {
+                return false;
+            }
+            return zoneId.equals(((WithTimeZone) obj).zoneId);
         }
 
         @Override

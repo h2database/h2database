@@ -125,8 +125,8 @@ public class ToDateParser {
         if (timeZoneHMValid) {
             offset = (timeZoneHour * 60 + ((timeZoneHour >= 0) ? timeZoneMinute : -timeZoneMinute)) * 60;
         } else {
-            offset = timeZone == null ? DateTimeUtils.getTimeZoneOffset(dateValue, timeNanos)
-                    : timeZone.getTimeZoneOffsetLocal(dateValue, timeNanos);
+            offset = (timeZone != null ? timeZone : session.currentTimeZone())
+                    .getTimeZoneOffsetLocal(dateValue, timeNanos);
         }
         return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, ts.getTimeNanos(), offset);
     }

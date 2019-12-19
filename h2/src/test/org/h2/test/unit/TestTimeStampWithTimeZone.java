@@ -20,6 +20,7 @@ import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.LegacyDateTimeUtils;
+import org.h2.util.TimeZoneProvider;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueTime;
@@ -206,7 +207,11 @@ public class TestTimeStampWithTimeZone extends TestDb {
         TimeZone current = TimeZone.getDefault();
         try {
             for (String id : TimeZone.getAvailableIDs()) {
+                if (id.equals("GMT0")) {
+                    continue;
+                }
                 TimeZone.setDefault(TimeZone.getTimeZone(id));
+                provider.currentTimeZone = TimeZoneProvider.ofId(id);
                 DateTimeUtils.resetCalendar();
                 testConversionsImpl("2017-12-05 23:59:30.987654321-12:00", true, provider);
                 testConversionsImpl("2000-01-02 10:20:30.123456789+07:30", true, provider);

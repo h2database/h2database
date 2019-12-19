@@ -82,6 +82,7 @@ import org.h2.util.SmallLRUCache;
 import org.h2.util.SourceCompiler;
 import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
+import org.h2.util.TimeZoneProvider;
 import org.h2.util.Utils;
 import org.h2.value.CaseInsensitiveConcurrentMap;
 import org.h2.value.CaseInsensitiveMap;
@@ -3045,7 +3046,16 @@ public class Database implements DataHandler, CastDataProvider {
          * This method shouldn't be used in this class, but return a value for
          * safety.
          */
-        return DateTimeUtils.currentTimestamp();
+        return DateTimeUtils.currentTimestamp(DateTimeUtils.getTimeZone());
+    }
+
+    @Override
+    public TimeZoneProvider currentTimeZone() {
+        /*
+         * This method shouldn't be used in this class, but return a value for
+         * safety.
+         */
+        return DateTimeUtils.getTimeZone();
     }
 
 }

@@ -61,9 +61,11 @@ import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
 import org.h2.store.InDoubtTransaction;
 import org.h2.tools.Csv;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.StringUtils;
+import org.h2.util.TimeZoneProvider;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
@@ -1148,7 +1150,7 @@ public class MetaTable extends Table {
                         "java.vendor", "os.name", "os.arch", "os.version",
                         "sun.os.patch.level", "file.separator",
                         "path.separator", "line.separator", "user.country",
-                        "user.language", "user.variant", "file.encoding"                };
+                        "user.language", "user.variant", "file.encoding" };
                 for (String s : settings) {
                     add(rows, "property." + s, Utils.getProperty(s, ""));
                 }
@@ -1157,6 +1159,7 @@ public class MetaTable extends Table {
                     "FALSE" : "TRUE");
             add(rows, "MODE", database.getMode().getName());
             add(rows, "QUERY_TIMEOUT", Integer.toString(session.getQueryTimeout()));
+            add(rows, "TIME ZONE", session.currentTimeZone().getId());
             BitSet nonKeywords = session.getNonKeywords();
             if (nonKeywords != null) {
                 add(rows, "NON_KEYWORDS", Parser.formatNonKeywords(nonKeywords));
@@ -1943,6 +1946,16 @@ public class MetaTable extends Table {
                         "SCHEMA",
                         // SQL
                         StringUtils.quoteIdentifier(new StringBuilder("SET SCHEMA "), schema).toString()
+                );
+            }
+            TimeZoneProvider currentTimeZone = session.currentTimeZone();
+            if (!currentTimeZone.equals(DateTimeUtils.getTimeZone())) {
+                add(rows,
+                        // KEY
+                        "TIME ZONE",
+                        // SQL
+                        StringUtils.quoteStringSQL(new StringBuilder("SET TIME ZONE "), currentTimeZone.getId())
+                                .toString()
                 );
             }
             break;

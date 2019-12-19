@@ -51,6 +51,7 @@ import org.h2.result.ResultInterface;
 import org.h2.util.CloseWatcher;
 import org.h2.util.JdbcUtils;
 import org.h2.util.LegacyDateTimeUtils;
+import org.h2.util.TimeZoneProvider;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -2053,6 +2054,11 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
     @Override
     public ValueTimestampTimeZone currentTimestamp() {
         return session.currentTimestamp();
+    }
+
+    @Override
+    public TimeZoneProvider currentTimeZone() {
+        return session.currentTimeZone();
     }
 
 }

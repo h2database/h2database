@@ -52,6 +52,7 @@ import org.h2.util.ColumnNamerConfiguration;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.SmallLRUCache;
+import org.h2.util.TimeZoneProvider;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -145,6 +146,8 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     private BitSet nonKeywords;
 
+    private TimeZoneProvider timeZone;
+
     /**
      * Tables marked for ANALYZE after the current transaction is committed.
      * Prevents us calling ANALYZE repeatedly in large transactions.
@@ -203,7 +206,8 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         this.currentSchemaName = mainSchema != null ? mainSchema.getName()
                 : database.sysIdentifier(Constants.SCHEMA_MAIN);
         this.columnNamerConfiguration = ColumnNamerConfiguration.getDefault();
-        sessionStart = DateTimeUtils.currentTimestamp();
+        timeZone = DateTimeUtils.getTimeZone();
+        sessionStart = DateTimeUtils.currentTimestamp(timeZone);
     }
 
     public void setLazyQueryExecution(boolean lazyQueryExecution) {
@@ -1240,7 +1244,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      */
     public void throttle() {
         if (currentCommandStart == null) {
-            currentCommandStart = DateTimeUtils.currentTimestamp();
+            currentCommandStart = DateTimeUtils.currentTimestamp(timeZone);
         }
         if (throttleNs == 0) {
             return;
@@ -1272,7 +1276,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             currentCommand = command;
             if (command != null) {
                 if (queryTimeout > 0) {
-                    currentCommandStart = DateTimeUtils.currentTimestamp();
+                    currentCommandStart = DateTimeUtils.currentTimestamp(timeZone);
                     long now = System.nanoTime();
                     cancelAtNs = now + TimeUnit.MILLISECONDS.toNanos(queryTimeout);
                 } else {
@@ -1331,7 +1335,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     public ValueTimestampTimeZone getCurrentCommandStart() {
         if (currentCommandStart == null) {
-            currentCommandStart = DateTimeUtils.currentTimestamp();
+            currentCommandStart = DateTimeUtils.currentTimestamp(timeZone);
         }
         return currentCommandStart;
     }
@@ -1509,7 +1513,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     public ValueTimestampTimeZone getTransactionStart() {
         if (transactionStart == null) {
-            transactionStart = DateTimeUtils.currentTimestamp();
+            transactionStart = DateTimeUtils.currentTimestamp(timeZone);
         }
         return transactionStart;
     }
@@ -2056,7 +2060,24 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     @Override
     public DynamicSettings getDynamicSettings() {
-        return new DynamicSettings(database.getMode());
+        return new DynamicSettings(database.getMode(), timeZone);
+    }
+
+    @Override
+    public TimeZoneProvider currentTimeZone() {
+        return timeZone;
+    }
+
+    /**
+     * Sets current time zone.
+     *
+     * @param timeZone time zone
+     */
+    public void setTimeZone(TimeZoneProvider timeZone) {
+        if (!timeZone.equals(this.timeZone)) {
+            this.timeZone = timeZone;
+            modificationId++;
+        }
     }
 
 }

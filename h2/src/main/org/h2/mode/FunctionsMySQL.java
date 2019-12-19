@@ -110,7 +110,7 @@ public class FunctionsMySQL extends FunctionsBase {
         } else {
             ValueTimestamp t = (ValueTimestamp) value.convertTo(Value.TIMESTAMP, session, false);
             long timeNanos = t.getTimeNanos();
-            seconds = DateTimeUtils.getTimeZone().getEpochSecondsFromLocal(t.getDateValue(), timeNanos);
+            seconds = session.currentTimeZone().getEpochSecondsFromLocal(t.getDateValue(), timeNanos);
         }
         return (int) seconds;
     }

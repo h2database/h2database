@@ -36,6 +36,7 @@ import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
+import org.h2.util.TimeZoneProvider;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.Transfer;
@@ -949,11 +950,13 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         DynamicSettings settings = dynamicSettings;
         if (settings == null) {
             String modeName = ModeEnum.REGULAR.name();
+            TimeZoneProvider timeZone = DateTimeUtils.getTimeZone();
             try (CommandInterface command = prepareCommand(
-                    "SELECT NAME, `VALUE` FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME = ?",
+                    "SELECT NAME, `VALUE` FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME IN (?, ?)",
                     Integer.MAX_VALUE)) {
                 ArrayList<? extends ParameterInterface> parameters = command.getParameters();
                 parameters.get(0).setValue(ValueString.get("MODE"), false);
+                parameters.get(1).setValue(ValueString.get("TIME ZONE"), false);
                 try (ResultInterface result = command.executeQuery(Integer.MAX_VALUE, false)) {
                     while (result.next()) {
                         Value[] row = result.currentRow();
@@ -961,6 +964,9 @@ public class SessionRemote extends SessionWithState implements DataHandler {
                         switch (row[0].getString()) {
                         case "MODE":
                             modeName = value;
+                            break;
+                        case "TIME ZONE":
+                            timeZone = TimeZoneProvider.ofId(value);
                         }
                     }
                 }
@@ -969,14 +975,19 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             if (mode == null) {
                 mode = Mode.getRegular();
             }
-            dynamicSettings = settings = new DynamicSettings(mode);
+            dynamicSettings = settings = new DynamicSettings(mode, timeZone);
         }
         return settings;
     }
 
     @Override
     public ValueTimestampTimeZone currentTimestamp() {
-        return DateTimeUtils.currentTimestamp();
+        return DateTimeUtils.currentTimestamp(getDynamicSettings().timeZone);
+    }
+
+    @Override
+    public TimeZoneProvider currentTimeZone() {
+        return getDynamicSettings().timeZone;
     }
 
     @Override

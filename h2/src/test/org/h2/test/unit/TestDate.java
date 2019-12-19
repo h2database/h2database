@@ -22,6 +22,7 @@ import org.h2.test.TestBase;
 import org.h2.test.utils.AssertThrows;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.LegacyDateTimeUtils;
+import org.h2.util.TimeZoneProvider;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
@@ -39,7 +40,10 @@ import org.h2.value.ValueTimestampTimeZone;
 public class TestDate extends TestBase {
 
     static class SimpleCastDataProvider implements CastDataProvider {
-        private final ValueTimestampTimeZone currentTimestamp = DateTimeUtils.currentTimestamp();
+
+        TimeZoneProvider currentTimeZone = DateTimeUtils.getTimeZone();
+
+        private final ValueTimestampTimeZone currentTimestamp = DateTimeUtils.currentTimestamp(currentTimeZone);
 
         @Override
         public Mode getMode() {
@@ -50,6 +54,12 @@ public class TestDate extends TestBase {
         public ValueTimestampTimeZone currentTimestamp() {
             return currentTimestamp;
         }
+
+        @Override
+        public TimeZoneProvider currentTimeZone() {
+            return currentTimeZone;
+        }
+
     }
 
     /**

@@ -7808,6 +7808,13 @@ public class Parser {
         } else if (readIf("TRANSACTION")) {
             // TODO should affect only the current transaction
             return parseSetTransactionMode();
+        } else if (readIf("TIME")) {
+            read("ZONE");
+            Set command = new Set(session, SetTypes.TIME_ZONE);
+            if (!readIf("LOCAL")) {
+                command.setExpression(readExpression());
+            }
+            return command;
         } else if (readIf("NON_KEYWORDS")) {
             readIfEqualOrTo();
             Set command = new Set(session, SetTypes.NON_KEYWORDS);

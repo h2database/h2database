@@ -5,6 +5,7 @@
  */
 package org.h2.engine;
 
+import org.h2.util.TimeZoneProvider;
 import org.h2.value.ValueTimestampTimeZone;
 
 /**
@@ -19,6 +20,13 @@ public interface CastDataProvider {
      * @return the current timestamp for CURRENT_TIMESTAMP(9)
      */
     ValueTimestampTimeZone currentTimestamp();
+
+    /**
+     * Returns the current time zone.
+     *
+     * @return the current time zone
+     */
+    TimeZoneProvider currentTimeZone();
 
     /**
      * Returns the database mode.

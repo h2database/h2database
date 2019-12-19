@@ -54,7 +54,7 @@ class FileNioMemData {
     private String name;
     private final boolean compress;
     private final float compressLaterCachePercent;
-    private long length;
+    private volatile long length;
     private AtomicReference<ByteBuffer>[] buffers;
     private long lastModified;
     private boolean isReadOnly;

@@ -467,7 +467,7 @@ public class DateTimeUtils {
         } else if (value instanceof ValueTimeTimeZone) {
             timeNanos = ((ValueTimeTimeZone) value).getNanos();
         } else {
-            ValueTimestamp v = (ValueTimestamp) value.convertTo(Value.TIMESTAMP, provider, false);
+            ValueTimestamp v = (ValueTimestamp) value.convertTo(Value.TIMESTAMP, provider);
             dateValue = v.getDateValue();
             timeNanos = v.getTimeNanos();
         }

@@ -159,7 +159,7 @@ public final class LegacyDateTimeUtils {
         case Value.NULL:
             return null;
         default:
-            value = value.convertTo(Value.DATE, provider, false);
+            value = value.convertTo(Value.DATE, provider);
             //$FALL-THROUGH$
         case Value.DATE:
             ValueDate v = (ValueDate) value;
@@ -181,7 +181,7 @@ public final class LegacyDateTimeUtils {
         case Value.NULL:
             return null;
         default:
-            value = value.convertTo(Value.TIME, provider, false);
+            value = value.convertTo(Value.TIME, provider);
             //$FALL-THROUGH$
         case Value.TIME:
             return new Time(
@@ -203,7 +203,7 @@ public final class LegacyDateTimeUtils {
         case Value.NULL:
             return null;
         default:
-            value = value.convertTo(Value.TIMESTAMP, provider, false);
+            value = value.convertTo(Value.TIMESTAMP, provider);
             //$FALL-THROUGH$
         case Value.TIMESTAMP: {
             ValueTimestamp v = (ValueTimestamp) value;

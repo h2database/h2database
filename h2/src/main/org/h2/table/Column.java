@@ -179,12 +179,11 @@ public class Column {
      *
      * @provider the cast information provider
      * @param v the value
-     * @param forComparison if {@code true}, perform cast for comparison operation
      * @return the value
      */
-    public Value convert(CastDataProvider provider, Value v, boolean forComparison) {
+    public Value convert(CastDataProvider provider, Value v) {
         try {
-            return v.convertTo(type, provider, forComparison, this);
+            return v.convertTo(type, provider, this);
         } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.DATA_CONVERSION_ERROR_1) {
                 e = getDataConversionError(v, e);
@@ -379,7 +378,7 @@ public class Column {
             }
         }
         try {
-            value = type.cast(value, session, false, false, name);
+            value = type.cast(value, session, false, name);
         } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.DATA_CONVERSION_ERROR_1) {
                 e = getDataConversionError(value, e);

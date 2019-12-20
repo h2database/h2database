@@ -1289,7 +1289,7 @@ public abstract class Table extends SchemaObjectBase {
         } else {
             v = expression.getValue(session);
         }
-        return column.convert(session, v, false);
+        return column.convert(session, v);
     }
 
     /**

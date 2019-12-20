@@ -704,7 +704,7 @@ public abstract class Value extends VersionedValue<Value> {
      * @return the converted value
      */
     public final Value convertTo(int targetType) {
-        return convertTo(targetType, null, null, false, null);
+        return convertTo(targetType, null, null, null);
     }
 
     /**
@@ -713,7 +713,7 @@ public abstract class Value extends VersionedValue<Value> {
      * @return value represented as ENUM
      */
     private Value convertToEnum(ExtTypeInfo enumerators) {
-        return convertTo(ENUM, enumerators, null, false, null);
+        return convertTo(ENUM, enumerators, null, null);
     }
 
     /**
@@ -721,11 +721,10 @@ public abstract class Value extends VersionedValue<Value> {
      *
      * @param targetType the type of the returned value
      * @param provider the cast information provider
-     * @param forComparison if {@code true}, perform cast for comparison operation
      * @return the converted value
      */
-    public final Value convertTo(int targetType, CastDataProvider provider, boolean forComparison) {
-        return convertTo(targetType, null, provider, forComparison, null);
+    public final Value convertTo(int targetType, CastDataProvider provider) {
+        return convertTo(targetType, null, provider, null);
     }
 
     /**
@@ -733,13 +732,11 @@ public abstract class Value extends VersionedValue<Value> {
      *
      * @param targetType the type of the returned value
      * @param provider the cast information provider
-     * @param forComparison if {@code true}, perform cast for comparison operation
      * @param column the column (if any), used for to improve the error message if conversion fails
      * @return the converted value
      */
-    public final Value convertTo(TypeInfo targetType, CastDataProvider provider, boolean forComparison,
-            Object column) {
-        return convertTo(targetType.getValueType(), targetType.getExtTypeInfo(), provider, forComparison, column);
+    public final Value convertTo(TypeInfo targetType, CastDataProvider provider, Object column) {
+        return convertTo(targetType.getValueType(), targetType.getExtTypeInfo(), provider, column);
     }
 
     /**
@@ -748,17 +745,15 @@ public abstract class Value extends VersionedValue<Value> {
      * @param targetType the type of the returned value
      * @param extTypeInfo the extended data type information, or null
      * @param provider the cast information provider
-     * @param forComparison if {@code true}, perform cast for comparison operation
      * @param column the column (if any), used for to improve the error message if conversion fails
      * @return the converted value
      */
-    protected Value convertTo(int targetType, ExtTypeInfo extTypeInfo, CastDataProvider provider,
-            boolean forComparison, Object column) {
+    protected Value convertTo(int targetType, ExtTypeInfo extTypeInfo, CastDataProvider provider, Object column) {
         // converting NULL is done in ValueNull
         // converting BLOB to CLOB and vice versa is done in ValueLob
         if (getValueType() == targetType) {
             if (extTypeInfo != null) {
-                return extTypeInfo.cast(this, provider, forComparison);
+                return extTypeInfo.cast(this, provider);
             }
             return this;
         }
@@ -785,13 +780,13 @@ public abstract class Value extends VersionedValue<Value> {
             case DATE:
                 return convertToDate(provider);
             case TIME:
-                return convertToTime(provider, forComparison);
+                return convertToTime(provider);
             case TIME_TZ:
-                return convertToTimeTimeZone(provider, forComparison);
+                return convertToTimeTimeZone(provider);
             case TIMESTAMP:
-                return convertToTimestamp(provider, forComparison);
+                return convertToTimestamp(provider);
             case TIMESTAMP_TZ:
-                return convertToTimestampTimeZone(provider, forComparison);
+                return convertToTimestampTimeZone(provider);
             case BYTES:
                 return convertToBytes(provider);
             case STRING:
@@ -1148,10 +1143,10 @@ public abstract class Value extends VersionedValue<Value> {
         return ValueDate.parse(getString().trim());
     }
 
-    private ValueTime convertToTime(CastDataProvider provider, boolean forComparison) {
+    private ValueTime convertToTime(CastDataProvider provider) {
         switch (getValueType()) {
         case TIME_TZ:
-            return ValueTime.fromNanos(getLocalTimeNanos(provider, forComparison));
+            return ValueTime.fromNanos(getLocalTimeNanos(provider));
         case TIMESTAMP:
             return ValueTime.fromNanos(((ValueTimestamp) this).getTimeNanos());
         case TIMESTAMP_TZ: {
@@ -1171,13 +1166,11 @@ public abstract class Value extends VersionedValue<Value> {
         return ValueTime.parse(getString().trim());
     }
 
-    private ValueTimeTimeZone convertToTimeTimeZone(CastDataProvider provider, boolean forComparison) {
+    private ValueTimeTimeZone convertToTimeTimeZone(CastDataProvider provider) {
         switch (getValueType()) {
         case TIME: {
-            ValueTime ts = (ValueTime) this;
-            int localOffset = forComparison ? provider.currentTimeZone().getTimeZoneOffsetUTC(0L)
-                    : provider.currentTimestamp().getTimeZoneOffsetSeconds();
-            return ValueTimeTimeZone.fromNanos(ts.getNanos(), localOffset);
+            return ValueTimeTimeZone.fromNanos(((ValueTime) this).getNanos(),
+                    provider.currentTimestamp().getTimeZoneOffsetSeconds());
         }
         case TIMESTAMP: {
             ValueTimestamp ts = (ValueTimestamp) this;
@@ -1196,18 +1189,14 @@ public abstract class Value extends VersionedValue<Value> {
         return ValueTimeTimeZone.parse(getString().trim());
     }
 
-    private ValueTimestamp convertToTimestamp(CastDataProvider provider, boolean forComparison) {
+    private ValueTimestamp convertToTimestamp(CastDataProvider provider) {
         switch (getValueType()) {
         case TIME:
-            return ValueTimestamp.fromDateValueAndNanos(forComparison
-                    ? DateTimeUtils.EPOCH_DATE_VALUE
-                    : provider.currentTimestamp().getDateValue(),
+            return ValueTimestamp.fromDateValueAndNanos(provider.currentTimestamp().getDateValue(),
                     ((ValueTime) this).getNanos());
         case TIME_TZ:
-            return ValueTimestamp.fromDateValueAndNanos(forComparison
-                    ? DateTimeUtils.EPOCH_DATE_VALUE
-                    : provider.currentTimestamp().getDateValue(),
-                    getLocalTimeNanos(provider, forComparison));
+            return ValueTimestamp.fromDateValueAndNanos(provider.currentTimestamp().getDateValue(),
+                    getLocalTimeNanos(provider));
         case DATE:
             return ValueTimestamp.fromDateValueAndNanos(((ValueDate) this).getDateValue(), 0);
         case TIMESTAMP_TZ: {
@@ -1225,25 +1214,23 @@ public abstract class Value extends VersionedValue<Value> {
         return ValueTimestamp.parse(getString().trim(), provider);
     }
 
-    private long getLocalTimeNanos(CastDataProvider provider, boolean forComparison) {
+    private long getLocalTimeNanos(CastDataProvider provider) {
         ValueTimeTimeZone ts = (ValueTimeTimeZone) this;
-        int localOffset = forComparison ? provider.currentTimeZone().getTimeZoneOffsetUTC(0L)
-                : provider.currentTimestamp().getTimeZoneOffsetSeconds();
+        int localOffset = provider.currentTimestamp().getTimeZoneOffsetSeconds();
         return DateTimeUtils.normalizeNanosOfDay(ts.getNanos() +
                 (ts.getTimeZoneOffsetSeconds() - localOffset) * DateTimeUtils.NANOS_PER_DAY);
     }
 
-    private ValueTimestampTimeZone convertToTimestampTimeZone(CastDataProvider provider, boolean forComparison) {
+    private ValueTimestampTimeZone convertToTimestampTimeZone(CastDataProvider provider) {
         long dateValue, timeNanos;
         switch (getValueType()) {
         case TIME:
-            dateValue = forComparison ? DateTimeUtils.EPOCH_DATE_VALUE : provider.currentTimestamp().getDateValue();
+            dateValue = provider.currentTimestamp().getDateValue();
             timeNanos = ((ValueTime) this).getNanos();
             break;
         case TIME_TZ: {
             ValueTimeTimeZone t = (ValueTimeTimeZone) this;
-            return ValueTimestampTimeZone.fromDateValueAndNanos(
-                    forComparison ? DateTimeUtils.EPOCH_DATE_VALUE : provider.currentTimestamp().getDateValue(),
+            return ValueTimestampTimeZone.fromDateValueAndNanos(provider.currentTimestamp().getDateValue(),
                     t.getNanos(), t.getTimeZoneOffsetSeconds());
         }
         case DATE:
@@ -1415,7 +1402,7 @@ public abstract class Value extends VersionedValue<Value> {
         default:
             result = ValueGeometry.get(getString());
         }
-        return extTypeInfo != null ? extTypeInfo.cast(result, null, false) : result;
+        return extTypeInfo != null ? extTypeInfo.cast(result, null) : result;
     }
 
     private ValueInterval convertToIntervalYearMonth(int targetType, Object column) {
@@ -1699,8 +1686,8 @@ public abstract class Value extends VersionedValue<Value> {
                 l = l.convertToEnum(enumerators);
                 v = v.convertToEnum(enumerators);
             } else {
-                l = l.convertTo(dataType, provider, true);
-                v = v.convertTo(dataType, provider, true);
+                l = l.convertTo(dataType, provider);
+                v = v.convertTo(dataType, provider);
             }
         }
         return l.compareTypeSafe(v, compareMode, provider);

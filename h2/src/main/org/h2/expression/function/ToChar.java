@@ -535,7 +535,7 @@ public class ToChar {
         } else {
             TimeZoneProvider tz = session.currentTimeZone();
             if (tzd) {
-                ValueTimestamp v = (ValueTimestamp) value.convertTo(Value.TIMESTAMP, session, false);
+                ValueTimestamp v = (ValueTimestamp) value.convertTo(Value.TIMESTAMP, session);
                 return tz.getShortId(tz.getEpochSecondsFromLocal(v.getDateValue(), v.getTimeNanos()));
             }
             return tz.getId();

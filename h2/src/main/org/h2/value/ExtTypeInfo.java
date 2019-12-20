@@ -19,11 +19,9 @@ public abstract class ExtTypeInfo {
      *            value to cast
      * @param provider
      *            the cast information provider
-     * @param forComparison
-     *            if {@code true}, perform cast for comparison operation
      * @return casted value
      */
-    public abstract Value cast(Value value, CastDataProvider provider, boolean forComparison);
+    public abstract Value cast(Value value, CastDataProvider provider);
 
     /**
      * Returns SQL including parentheses that should be appended to a type name.

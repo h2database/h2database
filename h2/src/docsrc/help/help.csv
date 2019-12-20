@@ -3510,8 +3510,7 @@ Mapped to ""java.sql.Time"".
 Use ""java.time.LocalTime"" or ""String"" instead of ""java.sql.Time"" when non-zero precision is needed.
 Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up;
 if result of rounding is higher than maximum supported value 23:59:59.999999999 the value is rounded down instead.
-The CAST operation to TIMESTAMP and TIMESTAMP WITH TIME ZONE data types uses the CURRENT_DATE for date fields,
-comparison operations with values of these data types use the 1970-01-01 instead.
+The CAST operation to TIMESTAMP and TIMESTAMP WITH TIME ZONE data types uses the CURRENT_DATE for date fields.
 ","
 TIME
 TIME(9)
@@ -3527,8 +3526,7 @@ See also [time with time zone](https://h2database.com/html/grammar.html#time_wit
 Mapped to ""java.time.OffsetTime"".
 Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up;
 if result of rounding is higher than maximum supported value 23:59:59.999999999 the value is rounded down instead.
-The CAST operation to TIMESTAMP and TIMESTAMP WITH TIME ZONE data types uses the CURRENT_DATE for date fields,
-comparison operations with values of these data types use the 1970-01-01 instead.
+The CAST operation to TIMESTAMP and TIMESTAMP WITH TIME ZONE data types uses the CURRENT_DATE for date fields.
 ","
 TIME WITH TIME ZONE
 TIME(9) WITH TIME ZONE

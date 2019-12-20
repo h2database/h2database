@@ -487,8 +487,6 @@ public class TypeInfo {
      *            value to cast
      * @param provider
      *            the cast information provider
-     * @param forComparison
-     *            if {@code true}, perform cast for comparison operation
      * @param convertPrecision
      *            if {@code true}, value is truncated to the precision of data
      *            type when possible, if {@code false} an exception in thrown
@@ -499,9 +497,8 @@ public class TypeInfo {
      * @throws DbException
      *             if value cannot be casted to this data type
      */
-    public Value cast(Value value, CastDataProvider provider, boolean forComparison,
-            boolean convertPrecision, Object column) {
-        value = value.convertTo(this, provider, forComparison, column) //
+    public Value cast(Value value, CastDataProvider provider, boolean convertPrecision, Object column) {
+        value = value.convertTo(this, provider, column) //
                 .convertScale(provider.getMode().convertOnlyToSmallerScale, scale);
         if (convertPrecision) {
             value = value.convertPrecision(precision);

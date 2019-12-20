@@ -314,7 +314,7 @@ public class IndexCursor implements Cursor {
     }
 
     private void find(Value v) {
-        v = inColumn.convert(session, v, true);
+        v = inColumn.convert(session, v);
         int id = inColumn.getColumnId();
         start.setValue(id, v);
         cursor = index.find(session, start, start);

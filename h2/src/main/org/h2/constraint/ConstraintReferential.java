@@ -304,7 +304,7 @@ public class ConstraintReferential extends Constraint {
             Value v = newRow.getValue(idx);
             Column refCol = refColumns[i].column;
             int refIdx = refCol.getColumnId();
-            check.setValue(refIdx, refCol.convert(session, v, true));
+            check.setValue(refIdx, refCol.convert(session, v));
         }
         Index refIndex = refConstraint.getIndex();
         if (!existsRow(session, refIndex, check, null)) {
@@ -353,7 +353,7 @@ public class ConstraintReferential extends Constraint {
             Column refCol = refColumns[i].column;
             int refIdx = refCol.getColumnId();
             Column col = columns[i].column;
-            Value v = col.convert(session, oldRow.getValue(refIdx), true);
+            Value v = col.convert(session, oldRow.getValue(refIdx));
             if (v == ValueNull.INSTANCE) {
                 return;
             }

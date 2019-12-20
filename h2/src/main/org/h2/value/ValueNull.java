@@ -121,8 +121,7 @@ public class ValueNull extends Value {
     }
 
     @Override
-    protected Value convertTo(int targetType, ExtTypeInfo extTypeInfo, CastDataProvider provider,
-            boolean forComparison, Object column) {
+    protected Value convertTo(int targetType, ExtTypeInfo extTypeInfo, CastDataProvider provider, Object column) {
         return this;
     }
 

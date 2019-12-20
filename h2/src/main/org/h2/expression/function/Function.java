@@ -896,21 +896,21 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             result = ValueString.get(StringUtils.xmlStartDoc(), database);
             break;
         case CURRENT_DATE:
-            result = session.currentTimestamp().convertTo(Value.DATE, session, false);
+            result = session.currentTimestamp().convertTo(Value.DATE, session);
             break;
         case CURRENT_TIME:
-            result = session.currentTimestamp().convertTo(Value.TIME_TZ, session, false) //
+            result = session.currentTimestamp().convertTo(Value.TIME_TZ, session) //
                     .convertScale(false, v0 == null ? 0 : v0.getInt());
             break;
         case LOCALTIME:
-            result = session.currentTimestamp().convertTo(Value.TIME, session, false) //
+            result = session.currentTimestamp().convertTo(Value.TIME, session) //
                     .convertScale(false, v0 == null ? 0 : v0.getInt());
             break;
         case CURRENT_TIMESTAMP:
             result = session.currentTimestamp().convertScale(false, v0 == null ? 6 : v0.getInt());
             break;
         case LOCALTIMESTAMP:
-            result = session.currentTimestamp().convertTo(Value.TIMESTAMP, session, false) //
+            result = session.currentTimestamp().convertTo(Value.TIMESTAMP, session) //
                     .convertScale(false, v0 == null ? 6 : v0.getInt());
             break;
         case DAY_NAME: {
@@ -973,7 +973,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         case CAST:
         case CONVERT:
-            result = type.cast(v0, session, false, true, null);
+            result = type.cast(v0, session, true, null);
             if (domain != null) {
                 domain.checkConstraints(session, result);
             }
@@ -1000,7 +1000,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             if (v0 == ValueNull.INSTANCE) {
                 result = getNullOrValue(session, args, values, 1);
             }
-            result = result.convertTo(type, session, false, null);
+            result = result.convertTo(type, session, null);
             break;
         }
         case CASEWHEN: {
@@ -1010,7 +1010,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             } else {
                 v = getNullOrValue(session, args, values, 1);
             }
-            result = v.convertTo(type, session, false, null);
+            result = v.convertTo(type, session, null);
             break;
         }
         case DECODE: {
@@ -1026,7 +1026,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             }
             Value v = index < 0 ? ValueNull.INSTANCE :
                     getNullOrValue(session, args, values, index);
-            result = v.convertTo(type, session, false, null);
+            result = v.convertTo(type, session, null);
             break;
         }
         case NVL2: {
@@ -1036,7 +1036,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             } else {
                 v = getNullOrValue(session, args, values, 1);
             }
-            result = v.convertTo(type, session, false, null);
+            result = v.convertTo(type, session, null);
             break;
         }
         case COALESCE: {
@@ -1044,7 +1044,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             for (int i = 0; i < args.length; i++) {
                 Value v = getNullOrValue(session, args, values, i);
                 if (v != ValueNull.INSTANCE) {
-                    result = v.convertTo(type, session, false, null);
+                    result = v.convertTo(type, session, null);
                     break;
                 }
             }
@@ -1056,7 +1056,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             for (int i = 0; i < args.length; i++) {
                 Value v = getNullOrValue(session, args, values, i);
                 if (v != ValueNull.INSTANCE) {
-                    v = v.convertTo(type, session, true, null);
+                    v = v.convertTo(type, session, null);
                     if (result == ValueNull.INSTANCE) {
                         result = v;
                     } else {
@@ -1107,7 +1107,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 then = args[args.length - 1];
             }
             Value v = then == null ? ValueNull.INSTANCE : then.getValue(session);
-            result = v.convertTo(type, session, false, null);
+            result = v.convertTo(type, session, null);
             break;
         }
         case ARRAY_GET: {

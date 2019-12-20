@@ -162,7 +162,7 @@ public class JavaAggregate extends AbstractAggregate {
                 Value arg = null;
                 for (int i = 0, len = args.length; i < len; i++) {
                     arg = remembered == null ? args[i].getValue(session) : remembered[i];
-                    arg = arg.convertTo(argTypes[i], session, false);
+                    arg = arg.convertTo(argTypes[i], session);
                     argValues[i] = arg;
                 }
                 data.add(session, args.length == 1 ? arg : ValueRow.get(argValues));
@@ -172,7 +172,7 @@ public class JavaAggregate extends AbstractAggregate {
                 Object arg = null;
                 for (int i = 0, len = args.length; i < len; i++) {
                     Value v = remembered == null ? args[i].getValue(session) : remembered[i];
-                    v = v.convertTo(argTypes[i], session, false);
+                    v = v.convertTo(argTypes[i], session);
                     arg = v.getObject();
                     argValues[i] = arg;
                 }

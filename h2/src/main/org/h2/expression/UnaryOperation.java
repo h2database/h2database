@@ -34,7 +34,7 @@ public class UnaryOperation extends Expression {
 
     @Override
     public Value getValue(Session session) {
-        Value a = arg.getValue(session).convertTo(type, session, false, null);
+        Value a = arg.getValue(session).convertTo(type, session, null);
         return a == ValueNull.INSTANCE ? a : a.negate();
     }
 

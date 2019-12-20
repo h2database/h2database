@@ -208,13 +208,11 @@ public class ValueLobDb extends Value {
      * @param targetType the new type
      * @param extTypeInfo the extended data type information, or null
      * @param provider the cast information provider
-     * @param forComparison if {@code true}, perform cast for comparison operation
      * @param column the column (if any), used for to improve the error message if conversion fails
      * @return the converted value
      */
     @Override
-    protected Value convertTo(int targetType, ExtTypeInfo extTypeInfo, CastDataProvider provider,
-            boolean forComparison, Object column) {
+    protected Value convertTo(int targetType, ExtTypeInfo extTypeInfo, CastDataProvider provider, Object column) {
         if (targetType == valueType) {
             return this;
         } else if (targetType == Value.CLOB) {
@@ -232,7 +230,7 @@ public class ValueLobDb extends Value {
                 return ValueLobDb.createSmallLob(targetType, small);
             }
         }
-        return super.convertTo(targetType, null, provider, forComparison, column);
+        return super.convertTo(targetType, null, provider, column);
     }
 
     @Override

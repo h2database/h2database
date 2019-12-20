@@ -29,7 +29,6 @@ import org.h2.constraint.ConstraintDomain;
 import org.h2.constraint.ConstraintReferential;
 import org.h2.constraint.ConstraintUnique;
 import org.h2.engine.Constants;
-import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.FunctionAlias;
 import org.h2.engine.FunctionAlias.JavaMethod;
@@ -2403,7 +2402,7 @@ public class MetaTable extends Table {
         for (int i = 0; i < stringsOrValues.length; i++) {
             Object s = stringsOrValues[i];
             Value v = s == null ? ValueNull.INSTANCE : s instanceof String ? ValueString.get((String) s) : (Value) s;
-            values[i] = columns[i].convert(session, v, false);
+            values[i] = columns[i].convert(session, v);
         }
         rows.add(Row.get(values, 1, rows.size()));
     }

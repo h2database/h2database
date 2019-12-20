@@ -185,20 +185,20 @@ public class TestTimeStampWithTimeZone extends TestDb {
 
     private void testConversionsImpl(String timeStr, boolean testReverse, CastDataProvider provider) {
         ValueTimestamp ts = ValueTimestamp.parse(timeStr, null);
-        ValueDate d = (ValueDate) ts.convertTo(Value.DATE, provider, false);
-        ValueTime t = (ValueTime) ts.convertTo(Value.TIME, provider, false);
+        ValueDate d = (ValueDate) ts.convertTo(Value.DATE, provider);
+        ValueTime t = (ValueTime) ts.convertTo(Value.TIME, provider);
         ValueTimestampTimeZone tstz = ValueTimestampTimeZone.parse(timeStr, null);
-        assertEquals(ts, tstz.convertTo(Value.TIMESTAMP, provider, false));
-        assertEquals(d, tstz.convertTo(Value.DATE, provider, false));
-        assertEquals(t, tstz.convertTo(Value.TIME, provider, false));
+        assertEquals(ts, tstz.convertTo(Value.TIMESTAMP, provider));
+        assertEquals(d, tstz.convertTo(Value.DATE, provider));
+        assertEquals(t, tstz.convertTo(Value.TIME, provider));
         assertEquals(LegacyDateTimeUtils.toTimestamp(provider, null, ts),
                 LegacyDateTimeUtils.toTimestamp(provider, null, tstz));
         if (testReverse) {
-            assertEquals(0, tstz.compareTo(ts.convertTo(Value.TIMESTAMP_TZ, provider, false), null, null));
-            assertEquals(d.convertTo(Value.TIMESTAMP, provider, false).convertTo(Value.TIMESTAMP_TZ, provider, false),
-                    d.convertTo(Value.TIMESTAMP_TZ, provider, false));
-            assertEquals(t.convertTo(Value.TIMESTAMP, provider, false).convertTo(Value.TIMESTAMP_TZ, provider, false),
-                    t.convertTo(Value.TIMESTAMP_TZ, provider, false));
+            assertEquals(0, tstz.compareTo(ts.convertTo(Value.TIMESTAMP_TZ, provider), null, null));
+            assertEquals(d.convertTo(Value.TIMESTAMP, provider).convertTo(Value.TIMESTAMP_TZ, provider),
+                    d.convertTo(Value.TIMESTAMP_TZ, provider));
+            assertEquals(t.convertTo(Value.TIMESTAMP, provider).convertTo(Value.TIMESTAMP_TZ, provider),
+                    t.convertTo(Value.TIMESTAMP_TZ, provider));
         }
     }
 

@@ -589,15 +589,13 @@ public class PgServerThread implements Runnable {
                 break;
             }
             case PgServer.PG_TYPE_DATE: {
-                ValueDate d = (ValueDate) v.convertTo(Value.DATE,
-                        (JdbcConnection) rs.getStatement().getConnection(), false);
+                ValueDate d = (ValueDate) v.convertTo(Value.DATE, (JdbcConnection) rs.getStatement().getConnection());
                 writeInt(4);
                 writeInt((int) (toPostgreDays(d.getDateValue())));
                 break;
             }
             case PgServer.PG_TYPE_TIME: {
-                ValueTime t = (ValueTime) v.convertTo(Value.TIME,
-                        (JdbcConnection) rs.getStatement().getConnection(), false);
+                ValueTime t = (ValueTime) v.convertTo(Value.TIME, (JdbcConnection) rs.getStatement().getConnection());
                 writeInt(8);
                 long m = t.getNanos();
                 if (INTEGER_DATE_TYPES) {
@@ -612,7 +610,7 @@ public class PgServerThread implements Runnable {
             }
             case PgServer.PG_TYPE_TIMESTAMP_NO_TMZONE: {
                 ValueTimestamp t = (ValueTimestamp) v.convertTo(Value.TIMESTAMP,
-                        (JdbcConnection) rs.getStatement().getConnection(), false);
+                        (JdbcConnection) rs.getStatement().getConnection());
                 writeInt(8);
                 long m = toPostgreDays(t.getDateValue()) * 86_400;
                 long nanos = t.getTimeNanos();

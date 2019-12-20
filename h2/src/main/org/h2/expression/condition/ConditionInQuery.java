@@ -83,7 +83,7 @@ public class ConditionInQuery extends PredicateWithSubquery {
                 }
                 l = leftList[0];
             }
-            l = l.convertTo(colType, session, true, null);
+            l = l.convertTo(colType, session, null);
             if (rows.containsDistinct(new Value[] { l })) {
                 return ValueBoolean.TRUE;
             }

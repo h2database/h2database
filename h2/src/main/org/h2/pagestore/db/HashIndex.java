@@ -104,7 +104,7 @@ public class HashIndex extends BaseIndex {
          * case we need to convert, otherwise the HashMap will not find the
          * result.
          */
-        v = v.convertTo(tableData.getColumn(indexColumn).getType(), session, true, null);
+        v = v.convertTo(tableData.getColumn(indexColumn).getType(), session, null);
         Row result;
         Long pos = rows.get(v);
         if (pos == null) {

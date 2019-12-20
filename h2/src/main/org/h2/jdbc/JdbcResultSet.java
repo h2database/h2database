@@ -1069,7 +1069,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     public byte[] getBytes(int columnIndex) throws SQLException {
         try {
             debugCodeCall("getBytes", columnIndex);
-            return get(columnIndex).convertTo(Value.BYTES, conn, false).getBytes();
+            return get(columnIndex).convertTo(Value.BYTES, conn).getBytes();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1087,7 +1087,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     public byte[] getBytes(String columnLabel) throws SQLException {
         try {
             debugCodeCall("getBytes", columnLabel);
-            return get(columnLabel).convertTo(Value.BYTES, conn, false).getBytes();
+            return get(columnLabel).convertTo(Value.BYTES, conn).getBytes();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -4066,7 +4066,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         } else {
             int type = DataType.convertSQLTypeToValueType(targetSqlType);
             Value v = DataType.convertToValue(conn.getSession(), x, type);
-            return v.convertTo(type, conn, false);
+            return v.convertTo(type, conn);
         }
     }
 

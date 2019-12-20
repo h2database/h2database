@@ -43,7 +43,7 @@ public class TestDate extends TestBase {
 
         TimeZoneProvider currentTimeZone = DateTimeUtils.getTimeZone();
 
-        private final ValueTimestampTimeZone currentTimestamp = DateTimeUtils.currentTimestamp(currentTimeZone);
+        ValueTimestampTimeZone currentTimestamp = DateTimeUtils.currentTimestamp(currentTimeZone);
 
         @Override
         public Mode getMode() {
@@ -265,18 +265,20 @@ public class TestDate extends TestBase {
                 equals(ValueDate.parse("2001-01-01")));
 
         SimpleCastDataProvider provider = new SimpleCastDataProvider();
+        provider.currentTimestamp = ValueTimestampTimeZone.fromDateValueAndNanos(DateTimeUtils.EPOCH_DATE_VALUE, 0,
+                provider.currentTimeZone.getTimeZoneOffsetUTC(0L));
         assertEquals("2001-01-01 01:01:01",
                 ValueTimestamp.parse("2001-01-01", null).add(
-                ValueTime.parse("01:01:01").convertTo(Value.TIMESTAMP, provider, true)).getString());
+                ValueTime.parse("01:01:01").convertTo(Value.TIMESTAMP, provider)).getString());
         assertEquals("1010-10-10 00:00:00",
                 ValueTimestamp.parse("1010-10-10 10:10:10", null).subtract(
-                ValueTime.parse("10:10:10").convertTo(Value.TIMESTAMP, provider, true)).getString());
+                ValueTime.parse("10:10:10").convertTo(Value.TIMESTAMP, provider)).getString());
         assertEquals("-2001-01-01 01:01:01",
                 ValueTimestamp.parse("-2001-01-01", null).add(
-                ValueTime.parse("01:01:01").convertTo(Value.TIMESTAMP, provider, true)).getString());
+                ValueTime.parse("01:01:01").convertTo(Value.TIMESTAMP, provider)).getString());
         assertEquals("-1010-10-10 00:00:00",
                 ValueTimestamp.parse("-1010-10-10 10:10:10", null).subtract(
-                ValueTime.parse("10:10:10").convertTo(Value.TIMESTAMP, provider, true)).getString());
+                ValueTime.parse("10:10:10").convertTo(Value.TIMESTAMP, provider)).getString());
 
         assertEquals(0, DateTimeUtils.absoluteDayFromDateValue(
                 ValueTimestamp.parse("1970-01-01", null).getDateValue()));

@@ -3505,8 +3505,13 @@ The time data type. The format is hh:mm:ss[.nnnnnnnnn].
 If fractional seconds precision is specified it should be from 0 to 9, 0 is default.
 
 See also [time](https://h2database.com/html/grammar.html#time) literal grammar.
-Mapped to ""java.sql.Time"".
+
+In JDBC this data type is mapped to ""java.sql.Time"".
 ""java.time.LocalTime"" is also supported and recommended.
+
+In ""org.h2.api.Aggregate"", ""org.h2.api.AggregateFunction"", and ""org.h2.api.Trigger""
+this data type is mapped to ""java.time.LocalTime"".
+
 Use ""java.time.LocalTime"" or ""String"" instead of ""java.sql.Time"" when non-zero precision is needed.
 Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up;
 if result of rounding is higher than maximum supported value 23:59:59.999999999 the value is rounded down instead.
@@ -3538,9 +3543,13 @@ DATE
 The date data type. The proleptic Gregorian calendar is used.
 
 See also [date](https://h2database.com/html/grammar.html#date) literal grammar.
-Mapped to ""java.sql.Date"", with the time set to ""00:00:00""
+
+In JDBC this data type is mapped to ""java.sql.Date"", with the time set to ""00:00:00""
 (or to the next possible time if midnight doesn't exist for the given date and time zone due to a daylight saving change).
 ""java.time.LocalDate"" is also supported and recommended.
+
+In ""org.h2.api.Aggregate"", ""org.h2.api.AggregateFunction"", and ""org.h2.api.Trigger""
+this data type is mapped to ""java.time.LocalDate"".
 
 If your time zone had LMT (local mean time) in the past and you use such old dates
 (depends on the time zone, usually 100 or more years ago),
@@ -3566,8 +3575,12 @@ It cannot distinguish timestamps near transitions from DST to normal time.
 For absolute timestamps use the [TIMESTAMP WITH TIME ZONE](https://h2database.com/html/datatypes.html#timestamp_with_time_zone_type) data type instead.
 
 See also [timestamp](https://h2database.com/html/grammar.html#timestamp) literal grammar.
-Mapped to ""java.sql.Timestamp"" (""java.util.Date"" may be used too).
+
+In JDBC this data type is mapped to ""java.sql.Timestamp"" (""java.util.Date"" may be used too).
 ""java.time.LocalDateTime"" is also supported and recommended.
+
+In ""org.h2.api.Aggregate"", ""org.h2.api.AggregateFunction"", and ""org.h2.api.Trigger""
+this data type is mapped to ""java.time.LocalDateTime"".
 
 If your time zone had LMT (local mean time) in the past and you use such old dates
 (depends on the time zone, usually 100 or more years ago),

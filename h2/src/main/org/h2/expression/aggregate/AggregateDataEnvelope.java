@@ -7,7 +7,7 @@ package org.h2.expression.aggregate;
 
 import java.util.ArrayList;
 
-import org.h2.engine.Database;
+import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.index.Index;
@@ -57,7 +57,7 @@ class AggregateDataEnvelope extends AggregateData {
     }
 
     @Override
-    void add(Database database, Value v) {
+    void add(Session session, Value v) {
         if (v == ValueNull.INSTANCE) {
             return;
         }
@@ -65,7 +65,7 @@ class AggregateDataEnvelope extends AggregateData {
     }
 
     @Override
-    Value getValue(Database database, int dataType) {
+    Value getValue(Session session, int dataType) {
         return ValueGeometry.fromEnvelope(envelope);
     }
 

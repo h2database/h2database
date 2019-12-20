@@ -6,7 +6,7 @@
 package org.h2.expression.aggregate;
 
 import org.h2.engine.Constants;
-import org.h2.engine.Database;
+import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.value.Value;
 
@@ -80,17 +80,17 @@ abstract class AggregateData {
     /**
      * Add a value to this aggregate.
      *
-     * @param database the database
+     * @param session the session
      * @param v the value
      */
-    abstract void add(Database database, Value v);
+    abstract void add(Session session, Value v);
 
     /**
      * Get the aggregate result.
      *
-     * @param database the database
+     * @param session the session
      * @param dataType the datatype of the computed result
      * @return the value
      */
-    abstract Value getValue(Database database, int dataType);
+    abstract Value getValue(Session session, int dataType);
 }

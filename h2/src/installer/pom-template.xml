@@ -9,8 +9,13 @@
     <description>H2 Database Engine</description>
     <licenses>
         <license>
-            <name>MPL 2.0 or EPL 1.0</name>
-            <url>https://h2database.com/html/license.html</url>
+            <name>MPL 2.0</name>
+            <url>https://www.mozilla.org/en-US/MPL/2.0/</url>
+            <distribution>repo</distribution>
+        </license>
+        <license>
+            <name>EPL 1.0</name>
+            <url>https://opensource.org/licenses/eclipse-1.0.php</url>
             <distribution>repo</distribution>
         </license>
     </licenses>

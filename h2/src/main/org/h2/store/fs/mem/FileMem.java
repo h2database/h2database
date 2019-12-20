@@ -21,7 +21,7 @@ class FileMem extends FileBaseDefault {
     /**
      * The file data.
      */
-    private final FileMemData data;
+    final FileMemData data;
 
     private final boolean readOnly;
     private volatile boolean closed;

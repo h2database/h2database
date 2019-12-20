@@ -1200,7 +1200,8 @@ public class MetaTable extends Table {
                         add(session, rows,
                                 "info.FILE_READ_BYTES", Long.toString(fs.getReadBytes()));
                         add(session, rows,
-                                "info.UPDATE_FAILURE_PERCENT", String.format(Locale.ENGLISH, "%.2f%%", 100 * mvStore.getUpdateFailureRatio()));
+                                "info.UPDATE_FAILURE_PERCENT",
+                                String.format(Locale.ENGLISH, "%.2f%%", 100 * mvStore.getUpdateFailureRatio()));
                         add(session, rows,
                                 "info.FILL_RATE", Integer.toString(mvStore.getFillRate()));
                         add(session, rows,

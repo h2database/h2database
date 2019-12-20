@@ -82,7 +82,7 @@ public abstract class DataAnalysisOperation extends Expression {
             index[i] = i + offset;
             sortType[i] = o.sortType;
         }
-        return new SortOrder(session.getDatabase(), index, sortType, null);
+        return new SortOrder(session, index, sortType, null);
     }
 
     protected DataAnalysisOperation(Select select) {
@@ -156,7 +156,7 @@ public abstract class DataAnalysisOperation extends Expression {
             if (orderBy != null) {
                 overOrderBySort = createOrder(session, orderBy, getNumExpressions());
             } else if (!isAggregate()) {
-                overOrderBySort = new SortOrder(session.getDatabase(), new int[getNumExpressions()], new int[0], null);
+                overOrderBySort = new SortOrder(session, new int[getNumExpressions()], new int[0], null);
             }
             WindowFrame frame = over.getWindowFrame();
             if (frame != null) {

@@ -681,7 +681,7 @@ public abstract class Query extends Prepared {
             }
             sortType[i] = type;
         }
-        return new SortOrder(session.getDatabase(), index, sortType, orderList);
+        return new SortOrder(session, index, sortType, orderList);
     }
 
     @Override

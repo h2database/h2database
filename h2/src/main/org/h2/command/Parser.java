@@ -3313,7 +3313,7 @@ public class Parser {
                     read(OPEN_PAREN);
                     if (currentTokenType == PARAMETER && compareType == 0) {
                         Parameter p = readParameter();
-                        r = new ConditionInParameter(database, r, p);
+                        r = new ConditionInParameter(r, p);
                         read(CLOSE_PAREN);
                     } else if (isQuery()) {
                         Query query = parseQuery();
@@ -3363,7 +3363,7 @@ public class Parser {
         do {
             v.add(readExpression());
         } while (readIfMore());
-        return new ConditionIn(database, left, v);
+        return new ConditionIn(left, v);
     }
 
     private IsJsonPredicate readJsonPredicate(Expression left, boolean not) {

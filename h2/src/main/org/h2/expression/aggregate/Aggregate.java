@@ -653,7 +653,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                     count = c;
                 } else if (c == count) {
                     Value v2 = entry.getKey();
-                    int cmp = session.getDatabase().compareTypeSafe(v, v2);
+                    int cmp = session.compareTypeSafe(v, v2);
                     if (desc) {
                         if (cmp >= 0) {
                             continue;

@@ -2096,4 +2096,32 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                 timeZone.getTimeZoneOffsetUTC(DateTimeUtils.getEpochSeconds(dateValue, timeNanos, offsetSeconds)));
     }
 
+    /**
+     * Compare two values with the current comparison mode. The values may have
+     * different data types including NULL.
+     *
+     * @param a the first value
+     * @param b the second value
+     * @param forEquality perform only check for equality (= or &lt;&gt;)
+     * @return 0 if both values are equal, -1 if the first value is smaller, 1
+     *         if the second value is larger, {@link Integer#MIN_VALUE} if order
+     *         is not defined due to NULL comparison
+     */
+    public int compareWithNull(Value a, Value b, boolean forEquality) {
+        return a.compareWithNull(b, forEquality, this, database.getCompareMode());
+    }
+
+    /**
+     * Compare two values with the current comparison mode. The values must be
+     * of the same type.
+     *
+     * @param a the first value
+     * @param b the second value
+     * @return 0 if both values are equal, -1 if the first value is smaller, and
+     *         1 otherwise
+     */
+    public int compareTypeSafe(Value a, Value b) {
+        return a.compareTypeSafe(b, database.getCompareMode(), this);
+    }
+
 }

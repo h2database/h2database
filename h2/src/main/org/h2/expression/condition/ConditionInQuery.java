@@ -62,10 +62,10 @@ public class ConditionInQuery extends PredicateWithSubquery {
             return ValueNull.INSTANCE;
         }
         if (!database.getSettings().optimizeInSelect) {
-            return getValueSlow(rows, l);
+            return getValueSlow(session, rows, l);
         }
         if (all || compareType != Comparison.EQUAL) {
-            return getValueSlow(rows, l);
+            return getValueSlow(session, rows, l);
         }
         int columnCount = query.getColumnCount();
         if (columnCount != 1) {
@@ -97,13 +97,13 @@ public class ConditionInQuery extends PredicateWithSubquery {
         return ValueBoolean.FALSE;
     }
 
-    private Value getValueSlow(ResultInterface rows, Value l) {
+    private Value getValueSlow(Session session, ResultInterface rows, Value l) {
         // this only returns the correct result if the result has at least one
         // row, and if l is not null
         boolean hasNull = false;
         if (all) {
             while (rows.next()) {
-                Value cmp = compare(l, rows);
+                Value cmp = compare(session, l, rows);
                 if (cmp == ValueNull.INSTANCE) {
                     hasNull = true;
                 } else if (cmp == ValueBoolean.FALSE) {
@@ -112,7 +112,7 @@ public class ConditionInQuery extends PredicateWithSubquery {
             }
         } else {
             while (rows.next()) {
-                Value cmp = compare(l, rows);
+                Value cmp = compare(session, l, rows);
                 if (cmp == ValueNull.INSTANCE) {
                     hasNull = true;
                 } else if (cmp == ValueBoolean.TRUE) {
@@ -126,11 +126,11 @@ public class ConditionInQuery extends PredicateWithSubquery {
         return ValueBoolean.get(all);
     }
 
-    private Value compare(Value l, ResultInterface rows) {
+    private Value compare(Session session, Value l, ResultInterface rows) {
         Value[] currentRow = rows.currentRow();
         Value r = l.getValueType() != Value.ROW && query.getColumnCount() == 1 ? currentRow[0]
                 : ValueRow.get(currentRow);
-        return Comparison.compare(database, l, r, compareType);
+        return Comparison.compare(session, l, r, compareType);
     }
 
     @Override

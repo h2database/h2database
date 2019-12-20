@@ -253,23 +253,23 @@ public class Comparison extends Condition {
         if (l == ValueNull.INSTANCE && (compareType & NULL_SAFE) == 0) {
             return ValueNull.INSTANCE;
         }
-        return compare(database, l, right.getValue(session), compareType);
+        return compare(session, l, right.getValue(session), compareType);
     }
 
     /**
      * Compare two values.
      *
-     * @param database the database
+     * @param session the session
      * @param l the first value
      * @param r the second value
      * @param compareType the compare type
      * @return result of comparison, either TRUE, FALSE, or NULL
      */
-    static Value compare(Database database, Value l, Value r, int compareType) {
+    static Value compare(Session session, Value l, Value r, int compareType) {
         Value result;
         switch (compareType) {
         case EQUAL: {
-            int cmp = database.compareWithNull(l, r, true);
+            int cmp = session.compareWithNull(l, r, true);
             if (cmp == 0) {
                 result = ValueBoolean.TRUE;
             } else if (cmp == Integer.MIN_VALUE) {
@@ -280,10 +280,10 @@ public class Comparison extends Condition {
             break;
         }
         case EQUAL_NULL_SAFE:
-            result = ValueBoolean.get(database.areEqual(l, r));
+            result = ValueBoolean.get(session.getDatabase().areEqual(l, r));
             break;
         case NOT_EQUAL: {
-            int cmp = database.compareWithNull(l, r, true);
+            int cmp = session.compareWithNull(l, r, true);
             if (cmp == 0) {
                 result = ValueBoolean.FALSE;
             } else if (cmp == Integer.MIN_VALUE) {
@@ -294,10 +294,10 @@ public class Comparison extends Condition {
             break;
         }
         case NOT_EQUAL_NULL_SAFE:
-            result = ValueBoolean.get(!database.areEqual(l, r));
+            result = ValueBoolean.get(!session.getDatabase().areEqual(l, r));
             break;
         case BIGGER_EQUAL: {
-            int cmp = database.compareWithNull(l, r, false);
+            int cmp = session.compareWithNull(l, r, false);
             if (cmp >= 0) {
                 result = ValueBoolean.TRUE;
             } else if (cmp == Integer.MIN_VALUE) {
@@ -308,7 +308,7 @@ public class Comparison extends Condition {
             break;
         }
         case BIGGER: {
-            int cmp = database.compareWithNull(l, r, false);
+            int cmp = session.compareWithNull(l, r, false);
             if (cmp > 0) {
                 result = ValueBoolean.TRUE;
             } else if (cmp == Integer.MIN_VALUE) {
@@ -319,7 +319,7 @@ public class Comparison extends Condition {
             break;
         }
         case SMALLER_EQUAL: {
-            int cmp = database.compareWithNull(l, r, false);
+            int cmp = session.compareWithNull(l, r, false);
             if (cmp == Integer.MIN_VALUE) {
                 result = ValueNull.INSTANCE;
             } else {
@@ -328,7 +328,7 @@ public class Comparison extends Condition {
             break;
         }
         case SMALLER: {
-            int cmp = database.compareWithNull(l, r, false);
+            int cmp = session.compareWithNull(l, r, false);
             if (cmp == Integer.MIN_VALUE) {
                 result = ValueNull.INSTANCE;
             } else {
@@ -604,7 +604,7 @@ public class Comparison extends Condition {
         ArrayList<Expression> right = new ArrayList<>(2);
         right.add(value1);
         right.add(value2);
-        return new ConditionIn(session.getDatabase(), left, right);
+        return new ConditionIn(left, right);
     }
 
     @Override

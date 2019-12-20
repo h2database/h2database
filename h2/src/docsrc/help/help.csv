@@ -1924,12 +1924,19 @@ SET THROTTLE 200
 "
 
 "Commands (Other)","SET TIME ZONE","
-SET TIME ZONE { LOCAL | intervalHourToMinute | intervalHourToSecond | string }
+SET TIME ZONE { LOCAL | intervalHourToMinute | @h2@  { intervalHourToSecond | string } }
 ","
 Sets the current time zone for the session.
 
 This command does not commit a transaction, and rollback does not affect it.
 This setting can be appended to the database URL: ""jdbc:h2:./test;TIME ZONE='1:00'""
+
+Time zone offset used for [CURRENT_TIME](https://h2database.com/html/functions.html#current_time),
+[CURRENT_TIMESTAMP](https://h2database.com/html/functions.html#current_timestamp),
+[CURRENT_DATE](https://h2database.com/html/functions.html#current_date),
+[LOCALTIME](https://h2database.com/html/functions.html#localtime),
+and [LOCALTIMESTAMP](https://h2database.com/html/functions.html#localtimestamp) is adjusted,
+so these functions will return new values based on the same UTC timestamp after execution of this command.
 ","
 SET TIME ZONE LOCAL
 SET TIME ZONE '-5:00'
@@ -3515,7 +3522,8 @@ this data type is mapped to ""java.time.LocalTime"".
 Use ""java.time.LocalTime"" or ""String"" instead of ""java.sql.Time"" when non-zero precision is needed.
 Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up;
 if result of rounding is higher than maximum supported value 23:59:59.999999999 the value is rounded down instead.
-The CAST operation to TIMESTAMP and TIMESTAMP WITH TIME ZONE data types uses the CURRENT_DATE for date fields.
+The CAST operation to TIMESTAMP and TIMESTAMP WITH TIME ZONE data types uses the
+[CURRENT_DATE](https://h2database.com/html/functions.html#current_date) for date fields.
 ","
 TIME
 TIME(9)
@@ -3531,7 +3539,8 @@ See also [time with time zone](https://h2database.com/html/grammar.html#time_wit
 Mapped to ""java.time.OffsetTime"".
 Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up;
 if result of rounding is higher than maximum supported value 23:59:59.999999999 the value is rounded down instead.
-The CAST operation to TIMESTAMP and TIMESTAMP WITH TIME ZONE data types uses the CURRENT_DATE for date fields.
+The CAST operation to TIMESTAMP and TIMESTAMP WITH TIME ZONE data types uses the
+[CURRENT_DATE](https://h2database.com/html/functions.html#current_date) for date fields.
 ","
 TIME WITH TIME ZONE
 TIME(9) WITH TIME ZONE
@@ -4949,8 +4958,11 @@ CURRENT_DATE | @c@ { CURDATE() | SYSDATE | TODAY }
 ","
 Returns the current date.
 
-These functions always return the same value within a transaction (default)
+These functions return the same value within a transaction (default)
 or within a command depending on database mode.
+
+[SET TIME ZONE](https://h2database.com/html/commands.html#set_time_zone) command reevaluates the value
+for these functions using the same original UTC timestamp of transaction.
 ","
 CURRENT_DATE
 "
@@ -4964,8 +4976,11 @@ The specified value can be used only to limit precision of a result.
 The actual maximum available precision depends on operating system and JVM and can be 3 (milliseconds) or higher.
 Higher precision is not available before Java 9.
 
-This function always returns the same value within a transaction (default)
+This function returns the same value within a transaction (default)
 or within a command depending on database mode.
+
+[SET TIME ZONE](https://h2database.com/html/commands.html#set_time_zone) command reevaluates the value
+for this function using the same original UTC timestamp of transaction.
 ","
 CURRENT_TIME
 CURRENT_TIME(9)
@@ -4981,8 +4996,11 @@ The specified value can be used only to limit precision of a result.
 The actual maximum available precision depends on operating system and JVM and can be 3 (milliseconds) or higher.
 Higher precision is not available before Java 9.
 
-This function always returns the same value within a transaction (default)
+This function returns the same value within a transaction (default)
 or within a command depending on database mode.
+
+[SET TIME ZONE](https://h2database.com/html/commands.html#set_time_zone) command reevaluates the value
+for this function using the same original UTC timestamp of transaction.
 ","
 CURRENT_TIMESTAMP
 CURRENT_TIMESTAMP(9)
@@ -4997,8 +5015,11 @@ The specified value can be used only to limit precision of a result.
 The actual maximum available precision depends on operating system and JVM and can be 3 (milliseconds) or higher.
 Higher precision is not available before Java 9.
 
-These functions always return the same value within a transaction (default)
+These functions return the same value within a transaction (default)
 or within a command depending on database mode.
+
+[SET TIME ZONE](https://h2database.com/html/commands.html#set_time_zone) command reevaluates the value
+for these functions using the same original UTC timestamp of transaction.
 ","
 LOCALTIME
 LOCALTIME(9)
@@ -5019,8 +5040,11 @@ For absolute timestamps use the [CURRENT_TIMESTAMP](https://h2database.com/html/
 function and [TIMESTAMP WITH TIME ZONE](https://h2database.com/html/datatypes.html#timestamp_with_time_zone_type)
 data type.
 
-These functions always return the same value within a transaction (default)
+These functions return the same value within a transaction (default)
 or within a command depending on database mode.
+
+[SET TIME ZONE](https://h2database.com/html/commands.html#set_time_zone) reevaluates the value
+for these functions using the same original UTC timestamp of transaction.
 ","
 LOCALTIMESTAMP
 LOCALTIMESTAMP(9)

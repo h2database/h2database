@@ -2125,7 +2125,19 @@ public class ErrorCode {
      */
     public static final int CONSTRAINT_IS_USED_BY_CONSTRAINT_2 = 90152;
 
-    // next is 90153
+    /**
+     * The error with code <code>90153</code> is thrown when trying to reference
+     * a column of another data type when data types aren't comparable or don't
+     * have a session-independent compare order between each other.
+     *
+     * <pre>
+     * CREATE TABLE PARENT(T TIMESTAMP UNIQUE);
+     * CREATE TABLE CHILD(T TIMESTAMP WITH TIME ZONE REFERENCES PARENT(T));
+     * </pre>
+     */
+    public static final int UNCOMPARABLE_REFERENCED_COLUMN_2 = 90153;
+
+    // next is 90154
 
     private ErrorCode() {
         // utility class

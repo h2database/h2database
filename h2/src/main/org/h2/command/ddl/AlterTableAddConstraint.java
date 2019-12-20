@@ -23,9 +23,11 @@ import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
+import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.value.DataType;
 
 /**
  * This class represents the statement
@@ -203,8 +205,16 @@ public class AlterTableAddConstraint extends SchemaCommand {
             } else {
                 IndexColumn.mapColumns(refIndexColumns, refTable);
             }
-            if (refIndexColumns.length != indexColumns.length) {
+            int columnCount = indexColumns.length;
+            if (refIndexColumns.length != columnCount) {
                 throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
+            }
+            for (int i = 0; i < columnCount; i++) {
+                Column column1 = indexColumns[i].column, column2 = refIndexColumns[i].column;
+                if (!DataType.areStableComparable(column1.getType(), column2.getType())) {
+                    throw DbException.get(ErrorCode.UNCOMPARABLE_REFERENCED_COLUMN_2, column1.getCreateSQL(),
+                            column2.getCreateSQL());
+                }
             }
             if (index != null && canUseIndex(index, table, indexColumns, false)) {
                 isOwner = true;

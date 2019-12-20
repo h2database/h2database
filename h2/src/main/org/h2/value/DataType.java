@@ -1425,6 +1425,60 @@ public class DataType {
     }
 
     /**
+     * Returns whether values of the specified data types have
+     * session-independent compare results.
+     *
+     * @param type1
+     *            the first data type
+     * @param type2
+     *            the second data type
+     * @return are values have session-independent compare results
+     */
+    public static boolean areStableComparable(TypeInfo type1, TypeInfo type2) {
+        int t1 = type1.getValueType();
+        int t2 = type2.getValueType();
+        switch (t1) {
+        case Value.UNKNOWN:
+        case Value.NULL:
+        case Value.BLOB:
+        case Value.CLOB:
+        case Value.RESULT_SET:
+        case Value.ROW:
+            return false;
+        case Value.DATE:
+        case Value.TIMESTAMP:
+            // DATE is equal to TIMESTAMP at midnight
+            return t2 == Value.DATE || t2 == Value.TIMESTAMP;
+        case Value.TIME:
+        case Value.TIME_TZ:
+        case Value.TIMESTAMP_TZ:
+            // Conversions depend on current timestamp and time zone
+            return t1 == t2;
+        case Value.ARRAY:
+            if (t2 == Value.ARRAY) {
+                ExtTypeInfo e1 = type1.getExtTypeInfo(), e2 = type2.getExtTypeInfo();
+                if (e1 != null && e2 != null) {
+                    return areStableComparable(
+                            ((ExtTypeInfoArray) e1).getComponentType(), ((ExtTypeInfoArray) e2).getComponentType());
+                }
+            }
+            return false;
+        default:
+            switch (t2) {
+            case Value.UNKNOWN:
+            case Value.NULL:
+            case Value.BLOB:
+            case Value.CLOB:
+            case Value.RESULT_SET:
+            case Value.ROW:
+                return false;
+            default:
+                return true;
+            }
+        }
+    }
+
+    /**
      * Check if the given value type is a date-time type (TIME, DATE, TIMESTAMP,
      * TIMESTAMP_TZ).
      *

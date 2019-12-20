@@ -191,7 +191,7 @@ public class SortOrder implements Comparator<Value[]> {
                 }
                 return compareNull(aNull, type);
             }
-            int comp = session.getDatabase().compare(ao, bo);
+            int comp = session.compare(ao, bo);
             if (comp != 0) {
                 return (type & DESCENDING) == 0 ? comp : -comp;
             }

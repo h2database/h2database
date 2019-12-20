@@ -397,8 +397,7 @@ public abstract class Query extends Prepared {
         this.noCache = true;
     }
 
-    private boolean sameResultAsLast(Session s, Value[] params,
-            Value[] lastParams, long lastEval) {
+    private boolean sameResultAsLast(Value[] params, Value[] lastParams, long lastEval) {
         if (!cacheableChecked) {
             long max = getMaxDataModificationId();
             noCache = max == Long.MAX_VALUE;
@@ -411,10 +410,9 @@ public abstract class Query extends Prepared {
         if (noCache) {
             return false;
         }
-        Database db = s.getDatabase();
         for (int i = 0; i < params.length; i++) {
             Value a = lastParams[i], b = params[i];
-            if (a.getValueType() != b.getValueType() || !db.areEqual(a, b)) {
+            if (a.getValueType() != b.getValueType() || !session.areEqual(a, b)) {
                 return false;
             }
         }
@@ -463,8 +461,7 @@ public abstract class Query extends Prepared {
         if (isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR)) {
             if (lastResult != null && !lastResult.isClosed() &&
                     limit == lastLimit) {
-                if (sameResultAsLast(session, params, lastParameters,
-                        lastEvaluated)) {
+                if (sameResultAsLast(params, lastParameters, lastEvaluated)) {
                     lastResult = lastResult.createShallowCopy(session);
                     if (lastResult != null) {
                         lastResult.reset();

@@ -58,12 +58,12 @@ class AggregateDataDefault extends AggregateData {
             }
             break;
         case MIN:
-            if (value == null || session.getDatabase().compare(v, value) < 0) {
+            if (value == null || session.compare(v, value) < 0) {
                 value = v;
             }
             break;
         case MAX:
-            if (value == null || session.getDatabase().compare(v, value) > 0) {
+            if (value == null || session.compare(v, value) > 0) {
                 value = v;
             }
             break;

@@ -230,7 +230,7 @@ public class IndexCursor implements Cursor {
         } else if (b == ValueNull.INSTANCE) {
             return a;
         }
-        int comp = table.getDatabase().compare(a, b);
+        int comp = session.compare(a, b);
         if (comp == 0) {
             return a;
         }

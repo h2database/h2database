@@ -1016,8 +1016,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case DECODE: {
             int index = -1;
             for (int i = 1, len = args.length - 1; i < len; i += 2) {
-                if (database.areEqual(v0,
-                        getNullOrValue(session, args, values, i))) {
+                if (session.areEqual(v0, getNullOrValue(session, args, values, i))) {
                     index = i + 1;
                     break;
                 }
@@ -1096,7 +1095,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 if (v0 != ValueNull.INSTANCE) {
                     for (int i = 1, len = args.length - 1; i < len; i += 2) {
                         Value when = args[i].getValue(session);
-                        if (database.areEqual(v0, when)) {
+                        if (session.areEqual(v0, when)) {
                             then = args[i + 1];
                             break;
                         }
@@ -1141,7 +1140,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             if (list != null) {
                 Value v1 = getNullOrValue(session, args, values, 1);
                 for (Value v : list) {
-                    if (database.areEqual(v, v1)) {
+                    if (session.areEqual(v, v1)) {
                         result = ValueBoolean.TRUE;
                         break;
                     }
@@ -1578,7 +1577,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         }
         case NULLIF:
-            result = database.areEqual(v0, v1) ? ValueNull.INSTANCE : v0;
+            result = session.areEqual(v0, v1) ? ValueNull.INSTANCE : v0;
             break;
             // system
         case NEXTVAL:

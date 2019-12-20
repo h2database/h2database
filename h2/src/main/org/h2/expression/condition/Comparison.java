@@ -280,7 +280,7 @@ public class Comparison extends Condition {
             break;
         }
         case EQUAL_NULL_SAFE:
-            result = ValueBoolean.get(session.getDatabase().areEqual(l, r));
+            result = ValueBoolean.get(session.areEqual(l, r));
             break;
         case NOT_EQUAL: {
             int cmp = session.compareWithNull(l, r, true);
@@ -294,7 +294,7 @@ public class Comparison extends Condition {
             break;
         }
         case NOT_EQUAL_NULL_SAFE:
-            result = ValueBoolean.get(!session.getDatabase().areEqual(l, r));
+            result = ValueBoolean.get(!session.areEqual(l, r));
             break;
         case BIGGER_EQUAL: {
             int cmp = session.compareWithNull(l, r, false);

@@ -368,31 +368,6 @@ public class Database implements DataHandler, CastDataProvider {
         this.retentionTime = store.getMvStore().getRetentionTime();
     }
 
-    /**
-     * Check if two values are equal with the current comparison mode.
-     *
-     * @param a the first value
-     * @param b the second value
-     * @return true if both objects are equal
-     */
-    public boolean areEqual(Value a, Value b) {
-        // can not use equals because ValueDecimal 0.0 is not equal to 0.00.
-        return a.compareTo(b, this, compareMode) == 0;
-    }
-
-    /**
-     * Compare two values with the current comparison mode. The values may have
-     * different data types including NULL.
-     *
-     * @param a the first value
-     * @param b the second value
-     * @return 0 if both values are equal, -1 if the first value is smaller, and
-     *         1 otherwise
-     */
-    public int compare(Value a, Value b) {
-        return a.compareTo(b, this, compareMode);
-    }
-
     public long getModificationDataId() {
         return modificationDataId.get();
     }

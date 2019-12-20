@@ -270,7 +270,7 @@ public class ConstraintReferential extends Constraint {
                 return;
             }
             if (constraintColumnsEqual) {
-                if (!database.areEqual(v, oldRow.getValue(idx))) {
+                if (!session.areEqual(v, oldRow.getValue(idx))) {
                     constraintColumnsEqual = false;
                 }
             }
@@ -289,7 +289,7 @@ public class ConstraintReferential extends Constraint {
                 Column refCol = refColumns[i].column;
                 int refIdx = refCol.getColumnId();
                 Value r = newRow.getValue(refIdx);
-                if (!database.areEqual(r, v)) {
+                if (!session.areEqual(r, v)) {
                     self = false;
                     break;
                 }

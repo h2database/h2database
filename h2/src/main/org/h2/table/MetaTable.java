@@ -759,17 +759,16 @@ public class MetaTable extends Table {
         if (value == null || (indexFrom == null && indexTo == null)) {
             return true;
         }
-        Database db = session.getDatabase();
         Value v;
         if (database.getSettings().caseInsensitiveIdentifiers) {
             v = ValueStringIgnoreCase.get(value);
         } else {
             v = ValueString.get(value);
         }
-        if (indexFrom != null && db.compare(v, indexFrom) < 0) {
+        if (indexFrom != null && session.compare(v, indexFrom) < 0) {
             return false;
         }
-        if (indexTo != null && db.compare(v, indexTo) > 0) {
+        if (indexTo != null && session.compare(v, indexTo) > 0) {
             return false;
         }
         return true;

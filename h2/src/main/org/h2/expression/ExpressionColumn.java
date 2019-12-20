@@ -178,7 +178,7 @@ public class ExpressionColumn extends Expression {
         if (v == null) {
             groupData.setCurrentGroupExprData(this, columnResolver.getValue(column));
         } else if (!select.isGroupWindowStage2()) {
-            if (!database.areEqual(columnResolver.getValue(column), v)) {
+            if (!session.areEqual(columnResolver.getValue(column), v)) {
                 throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL(false));
             }
         }

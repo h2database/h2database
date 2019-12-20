@@ -2989,20 +2989,14 @@ public class Database implements DataHandler, CastDataProvider {
 
     @Override
     public ValueTimestampTimeZone currentTimestamp() {
-        /*
-         * This method shouldn't be used in this class, but return a value for
-         * safety.
-         */
-        return DateTimeUtils.currentTimestamp(DateTimeUtils.getTimeZone());
+        // This method should not be reachable
+        throw DbException.getUnsupportedException("Unsafe comparison or cast");
     }
 
     @Override
     public TimeZoneProvider currentTimeZone() {
-        /*
-         * This method shouldn't be used in this class, but return a value for
-         * safety.
-         */
-        return DateTimeUtils.getTimeZone();
+        // This method should not be reachable
+        throw DbException.getUnsupportedException("Unsafe comparison or cast");
     }
 
 }

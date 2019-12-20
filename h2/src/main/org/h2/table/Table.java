@@ -16,6 +16,7 @@ import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.command.dml.AllColumnsForPlan;
 import org.h2.constraint.Constraint;
+import org.h2.engine.CastDataProvider;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
@@ -1258,13 +1259,14 @@ public abstract class Table extends SchemaObjectBase {
      * Compare two values with the current comparison mode. The values may be of
      * different type.
      *
+     * @param provider the cast information provider
      * @param a the first value
      * @param b the second value
      * @return 0 if both values are equal, -1 if the first value is smaller, and
      *         1 otherwise
      */
-    public int compareValues(Value a, Value b) {
-        return a.compareTo(b, database, compareMode);
+    public int compareValues(CastDataProvider provider, Value a, Value b) {
+        return a.compareTo(b, provider, compareMode);
     }
 
     public CompareMode getCompareMode() {
@@ -1287,7 +1289,7 @@ public abstract class Table extends SchemaObjectBase {
         } else {
             v = expression.getValue(session);
         }
-        return column.convert(v, false);
+        return column.convert(session, v, false);
     }
 
     /**

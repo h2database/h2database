@@ -2530,7 +2530,7 @@ public class Parser {
                 filter1.getColumnName(column1), false);
         Expression joinExpr = new ExpressionColumn(database, filter2.getSchemaName(), filter2.getTableAlias(),
                 filter2.getColumnName(column2), false);
-        Expression equal = new Comparison(session, Comparison.EQUAL, tableExpr, joinExpr);
+        Expression equal = new Comparison(Comparison.EQUAL, tableExpr, joinExpr);
         if (on == null) {
             on = equal;
         } else {
@@ -3181,7 +3181,7 @@ public class Parser {
             read(COMMA);
             Expression r2 = readConcat();
             read(CLOSE_PAREN);
-            return new Comparison(session, Comparison.SPATIAL_INTERSECTS, r1, r2);
+            return new Comparison(Comparison.SPATIAL_INTERSECTS, r1, r2);
         }
         case UNIQUE: {
             read();
@@ -3241,7 +3241,7 @@ public class Parser {
                 case DISTINCT:
                     read();
                     read(FROM);
-                    r = new Comparison(session, isNot ? Comparison.EQUAL_NULL_SAFE : Comparison.NOT_EQUAL_NULL_SAFE, r,
+                    r = new Comparison(isNot ? Comparison.EQUAL_NULL_SAFE : Comparison.NOT_EQUAL_NULL_SAFE, r,
                             readConcat());
                     break;
                 case TRUE:
@@ -3273,7 +3273,7 @@ public class Parser {
                         if (!database.isStarting()) {
                             throw getSyntaxError();
                         }
-                        r = new Comparison(session, //
+                        r = new Comparison(
                                 isNot ? Comparison.NOT_EQUAL_NULL_SAFE : Comparison.EQUAL_NULL_SAFE, r, readConcat());
                     }
                 }
@@ -3283,10 +3283,8 @@ public class Parser {
                 Expression low = readConcat();
                 read("AND");
                 Expression high = readConcat();
-                Expression condLow = new Comparison(session,
-                        Comparison.SMALLER_EQUAL, low, r);
-                Expression condHigh = new Comparison(session,
-                        Comparison.BIGGER_EQUAL, high, r);
+                Expression condLow = new Comparison(Comparison.SMALLER_EQUAL, low, r);
+                Expression condHigh = new Comparison(Comparison.BIGGER_EQUAL, high, r);
                 r = new ConditionAndOr(ConditionAndOr.AND, condLow, condHigh);
             } else {
                 if (not) {
@@ -3302,12 +3300,12 @@ public class Parser {
                     read(OPEN_PAREN);
                     if (isQuery()) {
                         Query query = parseQuery();
-                        r = new ConditionInQuery(database, r, query, true, compareType);
+                        r = new ConditionInQuery(r, query, true, compareType);
                         read(CLOSE_PAREN);
                     } else {
                         parseIndex = start;
                         read();
-                        r = new Comparison(session, compareType, r, readConcat());
+                        r = new Comparison(compareType, r, readConcat());
                     }
                 } else if (readIf("ANY") || readIf("SOME")) {
                     read(OPEN_PAREN);
@@ -3317,15 +3315,15 @@ public class Parser {
                         read(CLOSE_PAREN);
                     } else if (isQuery()) {
                         Query query = parseQuery();
-                        r = new ConditionInQuery(database, r, query, false, compareType);
+                        r = new ConditionInQuery(r, query, false, compareType);
                         read(CLOSE_PAREN);
                     } else {
                         parseIndex = start;
                         read();
-                        r = new Comparison(session, compareType, r, readConcat());
+                        r = new Comparison(compareType, r, readConcat());
                     }
                 } else {
-                    r = new Comparison(session, compareType, r, readConcat());
+                    r = new Comparison(compareType, r, readConcat());
                 }
             }
             if (not) {
@@ -3353,7 +3351,7 @@ public class Parser {
         if (isQuery()) {
             Query query = parseQuery();
             if (!readIfMore()) {
-                return new ConditionInQuery(database, left, query, false, Comparison.EQUAL);
+                return new ConditionInQuery(left, query, false, Comparison.EQUAL);
             }
             v = Utils.newSmallArrayList();
             v.add(new Subquery(query));

@@ -11,6 +11,7 @@ import java.util.Objects;
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.command.ddl.SequenceOptions;
+import org.h2.engine.CastDataProvider;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -176,13 +177,14 @@ public class Column {
     /**
      * Convert a value to this column's type without precision and scale checks.
      *
+     * @provider the cast information provider
      * @param v the value
      * @param forComparison if {@code true}, perform cast for comparison operation
      * @return the value
      */
-    public Value convert(Value v, boolean forComparison) {
+    public Value convert(CastDataProvider provider, Value v, boolean forComparison) {
         try {
-            return v.convertTo(type, table.getDatabase(), forComparison, this);
+            return v.convertTo(type, provider, forComparison, this);
         } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.DATA_CONVERSION_ERROR_1) {
                 e = getDataConversionError(v, e);

@@ -143,7 +143,7 @@ public class ConditionIn extends Condition {
             return ValueExpression.getBoolean(getValue(session));
         }
         if (values.size() == 1) {
-            return new Comparison(session, Comparison.EQUAL, left, values.get(0)).optimize(session);
+            return new Comparison(Comparison.EQUAL, left, values.get(0)).optimize(session);
         }
         if (allValuesConstant && !allValuesNull) {
             int leftType = left.getType().getValueType();

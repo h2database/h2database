@@ -462,7 +462,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             }
             BigDecimal arg = v.getBigDecimal();
             if (arg.signum() >= 0 && arg.compareTo(BigDecimal.ONE) <= 0) {
-                return Percentile.getValue(session.getDatabase(), array, type.getValueType(), orderByList, arg,
+                return Percentile.getValue(session, array, type.getValueType(), orderByList, arg,
                         aggregateType == AggregateType.PERCENTILE_CONT);
             } else {
                 throw DbException.getInvalidValueException(aggregateType == AggregateType.PERCENTILE_CONT ?
@@ -474,8 +474,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             if (array == null) {
                 return ValueNull.INSTANCE;
             }
-            return Percentile.getValue(session.getDatabase(), array, type.getValueType(), orderByList, Percentile.HALF,
-                    true);
+            return Percentile.getValue(session, array, type.getValueType(), orderByList, Percentile.HALF, true);
         }
         case MODE:
             return getMode(session, data);

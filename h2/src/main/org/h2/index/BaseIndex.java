@@ -368,7 +368,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         if (aNull || bNull) {
             return SortOrder.compareNull(aNull, sortType);
         }
-        int comp = table.compareValues(a, b);
+        int comp = table.compareValues(database, a, b);
         if ((sortType & SortOrder.DESCENDING) != 0) {
             comp = -comp;
         }

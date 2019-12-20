@@ -7,7 +7,6 @@ package org.h2.expression.condition;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.dml.Query;
-import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -30,14 +29,12 @@ import org.h2.value.ValueRow;
  */
 public class ConditionInQuery extends PredicateWithSubquery {
 
-    private final Database database;
     private Expression left;
     private final boolean all;
     private final int compareType;
 
-    public ConditionInQuery(Database database, Expression left, Query query, boolean all, int compareType) {
+    public ConditionInQuery(Expression left, Query query, boolean all, int compareType) {
         super(query);
-        this.database = database;
         this.left = left;
         /*
          * Need to do it now because other methods may be invoked in different
@@ -61,7 +58,7 @@ public class ConditionInQuery extends PredicateWithSubquery {
         } else if (l.containsNull()) {
             return ValueNull.INSTANCE;
         }
-        if (!database.getSettings().optimizeInSelect) {
+        if (!session.getDatabase().getSettings().optimizeInSelect) {
             return getValueSlow(session, rows, l);
         }
         if (all || compareType != Comparison.EQUAL) {
@@ -86,7 +83,7 @@ public class ConditionInQuery extends PredicateWithSubquery {
                 }
                 l = leftList[0];
             }
-            l = l.convertTo(colType, database, true, null);
+            l = l.convertTo(colType, session, true, null);
             if (rows.containsDistinct(new Value[] { l })) {
                 return ValueBoolean.TRUE;
             }

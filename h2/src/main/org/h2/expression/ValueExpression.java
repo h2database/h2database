@@ -112,7 +112,7 @@ public class ValueExpression extends Expression {
 
     @Override
     public Expression getNotIfPossible(Session session) {
-        return new Comparison(session, Comparison.EQUAL, this, ValueExpression.FALSE);
+        return new Comparison(Comparison.EQUAL, this, ValueExpression.FALSE);
     }
 
     @Override

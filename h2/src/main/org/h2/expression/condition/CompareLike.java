@@ -140,8 +140,7 @@ public class CompareLike extends Condition {
                 // optimization for X LIKE 'Hello': convert to X = 'Hello'
                 Value value = ValueString.get(patternString);
                 Expression expr = ValueExpression.get(value);
-                return new Comparison(session,
-                        Comparison.EQUAL, left, expr).optimize(session);
+                return new Comparison(Comparison.EQUAL, left, expr).optimize(session);
             }
             isInit = true;
         }

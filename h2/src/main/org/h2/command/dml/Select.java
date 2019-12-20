@@ -1595,11 +1595,11 @@ public class Select extends Query {
         Expression col = expressions.get(columnId);
         col = col.getNonAliasExpression();
         if (col.isEverything(ExpressionVisitor.QUERY_COMPARABLE_VISITOR)) {
-            comp = new Comparison(session, comparisonType, col, param);
+            comp = new Comparison(comparisonType, col, param);
         } else {
             // this condition will always evaluate to true, but need to
             // add the parameter, so it can be set later
-            comp = new Comparison(session, Comparison.EQUAL_NULL_SAFE, param, param);
+            comp = new Comparison(Comparison.EQUAL_NULL_SAFE, param, param);
         }
         comp = comp.optimize(session);
         if (isWindowQuery) {

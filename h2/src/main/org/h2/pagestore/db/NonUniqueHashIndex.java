@@ -110,7 +110,7 @@ public class NonUniqueHashIndex extends BaseIndex {
          * case we need to convert, otherwise the HashMap will not find the
          * result.
          */
-        v = v.convertTo(tableData.getColumn(indexColumn).getType(), database, true, null);
+        v = v.convertTo(tableData.getColumn(indexColumn).getType(), session, true, null);
         ArrayList<Long> positions = rows.get(v);
         return new NonUniqueHashCursor(session, tableData, positions);
     }

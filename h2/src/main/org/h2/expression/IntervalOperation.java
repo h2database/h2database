@@ -129,7 +129,7 @@ public class IntervalOperation extends Expression {
             type = TypeInfo.getTypeInfo(Value.getHigherOrder(l, r));
             break;
         case INTERVAL_DIVIDE_INTERVAL:
-            type = DataType.isYearMonthIntervalType(left.getType().getValueType()) ? INTERVAL_DIVIDE_INTERVAL_YEAR_TYPE
+            type = DataType.isYearMonthIntervalType(l) ? INTERVAL_DIVIDE_INTERVAL_YEAR_TYPE
                     : INTERVAL_DIVIDE_INTERVAL_DAY_TYPE;
             break;
         case DATETIME_PLUS_INTERVAL:
@@ -337,9 +337,7 @@ public class IntervalOperation extends Expression {
     @Override
     public void mapColumns(ColumnResolver resolver, int level, int state) {
         left.mapColumns(resolver, level, state);
-        if (right != null) {
-            right.mapColumns(resolver, level, state);
-        }
+        right.mapColumns(resolver, level, state);
     }
 
     @Override

@@ -82,8 +82,7 @@ public class DateTimeUtils {
      */
     public static final long MAX_DATE_VALUE = (1_000_000_000L << SHIFT_YEAR) + (12 << SHIFT_MONTH) + 31;
 
-    private static final int[] NORMAL_DAYS_PER_MONTH = { 0, 31, 28, 31, 30, 31,
-            30, 31, 31, 30, 31, 30, 31 };
+    private static final int[] NORMAL_DAYS_PER_MONTH = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
     /**
      * Multipliers for {@link #convertScale(long, int, long)} and

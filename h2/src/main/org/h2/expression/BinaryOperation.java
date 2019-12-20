@@ -337,12 +337,8 @@ public class BinaryOperation extends Expression {
             }
             case Value.TIME:
             case Value.TIME_TZ:
-                if (r == Value.TIME || r == Value.TIME_TZ || r == Value.TIMESTAMP_TZ) {
-                    type = TypeInfo.getTypeInfo(r);
-                    return this;
-                } else { // DATE, TIMESTAMP
-                    type = TypeInfo.TYPE_TIMESTAMP;
-                    return this;
+                if (DataType.isDateTimeType(r)) {
+                    return new CompatibilityDatePlusTimeOperation(right, left).optimize(session);
                 }
             }
             break;

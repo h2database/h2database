@@ -373,8 +373,6 @@ public class BinaryOperation extends Expression {
                 }
                 case Value.TIME:
                 case Value.TIME_TZ:
-                    type = TypeInfo.TYPE_TIMESTAMP;
-                    return this;
                 case Value.DATE:
                 case Value.TIMESTAMP:
                 case Value.TIMESTAMP_TZ:
@@ -383,7 +381,7 @@ public class BinaryOperation extends Expression {
                 break;
             case Value.TIME:
             case Value.TIME_TZ:
-                if (r == Value.TIME || r == Value.TIME_TZ) {
+                if (DataType.isDateTimeType(r)) {
                     return new IntervalOperation(IntervalOpType.DATETIME_MINUS_DATETIME, left, right, forcedType);
                 }
                 break;

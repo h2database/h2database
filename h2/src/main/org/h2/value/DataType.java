@@ -1398,6 +1398,33 @@ public class DataType {
     }
 
     /**
+     * Returns whether columns with the specified data type may have an index.
+     *
+     * @param type the data type
+     * @return whether an index is allowed
+     */
+    public static boolean isIndexable(TypeInfo type) {
+        switch(type.getValueType()) {
+        case Value.ARRAY: {
+            ExtTypeInfo extTypeInfo = type.getExtTypeInfo();
+            if (extTypeInfo != null) {
+                return isIndexable(((ExtTypeInfoArray) extTypeInfo).getComponentType());
+            }
+        }
+        //$FALL-THROUGH$
+        case Value.UNKNOWN:
+        case Value.NULL:
+        case Value.BLOB:
+        case Value.CLOB:
+        case Value.RESULT_SET:
+        case Value.ROW:
+            return false;
+        default:
+            return true;
+        }
+    }
+
+    /**
      * Check if the given value type is a date-time type (TIME, DATE, TIMESTAMP,
      * TIMESTAMP_TZ).
      *

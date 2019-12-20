@@ -84,6 +84,19 @@ SELECT (1, ARRAY[1]) IN (SELECT 1, ARRAY[2]);
 SELECT (1, ARRAY[NULL]) IN (SELECT 1, ARRAY[NULL]);
 >> null
 
+@reconnect off
+
+CREATE LOCAL TEMPORARY TABLE TEST AS (SELECT ROW(1, 2) R);
+> ok
+
+CREATE INDEX IDX ON TEST(R);
+> exception FEATURE_NOT_SUPPORTED_1
+
+DROP TABLE TEST;
+> ok
+
+@reconnect on
+
 -- The next tests should be at the of this file
 
 SET MAX_MEMORY_ROWS = 2;

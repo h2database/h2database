@@ -7,7 +7,6 @@ package org.h2.jmx;
 
 import java.lang.management.ManagementFactory;
 
-import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
@@ -255,7 +254,7 @@ public class DatabaseInfo implements DatabaseInfoMBean {
                 }
             }
             buff.append("connected: ").
-                    append(new Timestamp(session.getSessionStart())).
+                    append(session.getSessionStart().getString()).
                     append('\n');
             Command command = session.getCurrentCommand();
             if (command != null) {

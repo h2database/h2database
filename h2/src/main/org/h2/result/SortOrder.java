@@ -6,7 +6,7 @@
 package org.h2.result;
 
 import org.h2.command.dml.SelectOrderBy;
-import org.h2.engine.Database;
+import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -75,7 +75,7 @@ public class SortOrder implements Comparator<Value[]> {
         }
     }
 
-    private final Database database;
+    private final Session session;
 
     /**
      * The column indexes of the order by expressions within the query.
@@ -95,14 +95,13 @@ public class SortOrder implements Comparator<Value[]> {
     /**
      * Construct a new sort order object.
      *
-     * @param database the database
+     * @param session the session
      * @param queryColumnIndexes the column index list
      * @param sortType the sort order bit masks
      * @param orderList the original query order list (if this is a query)
      */
-    public SortOrder(Database database, int[] queryColumnIndexes,
-            int[] sortType, ArrayList<SelectOrderBy> orderList) {
-        this.database = database;
+    public SortOrder(Session session, int[] queryColumnIndexes, int[] sortType, ArrayList<SelectOrderBy> orderList) {
+        this.session = session;
         this.queryColumnIndexes = queryColumnIndexes;
         this.sortTypes = sortType;
         this.orderList = orderList;
@@ -192,7 +191,7 @@ public class SortOrder implements Comparator<Value[]> {
                 }
                 return compareNull(aNull, type);
             }
-            int comp = database.compare(ao, bo);
+            int comp = session.compare(ao, bo);
             if (comp != 0) {
                 return (type & DESCENDING) == 0 ? comp : -comp;
             }

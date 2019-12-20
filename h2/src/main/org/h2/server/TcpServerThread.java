@@ -22,6 +22,7 @@ import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.Engine;
 import org.h2.engine.GeneratedKeysMode;
+import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.engine.SessionRemote;
 import org.h2.engine.SysProperties;
@@ -64,6 +65,7 @@ public class TcpServerThread implements Runnable {
     private final int threadId;
     private int clientVersion;
     private String sessionId;
+    private Mode lastDatabaseMode;
 
     TcpServerThread(Socket socket, TcpServer server, int id) {
         this.server = server;
@@ -178,6 +180,7 @@ public class TcpServerThread implements Runnable {
                 sendError(e);
                 stop = true;
             }
+            lastDatabaseMode = session.getMode();
             while (!stop) {
                 try {
                     process();
@@ -555,7 +558,11 @@ public class TcpServerThread implements Runnable {
             return SessionRemote.STATUS_CLOSED;
         }
         if (session.getModificationId() == oldModificationId) {
-            return SessionRemote.STATUS_OK;
+            Mode mode = session.getMode();
+            if (lastDatabaseMode == mode) {
+                return SessionRemote.STATUS_OK;
+            }
+            lastDatabaseMode = mode;
         }
         return SessionRemote.STATUS_OK_STATE_CHANGED;
     }

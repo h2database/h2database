@@ -52,7 +52,7 @@ public final class ExtTypeInfoGeometry extends ExtTypeInfo {
     }
 
     @Override
-    public Value cast(Value value, CastDataProvider provider, boolean forComparison) {
+    public Value cast(Value value, CastDataProvider provider) {
         if (value.getValueType() != Value.GEOMETRY) {
             value = value.convertTo(Value.GEOMETRY);
         }

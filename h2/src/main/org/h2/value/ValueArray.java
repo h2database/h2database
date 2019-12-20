@@ -10,7 +10,6 @@ import java.sql.SQLException;
 import java.util.Arrays;
 
 import org.h2.engine.CastDataProvider;
-import org.h2.engine.SysProperties;
 import org.h2.util.MathUtils;
 
 /**
@@ -129,24 +128,6 @@ public class ValueArray extends ValueCollectionBase {
             }
         }
         return Integer.compare(l, ol);
-    }
-
-    @Override
-    public Object getObject() {
-        int len = values.length;
-        Object[] list = new Object[len];
-        for (int i = 0; i < len; i++) {
-            final Value value = values[i];
-            if (!SysProperties.OLD_RESULT_SET_GET_OBJECT) {
-                final int type = value.getValueType();
-                if (type == Value.BYTE || type == Value.SHORT) {
-                    list[i] = value.getInt();
-                    continue;
-                }
-            }
-            list[i] = value.getObject();
-        }
-        return list;
     }
 
     @Override

@@ -230,7 +230,7 @@ public class IndexCursor implements Cursor {
         } else if (b == ValueNull.INSTANCE) {
             return a;
         }
-        int comp = table.getDatabase().compare(a, b);
+        int comp = session.compare(a, b);
         if (comp == 0) {
             return a;
         }
@@ -314,7 +314,7 @@ public class IndexCursor implements Cursor {
     }
 
     private void find(Value v) {
-        v = inColumn.convert(v, true);
+        v = inColumn.convert(session, v);
         int id = inColumn.getColumnId();
         start.setValue(id, v);
         cursor = index.find(session, start, start);

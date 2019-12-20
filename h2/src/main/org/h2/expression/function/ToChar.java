@@ -533,9 +533,9 @@ public class ToChar {
             return DateTimeUtils.timeZoneNameFromOffsetSeconds(((ValueTimeTimeZone) value)
                     .getTimeZoneOffsetSeconds());
         } else {
-            TimeZoneProvider tz = DateTimeUtils.getTimeZone();
+            TimeZoneProvider tz = session.currentTimeZone();
             if (tzd) {
-                ValueTimestamp v = (ValueTimestamp) value.convertTo(Value.TIMESTAMP, session, false);
+                ValueTimestamp v = (ValueTimestamp) value.convertTo(Value.TIMESTAMP, session);
                 return tz.getShortId(tz.getEpochSecondsFromLocal(v.getDateValue(), v.getTimeNanos()));
             }
             return tz.getId();

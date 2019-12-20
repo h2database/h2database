@@ -158,7 +158,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
     }
 
     private int executeUpdateInternal(String sql, Object generatedKeysRequest) throws SQLException {
-        checkClosedForWrite();
+        checkClosed();
         closeOldResultSet();
         sql = JdbcConnection.translateSQL(sql, escapeProcessing);
         CommandInterface command = conn.prepareCommand(sql, fetchSize);
@@ -206,7 +206,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
 
     private boolean executeInternal(String sql, Object generatedKeysRequest) throws SQLException {
         int id = getNextId(TraceObject.RESULT_SET);
-        checkClosedForWrite();
+        checkClosed();
         closeOldResultSet();
         sql = JdbcConnection.translateSQL(sql, escapeProcessing);
         CommandInterface command = conn.prepareCommand(sql, fetchSize);
@@ -752,7 +752,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
     public int[] executeBatch() throws SQLException {
         try {
             debugCodeCall("executeBatch");
-            checkClosedForWrite();
+            checkClosed();
             if (batchCommands == null) {
                 // TODO batch: check what other database do if no commands
                 // are set
@@ -1176,46 +1176,14 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
 
     /**
      * Check if this connection is closed.
-     * The next operation is a read request.
      *
-     * @return true if the session was re-connected
      * @throws DbException if the connection or session is closed
      */
-    boolean checkClosed() {
-        return checkClosed(false);
-    }
-
-    /**
-     * Check if this connection is closed.
-     * The next operation may be a write request.
-     *
-     * @return true if the session was re-connected
-     * @throws DbException if the connection or session is closed
-     */
-    boolean checkClosedForWrite() {
-        return checkClosed(true);
-    }
-
-    /**
-     * INTERNAL.
-     * Check if the statement is closed.
-     *
-     * @param write if the next operation is possibly writing
-     * @return true if a reconnect was required
-     * @throws DbException if it is closed
-     */
-    protected boolean checkClosed(boolean write) {
+    void checkClosed() {
         if (conn == null) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }
-        conn.checkClosed(write);
-        SessionInterface s = conn.getSession();
-        if (s != session) {
-            session = s;
-            trace = session.getTrace();
-            return true;
-        }
-        return false;
+        conn.checkClosed();
     }
 
     /**
@@ -1394,7 +1362,13 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
      */
     @Override
     public boolean isSimpleIdentifier(String identifier) throws SQLException {
-        JdbcConnection.Settings settings = conn.getSettings();
+        SessionInterface.StaticSettings settings;
+        try {
+            checkClosed();
+            settings = conn.getStaticSettings();
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
         return ParserUtil.isSimpleIdentifier(identifier, settings.databaseToUpper, settings.databaseToLower);
     }
 

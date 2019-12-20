@@ -270,7 +270,7 @@ public class ConstraintReferential extends Constraint {
                 return;
             }
             if (constraintColumnsEqual) {
-                if (!database.areEqual(v, oldRow.getValue(idx))) {
+                if (!session.areEqual(v, oldRow.getValue(idx))) {
                     constraintColumnsEqual = false;
                 }
             }
@@ -289,7 +289,7 @@ public class ConstraintReferential extends Constraint {
                 Column refCol = refColumns[i].column;
                 int refIdx = refCol.getColumnId();
                 Value r = newRow.getValue(refIdx);
-                if (!database.areEqual(r, v)) {
+                if (!session.areEqual(r, v)) {
                     self = false;
                     break;
                 }
@@ -304,7 +304,7 @@ public class ConstraintReferential extends Constraint {
             Value v = newRow.getValue(idx);
             Column refCol = refColumns[i].column;
             int refIdx = refCol.getColumnId();
-            check.setValue(refIdx, refCol.convert(v, true));
+            check.setValue(refIdx, refCol.convert(session, v));
         }
         Index refIndex = refConstraint.getIndex();
         if (!existsRow(session, refIndex, check, null)) {
@@ -331,7 +331,7 @@ public class ConstraintReferential extends Constraint {
                 int idx = cols[i].getColumnId();
                 Value c = check.getValue(idx);
                 Value f = found.getValue(idx);
-                if (searchTable.compareValues(c, f) != 0) {
+                if (searchTable.compareValues(session, c, f) != 0) {
                     allEqual = false;
                     break;
                 }
@@ -353,7 +353,7 @@ public class ConstraintReferential extends Constraint {
             Column refCol = refColumns[i].column;
             int refIdx = refCol.getColumnId();
             Column col = columns[i].column;
-            Value v = col.convert(oldRow.getValue(refIdx), true);
+            Value v = col.convert(session, oldRow.getValue(refIdx));
             if (v == ValueNull.INSTANCE) {
                 return;
             }

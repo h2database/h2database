@@ -265,7 +265,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         default:
             // Use argument as is
         }
-        data.add(session.getDatabase(), v);
+        data.add(session, v);
     }
 
     @Override
@@ -418,12 +418,11 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                     return ValueNull.INSTANCE;
                 }
                 AggregateDataDefault d = new AggregateDataDefault(aggregateType, type.getValueType());
-                Database db = session.getDatabase();
                 int dataType = type.getValueType();
                 for (Value v : c) {
-                    d.add(db, v);
+                    d.add(session, v);
                 }
-                return d.getValue(db, dataType);
+                return d.getValue(session, dataType);
             }
             break;
         case HISTOGRAM:
@@ -463,7 +462,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             }
             BigDecimal arg = v.getBigDecimal();
             if (arg.signum() >= 0 && arg.compareTo(BigDecimal.ONE) <= 0) {
-                return Percentile.getValue(session.getDatabase(), array, type.getValueType(), orderByList, arg,
+                return Percentile.getValue(session, array, type.getValueType(), orderByList, arg,
                         aggregateType == AggregateType.PERCENTILE_CONT);
             } else {
                 throw DbException.getInvalidValueException(aggregateType == AggregateType.PERCENTILE_CONT ?
@@ -475,8 +474,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             if (array == null) {
                 return ValueNull.INSTANCE;
             }
-            return Percentile.getValue(session.getDatabase(), array, type.getValueType(), orderByList, Percentile.HALF,
-                    true);
+            return Percentile.getValue(session, array, type.getValueType(), orderByList, Percentile.HALF, true);
         }
         case MODE:
             return getMode(session, data);
@@ -519,7 +517,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         default:
             // Avoid compiler warning
         }
-        return data.getValue(session.getDatabase(), type.getValueType());
+        return data.getValue(session, type.getValueType());
     }
 
     private Value getHypotheticalSet(Session session, AggregateData data) {
@@ -538,7 +536,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                 throw DbException.getUnsupportedException("aggregateType=" + aggregateType);
             }
         }
-        collectingData.add(session.getDatabase(), arg);
+        collectingData.add(session, arg);
         Value[] array = collectingData.getArray();
         Comparator<Value> sort = orderBySort.getRowValueComparator();
         Arrays.sort(array, sort);
@@ -653,7 +651,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                     count = c;
                 } else if (c == count) {
                     Value v2 = entry.getKey();
-                    int cmp = session.getDatabase().compareTypeSafe(v, v2);
+                    int cmp = session.compareTypeSafe(v, v2);
                     if (desc) {
                         if (cmp >= 0) {
                             continue;

@@ -12,7 +12,6 @@ import java.util.Arrays;
 
 import org.h2.api.IntervalQualifier;
 import org.h2.command.dml.SelectOrderBy;
-import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
 import org.h2.expression.Expression;
@@ -98,7 +97,7 @@ final class Percentile {
     /**
      * Get the result from the array of values.
      *
-     * @param database the database
+     * @param session the session
      * @param array array with values
      * @param dataType the data type
      * @param orderByList ORDER BY list
@@ -106,9 +105,9 @@ final class Percentile {
      * @param interpolate whether value should be interpolated
      * @return the result
      */
-    static Value getValue(Database database, Value[] array, int dataType, ArrayList<SelectOrderBy> orderByList,
+    static Value getValue(Session session, Value[] array, int dataType, ArrayList<SelectOrderBy> orderByList,
             BigDecimal percentile, boolean interpolate) {
-        final CompareMode compareMode = database.getCompareMode();
+        final CompareMode compareMode = session.getDatabase().getCompareMode();
         Arrays.sort(array, compareMode);
         int count = array.length;
         boolean reverseIndex = orderByList != null && (orderByList.get(0).sortType & SortOrder.DESCENDING) != 0;
@@ -137,7 +136,7 @@ final class Percentile {
         if (!interpolate) {
             return v.convertTo(dataType);
         }
-        return interpolate(v, array[rowIdx2], factor, dataType, database, compareMode);
+        return interpolate(v, array[rowIdx2], factor, dataType, session, compareMode);
     }
 
     /**
@@ -239,20 +238,19 @@ final class Percentile {
             if (v2 == ValueNull.INSTANCE) {
                 return v;
             }
-            Database database = session.getDatabase();
             if (reverseIndex) {
                 Value t = v;
                 v = v2;
                 v2 = t;
             }
-            return interpolate(v, v2, factor, dataType, database, database.getCompareMode());
+            return interpolate(v, v2, factor, dataType, session, session.getDatabase().getCompareMode());
         }
         return v.convertTo(dataType);
     }
 
-    private static Value interpolate(Value v0, Value v1, BigDecimal factor, int dataType, Database database,
+    private static Value interpolate(Value v0, Value v1, BigDecimal factor, int dataType, Session session,
             CompareMode compareMode) {
-        if (v0.compareTo(v1, database, compareMode) == 0) {
+        if (v0.compareTo(v1, session, compareMode) == 0) {
             return v0.convertTo(dataType);
         }
         switch (dataType) {

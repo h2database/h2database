@@ -105,7 +105,7 @@ public class SelectUnion extends Query {
         }
         for (int i = 0; i < columnCount; i++) {
             Expression e = expressions.get(i);
-            newValues[i] = values[i].convertTo(e.getType(), session, false, null);
+            newValues[i] = values[i].convertTo(e.getType(), session, null);
         }
         return newValues;
     }

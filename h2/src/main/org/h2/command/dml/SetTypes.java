@@ -257,7 +257,12 @@ public class SetTypes {
      */
     public static final int NON_KEYWORDS = CATALOG + 1;
 
-    private static final int COUNT = NON_KEYWORDS + 1;
+    /**
+     * The type of a SET TIME ZONE statement.
+     */
+    public static final int TIME_ZONE = NON_KEYWORDS + 1;
+
+    private static final int COUNT = TIME_ZONE + 1;
 
     private static final ArrayList<String> TYPES;
 
@@ -317,6 +322,7 @@ public class SetTypes {
         list.add(IGNORE_CATALOGS, "IGNORE_CATALOGS");
         list.add(CATALOG, "CATALOG");
         list.add(NON_KEYWORDS, "NON_KEYWORDS");
+        list.add(TIME_ZONE, "TIME ZONE");
         TYPES = list;
     }
 

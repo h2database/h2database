@@ -472,10 +472,10 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
             for (int i = 0; i < columns.length; i++) {
                 if (expr.getColumnName().equals(columns[i].getName())) {
                     if (condition == null) {
-                        condition = new Comparison(session, Comparison.EQUAL, expr, row[i]);
+                        condition = new Comparison(Comparison.EQUAL, expr, row[i]);
                     } else {
                         condition = new ConditionAndOr(ConditionAndOr.AND, condition,
-                                new Comparison(session, Comparison.EQUAL, expr, row[i]));
+                                new Comparison(Comparison.EQUAL, expr, row[i]));
                     }
                     break;
                 }

@@ -214,7 +214,7 @@ public class Engine implements SessionFactory {
                     continue;
                 }
                 String value = ci.getProperty(setting);
-                if (!ParserUtil.isSimpleIdentifier(setting, false, false)) {
+                if (!ParserUtil.isSimpleIdentifier(setting, false, false) && !setting.equalsIgnoreCase("TIME ZONE")) {
                     throw DbException.get(ErrorCode.UNSUPPORTED_SETTING_1, setting);
                 }
                 try {

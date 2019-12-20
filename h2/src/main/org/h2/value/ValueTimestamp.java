@@ -7,14 +7,13 @@ package org.h2.value;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.sql.Types;
-import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.JSR310Utils;
+import org.h2.util.LegacyDateTimeUtils;
 
 /**
  * Implementation of the TIMESTAMP data type.
@@ -77,63 +76,21 @@ public class ValueTimestamp extends Value {
     }
 
     /**
-     * Get or create a timestamp value for the given timestamp.
-     *
-     * @param timeZone time zone, or {@code null} for default
-     * @param timestamp the timestamp
-     * @return the value
-     */
-    public static ValueTimestamp get(TimeZone timeZone, Timestamp timestamp) {
-        long ms = timestamp.getTime();
-        return fromLocalMillis(
-                ms + (timeZone == null ? DateTimeUtils.getTimeZoneOffsetMillis(ms) : timeZone.getOffset(ms)),
-                timestamp.getNanos() % 1_000_000);
-    }
-
-    /**
-     * Get or create a timestamp value for the given date/time in millis.
-     *
-     * @param ms the milliseconds
-     * @param nanos the nanoseconds
-     * @return the value
-     */
-    public static ValueTimestamp fromMillis(long ms, int nanos) {
-        return fromLocalMillis(ms + DateTimeUtils.getTimeZoneOffsetMillis(ms), nanos);
-    }
-
-    private static ValueTimestamp fromLocalMillis(long ms, int nanos) {
-        long dateValue = DateTimeUtils.dateValueFromLocalMillis(ms);
-        long timeNanos = nanos + DateTimeUtils.nanosFromLocalMillis(ms);
-        return fromDateValueAndNanos(dateValue, timeNanos);
-    }
-
-    /**
-     * Parse a string to a ValueTimestamp. This method supports the format
-     * +/-year-month-day hour[:.]minute[:.]seconds.fractional and an optional timezone
-     * part.
-     *
-     * @param s the string to parse
-     * @return the date
-     */
-    public static ValueTimestamp parse(String s) {
-        return parse(s, null);
-    }
-
-    /**
      * Parse a string to a ValueTimestamp, using the given {@link CastDataProvider}.
      * This method supports the format +/-year-month-day[ -]hour[:.]minute[:.]seconds.fractional
      * and an optional timezone part.
      *
      * @param s the string to parse
-     * @param provider the cast information provider, or {@code null}
+     * @param provider
+     *            the cast information provider, may be {@code null} for
+     *            literals without time zone
      * @return the date
      */
     public static ValueTimestamp parse(String s, CastDataProvider provider) {
         try {
             return (ValueTimestamp) DateTimeUtils.parseTimestamp(s, provider, false);
         } catch (Exception e) {
-            throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2,
-                    e, "TIMESTAMP", s);
+            throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2, e, "TIMESTAMP", s);
         }
     }
 
@@ -154,13 +111,6 @@ public class ValueTimestamp extends Value {
      */
     public long getTimeNanos() {
         return timeNanos;
-    }
-
-    @Override
-    public Timestamp getTimestamp(CastDataProvider provider, TimeZone timeZone) {
-        Timestamp ts = new Timestamp(DateTimeUtils.getMillis(timeZone, dateValue, timeNanos));
-        ts.setNanos((int) (timeNanos % DateTimeUtils.NANOS_PER_SECOND));
-        return ts;
     }
 
     @Override
@@ -251,7 +201,7 @@ public class ValueTimestamp extends Value {
 
     @Override
     public Object getObject() {
-        return getTimestamp(null, null);
+        return JSR310Utils.valueToLocalDateTime(this, null);
     }
 
     @Override
@@ -262,7 +212,7 @@ public class ValueTimestamp extends Value {
         } catch (SQLException ignore) {
             // Nothing to do
         }
-        prep.setTimestamp(parameterIndex, getTimestamp(null, null));
+        prep.setTimestamp(parameterIndex, LegacyDateTimeUtils.toTimestamp(null, null, this));
     }
 
     @Override

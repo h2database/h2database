@@ -5,7 +5,6 @@
  */
 package org.h2.expression;
 
-import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.IntervalOperation.IntervalOpType;
 import org.h2.expression.function.Function;
@@ -104,11 +103,10 @@ public class BinaryOperation extends Expression {
 
     @Override
     public Value getValue(Session session) {
-        Database database = session.getDatabase();
-        Value l = left.getValue(session).convertTo(type, database, true, null);
+        Value l = left.getValue(session).convertTo(type, session, null);
         Value r = right.getValue(session);
         if (convertRight) {
-            r = r.convertTo(type, database, true, null);
+            r = r.convertTo(type, session, null);
         }
         switch (opType) {
         case PLUS:
@@ -339,12 +337,8 @@ public class BinaryOperation extends Expression {
             }
             case Value.TIME:
             case Value.TIME_TZ:
-                if (r == Value.TIME || r == Value.TIME_TZ || r == Value.TIMESTAMP_TZ) {
-                    type = TypeInfo.getTypeInfo(r);
-                    return this;
-                } else { // DATE, TIMESTAMP
-                    type = TypeInfo.TYPE_TIMESTAMP;
-                    return this;
+                if (DataType.isDateTimeType(r)) {
+                    return new CompatibilityDatePlusTimeOperation(right, left).optimize(session);
                 }
             }
             break;
@@ -379,8 +373,6 @@ public class BinaryOperation extends Expression {
                 }
                 case Value.TIME:
                 case Value.TIME_TZ:
-                    type = TypeInfo.TYPE_TIMESTAMP;
-                    return this;
                 case Value.DATE:
                 case Value.TIMESTAMP:
                 case Value.TIMESTAMP_TZ:
@@ -389,7 +381,7 @@ public class BinaryOperation extends Expression {
                 break;
             case Value.TIME:
             case Value.TIME_TZ:
-                if (r == Value.TIME || r == Value.TIME_TZ) {
+                if (DataType.isDateTimeType(r)) {
                     return new IntervalOperation(IntervalOpType.DATETIME_MINUS_DATETIME, left, right, forcedType);
                 }
                 break;

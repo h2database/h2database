@@ -52,6 +52,7 @@ import org.h2.util.ColumnNamerConfiguration;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.SmallLRUCache;
+import org.h2.util.TimeZoneProvider;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -67,7 +68,7 @@ import org.h2.value.VersionedValue;
  * mode, this object resides on the server side and communicates with a
  * SessionRemote object on the client side.
  */
-public class Session extends SessionWithState implements TransactionStore.RollbackListener, CastDataProvider {
+public class Session extends SessionWithState implements TransactionStore.RollbackListener {
 
     public enum State { INIT, RUNNING, BLOCKED, SLEEP, THROTTLED, SUSPENDED, CLOSED }
 
@@ -122,7 +123,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private boolean autoCommitAtTransactionEnd;
     private String currentTransactionName;
     private volatile long cancelAtNs;
-    private final long sessionStart = System.currentTimeMillis();
+    private final ValueTimestampTimeZone sessionStart;
     private ValueTimestampTimeZone transactionStart;
     private ValueTimestampTimeZone currentCommandStart;
     private HashMap<String, Value> variables;
@@ -144,6 +145,8 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private ColumnNamerConfiguration columnNamerConfiguration;
 
     private BitSet nonKeywords;
+
+    private TimeZoneProvider timeZone;
 
     /**
      * Tables marked for ANALYZE after the current transaction is committed.
@@ -203,6 +206,8 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         this.currentSchemaName = mainSchema != null ? mainSchema.getName()
                 : database.sysIdentifier(Constants.SCHEMA_MAIN);
         this.columnNamerConfiguration = ColumnNamerConfiguration.getDefault();
+        timeZone = DateTimeUtils.getTimeZone();
+        sessionStart = DateTimeUtils.currentTimestamp(timeZone);
     }
 
     public void setLazyQueryExecution(boolean lazyQueryExecution) {
@@ -1239,7 +1244,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      */
     public void throttle() {
         if (currentCommandStart == null) {
-            currentCommandStart = DateTimeUtils.currentTimestamp();
+            currentCommandStart = DateTimeUtils.currentTimestamp(timeZone);
         }
         if (throttleNs == 0) {
             return;
@@ -1271,7 +1276,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             currentCommand = command;
             if (command != null) {
                 if (queryTimeout > 0) {
-                    currentCommandStart = DateTimeUtils.currentTimestamp();
+                    currentCommandStart = DateTimeUtils.currentTimestamp(timeZone);
                     long now = System.nanoTime();
                     cancelAtNs = now + TimeUnit.MILLISECONDS.toNanos(queryTimeout);
                 } else {
@@ -1330,7 +1335,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
 
     public ValueTimestampTimeZone getCurrentCommandStart() {
         if (currentCommandStart == null) {
-            currentCommandStart = DateTimeUtils.currentTimestamp();
+            currentCommandStart = DateTimeUtils.currentTimestamp(timeZone);
         }
         return currentCommandStart;
     }
@@ -1502,13 +1507,13 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         autoCommit = false;
     }
 
-    public long getSessionStart() {
+    public ValueTimestampTimeZone getSessionStart() {
         return sessionStart;
     }
 
     public ValueTimestampTimeZone getTransactionStart() {
         if (transactionStart == null) {
-            transactionStart = DateTimeUtils.currentTimestamp();
+            transactionStart = DateTimeUtils.currentTimestamp(timeZone);
         }
         return transactionStart;
     }
@@ -2040,6 +2045,108 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      */
     public void setNonKeywords(BitSet nonKeywords) {
         this.nonKeywords = nonKeywords;
+    }
+
+    @Override
+    public StaticSettings getStaticSettings() {
+        StaticSettings settings = staticSettings;
+        if (settings == null) {
+            DbSettings dbSettings = database.getSettings();
+            staticSettings = settings = new StaticSettings(dbSettings.databaseToUpper, dbSettings.databaseToLower,
+                    dbSettings.caseInsensitiveIdentifiers);
+        }
+        return settings;
+    }
+
+    @Override
+    public DynamicSettings getDynamicSettings() {
+        return new DynamicSettings(database.getMode(), timeZone);
+    }
+
+    @Override
+    public TimeZoneProvider currentTimeZone() {
+        return timeZone;
+    }
+
+    /**
+     * Sets current time zone.
+     *
+     * @param timeZone time zone
+     */
+    public void setTimeZone(TimeZoneProvider timeZone) {
+        if (!timeZone.equals(this.timeZone)) {
+            this.timeZone = timeZone;
+            ValueTimestampTimeZone ts = transactionStart;
+            if (ts != null) {
+                transactionStart = moveTimestamp(ts, timeZone);
+            }
+            ts = currentCommandStart;
+            if (ts != null) {
+                currentCommandStart = moveTimestamp(ts, timeZone);
+            }
+            modificationId++;
+        }
+    }
+
+    private static ValueTimestampTimeZone moveTimestamp(ValueTimestampTimeZone timestamp, TimeZoneProvider timeZone) {
+        long dateValue = timestamp.getDateValue();
+        long timeNanos = timestamp.getTimeNanos();
+        int offsetSeconds = timestamp.getTimeZoneOffsetSeconds();
+        return DateTimeUtils.timestampTimeZoneAtOffset(dateValue, timeNanos, offsetSeconds,
+                timeZone.getTimeZoneOffsetUTC(DateTimeUtils.getEpochSeconds(dateValue, timeNanos, offsetSeconds)));
+    }
+
+    /**
+     * Check if two values are equal with the current comparison mode.
+     *
+     * @param a the first value
+     * @param b the second value
+     * @return true if both objects are equal
+     */
+    public boolean areEqual(Value a, Value b) {
+        // can not use equals because ValueDecimal 0.0 is not equal to 0.00.
+        return a.compareTo(b, this, database.getCompareMode()) == 0;
+    }
+
+    /**
+     * Compare two values with the current comparison mode. The values may have
+     * different data types including NULL.
+     *
+     * @param a the first value
+     * @param b the second value
+     * @return 0 if both values are equal, -1 if the first value is smaller, and
+     *         1 otherwise
+     */
+    public int compare(Value a, Value b) {
+        return a.compareTo(b, this, database.getCompareMode());
+    }
+
+    /**
+     * Compare two values with the current comparison mode. The values may have
+     * different data types including NULL.
+     *
+     * @param a the first value
+     * @param b the second value
+     * @param forEquality perform only check for equality (= or &lt;&gt;)
+     * @return 0 if both values are equal, -1 if the first value is smaller, 1
+     *         if the second value is larger, {@link Integer#MIN_VALUE} if order
+     *         is not defined due to NULL comparison
+     */
+    public int compareWithNull(Value a, Value b, boolean forEquality) {
+        return a.compareWithNull(b, forEquality, this, database.getCompareMode());
+    }
+
+    /**
+     * Compare two values with the current comparison mode. The values must be
+     * of the same type.
+     *
+     * @param a the first value
+     * @param b the second value
+     * @return 0 if both values are equal, -1 if the first value is smaller, and
+     *         1 otherwise
+     */
+    public int compareTypeSafe(Value a, Value b) {
+        return a.compareTypeSafe(b, database.getCompareMode(), this);
     }
 
 }

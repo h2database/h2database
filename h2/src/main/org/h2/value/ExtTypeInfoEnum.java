@@ -111,7 +111,7 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
     }
 
     @Override
-    public Value cast(Value value, CastDataProvider provider, boolean forComparison) {
+    public Value cast(Value value, CastDataProvider provider) {
         switch (value.getValueType()) {
         case Value.ENUM:
             if (value instanceof ValueEnum && ((ValueEnum) value).getEnumerators().equals(this)) {

@@ -34,6 +34,7 @@ import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.command.dml.Query;
 import org.h2.engine.SysProperties;
+import org.h2.engine.Mode.ModeEnum;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.jdbc.JdbcPreparedStatement;
 import org.h2.test.TestAll;
@@ -427,7 +428,8 @@ public class TestScript extends TestDb {
 
     private void process(String sql, boolean allowReconnect) throws Exception {
         if (allowReconnect && reconnectOften) {
-            if (!containsTempTables() && ((JdbcConnection) conn).isRegularMode()
+            if (!containsTempTables()
+                    && ((JdbcConnection) conn).getMode().getEnum() == ModeEnum.REGULAR
                     && conn.getSchema().equals("PUBLIC")) {
                 boolean autocommit = conn.getAutoCommit();
                 if (autocommit && random.nextInt(10) < 1) {

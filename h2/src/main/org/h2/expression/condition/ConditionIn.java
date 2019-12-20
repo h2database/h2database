@@ -6,7 +6,6 @@
 package org.h2.expression.condition;
 
 import java.util.ArrayList;
-import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -29,20 +28,16 @@ import org.h2.value.ValueNull;
  */
 public class ConditionIn extends Condition {
 
-    private final Database database;
     private Expression left;
     private final ArrayList<Expression> valueList;
 
     /**
      * Create a new IN(..) condition.
      *
-     * @param database the database
      * @param left the expression before IN
      * @param values the value list (at least one element)
      */
-    public ConditionIn(Database database, Expression left,
-            ArrayList<Expression> values) {
-        this.database = database;
+    public ConditionIn(Expression left, ArrayList<Expression> values) {
         this.left = left;
         this.valueList = values;
     }
@@ -57,14 +52,14 @@ public class ConditionIn extends Condition {
         if (size == 1) {
             Expression e = valueList.get(0);
             if (e instanceof TableFunction) {
-                return ConditionInParameter.getValue(database, l, e.getValue(session));
+                return ConditionInParameter.getValue(session, l, e.getValue(session));
             }
         }
         boolean hasNull = false;
         for (int i = 0; i < size; i++) {
             Expression e = valueList.get(i);
             Value r = e.getValue(session);
-            Value cmp = Comparison.compare(database, l, r, Comparison.EQUAL);
+            Value cmp = Comparison.compare(session, l, r, Comparison.EQUAL);
             if (cmp == ValueNull.INSTANCE) {
                 hasNull = true;
             } else if (cmp == ValueBoolean.TRUE) {
@@ -102,7 +97,7 @@ public class ConditionIn extends Condition {
                     if (args.length == 1) {
                         Expression arg = args[0];
                         if (arg instanceof Parameter) {
-                            return new ConditionInParameter(database, left, (Parameter) arg);
+                            return new ConditionInParameter(left, (Parameter) arg);
                         }
                     }
                 }
@@ -148,7 +143,7 @@ public class ConditionIn extends Condition {
             return ValueExpression.getBoolean(getValue(session));
         }
         if (values.size() == 1) {
-            return new Comparison(session, Comparison.EQUAL, left, values.get(0)).optimize(session);
+            return new Comparison(Comparison.EQUAL, left, values.get(0)).optimize(session);
         }
         if (allValuesConstant && !allValuesNull) {
             int leftType = left.getType().getValueType();

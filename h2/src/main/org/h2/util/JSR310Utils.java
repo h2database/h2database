@@ -56,10 +56,12 @@ public class JSR310Utils {
      *
      * @param value
      *            the value to convert
+     * @param provider
+     *            the cast information provider
      * @return the LocalDate
      */
-    public static Object valueToLocalDate(Value value) {
-        long dateValue = ((ValueDate) value.convertTo(Value.DATE)).getDateValue();
+    public static Object valueToLocalDate(Value value, CastDataProvider provider) {
+        long dateValue = ((ValueDate) value.convertTo(Value.DATE, provider)).getDateValue();
         if (dateValue > MAX_DATE_VALUE) {
             dateValue = MAX_DATE_VALUE;
         } else if (dateValue < MIN_DATE_VALUE) {
@@ -81,7 +83,7 @@ public class JSR310Utils {
      * @return the LocalTime
      */
     public static Object valueToLocalTime(Value value, CastDataProvider provider) {
-        return LocalTime.ofNanoOfDay(((ValueTime) value.convertTo(Value.TIME, provider, false)).getNanos());
+        return LocalTime.ofNanoOfDay(((ValueTime) value.convertTo(Value.TIME, provider)).getNanos());
     }
 
     /**
@@ -96,7 +98,7 @@ public class JSR310Utils {
      * @return the LocalDateTime
      */
     public static Object valueToLocalDateTime(Value value, CastDataProvider provider) {
-        ValueTimestamp valueTimestamp = (ValueTimestamp) value.convertTo(Value.TIMESTAMP, provider, false);
+        ValueTimestamp valueTimestamp = (ValueTimestamp) value.convertTo(Value.TIMESTAMP, provider);
         return localDateTimeFromDateNanos(valueTimestamp.getDateValue(), valueTimestamp.getTimeNanos());
     }
 
@@ -113,7 +115,7 @@ public class JSR310Utils {
      */
     public static Object valueToInstant(Value value, CastDataProvider provider) {
         ValueTimestampTimeZone valueTimestampTimeZone = (ValueTimestampTimeZone) value.convertTo(Value.TIMESTAMP_TZ,
-                provider, false);
+                provider);
         long timeNanos = valueTimestampTimeZone.getTimeNanos();
         long epochSecond = DateTimeUtils.absoluteDayFromDateValue( //
                 valueTimestampTimeZone.getDateValue()) * DateTimeUtils.SECONDS_PER_DAY //
@@ -162,7 +164,7 @@ public class JSR310Utils {
 
     private static Object valueToOffsetDateTime(Value value, CastDataProvider provider, boolean zoned) {
         ValueTimestampTimeZone valueTimestampTimeZone = (ValueTimestampTimeZone) value.convertTo(Value.TIMESTAMP_TZ,
-                provider, false);
+                provider);
         long dateValue = valueTimestampTimeZone.getDateValue();
         long timeNanos = valueTimestampTimeZone.getTimeNanos();
         LocalDateTime localDateTime = (LocalDateTime) localDateTimeFromDateNanos(dateValue, timeNanos);
@@ -186,7 +188,7 @@ public class JSR310Utils {
      * @return the OffsetTime
      */
     public static Object valueToOffsetTime(Value value, CastDataProvider provider) {
-        ValueTimeTimeZone valueTimeTimeZone = (ValueTimeTimeZone) value.convertTo(Value.TIME_TZ, provider, false);
+        ValueTimeTimeZone valueTimeTimeZone = (ValueTimeTimeZone) value.convertTo(Value.TIME_TZ, provider);
         return OffsetTime.of(LocalTime.ofNanoOfDay(valueTimeTimeZone.getNanos()),
                 ZoneOffset.ofTotalSeconds(valueTimeTimeZone.getTimeZoneOffsetSeconds()));
     }

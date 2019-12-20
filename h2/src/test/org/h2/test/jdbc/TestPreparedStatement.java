@@ -43,10 +43,8 @@ import org.h2.api.Interval;
 import org.h2.api.IntervalQualifier;
 import org.h2.api.Trigger;
 import org.h2.engine.SysProperties;
-import org.h2.store.Data;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
-import org.h2.util.DateTimeUtils;
 import org.h2.util.Task;
 
 /**
@@ -734,10 +732,10 @@ public class TestPreparedStatement extends TestDb {
          * java.util.TimeZone doesn't support LMT, so perform this test with
          * fixed time zone offset
          */
+        Statement stat = conn.createStatement();
+        stat.execute("SET TIME ZONE '1'");
         TimeZone old = TimeZone.getDefault();
         TimeZone.setDefault(TimeZone.getTimeZone("GMT+01"));
-        DateTimeUtils.resetCalendar();
-        Data.resetCalendar();
         try {
             localDate = LocalDate.parse("1582-10-05");
             prep.setObject(1, localDate);
@@ -758,9 +756,8 @@ public class TestPreparedStatement extends TestDb {
             assertEquals(expected, rs.getDate(1, gc));
             rs.close();
         } finally {
+            stat.execute("SET TIME ZONE LOCAL");
             TimeZone.setDefault(old);
-            DateTimeUtils.resetCalendar();
-            Data.resetCalendar();
         }
     }
 

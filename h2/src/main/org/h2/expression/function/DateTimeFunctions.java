@@ -342,7 +342,7 @@ public final class DateTimeFunctions {
             } else if (v1 instanceof ValueTimeTimeZone) {
                 offsetSeconds1 = ((ValueTimeTimeZone) v1).getTimeZoneOffsetSeconds();
             } else {
-                offsetSeconds1 = DateTimeUtils.getTimeZoneOffset(dateValue1, a1[1]);
+                offsetSeconds1 = session.currentTimeZone().getTimeZoneOffsetLocal(dateValue1, a1[1]);
             }
             int offsetSeconds2;
             if (v2 instanceof ValueTimestampTimeZone) {
@@ -350,7 +350,7 @@ public final class DateTimeFunctions {
             } else if (v2 instanceof ValueTimeTimeZone) {
                 offsetSeconds2 = ((ValueTimeTimeZone) v2).getTimeZoneOffsetSeconds();
             } else {
-                offsetSeconds2 = DateTimeUtils.getTimeZoneOffset(dateValue2, a2[1]);
+                offsetSeconds2 = session.currentTimeZone().getTimeZoneOffsetLocal(dateValue2, a2[1]);
             }
             if (field == TIMEZONE_HOUR) {
                 return (offsetSeconds2 / 3_600) - (offsetSeconds1 / 3_600);
@@ -722,7 +722,7 @@ public final class DateTimeFunctions {
                 } else if (date instanceof ValueTimeTimeZone) {
                     offsetSeconds = ((ValueTimeTimeZone) date).getTimeZoneOffsetSeconds();
                 } else {
-                    offsetSeconds = DateTimeUtils.getTimeZoneOffset(dateValue, timeNanos);
+                    offsetSeconds = session.currentTimeZone().getTimeZoneOffsetLocal(dateValue, timeNanos);
                 }
                 if (field == TIMEZONE_HOUR) {
                     return offsetSeconds / 3_600;

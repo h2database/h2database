@@ -184,6 +184,7 @@
 90150=#Precision ({0}) must be between {1} and {2} inclusive
 90151=#Scale or fractional seconds precision ({0}) must be between {1} and {2} inclusive
 90152=#Constraint {0} is used by constraint {1}
+90153=#Column {0} references uncomparable column {1}
 HY000=Allgemeiner Fehler: {0}
 HY004=Unbekannter Datentyp: {0}
 HYC00=Dieses Feature wird nicht unterstützt: {0}

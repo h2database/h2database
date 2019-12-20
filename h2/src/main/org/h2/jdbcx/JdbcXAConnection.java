@@ -465,11 +465,11 @@ public class JdbcXAConnection extends TraceObject implements XAConnection,
         }
 
         @Override
-        protected synchronized void checkClosed(boolean write) {
+        protected synchronized void checkClosed() {
             if (isClosed) {
                 throw DbException.get(ErrorCode.OBJECT_CLOSED);
             }
-            super.checkClosed(write);
+            super.checkClosed();
         }
 
     }

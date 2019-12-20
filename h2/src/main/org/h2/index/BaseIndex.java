@@ -82,9 +82,9 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      */
     protected static void checkIndexColumnTypes(IndexColumn[] columns) {
         for (IndexColumn c : columns) {
-            if (DataType.isLargeObject(c.column.getType().getValueType())) {
+            if (!DataType.isIndexable(c.column.getType())) {
                 throw DbException.getUnsupportedException(
-                        "Index on BLOB or CLOB column: " + c.column.getCreateSQL());
+                        "Index on column: " + c.column.getCreateSQL());
             }
         }
     }
@@ -368,7 +368,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         if (aNull || bNull) {
             return SortOrder.compareNull(aNull, sortType);
         }
-        int comp = table.compareValues(a, b);
+        int comp = table.compareValues(database, a, b);
         if ((sortType & SortOrder.DESCENDING) != 0) {
             comp = -comp;
         }

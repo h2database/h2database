@@ -396,11 +396,11 @@ public class FunctionAlias extends SchemaObjectBase {
                     int componentType = DataType.getTypeFromClass(
                             paramClass.getComponentType());
                     for (int i = 0; i < objArray.length; i++) {
-                        objArray[i] = array[i].convertTo(componentType, session, false).getObject();
+                        objArray[i] = array[i].convertTo(componentType, session).getObject();
                     }
                     o = objArray;
                 } else {
-                    v = v.convertTo(type, session, false);
+                    v = v.convertTo(type, session);
                     o = v.getObject();
                 }
                 if (o == null) {
@@ -459,7 +459,7 @@ public class FunctionAlias extends SchemaObjectBase {
                     return (Value) returnValue;
                 }
                 Value ret = DataType.convertToValue(session, returnValue, dataType);
-                return ret.convertTo(dataType, session, false);
+                return ret.convertTo(dataType, session);
             } finally {
                 session.setLastScopeIdentity(identity);
                 session.setAutoCommit(old);

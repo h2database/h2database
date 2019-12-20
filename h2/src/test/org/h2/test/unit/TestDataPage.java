@@ -17,6 +17,7 @@ import org.h2.store.Data;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.test.TestBase;
+import org.h2.util.LegacyDateTimeUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
 import org.h2.value.CompareMode;
@@ -25,7 +26,6 @@ import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueByte;
 import org.h2.value.ValueBytes;
-import org.h2.value.ValueDate;
 import org.h2.value.ValueDecimal;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueFloat;
@@ -38,8 +38,6 @@ import org.h2.value.ValueShort;
 import org.h2.value.ValueString;
 import org.h2.value.ValueStringFixed;
 import org.h2.value.ValueStringIgnoreCase;
-import org.h2.value.ValueTime;
-import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueUuid;
 
@@ -165,13 +163,13 @@ public class TestDataPage extends TestBase implements DataHandler {
             }
             testValue(ValueDecimal.get(new BigDecimal(i * i)));
         }
-        testValue(ValueDate.get(null, new Date(System.currentTimeMillis())));
-        testValue(ValueDate.get(null, new Date(0)));
-        testValue(ValueTime.get(null, new Time(System.currentTimeMillis())));
-        testValue(ValueTime.get(null, new Time(0)));
-        testValue(ValueTimestamp.fromMillis(System.currentTimeMillis(), 0));
-        testValue(ValueTimestamp.fromMillis(0, 0));
-        testValue(ValueTimestampTimeZone.parse("2000-01-01 10:00:00"));
+        testValue(LegacyDateTimeUtils.fromDate(null, null, new Date(System.currentTimeMillis())));
+        testValue(LegacyDateTimeUtils.fromDate(null, null, new Date(0)));
+        testValue(LegacyDateTimeUtils.fromTime(null, null, new Time(System.currentTimeMillis())));
+        testValue(LegacyDateTimeUtils.fromTime(null, null, new Time(0)));
+        testValue(LegacyDateTimeUtils.fromTimestamp(null, System.currentTimeMillis(), 0));
+        testValue(LegacyDateTimeUtils.fromTimestamp(null, 0L, 0));
+        testValue(ValueTimestampTimeZone.parse("2000-01-01 10:00:00+00", null));
         testValue(ValueJavaObject.getNoCopy(null, new byte[0], this));
         testValue(ValueJavaObject.getNoCopy(null, new byte[100], this));
         for (int i = 0; i < 300; i++) {

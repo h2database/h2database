@@ -42,16 +42,16 @@ SELECT DATE_TRUNC('MICROSECONDS', date '1970-01-01');
 SELECT DATE_TRUNC('microseconds', date '1970-01-01');
 >> 1970-01-01 00:00:00
 
-select DATE_TRUNC('MICROSECONDS', timestamp with time zone '2015-05-29 15:14:13');
+select DATE_TRUNC('MICROSECONDS', timestamp with time zone '2015-05-29 15:14:13+00');
 >> 2015-05-29 15:14:13+00
 
-select DATE_TRUNC('microseconds', timestamp with time zone '2015-05-29 15:14:13');
+select DATE_TRUNC('microseconds', timestamp with time zone '2015-05-29 15:14:13+00');
 >> 2015-05-29 15:14:13+00
 
-select DATE_TRUNC('MICROSECONDS', timestamp with time zone '2015-05-29 15:14:13.123456789');
+select DATE_TRUNC('MICROSECONDS', timestamp with time zone '2015-05-29 15:14:13.123456789+00');
 >> 2015-05-29 15:14:13.123456+00
 
-select DATE_TRUNC('microseconds', timestamp with time zone '2015-05-29 15:14:13.123456789');
+select DATE_TRUNC('microseconds', timestamp with time zone '2015-05-29 15:14:13.123456789+00');
 >> 2015-05-29 15:14:13.123456+00
 
 select DATE_TRUNC('MICROSECONDS', timestamp with time zone '2015-05-29 15:14:13-06');
@@ -165,16 +165,16 @@ SELECT DATE_TRUNC('MILLISECONDS', date '1970-01-01');
 SELECT DATE_TRUNC('milliseconds', date '1970-01-01');
 >> 1970-01-01 00:00:00
 
-select DATE_TRUNC('MILLISECONDS', timestamp with time zone '2015-05-29 15:14:13');
+select DATE_TRUNC('MILLISECONDS', timestamp with time zone '2015-05-29 15:14:13+00');
 >> 2015-05-29 15:14:13+00
 
-select DATE_TRUNC('milliseconds', timestamp with time zone '2015-05-29 15:14:13');
+select DATE_TRUNC('milliseconds', timestamp with time zone '2015-05-29 15:14:13+00');
 >> 2015-05-29 15:14:13+00
 
-select DATE_TRUNC('MILLISECONDS', timestamp with time zone '2015-05-29 15:14:13.123456');
+select DATE_TRUNC('MILLISECONDS', timestamp with time zone '2015-05-29 15:14:13.123456+00');
 >> 2015-05-29 15:14:13.123+00
 
-select DATE_TRUNC('milliseconds', timestamp with time zone '2015-05-29 15:14:13.123456');
+select DATE_TRUNC('milliseconds', timestamp with time zone '2015-05-29 15:14:13.123456+00');
 >> 2015-05-29 15:14:13.123+00
 
 select DATE_TRUNC('MILLISECONDS', timestamp with time zone '2015-05-29 15:14:13-06');
@@ -288,16 +288,16 @@ SELECT DATE_TRUNC('SECOND', date '1970-01-01');
 SELECT DATE_TRUNC('second', date '1970-01-01');
 >> 1970-01-01 00:00:00
 
-select DATE_TRUNC('SECOND', timestamp with time zone '2015-05-29 15:14:13');
+select DATE_TRUNC('SECOND', timestamp with time zone '2015-05-29 15:14:13+00');
 >> 2015-05-29 15:14:13+00
 
-select DATE_TRUNC('second', timestamp with time zone '2015-05-29 15:14:13');
+select DATE_TRUNC('second', timestamp with time zone '2015-05-29 15:14:13+00');
 >> 2015-05-29 15:14:13+00
 
-select DATE_TRUNC('SECOND', timestamp with time zone '2015-05-29 15:14:13.123456');
+select DATE_TRUNC('SECOND', timestamp with time zone '2015-05-29 15:14:13.123456+00');
 >> 2015-05-29 15:14:13+00
 
-select DATE_TRUNC('second', timestamp with time zone '2015-05-29 15:14:13.123456');
+select DATE_TRUNC('second', timestamp with time zone '2015-05-29 15:14:13.123456+00');
 >> 2015-05-29 15:14:13+00
 
 select DATE_TRUNC('SECOND', timestamp with time zone '2015-05-29 15:14:13-06');
@@ -405,10 +405,10 @@ SELECT DATE_TRUNC('MINUTE', date '1970-01-01');
 SELECT DATE_TRUNC('minute', date '1970-01-01');
 >> 1970-01-01 00:00:00
 
-select DATE_TRUNC('MINUTE', timestamp with time zone '2015-05-29 15:14:13');
+select DATE_TRUNC('MINUTE', timestamp with time zone '2015-05-29 15:14:13+00');
 >> 2015-05-29 15:14:00+00
 
-select DATE_TRUNC('minute', timestamp with time zone '2015-05-29 15:14:13');
+select DATE_TRUNC('minute', timestamp with time zone '2015-05-29 15:14:13+00');
 >> 2015-05-29 15:14:00+00
 
 select DATE_TRUNC('MINUTE', timestamp with time zone '2015-05-29 15:14:13-06');
@@ -492,10 +492,10 @@ SELECT DATE_TRUNC('HOUR', date '1970-01-01');
 SELECT DATE_TRUNC('hour', date '1970-01-01');
 >> 1970-01-01 00:00:00
 
-select DATE_TRUNC('HOUR', timestamp with time zone '2015-05-29 15:14:13');
+select DATE_TRUNC('HOUR', timestamp with time zone '2015-05-29 15:14:13+00');
 >> 2015-05-29 15:00:00+00
 
-select DATE_TRUNC('hour', timestamp with time zone '2015-05-29 15:14:13');
+select DATE_TRUNC('hour', timestamp with time zone '2015-05-29 15:14:13+00');
 >> 2015-05-29 15:00:00+00
 
 select DATE_TRUNC('HOUR', timestamp with time zone '2015-05-29 15:14:13-06');
@@ -573,10 +573,10 @@ select DATE_TRUNC('day', timestamp '2015-05-29 15:14:13');
 select DATE_TRUNC('DAY', timestamp '2015-05-29 15:14:13');
 >> 2015-05-29 00:00:00
 
-select DATE_TRUNC('day', timestamp with time zone '2015-05-29 15:14:13');
+select DATE_TRUNC('day', timestamp with time zone '2015-05-29 15:14:13+00');
 >> 2015-05-29 00:00:00+00
 
-select DATE_TRUNC('DAY', timestamp with time zone '2015-05-29 15:14:13');
+select DATE_TRUNC('DAY', timestamp with time zone '2015-05-29 15:14:13+00');
 >> 2015-05-29 00:00:00+00
 
 select DATE_TRUNC('day', timestamp with time zone '2015-05-29 05:14:13-06');
@@ -624,10 +624,10 @@ select DATE_TRUNC('week', timestamp '2015-05-29 15:14:13');
 select DATE_TRUNC('WEEK', timestamp '2015-05-29 15:14:13');
 >> 2015-05-25 00:00:00
 
-select DATE_TRUNC('week', timestamp with time zone '2015-05-29 15:14:13');
+select DATE_TRUNC('week', timestamp with time zone '2015-05-29 15:14:13+00');
 >> 2015-05-25 00:00:00+00
 
-select DATE_TRUNC('WEEK', timestamp with time zone '2015-05-29 15:14:13');
+select DATE_TRUNC('WEEK', timestamp with time zone '2015-05-29 15:14:13+00');
 >> 2015-05-25 00:00:00+00
 
 select DATE_TRUNC('week', timestamp with time zone '2015-05-29 05:14:13-06');
@@ -681,10 +681,10 @@ select DATE_TRUNC('month', timestamp '2015-05-29 15:14:13');
 select DATE_TRUNC('MONTH', timestamp '2015-05-29 15:14:13');
 >> 2015-05-01 00:00:00
 
-select DATE_TRUNC('month', timestamp with time zone '2015-05-29 15:14:13');
+select DATE_TRUNC('month', timestamp with time zone '2015-05-29 15:14:13+00');
 >> 2015-05-01 00:00:00+00
 
-select DATE_TRUNC('MONTH', timestamp with time zone '2015-05-29 15:14:13');
+select DATE_TRUNC('MONTH', timestamp with time zone '2015-05-29 15:14:13+00');
 >> 2015-05-01 00:00:00+00
 
 select DATE_TRUNC('month', timestamp with time zone '2015-05-29 05:14:13-06');
@@ -750,10 +750,10 @@ select DATE_TRUNC('quarter', timestamp '2015-05-29 15:14:13');
 select DATE_TRUNC('QUARTER', timestamp '2015-05-29 15:14:13');
 >> 2015-04-01 00:00:00
 
-select DATE_TRUNC('quarter', timestamp with time zone '2015-05-29 15:14:13');
+select DATE_TRUNC('quarter', timestamp with time zone '2015-05-29 15:14:13+00');
 >> 2015-04-01 00:00:00+00
 
-select DATE_TRUNC('QUARTER', timestamp with time zone '2015-05-29 15:14:13');
+select DATE_TRUNC('QUARTER', timestamp with time zone '2015-05-29 15:14:13+00');
 >> 2015-04-01 00:00:00+00
 
 select DATE_TRUNC('quarter', timestamp with time zone '2015-05-29 05:14:13-06');
@@ -843,10 +843,10 @@ select DATE_TRUNC('year', timestamp '2015-05-29 15:14:13');
 select DATE_TRUNC('YEAR', timestamp '2015-05-29 15:14:13');
 >> 2015-01-01 00:00:00
 
-select DATE_TRUNC('year', timestamp with time zone '2015-05-29 15:14:13');
+select DATE_TRUNC('year', timestamp with time zone '2015-05-29 15:14:13+00');
 >> 2015-01-01 00:00:00+00
 
-select DATE_TRUNC('YEAR', timestamp with time zone '2015-05-29 15:14:13');
+select DATE_TRUNC('YEAR', timestamp with time zone '2015-05-29 15:14:13+00');
 >> 2015-01-01 00:00:00+00
 
 select DATE_TRUNC('year', timestamp with time zone '2015-05-29 05:14:13-06');
@@ -894,10 +894,10 @@ select DATE_TRUNC('decade', timestamp '2015-05-29 15:14:13');
 select DATE_TRUNC('DECADE', timestamp '2015-05-29 15:14:13');
 >> 2010-01-01 00:00:00
 
-select DATE_TRUNC('decade', timestamp with time zone '2015-05-29 15:14:13');
+select DATE_TRUNC('decade', timestamp with time zone '2015-05-29 15:14:13+00');
 >> 2010-01-01 00:00:00+00
 
-select DATE_TRUNC('DECADE', timestamp with time zone '2015-05-29 15:14:13');
+select DATE_TRUNC('DECADE', timestamp with time zone '2015-05-29 15:14:13+00');
 >> 2010-01-01 00:00:00+00
 
 select DATE_TRUNC('decade', timestamp with time zone '2015-05-29 05:14:13-06');
@@ -951,10 +951,10 @@ select DATE_TRUNC('century', timestamp '2015-05-29 15:14:13');
 select DATE_TRUNC('CENTURY', timestamp '2015-05-29 15:14:13');
 >> 2001-01-01 00:00:00
 
-select DATE_TRUNC('century', timestamp with time zone '2015-05-29 15:14:13');
+select DATE_TRUNC('century', timestamp with time zone '2015-05-29 15:14:13+00');
 >> 2001-01-01 00:00:00+00
 
-select DATE_TRUNC('CENTURY', timestamp with time zone '2015-05-29 15:14:13');
+select DATE_TRUNC('CENTURY', timestamp with time zone '2015-05-29 15:14:13+00');
 >> 2001-01-01 00:00:00+00
 
 select DATE_TRUNC('century', timestamp with time zone '2015-05-29 05:14:13-06');
@@ -1020,10 +1020,10 @@ select DATE_TRUNC('millennium', timestamp '2015-05-29 15:14:13');
 select DATE_TRUNC('MILLENNIUM', timestamp '2015-05-29 15:14:13');
 >> 2001-01-01 00:00:00
 
-select DATE_TRUNC('millennium', timestamp with time zone '2015-05-29 15:14:13');
+select DATE_TRUNC('millennium', timestamp with time zone '2015-05-29 15:14:13+00');
 >> 2001-01-01 00:00:00+00
 
-select DATE_TRUNC('MILLENNIUM', timestamp with time zone '2015-05-29 15:14:13');
+select DATE_TRUNC('MILLENNIUM', timestamp with time zone '2015-05-29 15:14:13+00');
 >> 2001-01-01 00:00:00+00
 
 select DATE_TRUNC('millennium', timestamp with time zone '2015-05-29 05:14:13-06');

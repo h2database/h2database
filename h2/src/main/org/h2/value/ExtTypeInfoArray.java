@@ -27,7 +27,7 @@ public final class ExtTypeInfoArray extends ExtTypeInfo {
     }
 
     @Override
-    public Value cast(Value value, CastDataProvider provider, boolean forComparison) {
+    public Value cast(Value value, CastDataProvider provider) {
         if (value.getValueType() != Value.ARRAY) {
             value = value.convertTo(Value.ARRAY);
         }
@@ -36,13 +36,13 @@ public final class ExtTypeInfoArray extends ExtTypeInfo {
         int length = values.length;
         for (int i = 0; i < length; i++) {
             Value v = values[i];
-            Value v2 = v.convertTo(componentType, provider, forComparison, null);
+            Value v2 = v.convertTo(componentType, provider, null);
             if (v != v2) {
                 Value[] newValues = new Value[length];
                 System.arraycopy(values, 0, newValues, 0, i);
                 newValues[i] = v2;
                 while (++i < length) {
-                    newValues[i] = values[i].convertTo(componentType, provider, forComparison, null);
+                    newValues[i] = values[i].convertTo(componentType, provider, null);
                 }
                 return ValueArray.get(newValues);
             }

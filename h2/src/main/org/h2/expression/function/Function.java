@@ -67,6 +67,7 @@ import org.h2.util.Bits;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
+import org.h2.util.LegacyDateTimeUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -895,21 +896,21 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             result = ValueString.get(StringUtils.xmlStartDoc(), database);
             break;
         case CURRENT_DATE:
-            result = session.currentTimestamp().convertTo(Value.DATE);
+            result = session.currentTimestamp().convertTo(Value.DATE, session);
             break;
         case CURRENT_TIME:
-            result = session.currentTimestamp().convertTo(Value.TIME_TZ, session, false) //
+            result = session.currentTimestamp().convertTo(Value.TIME_TZ, session) //
                     .convertScale(false, v0 == null ? 0 : v0.getInt());
             break;
         case LOCALTIME:
-            result = session.currentTimestamp().convertTo(Value.TIME, session, false) //
+            result = session.currentTimestamp().convertTo(Value.TIME, session) //
                     .convertScale(false, v0 == null ? 0 : v0.getInt());
             break;
         case CURRENT_TIMESTAMP:
             result = session.currentTimestamp().convertScale(false, v0 == null ? 6 : v0.getInt());
             break;
         case LOCALTIMESTAMP:
-            result = session.currentTimestamp().convertTo(Value.TIMESTAMP, session, false) //
+            result = session.currentTimestamp().convertTo(Value.TIMESTAMP, session) //
                     .convertScale(false, v0 == null ? 6 : v0.getInt());
             break;
         case DAY_NAME: {
@@ -972,7 +973,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             break;
         case CAST:
         case CONVERT:
-            result = type.cast(v0, session, false, true, null);
+            result = type.cast(v0, session, true, null);
             if (domain != null) {
                 domain.checkConstraints(session, result);
             }
@@ -999,7 +1000,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             if (v0 == ValueNull.INSTANCE) {
                 result = getNullOrValue(session, args, values, 1);
             }
-            result = result.convertTo(type, session, false, null);
+            result = result.convertTo(type, session, null);
             break;
         }
         case CASEWHEN: {
@@ -1009,14 +1010,13 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             } else {
                 v = getNullOrValue(session, args, values, 1);
             }
-            result = v.convertTo(type, session, false, null);
+            result = v.convertTo(type, session, null);
             break;
         }
         case DECODE: {
             int index = -1;
             for (int i = 1, len = args.length - 1; i < len; i += 2) {
-                if (database.areEqual(v0,
-                        getNullOrValue(session, args, values, i))) {
+                if (session.areEqual(v0, getNullOrValue(session, args, values, i))) {
                     index = i + 1;
                     break;
                 }
@@ -1026,7 +1026,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             }
             Value v = index < 0 ? ValueNull.INSTANCE :
                     getNullOrValue(session, args, values, index);
-            result = v.convertTo(type, session, false, null);
+            result = v.convertTo(type, session, null);
             break;
         }
         case NVL2: {
@@ -1036,7 +1036,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             } else {
                 v = getNullOrValue(session, args, values, 1);
             }
-            result = v.convertTo(type, session, false, null);
+            result = v.convertTo(type, session, null);
             break;
         }
         case COALESCE: {
@@ -1044,7 +1044,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             for (int i = 0; i < args.length; i++) {
                 Value v = getNullOrValue(session, args, values, i);
                 if (v != ValueNull.INSTANCE) {
-                    result = v.convertTo(type, session, false, null);
+                    result = v.convertTo(type, session, null);
                     break;
                 }
             }
@@ -1056,11 +1056,11 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             for (int i = 0; i < args.length; i++) {
                 Value v = getNullOrValue(session, args, values, i);
                 if (v != ValueNull.INSTANCE) {
-                    v = v.convertTo(type, session, true, null);
+                    v = v.convertTo(type, session, null);
                     if (result == ValueNull.INSTANCE) {
                         result = v;
                     } else {
-                        int comp = database.compareTypeSafe(result, v);
+                        int comp = session.compareTypeSafe(result, v);
                         if (info.type == GREATEST && comp < 0) {
                             result = v;
                         } else if (info.type == LEAST && comp > 0) {
@@ -1095,7 +1095,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 if (v0 != ValueNull.INSTANCE) {
                     for (int i = 1, len = args.length - 1; i < len; i += 2) {
                         Value when = args[i].getValue(session);
-                        if (database.areEqual(v0, when)) {
+                        if (session.areEqual(v0, when)) {
                             then = args[i + 1];
                             break;
                         }
@@ -1107,7 +1107,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 then = args[args.length - 1];
             }
             Value v = then == null ? ValueNull.INSTANCE : then.getValue(session);
-            result = v.convertTo(type, session, false, null);
+            result = v.convertTo(type, session, null);
             break;
         }
         case ARRAY_GET: {
@@ -1140,7 +1140,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
             if (list != null) {
                 Value v1 = getNullOrValue(session, args, values, 1);
                 for (Value v : list) {
-                    if (database.areEqual(v, v1)) {
+                    if (session.areEqual(v, v1)) {
                         result = ValueBoolean.TRUE;
                         break;
                     }
@@ -1557,9 +1557,8 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                     tz = DateTimeUtils.timeZoneNameFromOffsetSeconds(
                             ((ValueTimestampTimeZone) v0).getTimeZoneOffsetSeconds());
                 }
-                result = ValueString.get(
-                        DateTimeFunctions.formatDateTime(v0.getTimestamp(session, null), v1.getString(), locale, tz),
-                        database);
+                result = ValueString.get(DateTimeFunctions.formatDateTime(
+                        LegacyDateTimeUtils.toTimestamp(session, null, v0), v1.getString(), locale, tz), database);
             }
             break;
         }
@@ -1573,12 +1572,12 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                         null : v3 == ValueNull.INSTANCE ? null : v3.getString();
                 java.util.Date d = DateTimeFunctions.parseDateTime(
                         v0.getString(), v1.getString(), locale, tz);
-                result = ValueTimestamp.fromMillis(d.getTime(), 0);
+                result = LegacyDateTimeUtils.fromTimestamp(session, d.getTime(), 0);
             }
             break;
         }
         case NULLIF:
-            result = database.areEqual(v0, v1) ? ValueNull.INSTANCE : v0;
+            result = session.areEqual(v0, v1) ? ValueNull.INSTANCE : v0;
             break;
             // system
         case NEXTVAL:

@@ -21,6 +21,8 @@ abstract class SessionWithState implements SessionInterface {
     protected boolean sessionStateChanged;
     private boolean sessionStateUpdating;
 
+    protected volatile StaticSettings staticSettings;
+
     /**
      * Re-create the session state using the stored sessionState list.
      */

@@ -245,7 +245,7 @@ public abstract class MVTempResult implements ResultExternal {
         for (int i = 0, l = resultColumnCount; i < l; i++) {
             TypeInfo type = expressions[i].getType();
             if (type.getValueType() == Value.ENUM) {
-                row[i] = type.getExtTypeInfo().cast(row[i], null, false);
+                row[i] = type.getExtTypeInfo().cast(row[i], null);
             }
         }
     }

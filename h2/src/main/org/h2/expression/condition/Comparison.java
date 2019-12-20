@@ -7,7 +7,6 @@ package org.h2.expression.condition;
 
 import java.util.ArrayList;
 import org.h2.api.ErrorCode;
-import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -108,14 +107,11 @@ public class Comparison extends Condition {
      */
     public static final int SPATIAL_INTERSECTS = 9;
 
-    private final Database database;
     private int compareType;
     private Expression left;
     private Expression right;
 
-    public Comparison(Session session, int compareType, Expression left,
-            Expression right) {
-        this.database = session.getDatabase();
+    public Comparison(int compareType, Expression left, Expression right) {
         this.left = left;
         this.right = right;
         this.compareType = compareType;
@@ -218,7 +214,7 @@ public class Comparison extends Condition {
                     // once.
                     if (constValueType != resType.getValueType()) {
                         Column column = ((ExpressionColumn) left).getColumn();
-                        right = ValueExpression.get(r.convertTo(resType, database, true, column));
+                        right = ValueExpression.get(r.convertTo(resType, session, column));
                     }
                 }
             } else if (right instanceof Parameter) {
@@ -253,23 +249,23 @@ public class Comparison extends Condition {
         if (l == ValueNull.INSTANCE && (compareType & NULL_SAFE) == 0) {
             return ValueNull.INSTANCE;
         }
-        return compare(database, l, right.getValue(session), compareType);
+        return compare(session, l, right.getValue(session), compareType);
     }
 
     /**
      * Compare two values.
      *
-     * @param database the database
+     * @param session the session
      * @param l the first value
      * @param r the second value
      * @param compareType the compare type
      * @return result of comparison, either TRUE, FALSE, or NULL
      */
-    static Value compare(Database database, Value l, Value r, int compareType) {
+    static Value compare(Session session, Value l, Value r, int compareType) {
         Value result;
         switch (compareType) {
         case EQUAL: {
-            int cmp = database.compareWithNull(l, r, true);
+            int cmp = session.compareWithNull(l, r, true);
             if (cmp == 0) {
                 result = ValueBoolean.TRUE;
             } else if (cmp == Integer.MIN_VALUE) {
@@ -280,10 +276,10 @@ public class Comparison extends Condition {
             break;
         }
         case EQUAL_NULL_SAFE:
-            result = ValueBoolean.get(database.areEqual(l, r));
+            result = ValueBoolean.get(session.areEqual(l, r));
             break;
         case NOT_EQUAL: {
-            int cmp = database.compareWithNull(l, r, true);
+            int cmp = session.compareWithNull(l, r, true);
             if (cmp == 0) {
                 result = ValueBoolean.FALSE;
             } else if (cmp == Integer.MIN_VALUE) {
@@ -294,10 +290,10 @@ public class Comparison extends Condition {
             break;
         }
         case NOT_EQUAL_NULL_SAFE:
-            result = ValueBoolean.get(!database.areEqual(l, r));
+            result = ValueBoolean.get(!session.areEqual(l, r));
             break;
         case BIGGER_EQUAL: {
-            int cmp = database.compareWithNull(l, r, false);
+            int cmp = session.compareWithNull(l, r, false);
             if (cmp >= 0) {
                 result = ValueBoolean.TRUE;
             } else if (cmp == Integer.MIN_VALUE) {
@@ -308,7 +304,7 @@ public class Comparison extends Condition {
             break;
         }
         case BIGGER: {
-            int cmp = database.compareWithNull(l, r, false);
+            int cmp = session.compareWithNull(l, r, false);
             if (cmp > 0) {
                 result = ValueBoolean.TRUE;
             } else if (cmp == Integer.MIN_VALUE) {
@@ -319,7 +315,7 @@ public class Comparison extends Condition {
             break;
         }
         case SMALLER_EQUAL: {
-            int cmp = database.compareWithNull(l, r, false);
+            int cmp = session.compareWithNull(l, r, false);
             if (cmp == Integer.MIN_VALUE) {
                 result = ValueNull.INSTANCE;
             } else {
@@ -328,7 +324,7 @@ public class Comparison extends Condition {
             break;
         }
         case SMALLER: {
-            int cmp = database.compareWithNull(l, r, false);
+            int cmp = session.compareWithNull(l, r, false);
             if (cmp == Integer.MIN_VALUE) {
                 result = ValueNull.INSTANCE;
             } else {
@@ -379,7 +375,7 @@ public class Comparison extends Condition {
             return null;
         }
         int type = getNotCompareType();
-        return new Comparison(session, type, left, right);
+        return new Comparison(type, left, right);
     }
 
     private int getNotCompareType() {
@@ -556,13 +552,13 @@ public class Comparison extends Condition {
             // a=b AND a=c
             // must not compare constants. example: NOT(B=2 AND B=3)
             if (!(rc && r2c) && l.equals(l2)) {
-                return new Comparison(session, EQUAL, right, other.right);
+                return new Comparison(EQUAL, right, other.right);
             } else if (!(rc && l2c) && l.equals(r2)) {
-                return new Comparison(session, EQUAL, right, other.left);
+                return new Comparison(EQUAL, right, other.left);
             } else if (!(lc && r2c) && r.equals(l2)) {
-                return new Comparison(session, EQUAL, left, other.right);
+                return new Comparison(EQUAL, left, other.right);
             } else if (!(lc && l2c) && r.equals(r2)) {
-                return new Comparison(session, EQUAL, left, other.left);
+                return new Comparison(EQUAL, left, other.left);
             }
         }
         return null;
@@ -604,7 +600,7 @@ public class Comparison extends Condition {
         ArrayList<Expression> right = new ArrayList<>(2);
         right.add(value1);
         right.add(value2);
-        return new ConditionIn(session.getDatabase(), left, right);
+        return new ConditionIn(left, right);
     }
 
     @Override

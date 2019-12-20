@@ -16,7 +16,6 @@ import java.net.InetAddress;
 import java.net.Socket;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
-import org.h2.engine.CastDataProvider;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.message.DbException;
@@ -409,8 +408,13 @@ public class Transfer {
                 writeInt(t.getTimeZoneOffsetSeconds());
             } else {
                 writeInt(TIME);
-                ValueTimestampTimeZone current = session instanceof CastDataProvider
-                        ? ((CastDataProvider) session).currentTimestamp() : DateTimeUtils.currentTimestamp();
+                /*
+                 * Don't call SessionRemote.currentTimestamp(), it may require
+                 * own remote call and old server will not return custom time
+                 * zone anyway.
+                 */
+                ValueTimestampTimeZone current = session.isRemote()
+                        ? DateTimeUtils.currentTimestamp(DateTimeUtils.getTimeZone()) : session.currentTimestamp();
                 writeLong(DateTimeUtils.normalizeNanosOfDay(t.getNanos() +
                         (t.getTimeZoneOffsetSeconds() - current.getTimeZoneOffsetSeconds())
                         * DateTimeUtils.NANOS_PER_DAY));

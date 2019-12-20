@@ -11,12 +11,81 @@ import org.h2.command.CommandInterface;
 import org.h2.message.Trace;
 import org.h2.store.DataHandler;
 import org.h2.util.NetworkConnectionInfo;
+import org.h2.util.TimeZoneProvider;
 import org.h2.value.Value;
 
 /**
  * A local or remote session. A session represents a database connection.
  */
-public interface SessionInterface extends Closeable {
+public interface SessionInterface extends CastDataProvider, Closeable {
+
+    /**
+     * Static settings.
+     */
+    final class StaticSettings {
+
+        /**
+         * Whether unquoted identifiers are converted to upper case.
+         */
+        public final boolean databaseToUpper;
+
+        /**
+         * Whether unquoted identifiers are converted to lower case.
+         */
+        public final boolean databaseToLower;
+
+        /**
+         * Whether all identifiers are case insensitive.
+         */
+        public final boolean caseInsensitiveIdentifiers;
+
+        /**
+         * Creates new instance of static settings.
+         *
+         * @param databaseToUpper
+         *            whether unquoted identifiers are converted to upper case
+         * @param databaseToLower
+         *            whether unquoted identifiers are converted to lower case
+         * @param caseInsensitiveIdentifiers
+         *            whether all identifiers are case insensitive
+         */
+        public StaticSettings(boolean databaseToUpper, boolean databaseToLower, boolean caseInsensitiveIdentifiers) {
+            this.databaseToUpper = databaseToUpper;
+            this.databaseToLower = databaseToLower;
+            this.caseInsensitiveIdentifiers = caseInsensitiveIdentifiers;
+        }
+
+    }
+
+    /**
+     * Dynamic settings.
+     */
+    final class DynamicSettings {
+
+        /**
+         * The database mode.
+         */
+        public final Mode mode;
+
+        /**
+         * The current time zone.
+         */
+        public final TimeZoneProvider timeZone;
+
+        /**
+         * Creates new instance of dynamic settings.
+         *
+         * @param mode
+         *            the database mode
+         * @param timeZone
+         *            the current time zone
+         */
+        public DynamicSettings(Mode mode, TimeZoneProvider timeZone) {
+            this.mode = mode;
+            this.timeZone = timeZone;
+        }
+
+    }
 
     /**
      * Get the list of the cluster servers for this session.
@@ -161,5 +230,21 @@ public interface SessionInterface extends Closeable {
      * @param isolationLevel the isolation level to set
      */
     void setIsolationLevel(IsolationLevel isolationLevel);
+
+    /**
+     * Returns static settings. These settings cannot be changed during
+     * lifecycle of session.
+     *
+     * @return static settings
+     */
+    StaticSettings getStaticSettings();
+
+    /**
+     * Returns dynamic settings. These settings can be changed during lifecycle
+     * of session.
+     *
+     * @return dynamic settings
+     */
+    DynamicSettings getDynamicSettings();
 
 }

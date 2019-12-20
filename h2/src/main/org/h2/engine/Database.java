@@ -73,7 +73,6 @@ import org.h2.table.TableType;
 import org.h2.table.TableView;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
-import org.h2.util.DateTimeUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
@@ -82,6 +81,7 @@ import org.h2.util.SmallLRUCache;
 import org.h2.util.SourceCompiler;
 import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
+import org.h2.util.TimeZoneProvider;
 import org.h2.util.Utils;
 import org.h2.value.CaseInsensitiveConcurrentMap;
 import org.h2.value.CaseInsensitiveMap;
@@ -365,59 +365,6 @@ public class Database implements DataHandler, CastDataProvider {
     public void setStore(MVTableEngine.Store store) {
         this.store = store;
         this.retentionTime = store.getMvStore().getRetentionTime();
-    }
-
-    /**
-     * Check if two values are equal with the current comparison mode.
-     *
-     * @param a the first value
-     * @param b the second value
-     * @return true if both objects are equal
-     */
-    public boolean areEqual(Value a, Value b) {
-        // can not use equals because ValueDecimal 0.0 is not equal to 0.00.
-        return a.compareTo(b, this, compareMode) == 0;
-    }
-
-    /**
-     * Compare two values with the current comparison mode. The values may have
-     * different data types including NULL.
-     *
-     * @param a the first value
-     * @param b the second value
-     * @return 0 if both values are equal, -1 if the first value is smaller, and
-     *         1 otherwise
-     */
-    public int compare(Value a, Value b) {
-        return a.compareTo(b, this, compareMode);
-    }
-
-    /**
-     * Compare two values with the current comparison mode. The values may have
-     * different data types including NULL.
-     *
-     * @param a the first value
-     * @param b the second value
-     * @param forEquality perform only check for equality (= or &lt;&gt;)
-     * @return 0 if both values are equal, -1 if the first value is smaller, 1
-     *         if the second value is larger, {@link Integer#MIN_VALUE} if order
-     *         is not defined due to NULL comparison
-     */
-    public int compareWithNull(Value a, Value b, boolean forEquality) {
-        return a.compareWithNull(b, forEquality, this, compareMode);
-    }
-
-    /**
-     * Compare two values with the current comparison mode. The values must be
-     * of the same type.
-     *
-     * @param a the first value
-     * @param b the second value
-     * @return 0 if both values are equal, -1 if the first value is smaller, and
-     *         1 otherwise
-     */
-    public int compareTypeSafe(Value a, Value b) {
-        return a.compareTypeSafe(b, compareMode, this);
     }
 
     public long getModificationDataId() {
@@ -3041,11 +2988,14 @@ public class Database implements DataHandler, CastDataProvider {
 
     @Override
     public ValueTimestampTimeZone currentTimestamp() {
-        /*
-         * This method shouldn't be used in this class, but return a value for
-         * safety.
-         */
-        return DateTimeUtils.currentTimestamp();
+        // This method should not be reachable
+        throw DbException.getUnsupportedException("Unsafe comparison or cast");
+    }
+
+    @Override
+    public TimeZoneProvider currentTimeZone() {
+        // This method should not be reachable
+        throw DbException.getUnsupportedException("Unsafe comparison or cast");
     }
 
 }

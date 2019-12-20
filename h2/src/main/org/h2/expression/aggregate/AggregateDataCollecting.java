@@ -13,7 +13,7 @@ import java.util.Iterator;
 import java.util.TreeSet;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.Database;
+import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -24,7 +24,7 @@ import org.h2.value.ValueRow;
  * values or a distinct aggregate.
  *
  * <p>
- * NULL values are not collected. {@link #getValue(Database, int)} method
+ * NULL values are not collected. {@link #getValue(Session, int)} method
  * returns {@code null}. Use {@link #getArray()} for instances of this class
  * instead.
  * </p>
@@ -53,14 +53,14 @@ class AggregateDataCollecting extends AggregateData implements Iterable<Value> {
     }
 
     @Override
-    void add(Database database, Value v) {
+    void add(Session session, Value v) {
         if (v == ValueNull.INSTANCE) {
             return;
         }
         Collection<Value> c = values;
         if (c == null) {
             if (distinct) {
-                Comparator<Value> comparator = database.getCompareMode();
+                Comparator<Value> comparator = session.getDatabase().getCompareMode();
                 if (orderedWithOrder) {
                     comparator = Comparator.comparing(t -> ((ValueRow) t).getList()[0], comparator);
                 }
@@ -74,7 +74,7 @@ class AggregateDataCollecting extends AggregateData implements Iterable<Value> {
     }
 
     @Override
-    Value getValue(Database database, int dataType) {
+    Value getValue(Session session, int dataType) {
         return null;
     }
 

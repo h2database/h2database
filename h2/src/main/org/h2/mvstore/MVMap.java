@@ -14,9 +14,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import static org.h2.engine.Constants.MEMORY_POINTER;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
+import org.h2.util.MemoryEstimator;
 
 /**
  * A stored map.
@@ -59,6 +62,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     private volatile  boolean closed;
     private boolean readOnly;
     private boolean isVolatile;
+    private AtomicLong avgKeySize = new AtomicLong();
+    private AtomicLong avgValSize = new AtomicLong();
 
     /**
      * This designates the "last stored" version for a store which was
@@ -2020,7 +2025,29 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
     }
 
-    private static final class EqualsDecisionMaker<V> extends DecisionMaker<V> {
+    final int estimateMemoryForKeys(K[] storage, int count) {
+        return MemoryEstimator.estimateMemory(avgKeySize, keyType, storage, count);
+    }
+
+    final int estimateMemoryForValues(V[] storage, int count) {
+        return MemoryEstimator.estimateMemory(avgValSize, valueType, storage, count);
+    }
+
+    final int estimateMemoryForKey(K key) {
+        return MemoryEstimator.estimateMemory(avgKeySize, keyType, key);
+    }
+
+    final int estimateMemoryForValue(V value) {
+        return MemoryEstimator.estimateMemory(avgValSize, valueType, value);
+    }
+
+
+    static int samplingPct(AtomicLong stats) {
+        return MemoryEstimator.samplingPct(stats);
+    }
+
+    private static final class EqualsDecisionMaker<V> extends DecisionMaker<V>
+    {
         private final DataType<V> dataType;
         private final V           expectedValue;
         private       Decision    decision;

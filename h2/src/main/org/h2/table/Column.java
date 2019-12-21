@@ -60,7 +60,7 @@ public class Column {
     public static final int NULLABLE_UNKNOWN =
             ResultSetMetaData.columnNullableUnknown;
 
-    private final TypeInfo type;
+    private TypeInfo type;
     private Table table;
     private String name;
     private int columnId;
@@ -691,13 +691,16 @@ public class Column {
      * @return true if the new column is compatible
      */
     public boolean isWideningConversion(Column newColumn) {
-        if (type != newColumn.type) {
+        if (type.getValueType() != newColumn.type.getValueType()) {
             return false;
         }
         if (type.getPrecision() > newColumn.type.getPrecision()) {
             return false;
         }
         if (type.getScale() != newColumn.type.getScale()) {
+            return false;
+        }
+        if (!Objects.equals(type.getExtTypeInfo(), newColumn.type.getExtTypeInfo())) {
             return false;
         }
         if (nullable && !newColumn.nullable) {
@@ -740,6 +743,7 @@ public class Column {
      */
     public void copy(Column source) {
         name = source.name;
+        type = source.type;
         // table is not set
         // columnId is not set
         nullable = source.nullable;

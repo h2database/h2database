@@ -61,6 +61,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
      */
     private Expression defaultExpression;
     private Expression newSelectivity;
+    private Expression usingExpression;
     private boolean addFirst;
     private String addBefore;
     private String addAfter;
@@ -174,7 +175,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             // if the change is only increasing the precision, then we don't
             // need to copy the table because the length is only a constraint,
             // and does not affect the storage structure.
-            if (oldColumn.isWideningConversion(newColumn)) {
+            if (oldColumn.isWideningConversion(newColumn) && usingExpression == null) {
                 convertAutoIncrementColumn(table, newColumn);
                 oldColumn.copy(newColumn);
                 db.updateMeta(session, table);
@@ -359,7 +360,8 @@ public class AlterTableAlterColumn extends CommandWithColumns {
         for (Column col : columns) {
             newColumns.add(col.getClone());
         }
-        if (type == CommandInterface.ALTER_TABLE_DROP_COLUMN) {
+        switch (type) {
+        case CommandInterface.ALTER_TABLE_DROP_COLUMN:
             for (Column removeCol : columnsToRemove) {
                 Column foundCol = null;
                 for (Column newCol : newColumns) {
@@ -373,7 +375,8 @@ public class AlterTableAlterColumn extends CommandWithColumns {
                 }
                 newColumns.remove(foundCol);
             }
-        } else if (type == CommandInterface.ALTER_TABLE_ADD_COLUMN) {
+            break;
+        case CommandInterface.ALTER_TABLE_ADD_COLUMN: {
             int position;
             if (addFirst) {
                 position = 0;
@@ -389,9 +392,10 @@ public class AlterTableAlterColumn extends CommandWithColumns {
                     newColumns.add(position++, column);
                 }
             }
-        } else if (type == CommandInterface.ALTER_TABLE_ALTER_COLUMN_CHANGE_TYPE) {
-            int position = oldColumn.getColumnId();
-            newColumns.set(position, newColumn);
+            break;
+        }
+        case CommandInterface.ALTER_TABLE_ALTER_COLUMN_CHANGE_TYPE:
+            newColumns.set(oldColumn.getColumnId(), newColumn);
         }
 
         // create a table object in order to get the SQL statement
@@ -418,17 +422,29 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             if (columnList.length() > 0) {
                 columnList.append(", ");
             }
-            if (type == CommandInterface.ALTER_TABLE_ADD_COLUMN &&
-                    columnsToAdd != null && columnsToAdd.contains(nc)) {
-                Expression def = nc.getDefaultExpression();
-                if (def == null) {
-                    columnList.append("NULL");
-                } else {
-                    def.getSQL(columnList, true);
+            switch (type) {
+            case CommandInterface.ALTER_TABLE_ADD_COLUMN:
+                if (columnsToAdd != null && columnsToAdd.contains(nc)) {
+                    if (usingExpression != null) {
+                        usingExpression.getSQL(columnList, true);
+                    } else {
+                        Expression def = nc.getDefaultExpression();
+                        if (def == null) {
+                            columnList.append("NULL");
+                        } else {
+                            def.getSQL(columnList, true);
+                        }
+                    }
+                    continue;
                 }
-            } else {
-                nc.getSQL(columnList, true);
+                break;
+            case CommandInterface.ALTER_TABLE_ALTER_COLUMN_CHANGE_TYPE:
+                if (nc.equals(newColumn) && usingExpression != null) {
+                    usingExpression.getSQL(columnList, true);
+                    continue;
+                }
             }
+            nc.getSQL(columnList, true);
         }
         String newTableName = newTable.getName();
         Schema newTableSchema = newTable.getSchema();
@@ -629,6 +645,15 @@ public class AlterTableAlterColumn extends CommandWithColumns {
      */
     public void setDefaultExpression(Expression defaultExpression) {
         this.defaultExpression = defaultExpression;
+    }
+
+    /**
+     * Set using expression.
+     *
+     * @param usingExpression using expression
+     */
+    public void setUsingExpression(Expression usingExpression) {
+        this.usingExpression = usingExpression;
     }
 
     public void setNewColumn(Column newColumn) {

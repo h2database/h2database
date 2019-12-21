@@ -8504,6 +8504,7 @@ public class Parser {
         Column newColumn = parseColumnForTable(columnName,
                 !preserveNotNull || oldColumn == null || oldColumn.isNullable());
         AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
+        parseAlterColumnUsingIf(command);
         command.setTableName(tableName);
         command.setIfTableExists(ifTableExists);
         command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_CHANGE_TYPE);
@@ -8537,6 +8538,7 @@ public class Parser {
             }
         }
         AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
+        parseAlterColumnUsingIf(command);
         command.setTableName(tableName);
         command.setIfTableExists(ifTableExists);
         command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_CHANGE_TYPE);
@@ -8562,6 +8564,7 @@ public class Parser {
             boolean ifNotExists = readIfNotExists();
             command.setIfNotExists(ifNotExists);
             parseTableColumnDefinition(command, schema, tableName, false);
+            parseAlterColumnUsingIf(command);
         }
         if (readIf("BEFORE")) {
             command.setAddBefore(readColumnIdentifier());
@@ -8571,6 +8574,12 @@ public class Parser {
             command.setAddFirst();
         }
         return command;
+    }
+
+    private void parseAlterColumnUsingIf(AlterTableAlterColumn command) {
+        if (readIf(USING)) {
+            command.setUsingExpression(readExpression());
+        }
     }
 
     private ConstraintActionType parseAction() {

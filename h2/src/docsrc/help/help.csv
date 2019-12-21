@@ -405,12 +405,17 @@ ALTER SEQUENCE SEQ_ID RESTART WITH 1000
 
 "Commands (DDL)","ALTER TABLE ADD","
 ALTER TABLE @h2@ [ IF EXISTS ] [schemaName.]tableName ADD [ COLUMN ]
-{ @h2@ [ IF NOT EXISTS ] columnName columnDefinition
+{ @h2@ [ IF NOT EXISTS ] columnName columnDefinition @h2@ [ USING initialValueExpression ]
     | @h2@ { ( { columnName columnDefinition | tableConstraintDefinition } [,...] ) } }
 @h2@ [ { { BEFORE | AFTER } columnName } | FIRST ]
 ","
 Adds a new column to a table.
 This command commits an open transaction in this connection.
+
+If USING is specified the provided expression is used to generate initial value of the new column for each row.
+The expression may reference existing columns of the table.
+Otherwise the DEFAULT expression is used, if any.
+If neither USING nor DEFAULT are specified, the NULL is used.
 ","
 ALTER TABLE TEST ADD CREATEDATE TIMESTAMP
 "
@@ -451,7 +456,7 @@ ALTER COLUMN @h2@ [ IF EXISTS ] columnName
     | @h2@ { DROP ON UPDATE }
     | { SET NOT NULL }
     | { DROP NOT NULL } | @c@ { SET NULL }
-    | { SET DATA TYPE dataType }
+    | { SET DATA TYPE dataType @h2@ [ USING newValueExpression ] }
     | @h2@ { SET { VISIBLE | INVISIBLE } } }
 ","
 Changes the data type of a column, rename a column,
@@ -480,7 +485,9 @@ SET NOT NULL sets a column to not allow NULL. Rows may not contains NULL in this
 
 DROP NOT NULL and SET NULL set a column to allow NULL. The row may not be part of a primary key.
 
-SET DATA TYPE changes the data type of a column.
+SET DATA TYPE changes the data type of a column, for each row old value is converted to this data type
+unless USING is specified with a custom expression.
+USING expression may reference previous value of the modified column by its name and values of other columns.
 
 SET INVISIBLE makes the column hidden, i.e. it will not appear in SELECT * results.
 SET VISIBLE has the reverse effect.

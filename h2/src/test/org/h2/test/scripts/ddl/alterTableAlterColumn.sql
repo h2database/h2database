@@ -461,3 +461,53 @@ TABLE TEST;
 
 DROP TABLE TEST;
 > ok
+
+CREATE TABLE TEST(A INT) AS VALUES 1, 2, 3;
+> ok
+
+ALTER TABLE TEST ALTER COLUMN A SET DATA TYPE BIGINT USING A * 10;
+> ok
+
+TABLE TEST;
+> A
+> --
+> 10
+> 20
+> 30
+> rows: 3
+
+ALTER TABLE TEST ADD COLUMN B INT NOT NULL USING A + 1;
+> ok
+
+TABLE TEST;
+> A  B
+> -- --
+> 10 11
+> 20 21
+> 30 31
+> rows: 3
+
+ALTER TABLE TEST ADD COLUMN C VARCHAR(2) USING A;
+> ok
+
+TABLE TEST;
+> A  B  C
+> -- -- --
+> 10 11 10
+> 20 21 20
+> 30 31 30
+> rows: 3
+
+ALTER TABLE TEST ALTER COLUMN C SET DATA TYPE VARCHAR(3) USING C || '*';
+> ok
+
+TABLE TEST;
+> A  B  C
+> -- -- ---
+> 10 11 10*
+> 20 21 20*
+> 30 31 30*
+> rows: 3
+
+DROP TABLE TEST;
+> ok

@@ -112,11 +112,6 @@ public abstract class Page<K,V> implements Cloneable
             MEMORY_ARRAY;             // Object[] values
 
     /**
-     * An empty object array.
-     */
-    private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
-
-    /**
      * Marker value for memory field, meaning that memory accounting is replaced by key count.
      */
     private static final int IN_MEMORY = Integer.MIN_VALUE;
@@ -145,9 +140,9 @@ public abstract class Page<K,V> implements Cloneable
      * @param map the map
      * @return the new page
      */
-    @SuppressWarnings("unchecked")
     static <K,V> Page<K,V> createEmptyLeaf(MVMap<K,V> map) {
-        return createLeaf(map, (K[])EMPTY_OBJECT_ARRAY, (V[])EMPTY_OBJECT_ARRAY, PAGE_LEAF_MEMORY);
+        return createLeaf(map, map.getKeyType().createStorage(0),
+                map.getValueType().createStorage(0), PAGE_LEAF_MEMORY);
     }
 
     /**
@@ -158,7 +153,7 @@ public abstract class Page<K,V> implements Cloneable
      */
     @SuppressWarnings("unchecked")
     static <K,V> Page<K,V> createEmptyNode(MVMap<K,V> map) {
-        return createNode(map, (K[])EMPTY_OBJECT_ARRAY, SINGLE_EMPTY, 0,
+        return createNode(map, map.getKeyType().createStorage(0), SINGLE_EMPTY, 0,
                             PAGE_NODE_MEMORY + MEMORY_POINTER + PAGE_MEMORY_CHILD); // there is always one child
     }
 
@@ -387,30 +382,9 @@ public abstract class Page<K,V> implements Cloneable
      * @return the value or null
      */
     int binarySearch(K key) {
-        int low = 0, high = getKeyCount() - 1;
-        // the cached index minus one, so that
-        // for the first time (when cachedCompare is 0),
-        // the default value is used
-        int x = cachedCompare - 1;
-        if (x < 0 || x > high) {
-            x = high >>> 1;
-        }
-        K[] k = keys;
-        DataType<K> keyType = map.getKeyType();
-        while (low <= high) {
-            int compare = keyType.compare(key, k[x]);
-            if (compare > 0) {
-                low = x + 1;
-            } else if (compare < 0) {
-                high = x - 1;
-            } else {
-                cachedCompare = x + 1;
-                return x;
-            }
-            x = (low + high) >>> 1;
-        }
-        cachedCompare = low;
-        return -(low + 1);
+        int res = map.getKeyType().binarySearch(key, keys, getKeyCount(), cachedCompare);
+        cachedCompare = (res < 0 ? -res : res) - 1;
+        return res;
     }
 
     /**

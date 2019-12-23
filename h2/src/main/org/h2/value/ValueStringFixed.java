@@ -35,7 +35,7 @@ public class ValueStringFixed extends ValueString {
 
     @Override
     public int getValueType() {
-        return STRING_FIXED;
+        return CHAR;
     }
 
     /**

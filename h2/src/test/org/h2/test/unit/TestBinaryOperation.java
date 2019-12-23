@@ -75,10 +75,10 @@ public class TestBinaryOperation extends TestBase {
 
     private void assertPrecisionScale(int expectedPrecision, int expectedScale, BinaryOperation.OpType type,
             int precision1, int scale1, int precision2, int scale2) {
-        TestExpression left = new TestExpression(TypeInfo.getTypeInfo(Value.DECIMAL, precision1, scale1, null));
-        TestExpression right = new TestExpression(TypeInfo.getTypeInfo(Value.DECIMAL, precision2, scale2, null));
+        TestExpression left = new TestExpression(TypeInfo.getTypeInfo(Value.NUMERIC, precision1, scale1, null));
+        TestExpression right = new TestExpression(TypeInfo.getTypeInfo(Value.NUMERIC, precision2, scale2, null));
         TypeInfo typeInfo = new BinaryOperation(type, left, right).optimize(null).getType();
-        assertEquals(Value.DECIMAL, typeInfo.getValueType());
+        assertEquals(Value.NUMERIC, typeInfo.getValueType());
         assertEquals(expectedPrecision, typeInfo.getPrecision());
         assertEquals(expectedScale, typeInfo.getScale());
     }

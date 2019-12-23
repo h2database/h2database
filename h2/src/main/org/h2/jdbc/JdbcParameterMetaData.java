@@ -83,7 +83,7 @@ public class JdbcParameterMetaData extends TraceObject implements
             debugCodeCall("getParameterType", param);
             int type = getParameter(param).getType().getValueType();
             if (type == Value.UNKNOWN) {
-                type = Value.STRING;
+                type = Value.VARCHAR;
             }
             return DataType.getDataType(type).sqlType;
         } catch (Exception e) {
@@ -175,7 +175,7 @@ public class JdbcParameterMetaData extends TraceObject implements
             debugCodeCall("getParameterClassName", param);
             int type = getParameter(param).getType().getValueType();
             if (type == Value.UNKNOWN) {
-                type = Value.STRING;
+                type = Value.VARCHAR;
             }
             return DataType.getTypeClassName(type, false);
         } catch (Exception e) {
@@ -196,7 +196,7 @@ public class JdbcParameterMetaData extends TraceObject implements
             debugCodeCall("getParameterTypeName", param);
             int type = getParameter(param).getType().getValueType();
             if (type == Value.UNKNOWN) {
-                type = Value.STRING;
+                type = Value.VARCHAR;
             }
             return DataType.getDataType(type).name;
         } catch (Exception e) {

@@ -45,11 +45,11 @@ public class FunctionsMySQL extends FunctionsBase {
         FUNCTIONS.put("UNIX_TIMESTAMP", new FunctionInfo("UNIX_TIMESTAMP", UNIX_TIMESTAMP,
                 VAR_ARGS, Value.INT, false, false, true, false));
         FUNCTIONS.put("FROM_UNIXTIME", new FunctionInfo("FROM_UNIXTIME", FROM_UNIXTIME,
-                VAR_ARGS, Value.STRING, false, true, true, false));
+                VAR_ARGS, Value.VARCHAR, false, true, true, false));
         FUNCTIONS.put("DATE", new FunctionInfo("DATE", DATE,
                 1, Value.DATE, false, true, true, false));
         FUNCTIONS.put("LAST_INSERT_ID", new FunctionInfo("LAST_INSERT_ID", LAST_INSERT_ID,
-                VAR_ARGS, Value.LONG, false, false, true, false));
+                VAR_ARGS, Value.BIGINT, false, false, true, false));
 
     }
 
@@ -257,7 +257,7 @@ public class FunctionsMySQL extends FunctionsBase {
                     session.setLastIdentity(ValueLong.get(0));
                     result = v0;
                 } else {
-                    result = v0.convertTo(Value.LONG);
+                    result = v0.convertTo(Value.BIGINT);
                     session.setLastIdentity(result);
                 }
             }

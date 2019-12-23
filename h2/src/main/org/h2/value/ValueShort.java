@@ -95,12 +95,12 @@ public class ValueShort extends Value {
 
     @Override
     public TypeInfo getType() {
-        return TypeInfo.TYPE_SHORT;
+        return TypeInfo.TYPE_SMALLINT;
     }
 
     @Override
     public int getValueType() {
-        return SHORT;
+        return SMALLINT;
     }
 
     @Override

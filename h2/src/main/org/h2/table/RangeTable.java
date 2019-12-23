@@ -47,7 +47,7 @@ public class RangeTable extends VirtualTable {
         super(schema, 0, NAME);
         this.min = min;
         this.max = max;
-        Column[] columns = new Column[] { new Column("X", Value.LONG) };
+        Column[] columns = new Column[] { new Column("X", Value.BIGINT) };
         setColumns(columns);
         index = new RangeIndex(this, IndexColumn.wrap(columns));
     }

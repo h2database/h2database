@@ -688,7 +688,7 @@ public class MetaTable extends Table {
 
     private Column[] createColumns(String... names) {
         Column[] cols = new Column[names.length];
-        int defaultType = database.getSettings().caseInsensitiveIdentifiers ? Value.STRING_IGNORECASE : Value.STRING;
+        int defaultType = database.getSettings().caseInsensitiveIdentifiers ? Value.VARCHAR_IGNORECASE : Value.VARCHAR;
         for (int i = 0; i < names.length; i++) {
             String nameType = names[i];
             int idx = nameType.indexOf(' ');

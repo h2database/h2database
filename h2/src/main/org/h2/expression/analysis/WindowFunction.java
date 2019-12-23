@@ -478,7 +478,7 @@ public class WindowFunction extends DataAnalysisOperation {
         case RANK:
         case DENSE_RANK:
         case NTILE:
-            return TypeInfo.TYPE_LONG;
+            return TypeInfo.TYPE_BIGINT;
         case PERCENT_RANK:
         case CUME_DIST:
         case RATIO_TO_REPORT:

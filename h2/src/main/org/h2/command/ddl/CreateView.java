@@ -113,7 +113,7 @@ public class CreateView extends SchemaCommand {
                 // non table expressions are fine to use unknown column type
                 columnTemplatesAsUnknowns[i] = new Column(columnNames[i], TypeInfo.TYPE_UNKNOWN);
                 // table expressions can't have unknown types - so we use string instead
-                columnTemplatesAsStrings[i] = new Column(columnNames[i], Value.STRING);
+                columnTemplatesAsStrings[i] = new Column(columnNames[i], Value.VARCHAR);
             }
         }
         if (view == null) {

@@ -55,7 +55,7 @@ public class ConcatenationOperation extends Expression {
             System.arraycopy(rightValues, 0, values, leftLength, rightLength);
             return ValueArray.get(values);
         }
-        case Value.BYTES: {
+        case Value.VARBINARY: {
             if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {
                 return ValueNull.INSTANCE;
             }
@@ -100,13 +100,13 @@ public class ConcatenationOperation extends Expression {
         if (lValueType == Value.ARRAY || rValueType == Value.ARRAY) {
             type = TypeInfo.TYPE_ARRAY;
         } else if (DataType.isBinaryStringType(lValueType) && DataType.isBinaryStringType(rValueType)) {
-            type = TypeInfo.getTypeInfo(Value.BYTES, DataType.addPrecision(l.getPrecision(), r.getPrecision()), 0,
+            type = TypeInfo.getTypeInfo(Value.VARBINARY, DataType.addPrecision(l.getPrecision(), r.getPrecision()), 0,
                     null);
         } else if (DataType.isCharacterStringType(lValueType) && DataType.isCharacterStringType(rValueType)) {
-            type = TypeInfo.getTypeInfo(Value.STRING, DataType.addPrecision(l.getPrecision(), r.getPrecision()), 0,
+            type = TypeInfo.getTypeInfo(Value.VARCHAR, DataType.addPrecision(l.getPrecision(), r.getPrecision()), 0,
                     null);
         } else {
-            type = TypeInfo.TYPE_STRING;
+            type = TypeInfo.TYPE_VARCHAR;
         }
         if (left.isConstant() && right.isConstant()) {
             return ValueExpression.get(getValue(session));

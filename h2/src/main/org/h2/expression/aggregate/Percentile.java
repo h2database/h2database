@@ -254,17 +254,17 @@ final class Percentile {
             return v0.convertTo(dataType);
         }
         switch (dataType) {
-        case Value.BYTE:
-        case Value.SHORT:
+        case Value.TINYINT:
+        case Value.SMALLINT:
         case Value.INT:
             return ValueDecimal.get(
                     interpolateDecimal(BigDecimal.valueOf(v0.getInt()), BigDecimal.valueOf(v1.getInt()), factor));
-        case Value.LONG:
+        case Value.BIGINT:
             return ValueDecimal.get(
                     interpolateDecimal(BigDecimal.valueOf(v0.getLong()), BigDecimal.valueOf(v1.getLong()), factor));
-        case Value.DECIMAL:
+        case Value.NUMERIC:
             return ValueDecimal.get(interpolateDecimal(v0.getBigDecimal(), v1.getBigDecimal(), factor));
-        case Value.FLOAT:
+        case Value.REAL:
         case Value.DOUBLE:
             return ValueDecimal.get(
                     interpolateDecimal(

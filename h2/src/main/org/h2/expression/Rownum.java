@@ -35,7 +35,7 @@ public class Rownum extends Expression {
 
     @Override
     public TypeInfo getType() {
-        return TypeInfo.TYPE_LONG;
+        return TypeInfo.TYPE_BIGINT;
     }
 
     @Override

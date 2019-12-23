@@ -1017,9 +1017,9 @@ public class TableFilter implements ColumnResolver {
         Column[] sys = new Column[3];
         sys[0] = new Column("oid", Value.INT);
         sys[0].setTable(table, 0);
-        sys[1] = new Column("ctid", Value.STRING);
+        sys[1] = new Column("ctid", Value.VARCHAR);
         sys[1].setTable(table, 0);
-        sys[2] = new Column("CTID", Value.STRING);
+        sys[2] = new Column("CTID", Value.VARCHAR);
         sys[2].setTable(table, 0);
         return sys;
     }

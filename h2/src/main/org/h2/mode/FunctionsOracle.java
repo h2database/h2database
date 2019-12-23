@@ -27,7 +27,8 @@ public final class FunctionsOracle extends FunctionsBase {
     private static final HashMap<String, FunctionInfo> FUNCTIONS = new HashMap<>();
 
     static {
-        FUNCTIONS.put("SYS_GUID", new FunctionInfo("SYS_GUID", SYS_GUID, 0, Value.BYTES, false, false, true, false));
+        FUNCTIONS.put("SYS_GUID",
+                new FunctionInfo("SYS_GUID", SYS_GUID, 0, Value.VARBINARY, false, false, true, false));
     }
 
     /**
@@ -52,7 +53,7 @@ public final class FunctionsOracle extends FunctionsBase {
     public Expression optimize(Session session) {
         switch (info.type) {
         case SYS_GUID:
-            type = TypeInfo.getTypeInfo(Value.BYTES, 16, 0, null);
+            type = TypeInfo.getTypeInfo(Value.VARBINARY, 16, 0, null);
             break;
         default:
             type = TypeInfo.getTypeInfo(info.returnDataType);
@@ -65,7 +66,7 @@ public final class FunctionsOracle extends FunctionsBase {
         Value result;
         switch (info.type) {
         case SYS_GUID:
-            result = ValueUuid.getNewRandom().convertTo(Value.BYTES);
+            result = ValueUuid.getNewRandom().convertTo(Value.VARBINARY);
             break;
         default:
             throw DbException.throwInternalError("type=" + info.type);

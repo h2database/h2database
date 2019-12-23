@@ -203,7 +203,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         switch (aggregateType) {
         case LISTAGG:
             if (v != ValueNull.INSTANCE) {
-                v = updateCollecting(session, v.convertTo(Value.STRING), remembered);
+                v = updateCollecting(session, v.convertTo(Value.VARCHAR), remembered);
             }
             if (args.length >= 2) {
                 ((AggregateDataCollecting) data).setSharedArgument(
@@ -708,10 +708,10 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         }
         switch (aggregateType) {
         case LISTAGG:
-            type = TypeInfo.TYPE_STRING;
+            type = TypeInfo.TYPE_VARCHAR;
             break;
         case COUNT_ALL:
-            type = TypeInfo.TYPE_LONG;
+            type = TypeInfo.TYPE_BIGINT;
             break;
         case COUNT:
             if (args[0].isConstant()) {
@@ -725,7 +725,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                     return aggregate.optimize(session);
                 }
             }
-            type = TypeInfo.TYPE_LONG;
+            type = TypeInfo.TYPE_BIGINT;
             break;
         case HISTOGRAM:
             type = TypeInfo.TYPE_ARRAY;
@@ -734,7 +734,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             int dataType = type.getValueType();
             if (dataType == Value.BOOLEAN) {
                 // example: sum(id > 3) (count the rows)
-                type = TypeInfo.TYPE_LONG;
+                type = TypeInfo.TYPE_BIGINT;
             } else if (!DataType.supportsAdd(dataType)) {
                 throw DbException.get(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getSQL(false));
             } else {
@@ -752,7 +752,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             break;
         case RANK:
         case DENSE_RANK:
-            type = TypeInfo.TYPE_LONG;
+            type = TypeInfo.TYPE_BIGINT;
             break;
         case PERCENT_RANK:
         case CUME_DIST:
@@ -763,14 +763,14 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             //$FALL-THROUGH$
         case MEDIAN:
             switch (type.getValueType()) {
-            case Value.BYTE:
-            case Value.SHORT:
+            case Value.TINYINT:
+            case Value.SMALLINT:
             case Value.INT:
-            case Value.LONG:
-            case Value.DECIMAL:
+            case Value.BIGINT:
+            case Value.NUMERIC:
             case Value.DOUBLE:
-            case Value.FLOAT:
-                type = TypeInfo.TYPE_DECIMAL_FLOATING_POINT;
+            case Value.REAL:
+                type = TypeInfo.TYPE_NUMERIC_FLOATING_POINT;
                 break;
             }
             break;

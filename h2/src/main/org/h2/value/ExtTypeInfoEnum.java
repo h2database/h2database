@@ -118,9 +118,9 @@ public final class ExtTypeInfoEnum extends ExtTypeInfo {
                 return value;
             }
             //$FALL-THROUGH$
-        case Value.STRING:
-        case Value.STRING_FIXED:
-        case Value.STRING_IGNORECASE:
+        case Value.VARCHAR:
+        case Value.CHAR:
+        case Value.VARCHAR_IGNORECASE:
             ValueEnum v = getValueOrNull(value.getString());
             if (v != null) {
                 return v;

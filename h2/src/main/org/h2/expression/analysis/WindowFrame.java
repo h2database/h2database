@@ -324,13 +324,13 @@ public final class WindowFrame {
         case Value.NULL:
             newValue = ValueNull.INSTANCE;
             break;
-        case Value.BYTE:
-        case Value.SHORT:
+        case Value.TINYINT:
+        case Value.SMALLINT:
         case Value.INT:
-        case Value.LONG:
-        case Value.DECIMAL:
+        case Value.BIGINT:
+        case Value.NUMERIC:
         case Value.DOUBLE:
-        case Value.FLOAT:
+        case Value.REAL:
         case Value.TIME:
         case Value.TIME_TZ:
         case Value.DATE:

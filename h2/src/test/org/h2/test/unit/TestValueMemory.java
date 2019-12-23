@@ -170,20 +170,20 @@ public class TestValueMemory extends TestBase implements DataHandler {
             return ValueNull.INSTANCE;
         case Value.BOOLEAN:
             return ValueBoolean.FALSE;
-        case Value.BYTE:
+        case Value.TINYINT:
             return ValueByte.get((byte) random.nextInt());
-        case Value.SHORT:
+        case Value.SMALLINT:
             return ValueShort.get((short) random.nextInt());
         case Value.INT:
             return ValueInt.get(random.nextInt());
-        case Value.LONG:
+        case Value.BIGINT:
             return ValueLong.get(random.nextLong());
-        case Value.DECIMAL:
+        case Value.NUMERIC:
             return ValueDecimal.get(new BigDecimal(random.nextInt()));
             // + "12123344563456345634565234523451312312"
         case Value.DOUBLE:
             return ValueDouble.get(random.nextDouble());
-        case Value.FLOAT:
+        case Value.REAL:
             return ValueFloat.get(random.nextFloat());
         case Value.TIME:
             return ValueTime.fromNanos(randomTimeNanos());
@@ -196,11 +196,11 @@ public class TestValueMemory extends TestBase implements DataHandler {
         case Value.TIMESTAMP_TZ:
             return ValueTimestampTimeZone.fromDateValueAndNanos(
                     randomDateValue(), randomTimeNanos(), randomZoneOffset());
-        case Value.BYTES:
+        case Value.VARBINARY:
             return ValueBytes.get(randomBytes(random.nextInt(1000)));
-        case Value.STRING:
+        case Value.VARCHAR:
             return ValueString.get(randomString(random.nextInt(100)));
-        case Value.STRING_IGNORECASE:
+        case Value.VARCHAR_IGNORECASE:
             return ValueStringIgnoreCase.get(randomString(random.nextInt(100)));
         case Value.BLOB: {
             int len = (int) Math.abs(random.nextGaussian() * 10);
@@ -222,7 +222,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
             return ValueJavaObject.getNoCopy(null, randomBytes(random.nextInt(100)), this);
         case Value.UUID:
             return ValueUuid.get(random.nextLong(), random.nextLong());
-        case Value.STRING_FIXED:
+        case Value.CHAR:
             return ValueStringFixed.get(randomString(random.nextInt(100)));
         case Value.GEOMETRY:
             return ValueGeometry.get("POINT (" + random.nextInt(100) + ' ' + random.nextInt(100) + ')');
@@ -269,7 +269,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         int len = random.nextInt(20);
         Value[] list = new Value[len];
         for (int i = 0; i < list.length; i++) {
-            list[i] = create(Value.STRING);
+            list[i] = create(Value.VARCHAR);
         }
         return list;
     }

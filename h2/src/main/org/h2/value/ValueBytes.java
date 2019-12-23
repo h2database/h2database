@@ -84,14 +84,14 @@ public class ValueBytes extends Value {
         TypeInfo type = this.type;
         if (type == null) {
             long precision = value.length;
-            this.type = type = new TypeInfo(BYTES, precision, 0, MathUtils.convertLongToInt(precision * 2), null);
+            this.type = type = new TypeInfo(VARBINARY, precision, 0, MathUtils.convertLongToInt(precision * 2), null);
         }
         return type;
     }
 
     @Override
     public int getValueType() {
-        return BYTES;
+        return VARBINARY;
     }
 
     @Override

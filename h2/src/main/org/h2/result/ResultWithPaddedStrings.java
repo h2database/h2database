@@ -30,7 +30,7 @@ public class ResultWithPaddedStrings implements ResultInterface {
     public static ResultInterface get(ResultInterface source) {
         int count = source.getVisibleColumnCount();
         for (int i = 0; i < count; i++) {
-            if (source.getColumnType(i).getValueType() == Value.STRING_FIXED) {
+            if (source.getColumnType(i).getValueType() == Value.CHAR) {
                 return new ResultWithPaddedStrings(source);
             }
         }
@@ -58,7 +58,7 @@ public class ResultWithPaddedStrings implements ResultInterface {
         Value[] row = Arrays.copyOf(source.currentRow(), count);
         for (int i = 0; i < count; i++) {
             TypeInfo type = source.getColumnType(i);
-            if (type.getValueType() == Value.STRING_FIXED) {
+            if (type.getValueType() == Value.CHAR) {
                 long precision = type.getPrecision();
                 if (precision == Integer.MAX_VALUE) {
                     // CHAR is CHAR(1)

@@ -467,11 +467,11 @@ public class Data {
         case Value.BOOLEAN:
             writeByte(v.getBoolean() ? BOOLEAN_TRUE : BOOLEAN_FALSE);
             break;
-        case Value.BYTE:
+        case Value.TINYINT:
             writeByte(BYTE);
             writeByte(v.getByte());
             break;
-        case Value.SHORT:
+        case Value.SMALLINT:
             writeByte(SHORT);
             writeShortInt(v.getShort());
             break;
@@ -489,7 +489,7 @@ public class Data {
             }
             break;
         }
-        case Value.LONG: {
+        case Value.BIGINT: {
             long x = v.getLong();
             if (x < 0) {
                 writeByte(LONG_NEG);
@@ -502,7 +502,7 @@ public class Data {
             }
             break;
         }
-        case Value.DECIMAL: {
+        case Value.NUMERIC: {
             BigDecimal x = v.getBigDecimal();
             if (BigDecimal.ZERO.equals(x)) {
                 writeByte(DECIMAL_0_1);
@@ -611,7 +611,7 @@ public class Data {
             write(b, 0, len);
             break;
         }
-        case Value.BYTES: {
+        case Value.VARBINARY: {
             byte[] b = v.getBytesNoCopy();
             int len = b.length;
             if (len < 32) {
@@ -631,7 +631,7 @@ public class Data {
             writeLong(uuid.getLow());
             break;
         }
-        case Value.STRING: {
+        case Value.VARCHAR: {
             String s = v.getString();
             int len = s.length();
             if (len < 32) {
@@ -643,11 +643,11 @@ public class Data {
             }
             break;
         }
-        case Value.STRING_IGNORECASE:
+        case Value.VARCHAR_IGNORECASE:
             writeByte(STRING_IGNORECASE);
             writeString(v.getString());
             break;
-        case Value.STRING_FIXED:
+        case Value.CHAR:
             writeByte(STRING_FIXED);
             writeString(v.getString());
             break;
@@ -666,7 +666,7 @@ public class Data {
             }
             break;
         }
-        case Value.FLOAT: {
+        case Value.REAL: {
             float x = v.getFloat();
             if (x == 1.0f) {
                 writeByte((byte) (FLOAT_0_1 + 1));
@@ -823,7 +823,7 @@ public class Data {
             return ValueInt.get(readVarInt());
         case LONG_NEG:
             return ValueLong.get(-readVarLong());
-        case Value.LONG:
+        case Value.BIGINT:
             return ValueLong.get(readVarLong());
         case BYTE:
             return ValueByte.get(readByte());
@@ -1034,9 +1034,9 @@ public class Data {
         switch (v.getValueType()) {
         case Value.BOOLEAN:
             return 1;
-        case Value.BYTE:
+        case Value.TINYINT:
             return 2;
-        case Value.SHORT:
+        case Value.SMALLINT:
             return 3;
         case Value.ENUM:
         case Value.INT: {
@@ -1049,7 +1049,7 @@ public class Data {
                 return 1 + getVarIntLen(x);
             }
         }
-        case Value.LONG: {
+        case Value.BIGINT: {
             long x = v.getLong();
             if (x < 0) {
                 return 1 + getVarLongLen(-x);
@@ -1070,7 +1070,7 @@ public class Data {
             }
             return 1 + getVarLongLen(Long.reverse(d));
         }
-        case Value.FLOAT: {
+        case Value.REAL: {
             float x = v.getFloat();
             if (x == 1.0f) {
                 return 1;
@@ -1081,7 +1081,7 @@ public class Data {
             }
             return 1 + getVarIntLen(Integer.reverse(f));
         }
-        case Value.STRING: {
+        case Value.VARCHAR: {
             String s = v.getString();
             int len = s.length();
             if (len < 32) {
@@ -1089,10 +1089,10 @@ public class Data {
             }
             return 1 + getStringLen(s);
         }
-        case Value.STRING_IGNORECASE:
-        case Value.STRING_FIXED:
+        case Value.VARCHAR_IGNORECASE:
+        case Value.CHAR:
             return 1 + getStringLen(v.getString());
-        case Value.DECIMAL: {
+        case Value.NUMERIC: {
             BigDecimal x = v.getBigDecimal();
             if (BigDecimal.ZERO.equals(x)) {
                 return 1;
@@ -1160,7 +1160,7 @@ public class Data {
             byte[] b = v.getBytesNoCopy();
             return 1 + getVarIntLen(b.length) + b.length;
         }
-        case Value.BYTES: {
+        case Value.VARBINARY: {
             byte[] b = v.getBytesNoCopy();
             int len = b.length;
             if (len < 32) {

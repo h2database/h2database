@@ -285,10 +285,10 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
         case Value.BOOLEAN:
             buff.put(v.getBoolean() ? BOOLEAN_TRUE : BOOLEAN_FALSE);
             break;
-        case Value.BYTE:
+        case Value.TINYINT:
             buff.put(BYTE).put(v.getByte());
             break;
-        case Value.SHORT:
+        case Value.SMALLINT:
             buff.put(SHORT).putShort(v.getShort());
             break;
         case Value.ENUM:
@@ -303,12 +303,12 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             }
             break;
         }
-        case Value.LONG: {
+        case Value.BIGINT: {
             long x = v.getLong();
             writeLong(buff, x);
             break;
         }
-        case Value.DECIMAL: {
+        case Value.NUMERIC: {
             BigDecimal x = v.getBigDecimal();
             if (BigDecimal.ZERO.equals(x)) {
                 buff.put(DECIMAL_0_1);
@@ -402,7 +402,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
                 put(b);
             break;
         }
-        case Value.BYTES: {
+        case Value.VARBINARY: {
             byte[] b = v.getBytesNoCopy();
             int len = b.length;
             if (len < 32) {
@@ -422,7 +422,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
                 putLong(uuid.getLow());
             break;
         }
-        case Value.STRING: {
+        case Value.VARCHAR: {
             String s = v.getString();
             int len = s.length();
             if (len < 32) {
@@ -434,11 +434,11 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             }
             break;
         }
-        case Value.STRING_IGNORECASE:
+        case Value.VARCHAR_IGNORECASE:
             buff.put(STRING_IGNORECASE);
             writeString(buff, v.getString());
             break;
-        case Value.STRING_FIXED:
+        case Value.CHAR:
             buff.put(STRING_FIXED);
             writeString(buff, v.getString());
             break;
@@ -457,7 +457,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             }
             break;
         }
-        case Value.FLOAT: {
+        case Value.REAL: {
             float x = v.getFloat();
             if (x == 1.0f) {
                 buff.put((byte) (FLOAT_0_1 + 1));

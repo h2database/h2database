@@ -109,12 +109,12 @@ public class ValueFloat extends Value {
 
     @Override
     public TypeInfo getType() {
-        return TypeInfo.TYPE_FLOAT;
+        return TypeInfo.TYPE_REAL;
     }
 
     @Override
     public int getValueType() {
-        return FLOAT;
+        return REAL;
     }
 
     @Override

@@ -330,12 +330,12 @@ public class Mode {
         mode.zeroExLiteralsAreBinaryStrings = true;
         mode.truncateTableRestartIdentity = true;
         DataType dt = DataType.createNumeric(19, 4, false);
-        dt.type = Value.DECIMAL;
+        dt.type = Value.NUMERIC;
         dt.sqlType = Types.NUMERIC;
         dt.name = "MONEY";
         mode.typeByNameMap.put("MONEY", dt);
         dt = DataType.createNumeric(10, 4, false);
-        dt.type = Value.DECIMAL;
+        dt.type = Value.NUMERIC;
         dt.sqlType = Types.NUMERIC;
         dt.name = "SMALLMONEY";
         mode.typeByNameMap.put("SMALLMONEY", dt);
@@ -403,7 +403,7 @@ public class Mode {
         disallowedTypes.add("BLOB");
         mode.disallowedTypes = disallowedTypes;
         dt = DataType.createNumeric(19, 2, false);
-        dt.type = Value.DECIMAL;
+        dt.type = Value.NUMERIC;
         dt.sqlType = Types.NUMERIC;
         dt.name = "MONEY";
         mode.typeByNameMap.put("MONEY", dt);

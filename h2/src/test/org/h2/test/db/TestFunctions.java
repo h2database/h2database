@@ -331,7 +331,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         if (args.length == 0) {
             return null;
         }
-        return args[0].convertTo(Value.STRING);
+        return args[0].convertTo(Value.VARCHAR);
     }
 
     private void testDefaultConnection() throws SQLException {
@@ -703,7 +703,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
 
         @Override
         public int getInternalType(int[] inputTypes) throws SQLException {
-            return Value.STRING;
+            return Value.VARCHAR;
         }
 
     }

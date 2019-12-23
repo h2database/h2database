@@ -373,7 +373,7 @@ public class Transfer {
         case Value.NULL:
             writeInt(NULL);
             break;
-        case Value.BYTES:
+        case Value.VARBINARY:
             writeInt(BYTES);
             writeBytes(v.getBytesNoCopy());
             break;
@@ -392,7 +392,7 @@ public class Transfer {
             writeInt(BOOLEAN);
             writeBoolean(v.getBoolean());
             break;
-        case Value.BYTE:
+        case Value.TINYINT:
             writeInt(BYTE);
             writeByte(v.getByte());
             break;
@@ -442,7 +442,7 @@ public class Transfer {
                     ? timeZoneOffset : timeZoneOffset / 60);
             break;
         }
-        case Value.DECIMAL:
+        case Value.NUMERIC:
             writeInt(DECIMAL);
             writeString(v.getString());
             break;
@@ -450,7 +450,7 @@ public class Transfer {
             writeInt(DOUBLE);
             writeDouble(v.getDouble());
             break;
-        case Value.FLOAT:
+        case Value.REAL:
             writeInt(FLOAT);
             writeFloat(v.getFloat());
             break;
@@ -458,23 +458,23 @@ public class Transfer {
             writeInt(INT);
             writeInt(v.getInt());
             break;
-        case Value.LONG:
+        case Value.BIGINT:
             writeInt(LONG);
             writeLong(v.getLong());
             break;
-        case Value.SHORT:
+        case Value.SMALLINT:
             writeInt(SHORT);
             writeInt(v.getShort());
             break;
-        case Value.STRING:
+        case Value.VARCHAR:
             writeInt(STRING);
             writeString(v.getString());
             break;
-        case Value.STRING_IGNORECASE:
+        case Value.VARCHAR_IGNORECASE:
             writeInt(STRING_IGNORECASE);
             writeString(v.getString());
             break;
-        case Value.STRING_FIXED:
+        case Value.CHAR:
             writeInt(STRING_FIXED);
             writeString(v.getString());
             break;

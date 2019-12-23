@@ -51,10 +51,10 @@ public abstract class TableBase extends Table {
             return SearchRow.ROWID_INDEX;
         }
         switch (first.column.getType().getValueType()) {
-        case Value.BYTE:
-        case Value.SHORT:
+        case Value.TINYINT:
+        case Value.SMALLINT:
         case Value.INT:
-        case Value.LONG:
+        case Value.BIGINT:
             return first.column.getColumnId();
         default:
             return SearchRow.ROWID_INDEX;

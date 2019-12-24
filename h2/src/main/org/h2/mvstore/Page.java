@@ -383,7 +383,7 @@ public abstract class Page<K,V> implements Cloneable
      */
     int binarySearch(K key) {
         int res = map.getKeyType().binarySearch(key, keys, getKeyCount(), cachedCompare);
-        cachedCompare = (res < 0 ? -res : res) - 1;
+        cachedCompare = res < 0 ? ~res : res + 1;
         return res;
     }
 

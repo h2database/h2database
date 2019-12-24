@@ -91,7 +91,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         setInitialRoot(createEmptyLeaf(), store.getCurrentVersion());
     }
 
-    @SuppressWarnings("unchecked")
     private MVMap(MVStore store, DataType<K> keyType, DataType<V> valueType, int id, long createVersion,
             AtomicReference<RootReference<K,V>> root, int keysPerPage, boolean singleWriter) {
         this.store = store;
@@ -101,8 +100,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         this.valueType = valueType;
         this.root = root;
         this.keysPerPage = keysPerPage;
-        this.keysBuffer = singleWriter ? (K[]) new Object[keysPerPage] : null;
-        this.valuesBuffer = singleWriter ? (V[]) new Object[keysPerPage] : null;
+        this.keysBuffer = singleWriter ? keyType.createStorage(keysPerPage) : null;
+        this.valuesBuffer = singleWriter ? valueType.createStorage(keysPerPage) : null;
         this.singleWriter = singleWriter;
     }
 
@@ -634,6 +633,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param b the second key
      * @return -1 if the first key is smaller, 1 if bigger, 0 if equal
      */
+    @SuppressWarnings("unused")
     final int compare(K a, K b) {
         return keyType.compare(a, b);
     }

@@ -82,27 +82,31 @@ public final class RowDataType extends BasicDataType<SearchRow> implements State
             }
             return 0;
         } else {
-            for (int i = 0; i < indexes.length; i++) {
-                int index = indexes[i];
-                Value v1 = a.getValue(index);
-                Value v2 = b.getValue(index);
-                if (v1 == null || v2 == null) {
-                    // can't compare further
-                    break;
-                }
-                int comp = valueDataType.compareValues(a.getValue(index), b.getValue(index), sortTypes[i]);
-                if (comp != 0) {
-                    return comp;
-                }
-            }
-            long aKey = a.getKey();
-            long bKey = b.getKey();
-            return aKey == SearchRow.MATCH_ALL_ROW_KEY || bKey == SearchRow.MATCH_ALL_ROW_KEY ?
-                    0 : Long.compare(aKey, bKey);
+            return compareSearchRows(a, b);
         }
     }
 
-//    @Override
+    private int compareSearchRows(SearchRow a, SearchRow b) {
+        for (int i = 0; i < indexes.length; i++) {
+            int index = indexes[i];
+            Value v1 = a.getValue(index);
+            Value v2 = b.getValue(index);
+            if (v1 == null || v2 == null) {
+                // can't compare further
+                break;
+            }
+            int comp = valueDataType.compareValues(v1, v2, sortTypes[i]);
+            if (comp != 0) {
+                return comp;
+            }
+        }
+        long aKey = a.getKey();
+        long bKey = b.getKey();
+        return aKey == SearchRow.MATCH_ALL_ROW_KEY || bKey == SearchRow.MATCH_ALL_ROW_KEY ?
+                0 : Long.compare(aKey, bKey);
+    }
+
+    @Override
     public int binarySearch(SearchRow key, Object storage, int size, int initialGuess) {
         return binarySearch(key, (SearchRow[])storage, size, initialGuess);
     }
@@ -118,7 +122,7 @@ public final class RowDataType extends BasicDataType<SearchRow> implements State
             x = high >>> 1;
         }
         while (low <= high) {
-            int compare = compare(key, keys[x]);
+            int compare = compareSearchRows(key, keys[x]);
             if (compare > 0) {
                 low = x + 1;
             } else if (compare < 0) {

@@ -21,6 +21,7 @@ import java.nio.ByteBuffer;
 public class LongDataType extends BasicDataType<Long>
 {
     public static final LongDataType INSTANCE = new LongDataType();
+    public static final Long[] EMPTY_LONG_ARR = new Long[0];
 
     public LongDataType() {}
 
@@ -41,11 +42,42 @@ public class LongDataType extends BasicDataType<Long>
 
     @Override
     public Long[] createStorage(int size) {
-        return new Long[size];
+        return size == 0 ? EMPTY_LONG_ARR : new Long[size];
     }
 
     @Override
     public int compare(Long one, Long two) {
         return Long.compare(one, two);
+    }
+
+    @Override
+    public int binarySearch(Long keyObj, Object storageObj, int size, int initialGuess) {
+        long key = keyObj;
+        Long[] storage = cast(storageObj);
+        int low = 0;
+        int high = size - 1;
+        // the cached index minus one, so that
+        // for the first time (when cachedCompare is 0),
+        // the default value is used
+        int x = initialGuess - 1;
+        if (x < 0 || x > high) {
+            x = high >>> 1;
+        }
+        return binarySearch(key, storage, low, high, x);
+    }
+
+    private static int binarySearch(long key, Long[] storage, int low, int high, int x) {
+        while (low <= high) {
+            long midVal = storage[x];
+            if (key > midVal) {
+                low = x + 1;
+            } else if (key < midVal) {
+                high = x - 1;
+            } else {
+                return x;
+            }
+            x = (low + high) >>> 1;
+        }
+        return -(low + 1);
     }
 }

@@ -1212,7 +1212,9 @@ public class MetaTable extends Table {
                         add(session, rows,
                                 "info.FILL_RATE", Integer.toString(mvStore.getFillRate()));
                         add(session, rows,
-                                "info.CHUNKS_FILL_RATE", Integer.toString(mvStore.getRewritableChunksFillRate()));
+                                "info.CHUNKS_FILL_RATE", Integer.toString(mvStore.getChunksFillRate()));
+                        add(session, rows,
+                                "info.CHUNKS_FILL_RATE_RW", Integer.toString(mvStore.getRewritableChunksFillRate()));
                         try {
                             add(session, rows,
                                     "info.FILE_SIZE", Long.toString(fs.getFile().size()));
@@ -1233,6 +1235,8 @@ public class MetaTable extends Table {
                                 "info.CACHE_HIT_RATIO", Integer.toString(mvStore.getCacheHitRatio()));
                         add(session, rows, "info.TOC_CACHE_HIT_RATIO",
                                 Integer.toString(mvStore.getTocCacheHitRatio()));
+                        add(session, rows,
+                                "info.LEAF_RATIO", Integer.toString(mvStore.getLeafRatio()));
                     }
                 }
             }

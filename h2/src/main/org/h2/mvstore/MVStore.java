@@ -327,6 +327,9 @@ public class MVStore implements AutoCloseable
 
     private long lastTimeAbsolute;
 
+    private long leafCount;
+    private long nonLeafCount;
+
 
     /**
      * Create and open the store.
@@ -544,19 +547,22 @@ public class MVStore implements AutoCloseable
      */
     public <M extends MVMap<K, V>, K, V> M openMap(String name, MVMap.MapBuilder<M, K, V> builder) {
         int id = getMapId(name);
-        M map;
         if (id >= 0) {
-            map = openMap(id, builder);
+            @SuppressWarnings("unchecked")
+            M map = (M) getMap(id);
+            if(map == null) {
+                map = openMap(id, builder);
+            }
             assert builder.getKeyType() == null || map.getKeyType().getClass().equals(builder.getKeyType().getClass());
-            assert builder.getValueType() == null || map.getValueType().getClass().equals(builder.getValueType()
-                    .getClass());
+            assert builder.getValueType() == null || map.getValueType().getClass().equals(builder.getValueType().getClass());
+            return map;
         } else {
             HashMap<String, Object> c = new HashMap<>();
             id = lastMapId.incrementAndGet();
             assert getMap(id) == null;
             c.put("id", id);
             c.put("createVersion", currentVersion);
-            map = builder.create(this, c);
+            M map = builder.create(this, c);
             String x = Integer.toHexString(id);
             meta.put(MVMap.getMapKey(id), map.asString(name));
             meta.put(DataUtils.META_NAME + name, x);
@@ -567,8 +573,8 @@ public class MVStore implements AutoCloseable
             if (existingMap != null) {
                 map = existingMap;
             }
+            return map;
         }
-        return map;
     }
 
     public <M extends MVMap<K, V>, K, V> M openMap(int id, MVMap.MapBuilder<M, K, V> builder) {
@@ -1460,6 +1466,11 @@ public class MVStore implements AutoCloseable
         for (long tocElement : toc) {
             tocArray[indx++] = tocElement;
             buff.putLong(tocElement);
+            if (DataUtils.isLeafPosition(tocElement)) {
+                ++leafCount;
+            } else {
+                ++nonLeafCount;
+            }
         }
         chunksToC.put(c.id, tocArray);
         int chunkLength = buff.position();
@@ -2016,7 +2027,7 @@ public class MVStore implements AutoCloseable
                 try {
                     if (storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
                         try {
-                            return rewriteChunks(write, targetFillRate);
+                            return rewriteChunks(write, 100);
                         } finally {
                             storeLock.unlock();
                         }
@@ -2110,14 +2121,14 @@ public class MVStore implements AutoCloseable
         return count;
     }
 
-    private int getProjectedFillRate() {
+    private int getProjectedFillRate(int thresholdChunkFillRate) {
         int vacatedBlocks = 0;
         long maxLengthSum = 1;
         long maxLengthLiveSum = 1;
         long time = getTimeSinceCreation();
         for (Chunk c : chunks.values()) {
             assert c.maxLen >= 0;
-            if (isRewritable(c, time)) {
+            if (isRewritable(c, time) && c.getFillRate() <= thresholdChunkFillRate) {
                 assert c.maxLen >= c.maxLenLive;
                 vacatedBlocks += c.len;
                 maxLengthSum += c.maxLen;
@@ -2138,11 +2149,14 @@ public class MVStore implements AutoCloseable
         long time = getTimeSinceCreation();
 
         // the queue will contain chunks we want to free up
+        // the smaller the collectionPriority, the more desirable this chunk's re-write is
+        // queue will be ordered in descending order of collectionPriority values,
+        // so most desirable chunks will stay at the tail
         PriorityQueue<Chunk> queue = new PriorityQueue<>(this.chunks.size() / 4 + 1,
                 (o1, o2) -> {
                     int comp = Integer.compare(o2.collectPriority, o1.collectPriority);
                     if (comp == 0) {
-                        comp = Long.compare(o2.maxLenLive, o2.maxLenLive);
+                        comp = Long.compare(o2.maxLenLive, o1.maxLenLive);
                     }
                     return comp;
                 });
@@ -2154,7 +2168,7 @@ public class MVStore implements AutoCloseable
             // (it's possible to compact chunks earlier, but right
             // now we don't do that)
             int fillRate = chunk.getFillRate();
-            if (isRewritable(chunk, time) /*&& fillRate <= targetFillRate*/) {
+            if (isRewritable(chunk, time) && fillRate <= targetFillRate) {
                 long age = latestVersion - chunk.version;
                 chunk.collectPriority = (int) (fillRate * 1000 / age);
                 totalSize += chunk.maxLenLive;
@@ -2195,15 +2209,14 @@ public class MVStore implements AutoCloseable
                 for (int pageNo = 0; (pageNo = chunk.occupancy.nextClearBit(pageNo)) < chunk.pageCount; ++pageNo) {
                     long tocElement = toc[pageNo];
                     int mapId = DataUtils.getPageMapId(tocElement);
-                    MVMap<?,?> map = getMap(mapId);
+                    MVMap<?,?> map = mapId == 0 ? meta : getMap(mapId);
                     if (map != null && !map.isClosed()) {
                         assert !map.isSingleWriter();
                         if (secondPass || DataUtils.isLeafPosition(tocElement)) {
                             int type = DataUtils.getPageType(tocElement);
                             int length = DataUtils.getPageMaxLength(tocElement);
                             long pagePos = DataUtils.getPagePos(chunkId, pageNo, length, type);
-                            Page page = readPage(map, pagePos);
-                            if (map.rewritePage(page)) {
+                            if (map.rewritePage(pagePos)) {
                                 ++rewrittenPageCount;
                                 if (map == meta) {
                                     markMetaChanged();
@@ -2825,7 +2838,7 @@ public class MVStore implements AutoCloseable
      * Commit and save all changes, if there are any, and compact the store if
      * needed.
      */
-    void writeInBackground() {
+    private void writeInBackground() {
         try {
             if (!isOpenOrStopping() || isReadOnly()) {
                 return;
@@ -2841,28 +2854,35 @@ public class MVStore implements AutoCloseable
                     compact(-getTargetFillRate(), autoCommitMemory);
                 }
             }
-            int targetFillRate;
-            int projectedFillRate;
-            if (isIdle()) {
-                doMaintenance(autoCompactFillRate);
-            } else if (fileStore.isFragmented()) {
+            int fillRate = getFillRate();
+            if (fileStore.isFragmented() && fillRate < autoCompactFillRate) {
                 if (storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
                     try {
-                        compactMoveChunks(autoCommitMemory * 4);
+                        int moveSize = autoCommitMemory;
+                        if (isIdle()) {
+                            moveSize *= 4;
+                        }
+                        compactMoveChunks(moveSize);
                     } finally {
                         storeLock.unlock();
                     }
                 }
-            } else if (lastChunk != null && getFillRate() > (targetFillRate = getTargetFillRate())
-                    && (projectedFillRate = getProjectedFillRate()) < targetFillRate) {
-                if (storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
-                    try {
-                        int writeLimit = autoCommitMemory * targetFillRate / Math.max(projectedFillRate, 1);
-                        if (rewriteChunks(writeLimit, projectedFillRate)) {
-                            dropUnusedChunks();
+            } else if (lastChunk != null) {
+                int chunksFillRate = getRewritableChunksFillRate();
+                chunksFillRate = isIdle() ? 100 - (100 - chunksFillRate) / 2 : chunksFillRate;
+                if (chunksFillRate < getTargetFillRate()) {
+                    if (storeLock.tryLock(10, TimeUnit.MILLISECONDS)) {
+                        try {
+                            int writeLimit = autoCommitMemory * fillRate / Math.max(chunksFillRate, 1);
+                            if (!isIdle()) {
+                                writeLimit /= 4;
+                            }
+                            if (rewriteChunks(writeLimit, chunksFillRate)) {
+                                dropUnusedChunks();
+                            }
+                        } finally {
+                            storeLock.unlock();
                         }
-                    } finally {
-                        storeLock.unlock();
                     }
                 }
             }
@@ -2884,7 +2904,7 @@ public class MVStore implements AutoCloseable
                     int fillRate = getFillRate();
                     int projectedFillRate = fillRate;
                     if (fillRate > targetFillRate) {
-                        projectedFillRate = getProjectedFillRate();
+                        projectedFillRate = getProjectedFillRate(100);
                         if (projectedFillRate > targetFillRate || projectedFillRate <= lastProjectedFillRate) {
                             break;
                         }
@@ -2921,7 +2941,7 @@ public class MVStore implements AutoCloseable
         int targetRate = autoCompactFillRate;
         // use a lower fill rate if there were any file operations since the last time
         if (!isIdle()) {
-            targetRate /= 3;
+            targetRate /= 2;
         }
         return targetRate;
     }
@@ -3143,6 +3163,10 @@ public class MVStore implements AutoCloseable
         }
         long hits = cache.getHits();
         return (int) (100 * hits / (hits + cache.getMisses() + 1));
+    }
+
+    public int getLeafRatio() {
+        return (int)(leafCount * 100 / Math.max(1, leafCount + nonLeafCount));
     }
 
     public double getUpdateFailureRatio() {

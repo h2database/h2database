@@ -689,7 +689,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return new Cursor<>(getRootPage(), from);
     }
 
-    final boolean rewritePage(Page<K,V> p) {
+    final boolean rewritePage(long pagePos) {
+        Page<K, V> p = readPage(pagePos);
         if (p.getKeyCount()==0) {
             return true;
         }

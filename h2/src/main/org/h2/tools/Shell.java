@@ -554,7 +554,7 @@ public class Shell extends Tool implements Runnable {
                 max = Math.max(max, row[i].length());
             }
             if (len > 1) {
-                Math.min(maxColumnSize, max);
+                max = Math.min(maxColumnSize, max);
             }
             columnSizes[i] = max;
         }

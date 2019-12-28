@@ -469,16 +469,15 @@ public class Column {
      * @param session the session
      */
     public void prepareExpression(Session session) {
-        if (defaultExpression != null || onUpdateExpression != null) {
-            generatedTableFilter = new TableFilter(session, table, null, false, null, 0, null);
-            if (defaultExpression != null) {
+        if (defaultExpression != null) {
+            if (isGenerated) {
+                generatedTableFilter = new TableFilter(session, table, null, false, null, 0, null);
                 defaultExpression.mapColumns(generatedTableFilter, 0, Expression.MAP_INITIAL);
-                defaultExpression = defaultExpression.optimize(session);
             }
-            if (onUpdateExpression != null) {
-                onUpdateExpression.mapColumns(generatedTableFilter, 0, Expression.MAP_INITIAL);
-                onUpdateExpression = onUpdateExpression.optimize(session);
-            }
+            defaultExpression = defaultExpression.optimize(session);
+        }
+        if (onUpdateExpression != null) {
+            onUpdateExpression = onUpdateExpression.optimize(session);
         }
     }
 

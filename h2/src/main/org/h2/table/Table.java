@@ -861,10 +861,10 @@ public abstract class Table extends SchemaObjectBase {
             Value value = row.getValue(i);
             Column column = columns[i];
             Value v2;
-            if (column.getComputed()) {
+            if (column.getGenerated()) {
                 // force updating the value
                 value = null;
-                v2 = column.computeValue(session, row);
+                v2 = column.generateValue(session, row);
             }
             v2 = column.validateConvertUpdateSequence(session, value);
             if (v2 != value) {

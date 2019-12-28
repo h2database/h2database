@@ -71,8 +71,8 @@ public class Column {
     private SequenceOptions autoIncrementOptions;
     private boolean convertNullToDefault;
     private Sequence sequence;
-    private boolean isComputed;
-    private TableFilter computeTableFilter;
+    private boolean isGenerated;
+    private TableFilter generatedTableFilter;
     private int selectivity;
     private String comment;
     private boolean primaryKey;
@@ -192,31 +192,36 @@ public class Column {
         }
     }
 
-    boolean getComputed() {
-        return isComputed;
+    /**
+     * Returns whether this column is a generated column.
+     *
+     * @return whether this column is a generated column
+     */
+    public boolean getGenerated() {
+        return isGenerated;
     }
 
     /**
-     * Compute the value of this computed column.
+     * Compute the value of this generated column.
      *
      * @param session the session
      * @param row the row
      * @return the value
      */
-    synchronized Value computeValue(Session session, Row row) {
-        computeTableFilter.setSession(session);
-        computeTableFilter.set(row);
+    synchronized Value generateValue(Session session, Row row) {
+        generatedTableFilter.setSession(session);
+        generatedTableFilter.set(row);
         return defaultExpression.getValue(session);
     }
 
     /**
-     * Set the default value in the form of a computed expression of other
+     * Set the default value in the form of a generated expression of other
      * columns.
      *
      * @param expression the computed expression
      */
-    public void setComputedExpression(Expression expression) {
-        this.isComputed = true;
+    public void setGeneratedExpression(Expression expression) {
+        this.isGenerated = true;
         this.defaultExpression = expression;
     }
 
@@ -241,8 +246,7 @@ public class Column {
      * @param session the session
      * @param defaultExpression the default expression
      */
-    public void setDefaultExpression(Session session,
-            Expression defaultExpression) {
+    public void setDefaultExpression(Session session, Expression defaultExpression) {
         // also to test that no column names are used
         if (defaultExpression != null) {
             defaultExpression = defaultExpression.optimize(session);
@@ -466,13 +470,13 @@ public class Column {
      */
     public void prepareExpression(Session session) {
         if (defaultExpression != null || onUpdateExpression != null) {
-            computeTableFilter = new TableFilter(session, table, null, false, null, 0, null);
+            generatedTableFilter = new TableFilter(session, table, null, false, null, 0, null);
             if (defaultExpression != null) {
-                defaultExpression.mapColumns(computeTableFilter, 0, Expression.MAP_INITIAL);
+                defaultExpression.mapColumns(generatedTableFilter, 0, Expression.MAP_INITIAL);
                 defaultExpression = defaultExpression.optimize(session);
             }
             if (onUpdateExpression != null) {
-                onUpdateExpression.mapColumns(computeTableFilter, 0, Expression.MAP_INITIAL);
+                onUpdateExpression.mapColumns(generatedTableFilter, 0, Expression.MAP_INITIAL);
                 onUpdateExpression = onUpdateExpression.optimize(session);
             }
         }
@@ -502,7 +506,7 @@ public class Column {
         }
 
         if (defaultExpression != null) {
-            if (isComputed) {
+            if (isGenerated) {
                 buff.append(" GENERATED ALWAYS AS ");
                 defaultExpression.getEnclosedSQL(buff, true);
             } else {
@@ -724,7 +728,7 @@ public class Column {
         if (defaultExpression != null || newColumn.defaultExpression != null) {
             return false;
         }
-        if (isComputed || newColumn.isComputed) {
+        if (isGenerated || newColumn.isGenerated) {
             return false;
         }
         if (onUpdateExpression != null || newColumn.onUpdateExpression != null) {
@@ -754,8 +758,8 @@ public class Column {
         convertNullToDefault = source.convertNullToDefault;
         sequence = source.sequence;
         comment = source.comment;
-        computeTableFilter = source.computeTableFilter;
-        isComputed = source.isComputed;
+        generatedTableFilter = source.generatedTableFilter;
+        isGenerated = source.isGenerated;
         selectivity = source.selectivity;
         primaryKey = source.primaryKey;
         visible = source.visible;

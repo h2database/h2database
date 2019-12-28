@@ -5900,7 +5900,7 @@ public class Parser {
                     "Internal Error - unhandled case: " + nullConstraint.name());
         }
         if (!isIdentity && readIf(AS)) {
-            column.setComputedExpression(readExpression());
+            column.setGeneratedExpression(readExpression());
         } else if (readIf("DEFAULT")) {
             column.setDefaultExpression(session, readExpression());
         } else if (readIf("GENERATED")) {
@@ -5920,7 +5920,7 @@ public class Parser {
             } else if (!always || isIdentity) {
                 throw getSyntaxError();
             } else {
-                column.setComputedExpression(readExpression());
+                column.setGeneratedExpression(readExpression());
             }
         }
         if (readIf(ON)) {

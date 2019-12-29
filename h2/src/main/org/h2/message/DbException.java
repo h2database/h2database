@@ -571,6 +571,7 @@ public class DbException extends RuntimeException {
         case INVALID_VALUE_SCALE:
         case CONSTRAINT_IS_USED_BY_CONSTRAINT_2:
         case UNCOMPARABLE_REFERENCED_COLUMN_2:
+        case GENERATED_COLUMN_CANNOT_BE_ASSIGNED_1:
             return new JdbcSQLSyntaxErrorException(message, sql, state, errorCode, cause, stackTrace);
         case HEX_STRING_ODD_1:
         case HEX_STRING_WRONG_1:

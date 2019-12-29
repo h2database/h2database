@@ -163,7 +163,7 @@ public class Update extends Prepared implements DataChangeStatement {
                             if (column.getOnUpdateExpression() != null) {
                                 setOnUpdate = true;
                             }
-                            newValue = oldRow.getValue(i);
+                            newValue = column.getGenerated() ? null : oldRow.getValue(i);
                         } else if (newExpr == ValueExpression.DEFAULT) {
                             newValue = null;
                         } else {

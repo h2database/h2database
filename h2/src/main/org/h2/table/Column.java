@@ -288,6 +288,17 @@ public class Column {
         return rowId ? builder.append(name) : Parser.quoteIdentifier(builder, name, alwaysQuote);
     }
 
+    /**
+     * Appends the table name and column name to the specified builder.
+     *
+     * @param builder the string builder
+     * @param alwaysQuote quote all identifiers
+     * @return the specified string builder
+     */
+    public StringBuilder getSQLWithTable(StringBuilder builder, boolean alwaysQuote) {
+        return getSQL(table.getSQL(builder, alwaysQuote).append('.'), alwaysQuote);
+    }
+
     public String getName() {
         return name;
     }

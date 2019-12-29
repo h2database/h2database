@@ -859,12 +859,11 @@ public abstract class Table extends SchemaObjectBase {
         for (int i = 0; i < columns.length; i++) {
             Value value = row.getValue(i);
             Column column = columns[i];
-            Value v2;
-            if (column.getGenerated()) {
-                // force updating the value
-                value = null;
+            if (column.getGenerated() && value != null) {
+                throw DbException.get(ErrorCode.GENERATED_COLUMN_CANNOT_BE_ASSIGNED_1,
+                        column.getSQLWithTable(new StringBuilder(), false).toString());
             }
-            v2 = column.validateConvertUpdateSequence(session, value, row);
+            Value v2 = column.validateConvertUpdateSequence(session, value, row);
             if (v2 != value) {
                 row.setValue(i, v2);
             }

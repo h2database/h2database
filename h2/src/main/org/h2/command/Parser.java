@@ -1923,11 +1923,11 @@ public class Parser {
             if (multiColumn) {
                 if (!readIf(CLOSE_PAREN)) {
                     do {
-                        values.add(readIf("DEFAULT") ? null : readExpression());
+                        values.add(readExpressionOrDefault());
                     } while (readIfMore());
                 }
             } else {
-                values.add(readIf("DEFAULT") ? null : readExpression());
+                values.add(readExpressionOrDefault());
             }
             command.addRow(values.toArray(new Expression[0]));
         } while (readIf(COMMA));

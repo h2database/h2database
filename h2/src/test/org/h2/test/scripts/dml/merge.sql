@@ -105,3 +105,30 @@ MERGE INTO TEST KEY (ID) VALUES (1, 2, 3), (2, 2, 3);
 
 DROP TABLE TEST;
 > ok
+
+CREATE TABLE TEST(A INT, B INT DEFAULT 5);
+> ok
+
+MERGE INTO TEST KEY(A) VALUES (1, DEFAULT);
+> update count: 1
+
+TABLE TEST;
+> A B
+> - -
+> 1 5
+> rows: 1
+
+UPDATE TEST SET B = 1 WHERE A = 1;
+> update count: 1
+
+SELECT B FROM TEST WHERE A = 1;
+>> 1
+
+MERGE INTO TEST KEY(A) VALUES (1, DEFAULT);
+> update count: 1
+
+SELECT B FROM TEST WHERE A = 1;
+>> 5
+
+DROP TABLE TEST;
+> ok

@@ -44,3 +44,22 @@ SELECT _ROWID_, ID FROM TEST;
 
 DROP TABLE TEST;
 > ok
+
+CREATE TABLE TEST(A INT, B INT DEFAULT 5);
+> ok
+
+INSERT INTO TEST VALUES (1, DEFAULT);
+> update count: 1
+
+INSERT INTO TEST SET A = 2, B = DEFAULT;
+> update count: 1
+
+TABLE TEST;
+> A B
+> - -
+> 1 5
+> 2 5
+> rows: 2
+
+DROP TABLE TEST;
+> ok

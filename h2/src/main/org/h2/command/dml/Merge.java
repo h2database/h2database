@@ -17,6 +17,7 @@ import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
 import org.h2.expression.Expression;
 import org.h2.expression.Parameter;
+import org.h2.expression.ValueExpression;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mvstore.db.MVPrimaryIndex;
@@ -27,6 +28,7 @@ import org.h2.table.Column;
 import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.Table;
 import org.h2.value.Value;
+import org.h2.value.ValueNull;
 
 /**
  * This class represents the statement
@@ -105,8 +107,7 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
                     Column c = columns[i];
                     int index = c.getColumnId();
                     Expression e = expr[i];
-                    if (e != null) {
-                        // e can be null (DEFAULT)
+                    if (e != ValueExpression.DEFAULT) {
                         try {
                             newRow.setValue(index, e.getValue(session));
                         } catch (DbException ex) {
@@ -155,8 +156,11 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
             for (int i = 0; i < columns.length; i++) {
                 Column col = columns[i];
                 Value v = row.getValue(col.getColumnId());
-                Parameter p = k.get(i);
-                p.setValue(v);
+                if (v == null && !col.getGenerated()) {
+                    Expression defaultExpression = col.getDefaultExpression();
+                    v = defaultExpression != null ? defaultExpression.getValue(session) : ValueNull.INSTANCE;
+                }
+                k.get(i).setValue(v);
             }
             for (int i = 0; i < keys.length; i++) {
                 Column col = keys[i];
@@ -164,8 +168,7 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
                 if (v == null) {
                     throw DbException.get(ErrorCode.COLUMN_CONTAINS_NULL_VALUES_1, col.getSQL(false));
                 }
-                Parameter p = k.get(columns.length + i);
-                p.setValue(v);
+                k.get(columns.length + i).setValue(v);
             }
             count = update.update();
         }

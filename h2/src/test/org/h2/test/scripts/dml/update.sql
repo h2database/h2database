@@ -81,3 +81,21 @@ SELECT _ROWID_ FROM TEST;
 
 DROP TABLE TEST;
 > ok
+
+CREATE TABLE TEST(A INT, B INT GENERATED ALWAYS AS (A + 1));
+> ok
+
+INSERT INTO TEST(A) VALUES 1;
+> update count: 1
+
+UPDATE TEST SET A = 2, B = DEFAULT;
+> update count: 1
+
+TABLE TEST;
+> A B
+> - -
+> 2 3
+> rows: 1
+
+DROP TABLE TEST;
+> ok

@@ -72,7 +72,7 @@ public class Column {
     private boolean convertNullToDefault;
     private Sequence sequence;
     private boolean isGenerated;
-    private TableFilter generatedTableFilter;
+    private GeneratedColumnResolver generatedTableFilter;
     private int selectivity;
     private String comment;
     private boolean primaryKey;
@@ -199,19 +199,6 @@ public class Column {
      */
     public boolean getGenerated() {
         return isGenerated;
-    }
-
-    /**
-     * Compute the value of this generated column.
-     *
-     * @param session the session
-     * @param row the row
-     * @return the value
-     */
-    synchronized Value generateValue(Session session, Row row) {
-        generatedTableFilter.setSession(session);
-        generatedTableFilter.set(row);
-        return defaultExpression.getValue(session);
     }
 
     /**
@@ -350,29 +337,41 @@ public class Column {
     /**
      * Validate the value, convert it if required, and update the sequence value
      * if required. If the value is null, the default value (NULL if no default
-     * is set) is returned. Check constraints are validated as well.
+     * is set) is returned. Domain constraints are validated as well.
      *
      * @param session the session
      * @param value the value or null
+     * @param row the row
      * @return the new or converted value
      */
-    public Value validateConvertUpdateSequence(Session session, Value value) {
-        // take a local copy of defaultExpression to avoid holding the lock
-        // while calling getValue
-        final Expression localDefaultExpression;
-        synchronized (this) {
-            localDefaultExpression = defaultExpression;
-        }
+    public Value validateConvertUpdateSequence(Session session, Value value, Row row) {
+        Expression localDefaultExpression = defaultExpression;
         boolean addKey = false;
         if (value == null) {
             if (localDefaultExpression == null) {
+                if (!nullable) {
+                    throw DbException.get(ErrorCode.NULL_NOT_ALLOWED, name);
+                }
                 value = ValueNull.INSTANCE;
             } else {
-                value = localDefaultExpression.getValue(session);
+                if (isGenerated) {
+                    synchronized (this) {
+                        generatedTableFilter.set(row);
+                        try {
+                            value = localDefaultExpression.getValue(session);
+                        } finally {
+                            generatedTableFilter.set(null);
+                        }
+                    }
+                } else {
+                    value = localDefaultExpression.getValue(session);
+                }
+                if (value == ValueNull.INSTANCE && !nullable) {
+                    throw DbException.get(ErrorCode.NULL_NOT_ALLOWED, name);
+                }
                 addKey = true;
             }
-        }
-        if (value == ValueNull.INSTANCE) {
+        } else if (value == ValueNull.INSTANCE) {
             if (convertNullToDefault) {
                 value = localDefaultExpression.getValue(session);
                 addKey = true;
@@ -471,7 +470,7 @@ public class Column {
     public void prepareExpression(Session session) {
         if (defaultExpression != null) {
             if (isGenerated) {
-                generatedTableFilter = new TableFilter(session, table, null, false, null, 0, null);
+                generatedTableFilter = new GeneratedColumnResolver(table);
                 defaultExpression.mapColumns(generatedTableFilter, 0, Expression.MAP_INITIAL);
             }
             defaultExpression = defaultExpression.optimize(session);

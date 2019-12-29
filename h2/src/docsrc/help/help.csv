@@ -2571,17 +2571,24 @@ AES
 "Other Grammar","Column Definition","
 dataType @h2@ [ VISIBLE | INVISIBLE ]
 [ { DEFAULT expression
-    | [ GENERATED ALWAYS ] AS (computedColumnExpression)
+    | GENERATED ALWAYS AS (generatedColumnExpression)
+    | @c@ { AS (generatedColumnExpression) }
     | GENERATED {ALWAYS | BY DEFAULT} AS IDENTITY [(sequenceOptions)]} ]
 @h2@ [ ON UPDATE expression ] @c@ [ [ NOT ] NULL ]
 @c@ [ { AUTO_INCREMENT | IDENTITY } [ ( startInt [, incrementInt ] ) ] ]
 @h2@ [ SELECTIVITY selectivityInt ] @h2@ [ COMMENT expression ]
 [ columnConstraintDefinition ] [...]
 ","
-Default expressions are used if no explicit value was used when adding a row.
-The computed column expression is evaluated and assigned whenever the row changes.
+The default expression is used if no explicit value was used when adding a row
+and when DEFAULT value was specified in an update command.
+
+A column is either a generated column or a base column.
+The generated column has a generated column expression.
+The generated column expression is evaluated and assigned whenever the row changes.
+This expression may reference base columns of the table, but may not reference other data.
+
 On update column expression is used if row is updated,
-at least one column have a new value that is different from its previous value
+at least one column has a new value that is different from its previous value
 and value for this column is not set explicitly in update statement.
 
 Identity, auto-increment, or generated as identity columns are columns with a sequence as the default.

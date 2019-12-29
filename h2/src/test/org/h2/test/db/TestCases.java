@@ -52,7 +52,6 @@ public class TestCases extends TestDb {
         testLargeKeys();
         testExtraSemicolonInDatabaseURL();
         testGroupSubquery();
-        testSelfReferentialColumn();
         testCountDistinctNotNull();
         testDependencies();
         testConvertType();
@@ -227,16 +226,6 @@ public class TestCases extends TestDb {
                 " from test where a = t.a and b = 0) from test t group by a");
         rs.next();
         assertEquals(0, rs.getInt(1));
-        conn.close();
-    }
-
-    private void testSelfReferentialColumn() throws SQLException {
-        deleteDb("selfreferential");
-        Connection conn = getConnection("selfreferential");
-        Statement stat = conn.createStatement();
-        stat.execute("create table sr(id integer, usecount integer as usecount + 1)");
-        assertThrows(ErrorCode.NULL_NOT_ALLOWED, stat).execute("insert into sr(id) values (1)");
-        assertThrows(ErrorCode.MUST_GROUP_BY_COLUMN_1, stat).execute("select max(id), usecount from sr");
         conn.close();
     }
 

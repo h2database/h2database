@@ -22,7 +22,6 @@ import org.h2.engine.DbObject;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
-import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -864,9 +863,8 @@ public abstract class Table extends SchemaObjectBase {
             if (column.getGenerated()) {
                 // force updating the value
                 value = null;
-                v2 = column.generateValue(session, row);
             }
-            v2 = column.validateConvertUpdateSequence(session, value);
+            v2 = column.validateConvertUpdateSequence(session, value, row);
             if (v2 != value) {
                 row.setValue(i, v2);
             }
@@ -1280,38 +1278,6 @@ public abstract class Table extends SchemaObjectBase {
      */
     public void checkWritingAllowed() {
         database.checkWritingAllowed();
-    }
-
-    private static Value getGeneratedValue(Session session, Column column, Expression expression) {
-        Value v;
-        if (expression == null) {
-            v = column.validateConvertUpdateSequence(session, null);
-        } else {
-            v = expression.getValue(session);
-        }
-        return column.convert(session, v);
-    }
-
-    /**
-     * Get or generate a default value for the given column.
-     *
-     * @param session the session
-     * @param column the column
-     * @return the value
-     */
-    public Value getDefaultValue(Session session, Column column) {
-        return getGeneratedValue(session, column, column.getDefaultExpression());
-    }
-
-    /**
-     * Generates on update value for the given column.
-     *
-     * @param session the session
-     * @param column the column
-     * @return the value
-     */
-    public Value getOnUpdateValue(Session session, Column column) {
-        return getGeneratedValue(session, column, column.getOnUpdateExpression());
     }
 
     @Override

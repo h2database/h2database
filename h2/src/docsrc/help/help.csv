@@ -2586,6 +2586,7 @@ A column is either a generated column or a base column.
 The generated column has a generated column expression.
 The generated column expression is evaluated and assigned whenever the row changes.
 This expression may reference base columns of the table, but may not reference other data.
+The value of the generated column cannot be set explicitly.
 
 On update column expression is used if row is updated,
 at least one column has a new value that is different from its previous value

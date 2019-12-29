@@ -2148,7 +2148,19 @@ public class ErrorCode {
      */
     public static final int GENERATED_COLUMN_CANNOT_BE_ASSIGNED_1 = 90154;
 
-    // next is 90155
+    /**
+     * The error with code <code>90155</code> is thrown when trying to create a
+     * referential constraint that can update a referenced generated column.
+     *
+     * <pre>
+     * CREATE TABLE PARENT(ID INT PRIMARY KEY, K INT GENERATED ALWAYS AS (ID) UNIQUE);
+     * CREATE TABLE CHILD(ID INT PRIMARY KEY, P INT);
+     * ALTER TABLE CHILD ADD FOREIGN KEY(P) REFERENCES PARENT(K) ON DELETE SET NULL;
+     * </pre>
+     */
+    public static final int GENERATED_COLUMN_CANNOT_BE_UPDATABLE_BY_CONSTRAINT_2 = 90155;
+
+    // next is 90156
 
     private ErrorCode() {
         // utility class

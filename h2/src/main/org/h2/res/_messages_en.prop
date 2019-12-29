@@ -186,6 +186,7 @@
 90152=Constraint {0} is used by constraint {1}
 90153=Column {0} references uncomparable column {1}
 90154=Generated column {0} cannot be assigned
+90155=Generated column {0} cannot be updatable by a referential constraint with {1} clause
 HY000=General error: {0}
 HY004=Unknown data type: {0}
 HYC00=Feature not supported: {0}

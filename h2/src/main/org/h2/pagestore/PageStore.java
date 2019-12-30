@@ -1595,8 +1595,8 @@ public class PageStore implements CacheWriter {
         cols.add(new Column("TYPE", Value.INT));
         cols.add(new Column("PARENT", Value.INT));
         cols.add(new Column("HEAD", Value.INT));
-        cols.add(new Column("OPTIONS", Value.STRING));
-        cols.add(new Column("COLUMNS", Value.STRING));
+        cols.add(new Column("OPTIONS", Value.VARCHAR));
+        cols.add(new Column("COLUMNS", Value.VARCHAR));
         metaSchema = new Schema(database, 0, "", null, true);
         data.schema = metaSchema;
         data.tableName = "PAGE_INDEX";

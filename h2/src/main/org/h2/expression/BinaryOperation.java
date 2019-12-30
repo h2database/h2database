@@ -157,7 +157,7 @@ public class BinaryOperation extends Expression {
             if (opType == OpType.PLUS && session.getDatabase().getMode().allowPlusForStringConcat) {
                 return new ConcatenationOperation(left, right).optimize(session);
             } else {
-                type = TypeInfo.TYPE_DECIMAL_FLOATING_POINT;
+                type = TypeInfo.TYPE_NUMERIC_FLOATING_POINT;
             }
         } else if (DataType.isIntervalType(l) || DataType.isIntervalType(r)) {
             if (forcedType != null) {
@@ -170,7 +170,7 @@ public class BinaryOperation extends Expression {
             throw getUnexpectedForcedTypeException();
         } else {
             int dataType = Value.getHigherOrder(l, r);
-            if (dataType == Value.DECIMAL) {
+            if (dataType == Value.NUMERIC) {
                 optimizeNumeric(leftType, rightType);
             } else if (dataType == Value.ENUM) {
                 type = TypeInfo.TYPE_INT;
@@ -234,7 +234,7 @@ public class BinaryOperation extends Expression {
         default:
             throw DbException.throwInternalError("type=" + opType);
         }
-        type = TypeInfo.getTypeInfo(Value.DECIMAL, precision, scale, null);
+        type = TypeInfo.getTypeInfo(Value.NUMERIC, precision, scale, null);
     }
 
     private Expression optimizeInterval(Session session, int l, int r) {
@@ -326,8 +326,8 @@ public class BinaryOperation extends Expression {
                 return Function.getFunctionWithArgs(session.getDatabase(), Function.DATEADD,
                         ValueExpression.get(ValueString.get("DAY")), left, right).optimize(session);
             }
-            case Value.DECIMAL:
-            case Value.FLOAT:
+            case Value.NUMERIC:
+            case Value.REAL:
             case Value.DOUBLE: {
                 // Oracle date add
                 return Function.getFunctionWithArgs(session.getDatabase(), Function.DATEADD,
@@ -358,8 +358,8 @@ public class BinaryOperation extends Expression {
                             new UnaryOperation(right), //
                             left).optimize(session);
                 }
-                case Value.DECIMAL:
-                case Value.FLOAT:
+                case Value.NUMERIC:
+                case Value.REAL:
                 case Value.DOUBLE: {
                     if (forcedType != null) {
                         throw getUnexpectedForcedTypeException();

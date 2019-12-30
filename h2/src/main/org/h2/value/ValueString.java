@@ -131,7 +131,7 @@ public class ValueString extends Value {
 
     @Override
     public int getValueType() {
-        return STRING;
+        return VARCHAR;
     }
 
     /**

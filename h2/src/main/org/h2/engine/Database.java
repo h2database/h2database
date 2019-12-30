@@ -647,7 +647,7 @@ public class Database implements DataHandler, CastDataProvider {
         cols.add(columnId);
         cols.add(new Column("HEAD", Value.INT));
         cols.add(new Column("TYPE", Value.INT));
-        cols.add(new Column("SQL", Value.STRING));
+        cols.add(new Column("SQL", Value.VARCHAR));
         boolean create = true;
         if (pageStore != null) {
             create = pageStore.isNew();

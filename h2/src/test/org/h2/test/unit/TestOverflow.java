@@ -35,10 +35,10 @@ public class TestOverflow extends TestBase {
 
     @Override
     public void test() {
-        test(Value.BYTE, Byte.MIN_VALUE, Byte.MAX_VALUE);
+        test(Value.TINYINT, Byte.MIN_VALUE, Byte.MAX_VALUE);
         test(Value.INT, Integer.MIN_VALUE, Integer.MAX_VALUE);
-        test(Value.LONG, Long.MIN_VALUE, Long.MAX_VALUE);
-        test(Value.SHORT, Short.MIN_VALUE, Short.MAX_VALUE);
+        test(Value.BIGINT, Long.MIN_VALUE, Long.MAX_VALUE);
+        test(Value.SMALLINT, Short.MIN_VALUE, Short.MAX_VALUE);
     }
 
     private void test(int type, long minValue, long maxValue) {

@@ -1989,8 +1989,8 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             int id = getNextId(TraceObject.RESULT_SET);
             return new JdbcResultSet(this, null, null, ((ValueResultSet) v).getResult(), id, false, true, false);
         }
-        case Value.BYTE:
-        case Value.SHORT:
+        case Value.TINYINT:
+        case Value.SMALLINT:
             if (!SysProperties.OLD_RESULT_SET_GET_OBJECT) {
                 return v.getInt();
             }

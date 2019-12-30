@@ -266,7 +266,7 @@ public class JdbcArray extends TraceObject implements Array {
         } else {
             array = null;
         }
-        rs.addColumn("INDEX", "INDEX", TypeInfo.TYPE_LONG);
+        rs.addColumn("INDEX", "INDEX", TypeInfo.TYPE_BIGINT);
         rs.addColumn("VALUE", "VALUE", array != null ? array.getComponentType() : TypeInfo.TYPE_NULL);
         if (array != null) {
             Value[] values = array.getList();

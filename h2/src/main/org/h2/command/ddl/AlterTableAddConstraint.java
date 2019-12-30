@@ -209,6 +209,30 @@ public class AlterTableAddConstraint extends SchemaCommand {
             if (refIndexColumns.length != columnCount) {
                 throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
             }
+            for (IndexColumn indexColumn : refIndexColumns) {
+                Column column = indexColumn.column;
+                if (column.getGenerated()) {
+                    switch (deleteAction) {
+                    case SET_DEFAULT:
+                    case SET_NULL:
+                        throw DbException.get(ErrorCode.GENERATED_COLUMN_CANNOT_BE_UPDATABLE_BY_CONSTRAINT_2,
+                                column.getSQLWithTable(new StringBuilder(), false).toString(),
+                                "ON DELETE " + deleteAction.getSqlName());
+                    default:
+                        // All other actions are allowed
+                    }
+                    switch (updateAction) {
+                    case CASCADE:
+                    case SET_DEFAULT:
+                    case SET_NULL:
+                        throw DbException.get(ErrorCode.GENERATED_COLUMN_CANNOT_BE_UPDATABLE_BY_CONSTRAINT_2,
+                                column.getSQLWithTable(new StringBuilder(), false).toString(),
+                                "ON UPDATE " + updateAction.getSqlName());
+                    default:
+                        // All other actions are allowed
+                    }
+                }
+            }
             for (int i = 0; i < columnCount; i++) {
                 Column column1 = indexColumns[i].column, column2 = refIndexColumns[i].column;
                 if (!DataType.areStableComparable(column1.getType(), column2.getType())) {

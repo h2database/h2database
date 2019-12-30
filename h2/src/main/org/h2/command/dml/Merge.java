@@ -17,6 +17,7 @@ import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
 import org.h2.expression.Expression;
 import org.h2.expression.Parameter;
+import org.h2.expression.ValueExpression;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mvstore.db.MVPrimaryIndex;
@@ -27,6 +28,7 @@ import org.h2.table.Column;
 import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.Table;
 import org.h2.value.Value;
+import org.h2.value.ValueNull;
 
 /**
  * This class represents the statement
@@ -105,8 +107,7 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
                     Column c = columns[i];
                     int index = c.getColumnId();
                     Expression e = expr[i];
-                    if (e != null) {
-                        // e can be null (DEFAULT)
+                    if (e != ValueExpression.DEFAULT) {
                         try {
                             newRow.setValue(index, e.getValue(session));
                         } catch (DbException ex) {
@@ -114,7 +115,7 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
                         }
                     }
                 }
-                count += merge(newRow);
+                count += merge(newRow, expr);
             }
         } else {
             // process select data for list
@@ -129,7 +130,7 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
                 for (int j = 0; j < columns.length; j++) {
                     newRow.setValue(columns[j].getColumnId(), r[j]);
                 }
-                count += merge(newRow);
+                count += merge(newRow, null);
             }
             rows.close();
             table.fire(session, Trigger.UPDATE | Trigger.INSERT, false);
@@ -141,10 +142,11 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
      * Updates an existing row or inserts a new one.
      *
      * @param row row to replace
+     * @param expressions source expressions, or null
      * @return 1 if row was inserted, 1 if row was updated by a MERGE statement,
      *         and 2 if row was updated by a REPLACE statement
      */
-    private int merge(Row row) {
+    private int merge(Row row, Expression[] expressions) {
         int count;
         if (update == null) {
             // if there is no valid primary key,
@@ -152,20 +154,29 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
             count = 0;
         } else {
             ArrayList<Parameter> k = update.getParameters();
-            for (int i = 0; i < columns.length; i++) {
+            int j = 0;
+            for (int i = 0, l = columns.length; i < l; i++) {
                 Column col = columns[i];
-                Value v = row.getValue(col.getColumnId());
-                Parameter p = k.get(i);
-                p.setValue(v);
+                if (col.getGenerated()) {
+                    if (expressions == null || expressions[i] != ValueExpression.DEFAULT) {
+                        throw DbException.get(ErrorCode.GENERATED_COLUMN_CANNOT_BE_ASSIGNED_1,
+                                col.getSQLWithTable(new StringBuilder(), false).toString());
+                    }
+                } else {
+                    Value v = row.getValue(col.getColumnId());
+                    if (v == null) {
+                        Expression defaultExpression = col.getDefaultExpression();
+                        v = defaultExpression != null ? defaultExpression.getValue(session) : ValueNull.INSTANCE;
+                    }
+                    k.get(j++).setValue(v);
+                }
             }
-            for (int i = 0; i < keys.length; i++) {
-                Column col = keys[i];
+            for (Column col : keys) {
                 Value v = row.getValue(col.getColumnId());
                 if (v == null) {
                     throw DbException.get(ErrorCode.COLUMN_CONTAINS_NULL_VALUES_1, col.getSQL(false));
                 }
-                Parameter p = k.get(columns.length + i);
-                p.setValue(v);
+                k.get(j++).setValue(v);
             }
             count = update.update();
         }
@@ -307,10 +318,19 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
                 }
             }
         }
-        StringBuilder builder = new StringBuilder("UPDATE ");
-        table.getSQL(builder, true).append(" SET ");
-        Column.writeColumns(builder, columns, ", ", "=?", true).append(" WHERE ");
-        Column.writeColumns(builder, keys, " AND ", "=?", true);
+        StringBuilder builder = table.getSQL(new StringBuilder("UPDATE "), true).append(" SET ");
+        boolean hasColumn = false;
+        for (int i = 0, l = columns.length; i < l; i++) {
+            Column column = columns[i];
+            if (!column.getGenerated()) {
+                if (hasColumn) {
+                    builder.append(", ");
+                }
+                hasColumn = true;
+                column.getSQL(builder, true).append("=?");
+            }
+        }
+        Column.writeColumns(builder.append(" WHERE "), keys, " AND ", "=?", true);
         update = (Update) session.prepare(builder.toString());
     }
 

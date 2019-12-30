@@ -24,7 +24,7 @@ public class ValueStringIgnoreCase extends ValueString {
 
     @Override
     public int getValueType() {
-        return STRING_IGNORECASE;
+        return VARCHAR_IGNORECASE;
     }
 
     @Override

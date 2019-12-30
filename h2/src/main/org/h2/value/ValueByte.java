@@ -95,12 +95,12 @@ public class ValueByte extends Value {
 
     @Override
     public TypeInfo getType() {
-        return TypeInfo.TYPE_BYTE;
+        return TypeInfo.TYPE_TINYINT;
     }
 
     @Override
     public int getValueType() {
-        return BYTE;
+        return TINYINT;
     }
 
     @Override

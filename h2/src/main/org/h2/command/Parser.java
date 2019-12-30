@@ -1923,11 +1923,11 @@ public class Parser {
             if (multiColumn) {
                 if (!readIf(CLOSE_PAREN)) {
                     do {
-                        values.add(readIf("DEFAULT") ? null : readExpression());
+                        values.add(readExpressionOrDefault());
                     } while (readIfMore());
                 }
             } else {
-                values.add(readIf("DEFAULT") ? null : readExpression());
+                values.add(readExpressionOrDefault());
             }
             command.addRow(values.toArray(new Expression[0]));
         } while (readIf(COMMA));
@@ -3218,7 +3218,7 @@ public class Parser {
                 r = new CompareLike(database, r, b, esc, false);
             } else if (readIf("ILIKE")) {
                 Function function = Function.getFunctionWithArgs(database, Function.CAST, r);
-                function.setDataType(TypeInfo.TYPE_STRING_IGNORECASE);
+                function.setDataType(TypeInfo.TYPE_VARCHAR_IGNORECASE);
                 r = function;
                 Expression b = readConcat();
                 Expression esc = null;
@@ -3397,14 +3397,14 @@ public class Parser {
             } else if (readIf(TILDE)) {
                 if (readIf(ASTERISK)) {
                     Function function = Function.getFunctionWithArgs(database, Function.CAST, r);
-                    function.setDataType(TypeInfo.TYPE_STRING_IGNORECASE);
+                    function.setDataType(TypeInfo.TYPE_VARCHAR_IGNORECASE);
                     r = function;
                 }
                 r = new CompareLike(database, r, readSum(), null, true);
             } else if (readIf(NOT_TILDE)) {
                 if (readIf(ASTERISK)) {
                     Function function = Function.getFunctionWithArgs(database, Function.CAST, r);
-                    function.setDataType(TypeInfo.TYPE_STRING_IGNORECASE);
+                    function.setDataType(TypeInfo.TYPE_VARCHAR_IGNORECASE);
                     r = function;
                 }
                 r = new ConditionNot(new CompareLike(database, r, readSum(), null, true));
@@ -3892,7 +3892,7 @@ public class Parser {
         case Function.DATEADD:
         case Function.DATEDIFF: {
             if (currentTokenType == LITERAL) {
-                function.addParameter(ValueExpression.get(currentValue.convertTo(Value.STRING)));
+                function.addParameter(ValueExpression.get(currentValue.convertTo(Value.VARCHAR)));
             } else {
                 function.addParameter(ValueExpression.get(ValueString.get(currentToken)));
             }
@@ -4412,12 +4412,12 @@ public class Parser {
             if (currentTokenType == LITERAL) {
                 r = ValueExpression.get(currentValue.negate());
                 int rType = r.getType().getValueType();
-                if (rType == Value.LONG &&
+                if (rType == Value.BIGINT &&
                         r.getValue(session).getLong() == Integer.MIN_VALUE) {
                     // convert Integer.MIN_VALUE to type 'int'
                     // (Integer.MAX_VALUE+1 is of type 'long')
                     r = ValueExpression.get(ValueInt.get(Integer.MIN_VALUE));
-                } else if (rType == Value.DECIMAL &&
+                } else if (rType == Value.NUMERIC &&
                         r.getValue(session).getBigDecimal().compareTo(Value.MIN_LONG_DECIMAL) == 0) {
                     // convert Long.MIN_VALUE to type 'long'
                     // (Long.MAX_VALUE+1 is of type 'decimal')
@@ -4520,7 +4520,7 @@ public class Parser {
             r = new ExpressionColumn(database, null, null, Column.ROWID, true);
             break;
         case LITERAL:
-            if (currentValue.getValueType() == Value.STRING) {
+            if (currentValue.getValueType() == Value.VARCHAR) {
                 r = ValueExpression.get(readCharacterStringLiteral());
             } else {
                 r = ValueExpression.get(currentValue);
@@ -4704,7 +4704,7 @@ public class Parser {
             }
             break;
         case 'D':
-            if (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING &&
+            if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR &&
                     (equalsToken("DATE", name) || equalsToken("D", name))) {
                 String date = currentValue.getString();
                 read();
@@ -4712,7 +4712,8 @@ public class Parser {
             }
             break;
         case 'E':
-            if (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING && equalsToken("E", name)) {
+            if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR //
+                    && equalsToken("E", name)) {
                 String text = currentValue.getString();
                 // the PostgreSQL ODBC driver uses
                 // LIKE E'PROJECT\\_DATA' instead of LIKE
@@ -4725,13 +4726,13 @@ public class Parser {
             break;
         case 'J':
             if (currentTokenType == LITERAL ) {
-                if (currentValue.getValueType() == Value.STRING && equalsToken("JSON", name)) {
+                if (currentValue.getValueType() == Value.VARCHAR && equalsToken("JSON", name)) {
                     return ValueExpression.get(ValueJson.fromJson(readCharacterStringLiteral().getString()));
                 }
             } else if (currentTokenType == IDENTIFIER && equalsToken("JSON", name) && equalsToken("X", currentToken)) {
                 int index = lastParseIndex;
                 read();
-                if (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING) {
+                if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR) {
                     return ValueExpression.get(ValueJson.fromJson(readBinaryLiteral()));
                 } else {
                     parseIndex = index;
@@ -4747,7 +4748,7 @@ public class Parser {
                 }
                 parseIndex = index;
                 read();
-            } else if (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING
+            } else if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR
                     && equalsToken("N", name)) {
                 // National character string literal
                 return ValueExpression.get(readCharacterStringLiteral());
@@ -4767,7 +4768,7 @@ public class Parser {
                 if (readIf(WITH)) {
                     read("TIME");
                     read("ZONE");
-                    if (currentTokenType != LITERAL || currentValue.getValueType() != Value.STRING) {
+                    if (currentTokenType != LITERAL || currentValue.getValueType() != Value.VARCHAR) {
                         throw getSyntaxError();
                     }
                     String time = currentValue.getString();
@@ -4779,7 +4780,7 @@ public class Parser {
                         read("TIME");
                         read("ZONE");
                     }
-                    if (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING) {
+                    if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR) {
                         String time = currentValue.getString();
                         read();
                         return ValueExpression.get(ValueTime.parse(time));
@@ -4791,7 +4792,7 @@ public class Parser {
                 if (readIf(WITH)) {
                     read("TIME");
                     read("ZONE");
-                    if (currentTokenType != LITERAL || currentValue.getValueType() != Value.STRING) {
+                    if (currentTokenType != LITERAL || currentValue.getValueType() != Value.VARCHAR) {
                         throw getSyntaxError();
                     }
                     String timestamp = currentValue.getString();
@@ -4803,7 +4804,7 @@ public class Parser {
                         read("TIME");
                         read("ZONE");
                     }
-                    if (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING) {
+                    if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR) {
                         String timestamp = currentValue.getString();
                         read();
                         return ValueExpression.get(ValueTimestamp.parse(timestamp, session));
@@ -4813,7 +4814,7 @@ public class Parser {
                 }
             } else if (equalsToken("TODAY", name)) {
                 return readFunctionWithoutParameters(Function.CURRENT_DATE);
-            } else if (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING) {
+            } else if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR) {
                 if (equalsToken("T", name)) {
                     String time = currentValue.getString();
                     read();
@@ -4826,7 +4827,8 @@ public class Parser {
             }
             break;
         case 'X':
-            if (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING && equalsToken("X", name)) {
+            if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR //
+                    && equalsToken("X", name)) {
                 return ValueExpression.get(ValueBytes.getNoCopy(readBinaryLiteral()));
             }
             break;
@@ -4839,19 +4841,19 @@ public class Parser {
         do {
             baos = StringUtils.convertHexWithSpacesToBytes(baos, currentValue.getString());
             read();
-        } while (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING);
+        } while (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR);
         return baos.toByteArray();
     }
 
     private Value readCharacterStringLiteral() {
         Value value = currentValue;
         read();
-        if (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING) {
+        if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR) {
             StringBuilder builder = new StringBuilder(value.getString());
             do {
                 builder.append(currentValue.getString());
                 read();
-            } while (currentTokenType == LITERAL && currentValue.getValueType() == Value.STRING);
+            } while (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR);
             return ValueString.get(builder.toString());
         }
         return value;
@@ -4862,7 +4864,7 @@ public class Parser {
         if (!negative) {
             readIf(PLUS_SIGN);
         }
-        if (currentTokenType != LITERAL || currentValue.getValueType() != Value.STRING) {
+        if (currentTokenType != LITERAL || currentValue.getValueType() != Value.VARCHAR) {
             addExpected("string");
             throw getSyntaxError();
         }
@@ -5861,7 +5863,7 @@ public class Parser {
                 throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1,
                         currentToken);
             }
-            column = new Column(columnName, TypeInfo.TYPE_LONG, "IDENTITY");
+            column = new Column(columnName, TypeInfo.TYPE_BIGINT, "IDENTITY");
             parseAutoIncrement(column);
             // PostgreSQL compatibility
             if (!database.getMode().serialColumnIsNotPK) {
@@ -5898,7 +5900,7 @@ public class Parser {
                     "Internal Error - unhandled case: " + nullConstraint.name());
         }
         if (!isIdentity && readIf(AS)) {
-            column.setComputedExpression(readExpression());
+            column.setGeneratedExpression(readExpression());
         } else if (readIf("DEFAULT")) {
             column.setDefaultExpression(session, readExpression());
         } else if (readIf("GENERATED")) {
@@ -5918,7 +5920,7 @@ public class Parser {
             } else if (!always || isIdentity) {
                 throw getSyntaxError();
             } else {
-                column.setComputedExpression(readExpression());
+                column.setGeneratedExpression(readExpression());
             }
         }
         if (readIf(ON)) {
@@ -6108,9 +6110,9 @@ public class Parser {
         long precision = dataType.defaultPrecision;
         int scale = dataType.defaultScale;
         int t = dataType.type;
-        if (database.getIgnoreCase() && t == Value.STRING && !equalsToken("VARCHAR_CASESENSITIVE", original)) {
+        if (database.getIgnoreCase() && t == Value.VARCHAR && !equalsToken("VARCHAR_CASESENSITIVE", original)) {
             original = "VARCHAR_IGNORECASE";
-            dataType = DataType.getDataType(t = Value.STRING_IGNORECASE);
+            dataType = DataType.getDataType(t = Value.VARCHAR_IGNORECASE);
         }
         if ((dataType.supportsPrecision || dataType.supportsScale) && readIf(OPEN_PAREN)) {
             if (!readIf("MAX")) {
@@ -6156,7 +6158,7 @@ public class Parser {
             if (readIf(FOR)) {
                 read("BIT");
                 read("DATA");
-                dataType = DataType.getDataType(t = Value.BYTES);
+                dataType = DataType.getDataType(t = Value.VARBINARY);
             }
         }
         return new Column(columnName, TypeInfo.getTypeInfo(t, precision, scale, null), original);
@@ -6187,7 +6189,7 @@ public class Parser {
                 throw DbException.get(ErrorCode.INVALID_VALUE_PRECISION, Integer.toString(precision), "1", "53");
             }
             if (precision <= 24) {
-                type = Value.FLOAT;
+                type = Value.REAL;
             }
         }
         return new Column(columnName, TypeInfo.getTypeInfo(type, -1, -1, null),
@@ -6758,7 +6760,7 @@ public class Parser {
                 String columnName = "C" + (i + 1);
                 if (rows.isEmpty()) {
                     if (type.getValueType() == Value.UNKNOWN) {
-                        type = TypeInfo.TYPE_STRING;
+                        type = TypeInfo.TYPE_VARCHAR;
                     }
                     column = new Column(columnName, type);
                     columns.add(column);
@@ -6784,7 +6786,7 @@ public class Parser {
         for (int i = 0; i < columnCount; i++) {
             Column c = columns.get(i);
             if (c.getType().getValueType() == Value.UNKNOWN) {
-                c = new Column(c.getName(), Value.STRING);
+                c = new Column(c.getName(), Value.VARCHAR);
                 columns.set(i, c);
             }
         }
@@ -7164,7 +7166,7 @@ public class Parser {
             for (String c : cols) {
                 // we don't really know the type of the column, so STRING will
                 // have to do, UNKNOWN does not work here
-                columns.add(new Column(c, Value.STRING));
+                columns.add(new Column(c, Value.VARCHAR));
             }
         }
 

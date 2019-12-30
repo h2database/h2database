@@ -465,13 +465,13 @@ public class Comparison extends Condition {
         if (addIndex) {
             if (l != null) {
                 int rType = right.getType().getValueType();
-                if (l.getType().getValueType() == rType || rType != Value.STRING_IGNORECASE) {
+                if (l.getType().getValueType() == rType || rType != Value.VARCHAR_IGNORECASE) {
                     filter.addIndexCondition(
                             IndexCondition.get(compareType, l, right));
                 }
             } else if (r != null) {
                 int lType = left.getType().getValueType();
-                if (r.getType().getValueType() == lType || lType != Value.STRING_IGNORECASE) {
+                if (r.getType().getValueType() == lType || lType != Value.VARCHAR_IGNORECASE) {
                     int compareRev = getReversedCompareType(compareType);
                     filter.addIndexCondition(
                             IndexCondition.get(compareRev, r, left));

@@ -33,49 +33,49 @@ public class TypeInfo {
     public static final TypeInfo TYPE_BOOLEAN;
 
     /**
-     * BYTE type with parameters.
+     * TINYINT type with parameters.
      */
-    public static final TypeInfo TYPE_BYTE;
+    public static final TypeInfo TYPE_TINYINT;
 
     /**
-     * SHORT type with parameters.
+     * SMALLINT type with parameters.
      */
-    public static final TypeInfo TYPE_SHORT;
+    public static final TypeInfo TYPE_SMALLINT;
 
     /**
-     * INT type with parameters.
+     * INTEGER type with parameters.
      */
     public static final TypeInfo TYPE_INT;
 
     /**
-     * LONG type with parameters.
+     * BIGINT type with parameters.
      */
-    public static final TypeInfo TYPE_LONG;
+    public static final TypeInfo TYPE_BIGINT;
 
     /**
-     * DECIMAL type with maximum parameters.
+     * NUMERIC type with maximum parameters.
      */
-    public static final TypeInfo TYPE_DECIMAL;
+    public static final TypeInfo TYPE_NUMERIC;
 
     /**
-     * DECIMAL type with parameters enough to hold a BIGINT value.
+     * NUMERIC type with parameters enough to hold a BIGINT value.
      */
-    public static final TypeInfo TYPE_DECIMAL_LONG;
+    public static final TypeInfo TYPE_NUMERIC_BIGINT;
 
     /**
-     * DECIMAL type that can hold values with floating point.
+     * NUMERIC type that can hold values with floating point.
      */
-    public static final TypeInfo TYPE_DECIMAL_FLOATING_POINT;
+    public static final TypeInfo TYPE_NUMERIC_FLOATING_POINT;
 
     /**
-     * DOUBLE type with parameters.
+     * DOUBLE PRECISION type with parameters.
      */
     public static final TypeInfo TYPE_DOUBLE;
 
     /**
-     * FLOAT type with parameters.
+     * REAL type with parameters.
      */
-    public static final TypeInfo TYPE_FLOAT;
+    public static final TypeInfo TYPE_REAL;
 
     /**
      * TIME type with maximum parameters.
@@ -93,19 +93,19 @@ public class TypeInfo {
     public static final TypeInfo TYPE_TIMESTAMP;
 
     /**
-     * BYTES type with maximum parameters.
+     * BINARY VARYING type with maximum parameters.
      */
-    public static final TypeInfo TYPE_BYTES;
+    public static final TypeInfo TYPE_VARBINARY;
 
     /**
-     * STRING type with maximum parameters.
+     * CHARACTER VARYING type with maximum parameters.
      */
-    public static final TypeInfo TYPE_STRING;
+    public static final TypeInfo TYPE_VARCHAR;
 
     /**
-     * STRING_IGNORECASE type with maximum parameters.
+     * VARCHAR_IGNORECASE type with maximum parameters.
      */
-    public static final TypeInfo TYPE_STRING_IGNORECASE;
+    public static final TypeInfo TYPE_VARCHAR_IGNORECASE;
 
     /**
      * ARRAY type with maximum parameters.
@@ -190,28 +190,32 @@ public class TypeInfo {
         infos[Value.NULL] = TYPE_NULL = new TypeInfo(Value.NULL, ValueNull.PRECISION, 0, ValueNull.DISPLAY_SIZE, null);
         infos[Value.BOOLEAN] = TYPE_BOOLEAN = new TypeInfo(Value.BOOLEAN, ValueBoolean.PRECISION, 0,
                 ValueBoolean.DISPLAY_SIZE, null);
-        infos[Value.BYTE] = TYPE_BYTE = new TypeInfo(Value.BYTE, ValueByte.PRECISION, 0, ValueByte.DISPLAY_SIZE, null);
-        infos[Value.SHORT] = TYPE_SHORT = new TypeInfo(Value.SHORT, ValueShort.PRECISION, 0, ValueShort.DISPLAY_SIZE,
-                null);
+        infos[Value.TINYINT] = TYPE_TINYINT = new TypeInfo(Value.TINYINT, ValueByte.PRECISION, 0,
+                ValueByte.DISPLAY_SIZE, null);
+        infos[Value.SMALLINT] = TYPE_SMALLINT = new TypeInfo(Value.SMALLINT, ValueShort.PRECISION, 0,
+                ValueShort.DISPLAY_SIZE, null);
         infos[Value.INT] = TYPE_INT = new TypeInfo(Value.INT, ValueInt.PRECISION, 0, ValueInt.DISPLAY_SIZE, null);
-        infos[Value.LONG] = TYPE_LONG = new TypeInfo(Value.LONG, ValueLong.PRECISION, 0, ValueLong.DISPLAY_SIZE, null);
-        infos[Value.DECIMAL] = TYPE_DECIMAL = new TypeInfo(Value.DECIMAL, Integer.MAX_VALUE, //
+        infos[Value.BIGINT] = TYPE_BIGINT = new TypeInfo(Value.BIGINT, ValueLong.PRECISION, 0, ValueLong.DISPLAY_SIZE,
+                null);
+        infos[Value.NUMERIC] = TYPE_NUMERIC = new TypeInfo(Value.NUMERIC, Integer.MAX_VALUE, //
                 ValueDecimal.MAXIMUM_SCALE, Integer.MAX_VALUE, null);
-        TYPE_DECIMAL_LONG = new TypeInfo(Value.DECIMAL, ValueLong.PRECISION, 0, ValueLong.DISPLAY_SIZE, null);
-        TYPE_DECIMAL_FLOATING_POINT = new TypeInfo(Value.DECIMAL, ValueDecimal.DEFAULT_PRECISION,
+        TYPE_NUMERIC_BIGINT = new TypeInfo(Value.NUMERIC, ValueLong.PRECISION, 0, ValueLong.DISPLAY_SIZE, null);
+        TYPE_NUMERIC_FLOATING_POINT = new TypeInfo(Value.NUMERIC, ValueDecimal.DEFAULT_PRECISION,
                 ValueDecimal.DEFAULT_PRECISION / 2, ValueDecimal.DEFAULT_PRECISION + 2, null);
         infos[Value.DOUBLE] = TYPE_DOUBLE = new TypeInfo(Value.DOUBLE, ValueDouble.PRECISION, 0,
                 ValueDouble.DISPLAY_SIZE, null);
-        infos[Value.FLOAT] = TYPE_FLOAT = new TypeInfo(Value.FLOAT, ValueFloat.PRECISION, 0, ValueFloat.DISPLAY_SIZE,
+        infos[Value.REAL] = TYPE_REAL = new TypeInfo(Value.REAL, ValueFloat.PRECISION, 0, ValueFloat.DISPLAY_SIZE,
                 null);
         infos[Value.TIME] = TYPE_TIME = new TypeInfo(Value.TIME, ValueTime.MAXIMUM_PRECISION, ValueTime.MAXIMUM_SCALE,
                 ValueTime.MAXIMUM_PRECISION, null);
         infos[Value.DATE] = TYPE_DATE = new TypeInfo(Value.DATE, ValueDate.PRECISION, 0, ValueDate.PRECISION, null);
         infos[Value.TIMESTAMP] = TYPE_TIMESTAMP = new TypeInfo(Value.TIMESTAMP, ValueTimestamp.MAXIMUM_PRECISION,
                 ValueTimestamp.MAXIMUM_SCALE, ValueTimestamp.MAXIMUM_PRECISION, null);
-        infos[Value.BYTES] = TYPE_BYTES = new TypeInfo(Value.BYTES, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
-        infos[Value.STRING] = TYPE_STRING = new TypeInfo(Value.STRING, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
-        infos[Value.STRING_IGNORECASE] = TYPE_STRING_IGNORECASE = new TypeInfo(Value.STRING_IGNORECASE,
+        infos[Value.VARBINARY] = TYPE_VARBINARY = new TypeInfo(Value.VARBINARY, Integer.MAX_VALUE, 0,
+                Integer.MAX_VALUE, null);
+        infos[Value.VARCHAR] = TYPE_VARCHAR = new TypeInfo(Value.VARCHAR, Integer.MAX_VALUE, 0, Integer.MAX_VALUE,
+                null);
+        infos[Value.VARCHAR_IGNORECASE] = TYPE_VARCHAR_IGNORECASE = new TypeInfo(Value.VARCHAR_IGNORECASE,
                 Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
         infos[Value.BLOB] = new TypeInfo(Value.BLOB, Long.MAX_VALUE, 0, Integer.MAX_VALUE, null);
         infos[Value.CLOB] = new TypeInfo(Value.CLOB, Long.MAX_VALUE, 0, Integer.MAX_VALUE, null);
@@ -221,8 +225,7 @@ public class TypeInfo {
         infos[Value.JAVA_OBJECT] = TYPE_JAVA_OBJECT = new TypeInfo(Value.JAVA_OBJECT, Integer.MAX_VALUE, 0,
                 Integer.MAX_VALUE, null);
         infos[Value.UUID] = TYPE_UUID = new TypeInfo(Value.UUID, ValueUuid.PRECISION, 0, ValueUuid.DISPLAY_SIZE, null);
-        infos[Value.STRING_FIXED] = new TypeInfo(Value.STRING_FIXED, Integer.MAX_VALUE, 0, Integer.MAX_VALUE,
-                null);
+        infos[Value.CHAR] = new TypeInfo(Value.CHAR, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null);
         infos[Value.GEOMETRY] = TYPE_GEOMETRY = new TypeInfo(Value.GEOMETRY, Integer.MAX_VALUE, 0, Integer.MAX_VALUE,
                 null);
         infos[Value.TIMESTAMP_TZ] = TYPE_TIMESTAMP_TZ = new TypeInfo(Value.TIMESTAMP_TZ,
@@ -287,12 +290,12 @@ public class TypeInfo {
         switch (type) {
         case Value.NULL:
         case Value.BOOLEAN:
-        case Value.BYTE:
-        case Value.SHORT:
+        case Value.TINYINT:
+        case Value.SMALLINT:
         case Value.INT:
-        case Value.LONG:
+        case Value.BIGINT:
         case Value.DOUBLE:
-        case Value.FLOAT:
+        case Value.REAL:
         case Value.DATE:
         case Value.RESULT_SET:
         case Value.JAVA_OBJECT:
@@ -302,13 +305,13 @@ public class TypeInfo {
             return TYPE_INFOS_BY_VALUE_TYPE[type];
         case Value.UNKNOWN:
             return TYPE_UNKNOWN;
-        case Value.DECIMAL:
+        case Value.NUMERIC:
             if (precision < 0) {
                 precision = ValueDecimal.DEFAULT_PRECISION;
             } else if (precision > Integer.MAX_VALUE) {
                 precision = Integer.MAX_VALUE;
             }
-            return new TypeInfo(Value.DECIMAL, precision, scale, MathUtils.convertLongToInt(precision + 2), null);
+            return new TypeInfo(Value.NUMERIC, precision, scale, MathUtils.convertLongToInt(precision + 2), null);
         case Value.TIME: {
             if (scale < 0 || scale >= ValueTime.MAXIMUM_SCALE) {
                 return TYPE_TIME;
@@ -337,21 +340,21 @@ public class TypeInfo {
             int d = scale == 0 ? 25 : 26 + scale;
             return new TypeInfo(Value.TIMESTAMP_TZ, d, scale, d, null);
         }
-        case Value.BYTES:
+        case Value.VARBINARY:
             if (precision < 0 || precision > Integer.MAX_VALUE) {
-                return TYPE_BYTES;
+                return TYPE_VARBINARY;
             }
-            return new TypeInfo(Value.BYTES, precision, 0, MathUtils.convertLongToInt(precision * 2), null);
-        case Value.STRING:
+            return new TypeInfo(Value.VARBINARY, precision, 0, MathUtils.convertLongToInt(precision * 2), null);
+        case Value.VARCHAR:
             if (precision < 0 || precision >= Integer.MAX_VALUE) {
-                return TYPE_STRING;
+                return TYPE_VARCHAR;
             }
-            return new TypeInfo(Value.STRING, precision, 0, (int) precision, null);
-        case Value.STRING_IGNORECASE:
+            return new TypeInfo(Value.VARCHAR, precision, 0, (int) precision, null);
+        case Value.VARCHAR_IGNORECASE:
             if (precision < 0 || precision >= Integer.MAX_VALUE) {
-                return TYPE_STRING_IGNORECASE;
+                return TYPE_VARCHAR_IGNORECASE;
             }
-            return new TypeInfo(Value.STRING_IGNORECASE, precision, 0, (int) precision, null);
+            return new TypeInfo(Value.VARCHAR_IGNORECASE, precision, 0, (int) precision, null);
         case Value.BLOB:
         case Value.CLOB:
             if (precision < 0) {
@@ -366,11 +369,11 @@ public class TypeInfo {
                 precision = Integer.MAX_VALUE;
             }
             return new TypeInfo(Value.ARRAY, precision, 0, Integer.MAX_VALUE, extTypeInfo);
-        case Value.STRING_FIXED:
+        case Value.CHAR:
             if (precision < 0 || precision > Integer.MAX_VALUE) {
                 precision = Integer.MAX_VALUE;
             }
-            return new TypeInfo(Value.STRING_FIXED, precision, 0, (int) precision, null);
+            return new TypeInfo(Value.CHAR, precision, 0, (int) precision, null);
         case Value.GEOMETRY:
             if (extTypeInfo instanceof ExtTypeInfoGeometry) {
                 return new TypeInfo(Value.GEOMETRY, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, extTypeInfo);
@@ -532,15 +535,15 @@ public class TypeInfo {
      */
     public StringBuilder getSQL(StringBuilder builder) {
         switch (valueType) {
-        case Value.DECIMAL:
+        case Value.NUMERIC:
             // Can be DECIMAL or NUMERIC
             builder.append(DataType.getDataType(valueType).name);
             builder.append('(').append(precision).append(", ").append(scale).append(')');
             break;
-        case Value.BYTES:
-        case Value.STRING:
-        case Value.STRING_IGNORECASE:
-        case Value.STRING_FIXED:
+        case Value.VARBINARY:
+        case Value.VARCHAR:
+        case Value.VARCHAR_IGNORECASE:
+        case Value.CHAR:
             builder.append(DataType.getDataType(valueType).name);
             if (precision < Integer.MAX_VALUE) {
                 builder.append('(').append(precision).append(')');
@@ -644,25 +647,25 @@ public class TypeInfo {
     public TypeInfo toNumericType() {
         switch (valueType) {
         case Value.BOOLEAN:
-        case Value.BYTE:
-        case Value.SHORT:
+        case Value.TINYINT:
+        case Value.SMALLINT:
         case Value.INT:
-            return getTypeInfo(Value.DECIMAL, precision, 0, null);
-        case Value.LONG:
-            return TYPE_DECIMAL_LONG;
-        case Value.DECIMAL:
+            return getTypeInfo(Value.NUMERIC, precision, 0, null);
+        case Value.BIGINT:
+            return TYPE_NUMERIC_BIGINT;
+        case Value.NUMERIC:
             return this;
-        case Value.FLOAT:
+        case Value.REAL:
             // Smallest REAL value is 1.4E-45 with precision 2 and scale 46
             // Largest REAL value is 3.4028235E+38 with precision 8 and scale -31
-            return getTypeInfo(Value.DECIMAL, 85, 46, null);
+            return getTypeInfo(Value.NUMERIC, 85, 46, null);
         case Value.DOUBLE:
             // Smallest DOUBLE value is 4.9E-324 with precision 2 and scale 325
             // Largest DOUBLE value is 1.7976931348623157E+308 with precision 17
             // and scale -292
-            return getTypeInfo(Value.DECIMAL, 634, 325, null);
+            return getTypeInfo(Value.NUMERIC, 634, 325, null);
         default:
-            return TYPE_DECIMAL_FLOATING_POINT;
+            return TYPE_NUMERIC_FLOATING_POINT;
         }
     }
 

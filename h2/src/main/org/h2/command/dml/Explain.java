@@ -70,7 +70,7 @@ public class Explain extends Prepared {
 
     @Override
     public ResultInterface query(int maxrows) {
-        Column column = new Column("PLAN", Value.STRING);
+        Column column = new Column("PLAN", Value.VARCHAR);
         Database db = session.getDatabase();
         ExpressionColumn expr = new ExpressionColumn(db, column);
         Expression[] expressions = { expr };

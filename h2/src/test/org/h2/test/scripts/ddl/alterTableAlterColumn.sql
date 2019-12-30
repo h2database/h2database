@@ -197,16 +197,7 @@ create table test(id int, name varchar);
 > ok
 
 alter table test alter column id int as id+1;
-> ok
-
-insert into test values(1, 'Hello');
-> update count: 1
-
-update test set name='World';
-> update count: 1
-
-select id from test;
->> 3
+> exception COLUMN_NOT_FOUND_1
 
 drop table test;
 > ok

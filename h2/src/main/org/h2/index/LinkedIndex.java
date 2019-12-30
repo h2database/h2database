@@ -136,7 +136,7 @@ public class LinkedIndex extends BaseIndex {
 
     private void addParameter(StringBuilder builder, Column col) {
         TypeInfo type = col.getType();
-        if (type.getValueType() == Value.STRING_FIXED && link.isOracle()) {
+        if (type.getValueType() == Value.CHAR && link.isOracle()) {
             // workaround for Oracle
             // create table test(id int primary key, name char(15));
             // insert into test values(1, 'Hello')

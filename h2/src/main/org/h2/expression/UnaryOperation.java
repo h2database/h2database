@@ -48,7 +48,7 @@ public class UnaryOperation extends Expression {
         arg = arg.optimize(session);
         type = arg.getType();
         if (type.getValueType() == Value.UNKNOWN) {
-            type = TypeInfo.TYPE_DECIMAL_FLOATING_POINT;
+            type = TypeInfo.TYPE_NUMERIC_FLOATING_POINT;
         } else if (type.getValueType() == Value.ENUM) {
             type = TypeInfo.TYPE_INT;
         }

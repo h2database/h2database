@@ -2137,7 +2137,30 @@ public class ErrorCode {
      */
     public static final int UNCOMPARABLE_REFERENCED_COLUMN_2 = 90153;
 
-    // next is 90154
+    /**
+     * The error with code <code>90154</code> is thrown when trying to assign a
+     * value to a generated column.
+     *
+     * <pre>
+     * CREATE TABLE TEST(A INT, B INT GENERATED ALWAYS AS (A + 1));
+     * INSERT INTO TEST(A, B) VALUES (1, 1);
+     * </pre>
+     */
+    public static final int GENERATED_COLUMN_CANNOT_BE_ASSIGNED_1 = 90154;
+
+    /**
+     * The error with code <code>90155</code> is thrown when trying to create a
+     * referential constraint that can update a referenced generated column.
+     *
+     * <pre>
+     * CREATE TABLE PARENT(ID INT PRIMARY KEY, K INT GENERATED ALWAYS AS (ID) UNIQUE);
+     * CREATE TABLE CHILD(ID INT PRIMARY KEY, P INT);
+     * ALTER TABLE CHILD ADD FOREIGN KEY(P) REFERENCES PARENT(K) ON DELETE SET NULL;
+     * </pre>
+     */
+    public static final int GENERATED_COLUMN_CANNOT_BE_UPDATABLE_BY_CONSTRAINT_2 = 90155;
+
+    // next is 90156
 
     private ErrorCode() {
         // utility class

@@ -139,7 +139,7 @@ public class ValueDecimal extends Value {
         TypeInfo type = this.type;
         if (type == null) {
             long precision = value.precision();
-            this.type = type = new TypeInfo(DECIMAL, precision, value.scale(),
+            this.type = type = new TypeInfo(NUMERIC, precision, value.scale(),
                     // add 2 characters for '-' and '.'
                     MathUtils.convertLongToInt(precision + 2), null);
         }
@@ -148,7 +148,7 @@ public class ValueDecimal extends Value {
 
     @Override
     public int getValueType() {
-        return DECIMAL;
+        return NUMERIC;
     }
 
     @Override

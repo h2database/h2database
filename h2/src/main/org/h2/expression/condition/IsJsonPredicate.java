@@ -86,7 +86,7 @@ public class IsJsonPredicate extends Condition {
         }
         boolean result;
         switch (l.getValueType()) {
-        case Value.BYTES:
+        case Value.VARBINARY:
         case Value.BLOB: {
             byte[] bytes = l.getBytesNoCopy();
             JSONValidationTarget target = withUniqueKeys ? new JSONValidationTargetWithUniqueKeys()
@@ -109,9 +109,9 @@ public class IsJsonPredicate extends Condition {
             }
         }
         //$FALL-THROUGH$
-        case Value.STRING:
-        case Value.STRING_IGNORECASE:
-        case Value.STRING_FIXED:
+        case Value.VARCHAR:
+        case Value.VARCHAR_IGNORECASE:
+        case Value.CHAR:
         case Value.CLOB: {
             String string = l.getString();
             JSONValidationTarget target = withUniqueKeys ? new JSONValidationTargetWithUniqueKeys()

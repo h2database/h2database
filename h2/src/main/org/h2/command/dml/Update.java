@@ -163,9 +163,9 @@ public class Update extends Prepared implements DataChangeStatement {
                             if (column.getOnUpdateExpression() != null) {
                                 setOnUpdate = true;
                             }
-                            newValue = oldRow.getValue(i);
+                            newValue = column.getGenerated() ? null : oldRow.getValue(i);
                         } else if (newExpr == ValueExpression.DEFAULT) {
-                            newValue = table.getDefaultValue(session, column);
+                            newValue = null;
                         } else {
                             newValue = newExpr.getValue(session);
                         }
@@ -187,11 +187,15 @@ public class Update extends Prepared implements DataChangeStatement {
                             for (int i = 0; i < columnCount; i++) {
                                 Column column = columns[i];
                                 if (setClauseMap.get(column) == null) {
-                                    if (column.getOnUpdateExpression() != null) {
-                                        newRow.setValue(i, table.getOnUpdateValue(session, column));
+                                    Expression onUpdate = column.getOnUpdateExpression();
+                                    if (onUpdate != null) {
+                                        newRow.setValue(i, onUpdate.getValue(session));
                                     }
                                 }
                             }
+                            // Convert on update expressions and reevaluate
+                            // generated columns
+                            table.validateConvertUpdateSequence(session, newRow);
                         } else if (updateToCurrentValuesReturnsZero) {
                             count--;
                         }

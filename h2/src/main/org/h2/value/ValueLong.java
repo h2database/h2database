@@ -153,12 +153,12 @@ public class ValueLong extends Value {
 
     @Override
     public TypeInfo getType() {
-        return TypeInfo.TYPE_LONG;
+        return TypeInfo.TYPE_BIGINT;
     }
 
     @Override
     public int getValueType() {
-        return LONG;
+        return BIGINT;
     }
 
     @Override

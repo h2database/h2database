@@ -96,10 +96,10 @@ public class IntervalOperation extends Expression {
      */
     private static final int INTERVAL_DAY_DIGITS = 32;
 
-    private static final TypeInfo INTERVAL_DIVIDE_INTERVAL_YEAR_TYPE = TypeInfo.getTypeInfo(Value.DECIMAL,
+    private static final TypeInfo INTERVAL_DIVIDE_INTERVAL_YEAR_TYPE = TypeInfo.getTypeInfo(Value.NUMERIC,
             INTERVAL_YEAR_DIGITS * 3, INTERVAL_YEAR_DIGITS * 2, null);
 
-    private static final TypeInfo INTERVAL_DIVIDE_INTERVAL_DAY_TYPE = TypeInfo.getTypeInfo(Value.DECIMAL,
+    private static final TypeInfo INTERVAL_DIVIDE_INTERVAL_DAY_TYPE = TypeInfo.getTypeInfo(Value.NUMERIC,
             INTERVAL_DAY_DIGITS * 3, INTERVAL_DAY_DIGITS * 2, null);
 
     private final IntervalOpType opType;

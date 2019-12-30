@@ -697,25 +697,12 @@ public class TableLink extends Table {
             if (value != null) {
                 // null means use the default value
                 Column column = columns[i];
-                Value v2 = column.validateConvertUpdateSequence(session, value);
+                Value v2 = column.validateConvertUpdateSequence(session, value, row);
                 if (v2 != value) {
                     row.setValue(i, v2);
                 }
             }
         }
-    }
-
-    /**
-     * Get or generate a default value for the given column. Default values are
-     * not set (kept as null).
-     *
-     * @param session the session
-     * @param column the column
-     * @return the value
-     */
-    @Override
-    public Value getDefaultValue(Session session, Column column) {
-        return null;
     }
 
 }

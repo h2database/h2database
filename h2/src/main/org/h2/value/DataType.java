@@ -198,22 +198,22 @@ public class DataType {
                 dataType,
                 new String[]{"NULL"}
         );
-        add(Value.STRING, Types.VARCHAR,
+        add(Value.VARCHAR, Types.VARCHAR,
                 createString(true),
                 new String[]{"VARCHAR", "CHARACTER VARYING", "CHAR VARYING",
                         "NCHAR VARYING", "NATIONAL CHARACTER VARYING", "NATIONAL CHAR VARYING",
                         "VARCHAR2", "NVARCHAR", "NVARCHAR2",
                         "VARCHAR_CASESENSITIVE", "TID"}
         );
-        add(Value.STRING, Types.LONGVARCHAR,
+        add(Value.VARCHAR, Types.LONGVARCHAR,
                 createString(true),
                 new String[]{"LONGVARCHAR", "LONGNVARCHAR"}
         );
-        add(Value.STRING_FIXED, Types.CHAR,
+        add(Value.CHAR, Types.CHAR,
                 createString(true),
                 new String[]{"CHAR", "CHARACTER", "NCHAR", "NATIONAL CHARACTER", "NATIONAL CHAR"}
         );
-        add(Value.STRING_IGNORECASE, Types.VARCHAR,
+        add(Value.VARCHAR_IGNORECASE, Types.VARCHAR,
                 createString(false),
                 new String[]{"VARCHAR_IGNORECASE"}
         );
@@ -221,11 +221,11 @@ public class DataType {
                 createNumeric(ValueBoolean.PRECISION, 0, false),
                 new String[]{"BOOLEAN", "BIT", "BOOL"}
         );
-        add(Value.BYTE, Types.TINYINT,
+        add(Value.TINYINT, Types.TINYINT,
                 createNumeric(ValueByte.PRECISION, 0, false),
                 new String[]{"TINYINT"}
         );
-        add(Value.SHORT, Types.SMALLINT,
+        add(Value.SMALLINT, Types.SMALLINT,
                 createNumeric(ValueShort.PRECISION, 0, false),
                 new String[]{"SMALLINT", "YEAR", "INT2"}
         );
@@ -237,11 +237,11 @@ public class DataType {
                 createNumeric(ValueInt.PRECISION, 0, true),
                 new String[]{"SERIAL"}
         );
-        add(Value.LONG, Types.BIGINT,
+        add(Value.BIGINT, Types.BIGINT,
                 createNumeric(ValueLong.PRECISION, 0, false),
                 new String[]{"BIGINT", "INT8", "LONG"}
         );
-        add(Value.LONG, Types.BIGINT,
+        add(Value.BIGINT, Types.BIGINT,
                 createNumeric(ValueLong.PRECISION, 0, true),
                 new String[]{"IDENTITY", "BIGSERIAL"}
         );
@@ -252,7 +252,7 @@ public class DataType {
             addNumeric();
             addDecimal();
         }
-        add(Value.FLOAT, Types.REAL,
+        add(Value.REAL, Types.REAL,
                 createNumeric(ValueFloat.PRECISION, 0, false),
                 new String[] {"REAL", "FLOAT4"}
         );
@@ -292,15 +292,15 @@ public class DataType {
                         ValueTimestamp.MAXIMUM_SCALE),
                 new String[]{"TIMESTAMP WITH TIME ZONE"}
         );
-        add(Value.BYTES, Types.VARBINARY,
+        add(Value.VARBINARY, Types.VARBINARY,
                 createBinary(),
                 new String[]{"VARBINARY", "BINARY VARYING"}
         );
-        add(Value.BYTES, Types.BINARY,
+        add(Value.VARBINARY, Types.BINARY,
                 createBinary(),
                 new String[]{"BINARY", "RAW", "BYTEA", "LONG RAW"}
         );
-        add(Value.BYTES, Types.LONGVARBINARY,
+        add(Value.VARBINARY, Types.LONGVARBINARY,
                 createBinary(),
                 new String[]{"LONGVARBINARY"}
         );
@@ -365,14 +365,14 @@ public class DataType {
     }
 
     private static void addDecimal() {
-        add(Value.DECIMAL, Types.DECIMAL,
+        add(Value.NUMERIC, Types.DECIMAL,
                 createNumeric(),
                 new String[]{"DECIMAL", "DEC"}
         );
     }
 
     private static void addNumeric() {
-        add(Value.DECIMAL, Types.NUMERIC,
+        add(Value.NUMERIC, Types.NUMERIC,
                 createNumeric(),
                 new String[]{"NUMERIC", "NUMBER"}
         );
@@ -562,7 +562,7 @@ public class DataType {
             case Value.NULL: {
                 return ValueNull.INSTANCE;
             }
-            case Value.BYTES: {
+            case Value.VARBINARY: {
                 /*
                  * Both BINARY and UUID may be mapped to Value.BYTES. getObject() returns byte[]
                  * for SQL BINARY, UUID for SQL UUID and null for SQL NULL.
@@ -593,7 +593,7 @@ public class DataType {
                 v = rs.wasNull() ? ValueNull.INSTANCE : ValueBoolean.get(value);
                 break;
             }
-            case Value.BYTE: {
+            case Value.TINYINT: {
                 byte value = rs.getByte(columnIndex);
                 v = rs.wasNull() ? ValueNull.INSTANCE : ValueByte.get(value);
                 break;
@@ -668,7 +668,7 @@ public class DataType {
                 }
                 break;
             }
-            case Value.DECIMAL: {
+            case Value.NUMERIC: {
                 BigDecimal value = rs.getBigDecimal(columnIndex);
                 v = value == null ? ValueNull.INSTANCE : ValueDecimal.get(value);
                 break;
@@ -678,7 +678,7 @@ public class DataType {
                 v = rs.wasNull() ? ValueNull.INSTANCE : ValueDouble.get(value);
                 break;
             }
-            case Value.FLOAT: {
+            case Value.REAL: {
                 float value = rs.getFloat(columnIndex);
                 v = rs.wasNull() ? ValueNull.INSTANCE : ValueFloat.get(value);
                 break;
@@ -688,27 +688,27 @@ public class DataType {
                 v = rs.wasNull() ? ValueNull.INSTANCE : ValueInt.get(value);
                 break;
             }
-            case Value.LONG: {
+            case Value.BIGINT: {
                 long value = rs.getLong(columnIndex);
                 v = rs.wasNull() ? ValueNull.INSTANCE : ValueLong.get(value);
                 break;
             }
-            case Value.SHORT: {
+            case Value.SMALLINT: {
                 short value = rs.getShort(columnIndex);
                 v = rs.wasNull() ? ValueNull.INSTANCE : ValueShort.get(value);
                 break;
             }
-            case Value.STRING_IGNORECASE: {
+            case Value.VARCHAR_IGNORECASE: {
                 String s = rs.getString(columnIndex);
                 v = (s == null) ? ValueNull.INSTANCE : ValueStringIgnoreCase.get(s);
                 break;
             }
-            case Value.STRING_FIXED: {
+            case Value.CHAR: {
                 String s = rs.getString(columnIndex);
                 v = (s == null) ? ValueNull.INSTANCE : ValueStringFixed.get(s);
                 break;
             }
-            case Value.STRING: {
+            case Value.VARCHAR: {
                 String s = rs.getString(columnIndex);
                 v = (s == null) ? ValueNull.INSTANCE : ValueString.get(s);
                 break;
@@ -857,14 +857,14 @@ public class DataType {
         case Value.BOOLEAN:
             // "java.lang.Boolean";
             return Boolean.class.getName();
-        case Value.BYTE:
+        case Value.TINYINT:
             if (forResultSet && !SysProperties.OLD_RESULT_SET_GET_OBJECT) {
                 // "java.lang.Integer";
                 return Integer.class.getName();
             }
             // "java.lang.Byte";
             return Byte.class.getName();
-        case Value.SHORT:
+        case Value.SMALLINT:
             if (forResultSet && !SysProperties.OLD_RESULT_SET_GET_OBJECT) {
                 // "java.lang.Integer";
                 return Integer.class.getName();
@@ -874,10 +874,10 @@ public class DataType {
         case Value.INT:
             // "java.lang.Integer";
             return Integer.class.getName();
-        case Value.LONG:
+        case Value.BIGINT:
             // "java.lang.Long";
             return Long.class.getName();
-        case Value.DECIMAL:
+        case Value.NUMERIC:
             // "java.math.BigDecimal";
             return BigDecimal.class.getName();
         case Value.TIME:
@@ -895,14 +895,14 @@ public class DataType {
         case Value.TIMESTAMP_TZ:
             // "java.time.OffsetDateTime";
             return OffsetDateTime.class.getName();
-        case Value.BYTES:
+        case Value.VARBINARY:
         case Value.UUID:
         case Value.JSON:
             // "[B", not "byte[]";
             return byte[].class.getName();
-        case Value.STRING:
-        case Value.STRING_IGNORECASE:
-        case Value.STRING_FIXED:
+        case Value.VARCHAR:
+        case Value.VARCHAR_IGNORECASE:
+        case Value.CHAR:
         case Value.ENUM:
             // "java.lang.String";
             return String.class.getName();
@@ -915,7 +915,7 @@ public class DataType {
         case Value.DOUBLE:
             // "java.lang.Double";
             return Double.class.getName();
-        case Value.FLOAT:
+        case Value.REAL:
             // "java.lang.Float";
             return Float.class.getName();
         case Value.NULL:
@@ -1047,35 +1047,35 @@ public class DataType {
         switch (sqlType) {
         case Types.CHAR:
         case Types.NCHAR:
-            return Value.STRING_FIXED;
+            return Value.CHAR;
         case Types.VARCHAR:
         case Types.LONGVARCHAR:
         case Types.NVARCHAR:
         case Types.LONGNVARCHAR:
-            return Value.STRING;
+            return Value.VARCHAR;
         case Types.NUMERIC:
         case Types.DECIMAL:
-            return Value.DECIMAL;
+            return Value.NUMERIC;
         case Types.BIT:
         case Types.BOOLEAN:
             return Value.BOOLEAN;
         case Types.INTEGER:
             return Value.INT;
         case Types.SMALLINT:
-            return Value.SHORT;
+            return Value.SMALLINT;
         case Types.TINYINT:
-            return Value.BYTE;
+            return Value.TINYINT;
         case Types.BIGINT:
-            return Value.LONG;
+            return Value.BIGINT;
         case Types.REAL:
-            return Value.FLOAT;
+            return Value.REAL;
         case Types.DOUBLE:
         case Types.FLOAT:
             return Value.DOUBLE;
         case Types.BINARY:
         case Types.VARBINARY:
         case Types.LONGVARBINARY:
-            return Value.BYTES;
+            return Value.VARBINARY;
         case Types.OTHER:
         case Types.JAVA_OBJECT:
             return Value.JAVA_OBJECT;
@@ -1143,32 +1143,32 @@ public class DataType {
             x = Utils.getNonPrimitiveClass(x);
         }
         if (String.class == x) {
-            return Value.STRING;
+            return Value.VARCHAR;
         } else if (Integer.class == x) {
             return Value.INT;
         } else if (Long.class == x) {
-            return Value.LONG;
+            return Value.BIGINT;
         } else if (Boolean.class == x) {
             return Value.BOOLEAN;
         } else if (Double.class == x) {
             return Value.DOUBLE;
         } else if (Byte.class == x) {
-            return Value.BYTE;
+            return Value.TINYINT;
         } else if (Short.class == x) {
-            return Value.SHORT;
+            return Value.SMALLINT;
         } else if (Character.class == x) {
             throw DbException.get(
                     ErrorCode.DATA_CONVERSION_ERROR_1, "char (not supported)");
         } else if (Float.class == x) {
-            return Value.FLOAT;
+            return Value.REAL;
         } else if (byte[].class == x) {
-            return Value.BYTES;
+            return Value.VARBINARY;
         } else if (UUID.class == x) {
             return Value.UUID;
         } else if (Void.class == x) {
             return Value.NULL;
         } else if (BigDecimal.class.isAssignableFrom(x)) {
-            return Value.DECIMAL;
+            return Value.NUMERIC;
         } else if (ResultSet.class.isAssignableFrom(x)) {
             return Value.RESULT_SET;
         } else if (ValueLobDb.class.isAssignableFrom(x)) {
@@ -1535,7 +1535,7 @@ public class DataType {
      * @return true if the value type is a numeric type
      */
     public static boolean isNumericType(int type) {
-        return type >= Value.BYTE && type <= Value.FLOAT;
+        return type >= Value.TINYINT && type <= Value.REAL;
     }
 
     /**
@@ -1545,7 +1545,7 @@ public class DataType {
      * @return true if the value type is a binary string type
      */
     public static boolean isBinaryStringType(int type) {
-        return type == Value.BYTES || type == Value.BLOB;
+        return type == Value.VARBINARY || type == Value.BLOB;
     }
 
     /**
@@ -1556,10 +1556,10 @@ public class DataType {
      */
     public static boolean isCharacterStringType(int type) {
         switch (type) {
-        case Value.STRING:
-        case Value.STRING_IGNORECASE:
+        case Value.VARCHAR:
+        case Value.VARCHAR_IGNORECASE:
         case Value.CLOB:
-        case Value.STRING_FIXED:
+        case Value.CHAR:
             return true;
         default:
             return false;
@@ -1573,7 +1573,7 @@ public class DataType {
      * @return true if the value type is a String type
      */
     public static boolean isStringType(int type) {
-        return type == Value.STRING || type == Value.STRING_FIXED || type == Value.STRING_IGNORECASE;
+        return type == Value.VARCHAR || type == Value.CHAR || type == Value.VARCHAR_IGNORECASE;
     }
 
     /**
@@ -1597,7 +1597,7 @@ public class DataType {
      */
     public static boolean isBinaryStringOrSpecialBinaryType(int type) {
         switch (type) {
-        case Value.BYTES:
+        case Value.VARBINARY:
         case Value.BLOB:
         case Value.JAVA_OBJECT:
         case Value.UUID:
@@ -1618,17 +1618,17 @@ public class DataType {
     public static boolean hasTotalOrdering(int type) {
         switch (type) {
         case Value.BOOLEAN:
-        case Value.BYTE:
-        case Value.SHORT:
+        case Value.TINYINT:
+        case Value.SMALLINT:
         case Value.INT:
-        case Value.LONG:
+        case Value.BIGINT:
         // Negative zeroes and NaNs are normalized
         case Value.DOUBLE:
-        case Value.FLOAT:
+        case Value.REAL:
         case Value.TIME:
         case Value.DATE:
         case Value.TIMESTAMP:
-        case Value.BYTES:
+        case Value.VARBINARY:
         // Serialized data is compared
         case Value.JAVA_OBJECT:
         case Value.UUID:
@@ -1662,13 +1662,13 @@ public class DataType {
      */
     public static boolean supportsAdd(int type) {
         switch (type) {
-        case Value.BYTE:
-        case Value.DECIMAL:
+        case Value.TINYINT:
+        case Value.NUMERIC:
         case Value.DOUBLE:
-        case Value.FLOAT:
+        case Value.REAL:
         case Value.INT:
-        case Value.LONG:
-        case Value.SHORT:
+        case Value.BIGINT:
+        case Value.SMALLINT:
         case Value.INTERVAL_YEAR:
         case Value.INTERVAL_MONTH:
         case Value.INTERVAL_DAY:
@@ -1715,16 +1715,16 @@ public class DataType {
      */
     public static int getAddProofType(int type) {
         switch (type) {
-        case Value.BYTE:
-            return Value.LONG;
-        case Value.FLOAT:
+        case Value.TINYINT:
+            return Value.BIGINT;
+        case Value.REAL:
             return Value.DOUBLE;
         case Value.INT:
-            return Value.LONG;
-        case Value.LONG:
-            return Value.DECIMAL;
-        case Value.SHORT:
-            return Value.LONG;
+            return Value.BIGINT;
+        case Value.BIGINT:
+            return Value.NUMERIC;
+        case Value.SMALLINT:
+            return Value.BIGINT;
         default:
             return type;
         }

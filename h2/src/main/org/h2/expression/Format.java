@@ -51,9 +51,9 @@ public class Format extends Expression {
         switch (value.getValueType()) {
         case Value.NULL:
             return ValueJson.NULL;
-        case Value.STRING:
-        case Value.STRING_IGNORECASE:
-        case Value.STRING_FIXED:
+        case Value.VARCHAR:
+        case Value.VARCHAR_IGNORECASE:
+        case Value.CHAR:
         case Value.CLOB:
             return ValueJson.fromJson(value.getString());
         default:

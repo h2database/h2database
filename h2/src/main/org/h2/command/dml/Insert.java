@@ -172,8 +172,7 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
                     Column c = columns[i];
                     int index = c.getColumnId();
                     Expression e = expr[i];
-                    if (e != null) {
-                        // e can be null (DEFAULT)
+                    if (e != ValueExpression.DEFAULT) {
                         e = e.optimize(session);
                         try {
                             Value v = e.getValue(session);

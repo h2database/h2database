@@ -172,9 +172,6 @@ public class MetaTable extends Table {
                     "TABLE_NAME",
                     "COLUMN_NAME",
                     "ORDINAL_POSITION INT",
-                    "DOMAIN_CATALOG",
-                    "DOMAIN_SCHEMA",
-                    "DOMAIN_NAME",
                     "COLUMN_DEFAULT",
                     "IS_NULLABLE",
                     "DATA_TYPE INT",
@@ -188,6 +185,11 @@ public class MetaTable extends Table {
                     "INTERVAL_PRECISION INT",
                     "CHARACTER_SET_NAME",
                     "COLLATION_NAME",
+                    "DOMAIN_CATALOG",
+                    "DOMAIN_SCHEMA",
+                    "DOMAIN_NAME",
+                    "IS_GENERATED",
+                    "GENERATION_EXPRESSION",
                     // extensions
                     "TYPE_NAME",
                     "NULLABLE INT",
@@ -688,7 +690,7 @@ public class MetaTable extends Table {
 
     private Column[] createColumns(String... names) {
         Column[] cols = new Column[names.length];
-        int defaultType = database.getSettings().caseInsensitiveIdentifiers ? Value.STRING_IGNORECASE : Value.STRING;
+        int defaultType = database.getSettings().caseInsensitiveIdentifiers ? Value.VARCHAR_IGNORECASE : Value.VARCHAR;
         for (int i = 0; i < names.length; i++) {
             String nameType = names[i];
             int idx = nameType.indexOf(' ');
@@ -910,6 +912,7 @@ public class MetaTable extends Table {
                     default:
                         hasDateTimePrecision = false;
                     }
+                    boolean isGenerated = c.getGenerated();
                     boolean isInterval = DataType.isIntervalType(type);
                     String createSQLWithoutName = c.getCreateSQLWithoutName();
                     add(session,
@@ -924,14 +927,8 @@ public class MetaTable extends Table {
                             c.getName(),
                             // ORDINAL_POSITION
                             ValueInt.get(j + 1),
-                            // DOMAIN_CATALOG
-                            domain != null ? catalog : null,
-                            // DOMAIN_SCHEMA
-                            domain != null ? domain.getSchema().getName() : null,
-                            // DOMAIN_NAME
-                            domain != null ? domain.getName() : null,
                             // COLUMN_DEFAULT
-                            c.getDefaultSQL(),
+                            isGenerated ? null : c.getDefaultSQL(),
                             // IS_NULLABLE
                             c.isNullable() ? "YES" : "NO",
                             // DATA_TYPE
@@ -956,13 +953,23 @@ public class MetaTable extends Table {
                             CHARACTER_SET_NAME,
                             // COLLATION_NAME
                             collation,
+                            // DOMAIN_CATALOG
+                            domain != null ? catalog : null,
+                            // DOMAIN_SCHEMA
+                            domain != null ? domain.getSchema().getName() : null,
+                            // DOMAIN_NAME
+                            domain != null ? domain.getName() : null,
+                            // IS_GENERATED
+                            isGenerated ? "ALWAYS" : "NEVER",
+                            // GENERATION_EXPRESSION
+                            isGenerated ? c.getDefaultSQL() : null,
                             // TYPE_NAME
                             identifier(isInterval ? "INTERVAL" : dataType.name),
                             // NULLABLE
                             ValueInt.get(c.isNullable()
                                     ? DatabaseMetaData.columnNullable : DatabaseMetaData.columnNoNulls),
                             // IS_COMPUTED
-                            ValueBoolean.get(c.getComputed()),
+                            ValueBoolean.get(isGenerated),
                             // SELECTIVITY
                             ValueInt.get(c.getSelectivity()),
                             // SEQUENCE_NAME

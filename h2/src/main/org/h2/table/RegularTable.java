@@ -218,7 +218,7 @@ public abstract class RegularTable extends TableBase {
     @Override
     public Column getRowIdColumn() {
         if (rowIdColumn == null) {
-            rowIdColumn = new Column(Column.ROWID, Value.LONG);
+            rowIdColumn = new Column(Column.ROWID, Value.BIGINT);
             rowIdColumn.setTable(this, SearchRow.ROWID_INDEX);
             rowIdColumn.setRowId(true);
         }

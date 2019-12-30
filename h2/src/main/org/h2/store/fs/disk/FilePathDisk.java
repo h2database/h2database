@@ -271,8 +271,25 @@ public class FilePathDisk extends FilePath {
         try {
             return getPath(path.toRealPath().toString());
         } catch (IOException e) {
-            return getPath(path.toAbsolutePath().normalize().toString());
+            /*
+             * File does not exist or isn't accessible, try to get the real path
+             * of parent directory.
+             */
+            return getPath(toRealPath(path.toAbsolutePath().normalize()).toString());
         }
+    }
+
+    private static Path toRealPath(Path path) {
+        Path parent = path.getParent();
+        if (parent == null) {
+            return path;
+        }
+        try {
+            parent = parent.toRealPath();
+        } catch (IOException e) {
+            parent = toRealPath(parent);
+        }
+        return parent.resolve(path.getFileName());
     }
 
     @Override

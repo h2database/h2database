@@ -321,10 +321,6 @@ public abstract class TimeZoneProvider {
          */
         static final long SECONDS_PER_YEAR = SECONDS_PER_PERIOD / 400;
 
-        private static final long EPOCH_SECONDS_HIGH = 31556889864403199L;
-
-        private static final long EPOCH_SECONDS_LOW = -31557014167219200L;
-
         private static volatile DateTimeFormatter TIME_ZONE_FORMATTER;
 
         private final ZoneId zoneId;
@@ -353,15 +349,19 @@ public abstract class TimeZoneProvider {
         public int getTimeZoneOffsetUTC(long epochSeconds) {
             /*
              * Construct an Instant with EPOCH seconds within the range
-             * -31,557,014,167,219,200..31,556,889,864,403,199
-             * (-1000000000-01-01T00:00Z..1000000000-12-31T23:59:59.999999999Z).
-             * Too large and too small EPOCH seconds are replaced with EPOCH
-             * seconds within the range using the 400 years period of the
-             * Gregorian calendar.
+             * -31,557,014,135,532,000..31,556,889,832,715,999
+             * (-999999999-01-01T00:00-18:00..
+             * +999999999-12-31T23:59:59.999999999+18:00). Too large and too
+             * small EPOCH seconds are replaced with EPOCH seconds within the
+             * range using the 400 years period of the Gregorian calendar.
+             *
+             * H2 has slightly wider range of EPOCH seconds than Instant, and
+             * ZoneRules.getOffset(Instant) does not support all Instant values
+             * in all time zones.
              */
-            if (epochSeconds > EPOCH_SECONDS_HIGH) {
+            if (epochSeconds > 31_556_889_832_715_999L) {
                 epochSeconds -= SECONDS_PER_PERIOD;
-            } else if (epochSeconds < EPOCH_SECONDS_LOW) {
+            } else if (epochSeconds < -31_557_014_135_532_000L) {
                 epochSeconds += SECONDS_PER_PERIOD;
             }
             return zoneId.getRules().getOffset(Instant.ofEpochSecond(epochSeconds)).getTotalSeconds();

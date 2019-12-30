@@ -134,6 +134,11 @@ public final class DataUtils {
     public static final int PAGE_COMPRESSED_HIGH = 2 + 4;
 
     /**
+     * The bit mask for pages with page seqential number.
+     */
+    public static final int PAGE_HAS_PAGE_NO = 8;
+
+    /**
      * The maximum length of a variable size int.
      */
     public static final int MAX_VAR_INT_LEN = 5;
@@ -578,16 +583,6 @@ public final class DataUtils {
     }
 
     /**
-     * Get the sequential 0-based page number within the chunk.
-     *
-     * @param pos the position
-     * @return the page number
-     */
-    public static int getPageNo(long pos) {
-        return (int) (pos >> 6);
-    }
-
-    /**
      * Get the page type from the position.
      *
      * @param pos the position
@@ -633,17 +628,27 @@ public final class DataUtils {
      * (node or leaf).
      *
      * @param chunkId the chunk id
-     * @param pageNo the offset
+     * @param offset the offset
      * @param length the length
      * @param type the page type (1 for node, 0 for leaf)
      * @return the position
      */
-    public static long getPagePos(int chunkId, int pageNo, int length, int type) {
+    public static long getPagePos(int chunkId, int offset, int length, int type) {
         long pos = (long) chunkId << 38;
-        pos |= (long) pageNo << 6;
+        pos |= (long) offset << 6;
         pos |= encodeLength(length) << 1;
         pos |= type;
         return pos;
+    }
+
+    /**
+     * Convert tocElement into pagePos by replacing mapId with chunkId
+     * @param chunkId
+     * @param tocElement
+     * @return
+     */
+    public static long getPagePos(int chunkId, long tocElement) {
+        return (tocElement & 0x3FFFFFFFFFL) | ((long) chunkId << 38);
     }
 
     /**

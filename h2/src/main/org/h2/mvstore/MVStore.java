@@ -584,12 +584,8 @@ public class MVStore implements AutoCloseable
             M map = (M) getMap(id);
             if (map == null) {
                 String configAsString = meta.get(MVMap.getMapKey(id));
-                HashMap<String, Object> config;
-                if (configAsString != null) {
-                    config = new HashMap<>(DataUtils.parseMap(configAsString));
-                } else {
-                    config = new HashMap<>();
-                }
+                DataUtils.checkArgument(configAsString != null, "Missing map with id {0}", id);
+                HashMap<String, Object> config = new HashMap<>(DataUtils.parseMap(configAsString));
                 config.put("id", id);
                 map = builder.create(this, config);
                 long root = getRootPos(meta, id);
@@ -2213,9 +2209,7 @@ public class MVStore implements AutoCloseable
                     if (map != null && !map.isClosed()) {
                         assert !map.isSingleWriter();
                         if (secondPass || DataUtils.isLeafPosition(tocElement)) {
-                            int type = DataUtils.getPageType(tocElement);
-                            int length = DataUtils.getPageMaxLength(tocElement);
-                            long pagePos = DataUtils.getPagePos(chunkId, pageNo, length, type);
+                            long pagePos = DataUtils.getPagePos(chunkId, tocElement);
                             if (map.rewritePage(pagePos)) {
                                 ++rewrittenPageCount;
                                 if (map == meta) {
@@ -2255,10 +2249,12 @@ public class MVStore implements AutoCloseable
             if (p == null) {
                 try {
                     Chunk chunk = getChunk(pos);
-                    long[] toc = getToC(chunk);
-                    int pageOffset = DataUtils.getPageOffset(toc == null ? pos : toc[DataUtils.getPageNo(pos)]);
+                    int pageOffset = DataUtils.getPageOffset(pos);
                     ByteBuffer buff = chunk.readBufferForPage(fileStore, pageOffset, pos, map.getId());
                     p = Page.read(buff, pos, map);
+                    if (p.pageNo < 0) {
+                        p.pageNo = calculatePageNo(pos);
+                    }
                 } catch (Exception e) {
                     throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
                             "Unable to read the page at position {0}", pos, e);
@@ -2295,15 +2291,42 @@ public class MVStore implements AutoCloseable
 
     /**
      * Remove a page.
-     *
-     * @param pos the position of the page
+     *  @param pos the position of the page
      * @param version at which page was removed
      * @param pinned whether page is considered pinned
+     * @param pageNo sequential page number within chunk
      */
-    void accountForRemovedPage(long pos, long version, boolean pinned) {
+    void accountForRemovedPage(long pos, long version, boolean pinned, int pageNo) {
         assert DataUtils.isPageSaved(pos);
-        RemovedPageInfo rpi = new RemovedPageInfo(pos, pinned, version);
+        if (pageNo < 0) {
+            pageNo = calculatePageNo(pos);
+        }
+        RemovedPageInfo rpi = new RemovedPageInfo(pos, pinned, version, pageNo);
         removedPages.add(rpi);
+    }
+
+    private int calculatePageNo(long pos) {
+        int pageNo = -1;
+        Chunk chunk = getChunk(pos);
+        long[] toC = getToC(chunk);
+        if (toC != null) {
+            int offset = DataUtils.getPageOffset(pos);
+            int low = 0;
+            int high = toC.length - 1;
+            while (low <= high) {
+                int mid = (low + high) >>> 1;
+                long midVal = DataUtils.getPageOffset(toC[mid]);
+                if (midVal < offset) {
+                    low = mid + 1;
+                } else if (midVal > offset) {
+                    high = mid - 1;
+                } else {
+                    pageNo = mid;
+                    break;
+                }
+            }
+        }
+        return pageNo;
     }
 
     Compressor getCompressorFast() {
@@ -2867,7 +2890,7 @@ public class MVStore implements AutoCloseable
                         storeLock.unlock();
                     }
                 }
-            } else if (lastChunk != null) {
+            } else if (fillRate >= autoCompactFillRate && lastChunk != null) {
                 int chunksFillRate = getRewritableChunksFillRate();
                 chunksFillRate = isIdle() ? 100 - (100 - chunksFillRate) / 2 : chunksFillRate;
                 if (chunksFillRate < getTargetFillRate()) {
@@ -3269,11 +3292,8 @@ public class MVStore implements AutoCloseable
                     // purge dead pages from cache
                     long[] toc = chunksToC.remove(chunk.id);
                     if (toc != null && cache != null) {
-                        for (int pageNo = 0; pageNo < toc.length; pageNo++) {
-                            long tocElement = toc[pageNo];
-                            int length = DataUtils.getPageMaxLength(tocElement);
-                            int type = DataUtils.getPageType(tocElement);
-                            long pagePos = DataUtils.getPagePos(chunk.id, pageNo, length, type);
+                        for (long tocElement : toc) {
+                            long pagePos = DataUtils.getPagePos(chunk.id, tocElement);
                             cache.remove(pagePos);
                         }
                     }
@@ -3400,8 +3420,8 @@ public class MVStore implements AutoCloseable
         final long version;
         final long removedPageInfo;
 
-        RemovedPageInfo(long pagePos, boolean pinned, long version) {
-            this.removedPageInfo = createRemovedPageInfo(pagePos, pinned);
+        RemovedPageInfo(long pagePos, boolean pinned, long version, int pageNo) {
+            this.removedPageInfo = createRemovedPageInfo(pagePos, pinned, pageNo);
             this.version = version;
         }
 
@@ -3432,13 +3452,15 @@ public class MVStore implements AutoCloseable
 
         /**
          * Transforms saved page position into removed page info by
-         * replacing "page type" bit with "pinned page" flag.
+         * replacing "page offset" with "page sequential number" and
+         * "page type" bit with "pinned page" flag.
          * @param pagePos of the saved page
          * @param isPinned whether page belong to a "single writer" map
+         * @param pageNo 0-based sequential pege number within containing chunk
          * @return removed page info that contains chunk id, page number, page length and pinned flag
          */
-        private static long createRemovedPageInfo(long pagePos, boolean isPinned) {
-            long result = pagePos & ~1;
+        private static long createRemovedPageInfo(long pagePos, boolean isPinned, int pageNo) {
+            long result = (pagePos & ~((0xFFFFFFFFL << 6) | 1)) | (pageNo << 6);
             if (isPinned) {
                 result |= 1;
             }

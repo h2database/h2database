@@ -86,8 +86,7 @@ public class Chunk
      * Offset (from the beginning of the chunk) for the table of content.
      * Table of content is holding a long value for each page in the chunk.
      * This value consists of map id, page offset, page length and page type.
-     * Format is the same as page's position id, but with map id replacing chunk id,
-     * and page offset replacing page sequential number.
+     * Format is the same as page's position id, but with map id replacing chunk id.
      *
      * @see DataUtils#getTocElement(int, int, int, int) for field format details
      */

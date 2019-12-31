@@ -218,7 +218,9 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
 
     private Row lockRow(TransactionMap<Long,SearchRow> map, long key) {
         try {
-            return (Row)map.lock(key);
+            Row row = (Row) map.lock(key);
+            ensureRowKey(row, key);
+            return row;
         } catch (IllegalStateException ex) {
             throw mvTable.convertException(ex);
         }
@@ -262,6 +264,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
             throw DbException.get(ErrorCode.ROW_NOT_FOUND_IN_PRIMARY_INDEX,
                     getSQL(false), String.valueOf(key));
         }
+        ensureRowKey(row, key);
         return row;
     }
 
@@ -314,7 +317,11 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
     public Cursor findFirstOrLast(Session session, boolean first) {
         TransactionMap<Long,SearchRow> map = getMap(session);
         Long rowId = first ? map.firstKey() : map.lastKey();
-        Row row = rowId != null ? (Row)map.getFromSnapshot(rowId) : null;
+        Row row = null;
+        if (rowId != null) {
+            row = (Row) map.getFromSnapshot(rowId);
+            ensureRowKey(row, rowId);
+        }
         return new SingleRowCursor(row);
     }
 
@@ -379,6 +386,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
         TransactionMap<Long,SearchRow> map = getMap(session);
         if (first != null && last != null && first.longValue() == last.longValue()) {
             Row row = (Row)map.get(first);
+            ensureRowKey(row, first);
             return new SingleRowCursor(row);
         }
         return new MVStoreCursor(map.entryIterator(first, last));
@@ -408,6 +416,14 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
         return dataMap.map;
     }
 
+    private void ensureRowKey(Row row, long key) {
+        if (mainIndexColumn != SearchRow.ROWID_INDEX && row != null && row.getKey() == 0) {
+            long c = row.getValue(mainIndexColumn).getLong();
+            assert c == key : c + " <> " + key;
+            row.setKey(key);
+        }
+    }
+
     /**
      * A cursor.
      */
@@ -426,6 +442,9 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
             if (row == null) {
                 if (current != null) {
                     row = (Row)current.getValue();
+                    if (row.getKey() == 0) {
+                        row.setKey(current.getKey());
+                    }
                 }
             }
             return row;

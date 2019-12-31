@@ -700,8 +700,9 @@ public class MVStoreTool {
         return newestVersion;
     }
 
-    static MVMap.Builder<Object, Object> getGenericMapBuilder() {
-        return new MVMap.Builder<>().
+    @SuppressWarnings({"rawtypes","unchecked"})
+    static MVMap.Builder<Object,Object> getGenericMapBuilder() {
+        return (MVMap.Builder)new MVMap.Builder<byte[],byte[]>().
                 keyType(GenericDataType.INSTANCE).
                 valueType(GenericDataType.INSTANCE);
     }
@@ -710,36 +711,36 @@ public class MVStoreTool {
      * A data type that can read any data that is persisted, and converts it to
      * a byte array.
      */
-    private static class GenericDataType extends BasicDataType<Object>
+    private static class GenericDataType extends BasicDataType<byte[]>
     {
         static GenericDataType INSTANCE = new GenericDataType();
 
         private GenericDataType() {}
 
         @Override
-        public int compare(Object a, Object b) {
-            throw DataUtils.newUnsupportedOperationException("Can not compare");
+        public boolean isMemoryEstimationAllowed() {
+            return false;
         }
 
         @Override
-        public int getMemory(Object obj) {
-            return obj == null ? 0 : ((byte[]) obj).length * 8;
+        public int getMemory(byte[] obj) {
+            return obj == null ? 0 : obj.length * 8;
         }
 
         @Override
-        public Object[] createStorage(int size) {
-            return new Object[size];
+        public byte[][] createStorage(int size) {
+            return new byte[size][];
         }
 
         @Override
-        public void write(WriteBuffer buff, Object obj) {
+        public void write(WriteBuffer buff, byte[] obj) {
             if (obj != null) {
-                buff.put((byte[]) obj);
+                buff.put(obj);
             }
         }
 
         @Override
-        public Object read(ByteBuffer buff) {
+        public byte[] read(ByteBuffer buff) {
             int len = buff.remaining();
             if (len == 0) {
                 return null;

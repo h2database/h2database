@@ -62,8 +62,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     private volatile  boolean closed;
     private boolean readOnly;
     private boolean isVolatile;
-    private AtomicLong avgKeySize = new AtomicLong();
-    private AtomicLong avgValSize = new AtomicLong();
+    private final AtomicLong avgKeySize;
+    private final AtomicLong avgValSize;
 
     /**
      * This designates the "last stored" version for a store which was
@@ -108,6 +108,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         this.keysBuffer = singleWriter ? keyType.createStorage(keysPerPage) : null;
         this.valuesBuffer = singleWriter ? valueType.createStorage(keysPerPage) : null;
         this.singleWriter = singleWriter;
+        this.avgKeySize = keyType.isMemoryEstimationAllowed() ? new AtomicLong() : null;
+        this.avgValSize = valueType.isMemoryEstimationAllowed() ? new AtomicLong() : null;
+
     }
 
     /**
@@ -2025,22 +2028,41 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
     }
 
-    final int estimateMemoryForKeys(K[] storage, int count) {
+    final int evaluateMemoryForKeys(K[] storage, int count) {
+        if (avgKeySize == null) {
+            return calculateMemory(keyType, storage, count);
+        }
         return MemoryEstimator.estimateMemory(avgKeySize, keyType, storage, count);
     }
 
-    final int estimateMemoryForValues(V[] storage, int count) {
+    final int evaluateMemoryForValues(V[] storage, int count) {
+        if (avgValSize == null) {
+            return calculateMemory(valueType, storage, count);
+        }
         return MemoryEstimator.estimateMemory(avgValSize, valueType, storage, count);
     }
 
-    final int estimateMemoryForKey(K key) {
+    private static <T> int calculateMemory(DataType<T> keyType, T[] storage, int count) {
+        int mem = count * MEMORY_POINTER;
+        for (int i = 0; i < count; i++) {
+            mem += keyType.getMemory(storage[i]);
+        }
+        return mem;
+    }
+
+    final int evaluateMemoryForKey(K key) {
+        if (avgKeySize == null) {
+            return keyType.getMemory(key);
+        }
         return MemoryEstimator.estimateMemory(avgKeySize, keyType, key);
     }
 
-    final int estimateMemoryForValue(V value) {
+    final int evaluateMemoryForValue(V value) {
+        if (avgValSize == null) {
+            return valueType.getMemory(value);
+        }
         return MemoryEstimator.estimateMemory(avgValSize, valueType, value);
     }
-
 
     static int samplingPct(AtomicLong stats) {
         return MemoryEstimator.samplingPct(stats);

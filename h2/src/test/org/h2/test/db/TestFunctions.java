@@ -1302,7 +1302,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         date = ValueTimestamp.parse("1970-" + month + "-12", null);
         assertEquals(date, ToDateParser.toDate(session, "12", "DD"));
 
-        date = ValueTimestamp.parse(year + (calendar.isLeapYear(year) ? "11-11" : "-11-12"), null);
+        date = ValueTimestamp.parse(year + (calendar.isLeapYear(year) ? "-11-11" : "-11-12"), null);
         assertEquals(date, ToDateParser.toDate(session, "316", "DDD"));
         assertEquals(date, ToDateParser.toDate(session, "316", "DdD"));
         assertEquals(date, ToDateParser.toDate(session, "316", "dDD"));

@@ -3460,7 +3460,7 @@ public class MVStore implements AutoCloseable
          * @return removed page info that contains chunk id, page number, page length and pinned flag
          */
         private static long createRemovedPageInfo(long pagePos, boolean isPinned, int pageNo) {
-            long result = (pagePos & ~((0xFFFFFFFFL << 6) | 1)) | (pageNo << 6);
+            long result = (pagePos & ~((0xFFFFFFFFL << 6) | 1)) | ((pageNo << 6) & 0xFFFFFFFFL);
             if (isPinned) {
                 result |= 1;
             }

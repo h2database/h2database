@@ -119,7 +119,7 @@ public class TestMvcc5 extends TestDb {
         // Session B
         rs2 = ps2.executeQuery();
         rs2.next();
-        assertEquals(13, rs2.getInt("val"));
+        assertEquals(15, rs2.getInt("val"));
         c2.rollback();
         c2.close();
 

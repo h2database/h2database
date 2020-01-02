@@ -59,6 +59,7 @@ public class TestTransaction extends TestDb {
         testIsolationLevels();
         testIsolationLevels2();
         testIsolationLevels3();
+        testIsolationLevels4();
         deleteDb("transaction");
     }
 
@@ -1147,6 +1148,36 @@ public class TestTransaction extends TestDb {
                         rs.next();
                         assertEquals(6, rs.getInt(3));
                     }
+                }
+            }
+        }
+        deleteDb("transaction");
+    }
+
+    private void testIsolationLevels4() throws SQLException {
+        if (!config.mvStore) {
+            return;
+        }
+        for (int isolationLevel : new int[] { Connection.TRANSACTION_READ_UNCOMMITTED,
+                Connection.TRANSACTION_READ_COMMITTED, Connection.TRANSACTION_REPEATABLE_READ,
+                Constants.TRANSACTION_SNAPSHOT, Connection.TRANSACTION_SERIALIZABLE }) {
+            deleteDb("transaction");
+            try (Connection conn1 = getConnection("transaction"); Connection conn2 = getConnection("transaction")) {
+                Statement stat1 = conn1.createStatement();
+                stat1.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, V INT) AS VALUES (1, 2)");
+                conn2.setAutoCommit(false);
+                conn2.setTransactionIsolation(isolationLevel);
+                Statement stat2 = conn2.createStatement();
+                try (ResultSet rs = stat2.executeQuery("SELECT V FROM TEST WHERE ID = 1")) {
+                    assertTrue(rs.next());
+                    assertEquals(2, rs.getInt(1));
+                    assertFalse(rs.next());
+                }
+                stat1.execute("UPDATE TEST SET V = V + 1");
+                try (ResultSet rs = stat2.executeQuery("SELECT V FROM TEST WHERE ID = 1")) {
+                    assertTrue(rs.next());
+                    assertEquals(isolationLevel >= Connection.TRANSACTION_REPEATABLE_READ ? 2 : 3, rs.getInt(1));
+                    assertFalse(rs.next());
                 }
             }
         }

@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.h2.mvstore.CursorPos;
+import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.Page;
 import org.h2.mvstore.RootReference;
@@ -212,6 +213,8 @@ public final class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                         p.setValue(index, value);
                     }
                     break;
+                case FAIL:
+                    throw DataUtils.newIllegalStateException(DataUtils.ERROR_TRANSACTIONS_DEADLOCK, "");
             }
             return result;
         }

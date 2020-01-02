@@ -78,8 +78,6 @@ Locking behavior for rows that were excluded from result using OFFSET / FETCH / 
 to avoid possible locking of excessive rows try to filter out unneeded rows with the WHERE criteria when possible.
 Rows are processed one by one. Each row is read, tested with WHERE criteria, locked, read again and re-tested,
 because its value may be changed by concurrent transaction before lock acquisition.
-The returned row represents the latest committed values and may violate isolation level requirements of the current
-transaction.
 Note that new uncommitted rows from other transactions are not visible unless read uncommitted isolation level is used
 and therefore cannot be selected and locked.
 Modified uncommitted rows from other transactions that satisfy the WHERE criteria cause this SELECT to wait for

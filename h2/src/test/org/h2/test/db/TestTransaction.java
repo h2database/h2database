@@ -1046,17 +1046,22 @@ public class TestTransaction extends TestDb {
                 assertThrows(ErrorCode.LOCK_TIMEOUT_1, stat1)
                         .executeQuery("SELECT * FROM TEST WHERE ID = '1' FOR UPDATE");
                 conn2.commit();
-                try (ResultSet rs = stat1.executeQuery("SELECT * FROM TEST WHERE ID = '1' FOR UPDATE")) {
-                    rs.next();
-                    assertEquals(2, rs.getInt(2));
-                }
-                try (ResultSet rs = stat1.executeQuery("SELECT * FROM TEST")) {
-                    rs.next();
-                    assertEquals(2, rs.getInt(2));
-                }
-                try (ResultSet rs = stat1.executeQuery("SELECT * FROM TEST WHERE ID = '1'")) {
-                    rs.next();
-                    assertEquals(2, rs.getInt(2));
+                if (isolationLevel >= Connection.TRANSACTION_REPEATABLE_READ) {
+                    assertThrows(ErrorCode.DEADLOCK_1, stat1)
+                            .executeQuery("SELECT * FROM TEST WHERE ID = '1' FOR UPDATE");
+                } else {
+                    try (ResultSet rs = stat1.executeQuery("SELECT * FROM TEST WHERE ID = '1' FOR UPDATE")) {
+                        rs.next();
+                        assertEquals(2, rs.getInt(2));
+                    }
+                    try (ResultSet rs = stat1.executeQuery("SELECT * FROM TEST")) {
+                        rs.next();
+                        assertEquals(2, rs.getInt(2));
+                    }
+                    try (ResultSet rs = stat1.executeQuery("SELECT * FROM TEST WHERE ID = '1'")) {
+                        rs.next();
+                        assertEquals(2, rs.getInt(2));
+                    }
                 }
             }
         }
@@ -1132,22 +1137,8 @@ public class TestTransaction extends TestDb {
                         rs.next();
                         assertEquals(3, rs.getInt(3));
                     }
-                    try (ResultSet rs = stat1.executeQuery("SELECT * FROM TEST WHERE ID2 = 3 FOR UPDATE")) {
-                        rs.next();
-                        assertEquals(6, rs.getInt(3));
-                    }
-                    try (ResultSet rs = stat1.executeQuery("SELECT * FROM TEST")) {
-                        rs.next();
-                        assertEquals(1, rs.getInt(3));
-                        rs.next();
-                        assertEquals(2, rs.getInt(3));
-                        rs.next();
-                        assertEquals(6, rs.getInt(3));
-                    }
-                    try (ResultSet rs = stat1.executeQuery("SELECT * FROM TEST WHERE ID2 = 3")) {
-                        rs.next();
-                        assertEquals(6, rs.getInt(3));
-                    }
+                    assertThrows(ErrorCode.DEADLOCK_1, stat1)
+                            .executeQuery("SELECT * FROM TEST WHERE ID2 = 3 FOR UPDATE");
                 }
             }
         }
@@ -1178,6 +1169,30 @@ public class TestTransaction extends TestDb {
                     assertTrue(rs.next());
                     assertEquals(isolationLevel >= Connection.TRANSACTION_REPEATABLE_READ ? 2 : 3, rs.getInt(1));
                     assertFalse(rs.next());
+                }
+                if (isolationLevel >= Connection.TRANSACTION_REPEATABLE_READ) {
+                    assertThrows(ErrorCode.DEADLOCK_1, stat2).executeUpdate("UPDATE TEST SET V = V + 2");
+                    try (ResultSet rs = stat2.executeQuery("SELECT V FROM TEST WHERE ID = 1")) {
+                        assertTrue(rs.next());
+                        assertEquals(3, rs.getInt(1));
+                        assertFalse(rs.next());
+                    }
+                    stat1.execute("DELETE FROM TEST");
+                    assertThrows(ErrorCode.DEADLOCK_1, stat2).executeUpdate("UPDATE TEST SET V = V + 2");
+                    stat1.execute("INSERT INTO TEST VALUES (1, 2)");
+                    try (ResultSet rs = stat2.executeQuery("SELECT V FROM TEST WHERE ID = 1")) {
+                        assertTrue(rs.next());
+                        assertEquals(2, rs.getInt(1));
+                        assertFalse(rs.next());
+                    }
+                    stat1.execute("DELETE FROM TEST");
+                    stat1.execute("INSERT INTO TEST VALUES (1, 2)");
+                    assertEquals(1, stat2.executeUpdate("UPDATE TEST SET V = V + 2"));
+                    try (ResultSet rs = stat2.executeQuery("SELECT V FROM TEST WHERE ID = 1")) {
+                        assertTrue(rs.next());
+                        assertEquals(4, rs.getInt(1));
+                        assertFalse(rs.next());
+                    }
                 }
             }
         }

@@ -280,7 +280,10 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @throws IllegalStateException if a lock timeout occurs
      */
     public V lock(K key) {
-        TxDecisionMaker<V> decisionMaker = new TxDecisionMaker.LockDecisionMaker<>(map.getId(), key, transaction);
+        TxDecisionMaker<V> decisionMaker = transaction.isolationLevel.allowNonRepeatableRead()
+                ? new TxDecisionMaker.LockDecisionMaker<>(map.getId(), key, transaction)
+                : new TxDecisionMaker.RepeatableReadLockDecisionMaker<>(map.getId(), key, transaction,
+                        map.getValueType(), getFromSnapshot(key));
         return set(key, decisionMaker);
     }
 

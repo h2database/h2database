@@ -144,6 +144,11 @@ public class VersionedValueType<T,D> extends BasicDataType<VersionedValue<T>> im
     }
 
     @Override
+    public int compare(VersionedValue<T> a, VersionedValue<T> b) {
+        return valueType.compare(a.getCurrentValue(), b.getCurrentValue());
+    }
+
+    @Override
     public Factory<D> getFactory() {
         return factory;
     }

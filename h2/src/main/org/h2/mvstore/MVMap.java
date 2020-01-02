@@ -1650,7 +1650,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
     }
 
-    public enum Decision { ABORT, REMOVE, PUT, REPEAT }
+    public enum Decision { ABORT, REMOVE, PUT, REPEAT, FAIL }
 
     /**
      * Class DecisionMaker provides callback interface (and should become a such in Java 8)
@@ -1896,6 +1896,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                         }
                         break;
                     }
+                    case FAIL:
+                        throw DataUtils.newIllegalStateException(DataUtils.ERROR_TRANSACTIONS_DEADLOCK, "");
                 }
                 rootPage = replacePage(pos, p, unsavedMemoryHolder);
                 if (!locked) {

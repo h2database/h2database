@@ -764,17 +764,22 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
                 int valueCount = readVarInt(buff) - 1;
                 SearchRow row = rowFactory.createRow();
                 int[] indexes = rowFactory.getIndexes();
+                boolean hasRowKey;
                 if (indexes == null) {
-                    for (int i = 0; i < valueCount; i++) {
+                    int columnCount = row.getColumnCount();
+                    for (int i = 0; i < columnCount; i++) {
                         row.setValue(i, readValue(buff, false));
                     }
+                    hasRowKey = valueCount == columnCount;
                 } else {
-                    assert valueCount == indexes.length;
                     for (int i : indexes) {
                         row.setValue(i, readValue(buff, false));
                     }
+                    hasRowKey = valueCount == indexes.length;
                 }
-                row.setKey(readValue(buff, false).getLong());
+                if (hasRowKey) {
+                    row.setKey(readValue(buff, false).getLong());
+                }
                 return row;
             }
             //$FALL-THROUGH$

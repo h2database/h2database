@@ -385,7 +385,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
     private Cursor find(Session session, Long first, Long last) {
         TransactionMap<Long,SearchRow> map = getMap(session);
         if (first != null && last != null && first.longValue() == last.longValue()) {
-            Row row = (Row)map.get(first);
+            Row row = (Row)map.getFromSnapshot(first);
             ensureRowKey(row, first);
             return new SingleRowCursor(row);
         }

@@ -5,6 +5,7 @@
  */
 package org.h2.mvstore.tx;
 
+import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVMap.Decision;
 import org.h2.mvstore.type.DataType;
@@ -293,7 +294,7 @@ class TxDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>> {
         @Override
         public MVMap.Decision decide(VersionedValue<V> existingValue, VersionedValue<V> providedValue) {
             MVMap.Decision decision = super.decide(existingValue, providedValue);
-            if (existingValue == null && decision != MVMap.Decision.FAIL) {
+            if (existingValue == null) {
                 assert decision == MVMap.Decision.PUT;
                 decision = setDecision(MVMap.Decision.REMOVE);
             }
@@ -323,7 +324,7 @@ class TxDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>> {
         Decision logAndDecideToPut(VersionedValue<V> valueToLog, V value) {
             if (snapshotValue != null && (valueToLog == null
                     || valueType.compare(VersionedValueCommitted.getInstance(snapshotValue), valueToLog) != 0)) {
-                return setDecision(Decision.FAIL);
+                throw DataUtils.newIllegalStateException(DataUtils.ERROR_TRANSACTIONS_DEADLOCK, "");
             }
             return super.logAndDecideToPut(valueToLog, value);
         }

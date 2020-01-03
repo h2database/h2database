@@ -539,6 +539,24 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
     }
 
     /**
+     * Check if the row was deleted by this transaction.
+     *
+     * @param key the key
+     * @return {@code true} if it was
+     */
+    public boolean isDeletedByCurrentTransaction(K key) {
+        VersionedValue<V> data = map.get(key);
+        if (data != null) {
+            long id = data.getOperationId();
+            if (id != 0 && TransactionStore.getTransactionId(id) == transaction.transactionId
+                    && data.getCurrentValue() == null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Whether the entry for this key was added or removed from this
      * session.
      *

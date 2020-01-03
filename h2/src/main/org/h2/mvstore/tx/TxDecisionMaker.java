@@ -5,7 +5,10 @@
  */
 package org.h2.mvstore.tx;
 
+import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
+import org.h2.mvstore.MVMap.Decision;
+import org.h2.mvstore.type.DataType;
 import org.h2.value.VersionedValue;
 
 /**
@@ -141,7 +144,7 @@ class TxDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>> {
      * @param value last known committed value
      * @return {@link MVMap.Decision#PUT}
      */
-    final MVMap.Decision logAndDecideToPut(VersionedValue<V> valueToLog, V value) {
+    MVMap.Decision logAndDecideToPut(VersionedValue<V> valueToLog, V value) {
         undoKey = transaction.log(new Record<>(mapId, key, valueToLog));
         lastCommittedValue = value;
         return setDecision(MVMap.Decision.PUT);
@@ -282,7 +285,7 @@ class TxDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>> {
     }
 
 
-    public static final class LockDecisionMaker<V> extends TxDecisionMaker<V> {
+    public static class LockDecisionMaker<V> extends TxDecisionMaker<V> {
 
         LockDecisionMaker(int mapId, Object key, Transaction transaction) {
             super(mapId, key, null, transaction);
@@ -303,4 +306,29 @@ class TxDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>> {
             return existingValue == null ? null : existingValue.getCurrentValue();
         }
     }
+
+    public static final class RepeatableReadLockDecisionMaker<V> extends LockDecisionMaker<V> {
+
+        private final DataType<VersionedValue<V>> valueType;
+
+        private final V snapshotValue;
+
+        RepeatableReadLockDecisionMaker(int mapId, Object key, Transaction transaction,
+                DataType<VersionedValue<V>> valueType, V snapshotValue) {
+            super(mapId, key, transaction);
+            this.valueType = valueType;
+            this.snapshotValue = snapshotValue;
+        }
+
+        @Override
+        Decision logAndDecideToPut(VersionedValue<V> valueToLog, V value) {
+            if (snapshotValue != null && (valueToLog == null
+                    || valueType.compare(VersionedValueCommitted.getInstance(snapshotValue), valueToLog) != 0)) {
+                throw DataUtils.newIllegalStateException(DataUtils.ERROR_TRANSACTIONS_DEADLOCK, "");
+            }
+            return super.logAndDecideToPut(valueToLog, value);
+        }
+
+    }
+
 }

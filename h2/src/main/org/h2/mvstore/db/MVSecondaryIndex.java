@@ -134,7 +134,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex<SearchR
                 SearchRow row = s.next();
 
                 if (indexType.isUnique() && !mayHaveNullDuplicates(row)) {
-                    checkUnique(dataMap, row, Long.MIN_VALUE);
+                    checkUnique(true, dataMap, row, Long.MIN_VALUE);
                 }
 
                 dataMap.putCommitted(row, ValueNull.INSTANCE);
@@ -177,9 +177,16 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex<SearchR
     public void add(Session session, Row row) {
         TransactionMap<SearchRow,Value> map = getMap(session);
         SearchRow key = convertToKey(row, null);
-        boolean checkRequired = indexType.isUnique() && !mayHaveNullDuplicates(row);
+        boolean checkRequired, allowNonRepeatableRead;
+        if (indexType.isUnique() && !mayHaveNullDuplicates(row)) {
+            checkRequired = true;
+            allowNonRepeatableRead = session.getTransaction().getIsolationLevel().allowNonRepeatableRead();
+        } else {
+            checkRequired = false;
+            allowNonRepeatableRead = false;
+        }
         if (checkRequired) {
-            checkUnique(map, row, Long.MIN_VALUE);
+            checkUnique(allowNonRepeatableRead, map, row, Long.MIN_VALUE);
         }
 
         try {
@@ -189,13 +196,24 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex<SearchR
         }
 
         if (checkRequired) {
-            checkUnique(map, row, row.getKey());
+            checkUnique(allowNonRepeatableRead, map, row, row.getKey());
         }
     }
 
-    private void checkUnique(TransactionMap<SearchRow,Value> map, SearchRow row, long newKey) {
-        Iterator<SearchRow> it = map.keyIteratorUncommitted(convertToKey(row, Boolean.FALSE),
-                                                            convertToKey(row, Boolean.TRUE));
+    private void checkUnique(boolean allowNonRepeatableRead, TransactionMap<SearchRow,Value> map, SearchRow row,
+            long newKey) {
+        SearchRow from = convertToKey(row, Boolean.FALSE);
+        SearchRow to = convertToKey(row, Boolean.TRUE);
+        if (!allowNonRepeatableRead) {
+            Iterator<SearchRow> it = map.keyIterator(from, to);
+            while (it.hasNext()) {
+                SearchRow k = it.next();
+                if (newKey != k.getKey() && !map.isDeletedByCurrentTransaction(k)) {
+                    throw getDuplicateKeyException(k.toString());
+                }
+            }
+        }
+        Iterator<SearchRow> it = map.keyIteratorUncommitted(from, to);
         while (it.hasNext()) {
             SearchRow k = it.next();
             if (newKey != k.getKey()) {

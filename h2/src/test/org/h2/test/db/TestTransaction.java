@@ -1149,13 +1149,19 @@ public class TestTransaction extends TestDb {
         if (!config.mvStore) {
             return;
         }
+        testIsolationLevels4(true);
+        testIsolationLevels4(false);
+    }
+
+    private void testIsolationLevels4(boolean primaryKey) throws SQLException {
         for (int isolationLevel : new int[] { Connection.TRANSACTION_READ_UNCOMMITTED,
                 Connection.TRANSACTION_READ_COMMITTED, Connection.TRANSACTION_REPEATABLE_READ,
                 Constants.TRANSACTION_SNAPSHOT, Connection.TRANSACTION_SERIALIZABLE }) {
             deleteDb("transaction");
             try (Connection conn1 = getConnection("transaction"); Connection conn2 = getConnection("transaction")) {
                 Statement stat1 = conn1.createStatement();
-                stat1.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, V INT) AS VALUES (1, 2)");
+                stat1.execute("CREATE TABLE TEST(ID INT " + (primaryKey ? "PRIMARY KEY" : "UNIQUE")
+                        + ", V INT) AS VALUES (1, 2)");
                 conn2.setAutoCommit(false);
                 conn2.setTransactionIsolation(isolationLevel);
                 Statement stat2 = conn2.createStatement();
@@ -1187,11 +1193,29 @@ public class TestTransaction extends TestDb {
                     }
                     stat1.execute("DELETE FROM TEST");
                     stat1.execute("INSERT INTO TEST VALUES (1, 2)");
-                    assertEquals(1, stat2.executeUpdate("UPDATE TEST SET V = V + 2"));
-                    try (ResultSet rs = stat2.executeQuery("SELECT V FROM TEST WHERE ID = 1")) {
-                        assertTrue(rs.next());
-                        assertEquals(4, rs.getInt(1));
-                        assertFalse(rs.next());
+                    if (primaryKey) {
+                        // With a delegate index the row was completely
+                        // restored, so no error
+                        assertEquals(1, stat2.executeUpdate("UPDATE TEST SET V = V + 2"));
+                        try (ResultSet rs = stat2.executeQuery("SELECT V FROM TEST WHERE ID = 1")) {
+                            assertTrue(rs.next());
+                            assertEquals(4, rs.getInt(1));
+                            assertFalse(rs.next());
+                        }
+                        conn2.commit();
+                        try (ResultSet rs = stat2.executeQuery("SELECT V FROM TEST WHERE ID = 1")) {
+                            assertTrue(rs.next());
+                            assertEquals(4, rs.getInt(1));
+                            assertFalse(rs.next());
+                        }
+                    } else {
+                        // With a secondary index restored row is not the same
+                        assertThrows(ErrorCode.DEADLOCK_1, stat2).executeUpdate("UPDATE TEST SET V = V + 2");
+                        try (ResultSet rs = stat2.executeQuery("SELECT V FROM TEST WHERE ID = 1")) {
+                            assertTrue(rs.next());
+                            assertEquals(2, rs.getInt(1));
+                            assertFalse(rs.next());
+                        }
                     }
                 }
             }

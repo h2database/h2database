@@ -1217,6 +1217,10 @@ public class TestTransaction extends TestDb {
                             assertFalse(rs.next());
                         }
                     }
+                    if (primaryKey) {
+                        stat1.execute("DELETE FROM TEST");
+                        assertThrows(ErrorCode.DUPLICATE_KEY_1, stat2).execute("INSERT INTO TEST VALUES (1, 3)");
+                    }
                 }
             }
         }

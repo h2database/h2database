@@ -252,6 +252,23 @@ public class TransactionMap<K, V> extends AbstractMap<K,V> {
     @Override
     public V putIfAbsent(K key, V value) {
         DataUtils.checkArgument(value != null, "The value may not be null");
+        if (!transaction.isolationLevel.allowNonRepeatableRead()) {
+            V oldValue = getFromSnapshot(key);
+            if (oldValue != null) {
+                VersionedValue<V> data = map.get(key);
+                if (data == null) {
+                    return oldValue;
+                } else {
+                    long id = data.getOperationId();
+                    if (id != 0 && TransactionStore.getTransactionId(id) == transaction.transactionId) {
+                        oldValue = data.getCurrentValue();
+                        if (oldValue != null) {
+                            return oldValue;
+                        }
+                    }
+                }
+            }
+        }
         TxDecisionMaker<V> decisionMaker = new TxDecisionMaker.PutIfAbsentDecisionMaker<>(map.getId(), key, value,
                 transaction);
         return set(key, decisionMaker);

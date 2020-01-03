@@ -112,7 +112,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
             Row old = (Row)map.putIfAbsent(rowKey, row);
             if (old != null) {
                 int errorCode = ErrorCode.CONCURRENT_UPDATE_1;
-                if (map.getImmediate(rowKey) != null) {
+                if (map.getImmediate(rowKey) != null || map.getFromSnapshot(rowKey) != null) {
                     // committed
                     errorCode = ErrorCode.DUPLICATE_KEY_1;
                 }

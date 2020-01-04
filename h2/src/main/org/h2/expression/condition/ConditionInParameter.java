@@ -118,7 +118,7 @@ public class ConditionInParameter extends Condition {
     public Value getValue(Session session) {
         Value l = left.getValue(session);
         if (l == ValueNull.INSTANCE) {
-            return l;
+            return ValueNull.INSTANCE;
         }
         return getValue(session, l, parameter.getValue(session));
     }

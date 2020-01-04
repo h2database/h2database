@@ -341,3 +341,16 @@ SELECT 1 WHERE 1 IN ();
 
 SET MODE Regular;
 > ok
+
+CREATE TABLE TEST(A INT, B INT) AS (VALUES (1, 1), (1, 2), (2, 1), (2, NULL));
+> ok
+
+SELECT * FROM TEST WHERE (A, B) IN ((1, 1), (2, 1), (2, 2), (2, NULL));
+> A B
+> - -
+> 1 1
+> 2 1
+> rows: 2
+
+DROP TABLE TEST;
+> ok

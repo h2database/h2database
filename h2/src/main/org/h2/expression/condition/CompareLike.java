@@ -248,12 +248,12 @@ public class CompareLike extends Condition {
     public Value getValue(Session session) {
         Value l = left.getValue(session);
         if (l == ValueNull.INSTANCE) {
-            return l;
+            return ValueNull.INSTANCE;
         }
         if (!isInit) {
             Value r = right.getValue(session);
             if (r == ValueNull.INSTANCE) {
-                return r;
+                return ValueNull.INSTANCE;
             }
             String p = r.getString();
             Value e = escape == null ? null : escape.getValue(session);

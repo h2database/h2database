@@ -67,7 +67,7 @@ public class ConditionInConstantSet extends Condition {
     public Value getValue(Session session) {
         Value x = left.getValue(session);
         if (x.containsNull()) {
-            return x;
+            return ValueNull.INSTANCE;
         }
         boolean result = valueSet.contains(x);
         if (!result && hasNull) {

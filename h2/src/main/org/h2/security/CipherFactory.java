@@ -277,7 +277,7 @@ public class CipherFactory {
             // if you have a keystore file.
             // This code is (hopefully) more Java version independent
             // than using keystores directly. See also:
-            // https://bugs.java.com/bugdatabase/view_bug.do?bug_id=4887561
+            // https://bugs.openjdk.java.net/browse/JDK-4887561
             // (1.4.2 cannot read keystore written with 1.4.1)
             // --- generated code start ---
 

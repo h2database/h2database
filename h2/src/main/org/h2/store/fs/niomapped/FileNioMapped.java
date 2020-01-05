@@ -53,7 +53,7 @@ class FileNioMapped extends FileBaseDefault {
         mapped.force();
 
         // need to dispose old direct buffer, see bug
-        // https://bugs.java.com/bugdatabase/view_bug.do?bug_id=4724038
+        // https://bugs.openjdk.java.net/browse/JDK-4724038
 
         if (SysProperties.NIO_CLEANER_HACK) {
             if (MemoryUnmapper.unmap(mapped)) {

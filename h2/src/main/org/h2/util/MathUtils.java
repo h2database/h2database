@@ -66,7 +66,7 @@ public class MathUtils {
             return secureRandom;
         }
         // Workaround for SecureRandom problem as described in
-        // https://bugs.java.com/bugdatabase/view_bug.do?bug_id=6202721
+        // https://bugs.openjdk.java.net/browse/JDK-6202721
         // Can not do that in a static initializer block, because
         // threads are not started until after the initializer block exits
         try {

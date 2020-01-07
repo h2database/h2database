@@ -55,7 +55,8 @@ public abstract class Table extends SchemaObjectBase {
     public static final int TYPE_CACHED = 0;
 
     /**
-     * The table type that means this table is a regular persistent table.
+     * The table type that means this table is a regular persistent table, but
+     * the index data is kept in main memory.
      */
     public static final int TYPE_MEMORY = 1;
 

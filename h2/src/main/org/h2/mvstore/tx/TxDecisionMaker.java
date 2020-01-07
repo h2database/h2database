@@ -10,6 +10,7 @@ import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVMap.Decision;
 import org.h2.mvstore.type.DataType;
 import org.h2.value.VersionedValue;
+import java.util.function.Function;
 
 /**
  * Class TxDecisionMaker is a base implementation of MVMap.DecisionMaker
@@ -50,7 +51,7 @@ class TxDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>> {
 
     private       Transaction    blockingTransaction;
     private       MVMap.Decision decision;
-    private       V              lastCommittedValue;
+    private       V              lastValue;
 
     TxDecisionMaker(int mapId, Object key, V value, Transaction transaction) {
         this.mapId = mapId;
@@ -83,6 +84,7 @@ class TxDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>> {
             // this entry comes from a different transaction, and this
             // transaction is not committed yet
             // should wait on blockingTransaction that was determined earlier
+            lastValue = existingValue.getCurrentValue();
             decision = MVMap.Decision.ABORT;
         } else if (isRepeatedOperation(id)) {
             // There is no transaction with that id, and we've tried it just
@@ -116,13 +118,14 @@ class TxDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>> {
         }
         blockingTransaction = null;
         decision = null;
+        lastValue = null;
     }
 
     @SuppressWarnings("unchecked")
     @Override
     // always return value (ignores existingValue)
     public <T extends VersionedValue<V>> T selectValue(T existingValue, T providedValue) {
-        return (T) VersionedValueUncommitted.getInstance(undoKey, getNewValue(existingValue), lastCommittedValue);
+        return (T) VersionedValueUncommitted.getInstance(undoKey, getNewValue(existingValue), lastValue);
     }
 
     /**
@@ -141,13 +144,22 @@ class TxDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>> {
      * along with last known committed value
      *
      * @param valueToLog previous value to be logged
-     * @param value last known committed value
+     * @param lastValue last known committed value
      * @return {@link MVMap.Decision#PUT}
      */
-    MVMap.Decision logAndDecideToPut(VersionedValue<V> valueToLog, V value) {
+    MVMap.Decision logAndDecideToPut(VersionedValue<V> valueToLog, V lastValue) {
         undoKey = transaction.log(new Record<>(mapId, key, valueToLog));
-        lastCommittedValue = value;
+        this.lastValue = lastValue;
         return setDecision(MVMap.Decision.PUT);
+    }
+
+    final MVMap.Decision decideToAbort(V lastValue) {
+        this.lastValue = lastValue;
+        return setDecision(Decision.ABORT);
+    }
+
+    final boolean allowNonRepeatableRead() {
+        return transaction.isolationLevel.allowNonRepeatableRead();
     }
 
     final MVMap.Decision getDecision() {
@@ -156,6 +168,10 @@ class TxDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>> {
 
     final Transaction getBlockingTransaction() {
         return blockingTransaction;
+    }
+
+    final V getLastValue() {
+        return lastValue;
     }
 
     /**
@@ -225,10 +241,16 @@ class TxDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>> {
 
 
 
-    public static final class PutIfAbsentDecisionMaker<V> extends TxDecisionMaker<V>
+    public static final class PutIfAbsentDecisionMaker<K,V> extends TxDecisionMaker<V>
     {
-        PutIfAbsentDecisionMaker(int mapId, Object key, V value, Transaction transaction) {
+        private final K key;
+        private final Function<K, V> oldValueSupplier;
+
+        PutIfAbsentDecisionMaker(int mapId, K key, V value, Transaction transaction,
+                                 Function<K, V> oldValueSupplier) {
             super(mapId, key, value, transaction);
+            this.key = key;
+            this.oldValueSupplier = oldValueSupplier;
         }
 
         @Override
@@ -237,6 +259,12 @@ class TxDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>> {
             int blockingId;
             // if map does not have that entry yet
             if (existingValue == null) {
+                V snapshotValue = getValueInSnapshot();
+                if (snapshotValue != null) {
+                    // value exists in a snapshot but not in current map, therefore
+                    // it was removed and committed by another transaction
+                    return decideToAbort(snapshotValue);
+                }
                 return logAndDecideToPut(null, null);
             } else {
                 long id = existingValue.getOperationId();
@@ -244,14 +272,27 @@ class TxDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>> {
                             // or it came from the same transaction
                         || isThisTransaction(blockingId = TransactionStore.getTransactionId(id))) {
                     if(existingValue.getCurrentValue() != null) {
-                        return setDecision(MVMap.Decision.ABORT);
+                        return decideToAbort(existingValue.getCurrentValue());
+                    }
+                    if (id == 0) {
+                        V snapshotValue = getValueInSnapshot();
+                        if (snapshotValue != null) {
+                            return decideToAbort(snapshotValue);
+                        }
                     }
                     return logAndDecideToPut(existingValue, existingValue.getCommittedValue());
                 } else if (isCommitted(blockingId)) {
                     // entry belongs to a committing transaction
                     // and therefore will be committed soon
                     if(existingValue.getCurrentValue() != null) {
-                        return setDecision(MVMap.Decision.ABORT);
+                        return decideToAbort(existingValue.getCurrentValue());
+                    }
+                    // even if that commit will result in entry removal
+                    // current operation should fail within repeatable read transaction
+                    // if initial snapshot carries some value
+                    V snapshotValue = getValueInSnapshot();
+                    if (snapshotValue != null) {
+                        return decideToAbort(snapshotValue);
                     }
                     return logAndDecideToPut(null, null);
                 } else if (getBlockingTransaction() != null) {
@@ -259,7 +300,7 @@ class TxDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>> {
                     // transaction is not committed yet
                     // should wait on blockingTransaction that was determined
                     // earlier and then try again
-                    return setDecision(MVMap.Decision.ABORT);
+                    return decideToAbort(existingValue.getCurrentValue());
                 } else if (isRepeatedOperation(id)) {
                     // There is no transaction with that id, and we've tried it
                     // just before, but map root has not changed (which must be
@@ -269,9 +310,9 @@ class TxDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>> {
                     // update was written but not undo log), and will
                     // effectively roll it back (just assume committed value and
                     // overwrite).
-                    Object committedValue = existingValue.getCommittedValue();
+                    V committedValue = existingValue.getCommittedValue();
                     if (committedValue != null) {
-                        return setDecision(MVMap.Decision.ABORT);
+                        return decideToAbort(committedValue);
                     }
                     return logAndDecideToPut(null, null);
                 } else {
@@ -281,6 +322,10 @@ class TxDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>> {
                     return setDecision(MVMap.Decision.REPEAT);
                 }
             }
+        }
+
+        private V getValueInSnapshot() {
+            return allowNonRepeatableRead() ? null : oldValueSupplier.apply(key);
         }
     }
 

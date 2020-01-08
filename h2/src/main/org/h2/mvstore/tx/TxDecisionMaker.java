@@ -270,31 +270,25 @@ class TxDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>> {
                 long id = existingValue.getOperationId();
                 if (id == 0 // entry is a committed one
                             // or it came from the same transaction
-                        || isThisTransaction(blockingId = TransactionStore.getTransactionId(id))) {
-                    if(existingValue.getCurrentValue() != null) {
-                        return decideToAbort(existingValue.getCurrentValue());
+                        || isThisTransaction(blockingId = TransactionStore.getTransactionId(id))
+                            // or entry belongs to a committing transaction
+                            // and therefore will be committed soon
+                        || isCommitted(blockingId)) {
+                    // check what transaction have been doing and fail it wasn't an entry removal
+                    V currentValue = existingValue.getCurrentValue();
+                    if(currentValue != null) {
+                        return decideToAbort(currentValue);
                     }
-                    if (id == 0) {
+                    if (id == 0 || !isThisTransaction(TransactionStore.getTransactionId(id))) {
+                        // even if that commit will result in entry removal
+                        // current operation should fail within repeatable read transaction
+                        // if initial snapshot carries some value
                         V snapshotValue = getValueInSnapshot();
                         if (snapshotValue != null) {
                             return decideToAbort(snapshotValue);
                         }
                     }
                     return logAndDecideToPut(existingValue, existingValue.getCommittedValue());
-                } else if (isCommitted(blockingId)) {
-                    // entry belongs to a committing transaction
-                    // and therefore will be committed soon
-                    if(existingValue.getCurrentValue() != null) {
-                        return decideToAbort(existingValue.getCurrentValue());
-                    }
-                    // even if that commit will result in entry removal
-                    // current operation should fail within repeatable read transaction
-                    // if initial snapshot carries some value
-                    V snapshotValue = getValueInSnapshot();
-                    if (snapshotValue != null) {
-                        return decideToAbort(snapshotValue);
-                    }
-                    return logAndDecideToPut(null, null);
                 } else if (getBlockingTransaction() != null) {
                     // this entry comes from a different transaction, and this
                     // transaction is not committed yet

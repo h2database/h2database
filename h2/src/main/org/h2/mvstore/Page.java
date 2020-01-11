@@ -242,8 +242,7 @@ public abstract class Page<K,V> implements Cloneable
         boolean leaf = (DataUtils.getPageType(pos) & 1) == PAGE_TYPE_LEAF;
         Page<K,V> p = leaf ? new Leaf<>(map) : new NonLeaf<>(map);
         p.pos = pos;
-        int chunkId = DataUtils.getPageChunkId(pos);
-        p.read(buff, chunkId);
+        p.read(buff);
         return p;
     }
 
@@ -557,13 +556,38 @@ public abstract class Page<K,V> implements Cloneable
     /**
      * Read the page from the buffer.
      *
-     * @param buff the buffer
-     * @param chunkId the chunk id
+     * @param buff the buffer to read from
      */
-    private void read(ByteBuffer buff, int chunkId) {
-        // size of int + short + varint, since we've read page length, check and
-        // mapId already
-        int pageLength = buff.remaining() + 10;
+    private void read(ByteBuffer buff) {
+        int chunkId = DataUtils.getPageChunkId(pos);
+        int offset = DataUtils.getPageOffset(pos);
+
+        int start = buff.position();
+        int pageLength = buff.getInt(); // does not include optional part (pageNo)
+        int remaining = buff.remaining() + 4;
+        if (pageLength > remaining || pageLength < 4) {
+            throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
+                    "File corrupted in chunk {0}, expected page length 4..{1}, got {2}", chunkId, remaining,
+                    pageLength);
+        }
+
+        short check = buff.getShort();
+        int checkTest = DataUtils.getCheckValue(chunkId)
+                ^ DataUtils.getCheckValue(offset)
+                ^ DataUtils.getCheckValue(pageLength);
+        if (check != (short) checkTest) {
+            throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
+                    "File corrupted in chunk {0}, expected check value {1}, got {2}", chunkId, checkTest, check);
+        }
+
+
+        int mapId = DataUtils.readVarInt(buff);
+        if (mapId != map.getId()) {
+            throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
+                    "File corrupted in chunk {0}, expected map id {1}, got {2}", chunkId, map.getId(), mapId);
+        }
+
+
         int len = DataUtils.readVarInt(buff);
         keys = createKeyStorage(len);
         int type = buff.get();
@@ -573,9 +597,17 @@ public abstract class Page<K,V> implements Cloneable
                     "File corrupted in chunk {0}, expected node type {1}, got {2}",
                     chunkId, isLeaf() ? "0" : "1" , type);
         }
+        // jump ahaead and read pageNo, because if page is compressed,
+        // buffer will be replaced by uncompressed one
         if ((type & DataUtils.PAGE_HAS_PAGE_NO) != 0) {
+            int position = buff.position();
+            buff.position(pageLength);
             pageNo = DataUtils.readVarInt(buff);
+            buff.position(position);
         }
+        // to restrain hacky GenericDataType, which grabs the whole remainer of the buffer
+        buff.limit(start + pageLength);
+
         if (!isLeaf()) {
             readPayLoad(buff);
         }
@@ -655,13 +687,12 @@ public abstract class Page<K,V> implements Cloneable
         int start = buff.position();
         int len = getKeyCount();
         int type = isLeaf() ? PAGE_TYPE_LEAF : DataUtils.PAGE_TYPE_NODE;
-        buff.putInt(0).
-            putShort((byte) 0).
+        buff.putInt(0).         // placeholder for pageLength
+            putShort((byte)0).  // placeholder for check
             putVarInt(map.getId()).
             putVarInt(len);
         int typePos = buff.position();
         buff.put((byte) (type | DataUtils.PAGE_HAS_PAGE_NO));
-        buff.putVarInt(pageNo);
         int childrenPos = buff.position();
         writeChildren(buff, true);
         int compressStart = buff.position();
@@ -696,7 +727,10 @@ public abstract class Page<K,V> implements Cloneable
             }
         }
         int pageLength = buff.position() - start;
-        long tocElement = DataUtils.getTocElement(getMapId(), start, pageLength, type);
+        if (pageNo >= 0) {
+            buff.putVarInt(pageNo);
+        }
+        long tocElement = DataUtils.getTocElement(getMapId(), start, buff.position() - start, type);
         toc.add(tocElement);
         int chunkId = chunk.id;
         int check = DataUtils.getCheckValue(chunkId)
@@ -1191,7 +1225,7 @@ public abstract class Page<K,V> implements Cloneable
                         long pagePos = ref.getPos();
                         assert DataUtils.isPageSaved(pagePos);
                         if (DataUtils.isLeafPosition(pagePos)) {
-                            map.store.accountForRemovedPage(pagePos, version, map.isSingleWriter(), -1/*map.readPage(pagePos).pageNo*/);
+                            map.store.accountForRemovedPage(pagePos, version, map.isSingleWriter(), -1);
                         } else {
                             unsavedMemory += map.readPage(pagePos).removeAllRecursive(version);
                         }

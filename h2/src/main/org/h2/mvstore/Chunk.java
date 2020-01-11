@@ -5,6 +5,7 @@
  */
 package org.h2.mvstore;
 
+import org.h2.util.StringUtils;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.BitSet;
@@ -315,7 +316,8 @@ public class Chunk
             DataUtils.appendMap(buff, ATTR_TOC, tocPos);
         }
         if (occupancy.nextSetBit(0) >= 0) {
-            DataUtils.appendMap(buff, ATTR_OCCUPANCY, DataUtils.hexEncodeBytes(occupancy.toByteArray()));
+            DataUtils.appendMap(buff, ATTR_OCCUPANCY,
+                    StringUtils.convertBytesToHex(occupancy.toByteArray()));
         }
         return buff.toString();
     }

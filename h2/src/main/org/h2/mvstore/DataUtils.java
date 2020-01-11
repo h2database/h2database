@@ -1149,54 +1149,12 @@ public final class DataUtils {
         }
     }
 
-    public static String hexEncodeBytes(byte[] bytes) {
-        StringBuilder sb = new StringBuilder(bytes.length * 2);
-        for (byte b : bytes) {
-            sb.append(getHexDigitFor(b >> 4));
-            sb.append(getHexDigitFor(b));
-        }
-        return sb.toString();
-    }
-
-    private static char getHexDigitFor(int digit) {
-        digit &= 0xF;
-        return (char)((digit < 10 ? '0' : 'a' - 10) + digit);
-    }
-
     public static byte[] parseHexBytes(Map<String, ?> map, String key) {
         Object v = map.get(key);
         if (v == null) {
             return null;
         }
-        String s = (String)v;
-        try {
-            int length = s.length();
-            byte[] data = new byte[length / 2];
-            for(int i = 0; i < length; i += 2) {
-                data[i / 2] = (byte)((hexValueOf(s.charAt(i)) << 4)
-                                    | hexValueOf(s.charAt(i + 1)));
-            }
-            return data;
-        } catch (NumberFormatException e) {
-            throw newIllegalStateException(ERROR_FILE_CORRUPT,
-                    "Error parsing the value {0}", v, e);
-        }
-    }
-
-    private  static int hexValueOf(char c) {
-        int res = c - '0';
-        if (res > 9) {
-            res = c - 'a';
-            if (res < 0 || res > 5) {
-                res = c - 'A';
-                if (res < 0 || res > 5) {
-                    throw newIllegalStateException(ERROR_FILE_CORRUPT,
-                            "Error parsing the value {0}", c);
-                }
-            }
-            res += 10;
-        }
-        return res;
+        return StringUtils.convertHexToBytes((String)v);
     }
 
     /**

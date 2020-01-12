@@ -37,12 +37,18 @@ public interface DataType<T> extends Comparator<T> {
     int binarySearch(T key, Object storage, int size, int initialGuess);
 
     /**
-     * Estimate the used memory in bytes.
+     * Calculates the amount of used memory in bytes.
      *
      * @param obj the object
      * @return the used memory
      */
     int getMemory(T obj);
+
+    /**
+     * Whether memory estimation based on previosly seen values is allowed/desirable
+     * @return true if memory estimation is allowed
+     */
+    boolean isMemoryEstimationAllowed();
 
     /**
      * Write an object.

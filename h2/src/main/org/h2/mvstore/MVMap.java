@@ -14,9 +14,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import static org.h2.engine.Constants.MEMORY_POINTER;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
+import org.h2.util.MemoryEstimator;
 
 /**
  * A stored map.
@@ -59,6 +62,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     private volatile  boolean closed;
     private boolean readOnly;
     private boolean isVolatile;
+    private final AtomicLong avgKeySize;
+    private final AtomicLong avgValSize;
 
     /**
      * This designates the "last stored" version for a store which was
@@ -103,6 +108,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         this.keysBuffer = singleWriter ? keyType.createStorage(keysPerPage) : null;
         this.valuesBuffer = singleWriter ? valueType.createStorage(keysPerPage) : null;
         this.singleWriter = singleWriter;
+        this.avgKeySize = keyType.isMemoryEstimationAllowed() ? new AtomicLong() : null;
+        this.avgValSize = valueType.isMemoryEstimationAllowed() ? new AtomicLong() : null;
+
     }
 
     /**
@@ -1956,7 +1964,48 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
     }
 
-    private static final class EqualsDecisionMaker<V> extends DecisionMaker<V> {
+    final int evaluateMemoryForKeys(K[] storage, int count) {
+        if (avgKeySize == null) {
+            return calculateMemory(keyType, storage, count);
+        }
+        return MemoryEstimator.estimateMemory(avgKeySize, keyType, storage, count);
+    }
+
+    final int evaluateMemoryForValues(V[] storage, int count) {
+        if (avgValSize == null) {
+            return calculateMemory(valueType, storage, count);
+        }
+        return MemoryEstimator.estimateMemory(avgValSize, valueType, storage, count);
+    }
+
+    private static <T> int calculateMemory(DataType<T> keyType, T[] storage, int count) {
+        int mem = count * MEMORY_POINTER;
+        for (int i = 0; i < count; i++) {
+            mem += keyType.getMemory(storage[i]);
+        }
+        return mem;
+    }
+
+    final int evaluateMemoryForKey(K key) {
+        if (avgKeySize == null) {
+            return keyType.getMemory(key);
+        }
+        return MemoryEstimator.estimateMemory(avgKeySize, keyType, key);
+    }
+
+    final int evaluateMemoryForValue(V value) {
+        if (avgValSize == null) {
+            return valueType.getMemory(value);
+        }
+        return MemoryEstimator.estimateMemory(avgValSize, valueType, value);
+    }
+
+    static int samplingPct(AtomicLong stats) {
+        return MemoryEstimator.samplingPct(stats);
+    }
+
+    private static final class EqualsDecisionMaker<V> extends DecisionMaker<V>
+    {
         private final DataType<V> dataType;
         private final V           expectedValue;
         private       Decision    decision;

@@ -5,8 +5,10 @@
  */
 package org.h2.mvstore;
 
+import org.h2.util.StringUtils;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.BitSet;
 import java.util.Comparator;
 import java.util.HashMap;
 
@@ -52,6 +54,8 @@ public class Chunk
     private static final String ATTR_UNUSED = "unused";
     private static final String ATTR_UNUSED_AT_VERSION = "unusedAtVersion";
     private static final String ATTR_PIN_COUNT = "pinCount";
+    private static final String ATTR_TOC = "toc";
+    private static final String ATTR_OCCUPANCY = "occupancy";
     private static final String ATTR_FLETCHER = "fletcher";
 
     /**
@@ -78,6 +82,21 @@ public class Chunk
      * The number of pages still alive.
      */
     int pageCountLive;
+
+    /**
+     * Offset (from the beginning of the chunk) for the table of content.
+     * Table of content is holding a long value for each page in the chunk.
+     * This value consists of map id, page offset, page length and page type.
+     * Format is the same as page's position id, but with map id replacing chunk id.
+     *
+     * @see DataUtils#getTocElement(int, int, int, int) for field format details
+     */
+    int tocPos;
+
+    /**
+     * Collection of "deleted" flags for all pages in the chunk.
+     */
+    BitSet occupancy;
 
     /**
      * The sum of the max length of all pages.
@@ -228,6 +247,9 @@ public class Chunk
         c.version = DataUtils.readHexLong(map, ATTR_VERSION, id);
         c.next = DataUtils.readHexLong(map, ATTR_NEXT, 0);
         c.pinCount = DataUtils.readHexInt(map, ATTR_PIN_COUNT, 0);
+        c.tocPos = DataUtils.readHexInt(map, ATTR_TOC, 0);
+        byte[] bytes = DataUtils.parseHexBytes(map, ATTR_OCCUPANCY);
+        c.occupancy = bytes == null ? new BitSet() : BitSet.valueOf(bytes);
         return c;
     }
 
@@ -287,7 +309,16 @@ public class Chunk
             DataUtils.appendMap(buff, ATTR_UNUSED_AT_VERSION, unusedAtVersion);
         }
         DataUtils.appendMap(buff, ATTR_VERSION, version);
-        DataUtils.appendMap(buff, ATTR_PIN_COUNT, pinCount);
+        if (pinCount > 0) {
+            DataUtils.appendMap(buff, ATTR_PIN_COUNT, pinCount);
+        }
+        if (tocPos > 0) {
+            DataUtils.appendMap(buff, ATTR_TOC, tocPos);
+        }
+        if (occupancy.nextSetBit(0) >= 0) {
+            DataUtils.appendMap(buff, ATTR_OCCUPANCY,
+                    StringUtils.convertBytesToHex(occupancy.toByteArray()));
+        }
         return buff.toString();
     }
 
@@ -333,14 +364,14 @@ public class Chunk
      * @param expectedMapId expected map id for the page
      * @return ByteBuffer containing page data.
      */
-    ByteBuffer readBufferForPage(FileStore fileStore, long pos, int expectedMapId) {
+    ByteBuffer readBufferForPage(FileStore fileStore, int offset,  long pos, int expectedMapId) {
         assert isSaved() : this;
         while (true) {
             long originalBlock = block;
             try {
                 long filePos = originalBlock * MVStore.BLOCK_SIZE;
                 long maxPos = filePos + len * MVStore.BLOCK_SIZE;
-                filePos += DataUtils.getPageOffset(pos);
+                filePos += offset;
                 if (filePos < 0) {
                     throw DataUtils.newIllegalStateException(
                             DataUtils.ERROR_FILE_CORRUPT,
@@ -360,34 +391,29 @@ public class Chunk
 
                 ByteBuffer buff = fileStore.readFully(filePos, length);
 
-                int offset = DataUtils.getPageOffset(pos);
-                int start = buff.position();
-                int remaining = buff.remaining();
-                int pageLength = buff.getInt();
-                if (pageLength > remaining || pageLength < 4) {
-                    throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
-                            "File corrupted in chunk {0}, expected page length 4..{1}, got {2}", id, remaining,
-                            pageLength);
-                }
-                buff.limit(start + pageLength);
-
-                short check = buff.getShort();
-                int checkTest = DataUtils.getCheckValue(id)
-                        ^ DataUtils.getCheckValue(offset)
-                        ^ DataUtils.getCheckValue(pageLength);
-                if (check != (short) checkTest) {
-                    throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
-                            "File corrupted in chunk {0}, expected check value {1}, got {2}", id, checkTest, check);
-                }
-
-                int mapId = DataUtils.readVarInt(buff);
-                if (mapId != expectedMapId) {
-                    throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
-                            "File corrupted in chunk {0}, expected map id {1}, got {2}", id, expectedMapId, mapId);
-                }
-
                 if (originalBlock == block) {
                     return buff;
+                }
+            } catch (IllegalStateException ex) {
+                if (originalBlock == block) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
+    long[] readToC(FileStore fileStore) {
+        assert isSaved() : this;
+        assert tocPos > 0;
+        while (true) {
+            long originalBlock = block;
+            try {
+                long filePos = originalBlock * MVStore.BLOCK_SIZE + tocPos;
+                int length = pageCount * 8;
+                long[] toc = new long[pageCount];
+                fileStore.readFully(filePos, length).asLongBuffer().get(toc);
+                if (originalBlock == block) {
+                    return toc;
                 }
             } catch (IllegalStateException ex) {
                 if (originalBlock == block) {
@@ -400,14 +426,12 @@ public class Chunk
     /**
      * Modifies internal state to reflect the fact that one more page is stored
      * within this chunk.
-     *
-     * @param pageLengthOnDisk
+     *  @param pageLengthOnDisk
      *            size of the page
      * @param singleWriter
      *            indicates whether page belongs to append mode capable map
      *            (single writer map). Such pages are "pinned" to the chunk,
      *            they can't be evacuated (moved to a different chunk) while
-     *            on-line, but they assumed to be short-lived anyway.
      */
     void accountForWrittenPage(int pageLengthOnDisk, boolean singleWriter) {
         maxLen += pageLengthOnDisk;
@@ -423,6 +447,8 @@ public class Chunk
      * Modifies internal state to reflect the fact that one the pages within
      * this chunk was removed from the map.
      *
+     * @param pageNo
+     *            sequential page number within the chunk
      * @param pageLength
      *            on disk of the removed page
      * @param pinned
@@ -435,8 +461,19 @@ public class Chunk
      * @return true if all of the pages, this chunk contains, were already
      *         removed, and false otherwise
      */
-    boolean accountForRemovedPage(int pageLength, boolean pinned, long now, long version) {
+    boolean accountForRemovedPage(int pageNo, int pageLength, boolean pinned,
+                                  long now, long version) {
         assert isSaved() : this;
+        // legacy chunks do not have a table of content,
+        // therefore pageNo is not valid, skip
+        if (tocPos > 0) {
+            assert pageCount - pageCountLive == occupancy.cardinality()
+                    : pageCount + " - " + pageCountLive + " : " + occupancy;
+            assert pageNo >= 0 && pageNo < pageCount : pageNo + " // " +  pageCount;
+            assert !occupancy.get(pageNo);
+            occupancy.set(pageNo);
+        }
+
         maxLenLive -= pageLength;
         pageCountLive--;
         if (pinned) {

@@ -134,6 +134,11 @@ public final class DataUtils {
     public static final int PAGE_COMPRESSED_HIGH = 2 + 4;
 
     /**
+     * The bit mask for pages with page seqential number.
+     */
+    public static final int PAGE_HAS_PAGE_NO = 8;
+
+    /**
      * The maximum length of a variable size int.
      */
     public static final int MAX_VAR_INT_LEN = 5;
@@ -533,6 +538,16 @@ public final class DataUtils {
     }
 
     /**
+     * Get the map id from the chunk's table of content element.
+     *
+     * @param tocElement packed table of content element
+     * @return the map id
+     */
+    public static int getPageMapId(long tocElement) {
+        return (int) (tocElement >>> 38);
+    }
+
+    /**
      * Get the maximum length for the given page position.
      *
      * @param pos the position
@@ -560,11 +575,11 @@ public final class DataUtils {
     /**
      * Get the offset from the position.
      *
-     * @param pos the position
+     * @param tocElement packed table of content element
      * @return the offset
      */
-    public static int getPageOffset(long pos) {
-        return (int) (pos >> 6);
+    public static int getPageOffset(long tocElement) {
+        return (int) (tocElement >> 6);
     }
 
     /**
@@ -609,7 +624,7 @@ public final class DataUtils {
 
     /**
      * Get the position of this page. The following information is encoded in
-     * the position: the chunk id, the offset, the maximum length, and the type
+     * the position: the chunk id, the page sequential number, the maximum length, and the type
      * (node or leaf).
      *
      * @param chunkId the chunk id
@@ -618,9 +633,37 @@ public final class DataUtils {
      * @param type the page type (1 for node, 0 for leaf)
      * @return the position
      */
-    public static long getPagePos(int chunkId, int offset,
-            int length, int type) {
+    public static long getPagePos(int chunkId, int offset, int length, int type) {
         long pos = (long) chunkId << 38;
+        pos |= (long) offset << 6;
+        pos |= encodeLength(length) << 1;
+        pos |= type;
+        return pos;
+    }
+
+    /**
+     * Convert tocElement into pagePos by replacing mapId with chunkId
+     * @param chunkId
+     * @param tocElement
+     * @return
+     */
+    public static long getPagePos(int chunkId, long tocElement) {
+        return (tocElement & 0x3FFFFFFFFFL) | ((long) chunkId << 38);
+    }
+
+    /**
+     * Create table of content element. The following information is encoded in it:
+     * the map id, the page offset, the maximum length, and the type
+     * (node or leaf).
+     *
+     * @param mapId the chunk id
+     * @param offset the offset
+     * @param length the length
+     * @param type the page type (1 for node, 0 for leaf)
+     * @return the position
+     */
+    public static long getTocElement(int mapId, int offset, int length, int type) {
+        long pos = (long) mapId << 38;
         pos |= (long) offset << 6;
         pos |= encodeLength(length) << 1;
         pos |= type;
@@ -1104,6 +1147,14 @@ public final class DataUtils {
             throw newIllegalStateException(ERROR_FILE_CORRUPT,
                     "Error parsing the value {0}", v, e);
         }
+    }
+
+    public static byte[] parseHexBytes(Map<String, ?> map, String key) {
+        Object v = map.get(key);
+        if (v == null) {
+            return null;
+        }
+        return StringUtils.convertHexToBytes((String)v);
     }
 
     /**

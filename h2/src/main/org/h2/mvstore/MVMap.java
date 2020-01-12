@@ -606,14 +606,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return res;
     }
 
-    private boolean rewrite(K key) {
-        ContainsDecisionMaker<V> decisionMaker = new ContainsDecisionMaker<>();
-        V result = operate(key, null, decisionMaker);
-        boolean res = decisionMaker.getDecision() != Decision.ABORT;
-        assert res == (result != null);
-        return res;
-    }
-
     /**
      * Replace a value for an existing key.
      *
@@ -697,85 +689,21 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return new Cursor<>(getRootPage(), from);
     }
 
-    /**
-     * Re-write any pages that belong to one of the chunks in the given set.
-     *
-     * @param set the set of chunk ids
-     * @return number of pages actually re-written
-     */
-    final int rewrite(Set<Integer> set) {
-        if (!singleWriter) {
-            return rewrite(getRootPage(), set);
-        }
-        RootReference<K,V> rootReference = lockRoot(getRoot(), 1);
-        int appendCounter = rootReference.getAppendCounter();
-        try {
-            if (appendCounter > 0) {
-                rootReference = flushAppendBuffer(rootReference, true);
-                assert rootReference.getAppendCounter() == 0;
-            }
-            int res = rewrite(rootReference.root, set);
-            return res;
-        } finally {
-            unlockRoot();
-        }
-    }
-
-    private int rewrite(Page<K,V> p, Set<Integer> set) {
-        if (p.isLeaf()) {
-            long pos = p.getPos();
-            int chunkId = DataUtils.getPageChunkId(pos);
-            if (!set.contains(chunkId)) {
-                return 0;
-            }
-            assert p.getKeyCount() > 0;
-            return rewritePage(p) ? 1 : 0;
-        }
-        int writtenPageCount = 0;
-        for (int i = 0; i < getChildPageCount(p); i++) {
-            long childPos = p.getChildPagePos(i);
-            if (childPos != 0 && DataUtils.getPageType(childPos) == DataUtils.PAGE_TYPE_LEAF) {
-                // we would need to load the page, and it's a leaf:
-                // only do that if it's within the set of chunks we are
-                // interested in
-                int chunkId = DataUtils.getPageChunkId(childPos);
-                if (!set.contains(chunkId)) {
-                    continue;
-                }
-            }
-            writtenPageCount += rewrite(p.getChildPage(i), set);
-        }
-        if (writtenPageCount == 0) {
-            long pos = p.getPos();
-            int chunkId = DataUtils.getPageChunkId(pos);
-            if (set.contains(chunkId)) {
-                // an inner node page that is in one of the chunks,
-                // but only points to chunks that are not in the set:
-                // if no child was changed, we need to do that now
-                // (this is not needed if anyway one of the children
-                // was changed, as this would have updated this
-                // page as well)
-                while (!p.isLeaf()) {
-                    p = p.getChildPage(0);
-                }
-                if (rewritePage(p)) {
-                    writtenPageCount = 1;
-                }
-            }
-        }
-        return writtenPageCount;
-    }
-
-    private boolean rewritePage(Page<K,V> p) {
+    final boolean rewritePage(long pagePos) {
+        Page<K, V> p = readPage(pagePos);
         if (p.getKeyCount()==0) {
             return true;
         }
-
+        assert p.isSaved();
         K key = p.getKey(0);
         if (!isClosed()) {
-            return rewrite(key);
+            RewriteDecisionMaker<V> decisionMaker = new RewriteDecisionMaker<>(p.getPos());
+            V result = operate(key, null, decisionMaker);
+            boolean res = decisionMaker.getDecision() != Decision.ABORT;
+            assert !res || result != null;
+            return res;
         }
-        return true;
+        return false;
     }
 
     /**
@@ -1742,12 +1670,20 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
         /**
          * Makes a decision about how to proceed with the update.
+         */
+        public Decision decide(V existingValue, V providedValue, CursorPos tip) {
+            return decide(existingValue, providedValue);
+        }
+
+        /**
+         * Makes a decision about how to proceed with the update.
          * @param existingValue value currently exists in the map
          * @param providedValue original input value
          * @return PUT if a new value need to replace existing one or
-         *             new value to be inserted if there is none
+         *             a new value to be inserted if there is none
          *         REMOVE if existing value should be deleted
-         *         ABORT if update operation should be aborted
+         *         ABORT if update operation should be aborted or repeated later
+         *         REPEAT if update operation should be repeated immediately
          */
         public abstract Decision decide(V existingValue, V providedValue);
 
@@ -1809,7 +1745,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 tip = pos;
                 pos = pos.parent;
                 result = index < 0 ? null : p.getValue(index);
-                Decision decision = decisionMaker.decide(result, value);
+                Decision decision = decisionMaker.decide(result, value, tip);
 
                 switch (decision) {
                     case REPEAT:
@@ -2053,14 +1989,34 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
     }
 
-    private static final class ContainsDecisionMaker<V> extends DecisionMaker<V> {
+    private static final class RewriteDecisionMaker<V> extends DecisionMaker<V>
+    {
+        private final long pagePos;
         private Decision decision;
 
-        ContainsDecisionMaker() {}
+        RewriteDecisionMaker(long pagePos) {
+            this.pagePos = pagePos;
+        }
+
+        @Override
+        public Decision decide(V existingValue, V providedValue, CursorPos tip) {
+            assert decision == null;
+            decision = Decision.ABORT;
+            if(!DataUtils.isLeafPosition(pagePos)) {
+                while ((tip = tip.parent) != null) {
+                    if (tip.page.getPos() == pagePos) {
+                        decision = decide(existingValue, providedValue);
+                        break;
+                    }
+                }
+            } else if (tip.page.getPos() == pagePos) {
+                decision = decide(existingValue, providedValue);
+            }
+            return decision;
+        }
 
         @Override
         public Decision decide(V existingValue, V providedValue) {
-            assert decision == null;
             decision = existingValue == null ? Decision.ABORT : Decision.PUT;
             return decision;
         }
@@ -2081,7 +2037,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
         @Override
         public String toString() {
-            return "contains";
+            return "rewrite";
         }
     }
 

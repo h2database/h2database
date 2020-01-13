@@ -103,7 +103,7 @@ public class TestExclusive extends TestDb {
     }
 
 
-    private void setExclusiveMode(Connection connection, int exclusiveMode) throws SQLException {
+    private static void setExclusiveMode(Connection connection, int exclusiveMode) throws SQLException {
         String sql = "SET EXCLUSIVE " + exclusiveMode;
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -111,7 +111,7 @@ public class TestExclusive extends TestDb {
         }
     }
 
-    private boolean getExclusiveMode(Connection connection) throws SQLException{
+    private static boolean getExclusiveMode(Connection connection) throws SQLException{
         boolean exclusiveMode = false;
 
         String sql = "SELECT `VALUE` FROM INFORMATION_SCHEMA.Settings WHERE NAME = 'EXCLUSIVE'";

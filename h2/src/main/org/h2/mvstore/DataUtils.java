@@ -134,7 +134,7 @@ public final class DataUtils {
     public static final int PAGE_COMPRESSED_HIGH = 2 + 4;
 
     /**
-     * The bit mask for pages with page seqential number.
+     * The bit mask for pages with page sequential number.
      */
     public static final int PAGE_HAS_PAGE_NO = 8;
 

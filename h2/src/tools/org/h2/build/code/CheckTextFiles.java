@@ -26,7 +26,7 @@ public class CheckTextFiles {
     private static final int MAX_SOURCE_LINE_SIZE = 120;
 
     // must contain "+" otherwise this here counts as well
-    private static final String COPYRIGHT1 = "Copyright 2004-201";
+    private static final String COPYRIGHT1 = "Copyright 2004-2020";
     private static final String COPYRIGHT2 = "H2 Group.";
     private static final String LICENSE = "Multiple-Licensed " +
             "under the MPL 2.0";

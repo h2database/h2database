@@ -45,7 +45,7 @@ public interface DataType<T> extends Comparator<T> {
     int getMemory(T obj);
 
     /**
-     * Whether memory estimation based on previosly seen values is allowed/desirable
+     * Whether memory estimation based on previously seen values is allowed/desirable
      * @return true if memory estimation is allowed
      */
     boolean isMemoryEstimationAllowed();

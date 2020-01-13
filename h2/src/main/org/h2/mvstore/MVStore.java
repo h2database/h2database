@@ -554,7 +554,8 @@ public class MVStore implements AutoCloseable
                 map = openMap(id, builder);
             }
             assert builder.getKeyType() == null || map.getKeyType().getClass().equals(builder.getKeyType().getClass());
-            assert builder.getValueType() == null || map.getValueType().getClass().equals(builder.getValueType().getClass());
+            assert builder.getValueType() == null
+                    || map.getValueType().getClass().equals(builder.getValueType().getClass());
             return map;
         } else {
             HashMap<String, Object> c = new HashMap<>();
@@ -1458,9 +1459,9 @@ public class MVStore implements AutoCloseable
 
         c.tocPos = buff.position();
         long[] tocArray = new long[toc.size()];
-        int indx = 0;
+        int index = 0;
         for (long tocElement : toc) {
-            tocArray[indx++] = tocElement;
+            tocArray[index++] = tocElement;
             buff.putLong(tocElement);
             if (DataUtils.isLeafPosition(tocElement)) {
                 ++leafCount;
@@ -2861,7 +2862,7 @@ public class MVStore implements AutoCloseable
      * Commit and save all changes, if there are any, and compact the store if
      * needed.
      */
-    private void writeInBackground() {
+    void writeInBackground() {
         try {
             if (!isOpenOrStopping() || isReadOnly()) {
                 return;
@@ -3180,7 +3181,7 @@ public class MVStore implements AutoCloseable
         return getCacheHitRatio(chunksToC);
     }
 
-    private int getCacheHitRatio(CacheLongKeyLIRS<?> cache) {
+    private static int getCacheHitRatio(CacheLongKeyLIRS<?> cache) {
         if (cache == null) {
             return 0;
         }
@@ -3456,7 +3457,7 @@ public class MVStore implements AutoCloseable
          * "page type" bit with "pinned page" flag.
          * @param pagePos of the saved page
          * @param isPinned whether page belong to a "single writer" map
-         * @param pageNo 0-based sequential pege number within containing chunk
+         * @param pageNo 0-based sequential page number within containing chunk
          * @return removed page info that contains chunk id, page number, page length and pinned flag
          */
         private static long createRemovedPageInfo(long pagePos, boolean isPinned, int pageNo) {

@@ -598,7 +598,7 @@ public abstract class Page<K,V> implements Cloneable
         // buffer will be replaced by uncompressed one
         if ((type & DataUtils.PAGE_HAS_PAGE_NO) != 0) {
             int position = buff.position();
-            buff.position(pageLength);
+            buff.position(start + pageLength);
             pageNo = DataUtils.readVarInt(buff);
             buff.position(position);
         }

@@ -382,6 +382,9 @@ public class Chunk
                 if (length == DataUtils.PAGE_LARGE) {
                     // read the first bytes to figure out actual length
                     length = fileStore.readFully(filePos, 128).getInt();
+                    // pageNo is deliberatly not included into length to preserve compatibility
+                    // TODO: remove this adjustment when page on disk format is re-organized
+                    length += 4;
                 }
                 length = (int) Math.min(maxPos - filePos, length);
                 if (length < 0) {

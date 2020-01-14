@@ -17,6 +17,7 @@ import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.tools.SimpleResultSet;
 import org.h2.tools.SimpleRowSource;
+import org.h2.util.HasSQL;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueGeometry;
@@ -837,7 +838,7 @@ public class TestSpatial extends TestDb {
         ValueGeometry valueGeometry = ValueGeometry.get("POINT(1 1 5)");
         try (Connection conn = getConnection(URL)) {
             ResultSet rs = conn.createStatement().executeQuery(
-                    "SELECT " + valueGeometry.getSQL());
+                    "SELECT " + valueGeometry.getSQL(HasSQL.DEFAULT_SQL_FLAGS));
             assertTrue(rs.next());
             Object obj = rs.getObject(1);
             ValueGeometry g = ValueGeometry.getFromGeometry(obj);

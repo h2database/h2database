@@ -103,7 +103,7 @@ public class ValueInt extends Value {
     public Value divide(Value v, long divisorPrecision) {
         int y = ((ValueInt) v).value;
         if (y == 0) {
-            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
         }
         int x = value;
         if (x == Integer.MIN_VALUE && y == -1) {
@@ -116,13 +116,13 @@ public class ValueInt extends Value {
     public Value modulus(Value v) {
         ValueInt other = (ValueInt) v;
         if (other.value == 0) {
-            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
         }
         return ValueInt.get(value % other.value);
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         return builder.append(value);
     }
 

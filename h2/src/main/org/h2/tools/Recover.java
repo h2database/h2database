@@ -66,6 +66,7 @@ import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
 import org.h2.store.LobStorageFrontend;
 import org.h2.store.fs.FileUtils;
+import org.h2.util.HasSQL;
 import org.h2.util.IOUtils;
 import org.h2.util.IntArray;
 import org.h2.util.MathUtils;
@@ -458,7 +459,7 @@ public class Recover extends Tool implements DataHandler {
                 return;
             }
         }
-        v.getSQL(builder);
+        v.getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS);
     }
 
     private void setDatabaseName(String name) {
@@ -1015,7 +1016,7 @@ public class Recover extends Tool implements DataHandler {
                                 if (i > 0) {
                                     builder.append(", ");
                                 }
-                                row.getValue(i).getSQL(builder);
+                                row.getValue(i).getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS);
                             }
                             builder.append(");");
                             writer.println(builder.toString());

@@ -40,7 +40,7 @@ public class ValueNull extends Value {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         return builder.append("NULL");
     }
 

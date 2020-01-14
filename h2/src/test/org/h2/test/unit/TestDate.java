@@ -94,7 +94,7 @@ public class TestDate extends TestBase {
                 ValueDate.parse("-9999-12-31").getString());
         ValueDate d1 = ValueDate.parse("2001-01-01");
         assertEquals("2001-01-01", LegacyDateTimeUtils.toDate(null,  null, d1).toString());
-        assertEquals("DATE '2001-01-01'", d1.getSQL());
+        assertEquals("DATE '2001-01-01'", d1.getTraceSQL());
         assertEquals("DATE '2001-01-01'", d1.toString());
         assertEquals(Value.DATE, d1.getValueType());
         long dv = d1.getDateValue();
@@ -139,7 +139,7 @@ public class TestDate extends TestBase {
         }
         ValueTime t1 = ValueTime.parse("11:11:11");
         assertEquals("11:11:11", LegacyDateTimeUtils.toTime(null,  null, t1).toString());
-        assertEquals("TIME '11:11:11'", t1.getSQL());
+        assertEquals("TIME '11:11:11'", t1.getTraceSQL());
         assertEquals("TIME '11:11:11'", t1.toString());
         assertEquals("05:35:35.5", t1.multiply(ValueDouble.get(0.5)).getString());
         assertEquals("22:22:22", t1.divide(ValueDouble.get(0.5), ValueDouble.PRECISION).getString());
@@ -203,7 +203,7 @@ public class TestDate extends TestBase {
         assertEquals("2001-01-01 01:01:01.111", LegacyDateTimeUtils.toTimestamp(null,  null, t1).toString());
         assertEquals("2001-01-01", LegacyDateTimeUtils.toDate(null,  null, t1).toString());
         assertEquals("01:01:01", LegacyDateTimeUtils.toTime(null,  null, t1).toString());
-        assertEquals("TIMESTAMP '2001-01-01 01:01:01.111'", t1.getSQL());
+        assertEquals("TIMESTAMP '2001-01-01 01:01:01.111'", t1.getTraceSQL());
         assertEquals("TIMESTAMP '2001-01-01 01:01:01.111'", t1.toString());
         assertEquals(Value.TIMESTAMP, t1.getValueType());
         long dateValue = t1.getDateValue();

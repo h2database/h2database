@@ -426,10 +426,10 @@ public class ScriptCommand extends ScriptBase {
                         id = writeLobStream(v);
                         builder.append("SYSTEM_COMBINE_BLOB(").append(id).append(')');
                     } else {
-                        v.getSQL(builder);
+                        v.getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS);
                     }
                 } else {
-                    v.getSQL(builder);
+                    v.getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS);
                 }
             }
             builder.append(')');

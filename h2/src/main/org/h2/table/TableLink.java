@@ -516,7 +516,7 @@ public class TableLink extends Table {
                                     builder.append(", ");
                                 }
                                 builder.append(++i).append(": ");
-                                v.getSQL(builder);
+                                v.getSQL(builder, DEFAULT_SQL_FLAGS);
                             }
                             builder.append('}');
                         }

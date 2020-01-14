@@ -74,7 +74,7 @@ public class ValueShort extends Value {
     public Value divide(Value v, long divisorPrecision) {
         ValueShort other = (ValueShort) v;
         if (other.value == 0) {
-            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
         }
         return checkRange(value / other.value);
     }
@@ -83,13 +83,13 @@ public class ValueShort extends Value {
     public Value modulus(Value v) {
         ValueShort other = (ValueShort) v;
         if (other.value == 0) {
-            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
         }
         return ValueShort.get((short) (value % other.value));
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         return builder.append(value);
     }
 

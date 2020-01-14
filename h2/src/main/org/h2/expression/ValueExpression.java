@@ -150,7 +150,7 @@ public class ValueExpression extends Expression {
         if (this == DEFAULT) {
             builder.append("DEFAULT");
         } else {
-            value.getSQL(builder);
+            value.getSQL(builder, sqlFlags);
         }
         return builder;
     }

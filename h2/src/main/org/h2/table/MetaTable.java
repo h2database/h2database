@@ -1920,7 +1920,7 @@ public class MetaTable extends Table {
             for (String name : session.getVariableNames()) {
                 Value v = session.getVariable(name);
                 StringBuilder builder = new StringBuilder().append("SET @").append(name).append(' ');
-                v.getSQL(builder);
+                v.getSQL(builder, DEFAULT_SQL_FLAGS);
                 add(session,
                         rows,
                         // KEY

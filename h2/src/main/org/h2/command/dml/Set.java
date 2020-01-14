@@ -651,7 +651,7 @@ public class Set extends Prepared {
             try {
                 timeZone = TimeZoneProvider.ofId(v.getString());
             } catch (IllegalArgumentException ex) {
-                throw DbException.getInvalidValueException("time zone", v.getSQL());
+                throw DbException.getInvalidValueException("time zone", v.getTraceSQL());
             }
             return timeZone;
         } else if (v == ValueNull.INSTANCE) {

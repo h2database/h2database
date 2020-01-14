@@ -97,7 +97,7 @@ public class ValueDecimal extends Value {
     public Value divide(Value v, long divisorPrecision) {
         BigDecimal divisor = ((ValueDecimal) v).value;
         if (divisor.signum() == 0) {
-            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
         }
         return ValueDecimal.get(value.divide(divisor,
                 getQuotientScale(value.scale(), divisorPrecision, divisor.scale()), RoundingMode.HALF_DOWN));
@@ -123,14 +123,14 @@ public class ValueDecimal extends Value {
     public ValueDecimal modulus(Value v) {
         ValueDecimal dec = (ValueDecimal) v;
         if (dec.value.signum() == 0) {
-            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
         }
         BigDecimal bd = value.remainder(dec.value);
         return ValueDecimal.get(bd);
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         return builder.append(getString());
     }
 

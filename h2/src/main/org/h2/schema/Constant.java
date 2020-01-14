@@ -35,7 +35,7 @@ public class Constant extends SchemaObjectBase {
     public String getCreateSQL() {
         StringBuilder builder = new StringBuilder("CREATE CONSTANT ");
         getSQL(builder, DEFAULT_SQL_FLAGS).append(" VALUE ");
-        return value.getSQL(builder).toString();
+        return value.getSQL(builder, DEFAULT_SQL_FLAGS).toString();
     }
 
     @Override

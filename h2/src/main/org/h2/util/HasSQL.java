@@ -17,6 +17,11 @@ public interface HasSQL {
     int QUOTE_ONLY_WHEN_REQUIRED = 1;
 
     /**
+     * Replace long LOB values with some generated values.
+     */
+    int REPLACE_LOBS_FOR_TRACE = 2;
+
+    /**
      * Default flags.
      */
     int DEFAULT_SQL_FLAGS = 0;
@@ -24,7 +29,7 @@ public interface HasSQL {
     /**
      * Combined flags for trace.
      */
-    int TRACE_SQL_FLAGS = QUOTE_ONLY_WHEN_REQUIRED;
+    int TRACE_SQL_FLAGS = QUOTE_ONLY_WHEN_REQUIRED | REPLACE_LOBS_FOR_TRACE;
 
     /**
      * Get a medium size SQL expression for debugging or tracing.

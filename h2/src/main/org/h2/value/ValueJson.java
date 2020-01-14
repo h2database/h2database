@@ -65,7 +65,7 @@ public class ValueJson extends Value {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         String s = JSONBytesSource.parse(value, new JSONStringTarget(true));
         return builder.append("JSON '").append(s).append('\'');
     }

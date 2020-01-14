@@ -53,7 +53,7 @@ public class TypedValueExpression extends ValueExpression {
         if (this == UNKNOWN) {
             builder.append("UNKNOWN");
         } else {
-            value.getSQL(builder.append("CAST(")).append(" AS ");
+            value.getSQL(builder.append("CAST("), sqlFlags).append(" AS ");
             type.getSQL(builder).append(')');
         }
         return builder;

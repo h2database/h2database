@@ -74,7 +74,7 @@ public class ValueByte extends Value {
     public Value divide(Value v, long divisorPrecision) {
         ValueByte other = (ValueByte) v;
         if (other.value == 0) {
-            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
         }
         return checkRange(value / other.value);
     }
@@ -83,13 +83,13 @@ public class ValueByte extends Value {
     public Value modulus(Value v) {
         ValueByte other = (ValueByte) v;
         if (other.value == 0) {
-            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
         }
         return ValueByte.get((byte) (value % other.value));
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         return builder.append(value);
     }
 

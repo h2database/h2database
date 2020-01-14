@@ -65,7 +65,6 @@ import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
 import org.h2.util.Bits;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.HasSQL;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.LegacyDateTimeUtils;

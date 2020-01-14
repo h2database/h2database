@@ -127,7 +127,7 @@ public class ValueUuid extends Value {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         builder.append('\'');
         return addString(builder).append('\'');
     }

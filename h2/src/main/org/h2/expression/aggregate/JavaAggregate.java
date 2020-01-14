@@ -50,11 +50,11 @@ public class JavaAggregate extends AbstractAggregate {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
-        Parser.quoteIdentifier(builder, userAggregate.getName(), alwaysQuote).append('(');
-        writeExpressions(builder, args, alwaysQuote);
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        Parser.quoteIdentifier(builder, userAggregate.getName(), sqlFlags).append('(');
+        writeExpressions(builder, args, sqlFlags);
         builder.append(')');
-        return appendTailConditions(builder, alwaysQuote);
+        return appendTailConditions(builder, sqlFlags);
     }
 
     @Override

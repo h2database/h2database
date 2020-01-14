@@ -246,8 +246,7 @@ class TxDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>> {
         private final K key;
         private final Function<K, V> oldValueSupplier;
 
-        PutIfAbsentDecisionMaker(int mapId, K key, V value, Transaction transaction,
-                                 Function<K, V> oldValueSupplier) {
+        PutIfAbsentDecisionMaker(int mapId, K key, V value, Transaction transaction, Function<K, V> oldValueSupplier) {
             super(mapId, key, value, transaction);
             this.key = key;
             this.oldValueSupplier = oldValueSupplier;

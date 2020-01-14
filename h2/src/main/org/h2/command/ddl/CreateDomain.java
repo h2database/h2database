@@ -14,6 +14,7 @@ import org.h2.schema.Domain;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.Table;
+import org.h2.util.HasSQL;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
 
@@ -65,7 +66,7 @@ public class CreateDomain extends SchemaCommand {
             Table table = session.getDatabase().getFirstUserTable();
             if (table != null) {
                 StringBuilder builder = new StringBuilder(typeName).append(" (");
-                table.getSQL(builder, false).append(')');
+                table.getSQL(builder, HasSQL.TRACE_SQL_FLAGS).append(')');
                 throw DbException.get(ErrorCode.DOMAIN_ALREADY_EXISTS_1, builder.toString());
             }
         }

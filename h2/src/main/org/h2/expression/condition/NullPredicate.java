@@ -31,8 +31,8 @@ public class NullPredicate extends SimplePredicate {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
-        return left.getSQL(builder.append('('), alwaysQuote).append(not ? " IS NOT NULL)" : " IS NULL)");
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        return left.getSQL(builder.append('('), sqlFlags).append(not ? " IS NOT NULL)" : " IS NULL)");
     }
 
     @Override

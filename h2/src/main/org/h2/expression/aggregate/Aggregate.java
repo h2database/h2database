@@ -736,7 +736,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                 // example: sum(id > 3) (count the rows)
                 type = TypeInfo.TYPE_BIGINT;
             } else if (!DataType.supportsAdd(dataType)) {
-                throw DbException.get(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getSQL(false));
+                throw DbException.get(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getTraceSQL());
             } else {
                 type = TypeInfo.getTypeInfo(DataType.getAddProofType(dataType));
             }
@@ -744,7 +744,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         }
         case AVG:
             if (!DataType.supportsAdd(type.getValueType())) {
-                throw DbException.get(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getSQL(false));
+                throw DbException.get(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getTraceSQL());
             }
             break;
         case MIN:
@@ -791,7 +791,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         case BIT_AND:
         case BIT_OR:
             if (!DataType.supportsAdd(type.getValueType())) {
-                throw DbException.get(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getSQL(false));
+                throw DbException.get(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getTraceSQL());
             }
             break;
         case ARRAY_AGG:
@@ -821,11 +821,11 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         String text;
         switch (aggregateType) {
         case COUNT_ALL:
-            return appendTailConditions(builder.append("COUNT(*)"), alwaysQuote);
+            return appendTailConditions(builder.append("COUNT(*)"), sqlFlags);
         case COUNT:
             text = "COUNT";
             break;
@@ -893,7 +893,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             text = "LISTAGG";
             break;
         case ARRAY_AGG:
-            return getSQLArrayAggregate(builder, alwaysQuote);
+            return getSQLArrayAggregate(builder, sqlFlags);
         case MODE:
             text = "MODE";
             break;
@@ -901,9 +901,9 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             text = "ENVELOPE";
             break;
         case JSON_OBJECTAGG:
-            return getSQLJsonObjectAggregate(builder, alwaysQuote);
+            return getSQLJsonObjectAggregate(builder, sqlFlags);
         case JSON_ARRAYAGG:
-            return getSQLJsonArrayAggregate(builder, alwaysQuote);
+            return getSQLJsonArrayAggregate(builder, sqlFlags);
         default:
             throw DbException.throwInternalError("type=" + aggregateType);
         }
@@ -919,47 +919,47 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             }
             Expression arg = args[i];
             if (arg instanceof Subquery) {
-                arg.getSQL(builder, alwaysQuote);
+                arg.getSQL(builder, sqlFlags);
             } else {
-                arg.getUnenclosedSQL(builder, alwaysQuote);
+                arg.getUnenclosedSQL(builder, sqlFlags);
             }
         }
         builder.append(')');
         if (orderByList != null) {
             builder.append(" WITHIN GROUP (");
-            Window.appendOrderBy(builder, orderByList, alwaysQuote);
+            Window.appendOrderBy(builder, orderByList, sqlFlags);
             builder.append(')');
         }
-        return appendTailConditions(builder, alwaysQuote);
+        return appendTailConditions(builder, sqlFlags);
     }
 
-    private StringBuilder getSQLArrayAggregate(StringBuilder builder, boolean alwaysQuote) {
+    private StringBuilder getSQLArrayAggregate(StringBuilder builder, int sqlFlags) {
         builder.append("ARRAY_AGG(");
         if (distinct) {
             builder.append("DISTINCT ");
         }
-        args[0].getSQL(builder, alwaysQuote);
-        Window.appendOrderBy(builder, orderByList, alwaysQuote);
+        args[0].getSQL(builder, sqlFlags);
+        Window.appendOrderBy(builder, orderByList, sqlFlags);
         builder.append(')');
-        return appendTailConditions(builder, alwaysQuote);
+        return appendTailConditions(builder, sqlFlags);
     }
 
-    private StringBuilder getSQLJsonObjectAggregate(StringBuilder builder, boolean alwaysQuote) {
+    private StringBuilder getSQLJsonObjectAggregate(StringBuilder builder, int sqlFlags) {
         builder.append("JSON_OBJECTAGG(");
-        args[0].getSQL(builder, alwaysQuote).append(": ");
-        args[1].getSQL(builder, alwaysQuote);
+        args[0].getSQL(builder, sqlFlags).append(": ");
+        args[1].getSQL(builder, sqlFlags);
         Function.getJsonFunctionFlagsSQL(builder, flags, false);
         builder.append(')');
-        return appendTailConditions(builder, alwaysQuote);
+        return appendTailConditions(builder, sqlFlags);
     }
 
-    private StringBuilder getSQLJsonArrayAggregate(StringBuilder builder, boolean alwaysQuote) {
+    private StringBuilder getSQLJsonArrayAggregate(StringBuilder builder, int sqlFlags) {
         builder.append("JSON_ARRAYAGG(");
-        args[0].getSQL(builder, alwaysQuote);
+        args[0].getSQL(builder, sqlFlags);
         Function.getJsonFunctionFlagsSQL(builder, flags, true);
-        Window.appendOrderBy(builder, orderByList, alwaysQuote);
+        Window.appendOrderBy(builder, orderByList, sqlFlags);
         builder.append(')');
-        return appendTailConditions(builder, alwaysQuote);
+        return appendTailConditions(builder, sqlFlags);
     }
 
     private Index getMinMaxColumnIndex() {

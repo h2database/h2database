@@ -130,7 +130,7 @@ public class ValueTimeTimeZone extends Value {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         return toString(builder.append("TIME WITH TIME ZONE '")).append('\'');
     }
 

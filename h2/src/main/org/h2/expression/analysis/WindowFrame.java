@@ -850,20 +850,20 @@ public final class WindowFrame {
      *
      * @param builder
      *            string builder
-     * @param alwaysQuote
+     * @param formattingFlags
      *            quote all identifiers
      * @return the specified string builder
-     * @see org.h2.expression.Expression#getSQL(StringBuilder, boolean)
+     * @see org.h2.expression.Expression#getSQL(StringBuilder, int)
      */
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getSQL(StringBuilder builder, int formattingFlags) {
         builder.append(units.getSQL());
         if (following == null) {
             builder.append(' ');
-            starting.getSQL(builder, false, alwaysQuote);
+            starting.getSQL(builder, false, formattingFlags);
         } else {
             builder.append(" BETWEEN ");
-            starting.getSQL(builder, false, alwaysQuote).append(" AND ");
-            following.getSQL(builder, true, alwaysQuote);
+            starting.getSQL(builder, false, formattingFlags).append(" AND ");
+            following.getSQL(builder, true, formattingFlags);
         }
         if (exclusion != WindowFrameExclusion.EXCLUDE_NO_OTHERS) {
             builder.append(' ').append(exclusion.getSQL());

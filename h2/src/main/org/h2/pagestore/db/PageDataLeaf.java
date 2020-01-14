@@ -17,6 +17,7 @@ import org.h2.pagestore.PageStore;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.store.Data;
+import org.h2.util.HasSQL;
 import org.h2.value.Value;
 
 /**
@@ -418,7 +419,7 @@ public class PageDataLeaf extends PageData {
         int i = find(key);
         if (keys == null || keys[i] != key) {
             throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1,
-                    index.getSQL(new StringBuilder(), false).append(": ").append(key).append(' ')
+                    index.getSQL(new StringBuilder(), HasSQL.TRACE_SQL_FLAGS).append(": ").append(key).append(' ')
                     .append(keys == null ? -1 : keys[i]).toString());
         }
         index.getPageStore().logUndo(this, data);

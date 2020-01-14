@@ -34,10 +34,10 @@ public class ConcatenationOperation extends Expression {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         builder.append('(');
-        left.getSQL(builder, alwaysQuote).append(" || ");
-        return right.getSQL(builder, alwaysQuote).append(')');
+        left.getSQL(builder, sqlFlags).append(" || ");
+        return right.getSQL(builder, sqlFlags).append(')');
     }
 
     @Override

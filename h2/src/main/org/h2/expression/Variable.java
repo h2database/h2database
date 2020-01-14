@@ -32,9 +32,9 @@ public class Variable extends Expression {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         builder.append('@');
-        return Parser.quoteIdentifier(builder, name, alwaysQuote);
+        return Parser.quoteIdentifier(builder, name, sqlFlags);
     }
 
     @Override

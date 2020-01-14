@@ -16,6 +16,7 @@ import org.h2.message.DbException;
 import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.util.HasSQL;
 import org.h2.value.Value;
 import org.h2.value.ValueRow;
 
@@ -39,10 +40,10 @@ public final class Window {
      *            string builder
      * @param orderBy
      *            ORDER BY clause, or null
-     * @param alwaysQuote
-     *            quote all identifiers
+     * @param sqlFlags
+     *            formatting flags
      */
-    public static void appendOrderBy(StringBuilder builder, ArrayList<SelectOrderBy> orderBy, boolean alwaysQuote) {
+    public static void appendOrderBy(StringBuilder builder, ArrayList<SelectOrderBy> orderBy, int sqlFlags) {
         if (orderBy != null && !orderBy.isEmpty()) {
             if (builder.charAt(builder.length() - 1) != '(') {
                 builder.append(' ');
@@ -53,7 +54,7 @@ public final class Window {
                 if (i > 0) {
                     builder.append(", ");
                 }
-                o.expression.getSQL(builder, alwaysQuote);
+                o.expression.getSQL(builder, sqlFlags);
                 SortOrder.typeToString(builder, o.sortType);
             }
         }
@@ -245,12 +246,12 @@ public final class Window {
      *
      * @param builder
      *            string builder
-     * @param alwaysQuote
-     *            quote all identifiers
+     * @param sqlFlags
+     *            formatting flags
      * @return the specified string builder
-     * @see Expression#getSQL(StringBuilder, boolean)
+     * @see Expression#getSQL(StringBuilder, int)
      */
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         builder.append("OVER (");
         if (partitionBy != null) {
             builder.append("PARTITION BY ");
@@ -258,15 +259,15 @@ public final class Window {
                 if (i > 0) {
                     builder.append(", ");
                 }
-                partitionBy.get(i).getUnenclosedSQL(builder, alwaysQuote);
+                partitionBy.get(i).getUnenclosedSQL(builder, sqlFlags);
             }
         }
-        appendOrderBy(builder, orderBy, alwaysQuote);
+        appendOrderBy(builder, orderBy, sqlFlags);
         if (frame != null) {
             if (builder.charAt(builder.length() - 1) != '(') {
                 builder.append(' ');
             }
-            frame.getSQL(builder, alwaysQuote);
+            frame.getSQL(builder, sqlFlags);
         }
         return builder.append(')');
     }
@@ -298,7 +299,7 @@ public final class Window {
 
     @Override
     public String toString() {
-        return getSQL(new StringBuilder(), false).toString();
+        return getSQL(new StringBuilder(), HasSQL.TRACE_SQL_FLAGS).toString();
     }
 
 }

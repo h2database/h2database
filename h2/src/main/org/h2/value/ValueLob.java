@@ -573,26 +573,23 @@ public class ValueLob extends Value {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
-        if (valueType == Value.CLOB) {
-            StringUtils.quoteStringSQL(builder, getString());
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        if ((sqlFlags & REPLACE_LOBS_FOR_TRACE) != 0) {
+            if (valueType == Value.CLOB) {
+                builder.append("SPACE(").append(precision);
+            } else {
+                builder.append("CAST(REPEAT('00', ").append(precision).append(") AS BINARY");
+            }
+            builder.append(" /* ").append(fileName).append(" */)");
         } else {
-            builder.append("X'");
-            StringUtils.convertBytesToHex(builder, getBytes()).append('\'');
+            if (valueType == Value.CLOB) {
+                StringUtils.quoteStringSQL(builder, getString());
+            } else {
+                builder.append("X'");
+                StringUtils.convertBytesToHex(builder, getBytes()).append('\'');
+            }
         }
         return builder;
-    }
-
-    @Override
-    public String getTraceSQL() {
-        StringBuilder buff = new StringBuilder();
-        if (valueType == Value.CLOB) {
-            buff.append("SPACE(").append(precision);
-        } else {
-            buff.append("CAST(REPEAT('00', ").append(precision).append(") AS BINARY");
-        }
-        buff.append(" /* ").append(fileName).append(" */)");
-        return buff.toString();
     }
 
     /**

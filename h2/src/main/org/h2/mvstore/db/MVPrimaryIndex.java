@@ -66,7 +66,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
 
     @Override
     public String getPlanSQL() {
-        return table.getSQL(new StringBuilder(), false).append(".tableScan").toString();
+        return table.getSQL(new StringBuilder(), TRACE_SQL_FLAGS).append(".tableScan").toString();
     }
 
     public void setMainIndexColumn(int mainIndexColumn) {
@@ -147,7 +147,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
             Row existing = (Row)map.remove(row.getKey());
             if (existing == null) {
                 StringBuilder builder = new StringBuilder();
-                getSQL(builder, false).append(": ").append(row.getKey());
+                getSQL(builder, TRACE_SQL_FLAGS).append(": ").append(row.getKey());
                 throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, builder.toString());
             }
         } catch (IllegalStateException e) {
@@ -188,7 +188,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
             Row existing = (Row)map.put(key, newRow);
             if (existing == null) {
                 StringBuilder builder = new StringBuilder();
-                getSQL(builder, false).append(": ").append(key);
+                getSQL(builder, TRACE_SQL_FLAGS).append(": ").append(key);
                 throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, builder.toString());
             }
         } catch (IllegalStateException e) {
@@ -261,8 +261,7 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
         TransactionMap<Long,SearchRow> map = getMap(session);
         Row row = (Row)map.getFromSnapshot(key);
         if (row == null) {
-            throw DbException.get(ErrorCode.ROW_NOT_FOUND_IN_PRIMARY_INDEX,
-                    getSQL(false), String.valueOf(key));
+            throw DbException.get(ErrorCode.ROW_NOT_FOUND_IN_PRIMARY_INDEX, getTraceSQL(), String.valueOf(key));
         }
         ensureRowKey(row, key);
         return row;

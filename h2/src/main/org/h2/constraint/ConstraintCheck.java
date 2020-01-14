@@ -50,7 +50,7 @@ public class ConstraintCheck extends Constraint {
     @Override
     public String getCreateSQLForCopy(Table forTable, String quotedName) {
         StringBuilder buff = new StringBuilder("ALTER TABLE ");
-        forTable.getSQL(buff, true).append(" ADD CONSTRAINT ");
+        forTable.getSQL(buff, DEFAULT_SQL_FLAGS).append(" ADD CONSTRAINT ");
         if (forTable.isHidden()) {
             buff.append("IF NOT EXISTS ");
         }
@@ -60,13 +60,13 @@ public class ConstraintCheck extends Constraint {
             StringUtils.quoteStringSQL(buff, comment);
         }
         buff.append(" CHECK(");
-        expr.getUnenclosedSQL(buff, true).append(") NOCHECK");
+        expr.getUnenclosedSQL(buff, DEFAULT_SQL_FLAGS).append(") NOCHECK");
         return buff.toString();
     }
 
     private String getShortDescription() {
         StringBuilder builder = new StringBuilder().append(getName()).append(": ");
-        expr.getSQL(builder, false);
+        expr.getTraceSQL();
         return builder.toString();
     }
 
@@ -77,7 +77,7 @@ public class ConstraintCheck extends Constraint {
 
     @Override
     public String getCreateSQL() {
-        return getCreateSQLForCopy(table, getSQL(true));
+        return getCreateSQLForCopy(table, getSQL(DEFAULT_SQL_FLAGS));
     }
 
     @Override
@@ -148,8 +148,8 @@ public class ConstraintCheck extends Constraint {
             return;
         }
         StringBuilder builder = new StringBuilder().append("SELECT 1 FROM ");
-        filter.getTable().getSQL(builder, true).append(" WHERE NOT(");
-        expr.getSQL(builder, true).append(')');
+        filter.getTable().getSQL(builder, DEFAULT_SQL_FLAGS).append(" WHERE NOT(");
+        expr.getSQL(builder, DEFAULT_SQL_FLAGS).append(')');
         String sql = builder.toString();
         ResultInterface r = session.prepare(sql).query(1);
         if (r.next()) {

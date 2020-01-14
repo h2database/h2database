@@ -36,12 +36,11 @@ public class Role extends RightOwner {
         if (system) {
             return null;
         }
-        StringBuilder buff = new StringBuilder("CREATE ROLE ");
+        StringBuilder builder = new StringBuilder("CREATE ROLE ");
         if (ifNotExists) {
-            buff.append("IF NOT EXISTS ");
+            builder.append("IF NOT EXISTS ");
         }
-        getSQL(buff, true);
-        return buff.toString();
+        return getSQL(builder, DEFAULT_SQL_FLAGS).toString();
     }
 
     @Override

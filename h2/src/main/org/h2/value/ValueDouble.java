@@ -79,7 +79,7 @@ public class ValueDouble extends Value {
     public Value divide(Value v, long divisorPrecision) {
         ValueDouble v2 = (ValueDouble) v;
         if (v2.value == 0.0) {
-            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
         }
         return get(value / v2.value);
     }
@@ -88,13 +88,13 @@ public class ValueDouble extends Value {
     public ValueDouble modulus(Value v) {
         ValueDouble other = (ValueDouble) v;
         if (other.value == 0) {
-            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
         }
         return get(value % other.value);
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         if (value == Double.POSITIVE_INFINITY) {
             builder.append("POWER(0, -1)");
         } else if (value == Double.NEGATIVE_INFINITY) {

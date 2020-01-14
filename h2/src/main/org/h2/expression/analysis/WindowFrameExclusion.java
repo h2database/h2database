@@ -53,7 +53,7 @@ public enum WindowFrameExclusion {
      * Returns SQL representation.
      *
      * @return SQL representation.
-     * @see org.h2.expression.Expression#getSQL(boolean)
+     * @see org.h2.expression.Expression#getSQL(int)
      */
     public String getSQL() {
         return sql;

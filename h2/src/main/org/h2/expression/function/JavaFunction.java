@@ -81,14 +81,14 @@ public class JavaFunction extends Expression implements FunctionCall {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         // TODO always append the schema once FUNCTIONS_IN_SCHEMA is enabled
         if (functionAlias.getDatabase().getSettings().functionsInSchema ||
                 functionAlias.getSchema().getId() != Constants.MAIN_SCHEMA_ID) {
-            Parser.quoteIdentifier(builder, functionAlias.getSchema().getName(), alwaysQuote).append('.');
+            Parser.quoteIdentifier(builder, functionAlias.getSchema().getName(), sqlFlags).append('.');
         }
-        Parser.quoteIdentifier(builder, functionAlias.getName(), alwaysQuote).append('(');
-        writeExpressions(builder, this.args, alwaysQuote);
+        Parser.quoteIdentifier(builder, functionAlias.getName(), sqlFlags).append('(');
+        writeExpressions(builder, this.args, sqlFlags);
         return builder.append(')');
     }
 

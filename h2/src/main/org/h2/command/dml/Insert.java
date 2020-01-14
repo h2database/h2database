@@ -36,6 +36,7 @@ import org.h2.table.Column;
 import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.util.HasSQL;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -273,10 +274,10 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
     }
 
     @Override
-    public String getPlanSQL(boolean alwaysQuote) {
+    public String getPlanSQL(int sqlFlags) {
         StringBuilder builder = new StringBuilder("INSERT INTO ");
-        table.getSQL(builder, alwaysQuote).append('(');
-        Column.writeColumns(builder, columns, alwaysQuote);
+        table.getSQL(builder, sqlFlags).append('(');
+        Column.writeColumns(builder, columns, sqlFlags);
         builder.append(")\n");
         if (insertFromSelect) {
             builder.append("DIRECT ");
@@ -295,11 +296,11 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
                     builder.append(",\n");
                 }
                 builder.append('(');
-                Expression.writeExpressions(builder, expr, alwaysQuote);
+                Expression.writeExpressions(builder, expr, sqlFlags);
                 builder.append(')');
             }
         } else {
-            builder.append(query.getPlanSQL(alwaysQuote));
+            builder.append(query.getPlanSQL(sqlFlags));
         }
         return builder.toString();
     }
@@ -396,8 +397,8 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
         Expression[] row = (currentRow == null) ? valuesExpressionList.get((int) getCurrentRowNumber() - 1)
                 : new Expression[columnCount];
         for (int i = 0; i < columnCount; i++) {
-            StringBuilder builder = table.getSQL(new StringBuilder(), true).append('.');
-            String key = columns[i].getSQL(builder, true).toString();
+            StringBuilder builder = table.getSQL(new StringBuilder(), HasSQL.DEFAULT_SQL_FLAGS).append('.');
+            String key = columns[i].getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS).toString();
             variableNames.add(key);
             Value value;
             if (currentRow != null) {
@@ -410,15 +411,15 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
         }
 
         StringBuilder builder = new StringBuilder("UPDATE ");
-        table.getSQL(builder, true).append(" SET ");
+        table.getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS).append(" SET ");
         boolean f = false;
         for (Entry<Column, Expression> entry : duplicateKeyAssignmentMap.entrySet()) {
             if (f) {
                 builder.append(", ");
             }
             f = true;
-            entry.getKey().getSQL(builder, true).append('=');
-            entry.getValue().getSQL(builder, true);
+            entry.getKey().getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS).append('=');
+            entry.getValue().getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS);
         }
         builder.append(" WHERE ");
         Index foundIndex = (Index) de.getSource();
@@ -426,7 +427,7 @@ public class Insert extends CommandWithValues implements ResultTarget, DataChang
             throw DbException.getUnsupportedException(
                     "Unable to apply ON DUPLICATE KEY UPDATE, no index found!");
         }
-        prepareUpdateCondition(foundIndex, row).getSQL(builder, true);
+        prepareUpdateCondition(foundIndex, row).getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS);
         String sql = builder.toString();
         Update command = (Update) session.prepare(sql);
         command.setUpdateToCurrentValuesReturnsZero(true);

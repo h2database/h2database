@@ -41,7 +41,7 @@ public final class MemoryEstimator
     private static final int INIT_BIT_SHIFT = 24;
     private static final int INIT_BIT = 1 << INIT_BIT_SHIFT;
     private static final int WINDOW_SHIFT = 8;
-    private static final int MAGNITUTE_LIMIT = WINDOW_SHIFT - 1;
+    private static final int MAGNITUDE_LIMIT = WINDOW_SHIFT - 1;
     private static final int WINDOW_SIZE = 1 << WINDOW_SHIFT;
     private static final int WINDOW_HALF_SIZE = WINDOW_SIZE >> 1;
     private static final int SUM_SHIFT = 32;
@@ -76,7 +76,7 @@ public final class MemoryEstimator
             } else {
                 long absDelta = delta >= 0 ? delta : -delta;
                 int magnitude = calculateMagnitude(sum, absDelta);
-                sum += ((delta >> (MAGNITUTE_LIMIT - magnitude)) + 1) >> 1;
+                sum += ((delta >> (MAGNITUDE_LIMIT - magnitude)) + 1) >> 1;
                 counter = ((1 << magnitude) - 1) & COUNTER_MASK;
 
                 delta = (counter << WINDOW_SHIFT) - skipSum;
@@ -102,14 +102,14 @@ public final class MemoryEstimator
         int skipSum = getSkipSum(statsData);
         long initialized = statsData & INIT_BIT;
         long sum = statsData >> SUM_SHIFT;
-        int indx = 0;
+        int index = 0;
         int memSum = 0;
         if (initialized != 0 && counter >= count) {
             counter -= count;
         } else {
             int cnt = count;
             while (cnt-- > 0) {
-                T data = storage[indx++];
+                T data = storage[index++];
                 int mem = data == null ? 0 : dataType.getMemory(data);
                 memSum += mem;
                 long delta = (mem << WINDOW_SHIFT) - sum;
@@ -122,7 +122,7 @@ public final class MemoryEstimator
                     cnt -= counter;
                     long absDelta = delta >= 0 ? delta : -delta;
                     int magnitude = calculateMagnitude(sum, absDelta);
-                    sum += ((delta >> (MAGNITUTE_LIMIT - magnitude)) + 1) >> 1;
+                    sum += ((delta >> (MAGNITUDE_LIMIT - magnitude)) + 1) >> 1;
                     counter += ((1 << magnitude) - 1) & COUNTER_MASK;
 
                     delta = (counter << WINDOW_SHIFT) - skipSum;
@@ -130,7 +130,7 @@ public final class MemoryEstimator
                 }
             }
         }
-        long updatedStatsData = updateStatsData(stats, statsData, counter, skipSum, initialized, sum, indx, memSum);
+        long updatedStatsData = updateStatsData(stats, statsData, counter, skipSum, initialized, sum, index, memSum);
         return (getAverage(updatedStatsData) + MEMORY_POINTER) * count;
     }
 
@@ -148,7 +148,7 @@ public final class MemoryEstimator
 
     private static int calculateMagnitude(long sum, long absDelta) {
         int magnitude = 0;
-        while (absDelta < sum && magnitude < MAGNITUTE_LIMIT) {
+        while (absDelta < sum && magnitude < MAGNITUDE_LIMIT) {
             ++magnitude;
             absDelta <<= 1;
         }

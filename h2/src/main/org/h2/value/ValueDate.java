@@ -83,7 +83,7 @@ public class ValueDate extends Value {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         DateTimeUtils.appendDate(builder.append("DATE '"), dateValue);
         return builder.append('\'');
     }

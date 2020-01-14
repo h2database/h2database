@@ -39,10 +39,10 @@ public class TimeZoneOperation extends Expression {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
-        arg.getSQL(builder.append('('), alwaysQuote).append(" AT ");
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        arg.getSQL(builder.append('('), sqlFlags).append(" AT ");
         if (timeZone != null) {
-            timeZone.getSQL(builder.append("TIME ZONE "), alwaysQuote);
+            timeZone.getSQL(builder.append("TIME ZONE "), sqlFlags);
         } else {
             builder.append("LOCAL");
         }
@@ -89,10 +89,10 @@ public class TimeZoneOperation extends Expression {
             try {
                 timeZone = TimeZoneProvider.ofId(b.getString());
             } catch (RuntimeException ex) {
-                throw DbException.getInvalidValueException("time zone", b.getSQL());
+                throw DbException.getInvalidValueException("time zone", b.getTraceSQL());
             }
             if (!allowTimeZoneName && !timeZone.hasFixedOffset()) {
-                throw DbException.getInvalidValueException("time zone", b.getSQL());
+                throw DbException.getInvalidValueException("time zone", b.getTraceSQL());
             }
             return timeZone.getTimeZoneOffsetUTC(DateTimeUtils.getEpochSeconds(dateValue, timeNanos, offsetSeconds));
         }
@@ -109,7 +109,7 @@ public class TimeZoneOperation extends Expression {
         ValueInterval i = (ValueInterval) interval.convertTo(Value.INTERVAL_HOUR_TO_SECOND);
         long h = i.getLeading(), seconds = i.getRemaining();
         if (h > 18 || h == 18 && seconds != 0 || seconds % DateTimeUtils.NANOS_PER_SECOND != 0) {
-            throw DbException.getInvalidValueException("time zone", i.getSQL());
+            throw DbException.getInvalidValueException("time zone", i.getTraceSQL());
         }
         int newOffset = (int) (h * 3_600 + seconds / DateTimeUtils.NANOS_PER_SECOND);
         if (i.isNegative()) {
@@ -145,11 +145,11 @@ public class TimeZoneOperation extends Expression {
             scale = type.getScale();
             break;
         default:
-            StringBuilder builder = arg.getSQL(new StringBuilder(), false);
+            StringBuilder builder = arg.getSQL(new StringBuilder(), TRACE_SQL_FLAGS);
             int offset = builder.length();
             builder.append(" AT ");
             if (timeZone != null) {
-                timeZone.getSQL(builder.append("TIME ZONE "), false);
+                timeZone.getSQL(builder.append("TIME ZONE "), TRACE_SQL_FLAGS);
             } else {
                 builder.append("LOCAL");
             }

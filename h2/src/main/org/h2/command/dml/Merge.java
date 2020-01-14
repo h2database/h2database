@@ -27,6 +27,7 @@ import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.Table;
+import org.h2.util.HasSQL;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -160,7 +161,7 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
                 if (col.getGenerated()) {
                     if (expressions == null || expressions[i] != ValueExpression.DEFAULT) {
                         throw DbException.get(ErrorCode.GENERATED_COLUMN_CANNOT_BE_ASSIGNED_1,
-                                col.getSQLWithTable(new StringBuilder(), false).toString());
+                                col.getSQLWithTable(new StringBuilder(), HasSQL.TRACE_SQL_FLAGS).toString());
                     }
                 } else {
                     Value v = row.getValue(col.getColumnId());
@@ -174,7 +175,7 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
             for (Column col : keys) {
                 Value v = row.getValue(col.getColumnId());
                 if (v == null) {
-                    throw DbException.get(ErrorCode.COLUMN_CONTAINS_NULL_VALUES_1, col.getSQL(false));
+                    throw DbException.get(ErrorCode.COLUMN_CONTAINS_NULL_VALUES_1, col.getTraceSQL());
                 }
                 k.get(j++).setValue(v);
             }
@@ -235,18 +236,18 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
         } else if (count == 1) {
             return isReplace ? 2 : 1;
         }
-        throw DbException.get(ErrorCode.DUPLICATE_KEY_1, table.getSQL(false));
+        throw DbException.get(ErrorCode.DUPLICATE_KEY_1, table.getTraceSQL());
     }
 
     @Override
-    public String getPlanSQL(boolean alwaysQuote) {
+    public String getPlanSQL(int sqlFlags) {
         StringBuilder builder = new StringBuilder(isReplace ? "REPLACE INTO " : "MERGE INTO ");
-        table.getSQL(builder, alwaysQuote).append('(');
-        Column.writeColumns(builder, columns, alwaysQuote);
+        table.getSQL(builder, sqlFlags).append('(');
+        Column.writeColumns(builder, columns, sqlFlags);
         builder.append(')');
         if (!isReplace && keys != null) {
             builder.append(" KEY(");
-            Column.writeColumns(builder, keys, alwaysQuote);
+            Column.writeColumns(builder, keys, sqlFlags);
             builder.append(')');
         }
         builder.append('\n');
@@ -258,11 +259,11 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
                     builder.append(", ");
                 }
                 builder.append('(');
-                Expression.writeExpressions(builder, expr, alwaysQuote);
+                Expression.writeExpressions(builder, expr, sqlFlags);
                 builder.append(')');
             }
         } else {
-            builder.append(query.getPlanSQL(alwaysQuote));
+            builder.append(query.getPlanSQL(sqlFlags));
         }
         return builder.toString();
     }
@@ -318,7 +319,7 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
                 }
             }
         }
-        StringBuilder builder = table.getSQL(new StringBuilder("UPDATE "), true).append(" SET ");
+        StringBuilder builder = table.getSQL(new StringBuilder("UPDATE "), HasSQL.DEFAULT_SQL_FLAGS).append(" SET ");
         boolean hasColumn = false;
         for (int i = 0, l = columns.length; i < l; i++) {
             Column column = columns[i];
@@ -327,10 +328,10 @@ public class Merge extends CommandWithValues implements DataChangeStatement {
                     builder.append(", ");
                 }
                 hasColumn = true;
-                column.getSQL(builder, true).append("=?");
+                column.getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS).append("=?");
             }
         }
-        Column.writeColumns(builder.append(" WHERE "), keys, " AND ", "=?", true);
+        Column.writeColumns(builder.append(" WHERE "), keys, " AND ", "=?", HasSQL.DEFAULT_SQL_FLAGS);
         update = (Update) session.prepare(builder.toString());
     }
 

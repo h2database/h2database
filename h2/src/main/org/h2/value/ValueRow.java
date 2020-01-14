@@ -92,29 +92,16 @@ public class ValueRow extends ValueCollectionBase {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         builder.append("ROW (");
         int length = values.length;
         for (int i = 0; i < length; i++) {
             if (i > 0) {
                 builder.append(", ");
             }
-            values[i].getSQL(builder);
+            values[i].getSQL(builder, sqlFlags);
         }
         return builder.append(')');
-    }
-
-    @Override
-    public String getTraceSQL() {
-        StringBuilder builder = new StringBuilder("ROW (");
-        for (int i = 0; i < values.length; i++) {
-            if (i > 0) {
-                builder.append(", ");
-            }
-            Value v = values[i];
-            builder.append(v == null ? "null" : v.getTraceSQL());
-        }
-        return builder.append(')').toString();
     }
 
     @Override

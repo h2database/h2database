@@ -247,7 +247,7 @@ public abstract class RegularTable extends TableBase {
 
     @Override
     public String toString() {
-        return getSQL(false);
+        return getTraceSQL();
     }
 
 }

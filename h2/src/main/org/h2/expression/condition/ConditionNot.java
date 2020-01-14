@@ -69,9 +69,9 @@ public class ConditionNot extends Condition {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         builder.append("(NOT ");
-        return condition.getSQL(builder, alwaysQuote).append(')');
+        return condition.getSQL(builder, sqlFlags).append(')');
     }
 
     @Override

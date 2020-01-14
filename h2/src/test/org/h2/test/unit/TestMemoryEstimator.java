@@ -94,17 +94,27 @@ public class TestMemoryEstimator extends TestBase
     private static class TestDataType extends BasicDataType<Integer> {
         private int count;
 
+        TestDataType() {
+        }
+
         public int getCount() {
             return count;
         }
 
+        @Override
         public int getMemory(Integer obj) {
             ++count;
             return obj;
         }
+
+        @Override
         public void write(WriteBuffer buff, Integer obj) {}
+
+        @Override
         public Integer read(ByteBuffer buff) { return null; }
+
+        @Override
         public Integer[] createStorage(int size) { return new Integer[size]; }
-    };
+    }
 
 }

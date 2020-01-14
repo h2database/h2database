@@ -149,9 +149,9 @@ public class ConditionInQuery extends PredicateWithSubquery {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         builder.append('(');
-        left.getSQL(builder, alwaysQuote).append(' ');
+        left.getSQL(builder, sqlFlags).append(' ');
         if (all) {
             builder.append(Comparison.getCompareOperator(compareType)).
                 append(" ALL");
@@ -163,7 +163,7 @@ public class ConditionInQuery extends PredicateWithSubquery {
                     append(" ANY");
             }
         }
-        return super.getSQL(builder, alwaysQuote).append(')');
+        return super.getSQL(builder, sqlFlags).append(')');
     }
 
     @Override

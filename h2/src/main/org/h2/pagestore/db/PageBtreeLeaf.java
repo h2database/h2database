@@ -14,6 +14,7 @@ import org.h2.pagestore.Page;
 import org.h2.pagestore.PageStore;
 import org.h2.result.SearchRow;
 import org.h2.store.Data;
+import org.h2.util.HasSQL;
 
 /**
  * A b-tree leaf page that contains index data. Format:
@@ -229,7 +230,7 @@ public class PageBtreeLeaf extends PageBtree {
         SearchRow delete = getRow(at);
         if (index.compareRows(row, delete) != 0 || delete.getKey() != row.getKey()) {
             throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1,
-                    index.getSQL(new StringBuilder(), false).append(": ").append(row).toString());
+                    index.getSQL(new StringBuilder(), HasSQL.TRACE_SQL_FLAGS).append(": ").append(row).toString());
         }
         index.getPageStore().logUndo(this, data);
         if (entryCount == 1) {

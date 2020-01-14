@@ -147,7 +147,7 @@ public class ValueInterval extends Value {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         return IntervalUtils.appendInterval(builder, getQualifier(), negative, leading, remaining);
     }
 
@@ -236,7 +236,7 @@ public class ValueInterval extends Value {
         if (checkPrecision(precision)) {
             return this;
         }
-        throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, getSQL());
+        throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, getTraceSQL());
     }
 
     @Override

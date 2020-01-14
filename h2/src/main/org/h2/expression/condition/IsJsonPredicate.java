@@ -41,9 +41,9 @@ public class IsJsonPredicate extends Condition {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         builder.append('(');
-        left.getSQL(builder, alwaysQuote).append(" IS");
+        left.getSQL(builder, sqlFlags).append(" IS");
         if (not) {
             builder.append(" NOT");
         }

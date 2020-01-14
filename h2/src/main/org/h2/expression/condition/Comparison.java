@@ -118,14 +118,14 @@ public class Comparison extends Condition {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         boolean encloseRight = false;
         builder.append('(');
         switch (compareType) {
         case SPATIAL_INTERSECTS:
             builder.append("INTERSECTS(");
-            left.getSQL(builder, alwaysQuote).append(", ");
-            right.getSQL(builder, alwaysQuote).append(')');
+            left.getSQL(builder, sqlFlags).append(", ");
+            right.getSQL(builder, sqlFlags).append(')');
             break;
         case EQUAL:
         case BIGGER_EQUAL:
@@ -138,11 +138,11 @@ public class Comparison extends Condition {
             }
             //$FALL-THROUGH$
         default:
-            left.getSQL(builder, alwaysQuote).append(' ').append(getCompareOperator(compareType)).append(' ');
+            left.getSQL(builder, sqlFlags).append(' ').append(getCompareOperator(compareType)).append(' ');
             if (encloseRight) {
                 builder.append('(');
             }
-            right.getSQL(builder, alwaysQuote);
+            right.getSQL(builder, sqlFlags);
             if (encloseRight) {
                 builder.append(')');
             }
@@ -521,10 +521,10 @@ public class Comparison extends Condition {
      */
     Expression getIfEquals(Expression match) {
         if (compareType == EQUAL) {
-            String sql = match.getSQL(true);
-            if (left.getSQL(true).equals(sql)) {
+            String sql = match.getSQL(DEFAULT_SQL_FLAGS);
+            if (left.getSQL(DEFAULT_SQL_FLAGS).equals(sql)) {
                 return right;
-            } else if (right.getSQL(true).equals(sql)) {
+            } else if (right.getSQL(DEFAULT_SQL_FLAGS).equals(sql)) {
                 return left;
             }
         }
@@ -545,10 +545,10 @@ public class Comparison extends Condition {
             boolean rc = right.isConstant();
             boolean l2c = other.left.isConstant();
             boolean r2c = other.right.isConstant();
-            String l = left.getSQL(true);
-            String l2 = other.left.getSQL(true);
-            String r = right.getSQL(true);
-            String r2 = other.right.getSQL(true);
+            String l = left.getSQL(DEFAULT_SQL_FLAGS);
+            String l2 = other.left.getSQL(DEFAULT_SQL_FLAGS);
+            String r = right.getSQL(DEFAULT_SQL_FLAGS);
+            String r2 = other.right.getSQL(DEFAULT_SQL_FLAGS);
             // a=b AND a=c
             // must not compare constants. example: NOT(B=2 AND B=3)
             if (!(rc && r2c) && l.equals(l2)) {
@@ -578,10 +578,10 @@ public class Comparison extends Condition {
             boolean rc = right.isConstant();
             boolean l2c = other.left.isConstant();
             boolean r2c = other.right.isConstant();
-            String l = left.getSQL(true);
-            String l2 = other.left.getSQL(true);
-            String r = right.getSQL(true);
-            String r2 = other.right.getSQL(true);
+            String l = left.getSQL(DEFAULT_SQL_FLAGS);
+            String l2 = other.left.getSQL(DEFAULT_SQL_FLAGS);
+            String r = right.getSQL(DEFAULT_SQL_FLAGS);
+            String r2 = other.right.getSQL(DEFAULT_SQL_FLAGS);
             // a=b OR a=c
             if (rc && r2c && l.equals(l2)) {
                 return getConditionIn(session, left, right, other.right);

@@ -81,17 +81,17 @@ public class CompareLike extends Condition {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         builder.append('(');
         if (regexp) {
-            left.getSQL(builder, alwaysQuote).append(" REGEXP ");
-            right.getSQL(builder, alwaysQuote);
+            left.getSQL(builder, sqlFlags).append(" REGEXP ");
+            right.getSQL(builder, sqlFlags);
         } else {
-            left.getSQL(builder, alwaysQuote).append(" LIKE ");
-            right.getSQL(builder, alwaysQuote);
+            left.getSQL(builder, sqlFlags).append(" LIKE ");
+            right.getSQL(builder, sqlFlags);
             if (escape != null) {
                 builder.append(" ESCAPE ");
-                escape.getSQL(builder, alwaysQuote);
+                escape.getSQL(builder, sqlFlags);
             }
         }
         return builder.append(')');

@@ -21,6 +21,7 @@ import org.h2.pagestore.PageStore;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.table.Column;
+import org.h2.util.HasSQL;
 import org.h2.value.Value;
 import org.h2.value.ValueString;
 
@@ -75,7 +76,7 @@ public class Explain extends Prepared {
         ExpressionColumn expr = new ExpressionColumn(db, column);
         Expression[] expressions = { expr };
         result = new LocalResult(session, expressions, 1, 1);
-        boolean alwaysQuote = true;
+        int sqlFlags = HasSQL.DEFAULT_SQL_FLAGS;
         if (maxrows >= 0) {
             String plan;
             if (executeCommand) {
@@ -96,7 +97,7 @@ public class Explain extends Prepared {
                 } else {
                     command.update();
                 }
-                plan = command.getPlanSQL(alwaysQuote);
+                plan = command.getPlanSQL(sqlFlags);
                 Map<String, Integer> statistics = null;
                 if (store != null) {
                     statistics = store.statisticsEnd();
@@ -127,7 +128,7 @@ public class Explain extends Prepared {
                     }
                 }
             } else {
-                plan = command.getPlanSQL(alwaysQuote);
+                plan = command.getPlanSQL(sqlFlags);
             }
             add(plan);
         }

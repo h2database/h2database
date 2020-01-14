@@ -22,12 +22,12 @@ public class Setting extends DbObjectBase {
     }
 
     @Override
-    public String getSQL(boolean alwaysQuote) {
+    public String getSQL(int sqlFlags) {
         return getName();
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         return builder.append(getName());
     }
 
@@ -55,7 +55,7 @@ public class Setting extends DbObjectBase {
     @Override
     public String getCreateSQL() {
         StringBuilder buff = new StringBuilder("SET ");
-        getSQL(buff, true).append(' ');
+        getSQL(buff, DEFAULT_SQL_FLAGS).append(' ');
         if (stringValue != null) {
             buff.append(stringValue);
         } else {

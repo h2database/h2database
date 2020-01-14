@@ -78,7 +78,7 @@ public abstract class TableBase extends Table {
     @Override
     public String getDropSQL() {
         StringBuilder builder = new StringBuilder("DROP TABLE IF EXISTS ");
-        getSQL(builder, true).append(" CASCADE");
+        getSQL(builder, DEFAULT_SQL_FLAGS).append(" CASCADE");
         return builder.toString();
     }
 
@@ -106,7 +106,7 @@ public abstract class TableBase extends Table {
         if (isHidden) {
             buff.append("IF NOT EXISTS ");
         }
-        getSQL(buff, true);
+        getSQL(buff, DEFAULT_SQL_FLAGS);
         if (comment != null) {
             buff.append(" COMMENT ");
             StringUtils.quoteStringSQL(buff, comment);

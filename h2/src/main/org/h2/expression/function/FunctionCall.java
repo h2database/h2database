@@ -7,13 +7,14 @@ package org.h2.expression.function;
 
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
+import org.h2.util.HasSQL;
 import org.h2.value.ValueResultSet;
 
 /**
  * This interface is used by the built-in functions,
  * as well as the user-defined functions.
  */
-public interface FunctionCall {
+public interface FunctionCall extends HasSQL {
 
     /**
      * Get the name of the function.
@@ -52,14 +53,6 @@ public interface FunctionCall {
      * @return argument list
      */
     Expression[] getArgs();
-
-    /**
-     * Get the SQL snippet of the function (including arguments).
-     *
-     * @param alwaysQuote quote all identifiers
-     * @return the SQL snippet.
-     */
-    String getSQL(boolean alwaysQuote);
 
     /**
      * Whether the function always returns the same result for the same

@@ -334,9 +334,9 @@ public class SelectUnion extends Query {
     }
 
     @Override
-    public String getPlanSQL(boolean alwaysQuote) {
+    public String getPlanSQL(int sqlFlags) {
         StringBuilder buff = new StringBuilder();
-        buff.append('(').append(left.getPlanSQL(alwaysQuote)).append(')');
+        buff.append('(').append(left.getPlanSQL(sqlFlags)).append(')');
         switch (unionType) {
         case UNION_ALL:
             buff.append("\nUNION ALL\n");
@@ -353,8 +353,8 @@ public class SelectUnion extends Query {
         default:
             DbException.throwInternalError("type=" + unionType);
         }
-        buff.append('(').append(right.getPlanSQL(alwaysQuote)).append(')');
-        appendEndOfQueryToSQL(buff, alwaysQuote, expressions.toArray(new Expression[0]));
+        buff.append('(').append(right.getPlanSQL(sqlFlags)).append(')');
+        appendEndOfQueryToSQL(buff, sqlFlags, expressions.toArray(new Expression[0]));
         if (isForUpdate) {
             buff.append("\nFOR UPDATE");
         }

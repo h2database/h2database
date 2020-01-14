@@ -440,7 +440,7 @@ public abstract class Table extends SchemaObjectBase {
             Column col = columns[i];
             int dataType = col.getType().getValueType();
             if (dataType == Value.UNKNOWN) {
-                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, col.getSQL(false));
+                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, col.getTraceSQL());
             }
             col.setTable(this, i);
             String columnName = col.getName();
@@ -599,7 +599,7 @@ public abstract class Table extends SchemaObjectBase {
                     if (columns.size() == 1) {
                         constraintsToDrop.add(constraint);
                     } else {
-                        throw DbException.get(ErrorCode.COLUMN_IS_REFERENCED_1, constraint.getSQL(false));
+                        throw DbException.get(ErrorCode.COLUMN_IS_REFERENCED_1, constraint.getTraceSQL());
                     }
                 }
             }
@@ -618,7 +618,7 @@ public abstract class Table extends SchemaObjectBase {
                     if (index.getColumns().length == 1) {
                         indexesToDrop.add(index);
                     } else {
-                        throw DbException.get(ErrorCode.COLUMN_IS_REFERENCED_1, index.getSQL(false));
+                        throw DbException.get(ErrorCode.COLUMN_IS_REFERENCED_1, index.getTraceSQL());
                     }
                 }
             }
@@ -861,7 +861,7 @@ public abstract class Table extends SchemaObjectBase {
             Column column = columns[i];
             if (column.getGenerated() && value != null) {
                 throw DbException.get(ErrorCode.GENERATED_COLUMN_CANNOT_BE_ASSIGNED_1,
-                        column.getSQLWithTable(new StringBuilder(), false).toString());
+                        column.getSQLWithTable(new StringBuilder(), TRACE_SQL_FLAGS).toString());
             }
             Value v2 = column.validateConvertUpdateSequence(session, value, row);
             if (v2 != value) {

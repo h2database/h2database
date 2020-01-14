@@ -110,7 +110,7 @@ public class ValueTime extends Value {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         DateTimeUtils.appendTime(builder.append("TIME '"), nanos);
         return builder.append('\'');
     }

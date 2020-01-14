@@ -28,6 +28,7 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
+import org.h2.util.HasSQL;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
@@ -682,10 +683,10 @@ public class TableFilter implements ColumnResolver {
      *
      * @param builder string builder to append to
      * @param isJoin if this is a joined table
-     * @param alwaysQuote quote all identifiers
+     * @param sqlFlags formatting flags
      * @return the specified builder
      */
-    public StringBuilder getPlanSQL(StringBuilder builder, boolean isJoin, boolean alwaysQuote) {
+    public StringBuilder getPlanSQL(StringBuilder builder, boolean isJoin, int sqlFlags) {
         if (isJoin) {
             if (joinOuter) {
                 builder.append("LEFT OUTER JOIN ");
@@ -697,7 +698,7 @@ public class TableFilter implements ColumnResolver {
             StringBuilder buffNested = new StringBuilder();
             TableFilter n = nestedJoin;
             do {
-                n.getPlanSQL(buffNested, n != nestedJoin, alwaysQuote).append('\n');
+                n.getPlanSQL(buffNested, n != nestedJoin, sqlFlags).append('\n');
                 n = n.getJoin();
             } while (n != null);
             String nested = buffNested.toString();
@@ -716,23 +717,23 @@ public class TableFilter implements ColumnResolver {
                     // otherwise the nesting is unclear
                     builder.append("1=1");
                 } else {
-                    joinCondition.getUnenclosedSQL(builder, alwaysQuote);
+                    joinCondition.getUnenclosedSQL(builder, sqlFlags);
                 }
             }
             return builder;
         }
         if (table.isView() && ((TableView) table).isRecursive()) {
-            table.getSchema().getSQL(builder, alwaysQuote).append('.');
-            Parser.quoteIdentifier(builder, table.getName(), alwaysQuote);
+            table.getSchema().getSQL(builder, sqlFlags).append('.');
+            Parser.quoteIdentifier(builder, table.getName(), sqlFlags);
         } else {
-            table.getSQL(builder, alwaysQuote);
+            table.getSQL(builder, sqlFlags);
         }
         if (table.isView() && ((TableView) table).isInvalid()) {
             throw DbException.get(ErrorCode.VIEW_IS_INVALID_2, table.getName(), "not compiled");
         }
         if (alias != null) {
             builder.append(' ');
-            Parser.quoteIdentifier(builder, alias, alwaysQuote);
+            Parser.quoteIdentifier(builder, alias, sqlFlags);
             if (derivedColumnMap != null) {
                 builder.append('(');
                 boolean f = false;
@@ -741,7 +742,7 @@ public class TableFilter implements ColumnResolver {
                         builder.append(", ");
                     }
                     f = true;
-                    Parser.quoteIdentifier(builder, name, alwaysQuote);
+                    Parser.quoteIdentifier(builder, name, sqlFlags);
                 }
                 builder.append(')');
             }
@@ -755,7 +756,7 @@ public class TableFilter implements ColumnResolver {
                 } else {
                     first = false;
                 }
-                Parser.quoteIdentifier(builder, index, alwaysQuote);
+                Parser.quoteIdentifier(builder, index, sqlFlags);
             }
             builder.append(")");
         }
@@ -769,7 +770,7 @@ public class TableFilter implements ColumnResolver {
                     if (i > 0) {
                         planBuilder.append("\n    AND ");
                     }
-                    planBuilder.append(indexConditions.get(i).getSQL(false));
+                    planBuilder.append(indexConditions.get(i).getSQL(HasSQL.TRACE_SQL_FLAGS));
                 }
             }
             String plan = StringUtils.quoteRemarkSQL(planBuilder.toString());
@@ -787,12 +788,12 @@ public class TableFilter implements ColumnResolver {
                 // unclear
                 builder.append("1=1");
             } else {
-                joinCondition.getUnenclosedSQL(builder, alwaysQuote);
+                joinCondition.getUnenclosedSQL(builder, sqlFlags);
             }
         }
         if (filterCondition != null) {
             builder.append('\n');
-            String condition = StringUtils.unEnclose(filterCondition.getSQL(false));
+            String condition = StringUtils.unEnclose(filterCondition.getSQL(HasSQL.TRACE_SQL_FLAGS));
             condition = "/* WHERE " + StringUtils.quoteRemarkSQL(condition) + "\n*/";
             StringUtils.indent(builder, condition, 4, false);
         }

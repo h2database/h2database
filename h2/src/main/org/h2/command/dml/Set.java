@@ -164,7 +164,7 @@ public class Set extends Prepared {
                 }
                 Table table = database.getFirstUserTable();
                 if (table != null) {
-                    throw DbException.get(ErrorCode.COLLATION_CHANGE_WITH_DATA_TABLE_1, table.getSQL(false));
+                    throw DbException.get(ErrorCode.COLLATION_CHANGE_WITH_DATA_TABLE_1, table.getTraceSQL());
                 }
                 addOrUpdateSetting(name, buff.toString(), 0);
                 database.setCompareMode(compareMode);
@@ -186,7 +186,7 @@ public class Set extends Prepared {
                 if (currentMode.isBinaryUnsigned() != unsigned) {
                     Table table = database.getFirstUserTable();
                     if (table != null) {
-                        throw DbException.get(ErrorCode.COLLATION_CHANGE_WITH_DATA_TABLE_1, table.getSQL(false));
+                        throw DbException.get(ErrorCode.COLLATION_CHANGE_WITH_DATA_TABLE_1, table.getTraceSQL());
                     }
                 }
                 CompareMode newMode = CompareMode.getInstance(currentMode.getName(),
@@ -211,7 +211,7 @@ public class Set extends Prepared {
                 if (currentMode.isUuidUnsigned() != unsigned) {
                     Table table = database.getFirstUserTable();
                     if (table != null) {
-                        throw DbException.get(ErrorCode.COLLATION_CHANGE_WITH_DATA_TABLE_1, table.getSQL(false));
+                        throw DbException.get(ErrorCode.COLLATION_CHANGE_WITH_DATA_TABLE_1, table.getTraceSQL());
                     }
                 }
                 CompareMode newMode = CompareMode.getInstance(currentMode.getName(),
@@ -313,7 +313,7 @@ public class Set extends Prepared {
                 Table table = database.getFirstUserTable();
                 if (table != null) {
                     throw DbException.get(ErrorCode.JAVA_OBJECT_SERIALIZER_CHANGE_WITH_DATA_TABLE,
-                            table.getSQL(false));
+                            table.getTraceSQL());
                 }
                 database.setJavaObjectSerializerName(stringValue);
                 addOrUpdateSetting(name, stringValue, 0);
@@ -651,7 +651,7 @@ public class Set extends Prepared {
             try {
                 timeZone = TimeZoneProvider.ofId(v.getString());
             } catch (IllegalArgumentException ex) {
-                throw DbException.getInvalidValueException("time zone", v.getSQL());
+                throw DbException.getInvalidValueException("time zone", v.getTraceSQL());
             }
             return timeZone;
         } else if (v == ValueNull.INSTANCE) {

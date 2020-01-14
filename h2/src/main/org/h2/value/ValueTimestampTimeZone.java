@@ -156,7 +156,7 @@ public class ValueTimestampTimeZone extends Value {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         return toString(builder.append("TIMESTAMP WITH TIME ZONE '")).append('\'');
     }
 

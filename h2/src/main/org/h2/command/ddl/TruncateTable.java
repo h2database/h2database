@@ -40,7 +40,7 @@ public class TruncateTable extends DefineCommand {
     public int update() {
         session.commit(true);
         if (!table.canTruncate()) {
-            throw DbException.get(ErrorCode.CANNOT_TRUNCATE_1, table.getSQL(false));
+            throw DbException.get(ErrorCode.CANNOT_TRUNCATE_1, table.getTraceSQL());
         }
         session.getUser().checkRight(table, Right.DELETE);
         table.lock(session, true, true);

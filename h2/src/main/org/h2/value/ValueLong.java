@@ -128,7 +128,7 @@ public class ValueLong extends Value {
     public Value divide(Value v, long divisorPrecision) {
         long y = ((ValueLong) v).value;
         if (y == 0) {
-            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
         }
         long x = value;
         if (x == Long.MIN_VALUE && y == -1) {
@@ -141,13 +141,13 @@ public class ValueLong extends Value {
     public Value modulus(Value v) {
         ValueLong other = (ValueLong) v;
         if (other.value == 0) {
-            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
+            throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
         }
         return ValueLong.get(this.value % other.value);
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         return builder.append(value);
     }
 

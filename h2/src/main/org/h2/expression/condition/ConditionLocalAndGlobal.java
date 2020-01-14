@@ -33,14 +33,14 @@ public class ConditionLocalAndGlobal extends Condition {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         if (local == null) {
-            return global.getSQL(builder, alwaysQuote);
+            return global.getSQL(builder, sqlFlags);
         }
         builder.append('(');
-        local.getSQL(builder, alwaysQuote);
+        local.getSQL(builder, sqlFlags);
         builder.append("\n    _LOCAL_AND_GLOBAL_ ");
-        return global.getSQL(builder, alwaysQuote).append(')');
+        return global.getSQL(builder, sqlFlags).append(')');
     }
 
     @Override

@@ -13,6 +13,7 @@ import org.h2.command.Parser;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.table.Table;
+import org.h2.util.HasSQL;
 import org.h2.util.JdbcUtils;
 import org.h2.value.DataType;
 
@@ -60,14 +61,14 @@ public class UserAggregate extends DbObjectBase {
     @Override
     public String getDropSQL() {
         StringBuilder builder = new StringBuilder("DROP AGGREGATE IF EXISTS ");
-        return getSQL(builder, true).toString();
+        return getSQL(builder, DEFAULT_SQL_FLAGS).toString();
     }
 
     @Override
     public String getCreateSQL() {
         StringBuilder builder = new StringBuilder("CREATE FORCE AGGREGATE ");
-        getSQL(builder, true).append(" FOR ");
-        Parser.quoteIdentifier(builder, className, true);
+        getSQL(builder, DEFAULT_SQL_FLAGS).append(" FOR ");
+        Parser.quoteIdentifier(builder, className, HasSQL.DEFAULT_SQL_FLAGS);
         return builder.toString();
     }
 

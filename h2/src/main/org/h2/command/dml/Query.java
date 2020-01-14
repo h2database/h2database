@@ -31,6 +31,7 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableView;
+import org.h2.util.HasSQL;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
@@ -570,8 +571,8 @@ public abstract class Query extends Prepared {
                     Expression ec2 = ec.getNonAliasExpression();
                     if (ec2 instanceof ExpressionColumn) {
                         ExpressionColumn c2 = (ExpressionColumn) ec2;
-                        String ta = exprCol.getSQL(true);
-                        String tb = c2.getSQL(true);
+                        String ta = exprCol.getSQL(HasSQL.DEFAULT_SQL_FLAGS);
+                        String tb = c2.getSQL(HasSQL.DEFAULT_SQL_FLAGS);
                         String s2 = c2.getColumnName();
                         if (db.equalsIdentifiers(col, s2) && db.equalsIdentifiers(ta, tb)) {
                             return j;
@@ -580,7 +581,7 @@ public abstract class Query extends Prepared {
                 }
             }
         } else if (expressionSQL != null) {
-            String s = e.getSQL(true);
+            String s = e.getSQL(HasSQL.DEFAULT_SQL_FLAGS);
             for (int j = 0, size = expressionSQL.size(); j < size; j++) {
                 if (db.equalsIdentifiers(expressionSQL.get(j), s)) {
                     return j;
@@ -590,11 +591,11 @@ public abstract class Query extends Prepared {
         if (expressionSQL == null
                 || mustBeInResult && !db.getMode().allowUnrelatedOrderByExpressionsInDistinctQueries
                         && !checkOrderOther(session, e, expressionSQL)) {
-            throw DbException.get(ErrorCode.ORDER_BY_NOT_IN_RESULT, e.getSQL(false));
+            throw DbException.get(ErrorCode.ORDER_BY_NOT_IN_RESULT, e.getTraceSQL());
         }
         int idx = expressions.size();
         expressions.add(e);
-        expressionSQL.add(e.getSQL(true));
+        expressionSQL.add(e.getSQL(HasSQL.DEFAULT_SQL_FLAGS));
         return idx;
     }
 
@@ -615,7 +616,7 @@ public abstract class Query extends Prepared {
             // ValueExpression, null expression in CASE, or other
             return true;
         }
-        String exprSQL = expr.getSQL(true);
+        String exprSQL = expr.getSQL(HasSQL.DEFAULT_SQL_FLAGS);
         for (String sql: expressionSQL) {
             if (session.getDatabase().equalsIdentifiers(exprSQL, sql)) {
                 return true;
@@ -740,28 +741,28 @@ public abstract class Query extends Prepared {
      * Appends ORDER BY, OFFSET, and FETCH clauses to the plan.
      *
      * @param builder query plan string builder.
-     * @param alwaysQuote quote all identifiers
+     * @param sqlFlags formatting flags
      * @param expressions the array of expressions
      */
-    void appendEndOfQueryToSQL(StringBuilder builder, boolean alwaysQuote, Expression[] expressions) {
+    void appendEndOfQueryToSQL(StringBuilder builder, int sqlFlags, Expression[] expressions) {
         if (sort != null) {
-            builder.append("\nORDER BY ").append(sort.getSQL(expressions, visibleColumnCount, alwaysQuote));
+            builder.append("\nORDER BY ").append(sort.getSQL(expressions, visibleColumnCount, sqlFlags));
         } else if (orderList != null) {
             builder.append("\nORDER BY ");
             for (int i = 0, l = orderList.size(); i < l; i++) {
                 if (i > 0) {
                     builder.append(", ");
                 }
-                orderList.get(i).getSQL(builder, alwaysQuote);
+                orderList.get(i).getSQL(builder, sqlFlags);
             }
         }
         if (offsetExpr != null) {
-            String count = StringUtils.unEnclose(offsetExpr.getSQL(alwaysQuote));
+            String count = StringUtils.unEnclose(offsetExpr.getSQL(sqlFlags));
             builder.append("\nOFFSET ").append(count).append("1".equals(count) ? " ROW" : " ROWS");
         }
         if (limitExpr != null) {
             builder.append("\nFETCH ").append(offsetExpr != null ? "NEXT" : "FIRST");
-            String count = StringUtils.unEnclose(limitExpr.getSQL(alwaysQuote));
+            String count = StringUtils.unEnclose(limitExpr.getSQL(sqlFlags));
             boolean withCount = fetchPercent || !"1".equals(count);
             if (withCount) {
                 builder.append(' ').append(count);

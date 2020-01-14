@@ -2052,7 +2052,7 @@ public class Database implements DataHandler, CastDataProvider {
                 Table t = getDependentTable(obj, null);
                 if (t != null) {
                     obj.getSchema().add(obj);
-                    throw DbException.get(ErrorCode.CANNOT_DROP_2, obj.getSQL(false), t.getSQL(false));
+                    throw DbException.get(ErrorCode.CANNOT_DROP_2, obj.getTraceSQL(), t.getTraceSQL());
                 }
                 obj.removeChildrenAndResources(session);
             }

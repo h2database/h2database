@@ -65,6 +65,7 @@ import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
 import org.h2.util.Bits;
 import org.h2.util.DateTimeUtils;
+import org.h2.util.HasSQL;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.LegacyDateTimeUtils;
@@ -707,7 +708,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case COT: {
             double d = Math.tan(v0.getDouble());
             if (d == 0.0) {
-                throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL(false));
+                throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
             }
             result = ValueDouble.get(1. / d);
             break;
@@ -1339,7 +1340,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case MOD: {
             long x = v1.getLong();
             if (x == 0) {
-                throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL(false));
+                throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getTraceSQL());
             }
             result = ValueLong.get(v0.getLong() % x);
             break;
@@ -1788,9 +1789,9 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case VALUES: {
             Expression a0 = args[0];
             StringBuilder builder = new StringBuilder();
-            Parser.quoteIdentifier(builder, a0.getSchemaName(), true).append('.');
-            Parser.quoteIdentifier(builder, a0.getTableName(), true).append('.');
-            Parser.quoteIdentifier(builder, a0.getColumnName(), true);
+            Parser.quoteIdentifier(builder, a0.getSchemaName(), DEFAULT_SQL_FLAGS).append('.');
+            Parser.quoteIdentifier(builder, a0.getTableName(), DEFAULT_SQL_FLAGS).append('.');
+            Parser.quoteIdentifier(builder, a0.getColumnName(), DEFAULT_SQL_FLAGS);
             result = session.getVariable(builder.toString());
             break;
         }
@@ -2825,8 +2826,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case SET:
             typeInfo = args[1].getType();
             if (!(p0 instanceof Variable)) {
-                throw DbException.get(
-                        ErrorCode.CAN_ONLY_ASSIGN_TO_VARIABLE_1, p0.getSQL(false));
+                throw DbException.get(ErrorCode.CAN_ONLY_ASSIGN_TO_VARIABLE_1, p0.getTraceSQL());
             }
             break;
         case FILE_READ: {
@@ -3003,22 +3003,22 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         builder.append(info.name);
         if (info.type == CASE) {
             if (args[0] != null) {
                 builder.append(' ');
-                args[0].getSQL(builder, alwaysQuote);
+                args[0].getSQL(builder, sqlFlags);
             }
             for (int i = 1, len = args.length - 1; i < len; i += 2) {
                 builder.append(" WHEN ");
-                args[i].getSQL(builder, alwaysQuote);
+                args[i].getSQL(builder, sqlFlags);
                 builder.append(" THEN ");
-                args[i + 1].getSQL(builder, alwaysQuote);
+                args[i + 1].getSQL(builder, sqlFlags);
             }
             if (args.length % 2 == 0) {
                 builder.append(" ELSE ");
-                args[args.length - 1].getSQL(builder, alwaysQuote);
+                args[args.length - 1].getSQL(builder, sqlFlags);
             }
             return builder.append(" END");
         }
@@ -3028,11 +3028,11 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         }
         switch (info.type) {
         case SUBSTRING: {
-            args[0].getSQL(builder, alwaysQuote).append(" FROM ");
-            args[1].getSQL(builder, alwaysQuote);
+            args[0].getSQL(builder, sqlFlags).append(" FROM ");
+            args[1].getSQL(builder, sqlFlags);
             if (args.length > 2) {
                 builder.append(" FOR ");
-                args[2].getSQL(builder, alwaysQuote);
+                args[2].getSQL(builder, sqlFlags);
             }
             break;
         }
@@ -3046,15 +3046,15 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 break;
             }
             if (args.length > 1) {
-                args[1].getSQL(builder, alwaysQuote).append(" FROM ");
+                args[1].getSQL(builder, sqlFlags).append(" FROM ");
             }
-            args[0].getSQL(builder, alwaysQuote);
+            args[0].getSQL(builder, sqlFlags);
             break;
         }
         case CAST: {
-            args[0].getSQL(builder, alwaysQuote).append(" AS ");
+            args[0].getSQL(builder, sqlFlags).append(" AS ");
             if (domain != null) {
-                domain.getSQL(builder, alwaysQuote);
+                domain.getSQL(builder, sqlFlags);
             } else {
                 type.getSQL(builder);
             }
@@ -3063,9 +3063,9 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case CONVERT: {
             if (database.getMode().swapConvertFunctionParameters) {
                 type.getSQL(builder).append(", ");
-                args[0].getSQL(builder, alwaysQuote);
+                args[0].getSQL(builder, sqlFlags);
             } else {
-                args[0].getSQL(builder, alwaysQuote).append(", ");
+                args[0].getSQL(builder, sqlFlags).append(", ");
                 type.getSQL(builder);
             }
             break;
@@ -3073,7 +3073,7 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
         case EXTRACT: {
             ValueString v = (ValueString) ((ValueExpression) args[0]).getValue(null);
             builder.append(v.getString()).append(" FROM ");
-            args[1].getSQL(builder, alwaysQuote);
+            args[1].getSQL(builder, sqlFlags);
             break;
         }
         case JSON_OBJECT: {
@@ -3081,19 +3081,19 @@ public class Function extends Expression implements FunctionCall, ExpressionWith
                 if (i > 0) {
                     builder.append(", ");
                 }
-                args[i++].getSQL(builder, alwaysQuote).append(": ");
-                args[i++].getSQL(builder, alwaysQuote);
+                args[i++].getSQL(builder, sqlFlags).append(": ");
+                args[i++].getSQL(builder, sqlFlags);
             }
             getJsonFunctionFlagsSQL(builder, flags, false);
             break;
         }
         case JSON_ARRAY: {
-            writeExpressions(builder, args, alwaysQuote);
+            writeExpressions(builder, args, sqlFlags);
             getJsonFunctionFlagsSQL(builder, flags, true);
             break;
         }
         default:
-            writeExpressions(builder, args, alwaysQuote);
+            writeExpressions(builder, args, sqlFlags);
         }
         if (addParentheses) {
             builder.append(')');

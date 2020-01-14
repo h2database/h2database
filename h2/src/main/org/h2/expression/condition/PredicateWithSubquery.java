@@ -44,8 +44,8 @@ abstract class PredicateWithSubquery extends Condition {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
-        return StringUtils.indent(builder.append('('), query.getPlanSQL(alwaysQuote), 4, false).append(')');
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        return StringUtils.indent(builder.append('('), query.getPlanSQL(sqlFlags), 4, false).append(')');
     }
 
     @Override

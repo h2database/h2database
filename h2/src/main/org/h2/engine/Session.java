@@ -50,6 +50,7 @@ import org.h2.table.Table;
 import org.h2.table.TableType;
 import org.h2.util.ColumnNamerConfiguration;
 import org.h2.util.DateTimeUtils;
+import org.h2.util.HasSQL;
 import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TimeZoneProvider;
@@ -352,8 +353,8 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         }
         if (localTempTables.putIfAbsent(table.getName(), table) != null) {
             StringBuilder builder = new StringBuilder();
-            table.getSQL(builder, false).append(" AS ");
-            Parser.quoteIdentifier(table.getName(), false);
+            table.getSQL(builder, HasSQL.TRACE_SQL_FLAGS).append(" AS ");
+            Parser.quoteIdentifier(table.getName(), HasSQL.TRACE_SQL_FLAGS);
             throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, builder.toString());
         }
         modificationId++;
@@ -415,7 +416,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             localTempTableIndexes = database.newStringMap();
         }
         if (localTempTableIndexes.putIfAbsent(index.getName(), index) != null) {
-            throw DbException.get(ErrorCode.INDEX_ALREADY_EXISTS_1, index.getSQL(false));
+            throw DbException.get(ErrorCode.INDEX_ALREADY_EXISTS_1, index.getTraceSQL());
         }
     }
 
@@ -472,7 +473,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         }
         String name = constraint.getName();
         if (localTempTableConstraints.putIfAbsent(name, constraint) != null) {
-            throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, constraint.getSQL(false));
+            throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, constraint.getTraceSQL());
         }
     }
 
@@ -1075,7 +1076,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                 return value;
             }
         }
-        throw DbException.get(ErrorCode.CURRENT_SEQUENCE_VALUE_IS_NOT_DEFINED_IN_SESSION_1, sequence.getSQL(false));
+        throw DbException.get(ErrorCode.CURRENT_SEQUENCE_VALUE_IS_NOT_DEFINED_IN_SESSION_1, sequence.getTraceSQL());
     }
 
     public void setLastIdentity(Value last) {

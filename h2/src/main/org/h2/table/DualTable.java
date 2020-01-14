@@ -32,7 +32,7 @@ public class DualTable extends VirtualTable {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         return builder.append(NAME);
     }
 

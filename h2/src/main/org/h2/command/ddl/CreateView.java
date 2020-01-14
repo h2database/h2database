@@ -18,6 +18,7 @@ import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableType;
 import org.h2.table.TableView;
+import org.h2.util.HasSQL;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
@@ -102,7 +103,7 @@ public class CreateView extends SchemaCommand {
             if (params != null && !params.isEmpty()) {
                 throw DbException.getUnsupportedException("parameters in views");
             }
-            querySQL = select.getPlanSQL(true);
+            querySQL = select.getPlanSQL(HasSQL.DEFAULT_SQL_FLAGS);
         }
         Column[] columnTemplatesAsUnknowns = null;
         Column[] columnTemplatesAsStrings = null;

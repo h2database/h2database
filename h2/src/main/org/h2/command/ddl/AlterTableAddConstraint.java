@@ -27,6 +27,7 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.util.HasSQL;
 import org.h2.value.DataType;
 
 /**
@@ -195,7 +196,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             session.getUser().checkRight(refTable, Right.ALL);
             if (!refTable.canReference()) {
                 StringBuilder builder = new StringBuilder("Reference ");
-                refTable.getSQL(builder, false);
+                refTable.getSQL(builder, HasSQL.TRACE_SQL_FLAGS);
                 throw DbException.getUnsupportedException(builder.toString());
             }
             boolean isOwner = false;
@@ -216,7 +217,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
                     case SET_DEFAULT:
                     case SET_NULL:
                         throw DbException.get(ErrorCode.GENERATED_COLUMN_CANNOT_BE_UPDATABLE_BY_CONSTRAINT_2,
-                                column.getSQLWithTable(new StringBuilder(), false).toString(),
+                                column.getSQLWithTable(new StringBuilder(), HasSQL.TRACE_SQL_FLAGS).toString(),
                                 "ON DELETE " + deleteAction.getSqlName());
                     default:
                         // All other actions are allowed
@@ -226,7 +227,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
                     case SET_DEFAULT:
                     case SET_NULL:
                         throw DbException.get(ErrorCode.GENERATED_COLUMN_CANNOT_BE_UPDATABLE_BY_CONSTRAINT_2,
-                                column.getSQLWithTable(new StringBuilder(), false).toString(),
+                                column.getSQLWithTable(new StringBuilder(), HasSQL.TRACE_SQL_FLAGS).toString(),
                                 "ON UPDATE " + updateAction.getSqlName());
                     default:
                         // All other actions are allowed

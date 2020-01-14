@@ -23,6 +23,7 @@ import org.h2.result.Row;
 import org.h2.schema.Domain;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
+import org.h2.util.HasSQL;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
@@ -35,7 +36,7 @@ import org.h2.value.ValueUuid;
 /**
  * This class represents a column in a table.
  */
-public class Column {
+public class Column implements HasSQL {
 
     /**
      * The name of the rowid pseudo column.
@@ -87,16 +88,16 @@ public class Column {
      *            string builder
      * @param columns
      *            columns
-     * @param alwaysQuote
-     *            quote all identifiers
+     * @param sqlFlags
+     *            formatting flags
      * @return the specified string builder
      */
-    public static StringBuilder writeColumns(StringBuilder builder, Column[] columns, boolean alwaysQuote) {
+    public static StringBuilder writeColumns(StringBuilder builder, Column[] columns, int sqlFlags) {
         for (int i = 0, l = columns.length; i < l; i++) {
             if (i > 0) {
                 builder.append(", ");
             }
-            columns[i].getSQL(builder, alwaysQuote);
+            columns[i].getSQL(builder, sqlFlags);
         }
         return builder;
     }
@@ -112,17 +113,17 @@ public class Column {
      *            separator
      * @param suffix
      *            additional SQL to append after each column
-     * @param alwaysQuote
-     *            quote all identifiers
+     * @param sqlFlags
+     *            formatting flags
      * @return the specified string builder
      */
     public static StringBuilder writeColumns(StringBuilder builder, Column[] columns, String separator,
-            String suffix, boolean alwaysQuote) {
+            String suffix, int sqlFlags) {
         for (int i = 0, l = columns.length; i < l; i++) {
             if (i > 0) {
                 builder.append(separator);
             }
-            columns[i].getSQL(builder, alwaysQuote).append(suffix);
+            columns[i].getSQL(builder, sqlFlags).append(suffix);
         }
         return builder;
     }
@@ -266,37 +267,25 @@ public class Column {
         return columnId;
     }
 
-    /**
-     * Get the SQL representation of the column.
-     *
-     * @param alwaysQuote whether to always quote the name
-     * @return the SQL representation
-     */
-    public String getSQL(boolean alwaysQuote) {
-        return rowId ? name : Parser.quoteIdentifier(name, alwaysQuote);
+    @Override
+    public String getSQL(int sqlFlags) {
+        return rowId ? name : Parser.quoteIdentifier(name, sqlFlags);
     }
 
-    /**
-     * Appends the column name to the specified builder.
-     * The name is quoted, unless if this is a row id column.
-     *
-     * @param builder the string builder
-     * @param alwaysQuote quote all identifiers
-     * @return the specified string builder
-     */
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
-        return rowId ? builder.append(name) : Parser.quoteIdentifier(builder, name, alwaysQuote);
+    @Override
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        return rowId ? builder.append(name) : Parser.quoteIdentifier(builder, name, sqlFlags);
     }
 
     /**
      * Appends the table name and column name to the specified builder.
      *
      * @param builder the string builder
-     * @param alwaysQuote quote all identifiers
+     * @param sqlFlags formatting flags
      * @return the specified string builder
      */
-    public StringBuilder getSQLWithTable(StringBuilder builder, boolean alwaysQuote) {
-        return getSQL(table.getSQL(builder, alwaysQuote).append('.'), alwaysQuote);
+    public StringBuilder getSQLWithTable(StringBuilder builder, int sqlFlags) {
+        return getSQL(table.getSQL(builder, sqlFlags).append('.'), sqlFlags);
     }
 
     public String getName() {
@@ -502,7 +491,7 @@ public class Column {
     private String getCreateSQL(boolean includeName) {
         StringBuilder buff = new StringBuilder();
         if (includeName && name != null) {
-            Parser.quoteIdentifier(buff, name, true).append(' ');
+            Parser.quoteIdentifier(buff, name, DEFAULT_SQL_FLAGS).append(' ');
         }
         if (originalSQL != null) {
             buff.append(originalSQL);
@@ -517,22 +506,22 @@ public class Column {
         if (defaultExpression != null) {
             if (isGenerated) {
                 buff.append(" GENERATED ALWAYS AS ");
-                defaultExpression.getEnclosedSQL(buff, true);
+                defaultExpression.getEnclosedSQL(buff, DEFAULT_SQL_FLAGS);
             } else {
                 buff.append(" DEFAULT ");
-                defaultExpression.getSQL(buff, true);
+                defaultExpression.getSQL(buff, DEFAULT_SQL_FLAGS);
             }
         }
         if (onUpdateExpression != null) {
             buff.append(" ON UPDATE ");
-            onUpdateExpression.getSQL(buff, true);
+            onUpdateExpression.getSQL(buff, DEFAULT_SQL_FLAGS);
         }
         if (convertNullToDefault) {
             buff.append(" NULL_TO_DEFAULT");
         }
         if (sequence != null) {
             buff.append(" SEQUENCE ");
-            sequence.getSQL(buff, true);
+            sequence.getSQL(buff, DEFAULT_SQL_FLAGS);
         }
         if (selectivity != 0) {
             buff.append(" SELECTIVITY ").append(selectivity);
@@ -637,11 +626,11 @@ public class Column {
     }
 
     String getDefaultSQL() {
-        return defaultExpression == null ? null : defaultExpression.getSQL(true);
+        return defaultExpression == null ? null : defaultExpression.getSQL(DEFAULT_SQL_FLAGS);
     }
 
     String getOnUpdateSQL() {
-        return onUpdateExpression == null ? null : onUpdateExpression.getSQL(true);
+        return onUpdateExpression == null ? null : onUpdateExpression.getSQL(DEFAULT_SQL_FLAGS);
     }
 
     int getPrecisionAsInt() {

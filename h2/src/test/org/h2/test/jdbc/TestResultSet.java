@@ -1865,7 +1865,7 @@ public class TestResultSet extends TestDb {
         assertEquals(Types.INTEGER, array.getBaseType());
         assertEquals("INTEGER", array.getBaseTypeName());
 
-        assertTrue(array.toString().endsWith(": [11, 12]"));
+        assertTrue(array.toString().endsWith(": ARRAY [11, 12]"));
 
         // free
         array.free();

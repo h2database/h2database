@@ -1775,7 +1775,7 @@ public class MetaTable extends Table {
                         // REMARKS
                         replaceNullWithEmpty(constant.getComment()),
                         // SQL
-                        expr.getSQL(true), // ID
+                        expr.getSQL(DEFAULT_SQL_FLAGS), // ID
                         ValueInt.get(constant.getId())
                     );
             }
@@ -1920,7 +1920,7 @@ public class MetaTable extends Table {
             for (String name : session.getVariableNames()) {
                 Value v = session.getVariable(name);
                 StringBuilder builder = new StringBuilder().append("SET @").append(name).append(' ');
-                v.getSQL(builder);
+                v.getSQL(builder, DEFAULT_SQL_FLAGS);
                 add(session,
                         rows,
                         // KEY
@@ -2236,7 +2236,7 @@ public class MetaTable extends Table {
                         obj.getSchema().getName(),
                         // CONSTRAINT_NAME
                         obj.getName(), // CHECK_CLAUSE
-                        constraint.getExpression().getUnenclosedSQL(new StringBuilder(), true).toString()
+                        constraint.getExpression().getUnenclosedSQL(new StringBuilder(), DEFAULT_SQL_FLAGS).toString()
                 );
             }
             break;

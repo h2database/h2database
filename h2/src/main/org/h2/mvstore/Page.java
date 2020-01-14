@@ -594,7 +594,7 @@ public abstract class Page<K,V> implements Cloneable
                     "File corrupted in chunk {0}, expected node type {1}, got {2}",
                     chunkId, isLeaf() ? "0" : "1" , type);
         }
-        // jump ahaead and read pageNo, because if page is compressed,
+        // jump ahead and read pageNo, because if page is compressed,
         // buffer will be replaced by uncompressed one
         if ((type & DataUtils.PAGE_HAS_PAGE_NO) != 0) {
             int position = buff.position();

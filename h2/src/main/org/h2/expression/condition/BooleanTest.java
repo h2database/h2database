@@ -31,8 +31,8 @@ public class BooleanTest extends SimplePredicate {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
-        return left.getSQL(builder.append('('), alwaysQuote).append(not ? " IS NOT " : " IS ")
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        return left.getSQL(builder.append('('), sqlFlags).append(not ? " IS NOT " : " IS ")
                 .append(right == null ? "UNKNOWN)" : right ? "TRUE)" : "FALSE)");
     }
 

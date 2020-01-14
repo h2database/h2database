@@ -49,11 +49,11 @@ public class TypedValueExpression extends ValueExpression {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         if (this == UNKNOWN) {
             builder.append("UNKNOWN");
         } else {
-            value.getSQL(builder.append("CAST(")).append(" AS ");
+            value.getSQL(builder.append("CAST("), sqlFlags).append(" AS ");
             type.getSQL(builder).append(')');
         }
         return builder;

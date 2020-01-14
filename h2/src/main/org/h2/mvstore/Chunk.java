@@ -382,7 +382,7 @@ public class Chunk
                 if (length == DataUtils.PAGE_LARGE) {
                     // read the first bytes to figure out actual length
                     length = fileStore.readFully(filePos, 128).getInt();
-                    // pageNo is deliberatly not included into length to preserve compatibility
+                    // pageNo is deliberately not included into length to preserve compatibility
                     // TODO: remove this adjustment when page on disk format is re-organized
                     length += 4;
                 }
@@ -464,8 +464,7 @@ public class Chunk
      * @return true if all of the pages, this chunk contains, were already
      *         removed, and false otherwise
      */
-    boolean accountForRemovedPage(int pageNo, int pageLength, boolean pinned,
-                                  long now, long version) {
+    boolean accountForRemovedPage(int pageNo, int pageLength, boolean pinned, long now, long version) {
         assert isSaved() : this;
         // legacy chunks do not have a table of content,
         // therefore pageNo is not valid, skip

@@ -159,17 +159,17 @@ public class Delete extends Prepared implements DataChangeStatement {
     }
 
     @Override
-    public String getPlanSQL(boolean alwaysQuote) {
+    public String getPlanSQL(int sqlFlags) {
         StringBuilder buff = new StringBuilder();
         buff.append("DELETE FROM ");
-        targetTableFilter.getPlanSQL(buff, false, alwaysQuote);
+        targetTableFilter.getPlanSQL(buff, false, sqlFlags);
         if (condition != null) {
             buff.append("\nWHERE ");
-            condition.getUnenclosedSQL(buff, alwaysQuote);
+            condition.getUnenclosedSQL(buff, sqlFlags);
         }
         if (limitExpr != null) {
             buff.append("\nLIMIT (");
-            limitExpr.getUnenclosedSQL(buff, alwaysQuote).append(')');
+            limitExpr.getUnenclosedSQL(buff, sqlFlags).append(')');
         }
         return buff.toString();
     }

@@ -217,7 +217,7 @@ public class Sequence extends SchemaObjectBase {
             return null;
         }
         StringBuilder builder = new StringBuilder("DROP SEQUENCE IF EXISTS ");
-        return getSQL(builder, true).toString();
+        return getSQL(builder, DEFAULT_SQL_FLAGS).toString();
     }
 
     @Override
@@ -251,10 +251,11 @@ public class Sequence extends SchemaObjectBase {
             if (v == startValue) {
                 return null;
             }
-            return getSQL(new StringBuilder("ALTER SEQUENCE "), true).append(" RESTART WITH ").append(v).toString();
+            return getSQL(new StringBuilder("ALTER SEQUENCE "), DEFAULT_SQL_FLAGS).append(" RESTART WITH ").append(v)
+                    .toString();
         }
         StringBuilder builder = new StringBuilder("CREATE SEQUENCE ");
-        getSQL(builder, true).append(" START WITH ").append(startValue);
+        getSQL(builder, DEFAULT_SQL_FLAGS).append(" START WITH ").append(startValue);
         if (!forExport && v != startValue) {
             builder.append(" RESTART WITH ").append(v);
         }

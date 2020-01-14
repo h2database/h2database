@@ -50,6 +50,7 @@ import org.h2.table.TableFilter;
 import org.h2.table.TableType;
 import org.h2.table.TableView;
 import org.h2.util.ColumnNamer;
+import org.h2.util.HasSQL;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
@@ -981,7 +982,7 @@ public class Select extends Query {
             for (int i = 0; i < visibleColumnCount; i++) {
                 Expression expr = expressions.get(i);
                 expr = expr.getNonAliasExpression();
-                String sql = expr.getSQL(true);
+                String sql = expr.getSQL(HasSQL.DEFAULT_SQL_FLAGS);
                 expressionSQL.add(sql);
             }
         } else {
@@ -1037,7 +1038,7 @@ public class Select extends Query {
             groupIndex = new int[size];
             for (int i = 0; i < size; i++) {
                 Expression expr = group.get(i);
-                String sql = expr.getSQL(true);
+                String sql = expr.getSQL(HasSQL.DEFAULT_SQL_FLAGS);
                 int found = -1;
                 for (int j = 0; j < expSize; j++) {
                     String s2 = expressionSQL.get(j);
@@ -1350,7 +1351,7 @@ public class Select extends Query {
     }
 
     @Override
-    public String getPlanSQL(boolean alwaysQuote) {
+    public String getPlanSQL(int sqlFlags) {
         // can not use the field sqlStatement because the parameter
         // indexes may be incorrect: ? may be in fact ?2 for a subquery
         // but indexes may be set manually as well
@@ -1367,24 +1368,24 @@ public class Select extends Query {
                     // views.
                 } else {
                     builder.append("WITH RECURSIVE ");
-                    t.getSchema().getSQL(builder, alwaysQuote).append('.');
-                    Parser.quoteIdentifier(builder, t.getName(), alwaysQuote).append('(');
-                    Column.writeColumns(builder, t.getColumns(), alwaysQuote);
+                    t.getSchema().getSQL(builder, sqlFlags).append('.');
+                    Parser.quoteIdentifier(builder, t.getName(), sqlFlags).append('(');
+                    Column.writeColumns(builder, t.getColumns(), sqlFlags);
                     builder.append(") AS ");
-                    t.getSQL(builder, alwaysQuote).append('\n');
+                    t.getSQL(builder, sqlFlags).append('\n');
                 }
             }
         }
         if (isExplicitTable) {
             builder.append("TABLE ");
-            filters.get(0).getPlanSQL(builder, false, alwaysQuote);
+            filters.get(0).getPlanSQL(builder, false, sqlFlags);
         } else {
             builder.append("SELECT");
             if (isAnyDistinct()) {
                 builder.append(" DISTINCT");
                 if (distinctExpressions != null) {
                     builder.append(" ON(");
-                    Expression.writeExpressions(builder, distinctExpressions, alwaysQuote);
+                    Expression.writeExpressions(builder, distinctExpressions, sqlFlags);
                     builder.append(')');
                 }
             }
@@ -1393,7 +1394,7 @@ public class Select extends Query {
                     builder.append(',');
                 }
                 builder.append('\n');
-                StringUtils.indent(builder, exprList[i].getSQL(alwaysQuote), 4, false);
+                StringUtils.indent(builder, exprList[i].getSQL(sqlFlags), 4, false);
             }
             TableFilter filter = topTableFilter;
             if (filter == null) {
@@ -1402,15 +1403,15 @@ public class Select extends Query {
                     builder.append("\nFROM ");
                     boolean isJoin = false;
                     for (int i = 0; i < count; i++) {
-                        isJoin = getPlanFromFilter(builder, alwaysQuote, topFilters.get(i), isJoin);
+                        isJoin = getPlanFromFilter(builder, sqlFlags, topFilters.get(i), isJoin);
                     }
                 }
             } else if (!filter.isNoFromClauseFilter()) {
-                getPlanFromFilter(builder.append("\nFROM "), alwaysQuote, filter, false);
+                getPlanFromFilter(builder.append("\nFROM "), sqlFlags, filter, false);
             }
             if (condition != null) {
                 builder.append("\nWHERE ");
-                condition.getUnenclosedSQL(builder, alwaysQuote);
+                condition.getUnenclosedSQL(builder, sqlFlags);
             }
             if (groupIndex != null) {
                 builder.append("\nGROUP BY ");
@@ -1418,7 +1419,7 @@ public class Select extends Query {
                     if (i > 0) {
                         builder.append(", ");
                     }
-                    exprList[groupIndex[i]].getNonAliasExpression().getUnenclosedSQL(builder, alwaysQuote);
+                    exprList[groupIndex[i]].getNonAliasExpression().getUnenclosedSQL(builder, sqlFlags);
                 }
             } else if (group != null) {
                 builder.append("\nGROUP BY ");
@@ -1426,7 +1427,7 @@ public class Select extends Query {
                     if (i > 0) {
                         builder.append(", ");
                     }
-                    group.get(i).getUnenclosedSQL(builder, alwaysQuote);
+                    group.get(i).getUnenclosedSQL(builder, sqlFlags);
                 }
             } else emptyGroupingSet: if (isGroupQuery && having == null && havingIndex < 0) {
                 for (int i = 0; i < visibleColumnCount; i++) {
@@ -1439,7 +1440,7 @@ public class Select extends Query {
             getFilterSQL(builder, "\nHAVING ", exprList, having, havingIndex);
             getFilterSQL(builder, "\nQUALIFY ", exprList, qualify, qualifyIndex);
         }
-        appendEndOfQueryToSQL(builder, alwaysQuote, exprList);
+        appendEndOfQueryToSQL(builder, sqlFlags, exprList);
         if (isForUpdate) {
             builder.append("\nFOR UPDATE");
         }
@@ -1461,13 +1462,12 @@ public class Select extends Query {
         return builder.toString();
     }
 
-    private static boolean getPlanFromFilter(StringBuilder builder, boolean alwaysQuote, TableFilter f,
-            boolean isJoin) {
+    private static boolean getPlanFromFilter(StringBuilder builder, int sqlFlags, TableFilter f, boolean isJoin) {
         do {
             if (isJoin) {
                 builder.append('\n');
             }
-            f.getPlanSQL(builder, isJoin, alwaysQuote);
+            f.getPlanSQL(builder, isJoin, sqlFlags);
             isJoin = true;
         } while ((f = f.getJoin()) != null);
         return isJoin;
@@ -1477,10 +1477,10 @@ public class Select extends Query {
             int conditionIndex) {
         if (condition != null) {
             builder.append(sql);
-            condition.getUnenclosedSQL(builder, true);
+            condition.getUnenclosedSQL(builder, HasSQL.DEFAULT_SQL_FLAGS);
         } else if (conditionIndex >= 0) {
             builder.append(sql);
-            exprList[conditionIndex].getUnenclosedSQL(builder, true);
+            exprList[conditionIndex].getUnenclosedSQL(builder, HasSQL.DEFAULT_SQL_FLAGS);
         }
     }
 

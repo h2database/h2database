@@ -59,7 +59,7 @@ public class ValueBoolean extends Value {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         return builder.append(getString());
     }
 

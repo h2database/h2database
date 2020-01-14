@@ -25,6 +25,7 @@ import org.h2.result.SimpleResult;
 import org.h2.store.DataHandler;
 import org.h2.util.Bits;
 import org.h2.util.DateTimeUtils;
+import org.h2.util.HasSQL;
 import org.h2.util.IntervalUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
@@ -38,7 +39,7 @@ import org.h2.util.geometry.GeoJsonUtils;
  * @author Noel Grandin
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
-public abstract class Value extends VersionedValue<Value> {
+public abstract class Value extends VersionedValue<Value> implements HasSQL {
 
     /**
      * The data type is unknown at this time.
@@ -288,24 +289,6 @@ public abstract class Value extends VersionedValue<Value> {
             throw DbException.getInvalidValueException("length", length);
         }
     }
-
-    /**
-     * Get the SQL expression for this value.
-     *
-     * @return the SQL expression
-     */
-    public String getSQL() {
-        return getSQL(new StringBuilder()).toString();
-    }
-
-    /**
-     * Appends the SQL expression for this value to the specified builder.
-     *
-     * @param builder
-     *            string builder
-     * @return the specified string builder
-     */
-    public abstract StringBuilder getSQL(StringBuilder builder);
 
     /**
      * Returns the data type.
@@ -1841,16 +1824,6 @@ public abstract class Value extends VersionedValue<Value> {
      */
     public boolean checkPrecision(long precision) {
         return getType().getPrecision() <= precision;
-    }
-
-    /**
-     * Get a medium size SQL expression for debugging or tracing. If the
-     * precision is too large, only a subset of the value is returned.
-     *
-     * @return the SQL expression
-     */
-    public String getTraceSQL() {
-        return getSQL(new StringBuilder()).toString();
     }
 
     @Override

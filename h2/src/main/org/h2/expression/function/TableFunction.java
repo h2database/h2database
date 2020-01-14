@@ -47,9 +47,9 @@ public class TableFunction extends Function {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         if (info.type == UNNEST) {
-            super.getSQL(builder, alwaysQuote);
+            super.getSQL(builder, sqlFlags);
             if (args.length < columns.length) {
                 builder.append(" WITH ORDINALITY");
             }
@@ -61,7 +61,7 @@ public class TableFunction extends Function {
                 builder.append(", ");
             }
             builder.append(columns[i].getCreateSQL()).append('=');
-            args[i].getSQL(builder, alwaysQuote);
+            args[i].getSQL(builder, sqlFlags);
         }
         return builder.append(')');
     }

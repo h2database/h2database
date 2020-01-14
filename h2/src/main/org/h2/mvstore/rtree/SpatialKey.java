@@ -125,7 +125,7 @@ public class SpatialKey extends Value {
 
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         builder.append(id).append(": (");
         for (int i = 0; i < minMax.length; i += 2) {
             if (i > 0) {
@@ -149,7 +149,7 @@ public class SpatialKey extends Value {
 
     @Override
     public String getString() {
-        return getSQL(new StringBuilder()).toString();
+        return getTraceSQL();
     }
 
     @Override

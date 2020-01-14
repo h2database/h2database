@@ -22,7 +22,7 @@ public class Comment extends DbObjectBase {
     public Comment(Database database, int id, DbObject obj) {
         super(database, id,  getKey(obj), Trace.DATABASE);
         this.objectType = obj.getType();
-        this.quotedObjectName = obj.getSQL(true);
+        this.quotedObjectName = obj.getSQL(DEFAULT_SQL_FLAGS);
     }
 
     @Override
@@ -98,7 +98,7 @@ public class Comment extends DbObjectBase {
      */
     static String getKey(DbObject obj) {
         StringBuilder builder = new StringBuilder(getTypeName(obj.getType())).append(' ');
-        obj.getSQL(builder, true);
+        obj.getSQL(builder, DEFAULT_SQL_FLAGS);
         return builder.toString();
     }
 

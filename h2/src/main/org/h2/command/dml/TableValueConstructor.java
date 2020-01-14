@@ -24,6 +24,7 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableValueConstructorTable;
+import org.h2.util.HasSQL;
 import org.h2.value.Value;
 
 /**
@@ -97,13 +98,12 @@ public class TableValueConstructor extends Query {
      *
      * @param builder
      *            string builder
-     * @param alwaysQuote
-     *            quote all identifiers
+     * @param sqlFlags
+     *            formatting flags
      * @param rows
      *            the values
      */
-    public static void getValuesSQL(StringBuilder builder, boolean alwaysQuote, //
-            ArrayList<ArrayList<Expression>> rows) {
+    public static void getValuesSQL(StringBuilder builder, int sqlFlags, ArrayList<ArrayList<Expression>> rows) {
         builder.append("VALUES ");
         int rowCount = rows.size();
         for (int i = 0; i < rowCount; i++) {
@@ -111,7 +111,7 @@ public class TableValueConstructor extends Query {
                 builder.append(", ");
             }
             builder.append('(');
-            Expression.writeExpressions(builder, rows.get(i), alwaysQuote);
+            Expression.writeExpressions(builder, rows.get(i), sqlFlags);
             builder.append(')');
         }
     }
@@ -180,7 +180,7 @@ public class TableValueConstructor extends Query {
         if (orderList != null) {
             ArrayList<String> expressionsSQL = new ArrayList<>();
             for (Expression e : expressions) {
-                expressionsSQL.add(e.getSQL(true));
+                expressionsSQL.add(e.getSQL(HasSQL.DEFAULT_SQL_FLAGS));
             }
             initOrder(session, expressions, expressionsSQL, orderList, getColumnCount(), false, null);
             sort = prepareOrder(orderList, expressions.size());
@@ -278,10 +278,10 @@ public class TableValueConstructor extends Query {
     }
 
     @Override
-    public String getPlanSQL(boolean alwaysQuote) {
+    public String getPlanSQL(int sqlFlags) {
         StringBuilder builder = new StringBuilder();
-        getValuesSQL(builder, alwaysQuote, rows);
-        appendEndOfQueryToSQL(builder, alwaysQuote, expressions.toArray(new Expression[0]));
+        getValuesSQL(builder, sqlFlags, rows);
+        appendEndOfQueryToSQL(builder, sqlFlags, expressions.toArray(new Expression[0]));
         return builder.toString();
     }
 

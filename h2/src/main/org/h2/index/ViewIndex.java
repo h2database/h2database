@@ -119,7 +119,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
 
     @Override
     public String getPlanSQL() {
-        return query == null ? null : query.getPlanSQL(false);
+        return query == null ? null : query.getPlanSQL(TRACE_SQL_FLAGS);
     }
 
     @Override
@@ -365,7 +365,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
             }
         }
 
-        String sql = q.getPlanSQL(true);
+        String sql = q.getPlanSQL(DEFAULT_SQL_FLAGS);
         q = (Query) session.prepare(sql, true, true);
         return q;
     }

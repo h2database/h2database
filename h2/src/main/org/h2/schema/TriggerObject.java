@@ -345,7 +345,7 @@ public class TriggerObject extends SchemaObjectBase {
             builder.append(" AFTER ");
         }
         getTypeNameList(builder).append(" ON ");
-        targetTable.getSQL(builder, true);
+        targetTable.getSQL(builder, DEFAULT_SQL_FLAGS);
         if (rowBased) {
             builder.append(" FOR EACH ROW");
         }
@@ -356,7 +356,7 @@ public class TriggerObject extends SchemaObjectBase {
         }
         if (triggerClassName != null) {
             builder.append(" CALL ");
-            Parser.quoteIdentifier(builder, triggerClassName, true);
+            Parser.quoteIdentifier(builder, triggerClassName, DEFAULT_SQL_FLAGS);
         } else {
             builder.append(" AS ");
             StringUtils.quoteStringSQL(builder, triggerSource);
@@ -408,7 +408,7 @@ public class TriggerObject extends SchemaObjectBase {
 
     @Override
     public String getCreateSQL() {
-        return getCreateSQLForCopy(table, getSQL(true));
+        return getCreateSQLForCopy(table, getSQL(DEFAULT_SQL_FLAGS));
     }
 
     @Override

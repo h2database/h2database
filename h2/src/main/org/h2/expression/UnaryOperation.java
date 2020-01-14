@@ -25,11 +25,11 @@ public class UnaryOperation extends Expression {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         // don't remove the space, otherwise it might end up some thing like
         // --1 which is a line remark
         builder.append("(- ");
-        return arg.getSQL(builder, alwaysQuote).append(')');
+        return arg.getSQL(builder, sqlFlags).append(')');
     }
 
     @Override

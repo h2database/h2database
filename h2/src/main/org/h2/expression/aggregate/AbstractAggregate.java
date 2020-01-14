@@ -303,12 +303,12 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
     }
 
     @Override
-    protected StringBuilder appendTailConditions(StringBuilder builder, boolean alwaysQuote) {
+    protected StringBuilder appendTailConditions(StringBuilder builder, int sqlFlags) {
         if (filterCondition != null) {
             builder.append(" FILTER (WHERE ");
-            filterCondition.getSQL(builder, alwaysQuote).append(')');
+            filterCondition.getSQL(builder, sqlFlags).append(')');
         }
-        return super.appendTailConditions(builder, alwaysQuote);
+        return super.appendTailConditions(builder, sqlFlags);
     }
 
 }

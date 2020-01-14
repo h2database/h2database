@@ -29,7 +29,7 @@ public interface Index extends SchemaObject {
      * @return the plan
      */
     default String getPlanSQL() {
-        return getSQL(false);
+        return getSQL(TRACE_SQL_FLAGS);
     }
 
     /**

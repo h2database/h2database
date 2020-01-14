@@ -164,7 +164,7 @@ public class TableView extends Table {
         setTableExpression(isTableExpression);
         try {
             Query compiledQuery = compileViewQuery(session, querySQL, literalsChecked, getName());
-            this.querySQL = compiledQuery.getPlanSQL(true);
+            this.querySQL = compiledQuery.getPlanSQL(DEFAULT_SQL_FLAGS);
             tables = new ArrayList<>(compiledQuery.getTables());
             ArrayList<Expression> expressions = compiledQuery.getExpressions();
             ColumnNamer columnNamer = new ColumnNamer(session);
@@ -274,7 +274,7 @@ public class TableView extends Table {
 
     @Override
     public String getDropSQL() {
-        return "DROP VIEW IF EXISTS " + getSQL(true) + " CASCADE";
+        return "DROP VIEW IF EXISTS " + getSQL(DEFAULT_SQL_FLAGS) + " CASCADE";
     }
 
     @Override
@@ -296,7 +296,7 @@ public class TableView extends Table {
      * @return the SQL statement
      */
     public String getCreateSQL(boolean orReplace, boolean force) {
-        return getCreateSQL(orReplace, force, getSQL(true));
+        return getCreateSQL(orReplace, force, getSQL(DEFAULT_SQL_FLAGS));
     }
 
     private String getCreateSQL(boolean orReplace, boolean force, String quotedName) {
@@ -318,11 +318,11 @@ public class TableView extends Table {
         }
         if (columns != null && columns.length > 0) {
             builder.append('(');
-            Column.writeColumns(builder, columns, true);
+            Column.writeColumns(builder, columns, DEFAULT_SQL_FLAGS);
             builder.append(')');
         } else if (columnTemplates != null) {
             builder.append('(');
-            Column.writeColumns(builder, columnTemplates, true);
+            Column.writeColumns(builder, columnTemplates, DEFAULT_SQL_FLAGS);
             builder.append(')');
         }
         return builder.append(" AS\n").append(querySQL).toString();
@@ -420,12 +420,12 @@ public class TableView extends Table {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         if (isTemporary() && querySQL != null) {
             builder.append("(\n");
             return StringUtils.indent(builder, querySQL, 4, true).append(')');
         }
-        return super.getSQL(builder, alwaysQuote);
+        return super.getSQL(builder, sqlFlags);
     }
 
     public String getQuery() {
@@ -443,8 +443,7 @@ public class TableView extends Table {
             AllColumnsForPlan allColumnsSet) {
         if (createException != null) {
             String msg = createException.getMessage();
-            throw DbException.get(ErrorCode.VIEW_IS_INVALID_2,
-                    createException, getSQL(false), msg);
+            throw DbException.get(ErrorCode.VIEW_IS_INVALID_2, createException, getTraceSQL(), msg);
         }
         PlanItem item = getBestPlanItem(session, masks, filters, filter, sortOrder, allColumnsSet);
         return item.getIndex();
@@ -520,7 +519,7 @@ public class TableView extends Table {
     public static TableView createTempView(Session session, User owner,
             String name, Query query, Query topQuery) {
         Schema mainSchema = session.getDatabase().getMainSchema();
-        String querySQL = query.getPlanSQL(true);
+        String querySQL = query.getPlanSQL(DEFAULT_SQL_FLAGS);
         TableView v = new TableView(mainSchema, 0, name,
                 querySQL, query.getParameters(), null /* column templates */, session,
                 false/* allow recursive */, true /* literals have already been checked when parsing original query */,
@@ -762,7 +761,7 @@ public class TableView extends Table {
         theQuery.prepare();
         // String array of length 1 is to receive extra 'output' field in addition to
         // return value
-        querySQLOutput[0] = StringUtils.cache(theQuery.getPlanSQL(true));
+        querySQLOutput[0] = StringUtils.cache(theQuery.getPlanSQL(DEFAULT_SQL_FLAGS));
         ColumnNamer columnNamer = new ColumnNamer(theQuery.getSession());
         ArrayList<Expression> withExpressions = theQuery.getExpressions();
         for (int i = 0; i < withExpressions.size(); ++i) {

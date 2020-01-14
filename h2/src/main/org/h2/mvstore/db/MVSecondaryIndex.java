@@ -233,7 +233,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex<SearchR
         try {
             if (map.remove(searchRow) == null) {
                 StringBuilder builder = new StringBuilder();
-                getSQL(builder, false).append(": ").append(row.getKey());
+                getSQL(builder, TRACE_SQL_FLAGS).append(": ").append(row.getKey());
                 throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, builder.toString());
             }
         } catch (IllegalStateException e) {

@@ -49,7 +49,7 @@ public class TypedValueExpression extends ValueExpression {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         if (this == UNKNOWN) {
             builder.append("UNKNOWN");
         } else {

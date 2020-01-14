@@ -34,14 +34,14 @@ public class SelectOrderBy {
      * Appends the order by expression to the specified builder.
      *
      * @param builder the string builder
-     * @param alwaysQuote quote all identifiers
+     * @param sqlFlags formatting flags
      */
-    public void getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public void getSQL(StringBuilder builder, int sqlFlags) {
         if (expression != null) {
             builder.append('=');
-            expression.getSQL(builder, alwaysQuote);
+            expression.getSQL(builder, sqlFlags);
         } else {
-            columnIndexExpr.getUnenclosedSQL(builder, alwaysQuote);
+            columnIndexExpr.getUnenclosedSQL(builder, sqlFlags);
         }
         SortOrder.typeToString(builder, sortType);
     }

@@ -73,9 +73,9 @@ public class ExpressionList extends Expression {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         builder.append(isArray ? "ARRAY [" : "ROW (");
-        writeExpressions(builder, list, alwaysQuote);
+        writeExpressions(builder, list, sqlFlags);
         return builder.append(isArray ? ']' : ')');
     }
 

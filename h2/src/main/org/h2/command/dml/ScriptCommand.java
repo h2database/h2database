@@ -53,6 +53,7 @@ import org.h2.table.Column;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
 import org.h2.table.TableType;
+import org.h2.util.HasSQL;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
@@ -295,7 +296,7 @@ public class ScriptCommand extends ScriptBase {
                     if (table.canGetRowCount()) {
                         StringBuilder builder = new StringBuilder("-- ").append(table.getRowCountApproximation())
                                 .append(" +/- SELECT COUNT(*) FROM ");
-                        table.getSQL(builder, false);
+                        table.getSQL(builder, HasSQL.TRACE_SQL_FLAGS);
                         add(builder.toString(), false);
                     }
                     if (data) {
@@ -391,10 +392,10 @@ public class ScriptCommand extends ScriptBase {
         Cursor cursor = index.find(session, null, null);
         Column[] columns = table.getColumns();
         StringBuilder builder = new StringBuilder("INSERT INTO ");
-        table.getSQL(builder, true);
+        table.getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS);
         if (withColumns) {
             builder.append('(');
-            Column.writeColumns(builder, columns, true);
+            Column.writeColumns(builder, columns, HasSQL.DEFAULT_SQL_FLAGS);
             builder.append(')');
         }
         builder.append(" VALUES");

@@ -19,6 +19,7 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.ResultInterface;
 import org.h2.table.TableView;
+import org.h2.util.HasSQL;
 import org.h2.util.MathUtils;
 import org.h2.value.Value;
 
@@ -282,10 +283,10 @@ public abstract class Prepared {
     /**
      * Get the SQL statement with the execution plan.
      *
-     * @param alwaysQuote quote all identifiers
+     * @param sqlFlags formatting flags
      * @return the execution plan
      */
-    public String getPlanSQL(boolean alwaysQuote) {
+    public String getPlanSQL(int sqlFlags) {
         return null;
     }
 
@@ -427,7 +428,7 @@ public abstract class Prepared {
      */
     protected static String getSimpleSQL(Expression[] list) {
         StringBuilder builder = new StringBuilder();
-        Expression.writeExpressions(builder, list, false);
+        Expression.writeExpressions(builder, list, HasSQL.TRACE_SQL_FLAGS);
         return builder.toString();
     }
 

@@ -32,7 +32,7 @@ public class Parameter extends Expression implements ParameterInterface {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         return builder.append('?').append(index + 1);
     }
 

@@ -49,9 +49,9 @@ public class ConditionAndOr extends Condition {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         builder.append('(');
-        left.getSQL(builder, alwaysQuote);
+        left.getSQL(builder, sqlFlags);
         switch (andOrType) {
         case AND:
             builder.append("\n    AND ");
@@ -62,7 +62,7 @@ public class ConditionAndOr extends Condition {
         default:
             throw DbException.throwInternalError("andOrType=" + andOrType);
         }
-        return right.getSQL(builder, alwaysQuote).append(')');
+        return right.getSQL(builder, sqlFlags).append(')');
     }
 
     @Override
@@ -314,18 +314,18 @@ public class ConditionAndOr extends Condition {
         }
         Expression leftLeft = left.getSubexpression(0), leftRight = left.getSubexpression(1);
         Expression rightLeft = right.getSubexpression(0), rightRight = right.getSubexpression(1);
-        String leftLeftSQL = leftLeft.getSQL(true), rightLeftSQL = rightLeft.getSQL(true);
+        String leftLeftSQL = leftLeft.getSQL(DEFAULT_SQL_FLAGS), rightLeftSQL = rightLeft.getSQL(DEFAULT_SQL_FLAGS);
         Expression combinedExpression;
         if (leftLeftSQL.equals(rightLeftSQL)) {
             combinedExpression = new ConditionAndOr(OR, leftRight, rightRight);
             return new ConditionAndOr(AND, leftLeft, combinedExpression);
         }
-        String rightRightSQL = rightRight.getSQL(true);
+        String rightRightSQL = rightRight.getSQL(DEFAULT_SQL_FLAGS);
         if (leftLeftSQL.equals(rightRightSQL)) {
             combinedExpression = new ConditionAndOr(OR, leftRight, rightLeft);
             return new ConditionAndOr(AND, leftLeft, combinedExpression);
         }
-        String leftRightSQL = leftRight.getSQL(true);
+        String leftRightSQL = leftRight.getSQL(DEFAULT_SQL_FLAGS);
         if (leftRightSQL.equals(rightLeftSQL)) {
             combinedExpression = new ConditionAndOr(OR, leftLeft, rightRight);
             return new ConditionAndOr(AND, leftRight, combinedExpression);

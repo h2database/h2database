@@ -93,7 +93,7 @@ public class DataChangeDeltaTable extends VirtualConstructedTable {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         return builder.append(resultOption.name()).append(" TABLE (").append(statement.getSQL()).append(')');
     }
 

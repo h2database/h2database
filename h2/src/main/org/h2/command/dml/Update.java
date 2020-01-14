@@ -240,25 +240,25 @@ public class Update extends Prepared implements DataChangeStatement {
     }
 
     @Override
-    public String getPlanSQL(boolean alwaysQuote) {
+    public String getPlanSQL(int sqlFlags) {
         StringBuilder builder = new StringBuilder("UPDATE ");
-        targetTableFilter.getPlanSQL(builder, false, alwaysQuote).append("\nSET\n    ");
+        targetTableFilter.getPlanSQL(builder, false, sqlFlags).append("\nSET\n    ");
         boolean f = false;
         for (Entry<Column, Expression> entry : setClauseMap.entrySet()) {
             if (f) {
                 builder.append(",\n    ");
             }
             f = true;
-            entry.getKey().getSQL(builder, alwaysQuote).append(" = ");
-            entry.getValue().getSQL(builder, alwaysQuote);
+            entry.getKey().getSQL(builder, sqlFlags).append(" = ");
+            entry.getValue().getSQL(builder, sqlFlags);
         }
         if (condition != null) {
             builder.append("\nWHERE ");
-            condition.getUnenclosedSQL(builder, alwaysQuote);
+            condition.getUnenclosedSQL(builder, sqlFlags);
         }
         if (limitExpr != null) {
             builder.append("\nLIMIT ");
-            limitExpr.getUnenclosedSQL(builder, alwaysQuote);
+            limitExpr.getUnenclosedSQL(builder, sqlFlags);
         }
         return builder.toString();
     }

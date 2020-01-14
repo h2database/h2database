@@ -13,6 +13,7 @@ import org.h2.result.ResultInterface;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.util.HasSQL;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueCollectionBase;
@@ -20,7 +21,7 @@ import org.h2.value.ValueCollectionBase;
 /**
  * An expression is a operation, a value, or a function in a query.
  */
-public abstract class Expression {
+public abstract class Expression implements HasSQL {
 
     /**
      * Initial state for {@link #mapColumns(ColumnResolver, int, int)}.
@@ -46,15 +47,14 @@ public abstract class Expression {
      *
      * @param builder the builder to append the SQL to
      * @param expressions the list of expressions
-     * @param alwaysQuote quote all identifiers
+     * @param sqlFlags formatting flags
      */
-    public static void writeExpressions(StringBuilder builder, List<? extends Expression> expressions,
-            boolean alwaysQuote) {
+    public static void writeExpressions(StringBuilder builder, List<? extends Expression> expressions, int sqlFlags) {
         for (int i = 0, length = expressions.size(); i < length; i++) {
             if (i > 0) {
                 builder.append(", ");
             }
-            expressions.get(i).getSQL(builder, alwaysQuote);
+            expressions.get(i).getSQL(builder, sqlFlags);
         }
     }
 
@@ -63,9 +63,9 @@ public abstract class Expression {
      *
      * @param builder the builder to append the SQL to
      * @param expressions the list of expressions
-     * @param alwaysQuote quote all identifiers
+     * @param sqlFlags formatting flags
      */
-    public static void writeExpressions(StringBuilder builder, Expression[] expressions, boolean alwaysQuote) {
+    public static void writeExpressions(StringBuilder builder, Expression[] expressions, int sqlFlags) {
         for (int i = 0, length = expressions.length; i < length; i++) {
             if (i > 0) {
                 builder.append(", ");
@@ -74,7 +74,7 @@ public abstract class Expression {
             if (e == null) {
                 builder.append("DEFAULT");
             } else {
-                e.getSQL(builder, alwaysQuote);
+                e.getSQL(builder, sqlFlags);
             }
         }
     }
@@ -123,43 +123,19 @@ public abstract class Expression {
     public abstract void setEvaluatable(TableFilter tableFilter, boolean value);
 
     /**
-     * Get the SQL statement of this expression.
-     * This may not always be the original SQL statement,
-     * specially after optimization.
-     *
-     * @param alwaysQuote quote all identifiers
-     * @return the SQL statement
-     */
-    public String getSQL(boolean alwaysQuote) {
-        return getSQL(new StringBuilder(), alwaysQuote).toString();
-    }
-
-    /**
-     * Appends the SQL statement of this expression to the specified builder.
-     * This may not always be the original SQL statement, specially after
-     * optimization.
-     *
-     * @param builder
-     *            string builder
-     * @param alwaysQuote quote all identifiers
-     * @return the specified string builder
-     */
-    public abstract StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote);
-
-    /**
      * Appends the SQL statement of this expression to the specified builder.
      * This may not always be the original SQL statement, specially after
      * optimization. Enclosing '(' and ')' are always appended.
      *
      * @param builder
      *            string builder
-     * @param alwaysQuote
-     *            quote all identifiers
+     * @param sqlFlags
+     *            formatting flags
      * @return the specified string builder
      */
-    public StringBuilder getEnclosedSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getEnclosedSQL(StringBuilder builder, int sqlFlags) {
         int first = builder.length();
-        int last = getSQL(builder, alwaysQuote).length() - 1;
+        int last = getSQL(builder, sqlFlags).length() - 1;
         if (last <= first || builder.charAt(first) != '(' || builder.charAt(last) != ')') {
             builder.insert(first, '(').append(')');
         }
@@ -173,13 +149,13 @@ public abstract class Expression {
      *
      * @param builder
      *            string builder
-     * @param alwaysQuote
-     *            quote all identifiers
+     * @param sqlFlags
+     *            formatting flags
      * @return the specified string builder
      */
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         int first = builder.length();
-        int last = getSQL(builder, alwaysQuote).length() - 1;
+        int last = getSQL(builder, sqlFlags).length() - 1;
         if (last > first && builder.charAt(first) == '(' && builder.charAt(last) == ')') {
             builder.setLength(last);
             builder.deleteCharAt(first);
@@ -342,7 +318,7 @@ public abstract class Expression {
      * @return the alias name
      */
     public String getAlias() {
-        return getUnenclosedSQL(new StringBuilder(), false).toString();
+        return getUnenclosedSQL(new StringBuilder(), QUOTE_ONLY_WHEN_REQUIRED).toString();
     }
 
     /**
@@ -373,7 +349,7 @@ public abstract class Expression {
      */
     @Override
     public String toString() {
-        return getSQL(false);
+        return getTraceSQL();
     }
 
     /**

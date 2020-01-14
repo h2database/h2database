@@ -78,13 +78,13 @@ public abstract class DbObjectBase implements DbObject {
     }
 
     @Override
-    public String getSQL(boolean alwaysQuote) {
-        return Parser.quoteIdentifier(objectName, alwaysQuote);
+    public String getSQL(int sqlFlags) {
+        return Parser.quoteIdentifier(objectName, sqlFlags);
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
-        return Parser.quoteIdentifier(builder, objectName, alwaysQuote);
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        return Parser.quoteIdentifier(builder, objectName, sqlFlags);
     }
 
     @Override

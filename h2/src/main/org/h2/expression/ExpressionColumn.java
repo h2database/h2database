@@ -60,23 +60,23 @@ public class ExpressionColumn extends Expression {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         if (schemaName != null) {
-            Parser.quoteIdentifier(builder, schemaName, alwaysQuote).append('.');
+            Parser.quoteIdentifier(builder, schemaName, sqlFlags).append('.');
         }
         if (tableAlias != null) {
-            Parser.quoteIdentifier(builder, tableAlias, alwaysQuote).append('.');
+            Parser.quoteIdentifier(builder, tableAlias, sqlFlags).append('.');
         }
         if (column != null) {
             if (columnResolver != null && columnResolver.hasDerivedColumnList()) {
-                Parser.quoteIdentifier(builder, columnResolver.getColumnName(column), alwaysQuote);
+                Parser.quoteIdentifier(builder, columnResolver.getColumnName(column), sqlFlags);
             } else {
-                column.getSQL(builder, alwaysQuote);
+                column.getSQL(builder, sqlFlags);
             }
         } else if (rowId) {
             builder.append(columnName);
         } else {
-            Parser.quoteIdentifier(builder, columnName, alwaysQuote);
+            Parser.quoteIdentifier(builder, columnName, sqlFlags);
         }
         return builder;
     }
@@ -167,7 +167,7 @@ public class ExpressionColumn extends Expression {
     public void updateAggregate(Session session, int stage) {
         Select select = columnResolver.getSelect();
         if (select == null) {
-            throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL(false));
+            throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getTraceSQL());
         }
         SelectGroups groupData = select.getGroupDataIfCurrent(false);
         if (groupData == null) {
@@ -179,7 +179,7 @@ public class ExpressionColumn extends Expression {
             groupData.setCurrentGroupExprData(this, columnResolver.getValue(column));
         } else if (!select.isGroupWindowStage2()) {
             if (!session.areEqual(columnResolver.getValue(column), v)) {
-                throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL(false));
+                throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getTraceSQL());
             }
         }
     }
@@ -195,16 +195,16 @@ public class ExpressionColumn extends Expression {
                     return v;
                 }
                 if (select.isGroupWindowStage2()) {
-                    throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL(false));
+                    throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getTraceSQL());
                 }
             }
         }
         Value value = columnResolver.getValue(column);
         if (value == null) {
             if (select == null) {
-                throw DbException.get(ErrorCode.NULL_NOT_ALLOWED, getSQL(false));
+                throw DbException.get(ErrorCode.NULL_NOT_ALLOWED, getTraceSQL());
             } else {
-                throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL(false));
+                throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getTraceSQL());
             }
         }
         /*
@@ -320,13 +320,13 @@ public class ExpressionColumn extends Expression {
             return true;
         case ExpressionVisitor.GET_COLUMNS1:
             if (column == null) {
-                throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, getSQL(false));
+                throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, getTraceSQL());
             }
             visitor.addColumn1(column);
             return true;
         case ExpressionVisitor.GET_COLUMNS2:
             if (column == null) {
-                throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, getSQL(false));
+                throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, getTraceSQL());
             }
             visitor.addColumn2(column);
             return true;

@@ -76,12 +76,12 @@ public class BinaryOperation extends Expression {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         // don't remove the space, otherwise it might end up some thing like
         // --1 which is a line remark
         builder.append('(');
-        left.getSQL(builder, alwaysQuote).append(' ').append(getOperationToken()).append(' ');
-        return right.getSQL(builder, alwaysQuote).append(')');
+        left.getSQL(builder, sqlFlags).append(' ').append(getOperationToken()).append(' ');
+        return right.getSQL(builder, sqlFlags).append(')');
     }
 
     private String getOperationToken() {
@@ -417,7 +417,7 @@ public class BinaryOperation extends Expression {
     }
 
     private DbException getUnexpectedForcedTypeException() {
-        StringBuilder builder = getSQL(new StringBuilder(), false);
+        StringBuilder builder = getSQL(new StringBuilder(), TRACE_SQL_FLAGS);
         int index = builder.length();
         return DbException.getSyntaxError(
                 IntervalOperation.getForcedTypeSQL(builder.append(' '), forcedType).toString(), index, "");

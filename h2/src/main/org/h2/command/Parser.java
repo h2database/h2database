@@ -256,6 +256,7 @@ import org.h2.table.RangeTable;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableView;
+import org.h2.util.HasSQL;
 import org.h2.util.IntervalUtils;
 import org.h2.util.ParserUtil;
 import org.h2.util.StringUtils;
@@ -1482,7 +1483,7 @@ public class Parser {
             do {
                 Column column = parseColumn(table);
                 if (!set.add(column)) {
-                    throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, column.getSQL(false));
+                    throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, column.getTraceSQL());
                 }
                 columns.add(column);
             } while (readIfMore());
@@ -3540,7 +3541,7 @@ public class Parser {
                 if (readIf(ORDER)) {
                     read("BY");
                     Expression expr2 = readExpression();
-                    String sql = expr.getSQL(true), sql2 = expr2.getSQL(true);
+                    String sql = expr.getSQL(HasSQL.DEFAULT_SQL_FLAGS), sql2 = expr2.getSQL(HasSQL.DEFAULT_SQL_FLAGS);
                     if (!sql.equals(sql2)) {
                         throw DbException.getSyntaxError(ErrorCode.IDENTICAL_EXPRESSIONS_SHOULD_BE_USED, sqlCommand,
                                 lastParseIndex, sql, sql2);
@@ -6166,7 +6167,7 @@ public class Parser {
 
     private Column getColumnWithDomain(String columnName, Domain domain) {
         Column templateColumn = domain.getColumn();
-        Column column = new Column(columnName, templateColumn.getType(), domain.getSQL(true));
+        Column column = new Column(columnName, templateColumn.getType(), domain.getSQL(HasSQL.DEFAULT_SQL_FLAGS));
         column.setNullable(templateColumn.isNullable());
         column.setDefaultExpression(session, templateColumn.getDefaultExpression());
         column.setOnUpdateExpression(session, templateColumn.getOnUpdateExpression());
@@ -9120,14 +9121,14 @@ public class Parser {
      * Add double quotes around an identifier if required.
      *
      * @param s the identifier
-     * @param alwaysQuote quote all identifiers
+     * @param sqlFlags formatting flags
      * @return the quoted identifier
      */
-    public static String quoteIdentifier(String s, boolean alwaysQuote) {
+    public static String quoteIdentifier(String s, int sqlFlags) {
         if (s == null) {
             return "\"\"";
         }
-        if (!alwaysQuote && ParserUtil.isSimpleIdentifier(s, false, false)) {
+        if ((sqlFlags & HasSQL.QUOTE_ONLY_WHEN_REQUIRED) != 0 && ParserUtil.isSimpleIdentifier(s, false, false)) {
             return s;
         }
         return StringUtils.quoteIdentifier(s);
@@ -9139,14 +9140,14 @@ public class Parser {
      *
      * @param builder string builder to append to
      * @param s the identifier
-     * @param alwaysQuote quote all identifiers
+     * @param sqlFlags formatting flags
      * @return the specified builder
      */
-    public static StringBuilder quoteIdentifier(StringBuilder builder, String s, boolean alwaysQuote) {
+    public static StringBuilder quoteIdentifier(StringBuilder builder, String s, int sqlFlags) {
         if (s == null) {
             return builder.append("\"\"");
         }
-        if (!alwaysQuote && ParserUtil.isSimpleIdentifier(s, false, false)) {
+        if ((sqlFlags & HasSQL.QUOTE_ONLY_WHEN_REQUIRED) != 0 && ParserUtil.isSimpleIdentifier(s, false, false)) {
             return builder.append(s);
         }
         return StringUtils.quoteIdentifier(builder, s);

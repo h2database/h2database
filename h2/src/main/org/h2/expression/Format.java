@@ -94,8 +94,8 @@ public class Format extends Expression {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
-        return expr.getSQL(builder, alwaysQuote).append(" FORMAT ").append(format.name());
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        return expr.getSQL(builder, sqlFlags).append(" FORMAT ").append(format.name());
     }
 
     @Override

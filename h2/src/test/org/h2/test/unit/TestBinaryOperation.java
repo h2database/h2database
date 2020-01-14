@@ -115,7 +115,7 @@ public class TestBinaryOperation extends TestBase {
         }
 
         @Override
-        public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+        public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
             throw DbException.getUnsupportedException("");
         }
 

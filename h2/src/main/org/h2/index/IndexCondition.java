@@ -170,15 +170,15 @@ public class IndexCondition {
     /**
      * Get the SQL snippet of this comparison.
      *
-     * @param alwaysQuote quote all identifiers
+     * @param sqlFlags formatting flags
      * @return the SQL snippet
      */
-    public String getSQL(boolean alwaysQuote) {
+    public String getSQL(int sqlFlags) {
         if (compareType == Comparison.FALSE) {
             return "FALSE";
         }
         StringBuilder builder = new StringBuilder();
-        column.getSQL(builder, alwaysQuote);
+        column.getSQL(builder, sqlFlags);
         switch (compareType) {
         case Comparison.EQUAL:
             builder.append(" = ");
@@ -203,12 +203,12 @@ public class IndexCondition {
             break;
         case Comparison.IN_LIST:
             builder.append(" IN(");
-            Expression.writeExpressions(builder, expressionList, alwaysQuote);
+            Expression.writeExpressions(builder, expressionList, sqlFlags);
             builder.append(')');
             break;
         case Comparison.IN_QUERY:
             builder.append(" IN(");
-            builder.append(expressionQuery.getPlanSQL(alwaysQuote));
+            builder.append(expressionQuery.getPlanSQL(sqlFlags));
             builder.append(')');
             break;
         case Comparison.SPATIAL_INTERSECTS:
@@ -218,7 +218,7 @@ public class IndexCondition {
             DbException.throwInternalError("type=" + compareType);
         }
         if (expression != null) {
-            expression.getSQL(builder, alwaysQuote);
+            expression.getSQL(builder, sqlFlags);
         }
         return builder.toString();
     }

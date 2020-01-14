@@ -35,14 +35,14 @@ public abstract class SchemaObjectBase extends DbObjectBase implements
     }
 
     @Override
-    public String getSQL(boolean alwaysQuote) {
-        return getSQL(new StringBuilder(), alwaysQuote).toString();
+    public String getSQL(int sqlFlags) {
+        return getSQL(new StringBuilder(), sqlFlags).toString();
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
-        schema.getSQL(builder, alwaysQuote).append('.');
-        return super.getSQL(builder, alwaysQuote);
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        schema.getSQL(builder, sqlFlags).append('.');
+        return super.getSQL(builder, sqlFlags);
     }
 
     @Override

@@ -69,16 +69,15 @@ public class TableSynonym extends SchemaObjectBase {
     @Override
     public String getCreateSQL() {
         StringBuilder builder = new StringBuilder("CREATE SYNONYM ");
-        getSQL(builder, true).append(" FOR ");
-        Parser.quoteIdentifier(builder, data.synonymForSchema.getName(), true).append('.');
-        Parser.quoteIdentifier(builder, data.synonymFor, true);
+        getSQL(builder, DEFAULT_SQL_FLAGS).append(" FOR ");
+        Parser.quoteIdentifier(builder, data.synonymForSchema.getName(), DEFAULT_SQL_FLAGS).append('.');
+        Parser.quoteIdentifier(builder, data.synonymFor, DEFAULT_SQL_FLAGS);
         return builder.toString();
     }
 
     @Override
     public String getDropSQL() {
-        StringBuilder builder = new StringBuilder("DROP SYNONYM ");
-        return getSQL(builder, true).toString();
+        return getSQL(new StringBuilder("DROP SYNONYM "), DEFAULT_SQL_FLAGS).toString();
     }
 
     @Override

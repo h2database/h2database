@@ -95,8 +95,8 @@ public class UniquePredicate extends PredicateWithSubquery {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
-        return super.getSQL(builder.append("UNIQUE"), alwaysQuote);
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        return super.getSQL(builder.append("UNIQUE"), sqlFlags);
     }
 
 }

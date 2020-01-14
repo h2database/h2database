@@ -63,9 +63,9 @@ public class CompatibilityDatePlusTimeOperation extends Expression {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
-        left.getSQL(builder.append('('), alwaysQuote).append(" + ");
-        return right.getSQL(builder, alwaysQuote).append(')');
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        left.getSQL(builder.append('('), sqlFlags).append(" + ");
+        return right.getSQL(builder, sqlFlags).append(')');
     }
 
     @Override

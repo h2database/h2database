@@ -39,10 +39,10 @@ public class TimeZoneOperation extends Expression {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
-        arg.getSQL(builder.append('('), alwaysQuote).append(" AT ");
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        arg.getSQL(builder.append('('), sqlFlags).append(" AT ");
         if (timeZone != null) {
-            timeZone.getSQL(builder.append("TIME ZONE "), alwaysQuote);
+            timeZone.getSQL(builder.append("TIME ZONE "), sqlFlags);
         } else {
             builder.append("LOCAL");
         }
@@ -145,11 +145,11 @@ public class TimeZoneOperation extends Expression {
             scale = type.getScale();
             break;
         default:
-            StringBuilder builder = arg.getSQL(new StringBuilder(), false);
+            StringBuilder builder = arg.getSQL(new StringBuilder(), TRACE_SQL_FLAGS);
             int offset = builder.length();
             builder.append(" AT ");
             if (timeZone != null) {
-                timeZone.getSQL(builder.append("TIME ZONE "), false);
+                timeZone.getSQL(builder.append("TIME ZONE "), TRACE_SQL_FLAGS);
             } else {
                 builder.append("LOCAL");
             }

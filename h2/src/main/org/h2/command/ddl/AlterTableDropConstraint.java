@@ -57,7 +57,7 @@ public class AlterTableDropConstraint extends SchemaCommand {
                     if (c.getReferencedConstraint() == constraint) {
                         if (dropAction == ConstraintActionType.RESTRICT) {
                             throw DbException.get(ErrorCode.CONSTRAINT_IS_USED_BY_CONSTRAINT_2,
-                                    constraint.getSQL(false), c.getSQL(false));
+                                    constraint.getTraceSQL(), c.getTraceSQL());
                         }
                         session.getUser().checkRight(c.getTable(), Right.ALL);
                     }

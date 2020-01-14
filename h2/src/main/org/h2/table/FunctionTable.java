@@ -87,13 +87,13 @@ public class FunctionTable extends VirtualConstructedTable {
     }
 
     @Override
-    public String getSQL(boolean alwaysQuote) {
-        return function.getSQL(alwaysQuote);
+    public String getSQL(int sqlFlags) {
+        return function.getSQL(sqlFlags);
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
-        return builder.append(function.getSQL(alwaysQuote));
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        return builder.append(function.getSQL(sqlFlags));
     }
 
     @Override

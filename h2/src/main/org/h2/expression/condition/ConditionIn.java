@@ -189,10 +189,10 @@ public class ConditionIn extends Condition {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         builder.append('(');
-        left.getSQL(builder, alwaysQuote).append(" IN(");
-        writeExpressions(builder, valueList, alwaysQuote);
+        left.getSQL(builder, sqlFlags).append(" IN(");
+        writeExpressions(builder, valueList, sqlFlags);
         return builder.append("))");
     }
 

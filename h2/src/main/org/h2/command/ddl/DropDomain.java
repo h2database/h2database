@@ -62,7 +62,7 @@ public class DropDomain extends SchemaCommand {
                 Column c = d.getColumn();
                 if (c.getDomain() == domain) {
                     if (dropAction == ConstraintActionType.RESTRICT) {
-                        throw DbException.get(ErrorCode.CANNOT_DROP_2, typeName, d.getSQL(true));
+                        throw DbException.get(ErrorCode.CANNOT_DROP_2, typeName, d.getTraceSQL());
                     }
                     ArrayList<ConstraintDomain> constraints = domain.getConstraints();
                     if (constraints != null && !constraints.isEmpty()) {

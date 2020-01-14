@@ -38,13 +38,13 @@ public class Domain extends SchemaObjectBase {
     @Override
     public String getDropSQL() {
         StringBuilder builder = new StringBuilder("DROP DOMAIN IF EXISTS ");
-        return getSQL(builder, true).toString();
+        return getSQL(builder, DEFAULT_SQL_FLAGS).toString();
     }
 
     @Override
     public String getCreateSQL() {
-        return getSQL(new StringBuilder("CREATE DOMAIN "), true).append(" AS ").append(column.getCreateSQL())
-                .toString();
+        return getSQL(new StringBuilder("CREATE DOMAIN "), DEFAULT_SQL_FLAGS).append(" AS ")
+                .append(column.getCreateSQL()).toString();
     }
 
     public Column getColumn() {

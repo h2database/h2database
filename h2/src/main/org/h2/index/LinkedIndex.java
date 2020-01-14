@@ -35,7 +35,7 @@ public class LinkedIndex extends BaseIndex {
     private final String targetTableName;
     private long rowCount;
 
-    private final boolean quoteAllIdentifiers = false;
+    private final int sqlFlags = QUOTE_ONLY_WHEN_REQUIRED;
 
     public LinkedIndex(TableLink table, int id, IndexColumn[] columns,
             IndexType indexType) {
@@ -98,7 +98,7 @@ public class LinkedIndex extends BaseIndex {
                 builder.append(f ? " AND " : " WHERE ");
                 f = true;
                 Column col = table.getColumn(i);
-                col.getSQL(builder, quoteAllIdentifiers);
+                col.getSQL(builder, sqlFlags);
                 if (v == ValueNull.INSTANCE) {
                     builder.append(" IS NULL");
                 } else {
@@ -114,7 +114,7 @@ public class LinkedIndex extends BaseIndex {
                 builder.append(f ? " AND " : " WHERE ");
                 f = true;
                 Column col = table.getColumn(i);
-                col.getSQL(builder, quoteAllIdentifiers);
+                col.getSQL(builder, sqlFlags);
                 if (v == ValueNull.INSTANCE) {
                     builder.append(" IS NULL");
                 } else {
@@ -184,7 +184,7 @@ public class LinkedIndex extends BaseIndex {
                 builder.append("AND ");
             }
             Column col = table.getColumn(i);
-            col.getSQL(builder, quoteAllIdentifiers);
+            col.getSQL(builder, sqlFlags);
             Value v = row.getValue(i);
             if (isNull(v)) {
                 builder.append(" IS NULL ");
@@ -220,7 +220,7 @@ public class LinkedIndex extends BaseIndex {
             if (i > 0) {
                 builder.append(", ");
             }
-            table.getColumn(i).getSQL(builder, quoteAllIdentifiers).append('=');
+            table.getColumn(i).getSQL(builder, sqlFlags).append('=');
             Value v = newRow.getValue(i);
             if (v == null) {
                 builder.append("DEFAULT");
@@ -235,7 +235,7 @@ public class LinkedIndex extends BaseIndex {
             if (i > 0) {
                 builder.append(" AND ");
             }
-            col.getSQL(builder, quoteAllIdentifiers);
+            col.getSQL(builder, sqlFlags);
             Value v = oldRow.getValue(i);
             if (isNull(v)) {
                 builder.append(" IS NULL");

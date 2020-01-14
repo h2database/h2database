@@ -363,7 +363,7 @@ public class TableLink extends Table {
     @Override
     public String getDropSQL() {
         StringBuilder builder = new StringBuilder("DROP TABLE IF EXISTS ");
-        return getSQL(builder, true).toString();
+        return getSQL(builder, DEFAULT_SQL_FLAGS).toString();
     }
 
     @Override
@@ -378,7 +378,7 @@ public class TableLink extends Table {
             buff.append("TEMPORARY ");
         }
         buff.append("LINKED TABLE ");
-        getSQL(buff, true);
+        getSQL(buff, DEFAULT_SQL_FLAGS);
         if (comment != null) {
             buff.append(" COMMENT ");
             StringUtils.quoteStringSQL(buff, comment);

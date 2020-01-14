@@ -7,11 +7,12 @@ package org.h2.engine;
 
 import java.util.ArrayList;
 import org.h2.table.Table;
+import org.h2.util.HasSQL;
 
 /**
  * A database object such as a table, an index, or a user.
  */
-public interface DbObject {
+public interface DbObject extends HasSQL {
 
     /**
      * The object is of the type table or view.
@@ -93,25 +94,6 @@ public interface DbObject {
      * This object is a synonym.
      */
     int SYNONYM = 15;
-
-    /**
-     * Get the SQL name of this object (may be quoted).
-     *
-     * @param alwaysQuote quote all identifiers
-     * @return the SQL name
-     */
-    String getSQL(boolean alwaysQuote);
-
-    /**
-     * Appends the SQL name of this object (may be quoted) to the specified
-     * builder.
-     *
-     * @param builder
-     *            string builder
-     * @param alwaysQuote quote all identifiers
-     * @return the specified string builder
-     */
-    StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote);
 
     /**
      * Get the list of dependent children (for tables, this includes indexes and

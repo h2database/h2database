@@ -6,6 +6,7 @@
 package org.h2.table;
 
 import org.h2.result.SortOrder;
+import org.h2.util.HasSQL;
 
 /**
  * This represents a column item of an index. This is required because some
@@ -36,15 +37,16 @@ public class IndexColumn {
      *            string builder
      * @param columns
      *            index columns
-     * @param alwaysQuote quote all identifiers
+     * @param sqlFlags
+     *            formatting flags
      * @return the specified string builder
      */
-    public static StringBuilder writeColumns(StringBuilder builder, IndexColumn[] columns, boolean alwaysQuote) {
+    public static StringBuilder writeColumns(StringBuilder builder, IndexColumn[] columns, int sqlFlags) {
         for (int i = 0, l = columns.length; i < l; i++) {
             if (i > 0) {
                 builder.append(", ");
             }
-            columns[i].getSQL(builder,  alwaysQuote);
+            columns[i].getSQL(builder,  sqlFlags);
         }
         return builder;
     }
@@ -60,16 +62,17 @@ public class IndexColumn {
      *            separator
      * @param suffix
      *            additional SQL to append after each column
-     * @param alwaysQuote quote all identifiers
+     * @param sqlFlags
+     *            formatting flags
      * @return the specified string builder
      */
     public static StringBuilder writeColumns(StringBuilder builder, IndexColumn[] columns, String separator,
-            String suffix, boolean alwaysQuote) {
+            String suffix, int sqlFlags) {
         for (int i = 0, l = columns.length; i < l; i++) {
             if (i > 0) {
                 builder.append(separator);
             }
-            columns[i].getSQL(builder, alwaysQuote).append(suffix);
+            columns[i].getSQL(builder, sqlFlags).append(suffix);
         }
         return builder;
     }
@@ -100,12 +103,12 @@ public class IndexColumn {
      *
      * @param builder
      *            string builder
-     * @param alwaysQuote
-     *            quote all identifiers
+     * @param sqlFlags
+     *            formatting flags
      * @return the specified string builder
      */
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
-        SortOrder.typeToString(column.getSQL(builder, alwaysQuote), sortType);
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        SortOrder.typeToString(column.getSQL(builder, sqlFlags), sortType);
         return builder;
     }
 
@@ -138,6 +141,6 @@ public class IndexColumn {
 
     @Override
     public String toString() {
-        return getSQL(new StringBuilder("IndexColumn "), false).toString();
+        return getSQL(new StringBuilder("IndexColumn "), HasSQL.TRACE_SQL_FLAGS).toString();
     }
 }

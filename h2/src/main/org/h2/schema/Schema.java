@@ -108,8 +108,8 @@ public class Schema extends DbObjectBase {
             return null;
         }
         StringBuilder builder = new StringBuilder("CREATE SCHEMA IF NOT EXISTS ");
-        getSQL(builder, true).append(" AUTHORIZATION ");
-        owner.getSQL(builder, true);
+        getSQL(builder, DEFAULT_SQL_FLAGS).append(" AUTHORIZATION ");
+        owner.getSQL(builder, DEFAULT_SQL_FLAGS);
         return builder.toString();
     }
 
@@ -160,7 +160,7 @@ public class Schema extends DbObjectBase {
                         newModified = true;
                     } else if (dependentTable.getSchema() != this) {
                         throw DbException.get(ErrorCode.CANNOT_DROP_2, //
-                                obj.getSQL(false), dependentTable.getSQL(false));
+                                obj.getTraceSQL(), dependentTable.getTraceSQL());
                     } else if (!modified) {
                         dependentTable.removeColumnExpressionsDependencies(session);
                         dependentTable.setModified();

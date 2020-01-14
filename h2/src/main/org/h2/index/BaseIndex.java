@@ -98,9 +98,9 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      */
     public DbException getDuplicateKeyException(String key) {
         StringBuilder builder = new StringBuilder();
-        getSQL(builder, false).append(" ON ");
-        table.getSQL(builder, false).append('(');
-        builder.append(getColumnListSQL(false));
+        getSQL(builder, TRACE_SQL_FLAGS).append(" ON ");
+        table.getSQL(builder, TRACE_SQL_FLAGS).append('(');
+        builder.append(getColumnListSQL(TRACE_SQL_FLAGS));
         builder.append(')');
         if (key != null) {
             builder.append(" VALUES ").append(key);
@@ -118,10 +118,10 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      */
     protected StringBuilder getDuplicatePrimaryKeyMessage(int mainIndexColumn) {
         StringBuilder builder = new StringBuilder("PRIMARY KEY ON ");
-        table.getSQL(builder, false);
+        table.getSQL(builder, TRACE_SQL_FLAGS);
         if (mainIndexColumn >= 0 && mainIndexColumn < indexColumns.length) {
             builder.append('(');
-            indexColumns[mainIndexColumn].getSQL(builder, false).append(')');
+            indexColumns[mainIndexColumn].getSQL(builder, TRACE_SQL_FLAGS).append(')');
         }
         return builder;
     }
@@ -393,11 +393,11 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     /**
      * Get the list of columns as a string.
      *
-     * @param alwaysQuote quote all identifiers
+     * @param sqlFlags formatting flags
      * @return the list of columns
      */
-    private String getColumnListSQL(boolean alwaysQuote) {
-        return IndexColumn.writeColumns(new StringBuilder(), indexColumns, alwaysQuote).toString();
+    private String getColumnListSQL(int sqlFlags) {
+        return IndexColumn.writeColumns(new StringBuilder(), indexColumns, sqlFlags).toString();
     }
 
     @Override
@@ -410,18 +410,18 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         }
         buff.append(quotedName);
         buff.append(" ON ");
-        targetTable.getSQL(buff, true);
+        targetTable.getSQL(buff, DEFAULT_SQL_FLAGS);
         if (comment != null) {
             buff.append(" COMMENT ");
             StringUtils.quoteStringSQL(buff, comment);
         }
-        buff.append('(').append(getColumnListSQL(true)).append(')');
+        buff.append('(').append(getColumnListSQL(DEFAULT_SQL_FLAGS)).append(')');
         return buff.toString();
     }
 
     @Override
     public String getCreateSQL() {
-        return getCreateSQLForCopy(table, getSQL(true));
+        return getCreateSQLForCopy(table, getSQL(DEFAULT_SQL_FLAGS));
     }
 
     @Override

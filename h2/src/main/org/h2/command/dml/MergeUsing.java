@@ -186,9 +186,9 @@ public class MergeUsing extends Prepared implements DataChangeStatement {
     }
 
     @Override
-    public String getPlanSQL(boolean alwaysQuote) {
+    public String getPlanSQL(int sqlFlags) {
         StringBuilder builder = new StringBuilder("MERGE INTO ");
-        targetTable.getSQL(builder, alwaysQuote).append('\n').append("USING ").append(query.getPlanSQL(alwaysQuote));
+        targetTable.getSQL(builder, sqlFlags).append('\n').append("USING ").append(query.getPlanSQL(sqlFlags));
         // TODO add aliases and WHEN clauses to make plan SQL more like original SQL
         return builder.toString();
     }

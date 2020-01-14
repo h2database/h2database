@@ -78,14 +78,14 @@ public class ConstraintDomain extends Constraint {
     @Override
     public String getCreateSQL() {
         StringBuilder builder = new StringBuilder("ALTER DOMAIN ");
-        domain.getSQL(builder, true).append(" ADD CONSTRAINT ");
-        getSQL(builder, true);
+        domain.getSQL(builder, DEFAULT_SQL_FLAGS).append(" ADD CONSTRAINT ");
+        getSQL(builder, DEFAULT_SQL_FLAGS);
         if (comment != null) {
             builder.append(" COMMENT ");
             StringUtils.quoteStringSQL(builder, comment);
         }
         builder.append(" CHECK(");
-        expr.getUnenclosedSQL(builder, true).append(") NOCHECK");
+        expr.getUnenclosedSQL(builder, DEFAULT_SQL_FLAGS).append(") NOCHECK");
         return builder.toString();
     }
 
@@ -119,7 +119,7 @@ public class ConstraintDomain extends Constraint {
         }
         // Both TRUE and NULL are OK
         if (v != ValueNull.INSTANCE && !v.getBoolean()) {
-            throw DbException.get(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, expr.getSQL(false));
+            throw DbException.get(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, expr.getTraceSQL());
         }
     }
 
@@ -129,7 +129,7 @@ public class ConstraintDomain extends Constraint {
             synchronized (this) {
                 try {
                     resolver.setColumnName(columnName);
-                    sql = expr.getSQL(true);
+                    sql = expr.getSQL(DEFAULT_SQL_FLAGS);
                 } finally {
                     resolver.resetColumnName();
                 }
@@ -137,7 +137,7 @@ public class ConstraintDomain extends Constraint {
             return new Parser(session).parseExpression(sql);
         } else {
             synchronized (this) {
-                sql = expr.getSQL(true);
+                sql = expr.getSQL(DEFAULT_SQL_FLAGS);
             }
             return new Parser(session).parseDomainConstraintExpression(sql);
         }

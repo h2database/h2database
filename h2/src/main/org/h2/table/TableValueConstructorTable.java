@@ -57,9 +57,9 @@ public class TableValueConstructorTable extends VirtualConstructedTable {
     }
 
     @Override
-    public StringBuilder getSQL(StringBuilder builder, boolean alwaysQuote) {
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         builder.append('(');
-        TableValueConstructor.getValuesSQL(builder, alwaysQuote, rows);
+        TableValueConstructor.getValuesSQL(builder, sqlFlags, rows);
         return builder.append(')');
     }
 

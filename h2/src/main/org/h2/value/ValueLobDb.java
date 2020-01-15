@@ -14,6 +14,7 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Arrays;
 
 import org.h2.engine.CastDataProvider;
 import org.h2.engine.Constants;
@@ -220,7 +221,11 @@ public class ValueLobDb extends Value {
                 return handler.getLobStorage().
                         createClob(getReader(), -1);
             } else if (small != null) {
-                return ValueLobDb.createSmallLob(targetType, small);
+                byte[] bytes = new String(small, StandardCharsets.UTF_8).getBytes(StandardCharsets.UTF_8);
+                if (Arrays.equals(bytes, small)) {
+                    bytes = small;
+                }
+                return ValueLobDb.createSmallLob(targetType, bytes);
             }
         } else if (targetType == Value.BLOB) {
             if (handler != null) {
@@ -308,19 +313,10 @@ public class ValueLobDb extends Value {
         int len = precision > Integer.MAX_VALUE || precision == 0 ?
                 Integer.MAX_VALUE : (int) precision;
         try {
-            if (valueType == Value.CLOB) {
-                if (small != null) {
-                    return new String(small, StandardCharsets.UTF_8);
-                }
-                return IOUtils.readStringAndClose(getReader(), len);
-            }
-            byte[] buff;
             if (small != null) {
-                buff = small;
-            } else {
-                buff = IOUtils.readBytesAndClose(getInputStream(), len);
+                return new String(small, StandardCharsets.UTF_8);
             }
-            return StringUtils.convertBytesToHex(buff);
+            return IOUtils.readStringAndClose(getReader(), len);
         } catch (IOException e) {
             throw DbException.convertIOException(e, toString());
         }
@@ -328,10 +324,6 @@ public class ValueLobDb extends Value {
 
     @Override
     public byte[] getBytes() {
-        if (valueType == CLOB) {
-            // convert hex to string
-            return super.getBytes();
-        }
         if (small != null) {
             return Utils.cloneByteArray(small);
         }
@@ -344,10 +336,6 @@ public class ValueLobDb extends Value {
 
     @Override
     public byte[] getBytesNoCopy() {
-        if (valueType == CLOB) {
-            // convert hex to string
-            return super.getBytesNoCopy();
-        }
         if (small != null) {
             return small;
         }
@@ -366,15 +354,7 @@ public class ValueLobDb extends Value {
                 // it in the database file
                 return (int) (precision ^ (precision >>> 32));
             }
-            if (valueType == CLOB) {
-                hash = getString().hashCode();
-            } else {
-                if (small != null) {
-                    hash = Utils.getByteArrayHash(small);
-                } else {
-                    hash = Utils.getByteArrayHash(getBytes());
-                }
-            }
+            hash = Utils.getByteArrayHash(getBytesNoCopy());
         }
         return hash;
     }
@@ -481,7 +461,7 @@ public class ValueLobDb extends Value {
             StringUtils.quoteStringSQL(builder, getString());
         } else {
             builder.append("X'");
-            StringUtils.convertBytesToHex(builder, getBytes()).append('\'');
+            StringUtils.convertBytesToHex(builder, getBytesNoCopy()).append('\'');
         }
         return builder;
     }

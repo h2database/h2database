@@ -10,52 +10,52 @@ select cast(null as varchar(255)) xn, cast(' 10' as int) x10, cast(' 20 ' as int
 > rows: 1
 
 select cast(128 as binary);
->> 00000080
+>> X'00000080'
 
 select cast(65535 as binary);
->> 0000ffff
+>> X'0000ffff'
 
-select cast(cast('ff' as binary) as tinyint) x;
+select cast(X'ff' as tinyint);
 >> -1
 
-select cast(cast('7f' as binary) as tinyint) x;
+select cast(X'7f' as tinyint);
 >> 127
 
-select cast(cast('ff' as binary) as smallint) x;
+select cast(X'00ff' as smallint);
 >> 255
 
-select cast(cast('ff' as binary) as int) x;
+select cast(X'000000ff' as int);
 >> 255
 
-select cast(cast('ffff' as binary) as long) x;
+select cast(X'000000000000ffff' as long);
 >> 65535
 
 select cast(cast(65535 as long) as binary);
->> 000000000000ffff
+>> X'000000000000ffff'
 
 select cast(cast(-1 as tinyint) as binary);
->> ff
+>> X'ff'
 
 select cast(cast(-1 as smallint) as binary);
->> ffff
+>> X'ffff'
 
 select cast(cast(-1 as int) as binary);
->> ffffffff
+>> X'ffffffff'
 
 select cast(cast(-1 as long) as binary);
->> ffffffffffffffff
+>> X'ffffffffffffffff'
 
 select cast(cast(1 as tinyint) as binary);
->> 01
+>> X'01'
 
 select cast(cast(1 as smallint) as binary);
->> 0001
+>> X'0001'
 
 select cast(cast(1 as int) as binary);
->> 00000001
+>> X'00000001'
 
 select cast(cast(1 as long) as binary);
->> 0000000000000001
+>> X'0000000000000001'
 
 select cast(X'ff' as tinyint);
 >> -1
@@ -79,7 +79,7 @@ select cast(cast(95605327.73 as float) as decimal(10, 8));
 >> 95605327.73
 
 select cast(cast('01020304-0506-0708-090a-0b0c0d0e0f00' as uuid) as binary);
->> 0102030405060708090a0b0c0d0e0f00
+>> X'0102030405060708090a0b0c0d0e0f00'
 
 call cast('null' as uuid);
 > exception DATA_CONVERSION_ERROR_1

@@ -5,6 +5,7 @@
  */
 package org.h2.value;
 
+import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -121,7 +122,7 @@ public class ValueBytes extends Value {
 
     @Override
     public String getString() {
-        return StringUtils.convertBytesToHex(value);
+        return new String(value, StandardCharsets.UTF_8);
     }
 
     @Override

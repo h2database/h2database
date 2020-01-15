@@ -1027,7 +1027,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertTrue(rs.next());
         assertEquals("Hello", rs.getString(1));
 
-        rs = stat.executeQuery("select * from sql('select cast(''4869'' as blob)')");
+        rs = stat.executeQuery("select * from sql('select cast(X''4869'' as blob)')");
         assertTrue(rs.next());
         assertEquals("Hi", new String(rs.getBytes(1)));
 

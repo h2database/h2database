@@ -575,7 +575,7 @@ public class TestLinkedTable extends TestDb {
         assertTrue(rs.getBoolean("XBO"));
         assertEquals(3000, rs.getShort("XSM"));
         assertEquals(1234567890123456789L, rs.getLong("XBI"));
-        assertEquals("1122aa", rs.getString("XBL"));
+        assertEquals(new byte[] {0x11, 0x22, (byte) 0xAA }, rs.getBytes("XBL"));
         assertEquals("0002-01-01", rs.getString("XDA"));
         assertEquals("00:00:00", rs.getString("XTI"));
         assertEquals("J\u00fcrg", rs.getString("XCL"));

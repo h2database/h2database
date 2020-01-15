@@ -22,6 +22,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -560,6 +561,13 @@ public class TestScript extends TestDb {
         return s;
     }
 
+    private static String formatBinary(byte[] b) {
+        if (b == null) {
+            return "null";
+        }
+        return StringUtils.convertBytesToHex(new StringBuilder("X'"), b).append('\'').toString();
+    }
+
     private void writeResultSet(String sql, ResultSet rs) throws Exception {
         ResultSetMetaData meta = rs.getMetaData();
         int len = meta.getColumnCount();
@@ -568,7 +576,7 @@ public class TestScript extends TestDb {
         while (rs.next()) {
             String[] row = new String[len];
             for (int i = 0; i < len; i++) {
-                String data = formatString(rs.getString(i + 1));
+                String data = readValue(rs, meta, i + 1);
                 if (max[i] < data.length()) {
                     max[i] = data.length();
                 }
@@ -662,6 +670,25 @@ public class TestScript extends TestDb {
         writeResult(sql,
                 (ordered != null ? ordered ? "rows (ordered): " : "rows: " : "rows (partially ordered): ") + i,
                 null);
+    }
+
+    private static String readValue(ResultSet rs, ResultSetMetaData meta, int column) throws SQLException {
+        switch (meta.getColumnType(column)) {
+        case Types.BINARY:
+            if (meta.getColumnTypeName(column).equals("UUID")) {
+                break;
+            }
+            //$FALL-THROUGH$
+        case Types.LONGVARBINARY:
+        case Types.VARBINARY:
+        case Types.BLOB:
+            return formatBinary(rs.getBytes(column));
+        case Types.OTHER:
+            if (meta.getColumnTypeName(column).equals("OTHER")) {
+                return formatBinary(rs.getBytes(column));
+            }
+        }
+        return formatString(rs.getString(column));
     }
 
     private static String format(String[] row, int[] max) {

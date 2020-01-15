@@ -465,11 +465,7 @@ public class ValueLob extends Value {
         int len = precision > Integer.MAX_VALUE || precision == 0 ?
                 Integer.MAX_VALUE : (int) precision;
         try {
-            if (valueType == Value.CLOB) {
-                return IOUtils.readStringAndClose(getReader(), len);
-            }
-            byte[] buff = IOUtils.readBytesAndClose(getInputStream(), len);
-            return StringUtils.convertBytesToHex(buff);
+            return IOUtils.readStringAndClose(getReader(), len);
         } catch (IOException e) {
             throw DbException.convertIOException(e, fileName);
         }
@@ -477,23 +473,13 @@ public class ValueLob extends Value {
 
     @Override
     public byte[] getBytes() {
-        if (valueType == CLOB) {
-            // convert hex to string
-            return super.getBytes();
-        }
-        byte[] data = getBytesNoCopy();
-        return Utils.cloneByteArray(data);
+        return getBytesNoCopy();
     }
 
     @Override
     public byte[] getBytesNoCopy() {
-        if (valueType == CLOB) {
-            // convert hex to string
-            return super.getBytesNoCopy();
-        }
         try {
-            return IOUtils.readBytesAndClose(
-                    getInputStream(), Integer.MAX_VALUE);
+            return IOUtils.readBytesAndClose(getInputStream(), Integer.MAX_VALUE);
         } catch (IOException e) {
             throw DbException.convertIOException(e, fileName);
         }
@@ -507,11 +493,7 @@ public class ValueLob extends Value {
                 // it in the database file
                 return (int) (precision ^ (precision >>> 32));
             }
-            if (valueType == CLOB) {
-                hash = getString().hashCode();
-            } else {
-                hash = Utils.getByteArrayHash(getBytes());
-            }
+            hash = Utils.getByteArrayHash(getBytesNoCopy());
         }
         return hash;
     }
@@ -586,7 +568,7 @@ public class ValueLob extends Value {
                 StringUtils.quoteStringSQL(builder, getString());
             } else {
                 builder.append("X'");
-                StringUtils.convertBytesToHex(builder, getBytes()).append('\'');
+                StringUtils.convertBytesToHex(builder, getBytesNoCopy()).append('\'');
             }
         }
         return builder;

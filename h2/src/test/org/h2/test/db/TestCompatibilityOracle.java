@@ -160,7 +160,7 @@ public class TestCompatibilityOracle extends TestDb {
                 stat, "SELECT * FROM D");
 
         stat.execute("CREATE TABLE E (ID NUMBER, X RAW(1))");
-        stat.execute("INSERT INTO E VALUES (1, '0A')");
+        stat.execute("INSERT INTO E VALUES (1, HEXTORAW('0A'))");
         stat.execute("INSERT INTO E VALUES (2, '')");
         assertResult("2", stat, "SELECT COUNT(*) FROM E");
         assertResult("1", stat, "SELECT COUNT(*) FROM E WHERE X IS NULL");

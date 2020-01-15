@@ -196,11 +196,6 @@ public class Mode {
     public boolean useIdentityAsAutoIncrement;
 
     /**
-     * Convert (VAR)CHAR to VAR(BINARY) and vice versa with UTF-8 encoding instead of HEX.
-     */
-    public boolean charToBinaryInUtf8;
-
-    /**
      * If {@code true}, datetime value function return the same value within a
      * transaction, if {@code false} datetime value functions return the same
      * value within a command.
@@ -352,7 +347,6 @@ public class Mode {
         // https://github.com/mysql/mysql-connector-j/blob/5.1.47/src/com/mysql/jdbc/JDBC4CommentClientInfoProvider.java
         mode.supportedClientInfoPropertiesRegEx =
                 Pattern.compile(".*");
-        mode.charToBinaryInUtf8 = true;
         mode.zeroExLiteralsAreBinaryStrings = true;
         mode.allowUnrelatedOrderByExpressionsInDistinctQueries = true;
         mode.alterTableExtensionsMySQL = true;

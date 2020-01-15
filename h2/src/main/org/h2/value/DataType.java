@@ -1023,6 +1023,38 @@ public class DataType {
     }
 
     /**
+     * Check whether the specified column needs the binary representation.
+     *
+     * @param meta
+     *            metadata
+     * @param column
+     *            column index
+     * @return {@code true} if column needs the binary representation,
+     *         {@code false} otherwise
+     * @throws SQLException
+     *             on SQL exception
+     */
+    public static boolean isBinaryColumn(ResultSetMetaData meta, int column) throws SQLException {
+        switch (meta.getColumnType(column)) {
+        case Types.BINARY:
+            if (meta.getColumnTypeName(column).equals("UUID")) {
+                break;
+            }
+            //$FALL-THROUGH$
+        case Types.LONGVARBINARY:
+        case Types.VARBINARY:
+        case Types.JAVA_OBJECT:
+        case Types.BLOB:
+            return true;
+        case Types.OTHER:
+            if (meta.getColumnTypeName(column).equals("OTHER")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Convert a SQL type to a value type.
      *
      * @param sqlType the SQL type

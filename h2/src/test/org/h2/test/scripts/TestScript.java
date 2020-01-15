@@ -22,7 +22,6 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Types;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,6 +41,7 @@ import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.util.StringUtils;
+import org.h2.value.DataType;
 
 /**
  * This test runs a SQL script file and compares the output with the expected
@@ -673,22 +673,8 @@ public class TestScript extends TestDb {
     }
 
     private static String readValue(ResultSet rs, ResultSetMetaData meta, int column) throws SQLException {
-        switch (meta.getColumnType(column)) {
-        case Types.BINARY:
-            if (meta.getColumnTypeName(column).equals("UUID")) {
-                break;
-            }
-            //$FALL-THROUGH$
-        case Types.LONGVARBINARY:
-        case Types.VARBINARY:
-        case Types.BLOB:
-            return formatBinary(rs.getBytes(column));
-        case Types.OTHER:
-            if (meta.getColumnTypeName(column).equals("OTHER")) {
-                return formatBinary(rs.getBytes(column));
-            }
-        }
-        return formatString(rs.getString(column));
+        return DataType.isBinaryColumn(meta, column) ? formatBinary(rs.getBytes(column))
+                : formatString(rs.getString(column));
     }
 
     private static String format(String[] row, int[] max) {

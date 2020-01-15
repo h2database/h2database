@@ -691,15 +691,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
     }
 
     /**
-     * Convert value to ENUM value
-     * @param enumerators the extended type information for the ENUM data type
-     * @return value represented as ENUM
-     */
-    private Value convertToEnum(ExtTypeInfo enumerators) {
-        return convertTo(ENUM, enumerators, null, null);
-    }
-
-    /**
      * Convert a value to the specified type.
      *
      * @param targetType the type of the returned value
@@ -731,10 +722,12 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      * @param column the column (if any), used for to improve the error message if conversion fails
      * @return the converted value
      */
-    protected Value convertTo(int targetType, ExtTypeInfo extTypeInfo, CastDataProvider provider, Object column) {
-        // converting NULL is done in ValueNull
-        // converting BLOB to CLOB and vice versa is done in ValueLob
-        if (getValueType() == targetType) {
+    private Value convertTo(int targetType, ExtTypeInfo extTypeInfo, CastDataProvider provider, Object column) {
+        int valueType = getValueType();
+        if (valueType == NULL) {
+            return this;
+        }
+        if (valueType == targetType) {
             if (extTypeInfo != null) {
                 return extTypeInfo.cast(this, provider);
             }
@@ -1319,7 +1312,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         throw getDataConversionError(ENUM);
     }
 
-    private ValueLobDb convertToBlob() {
+    protected Value convertToBlob() {
         switch (getValueType()) {
         case VARBINARY:
         case GEOMETRY:
@@ -1333,7 +1326,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         return ValueLobDb.createSmallLob(BLOB, getString().getBytes(StandardCharsets.UTF_8));
     }
 
-    private ValueLobDb convertToClob() {
+    protected Value convertToClob() {
         return ValueLobDb.createSmallLob(CLOB, getString().getBytes(StandardCharsets.UTF_8));
     }
 
@@ -1667,8 +1660,8 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             int dataType = getHigherOrder(leftType, rightType);
             if (dataType == ENUM) {
                 ExtTypeInfoEnum enumerators = ExtTypeInfoEnum.getEnumeratorsForBinaryOperation(l, v);
-                l = l.convertToEnum(enumerators);
-                v = v.convertToEnum(enumerators);
+                l = l.convertTo(ENUM, enumerators, null, null);
+                v = v.convertTo(ENUM, enumerators, null, null);
             } else {
                 l = l.convertTo(dataType, provider);
                 v = v.convertTo(dataType, provider);

@@ -363,26 +363,14 @@ public class ValueLob extends Value {
         return list;
     }
 
-    /**
-     * Convert a lob to another data type. The data is fully read in memory
-     * except when converting to BLOB or CLOB.
-     *
-     * @param targetType the new type
-     * @param extTypeInfo the extended data type information, or null
-     * @param provider the cast information provider
-     * @param column the column (if any), used for to improve the error message if conversion fails
-     * @return the converted value
-     */
     @Override
-    protected Value convertTo(int targetType, ExtTypeInfo extTypeInfo, CastDataProvider provider, Object column) {
-        if (targetType == valueType) {
-            return this;
-        } else if (targetType == Value.CLOB) {
-            return ValueLobDb.createTempClob(getReader(), -1, handler);
-        } else if (targetType == Value.BLOB) {
-            return ValueLobDb.createTempBlob(getInputStream(), -1, handler);
-        }
-        return super.convertTo(targetType, null, provider, column);
+    protected Value convertToBlob() {
+        return ValueLobDb.createTempBlob(getInputStream(), -1, handler);
+    }
+
+    @Override
+    protected Value convertToClob() {
+        return ValueLobDb.createTempClob(getReader(), -1, handler);
     }
 
     @Override

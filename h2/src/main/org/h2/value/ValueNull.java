@@ -121,11 +121,6 @@ public class ValueNull extends Value {
     }
 
     @Override
-    protected Value convertTo(int targetType, ExtTypeInfo extTypeInfo, CastDataProvider provider, Object column) {
-        return this;
-    }
-
-    @Override
     public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
         throw DbException.throwInternalError("compare null");
     }

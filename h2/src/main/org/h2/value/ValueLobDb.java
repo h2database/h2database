@@ -122,14 +122,14 @@ public class ValueLobDb extends Value {
         this.lobId = 0;
         this.hmac = null;
         this.fileName = createTempLobFileName(handler);
-        this.tempFile = this.handler.openFile(fileName, "rw", false);
+        this.tempFile = handler.openFile(fileName, "rw", false);
         this.tempFile.autoDelete();
 
         long tmpPrecision = 0;
         try (FileStoreOutputStream out = new FileStoreOutputStream(tempFile, null, null)) {
             char[] buff = new char[Constants.IO_BUFFER_SIZE];
             while (true) {
-                int len = getBufferSize(this.handler, false, remaining);
+                int len = getBufferSize(handler, false, remaining);
                 len = IOUtils.readFully(in, buff, len);
                 if (len == 0) {
                     break;
@@ -154,10 +154,10 @@ public class ValueLobDb extends Value {
         this.lobId = 0;
         this.hmac = null;
         this.fileName = createTempLobFileName(handler);
-        this.tempFile = this.handler.openFile(fileName, "rw", false);
+        this.tempFile = handler.openFile(fileName, "rw", false);
         this.tempFile.autoDelete();
         long tmpPrecision = 0;
-        boolean compress = this.handler.getLobCompressionAlgorithm(Value.BLOB) != null;
+        boolean compress = handler.getLobCompressionAlgorithm(Value.BLOB) != null;
         try (FileStoreOutputStream out = new FileStoreOutputStream(tempFile, null, null)) {
             while (true) {
                 tmpPrecision += len;
@@ -166,7 +166,7 @@ public class ValueLobDb extends Value {
                 if (remaining <= 0) {
                     break;
                 }
-                len = getBufferSize(this.handler, compress, remaining);
+                len = getBufferSize(handler, compress, remaining);
                 len = IOUtils.readFully(in, buff, len);
                 if (len <= 0) {
                     break;
@@ -202,40 +202,28 @@ public class ValueLobDb extends Value {
         return new ValueLobDb(type, handler, tableId, id, hmac, precision);
     }
 
-    /**
-     * Convert a lob to another data type. The data is fully read in memory
-     * except when converting to BLOB or CLOB.
-     *
-     * @param targetType the new type
-     * @param extTypeInfo the extended data type information, or null
-     * @param provider the cast information provider
-     * @param column the column (if any), used for to improve the error message if conversion fails
-     * @return the converted value
-     */
     @Override
-    protected Value convertTo(int targetType, ExtTypeInfo extTypeInfo, CastDataProvider provider, Object column) {
-        if (targetType == valueType) {
-            return this;
-        } else if (targetType == Value.CLOB) {
-            if (handler != null) {
-                return handler.getLobStorage().
-                        createClob(getReader(), -1);
-            } else if (small != null) {
-                byte[] bytes = new String(small, StandardCharsets.UTF_8).getBytes(StandardCharsets.UTF_8);
-                if (Arrays.equals(bytes, small)) {
-                    bytes = small;
-                }
-                return ValueLobDb.createSmallLob(targetType, bytes);
-            }
-        } else if (targetType == Value.BLOB) {
-            if (handler != null) {
-                return handler.getLobStorage().
-                        createBlob(getInputStream(), -1);
-            } else if (small != null) {
-                return ValueLobDb.createSmallLob(targetType, small);
-            }
+    protected Value convertToBlob() {
+        if (handler != null) {
+            return handler.getLobStorage().createBlob(getInputStream(), -1);
+        } else if (small != null) {
+            return ValueLobDb.createSmallLob(BLOB, small);
         }
-        return super.convertTo(targetType, null, provider, column);
+        return ValueLobDb.createSmallLob(BLOB, getBytesNoCopy());
+    }
+
+    @Override
+    protected Value convertToClob() {
+        if (handler != null) {
+            return handler.getLobStorage().createClob(getReader(), -1);
+        } else if (small != null) {
+            byte[] bytes = new String(small, StandardCharsets.UTF_8).getBytes(StandardCharsets.UTF_8);
+            if (Arrays.equals(bytes, small)) {
+                bytes = small;
+            }
+            return ValueLobDb.createSmallLob(CLOB, bytes);
+        }
+        return ValueLobDb.createSmallLob(CLOB, getString().getBytes(StandardCharsets.UTF_8));
     }
 
     @Override

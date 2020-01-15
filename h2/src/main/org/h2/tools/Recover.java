@@ -753,7 +753,7 @@ public class Recover extends Tool implements DataHandler {
                     int l = IOUtils.readFully(in, block, block.length);
                     if (l > 0) {
                         writer.print("INSERT INTO INFORMATION_SCHEMA.LOB_BLOCKS " +
-                                "VALUES(" + lobId + ", " + seq + ", '");
+                                "VALUES(" + lobId + ", " + seq + ", X'");
                         writer.print(StringUtils.convertBytesToHex(block, l));
                         writer.println("');");
                     }

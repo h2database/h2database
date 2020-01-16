@@ -5,6 +5,7 @@
  */
 package org.h2.test.db;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.StringReader;
 import java.sql.Connection;
@@ -634,12 +635,12 @@ public class TestCases extends TestDb {
         prep.setCharacterStream(2, new StringReader(value), -1);
         ResultSet rs = prep.executeQuery();
         rs.next();
-        String encrypted = rs.getString(1);
+        byte[] encrypted = rs.getBytes(1);
         PreparedStatement prep2 = conn.prepareStatement(
                 "CALL TRIM(CHAR(0) FROM " +
                 "UTF8TOSTRING(DECRYPT('AES', RAWTOHEX(?), ?)))");
         prep2.setCharacterStream(1, new StringReader(key), -1);
-        prep2.setCharacterStream(2, new StringReader(encrypted), -1);
+        prep2.setBinaryStream(2, new ByteArrayInputStream(encrypted), -1);
         ResultSet rs2 = prep2.executeQuery();
         rs2.first();
         String decrypted = rs2.getString(1);
@@ -1187,7 +1188,7 @@ public class TestCases extends TestDb {
         stat.execute("SET BINARY_COLLATION SIGNED");
         stat.execute("create table bin( x binary(1) );");
         stat.execute("insert into bin(x) values (x'09'),(x'0a'),(x'99'),(x'aa');");
-        rs = stat.executeQuery("select * from bin order by x;");
+        rs = stat.executeQuery("select rawtohex(x) from bin order by x;");
         rs.next();
         assertEquals("99", rs.getString(1));
         rs.next();
@@ -1201,7 +1202,7 @@ public class TestCases extends TestDb {
         stat.execute("SET BINARY_COLLATION UNSIGNED");
         stat.execute("create table bin( x binary(1) );");
         stat.execute("insert into bin(x) values (x'09'),(x'0a'),(x'99'),(x'aa');");
-        rs = stat.executeQuery("select * from bin order by x;");
+        rs = stat.executeQuery("select rawtohex(x) from bin order by x;");
         rs.next();
         assertEquals("09", rs.getString(1));
         rs.next();

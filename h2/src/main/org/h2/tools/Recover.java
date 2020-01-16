@@ -738,7 +738,7 @@ public class Recover extends Tool implements DataHandler {
         writer.println("-- LOB");
         writer.println("CREATE TABLE IF NOT EXISTS " +
                 "INFORMATION_SCHEMA.LOB_BLOCKS(" +
-                "LOB_ID BIGINT, SEQ INT, DATA BINARY, " +
+                "LOB_ID BIGINT, SEQ INT, DATA VARBINARY, " +
                 "PRIMARY KEY(LOB_ID, SEQ));");
         boolean hasErrors = false;
         for (Entry<Long, Object[]> e : lobMap.entrySet()) {
@@ -753,7 +753,7 @@ public class Recover extends Tool implements DataHandler {
                     int l = IOUtils.readFully(in, block, block.length);
                     if (l > 0) {
                         writer.print("INSERT INTO INFORMATION_SCHEMA.LOB_BLOCKS " +
-                                "VALUES(" + lobId + ", " + seq + ", '");
+                                "VALUES(" + lobId + ", " + seq + ", X'");
                         writer.print(StringUtils.convertBytesToHex(block, l));
                         writer.println("');");
                     }
@@ -1446,6 +1446,24 @@ public class Recover extends Tool implements DataHandler {
             s.setPos(off);
             Value[] data = createRecord(writer, s, columnCount);
             if (data != null) {
+                for (valueId = 0; valueId < recordLength; valueId++) {
+                    try {
+                        Value v = s.readValue();
+                        switch (v.getValueType()) {
+                        case Value.VARBINARY:
+                        case Value.JAVA_OBJECT:
+                            columnTypeMap.put(storageName + '.' + valueId, "VARBINARY");
+                            break;
+                        case Value.BLOB:
+                            columnTypeMap.put(storageName + '.' + valueId, "BLOB");
+                        }
+                        data[valueId] = v;
+                    } catch (Exception e) {
+                        writeDataError(writer, "exception " + e, s.getBytes());
+                    } catch (OutOfMemoryError e) {
+                        writeDataError(writer, "out of memory", s.getBytes());
+                    }
+                }
                 createTemporaryTable(writer);
                 writeRow(writer, s, data);
                 if (remove && storageId == 0) {
@@ -1516,13 +1534,16 @@ public class Recover extends Tool implements DataHandler {
         sb.append("INSERT INTO ").append(storageName).append(" VALUES(");
         for (valueId = 0; valueId < recordLength; valueId++) {
             try {
-                Value v = s.readValue();
-                data[valueId] = v;
+                Value v = data[valueId];
                 if (valueId > 0) {
                     sb.append(", ");
                 }
                 String columnName = storageName + "." + valueId;
-                getSQL(sb, columnName, v);
+                if (v != null) {
+                    getSQL(sb, columnName, v);
+                } else {
+                    sb.append("NULL");
+                }
             } catch (Exception e) {
                 writeDataError(writer, "exception " + e, s.getBytes());
             } catch (OutOfMemoryError e) {

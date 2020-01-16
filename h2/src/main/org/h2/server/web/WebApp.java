@@ -65,6 +65,7 @@ import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
 import org.h2.util.Utils;
+import org.h2.value.DataType;
 
 /**
  * For each connection to a session, an object of this class is created.
@@ -1836,21 +1837,23 @@ public class WebApp {
         return "index.do";
     }
 
-    private static String escapeData(ResultSet rs, int columnIndex)
-            throws SQLException {
+    private static String escapeData(ResultSet rs, int columnIndex) throws SQLException {
+        if (DataType.isBinaryColumn(rs.getMetaData(), columnIndex)) {
+            byte[] d = rs.getBytes(columnIndex);
+            if (d == null) {
+                return "<i>null</i>";
+            } else if (d.length > 50_000) {
+                return "<div style='display: none'>=+</div>" + StringUtils.convertBytesToHex(d, 3) + "... ("
+                        + d.length + " ${text.result.bytes})";
+            }
+            return StringUtils.convertBytesToHex(d);
+        }
         String d = rs.getString(columnIndex);
         if (d == null) {
             return "<i>null</i>";
         } else if (d.length() > 100_000) {
-            String s;
-            if (isBinary(rs.getMetaData().getColumnType(columnIndex))) {
-                s = PageParser.escapeHtml(d.substring(0, 6)) +
-                        "... (" + (d.length() / 2) + " ${text.result.bytes})";
-            } else {
-                s = PageParser.escapeHtml(d.substring(0, 100)) +
-                        "... (" + d.length() + " ${text.result.characters})";
-            }
-            return "<div style='display: none'>=+</div>" + s;
+            return "<div style='display: none'>=+</div>" + PageParser.escapeHtml(d.substring(0, 100)) + "... ("
+                    + d.length() + " ${text.result.characters})";
         } else if (d.equals("null") || d.startsWith("= ") || d.startsWith("=+")) {
             return "<div style='display: none'>= </div>" + PageParser.escapeHtml(d);
         } else if (d.equals("")) {
@@ -1858,19 +1861,6 @@ public class WebApp {
             return "";
         }
         return PageParser.escapeHtml(d);
-    }
-
-    private static boolean isBinary(int sqlType) {
-        switch (sqlType) {
-        case Types.BINARY:
-        case Types.BLOB:
-        case Types.JAVA_OBJECT:
-        case Types.LONGVARBINARY:
-        case Types.OTHER:
-        case Types.VARBINARY:
-            return true;
-        }
-        return false;
     }
 
     private void unescapeData(String x, ResultSet rs, int columnIndex)
@@ -1901,6 +1891,10 @@ public class WebApp {
             x = x.substring(2);
         }
         ResultSetMetaData meta = rs.getMetaData();
+        if (DataType.isBinaryColumn(meta, columnIndex)) {
+            rs.updateBytes(columnIndex, StringUtils.convertHexToBytes(x));
+            return;
+        }
         int type = meta.getColumnType(columnIndex);
         if (session.getContents().isH2()) {
             rs.updateString(columnIndex, x);

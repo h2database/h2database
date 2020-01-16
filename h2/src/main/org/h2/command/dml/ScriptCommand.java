@@ -470,7 +470,7 @@ public class ScriptCommand extends ScriptBase {
                 for (int i = 0;; i++) {
                     StringBuilder buff = new StringBuilder(lobBlockSize * 2);
                     buff.append("INSERT INTO SYSTEM_LOB_STREAM VALUES(").append(id)
-                            .append(", ").append(i).append(", NULL, '");
+                            .append(", ").append(i).append(", NULL, X'");
                     int len = IOUtils.readFully(input, bytes, lobBlockSize);
                     if (len <= 0) {
                         break;

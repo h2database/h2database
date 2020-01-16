@@ -21,7 +21,6 @@ import org.h2.result.ResultInterface;
 import org.h2.table.TableView;
 import org.h2.util.HasSQL;
 import org.h2.util.MathUtils;
-import org.h2.value.Value;
 
 /**
  * A prepared statement.

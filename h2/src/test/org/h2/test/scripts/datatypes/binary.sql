@@ -62,7 +62,7 @@ SELECT X'1' '1';
 > exception HEX_STRING_ODD_1
 
 SELECT X' 1 2  3 4 ';
->> 1234
+>> X'1234'
 
 SELECT X'1 2 3';
 > exception HEX_STRING_ODD_1
@@ -80,10 +80,10 @@ SELECT X' TT';
 > exception HEX_STRING_WRONG_1
 
 SELECT X'AB' 'CD';
->> abcd
+>> X'abcd'
 
 SELECT X'AB' /* comment*/ 'CD' 'EF';
->> abcdef
+>> X'abcdef'
 
 SELECT X'AB' 'CX';
 > exception HEX_STRING_WRONG_1
@@ -95,9 +95,9 @@ SET MODE MSSQLServer;
 > ok
 
 SELECT 0x, 0x12ab;
-> X X12ab
-> - -----
->   12ab
+> X   X12ab
+> --- -------
+> X'' X'12ab'
 > rows: 1
 
 SELECT 0xZ;
@@ -107,9 +107,9 @@ SET MODE MySQL;
 > ok
 
 SELECT 0x, 0x12ab;
-> X X12ab
-> - -----
->   12ab
+> X   X12ab
+> --- -------
+> X'' X'12ab'
 > rows: 1
 
 SELECT 0xZ;

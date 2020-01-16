@@ -691,15 +691,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
     }
 
     /**
-     * Convert value to ENUM value
-     * @param enumerators the extended type information for the ENUM data type
-     * @return value represented as ENUM
-     */
-    private Value convertToEnum(ExtTypeInfo enumerators) {
-        return convertTo(ENUM, enumerators, null, null);
-    }
-
-    /**
      * Convert a value to the specified type.
      *
      * @param targetType the type of the returned value
@@ -731,10 +722,12 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
      * @param column the column (if any), used for to improve the error message if conversion fails
      * @return the converted value
      */
-    protected Value convertTo(int targetType, ExtTypeInfo extTypeInfo, CastDataProvider provider, Object column) {
-        // converting NULL is done in ValueNull
-        // converting BLOB to CLOB and vice versa is done in ValueLob
-        if (getValueType() == targetType) {
+    private Value convertTo(int targetType, ExtTypeInfo extTypeInfo, CastDataProvider provider, Object column) {
+        int valueType = getValueType();
+        if (valueType == NULL) {
+            return this;
+        }
+        if (valueType == targetType) {
             if (extTypeInfo != null) {
                 return extTypeInfo.cast(this, provider);
             }
@@ -771,13 +764,13 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             case TIMESTAMP_TZ:
                 return convertToTimestampTimeZone(provider);
             case VARBINARY:
-                return convertToBytes(provider);
+                return convertToBytes();
             case VARCHAR:
-                return ValueString.get(convertToString(provider));
+                return ValueString.get(getString());
             case VARCHAR_IGNORECASE:
-                return ValueStringIgnoreCase.get(convertToString(provider));
+                return ValueStringIgnoreCase.get(getString());
             case CHAR:
-                return ValueStringFixed.get(convertToString(provider));
+                return ValueStringFixed.get(getString());
             case JAVA_OBJECT:
                 return convertToJavaObject();
             case ENUM:
@@ -882,8 +875,13 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case REAL:
         case DOUBLE:
             return ValueByte.get(convertToByte(convertToLong(getDouble(), column), column));
-        case VARBINARY:
-            return ValueByte.get((byte) Integer.parseInt(getString(), 16));
+        case VARBINARY: {
+            byte[] bytes = getBytesNoCopy();
+            if (bytes.length == 1) {
+                return ValueByte.get(bytes[0]);
+            }
+        }
+        //$FALL-THROUGH$
         case TIMESTAMP_TZ:
             throw getDataConversionError(TINYINT);
         }
@@ -919,8 +917,13 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case REAL:
         case DOUBLE:
             return ValueShort.get(convertToShort(convertToLong(getDouble(), column), column));
-        case VARBINARY:
-            return ValueShort.get((short) Integer.parseInt(getString(), 16));
+        case VARBINARY: {
+            byte[] bytes = getBytesNoCopy();
+            if (bytes.length == 2) {
+                return ValueShort.get((short) ((bytes[0] << 8) + (bytes[1] & 0xff)));
+            }
+        }
+        //$FALL-THROUGH$
         case TIMESTAMP_TZ:
             throw getDataConversionError(SMALLINT);
         }
@@ -955,8 +958,13 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case REAL:
         case DOUBLE:
             return ValueInt.get(convertToInt(convertToLong(getDouble(), column), column));
-        case VARBINARY:
-            return ValueInt.get((int) Long.parseLong(getString(), 16));
+        case VARBINARY: {
+            byte[] bytes = getBytesNoCopy();
+            if (bytes.length == 4) {
+                return ValueInt.get(Bits.readInt(bytes, 0));
+            }
+        }
+        //$FALL-THROUGH$
         case TIMESTAMP_TZ:
             throw getDataConversionError(INT);
         }
@@ -991,13 +999,12 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case DOUBLE:
             return ValueLong.get(convertToLong(getDouble(), column));
         case VARBINARY: {
-            // parseLong doesn't work for ffffffffffffffff
-            byte[] d = getBytes();
-            if (d.length == 8) {
-                return ValueLong.get(Bits.readLong(d, 0));
+            byte[] bytes = getBytesNoCopy();
+            if (bytes.length == 8) {
+                return ValueLong.get(Bits.readLong(bytes, 0));
             }
-            return ValueLong.get(Long.parseLong(getString(), 16));
         }
+        //$FALL-THROUGH$
         case TIMESTAMP_TZ:
             throw getDataConversionError(BIGINT);
         }
@@ -1235,7 +1242,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
                 provider.currentTimeZone().getTimeZoneOffsetLocal(dateValue, timeNanos));
     }
 
-    private ValueBytes convertToBytes(CastDataProvider provider) {
+    private ValueBytes convertToBytes() {
         switch (getValueType()) {
         case JAVA_OBJECT:
         case BLOB:
@@ -1264,20 +1271,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case TIMESTAMP_TZ:
             throw getDataConversionError(VARBINARY);
         }
-        String s = getString();
-        return ValueBytes.getNoCopy(provider != null && provider.getMode().charToBinaryInUtf8
-                ? s.getBytes(StandardCharsets.UTF_8)
-                        : StringUtils.convertHexToBytes(s.trim()));
-    }
-
-    private String convertToString(CastDataProvider provider) {
-        String s;
-        if (getValueType() == VARBINARY && provider != null && provider.getMode().charToBinaryInUtf8) {
-            s = new String(getBytesNoCopy(), StandardCharsets.UTF_8);
-        } else {
-            s = getString();
-        }
-        return s;
+        return ValueBytes.getNoCopy(getString().getBytes(StandardCharsets.UTF_8));
     }
 
     private ValueJavaObject convertToJavaObject() {
@@ -1318,7 +1312,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         throw getDataConversionError(ENUM);
     }
 
-    private ValueLobDb convertToBlob() {
+    protected Value convertToBlob() {
         switch (getValueType()) {
         case VARBINARY:
         case GEOMETRY:
@@ -1329,10 +1323,10 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
         case TIMESTAMP_TZ:
             throw getDataConversionError(BLOB);
         }
-        return ValueLobDb.createSmallLob(BLOB, StringUtils.convertHexToBytes(getString().trim()));
+        return ValueLobDb.createSmallLob(BLOB, getString().getBytes(StandardCharsets.UTF_8));
     }
 
-    private ValueLobDb convertToClob() {
+    protected Value convertToClob() {
         return ValueLobDb.createSmallLob(CLOB, getString().getBytes(StandardCharsets.UTF_8));
     }
 
@@ -1666,8 +1660,8 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
             int dataType = getHigherOrder(leftType, rightType);
             if (dataType == ENUM) {
                 ExtTypeInfoEnum enumerators = ExtTypeInfoEnum.getEnumeratorsForBinaryOperation(l, v);
-                l = l.convertToEnum(enumerators);
-                v = v.convertToEnum(enumerators);
+                l = l.convertTo(ENUM, enumerators, null, null);
+                v = v.convertTo(ENUM, enumerators, null, null);
             } else {
                 l = l.convertTo(dataType, provider);
                 v = v.convertTo(dataType, provider);

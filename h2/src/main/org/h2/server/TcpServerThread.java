@@ -40,7 +40,6 @@ import org.h2.util.NetUtils;
 import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.SmallMap;
-import org.h2.value.DataType;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
@@ -499,35 +498,15 @@ public class TcpServerThread implements Runnable {
         }
         case SessionRemote.LOB_READ: {
             long lobId = transfer.readLong();
-            byte[] hmac;
-            CachedInputStream in;
-            boolean verifyMac;
-            if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_11) {
-                if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_12) {
-                    hmac = transfer.readBytes();
-                    verifyMac = true;
-                } else {
-                    hmac = null;
-                    verifyMac = false;
-                }
-                in = lobs.get(lobId);
-                if (in == null && verifyMac) {
-                    in = new CachedInputStream(null);
-                    lobs.put(lobId, in);
-                }
-            } else {
-                verifyMac = false;
-                hmac = null;
-                in = lobs.get(lobId);
+            byte[] hmac = transfer.readBytes();
+            CachedInputStream in = lobs.get(lobId);
+            if (in == null) {
+                in = new CachedInputStream(null);
+                lobs.put(lobId, in);
             }
             long offset = transfer.readLong();
             int length = transfer.readInt();
-            if (verifyMac) {
-                transfer.verifyLobMac(hmac, lobId);
-            }
-            if (in == null) {
-                throw DbException.get(ErrorCode.OBJECT_CLOSED);
-            }
+            transfer.verifyLobMac(hmac, lobId);
             if (in.getPos() != offset) {
                 LobStorageInterface lobStorage = session.getDataHandler().getLobStorage();
                 // only the lob id is used
@@ -572,26 +551,11 @@ public class TcpServerThread implements Runnable {
             transfer.writeBoolean(true);
             Value[] v = result.currentRow();
             for (int i = 0; i < result.getVisibleColumnCount(); i++) {
-                if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_12) {
-                    transfer.writeValue(v[i]);
-                } else {
-                    writeValue(v[i]);
-                }
+                transfer.writeValue(v[i]);
             }
         } else {
             transfer.writeBoolean(false);
         }
-    }
-
-    private void writeValue(Value v) throws IOException {
-        if (DataType.isLargeObject(v.getValueType())) {
-            ValueLob lob = (ValueLob) v;
-            if (lob.isStored()) {
-                long id = lob.getLobId();
-                lobs.put(id, new CachedInputStream(null));
-            }
-        }
-        transfer.writeValue(v);
     }
 
     void setThread(Thread thread) {

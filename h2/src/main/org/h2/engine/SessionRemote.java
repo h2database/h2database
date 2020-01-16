@@ -167,9 +167,6 @@ public class SessionRemote extends SessionWithState implements DataHandler {
 
     @Override
     public boolean hasPendingTransaction() {
-        if (clientVersion < Constants.TCP_PROTOCOL_VERSION_10) {
-            return true;
-        }
         for (int i = 0, count = 0; i < transferList.size(); i++) {
             Transfer transfer = transferList.get(i);
             try {
@@ -753,9 +750,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
                 traceOperation("LOB_READ", (int) lobId);
                 transfer.writeInt(SessionRemote.LOB_READ);
                 transfer.writeLong(lobId);
-                if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_12) {
-                    transfer.writeBytes(hmac);
-                }
+                transfer.writeBytes(hmac);
                 transfer.writeLong(offset);
                 transfer.writeInt(length);
                 done(transfer);

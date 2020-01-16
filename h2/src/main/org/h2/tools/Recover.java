@@ -738,7 +738,7 @@ public class Recover extends Tool implements DataHandler {
         writer.println("-- LOB");
         writer.println("CREATE TABLE IF NOT EXISTS " +
                 "INFORMATION_SCHEMA.LOB_BLOCKS(" +
-                "LOB_ID BIGINT, SEQ INT, DATA BINARY, " +
+                "LOB_ID BIGINT, SEQ INT, DATA VARBINARY, " +
                 "PRIMARY KEY(LOB_ID, SEQ));");
         boolean hasErrors = false;
         for (Entry<Long, Object[]> e : lobMap.entrySet()) {

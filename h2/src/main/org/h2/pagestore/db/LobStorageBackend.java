@@ -120,7 +120,7 @@ public class LobStorageBackend implements LobStorageInterface {
                 Statement stat = initConn.createStatement();
                 // stat.execute("SET UNDO_LOG 0");
                 // stat.execute("SET REDO_LOG_BINARY 0");
-                boolean create = true;
+                boolean create = true, update = false;
                 PreparedStatement prep = initConn.prepareStatement(
                         "SELECT ZERO() FROM INFORMATION_SCHEMA.COLUMNS WHERE " +
                         "TABLE_SCHEMA=? AND TABLE_NAME=? AND COLUMN_NAME=?");
@@ -138,6 +138,16 @@ public class LobStorageBackend implements LobStorageInterface {
                     rs = prep.executeQuery();
                     if (rs.next()) {
                         create = false;
+                        prep = initConn.prepareStatement("SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE "
+                                + "TABLE_SCHEMA=? AND TABLE_NAME=? AND COLUMN_NAME=?");
+                        prep.setString(1, "INFORMATION_SCHEMA");
+                        prep.setString(2, "LOB_DATA");
+                        prep.setString(3, "DATA");
+                        rs = prep.executeQuery();
+                        rs.next();
+                        if ("BINARY".equals(rs.getString(1))) {
+                            update = true;
+                        }
                     }
                 }
                 if (create) {
@@ -162,7 +172,9 @@ public class LobStorageBackend implements LobStorageInterface {
                             LOB_MAP + "(BLOCK, LOB)");
                     stat.execute("CREATE CACHED TABLE IF NOT EXISTS " +
                             LOB_DATA +
-                            "(BLOCK BIGINT PRIMARY KEY, COMPRESSED INT, DATA BINARY) HIDDEN");
+                            "(BLOCK BIGINT PRIMARY KEY, COMPRESSED INT, DATA VARBINARY) HIDDEN");
+                } else if (update) {
+                    stat.execute("ALTER TABLE " + LOB_DATA + " ALTER COLUMN DATA SET DATA TYPE VARBINARY");
                 }
                 rs = stat.executeQuery("SELECT MAX(BLOCK) FROM " + LOB_DATA);
                 rs.next();

@@ -29,6 +29,7 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
+import org.h2.value.ValueLob;
 import org.h2.value.ValueNull;
 import org.h2.value.VersionedValue;
 
@@ -96,12 +97,12 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
         if (mvTable.getContainsLargeObject()) {
             for (int i = 0, len = row.getColumnCount(); i < len; i++) {
                 Value v = row.getValue(i);
-                Value v2 = v.copy(database, getId());
-                if (v2.isLinkedToTable()) {
-                    session.removeAtCommitStop(v2);
-                }
-                if (v != v2) {
-                    row.setValue(i, v2);
+                if (v instanceof ValueLob) {
+                    ValueLob lob = ((ValueLob) v).copy(database, getId());
+                    session.removeAtCommitStop(lob);
+                    if (v != lob) {
+                        row.setValue(i, lob);
+                    }
                 }
             }
         }
@@ -137,8 +138,8 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
         if (mvTable.getContainsLargeObject()) {
             for (int i = 0, len = row.getColumnCount(); i < len; i++) {
                 Value v = row.getValue(i);
-                if (v.isLinkedToTable()) {
-                    session.removeAtCommit(v);
+                if (v instanceof ValueLob) {
+                    session.removeAtCommit((ValueLob) v);
                 }
             }
         }
@@ -168,16 +169,16 @@ public class MVPrimaryIndex extends BaseIndex implements MVIndex<Long,SearchRow>
             for (int i = 0, len = oldRow.getColumnCount(); i < len; i++) {
                 Value oldValue = oldRow.getValue(i);
                 Value newValue = newRow.getValue(i);
-                if(oldValue != newValue) {
-                    if (oldValue.isLinkedToTable()) {
-                        session.removeAtCommit(oldValue);
+                if (oldValue != newValue) {
+                    if (oldValue instanceof ValueLob) {
+                        session.removeAtCommit((ValueLob) oldValue);
                     }
-                    Value v2 = newValue.copy(database, getId());
-                    if (v2.isLinkedToTable()) {
-                        session.removeAtCommitStop(v2);
-                    }
-                    if (newValue != v2) {
-                        newRow.setValue(i, v2);
+                    if (newValue instanceof ValueLob) {
+                        ValueLob lob = ((ValueLob) newValue).copy(database, getId());
+                        session.removeAtCommitStop(lob);
+                        if (newValue != lob) {
+                            newRow.setValue(i, lob);
+                        }
                     }
                 }
             }

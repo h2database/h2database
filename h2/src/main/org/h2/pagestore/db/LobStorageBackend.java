@@ -582,13 +582,13 @@ public class LobStorageBackend implements LobStorageInterface {
     }
 
     @Override
-    public Value createBlob(InputStream in, long maxLength) {
+    public ValueLob createBlob(InputStream in, long maxLength) {
         init();
         return addLob(in, maxLength, Value.BLOB, null);
     }
 
     @Override
-    public Value createClob(Reader reader, long maxLength) {
+    public ValueLob createClob(Reader reader, long maxLength) {
         init();
         long max = maxLength == -1 ? Long.MAX_VALUE : maxLength;
         CountingReaderInputStream in = new CountingReaderInputStream(reader, max);

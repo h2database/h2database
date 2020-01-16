@@ -9,7 +9,6 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import org.h2.value.Value;
 import org.h2.value.ValueLob;
 
 /**
@@ -78,7 +77,7 @@ public class LobStorageFrontend implements LobStorageInterface {
     }
 
     @Override
-    public Value createBlob(InputStream in, long maxLength) {
+    public ValueLob createBlob(InputStream in, long maxLength) {
         // need to use a temp file, because the input stream could come from
         // the same database, which would create a weird situation (trying
         // to read a block while writing something)
@@ -93,7 +92,7 @@ public class LobStorageFrontend implements LobStorageInterface {
      * @return the LOB
      */
     @Override
-    public Value createClob(Reader reader, long maxLength) {
+    public ValueLob createClob(Reader reader, long maxLength) {
         // need to use a temp file, because the input stream could come from
         // the same database, which would create a weird situation (trying
         // to read a block while writing something)

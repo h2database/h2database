@@ -42,6 +42,7 @@ import org.h2.value.CompareMode;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
+import org.h2.value.ValueLob;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTimestampTimeZone;
 
@@ -820,8 +821,9 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     }
 
     @Override
-    public void addTemporaryLob(Value v) {
+    public ValueLob addTemporaryLob(ValueLob v) {
         // do nothing
+        return v;
     }
 
     @Override

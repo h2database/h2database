@@ -13,6 +13,7 @@ import org.h2.message.DbException;
 import org.h2.value.Transfer;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueLob;
 
 /**
  * A client side (remote) parameter.
@@ -30,8 +31,8 @@ public class ParameterRemote implements ParameterInterface {
 
     @Override
     public void setValue(Value newValue, boolean closeOld) {
-        if (closeOld && value != null) {
-            value.remove();
+        if (closeOld && value instanceof ValueLob) {
+            ((ValueLob) value).remove();
         }
         value = newValue;
     }

@@ -141,7 +141,7 @@ public class LobStorageMap implements LobStorageInterface {
     }
 
     @Override
-    public Value createBlob(InputStream in, long maxLength) {
+    public ValueLob createBlob(InputStream in, long maxLength) {
         init();
         int type = Value.BLOB;
         try {
@@ -170,7 +170,7 @@ public class LobStorageMap implements LobStorageInterface {
     }
 
     @Override
-    public Value createClob(Reader reader, long maxLength) {
+    public ValueLob createClob(Reader reader, long maxLength) {
         init();
         int type = Value.CLOB;
         try {

@@ -106,7 +106,7 @@ public class ValueLob extends Value {
      * @param v2 second LOB value
      * @return result of comparison
      */
-    private static int compare(Value v1, Value v2) {
+    private static int compare(ValueLob v1, ValueLob v2) {
         int valueType = v1.getValueType();
         assert valueType == v2.getValueType();
         byte[] small1 = v1.getSmall(), small2 = v2.getSmall();
@@ -366,17 +366,24 @@ public class ValueLob extends Value {
         return ValueLob.createSmallLob(CLOB, getString().getBytes(StandardCharsets.UTF_8));
     }
 
-    @Override
+    /**
+     * Check if this value is linked to a specific table. For values that are
+     * kept fully in memory, this method returns false.
+     *
+     * @return true if it is
+     */
     public boolean isLinkedToTable() {
-        return small == null &&
-                tableId >= 0;
+        return small == null && tableId >= 0;
     }
 
     public boolean isStored() {
         return small == null && fileName == null;
     }
 
-    @Override
+    /**
+     * Remove the underlying resource, if any. For values that are kept fully in
+     * memory this method has no effect.
+     */
     public void remove() {
         if (fileName != null) {
             if (tempFile != null) {
@@ -393,19 +400,26 @@ public class ValueLob extends Value {
         }
     }
 
-    @Override
-    public Value copy(DataHandler database, int tableId) {
+    /**
+     * Copy a large value, to be used in the given table. For values that are
+     * kept fully in memory this method has no effect.
+     *
+     * @param database the data handler
+     * @param tableId the table where this object is used
+     * @return the new value or itself
+     */
+    public ValueLob copy(DataHandler database, int tableId) {
         if (small == null) {
             return handler.getLobStorage().copyLob(this, tableId, precision);
         } else if (small.length > database.getMaxLengthInplaceLob()) {
             LobStorageInterface s = database.getLobStorage();
-            Value v;
+            ValueLob v;
             if (valueType == Value.BLOB) {
                 v = s.createBlob(getInputStream(), precision);
             } else {
                 v = s.createClob(getReader(), precision);
             }
-            Value v2 = v.copy(database, tableId);
+            ValueLob v2 = v.copy(database, tableId);
             v.remove();
             return v2;
         }
@@ -417,7 +431,6 @@ public class ValueLob extends Value {
      *
      * @return the table id
      */
-    @Override
     public int getTableId() {
         return tableId;
     }
@@ -489,14 +502,14 @@ public class ValueLob extends Value {
 
     @Override
     public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
-        ValueLob v2 = (ValueLob) v;
         if (v == this) {
             return 0;
         }
+        ValueLob v2 = (ValueLob) v;
         if (lobId == v2.lobId && small == null && v2.small == null) {
             return 0;
         }
-        return compare(this, v);
+        return compare(this, v2);
     }
 
     @Override
@@ -597,7 +610,6 @@ public class ValueLob extends Value {
      *
      * @return the data
      */
-    @Override
     public byte[] getSmall() {
         return small;
     }
@@ -631,7 +643,6 @@ public class ValueLob extends Value {
      *
      * @return the value
      */
-    @Override
     public ValueLob copyToTemp() {
         return this;
     }
@@ -642,7 +653,6 @@ public class ValueLob extends Value {
      *
      * @return the value (this for small objects)
      */
-    @Override
     public ValueLob copyToResult() {
         if (handler == null) {
             return this;

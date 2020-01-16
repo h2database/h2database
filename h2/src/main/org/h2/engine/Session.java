@@ -55,9 +55,9 @@ import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TimeZoneProvider;
 import org.h2.util.Utils;
-import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
+import org.h2.value.ValueLob;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
@@ -116,7 +116,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private String currentSchemaName;
     private String[] schemaSearchPath;
     private Trace trace;
-    private HashMap<String, Value> removeLobMap;
+    private HashMap<String, ValueLob> removeLobMap;
     private int systemIdentifier;
     private HashMap<String, Procedure> procedures;
     private boolean undoLogEnabled = true;
@@ -168,7 +168,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     /**
      * The temporary LOBs that need to be removed on commit.
      */
-    private ArrayList<Value> temporaryLobs;
+    private ArrayList<ValueLob> temporaryLobs;
 
     private Transaction transaction;
     private final AtomicReference<State> state = new AtomicReference<>(State.INIT);
@@ -283,14 +283,14 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         if (value == ValueNull.INSTANCE) {
             old = variables.remove(name);
         } else {
-            // link LOB values, to make sure we have our own object
-            value = value.copy(database,
-                    LobStorageFrontend.TABLE_ID_SESSION_VARIABLE);
+            if (value instanceof ValueLob) {
+                // link LOB values, to make sure we have our own object
+                value = ((ValueLob) value).copy(database, LobStorageFrontend.TABLE_ID_SESSION_VARIABLE);
+            }
             old = variables.put(name, value);
         }
-        if (old != null) {
-            // remove the old value (in case it is a lob)
-            old.remove();
+        if (old instanceof ValueLob) {
+            ((ValueLob) old).remove();
         }
     }
 
@@ -701,7 +701,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     private void removeTemporaryLobs(boolean onTimeout) {
         assert this != getDatabase().getLobSession() || Thread.holdsLock(this) || Thread.holdsLock(getDatabase());
         if (temporaryLobs != null) {
-            for (Value v : temporaryLobs) {
+            for (ValueLob v : temporaryLobs) {
                 if (!v.isLinkedToTable()) {
                     v.remove();
                 }
@@ -716,7 +716,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                 if (onTimeout && tv.created >= keepYoungerThan) {
                     break;
                 }
-                Value v = temporaryResultLobs.removeFirst().value;
+                ValueLob v = temporaryResultLobs.removeFirst().value;
                 if (!v.isLinkedToTable()) {
                     v.remove();
                 }
@@ -737,7 +737,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                 // lobs if the commit record is not written
                 database.flush();
             }
-            for (Value v : removeLobMap.values()) {
+            for (ValueLob v : removeLobMap.values()) {
                 v.remove();
             }
             removeLobMap = null;
@@ -1395,15 +1395,13 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      *
      * @param v the value
      */
-    public void removeAtCommit(Value v) {
-        final String key = v.toString();
-        if (!v.isLinkedToTable()) {
-            throw DbException.throwInternalError(key);
+    public void removeAtCommit(ValueLob v) {
+        if (v.isLinkedToTable()) {
+            if (removeLobMap == null) {
+                removeLobMap = new HashMap<>();
+            }
+            removeLobMap.put(v.toString(), v);
         }
-        if (removeLobMap == null) {
-            removeLobMap = new HashMap<>();
-        }
-        removeLobMap.put(key, v);
     }
 
     /**
@@ -1411,8 +1409,8 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
      *
      * @param v the value
      */
-    public void removeAtCommitStop(Value v) {
-        if (removeLobMap != null) {
+    public void removeAtCommitStop(ValueLob v) {
+        if (v.isLinkedToTable() && removeLobMap != null) {
             removeLobMap.remove(v.toString());
         }
     }
@@ -1834,12 +1832,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     }
 
     @Override
-    public void addTemporaryLob(Value v) {
-        if (!DataType.isLargeObject(v.getValueType())) {
-            return;
-        }
-        if (v.getTableId() == LobStorageFrontend.TABLE_RESULT
-                || v.getTableId() == LobStorageFrontend.TABLE_TEMP) {
+    public ValueLob addTemporaryLob(ValueLob v) {
+        int tableId = v.getTableId();
+        if (tableId == LobStorageFrontend.TABLE_RESULT || tableId == LobStorageFrontend.TABLE_TEMP) {
             if (temporaryResultLobs == null) {
                 temporaryResultLobs = new LinkedList<>();
             }
@@ -1850,6 +1845,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
             }
             temporaryLobs.add(v);
         }
+        return v;
     }
 
     @Override
@@ -1896,16 +1892,16 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                     if (oldRow != null) {
                         for (int i = 0, len = oldRow.getColumnCount(); i < len; i++) {
                             Value v = oldRow.getValue(i);
-                            if (v.isLinkedToTable()) {
-                                removeAtCommit(v);
+                            if (v instanceof ValueLob) {
+                                removeAtCommit((ValueLob) v);
                             }
                         }
                     }
                     if (newRow != null) {
                         for (int i = 0, len = newRow.getColumnCount(); i < len; i++) {
                             Value v = newRow.getValue(i);
-                            if (v.isLinkedToTable()) {
-                                removeAtCommitStop(v);
+                            if (v instanceof ValueLob) {
+                                removeAtCommitStop((ValueLob) v);
                             }
                         }
                     }
@@ -1949,7 +1945,7 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
     }
 
     /**
-     * An object with a timeout.
+     * An LOB object with a timeout.
      */
     public static class TimeoutValue {
 
@@ -1961,9 +1957,9 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
         /**
          * The value.
          */
-        final Value value;
+        final ValueLob value;
 
-        TimeoutValue(Value v) {
+        TimeoutValue(ValueLob v) {
             this.value = v;
         }
 

@@ -16,6 +16,7 @@ import org.h2.table.Table;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
+import org.h2.value.ValueLob;
 
 /**
  * A list of rows. If the list grows too large, it is buffered to disk
@@ -65,16 +66,17 @@ public class RowList implements AutoCloseable {
             } else {
                 buff.writeByte((byte) 1);
                 if (DataType.isLargeObject(v.getValueType())) {
+                    ValueLob lob = (ValueLob) v;
                     // need to keep a reference to temporary lobs,
                     // otherwise the temp file is deleted
-                    if (v.getSmall() == null && v.getTableId() == 0) {
+                    if (lob.getSmall() == null && lob.getTableId() == 0) {
                         if (lobs == null) {
                             lobs = Utils.newSmallArrayList();
                         }
                         // need to create a copy, otherwise,
                         // if stored multiple times, it may be renamed
                         // and then not found
-                        v = v.copyToTemp();
+                        v = lob.copyToTemp();
                         lobs.add(v);
                     }
                 }
@@ -175,11 +177,14 @@ public class RowList implements AutoCloseable {
                 v = null;
             } else {
                 v = buff.readValue();
-                if (v.isLinkedToTable()) {
-                    // the table id is 0 if it was linked when writing
-                    // a temporary entry
-                    if (v.getTableId() == 0) {
-                        session.removeAtCommit(v);
+                if (v instanceof ValueLob) {
+                    ValueLob lob = (ValueLob) v;
+                    if (lob.isLinkedToTable()) {
+                        // the table id is 0 if it was linked when writing
+                        // a temporary entry
+                        if (lob.getTableId() == 0) {
+                            session.removeAtCommit(lob);
+                        }
                     }
                 }
             }

@@ -1833,10 +1833,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
         if (length <= 0) {
             length = -1;
         }
-        Value v = session.getDataHandler().getLobStorage().createClob(x,
-                length);
-        session.addTemporaryLob(v);
-        return v;
+        return session.addTemporaryLob(session.getDataHandler().getLobStorage().createClob(x, length));
     }
 
     /**
@@ -1854,10 +1851,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
         if (length <= 0) {
             length = -1;
         }
-        Value v = session.getDataHandler().getLobStorage().createBlob(x,
-                length);
-        session.addTemporaryLob(v);
-        return v;
+        return session.addTemporaryLob(session.getDataHandler().getLobStorage().createBlob(x, length));
     }
 
     /**

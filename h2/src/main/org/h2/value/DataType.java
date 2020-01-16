@@ -20,6 +20,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.SQLType;
+import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
@@ -48,6 +49,7 @@ import org.h2.jdbc.JdbcClob;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.jdbc.JdbcLob;
 import org.h2.message.DbException;
+import org.h2.store.DataHandler;
 import org.h2.util.JSR310Utils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.LegacyDateTimeUtils;
@@ -723,11 +725,9 @@ public class DataType {
                     if (in == null) {
                         v = ValueNull.INSTANCE;
                     } else {
-                        v = session.getDataHandler().getLobStorage().createClob(new BufferedReader(in), -1);
+                        v = session.addTemporaryLob(
+                                session.getDataHandler().getLobStorage().createClob(new BufferedReader(in), -1));
                     }
-                }
-                if (session != null) {
-                    session.addTemporaryLob(v);
                 }
                 break;
             }
@@ -737,8 +737,11 @@ public class DataType {
                     return buff == null ? ValueNull.INSTANCE : ValueLob.createSmallLob(Value.BLOB, buff);
                 }
                 InputStream in = rs.getBinaryStream(columnIndex);
-                v = (in == null) ? ValueNull.INSTANCE : session.getDataHandler().getLobStorage().createBlob(in, -1);
-                session.addTemporaryLob(v);
+                if (in == null) {
+                    v = ValueNull.INSTANCE;
+                } else {
+                    v = session.addTemporaryLob(session.getDataHandler().getLobStorage().createBlob(in, -1));
+                }
                 break;
             }
             case Value.JAVA_OBJECT: {
@@ -1252,27 +1255,19 @@ public class DataType {
      * @param type the value type
      * @return the value
      */
-    public static Value convertToValue(SessionInterface session, Object x,
-            int type) {
-        Value v = convertToValue1(session, x, type);
-        if (session != null) {
-            session.addTemporaryLob(v);
-        }
-        return v;
-    }
-
-    private static Value convertToValue1(SessionInterface session, Object x,
-            int type) {
+    public static Value convertToValue(SessionInterface session, Object x, int type) {
         if (x == null) {
             return ValueNull.INSTANCE;
-        }
-        if (type == Value.JAVA_OBJECT) {
+        } else if (type == Value.JAVA_OBJECT) {
             return ValueJavaObject.getNoCopy(x, null, session.getDataHandler());
-        }
-        if (x instanceof String) {
+        } else if (x instanceof String) {
             return ValueString.get((String) x);
         } else if (x instanceof Value) {
-            return (Value) x;
+            Value v = (Value) x;
+            if (v instanceof ValueLob) {
+                session.addTemporaryLob((ValueLob) v);
+            }
+            return v;
         } else if (x instanceof Long) {
             return ValueLong.get((Long) x);
         } else if (x instanceof Integer) {
@@ -1301,41 +1296,8 @@ public class DataType {
             return LegacyDateTimeUtils.fromTimestamp(session, null, (Timestamp) x);
         } else if (x instanceof java.util.Date) {
             return LegacyDateTimeUtils.fromTimestamp(session, ((java.util.Date) x).getTime(), 0);
-        } else if (x instanceof java.io.Reader) {
-            Reader r = new BufferedReader((java.io.Reader) x);
-            return session.getDataHandler().getLobStorage().
-                    createClob(r, -1);
-        } else if (x instanceof java.sql.Clob) {
-            try {
-                java.sql.Clob clob = (java.sql.Clob) x;
-                Reader r = new BufferedReader(clob.getCharacterStream());
-                return session.getDataHandler().getLobStorage().
-                        createClob(r, clob.length());
-            } catch (SQLException e) {
-                throw DbException.convert(e);
-            }
-        } else if (x instanceof java.io.InputStream) {
-            return session.getDataHandler().getLobStorage().
-                    createBlob((java.io.InputStream) x, -1);
-        } else if (x instanceof java.sql.Blob) {
-            try {
-                java.sql.Blob blob = (java.sql.Blob) x;
-                return session.getDataHandler().getLobStorage().
-                        createBlob(blob.getBinaryStream(), blob.length());
-            } catch (SQLException e) {
-                throw DbException.convert(e);
-            }
-        } else if (x instanceof java.sql.SQLXML) {
-            try {
-                java.sql.SQLXML clob = (java.sql.SQLXML) x;
-                Reader r = new BufferedReader(clob.getCharacterStream());
-                return session.getDataHandler().getLobStorage().
-                        createClob(r, -1);
-            } catch (SQLException e) {
-                throw DbException.convert(e);
-            }
-        } else if (x instanceof java.sql.Array) {
-            java.sql.Array array = (java.sql.Array) x;
+        } else if (x instanceof Array) {
+            Array array = (Array) x;
             try {
                 return convertToValue(session, array.getArray(), Value.ARRAY);
             } catch (SQLException e) {
@@ -1383,8 +1345,47 @@ public class DataType {
         } else if (clazz == Duration.class) {
             return JSR310Utils.durationToValue(x);
         } else {
-            return ValueJavaObject.getNoCopy(x, null, session.getDataHandler());
+            return convertToValueLobOrObject(session, x);
         }
+    }
+
+    private static Value convertToValueLobOrObject(SessionInterface session, Object x) {
+        DataHandler dataHandler = session.getDataHandler();
+        ValueLob lob;
+        if (x instanceof Reader) {
+            Reader r = (Reader) x;
+            if (!(r instanceof BufferedReader)) {
+                r = new BufferedReader(r);
+            }
+            lob = dataHandler.getLobStorage().createClob(r, -1);
+        } else if (x instanceof Clob) {
+            try {
+                Clob clob = (Clob) x;
+                Reader r = new BufferedReader(clob.getCharacterStream());
+                lob = dataHandler.getLobStorage().createClob(r, clob.length());
+            } catch (SQLException e) {
+                throw DbException.convert(e);
+            }
+        } else if (x instanceof InputStream) {
+            lob = dataHandler.getLobStorage().createBlob((InputStream) x, -1);
+        } else if (x instanceof Blob) {
+            try {
+                Blob blob = (Blob) x;
+                lob = dataHandler.getLobStorage().createBlob(blob.getBinaryStream(), blob.length());
+            } catch (SQLException e) {
+                throw DbException.convert(e);
+            }
+        } else if (x instanceof SQLXML) {
+            try {
+                lob = dataHandler.getLobStorage().createClob(
+                        new BufferedReader(((SQLXML) x).getCharacterStream()), -1);
+            } catch (SQLException e) {
+                throw DbException.convert(e);
+            }
+        } else {
+            return ValueJavaObject.getNoCopy(x, null, dataHandler);
+        }
+        return session.addTemporaryLob(lob);
     }
 
 

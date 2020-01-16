@@ -1779,37 +1779,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
     }
 
     /**
-     * Copy a large value, to be used in the given table. For values that are
-     * kept fully in memory this method has no effect.
-     *
-     * @param handler the data handler
-     * @param tableId the table where this object is used
-     * @return the new value or itself
-     */
-    @SuppressWarnings("unused")
-    public Value copy(DataHandler handler, int tableId) {
-        return this;
-    }
-
-    /**
-     * Check if this value is linked to a specific table. For values that are
-     * kept fully in memory, this method returns false.
-     *
-     * @return true if it is
-     */
-    public boolean isLinkedToTable() {
-        return false;
-    }
-
-    /**
-     * Remove the underlying resource, if any. For values that are kept fully in
-     * memory this method has no effect.
-     */
-    public void remove() {
-        // nothing to do
-    }
-
-    /**
      * Check if the precision is smaller or equal than the given precision.
      *
      * @param precision the maximum precision
@@ -1835,43 +1804,6 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL {
     protected final DbException getUnsupportedExceptionForOperation(String op) {
         return DbException.getUnsupportedException(
                 DataType.getDataType(getValueType()).name + " " + op);
-    }
-
-    /**
-     * Get the table (only for LOB object).
-     *
-     * @return the table id
-     */
-    public int getTableId() {
-        return 0;
-    }
-
-    /**
-     * Get the byte array.
-     *
-     * @return the byte array
-     */
-    public byte[] getSmall() {
-        return null;
-    }
-
-    /**
-     * Copy this value to a temporary file if necessary.
-     *
-     * @return the new value
-     */
-    public Value copyToTemp() {
-        return this;
-    }
-
-    /**
-     * Create an independent copy of this value if needed, that will be bound to
-     * a result. If the original row is removed, this copy is still readable.
-     *
-     * @return the value (this for small objects)
-     */
-    public Value copyToResult() {
-        return this;
     }
 
     /**
